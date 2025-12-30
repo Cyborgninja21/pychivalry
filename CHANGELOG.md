@@ -26,7 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Reference pygls repository cloned to pygls-workspace/
 
 ### Technical Details
-- Python 3.8+ support
+- Python 3.9+ support
 - pygls 2.0.0 for LSP implementation
 - TypeScript VS Code extension
 - Apache 2.0 license

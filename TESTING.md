@@ -108,7 +108,7 @@ When you open this file in VS Code with the extension active:
 ## Troubleshooting
 
 ### Server Not Starting
-- Verify Python installation: `python --version` (should be 3.8+)
+- Verify Python installation: `python --version` (should be 3.9+)
 - Check pychivalry is installed: `pip list | grep pychivalry`
 - Try running directly: `python -m pychivalry.server`
 

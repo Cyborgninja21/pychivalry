@@ -25,7 +25,7 @@ Language support extension for Crusader Kings 3 scripting language, powered by a
 
 ## Requirements
 
-- Python 3.8 or higher
+- Python 3.9 or higher
 - The `pychivalry` LSP server installed: `pip install -e path/to/pychivalry`
 
 ## Installation

@@ -26,7 +26,7 @@ pychivalry is a language server designed to enhance the modding experience for C
 
 ### Prerequisites
 
-- Python 3.8 or higher
+- Python 3.9 or higher
 - VS Code (for the editor extension)
 - Node.js and npm (for building the VS Code extension)
 
