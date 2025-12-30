@@ -3,9 +3,11 @@
 node_modules
 out
 src
+test-workspace
 *.vsix
 .gitignore
 .eslintrc.json
+.prettierrc
 tsconfig.json
 webpack.config.js
 *.log

@@ -1,7 +1,37 @@
-node_modules/
+# Build outputs
 out/
 dist/
+
+# Dependencies
+node_modules/
+
+# VS Code test downloads (can be 500MB+)
+.vscode-test/
+
+# Packaged extension
 *.vsix
+
+# Logs
 *.log
+npm-debug.log*
+
+# OS files
 .DS_Store
+Thumbs.db
+
+# Editor/IDE
 .vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# TypeScript incremental compilation
+*.tsbuildinfo
+
+# ESLint cache
+.eslintcache
+
+# Coverage reports
+coverage/
+.nyc_output/

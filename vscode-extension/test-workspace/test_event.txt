@@ -1,0 +1,40 @@
+namespace = test
+
+# Test event for extension testing
+test.0001 = {
+    type = character_event
+    title = test.0001.t
+    desc = test.0001.desc
+    theme = intrigue
+    
+    left_portrait = root
+    
+    trigger = {
+        is_adult = yes
+        is_ruler = yes
+    }
+    
+    immediate = {
+        root = { save_scope_as = main_character }
+    }
+    
+    option = {
+        name = test.0001.a
+        add_gold = 100
+    }
+    
+    option = {
+        name = test.0001.b
+        add_prestige = 50
+    }
+}
+
+test.0002 = {
+    type = character_event
+    title = test.0002.t
+    desc = test.0002.desc
+    
+    option = {
+        name = test.0002.a
+    }
+}

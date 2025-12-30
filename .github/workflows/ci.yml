@@ -47,7 +47,11 @@ jobs:
         pytest tests/ -v --tb=short
 
   extension:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
     
     steps:
     - uses: actions/checkout@v4
@@ -59,8 +63,32 @@ jobs:
     
     - name: Install extension dependencies
       working-directory: vscode-extension
-      run: npm install
+      run: npm ci
+    
+    - name: Lint extension
+      working-directory: vscode-extension
+      run: npm run lint
+    
+    - name: Format check
+      working-directory: vscode-extension
+      run: npm run format-check
     
     - name: Compile extension
       working-directory: vscode-extension
       run: npm run compile
+    
+    - name: Compile tests
+      working-directory: vscode-extension
+      run: npm run compile-tests
+    
+    - name: Run extension tests (Linux)
+      if: runner.os == 'Linux'
+      working-directory: vscode-extension
+      run: xvfb-run -a npm test
+      env:
+        DISPLAY: ':99.0'
+    
+    - name: Run extension tests (macOS/Windows)
+      if: runner.os != 'Linux'
+      working-directory: vscode-extension
+      run: npm test

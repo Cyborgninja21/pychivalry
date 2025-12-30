@@ -148,12 +148,12 @@ pychivalry/pyvenv.cfg
 
 # Node.js
 node_modules/
-package-lock.json
 
-# VS Code Extension outputs
+# VS Code Extension outputs (also in vscode-extension/.gitignore)
 vscode-extension/dist/
 vscode-extension/out/
 vscode-extension/node_modules/
+vscode-extension/.vscode-test/
 *.vsix
 
 # Editor specific
