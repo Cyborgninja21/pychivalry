@@ -1,0 +1,36 @@
+# Valid CK3 Event for Testing
+namespace = test_mod
+
+test_mod.0001 = {
+    type = character_event
+    title = test_mod.0001.t
+    desc = test_mod.0001.desc
+    theme = intrigue
+    
+    left_portrait = root
+    
+    trigger = {
+        is_adult = yes
+        is_ruler = yes
+        age >= 16
+    }
+    
+    immediate = {
+        save_scope_as = main_character
+        add_gold = 100
+    }
+    
+    option = {
+        name = test_mod.0001.a
+        add_prestige = 50
+        trigger_event = {
+            id = test_mod.0002
+            days = 30
+        }
+    }
+    
+    option = {
+        name = test_mod.0001.b
+        add_piety = 25
+    }
+}
