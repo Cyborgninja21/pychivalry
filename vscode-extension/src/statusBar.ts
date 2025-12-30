@@ -19,25 +19,25 @@ export class CK3StatusBar {
         this.state = state;
         switch (state) {
             case 'starting':
-                this.statusBarItem.text = '$(sync~spin) CK3';
-                this.statusBarItem.tooltip = 'CK3 Language Server starting...';
+                this.statusBarItem.text = '$(sync~spin) Crusader Kings 3';
+                this.statusBarItem.tooltip = 'Crusader Kings 3 Language Server starting...';
                 this.statusBarItem.backgroundColor = undefined;
                 break;
             case 'running':
-                this.statusBarItem.text = '$(check) CK3';
-                this.statusBarItem.tooltip = 'CK3 Language Server running';
+                this.statusBarItem.text = '$(check) Crusader Kings 3';
+                this.statusBarItem.tooltip = 'Crusader Kings 3 Language Server running';
                 this.statusBarItem.backgroundColor = undefined;
                 break;
             case 'stopped':
-                this.statusBarItem.text = '$(circle-slash) CK3';
-                this.statusBarItem.tooltip = 'CK3 Language Server stopped';
+                this.statusBarItem.text = '$(circle-slash) Crusader Kings 3';
+                this.statusBarItem.tooltip = 'Crusader Kings 3 Language Server stopped';
                 this.statusBarItem.backgroundColor = new vscode.ThemeColor(
                     'statusBarItem.warningBackground'
                 );
                 break;
             case 'error':
-                this.statusBarItem.text = '$(error) CK3';
-                this.statusBarItem.tooltip = message || 'CK3 Language Server error';
+                this.statusBarItem.text = '$(error) Crusader Kings 3';
+                this.statusBarItem.tooltip = message || 'Crusader Kings 3 Language Server error';
                 this.statusBarItem.backgroundColor = new vscode.ThemeColor(
                     'statusBarItem.errorBackground'
                 );

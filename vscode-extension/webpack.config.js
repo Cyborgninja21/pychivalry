@@ -29,5 +29,11 @@ module.exports = {
                 ]
             }
         ]
-    }
+    },
+    ignoreWarnings: [
+        {
+            module: /vscode-languageserver-types/,
+            message: /Critical dependency/,
+        },
+    ],
 };

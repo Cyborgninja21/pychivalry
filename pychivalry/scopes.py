@@ -280,6 +280,11 @@ def parse_list_iterator(identifier: str) -> Optional[Tuple[str, str]]:
         Tuple of (prefix, base) if valid, None otherwise
         Example: 'every_vassal' -> ('every_', 'vassal')
     """
+    # Special cases that look like list iterators but aren't
+    NON_LIST_ITERATORS = {'random_list', 'ordered_list', 'any_of', 'every_one'}
+    if identifier in NON_LIST_ITERATORS:
+        return None
+    
     for prefix in get_list_prefixes():
         if identifier.startswith(prefix):
             base = identifier[len(prefix):]

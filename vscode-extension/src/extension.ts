@@ -17,7 +17,7 @@ let statusBar: CK3StatusBar;
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
     // Create output channel for logging
-    outputChannel = vscode.window.createOutputChannel('CK3 Language Server');
+    outputChannel = vscode.window.createOutputChannel('Crusader Kings 3 Language Server');
     context.subscriptions.push(outputChannel);
 
     // Create status bar
@@ -64,7 +64,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         vscode.workspace.onDidChangeConfiguration(async (e) => {
             if (
                 e.affectsConfiguration('ck3LanguageServer.pythonPath') ||
-                e.affectsConfiguration('ck3LanguageServer.enable')
+                e.affectsConfiguration('ck3LanguageServer.enable') ||
+                e.affectsConfiguration('ck3LanguageServer.logLevel')
             ) {
                 outputChannel.appendLine('Configuration changed, restarting server...');
                 await deactivate();
@@ -118,13 +119,15 @@ async function startServer(context: vscode.ExtensionContext): Promise<void> {
 
     const args = config.get<string[]>('args', []);
     const traceLevel = config.get<string>('trace.server', 'off');
+    const logLevel = config.get<string>('logLevel', 'info');
 
     outputChannel.appendLine(`Server args: ${args.join(' ')}`);
+    outputChannel.appendLine(`Log level: ${logLevel}`);
 
     // Server options
     const serverOptions: ServerOptions = {
         command: pythonPath,
-        args: ['-m', 'pychivalry.server', ...args],
+        args: ['-m', 'pychivalry.server', '--log-level', logLevel, ...args],
         options: {
             env: { ...process.env },
         },

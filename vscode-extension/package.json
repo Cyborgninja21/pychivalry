@@ -37,7 +37,7 @@
         "id": "ck3",
         "aliases": [
           "Crusader Kings 3",
-          "ck3"
+          "CK3"
         ],
         "extensions": [
           ".txt",
@@ -132,6 +132,18 @@
           "default": "off",
           "description": "Traces the communication between VS Code and the language server",
           "scope": "window"
+        },
+        "ck3LanguageServer.logLevel": {
+          "type": "string",
+          "enum": [
+            "debug",
+            "info",
+            "warning",
+            "error"
+          ],
+          "default": "info",
+          "description": "Log level for the language server output",
+          "scope": "resource"
         },
         "ck3LanguageServer.enable": {
           "type": "boolean",

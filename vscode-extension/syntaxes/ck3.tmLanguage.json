@@ -1,6 +1,6 @@
 {
     "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
-    "name": "CK3",
+    "name": "Crusader Kings 3",
     "scopeName": "source.ck3",
     "patterns": [
         { "include": "#comments" },

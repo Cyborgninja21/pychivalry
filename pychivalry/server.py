@@ -77,14 +77,29 @@ from .diagnostics import collect_all_diagnostics
 # Import hover
 from .hover import create_hover_response
 
-# Configure logging for debugging and monitoring
-# Logs help track server activity and diagnose issues
-# Output goes to stderr to avoid interfering with LSP communication on stdout
-logging.basicConfig(
-    level=logging.INFO,  # INFO level shows important events (change to DEBUG for verbose logging)
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-)
+# Logger will be configured in main() after parsing arguments
 logger = logging.getLogger(__name__)
+
+
+def configure_logging(level: str = "info") -> None:
+    """
+    Configure logging for the language server.
+    
+    Args:
+        level: Log level string (debug, info, warning, error)
+    """
+    level_map = {
+        "debug": logging.DEBUG,
+        "info": logging.INFO,
+        "warning": logging.WARNING,
+        "error": logging.ERROR,
+    }
+    log_level = level_map.get(level.lower(), logging.INFO)
+    
+    logging.basicConfig(
+        level=log_level,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    )
 
 
 class CK3LanguageServer(LanguageServer):
@@ -95,6 +110,7 @@ class CK3LanguageServer(LanguageServer):
     - Document AST tracking (updated on open/change)
     - Cross-document symbol indexing
     - Parser integration with document lifecycle
+    - Workspace scanning for scripted effects/triggers
     """
     
     def __init__(self, *args, **kwargs):
@@ -104,6 +120,48 @@ class CK3LanguageServer(LanguageServer):
         self.document_asts: Dict[str, List[CK3Node]] = {}
         # Cross-document index for navigation
         self.index = DocumentIndex()
+        # Track whether workspace has been scanned
+        self._workspace_scanned = False
+    
+    def _scan_workspace_folders(self):
+        """
+        Scan all workspace folders for scripted effects and triggers.
+        
+        This is called on first document open to index all custom effects
+        and triggers in the mod's common/ folder.
+        """
+        if self._workspace_scanned:
+            return
+        
+        try:
+            # Get workspace folders
+            workspace_folders = []
+            if self.workspace.folders:
+                for folder in self.workspace.folders:
+                    # Convert URI to path
+                    folder_uri = folder.uri if hasattr(folder, 'uri') else folder
+                    if folder_uri.startswith('file:///'):
+                        # Convert file URI to path
+                        from urllib.parse import unquote
+                        path = unquote(folder_uri[8:])  # Remove 'file:///'
+                        # On Windows, handle drive letter
+                        if len(path) > 2 and path[0] == '/' and path[2] == ':':
+                            path = path[1:]  # Remove leading slash
+                        workspace_folders.append(path)
+                    else:
+                        workspace_folders.append(folder_uri)
+            
+            if workspace_folders:
+                logger.info(f"Scanning {len(workspace_folders)} workspace folder(s) for scripted effects/triggers")
+                self.index.scan_workspace(workspace_folders)
+            else:
+                logger.warning("No workspace folders found for scanning")
+            
+            self._workspace_scanned = True
+            
+        except Exception as e:
+            logger.error(f"Error scanning workspace folders: {e}", exc_info=True)
+            self._workspace_scanned = True  # Don't retry on error
     
     def parse_and_index_document(self, doc: TextDocument):
         """
@@ -183,16 +241,16 @@ def did_open(ls: CK3LanguageServer, params: types.DidOpenTextDocumentParams):
     """
     logger.info(f"Document opened: {params.text_document.uri}")
     
+    # On first document open, scan workspace if not already done
+    if not ls._workspace_scanned:
+        ls._scan_workspace_folders()
+    
     # Parse the document and update the index
     doc = ls.workspace.get_text_document(params.text_document.uri)
     ls.parse_and_index_document(doc)
     
     # Publish diagnostics for immediate feedback
     ls.publish_diagnostics_for_document(doc)
-    
-    # Show a message in the editor to confirm the server is working
-    # MessageType.Info = informational popup/notification
-    ls.show_message("CK3 Language Server is active!", types.MessageType.Info)
 
 
 @server.feature(types.TEXT_DOCUMENT_DID_CHANGE)
@@ -451,6 +509,126 @@ def hover(ls: CK3LanguageServer, params: types.HoverParams):
         return None
 
 
+@server.feature(types.TEXT_DOCUMENT_DEFINITION)
+def definition(ls: CK3LanguageServer, params: types.DefinitionParams):
+    """
+    Provide Go-to-Definition for CK3 constructs.
+    
+    This feature allows users to Ctrl+Click (or F12) on symbols to navigate
+    to their definitions. Supports:
+    - Localization keys -> Jump to .yml file definition
+    - Event IDs -> Jump to event definition
+    - Custom scripted effects -> Jump to effect definition
+    - Custom scripted triggers -> Jump to trigger definition
+    - Saved scopes -> Jump to save_scope_as location
+    
+    Args:
+        ls: The CK3 language server instance
+        params: Contains information about the definition request:
+            - text_document.uri: The file where definition was requested
+            - position.line: Line number (0-indexed)
+            - position.character: Character offset in the line (0-indexed)
+    
+    Returns:
+        Location or list of Locations for the definition(s), or None if not found
+    
+    LSP Specification:
+        This is a request from client to server. The server should respond with
+        a Location, Location[], LocationLink[], or null.
+    """
+    try:
+        doc = ls.workspace.get_text_document(params.text_document.uri)
+        
+        # Get word at cursor position
+        from .hover import get_word_at_position
+        word = get_word_at_position(doc, params.position)
+        
+        if not word:
+            return None
+        
+        logger.debug(f"Go-to-definition for: {word}")
+        
+        # Check if it's a localization key (contains dots)
+        if '.' in word and ls.index:
+            loc_info = ls.index.find_localization(word)
+            if loc_info:
+                text, file_uri, line_num = loc_info
+                return types.Location(
+                    uri=file_uri,
+                    range=types.Range(
+                        start=types.Position(line=line_num, character=0),
+                        end=types.Position(line=line_num, character=len(word)),
+                    )
+                )
+        
+        # Check if it's an event ID (format: namespace.number like rq_nts_daughter.0001)
+        if '.' in word and ls.index:
+            event_loc = ls.index.find_event(word)
+            if event_loc:
+                return event_loc
+        
+        # Check if it's a custom scripted effect
+        if ls.index:
+            effect_loc = ls.index.find_scripted_effect(word)
+            if effect_loc:
+                return effect_loc
+        
+        # Check if it's a custom scripted trigger
+        if ls.index:
+            trigger_loc = ls.index.find_scripted_trigger(word)
+            if trigger_loc:
+                return trigger_loc
+        
+        # Check if it's a saved scope reference (scope:xxx)
+        if word.startswith('scope:') and ls.index:
+            scope_name = word[6:]
+            scope_loc = ls.index.find_saved_scope(scope_name)
+            if scope_loc:
+                return scope_loc
+        
+        # Check if it's a character flag
+        if ls.index:
+            flag_loc = ls.index.find_character_flag(word)
+            if flag_loc:
+                return flag_loc
+        
+        # Check if it's a character interaction
+        if ls.index:
+            interaction_loc = ls.index.find_character_interaction(word)
+            if interaction_loc:
+                return interaction_loc
+        
+        # Check if it's a modifier
+        if ls.index:
+            modifier_loc = ls.index.find_modifier(word)
+            if modifier_loc:
+                return modifier_loc
+        
+        # Check if it's an on_action
+        if ls.index:
+            on_action_loc = ls.index.find_on_action(word)
+            if on_action_loc:
+                return on_action_loc
+        
+        # Check if it's an opinion modifier
+        if ls.index:
+            opinion_loc = ls.index.find_opinion_modifier(word)
+            if opinion_loc:
+                return opinion_loc
+        
+        # Check if it's a scripted GUI
+        if ls.index:
+            gui_loc = ls.index.find_scripted_gui(word)
+            if gui_loc:
+                return gui_loc
+        
+        return None
+        
+    except Exception as e:
+        logger.error(f"Error in definition handler: {e}", exc_info=True)
+        return None
+
+
 def main():
     """
     Main entry point for the language server
@@ -481,11 +659,26 @@ def main():
 
     Usage:
         python -m pychivalry.server
+        python -m pychivalry.server --log-level debug
 
-    The server will log "Starting CK3 Language Server..." and then wait for
+    The server will log "Starting Crusader Kings 3 Language Server..." and then wait for
     LSP messages. You should see "Starting IO server" when it begins listening.
     """
-    logger.info("Starting CK3 Language Server...")
+    import argparse
+    
+    parser = argparse.ArgumentParser(description="Crusader Kings 3 Language Server")
+    parser.add_argument(
+        "--log-level",
+        choices=["debug", "info", "warning", "error"],
+        default="info",
+        help="Set the logging level (default: info)"
+    )
+    args = parser.parse_args()
+    
+    # Configure logging with the specified level
+    configure_logging(args.log_level)
+    
+    logger.info("Starting Crusader Kings 3 Language Server...")
     # Start the language server in IO mode (stdin/stdout communication)
     # This is a blocking call that runs until the server is shut down
     server.start_io()

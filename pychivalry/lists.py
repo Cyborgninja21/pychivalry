@@ -204,6 +204,10 @@ COMMON_LIST_BASES = {
     # Faith/Culture lists
     'faith_holy_order', 'faith_character',
     
+    # Artifact lists
+    'equipped_character_artifact', 'inventory_artifact', 'artifact',
+    'character_artifact', 'court_artifact',
+    
     # Variable lists
     'in_list',  # For variable lists
 }
@@ -250,6 +254,12 @@ def get_list_result_scope(base_name: str, current_scope: str = 'character') -> O
         'ally', 'enemy', 'heir', 'dynasty_member', 'house_member',
     }
     
+    # Artifact lists return artifact scope
+    artifact_lists = {
+        'equipped_character_artifact', 'inventory_artifact', 'artifact',
+        'character_artifact', 'court_artifact',
+    }
+    
     # Title lists return title scope
     title_lists = {
         'held_title', 'claim', 'heir_title', 'heir_to_title',
@@ -271,6 +281,8 @@ def get_list_result_scope(base_name: str, current_scope: str = 'character') -> O
         return 'title'
     elif base_name in province_lists:
         return 'province'
+    elif base_name in artifact_lists:
+        return 'artifact'
     elif base_name == 'in_list':
         # Variable lists preserve the original scope of saved items
         return current_scope

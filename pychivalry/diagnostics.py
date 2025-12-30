@@ -22,7 +22,7 @@ from .scopes import (
     is_valid_list_base,
     parse_list_iterator,
 )
-from .ck3_language import CK3_EFFECTS, CK3_TRIGGERS
+from .ck3_language import CK3_EFFECTS, CK3_TRIGGERS, CK3_SCOPES
 import logging
 
 logger = logging.getLogger(__name__)
@@ -77,10 +77,20 @@ def check_syntax(doc: TextDocument, ast: List[CK3Node]) -> List[types.Diagnostic
     # Check bracket matching
     stack = []
     lines = doc.source.split('\n')
+    total_lines = len(lines)
     
     for line_num, line in enumerate(lines):
         # Track position in line
+        in_string = False
         for char_idx, char in enumerate(line):
+            # Handle strings - don't count brackets inside strings
+            if char == '"' and (char_idx == 0 or line[char_idx - 1] != '\\'):
+                in_string = not in_string
+                continue
+            
+            if in_string:
+                continue
+                
             if char == '#':
                 # Rest of line is comment, skip it
                 break
@@ -91,7 +101,7 @@ def check_syntax(doc: TextDocument, ast: List[CK3Node]) -> List[types.Diagnostic
                 if not stack:
                     # Unmatched closing bracket
                     diagnostics.append(create_diagnostic(
-                        message="Unmatched closing bracket",
+                        message="Unmatched closing bracket - no corresponding opening bracket found",
                         range_=types.Range(
                             start=types.Position(line=line_num, character=char_idx),
                             end=types.Position(line=line_num, character=char_idx + 1),
@@ -102,13 +112,48 @@ def check_syntax(doc: TextDocument, ast: List[CK3Node]) -> List[types.Diagnostic
                 else:
                     stack.pop()
     
-    # Report unclosed brackets
+    # Report unclosed brackets with helpful context
     for line_num, char_idx in stack:
+        # Get context: what key opened this bracket?
+        open_line = lines[line_num]
+        # Try to extract the key before the '=' on the same line
+        key_context = ""
+        key_start = 0
+        equals_pos = open_line.rfind('=', 0, char_idx)
+        if equals_pos != -1:
+            # Extract the key before the equals sign
+            key_part = open_line[:equals_pos].strip()
+            # Get the last word (the key)
+            key_words = key_part.split()
+            if key_words:
+                key_context = f" (block: '{key_words[-1]}')"
+                # Find where the key starts for better highlighting
+                key_start = open_line.find(key_words[-1])
+                if key_start == -1:
+                    key_start = 0
+        
+        # Highlight from the key to the end of line for better visibility
+        line_end = len(open_line)
+        
+        # Primary diagnostic at the opening bracket - highlight the whole declaration
         diagnostics.append(create_diagnostic(
-            message="Unclosed bracket",
+            message=f"Unclosed bracket{key_context} - opened at line {line_num + 1}, expected closing '}}' before end of file (line {total_lines})",
             range_=types.Range(
-                start=types.Position(line=line_num, character=char_idx),
-                end=types.Position(line=line_num, character=char_idx + 1),
+                start=types.Position(line=line_num, character=key_start),
+                end=types.Position(line=line_num, character=line_end),
+            ),
+            severity=types.DiagnosticSeverity.Error,
+            code="CK3002",
+        ))
+        
+        # Secondary diagnostic at end of file to help locate the problem
+        last_line_idx = total_lines - 1
+        last_line_len = len(lines[last_line_idx]) if lines else 0
+        diagnostics.append(create_diagnostic(
+            message=f"Missing closing '}}' for block opened at line {line_num + 1}{key_context}",
+            range_=types.Range(
+                start=types.Position(line=last_line_idx, character=max(0, last_line_len - 1)),
+                end=types.Position(line=last_line_idx, character=last_line_len),
             ),
             severity=types.DiagnosticSeverity.Error,
             code="CK3002",
@@ -126,6 +171,7 @@ def check_semantics(ast: List[CK3Node], index: Optional[DocumentIndex]) -> List[
     - Effects in trigger blocks
     - Triggers in effect blocks (warnings)
     - Undefined event references
+    - Custom scripted effects/triggers (from workspace index)
     
     Args:
         ast: Parsed AST
@@ -136,7 +182,124 @@ def check_semantics(ast: List[CK3Node], index: Optional[DocumentIndex]) -> List[
     """
     diagnostics = []
     
-    def check_node(node: CK3Node, context: str = 'unknown'):
+    # Get custom effects/triggers from workspace index
+    custom_effects = index.get_all_scripted_effects() if index else set()
+    custom_triggers = index.get_all_scripted_triggers() if index else set()
+    
+    # Get custom modifiers and opinion modifiers from workspace index
+    custom_modifiers = set(index.modifiers.keys()) if index else set()
+    custom_opinion_modifiers = set(index.opinion_modifiers.keys()) if index else set()
+    
+    # Combined sets for validation
+    all_known_effects = set(CK3_EFFECTS) | custom_effects
+    all_known_triggers = set(CK3_TRIGGERS) | custom_triggers
+    
+    # Effect parameters - these are arguments to effects, not effects themselves
+    # Map of parent_effect -> valid parameter names
+    EFFECT_PARAMETERS = {
+        # Opinion effects
+        'add_opinion': {'target', 'modifier', 'opinion', 'years'},
+        'reverse_add_opinion': {'target', 'modifier', 'opinion', 'years'},
+        'remove_opinion': {'target', 'modifier'},
+        # Modifier effects
+        'add_character_modifier': {'modifier', 'years', 'months', 'days', 'stacking'},
+        'remove_character_modifier': {'modifier'},
+        'add_county_modifier': {'modifier', 'years', 'months', 'days'},
+        'add_province_modifier': {'modifier', 'years', 'months', 'days'},
+        # Trait effects
+        'add_trait': {'trait', 'track', 'value'},
+        'remove_trait': {'trait'},
+        # Stress effects
+        'add_stress': {'trait'},
+        # Interaction effects
+        'open_interaction_window': {'interaction', 'actor', 'recipient', 'secondary_actor', 'secondary_recipient'},
+        # Event effects
+        'trigger_event': {'id', 'days', 'weeks', 'months', 'years', 'on_action', 'delayed'},
+        # Relation effects
+        'set_relation_lover': {'target', 'reason', 'copy_reason'},
+        'set_relation_friend': {'target', 'reason', 'copy_reason'},
+        'set_relation_rival': {'target', 'reason', 'copy_reason'},
+        'set_relation_best_friend': {'target', 'reason', 'copy_reason'},
+        'set_relation_nemesis': {'target', 'reason', 'copy_reason'},
+        'remove_relation_lover': {'target'},
+        'remove_relation_friend': {'target'},
+        'remove_relation_rival': {'target'},
+        # Create character effects
+        'create_character': {'template', 'location', 'culture', 'faith', 'dynasty', 'gender', 'name', 
+                            'age', 'trait', 'employer', 'father', 'mother', 'save_scope_as'},
+        # Scope save
+        'save_scope_as': {},  # Takes string value directly
+        'save_temporary_scope_as': {},
+        # Random effects
+        'random': {'chance', 'modifier'},
+        'random_list': {},  # Children are weights
+        # Death
+        'death': {'death_reason', 'killer'},
+        # Flag effects
+        'add_character_flag': {'flag', 'years', 'months', 'days'},
+        'remove_character_flag': {'flag'},
+        # Marriage
+        'marry': {'target'},
+        'marry_matrilineal': {'target'},
+        # Title effects
+        'create_title_and_vassal_change': {'type', 'save_scope_as', 'add_claim_on_loss'},
+        'change_title_holder': {'holder', 'change', 'take_baronies'},
+        # War effects
+        'start_war': {'casus_belli', 'target', 'target_title', 'claimant'},
+        # Duel effects
+        'duel': {'target', 'skill', 'value', 'on_success', 'on_failure'},
+        # Send interface message
+        'send_interface_message': {'type', 'title', 'desc', 'left_icon', 'right_icon', 'goto'},
+        'send_interface_toast': {'type', 'title', 'desc', 'left_icon', 'right_icon'},
+        # Custom tooltip
+        'custom_tooltip': {},  # Takes string value
+        # Scheme effects
+        'start_scheme': {'type', 'target'},
+        # Show as tooltip
+        'show_as_tooltip': {},  # Children are effects to show
+        # Hidden effect
+        'hidden_effect': {},  # Children are effects
+        # Every/any/random list iterators - have 'limit' as parameter
+        'every_': {'limit', 'alternative', 'order_by', 'position', 'min', 'max', 'check_range_bounds'},
+        'any_': {'limit', 'count', 'percent'},
+        'random_': {'limit', 'weight', 'alternative'},
+        'ordered_': {'limit', 'order_by', 'position', 'min', 'max', 'check_range_bounds'},
+        # Set variable effects
+        'set_variable': {'name', 'value', 'days', 'years', 'months'},
+        'change_variable': {'name', 'add', 'subtract', 'multiply', 'divide'},
+        'clamp_variable': {'name', 'min', 'max'},
+        # Script values use base/add/multiply etc
+        'script_value': {'base', 'add', 'multiply', 'divide', 'min', 'max', 'desc'},
+    }
+    
+    # Common parameters that are valid in many contexts
+    COMMON_PARAMETERS = {'target', 'modifier', 'limit', 'weight', 'years', 'months', 'days',
+                         'opinion', 'reason', 'save_scope_as', 'value', 'min', 'max',
+                         'desc', 'title', 'type', 'name', 'holder', 'skill',
+                         # Script value components
+                         'base', 'add', 'subtract', 'multiply', 'divide',
+                         # Random list weights
+                         'modifier', 'trigger', 'effect',
+                         # Common block types
+                         'alternative', 'fallback', 'on_success', 'on_failure'}
+    
+    # All uppercase words are typically effect parameters/arguments
+    def is_effect_parameter(key: str) -> bool:
+        """Check if a key looks like an effect parameter (ALL_CAPS or known param)."""
+        return key.isupper() or key in COMMON_PARAMETERS
+    
+    def get_parent_effect_params(parent_key: str) -> set:
+        """Get valid parameters for a parent effect."""
+        # Direct lookup
+        if parent_key in EFFECT_PARAMETERS:
+            return EFFECT_PARAMETERS[parent_key]
+        # Check prefixes for list iterators
+        for prefix in ['every_', 'any_', 'random_', 'ordered_']:
+            if parent_key.startswith(prefix):
+                return EFFECT_PARAMETERS.get(prefix, set())
+        return set()
+
+    def check_node(node: CK3Node, context: str = 'unknown', parent_key: str = ''):
         """Recursively check a node and its children."""
         # Determine context from node type
         new_context = context
@@ -151,7 +314,7 @@ def check_semantics(ast: List[CK3Node], index: Optional[DocumentIndex]) -> List[
         # Check for unknown effects/triggers based on context
         if context == 'trigger':
             # In trigger context, check if this is a known trigger
-            if node.key not in CK3_TRIGGERS and node.type == 'assignment':
+            if node.key not in all_known_triggers and node.type == 'assignment':
                 # Check if it's a valid scope-specific trigger
                 # For now, just check against global trigger list
                 if node.key not in ['NOT', 'OR', 'AND', 'NAND', 'NOR']:
@@ -163,7 +326,7 @@ def check_semantics(ast: List[CK3Node], index: Optional[DocumentIndex]) -> List[
                     ))
             
             # Check if someone put an effect in a trigger block
-            if node.key in CK3_EFFECTS:
+            if node.key in all_known_effects:
                 diagnostics.append(create_diagnostic(
                     message=f"Effect '{node.key}' used in trigger block (triggers should check conditions, not modify state)",
                     range_=node.range,
@@ -173,19 +336,31 @@ def check_semantics(ast: List[CK3Node], index: Optional[DocumentIndex]) -> List[
         
         elif context == 'effect':
             # In effect context, check if this is a known effect
-            if node.key not in CK3_EFFECTS and node.type == 'assignment':
-                # Allow some control flow keywords
-                if node.key not in ['if', 'else_if', 'else', 'random', 'random_list', 'trigger']:
-                    diagnostics.append(create_diagnostic(
-                        message=f"Unknown effect: '{node.key}'",
-                        range_=node.range,
-                        severity=types.DiagnosticSeverity.Warning,
-                        code="CK3103",
-                    ))
+            if node.key not in all_known_effects and node.type == 'assignment':
+                # Allow some control flow keywords and also triggers (used for limit blocks, etc.)
+                # Also allow scopes as they can be used to switch context
+                if node.key not in ['if', 'else_if', 'else', 'random', 'random_list', 'trigger', 'limit']:
+                    # Don't flag triggers - they're valid in effect blocks for limit/if conditions
+                    if node.key not in all_known_triggers and node.key not in CK3_SCOPES:
+                        # Check if this is an effect parameter (child of an effect block)
+                        parent_params = get_parent_effect_params(parent_key)
+                        is_param = (node.key in parent_params or 
+                                   is_effect_parameter(node.key) or
+                                   node.key in custom_modifiers or
+                                   node.key in custom_opinion_modifiers)
+                        
+                        # Only report if NOT a parameter
+                        if not is_param:
+                            diagnostics.append(create_diagnostic(
+                                message=f"Unknown effect: '{node.key}'",
+                                range_=node.range,
+                                severity=types.DiagnosticSeverity.Warning,
+                                code="CK3103",
+                            ))
         
-        # Recursively check children
+        # Recursively check children, passing current node key as parent
         for child in node.children:
-            check_node(child, new_context)
+            check_node(child, new_context, node.key)
     
     # Check all top-level nodes
     for node in ast:
@@ -212,19 +387,36 @@ def check_scopes(ast: List[CK3Node], index: Optional[DocumentIndex]) -> List[typ
     """
     diagnostics = []
     
+    def is_event_id(key: str) -> bool:
+        """Check if a key looks like an event ID (e.g., namespace.0001)."""
+        if '.' not in key:
+            return False
+        parts = key.split('.')
+        # Event IDs typically have format: namespace.number (e.g., test_events.0001)
+        if len(parts) == 2:
+            # Check if second part is numeric (event ID)
+            try:
+                int(parts[1])
+                return True
+            except ValueError:
+                pass
+        return False
+
     def check_node(node: CK3Node, current_scope: str = 'character'):
         """Recursively check scope validity."""
         # Check for scope chains (contains '.')
         if '.' in node.key and not node.key.startswith('scope:'):
-            # Validate scope chain
-            valid, result = validate_scope_chain(node.key, current_scope)
-            if not valid:
-                diagnostics.append(create_diagnostic(
-                    message=f"Invalid scope chain: {result}",
-                    range_=node.range,
-                    severity=types.DiagnosticSeverity.Error,
-                    code="CK3201",
-                ))
+            # Skip event IDs (e.g., namespace.0001) - they're not scope chains
+            if not is_event_id(node.key):
+                # Validate scope chain
+                valid, result = validate_scope_chain(node.key, current_scope)
+                if not valid:
+                    diagnostics.append(create_diagnostic(
+                        message=f"Invalid scope chain: {result}",
+                        range_=node.range,
+                        severity=types.DiagnosticSeverity.Error,
+                        code="CK3201",
+                    ))
         
         # Check for saved scope references (scope:xxx)
         if node.key.startswith('scope:'):
