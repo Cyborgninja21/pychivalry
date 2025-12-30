@@ -165,7 +165,7 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 
 ## Acknowledgments
 
-- Built with [pygls](https://github.com/openlawlibrary/pygls) - a pythonic generic language server
+- Built with [pygls 2.0.0](https://github.com/openlawlibrary/pygls) - a pythonic generic language server framework
 - Designed for [Crusader Kings 3](https://www.crusaderkings.com/) by Paradox Interactive
 
 ## Resources
