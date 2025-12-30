@@ -39,10 +39,12 @@ For pygls documentation: https://pygls.readthedocs.io/
 """
 
 import logging
+from typing import Dict, List
 
 # Import the LanguageServer class from pygls
 # This is the core class that handles LSP protocol communication
 from pygls.lsp.server import LanguageServer
+from pygls.workspace import TextDocument
 
 # Import LSP types from lsprotocol
 # These define the structure of LSP messages (requests, responses, notifications)
@@ -65,6 +67,10 @@ from .ck3_language import (
     CK3_BOOLEAN_VALUES,
 )
 
+# Import parser and indexer
+from .parser import parse_document, CK3Node
+from .indexer import DocumentIndex
+
 # Configure logging for debugging and monitoring
 # Logs help track server activity and diagnose issues
 # Output goes to stderr to avoid interfering with LSP communication on stdout
@@ -74,28 +80,67 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Create the language server instance
+
+class CK3LanguageServer(LanguageServer):
+    """
+    Extended language server with CK3-specific state.
+    
+    This class extends the base LanguageServer to add:
+    - Document AST tracking (updated on open/change)
+    - Cross-document symbol indexing
+    - Parser integration with document lifecycle
+    """
+    
+    def __init__(self, *args, **kwargs):
+        """Initialize the CK3 language server."""
+        super().__init__(*args, **kwargs)
+        # Document ASTs (updated on open/change)
+        self.document_asts: Dict[str, List[CK3Node]] = {}
+        # Cross-document index for navigation
+        self.index = DocumentIndex()
+    
+    def parse_and_index_document(self, doc: TextDocument):
+        """
+        Parse a document and update the index.
+        
+        This is called whenever a document is opened or changed.
+        
+        Args:
+            doc: The text document to parse
+            
+        Returns:
+            The parsed AST
+        """
+        try:
+            ast = parse_document(doc.source)
+            self.document_asts[doc.uri] = ast
+            self.index.update_from_ast(doc.uri, ast)
+            logger.debug(f"Parsed and indexed document: {doc.uri}")
+            return ast
+        except Exception as e:
+            logger.error(f"Error parsing document {doc.uri}: {e}")
+            # Return empty AST on parse error
+            return []
+
+
+# Create the CK3 language server instance
 # This is the main server object that will handle all LSP communication
 # Parameters:
 #   - name: Identifier for this language server
 #   - version: Server version (should match package version)
-server = LanguageServer("ck3-language-server", "v0.1.0")
+server = CK3LanguageServer("ck3-language-server", "v0.1.0")
 
 
 @server.feature(types.TEXT_DOCUMENT_DID_OPEN)
-def did_open(ls: LanguageServer, params: types.DidOpenTextDocumentParams):
+def did_open(ls: CK3LanguageServer, params: types.DidOpenTextDocumentParams):
     """
     Handle document open event
 
     This handler is called when a user opens a CK3 script file in their editor.
-    It's an opportunity to:
-    - Initialize document-specific state
-    - Run initial diagnostics
-    - Show welcome messages
-    - Log the event for debugging
+    It parses the document and updates the index for navigation features.
 
     Args:
-        ls: The language server instance (provides access to server methods)
+        ls: The CK3 language server instance
         params: Contains information about the opened document:
             - text_document.uri: The file URI (file path)
             - text_document.text: The full document content
@@ -106,27 +151,26 @@ def did_open(ls: LanguageServer, params: types.DidOpenTextDocumentParams):
         This is a notification from client to server, no response is expected.
     """
     logger.info(f"Document opened: {params.text_document.uri}")
+    
+    # Parse the document and update the index
+    doc = ls.workspace.get_text_document(params.text_document.uri)
+    ls.parse_and_index_document(doc)
+    
     # Show a message in the editor to confirm the server is working
     # MessageType.Info = informational popup/notification
     ls.show_message("CK3 Language Server is active!", types.MessageType.Info)
 
 
 @server.feature(types.TEXT_DOCUMENT_DID_CHANGE)
-def did_change(ls: LanguageServer, params: types.DidChangeTextDocumentParams):
+def did_change(ls: CK3LanguageServer, params: types.DidChangeTextDocumentParams):
     """
     Handle document change event
 
     This handler is called whenever the user makes changes to a CK3 script file.
-    It receives incremental or full document updates depending on the server's
-    text document sync configuration.
-
-    Current behavior:
-        - Logs the change at DEBUG level (to avoid log spam)
-        - Could be used to trigger real-time diagnostics (future feature)
-        - Could be used to update cached syntax trees (future feature)
+    It re-parses the document and updates the index.
 
     Args:
-        ls: The language server instance
+        ls: The CK3 language server instance
         params: Contains information about the document changes:
             - text_document.uri: The file URI being modified
             - text_document.version: New document version number
@@ -137,26 +181,26 @@ def did_change(ls: LanguageServer, params: types.DidChangeTextDocumentParams):
         its internal representation of the document but no response is required.
 
     Performance Note:
-        This can be called very frequently during typing. Keep processing
-        lightweight and consider debouncing expensive operations.
+        This can be called very frequently during typing. The parser is designed
+        to be fast, but for very large files, consider debouncing.
     """
     logger.debug(f"Document changed: {params.text_document.uri}")
+    
+    # Re-parse the document and update the index
+    doc = ls.workspace.get_text_document(params.text_document.uri)
+    ls.parse_and_index_document(doc)
 
 
 @server.feature(types.TEXT_DOCUMENT_DID_CLOSE)
-def did_close(ls: LanguageServer, params: types.DidCloseTextDocumentParams):
+def did_close(ls: CK3LanguageServer, params: types.DidCloseTextDocumentParams):
     """
     Handle document close event
 
     This handler is called when a user closes a CK3 script file in their editor.
-    It's an opportunity to:
-    - Clean up document-specific resources
-    - Clear cached data for this document
-    - Remove diagnostics from the editor UI
-    - Log the event for debugging
+    It cleans up document-specific resources and removes entries from the index.
 
     Args:
-        ls: The language server instance
+        ls: The CK3 language server instance
         params: Contains information about the closed document:
             - text_document.uri: The file URI being closed
 
@@ -170,6 +214,11 @@ def did_close(ls: LanguageServer, params: types.DidCloseTextDocumentParams):
         this document after it's closed.
     """
     logger.info(f"Document closed: {params.text_document.uri}")
+    
+    # Remove the document from our tracking
+    uri = params.text_document.uri
+    ls.document_asts.pop(uri, None)
+    ls.index.remove_document(uri)
 
 
 @server.feature(
