@@ -1,0 +1,100 @@
+# Hello World - CK3 Language Server Test
+# This is a minimal example to test the CK3 Language Server
+
+namespace hello_world
+
+# A simple character event to test basic functionality
+hello_world.0001 = {
+    type = character_event
+    title = hello_world.0001.t
+    desc = hello_world.0001.desc
+    theme = friendly
+    
+    # Basic trigger - fires when player becomes an adult
+    trigger = {
+        age >= 16
+        is_ai = no
+    }
+    
+    # Immediate effects when event fires
+    immediate = {
+        add_gold = 100
+        add_prestige = 25
+    }
+    
+    # First option - Accept the greeting
+    option = {
+        name = hello_world.0001.a
+        
+        # Give some gold and prestige
+        add_gold = 50
+        add_prestige = 50
+        
+        add_character_modifier = {
+            modifier = friendly_greeting
+            years = 5
+        }
+    }
+    
+    # Second option - Decline politely
+    option = {
+        name = hello_world.0001.b
+        
+        add_piety = 25
+        
+        # This tests a conditional block
+        if = {
+            limit = {
+                has_trait = gregarious
+            }
+            add_stress = -10
+        }
+    }
+}
+
+# A simple decision for testing
+hello_decision = {
+    picture = "gfx/interface/illustrations/decisions/decision_misc.dds"
+    
+    desc = hello_decision_desc
+    selection_tooltip = hello_decision_tooltip
+    
+    # Visibility requirements
+    is_shown = {
+        is_ruler = yes
+        age >= 16
+    }
+    
+    # Validation requirements
+    is_valid = {
+        gold >= 50
+    }
+    
+    # What happens when decision is taken
+    effect = {
+        remove_short_term_gold = 50
+        add_prestige = 100
+        
+        # Test a loop
+        every_vassal = {
+            limit = {
+                is_adult = yes
+            }
+            add_opinion = {
+                target = root
+                modifier = grateful_opinion
+                opinion = 5
+            }
+        }
+    }
+    
+    # AI behavior
+    ai_will_do = {
+        base = 50
+        
+        modifier = {
+            factor = 2
+            gold >= 200
+        }
+    }
+}

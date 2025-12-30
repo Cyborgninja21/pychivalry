@@ -1,0 +1,12 @@
+include README.md
+include LICENSE
+include CHANGELOG.md
+include CONTRIBUTING.md
+include GETTING_STARTED.md
+include VSCODE_SETTINGS.md
+recursive-include examples *.txt
+recursive-include vscode-extension *.json *.ts *.md
+recursive-exclude vscode-extension node_modules *
+recursive-exclude vscode-extension out *
+recursive-exclude * __pycache__
+recursive-exclude * *.py[co]

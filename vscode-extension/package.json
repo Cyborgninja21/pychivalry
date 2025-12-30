@@ -1,0 +1,117 @@
+{
+  "name": "ck3-language-support",
+  "displayName": "Crusader Kings 3 Language Support",
+  "description": "Language support for Crusader Kings 3 scripting language with LSP-powered features",
+  "version": "0.1.0",
+  "publisher": "cyborgninja21",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Cyborgninja21/pychivalry.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Cyborgninja21/pychivalry/issues"
+  },
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Linters"
+  ],
+  "keywords": [
+    "crusader kings 3",
+    "ck3",
+    "paradox",
+    "modding",
+    "language server"
+  ],
+  "activationEvents": [
+    "onLanguage:ck3",
+    "workspaceContains:**/*.{txt,gui,gfx,asset}"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "ck3",
+        "aliases": [
+          "Crusader Kings 3",
+          "ck3"
+        ],
+        "extensions": [
+          ".txt",
+          ".gui",
+          ".gfx",
+          ".asset"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "CK3 Language Server",
+      "properties": {
+        "ck3LanguageServer.pythonPath": {
+          "type": "string",
+          "default": "python",
+          "description": "Path to Python executable to use for the language server",
+          "scope": "resource"
+        },
+        "ck3LanguageServer.args": {
+          "type": "array",
+          "default": [],
+          "description": "Additional arguments to pass to the language server",
+          "items": {
+            "type": "string"
+          },
+          "scope": "resource"
+        },
+        "ck3LanguageServer.trace.server": {
+          "type": "string",
+          "enum": [
+            "off",
+            "messages",
+            "verbose"
+          ],
+          "default": "off",
+          "description": "Traces the communication between VS Code and the language server",
+          "scope": "window"
+        },
+        "ck3LanguageServer.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable/disable the CK3 language server",
+          "scope": "resource"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "webpack",
+    "watch": "webpack --watch",
+    "package": "webpack --mode production --devtool source-map",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "pretest": "npm run compile-tests && npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "format": "prettier --write 'src/**/*.ts'",
+    "format-check": "prettier --check 'src/**/*.ts'"
+  },
+  "devDependencies": {
+    "@types/node": "^18.0.0",
+    "@types/vscode": "^1.75.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.0.0",
+    "prettier": "^3.0.0",
+    "ts-loader": "^9.4.0",
+    "typescript": "^5.0.0",
+    "webpack": "^5.88.0",
+    "webpack-cli": "^5.1.0"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.0"
+  }
+}
