@@ -210,10 +210,23 @@ async function findPython(): Promise<string | undefined> {
     return undefined;
 }
 
+function shellEscape(arg: string): string {
+    // Escape shell arguments to prevent injection
+    // For Windows, wrap in quotes and escape inner quotes
+    // For Unix, use single quotes and escape single quotes
+    if (process.platform === 'win32') {
+        // Windows: wrap in double quotes and escape backslashes and quotes
+        return `"${arg.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
+    } else {
+        // Unix: use single quotes, escape single quotes by ending quote, adding escaped quote, starting quote again
+        return `'${arg.replace(/'/g, "'\\''")}'`;
+    }
+}
+
 async function checkPythonPath(pythonPath: string): Promise<boolean> {
     try {
-        // Use array form to avoid shell injection
-        const { stdout } = await execAsync(`"${pythonPath.replace(/"/g, '\\"')}" --version`);
+        const escapedPath = shellEscape(pythonPath);
+        const { stdout } = await execAsync(`${escapedPath} --version`);
         const version = stdout.match(/Python (\d+)\.(\d+)/);
         if (version) {
             const major = parseInt(version[1]);
@@ -228,8 +241,8 @@ async function checkPythonPath(pythonPath: string): Promise<boolean> {
 
 async function checkServerInstalled(pythonPath: string): Promise<boolean> {
     try {
-        // Use array form to avoid shell injection
-        await execAsync(`"${pythonPath.replace(/"/g, '\\"')}" -c "import pychivalry"`);
+        const escapedPath = shellEscape(pythonPath);
+        await execAsync(`${escapedPath} -c "import pychivalry"`);
         return true;
     } catch {
         return false;
