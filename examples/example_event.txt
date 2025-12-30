@@ -1,0 +1,115 @@
+# Example CK3 Event File
+# This is a sample event demonstrating CK3 scripting syntax
+
+namespace example_events
+
+# A simple character event
+example_events.0001 = {
+    type = character_event
+    title = example_events.0001.t
+    desc = example_events.0001.desc
+    theme = realm
+    
+    # This event is triggered when a character becomes an adult
+    trigger = {
+        age >= 16
+        is_ai = no
+    }
+    
+    # Weight for random selection
+    weight_multiplier = {
+        base = 1
+        
+        modifier = {
+            add = 1
+            has_trait = ambitious
+        }
+    }
+    
+    # Event fires once
+    immediate = {
+        # Some immediate effects
+        add_gold = 100
+    }
+    
+    # First option
+    option = {
+        name = example_events.0001.a
+        
+        add_prestige = 50
+        add_character_modifier = {
+            modifier = example_modifier
+            years = 10
+        }
+    }
+    
+    # Second option
+    option = {
+        name = example_events.0001.b
+        
+        add_piety = 50
+        add_trait = content
+    }
+    
+    # Third option with trigger
+    option = {
+        name = example_events.0001.c
+        trigger = {
+            gold >= 200
+        }
+        
+        remove_short_term_gold = 200
+        add_realm_law_skip_effect = crown_authority_2
+    }
+}
+
+# A decision example
+example_decision = {
+    picture = "gfx/interface/illustrations/decisions/decision_misc.dds"
+    
+    desc = example_decision_desc
+    selection_tooltip = example_decision_tooltip
+    
+    is_shown = {
+        is_ruler = yes
+        has_government = feudal_government
+    }
+    
+    is_valid = {
+        gold >= 100
+        prestige_level >= 2
+    }
+    
+    effect = {
+        remove_short_term_gold = 100
+        
+        every_vassal = {
+            limit = {
+                highest_held_title_tier = tier_duchy
+            }
+            add_opinion = {
+                target = root
+                modifier = grateful_opinion
+                opinion = 10
+            }
+        }
+        
+        add_character_modifier = {
+            modifier = example_modifier
+            years = 10
+        }
+    }
+    
+    ai_potential = {
+        always = yes
+    }
+    
+    ai_will_do = {
+        base = 100
+        
+        modifier = {
+            factor = 0.5
+            gold < 200
+        }
+    }
+}
