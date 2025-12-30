@@ -36,22 +36,10 @@ suite('Extension Test Suite', () => {
 
         // Note: In test workspace, settings may override defaults
         // Just verify the configuration exists and has expected keys
-        assert.ok(
-            config.has('enable'),
-            'enable setting should exist'
-        );
-        assert.ok(
-            config.has('pythonPath'),
-            'pythonPath setting should exist'
-        );
-        assert.ok(
-            config.has('trace.server'),
-            'trace.server setting should exist'
-        );
-        assert.ok(
-            config.has('args'),
-            'args setting should exist'
-        );
+        assert.ok(config.has('enable'), 'enable setting should exist');
+        assert.ok(config.has('pythonPath'), 'pythonPath setting should exist');
+        assert.ok(config.has('trace.server'), 'trace.server setting should exist');
+        assert.ok(config.has('args'), 'args setting should exist');
     });
 });
 
@@ -99,11 +87,7 @@ suite('Document Handling Tests', () => {
 
         const editor = await vscode.window.showTextDocument(doc);
         assert.ok(editor, 'Editor should be opened');
-        assert.strictEqual(
-            editor.document.languageId,
-            'ck3',
-            'Editor should show CK3 document'
-        );
+        assert.strictEqual(editor.document.languageId, 'ck3', 'Editor should show CK3 document');
 
         // Close the editor
         await vscode.commands.executeCommand('workbench.action.closeActiveEditor');

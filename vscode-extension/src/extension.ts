@@ -52,9 +52,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     // Register open documentation command
     context.subscriptions.push(
         vscode.commands.registerCommand('ck3LanguageServer.openDocumentation', () => {
-            vscode.env.openExternal(
-                vscode.Uri.parse('https://ck3.paradoxwikis.com/Modding')
-            );
+            vscode.env.openExternal(vscode.Uri.parse('https://ck3.paradoxwikis.com/Modding'));
         })
     );
 
@@ -80,7 +78,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
 async function startServer(context: vscode.ExtensionContext): Promise<void> {
     const config = vscode.workspace.getConfiguration('ck3LanguageServer');
-    
+
     // Check if server is enabled
     const enabled = config.get<boolean>('enable', true);
     if (!enabled) {
@@ -139,9 +137,7 @@ async function startServer(context: vscode.ExtensionContext): Promise<void> {
             { scheme: 'file', pattern: '**/*.{txt,gui,gfx,asset}' },
         ],
         synchronize: {
-            fileEvents: vscode.workspace.createFileSystemWatcher(
-                '**/*.{txt,gui,gfx,asset}'
-            ),
+            fileEvents: vscode.workspace.createFileSystemWatcher('**/*.{txt,gui,gfx,asset}'),
         },
         outputChannel: outputChannel,
         traceOutputChannel: outputChannel,
@@ -186,27 +182,27 @@ async function startServer(context: vscode.ExtensionContext): Promise<void> {
 async function findPython(): Promise<string | undefined> {
     const config = vscode.workspace.getConfiguration('ck3LanguageServer');
     const configuredPath = config.get<string>('pythonPath');
-    
+
     // Try configured path first
     if (configuredPath && configuredPath !== 'python') {
         if (await checkPythonPath(configuredPath)) {
             return configuredPath;
         }
     }
-    
+
     // Try common paths
     const candidates = [
         'python3',
         'python',
         process.platform === 'win32' ? 'py' : undefined,
     ].filter((p): p is string => p !== undefined);
-    
+
     for (const candidate of candidates) {
         if (await checkPythonPath(candidate)) {
             return candidate;
         }
     }
-    
+
     return undefined;
 }
 
@@ -252,23 +248,21 @@ async function checkServerInstalled(pythonPath: string): Promise<boolean> {
 async function handleServerError(error: Error): Promise<void> {
     const pythonMissing = error.message.includes('not found');
     const moduleMissing = error.message.includes('not installed');
-    
+
     if (pythonMissing) {
         const action = await vscode.window.showErrorMessage(
             'Python not found. The CK3 Language Server requires Python 3.9+.',
             'Configure Python Path',
             'Install Python'
         );
-        
+
         if (action === 'Configure Python Path') {
             vscode.commands.executeCommand(
                 'workbench.action.openSettings',
                 'ck3LanguageServer.pythonPath'
             );
         } else if (action === 'Install Python') {
-            vscode.env.openExternal(
-                vscode.Uri.parse('https://www.python.org/downloads/')
-            );
+            vscode.env.openExternal(vscode.Uri.parse('https://www.python.org/downloads/'));
         }
     } else if (moduleMissing) {
         const action = await vscode.window.showErrorMessage(
@@ -276,14 +270,14 @@ async function handleServerError(error: Error): Promise<void> {
             'Install Server',
             'View Documentation'
         );
-        
+
         if (action === 'Install Server') {
             const confirm = await vscode.window.showWarningMessage(
                 'This will run "pip install pychivalry" in a terminal. Continue?',
                 'Yes',
                 'No'
             );
-            
+
             if (confirm === 'Yes') {
                 const terminal = vscode.window.createTerminal('Install CK3 Server');
                 terminal.show();
@@ -308,28 +302,28 @@ async function handleServerError(error: Error): Promise<void> {
 
 async function showMenuCommand(): Promise<void> {
     const items: vscode.QuickPickItem[] = [
-        { 
-            label: '$(refresh) Restart Server', 
-            description: 'Restart the language server' 
+        {
+            label: '$(refresh) Restart Server',
+            description: 'Restart the language server',
         },
-        { 
-            label: '$(output) Show Output', 
-            description: 'Open output channel' 
+        {
+            label: '$(output) Show Output',
+            description: 'Open output channel',
         },
-        { 
-            label: '$(gear) Open Settings', 
-            description: 'Configure extension' 
+        {
+            label: '$(gear) Open Settings',
+            description: 'Configure extension',
         },
-        { 
-            label: '$(book) Documentation', 
-            description: 'Open CK3 modding docs' 
+        {
+            label: '$(book) Documentation',
+            description: 'Open CK3 modding docs',
         },
     ];
-    
+
     const selected = await vscode.window.showQuickPick(items, {
-        placeHolder: 'Select an action'
+        placeHolder: 'Select an action',
     });
-    
+
     if (selected) {
         switch (selected.label) {
             case '$(refresh) Restart Server':
@@ -355,7 +349,7 @@ export async function deactivate(): Promise<void> {
     if (!client) {
         return;
     }
-    
+
     statusBar.updateState('stopped');
     outputChannel.appendLine('Stopping language client...');
     try {
@@ -367,4 +361,3 @@ export async function deactivate(): Promise<void> {
         outputChannel.appendLine(`Error stopping client: ${message}`);
     }
 }
-
