@@ -1,0 +1,116 @@
+[project]
+name = "pygls"
+version = "2.0.0"
+description = "A pythonic generic language server (pronounced like 'pie glass')"
+repository = "https://github.com/openlawlibrary/pygls"
+authors = [
+  { name = "Open Law Library", email = "info@openlawlib.org"}
+]
+maintainers = [
+  { name = "Tom BH", email = "tom@tombh.co.uk" },
+  { name = "Alex Carney", email = "alcarneyme@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "attrs>=24.3.0",
+    "cattrs>=23.1.2",
+    "lsprotocol==2025.0.0",
+]
+[project.optional-dependencies]
+ws = [
+  "websockets>=13.0"
+]
+
+[dependency-groups]
+dev = [
+    "poethepoet>=0.35.0",
+    "ruff>=0.1.6",
+    "mypy>=1.7.1",
+    "black~=24.4.1",
+    "requests>=2.32.4",
+]
+test = [
+    "coverage[toml]>=7.3.2",
+    "pytest>=7.4.3",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=6.2.1",
+]
+docs = [
+    "furo>=2024.8.6",
+    "myst-parser>=2.0",
+    "sphinx>=7.1.2",
+    "sphinx-design>=0.5.0",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+markers = [
+    "e2e: tests that run a language server in a subprocess",
+]
+
+[tool.poe]
+executor.type = "uv"
+
+[tool.poe.tasks]
+test-pyodide = "pytest tests/e2e --lsp-runtime pyodide"
+ruff = "ruff check ."
+mypy = "mypy -p pygls"
+check_generated_code = "python scripts/check_generated_code_is_uptodate.py"
+check_commit_style = "npx commitlint --from origin/main --to HEAD --verbose --config commitlintrc.yaml"
+generate_code = "python scripts/generate_code.py pygls/lsp"
+generate_contributors_md = "python scripts/generate_contributors_md.py"
+black_check = "black --check ."
+uv_lock_check = "uv lock --check"
+
+[tool.poe.tasks.test]
+sequence = [
+     { cmd = "pytest --cov" },
+     { cmd = "pytest tests/e2e --lsp-transport tcp" },
+     { cmd = "pytest tests/e2e --lsp-transport websockets" },
+]
+ignore_fail = "return_non_zero"
+
+[tool.poe.tasks.lint]
+sequence = [
+    "ruff",
+    "mypy",
+    "check_generated_code",
+    "check_commit_style",
+    "black_check",
+    "uv_lock_check"
+]
+ignore_fail = "return_non_zero"
+
+[tool.pyright]
+strict = ["pygls"]
+
+[tool.ruff]
+# Sometimes Black can't reduce line length without breaking more imortant rules.
+# So allow Ruff to be more lenient.
+line-length = 120
+
+[tool.black]
+line-length = 88
+extend-exclude = "pygls/lsp/_base_.*.py|pygls/lsp/_capabilities.py"
+
+[tool.coverage.run]
+parallel = true
+source_pkgs = ["pygls"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+sort = "Cover"
+
+[tool.esbonio.sphinx]
+pythonCommand = ["uv", "run", "--group", "docs", "python"]
+buildCommand = ["sphinx-build", "-M", "html", "docs/source", "${defaultBuildDir}"]
+
+[tool.mypy]
+check_untyped_defs = true
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
