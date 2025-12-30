@@ -11,16 +11,30 @@ pychivalry is a language server designed to enhance the modding experience for C
 - **Text Document Synchronization**: Real-time tracking of document changes
 - **VS Code Integration**: Native support through a VS Code extension
 - **CK3 File Support**: Handles `.txt`, `.gui`, `.gfx`, and `.asset` files
-- **Extensible Architecture**: Built on pygls for easy feature additions
+- **Auto-completion**: Intelligent completion for 150+ CK3 keywords, effects, triggers, scopes, and event types
+- **Extensible Architecture**: Built on pygls 2.0.0 for easy feature additions
+
+### Current Language Features
+
+- **Auto-completion** (150+ items):
+  - Keywords: `if`, `trigger`, `effect`, `immediate`, etc.
+  - Effects: `add_trait`, `add_gold`, `add_prestige`, etc.
+  - Triggers: `age`, `has_trait`, `is_ruler`, etc.
+  - Scopes: `root`, `every_vassal`, `any_child`, etc.
+  - Event types: `character_event`, `letter_event`, etc.
+  - Boolean values: `yes`, `no`, `true`, `false`
+
+See [CK3_FEATURES.md](CK3_FEATURES.md) for complete documentation.
 
 ### Planned Features
 
 - Syntax validation and diagnostics
-- Auto-completion for CK3 keywords and scopes
+- Context-aware completions
 - Hover information for game concepts
 - Go to definition for scripted effects, triggers, and modifiers
 - Symbol search across the codebase
 - Code formatting
+- Snippet completions
 
 ## Installation
 

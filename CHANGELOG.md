@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Auto-completion feature**: 150+ CK3 language constructs
+  - 50+ keywords (if, trigger, effect, etc.)
+  - 30+ effects (add_trait, add_gold, etc.)
+  - 30+ triggers (age, has_trait, etc.)
+  - 40+ scopes (root, every_vassal, etc.)
+  - 5 event types
+  - Boolean values
+- CK3 language definitions module (`ck3_language.py`)
+- Comprehensive completion tests (5 test cases)
+- CK3_FEATURES.md documentation
+
 ## [0.1.0] - 2025-12-30
 
 ### Added
