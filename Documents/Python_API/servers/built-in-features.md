@@ -168,8 +168,7 @@ async def refactor_code(args):
                         start=Position(line=0, character=0),
                         end=Position(line=0, character=0)
                     ),
-                    new_text='// Refactored code
-'
+                    new_text='// Refactored code\\n'
                 )
             ]
         }

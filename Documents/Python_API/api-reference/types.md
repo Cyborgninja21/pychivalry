@@ -37,7 +37,7 @@ Attributes:
 - `send_request(self, method: 'str', params: 'Any | None' = None, callback: 'Callable[[Any], None] | None' = None, msg_id: 'MsgId | None' = None) -> 'Future[Any]'`: Send a JSON-RPC request
 - `send_request_async(self, method: 'str', params: 'Any | None' = None, msg_id: 'MsgId | None' = None)`: Send a JSON-RPC request, asynchronously.
 - `set_writer(self, writer: 'AsyncWriter | Writer', include_headers: 'bool' = True)`: Set the writer object to use when sending data
-- `structure_message(self, data: 'dict[str, Any]')`: Function used to deserialize data recevied from the client.
+- `structure_message(self, data: 'dict[str, Any]')`: Function used to deserialize data received from the client.
 
 ## Functions
 

@@ -166,8 +166,6 @@ def symbols(params):
 Report progress for long operations:
 
 ```python
-from pygls.progress import Progress
-
 @server.feature('myFeature')
 async def my_feature(ls: LanguageServer, params):
     token = 'my-progress'
