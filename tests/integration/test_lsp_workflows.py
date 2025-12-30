@@ -28,8 +28,10 @@ class TestEndToEndWorkflows:
         """
         
         # 2. Parse and get diagnostics
-        doc = parse_document(content)
-        diagnostics = collect_all_diagnostics(doc)
+        from lsprotocol.types import TextDocumentItem
+        doc = TextDocumentItem(uri="file:///test.txt", language_id="ck3", version=1, text=content)
+        ast = parse_document(content)
+        diagnostics = collect_all_diagnostics(doc, ast)
         
         # 3. Verify diagnostic exists
         assert len(diagnostics) > 0
@@ -37,7 +39,7 @@ class TestEndToEndWorkflows:
         assert typo_diagnostic is not None
         
         # 4. Get code actions for the typo
-        actions = get_all_code_actions(doc, typo_diagnostic.range, [typo_diagnostic])
+        actions = get_all_code_actions(doc, ast, typo_diagnostic.range, [typo_diagnostic])
         
         # 5. Verify "Did you mean?" suggestion exists
         assert len(actions) > 0
@@ -56,13 +58,15 @@ class TestEndToEndWorkflows:
         """
         
         # 2. Parse document
-        doc = parse_document(content)
+        from lsprotocol.types import TextDocumentItem
+        doc = TextDocumentItem(uri="file:///test.txt", language_id="ck3", version=1, text=content)
+        ast = parse_document(content)
         index = DocumentIndex()
-        index.index_document("test.txt", doc)
+        index.update_from_ast("file:///test.txt", ast)
         
         # 3. Request completions at cursor
         position = (5, 16)  # After "add_"
-        completions = get_context_aware_completions(doc, position, index)
+        completions = get_context_aware_completions(doc, ast, position, index)
         
         # 4. Verify relevant completions exist
         assert len(completions) > 0
@@ -93,22 +97,25 @@ class TestEndToEndWorkflows:
         """
         
         # 2. Parse both files
-        effect_doc = parse_document(effect_file)
-        event_doc = parse_document(event_file)
+        from lsprotocol.types import TextDocumentItem, Position
+        effect_ast = parse_document(effect_file)
+        event_ast = parse_document(event_file)
+        effect_doc = TextDocumentItem(uri="file:///effects.txt", language_id="ck3", version=1, text=effect_file)
+        event_doc = TextDocumentItem(uri="file:///events.txt", language_id="ck3", version=1, text=event_file)
         
         # 3. Index both files
         index = DocumentIndex()
-        index.index_document("effects.txt", effect_doc)
-        index.index_document("events.txt", event_doc)
+        index.update_from_ast("file:///effects.txt", effect_ast)
+        index.update_from_ast("file:///events.txt", event_ast)
         
         # 4. Find definition of my_custom_effect from event file
         position = (6, 20)  # On "my_custom_effect"
-        definitions = find_definition(event_doc, position, index)
+        definitions = find_definition(event_doc, Position(line=position[0], character=position[1]), index)
         assert len(definitions) > 0
         assert definitions[0].uri == "effects.txt"
         
         # 5. Find all references to my_custom_effect
-        references = find_references(event_doc, position, index, include_declaration=True)
+        references = find_references(event_doc, Position(line=position[0], character=position[1]), index, include_declaration=True)
         assert len(references) >= 2  # Definition + usage
 
     def test_cross_file_event_chain_validation(self):
@@ -135,13 +142,16 @@ class TestEndToEndWorkflows:
         """
         
         # 2. Parse both files
-        doc1 = parse_document(event1_file)
-        doc2 = parse_document(event2_file)
+        from lsprotocol.types import TextDocumentItem
+        ast1 = parse_document(event1_file)
+        ast2 = parse_document(event2_file)
+        doc1 = TextDocumentItem(uri="file:///events_a.txt", language_id="ck3", version=1, text=event1_file)
+        doc2 = TextDocumentItem(uri="file:///events_b.txt", language_id="ck3", version=1, text=event2_file)
         
         # 3. Index both files
         index = DocumentIndex()
-        index.index_document("events_a.txt", doc1)
-        index.index_document("events_b.txt", doc2)
+        index.update_from_ast("file:///events_a.txt", ast1)
+        index.update_from_ast("file:///events_b.txt", ast2)
         
         # 4. Validate event chain
         diagnostics1 = collect_all_diagnostics(doc1, index)

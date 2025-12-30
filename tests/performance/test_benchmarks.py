@@ -193,7 +193,7 @@ class TestCompletionsPerformance:
         
         doc = parse_document(content)
         index = DocumentIndex()
-        index.index_document("test.txt", doc)
+        index.update_from_ast("test.txt", doc)
         
         # Position at end of "add_"
         position = (content.count('\n'), 8)
@@ -219,7 +219,7 @@ class TestCompletionsPerformance:
         
         doc = parse_document(content)
         index = DocumentIndex()
-        index.index_document("test.txt", doc)
+        index.update_from_ast("test.txt", doc)
         
         position = (content.count('\n'), 14)  # After "scope:"
         
@@ -259,7 +259,7 @@ class TestNavigationPerformance:
         }
         """
         usage_doc = parse_document(usage_content)
-        index.index_document("events.txt", usage_doc)
+        index.update_from_ast("events.txt", usage_doc)
         
         # Find definition
         position = (5, 20)  # On "effect_25"
@@ -283,7 +283,7 @@ class TestNavigationPerformance:
         }
         """
         effect_doc = parse_document(effect_content)
-        index.index_document("effects.txt", effect_doc)
+        index.update_from_ast("effects.txt", effect_doc)
         
         # Create 30 files that use the effect
         for i in range(30):
@@ -369,7 +369,7 @@ class TestConcurrencyPerformance:
         
         doc = parse_document(content)
         index = DocumentIndex()
-        index.index_document("test.txt", doc)
+        index.update_from_ast("test.txt", doc)
         
         position = (5, 20)
         
