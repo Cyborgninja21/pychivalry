@@ -71,6 +71,23 @@ npm run compile
 
 ## Usage
 
+### Quick Start Testing
+
+Want to test the language server right away? See **[TESTING.md](TESTING.md)** for a step-by-step guide.
+
+**TL;DR:**
+```bash
+# 1. Install server
+pip install -e .
+
+# 2. Build extension
+cd vscode-extension && npm install && npm run compile
+
+# 3. Test in VS Code
+# Press F5 in the vscode-extension folder
+# Open examples/hello_world.txt in the new window
+```
+
 ### Running the Language Server
 
 The language server can be started directly:
@@ -85,12 +102,50 @@ Or if installed via pip:
 pychivalry
 ```
 
+The server will start and wait for LSP JSON-RPC messages on stdin. You should see:
+```
+INFO - Starting CK3 Language Server...
+INFO - Starting IO server
+```
+
 ### Using with VS Code
 
-1. Install the VS Code extension (see above)
-2. Open a CK3 mod directory in VS Code
-3. Open any `.txt`, `.gui`, `.gfx`, or `.asset` file
-4. The language server will automatically activate
+#### Development/Testing Mode
+
+1. Open the `vscode-extension` folder in VS Code
+2. Press `F5` to launch Extension Development Host
+3. In the new window, open a CK3 mod folder or test file
+4. Open any `.txt`, `.gui`, `.gfx`, or `.asset` file
+5. Check the "CK3 Language Server" output panel (View > Output)
+
+#### Production Mode
+
+1. Build and package the extension:
+   ```bash
+   cd vscode-extension
+   npm install
+   npm run package
+   ```
+
+2. Install the generated `.vsix` file:
+   - In VS Code: Extensions → `...` → Install from VSIX
+   - Select `vscode-extension/ck3-language-support-0.1.0.vsix`
+
+3. Open a CK3 mod directory and start editing!
+
+### Hello World Test
+
+Try the included hello world example:
+
+```bash
+# Open this file in VS Code with the extension active
+code examples/hello_world.txt
+```
+
+The file contains a simple CK3 event and decision. When opened:
+- The language server should activate
+- You'll see "CK3 Language Server is active!" notification
+- Check the output panel for detailed logs
 
 ### Configuration
 
@@ -98,13 +153,21 @@ VS Code settings can be configured in your `settings.json`:
 
 ```json
 {
+  "ck3LanguageServer.enable": true,
   "ck3LanguageServer.pythonPath": "python",
+  "ck3LanguageServer.args": [],
   "ck3LanguageServer.trace.server": "off"
 }
 ```
 
+**Settings:**
+- `enable`: Enable/disable the language server (default: `true`)
 - `pythonPath`: Path to the Python interpreter (default: `python`)
-- `trace.server`: Set to `messages` or `verbose` for debugging
+- `args`: Additional arguments to pass to the server (default: `[]`)
+- `trace.server`: Set to `messages` or `verbose` for debugging (default: `off`)
+
+**Commands:**
+- `CK3 Language Server: Restart` - Restart the language server
 
 ## Development
 
@@ -120,32 +183,43 @@ pychivalry/
 │   │   └── extension.ts
 │   ├── package.json
 │   └── tsconfig.json
+├── examples/            # Example CK3 files
+│   ├── hello_world.txt  # Simple test example
+│   └── example_event.txt
+├── tests/               # Python tests
 ├── pyproject.toml       # Python project configuration
+├── TESTING.md          # Quick start testing guide
 └── README.md
 ```
 
 ### Running Tests
 
+Run Python tests:
 ```bash
-pytest
+pytest tests/ -v
 ```
 
-### Code Formatting
-
-Format Python code with Black:
+Run code quality checks:
 ```bash
-black pychivalry/
+black pychivalry/      # Format code
+flake8 pychivalry/     # Lint code
+mypy pychivalry/       # Type check
 ```
 
-Check with flake8:
+For extension tests:
 ```bash
-flake8 pychivalry/
+cd vscode-extension
+npm run lint           # Lint TypeScript
+npm run format-check   # Check formatting
 ```
 
-Type check with mypy:
-```bash
-mypy pychivalry/
-```
+### Testing the Language Server
+
+See **[TESTING.md](TESTING.md)** for detailed testing instructions, including:
+- Standalone server testing
+- VS Code extension testing
+- Hello world example walkthrough
+- Troubleshooting common issues
 
 ## Contributing
 
