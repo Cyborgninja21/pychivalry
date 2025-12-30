@@ -1,0 +1,287 @@
+{
+    "Character Event": {
+        "prefix": "event",
+        "body": [
+            "${1:namespace}.${2:0001} = {",
+            "\ttype = character_event",
+            "\ttitle = ${1:namespace}.${2:0001}.t",
+            "\tdesc = ${1:namespace}.${2:0001}.desc",
+            "\ttheme = ${3|default,diplomacy,intrigue,martial,stewardship,learning,seduction|}",
+            "\t",
+            "\tleft_portrait = root",
+            "\t",
+            "\ttrigger = {",
+            "\t\t$4",
+            "\t}",
+            "\t",
+            "\timmediate = {",
+            "\t\t$5",
+            "\t}",
+            "\t",
+            "\toption = {",
+            "\t\tname = ${1:namespace}.${2:0001}.a",
+            "\t\t$0",
+            "\t}",
+            "}"
+        ],
+        "description": "Create a new character event"
+    },
+    "Trigger Block": {
+        "prefix": "trigger",
+        "body": [
+            "trigger = {",
+            "\t$0",
+            "}"
+        ],
+        "description": "Create a trigger block"
+    },
+    "Effect Block": {
+        "prefix": "effect",
+        "body": [
+            "effect = {",
+            "\t$0",
+            "}"
+        ],
+        "description": "Create an effect block"
+    },
+    "Immediate Block": {
+        "prefix": "immediate",
+        "body": [
+            "immediate = {",
+            "\t$0",
+            "}"
+        ],
+        "description": "Create an immediate block"
+    },
+    "If Block": {
+        "prefix": "if",
+        "body": [
+            "if = {",
+            "\tlimit = {",
+            "\t\t$1",
+            "\t}",
+            "\t$0",
+            "}"
+        ],
+        "description": "Create an if block with limit"
+    },
+    "Else If Block": {
+        "prefix": "elseif",
+        "body": [
+            "else_if = {",
+            "\tlimit = {",
+            "\t\t$1",
+            "\t}",
+            "\t$0",
+            "}"
+        ],
+        "description": "Create an else_if block with limit"
+    },
+    "Else Block": {
+        "prefix": "else",
+        "body": [
+            "else = {",
+            "\t$0",
+            "}"
+        ],
+        "description": "Create an else block"
+    },
+    "Option": {
+        "prefix": "option",
+        "body": [
+            "option = {",
+            "\tname = ${1:event_id}.${2:a}",
+            "\t$0",
+            "}"
+        ],
+        "description": "Create an event option"
+    },
+    "Every Iterator": {
+        "prefix": "every",
+        "body": [
+            "every_${1|vassal,courtier,child,spouse,ally,realm_province,county,title|} = {",
+            "\tlimit = {",
+            "\t\t$2",
+            "\t}",
+            "\t$0",
+            "}"
+        ],
+        "description": "Create an every_ iterator"
+    },
+    "Any Iterator": {
+        "prefix": "any",
+        "body": [
+            "any_${1|vassal,courtier,child,spouse,ally,realm_province,county,title|} = {",
+            "\t$0",
+            "}"
+        ],
+        "description": "Create an any_ iterator"
+    },
+    "Random Iterator": {
+        "prefix": "random",
+        "body": [
+            "random_${1|vassal,courtier,child,spouse,ally,realm_province,county,title|} = {",
+            "\tlimit = {",
+            "\t\t$2",
+            "\t}",
+            "\tweight = {",
+            "\t\tbase = 1",
+            "\t\t$3",
+            "\t}",
+            "\t$0",
+            "}"
+        ],
+        "description": "Create a random_ iterator with weight"
+    },
+    "Ordered Iterator": {
+        "prefix": "ordered",
+        "body": [
+            "ordered_${1|vassal,courtier,child,spouse,ally,realm_province,county,title|} = {",
+            "\tlimit = {",
+            "\t\t$2",
+            "\t}",
+            "\torder_by = ${3:prestige}",
+            "\t$0",
+            "}"
+        ],
+        "description": "Create an ordered_ iterator"
+    },
+    "Save Scope": {
+        "prefix": "savescope",
+        "body": "save_scope_as = ${1:scope_name}",
+        "description": "Save current scope for later reference"
+    },
+    "Trigger Event": {
+        "prefix": "triggerevent",
+        "body": [
+            "trigger_event = {",
+            "\tid = ${1:namespace}.${2:0001}",
+            "\tdays = ${3:1}",
+            "}"
+        ],
+        "description": "Trigger another event"
+    },
+    "Portrait Block": {
+        "prefix": "portrait",
+        "body": [
+            "${1|left_portrait,right_portrait,lower_left_portrait,lower_center_portrait,lower_right_portrait|} = {",
+            "\tcharacter = ${2:root}",
+            "\tanimation = ${3|idle,happiness,sadness,anger,fear,disgust,shock,scheme,flirtation,boredom|}",
+            "}"
+        ],
+        "description": "Create a portrait block"
+    },
+    "Simple Portrait": {
+        "prefix": "portraitsimple",
+        "body": "${1|left_portrait,right_portrait,lower_left_portrait,lower_center_portrait,lower_right_portrait|} = ${2:root}",
+        "description": "Create a simple portrait reference"
+    },
+    "Namespace Declaration": {
+        "prefix": "namespace",
+        "body": "namespace = ${1:my_mod}",
+        "description": "Declare event namespace"
+    },
+    "Opinion Modifier": {
+        "prefix": "opinion",
+        "body": [
+            "add_opinion = {",
+            "\ttarget = ${1:root}",
+            "\tmodifier = ${2:opinion_modifier_name}",
+            "}"
+        ],
+        "description": "Add an opinion modifier"
+    },
+    "Set Variable": {
+        "prefix": "setvar",
+        "body": [
+            "set_variable = {",
+            "\tname = ${1:variable_name}",
+            "\tvalue = ${2:value}",
+            "}"
+        ],
+        "description": "Set a variable"
+    },
+    "Change Variable": {
+        "prefix": "changevar",
+        "body": [
+            "change_variable = {",
+            "\tname = ${1:variable_name}",
+            "\tadd = ${2:1}",
+            "}"
+        ],
+        "description": "Change a variable value"
+    },
+    "Add Trait": {
+        "prefix": "addtrait",
+        "body": "add_trait = ${1:trait_name}",
+        "description": "Add a trait to a character"
+    },
+    "Remove Trait": {
+        "prefix": "removetrait",
+        "body": "remove_trait = ${1:trait_name}",
+        "description": "Remove a trait from a character"
+    },
+    "Add Gold": {
+        "prefix": "addgold",
+        "body": "add_gold = ${1:100}",
+        "description": "Add gold to a character"
+    },
+    "Add Prestige": {
+        "prefix": "addprestige",
+        "body": "add_prestige = ${1:100}",
+        "description": "Add prestige to a character"
+    },
+    "Add Piety": {
+        "prefix": "addpiety",
+        "body": "add_piety = ${1:100}",
+        "description": "Add piety to a character"
+    },
+    "Has Trait": {
+        "prefix": "hastrait",
+        "body": "has_trait = ${1:trait_name}",
+        "description": "Check if character has a trait"
+    },
+    "Has Title": {
+        "prefix": "hastitle",
+        "body": "has_title = ${1:title_name}",
+        "description": "Check if character has a title"
+    },
+    "Limit Block": {
+        "prefix": "limit",
+        "body": [
+            "limit = {",
+            "\t$0",
+            "}"
+        ],
+        "description": "Create a limit block for filtering"
+    },
+    "Weight Block": {
+        "prefix": "weight",
+        "body": [
+            "weight = {",
+            "\tbase = ${1:1}",
+            "\t$0",
+            "}"
+        ],
+        "description": "Create a weight block"
+    },
+    "Switch Block": {
+        "prefix": "switch",
+        "body": [
+            "switch = {",
+            "\ttrigger = ${1:trigger_condition}",
+            "\t$0",
+            "}"
+        ],
+        "description": "Create a switch block"
+    },
+    "Scripted Effect Call": {
+        "prefix": "scriptedeffect",
+        "body": [
+            "${1:effect_name} = {",
+            "\t${2:PARAM} = ${3:value}",
+            "}"
+        ],
+        "description": "Call a scripted effect with parameters"
+    }
+}

@@ -9,19 +9,74 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Planned (Phase 1-2)
-- TextMate grammar for syntax highlighting
-- Code snippets for common CK3 patterns (25+ snippets)
+### Added (v0.2.0)
 
-### Planned (Phase 3-4)
-- Status bar integration with server state indicator
-- Enhanced error handling with recovery UI
-- Python/pychivalry installation detection
+#### Syntax Highlighting 🎨
+- **TextMate Grammar**: Comprehensive syntax highlighting for CK3 script files
+- **Keyword Highlighting**: Control flow (`if`, `else`, `while`, `limit`), event keywords (`trigger`, `effect`, `immediate`)
+- **Scope References**: `scope:target`, `root`, `prev`, `liege` and other scope keywords
+- **Variables**: `var:counter`, `$PARAM$` style parameters
+- **Functions**: Built-in effects (`add_gold`, `add_trait`) and triggers (`has_trait`, `is_adult`)
+- **Event Definitions**: Event IDs like `namespace.0001` highlighted as functions
+- **Iterators**: `every_vassal`, `any_courtier`, `random_child` patterns
+- **Constants**: `yes`, `no`, `true`, `false`
+- **Comments & Strings**: Properly highlighted with escape sequences
 
-### Planned (Phase 5-6)
-- Mod workspace detection (`.mod` file parsing)
-- Game installation detection
-- Additional commands and keybindings
+#### Code Snippets 📝
+- **30+ Snippets**: Common CK3 patterns for rapid development
+  - Character/letter events (`event` prefix)
+  - Control flow blocks (`if`, `else`, `limit`)
+  - Options and portraits (`option`, `portrait`)
+  - Iterators (`every`, `any`, `random`, `ordered`)
+  - Scope management (`savescope`)
+  - Effects (`addgold`, `addtrait`, `triggerevent`)
+  - Triggers (`hastrait`, `hastitle`)
+  - Variables (`setvar`, `changevar`)
+  - Advanced patterns (switch, weight, scripted effects)
+
+#### Status Bar Integration 📊
+- **Visual Indicator**: Color-coded status icon in status bar
+  - 🟢 Running (green checkmark)
+  - 🔵 Starting (spinning sync icon)
+  - ⚠️ Stopped (warning background)
+  - 🔴 Error (error background)
+- **Quick Action Menu**: Click status bar for:
+  - Restart server
+  - Show output logs
+  - Open settings
+  - Open CK3 modding documentation
+
+#### Enhanced Error Handling 🛡️
+- **Python Detection**: Automatic discovery of Python 3.9+ installations
+  - Tries configured path, then `python3`, `python`, `py`
+  - Validates Python version meets requirements
+- **Server Installation Check**: Verifies `pychivalry` module is installed
+- **User-Friendly Errors**: Actionable error dialogs with options:
+  - Configure Python path
+  - Install Python
+  - Install pychivalry server
+  - View documentation
+- **Workspace Trust**: Respects VS Code workspace trust settings
+- **Security Hardened**: Proper shell escaping to prevent command injection
+
+#### Commands 🎮
+- **CK3: Restart Language Server** - Restart the language server
+- **CK3: Show Output Channel** - View server logs and diagnostics
+- **CK3: Open CK3 Modding Documentation** - Open official CK3 modding wiki
+- **Status Bar Menu** (internal) - Quick action menu from status bar
+
+#### Documentation 📚
+- **Enhanced README**: Comprehensive feature documentation
+- **Code Examples**: Test workspace with sample CK3 files
+- **Troubleshooting Guide**: Common issues and solutions
+- **Security**: All security vulnerabilities addressed
+
+### Technical Details
+- Platform-specific shell escaping (Windows/Unix)
+- User confirmation for package installation
+- Proper error boundaries and recovery
+- CodeQL security scanning passed (0 alerts)
+- Linter passing with no errors
 
 ---
 
@@ -64,34 +119,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Node.js target
 
 ### Known Limitations
-- No syntax highlighting (planned for v0.2.0)
-- No code snippets (planned for v0.2.0)
-- No status bar indicator (planned for v0.3.0)
-- Limited error recovery (planned for v0.3.0)
-- Server must be installed separately via pip
+- Server must be installed separately via pip (but extension helps with this)
+- No auto-completion yet (coming from LSP server)
+- No diagnostics yet (coming from LSP server)
+- No hover documentation yet (coming from LSP server)
+- No go-to-definition yet (coming from LSP server)
 
 ---
 
 ## Roadmap
 
-### v0.2.0 - Syntax & Snippets
-- [ ] TextMate grammar for syntax highlighting
-- [ ] 25+ code snippets for common patterns
-- [ ] Event, trigger, effect highlighting
-- [ ] Scope reference highlighting
-
-### v0.3.0 - Status & Errors
-- [ ] Status bar integration
-- [ ] Enhanced error handling
-- [ ] Python detection
-- [ ] Installation wizard
-
-### v0.4.0 - Workspace Awareness
-- [ ] Mod descriptor parsing
+### v0.3.0 - Workspace Awareness
+- [ ] Mod descriptor parsing (`.mod` files)
 - [ ] Game installation detection
 - [ ] Multi-mod workspace support
+- [ ] Workspace info panel
 
-### v0.5.0 - Commands & Productivity
+### v0.4.0 - Commands & Productivity
 - [ ] Copy console command
 - [ ] Generate localization keys
 - [ ] Create event file wizard

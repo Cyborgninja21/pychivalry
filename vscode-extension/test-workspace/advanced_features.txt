@@ -1,0 +1,210 @@
+namespace = advanced_test
+
+# Advanced test showing more CK3 features
+advanced_test.1000 = {
+    type = character_event
+    title = advanced_test.1000.t
+    desc = advanced_test.1000.desc
+    theme = diplomacy
+    
+    # Portrait configuration
+    left_portrait = {
+        character = root
+        animation = happiness
+    }
+    
+    right_portrait = {
+        character = scope:target
+        animation = sadness
+    }
+    
+    # Trigger with complex conditions
+    trigger = {
+        age >= 16
+        is_landed = yes
+        gold >= 100
+        NOT = { has_trait = incapable }
+        any_vassal = {
+            opinion = {
+                target = root
+                value < 0
+            }
+        }
+    }
+    
+    # Immediate block with scope saving
+    immediate = {
+        random_vassal = {
+            limit = {
+                opinion = {
+                    target = root
+                    value < 0
+                }
+            }
+            weight = {
+                base = 1
+                modifier = {
+                    factor = 2
+                    opinion = {
+                        target = root
+                        value < -25
+                    }
+                }
+            }
+            save_scope_as = angry_vassal
+        }
+        
+        # Set variables
+        set_variable = {
+            name = event_counter
+            value = 1
+        }
+    }
+    
+    # Option with if/else logic
+    option = {
+        name = advanced_test.1000.a
+        
+        if = {
+            limit = { gold >= 500 }
+            scope:angry_vassal = {
+                add_opinion = {
+                    target = root
+                    modifier = generous_gift
+                }
+            }
+            add_gold = -500
+        }
+        else_if = {
+            limit = { gold >= 200 }
+            scope:angry_vassal = {
+                add_opinion = {
+                    target = root
+                    modifier = small_gift
+                }
+            }
+            add_gold = -200
+        }
+        else = {
+            add_prestige = -100
+        }
+        
+        # Trigger follow-up event
+        trigger_event = {
+            id = advanced_test.1001
+            days = 7
+        }
+    }
+    
+    # Option with iterators
+    option = {
+        name = advanced_test.1000.b
+        
+        every_vassal = {
+            limit = {
+                opinion = {
+                    target = root
+                    value < 0
+                }
+            }
+            add_opinion = {
+                target = root
+                modifier = intimidated
+            }
+        }
+        
+        add_prestige = 50
+    }
+    
+    # Option with variable manipulation
+    option = {
+        name = advanced_test.1000.c
+        
+        change_variable = {
+            name = event_counter
+            add = 1
+        }
+        
+        if = {
+            limit = {
+                var:event_counter >= 5
+            }
+            add_trait = experienced_ruler
+        }
+    }
+}
+
+# Letter event example
+advanced_test.2000 = {
+    type = letter_event
+    title = advanced_test.2000.t
+    desc = advanced_test.2000.desc
+    
+    sender = scope:sender
+    
+    trigger = {
+        is_ruler = yes
+    }
+    
+    immediate = {
+        liege = { save_scope_as = sender }
+    }
+    
+    option = {
+        name = advanced_test.2000.a
+        # Accept the request
+        scope:sender = {
+            trigger_event = advanced_test.2001
+        }
+    }
+    
+    option = {
+        name = advanced_test.2000.b
+        # Decline the request
+        scope:sender = {
+            add_opinion = {
+                target = root
+                modifier = declined_request
+            }
+        }
+    }
+}
+
+# Event with switch statement
+advanced_test.3000 = {
+    type = character_event
+    title = advanced_test.3000.t
+    desc = advanced_test.3000.desc
+    
+    immediate = {
+        # Example with scope references
+        root.liege = { save_scope_as = my_liege }
+        root.capital_province = { save_scope_as = capital }
+    }
+    
+    option = {
+        name = advanced_test.3000.a
+        
+        switch = {
+            trigger = culture
+            
+            culture:norse = {
+                add_trait = berserker
+            }
+            culture:greek = {
+                add_trait = scholar
+            }
+            culture:arabic = {
+                add_trait = diplomat
+            }
+        }
+    }
+}
+
+# Scripted effect with parameters
+test_scripted_effect = {
+    $CHARACTER$ = {
+        add_gold = $GOLD_AMOUNT$
+        add_prestige = $PRESTIGE_AMOUNT$
+    }
+}
