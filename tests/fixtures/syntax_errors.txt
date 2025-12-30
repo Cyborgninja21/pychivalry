@@ -1,0 +1,13 @@
+# Event with syntax errors
+namespace = test_mod
+
+test_mod.0001 = {
+    type = character_event
+    trigger = {
+        is_adult = yes
+    # Missing closing bracket
+    
+    option = {
+        name = test_mod.0001.a
+    }
+}

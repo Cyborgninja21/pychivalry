@@ -1,0 +1,177 @@
+# Character scope definition for CK3
+# This file defines all valid operations within character scope
+
+character:
+  # Scope links - navigate to related characters or objects
+  links:
+    - liege  # Character's feudal superior
+    - top_liege  # Top of feudal hierarchy
+    - spouse  # Current spouse(s)
+    - primary_spouse  # Main spouse
+    - father  # Legal father
+    - mother  # Mother
+    - real_father  # Biological father (may differ from legal father)
+    - primary_title  # Character's highest-tier title
+    - capital_county  # Character's capital county
+    - location  # Current location (province)
+    - host  # Host if character is a guest
+    - employer  # Employer if character is employed
+    - dynasty  # Character's dynasty
+    - house  # Character's house (subdivision of dynasty)
+    - faith  # Character's faith/religion
+    - culture  # Character's culture
+    - betrothed  # Character's betrothed (if engaged)
+    - guardian  # Character's guardian (if child)
+    - council_task  # Current council task (if councilor)
+    - liege_or_court_owner  # Liege or court owner
+    - player_heir  # Player's heir
+    - root  # Root scope
+    - prev  # Previous scope
+    - this  # Current scope
+    - from  # Calling scope
+    - fromfrom  # Two levels up
+  
+  # List iterations - iterate over collections
+  lists:
+    - vassal  # Direct vassals
+    - courtier  # Courtiers in character's court
+    - prisoner  # Characters imprisoned by this character
+    - child  # Children
+    - sibling  # Siblings
+    - spouse  # All spouses
+    - ally  # Allies
+    - enemy  # Enemies
+    - claim  # Titles character has claims on
+    - realm_county  # Counties in realm
+    - realm_province  # Provinces in realm
+    - held_title  # All titles held
+    - character_to_title_neighboring_county  # Neighboring counties
+    - character_to_title_neighboring_duke  # Neighboring dukes
+    - character_to_title_neighboring_king  # Neighboring kings
+    - character_to_title_neighboring_emperor  # Neighboring emperors
+    - scheme  # Active schemes
+    - secret  # Character's secrets
+    - relation  # Relations (friends, rivals, etc.)
+    - direct_de_jure_vassal  # Direct de jure vassals
+    - vassal_or_below  # All vassals recursively
+    - memory  # Character's memories
+    - artifact  # Artifacts owned
+    - councillor  # Council members
+    - knight  # Knights
+    - hooked_character  # Characters this character has hooks on
+    - targeting_faction  # Factions targeting this character
+    - owned_story  # Stories involving this character
+    - traveling_family_member  # Family members traveling
+    - heir_title  # Titles character will inherit
+    - heir_to_title  # Titles character is heir to
+  
+  # Valid triggers in character scope
+  triggers:
+    - is_adult  # Age 16+
+    - is_child  # Age < 16
+    - is_ruler  # Holds any titles
+    - is_alive  # Not dead
+    - is_ai  # Controlled by AI
+    - is_player  # Controlled by human player
+    - is_imprisoned  # Currently imprisoned
+    - is_married  # Currently married
+    - is_pregnant  # Currently pregnant
+    - is_incapable  # Incapacitated
+    - is_female  # Female gender
+    - is_male  # Male gender
+    - has_trait  # Has specific trait
+    - age  # Character's age
+    - gold  # Amount of gold
+    - prestige  # Amount of prestige
+    - prestige_level  # Prestige level (1-5)
+    - piety  # Amount of piety
+    - piety_level  # Piety level (1-5)
+    - stress  # Stress level
+    - dread  # Dread value
+    - diplomacy  # Diplomacy skill
+    - martial  # Martial skill
+    - stewardship  # Stewardship skill
+    - intrigue  # Intrigue skill
+    - learning  # Learning skill
+    - prowess  # Prowess skill
+    - health  # Health value
+    - has_title  # Holds specific title
+    - has_claim_on  # Has claim on title
+    - opinion  # Opinion of another character
+    - has_relation  # Has specific relation
+    - completely_controls  # Controls all counties in title
+    - has_government  # Has specific government type
+    - has_law  # Realm has specific law
+    - culture  # Culture check
+    - faith  # Faith/religion check
+    - dynasty  # Dynasty check
+    - house  # House check
+    - num_of_traits  # Number of traits
+    - fertility  # Fertility value
+    - can_have_children  # Can have biological children
+    - is_imprisoned_by  # Imprisoned by specific character
+    - is_at_war  # Currently at war
+    - is_at_war_with  # At war with specific character
+    - primary_title  # Primary title check
+    - capital_county  # Capital county check
+    - location  # Location check
+    - has_character_flag  # Has specific flag
+    - has_variable  # Has specific variable
+    - exists  # Scope exists (not null)
+  
+  # Valid effects in character scope
+  effects:
+    - add_trait  # Add trait to character
+    - remove_trait  # Remove trait from character
+    - add_gold  # Add gold
+    - remove_gold  # Remove gold
+    - add_prestige  # Add prestige
+    - add_piety  # Add piety
+    - add_stress  # Add stress
+    - add_dread  # Add dread
+    - add_diplomacy  # Add diplomacy skill
+    - add_martial  # Add martial skill
+    - add_stewardship  # Add stewardship skill
+    - add_intrigue  # Add intrigue skill
+    - add_learning  # Add learning skill
+    - add_prowess  # Add prowess skill
+    - add_opinion  # Modify opinion
+    - remove_opinion  # Remove opinion modifier
+    - add_character_modifier  # Add modifier
+    - remove_character_modifier  # Remove modifier
+    - add_claim  # Add claim to title
+    - remove_claim  # Remove claim
+    - create_title  # Create new title
+    - destroy_title  # Destroy title
+    - marry  # Marry another character
+    - divorce  # Divorce spouse
+    - imprison  # Imprison character
+    - release_from_prison  # Release prisoner
+    - death  # Kill character
+    - add_character_flag  # Add flag
+    - remove_character_flag  # Remove flag
+    - set_variable  # Set variable
+    - change_variable  # Modify variable
+    - remove_variable  # Remove variable
+    - save_scope_as  # Save to scope variable
+    - save_temporary_scope_as  # Save to temporary scope
+    - trigger_event  # Trigger an event
+    - random  # Random chance effect
+    - random_list  # Random weighted list
+    - if  # Conditional effect
+    - else_if  # Alternative condition
+    - else  # Else branch
+    - hidden_effect  # Hide tooltip effects
+    - change_government  # Change government type
+    - set_capital_county  # Set capital
+    - add_hook  # Add hook on character
+    - remove_hook  # Remove hook
+    - consume_hook  # Consume hook
+    - add_secret  # Add secret
+    - expose_secret  # Expose secret
+    - start_scheme  # Start scheme
+    - end_scheme  # End scheme
+    - add_artifact  # Add artifact
+    - remove_artifact  # Remove artifact
+    - equip_artifact  # Equip artifact
+    - unequip_artifact  # Unequip artifact

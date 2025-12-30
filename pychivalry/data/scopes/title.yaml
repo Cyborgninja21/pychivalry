@@ -1,0 +1,47 @@
+# Landed title scope definition for CK3
+# Represents counties, duchies, kingdoms, empires
+
+landed_title:
+  links:
+    - holder  # Current title holder
+    - previous_holder  # Previous holder
+    - de_jure_liege  # De jure superior title
+    - capital_county  # Capital county of realm
+    - empire  # Empire title in hierarchy
+    - kingdom  # Kingdom title in hierarchy
+    - duchy  # Duchy title in hierarchy
+    - county  # County title
+    - barony  # Barony title
+    - top_liege  # Top of hierarchy
+    - root  # Root scope
+    - prev  # Previous scope
+    - this  # Current scope
+    - from  # Calling scope
+  
+  lists:
+    - de_jure_vassal  # De jure vassals
+    - de_facto_vassal  # De facto vassals
+    - in_de_facto_hierarchy  # All titles in de facto hierarchy
+    - in_de_jure_hierarchy  # All titles in de jure hierarchy
+    - claimant  # Characters with claims
+    - county_province  # Provinces in county
+  
+  triggers:
+    - tier  # Title tier (barony, county, duchy, kingdom, empire)
+    - is_holy_site  # Is a holy site
+    - is_titular  # Is titular title
+    - title_capital  # Capital check
+    - completely_controls  # Holder controls all counties
+    - exists  # Title exists
+    - holder  # Holder check
+    - has_holder  # Has a holder
+    - is_title_created  # Title has been created
+  
+  effects:
+    - set_capital_county  # Set capital
+    - destroy_title  # Destroy title
+    - create_title  # Create title
+    - add_title_law  # Add law
+    - remove_title_law  # Remove law
+    - change_title_holder  # Change holder
+    - save_scope_as  # Save to scope variable

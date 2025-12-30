@@ -1,0 +1,23 @@
+# Scope chain examples
+test_mod.0001 = {
+    type = character_event
+    
+    trigger = {
+        liege = {
+            primary_title = {
+                holder = { 
+                    is_adult = yes 
+                }
+            }
+        }
+    }
+    
+    immediate = {
+        liege.primary_title.holder = { 
+            save_scope_as = target 
+        }
+        scope:target = { 
+            add_gold = 100 
+        }
+    }
+}
