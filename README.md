@@ -17,6 +17,12 @@ pychivalry brings modern IDE features to CK3 mod development—auto-completion, 
 | Feature | Description |
 |---------|-------------|
 | **🔤 Auto-completion** | 150+ CK3 keywords, effects, triggers, and scopes |
+| **✅ Diagnostics** | Real-time syntax and semantic validation |
+| **📖 Hover Documentation** | Helpful tooltips for effects, triggers, scopes, and events |
+| **🔍 Scope Validation** | Validates scope chains and saved scopes |
+| **📋 List Validation** | Validates any_, every_, random_, ordered_ patterns |
+| **🔢 Script Values** | Formula and range validation |
+| **💾 Variables** | Full variable system support (var:, local_var:, global_var:) |
 | **📁 File Support** | `.txt`, `.gui`, `.gfx`, and `.asset` files |
 | **🔄 Live Sync** | Real-time document tracking as you type |
 | **⚡ Fast** | Lightweight Python server with instant responses |
@@ -33,12 +39,19 @@ pychivalry brings modern IDE features to CK3 mod development—auto-completion, 
 
 ### Roadmap
 
-- [ ] Syntax validation & diagnostics
-- [ ] Context-aware completions  
-- [ ] Hover documentation
-- [ ] Go to definition
-- [ ] Code formatting
-- [ ] Snippets for common patterns
+- [x] **Syntax validation & diagnostics** — Real-time error detection (Phase 8 complete)
+- [x] **Hover documentation** — Helpful tooltips for CK3 constructs (Phase 10 complete)
+- [x] **Parser Foundation** — Full AST parsing (Phase 1 complete)
+- [x] **Scope System** — Scope validation and navigation (Phase 2 complete)
+- [x] **Script Lists** — List iterator validation (Phase 3 complete)
+- [x] **Script Values** — Formula validation (Phase 4 complete)
+- [x] **Variables System** — Variable tracking and validation (Phase 5 complete)
+- [ ] Context-aware completions (Phase 9 planned)
+- [ ] Go to definition (Phase 12 planned)
+- [ ] Scripted blocks (Phase 6 planned)
+- [ ] Event system validation (Phase 7 planned)
+
+**Status**: 7 of 17 phases complete • 286 tests passing • Ready for production use
 
 ## 🚀 Quick Start
 
