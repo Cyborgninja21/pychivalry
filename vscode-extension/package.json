@@ -153,8 +153,8 @@
     "test": "node ./out/test/runTest.js",
     "test:unit": "mocha ./out/test/unit/**/*.test.js",
     "lint": "eslint src --ext ts",
-    "format": "prettier --write 'src/**/*.ts'",
-    "format-check": "prettier --check 'src/**/*.ts'"
+    "format": "prettier --write \"src/**/*.ts\"",
+    "format-check": "prettier --check \"src/**/*.ts\""
   },
   "devDependencies": {
     "@types/mocha": "^10.0.0",
