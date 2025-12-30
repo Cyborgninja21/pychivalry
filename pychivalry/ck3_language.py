@@ -51,7 +51,7 @@ CK3_KEYWORDS = [
     "desc",  # Localization key for event description/body text
     "theme",  # Visual/audio theme for the event presentation
     "option",  # Player choice in an event with associated effects
-    "trigger",  # Conditions determining if event can fire (duplicate kept for clarity)
+    # Note: 'trigger' appears in both control flow and event contexts with same meaning
     # Decision keywords - Used in decision definitions
     "is_shown",  # Determines if decision appears in UI for the player
     "is_valid",  # Checks if decision can be taken (shows why if invalid)

@@ -49,21 +49,27 @@ from pygls.lsp.server import LanguageServer
 from lsprotocol import types
 
 # Import CK3 language definitions
-# These lists contain all the CK3 scripting constructs we provide completions for
+# These lists contain all the CK3 scripting constructs we provide completions for:
+# - CK3_KEYWORDS: Control flow and structural keywords
+# - CK3_EFFECTS: Commands that modify game state
+# - CK3_TRIGGERS: Conditional checks
+# - CK3_SCOPES: Context switches for accessing game objects
+# - CK3_EVENT_TYPES: Different event presentation styles
+# - CK3_BOOLEAN_VALUES: Boolean true/false values
 from .ck3_language import (
-    CK3_KEYWORDS,  # Control flow and structural keywords
-    CK3_EFFECTS,  # Commands that modify game state
-    CK3_TRIGGERS,  # Conditional checks
-    CK3_SCOPES,  # Context switches for accessing game objects
-    CK3_EVENT_TYPES,  # Different event presentation styles
-    CK3_BOOLEAN_VALUES,  # Boolean true/false values
+    CK3_KEYWORDS,
+    CK3_EFFECTS,
+    CK3_TRIGGERS,
+    CK3_SCOPES,
+    CK3_EVENT_TYPES,
+    CK3_BOOLEAN_VALUES,
 )
 
 # Configure logging for debugging and monitoring
 # Logs help track server activity and diagnose issues
 # Output goes to stderr to avoid interfering with LSP communication on stdout
 logging.basicConfig(
-    level=logging.INFO,  # INFO level shows important events, DEBUG shows everything
+    level=logging.INFO,  # INFO level shows important events (change to DEBUG for verbose logging)
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
