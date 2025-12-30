@@ -74,6 +74,9 @@ from .indexer import DocumentIndex
 # Import diagnostics
 from .diagnostics import collect_all_diagnostics
 
+# Import hover
+from .hover import create_hover_response
+
 # Configure logging for debugging and monitoring
 # Logs help track server activity and diagnose issues
 # Output goes to stderr to avoid interfering with LSP communication on stdout
@@ -402,6 +405,50 @@ def completions(params: types.CompletionParams):
         is_incomplete=False,
         items=items,
     )
+
+
+@server.feature(types.TEXT_DOCUMENT_HOVER)
+def hover(ls: CK3LanguageServer, params: types.HoverParams):
+    """
+    Provide hover documentation for CK3 constructs.
+    
+    This feature shows helpful information when users hover over CK3 keywords,
+    effects, triggers, scopes, events, and other constructs. The documentation
+    includes usage examples, parameter information, and cross-references.
+    
+    Args:
+        ls: The CK3 language server instance
+        params: Contains information about the hover request:
+            - text_document.uri: The file where hover was triggered
+            - position.line: Line number (0-indexed)
+            - position.character: Character offset in the line (0-indexed)
+    
+    Returns:
+        Hover: Contains:
+            - contents: Markdown-formatted documentation
+            - range: Optional range that the hover applies to
+        or None if no hover information available
+    
+    LSP Specification:
+        This is a request from client to server. The server should respond with
+        a Hover object containing documentation, or null if no information is available.
+    
+    Features:
+        - Effect documentation with usage examples
+        - Trigger documentation with return types
+        - Scope navigation information
+        - Event definitions with file locations
+        - Saved scope references with definition locations
+        - List iterator explanations
+    """
+    try:
+        doc = ls.workspace.get_text_document(params.text_document.uri)
+        ast = ls.document_asts.get(doc.uri, [])
+        
+        return create_hover_response(doc, params.position, ast, ls.index)
+    except Exception as e:
+        logger.error(f"Error in hover handler: {e}", exc_info=True)
+        return None
 
 
 def main():
