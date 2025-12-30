@@ -1,0 +1,117 @@
+{
+    "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+    "name": "CK3",
+    "scopeName": "source.ck3",
+    "patterns": [
+        { "include": "#comments" },
+        { "include": "#strings" },
+        { "include": "#numbers" },
+        { "include": "#constants" },
+        { "include": "#operators" },
+        { "include": "#keywords" },
+        { "include": "#scope-references" },
+        { "include": "#variables" },
+        { "include": "#parameters" },
+        { "include": "#event-definitions" },
+        { "include": "#namespace-declarations" },
+        { "include": "#iterators" },
+        { "include": "#functions" }
+    ],
+    "repository": {
+        "comments": {
+            "name": "comment.line.number-sign.ck3",
+            "match": "#.*$"
+        },
+        "strings": {
+            "name": "string.quoted.double.ck3",
+            "begin": "\"",
+            "end": "\"",
+            "patterns": [
+                {
+                    "name": "constant.character.escape.ck3",
+                    "match": "\\\\."
+                }
+            ]
+        },
+        "numbers": {
+            "name": "constant.numeric.ck3",
+            "match": "-?\\b\\d+(\\.\\d+)?\\b"
+        },
+        "constants": {
+            "name": "constant.language.ck3",
+            "match": "\\b(yes|no|true|false)\\b"
+        },
+        "operators": {
+            "patterns": [
+                {
+                    "name": "keyword.operator.comparison.ck3",
+                    "match": "(<|>|<=|>=|==|!=)"
+                },
+                {
+                    "name": "keyword.operator.assignment.ck3",
+                    "match": "="
+                }
+            ]
+        },
+        "keywords": {
+            "patterns": [
+                {
+                    "name": "keyword.control.ck3",
+                    "match": "\\b(if|else|else_if|while|switch|trigger_switch|limit|break)\\b"
+                },
+                {
+                    "name": "keyword.other.event.ck3",
+                    "match": "\\b(trigger|effect|immediate|option|desc|title|theme|type|weight)\\b"
+                },
+                {
+                    "name": "entity.name.type.ck3",
+                    "match": "\\b(character_event|letter_event|duel_event|feast_event|activity_event|on_action)\\b"
+                }
+            ]
+        },
+        "scope-references": {
+            "patterns": [
+                {
+                    "name": "variable.other.saved-scope.ck3",
+                    "match": "\\bscope:[\\w_]+"
+                },
+                {
+                    "name": "variable.language.scope.ck3",
+                    "match": "\\b(root|this|prev|from|liege|top_liege|host|target|actor)\\b"
+                }
+            ]
+        },
+        "variables": {
+            "name": "variable.other.variable.ck3",
+            "match": "\\bvar:[\\w_]+"
+        },
+        "parameters": {
+            "name": "variable.parameter.ck3",
+            "match": "\\$[A-Z_]+\\$"
+        },
+        "event-definitions": {
+            "name": "entity.name.function.event.ck3",
+            "match": "^\\s*([\\w_]+\\.[\\w_]+)\\s*="
+        },
+        "namespace-declarations": {
+            "name": "entity.name.namespace.ck3",
+            "match": "\\bnamespace\\s*=\\s*([\\w_]+)"
+        },
+        "iterators": {
+            "name": "keyword.control.iterator.ck3",
+            "match": "\\b(every_|any_|random_|ordered_)(vassal|courtier|child|spouse|ally|realm_province|county|title|holder|claim|war|scheme|secret)\\b"
+        },
+        "functions": {
+            "patterns": [
+                {
+                    "name": "support.function.effect.ck3",
+                    "match": "\\b(add_gold|add_prestige|add_piety|add_trait|remove_trait|trigger_event|save_scope_as|set_variable|change_variable|add_opinion|remove_opinion|spawn_army|create_title|destroy_title|death)\\b"
+                },
+                {
+                    "name": "support.function.trigger.ck3",
+                    "match": "\\b(has_trait|has_title|has_claim|is_alive|is_adult|is_landed|can_marry|can_fight|can_have_children|gold|prestige|piety|age|culture|faith|government)\\b"
+                }
+            ]
+        }
+    }
+}

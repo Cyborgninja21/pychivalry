@@ -48,6 +48,61 @@
         "configuration": "./language-configuration.json"
       }
     ],
+    "grammars": [
+      {
+        "language": "ck3",
+        "scopeName": "source.ck3",
+        "path": "./syntaxes/ck3.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "ck3",
+        "path": "./snippets/ck3.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "ck3LanguageServer.restart",
+        "title": "Restart Language Server",
+        "category": "CK3"
+      },
+      {
+        "command": "ck3LanguageServer.showOutput",
+        "title": "Show Output Channel",
+        "category": "CK3"
+      },
+      {
+        "command": "ck3LanguageServer.showMenu",
+        "title": "Show Menu",
+        "category": "CK3"
+      },
+      {
+        "command": "ck3LanguageServer.openDocumentation",
+        "title": "Open CK3 Modding Documentation",
+        "category": "CK3"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "ck3LanguageServer.restart",
+          "when": "true"
+        },
+        {
+          "command": "ck3LanguageServer.showOutput",
+          "when": "true"
+        },
+        {
+          "command": "ck3LanguageServer.showMenu",
+          "when": "false"
+        },
+        {
+          "command": "ck3LanguageServer.openDocumentation",
+          "when": "true"
+        }
+      ]
+    },
     "configuration": {
       "type": "object",
       "title": "CK3 Language Server",
