@@ -7,16 +7,12 @@ and more for CK3 mod development.
 """
 
 import logging
-from typing import Optional
 
 from pygls.server import LanguageServer
 from lsprotocol.types import (
     TEXT_DOCUMENT_DID_OPEN,
     TEXT_DOCUMENT_DID_CHANGE,
     TEXT_DOCUMENT_DID_CLOSE,
-    InitializeParams,
-    ServerCapabilities,
-    TextDocumentSyncKind,
     DidOpenTextDocumentParams,
     DidChangeTextDocumentParams,
     DidCloseTextDocumentParams,
@@ -25,8 +21,7 @@ from lsprotocol.types import (
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
