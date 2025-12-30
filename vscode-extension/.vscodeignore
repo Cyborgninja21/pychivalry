@@ -2,9 +2,13 @@
 .vscode-test
 node_modules
 out
+src
 *.vsix
-src/**/*.js
-src/**/*.map
 .gitignore
+.eslintrc.json
 tsconfig.json
+webpack.config.js
 *.log
+.DS_Store
+*.map
+!dist/**/*.map
