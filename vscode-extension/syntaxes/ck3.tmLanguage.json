@@ -91,7 +91,12 @@
         },
         "event-definitions": {
             "name": "entity.name.function.event.ck3",
-            "match": "^\\s*([\\w_]+\\.[\\w_]+)\\s*="
+            "match": "^\\s*([\\w_]+\\.[\\w_]+)\\s*=",
+            "captures": {
+                "1": {
+                    "name": "entity.name.function.event.ck3"
+                }
+            }
         },
         "namespace-declarations": {
             "name": "entity.name.namespace.ck3",

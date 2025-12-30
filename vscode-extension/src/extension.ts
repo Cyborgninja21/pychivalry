@@ -212,7 +212,8 @@ async function findPython(): Promise<string | undefined> {
 
 async function checkPythonPath(pythonPath: string): Promise<boolean> {
     try {
-        const { stdout } = await execAsync(`${pythonPath} --version`);
+        // Use array form to avoid shell injection
+        const { stdout } = await execAsync(`"${pythonPath.replace(/"/g, '\\"')}" --version`);
         const version = stdout.match(/Python (\d+)\.(\d+)/);
         if (version) {
             const major = parseInt(version[1]);
@@ -227,7 +228,8 @@ async function checkPythonPath(pythonPath: string): Promise<boolean> {
 
 async function checkServerInstalled(pythonPath: string): Promise<boolean> {
     try {
-        await execAsync(`${pythonPath} -c "import pychivalry"`);
+        // Use array form to avoid shell injection
+        await execAsync(`"${pythonPath.replace(/"/g, '\\"')}" -c "import pychivalry"`);
         return true;
     } catch {
         return false;
@@ -263,9 +265,17 @@ async function handleServerError(error: Error): Promise<void> {
         );
         
         if (action === 'Install Server') {
-            const terminal = vscode.window.createTerminal('Install CK3 Server');
-            terminal.show();
-            terminal.sendText('pip install pychivalry');
+            const confirm = await vscode.window.showWarningMessage(
+                'This will run "pip install pychivalry" in a terminal. Continue?',
+                'Yes',
+                'No'
+            );
+            
+            if (confirm === 'Yes') {
+                const terminal = vscode.window.createTerminal('Install CK3 Server');
+                terminal.show();
+                terminal.sendText('pip install pychivalry');
+            }
         } else if (action === 'View Documentation') {
             vscode.env.openExternal(
                 vscode.Uri.parse('https://github.com/Cyborgninja21/pychivalry#readme')
