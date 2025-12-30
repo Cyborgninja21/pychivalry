@@ -35,7 +35,7 @@
         },
         "numbers": {
             "name": "constant.numeric.ck3",
-            "match": "-?\\b\\d+(\\.\\d+)?\\b"
+            "match": "-?\\b\\d+(?:\\.\\d+)?\\b"
         },
         "constants": {
             "name": "constant.language.ck3",

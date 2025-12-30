@@ -287,6 +287,7 @@ async function handleServerError(error: Error): Promise<void> {
             if (confirm === 'Yes') {
                 const terminal = vscode.window.createTerminal('Install CK3 Server');
                 terminal.show();
+                // Hardcoded safe command - no user input
                 terminal.sendText('pip install pychivalry');
             }
         } else if (action === 'View Documentation') {
