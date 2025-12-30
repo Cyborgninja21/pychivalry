@@ -5,7 +5,7 @@ Tests end-to-end user workflows combining multiple LSP features.
 
 import pytest
 from pychivalry.parser import parse_document
-from pychivalry.diagnostics import get_diagnostics
+from pychivalry.diagnostics import collect_all_diagnostics, get_diagnostics_for_text
 from pychivalry.completions import get_context_aware_completions
 from pychivalry.navigation import find_definition, find_references
 from pychivalry.code_actions import get_all_code_actions
@@ -15,7 +15,7 @@ from pychivalry.indexer import DocumentIndex
 class TestEndToEndWorkflows:
     """Test complete user workflows from start to finish."""
 
-    def test_open_file_get_diagnostics_apply_fix(self):
+    def test_open_file_collect_all_diagnostics_apply_fix(self):
         """Test: Open file → Get diagnostics → Apply code action → Verify fix."""
         # 1. Open file with typo
         content = """
@@ -28,8 +28,8 @@ class TestEndToEndWorkflows:
         """
         
         # 2. Parse and get diagnostics
-        doc = parse_document(content, "test.txt")
-        diagnostics = get_diagnostics(doc)
+        doc = parse_document(content)
+        diagnostics = collect_all_diagnostics(doc)
         
         # 3. Verify diagnostic exists
         assert len(diagnostics) > 0
@@ -56,7 +56,7 @@ class TestEndToEndWorkflows:
         """
         
         # 2. Parse document
-        doc = parse_document(content, "test.txt")
+        doc = parse_document(content)
         index = DocumentIndex()
         index.index_document("test.txt", doc)
         
@@ -93,8 +93,8 @@ class TestEndToEndWorkflows:
         """
         
         # 2. Parse both files
-        effect_doc = parse_document(effect_file, "effects.txt")
-        event_doc = parse_document(event_file, "events.txt")
+        effect_doc = parse_document(effect_file)
+        event_doc = parse_document(event_file)
         
         # 3. Index both files
         index = DocumentIndex()
@@ -135,8 +135,8 @@ class TestEndToEndWorkflows:
         """
         
         # 2. Parse both files
-        doc1 = parse_document(event1_file, "events_a.txt")
-        doc2 = parse_document(event2_file, "events_b.txt")
+        doc1 = parse_document(event1_file)
+        doc2 = parse_document(event2_file)
         
         # 3. Index both files
         index = DocumentIndex()
@@ -144,7 +144,7 @@ class TestEndToEndWorkflows:
         index.index_document("events_b.txt", doc2)
         
         # 4. Validate event chain
-        diagnostics1 = get_diagnostics(doc1, index)
+        diagnostics1 = collect_all_diagnostics(doc1, index)
         
         # 5. Verify no broken chain errors
         broken_chain_errors = [d for d in diagnostics1 if "undefined" in d.message.lower() and "event" in d.message.lower()]
@@ -178,9 +178,9 @@ class TestEndToEndWorkflows:
         """
         
         # 3. Parse all files
-        effect_doc = parse_document(effect_file, "effects.txt")
-        event1_doc = parse_document(event1, "rewards.txt")
-        event2_doc = parse_document(event2, "bonuses.txt")
+        effect_doc = parse_document(effect_file)
+        event1_doc = parse_document(event1)
+        event2_doc = parse_document(event2)
         
         # 4. Index all files
         index = DocumentIndex()
@@ -229,8 +229,8 @@ class TestModDescriptorWorkflow:
         """
         
         # 5. Parse and validate script
-        doc = parse_document(script, "events.txt")
-        diagnostics = get_diagnostics(doc)
+        doc = parse_document(script)
+        diagnostics = collect_all_diagnostics(doc)
         
         # No errors expected for valid event
         assert all(d.severity != 1 for d in diagnostics)  # No errors
@@ -257,7 +257,7 @@ class TestLocalizationWorkflow:
         """
         
         # 2. Parse event
-        doc = parse_document(event, "events.txt")
+        doc = parse_document(event)
         
         # 3. Extract loc keys
         loc_keys = extract_localization_keys_from_event(doc.root.children[1] if len(doc.root.children) > 1 else None)

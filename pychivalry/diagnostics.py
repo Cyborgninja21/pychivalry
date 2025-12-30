@@ -296,3 +296,28 @@ def collect_all_diagnostics(
         logger.error(f"Error during diagnostic collection: {e}", exc_info=True)
     
     return diagnostics
+
+
+def get_diagnostics_for_text(text: str, uri: str = "file:///test.txt", 
+                              index: Optional[DocumentIndex] = None) -> List[types.Diagnostic]:
+    """
+    Convenience function for testing: parse text and return diagnostics.
+    
+    Args:
+        text: CK3 script text
+        uri: Document URI (default: file:///test.txt)
+        index: Document index for cross-file validation (optional)
+        
+    Returns:
+        List of diagnostics
+    """
+    from .parser import parse_document
+    
+    # Parse the text
+    ast = parse_document(text)
+    
+    # Create a mock TextDocument
+    doc = TextDocument(uri=uri, source=text)
+    
+    # Collect diagnostics
+    return collect_all_diagnostics(doc, ast, index)

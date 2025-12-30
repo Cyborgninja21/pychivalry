@@ -6,7 +6,7 @@ Tests the parser and other components with randomly generated inputs.
 import pytest
 from hypothesis import given, strategies as st, settings, HealthCheck
 from pychivalry.parser import parse_document
-from pychivalry.diagnostics import get_diagnostics
+from pychivalry.diagnostics import collect_all_diagnostics, get_diagnostics_for_text
 from pychivalry.completions import get_context_aware_completions
 from pychivalry.indexer import DocumentIndex
 
@@ -62,7 +62,7 @@ class TestParserRobustness:
     def test_parser_handles_arbitrary_text(self, text):
         """Parser should not crash on arbitrary text input."""
         try:
-            result = parse_document(text, "fuzz.txt")
+            result = parse_document(text)
             # Parser should return something (even if it's an error tree)
             assert result is not None
         except Exception as e:
@@ -76,7 +76,7 @@ class TestParserRobustness:
     def test_parser_handles_valid_assignments(self, assignments):
         """Parser should handle lists of valid assignments."""
         content = "".join(assignments)
-        result = parse_document(content, "test.txt")
+        result = parse_document(content)
         assert result is not None
 
     @given(st.text(alphabet='{}[]()=\n\t ', min_size=0, max_size=200))
@@ -84,7 +84,7 @@ class TestParserRobustness:
     def test_parser_handles_brackets_and_delimiters(self, text):
         """Parser should handle random combinations of brackets and delimiters."""
         try:
-            result = parse_document(text, "fuzz.txt")
+            result = parse_document(text)
             assert result is not None
         except Exception as e:
             pytest.fail(f"Parser crashed on delimiters: {repr(text[:100])}\nError: {e}")
@@ -101,7 +101,7 @@ class TestParserRobustness:
         content += "}\n"
         
         try:
-            result = parse_document(content, "deep.txt")
+            result = parse_document(content)
             assert result is not None
         except RecursionError:
             pytest.skip("Recursion limit reached - expected for very deep nesting")
@@ -111,7 +111,7 @@ class TestParserRobustness:
     def test_parser_handles_quotes(self, text):
         """Parser should handle various quote combinations."""
         try:
-            result = parse_document(text, "quotes.txt")
+            result = parse_document(text)
             assert result is not None
         except Exception as e:
             pytest.fail(f"Parser crashed on quotes: {repr(text[:100])}\nError: {e}")
@@ -125,8 +125,8 @@ class TestDiagnosticsRobustness:
     def test_diagnostics_handles_arbitrary_input(self, text):
         """Diagnostics should not crash on arbitrary parsed input."""
         try:
-            doc = parse_document(text, "fuzz.txt")
-            diagnostics = get_diagnostics(doc)
+            doc = parse_document(text)
+            diagnostics = get_diagnostics_for_text(text)
             # Should return list (possibly empty)
             assert isinstance(diagnostics, list)
         except Exception as e:
@@ -137,8 +137,8 @@ class TestDiagnosticsRobustness:
     def test_diagnostics_on_valid_structure(self, namespace, assignments):
         """Diagnostics should handle valid CK3 structures."""
         content = namespace + "".join(assignments)
-        doc = parse_document(content, "test.txt")
-        diagnostics = get_diagnostics(doc)
+        doc = parse_document(content)
+        diagnostics = get_diagnostics_for_text(text)
         assert isinstance(diagnostics, list)
 
 
@@ -150,7 +150,7 @@ class TestCompletionsRobustness:
     def test_completions_handles_arbitrary_position(self, text, line, col):
         """Completions should handle arbitrary cursor positions without crashing."""
         try:
-            doc = parse_document(text, "fuzz.txt")
+            doc = parse_document(text)
             index = DocumentIndex()
             index.index_document("fuzz.txt", doc)
             
@@ -173,7 +173,7 @@ class TestPropertyInvariants:
     @settings(max_examples=50, suppress_health_check=[HealthCheck.too_slow])
     def test_parser_always_returns_document(self, text):
         """Property: Parser must always return a document object."""
-        result = parse_document(text, "test.txt")
+        result = parse_document(text)
         assert result is not None
         assert hasattr(result, 'root')
 
@@ -181,8 +181,8 @@ class TestPropertyInvariants:
     @settings(max_examples=30)
     def test_diagnostics_always_returns_list(self, text):
         """Property: Diagnostics must always return a list."""
-        doc = parse_document(text, "test.txt")
-        diagnostics = get_diagnostics(doc)
+        doc = parse_document(text)
+        diagnostics = get_diagnostics_for_text(text)
         assert isinstance(diagnostics, list)
 
     @given(ck3_namespace(), st.lists(ck3_simple_assignment(), min_size=1, max_size=10))
@@ -190,7 +190,7 @@ class TestPropertyInvariants:
     def test_valid_ck3_produces_no_parse_errors(self, namespace, assignments):
         """Property: Valid CK3 syntax should produce parseable document."""
         content = namespace + "".join(assignments)
-        doc = parse_document(content, "test.txt")
+        doc = parse_document(content)
         
         # Document should be created
         assert doc is not None
@@ -202,19 +202,19 @@ class TestEdgeCases:
 
     def test_empty_file(self):
         """Parser should handle empty files."""
-        result = parse_document("", "empty.txt")
+        result = parse_document("")
         assert result is not None
 
     def test_single_character(self):
         """Parser should handle single character files."""
         for char in "abcdefghijklmnopqrstuvwxyz0123456789_={}[]()\"'":
-            result = parse_document(char, "single.txt")
+            result = parse_document(char)
             assert result is not None
 
     def test_very_long_line(self):
         """Parser should handle very long lines."""
         long_line = "value = " + "a" * 10000
-        result = parse_document(long_line, "long.txt")
+        result = parse_document(long_line)
         assert result is not None
 
     def test_unicode_characters(self):
@@ -226,13 +226,13 @@ class TestEdgeCases:
             描述 = "Unicode test"
         }
         """
-        result = parse_document(content, "unicode.txt")
+        result = parse_document(content)
         assert result is not None
 
     def test_mixed_line_endings(self):
         """Parser should handle mixed line endings."""
         content = "line1 = value1\nline2 = value2\r\nline3 = value3\rline4 = value4"
-        result = parse_document(content, "mixed.txt")
+        result = parse_document(content)
         assert result is not None
 
     def test_incomplete_structures(self):
@@ -246,7 +246,7 @@ class TestEdgeCases:
         ]
         
         for content in incomplete:
-            result = parse_document(content, "incomplete.txt")
+            result = parse_document(content)
             assert result is not None  # Should not crash
 
     @given(st.binary(min_size=0, max_size=200))
@@ -256,7 +256,7 @@ class TestEdgeCases:
         try:
             # Try to decode as UTF-8, with error handling
             text = binary_data.decode('utf-8', errors='replace')
-            result = parse_document(text, "binary.txt")
+            result = parse_document(text)
             assert result is not None
         except Exception:
             # Some binary data might not be decodable at all - that's okay

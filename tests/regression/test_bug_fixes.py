@@ -5,7 +5,7 @@ Each test represents a bug that was found and fixed. These tests ensure the bugs
 
 import pytest
 from pychivalry.parser import parse_document
-from pychivalry.diagnostics import get_diagnostics
+from pychivalry.diagnostics import collect_all_diagnostics, get_diagnostics_for_text
 from pychivalry.completions import get_context_aware_completions
 from pychivalry.navigation import find_definition
 from pychivalry.indexer import DocumentIndex
@@ -20,7 +20,7 @@ class TestParserRegressions:
         Bug: Parser crashed on empty input files.
         Fixed: Added empty file handling in tokenizer.
         """
-        result = parse_document("", "empty.txt")
+        result = parse_document("")
         assert result is not None
         assert result.root is not None
 
@@ -38,7 +38,7 @@ class TestParserRegressions:
             # Missing closing brace
         """
         
-        result = parse_document(content, "unclosed.txt")
+        result = parse_document(content)
         assert result is not None
 
     def test_nested_quotes_handling(self):
@@ -51,7 +51,7 @@ class TestParserRegressions:
         text = "This is a \\"quoted\\" word"
         """
         
-        result = parse_document(content, "quotes.txt")
+        result = parse_document(content)
         assert result is not None
 
     def test_comment_at_eof(self):
@@ -61,7 +61,7 @@ class TestParserRegressions:
         Fixed: Added EOF handling in comment parsing.
         """
         content = "namespace = test\n# Comment at end"
-        result = parse_document(content, "comment_eof.txt")
+        result = parse_document(content)
         assert result is not None
 
     def test_whitespace_only_file(self):
@@ -71,7 +71,7 @@ class TestParserRegressions:
         Fixed: Added whitespace-only file detection.
         """
         content = "   \n\t\n   \n"
-        result = parse_document(content, "whitespace.txt")
+        result = parse_document(content)
         assert result is not None
 
 
@@ -93,8 +93,8 @@ class TestDiagnosticsRegressions:
         }
         """
         
-        doc = parse_document(content, "test.txt")
-        diagnostics = get_diagnostics(doc)
+        doc = parse_document(content)
+        diagnostics = collect_all_diagnostics(doc)
         
         # Should have diagnostics for typo, but not duplicates
         typo_diagnostics = [d for d in diagnostics if "add_gond" in d.message]
@@ -128,15 +128,15 @@ class TestDiagnosticsRegressions:
         """
         
         # Parse first version
-        doc_v1 = parse_document(content_v1, "test.txt")
-        diag_v1 = get_diagnostics(doc_v1)
+        doc_v1 = parse_document(content_v1)
+        diag_v1 = collect_all_diagnostics(doc_v1)
         
         # Should have typo diagnostic
         assert any("add_gond" in d.message.lower() or "unknown" in d.message.lower() for d in diag_v1)
         
         # Parse corrected version
-        doc_v2 = parse_document(content_v2, "test.txt")
-        diag_v2 = get_diagnostics(doc_v2)
+        doc_v2 = parse_document(content_v2)
+        diag_v2 = collect_all_diagnostics(doc_v2)
         
         # Should not have typo diagnostic anymore
         assert not any("add_gond" in d.message.lower() for d in diag_v2)
@@ -153,7 +153,7 @@ class TestCompletionsRegressions:
         """
         content = "."
         
-        doc = parse_document(content, "test.txt")
+        doc = parse_document(content)
         index = DocumentIndex()
         index.index_document("test.txt", doc)
         
@@ -171,7 +171,7 @@ class TestCompletionsRegressions:
         """
         content = "namespace = test\n"
         
-        doc = parse_document(content, "test.txt")
+        doc = parse_document(content)
         index = DocumentIndex()
         index.index_document("test.txt", doc)
         
@@ -198,7 +198,7 @@ class TestCompletionsRegressions:
         }
         """
         
-        doc = parse_document(content, "test.txt")
+        doc = parse_document(content)
         index = DocumentIndex()
         index.index_document("test.txt", doc)
         
@@ -232,7 +232,7 @@ class TestNavigationRegressions:
         }
         """
         
-        doc = parse_document(content, "test.txt")
+        doc = parse_document(content)
         index = DocumentIndex()
         index.index_document("test.txt", doc)
         
@@ -269,8 +269,8 @@ class TestNavigationRegressions:
         }
         """
         
-        event_doc = parse_document(event_file, "my_events.txt")
-        trigger_doc = parse_document(trigger_file, "trigger.txt")
+        event_doc = parse_document(event_file)
+        trigger_doc = parse_document(trigger_file)
         
         index = DocumentIndex()
         index.index_document("my_events.txt", event_doc)
@@ -382,7 +382,7 @@ class TestBackwardCompatibility:
         }
         """
         
-        result = parse_document(content, "old_format.txt")
+        result = parse_document(content)
         assert result is not None
 
     def test_legacy_scope_names(self):

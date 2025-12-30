@@ -443,3 +443,86 @@ def get_symbol_at_position(document_text: str, line: int, character: int) -> Opt
         # Could be scripted effect, trigger, or script value
         # Would need context from AST to determine
         return (symbol, 'unknown')
+
+
+def find_definition(document, position: Tuple[int, int], index: Optional[Dict]) -> List[types.Location]:
+    """
+    Simplified wrapper for find definition functionality.
+    Used by integration tests.
+    
+    Args:
+        document: Parsed document
+        position: (line, character) tuple
+        index: Document index
+        
+    Returns:
+        List of LSP Location objects
+    """
+    if not index:
+        return []
+    
+    line, character = position
+    symbol_info = get_symbol_at_position(document.text if hasattr(document, 'text') else str(document), line, character)
+    
+    if not symbol_info:
+        return []
+    
+    symbol_name, symbol_type = symbol_info
+    
+    # Try to find definition based on symbol type
+    def_location = None
+    if symbol_type == 'event' or '.' in symbol_name:
+        def_location = find_event_definition(symbol_name, index)
+    elif symbol_type == 'scripted_effect':
+        def_location = find_scripted_effect_definition(symbol_name, index)
+    elif symbol_type == 'scripted_trigger':
+        def_location = find_scripted_trigger_definition(symbol_name, index)
+    elif symbol_type == 'saved_scope':
+        current_uri = document.uri if hasattr(document, 'uri') else 'file:///unknown'
+        def_location = find_saved_scope_definition(symbol_name, index, current_uri)
+    elif symbol_type == 'script_value':
+        def_location = find_script_value_definition(symbol_name, index)
+    
+    if def_location:
+        return [convert_to_lsp_location(def_location)]
+    
+    return []
+
+
+def find_references(document, position: Tuple[int, int], index: Optional[Dict], 
+                   include_declaration: bool = False) -> List[types.Location]:
+    """
+    Simplified wrapper for find references functionality.
+    Used by integration tests.
+    
+    Args:
+        document: Parsed document
+        position: (line, character) tuple
+        index: Document index
+        include_declaration: Whether to include the declaration
+        
+    Returns:
+        List of LSP Location objects
+    """
+    if not index:
+        return []
+    
+    line, character = position
+    symbol_info = get_symbol_at_position(document.text if hasattr(document, 'text') else str(document), line, character)
+    
+    if not symbol_info:
+        return []
+    
+    symbol_name, symbol_type = symbol_info
+    
+    # Find all references
+    references = find_all_references(symbol_name, symbol_type, index, 
+                                    include_declaration=include_declaration)
+    
+    # Convert to LSP locations
+    locations = []
+    for ref in references:
+        location = types.Location(uri=ref.uri, range=ref.range)
+        locations.append(location)
+    
+    return locations

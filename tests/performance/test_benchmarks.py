@@ -6,7 +6,7 @@ Tests response times and memory usage to ensure performance requirements are met
 import pytest
 import time
 from pychivalry.parser import parse_document
-from pychivalry.diagnostics import get_diagnostics
+from pychivalry.diagnostics import collect_all_diagnostics, get_diagnostics_for_text
 from pychivalry.completions import get_context_aware_completions
 from pychivalry.navigation import find_definition, find_references
 from pychivalry.indexer import DocumentIndex
@@ -137,8 +137,8 @@ class TestDiagnosticsPerformance:
         }
         """
         
-        doc = parse_document(content, "test.txt")
-        result = benchmark(get_diagnostics, doc)
+        doc = parse_document(content)
+        result = benchmark(collect_all_diagnostics, doc)
         assert result is not None
 
     def test_diagnostics_large_workspace(self):
@@ -159,7 +159,7 @@ class TestDiagnosticsPerformance:
             """
             doc = parse_document(content, f"events_{i}.txt")
             index.index_document(f"events_{i}.txt", doc)
-            get_diagnostics(doc, index)
+            collect_all_diagnostics(doc, index)
         
         elapsed = time.perf_counter() - start_time
         
@@ -191,7 +191,7 @@ class TestCompletionsPerformance:
         # Add incomplete line at end
         content += "\ncharacter_event = {\n    add_"
         
-        doc = parse_document(content, "test.txt")
+        doc = parse_document(content)
         index = DocumentIndex()
         index.index_document("test.txt", doc)
         
@@ -217,7 +217,7 @@ class TestCompletionsPerformance:
         
         content += "        scope:"
         
-        doc = parse_document(content, "test.txt")
+        doc = parse_document(content)
         index = DocumentIndex()
         index.index_document("test.txt", doc)
         
@@ -258,7 +258,7 @@ class TestNavigationPerformance:
             }
         }
         """
-        usage_doc = parse_document(usage_content, "events.txt")
+        usage_doc = parse_document(usage_content)
         index.index_document("events.txt", usage_doc)
         
         # Find definition
@@ -282,7 +282,7 @@ class TestNavigationPerformance:
             add_gold = 100
         }
         """
-        effect_doc = parse_document(effect_content, "effects.txt")
+        effect_doc = parse_document(effect_content)
         index.index_document("effects.txt", effect_doc)
         
         # Create 30 files that use the effect
@@ -367,7 +367,7 @@ class TestConcurrencyPerformance:
         }
         """
         
-        doc = parse_document(content, "test.txt")
+        doc = parse_document(content)
         index = DocumentIndex()
         index.index_document("test.txt", doc)
         
