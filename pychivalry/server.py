@@ -71,6 +71,12 @@ from .ck3_language import (
 from .parser import parse_document, CK3Node
 from .indexer import DocumentIndex
 
+# Import diagnostics
+from .diagnostics import collect_all_diagnostics
+
+# Import hover
+from .hover import create_hover_response
+
 # Configure logging for debugging and monitoring
 # Logs help track server activity and diagnose issues
 # Output goes to stderr to avoid interfering with LSP communication on stdout
@@ -121,6 +127,31 @@ class CK3LanguageServer(LanguageServer):
             logger.error(f"Error parsing document {doc.uri}: {e}")
             # Return empty AST on parse error
             return []
+    
+    def publish_diagnostics_for_document(self, doc: TextDocument):
+        """
+        Validate document and publish diagnostics to the client.
+        
+        This collects all validation errors and warnings for the document
+        and sends them to the client via LSP's PublishDiagnostics notification.
+        
+        Args:
+            doc: The text document to validate
+        """
+        try:
+            ast = self.document_asts.get(doc.uri, [])
+            diagnostics = collect_all_diagnostics(doc, ast, self.index)
+            
+            # Publish diagnostics to client
+            self.text_document_publish_diagnostics(
+                types.PublishDiagnosticsParams(
+                    uri=doc.uri,
+                    diagnostics=diagnostics,
+                )
+            )
+            logger.debug(f"Published {len(diagnostics)} diagnostics for {doc.uri}")
+        except Exception as e:
+            logger.error(f"Error publishing diagnostics for {doc.uri}: {e}", exc_info=True)
 
 
 # Create the CK3 language server instance
@@ -137,7 +168,7 @@ def did_open(ls: CK3LanguageServer, params: types.DidOpenTextDocumentParams):
     Handle document open event
 
     This handler is called when a user opens a CK3 script file in their editor.
-    It parses the document and updates the index for navigation features.
+    It parses the document, updates the index, and publishes diagnostics.
 
     Args:
         ls: The CK3 language server instance
@@ -156,6 +187,9 @@ def did_open(ls: CK3LanguageServer, params: types.DidOpenTextDocumentParams):
     doc = ls.workspace.get_text_document(params.text_document.uri)
     ls.parse_and_index_document(doc)
     
+    # Publish diagnostics for immediate feedback
+    ls.publish_diagnostics_for_document(doc)
+    
     # Show a message in the editor to confirm the server is working
     # MessageType.Info = informational popup/notification
     ls.show_message("CK3 Language Server is active!", types.MessageType.Info)
@@ -167,7 +201,7 @@ def did_change(ls: CK3LanguageServer, params: types.DidChangeTextDocumentParams)
     Handle document change event
 
     This handler is called whenever the user makes changes to a CK3 script file.
-    It re-parses the document and updates the index.
+    It re-parses the document, updates the index, and publishes updated diagnostics.
 
     Args:
         ls: The CK3 language server instance
@@ -189,6 +223,9 @@ def did_change(ls: CK3LanguageServer, params: types.DidChangeTextDocumentParams)
     # Re-parse the document and update the index
     doc = ls.workspace.get_text_document(params.text_document.uri)
     ls.parse_and_index_document(doc)
+    
+    # Publish updated diagnostics
+    ls.publish_diagnostics_for_document(doc)
 
 
 @server.feature(types.TEXT_DOCUMENT_DID_CLOSE)
@@ -197,7 +234,8 @@ def did_close(ls: CK3LanguageServer, params: types.DidCloseTextDocumentParams):
     Handle document close event
 
     This handler is called when a user closes a CK3 script file in their editor.
-    It cleans up document-specific resources and removes entries from the index.
+    It cleans up document-specific resources, removes entries from the index,
+    and clears diagnostics.
 
     Args:
         ls: The CK3 language server instance
@@ -219,6 +257,14 @@ def did_close(ls: CK3LanguageServer, params: types.DidCloseTextDocumentParams):
     uri = params.text_document.uri
     ls.document_asts.pop(uri, None)
     ls.index.remove_document(uri)
+    
+    # Clear diagnostics for this document
+    ls.text_document_publish_diagnostics(
+        types.PublishDiagnosticsParams(
+            uri=uri,
+            diagnostics=[],  # Empty list clears all diagnostics
+        )
+    )
 
 
 @server.feature(
@@ -359,6 +405,50 @@ def completions(params: types.CompletionParams):
         is_incomplete=False,
         items=items,
     )
+
+
+@server.feature(types.TEXT_DOCUMENT_HOVER)
+def hover(ls: CK3LanguageServer, params: types.HoverParams):
+    """
+    Provide hover documentation for CK3 constructs.
+    
+    This feature shows helpful information when users hover over CK3 keywords,
+    effects, triggers, scopes, events, and other constructs. The documentation
+    includes usage examples, parameter information, and cross-references.
+    
+    Args:
+        ls: The CK3 language server instance
+        params: Contains information about the hover request:
+            - text_document.uri: The file where hover was triggered
+            - position.line: Line number (0-indexed)
+            - position.character: Character offset in the line (0-indexed)
+    
+    Returns:
+        Hover: Contains:
+            - contents: Markdown-formatted documentation
+            - range: Optional range that the hover applies to
+        or None if no hover information available
+    
+    LSP Specification:
+        This is a request from client to server. The server should respond with
+        a Hover object containing documentation, or null if no information is available.
+    
+    Features:
+        - Effect documentation with usage examples
+        - Trigger documentation with return types
+        - Scope navigation information
+        - Event definitions with file locations
+        - Saved scope references with definition locations
+        - List iterator explanations
+    """
+    try:
+        doc = ls.workspace.get_text_document(params.text_document.uri)
+        ast = ls.document_asts.get(doc.uri, [])
+        
+        return create_hover_response(doc, params.position, ast, ls.index)
+    except Exception as e:
+        logger.error(f"Error in hover handler: {e}", exc_info=True)
+        return None
 
 
 def main():
