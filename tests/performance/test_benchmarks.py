@@ -239,8 +239,6 @@ class TestCompletionsPerformance:
         
         assert elapsed < COMPLETIONS_THRESHOLD
         assert completions is not None
-        assert elapsed < COMPLETIONS_THRESHOLD
-        assert completions is not None
 
 
 class TestNavigationPerformance:
