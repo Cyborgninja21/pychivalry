@@ -23,15 +23,15 @@ The pychivalry Language Server has a comprehensive test suite:
 
 | Category | Tests | Status | Notes |
 |----------|-------|--------|-------|
-| **Unit Tests** | 1039 | ✅ Working | Core test suite, fully functional |
-| **Integration Tests** | 7 | ⚠️ Needs Repair | API alignment required |
-| **Performance Tests** | 12 | ⚠️ Needs Repair | Missing `pytest-benchmark` dependency |
-| **Fuzzing Tests** | ~40 | ⚠️ Needs Repair | Missing `hypothesis` dependency |
+| **Unit Tests** | 1126 | ✅ Working | Core test suite, fully functional |
+| **Integration Tests** | 7 | ⚠️ Needs Repair | API alignment required - 6 failing |
+| **Performance Tests** | 12 | ⚠️ Needs Repair | API alignment required - all failing |
 | **Regression Tests** | 18 | ⚠️ Partial | 11 passing, 4 failing, 3 skipped |
 
-**Working Tests**: 1039 unit tests across all 19 modules
+**Working Tests**: 1126 unit tests across all modules
+**Last tested**: 2025-12-31
 
-> ⚠️ **Note**: The integration, performance, fuzzing, and regression test files need updates to align with the actual API. See [TEST_IMPLEMENTATION_NOTES.md](TEST_IMPLEMENTATION_NOTES.md) for detailed information about required fixes.
+> ⚠️ **Note**: The integration, performance, and regression test files need updates to align with the actual API. See details below for required fixes.
 
 ---
 
@@ -703,15 +703,14 @@ pytest tests/ --cov=pychivalry --cov-report=term-missing
 
 | Category | Tests | Status |
 |----------|-------|--------|
-| **Unit Tests** | 1039 | ✅ Working |
-| **Integration Tests** | 7 | ⚠️ Needs Repair |
-| **Performance Tests** | 12 | ⚠️ Needs Repair |
-| **Fuzzing Tests** | ~40 | ⚠️ Needs Repair |
+| **Unit Tests** | 1126 | ✅ Working |
+| **Integration Tests** | 7 | ⚠️ Needs Repair (1 passing, 6 failing) |
+| **Performance Tests** | 12 | ⚠️ Needs Repair (0 passing, 12 failing) |
 | **Regression Tests** | 18 | ⚠️ Partial (11 pass, 4 fail, 3 skip) |
 
 ### Coverage
 
-- **Modules**: 19/19 (100%) - All modules have unit tests
+- **Modules**: All modules have comprehensive unit tests
 - **LSP Features**: All implemented features tested
 - **CK3 Constructs**: Comprehensive coverage
 

@@ -4,13 +4,14 @@
 
 | Test Type | Tests | Status | Passing |
 |-----------|-------|--------|---------|
-| **Unit Tests** | 1039 | ✅ Fully Working | 1039/1039 |
+| **Unit Tests** | 1126 | ✅ Fully Working | 1126/1126 |
 | **Integration Tests** | 7 | ❌ Broken | 1/7 |
 | **Performance Tests** | 12 | ❌ Broken | 0/12 |
-| **Fuzzing Tests** | ~40 | ❌ Import Error | 0/? |
-| **Regression Tests** | 18 | ⚠️ Partial | 11/18 (3 skipped) |
+| **Regression Tests** | 18 | ⚠️ Partial | 11/18 (3 skipped, 4 failing) |
 
-**Unit tests are fully functional and comprehensive.** The newer test categories (integration, performance, fuzzing, regression) have API misalignments that prevent them from running correctly.
+**Last tested: 2025-12-31** - Total: 22 failed, 1126 passed, 3 skipped
+
+**Unit tests are fully functional and comprehensive.** The newer test categories (integration, performance, regression) have API misalignments that prevent them from running correctly.
 
 ---
 
@@ -194,7 +195,7 @@ Create a test utilities module with convenience wrappers. Less ideal because:
 
 ## Working Tests Summary
 
-The following test files work correctly (1039 tests total):
+The following test files work correctly (1126 tests total):
 
 - `test_parser.py` - Parser functionality
 - `test_scopes.py` - Scope validation
