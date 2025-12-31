@@ -6,10 +6,10 @@ This document tracks the implementation status of the pychivalry Language Server
 
 ### Quick Stats
 - **Total Phases**: 17 planned
-- **Completed Phases**: 13
-- **In Progress**: 1 (Phase 15 - Workspace Features)
-- **Test Coverage**: 645+ tests passing
-- **LSP Features Implemented**: 6 (Document Sync, Completions, Diagnostics, Hover, Definition, Code Actions)
+- **Completed Phases**: 16
+- **In Progress**: 1 (Phase 15 - Workspace Features - Partial)
+- **Test Coverage**: 657+ tests passing
+- **LSP Features Implemented**: 9 (Document Sync, Completions, Diagnostics, Hover, Definition, Code Actions, Find References, Document Symbols, Workspace Symbols)
 
 ---
 
@@ -203,6 +203,49 @@ Files: `code_actions.py`
 
 ---
 
+### Phase 13: Document Symbols ✅
+**Status: COMPLETE** (Added in Expansion Pack One)
+
+Implementation:
+- ✅ TEXT_DOCUMENT_DOCUMENT_SYMBOL handler for outline view
+- ✅ Hierarchical symbol extraction from AST
+- ✅ Symbol kinds mapping (Event, Function, Object, EnumMember, Namespace)
+- ✅ Support for events, triggers, immediate blocks, options
+- ✅ Proper parent-child relationships in symbol tree
+
+Files: `server.py`, `symbols.py`
+
+---
+
+### Phase 16: Find References ✅
+**Status: COMPLETE** (Added in Expansion Pack One)
+
+Implementation:
+- ✅ TEXT_DOCUMENT_REFERENCES handler
+- ✅ Find all usages of events, scripted effects, scripted triggers
+- ✅ Find all usages of saved scopes
+- ✅ Search across all open documents in workspace
+- ✅ Support for include/exclude declaration option
+- ✅ Context-aware reference detection
+
+Files: `server.py`
+
+---
+
+### Phase 16b: Workspace Symbols ✅
+**Status: COMPLETE** (Added in Expansion Pack One)
+
+Implementation:
+- ✅ WORKSPACE_SYMBOL handler (Ctrl+T search)
+- ✅ Search events, scripted effects, triggers, script values, on-actions
+- ✅ Case-insensitive fuzzy matching
+- ✅ Integration with DocumentIndex for fast lookups
+- ✅ Symbol information with container names
+
+Files: `server.py`
+
+---
+
 ## In Progress 🔨
 
 ### Phase 15: Workspace Features (Partial)
@@ -224,25 +267,6 @@ Files: `workspace.py`
 ---
 
 ## Planned Phases 📋
-
-### Phase 13: Document Symbols
-**Priority: Medium | Status: NOT STARTED**
-
-TODO:
-- TEXT_DOCUMENT_DOCUMENT_SYMBOL (outline view)
-- WORKSPACE_SYMBOL (Ctrl+T search)
-- Symbol kinds mapping
-
----
-
-### Phase 16: Find References
-**Priority: Medium | Status: NOT STARTED**
-
-TODO:
-- TEXT_DOCUMENT_REFERENCES handler
-- Find all usages of events, effects, triggers, scopes
-
----
 
 ### Phase 17: Advanced Features
 **Priority: Low | Status: NOT STARTED**
@@ -290,12 +314,13 @@ pychivalry/
 tests/
 ├── conftest.py
 ├── test_*.py           # Module-specific tests
+├── test_lsp_features.py # NEW: Tests for Find References, Document Symbols, Workspace Symbols
 ├── integration/        # Integration tests
 ├── regression/         # Regression tests for bug fixes
 ├── fuzzing/            # Fuzz testing
 └── performance/        # Performance benchmarks
 
-Total: 645+ tests
+Total: 657+ tests
 ```
 
 ### LSP Features Implemented
@@ -308,8 +333,9 @@ Total: 645+ tests
 | Hover | ✅ Complete | TEXT_DOCUMENT_HOVER |
 | Go to Definition | ✅ Complete | TEXT_DOCUMENT_DEFINITION |
 | Code Actions | ✅ Complete | TEXT_DOCUMENT_CODE_ACTION |
-| Find References | ⏳ Planned | TEXT_DOCUMENT_REFERENCES |
-| Document Symbols | ⏳ Planned | TEXT_DOCUMENT_DOCUMENT_SYMBOL |
+| Find References | ✅ Complete | TEXT_DOCUMENT_REFERENCES |
+| Document Symbols | ✅ Complete | TEXT_DOCUMENT_DOCUMENT_SYMBOL |
+| Workspace Symbols | ✅ Complete | WORKSPACE_SYMBOL |
 | Semantic Tokens | ⏳ Planned | TEXT_DOCUMENT_SEMANTIC_TOKENS |
 
 ### Data-Driven Design
@@ -374,4 +400,43 @@ All game data is loaded from YAML files in `data/` directory:
 
 ---
 
-Last Updated: 2025-12-30
+Last Updated: 2025-12-31
+
+## Recent Changes (Expansion Pack One)
+
+### 2025-12-31: Implemented Three Major LSP Features
+
+**Features Added:**
+1. **Find References (TEXT_DOCUMENT_REFERENCES)**
+   - Find all usages of events, effects, triggers, and saved scopes
+   - Search across all open documents in workspace
+   - Support for include/exclude declaration option
+
+2. **Document Symbols (TEXT_DOCUMENT_DOCUMENT_SYMBOL)**
+   - Hierarchical outline view of document structure
+   - Shows events, triggers, immediate blocks, options
+   - Proper symbol kinds for each construct type
+
+3. **Workspace Symbols (WORKSPACE_SYMBOL)**
+   - Search symbols across entire workspace (Ctrl+T)
+   - Fuzzy matching on symbol names
+   - Search events, scripted effects, triggers, values, on-actions
+
+**Documentation:**
+- Created `expansion_pack_one.md` with comprehensive examples and usage scenarios
+- Updated README.md to mark features as complete
+- Updated IMPLEMENTATION_STATUS.md with new feature details
+
+**Testing:**
+- Added 12 new tests in `test_lsp_features.py`
+- All new tests passing
+- Total test count increased from 645+ to 657+
+
+**Impact:**
+- Significantly improved navigation and code understanding
+- Better workspace-wide search capabilities
+- Enhanced IDE-like experience for CK3 modders
+
+---
+
+Last Updated: 2025-12-31

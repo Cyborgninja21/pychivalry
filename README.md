@@ -56,12 +56,13 @@ pychivalry brings modern IDE features to CK3 mod development—auto-completion, 
 - [x] **Localization Support** — Localization key validation and navigation
 - [x] **Go to Definition** — Navigation to definitions across files
 - [x] **Code Actions** — Quick fixes and refactoring suggestions
-- [ ] **Find References** — Find all usages of symbols
-- [ ] **Document Symbols** — Outline view for scripts
+- [x] **Find References** — Find all usages of symbols (NEW!)
+- [x] **Document Symbols** — Outline view for scripts (NEW!)
+- [x] **Workspace Symbols** — Search symbols across workspace (NEW!)
 - [ ] **Semantic Tokens** — Rich syntax highlighting
 - [ ] **Workspace Validation** — Cross-file validation
 
-**Status**: 645+ tests • Comprehensive CK3 support • Ready for production use
+**Status**: 657+ tests • Comprehensive CK3 support • Ready for production use
 
 ## 🚀 Quick Start
 
