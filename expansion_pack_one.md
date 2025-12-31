@@ -9,7 +9,7 @@ Started: 2025-12-31
 ## Features Implemented
 
 ### 1. Find References (TEXT_DOCUMENT_REFERENCES)
-**Status**: In Progress  
+**Status**: ✅ COMPLETE  
 **Purpose**: Allow users to find all usages of a symbol across the workspace
 
 #### What It Does
@@ -35,7 +35,7 @@ When a user right-clicks on an event ID like `my_mod.0001` and selects "Find All
 ---
 
 ### 2. Document Symbols (TEXT_DOCUMENT_DOCUMENT_SYMBOL)
-**Status**: In Progress  
+**Status**: ✅ COMPLETE  
 **Purpose**: Provide an outline view of the document structure
 
 #### What It Does
@@ -73,7 +73,7 @@ def document_symbol(ls: CK3LanguageServer, params: types.DocumentSymbolParams):
 ---
 
 ### 3. Workspace Symbols (WORKSPACE_SYMBOL)
-**Status**: In Progress  
+**Status**: ✅ COMPLETE  
 **Purpose**: Search for symbols across the entire workspace (Ctrl+T in VS Code)
 
 #### What It Does
