@@ -30,13 +30,101 @@ Integration:
 """
 
 from dataclasses import dataclass
-from typing import List, Optional, Set, Dict, Any
+from functools import lru_cache
+from typing import List, Optional, Set, Dict, Any, Tuple
 from lsprotocol import types
 
 from .ck3_language import CK3_KEYWORDS, CK3_EFFECTS, CK3_TRIGGERS, CK3_SCOPES, CK3_EVENT_TYPES, CK3_BOOLEAN_VALUES
 from .parser import CK3Node
 from .scopes import get_scope_links, get_scope_lists, get_resulting_scope
 from .indexer import DocumentIndex
+
+
+# =============================================================================
+# Cached Completion Item Generation
+# =============================================================================
+# These functions generate the same items repeatedly, so we cache the results.
+# Since CompletionItem objects are created fresh each time and the source data
+# (CK3_EFFECTS, CK3_TRIGGERS, etc.) is immutable, caching is safe.
+
+@lru_cache(maxsize=1)
+def _cached_trigger_completions() -> Tuple[types.CompletionItem, ...]:
+    """Generate and cache trigger completion items."""
+    items = []
+    for trigger in CK3_TRIGGERS:
+        items.append(
+            types.CompletionItem(
+                label=trigger,
+                kind=types.CompletionItemKind.Function,
+                detail="CK3 Trigger",
+                documentation=f"CK3 trigger condition: {trigger}",
+            )
+        )
+    return tuple(items)
+
+
+@lru_cache(maxsize=1)
+def _cached_effect_completions() -> Tuple[types.CompletionItem, ...]:
+    """Generate and cache effect completion items."""
+    items = []
+    for effect in CK3_EFFECTS:
+        items.append(
+            types.CompletionItem(
+                label=effect,
+                kind=types.CompletionItemKind.Function,
+                detail="CK3 Effect",
+                documentation=f"CK3 effect that modifies game state: {effect}",
+            )
+        )
+    return tuple(items)
+
+
+@lru_cache(maxsize=1)
+def _cached_scope_completions() -> Tuple[types.CompletionItem, ...]:
+    """Generate and cache scope completion items."""
+    items = []
+    for scope in CK3_SCOPES:
+        items.append(
+            types.CompletionItem(
+                label=scope,
+                kind=types.CompletionItemKind.Variable,
+                detail="CK3 Scope",
+                documentation=f"CK3 scope switch: {scope}",
+            )
+        )
+    return tuple(items)
+
+
+@lru_cache(maxsize=1)
+def _cached_all_keyword_completions() -> Tuple[types.CompletionItem, ...]:
+    """Generate and cache all keyword completion items."""
+    items = []
+    for keyword in CK3_KEYWORDS:
+        items.append(
+            types.CompletionItem(
+                label=keyword,
+                kind=types.CompletionItemKind.Keyword,
+                detail="CK3 Keyword",
+                documentation=f"CK3 scripting keyword: {keyword}",
+            )
+        )
+    return tuple(items)
+
+
+@lru_cache(maxsize=32)
+def _cached_keyword_completions(keywords_tuple: Tuple[str, ...]) -> Tuple[types.CompletionItem, ...]:
+    """Generate and cache keyword completions for specific keyword sets."""
+    items = []
+    for keyword in keywords_tuple:
+        items.append(
+            types.CompletionItem(
+                label=keyword,
+                kind=types.CompletionItemKind.Keyword,
+                detail="CK3 Keyword",
+                documentation=f"CK3 scripting keyword: {keyword}",
+            )
+        )
+    return tuple(items)
 
 
 @dataclass
@@ -313,64 +401,26 @@ def get_saved_scope_completions(context: CompletionContext) -> List[types.Comple
 
 
 def create_trigger_completions() -> List[types.CompletionItem]:
-    """Create completion items for all CK3 triggers."""
-    items = []
-    for trigger in CK3_TRIGGERS:
-        items.append(
-            types.CompletionItem(
-                label=trigger,
-                kind=types.CompletionItemKind.Function,
-                detail="CK3 Trigger",
-                documentation=f"CK3 trigger condition: {trigger}",
-            )
-        )
-    return items
+    """Create completion items for all CK3 triggers (uses cached data)."""
+    return list(_cached_trigger_completions())
 
 
 def create_effect_completions() -> List[types.CompletionItem]:
-    """Create completion items for all CK3 effects."""
-    items = []
-    for effect in CK3_EFFECTS:
-        items.append(
-            types.CompletionItem(
-                label=effect,
-                kind=types.CompletionItemKind.Function,
-                detail="CK3 Effect",
-                documentation=f"CK3 effect that modifies game state: {effect}",
-            )
-        )
-    return items
+    """Create completion items for all CK3 effects (uses cached data)."""
+    return list(_cached_effect_completions())
 
 
 def create_keyword_completions(keywords: Optional[List[str]] = None) -> List[types.CompletionItem]:
-    """Create completion items for CK3 keywords."""
-    items = []
-    keyword_list = keywords if keywords else CK3_KEYWORDS
-    for keyword in keyword_list:
-        items.append(
-            types.CompletionItem(
-                label=keyword,
-                kind=types.CompletionItemKind.Keyword,
-                detail="CK3 Keyword",
-                documentation=f"CK3 scripting keyword: {keyword}",
-            )
-        )
-    return items
+    """Create completion items for CK3 keywords (uses cached data for common cases)."""
+    if keywords is None:
+        return list(_cached_all_keyword_completions())
+    # Convert to tuple for hashable cache key
+    return list(_cached_keyword_completions(tuple(keywords)))
 
 
 def create_scope_completions() -> List[types.CompletionItem]:
-    """Create completion items for CK3 scope switches."""
-    items = []
-    for scope in CK3_SCOPES:
-        items.append(
-            types.CompletionItem(
-                label=scope,
-                kind=types.CompletionItemKind.Variable,
-                detail="CK3 Scope",
-                documentation=f"CK3 scope switch: {scope}",
-            )
-        )
-    return items
+    """Create completion items for CK3 scope switches (uses cached data)."""
+    return list(_cached_scope_completions())
 
 
 def create_all_completions() -> List[types.CompletionItem]:

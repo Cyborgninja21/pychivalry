@@ -17,50 +17,61 @@ Complete guide to testing the pychivalry Language Server, including how to run t
 
 ## Overview
 
-The pychivalry Language Server has a comprehensive test suite with **700+ tests** across multiple categories:
+The pychivalry Language Server has a comprehensive test suite:
 
-- **637 Unit Tests**: Test individual components in isolation
-- **50+ Integration Tests**: Test components working together
-- **30+ Performance Tests**: Verify speed and memory requirements
-- **40+ Fuzzing Tests**: Test with random/malformed inputs
-- **40+ Regression Tests**: Ensure fixed bugs stay fixed
+### Current Test Status
 
-**Total Coverage**: All 19 modules, all LSP features, all CK3 script constructs
+| Category | Tests | Status | Notes |
+|----------|-------|--------|-------|
+| **Unit Tests** | 1039 | ✅ Working | Core test suite, fully functional |
+| **Integration Tests** | 7 | ⚠️ Needs Repair | API alignment required |
+| **Performance Tests** | 12 | ⚠️ Needs Repair | Missing `pytest-benchmark` dependency |
+| **Fuzzing Tests** | ~40 | ⚠️ Needs Repair | Missing `hypothesis` dependency |
+| **Regression Tests** | 18 | ⚠️ Partial | 11 passing, 4 failing, 3 skipped |
+
+**Working Tests**: 1039 unit tests across all 19 modules
+
+> ⚠️ **Note**: The integration, performance, fuzzing, and regression test files need updates to align with the actual API. See [TEST_IMPLEMENTATION_NOTES.md](TEST_IMPLEMENTATION_NOTES.md) for detailed information about required fixes.
 
 ---
 
 ## Test Types
 
-### 1. Unit Tests (Current: 637 tests)
+### 1. Unit Tests (1039 tests) ✅ Working
 
 **What they test**: Individual functions and classes in isolation
 
 **Location**: `tests/test_*.py`
 
 **Example**:
+
 ```python
 def test_parse_event():
     content = 'character_event = { id = test.001 }'
-    doc = parse_document(content, "test.txt")
-    assert doc.root is not None
+    ast = parse_document(content)  # Returns List[CK3Node]
+    assert ast is not None
+    assert len(ast) > 0
 ```
 
 **When to run**: Always - these are your primary tests
 
-**Speed**: ⚡ Very fast (< 1 second for all)
+**Speed**: ⚡ Very fast (< 10 seconds for all 1039 tests)
 
 ---
 
-### 2. Integration Tests (50+ tests)
+### 2. Integration Tests (7 tests) ⚠️ Needs Repair
 
 **What they test**: Multiple components working together in realistic workflows
 
 **Location**: `tests/integration/`
 
 **Example workflows**:
+
 - Open file → Get diagnostics → Apply code action → Verify fix
 - Type code → Request completions → Accept → Verify result  
 - Navigate definition → Modify → Find references → Verify updates
+
+**Status**: API misalignment - see [TEST_IMPLEMENTATION_NOTES.md](TEST_IMPLEMENTATION_NOTES.md)
 
 **When to run**: Before committing changes that affect multiple components
 
@@ -68,13 +79,14 @@ def test_parse_event():
 
 ---
 
-### 3. Performance Tests (30+ tests)
+### 3. Performance Tests (12 tests) ⚠️ Needs Repair
 
 **What they test**: Response times, memory usage, scalability
 
 **Location**: `tests/performance/`
 
 **What's measured**:
+
 - Parser speed on files of varying sizes (small/medium/large)
 - Diagnostics response time
 - Completion request latency
@@ -82,10 +94,15 @@ def test_parse_event():
 - Memory usage with large workspace
 
 **Thresholds**:
+
 - Parser: < 100ms for 1000 line files
 - Diagnostics: < 100ms per file
 - Completions: < 50ms
 - Navigation: < 50ms across 50+ files
+
+**Prerequisite**: `pip install pytest-benchmark`
+
+**Status**: Missing `pytest-benchmark` dependency, API misalignment
 
 **When to run**: After performance-related changes, before releases
 
@@ -93,13 +110,14 @@ def test_parse_event():
 
 ---
 
-### 4. Fuzzing Tests (40+ tests)
+### 4. Fuzzing Tests (~40 tests) ⚠️ Needs Repair
 
 **What they test**: Robustness against random/malformed inputs
 
 **Location**: `tests/fuzzing/`
 
 **What's tested**:
+
 - Parser handles arbitrary text without crashing
 - Random bracket combinations
 - Invalid UTF-8 sequences
@@ -108,21 +126,28 @@ def test_parse_event():
 
 **Technology**: Uses `hypothesis` library for property-based testing
 
+**Prerequisite**: `pip install hypothesis`
+
+**Status**: Missing `hypothesis` dependency, API misalignment
+
 **When to run**: Weekly, before releases
 
 **Speed**: 🐢 Slow (30-60 seconds with default settings)
 
 ---
 
-### 5. Regression Tests (40+ tests)
+### 5. Regression Tests (18 tests) ⚠️ Partial
 
 **What they test**: Ensure previously fixed bugs don't come back
 
 **Location**: `tests/regression/`
 
+**Current status**: 11 passing, 4 failing, 3 skipped (missing functions)
+
 **Format**: Each test represents a real bug that was found and fixed
 
 **Example**:
+
 ```python
 def test_empty_file_no_crash():
     """Regression: Parser should handle empty files without crashing.
@@ -130,7 +155,7 @@ def test_empty_file_no_crash():
     Bug: Parser crashed on empty input files.
     Fixed: Added empty file handling in tokenizer.
     """
-    result = parse_document("", "empty.txt")
+    result = parse_document("")  # Returns List[CK3Node]
     assert result is not None
 ```
 
@@ -296,34 +321,34 @@ pytest tests/fuzzing/ --hypothesis-max-examples=10000
 
 ```
 tests/
-├── test_*.py                    # Unit tests (637 tests)
-│   ├── test_parser.py           # Parser tests (35)
-│   ├── test_scopes.py           # Scope system tests (28)
-│   ├── test_lists.py            # List validation tests (36)
-│   ├── test_script_values.py    # Script values tests (44)
-│   ├── test_variables.py        # Variables tests (64)
-│   ├── test_scripted_blocks.py  # Scripted blocks tests (44)
-│   ├── test_events.py           # Event system tests (45)
-│   ├── test_diagnostics.py      # Diagnostics tests (8)
-│   ├── test_completions.py      # Completions tests (36)
-│   ├── test_hover.py            # Hover tests (18)
-│   ├── test_localization.py     # Localization tests (48)
-│   ├── test_navigation.py       # Navigation tests (28)
-│   ├── test_symbols.py          # Symbols tests (32)
-│   ├── test_code_actions.py     # Code actions tests (40)
-│   ├── test_workspace.py        # Workspace tests (36)
-│   └── ...
+├── test_*.py                    # Unit tests (1039 tests) ✅ Working
+│   ├── test_parser.py           # Parser tests
+│   ├── test_scopes.py           # Scope system tests
+│   ├── test_lists.py            # List validation tests
+│   ├── test_script_values.py    # Script values tests
+│   ├── test_variables.py        # Variables tests
+│   ├── test_scripted_blocks.py  # Scripted blocks tests
+│   ├── test_events.py           # Event system tests
+│   ├── test_diagnostics.py      # Diagnostics tests
+│   ├── test_completions.py      # Completions tests
+│   ├── test_hover.py            # Hover tests
+│   ├── test_localization.py     # Localization tests
+│   ├── test_navigation.py       # Navigation tests
+│   ├── test_symbols.py          # Symbols tests
+│   ├── test_code_actions.py     # Code actions tests
+│   ├── test_workspace.py        # Workspace tests
+│   └── ... (and more)
 │
-├── integration/                 # Integration tests (50+)
+├── integration/                 # Integration tests (7 tests) ⚠️ Needs Repair
 │   └── test_lsp_workflows.py    # End-to-end LSP workflows
 │
-├── performance/                 # Performance tests (30+)
+├── performance/                 # Performance tests (12 tests) ⚠️ Needs Repair
 │   └── test_benchmarks.py       # Speed and memory benchmarks
 │
-├── fuzzing/                     # Fuzzing tests (40+)
+├── fuzzing/                     # Fuzzing tests (~40 tests) ⚠️ Needs Repair
 │   └── test_property_based.py   # Property-based testing
 │
-├── regression/                  # Regression tests (40+)
+├── regression/                  # Regression tests (18 tests) ⚠️ Partial
 │   └── test_bug_fixes.py        # Previously fixed bugs
 │
 ├── conftest.py                  # Shared pytest fixtures
@@ -667,39 +692,45 @@ pytest tests/ --cov=pychivalry --cov-report=term-missing
 
 | Task | Command |
 |------|---------|
-| Run all tests | `pytest tests/` |
-| Run fast tests only | `pytest tests/ --ignore=tests/performance --ignore=tests/fuzzing` |
+| Run all unit tests | `pytest tests/ --ignore=tests/integration --ignore=tests/performance --ignore=tests/fuzzing --ignore=tests/regression` |
 | Run specific test | `pytest tests/test_parser.py::test_parse_event` |
 | Run with coverage | `pytest tests/ --cov=pychivalry --cov-report=html` |
-| Run performance tests | `pytest tests/performance/` |
-| Run fuzzing tests | `pytest tests/fuzzing/` |
 | Stop on first failure | `pytest tests/ -x` |
 | Show print output | `pytest tests/ -s` |
 | Parallel execution | `pytest tests/ -n auto` |
 
 ### Test Count Summary
 
-- **Unit Tests**: 637 ✅
-- **Integration Tests**: 50+ ✅
-- **Performance Tests**: 30+ ✅
-- **Fuzzing Tests**: 40+ ✅
-- **Regression Tests**: 40+ ✅
-- **Total**: 700+ tests
+| Category | Tests | Status |
+|----------|-------|--------|
+| **Unit Tests** | 1039 | ✅ Working |
+| **Integration Tests** | 7 | ⚠️ Needs Repair |
+| **Performance Tests** | 12 | ⚠️ Needs Repair |
+| **Fuzzing Tests** | ~40 | ⚠️ Needs Repair |
+| **Regression Tests** | 18 | ⚠️ Partial (11 pass, 4 fail, 3 skip) |
 
 ### Coverage
 
-- **Modules**: 19/19 (100%)
-- **LSP Features**: All implemented
-- **CK3 Constructs**: Comprehensive
+- **Modules**: 19/19 (100%) - All modules have unit tests
+- **LSP Features**: All implemented features tested
+- **CK3 Constructs**: Comprehensive coverage
+
+### Known Issues
+
+See [TEST_IMPLEMENTATION_NOTES.md](TEST_IMPLEMENTATION_NOTES.md) for:
+
+- Detailed API misalignment documentation
+- Required fixes for each test file
+- Missing dependencies list
 
 ---
 
 **For more information**, see:
+
 - Test files in `tests/` directory
 - Module documentation in `Documentation/` folder
-- GitHub Actions workflow in `.github/workflows/`
 
 ---
 
-*Last updated: 2025-01-01*
-*pychivalry Language Server v1.0.0*
+*Last updated: 2024-12-31*
+*pychivalry Language Server v0.1.0*

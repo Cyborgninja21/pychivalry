@@ -8,28 +8,34 @@ import {
     Trace,
 } from 'vscode-languageclient/node';
 import { CK3StatusBar } from './statusBar';
+import { logger, LogCategory } from './logger';
 
 const execAsync = promisify(exec);
 
 let client: LanguageClient | undefined;
-let outputChannel: vscode.OutputChannel;
 let statusBar: CK3StatusBar;
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
-    // Create output channel for logging
-    outputChannel = vscode.window.createOutputChannel('Crusader Kings 3 Language Server');
-    context.subscriptions.push(outputChannel);
+    // Initialize multi-channel logger
+    logger.initialize(context);
 
     // Create status bar
     statusBar = new CK3StatusBar();
     context.subscriptions.push(statusBar);
 
-    outputChannel.appendLine('CK3 Language Server extension activating...');
+    // Auto-enable debug channels based on logLevel setting
+    const config = vscode.workspace.getConfiguration('ck3LanguageServer');
+    const logLevel = config.get<string>('logLevel', 'info');
+    if (logLevel === 'debug') {
+        logger.enableDebugMode();
+    }
+
+    logger.logServer('CK3 Language Server extension activating...');
 
     // Register restart command
     context.subscriptions.push(
         vscode.commands.registerCommand('ck3LanguageServer.restart', async () => {
-            outputChannel.appendLine('Restarting CK3 Language Server...');
+            logger.logServer('Restarting CK3 Language Server...');
             await deactivate();
             await startServer(context);
         })
@@ -42,10 +48,32 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         })
     );
 
-    // Register show output command
+    // Register show output command with channel picker
     context.subscriptions.push(
-        vscode.commands.registerCommand('ck3LanguageServer.showOutput', () => {
-            outputChannel.show();
+        vscode.commands.registerCommand('ck3LanguageServer.showOutput', async () => {
+            const items: Array<{ label: string; description: string; category: LogCategory }> = [
+                { label: '$(server) Server Log', description: 'Lifecycle and startup messages', category: LogCategory.Server },
+                { label: '$(terminal) Command Results', description: 'Output from CK3 commands', category: LogCategory.Commands },
+                { label: '$(debug) LSP Trace', description: 'Protocol communication (if enabled)', category: LogCategory.Trace },
+            ];
+
+            // Add debug channel if enabled
+            if (logger.hasDebugChannel()) {
+                items.splice(1, 0, { label: '$(bug) Debug Log', description: 'Detailed debug information', category: LogCategory.Debug });
+            }
+
+            // Add performance channel if enabled
+            if (logger.hasPerformanceChannel()) {
+                items.push({ label: '$(dashboard) Performance', description: 'Timing and cache metrics', category: LogCategory.Performance });
+            }
+
+            const selected = await vscode.window.showQuickPick(items, {
+                placeHolder: 'Select output channel to show',
+            });
+
+            if (selected) {
+                logger.showChannel(selected.category);
+            }
         })
     );
 
@@ -68,7 +96,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
                     command: 'ck3.validateWorkspace',
                     arguments: [],
                 });
-                outputChannel.appendLine(`Validation result: ${JSON.stringify(result, null, 2)}`);
+                logger.logCommand(`Validation result: ${JSON.stringify(result, null, 2)}`);
+                logger.showChannel(LogCategory.Commands);
             } catch (error) {
                 const message = error instanceof Error ? error.message : String(error);
                 vscode.window.showErrorMessage(`Validation failed: ${message}`);
@@ -87,7 +116,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
                     command: 'ck3.rescanWorkspace',
                     arguments: [],
                 });
-                outputChannel.appendLine(`Rescan result: ${JSON.stringify(result, null, 2)}`);
+                logger.logCommand(`Rescan result: ${JSON.stringify(result, null, 2)}`);
                 vscode.window.showInformationMessage('Workspace rescan complete');
             } catch (error) {
                 const message = error instanceof Error ? error.message : String(error);
@@ -109,7 +138,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
                 })) as Record<string, number | boolean>;
 
                 // Show stats in a nice format
-                const statsMessage = [
+                const statsLines = [
                     `📊 Workspace Statistics`,
                     `───────────────────────`,
                     `Events: ${result.events}`,
@@ -125,10 +154,10 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
                     `On-Actions: ${result.on_actions}`,
                     `Opinion Modifiers: ${result.opinion_modifiers}`,
                     `Scripted GUIs: ${result.scripted_guis}`,
-                ].join('\n');
+                ];
 
-                outputChannel.appendLine(statsMessage);
-                outputChannel.show();
+                logger.appendCommandLines(statsLines);
+                logger.showChannel(LogCategory.Commands);
 
                 vscode.window.showInformationMessage(
                     `Indexed: ${result.events} events, ${result.scripted_effects} effects, ${result.scripted_triggers} triggers`
@@ -222,16 +251,15 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
                 })) as { orphaned_keys: string[]; total_count: number };
 
                 if (result.orphaned_keys.length > 0) {
-                    outputChannel.appendLine(`\nOrphaned Localization Keys (${result.total_count} total):`);
+                    const lines = [`\nOrphaned Localization Keys (${result.total_count} total):`];
                     result.orphaned_keys.forEach((key) => {
-                        outputChannel.appendLine(`  - ${key}`);
+                        lines.push(`  - ${key}`);
                     });
                     if (result.total_count > result.orphaned_keys.length) {
-                        outputChannel.appendLine(
-                            `  ... and ${result.total_count - result.orphaned_keys.length} more`
-                        );
+                        lines.push(`  ... and ${result.total_count - result.orphaned_keys.length} more`);
                     }
-                    outputChannel.show();
+                    logger.appendCommandLines(lines);
+                    logger.showChannel(LogCategory.Commands);
                 }
             } catch (error) {
                 const message = error instanceof Error ? error.message : String(error);
@@ -318,12 +346,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         })
     );
 
-    // Register the ck3.showNamespaceEvents command alias (used by Code Lens directly)
-    context.subscriptions.push(
-        vscode.commands.registerCommand('ck3.showNamespaceEvents', async (namespace: string) => {
-            await vscode.commands.executeCommand('ck3LanguageServer.showNamespaceEvents', namespace);
-        })
-    );
+    // Note: ck3.showNamespaceEvents is registered by the language server via executeCommandProvider
+    // The Code Lens uses this command directly, and the server handles it.
 
     context.subscriptions.push(
         vscode.commands.registerCommand('ck3LanguageServer.generateLocalizationStubs', async () => {
@@ -427,14 +451,22 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
                 e.affectsConfiguration('ck3LanguageServer.enable') ||
                 e.affectsConfiguration('ck3LanguageServer.logLevel')
             ) {
-                outputChannel.appendLine('Configuration changed, restarting server...');
+                logger.logServer('Configuration changed, restarting server...');
+
+                // Enable debug channels if switching to debug mode
+                const cfg = vscode.workspace.getConfiguration('ck3LanguageServer');
+                if (cfg.get<string>('logLevel', 'info') === 'debug') {
+                    logger.enableDebugMode();
+                    logger.logServer('Debug mode enabled - Debug and Performance channels active');
+                }
+
                 await deactivate();
                 await startServer(context);
             }
         })
     );
 
-    outputChannel.appendLine('CK3 Language Server extension activated');
+    logger.logServer('CK3 Language Server extension activated');
 }
 
 async function startServer(context: vscode.ExtensionContext): Promise<void> {
@@ -443,14 +475,14 @@ async function startServer(context: vscode.ExtensionContext): Promise<void> {
     // Check if server is enabled
     const enabled = config.get<boolean>('enable', true);
     if (!enabled) {
-        outputChannel.appendLine('CK3 Language Server is disabled in settings');
+        logger.logServer('CK3 Language Server is disabled in settings');
         statusBar.updateState('stopped', 'Disabled in settings');
         return;
     }
 
     // Check workspace trust
     if (!vscode.workspace.isTrusted) {
-        outputChannel.appendLine('Workspace not trusted, server disabled');
+        logger.logServer('Workspace not trusted, server disabled');
         statusBar.updateState('stopped', 'Workspace not trusted');
         return;
     }
@@ -466,7 +498,7 @@ async function startServer(context: vscode.ExtensionContext): Promise<void> {
         return;
     }
 
-    outputChannel.appendLine(`Using Python: ${pythonPath}`);
+    logger.logServer(`Using Python: ${pythonPath}`);
 
     // Check if pychivalry server is installed
     const serverInstalled = await checkServerInstalled(pythonPath);
@@ -481,8 +513,10 @@ async function startServer(context: vscode.ExtensionContext): Promise<void> {
     const traceLevel = config.get<string>('trace.server', 'off');
     const logLevel = config.get<string>('logLevel', 'info');
 
-    outputChannel.appendLine(`Server args: ${args.join(' ')}`);
-    outputChannel.appendLine(`Log level: ${logLevel}`);
+    logger.logServer(`Server args: ${args.join(' ') || '(none)'}`);
+    logger.logServer(`Log level: ${logLevel}`);
+    logger.logDebug(`Python path: ${pythonPath}`);
+    logger.logDebug(`Trace level: ${traceLevel}`);
 
     // Server options
     const serverOptions: ServerOptions = {
@@ -493,7 +527,7 @@ async function startServer(context: vscode.ExtensionContext): Promise<void> {
         },
     };
 
-    // Client options
+    // Client options - use separate channels for output and trace
     const clientOptions: LanguageClientOptions = {
         documentSelector: [
             { scheme: 'file', language: 'ck3' },
@@ -502,8 +536,8 @@ async function startServer(context: vscode.ExtensionContext): Promise<void> {
         synchronize: {
             fileEvents: vscode.workspace.createFileSystemWatcher('**/*.{txt,gui,gfx,asset}'),
         },
-        outputChannel: outputChannel,
-        traceOutputChannel: outputChannel,
+        outputChannel: logger.getChannel(LogCategory.Server)!,
+        traceOutputChannel: logger.getChannel(LogCategory.Trace)!,
     };
 
     try {
@@ -527,16 +561,19 @@ async function startServer(context: vscode.ExtensionContext): Promise<void> {
                 client.setTrace(Trace.Off);
         }
 
-        outputChannel.appendLine('Starting language client...');
+        logger.logServer('Starting language client...');
+        logger.logDebug(`Client ID: ck3LanguageServer`);
+        logger.logDebug(`Document selector: ck3, *.txt, *.gui, *.gfx, *.asset`);
         await client.start();
-        outputChannel.appendLine('Language client started successfully');
+        logger.logServer('Language client started successfully');
+        logger.logDebug(`Client state: running`);
         statusBar.updateState('running');
 
         // Register for disposal
         context.subscriptions.push(client);
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        outputChannel.appendLine(`Failed to start language server: ${message}`);
+        logger.logServer(`Failed to start language server: ${message}`);
         await handleServerError(error as Error);
         statusBar.updateState('error', message);
     }
@@ -658,7 +695,7 @@ async function handleServerError(error: Error): Promise<void> {
             'Show Output'
         );
         if (action === 'Show Output') {
-            outputChannel.show();
+            logger.showChannel(LogCategory.Server);
         }
     }
 }
@@ -777,13 +814,13 @@ export async function deactivate(): Promise<void> {
     }
 
     statusBar.updateState('stopped');
-    outputChannel.appendLine('Stopping language client...');
+    logger.logServer('Stopping language client...');
     try {
         await client.stop();
         client = undefined;
-        outputChannel.appendLine('Language client stopped');
+        logger.logServer('Language client stopped');
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        outputChannel.appendLine(`Error stopping client: ${message}`);
+        logger.logServer(`Error stopping client: ${message}`);
     }
 }

@@ -8,6 +8,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Multi-Channel Output Logging**: Organized output into dedicated channels for better debugging
+  - **CK3: Server**: Server lifecycle messages (start, stop, restart, config changes)
+  - **CK3: Debug**: Detailed debug information (auto-enabled when `logLevel` is `debug`)
+  - **CK3: Commands**: Results from workspace commands (validation, rescan, stats)
+  - **CK3: Trace**: LSP protocol tracing (when trace.server enabled)
+  - **CK3: Performance**: Timing and cache metrics (auto-enabled when `logLevel` is `debug`)
+  - Quick pick menu for "Show Output" command to select which channel to view
+  - Timestamps on all log messages
+  - Debug and Performance channels automatically enabled when `logLevel` setting is `debug`
+- **Async & Threading Architecture**: Complete overhaul for non-blocking performance
+  - **Thread Pool**: 2-4 worker threads (based on CPU count) for CPU-bound operations
+  - **Async `did_change`**: Document changes now use 150ms debouncing with automatic stale update cancellation
+  - **Threaded Handlers**: 10 CPU-intensive handlers now run in thread pool:
+    - `semantic_tokens_full` - Rich syntax highlighting
+    - `references` - Find all references
+    - `workspace_symbol` - Workspace search (Ctrl+T)
+    - `rename` - Symbol renaming across workspace
+    - `document_formatting` / `range_formatting` - Code formatting
+    - `code_lens` - Reference counts and metadata
+    - `inlay_hint` - Inline type annotations
+    - `folding_range` - Code folding
+    - `document_highlight` - Symbol highlighting
+  - **Thread-Safe Data Access**: RLocks protect `document_asts` and `index` structures
+  - **Graceful Shutdown**: Clean thread pool shutdown when server stops
+- **LRU Caching Optimizations**: Additional performance improvements
+  - **Semantic Token Caching**: Cached builtin identifier lookups (2048-entry LRU cache) for 20-40% faster highlighting
+  - **Completion Item Caching**: Cached completion item generation eliminates redundant object creation
+  - **Frozenset Lookups**: O(1) membership testing for effects, triggers, keywords, scopes, and scope links
+- **Advanced Optimizations** (Tiers 1-4 from ASYNC_IMPLEMENTATION_GUIDE.md):
+  - **`__slots__` for CK3Node/CK3Token**: 30-50% memory reduction for large files with many AST nodes
+  - **AST Content Hash Caching**: 50-entry LRU cache by MD5 hash - instant re-parsing for unchanged content
+  - **Adaptive Debounce Delay**: 80ms for small files (<500 lines), 150ms medium, 250ms large, 400ms very large
+  - **Parallel Workspace Scanning**: 2-4x faster workspace indexing using thread pool for file I/O
+  - **Streaming Diagnostics**: Syntax errors published immediately, semantic analysis runs in background
+  - **Pre-emptive Parsing Infrastructure**: Queue system for background parsing of related files (ready for Tier 4)
 - **Folding Range**: Code folding support (Ctrl+Shift+[ to fold, Ctrl+Shift+] to unfold)
   - Event blocks: Collapse entire events to single lines
   - Named blocks: Fold `trigger`, `effect`, `option`, `immediate`, iterators

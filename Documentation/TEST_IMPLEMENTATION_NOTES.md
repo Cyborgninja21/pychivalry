@@ -1,85 +1,238 @@
 # Test Implementation Notes
 
-## Status
+## Current Status Summary
 
-New test types have been implemented with comprehensive coverage:
+| Test Type | Tests | Status | Passing |
+|-----------|-------|--------|---------|
+| **Unit Tests** | 1039 | ✅ Fully Working | 1039/1039 |
+| **Integration Tests** | 7 | ❌ Broken | 1/7 |
+| **Performance Tests** | 12 | ❌ Broken | 0/12 |
+| **Fuzzing Tests** | ~40 | ❌ Import Error | 0/? |
+| **Regression Tests** | 18 | ⚠️ Partial | 11/18 (3 skipped) |
 
-- ✅ **Integration Tests**: `tests/integration/` - 50+ tests covering end-to-end workflows
-- ✅ **Performance Tests**: `tests/performance/` - 30+ benchmarks for speed/memory
-- ✅ **Fuzzing Tests**: `tests/fuzzing/` - 40+ property-based tests
-- ✅ **Regression Tests**: `tests/regression/` - 40+ tests for fixed bugs
-- ✅ **Documentation**: Complete TESTING_GUIDE.md with usage instructions
-
-## API Alignment Required
-
-The new test files use template function names that need to be aligned with the actual pychivalry API:
-
-### Functions to Update
-
-**Diagnostics** (`pychivalry/diagnostics.py`):
-- Template uses: `get_diagnostics(doc)`
-- Actual API: `collect_all_diagnostics(doc, index)`
-
-**Navigation** (`pychivalry/navigation.py`):
-- Template uses: `find_definition(doc, position, index)`
-- Actual API: Varies by symbol type (find_event_definition, find_scripted_effect_definition, etc.)
-
-**Completions** (`pychivalry/completions.py`):
-- Template uses: `get_context_aware_completions(doc, position, index)`
-- Actual API: ✅ Correct
-
-**Code Actions** (`pychivalry/code_actions.py`):
-- Template uses: `get_all_code_actions(doc, range, diagnostics)`
-- Actual API: Needs verification
-
-### Files Needing Updates
-
-1. `tests/integration/test_lsp_workflows.py` - Import and function call updates
-2. `tests/performance/test_benchmarks.py` - Import and function call updates
-3. `tests/fuzzing/test_property_based.py` - Import and function call updates  
-4. `tests/regression/test_bug_fixes.py` - Import and function call updates
-
-### Quick Fix Approach
-
-Option 1: Update test files to match actual API
-Option 2: Create convenience wrapper functions in a test utils module
-Option 3: Add aliases to main modules for common use cases
-
-## Testing the Tests
-
-Once API alignment is complete, run:
-
-```bash
-# Test each new test type
-pytest tests/integration/ -v
-pytest tests/performance/ -v --benchmark-only
-pytest tests/fuzzing/ -v
-pytest tests/regression/ -v
-
-# Full test suite
-pytest tests/ -v
-```
-
-## Dependencies Installed
-
-All required test dependencies are now in `pyproject.toml`:
-- pytest-benchmark (performance testing)
-- pytest-timeout (timeout protection)
-- hypothesis (property-based testing)
-- memory-profiler (memory profiling)
-
-## Documentation
-
-Complete testing guide available at:
-- `Documentation/TESTING_GUIDE.md` - Comprehensive guide with examples, best practices, and troubleshooting
-
-## Next Steps
-
-1. Align test API calls with actual module APIs
-2. Run full test suite to verify
-3. Update any tests that need refinement
-4. Add to CI/CD pipeline
+**Unit tests are fully functional and comprehensive.** The newer test categories (integration, performance, fuzzing, regression) have API misalignments that prevent them from running correctly.
 
 ---
 
-**Note**: The tests are structurally complete and follow best practices. They just need the final API alignment step to be fully functional.
+## Critical API Misalignments
+
+The test files were written against an assumed API that doesn't match the actual implementation. Here are the key discrepancies:
+
+### 1. Parser Returns List, Not Document Object
+
+**Test assumes:**
+```python
+doc = parse_document(content, "test.txt")
+doc.root.children[0]  # Access AST as property
+```
+
+**Actual API:**
+```python
+ast = parse_document(content)  # Returns List[CK3Node], NOT a document object
+ast[0]  # Direct list access
+```
+
+### 2. `collect_all_diagnostics()` Requires AST Parameter
+
+**Test assumes:**
+```python
+diagnostics = collect_all_diagnostics(doc)  # Single argument
+```
+
+**Actual API:**
+```python
+diagnostics = collect_all_diagnostics(doc, ast, index)  # Requires TextDocument + AST + optional index
+# Or use convenience function:
+diagnostics = get_diagnostics_for_text(text, uri, index)  # Takes raw text
+```
+
+### 3. `get_context_aware_completions()` Signature
+
+**Test assumes:**
+```python
+completions = get_context_aware_completions(doc, ast, position, index)
+```
+
+**Actual API:**
+```python
+completions = get_context_aware_completions(
+    document_uri="file:///test.txt",
+    position=types.Position(line=X, character=Y),
+    ast=ast[0] if ast else None,  # Single node, not list
+    line_text="actual line content",
+    document_index=index
+)
+```
+
+### 4. Position Type
+
+**Test assumes:**
+```python
+position = (5, 16)  # Tuple
+```
+
+**Actual API:**
+```python
+position = types.Position(line=5, character=16)  # LSP Position object
+```
+
+### 5. `find_definition()` / `find_references()` Signatures
+
+**Test assumes:**
+```python
+find_definition(event_doc, Position(...), index)  # LSP Position object
+```
+
+**Actual API:**
+```python
+find_definition(document, position, index)  # position is Tuple[int, int]
+# Note: The wrapper unpacks: line, character = position
+```
+
+### 6. `DocumentIndex` Methods
+
+**Test assumes:**
+```python
+index.index_document("events.txt", doc)  # index_document method
+```
+
+**Actual API:**
+```python
+index.update_from_ast("events.txt", ast)  # update_from_ast method
+```
+
+### 7. Missing Dependencies
+
+**pytest-benchmark not installed:**
+```
+fixture 'benchmark' not found
+```
+
+**hypothesis not installed:**
+```
+ModuleNotFoundError: No module named 'hypothesis'
+```
+
+---
+
+## Required Fixes by Test File
+
+### `tests/integration/test_lsp_workflows.py`
+
+1. Change `parse_document(content, "test.txt")` → `parse_document(content)`
+2. Import `TextDocument` from `pygls.workspace` instead of `TextDocumentItem`
+3. Use `get_diagnostics_for_text(content)` for convenience
+4. Fix `get_context_aware_completions()` calls with correct signature
+5. Fix `find_definition()` calls: pass tuple position, not Position object
+6. Replace `index.index_document()` → `index.update_from_ast()`
+7. Access AST as list, not `doc.root`
+
+### `tests/performance/test_benchmarks.py`
+
+1. Install `pytest-benchmark`: `pip install pytest-benchmark`
+2. Change `parse_document(content, filename)` → `parse_document(content)`
+3. Fix `get_context_aware_completions()` signature
+4. Replace `index.index_document()` → `index.update_from_ast()`
+
+### `tests/fuzzing/test_property_based.py`
+
+1. Install `hypothesis`: `pip install hypothesis`
+2. Change `parse_document(content, filename)` → `parse_document(content)` 
+3. Parser returns `List[CK3Node]`, not object with `.root`
+4. Fix `get_context_aware_completions()` signature
+
+### `tests/regression/test_bug_fixes.py`
+
+1. Parser returns list: `result = parse_document("")` returns `[]`, not object with `.root`
+2. Fix `collect_all_diagnostics()` - pass AST parameter
+3. Fix `find_definition()` position format
+4. Some tests need `validate_event_structure` which isn't implemented (correctly skipped)
+
+---
+
+## Quick Fix Script
+
+To install missing dependencies:
+```bash
+pip install pytest-benchmark hypothesis memory-profiler
+```
+
+---
+
+## Recommended Approach
+
+**Option A: Fix Test Files (Recommended)**
+
+Update all test files to use the correct API signatures. This is the right approach because:
+- Tests should match actual API
+- No production code changes required
+- Maintains API consistency
+
+**Option B: Add Wrapper Functions**
+
+Create a test utilities module with convenience wrappers. Less ideal because:
+- Adds maintenance burden
+- Hides actual API from tests
+- Could mask real API issues
+
+---
+
+## Test Dependencies Status
+
+| Package | Required | Installed | Notes |
+|---------|----------|-----------|-------|
+| pytest | >=7.0.0 | ✅ Yes | Core test runner |
+| pytest-asyncio | >=0.21.0 | ⚠️ Unknown | Config warning suggests issue |
+| pytest-benchmark | >=4.0.0 | ❌ No | Performance tests fail |
+| pytest-timeout | >=2.1.0 | ⚠️ Unknown | - |
+| hypothesis | >=6.0.0 | ❌ No | Fuzzing tests fail to import |
+| memory-profiler | >=0.61.0 | ⚠️ Unknown | - |
+
+**Note:** The `asyncio_mode = "auto"` config in `pyproject.toml` generates a warning. This setting may need to be updated for the installed version of pytest-asyncio.
+
+---
+
+## Working Tests Summary
+
+The following test files work correctly (1039 tests total):
+
+- `test_parser.py` - Parser functionality
+- `test_scopes.py` - Scope validation
+- `test_lists.py` - List iterators
+- `test_script_values.py` - Script value handling
+- `test_variables.py` - Variable management
+- `test_scripted_blocks.py` - Scripted effects/triggers
+- `test_events.py` - Event validation
+- `test_diagnostics.py` - Error detection
+- `test_completions.py` - Code completions
+- `test_hover.py` - Hover information
+- `test_localization.py` - Localization features
+- `test_navigation.py` - Go to definition
+- `test_symbols.py` - Document symbols
+- `test_code_actions.py` - Quick fixes
+- `test_workspace.py` - Workspace features
+- `test_folding.py` - Code folding
+- `test_formatting.py` - Code formatting
+- `test_semantic_tokens.py` - Syntax highlighting
+- `test_signature_help.py` - Signature help
+- `test_rename.py` - Rename symbol
+- `test_inlay_hints.py` - Inlay hints
+- `test_document_highlight.py` - Highlight occurrences
+- `test_document_links.py` - Document links
+- `test_indexer.py` - Document indexing
+- `test_code_lens.py` - Code lens
+- `test_server*.py` - Server tests
+
+---
+
+## Next Steps
+
+1. **Install missing dependencies**: `pip install pytest-benchmark hypothesis`
+2. **Fix API calls** in integration/performance/fuzzing/regression tests
+3. **Fix pytest-asyncio config** warning in pyproject.toml
+4. **Register custom marks** for `@pytest.mark.slow`
+5. **Add tests to CI/CD** once fixed
+
+---
+
+*Last updated: 2024-12-31*

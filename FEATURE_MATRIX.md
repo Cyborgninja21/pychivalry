@@ -53,8 +53,8 @@ Based on the Python API documentation, here's a comprehensive matrix of what's a
 | **Stdio Transport** | `server.start_io()` | ✅ Used | **Standard VS Code**: Extension spawns Python process, communicates via stdin/stdout JSON-RPC. Zero configuration required. Works on all platforms. Default for all desktop editors. |
 | **TCP Transport** | `server.start_tcp()` | ❌ Available | **Remote Development**: Run language server on powerful remote machine while editing locally. Share single server instance across multiple editor windows. Enable debugging with network protocol analyzers. |
 | **WebSocket Transport** | `server.start_ws()` | ❌ Available | **Web-Based Editors**: Support browser-based CK3 mod editors. Enable collaborative editing scenarios. Cloud IDE integration (Gitpod, Codespaces). |
-| **Async Handlers** | `async def handler(params)` | ⚠️ Partial | **Non-Blocking Operations**: Workspace scan doesn't freeze completions. Progress reporting updates while indexing continues. Currently used for: `did_open`, `validateWorkspace`, `rescanWorkspace`, `insertTextAtCursor`, `generateLocalizationStubs`, `renameEvent`. Most feature handlers (`did_change`, `completions`, `hover`, `semantic_tokens`, etc.) are still synchronous. See `ASYNC_THREADING_REPORT.md` for full analysis. |
-| **Threaded Handlers** | `@server.thread()` | ❌ Not Used | **Heavy Computation**: Run expensive validation in background thread. Parse large files without blocking. Cross-reference building for 1000+ event mods. **Currently NO handlers use `@server.thread()`** - all sync handlers block the event loop. Key candidates: `semantic_tokens_full`, `rename`, `references`, `workspace_symbol`, `formatting`. See `ASYNC_THREADING_REPORT.md` for implementation plan. |
+| **Async Handlers** | `async def handler(params)` | ✅ Complete | **Non-Blocking Operations**: `did_change` uses async with 150ms debouncing—typing never blocks. Workspace scan runs in thread pool with progress reporting. Stale updates automatically discarded. All document sync handlers are async: `did_open`, `did_change`. All workspace commands are async: `validateWorkspace`, `rescanWorkspace`, `insertTextAtCursor`, `generateLocalizationStubs`, `renameEvent`. |
+| **Threaded Handlers** | `@server.thread()` | ✅ Complete | **Heavy Computation**: 10 CPU-intensive handlers run in thread pool: `semantic_tokens_full`, `references`, `workspace_symbol`, `rename`, `document_formatting`, `range_formatting`, `code_lens`, `inlay_hint`, `folding_range`, `document_highlight`. Thread-safe locks protect shared `document_asts` and `index` data structures. 2-4 worker threads based on CPU count. |
 
 ---
 
@@ -70,16 +70,6 @@ Based on the Python API documentation, here's a comprehensive matrix of what's a
 
 ---
 
-## High-Value Features NOT YET Implemented
-
-| Feature | Effort | Impact | Description |
-|---------|--------|--------|-------------|
-| **Inlay Hints** | Medium | Medium | Show scope types inline (e.g., `scope:friend` → `: character`) |
-| **Rename Symbol** | High | Medium | Safely rename events across all files with preview |
-| **Folding Range** | Low | Low | Collapse event blocks for better overview |
-| **Document Highlight** | Low | Low | Highlight all occurrences of selected symbol |
-| **Document Links** | Low | Low | Make file paths and event IDs in comments clickable |
-
 ---
 
 ## Recommended Priority Implementation
@@ -94,7 +84,7 @@ Based on the Python API documentation, here's a comprehensive matrix of what's a
 
 ### Phase 2: Navigation Enhancement ✅ COMPLETE
 
-- ~~Folding Range~~ - Code folding for events and blocks (❌ Not Started)
+- ~~Folding Range~~ - Code folding for events and blocks ✅
 - ~~Document Links~~ - Clickable event references in comments ✅
 - ~~Document Highlight~~ - Highlight same symbols in file ✅
 
@@ -133,7 +123,7 @@ Using `@server.command()`, the following commands are available:
 @server.feature(TEXT_DOCUMENT_DID_CHANGE)        # Document modified
 @server.feature(TEXT_DOCUMENT_DID_CLOSE)         # Document closed
 
-# Core language features (12)
+# Core language features (21)
 @server.feature(TEXT_DOCUMENT_COMPLETION)        # Context-aware completions
 @server.feature(TEXT_DOCUMENT_HOVER)             # Hover documentation
 @server.feature(TEXT_DOCUMENT_DEFINITION)        # Go to definition
@@ -146,6 +136,15 @@ Using `@server.command()`, the following commands are available:
 @server.feature(TEXT_DOCUMENT_FORMATTING)        # Document formatting
 @server.feature(TEXT_DOCUMENT_RANGE_FORMATTING)  # Range formatting
 @server.feature(WORKSPACE_SYMBOL)                # Workspace search
+@server.feature(TEXT_DOCUMENT_INLAY_HINT)        # Scope type annotations
+@server.feature(INLAY_HINT_RESOLVE)              # Lazy load hint details
+@server.feature(TEXT_DOCUMENT_SIGNATURE_HELP)    # Parameter hints
+@server.feature(TEXT_DOCUMENT_DOCUMENT_HIGHLIGHT) # Symbol highlighting
+@server.feature(TEXT_DOCUMENT_DOCUMENT_LINK)     # Clickable paths/IDs
+@server.feature(DOCUMENT_LINK_RESOLVE)           # Lazy load link targets
+@server.feature(TEXT_DOCUMENT_PREPARE_RENAME)    # Rename validation
+@server.feature(TEXT_DOCUMENT_RENAME)            # Symbol renaming
+@server.feature(TEXT_DOCUMENT_FOLDING_RANGE)     # Code folding
 
 # Custom commands (11)
 @server.command("ck3.validateWorkspace")         # Full workspace validation
@@ -161,4 +160,4 @@ Using `@server.command()`, the following commands are available:
 @server.command("ck3.insertTextAtCursor")        # Programmatic text insertion
 ```
 
-### Total Registered Handlers: 26 (15 features + 11 commands)
+### Total Registered Handlers: 35 (24 features + 11 commands)

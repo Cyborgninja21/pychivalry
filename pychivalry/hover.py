@@ -359,13 +359,22 @@ def get_hover_content(
         if loc_info:
             text, file_uri, line_num = loc_info
             filename = file_uri.split('/')[-1]
-            # Escape any special markdown characters in the text
-            # Also handle CK3 special tokens like [character.GetName]
+            # Handle CK3 escape sequences
             display_text = text.replace('\\n', '\n').replace('#N', '\n')
             # Truncate if too long
             if len(display_text) > 500:
                 display_text = display_text[:500] + "..."
-            return f"## 🏷️ `{word}`\n\n**🌐 Localization Key**\n\n---\n\n📝 **Text:**\n> {display_text}\n\n---\n\n📂 **File:** `{filename}`\n\n📍 **Line:** {line_num + 1}"
+            # Format paragraphs properly for Markdown blockquote
+            # Each line in a blockquote needs its own > prefix
+            paragraphs = display_text.split('\n\n')
+            formatted_paragraphs = []
+            for para in paragraphs:
+                # Replace single newlines with spaces within a paragraph
+                para = para.replace('\n', ' ').strip()
+                if para:
+                    formatted_paragraphs.append(f"> {para}")
+            formatted_text = "\n>\n".join(formatted_paragraphs)
+            return f"## 🏷️ `{word}`\n\n**🌐 Localization Key**\n\n---\n\n📝 **Text:**\n\n{formatted_text}\n\n---\n\n📂 **File:** `{filename}`\n\n📍 **Line:** {line_num + 1}"
     
     # Check if it's a character flag (custom mod flags)
     if index and word in index.character_flags:

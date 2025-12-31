@@ -5,10 +5,14 @@ This module provides validation and error detection for CK3 scripts, including:
 - Syntax validation (bracket matching, malformed structures)
 - Semantic validation (unknown effects/triggers, invalid scopes)
 - Scope chain validation
+- Style and formatting validation (CK33xx)
+- Paradox convention validation (CK35xx-CK52xx)
+- Scope timing validation (CK3550-3555)
 
 Diagnostics are published to the client via LSP's PublishDiagnostics notification.
 """
 
+from dataclasses import dataclass, field
 from typing import List, Optional
 from lsprotocol import types
 from pygls.workspace import TextDocument
@@ -452,10 +456,26 @@ def check_scopes(ast: List[CK3Node], index: Optional[DocumentIndex]) -> List[typ
     return diagnostics
 
 
+@dataclass
+class DiagnosticConfig:
+    """
+    Configuration for diagnostic checks.
+    
+    Attributes:
+        style_enabled: Enable style/formatting checks (CK33xx)
+        paradox_enabled: Enable Paradox convention checks (CK35xx+)
+        scope_timing_enabled: Enable scope timing checks (CK3550-3555)
+    """
+    style_enabled: bool = True
+    paradox_enabled: bool = True
+    scope_timing_enabled: bool = True
+
+
 def collect_all_diagnostics(
     doc: TextDocument,
     ast: List[CK3Node],
-    index: Optional[DocumentIndex] = None
+    index: Optional[DocumentIndex] = None,
+    config: Optional[DiagnosticConfig] = None
 ) -> List[types.Diagnostic]:
     """
     Collect all diagnostics for a document.
@@ -467,21 +487,53 @@ def collect_all_diagnostics(
         doc: The text document to validate
         ast: Parsed AST
         index: Document index for cross-file validation (optional)
+        config: Diagnostic configuration (uses defaults if None)
         
     Returns:
         Combined list of all diagnostics
     """
+    config = config or DiagnosticConfig()
     diagnostics = []
     
     try:
-        # Syntax checks
+        # Syntax checks (always enabled)
         diagnostics.extend(check_syntax(doc, ast))
         
-        # Semantic checks
+        # Semantic checks (always enabled)
         diagnostics.extend(check_semantics(ast, index))
         
-        # Scope checks
+        # Scope checks (always enabled)
         diagnostics.extend(check_scopes(ast, index))
+        
+        # Style checks (CK33xx)
+        if config.style_enabled:
+            try:
+                from .style_checks import check_style
+                diagnostics.extend(check_style(doc))
+            except ImportError:
+                logger.warning("style_checks module not available")
+            except Exception as e:
+                logger.error(f"Error in style checks: {e}", exc_info=True)
+        
+        # Paradox convention checks (CK35xx+)
+        if config.paradox_enabled:
+            try:
+                from .paradox_checks import check_paradox_conventions
+                diagnostics.extend(check_paradox_conventions(ast, index))
+            except ImportError:
+                logger.warning("paradox_checks module not available")
+            except Exception as e:
+                logger.error(f"Error in paradox checks: {e}", exc_info=True)
+        
+        # Scope timing checks (CK3550-3555)
+        if config.scope_timing_enabled:
+            try:
+                from .scope_timing import check_scope_timing
+                diagnostics.extend(check_scope_timing(ast, index))
+            except ImportError:
+                logger.warning("scope_timing module not available")
+            except Exception as e:
+                logger.error(f"Error in scope timing checks: {e}", exc_info=True)
         
         logger.debug(f"Found {len(diagnostics)} diagnostics for {doc.uri}")
     except Exception as e:

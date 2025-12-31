@@ -36,7 +36,8 @@ LSP Reference:
 """
 
 from dataclasses import dataclass
-from typing import List, Optional, Set, Tuple
+from functools import lru_cache
+from typing import List, Optional, Set, Tuple, FrozenSet
 from lsprotocol import types
 
 from .parser import CK3Node, parse_document
@@ -90,6 +91,58 @@ TOKEN_MODIFIERS = [
 # Create lookup dictionaries for fast access
 TOKEN_TYPE_INDEX = {t: i for i, t in enumerate(TOKEN_TYPES)}
 TOKEN_MODIFIER_INDEX = {m: i for i, m in enumerate(TOKEN_MODIFIERS)}
+
+# Frozensets for faster membership testing (O(1) lookups)
+_KEYWORD_SET: FrozenSet[str] = frozenset(CK3_KEYWORDS) | frozenset({
+    'trigger', 'immediate', 'effect', 'option', 'limit', 'desc', 'title', 'theme',
+    'if', 'else', 'else_if', 'NOT', 'AND', 'OR', 'NAND', 'NOR', 
+    'hidden_effect', 'show_as_tooltip'
+})
+_EFFECT_SET: FrozenSet[str] = frozenset(CK3_EFFECTS)
+_TRIGGER_SET: FrozenSet[str] = frozenset(CK3_TRIGGERS)
+_SCOPE_SET: FrozenSet[str] = frozenset(CK3_SCOPES) | frozenset({'root', 'this', 'prev', 'from'})
+_EVENT_TYPE_SET: FrozenSet[str] = frozenset(CK3_EVENT_TYPES)
+_BOOLEAN_SET: FrozenSet[str] = frozenset(CK3_BOOLEAN_VALUES)
+_SCOPE_LINK_SET: FrozenSet[str] = frozenset(get_scope_links('character'))
+
+
+@lru_cache(maxsize=2048)
+def _get_builtin_token_type(word: str) -> Tuple[Optional[int], int]:
+    """
+    Get token type and modifiers for a built-in identifier.
+    
+    This function is cached to avoid repeated set lookups for common words.
+    Returns (token_type_index, modifiers) or (None, 0) if not a known builtin.
+    
+    Args:
+        word: The identifier to classify
+        
+    Returns:
+        Tuple of (token_type_index, modifier_bits) or (None, 0)
+    """
+    # Check each category in order of frequency
+    if word in _KEYWORD_SET:
+        return (TOKEN_TYPE_INDEX['keyword'], 0)
+    
+    if word in _EFFECT_SET:
+        return (TOKEN_TYPE_INDEX['function'], get_modifier_bits('defaultLibrary'))
+    
+    if word in _TRIGGER_SET:
+        return (TOKEN_TYPE_INDEX['function'], get_modifier_bits('defaultLibrary'))
+    
+    if word in _SCOPE_SET:
+        return (TOKEN_TYPE_INDEX['variable'], get_modifier_bits('readonly'))
+    
+    if word in _SCOPE_LINK_SET:
+        return (TOKEN_TYPE_INDEX['property'], 0)
+    
+    if word in _EVENT_TYPE_SET:
+        return (TOKEN_TYPE_INDEX['class'], get_modifier_bits('defaultLibrary'))
+    
+    if word in _BOOLEAN_SET:
+        return (TOKEN_TYPE_INDEX['enumMember'], get_modifier_bits('readonly'))
+    
+    return (None, 0)
 
 
 @dataclass
@@ -436,43 +489,18 @@ def tokenize_line(
                 token_type = None
                 modifiers = 0
                 
-                # Categorize the identifier
-                if word in CK3_KEYWORDS or word in ('trigger', 'immediate', 'effect', 'option', 
-                                                      'limit', 'desc', 'title', 'theme',
-                                                      'if', 'else', 'else_if', 'NOT', 'AND', 'OR',
-                                                      'NAND', 'NOR', 'hidden_effect', 'show_as_tooltip'):
-                    token_type = TOKEN_TYPE_INDEX['keyword']
-                    
-                elif word in CK3_EVENT_TYPES:
-                    token_type = TOKEN_TYPE_INDEX['class']
-                    modifiers = get_modifier_bits('defaultLibrary')
-                    
-                elif word in CK3_EFFECTS:
-                    token_type = TOKEN_TYPE_INDEX['function']
-                    modifiers = get_modifier_bits('defaultLibrary')
-                    
+                # First check cached builtin lookups (fast path for common words)
+                builtin_type, builtin_mods = _get_builtin_token_type(word)
+                if builtin_type is not None:
+                    token_type = builtin_type
+                    modifiers = builtin_mods
+                # Then check custom definitions (not cached - index can change)
                 elif word in custom_effects:
                     token_type = TOKEN_TYPE_INDEX['function']
                     modifiers = get_modifier_bits('definition')
-                    
-                elif word in CK3_TRIGGERS:
-                    token_type = TOKEN_TYPE_INDEX['function']
-                    modifiers = get_modifier_bits('defaultLibrary')
-                    
                 elif word in custom_triggers:
                     token_type = TOKEN_TYPE_INDEX['function']
                     modifiers = get_modifier_bits('definition')
-                    
-                elif word in CK3_SCOPES or word in ('root', 'this', 'prev', 'from'):
-                    token_type = TOKEN_TYPE_INDEX['variable']
-                    modifiers = get_modifier_bits('readonly')
-                    
-                elif word in get_scope_links('character'):
-                    token_type = TOKEN_TYPE_INDEX['property']
-                    
-                elif word in CK3_BOOLEAN_VALUES:
-                    token_type = TOKEN_TYPE_INDEX['enumMember']
-                    modifiers = get_modifier_bits('readonly')
                 
                 # Check index for custom definitions
                 elif index:

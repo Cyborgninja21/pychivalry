@@ -223,7 +223,7 @@
             "error"
           ],
           "default": "info",
-          "description": "Log level for the language server output",
+          "description": "Log level for the language server. Setting to 'debug' enables additional Debug and Performance output channels.",
           "scope": "resource"
         },
         "ck3LanguageServer.enable": {
