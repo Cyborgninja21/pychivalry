@@ -6,7 +6,7 @@
 
 **A Language Server for Crusader Kings 3 Modding**
 
-pychivalry brings modern IDE features to CK3 mod development—auto-completion, syntax awareness, and intelligent assistance right in VS Code.
+pychivalry brings modern IDE features to CK3 mod development—auto-completion, syntax awareness, go-to-definition, and intelligent assistance right in VS Code.
 
 <!-- ![Demo placeholder](https://via.placeholder.com/800x400?text=Demo+GIF+Coming+Soon) -->
 
@@ -16,13 +16,16 @@ pychivalry brings modern IDE features to CK3 mod development—auto-completion, 
 
 | Feature | Description |
 |---------|-------------|
-| **🔤 Auto-completion** | 150+ CK3 keywords, effects, triggers, and scopes |
-| **✅ Diagnostics** | Real-time syntax and semantic validation |
-| **📖 Hover Documentation** | Helpful tooltips for effects, triggers, scopes, and events |
-| **🔍 Scope Validation** | Validates scope chains and saved scopes |
-| **📋 List Validation** | Validates any_, every_, random_, ordered_ patterns |
-| **🔢 Script Values** | Formula and range validation |
+| **🔤 Context-Aware Auto-completion** | 150+ CK3 keywords, effects, triggers, and scopes with intelligent filtering |
+| **✅ Real-Time Diagnostics** | Syntax, semantic, and scope validation as you type |
+| **📖 Hover Documentation** | Rich tooltips for effects, triggers, scopes, events, and saved scopes |
+| **🔗 Go to Definition** | Jump to events, scripted effects/triggers, localization keys, and more |
+| **🔍 Scope System** | Full scope chain validation and saved scope tracking |
+| **📋 List Iterators** | Validates any_, every_, random_, ordered_ patterns with parameters |
+| **🔢 Script Values** | Formula and range validation with operations support |
 | **💾 Variables** | Full variable system support (var:, local_var:, global_var:) |
+| **📝 Event Validation** | Event structure, themes, portraits, and option validation |
+| **🔧 Code Actions** | Quick fixes for typos, refactoring suggestions |
 | **📁 File Support** | `.txt`, `.gui`, `.gfx`, and `.asset` files |
 | **🔄 Live Sync** | Real-time document tracking as you type |
 | **⚡ Fast** | Lightweight Python server with instant responses |
@@ -33,25 +36,32 @@ pychivalry brings modern IDE features to CK3 mod development—auto-completion, 
 - **Effects**: `add_trait`, `add_gold`, `add_prestige`, `trigger_event`, `save_scope_as`...
 - **Triggers**: `has_trait`, `is_ruler`, `is_adult`, `age`, `gold`, `opinion`...
 - **Scopes**: `root`, `prev`, `liege`, `every_vassal`, `random_courtier`, `primary_title`...
-- **Event Types**: `character_event`, `letter_event`, `duel_event`...
+- **Event Types**: `character_event`, `letter_event`, `court_event`, `duel_event`...
+- **Snippets**: Event templates, scripted effects/triggers, common patterns
 
 > 📖 See [CK3_FEATURES.md](CK3_FEATURES.md) for the complete list.
 
-### Roadmap
+### Development Status
 
-- [x] **Syntax validation & diagnostics** — Real-time error detection (Phase 8 complete)
-- [x] **Hover documentation** — Helpful tooltips for CK3 constructs (Phase 10 complete)
-- [x] **Parser Foundation** — Full AST parsing (Phase 1 complete)
-- [x] **Scope System** — Scope validation and navigation (Phase 2 complete)
-- [x] **Script Lists** — List iterator validation (Phase 3 complete)
-- [x] **Script Values** — Formula validation (Phase 4 complete)
-- [x] **Variables System** — Variable tracking and validation (Phase 5 complete)
-- [ ] Context-aware completions (Phase 9 planned)
-- [ ] Go to definition (Phase 12 planned)
-- [ ] Scripted blocks (Phase 6 planned)
-- [ ] Event system validation (Phase 7 planned)
+- [x] **Parser Foundation** — Full AST parsing with position tracking
+- [x] **Scope System** — Scope validation, chains, and saved scopes
+- [x] **Script Lists** — List iterator validation (any_, every_, random_, ordered_)
+- [x] **Script Values** — Formula and range validation
+- [x] **Variables System** — Variable tracking (var:, local_var:, global_var:)
+- [x] **Scripted Blocks** — Scripted triggers/effects with parameter support
+- [x] **Event System** — Event structure and validation
+- [x] **Diagnostics** — Real-time syntax and semantic validation
+- [x] **Context-Aware Completions** — Intelligent filtering by context
+- [x] **Hover Documentation** — Rich tooltips with examples
+- [x] **Localization Support** — Localization key validation and navigation
+- [x] **Go to Definition** — Navigation to definitions across files
+- [x] **Code Actions** — Quick fixes and refactoring suggestions
+- [ ] **Find References** — Find all usages of symbols
+- [ ] **Document Symbols** — Outline view for scripts
+- [ ] **Semantic Tokens** — Rich syntax highlighting
+- [ ] **Workspace Validation** — Cross-file validation
 
-**Status**: 7 of 17 phases complete • 286 tests passing • Ready for production use
+**Status**: 645+ tests • Comprehensive CK3 support • Ready for production use
 
 ## 🚀 Quick Start
 
@@ -139,14 +149,34 @@ Add to your VS Code `settings.json`:
 ```
 pychivalry/
 ├── pychivalry/           # Python language server
-│   ├── server.py         # LSP implementation
-│   └── ck3_language.py   # CK3 language definitions
+│   ├── server.py         # LSP implementation with feature handlers
+│   ├── parser.py         # CK3 script parser (syntax → AST)
+│   ├── indexer.py        # Document symbol indexer
+│   ├── scopes.py         # Scope system & validation
+│   ├── diagnostics.py    # Validation & error detection
+│   ├── hover.py          # Hover documentation
+│   ├── completions.py    # Context-aware completions
+│   ├── navigation.py     # Go-to-definition support
+│   ├── code_actions.py   # Quick fixes & refactoring
+│   ├── events.py         # Event structure validation
+│   ├── lists.py          # List iterator validation
+│   ├── script_values.py  # Script value validation
+│   ├── variables.py      # Variable system support
+│   ├── scripted_blocks.py# Scripted effects/triggers
+│   ├── localization.py   # Localization support
+│   ├── workspace.py      # Cross-file validation
+│   ├── ck3_language.py   # CK3 language definitions
+│   └── data/             # YAML data files for game definitions
 ├── vscode-extension/     # VS Code client extension
 │   ├── src/extension.ts
 │   └── package.json
 ├── examples/             # Test files
-├── tests/                # Test suite
-└── docs/                 # Additional documentation
+├── tests/                # Comprehensive test suite (645+ tests)
+│   ├── integration/      # Integration tests
+│   ├── regression/       # Regression tests
+│   ├── fuzzing/          # Fuzz tests
+│   └── performance/      # Performance benchmarks
+└── Documentation/        # Developer documentation
 ```
 
 ## 🤝 Contributing
