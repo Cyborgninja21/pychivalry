@@ -5,7 +5,7 @@ Tests end-to-end user workflows combining multiple LSP features.
 
 import pytest
 from pychivalry.parser import parse_document
-from pychivalry.diagnostics import collect_all_diagnostics, get_diagnostics_for_text
+from pychivalry.diagnostics import collect_all_diagnostics
 from pychivalry.completions import get_context_aware_completions
 from pychivalry.navigation import find_definition, find_references
 from pychivalry.code_actions import get_all_code_actions
@@ -15,7 +15,9 @@ from pychivalry.indexer import DocumentIndex
 class TestEndToEndWorkflows:
     """Test complete user workflows from start to finish."""
 
-    @pytest.mark.skip(reason="Typo detection in diagnostics not yet fully implemented - requires semantic analysis")
+    @pytest.mark.skip(
+        reason="Typo detection in diagnostics not yet fully implemented - requires semantic analysis"
+    )
     def test_open_file_collect_all_diagnostics_apply_fix(self):
         """Test: Open file → Get diagnostics → Apply code action → Verify fix."""
         # 1. Open file with typo
@@ -27,21 +29,29 @@ class TestEndToEndWorkflows:
             add_gond = 100  # Typo: should be add_gold
         }
         """
-        
+
         # 2. Parse and get diagnostics
         from pygls.workspace import TextDocument
+
         doc = TextDocument(uri="file:///test.txt", source=content)
         ast = parse_document(content)
         diagnostics = collect_all_diagnostics(doc, ast)
-        
+
         # 3. Verify diagnostic exists
         assert len(diagnostics) > 0
-        typo_diagnostic = next((d for d in diagnostics if "add_gond" in d.message.lower() or "unknown" in d.message.lower()), None)
+        typo_diagnostic = next(
+            (
+                d
+                for d in diagnostics
+                if "add_gond" in d.message.lower() or "unknown" in d.message.lower()
+            ),
+            None,
+        )
         assert typo_diagnostic is not None
-        
+
         # 4. Get code actions for the typo
         actions = get_all_code_actions(doc, ast, typo_diagnostic.range, [typo_diagnostic])
-        
+
         # 5. Verify "Did you mean?" suggestion exists
         assert len(actions) > 0
         fix_action = next((a for a in actions if "add_gold" in str(a.title)), None)
@@ -57,15 +67,16 @@ class TestEndToEndWorkflows:
             id = my_events.001
             add_
         """
-        
+
         # 2. Parse document
         from pygls.workspace import TextDocument
         from lsprotocol.types import Position
+
         doc = TextDocument(uri="file:///test.txt", source=content)
         ast = parse_document(content)
         index = DocumentIndex()
         index.update_from_ast("file:///test.txt", ast)
-        
+
         # 3. Request completions at cursor
         position = Position(line=5, character=16)  # After "add_"
         line_text = "            add_"
@@ -75,14 +86,14 @@ class TestEndToEndWorkflows:
             position=position,
             ast=ast[0] if ast else None,
             line_text=line_text,
-            document_index=index
+            document_index=index,
         )
-        
+
         # 4. Verify relevant completions exist
         assert len(completions.items) > 0
         gold_completion = next((c for c in completions.items if c.label == "add_gold"), None)
         assert gold_completion is not None
-        
+
         # 5. Simulate accepting completion
         assert "add_gold" in gold_completion.label
 
@@ -95,7 +106,7 @@ class TestEndToEndWorkflows:
             add_gold = 100
         }
         """
-        
+
         event_file = """
         namespace = my_events
         
@@ -106,25 +117,26 @@ class TestEndToEndWorkflows:
             }
         }
         """
-        
+
         # 2. Parse both files
         from pygls.workspace import TextDocument
+
         effect_ast = parse_document(effect_file)
         event_ast = parse_document(event_file)
         effect_doc = TextDocument(uri="file:///effects.txt", source=effect_file)
         event_doc = TextDocument(uri="file:///events.txt", source=event_file)
-        
+
         # 3. Index both files
         index = DocumentIndex()
         index.update_from_ast("file:///effects.txt", effect_ast)
         index.update_from_ast("file:///events.txt", event_ast)
-        
+
         # 4. Find definition of my_custom_effect from event file
         position = (6, 20)  # On "my_custom_effect"
         definitions = find_definition(event_doc, position, index)
         assert len(definitions) > 0
         assert "effects.txt" in definitions[0].uri
-        
+
         # 5. Find all references to my_custom_effect
         references = find_references(event_doc, position, index, include_declaration=True)
         assert len(references) >= 2  # Definition + usage
@@ -142,7 +154,7 @@ class TestEndToEndWorkflows:
             }
         }
         """
-        
+
         event2_file = """
         namespace = events_b
         
@@ -151,24 +163,29 @@ class TestEndToEndWorkflows:
             desc = "Second event"
         }
         """
-        
+
         # 2. Parse both files
         from pygls.workspace import TextDocument
+
         ast1 = parse_document(event1_file)
         ast2 = parse_document(event2_file)
         doc1 = TextDocument(uri="file:///events_a.txt", source=event1_file)
         doc2 = TextDocument(uri="file:///events_b.txt", source=event2_file)
-        
+
         # 3. Index both files
         index = DocumentIndex()
         index.update_from_ast("file:///events_a.txt", ast1)
         index.update_from_ast("file:///events_b.txt", ast2)
-        
+
         # 4. Validate event chain
         diagnostics1 = collect_all_diagnostics(doc1, ast1, index)
-        
+
         # 5. Verify no broken chain errors
-        broken_chain_errors = [d for d in diagnostics1 if "undefined" in d.message.lower() and "event" in d.message.lower()]
+        broken_chain_errors = [
+            d
+            for d in diagnostics1
+            if "undefined" in d.message.lower() and "event" in d.message.lower()
+        ]
         assert len(broken_chain_errors) == 0
 
     @pytest.mark.skip(reason="Cross-file reference finding requires full indexing implementation")
@@ -181,7 +198,7 @@ class TestEndToEndWorkflows:
             add_prestige = 50
         }
         """
-        
+
         # 2. Use in multiple event files
         event1 = """
         namespace = rewards
@@ -190,7 +207,7 @@ class TestEndToEndWorkflows:
             immediate = { grant_gold_and_prestige = yes }
         }
         """
-        
+
         event2 = """
         namespace = bonuses
         character_event = {
@@ -198,24 +215,25 @@ class TestEndToEndWorkflows:
             immediate = { grant_gold_and_prestige = yes }
         }
         """
-        
+
         # 3. Parse all files
         effect_ast = parse_document(effect_file)
         event1_ast = parse_document(event1)
         event2_ast = parse_document(event2)
-        
+
         # 4. Index all files
         index = DocumentIndex()
         index.update_from_ast("effects.txt", effect_ast)
         index.update_from_ast("rewards.txt", event1_ast)
         index.update_from_ast("bonuses.txt", event2_ast)
-        
+
         # 5. Find all references to the scripted effect
         from pygls.workspace import TextDocument
+
         event1_doc = TextDocument(uri="file:///rewards.txt", source=event1)
         position = (4, 30)  # On grant_gold_and_prestige in event1
         references = find_references(event1_doc, position, index, include_declaration=True)
-        
+
         # Should find: definition + 2 usages
         assert len(references) >= 3
 
@@ -227,7 +245,7 @@ class TestModDescriptorWorkflow:
         """Test: Load mod descriptor → Parse script files → Validate."""
         from pychivalry.workspace import parse_mod_descriptor
         from pygls.workspace import TextDocument
-        
+
         # 1. Create mod descriptor
         descriptor = """
         name = "My Test Mod"
@@ -235,16 +253,16 @@ class TestModDescriptorWorkflow:
         supported_version = "1.11.*"
         path = "mod/my_mod"
         """
-        
+
         # 2. Parse descriptor
         mod = parse_mod_descriptor(descriptor)
-        
+
         # 3. Verify parsing
         assert mod is not None
         assert mod.name == "My Test Mod"
         assert mod.version == "1.0.0"
         assert mod.supported_version == "1.11.*"
-        
+
         # 4. Create script file
         script = """
         namespace = my_mod
@@ -252,12 +270,12 @@ class TestModDescriptorWorkflow:
             id = my_mod.001
         }
         """
-        
+
         # 5. Parse and validate script
         ast = parse_document(script)
         doc = TextDocument(uri="file:///test.txt", source=script)
         diagnostics = collect_all_diagnostics(doc, ast)
-        
+
         # No errors expected for valid event
         assert all(d.severity != 1 for d in diagnostics)  # No errors
 
@@ -265,11 +283,13 @@ class TestModDescriptorWorkflow:
 class TestLocalizationWorkflow:
     """Test localization key validation across files."""
 
-    @pytest.mark.skip(reason="extract_localization_keys_from_event expects string content, not AST node")
+    @pytest.mark.skip(
+        reason="extract_localization_keys_from_event expects string content, not AST node"
+    )
     def test_event_localization_coverage(self):
         """Test: Event references localization keys → Validate coverage."""
         from pychivalry.workspace import extract_localization_keys_from_event
-        
+
         # 1. Create event with loc keys
         event = """
         namespace = story
@@ -282,20 +302,22 @@ class TestLocalizationWorkflow:
             }
         }
         """
-        
+
         # 2. Parse event
         ast = parse_document(event)
-        
+
         # 3. Extract loc keys - parse_document returns a list, so get first node if available
         event_node = ast[0] if ast else None
         # Find the character_event node
-        if event_node and hasattr(event_node, 'children'):
-            character_event_node = next((c for c in event_node.children if c.key == "character_event"), None)
+        if event_node and hasattr(event_node, "children"):
+            character_event_node = next(
+                (c for c in event_node.children if c.key == "character_event"), None
+            )
         else:
             character_event_node = event_node
-            
+
         loc_keys = extract_localization_keys_from_event(character_event_node)
-        
+
         # 4. Verify keys extracted
         assert len(loc_keys) >= 3
         assert any("story.001.t" in key for key in loc_keys)
