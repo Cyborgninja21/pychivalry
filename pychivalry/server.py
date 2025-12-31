@@ -39,7 +39,7 @@ For pygls documentation: https://pygls.readthedocs.io/
 """
 
 import logging
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 # Import the LanguageServer class from pygls
 # This is the core class that handles LSP protocol communication
@@ -626,6 +626,329 @@ def definition(ls: CK3LanguageServer, params: types.DefinitionParams):
         
     except Exception as e:
         logger.error(f"Error in definition handler: {e}", exc_info=True)
+        return None
+
+
+@server.feature(types.TEXT_DOCUMENT_REFERENCES)
+def references(ls: CK3LanguageServer, params: types.ReferenceParams):
+    """
+    Find all references to a symbol across the workspace.
+    
+    This feature allows users to find all places where a symbol (event, effect,
+    trigger, saved scope, etc.) is referenced. This is useful for understanding
+    how events are connected, where effects are used, and for refactoring.
+    
+    Args:
+        ls: The CK3 language server instance
+        params: Contains information about the references request:
+            - text_document.uri: The file where references was requested
+            - position.line: Line number (0-indexed)
+            - position.character: Character offset in the line (0-indexed)
+            - context.include_declaration: Whether to include the declaration
+    
+    Returns:
+        List of Location objects where the symbol is referenced, or None if not found
+    
+    LSP Specification:
+        This is a request from client to server. The server should respond with
+        a Location[], or null if no references found.
+    """
+    try:
+        doc = ls.workspace.get_text_document(params.text_document.uri)
+        
+        # Get word at cursor position
+        from .hover import get_word_at_position
+        word = get_word_at_position(doc, params.position)
+        
+        if not word:
+            return None
+        
+        logger.debug(f"Find references for: {word}")
+        
+        references_list = []
+        
+        # Search through all open documents for references
+        for uri in ls.document_asts.keys():
+            try:
+                ref_doc = ls.workspace.get_text_document(uri)
+                ast = ls.document_asts.get(uri, [])
+                
+                # Find all occurrences of the word in this document
+                refs = _find_word_references_in_ast(word, ast, uri)
+                references_list.extend(refs)
+            except Exception as e:
+                logger.warning(f"Error searching {uri}: {e}")
+                continue
+        
+        # If include_declaration is False, filter out the definition itself
+        if not params.context.include_declaration:
+            # Try to find the definition location
+            def_location = None
+            
+            # Check various symbol types
+            if '.' in word and ls.index:
+                def_location = ls.index.find_event(word)
+            if not def_location and ls.index:
+                def_location = ls.index.find_scripted_effect(word)
+            if not def_location and ls.index:
+                def_location = ls.index.find_scripted_trigger(word)
+            if not def_location and word.startswith('scope:') and ls.index:
+                scope_name = word[6:]
+                def_location = ls.index.find_saved_scope(scope_name)
+            
+            # Filter out the definition
+            if def_location:
+                references_list = [
+                    ref for ref in references_list
+                    if ref.uri != def_location.uri or
+                       ref.range.start.line != def_location.range.start.line
+                ]
+        
+        return references_list if references_list else None
+        
+    except Exception as e:
+        logger.error(f"Error in references handler: {e}", exc_info=True)
+        return None
+
+
+def _find_word_references_in_ast(word: str, ast: List[CK3Node], uri: str) -> List[types.Location]:
+    """
+    Find all occurrences of a word in an AST.
+    
+    Args:
+        word: The word to search for
+        ast: The AST to search
+        uri: The document URI
+    
+    Returns:
+        List of Location objects where the word appears
+    """
+    locations = []
+    
+    def search_node(node: CK3Node):
+        # Check if the node key matches
+        if node.key == word or (isinstance(node.value, str) and node.value == word):
+            locations.append(
+                types.Location(
+                    uri=uri,
+                    range=node.range
+                )
+            )
+        
+        # Search children recursively
+        for child in node.children:
+            search_node(child)
+    
+    for node in ast:
+        search_node(node)
+    
+    return locations
+
+
+@server.feature(types.TEXT_DOCUMENT_DOCUMENT_SYMBOL)
+def document_symbol(ls: CK3LanguageServer, params: types.DocumentSymbolParams):
+    """
+    Provide document symbols for outline view.
+    
+    This feature provides a hierarchical view of the document structure, showing
+    events, scripted effects, scripted triggers, and their components. This appears
+    as an outline in the editor's sidebar.
+    
+    Args:
+        ls: The CK3 language server instance
+        params: Contains information about the symbol request:
+            - text_document.uri: The file to get symbols for
+    
+    Returns:
+        List of DocumentSymbol objects representing the document structure
+    
+    LSP Specification:
+        This is a request from client to server. The server should respond with
+        DocumentSymbol[] or SymbolInformation[], or null.
+    """
+    try:
+        doc = ls.workspace.get_text_document(params.text_document.uri)
+        ast = ls.document_asts.get(doc.uri, [])
+        
+        if not ast:
+            return None
+        
+        symbols = []
+        
+        # Extract symbols from AST
+        for node in ast:
+            symbol = _extract_symbol_from_node(node)
+            if symbol:
+                symbols.append(symbol)
+        
+        return symbols if symbols else None
+        
+    except Exception as e:
+        logger.error(f"Error in document_symbol handler: {e}", exc_info=True)
+        return None
+
+
+def _extract_symbol_from_node(node: CK3Node) -> Optional[types.DocumentSymbol]:
+    """
+    Extract a DocumentSymbol from a CK3Node.
+    
+    Args:
+        node: The CK3Node to extract symbol from
+    
+    Returns:
+        DocumentSymbol or None
+    """
+    # Determine symbol kind based on node type
+    if node.type == 'namespace':
+        kind = types.SymbolKind.Namespace
+        detail = "Namespace"
+    elif node.type == 'event':
+        kind = types.SymbolKind.Event
+        detail = "Event"
+    elif node.key in ('trigger', 'immediate', 'after', 'effect'):
+        kind = types.SymbolKind.Object
+        detail = node.key.capitalize()
+    elif node.key == 'option':
+        kind = types.SymbolKind.EnumMember
+        # Try to find the option name
+        name_value = None
+        for child in node.children:
+            if child.key == 'name':
+                name_value = child.value
+                break
+        detail = f"Option: {name_value}" if name_value else "Option"
+    elif node.type == 'block' and ('_effect' in node.key or '_trigger' in node.key):
+        kind = types.SymbolKind.Function
+        detail = "Scripted Effect" if '_effect' in node.key else "Scripted Trigger"
+    else:
+        # Default for other blocks
+        kind = types.SymbolKind.Object
+        detail = None
+    
+    # Extract children symbols
+    children = []
+    for child in node.children:
+        child_symbol = _extract_symbol_from_node(child)
+        if child_symbol:
+            children.append(child_symbol)
+    
+    # Create selection range (just the key name)
+    selection_range = types.Range(
+        start=node.range.start,
+        end=types.Position(
+            line=node.range.start.line,
+            character=node.range.start.character + len(node.key)
+        )
+    )
+    
+    return types.DocumentSymbol(
+        name=node.key,
+        kind=kind,
+        range=node.range,
+        selection_range=selection_range,
+        detail=detail,
+        children=children if children else None
+    )
+
+
+@server.feature(types.WORKSPACE_SYMBOL)
+def workspace_symbol(ls: CK3LanguageServer, params: types.WorkspaceSymbolParams):
+    """
+    Search for symbols across the entire workspace.
+    
+    This feature allows users to quickly find and navigate to any symbol in the
+    workspace by name. It supports fuzzy matching and is typically invoked with
+    Ctrl+T in VS Code.
+    
+    Args:
+        ls: The CK3 language server instance
+        params: Contains information about the symbol search:
+            - query: The search query string
+    
+    Returns:
+        List of SymbolInformation objects matching the query
+    
+    LSP Specification:
+        This is a request from client to server. The server should respond with
+        SymbolInformation[] or WorkspaceSymbol[], or null.
+    """
+    try:
+        query = params.query.lower()
+        
+        if not query:
+            return None
+        
+        symbols = []
+        
+        # Search events
+        if ls.index:
+            for event_id, location in ls.index.events.items():
+                if query in event_id.lower():
+                    symbols.append(
+                        types.SymbolInformation(
+                            name=event_id,
+                            kind=types.SymbolKind.Event,
+                            location=location,
+                            container_name="Event"
+                        )
+                    )
+        
+        # Search scripted effects
+        if ls.index:
+            for effect_name, location in ls.index.scripted_effects.items():
+                if query in effect_name.lower():
+                    symbols.append(
+                        types.SymbolInformation(
+                            name=effect_name,
+                            kind=types.SymbolKind.Function,
+                            location=location,
+                            container_name="Scripted Effect"
+                        )
+                    )
+        
+        # Search scripted triggers
+        if ls.index:
+            for trigger_name, location in ls.index.scripted_triggers.items():
+                if query in trigger_name.lower():
+                    symbols.append(
+                        types.SymbolInformation(
+                            name=trigger_name,
+                            kind=types.SymbolKind.Function,
+                            location=location,
+                            container_name="Scripted Trigger"
+                        )
+                    )
+        
+        # Search script values
+        if ls.index:
+            for value_name, location in ls.index.script_values.items():
+                if query in value_name.lower():
+                    symbols.append(
+                        types.SymbolInformation(
+                            name=value_name,
+                            kind=types.SymbolKind.Variable,
+                            location=location,
+                            container_name="Script Value"
+                        )
+                    )
+        
+        # Search on_actions
+        if ls.index:
+            for on_action_name, location in ls.index.on_action_definitions.items():
+                if query in on_action_name.lower():
+                    symbols.append(
+                        types.SymbolInformation(
+                            name=on_action_name,
+                            kind=types.SymbolKind.Event,
+                            location=location,
+                            container_name="On-Action"
+                        )
+                    )
+        
+        return symbols if symbols else None
+        
+    except Exception as e:
+        logger.error(f"Error in workspace_symbol handler: {e}", exc_info=True)
         return None
 
 
