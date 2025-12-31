@@ -84,7 +84,7 @@ logger = logging.getLogger(__name__)
 def configure_logging(level: str = "info") -> None:
     """
     Configure logging for the language server.
-    
+
     Args:
         level: Log level string (debug, info, warning, error)
     """
@@ -95,7 +95,7 @@ def configure_logging(level: str = "info") -> None:
         "error": logging.ERROR,
     }
     log_level = level_map.get(level.lower(), logging.INFO)
-    
+
     logging.basicConfig(
         level=log_level,
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -105,14 +105,14 @@ def configure_logging(level: str = "info") -> None:
 class CK3LanguageServer(LanguageServer):
     """
     Extended language server with CK3-specific state.
-    
+
     This class extends the base LanguageServer to add:
     - Document AST tracking (updated on open/change)
     - Cross-document symbol indexing
     - Parser integration with document lifecycle
     - Workspace scanning for scripted effects/triggers
     """
-    
+
     def __init__(self, *args, **kwargs):
         """Initialize the CK3 language server."""
         super().__init__(*args, **kwargs)
@@ -122,56 +122,60 @@ class CK3LanguageServer(LanguageServer):
         self.index = DocumentIndex()
         # Track whether workspace has been scanned
         self._workspace_scanned = False
-    
+
     def _scan_workspace_folders(self):
         """
         Scan all workspace folders for scripted effects and triggers.
-        
+
         This is called on first document open to index all custom effects
         and triggers in the mod's common/ folder.
         """
         if self._workspace_scanned:
             return
-        
+
         try:
             # Get workspace folders
             workspace_folders = []
             if self.workspace.folders:
                 for folder in self.workspace.folders:
                     # Convert URI to path
-                    folder_uri = folder.uri if hasattr(folder, 'uri') else folder
-                    if folder_uri.startswith('file:///'):
+                    folder_uri = folder.uri if hasattr(folder, "uri") else folder
+                    if folder_uri.startswith("file:///"):
                         # Convert file URI to path
                         from urllib.parse import unquote
+
                         path = unquote(folder_uri[8:])  # Remove 'file:///'
                         # On Windows, handle drive letter
-                        if len(path) > 2 and path[0] == '/' and path[2] == ':':
+                        if len(path) > 2 and path[0] == "/" and path[2] == ":":
                             path = path[1:]  # Remove leading slash
                         workspace_folders.append(path)
                     else:
                         workspace_folders.append(folder_uri)
-            
+
             if workspace_folders:
-                logger.info(f"Scanning {len(workspace_folders)} workspace folder(s) for scripted effects/triggers")
+                logger.info(
+                    f"Scanning {len(workspace_folders)} workspace folder(s) for "
+                    f"scripted effects/triggers"
+                )
                 self.index.scan_workspace(workspace_folders)
             else:
                 logger.warning("No workspace folders found for scanning")
-            
+
             self._workspace_scanned = True
-            
+
         except Exception as e:
             logger.error(f"Error scanning workspace folders: {e}", exc_info=True)
             self._workspace_scanned = True  # Don't retry on error
-    
+
     def parse_and_index_document(self, doc: TextDocument):
         """
         Parse a document and update the index.
-        
+
         This is called whenever a document is opened or changed.
-        
+
         Args:
             doc: The text document to parse
-            
+
         Returns:
             The parsed AST
         """
@@ -185,21 +189,21 @@ class CK3LanguageServer(LanguageServer):
             logger.error(f"Error parsing document {doc.uri}: {e}")
             # Return empty AST on parse error
             return []
-    
+
     def publish_diagnostics_for_document(self, doc: TextDocument):
         """
         Validate document and publish diagnostics to the client.
-        
+
         This collects all validation errors and warnings for the document
         and sends them to the client via LSP's PublishDiagnostics notification.
-        
+
         Args:
             doc: The text document to validate
         """
         try:
             ast = self.document_asts.get(doc.uri, [])
             diagnostics = collect_all_diagnostics(doc, ast, self.index)
-            
+
             # Publish diagnostics to client
             self.text_document_publish_diagnostics(
                 types.PublishDiagnosticsParams(
@@ -240,15 +244,15 @@ def did_open(ls: CK3LanguageServer, params: types.DidOpenTextDocumentParams):
         This is a notification from client to server, no response is expected.
     """
     logger.info(f"Document opened: {params.text_document.uri}")
-    
+
     # On first document open, scan workspace if not already done
     if not ls._workspace_scanned:
         ls._scan_workspace_folders()
-    
+
     # Parse the document and update the index
     doc = ls.workspace.get_text_document(params.text_document.uri)
     ls.parse_and_index_document(doc)
-    
+
     # Publish diagnostics for immediate feedback
     ls.publish_diagnostics_for_document(doc)
 
@@ -277,11 +281,11 @@ def did_change(ls: CK3LanguageServer, params: types.DidChangeTextDocumentParams)
         to be fast, but for very large files, consider debouncing.
     """
     logger.debug(f"Document changed: {params.text_document.uri}")
-    
+
     # Re-parse the document and update the index
     doc = ls.workspace.get_text_document(params.text_document.uri)
     ls.parse_and_index_document(doc)
-    
+
     # Publish updated diagnostics
     ls.publish_diagnostics_for_document(doc)
 
@@ -310,12 +314,12 @@ def did_close(ls: CK3LanguageServer, params: types.DidCloseTextDocumentParams):
         this document after it's closed.
     """
     logger.info(f"Document closed: {params.text_document.uri}")
-    
+
     # Remove the document from our tracking
     uri = params.text_document.uri
     ls.document_asts.pop(uri, None)
     ls.index.remove_document(uri)
-    
+
     # Clear diagnostics for this document
     ls.text_document_publish_diagnostics(
         types.PublishDiagnosticsParams(
@@ -469,28 +473,28 @@ def completions(params: types.CompletionParams):
 def hover(ls: CK3LanguageServer, params: types.HoverParams):
     """
     Provide hover documentation for CK3 constructs.
-    
+
     This feature shows helpful information when users hover over CK3 keywords,
     effects, triggers, scopes, events, and other constructs. The documentation
     includes usage examples, parameter information, and cross-references.
-    
+
     Args:
         ls: The CK3 language server instance
         params: Contains information about the hover request:
             - text_document.uri: The file where hover was triggered
             - position.line: Line number (0-indexed)
             - position.character: Character offset in the line (0-indexed)
-    
+
     Returns:
         Hover: Contains:
             - contents: Markdown-formatted documentation
             - range: Optional range that the hover applies to
         or None if no hover information available
-    
+
     LSP Specification:
         This is a request from client to server. The server should respond with
         a Hover object containing documentation, or null if no information is available.
-    
+
     Features:
         - Effect documentation with usage examples
         - Trigger documentation with return types
@@ -502,7 +506,7 @@ def hover(ls: CK3LanguageServer, params: types.HoverParams):
     try:
         doc = ls.workspace.get_text_document(params.text_document.uri)
         ast = ls.document_asts.get(doc.uri, [])
-        
+
         return create_hover_response(doc, params.position, ast, ls.index)
     except Exception as e:
         logger.error(f"Error in hover handler: {e}", exc_info=True)
@@ -513,7 +517,7 @@ def hover(ls: CK3LanguageServer, params: types.HoverParams):
 def definition(ls: CK3LanguageServer, params: types.DefinitionParams):
     """
     Provide Go-to-Definition for CK3 constructs.
-    
+
     This feature allows users to Ctrl+Click (or F12) on symbols to navigate
     to their definitions. Supports:
     - Localization keys -> Jump to .yml file definition
@@ -521,35 +525,36 @@ def definition(ls: CK3LanguageServer, params: types.DefinitionParams):
     - Custom scripted effects -> Jump to effect definition
     - Custom scripted triggers -> Jump to trigger definition
     - Saved scopes -> Jump to save_scope_as location
-    
+
     Args:
         ls: The CK3 language server instance
         params: Contains information about the definition request:
             - text_document.uri: The file where definition was requested
             - position.line: Line number (0-indexed)
             - position.character: Character offset in the line (0-indexed)
-    
+
     Returns:
         Location or list of Locations for the definition(s), or None if not found
-    
+
     LSP Specification:
         This is a request from client to server. The server should respond with
         a Location, Location[], LocationLink[], or null.
     """
     try:
         doc = ls.workspace.get_text_document(params.text_document.uri)
-        
+
         # Get word at cursor position
         from .hover import get_word_at_position
+
         word = get_word_at_position(doc, params.position)
-        
+
         if not word:
             return None
-        
+
         logger.debug(f"Go-to-definition for: {word}")
-        
+
         # Check if it's a localization key (contains dots)
-        if '.' in word and ls.index:
+        if "." in word and ls.index:
             loc_info = ls.index.find_localization(word)
             if loc_info:
                 text, file_uri, line_num = loc_info
@@ -558,72 +563,72 @@ def definition(ls: CK3LanguageServer, params: types.DefinitionParams):
                     range=types.Range(
                         start=types.Position(line=line_num, character=0),
                         end=types.Position(line=line_num, character=len(word)),
-                    )
+                    ),
                 )
-        
+
         # Check if it's an event ID (format: namespace.number like rq_nts_daughter.0001)
-        if '.' in word and ls.index:
+        if "." in word and ls.index:
             event_loc = ls.index.find_event(word)
             if event_loc:
                 return event_loc
-        
+
         # Check if it's a custom scripted effect
         if ls.index:
             effect_loc = ls.index.find_scripted_effect(word)
             if effect_loc:
                 return effect_loc
-        
+
         # Check if it's a custom scripted trigger
         if ls.index:
             trigger_loc = ls.index.find_scripted_trigger(word)
             if trigger_loc:
                 return trigger_loc
-        
+
         # Check if it's a saved scope reference (scope:xxx)
-        if word.startswith('scope:') and ls.index:
+        if word.startswith("scope:") and ls.index:
             scope_name = word[6:]
             scope_loc = ls.index.find_saved_scope(scope_name)
             if scope_loc:
                 return scope_loc
-        
+
         # Check if it's a character flag
         if ls.index:
             flag_loc = ls.index.find_character_flag(word)
             if flag_loc:
                 return flag_loc
-        
+
         # Check if it's a character interaction
         if ls.index:
             interaction_loc = ls.index.find_character_interaction(word)
             if interaction_loc:
                 return interaction_loc
-        
+
         # Check if it's a modifier
         if ls.index:
             modifier_loc = ls.index.find_modifier(word)
             if modifier_loc:
                 return modifier_loc
-        
+
         # Check if it's an on_action
         if ls.index:
             on_action_loc = ls.index.find_on_action(word)
             if on_action_loc:
                 return on_action_loc
-        
+
         # Check if it's an opinion modifier
         if ls.index:
             opinion_loc = ls.index.find_opinion_modifier(word)
             if opinion_loc:
                 return opinion_loc
-        
+
         # Check if it's a scripted GUI
         if ls.index:
             gui_loc = ls.index.find_scripted_gui(word)
             if gui_loc:
                 return gui_loc
-        
+
         return None
-        
+
     except Exception as e:
         logger.error(f"Error in definition handler: {e}", exc_info=True)
         return None
@@ -633,11 +638,11 @@ def definition(ls: CK3LanguageServer, params: types.DefinitionParams):
 def references(ls: CK3LanguageServer, params: types.ReferenceParams):
     """
     Find all references to a symbol across the workspace.
-    
+
     This feature allows users to find all places where a symbol (event, effect,
     trigger, saved scope, etc.) is referenced. This is useful for understanding
     how events are connected, where effects are used, and for refactoring.
-    
+
     Args:
         ls: The CK3 language server instance
         params: Contains information about the references request:
@@ -645,67 +650,68 @@ def references(ls: CK3LanguageServer, params: types.ReferenceParams):
             - position.line: Line number (0-indexed)
             - position.character: Character offset in the line (0-indexed)
             - context.include_declaration: Whether to include the declaration
-    
+
     Returns:
         List of Location objects where the symbol is referenced, or None if not found
-    
+
     LSP Specification:
         This is a request from client to server. The server should respond with
         a Location[], or null if no references found.
     """
     try:
         doc = ls.workspace.get_text_document(params.text_document.uri)
-        
+
         # Get word at cursor position
         from .hover import get_word_at_position
+
         word = get_word_at_position(doc, params.position)
-        
+
         if not word:
             return None
-        
+
         logger.debug(f"Find references for: {word}")
-        
+
         references_list = []
-        
+
         # Search through all open documents for references
         for uri in ls.document_asts.keys():
             try:
-                ref_doc = ls.workspace.get_text_document(uri)
                 ast = ls.document_asts.get(uri, [])
-                
+
                 # Find all occurrences of the word in this document
                 refs = _find_word_references_in_ast(word, ast, uri)
                 references_list.extend(refs)
             except Exception as e:
                 logger.warning(f"Error searching {uri}: {e}")
                 continue
-        
+
         # If include_declaration is False, filter out the definition itself
         if not params.context.include_declaration:
             # Try to find the definition location
             def_location = None
-            
+
             # Check various symbol types
-            if '.' in word and ls.index:
+            if "." in word and ls.index:
                 def_location = ls.index.find_event(word)
             if not def_location and ls.index:
                 def_location = ls.index.find_scripted_effect(word)
             if not def_location and ls.index:
                 def_location = ls.index.find_scripted_trigger(word)
-            if not def_location and word.startswith('scope:') and ls.index:
+            if not def_location and word.startswith("scope:") and ls.index:
                 scope_name = word[6:]
                 def_location = ls.index.find_saved_scope(scope_name)
-            
+
             # Filter out the definition
             if def_location:
                 references_list = [
-                    ref for ref in references_list
-                    if ref.uri != def_location.uri or
-                       ref.range.start.line != def_location.range.start.line
+                    ref
+                    for ref in references_list
+                    if ref.uri != def_location.uri
+                    or ref.range.start.line != def_location.range.start.line
                 ]
-        
+
         return references_list if references_list else None
-        
+
     except Exception as e:
         logger.error(f"Error in references handler: {e}", exc_info=True)
         return None
@@ -714,34 +720,29 @@ def references(ls: CK3LanguageServer, params: types.ReferenceParams):
 def _find_word_references_in_ast(word: str, ast: List[CK3Node], uri: str) -> List[types.Location]:
     """
     Find all occurrences of a word in an AST.
-    
+
     Args:
         word: The word to search for
         ast: The AST to search
         uri: The document URI
-    
+
     Returns:
         List of Location objects where the word appears
     """
     locations = []
-    
+
     def search_node(node: CK3Node):
         # Check if the node key matches
         if node.key == word or (isinstance(node.value, str) and node.value == word):
-            locations.append(
-                types.Location(
-                    uri=uri,
-                    range=node.range
-                )
-            )
-        
+            locations.append(types.Location(uri=uri, range=node.range))
+
         # Search children recursively
         for child in node.children:
             search_node(child)
-    
+
     for node in ast:
         search_node(node)
-    
+
     return locations
 
 
@@ -749,19 +750,19 @@ def _find_word_references_in_ast(word: str, ast: List[CK3Node], uri: str) -> Lis
 def document_symbol(ls: CK3LanguageServer, params: types.DocumentSymbolParams):
     """
     Provide document symbols for outline view.
-    
+
     This feature provides a hierarchical view of the document structure, showing
     events, scripted effects, scripted triggers, and their components. This appears
     as an outline in the editor's sidebar.
-    
+
     Args:
         ls: The CK3 language server instance
         params: Contains information about the symbol request:
             - text_document.uri: The file to get symbols for
-    
+
     Returns:
         List of DocumentSymbol objects representing the document structure
-    
+
     LSP Specification:
         This is a request from client to server. The server should respond with
         DocumentSymbol[] or SymbolInformation[], or null.
@@ -769,20 +770,20 @@ def document_symbol(ls: CK3LanguageServer, params: types.DocumentSymbolParams):
     try:
         doc = ls.workspace.get_text_document(params.text_document.uri)
         ast = ls.document_asts.get(doc.uri, [])
-        
+
         if not ast:
             return None
-        
+
         symbols = []
-        
+
         # Extract symbols from AST
         for node in ast:
             symbol = _extract_symbol_from_node(node)
             if symbol:
                 symbols.append(symbol)
-        
+
         return symbols if symbols else None
-        
+
     except Exception as e:
         logger.error(f"Error in document_symbol handler: {e}", exc_info=True)
         return None
@@ -791,63 +792,62 @@ def document_symbol(ls: CK3LanguageServer, params: types.DocumentSymbolParams):
 def _extract_symbol_from_node(node: CK3Node) -> Optional[types.DocumentSymbol]:
     """
     Extract a DocumentSymbol from a CK3Node.
-    
+
     Args:
         node: The CK3Node to extract symbol from
-    
+
     Returns:
         DocumentSymbol or None
     """
     # Determine symbol kind based on node type
-    if node.type == 'namespace':
+    if node.type == "namespace":
         kind = types.SymbolKind.Namespace
         detail = "Namespace"
-    elif node.type == 'event':
+    elif node.type == "event":
         kind = types.SymbolKind.Event
         detail = "Event"
-    elif node.key in ('trigger', 'immediate', 'after', 'effect'):
+    elif node.key in ("trigger", "immediate", "after", "effect"):
         kind = types.SymbolKind.Object
         detail = node.key.capitalize()
-    elif node.key == 'option':
+    elif node.key == "option":
         kind = types.SymbolKind.EnumMember
         # Try to find the option name
         name_value = None
         for child in node.children:
-            if child.key == 'name':
+            if child.key == "name":
                 name_value = child.value
                 break
         detail = f"Option: {name_value}" if name_value else "Option"
-    elif node.type == 'block' and ('_effect' in node.key or '_trigger' in node.key):
+    elif node.type == "block" and ("_effect" in node.key or "_trigger" in node.key):
         kind = types.SymbolKind.Function
-        detail = "Scripted Effect" if '_effect' in node.key else "Scripted Trigger"
+        detail = "Scripted Effect" if "_effect" in node.key else "Scripted Trigger"
     else:
         # Default for other blocks
         kind = types.SymbolKind.Object
         detail = None
-    
+
     # Extract children symbols
     children = []
     for child in node.children:
         child_symbol = _extract_symbol_from_node(child)
         if child_symbol:
             children.append(child_symbol)
-    
+
     # Create selection range (just the key name)
     selection_range = types.Range(
         start=node.range.start,
         end=types.Position(
-            line=node.range.start.line,
-            character=node.range.start.character + len(node.key)
-        )
+            line=node.range.start.line, character=node.range.start.character + len(node.key)
+        ),
     )
-    
+
     return types.DocumentSymbol(
         name=node.key,
         kind=kind,
         range=node.range,
         selection_range=selection_range,
         detail=detail,
-        children=children if children else None
+        children=children if children else None,
     )
 
 
@@ -855,31 +855,31 @@ def _extract_symbol_from_node(node: CK3Node) -> Optional[types.DocumentSymbol]:
 def workspace_symbol(ls: CK3LanguageServer, params: types.WorkspaceSymbolParams):
     """
     Search for symbols across the entire workspace.
-    
+
     This feature allows users to quickly find and navigate to any symbol in the
     workspace by name. It supports fuzzy matching and is typically invoked with
     Ctrl+T in VS Code.
-    
+
     Args:
         ls: The CK3 language server instance
         params: Contains information about the symbol search:
             - query: The search query string
-    
+
     Returns:
         List of SymbolInformation objects matching the query
-    
+
     LSP Specification:
         This is a request from client to server. The server should respond with
         SymbolInformation[] or WorkspaceSymbol[], or null.
     """
     try:
         query = params.query.lower()
-        
+
         if not query:
             return None
-        
+
         symbols = []
-        
+
         # Search events
         if ls.index:
             for event_id, location in ls.index.events.items():
@@ -889,10 +889,10 @@ def workspace_symbol(ls: CK3LanguageServer, params: types.WorkspaceSymbolParams)
                             name=event_id,
                             kind=types.SymbolKind.Event,
                             location=location,
-                            container_name="Event"
+                            container_name="Event",
                         )
                     )
-        
+
         # Search scripted effects
         if ls.index:
             for effect_name, location in ls.index.scripted_effects.items():
@@ -902,10 +902,10 @@ def workspace_symbol(ls: CK3LanguageServer, params: types.WorkspaceSymbolParams)
                             name=effect_name,
                             kind=types.SymbolKind.Function,
                             location=location,
-                            container_name="Scripted Effect"
+                            container_name="Scripted Effect",
                         )
                     )
-        
+
         # Search scripted triggers
         if ls.index:
             for trigger_name, location in ls.index.scripted_triggers.items():
@@ -915,10 +915,10 @@ def workspace_symbol(ls: CK3LanguageServer, params: types.WorkspaceSymbolParams)
                             name=trigger_name,
                             kind=types.SymbolKind.Function,
                             location=location,
-                            container_name="Scripted Trigger"
+                            container_name="Scripted Trigger",
                         )
                     )
-        
+
         # Search script values
         if ls.index:
             for value_name, location in ls.index.script_values.items():
@@ -928,10 +928,10 @@ def workspace_symbol(ls: CK3LanguageServer, params: types.WorkspaceSymbolParams)
                             name=value_name,
                             kind=types.SymbolKind.Variable,
                             location=location,
-                            container_name="Script Value"
+                            container_name="Script Value",
                         )
                     )
-        
+
         # Search on_actions
         if ls.index:
             for on_action_name, location in ls.index.on_action_definitions.items():
@@ -941,12 +941,12 @@ def workspace_symbol(ls: CK3LanguageServer, params: types.WorkspaceSymbolParams)
                             name=on_action_name,
                             kind=types.SymbolKind.Event,
                             location=location,
-                            container_name="On-Action"
+                            container_name="On-Action",
                         )
                     )
-        
+
         return symbols if symbols else None
-        
+
     except Exception as e:
         logger.error(f"Error in workspace_symbol handler: {e}", exc_info=True)
         return None
@@ -988,19 +988,19 @@ def main():
     LSP messages. You should see "Starting IO server" when it begins listening.
     """
     import argparse
-    
+
     parser = argparse.ArgumentParser(description="Crusader Kings 3 Language Server")
     parser.add_argument(
         "--log-level",
         choices=["debug", "info", "warning", "error"],
         default="info",
-        help="Set the logging level (default: info)"
+        help="Set the logging level (default: info)",
     )
     args = parser.parse_args()
-    
+
     # Configure logging with the specified level
     configure_logging(args.log_level)
-    
+
     logger.info("Starting Crusader Kings 3 Language Server...")
     # Start the language server in IO mode (stdin/stdout communication)
     # This is a blocking call that runs until the server is shut down
