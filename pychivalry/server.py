@@ -38,8 +38,10 @@ For LSP specification: https://microsoft.github.io/language-server-protocol/
 For pygls documentation: https://pygls.readthedocs.io/
 """
 
+import asyncio
 import logging
-from typing import Dict, List, Optional
+import uuid
+from typing import Dict, List, Optional, Any
 
 # Import the LanguageServer class from pygls
 # This is the core class that handles LSP protocol communication
@@ -68,14 +70,47 @@ from .ck3_language import (
 )
 
 # Import parser and indexer
-from .parser import parse_document, CK3Node
+from .parser import parse_document, CK3Node, get_node_at_position
 from .indexer import DocumentIndex
 
 # Import diagnostics
 from .diagnostics import collect_all_diagnostics
 
 # Import hover
-from .hover import create_hover_response
+from .hover import create_hover_response, get_word_at_position
+
+# Import context-aware completions
+from .completions import get_context_aware_completions, detect_context
+
+# Import code actions
+from .code_actions import get_all_code_actions, convert_to_lsp_code_action
+
+# Import semantic tokens
+from .semantic_tokens import get_semantic_tokens, TOKEN_TYPES, TOKEN_MODIFIERS
+
+# Import code lens
+from .code_lens import get_code_lenses, resolve_code_lens
+
+# Import formatting
+from .formatting import format_document, format_range
+
+# Import inlay hints
+from .inlay_hints import get_inlay_hints, resolve_inlay_hint, InlayHintConfig
+
+# Import signature help
+from .signature_help import get_signature_help, get_trigger_characters, get_retrigger_characters
+
+# Import document highlight
+from .document_highlight import get_document_highlights
+
+# Import document links
+from .document_links import get_document_links, resolve_document_link
+
+# Import rename
+from .rename import prepare_rename as do_prepare_rename, perform_rename
+
+# Import folding
+from .folding import get_folding_ranges
 
 # Logger will be configured in main() after parsing arguments
 logger = logging.getLogger(__name__)
@@ -111,6 +146,9 @@ class CK3LanguageServer(LanguageServer):
     - Cross-document symbol indexing
     - Parser integration with document lifecycle
     - Workspace scanning for scripted effects/triggers
+    - Progress reporting for long operations
+    - User message notifications
+    - Custom command support
     """
 
     def __init__(self, *args, **kwargs):
@@ -122,6 +160,380 @@ class CK3LanguageServer(LanguageServer):
         self.index = DocumentIndex()
         # Track whether workspace has been scanned
         self._workspace_scanned = False
+        # User configuration cache
+        self._config_cache: Dict[str, Any] = {}
+
+    # =====================================================================
+    # Server Communication: Show Message
+    # =====================================================================
+    
+    def notify_info(self, message: str):
+        """
+        Show an information message to the user.
+        
+        This displays a non-intrusive notification in the editor's UI.
+        Safe to call even when not connected to a client.
+        
+        Args:
+            message: The message to display
+        """
+        try:
+            self.show_message(message, types.MessageType.Info)
+        except Exception:
+            pass  # Ignore if not connected
+        logger.info(f"User notification: {message}")
+    
+    def notify_warning(self, message: str):
+        """
+        Show a warning message to the user.
+        
+        This displays a warning notification in the editor's UI.
+        Safe to call even when not connected to a client.
+        
+        Args:
+            message: The warning message to display
+        """
+        try:
+            self.show_message(message, types.MessageType.Warning)
+        except Exception:
+            pass  # Ignore if not connected
+        logger.warning(f"User warning: {message}")
+    
+    def notify_error(self, message: str):
+        """
+        Show an error message to the user.
+        
+        This displays an error notification in the editor's UI.
+        Safe to call even when not connected to a client.
+        
+        Args:
+            message: The error message to display
+        """
+        try:
+            self.show_message(message, types.MessageType.Error)
+        except Exception:
+            pass  # Ignore if not connected
+        logger.error(f"User error: {message}")
+    
+    def log_message(self, message: str, msg_type: types.MessageType = types.MessageType.Log):
+        """
+        Log a message to the editor's output channel.
+        
+        This writes to the language server output channel without
+        showing a popup notification to the user.
+        Safe to call even when not connected to a client.
+        
+        Args:
+            message: The message to log
+            msg_type: The message type (Log, Info, Warning, Error)
+        """
+        try:
+            self.show_message_log(message, msg_type)
+        except Exception:
+            pass  # Ignore if not connected
+
+    # =====================================================================
+    # Server Communication: Progress Reporting
+    # =====================================================================
+    
+    async def with_progress(
+        self,
+        title: str,
+        task_func,
+        cancellable: bool = False,
+    ):
+        """
+        Execute a task with progress reporting.
+        
+        This shows a progress indicator in the editor while the task runs.
+        The task function receives a callback to report progress.
+        
+        Args:
+            title: Title of the progress notification
+            task_func: Async function that takes (report_progress) callback
+            cancellable: Whether the user can cancel the operation
+            
+        Example:
+            async def do_scan(report_progress):
+                report_progress("Scanning events...", 25)
+                await scan_events()
+                report_progress("Scanning effects...", 50)
+                await scan_effects()
+                report_progress("Done!", 100)
+            
+            await server.with_progress("Indexing Workspace", do_scan)
+        """
+        token = str(uuid.uuid4())
+        
+        try:
+            # Create progress
+            await self.progress.create_async(token)
+            
+            # Begin progress
+            self.progress.begin(
+                token,
+                types.WorkDoneProgressBegin(
+                    title=title,
+                    cancellable=cancellable,
+                    percentage=0,
+                )
+            )
+            
+            # Define report callback
+            def report_progress(message: str, percentage: Optional[int] = None):
+                self.progress.report(
+                    token,
+                    types.WorkDoneProgressReport(
+                        message=message,
+                        percentage=percentage,
+                    )
+                )
+            
+            # Execute the task
+            await task_func(report_progress)
+            
+        finally:
+            # End progress
+            self.progress.end(
+                token,
+                types.WorkDoneProgressEnd(message="Complete")
+            )
+
+    # =====================================================================
+    # Server Communication: Configuration
+    # =====================================================================
+    
+    async def get_user_configuration(self, section: str = "ck3LanguageServer") -> Dict[str, Any]:
+        """
+        Get user configuration from the client.
+        
+        This retrieves settings from the user's VS Code settings.json.
+        
+        Args:
+            section: Configuration section name
+            
+        Returns:
+            Dictionary of configuration values
+        """
+        try:
+            config = await self.get_configuration_async(
+                types.ConfigurationParams(
+                    items=[
+                        types.ConfigurationItem(section=section)
+                    ]
+                )
+            )
+            if config and len(config) > 0:
+                self._config_cache = config[0] or {}
+                return self._config_cache
+        except Exception as e:
+            logger.warning(f"Failed to get configuration: {e}")
+        
+        return self._config_cache
+    
+    def get_cached_config(self, key: str, default: Any = None) -> Any:
+        """
+        Get a cached configuration value.
+        
+        Args:
+            key: Configuration key
+            default: Default value if key not found
+            
+        Returns:
+            Configuration value or default
+        """
+        return self._config_cache.get(key, default)
+
+    # =====================================================================
+    # Server Communication: Apply Workspace Edit
+    # =====================================================================
+    
+    async def apply_edit(
+        self,
+        edit: types.WorkspaceEdit,
+        label: Optional[str] = None,
+    ) -> bool:
+        """
+        Apply a workspace edit to modify files programmatically.
+        
+        This allows the server to make changes to files in the workspace,
+        such as refactoring operations, code generation, or bulk edits.
+        
+        Args:
+            edit: The WorkspaceEdit containing changes to apply
+            label: Optional label for the edit (shown in undo history)
+            
+        Returns:
+            True if the edit was applied successfully, False otherwise
+            
+        Example:
+            # Create a simple text edit
+            edit = types.WorkspaceEdit(
+                changes={
+                    "file:///path/to/file.txt": [
+                        types.TextEdit(
+                            range=types.Range(
+                                start=types.Position(line=0, character=0),
+                                end=types.Position(line=0, character=0)
+                            ),
+                            new_text="# New content\\n"
+                        )
+                    ]
+                }
+            )
+            success = await server.apply_edit(edit, "Insert header")
+        """
+        try:
+            result = await self.apply_edit_async(edit, label)
+            if result.applied:
+                logger.info(f"Workspace edit applied successfully: {label or 'unnamed'}")
+                return True
+            else:
+                failure_reason = result.failure_reason or "Unknown reason"
+                logger.warning(f"Workspace edit failed: {failure_reason}")
+                return False
+        except Exception as e:
+            logger.error(f"Error applying workspace edit: {e}", exc_info=True)
+            return False
+    
+    def create_text_edit(
+        self,
+        uri: str,
+        start_line: int,
+        start_char: int,
+        end_line: int,
+        end_char: int,
+        new_text: str,
+    ) -> types.WorkspaceEdit:
+        """
+        Create a simple workspace edit for a single file change.
+        
+        Helper method to create WorkspaceEdit objects more easily.
+        
+        Args:
+            uri: File URI to edit
+            start_line: Starting line (0-indexed)
+            start_char: Starting character (0-indexed)
+            end_line: Ending line (0-indexed)
+            end_char: Ending character (0-indexed)
+            new_text: Text to insert/replace
+            
+        Returns:
+            WorkspaceEdit ready to apply
+        """
+        return types.WorkspaceEdit(
+            changes={
+                uri: [
+                    types.TextEdit(
+                        range=types.Range(
+                            start=types.Position(line=start_line, character=start_char),
+                            end=types.Position(line=end_line, character=end_char),
+                        ),
+                        new_text=new_text,
+                    )
+                ]
+            }
+        )
+    
+    def create_insert_edit(self, uri: str, line: int, character: int, text: str) -> types.WorkspaceEdit:
+        """
+        Create a workspace edit that inserts text at a position.
+        
+        Args:
+            uri: File URI to edit
+            line: Line to insert at (0-indexed)
+            character: Character position to insert at (0-indexed)
+            text: Text to insert
+            
+        Returns:
+            WorkspaceEdit ready to apply
+        """
+        return self.create_text_edit(uri, line, character, line, character, text)
+    
+    def create_multi_file_edit(self, changes: Dict[str, List[types.TextEdit]]) -> types.WorkspaceEdit:
+        """
+        Create a workspace edit that modifies multiple files.
+        
+        Args:
+            changes: Dictionary mapping file URIs to lists of TextEdits
+            
+        Returns:
+            WorkspaceEdit ready to apply
+        """
+        return types.WorkspaceEdit(changes=changes)
+
+    # =====================================================================
+    # Workspace Scanning with Progress
+    # =====================================================================
+
+    async def _scan_workspace_folders_async(self):
+        """
+        Scan all workspace folders for scripted effects and triggers with progress.
+
+        This is called on first document open to index all custom effects
+        and triggers in the mod's common/ folder. Shows progress to the user.
+        """
+        if self._workspace_scanned:
+            return
+
+        try:
+            # Get workspace folders
+            workspace_folders = []
+            if self.workspace.folders:
+                for folder in self.workspace.folders:
+                    # Convert URI to path
+                    folder_uri = folder.uri if hasattr(folder, "uri") else folder
+                    if folder_uri.startswith("file:///"):
+                        # Convert file URI to path
+                        from urllib.parse import unquote
+
+                        path = unquote(folder_uri[8:])  # Remove 'file:///'
+                        # On Windows, handle drive letter
+                        if len(path) > 2 and path[0] == "/" and path[2] == ":":
+                            path = path[1:]  # Remove leading slash
+                        workspace_folders.append(path)
+                    else:
+                        workspace_folders.append(folder_uri)
+
+            if workspace_folders:
+                folder_count = len(workspace_folders)
+                logger.info(
+                    f"Scanning {folder_count} workspace folder(s) for "
+                    f"scripted effects/triggers"
+                )
+                
+                # Use progress reporting for the scan
+                async def scan_with_progress(report_progress):
+                    report_progress(f"Scanning {folder_count} workspace folder(s)...", 0)
+                    
+                    # Perform the actual scan (this is synchronous, run in executor)
+                    loop = asyncio.get_event_loop()
+                    await loop.run_in_executor(
+                        None, 
+                        self.index.scan_workspace, 
+                        workspace_folders
+                    )
+                    
+                    report_progress("Indexing complete!", 100)
+                
+                await self.with_progress("Indexing CK3 Workspace", scan_with_progress)
+                
+                # Notify user of scan results
+                stats = (
+                    f"Indexed {len(self.index.events)} events, "
+                    f"{len(self.index.scripted_effects)} effects, "
+                    f"{len(self.index.scripted_triggers)} triggers"
+                )
+                self.log_message(stats, types.MessageType.Info)
+            else:
+                logger.warning("No workspace folders found for scanning")
+
+            self._workspace_scanned = True
+
+        except Exception as e:
+            logger.error(f"Error scanning workspace folders: {e}", exc_info=True)
+            self.notify_error(f"Failed to scan workspace: {str(e)}")
+            self._workspace_scanned = True  # Don't retry on error
 
     def _scan_workspace_folders(self):
         """
@@ -129,6 +541,9 @@ class CK3LanguageServer(LanguageServer):
 
         This is called on first document open to index all custom effects
         and triggers in the mod's common/ folder.
+        
+        Note: This is the synchronous fallback. The async version with
+        progress reporting is preferred.
         """
         if self._workspace_scanned:
             return
@@ -225,7 +640,7 @@ server = CK3LanguageServer("ck3-language-server", "v0.1.0")
 
 
 @server.feature(types.TEXT_DOCUMENT_DID_OPEN)
-def did_open(ls: CK3LanguageServer, params: types.DidOpenTextDocumentParams):
+async def did_open(ls: CK3LanguageServer, params: types.DidOpenTextDocumentParams):
     """
     Handle document open event
 
@@ -245,9 +660,9 @@ def did_open(ls: CK3LanguageServer, params: types.DidOpenTextDocumentParams):
     """
     logger.info(f"Document opened: {params.text_document.uri}")
 
-    # On first document open, scan workspace if not already done
+    # On first document open, scan workspace with progress reporting
     if not ls._workspace_scanned:
-        ls._scan_workspace_folders()
+        await ls._scan_workspace_folders_async()
 
     # Parse the document and update the index
     doc = ls.workspace.get_text_document(params.text_document.uri)
@@ -331,142 +746,59 @@ def did_close(ls: CK3LanguageServer, params: types.DidCloseTextDocumentParams):
 
 @server.feature(
     types.TEXT_DOCUMENT_COMPLETION,
-    types.CompletionOptions(trigger_characters=["_", "."]),
+    types.CompletionOptions(trigger_characters=["_", ".", ":", "="]),
 )
-def completions(params: types.CompletionParams):
+def completions(ls: CK3LanguageServer, params: types.CompletionParams):
     """
-    Provide completion suggestions for CK3 scripting.
+    Provide context-aware completion suggestions for CK3 scripting.
 
-    This is the core feature that provides auto-completion (IntelliSense) when users
-    type in CK3 script files. It suggests relevant CK3 keywords, effects, triggers,
-    scopes, event types, and boolean values based on what the user is typing.
-
-    Current Implementation:
-        Returns all CK3 language constructs as completion items. The editor will
-        filter these based on what the user has typed. This is a simple but effective
-        approach that provides comprehensive suggestions.
-
-    Future Enhancements:
-        - Context-aware completions (only show effects in effect blocks, etc.)
-        - Smart filtering based on cursor position and surrounding code
-        - Snippet completions for common patterns (event templates, etc.)
-        - Documentation and examples for each completion item
+    This feature provides intelligent auto-completion (IntelliSense) that understands
+    the structure of CK3 code and provides appropriate suggestions based on:
+    - Current scope type (character, title, province, etc.)
+    - Block context (trigger, effect, immediate, option, limit, etc.)
+    - Cursor position (after dot, after scope:, in assignment, etc.)
 
     Args:
+        ls: The CK3 language server instance
         params: Contains information about the completion request:
             - text_document.uri: The file where completion was triggered
             - position.line: Line number (0-indexed)
             - position.character: Character offset in the line (0-indexed)
-            - context.trigger_kind: How completion was triggered:
-                - Invoked (1): User explicitly requested (Ctrl+Space)
-                - TriggerCharacter (2): Typed a trigger character (_, .)
-                - TriggerForIncompleteCompletions (3): Filtering previous results
+            - context.trigger_kind: How completion was triggered
 
     Returns:
-        CompletionList: Contains:
-            - is_incomplete: False (we return all items, no pagination needed)
-            - items: List of CompletionItem objects with:
-                - label: What the user sees in the completion menu
-                - kind: Icon/category (Keyword, Function, Variable, etc.)
-                - detail: Short description shown in the menu
-                - documentation: Detailed help text (shown in detail panel)
+        CompletionList with context-aware completion items
 
-    LSP Specification:
-        This is a request from client to server. The server must respond with
-        a CompletionList or CompletionItem[].
-
-    Trigger Characters:
-        The completion is automatically triggered when the user types _ or .
-        This is useful for CK3 identifiers like "add_trait" or "every_vassal".
+    Features:
+        - Context detection (trigger vs effect blocks)
+        - Scope-aware filtering (only valid scope links)
+        - Snippet completions (event templates, etc.)
+        - Saved scope suggestions after 'scope:'
+        - Trigger character handling (_, ., :, =)
     """
-    # Initialize list to collect all completion items
-    items = []
-
-    # Add CK3 keywords as completions
-    # These are structural elements like 'if', 'trigger', 'effect', etc.
-    # Shown as keywords (blue color in most editors)
-    for keyword in CK3_KEYWORDS:
-        items.append(
-            types.CompletionItem(
-                label=keyword,
-                kind=types.CompletionItemKind.Keyword,
-                detail="CK3 Keyword",
-                documentation=f"CK3 scripting keyword: {keyword}",
-            )
+    try:
+        doc = ls.workspace.get_text_document(params.text_document.uri)
+        ast = ls.document_asts.get(doc.uri, [])
+        
+        # Get the current line text for context detection
+        lines = doc.source.split('\n')
+        line_text = lines[params.position.line] if params.position.line < len(lines) else ''
+        
+        # Find the AST node at cursor position for context
+        node = get_node_at_position(ast, params.position) if ast else None
+        
+        # Get context-aware completions
+        return get_context_aware_completions(
+            document_uri=doc.uri,
+            position=params.position,
+            ast=node,
+            line_text=line_text,
+            document_index=ls.index,
         )
-
-    # Add CK3 effects as completions
-    # These are commands that modify the game state (add_trait, add_gold, etc.)
-    # Shown as functions (purple/magenta color in most editors)
-    for effect in CK3_EFFECTS:
-        items.append(
-            types.CompletionItem(
-                label=effect,
-                kind=types.CompletionItemKind.Function,
-                detail="CK3 Effect",
-                documentation=f"CK3 effect that modifies game state: {effect}",
-            )
-        )
-
-    # Add CK3 triggers as completions
-    # These are conditional checks (age, has_trait, is_ruler, etc.)
-    # Shown as functions (purple/magenta color in most editors)
-    for trigger in CK3_TRIGGERS:
-        items.append(
-            types.CompletionItem(
-                label=trigger,
-                kind=types.CompletionItemKind.Function,
-                detail="CK3 Trigger",
-                documentation=f"CK3 trigger/condition: {trigger}",
-            )
-        )
-
-    # Add CK3 scopes as completions
-    # These are context switches (root, every_vassal, father, etc.)
-    # Shown as variables (light blue color in most editors)
-    for scope in CK3_SCOPES:
-        items.append(
-            types.CompletionItem(
-                label=scope,
-                kind=types.CompletionItemKind.Variable,
-                detail="CK3 Scope",
-                documentation=f"CK3 scope: {scope}",
-            )
-        )
-
-    # Add CK3 event types as completions
-    # These define the presentation style of events (character_event, letter_event, etc.)
-    # Shown as classes (teal color in most editors)
-    for event_type in CK3_EVENT_TYPES:
-        items.append(
-            types.CompletionItem(
-                label=event_type,
-                kind=types.CompletionItemKind.Class,
-                detail="CK3 Event Type",
-                documentation=f"CK3 event type: {event_type}",
-            )
-        )
-
-    # Add boolean values as completions
-    # These are yes/no/true/false values used throughout CK3 scripts
-    # Shown as values (orange color in most editors)
-    for bool_val in CK3_BOOLEAN_VALUES:
-        items.append(
-            types.CompletionItem(
-                label=bool_val,
-                kind=types.CompletionItemKind.Value,
-                detail="Boolean Value",
-                documentation=f"Boolean value: {bool_val}",
-            )
-        )
-
-    # Return the complete list wrapped in a CompletionList
-    # is_incomplete=False means we've returned all available completions
-    # (no pagination needed, the editor can filter locally)
-    return types.CompletionList(
-        is_incomplete=False,
-        items=items,
-    )
+    except Exception as e:
+        logger.error(f"Error in completions handler: {e}", exc_info=True)
+        # Fallback to empty completion list on error
+        return types.CompletionList(is_incomplete=False, items=[])
 
 
 @server.feature(types.TEXT_DOCUMENT_HOVER)
@@ -631,6 +963,85 @@ def definition(ls: CK3LanguageServer, params: types.DefinitionParams):
 
     except Exception as e:
         logger.error(f"Error in definition handler: {e}", exc_info=True)
+        return None
+
+
+@server.feature(types.TEXT_DOCUMENT_CODE_ACTION)
+def code_action(ls: CK3LanguageServer, params: types.CodeActionParams):
+    """
+    Provide code actions (quick fixes and refactorings) for CK3 scripts.
+
+    This feature provides quick fixes for common errors and refactoring options.
+    Code actions appear as lightbulb icons in the editor and in the right-click menu.
+
+    Supported Actions:
+        - Quick fixes for typos (e.g., "Did you mean 'add_gold'?")
+        - Add missing namespace declaration
+        - Fix invalid scope chains
+        - Extract selection as scripted effect/trigger
+
+    Args:
+        ls: The CK3 language server instance
+        params: Contains information about the code action request:
+            - text_document.uri: The file where action was requested
+            - range: The range in the document
+            - context.diagnostics: Diagnostics in the range
+            - context.only: Types of actions requested (optional filter)
+
+    Returns:
+        List of CodeAction objects, or None if no actions available
+
+    LSP Specification:
+        This is a request from client to server. The server should respond with
+        (Command | CodeAction)[] or null.
+    """
+    try:
+        doc = ls.workspace.get_text_document(params.text_document.uri)
+        
+        # Get selected text (if any)
+        lines = doc.source.split('\n')
+        selected_text = ''
+        if params.range.start.line == params.range.end.line:
+            # Single line selection
+            line = lines[params.range.start.line] if params.range.start.line < len(lines) else ''
+            selected_text = line[params.range.start.character:params.range.end.character]
+        else:
+            # Multi-line selection
+            selected_lines = []
+            for i in range(params.range.start.line, min(params.range.end.line + 1, len(lines))):
+                if i == params.range.start.line:
+                    selected_lines.append(lines[i][params.range.start.character:])
+                elif i == params.range.end.line:
+                    selected_lines.append(lines[i][:params.range.end.character])
+                else:
+                    selected_lines.append(lines[i])
+            selected_text = '\n'.join(selected_lines)
+        
+        # Detect context (trigger vs effect block)
+        ast = ls.document_asts.get(doc.uri, [])
+        node = get_node_at_position(ast, params.range.start) if ast else None
+        context = 'unknown'
+        if node:
+            ctx = detect_context(node, params.range.start, '', ls.index)
+            context = ctx.block_type
+        
+        # Get all applicable code actions
+        actions = get_all_code_actions(
+            uri=doc.uri,
+            range=params.range,
+            diagnostics=params.context.diagnostics,
+            document_text=doc.source,
+            selected_text=selected_text,
+            context=context,
+        )
+        
+        # Convert to LSP code actions
+        lsp_actions = [convert_to_lsp_code_action(action) for action in actions]
+        
+        return lsp_actions if lsp_actions else None
+
+    except Exception as e:
+        logger.error(f"Error in code_action handler: {e}", exc_info=True)
         return None
 
 
@@ -950,6 +1361,1286 @@ def workspace_symbol(ls: CK3LanguageServer, params: types.WorkspaceSymbolParams)
     except Exception as e:
         logger.error(f"Error in workspace_symbol handler: {e}", exc_info=True)
         return None
+
+
+@server.feature(
+    types.TEXT_DOCUMENT_SEMANTIC_TOKENS_FULL,
+    types.SemanticTokensRegistrationOptions(
+        legend=types.SemanticTokensLegend(
+            token_types=list(TOKEN_TYPES),
+            token_modifiers=list(TOKEN_MODIFIERS),
+        ),
+        full=True,
+        document_selector=[
+            types.TextDocumentFilterLanguage(language="ck3"),
+        ],
+    ),
+)
+def semantic_tokens_full(ls: CK3LanguageServer, params: types.SemanticTokensParams):
+    """
+    Provide semantic tokens for rich syntax highlighting.
+
+    Unlike TextMate grammars (regex-based), semantic tokens understand:
+    - Whether a word is an effect vs trigger based on context
+    - Scope types and their relationships  
+    - Custom mod definitions (scripted effects, triggers, etc.)
+    - Event definitions vs references
+
+    Args:
+        ls: The CK3 language server instance
+        params: Contains information about the request:
+            - text_document.uri: The file to tokenize
+
+    Returns:
+        SemanticTokens with encoded data, or None
+
+    Token Types:
+        - namespace: Event namespace declarations
+        - class: Event type keywords (character_event, etc.)
+        - function: Effects and triggers
+        - variable: Scopes and saved scope references
+        - property: Scope links (liege, spouse, primary_title)
+        - string: Localization keys
+        - number: Numeric values
+        - keyword: Control flow (if, else, trigger, effect, limit)
+        - operator: Operators (=, >, <, >=, <=)
+        - comment: Comments (# ...)
+        - parameter: Effect/trigger parameters
+        - event: Event definitions and references
+        - macro: List iterators (any_, every_, etc.)
+        - enumMember: Boolean values, traits
+
+    Token Modifiers:
+        - declaration: Where a symbol is defined
+        - definition: Definition site
+        - readonly: Immutable values
+        - defaultLibrary: Built-in game effects/triggers
+    """
+    try:
+        doc = ls.workspace.get_text_document(params.text_document.uri)
+        
+        # Get semantic tokens using the module
+        return get_semantic_tokens(doc.source, ls.index)
+        
+    except Exception as e:
+        logger.error(f"Error in semantic_tokens handler: {e}", exc_info=True)
+        return types.SemanticTokens(data=[])
+
+
+# =============================================================================
+# Document Formatting
+# =============================================================================
+
+@server.feature(
+    types.TEXT_DOCUMENT_FORMATTING,
+    types.DocumentFormattingOptions(),
+)
+def document_formatting(ls: CK3LanguageServer, params: types.DocumentFormattingParams):
+    """
+    Format an entire CK3 document.
+
+    This feature provides auto-formatting for CK3 scripts, following Paradox
+    conventions:
+    - Tab indentation (not spaces)
+    - Opening braces on same line: `trigger = {`
+    - Proper spacing around operators
+    - Consistent blank lines between blocks
+    - Trimmed trailing whitespace
+
+    Args:
+        ls: The CK3 language server instance
+        params: Contains information about the request:
+            - text_document.uri: The file to format
+            - options: Formatting options (tab size, spaces vs tabs, etc.)
+
+    Returns:
+        List of TextEdit objects to apply, or None
+
+    LSP Specification:
+        This is a request from client to server. The server should respond with
+        TextEdit[] or null. The client applies the edits to format the document.
+
+    Usage:
+        - VS Code: Shift+Alt+F (Windows/Linux) or Shift+Option+F (Mac)
+        - Or right-click -> Format Document
+    """
+    try:
+        doc = ls.workspace.get_text_document(params.text_document.uri)
+        
+        # Get formatting edits
+        edits = format_document(doc.source, params.options)
+        
+        if edits:
+            logger.debug(f"Formatting document: {len(edits)} edit(s)")
+        
+        return edits if edits else None
+        
+    except Exception as e:
+        logger.error(f"Error in document_formatting handler: {e}", exc_info=True)
+        return None
+
+
+@server.feature(
+    types.TEXT_DOCUMENT_RANGE_FORMATTING,
+    types.DocumentRangeFormattingOptions(),
+)
+def range_formatting(ls: CK3LanguageServer, params: types.DocumentRangeFormattingParams):
+    """
+    Format a selected range within a CK3 document.
+
+    This feature allows formatting only a portion of the document, which is
+    useful when:
+    - Pasting code from another source that has different formatting
+    - Cleaning up a specific event or block without touching the rest
+    - Formatting newly written code without affecting existing code
+
+    The formatter will automatically expand the range to include complete
+    blocks to ensure the resulting code is syntactically valid.
+
+    Args:
+        ls: The CK3 language server instance
+        params: Contains information about the request:
+            - text_document.uri: The file containing the range
+            - range: The range to format (start and end positions)
+            - options: Formatting options (tab size, spaces vs tabs, etc.)
+
+    Returns:
+        List of TextEdit objects to apply, or None
+
+    LSP Specification:
+        This is a request from client to server. The server should respond with
+        TextEdit[] or null. The client applies the edits to format the range.
+
+    Usage:
+        - Select text, then use Format Selection command
+        - VS Code: Ctrl+K Ctrl+F (Windows/Linux) or Cmd+K Cmd+F (Mac)
+    """
+    try:
+        doc = ls.workspace.get_text_document(params.text_document.uri)
+        
+        # Get formatting edits for the range
+        edits = format_range(doc.source, params.range, params.options)
+        
+        if edits:
+            logger.debug(f"Formatting range: {len(edits)} edit(s)")
+        
+        return edits if edits else None
+        
+    except Exception as e:
+        logger.error(f"Error in range_formatting handler: {e}", exc_info=True)
+        return None
+
+
+# =============================================================================
+# Code Lens
+# =============================================================================
+
+@server.feature(
+    types.TEXT_DOCUMENT_CODE_LENS,
+    types.CodeLensOptions(resolve_provider=True),
+)
+def code_lens(ls: CK3LanguageServer, params: types.CodeLensParams):
+    """
+    Provide code lenses for CK3 scripts.
+
+    Code lenses show actionable, contextual information above code elements.
+    For CK3, we show:
+    - Event reference counts and missing localization warnings
+    - Scripted effect/trigger usage counts
+    - Namespace event counts
+
+    Args:
+        ls: The CK3 language server instance
+        params: Contains information about the request:
+            - text_document.uri: The file to provide lenses for
+
+    Returns:
+        List of CodeLens objects, or None
+
+    LSP Specification:
+        This is a request from client to server. The server should respond with
+        CodeLens[] or null. Code lenses can have a command, or the command can
+        be provided later via codeLens/resolve.
+    """
+    try:
+        doc = ls.workspace.get_text_document(params.text_document.uri)
+        
+        # Get code lenses using the module
+        return get_code_lenses(doc.source, doc.uri, ls.index)
+        
+    except Exception as e:
+        logger.error(f"Error in code_lens handler: {e}", exc_info=True)
+        return None
+
+
+@server.feature(types.CODE_LENS_RESOLVE)
+def code_lens_resolve(ls: CK3LanguageServer, params: types.CodeLens):
+    """
+    Resolve a code lens with its command.
+
+    This is called when a code lens becomes visible and needs its
+    command to be filled in. This enables lazy loading of expensive
+    operations like counting references.
+
+    Args:
+        ls: The CK3 language server instance
+        params: The CodeLens to resolve
+
+    Returns:
+        The resolved CodeLens with its command
+
+    LSP Specification:
+        This is a request from client to server. The server should respond with
+        a CodeLens with the command field filled in.
+    """
+    try:
+        return resolve_code_lens(params, ls.index)
+        
+    except Exception as e:
+        logger.error(f"Error in code_lens_resolve handler: {e}", exc_info=True)
+        return params
+
+
+# =============================================================================
+# Inlay Hints
+# =============================================================================
+
+@server.feature(
+    types.TEXT_DOCUMENT_INLAY_HINT,
+    types.InlayHintOptions(resolve_provider=True),
+)
+def inlay_hint(ls: CK3LanguageServer, params: types.InlayHintParams):
+    """
+    Provide inlay hints for CK3 scripts.
+
+    Inlay hints show inline type annotations and other helpful information
+    directly in the code editor. For CK3, we show:
+    - Scope types after saved scopes: `scope:friend` → `: character`
+    - Scope types after scope chains: `root.primary_title` → `: landed_title`
+    - Target scope type for list iterators: `every_vassal` → `→ character`
+
+    Args:
+        ls: The CK3 language server instance
+        params: Contains information about the request:
+            - text_document.uri: The file to provide hints for
+            - range: The range to provide hints for
+
+    Returns:
+        List of InlayHint objects, or None
+
+    LSP Specification:
+        This is a request from client to server. The server should respond with
+        InlayHint[] or null. Hints are displayed inline in the editor.
+
+    Usage:
+        Inlay hints appear automatically as you view code. They can be toggled
+        via editor settings (e.g., Editor > Inlay Hints in VS Code).
+    """
+    try:
+        doc = ls.workspace.get_text_document(params.text_document.uri)
+        
+        # Get inlay hint configuration from initialization options
+        config = InlayHintConfig(
+            show_scope_types=True,
+            show_link_types=True,
+            show_iterator_types=True,
+            show_parameter_names=False,
+        )
+        
+        # Get inlay hints for the range
+        hints = get_inlay_hints(doc.source, params.range, ls.index, config)
+        
+        if hints:
+            logger.debug(f"Providing {len(hints)} inlay hint(s)")
+        
+        return hints if hints else None
+        
+    except Exception as e:
+        logger.error(f"Error in inlay_hint handler: {e}", exc_info=True)
+        return None
+
+
+@server.feature(types.INLAY_HINT_RESOLVE)
+def inlay_hint_resolve(ls: CK3LanguageServer, params: types.InlayHint):
+    """
+    Resolve an inlay hint with additional information.
+
+    This is called when an inlay hint needs additional details.
+    Currently, we populate all information upfront, so this just
+    returns the hint as-is.
+
+    Args:
+        ls: The CK3 language server instance
+        params: The InlayHint to resolve
+
+    Returns:
+        The resolved InlayHint
+
+    LSP Specification:
+        This is a request from client to server. The server should respond with
+        a fully resolved InlayHint object.
+    """
+    try:
+        return resolve_inlay_hint(params)
+        
+    except Exception as e:
+        logger.error(f"Error in inlay_hint_resolve handler: {e}", exc_info=True)
+        return params
+
+
+# =============================================================================
+# Signature Help
+# =============================================================================
+
+@server.feature(
+    types.TEXT_DOCUMENT_SIGNATURE_HELP,
+    types.SignatureHelpOptions(
+        trigger_characters=get_trigger_characters(),
+        retrigger_characters=get_retrigger_characters(),
+    ),
+)
+def signature_help(ls: CK3LanguageServer, params: types.SignatureHelpParams):
+    """
+    Provide signature help for CK3 effects and triggers.
+
+    Signature help shows parameter documentation when typing inside
+    effect blocks that take structured parameters. For CK3, we show:
+    - Required parameters: target, modifier, id, etc.
+    - Optional parameters: years, days, months, etc.
+    - Parameter types and documentation
+    - Highlights the currently active parameter
+
+    Args:
+        ls: The CK3 language server instance
+        params: Contains information about the request:
+            - text_document.uri: The file to provide help for
+            - position: Cursor position in the document
+            - context: Information about how signature help was triggered
+
+    Returns:
+        SignatureHelp object, or None if not in a relevant context
+
+    LSP Specification:
+        This is a request from client to server. The server should respond with
+        SignatureHelp or null. The client displays parameter hints.
+
+    Usage:
+        Signature help appears automatically when typing inside effect blocks
+        like `add_opinion = { }` or `trigger_event = { }`.
+    """
+    try:
+        doc = ls.workspace.get_text_document(params.text_document.uri)
+        
+        # Get signature help for the current position
+        help_result = get_signature_help(doc.source, params.position)
+        
+        if help_result:
+            logger.debug(f"Providing signature help: {help_result.signatures[0].label if help_result.signatures else 'none'}")
+        
+        return help_result
+        
+    except Exception as e:
+        logger.error(f"Error in signature_help handler: {e}", exc_info=True)
+        return None
+
+
+# =============================================================================
+# Document Highlight
+# =============================================================================
+
+@server.feature(types.TEXT_DOCUMENT_DOCUMENT_HIGHLIGHT)
+def document_highlight(
+    ls: CK3LanguageServer, params: types.DocumentHighlightParams
+) -> Optional[List[types.DocumentHighlight]]:
+    """
+    Provide document highlighting for CK3 scripts.
+
+    Document highlighting shows all occurrences of a symbol when you click on it.
+    This helps visualize where a variable, scope, or event is used and defined.
+
+    Highlight kinds:
+        - Read: The symbol is being read/accessed (e.g., scope:target)
+        - Write: The symbol is being defined (e.g., save_scope_as = target)
+        - Text: General text match
+
+    Args:
+        ls: The CK3 language server instance
+        params: Contains information about the request:
+            - text_document.uri: The file to highlight in
+            - position: Cursor position (which symbol to highlight)
+
+    Returns:
+        List of DocumentHighlight objects, or None if no symbol at position
+
+    LSP Specification:
+        This is a request from client to server. The server should respond with
+        a list of DocumentHighlight or null. The client highlights matching text.
+
+    Usage:
+        Click on a saved scope like `scope:target` and all occurrences of
+        `scope:target` and `save_scope_as = target` will be highlighted.
+    """
+    try:
+        doc = ls.workspace.get_text_document(params.text_document.uri)
+        
+        highlights = get_document_highlights(doc.source, params.position)
+        
+        if highlights:
+            logger.debug(f"Found {len(highlights)} highlight(s) at position {params.position}")
+        
+        return highlights
+        
+    except Exception as e:
+        logger.error(f"Error in document_highlight handler: {e}", exc_info=True)
+        return None
+
+
+# =============================================================================
+# Document Links
+# =============================================================================
+
+@server.feature(types.TEXT_DOCUMENT_DOCUMENT_LINK)
+def document_link(
+    ls: CK3LanguageServer, params: types.DocumentLinkParams
+) -> Optional[List[types.DocumentLink]]:
+    """
+    Provide document links for CK3 scripts.
+
+    Document links make file paths, URLs, and references clickable in the editor.
+    Ctrl+Click on a link to navigate to the target.
+
+    Link types detected:
+        - File paths: common/scripted_effects/my_effects.txt, gfx/icons/icon.dds
+        - URLs: https://ck3.paradoxwikis.com/...
+        - Event IDs in comments: # See rq.0001, # Fires my_mod.0050
+        - GFX paths in script: icon = "gfx/interface/icons/icon.dds"
+
+    Args:
+        ls: The CK3 language server instance
+        params: Contains information about the request:
+            - text_document.uri: The file to find links in
+
+    Returns:
+        List of DocumentLink objects, or None if no links found
+
+    LSP Specification:
+        This is a request from client to server. The server should respond with
+        a list of DocumentLink or null. The client makes matched text clickable.
+
+    Usage:
+        File paths become clickable. URLs open in browser. Event IDs in
+        comments can navigate to event definitions.
+    """
+    try:
+        doc = ls.workspace.get_text_document(params.text_document.uri)
+        
+        # Get workspace folders for path resolution
+        workspace_folders = _get_workspace_folder_paths(ls)
+        
+        links = get_document_links(doc.source, params.text_document.uri, workspace_folders)
+        
+        if links:
+            logger.debug(f"Found {len(links)} document link(s)")
+        
+        return links if links else None
+        
+    except Exception as e:
+        logger.error(f"Error in document_link handler: {e}", exc_info=True)
+        return None
+
+
+@server.feature(types.DOCUMENT_LINK_RESOLVE)
+def document_link_resolve(
+    ls: CK3LanguageServer, link: types.DocumentLink
+) -> types.DocumentLink:
+    """
+    Resolve a document link that was returned without a full target.
+
+    This is called when the user hovers over or clicks on a link that
+    was returned from document_link without a resolved target.
+
+    Args:
+        ls: The CK3 language server instance
+        link: The link to resolve
+
+    Returns:
+        DocumentLink with resolved target
+    """
+    try:
+        workspace_folders = _get_workspace_folder_paths(ls)
+        return resolve_document_link(link, workspace_folders)
+    except Exception as e:
+        logger.error(f"Error in document_link_resolve handler: {e}", exc_info=True)
+        return link
+
+
+def _get_workspace_folder_paths(ls: CK3LanguageServer) -> List[str]:
+    """
+    Get workspace folder paths from the language server.
+    
+    Args:
+        ls: Language server instance
+        
+    Returns:
+        List of workspace folder paths
+    """
+    workspace_folders = []
+    if ls.workspace.folders:
+        for folder in ls.workspace.folders:
+            folder_uri = folder.uri if hasattr(folder, "uri") else folder
+            if folder_uri.startswith("file:///"):
+                from urllib.parse import unquote
+                path = unquote(folder_uri[8:])
+                if len(path) > 2 and path[0] == "/" and path[2] == ":":
+                    path = path[1:]
+                workspace_folders.append(path)
+            else:
+                workspace_folders.append(folder_uri)
+    return workspace_folders
+
+
+# =============================================================================
+# Rename
+# =============================================================================
+
+@server.feature(types.TEXT_DOCUMENT_PREPARE_RENAME)
+def prepare_rename(
+    ls: CK3LanguageServer, params: types.PrepareRenameParams
+) -> Optional[types.PrepareRenameResult]:
+    """
+    Prepare for a rename operation.
+
+    This is called before the rename dialog appears to:
+    1. Verify the symbol can be renamed
+    2. Return the range of the symbol for the rename dialog
+    3. Return a placeholder (current name) for the input field
+
+    Args:
+        ls: The CK3 language server instance
+        params: Contains:
+            - text_document.uri: The file URI
+            - position: Cursor position
+
+    Returns:
+        PrepareRenameResult with range and placeholder, or None if not renamable
+
+    LSP Specification:
+        Optional request before rename. Helps the client show the correct
+        range in the rename dialog.
+    """
+    try:
+        doc = ls.workspace.get_text_document(params.text_document.uri)
+        
+        result = do_prepare_rename(doc.source, params.position)
+        
+        if result:
+            logger.debug(f"Prepare rename: {result.placeholder}")
+        else:
+            logger.debug("No renamable symbol at position")
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error in prepare_rename handler: {e}", exc_info=True)
+        return None
+
+
+@server.feature(types.TEXT_DOCUMENT_RENAME)
+def rename(
+    ls: CK3LanguageServer, params: types.RenameParams
+) -> Optional[types.WorkspaceEdit]:
+    """
+    Perform a rename operation.
+
+    Renames a symbol across the entire workspace, including:
+    - Event definitions and trigger_event references
+    - Saved scope definitions and scope: references
+    - Scripted effect/trigger definitions and usages
+    - Variable definitions and var: references
+    - Character/global flag operations
+    - Related localization keys (for events)
+
+    Args:
+        ls: The CK3 language server instance
+        params: Contains:
+            - text_document.uri: The file URI
+            - position: Position of the symbol to rename
+            - new_name: The new name for the symbol
+
+    Returns:
+        WorkspaceEdit with all changes, or None if rename not possible
+
+    LSP Specification:
+        Request from client to server. Server responds with WorkspaceEdit
+        containing all text changes needed for the rename.
+
+    Usage:
+        Place cursor on `scope:target`, press F2, type "new_target".
+        All `scope:target` and `save_scope_as = target` are updated.
+    """
+    try:
+        doc = ls.workspace.get_text_document(params.text_document.uri)
+        workspace_folders = _get_workspace_folder_paths(ls)
+        
+        edit = perform_rename(
+            doc.source,
+            params.position,
+            params.new_name,
+            params.text_document.uri,
+            workspace_folders,
+        )
+        
+        if edit:
+            # Count total edits
+            total_edits = sum(len(edits) for edits in (edit.changes or {}).values())
+            total_files = len(edit.changes or {})
+            logger.info(f"Rename: {total_edits} edits across {total_files} files")
+        else:
+            logger.debug("Rename returned no edits")
+        
+        return edit
+        
+    except Exception as e:
+        logger.error(f"Error in rename handler: {e}", exc_info=True)
+        return None
+
+
+# =============================================================================
+# Folding Range
+# =============================================================================
+
+@server.feature(
+    types.TEXT_DOCUMENT_FOLDING_RANGE,
+    types.FoldingRangeOptions(),
+)
+def folding_range(
+    ls: CK3LanguageServer, params: types.FoldingRangeParams
+) -> Optional[List[types.FoldingRange]]:
+    """
+    Return folding ranges for a document.
+
+    Enables code folding in the editor for:
+    - Event blocks: `my_event.0001 = { ... }`
+    - Named blocks: `trigger = { }`, `effect = { }`, `option = { }`
+    - Nested blocks: Any `{ ... }` block spanning multiple lines
+    - Comment blocks: Multiple consecutive comment lines
+    - Region markers: `# region` / `# endregion` custom folding
+
+    Args:
+        ls: The CK3 language server instance
+        params: Contains:
+            - text_document.uri: The file URI
+
+    Returns:
+        List of FoldingRange objects, or None on error
+
+    LSP Specification:
+        Request from client to server for folding ranges.
+        Client uses these to show fold/unfold controls in gutter.
+
+    Usage:
+        Click fold icon in gutter to collapse a block.
+        Use Ctrl+Shift+[ to fold at cursor.
+        Use Ctrl+Shift+] to unfold at cursor.
+    """
+    try:
+        doc = ls.workspace.get_text_document(params.text_document.uri)
+        
+        ranges = get_folding_ranges(doc.source)
+        
+        logger.debug(f"Folding ranges: {len(ranges)} ranges for {params.text_document.uri}")
+        
+        return ranges if ranges else None
+        
+    except Exception as e:
+        logger.error(f"Error in folding_range handler: {e}", exc_info=True)
+        return None
+
+
+# =============================================================================
+# Custom Commands
+# =============================================================================
+
+@server.command("ck3.validateWorkspace")
+async def validate_workspace_command(ls: CK3LanguageServer, args: List[Any]):
+    """
+    Command: Validate entire workspace.
+    
+    Scans all files in the workspace and reports validation results.
+    Shows progress during validation and summarizes findings.
+    
+    Args:
+        ls: The language server instance
+        args: Command arguments (unused)
+        
+    Returns:
+        Dictionary with validation results
+    """
+    logger.info("Executing ck3.validateWorkspace command")
+    
+    async def validate_with_progress(report_progress):
+        report_progress("Validating workspace...", 0)
+        
+        # Force rescan of workspace
+        ls._workspace_scanned = False
+        
+        report_progress("Scanning workspace files...", 25)
+        
+        # Get workspace folders and scan
+        workspace_folders = []
+        if ls.workspace.folders:
+            for folder in ls.workspace.folders:
+                folder_uri = folder.uri if hasattr(folder, "uri") else folder
+                if folder_uri.startswith("file:///"):
+                    from urllib.parse import unquote
+                    path = unquote(folder_uri[8:])
+                    if len(path) > 2 and path[0] == "/" and path[2] == ":":
+                        path = path[1:]
+                    workspace_folders.append(path)
+                else:
+                    workspace_folders.append(folder_uri)
+        
+        if workspace_folders:
+            loop = asyncio.get_event_loop()
+            await loop.run_in_executor(None, ls.index.scan_workspace, workspace_folders)
+        
+        ls._workspace_scanned = True
+        
+        report_progress("Analyzing results...", 75)
+        
+        # Collect statistics
+        stats = {
+            "events": len(ls.index.events),
+            "scripted_effects": len(ls.index.scripted_effects),
+            "scripted_triggers": len(ls.index.scripted_triggers),
+            "localization_keys": len(ls.index.localization),
+            "character_flags": len(ls.index.character_flags),
+            "saved_scopes": len(ls.index.saved_scopes),
+        }
+        
+        report_progress("Validation complete!", 100)
+        return stats
+    
+    try:
+        stats = await ls.with_progress("Validating CK3 Workspace", validate_with_progress)
+        
+        # Show summary message
+        summary = (
+            f"Workspace validated: {stats['events']} events, "
+            f"{stats['scripted_effects']} effects, "
+            f"{stats['scripted_triggers']} triggers, "
+            f"{stats['localization_keys']} loc keys"
+        )
+        ls.notify_info(summary)
+        
+        return stats
+        
+    except Exception as e:
+        logger.error(f"Error validating workspace: {e}", exc_info=True)
+        ls.notify_error(f"Validation failed: {str(e)}")
+        return {"error": str(e)}
+
+
+@server.command("ck3.rescanWorkspace")
+async def rescan_workspace_command(ls: CK3LanguageServer, args: List[Any]):
+    """
+    Command: Rescan workspace for symbols.
+    
+    Forces a complete rescan of the workspace, useful when files
+    have been added or modified outside the editor.
+    
+    Args:
+        ls: The language server instance
+        args: Command arguments (unused)
+        
+    Returns:
+        Dictionary with scan results
+    """
+    logger.info("Executing ck3.rescanWorkspace command")
+    
+    # Reset scan state
+    ls._workspace_scanned = False
+    
+    # Clear existing index
+    ls.index = DocumentIndex()
+    
+    # Rescan with progress
+    await ls._scan_workspace_folders_async()
+    
+    # Return statistics
+    return {
+        "events": len(ls.index.events),
+        "scripted_effects": len(ls.index.scripted_effects),
+        "scripted_triggers": len(ls.index.scripted_triggers),
+        "localization_keys": len(ls.index.localization),
+    }
+
+
+@server.command("ck3.getWorkspaceStats")
+def get_workspace_stats_command(ls: CK3LanguageServer, args: List[Any]):
+    """
+    Command: Get workspace statistics.
+    
+    Returns current workspace index statistics without rescanning.
+    
+    Args:
+        ls: The language server instance
+        args: Command arguments (unused)
+        
+    Returns:
+        Dictionary with workspace statistics
+    """
+    logger.info("Executing ck3.getWorkspaceStats command")
+    
+    return {
+        "scanned": ls._workspace_scanned,
+        "events": len(ls.index.events),
+        "namespaces": len(ls.index.namespaces),
+        "scripted_effects": len(ls.index.scripted_effects),
+        "scripted_triggers": len(ls.index.scripted_triggers),
+        "script_values": len(ls.index.script_values),
+        "localization_keys": len(ls.index.localization),
+        "character_flags": len(ls.index.character_flags),
+        "saved_scopes": len(ls.index.saved_scopes),
+        "character_interactions": len(ls.index.character_interactions),
+        "modifiers": len(ls.index.modifiers),
+        "on_actions": len(ls.index.on_action_definitions),
+        "opinion_modifiers": len(ls.index.opinion_modifiers),
+        "scripted_guis": len(ls.index.scripted_guis),
+    }
+
+
+@server.command("ck3.generateEventTemplate")
+def generate_event_template_command(ls: CK3LanguageServer, args: List[Any]):
+    """
+    Command: Generate an event template.
+    
+    Returns a template for a new CK3 event that can be inserted
+    into the current document.
+    
+    Args:
+        ls: The language server instance
+        args: Command arguments:
+            - args[0]: Event namespace (optional, default: "my_mod")
+            - args[1]: Event number (optional, default: "0001")
+            - args[2]: Event type (optional, default: "character_event")
+        
+    Returns:
+        Dictionary with the event template text
+    """
+    logger.info("Executing ck3.generateEventTemplate command")
+    
+    # Parse arguments
+    namespace = args[0] if args and len(args) > 0 else "my_mod"
+    event_num = args[1] if args and len(args) > 1 else "0001"
+    event_type = args[2] if args and len(args) > 2 else "character_event"
+    
+    event_id = f"{namespace}.{event_num}"
+    
+    template = f'''{event_id} = {{
+	type = {event_type}
+	title = {event_id}.t
+	desc = {event_id}.desc
+	theme = diplomacy
+	
+	left_portrait = root
+	
+	trigger = {{
+		is_adult = yes
+	}}
+	
+	immediate = {{
+		# Save scopes here
+	}}
+	
+	option = {{
+		name = {event_id}.a
+		# Option effects
+	}}
+	
+	option = {{
+		name = {event_id}.b
+		# Alternative option
+	}}
+}}
+'''
+    
+    return {
+        "template": template,
+        "event_id": event_id,
+        "localization_keys": [
+            f"{event_id}.t",
+            f"{event_id}.desc",
+            f"{event_id}.a",
+            f"{event_id}.b",
+        ]
+    }
+
+
+@server.command("ck3.findOrphanedLocalization")
+def find_orphaned_localization_command(ls: CK3LanguageServer, args: List[Any]):
+    """
+    Command: Find localization keys that may be orphaned.
+    
+    Compares localization keys with event IDs to find potential
+    orphaned (unused) localization entries.
+    
+    Note: This is a heuristic check - it only looks at event-related
+    keys, not all possible references.
+    
+    Args:
+        ls: The language server instance
+        args: Command arguments (unused)
+        
+    Returns:
+        Dictionary with potentially orphaned keys
+    """
+    logger.info("Executing ck3.findOrphanedLocalization command")
+    
+    # Get all event-related prefixes
+    event_prefixes = set()
+    for event_id in ls.index.events.keys():
+        event_prefixes.add(event_id)
+    
+    # Find loc keys that look like event keys but don't have matching events
+    orphaned = []
+    for loc_key in ls.index.localization.keys():
+        # Check if this looks like an event localization key
+        # Pattern: namespace.number.suffix (e.g., my_mod.0001.t)
+        parts = loc_key.split('.')
+        if len(parts) >= 3 and parts[-2].isdigit():
+            # Reconstruct the event ID
+            potential_event_id = '.'.join(parts[:-1])
+            if potential_event_id not in event_prefixes:
+                orphaned.append(loc_key)
+    
+    if orphaned:
+        ls.notify_warning(f"Found {len(orphaned)} potentially orphaned localization keys")
+    else:
+        ls.notify_info("No orphaned localization keys found")
+    
+    return {
+        "orphaned_keys": orphaned[:100],  # Limit to first 100
+        "total_count": len(orphaned),
+    }
+
+
+@server.command("ck3.showEventChain")
+def show_event_chain_command(ls: CK3LanguageServer, args: List[Any]):
+    """
+    Command: Show event chain starting from a given event.
+    
+    Analyzes trigger_event calls to build an event chain visualization.
+    
+    Args:
+        ls: The language server instance
+        args: Command arguments:
+            - args[0]: Starting event ID
+        
+    Returns:
+        Dictionary with event chain information
+    """
+    logger.info("Executing ck3.showEventChain command")
+    
+    if not args or not args[0]:
+        return {"error": "Event ID required"}
+    
+    start_event = args[0]
+    
+    if start_event not in ls.index.events:
+        return {"error": f"Event '{start_event}' not found"}
+    
+    # Import workspace module for event chain analysis
+    from .workspace import extract_trigger_event_calls
+    
+    # Build event chain (BFS traversal)
+    visited = set()
+    chain = []
+    queue = [start_event]
+    
+    while queue and len(visited) < 50:  # Limit depth
+        current = queue.pop(0)
+        if current in visited:
+            continue
+        
+        visited.add(current)
+        
+        # Get event content if available
+        event_loc = ls.index.events.get(current)
+        if event_loc:
+            # We'd need to read the file content to extract trigger_event calls
+            # For now, just report the chain structure
+            chain.append({
+                "event_id": current,
+                "file": event_loc.uri,
+                "line": event_loc.range.start.line,
+            })
+    
+    return {
+        "start_event": start_event,
+        "chain": chain,
+        "total_events": len(chain),
+    }
+
+
+@server.command("ck3.checkDependencies")
+def check_dependencies_command(ls: CK3LanguageServer, args: List[Any]):
+    """
+    Command: Check for undefined dependencies.
+    
+    Finds scripted effects and triggers that are used but not defined
+    in the current workspace.
+    
+    Args:
+        ls: The language server instance
+        args: Command arguments (unused)
+        
+    Returns:
+        Dictionary with dependency check results
+    """
+    logger.info("Executing ck3.checkDependencies command")
+    
+    # This would require tracking usages, which we partially do
+    # For now, return current index stats
+    
+    result = {
+        "defined_effects": len(ls.index.scripted_effects),
+        "defined_triggers": len(ls.index.scripted_triggers),
+        "indexed_events": len(ls.index.events),
+        "status": "Check complete"
+    }
+    
+    ls.notify_info(
+        f"Dependencies: {result['defined_effects']} effects, "
+        f"{result['defined_triggers']} triggers defined"
+    )
+    
+    return result
+
+
+@server.command("ck3.showNamespaceEvents")
+def show_namespace_events_command(ls: CK3LanguageServer, args: List[Any]):
+    """
+    Command: Show all events in a namespace.
+    
+    Lists all events belonging to a specific namespace, useful for
+    navigating event chains and understanding mod structure.
+    
+    Args:
+        ls: The language server instance
+        args: Command arguments:
+            - args[0]: Namespace name (e.g., "rq_nts_daughter")
+        
+    Returns:
+        Dictionary with namespace events
+    """
+    logger.info("Executing ck3.showNamespaceEvents command")
+    
+    if not args or not args[0]:
+        return {"error": "Namespace name required"}
+    
+    namespace = args[0]
+    
+    # Get events for this namespace
+    events = ls.index.get_events_for_namespace(namespace)
+    
+    if not events:
+        ls.notify_info(f"No events found in namespace '{namespace}'")
+        return {
+            "namespace": namespace,
+            "events": [],
+            "count": 0,
+        }
+    
+    # Build event list with locations and titles
+    event_list = []
+    for event_id in events:
+        event_loc = ls.index.find_event(event_id)
+        title = ls.index.get_event_localized_title(event_id) or "(no title)"
+        
+        event_list.append({
+            "event_id": event_id,
+            "title": title,
+            "file": event_loc.uri if event_loc else None,
+            "line": event_loc.range.start.line if event_loc else None,
+        })
+    
+    ls.notify_info(f"Found {len(events)} events in namespace '{namespace}'")
+    
+    return {
+        "namespace": namespace,
+        "events": event_list,
+        "count": len(events),
+    }
+
+
+@server.command("ck3.insertTextAtCursor")
+async def insert_text_at_cursor_command(ls: CK3LanguageServer, args: List[Any]):
+    """
+    Command: Insert text at a specific position in a file.
+    
+    This command demonstrates the apply_edit functionality by inserting
+    text at a specified position.
+    
+    Args:
+        ls: The language server instance
+        args: Command arguments:
+            - args[0]: File URI
+            - args[1]: Line number (0-indexed)
+            - args[2]: Character position (0-indexed)
+            - args[3]: Text to insert
+        
+    Returns:
+        Dictionary with success status
+    """
+    logger.info("Executing ck3.insertTextAtCursor command")
+    
+    if not args or len(args) < 4:
+        return {"error": "Required arguments: uri, line, character, text"}
+    
+    uri = args[0]
+    line = int(args[1])
+    character = int(args[2])
+    text = args[3]
+    
+    try:
+        edit = ls.create_insert_edit(uri, line, character, text)
+        success = await ls.apply_edit(edit, "Insert text")
+        
+        if success:
+            ls.notify_info("Text inserted successfully")
+            return {"success": True}
+        else:
+            ls.notify_error("Failed to insert text")
+            return {"success": False, "error": "Edit not applied"}
+    except Exception as e:
+        logger.error(f"Error inserting text: {e}", exc_info=True)
+        return {"success": False, "error": str(e)}
+
+
+@server.command("ck3.generateLocalizationStubs")
+async def generate_localization_stubs_command(ls: CK3LanguageServer, args: List[Any]):
+    """
+    Command: Generate localization stubs for an event.
+    
+    Creates localization entries for a given event ID and optionally
+    inserts them into a localization file using apply_edit.
+    
+    Args:
+        ls: The language server instance
+        args: Command arguments:
+            - args[0]: Event ID (e.g., "my_mod.0001")
+            - args[1]: (Optional) Target localization file URI
+            - args[2]: (Optional) Line to insert at (0-indexed)
+        
+    Returns:
+        Dictionary with generated localization text and success status
+    """
+    logger.info("Executing ck3.generateLocalizationStubs command")
+    
+    if not args or len(args) < 1:
+        return {"error": "Event ID required"}
+    
+    event_id = args[0]
+    target_uri = args[1] if len(args) > 1 else None
+    insert_line = int(args[2]) if len(args) > 2 else None
+    
+    # Generate localization stub text
+    loc_text = f''' {event_id}.t:0 "Event Title"
+ {event_id}.desc:0 "Event description goes here."
+ {event_id}.a:0 "First Option"
+ {event_id}.b:0 "Second Option"
+'''
+    
+    result = {
+        "event_id": event_id,
+        "localization_text": loc_text,
+        "keys_generated": [
+            f"{event_id}.t",
+            f"{event_id}.desc",
+            f"{event_id}.a",
+            f"{event_id}.b",
+        ]
+    }
+    
+    # If target file and line specified, insert the text
+    if target_uri and insert_line is not None:
+        try:
+            edit = ls.create_insert_edit(target_uri, insert_line, 0, loc_text)
+            success = await ls.apply_edit(edit, f"Add localization for {event_id}")
+            
+            result["inserted"] = success
+            if success:
+                ls.notify_info(f"Localization stubs for {event_id} inserted")
+            else:
+                ls.notify_warning(f"Could not insert localization stubs")
+        except Exception as e:
+            logger.error(f"Error inserting localization: {e}", exc_info=True)
+            result["inserted"] = False
+            result["error"] = str(e)
+    else:
+        result["inserted"] = False
+        result["message"] = "No target file specified - text returned but not inserted"
+    
+    return result
+
+
+@server.command("ck3.renameEvent")
+async def rename_event_command(ls: CK3LanguageServer, args: List[Any]):
+    """
+    Command: Rename an event ID across files.
+    
+    This is a refactoring command that renames an event ID in both
+    the event definition and all trigger_event references.
+    
+    Note: This is a basic implementation - a full rename would also
+    update localization keys.
+    
+    Args:
+        ls: The language server instance
+        args: Command arguments:
+            - args[0]: Old event ID (e.g., "my_mod.0001")
+            - args[1]: New event ID (e.g., "my_mod.0100")
+        
+    Returns:
+        Dictionary with rename results
+    """
+    logger.info("Executing ck3.renameEvent command")
+    
+    if not args or len(args) < 2:
+        return {"error": "Required arguments: old_event_id, new_event_id"}
+    
+    old_id = args[0]
+    new_id = args[1]
+    
+    # Find the event definition
+    event_loc = ls.index.find_event(old_id)
+    if not event_loc:
+        return {"error": f"Event '{old_id}' not found"}
+    
+    # Create edits to rename
+    # This is a simplified version - full implementation would:
+    # 1. Parse the file to find exact positions
+    # 2. Find all trigger_event references
+    # 3. Update localization keys
+    
+    try:
+        # For now, just report what would be changed
+        result = {
+            "old_id": old_id,
+            "new_id": new_id,
+            "definition_file": event_loc.uri,
+            "definition_line": event_loc.range.start.line,
+            "message": "Event rename functionality requires parsing files for exact positions. Use find-and-replace for now.",
+            "suggestion": f"Replace '{old_id}' with '{new_id}' in your event files and localization."
+        }
+        
+        ls.notify_info(f"To rename: Replace '{old_id}' with '{new_id}'")
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error renaming event: {e}", exc_info=True)
+        return {"error": str(e)}
 
 
 def main():

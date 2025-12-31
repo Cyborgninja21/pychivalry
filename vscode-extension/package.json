@@ -81,6 +81,51 @@
         "command": "ck3LanguageServer.openDocumentation",
         "title": "Open CK3 Modding Documentation",
         "category": "CK3"
+      },
+      {
+        "command": "ck3LanguageServer.validateWorkspace",
+        "title": "Validate Workspace",
+        "category": "CK3"
+      },
+      {
+        "command": "ck3LanguageServer.rescanWorkspace",
+        "title": "Rescan Workspace",
+        "category": "CK3"
+      },
+      {
+        "command": "ck3LanguageServer.getWorkspaceStats",
+        "title": "Show Workspace Statistics",
+        "category": "CK3"
+      },
+      {
+        "command": "ck3LanguageServer.generateEventTemplate",
+        "title": "Generate Event Template",
+        "category": "CK3"
+      },
+      {
+        "command": "ck3LanguageServer.findOrphanedLocalization",
+        "title": "Find Orphaned Localization",
+        "category": "CK3"
+      },
+      {
+        "command": "ck3LanguageServer.checkDependencies",
+        "title": "Check Dependencies",
+        "category": "CK3"
+      },
+      {
+        "command": "ck3LanguageServer.showNamespaceEvents",
+        "title": "Show Namespace Events",
+        "category": "CK3"
+      },
+      {
+        "command": "ck3LanguageServer.generateLocalizationStubs",
+        "title": "Generate Localization Stubs",
+        "category": "CK3"
+      },
+      {
+        "command": "ck3LanguageServer.renameEvent",
+        "title": "Rename Event",
+        "category": "CK3"
       }
     ],
     "menus": {
@@ -100,6 +145,42 @@
         {
           "command": "ck3LanguageServer.openDocumentation",
           "when": "true"
+        },
+        {
+          "command": "ck3LanguageServer.validateWorkspace",
+          "when": "true"
+        },
+        {
+          "command": "ck3LanguageServer.rescanWorkspace",
+          "when": "true"
+        },
+        {
+          "command": "ck3LanguageServer.getWorkspaceStats",
+          "when": "true"
+        },
+        {
+          "command": "ck3LanguageServer.generateEventTemplate",
+          "when": "editorLangId == ck3"
+        },
+        {
+          "command": "ck3LanguageServer.findOrphanedLocalization",
+          "when": "true"
+        },
+        {
+          "command": "ck3LanguageServer.checkDependencies",
+          "when": "true"
+        },
+        {
+          "command": "ck3LanguageServer.showNamespaceEvents",
+          "when": "editorLangId == ck3"
+        },
+        {
+          "command": "ck3LanguageServer.generateLocalizationStubs",
+          "when": "editorLangId == ck3"
+        },
+        {
+          "command": "ck3LanguageServer.renameEvent",
+          "when": "editorLangId == ck3"
         }
       ]
     },
@@ -149,6 +230,56 @@
           "type": "boolean",
           "default": true,
           "description": "Enable/disable the CK3 language server",
+          "scope": "resource"
+        },
+        "ck3LanguageServer.formatting.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable document formatting for CK3 files",
+          "scope": "resource"
+        },
+        "ck3LanguageServer.formatting.insertSpaces": {
+          "type": "boolean",
+          "default": false,
+          "description": "Use spaces instead of tabs for indentation (Paradox convention uses tabs)",
+          "scope": "resource"
+        },
+        "ck3LanguageServer.formatting.tabSize": {
+          "type": "number",
+          "default": 4,
+          "description": "Number of spaces per tab (for display purposes)",
+          "scope": "resource"
+        },
+        "ck3LanguageServer.inlayHints.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable inlay hints for CK3 scripts",
+          "scope": "resource"
+        },
+        "ck3LanguageServer.inlayHints.showScopeTypes": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show type hints after saved scopes (e.g., scope:friend → : character)",
+          "scope": "resource"
+        },
+        "ck3LanguageServer.inlayHints.showChainTypes": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show type hints after scope chains (e.g., root.primary_title → : landed_title)",
+          "scope": "resource"
+        },
+        "ck3LanguageServer.inlayHints.showIteratorTypes": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show type hints for list iterators (e.g., every_vassal → → character)",
+          "scope": "resource"
+        },
+        "ck3LanguageServer.inlayHints.maxHintsPerLine": {
+          "type": "number",
+          "default": 3,
+          "minimum": 1,
+          "maximum": 10,
+          "description": "Maximum number of inlay hints to show per line",
           "scope": "resource"
         }
       }

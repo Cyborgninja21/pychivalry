@@ -8,6 +8,60 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Folding Range**: Code folding support (Ctrl+Shift+[ to fold, Ctrl+Shift+] to unfold)
+  - Event blocks: Collapse entire events to single lines
+  - Named blocks: Fold `trigger`, `effect`, `option`, `immediate`, iterators
+  - Nested blocks: Any `{ ... }` block spanning multiple lines
+  - Comment blocks: Consecutive comment lines can be folded
+  - Region markers: Custom folding with `# region Name` / `# endregion`
+- **Rename Symbol**: Workspace-wide symbol renaming (F2 or Ctrl+Shift+R)
+  - Event IDs: Rename `rq.0001` across all files, including localization keys
+  - Saved scopes: Rename `scope:target` and all `save_scope_as = target` definitions
+  - Variables: Rename `var:counter` and all `set_variable = { name = counter }` definitions
+  - Character flags: Rename across `has_character_flag`, `add_character_flag`, `remove_character_flag`
+  - Global flags: Rename across `has_global_flag`, `set_global_flag`, `remove_global_flag`
+  - Scripted effects/triggers: Rename definitions and all usages
+  - Opinion modifiers: Rename definitions and `modifier =` references
+  - Prepare Rename support: Validates rename is possible before starting
+  - Name validation: Enforces proper identifier format and event ID format
+  - Localization key updates: Automatically renames related localization keys (`.t`, `.desc`, `.a`, etc.)
+- **Document Links**: Clickable references for paths, URLs, and event IDs
+  - File paths: `common/scripted_effects/file.txt`, `gfx/icons/icon.dds` become clickable
+  - URLs: `https://...` links are clickable with domain-specific tooltips (Wiki, GitHub, etc.)
+  - Event IDs in comments: `# See rq.0001` links to event definition
+  - GFX paths in script: `icon = "gfx/..."` are clickable
+  - Workspace-aware path resolution for mod structure
+- **Document Highlight**: Click on a symbol to highlight all occurrences in the file
+  - Saved scopes: `scope:target` and `save_scope_as = target` highlighted together
+  - Event IDs: Definitions and `trigger_event` references highlighted
+  - Variables: `var:name`, `local_var:`, `global_var:` with `set_variable` definitions
+  - Character flags: `has_character_flag`, `add_character_flag`, `remove_character_flag`
+  - Global flags: `has_global_flag`, `set_global_flag`, `remove_global_flag`
+  - Traits: `has_trait`, `add_trait`, `remove_trait`
+  - Proper highlight kinds: Read (references), Write (definitions)
+- **Signature Help**: Parameter hints when typing inside effect blocks
+  - Shows required and optional parameters with type hints
+  - Highlights active parameter as you type
+  - Supports 25+ effects: add_opinion, trigger_event, set_variable, add_character_modifier, random, death, etc.
+  - Trigger signatures: opinion, has_relation, is_at_war_with
+  - Triggered by `{`, `=`, and space characters
+- **Inlay Hints**: Inline type annotations for scopes and iterators
+  - Scope type hints: `scope:friend` shows `: character`
+  - Chain type hints: `root.primary_title` shows `: landed_title`
+  - Iterator hints: `every_vassal` shows `→ character`
+  - Smart type inference from naming conventions (e.g., `_target`, `_title`, `_province`)
+  - Configurable via settings: show/hide scope types, chain types, iterator types
+  - 40+ character list types, 10+ title list types, faith/culture/war/scheme types
+- **Document Formatting**: Auto-format CK3 scripts to Paradox conventions (Shift+Alt+F)
+  - Tab indentation (Paradox convention, not spaces)
+  - Opening braces on same line: `trigger = {`
+  - Single space around operators: `key = value`, `>= 5`
+  - Proper blank lines between top-level blocks
+  - Trailing whitespace trimming
+  - Preserved quoted strings and comments
+- **Range Formatting**: Format only selected code (Ctrl+K Ctrl+F)
+  - Automatically expands to complete blocks
+  - Useful when pasting code from other sources
 - **Go to Definition**: Navigate to events, scripted effects/triggers, localization keys, saved scopes, modifiers, flags, on_actions, and more
 - **Code Actions**: Quick fixes for typos, missing namespace suggestions, scope chain validation
 - **Context-Aware Completions**: Intelligent filtering by block type (trigger/effect), scope type, and cursor position

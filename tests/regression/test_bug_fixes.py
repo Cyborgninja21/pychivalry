@@ -4,6 +4,7 @@ Each test represents a bug that was found and fixed. These tests ensure the bugs
 """
 
 import pytest
+from lsprotocol import types
 from pychivalry.parser import parse_document
 from pychivalry.diagnostics import collect_all_diagnostics, get_diagnostics_for_text
 from pychivalry.completions import get_context_aware_completions
@@ -153,15 +154,21 @@ class TestCompletionsRegressions:
         """
         content = "."
         
-        doc = parse_document(content)
+        ast = parse_document(content)
         index = DocumentIndex()
-        index.update_from_ast("test.txt", doc)
+        index.update_from_ast("test.txt", ast)
         
-        position = (0, 1)
+        position = types.Position(line=0, character=1)
         
         # Should not crash
-        completions = get_context_aware_completions(doc, position, index)
-        assert isinstance(completions, list)
+        result = get_context_aware_completions(
+            document_uri="test.txt",
+            position=position,
+            ast=ast[0] if ast else None,
+            line_text=content,
+            document_index=index
+        )
+        assert isinstance(result, types.CompletionList)
 
     def test_completions_at_document_boundary(self):
         """Regression: Completions at document end should not crash.
@@ -171,16 +178,22 @@ class TestCompletionsRegressions:
         """
         content = "namespace = test\n"
         
-        doc = parse_document(content)
+        ast = parse_document(content)
         index = DocumentIndex()
-        index.update_from_ast("test.txt", doc)
+        index.update_from_ast("test.txt", ast)
         
         # Position at document end
-        position = (1, 0)
+        position = types.Position(line=1, character=0)
         
         # Should not crash
-        completions = get_context_aware_completions(doc, position, index)
-        assert isinstance(completions, list)
+        result = get_context_aware_completions(
+            document_uri="test.txt",
+            position=position,
+            ast=ast[0] if ast else None,
+            line_text="",
+            document_index=index
+        )
+        assert isinstance(result, types.CompletionList)
 
     def test_snippet_completions_in_effect_block(self):
         """Regression: Snippet completions should appear in effect blocks.
@@ -198,16 +211,24 @@ class TestCompletionsRegressions:
         }
         """
         
-        doc = parse_document(content)
+        ast = parse_document(content)
         index = DocumentIndex()
-        index.update_from_ast("test.txt", doc)
+        index.update_from_ast("test.txt", ast)
         
-        position = (5, 16)  # Inside immediate block
+        lines = content.split('\n')
+        position = types.Position(line=5, character=16)  # Inside immediate block
+        line_text = lines[5] if len(lines) > 5 else ""
         
-        completions = get_context_aware_completions(doc, position, index)
+        result = get_context_aware_completions(
+            document_uri="test.txt",
+            position=position,
+            ast=ast[0] if ast else None,
+            line_text=line_text,
+            document_index=index
+        )
         
         # Should include some completions
-        assert len(completions) > 0
+        assert len(result.items) > 0
 
 
 class TestNavigationRegressions:
