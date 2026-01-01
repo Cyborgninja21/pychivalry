@@ -52,19 +52,39 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     context.subscriptions.push(
         vscode.commands.registerCommand('ck3LanguageServer.showOutput', async () => {
             const items: Array<{ label: string; description: string; category: LogCategory }> = [
-                { label: '$(server) Server Log', description: 'Lifecycle and startup messages', category: LogCategory.Server },
-                { label: '$(terminal) Command Results', description: 'Output from CK3 commands', category: LogCategory.Commands },
-                { label: '$(debug) LSP Trace', description: 'Protocol communication (if enabled)', category: LogCategory.Trace },
+                {
+                    label: '$(server) Server Log',
+                    description: 'Lifecycle and startup messages',
+                    category: LogCategory.Server,
+                },
+                {
+                    label: '$(terminal) Command Results',
+                    description: 'Output from CK3 commands',
+                    category: LogCategory.Commands,
+                },
+                {
+                    label: '$(debug) LSP Trace',
+                    description: 'Protocol communication (if enabled)',
+                    category: LogCategory.Trace,
+                },
             ];
 
             // Add debug channel if enabled
             if (logger.hasDebugChannel()) {
-                items.splice(1, 0, { label: '$(bug) Debug Log', description: 'Detailed debug information', category: LogCategory.Debug });
+                items.splice(1, 0, {
+                    label: '$(bug) Debug Log',
+                    description: 'Detailed debug information',
+                    category: LogCategory.Debug,
+                });
             }
 
             // Add performance channel if enabled
             if (logger.hasPerformanceChannel()) {
-                items.push({ label: '$(dashboard) Performance', description: 'Timing and cache metrics', category: LogCategory.Performance });
+                items.push({
+                    label: '$(dashboard) Performance',
+                    description: 'Timing and cache metrics',
+                    category: LogCategory.Performance,
+                });
             }
 
             const selected = await vscode.window.showQuickPick(items, {
@@ -200,7 +220,13 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
             // Get event type
             const eventType = await vscode.window.showQuickPick(
-                ['character_event', 'letter_event', 'court_event', 'fullscreen_event', 'activity_event'],
+                [
+                    'character_event',
+                    'letter_event',
+                    'court_event',
+                    'fullscreen_event',
+                    'activity_event',
+                ],
                 { placeHolder: 'Select event type' }
             );
 
@@ -256,7 +282,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
                         lines.push(`  - ${key}`);
                     });
                     if (result.total_count > result.orphaned_keys.length) {
-                        lines.push(`  ... and ${result.total_count - result.orphaned_keys.length} more`);
+                        lines.push(
+                            `  ... and ${result.total_count - result.orphaned_keys.length} more`
+                        );
                     }
                     logger.appendCommandLines(lines);
                     logger.showChannel(LogCategory.Commands);
@@ -288,62 +316,79 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
     // Register showNamespaceEvents command (also used by Code Lens)
     context.subscriptions.push(
-        vscode.commands.registerCommand('ck3LanguageServer.showNamespaceEvents', async (namespace?: string) => {
-            if (!client) {
-                vscode.window.showErrorMessage('CK3 Language Server is not running');
-                return;
-            }
+        vscode.commands.registerCommand(
+            'ck3LanguageServer.showNamespaceEvents',
+            async (namespace?: string) => {
+                if (!client) {
+                    vscode.window.showErrorMessage('CK3 Language Server is not running');
+                    return;
+                }
 
-            // If namespace not provided (direct command invocation), ask for it
-            if (!namespace) {
-                namespace = await vscode.window.showInputBox({
-                    prompt: 'Enter namespace name',
-                    placeHolder: 'e.g., my_mod',
-                });
-
+                // If namespace not provided (direct command invocation), ask for it
                 if (!namespace) {
-                    return;
+                    namespace = await vscode.window.showInputBox({
+                        prompt: 'Enter namespace name',
+                        placeHolder: 'e.g., my_mod',
+                    });
+
+                    if (!namespace) {
+                        return;
+                    }
+                }
+
+                try {
+                    const result = (await client.sendRequest('workspace/executeCommand', {
+                        command: 'ck3.showNamespaceEvents',
+                        arguments: [namespace],
+                    })) as {
+                        namespace: string;
+                        events: Array<{
+                            event_id: string;
+                            title: string;
+                            file: string;
+                            line: number;
+                        }>;
+                        count: number;
+                    };
+
+                    if (result.count === 0) {
+                        vscode.window.showInformationMessage(
+                            `No events found in namespace '${namespace}'`
+                        );
+                        return;
+                    }
+
+                    // Show events in a quick pick for navigation
+                    const items = result.events.map((event) => ({
+                        label: event.event_id,
+                        description: event.title,
+                        detail: event.file ? `Line ${event.line + 1}` : undefined,
+                        event: event,
+                    }));
+
+                    const selected = await vscode.window.showQuickPick(items, {
+                        placeHolder: `${result.count} events in namespace '${namespace}'`,
+                        matchOnDescription: true,
+                    });
+
+                    // Navigate to selected event
+                    if (selected && selected.event.file) {
+                        const uri = vscode.Uri.parse(selected.event.file);
+                        const doc = await vscode.workspace.openTextDocument(uri);
+                        const editor = await vscode.window.showTextDocument(doc);
+                        const position = new vscode.Position(selected.event.line, 0);
+                        editor.selection = new vscode.Selection(position, position);
+                        editor.revealRange(
+                            new vscode.Range(position, position),
+                            vscode.TextEditorRevealType.InCenter
+                        );
+                    }
+                } catch (error) {
+                    const message = error instanceof Error ? error.message : String(error);
+                    vscode.window.showErrorMessage(`Failed to show namespace events: ${message}`);
                 }
             }
-
-            try {
-                const result = (await client.sendRequest('workspace/executeCommand', {
-                    command: 'ck3.showNamespaceEvents',
-                    arguments: [namespace],
-                })) as { namespace: string; events: Array<{ event_id: string; title: string; file: string; line: number }>; count: number };
-
-                if (result.count === 0) {
-                    vscode.window.showInformationMessage(`No events found in namespace '${namespace}'`);
-                    return;
-                }
-
-                // Show events in a quick pick for navigation
-                const items = result.events.map(event => ({
-                    label: event.event_id,
-                    description: event.title,
-                    detail: event.file ? `Line ${event.line + 1}` : undefined,
-                    event: event,
-                }));
-
-                const selected = await vscode.window.showQuickPick(items, {
-                    placeHolder: `${result.count} events in namespace '${namespace}'`,
-                    matchOnDescription: true,
-                });
-
-                // Navigate to selected event
-                if (selected && selected.event.file) {
-                    const uri = vscode.Uri.parse(selected.event.file);
-                    const doc = await vscode.workspace.openTextDocument(uri);
-                    const editor = await vscode.window.showTextDocument(doc);
-                    const position = new vscode.Position(selected.event.line, 0);
-                    editor.selection = new vscode.Selection(position, position);
-                    editor.revealRange(new vscode.Range(position, position), vscode.TextEditorRevealType.InCenter);
-                }
-            } catch (error) {
-                const message = error instanceof Error ? error.message : String(error);
-                vscode.window.showErrorMessage(`Failed to show namespace events: ${message}`);
-            }
-        })
+        )
     );
 
     // Note: ck3.showNamespaceEvents is registered by the language server via executeCommandProvider
