@@ -5,6 +5,69 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0] - 2026-01-01
+
+### 🎉 First Stable Release
+
+pychivalry is now production-ready! This release marks the first stable version of the CK3 Language Server, bringing professional IDE features to Crusader Kings 3 mod development.
+
+### Highlights
+
+- **1,142 passing tests** with comprehensive coverage
+- **15+ major LSP features** fully implemented
+- **Production-ready** architecture with async/threading optimizations
+- **Rich documentation** with examples and guides
+
+### Features
+
+All features from previous releases are now stable and production-ready:
+
+#### Core Language Server Features
+- **Context-Aware Auto-completion**: 150+ CK3 keywords, effects, triggers, and scopes
+- **Real-Time Diagnostics**: Three-layer validation (syntax, semantic, scope)
+- **Hover Documentation**: Rich Markdown tooltips with examples
+- **Go to Definition**: Navigate to events, scripted effects/triggers, localization keys
+- **Find References**: Find all usages across workspace
+- **Document Symbols**: Hierarchical outline view (Ctrl+Shift+O)
+- **Workspace Symbols**: Search symbols across workspace (Ctrl+T)
+- **Code Actions**: Quick fixes for typos and refactoring suggestions
+- **Rename Symbol**: Workspace-wide symbol renaming (F2)
+- **Document Links**: Clickable file paths, URLs, and event IDs
+- **Document Highlight**: Highlight all occurrences of symbol
+- **Signature Help**: Parameter hints when typing
+- **Inlay Hints**: Inline type annotations for scopes
+- **Document Formatting**: Auto-format to Paradox conventions (Shift+Alt+F)
+- **Folding Ranges**: Code folding support
+
+#### CK3 Language Support
+- **Scope System**: Full scope chain validation and saved scope tracking
+- **Script Lists**: List iterator validation (any_, every_, random_, ordered_)
+- **Script Values**: Formula and range validation
+- **Variables System**: Complete var:, local_var:, global_var: support
+- **Scripted Blocks**: Scripted triggers/effects with parameter support
+- **Event System**: Full event structure and validation
+- **Localization**: Key parsing, navigation, and validation
+
+#### Performance Optimizations
+- **Async Architecture**: Non-blocking operations with debouncing
+- **Thread Pool**: Multi-threaded CPU-intensive operations
+- **LRU Caching**: Optimized lookups and parsing
+- **Adaptive Delays**: Smart debouncing based on file size
+- **Memory Optimization**: Reduced AST memory footprint with __slots__
+
+### Documentation
+- Comprehensive README with quick start guide
+- CHANGELOG following Keep a Changelog format
+- CONTRIBUTING guide for contributors
+- TESTING guide with detailed instructions
+- Multiple feature-specific documentation files
+- Apache 2.0 license
+
+### Changed
+- Version bumped to 1.0.0 across all packages
+- Development status changed from Alpha to Production/Stable
+- All URLs verified to point to public repository
+
 ## [Unreleased]
 
 ### Added
@@ -155,6 +218,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - TypeScript VS Code extension
 - Apache 2.0 license
 
-[Unreleased]: https://github.com/Cyborgninja21/pychivalry/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/Cyborgninja21/pychivalry/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/Cyborgninja21/pychivalry/releases/tag/v1.0.0
 [0.2.0]: https://github.com/Cyborgninja21/pychivalry/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/Cyborgninja21/pychivalry/releases/tag/v0.1.0

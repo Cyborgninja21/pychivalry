@@ -41,19 +41,54 @@ class TextReplacement:
 
 # Known effects and triggers for typo suggestions
 KNOWN_EFFECTS = [
-    'add_gold', 'add_prestige', 'add_piety', 'add_stress', 'add_dread',
-    'add_trait', 'remove_trait', 'add_title', 'create_title',
-    'set_variable', 'change_variable', 'trigger_event', 'random_list',
-    'save_scope_as', 'death', 'imprison', 'release_from_prison',
-    'add_character_flag', 'remove_character_flag', 'set_culture',
-    'set_faith', 'add_opinion', 'reverse_add_opinion', 'spawn_army',
+    "add_gold",
+    "add_prestige",
+    "add_piety",
+    "add_stress",
+    "add_dread",
+    "add_trait",
+    "remove_trait",
+    "add_title",
+    "create_title",
+    "set_variable",
+    "change_variable",
+    "trigger_event",
+    "random_list",
+    "save_scope_as",
+    "death",
+    "imprison",
+    "release_from_prison",
+    "add_character_flag",
+    "remove_character_flag",
+    "set_culture",
+    "set_faith",
+    "add_opinion",
+    "reverse_add_opinion",
+    "spawn_army",
 ]
 
 KNOWN_TRIGGERS = [
-    'has_trait', 'has_title', 'has_gold', 'has_variable', 'is_alive',
-    'is_landed', 'is_at_war', 'has_character_flag', 'culture', 'faith',
-    'religion', 'age', 'diplomacy', 'martial', 'stewardship', 'intrigue',
-    'learning', 'prowess', 'any_vassal', 'any_courtier', 'can_have_children',
+    "has_trait",
+    "has_title",
+    "has_gold",
+    "has_variable",
+    "is_alive",
+    "is_landed",
+    "is_at_war",
+    "has_character_flag",
+    "culture",
+    "faith",
+    "religion",
+    "age",
+    "diplomacy",
+    "martial",
+    "stewardship",
+    "intrigue",
+    "learning",
+    "prowess",
+    "any_vassal",
+    "any_courtier",
+    "can_have_children",
 ]
 
 
@@ -123,10 +158,7 @@ def find_similar_keywords(word: str, candidates: List[str], max_distance: int = 
 
 
 def create_did_you_mean_action(
-    diagnostic: types.Diagnostic,
-    uri: str,
-    word: str,
-    suggestion: str
+    diagnostic: types.Diagnostic, uri: str, word: str, suggestion: str
 ) -> CodeAction:
     """
     Create a "Did you mean?" code action.
@@ -147,22 +179,15 @@ def create_did_you_mean_action(
         "Did you mean 'add_gold'?"
     """
     edit = types.WorkspaceEdit(
-        changes={
-            uri: [
-                types.TextEdit(
-                    range=diagnostic.range,
-                    new_text=suggestion
-                )
-            ]
-        }
+        changes={uri: [types.TextEdit(range=diagnostic.range, new_text=suggestion)]}
     )
 
     return CodeAction(
         title=f"Did you mean '{suggestion}'?",
-        kind='quickfix',
+        kind="quickfix",
         diagnostics=[diagnostic],
         edit=edit,
-        is_preferred=True
+        is_preferred=True,
     )
 
 
@@ -183,14 +208,14 @@ def create_add_namespace_action(uri: str, document_text: str) -> CodeAction:
         'Add namespace declaration'
     """
     # Extract a reasonable namespace from the file path or use default
-    namespace = 'my_mod'
+    namespace = "my_mod"
 
     # Try to extract from URI
-    if '/events/' in uri or '/common/' in uri:
-        parts = uri.split('/')
+    if "/events/" in uri or "/common/" in uri:
+        parts = uri.split("/")
         for i, part in enumerate(parts):
-            if part in ['events', 'common'] and i > 0:
-                namespace = parts[i - 1].replace('-', '_').lower()
+            if part in ["events", "common"] and i > 0:
+                namespace = parts[i - 1].replace("-", "_").lower()
                 break
 
     # Insert at the beginning of the file
@@ -200,27 +225,19 @@ def create_add_namespace_action(uri: str, document_text: str) -> CodeAction:
                 types.TextEdit(
                     range=types.Range(
                         start=types.Position(line=0, character=0),
-                        end=types.Position(line=0, character=0)
+                        end=types.Position(line=0, character=0),
                     ),
-                    new_text=f"namespace = {namespace}\n\n"
+                    new_text=f"namespace = {namespace}\n\n",
                 )
             ]
         }
     )
 
-    return CodeAction(
-        title='Add namespace declaration',
-        kind='quickfix',
-        diagnostics=[],
-        edit=edit
-    )
+    return CodeAction(title="Add namespace declaration", kind="quickfix", diagnostics=[], edit=edit)
 
 
 def create_fix_scope_chain_action(
-    diagnostic: types.Diagnostic,
-    uri: str,
-    invalid_chain: str,
-    suggestion: str
+    diagnostic: types.Diagnostic, uri: str, invalid_chain: str, suggestion: str
 ) -> CodeAction:
     """
     Create an action to fix an invalid scope chain.
@@ -240,28 +257,16 @@ def create_fix_scope_chain_action(
         "Replace with 'liege'"
     """
     edit = types.WorkspaceEdit(
-        changes={
-            uri: [
-                types.TextEdit(
-                    range=diagnostic.range,
-                    new_text=suggestion
-                )
-            ]
-        }
+        changes={uri: [types.TextEdit(range=diagnostic.range, new_text=suggestion)]}
     )
 
     return CodeAction(
-        title=f"Replace with '{suggestion}'",
-        kind='quickfix',
-        diagnostics=[diagnostic],
-        edit=edit
+        title=f"Replace with '{suggestion}'", kind="quickfix", diagnostics=[diagnostic], edit=edit
     )
 
 
 def suggest_valid_scope_links(
-    current_scope: str,
-    invalid_link: str,
-    scope_definitions: Dict[str, Dict[str, Any]]
+    current_scope: str, invalid_link: str, scope_definitions: Dict[str, Dict[str, Any]]
 ) -> List[str]:
     """
     Suggest valid scope links for a given scope type.
@@ -282,7 +287,7 @@ def suggest_valid_scope_links(
         return []
 
     scope_def = scope_definitions[current_scope]
-    valid_links = scope_def.get('links', [])
+    valid_links = scope_def.get("links", [])
 
     # Find similar links
     suggestions = find_similar_keywords(invalid_link, valid_links, max_distance=2)
@@ -295,10 +300,7 @@ def suggest_valid_scope_links(
 
 
 def extract_selection_as_scripted_effect(
-    uri: str,
-    selection_range: types.Range,
-    selected_text: str,
-    effect_name: str
+    uri: str, selection_range: types.Range, selected_text: str, effect_name: str
 ) -> CodeAction:
     """
     Create a refactoring action to extract selection as scripted effect.
@@ -321,14 +323,7 @@ def extract_selection_as_scripted_effect(
     replacement_text = f"{effect_name} = yes"
 
     edit = types.WorkspaceEdit(
-        changes={
-            uri: [
-                types.TextEdit(
-                    range=selection_range,
-                    new_text=replacement_text
-                )
-            ]
-        }
+        changes={uri: [types.TextEdit(range=selection_range, new_text=replacement_text)]}
     )
 
     # Note: In a real implementation, we'd also create the scripted effect file
@@ -336,17 +331,14 @@ def extract_selection_as_scripted_effect(
 
     return CodeAction(
         title=f"Extract as scripted effect '{effect_name}'",
-        kind='refactor.extract',
+        kind="refactor.extract",
         diagnostics=[],
-        edit=edit
+        edit=edit,
     )
 
 
 def extract_selection_as_scripted_trigger(
-    uri: str,
-    selection_range: types.Range,
-    selected_text: str,
-    trigger_name: str
+    uri: str, selection_range: types.Range, selected_text: str, trigger_name: str
 ) -> CodeAction:
     """
     Create a refactoring action to extract selection as scripted trigger.
@@ -361,7 +353,9 @@ def extract_selection_as_scripted_trigger(
         CodeAction for refactoring
 
     Example:
-        >>> action = extract_selection_as_scripted_trigger(uri, range, 'has_gold = 100', 'has_enough_gold')
+        >>> action = extract_selection_as_scripted_trigger(
+        ...     uri, range, 'has_gold = 100', 'has_enough_gold'
+        ... )
         >>> action.title
         "Extract as scripted trigger 'has_enough_gold'"
     """
@@ -369,29 +363,18 @@ def extract_selection_as_scripted_trigger(
     replacement_text = trigger_name
 
     edit = types.WorkspaceEdit(
-        changes={
-            uri: [
-                types.TextEdit(
-                    range=selection_range,
-                    new_text=replacement_text
-                )
-            ]
-        }
+        changes={uri: [types.TextEdit(range=selection_range, new_text=replacement_text)]}
     )
 
     return CodeAction(
         title=f"Extract as scripted trigger '{trigger_name}'",
-        kind='refactor.extract',
+        kind="refactor.extract",
         diagnostics=[],
-        edit=edit
+        edit=edit,
     )
 
 
-def generate_localization_key_action(
-    uri: str,
-    range: types.Range,
-    event_id: str
-) -> CodeAction:
+def generate_localization_key_action(uri: str, range: types.Range, event_id: str) -> CodeAction:
     """
     Create an action to generate localization key for an event.
 
@@ -409,7 +392,7 @@ def generate_localization_key_action(
         'Generate localization keys'
     """
     # Generate standard localization keys for event
-    namespace, number = event_id.split('.') if '.' in event_id else (event_id, '0000')
+    namespace, number = event_id.split(".") if "." in event_id else (event_id, "0000")
 
     title_key = f"{namespace}.{number}.t"
     desc_key = f"{namespace}.{number}.desc"
@@ -418,26 +401,19 @@ def generate_localization_key_action(
         changes={
             uri: [
                 types.TextEdit(
-                    range=range,
-                    new_text=f'\n    title = {title_key}\n    desc = {desc_key}'
+                    range=range, new_text=f"\n    title = {title_key}\n    desc = {desc_key}"
                 )
             ]
         }
     )
 
     return CodeAction(
-        title='Generate localization keys',
-        kind='refactor.rewrite',
-        diagnostics=[],
-        edit=edit
+        title="Generate localization keys", kind="refactor.rewrite", diagnostics=[], edit=edit
     )
 
 
 def get_code_actions_for_diagnostic(
-    diagnostic: types.Diagnostic,
-    uri: str,
-    document_text: str,
-    context: str
+    diagnostic: types.Diagnostic, uri: str, document_text: str, context: str
 ) -> List[CodeAction]:
     """
     Get code actions for a specific diagnostic.
@@ -463,53 +439,46 @@ def get_code_actions_for_diagnostic(
     message = diagnostic.message
 
     # Handle typos in effects
-    if 'Unknown effect' in message:
+    if "Unknown effect" in message:
         # Extract the unknown word
         match = re.search(r"Unknown effect '([^']+)'", message)
         if match:
             word = match.group(1)
             suggestions = find_similar_keywords(word, KNOWN_EFFECTS)
             for suggestion in suggestions[:3]:  # Top 3 suggestions
-                actions.append(
-                    create_did_you_mean_action(diagnostic, uri, word, suggestion)
-                )
+                actions.append(create_did_you_mean_action(diagnostic, uri, word, suggestion))
 
     # Handle typos in triggers
-    elif 'Unknown trigger' in message:
+    elif "Unknown trigger" in message:
         match = re.search(r"Unknown trigger '([^']+)'", message)
         if match:
             word = match.group(1)
             suggestions = find_similar_keywords(word, KNOWN_TRIGGERS)
             for suggestion in suggestions[:3]:
-                actions.append(
-                    create_did_you_mean_action(diagnostic, uri, word, suggestion)
-                )
+                actions.append(create_did_you_mean_action(diagnostic, uri, word, suggestion))
 
     # Handle invalid scope chains
-    elif 'Invalid scope chain' in message or 'Invalid scope link' in message:
+    elif "Invalid scope chain" in message or "Invalid scope link" in message:
         match = re.search(r"'([^']+)'", message)
         if match:
             invalid_chain = match.group(1)
             # For now, suggest removing the invalid part
             # In a real implementation, we'd use scope_definitions
-            suggestions = ['liege', 'spouse', 'primary_title', 'capital_county']
+            suggestions = ["liege", "spouse", "primary_title", "capital_county"]
             for suggestion in suggestions[:2]:
                 actions.append(
                     create_fix_scope_chain_action(diagnostic, uri, invalid_chain, suggestion)
                 )
 
     # Handle missing namespace
-    elif 'Missing namespace' in message or 'namespace required' in message.lower():
+    elif "Missing namespace" in message or "namespace required" in message.lower():
         actions.append(create_add_namespace_action(uri, document_text))
 
     return actions
 
 
 def get_refactoring_actions(
-    uri: str,
-    selection_range: types.Range,
-    selected_text: str,
-    context: str
+    uri: str, selection_range: types.Range, selected_text: str, context: str
 ) -> List[CodeAction]:
     """
     Get refactoring actions for a text selection.
@@ -535,18 +504,18 @@ def get_refactoring_actions(
         return actions
 
     # Extract as scripted effect
-    if context == 'effect' or context == 'unknown':
+    if context == "effect" or context == "unknown":
         actions.append(
             extract_selection_as_scripted_effect(
-                uri, selection_range, selected_text, 'new_scripted_effect'
+                uri, selection_range, selected_text, "new_scripted_effect"
             )
         )
 
     # Extract as scripted trigger
-    if context == 'trigger' or context == 'unknown':
+    if context == "trigger" or context == "unknown":
         actions.append(
             extract_selection_as_scripted_trigger(
-                uri, selection_range, selected_text, 'new_scripted_trigger'
+                uri, selection_range, selected_text, "new_scripted_trigger"
             )
         )
 
@@ -575,7 +544,7 @@ def convert_to_lsp_code_action(action: CodeAction) -> types.CodeAction:
         diagnostics=action.diagnostics if action.diagnostics else None,
         edit=action.edit,
         command=action.command,
-        is_preferred=action.is_preferred if action.is_preferred else None
+        is_preferred=action.is_preferred if action.is_preferred else None,
     )
 
 
@@ -585,7 +554,7 @@ def get_all_code_actions(
     diagnostics: List[types.Diagnostic],
     document_text: str,
     selected_text: str,
-    context: str
+    context: str,
 ) -> List[CodeAction]:
     """
     Get all applicable code actions for a given context.
@@ -610,14 +579,10 @@ def get_all_code_actions(
 
     # Get actions for each diagnostic
     for diagnostic in diagnostics:
-        actions.extend(
-            get_code_actions_for_diagnostic(diagnostic, uri, document_text, context)
-        )
+        actions.extend(get_code_actions_for_diagnostic(diagnostic, uri, document_text, context))
 
     # Get refactoring actions if there's a selection
     if selected_text and len(selected_text.strip()) > 0:
-        actions.extend(
-            get_refactoring_actions(uri, range, selected_text, context)
-        )
+        actions.extend(get_refactoring_actions(uri, range, selected_text, context))
 
     return actions

@@ -387,31 +387,49 @@ CK3_OPTION_FIELDS = {
     "name": {
         "description": "Localization key for the option button text.",
         "usage": "name = my_event.001.option_a",
-        "notes": "Required. References a key in localization files that contains the displayed text.",
+        "notes": (
+            "Required. References a key in localization files that " "contains the displayed text."
+        ),
         "type": "localization_key",
     },
     "custom_tooltip": {
         "description": "Displays a custom tooltip explaining what the option does.",
         "usage": "custom_tooltip = my_event.001.option_a.tt",
-        "notes": "References a localization key. Appears when hovering over the option. Use for effects that aren't self-explanatory.",
+        "notes": (
+            "References a localization key. Appears when hovering over the "
+            "option. Use for effects that aren't self-explanatory."
+        ),
         "type": "localization_key",
     },
     "trait": {
-        "description": "Highlights the option with a trait-colored border and shows the trait icon.",
+        "description": (
+            "Highlights the option with a trait-colored border and " "shows the trait icon."
+        ),
         "usage": "trait = brave",
-        "notes": "Does NOT require having the trait - it's purely cosmetic. Used to suggest which personality would choose this.",
+        "notes": (
+            "Does NOT require having the trait - it's purely cosmetic. "
+            "Used to suggest which personality would choose this."
+        ),
         "type": "trait_id",
     },
     "skill": {
-        "description": "Highlights the option with a skill-colored border and shows the skill icon.",
+        "description": (
+            "Highlights the option with a skill-colored border and " "shows the skill icon."
+        ),
         "usage": "skill = diplomacy",
-        "notes": "Shows which skill is relevant to this choice. Values: diplomacy, martial, stewardship, intrigue, learning, prowess.",
+        "notes": (
+            "Shows which skill is relevant to this choice. Values: "
+            "diplomacy, martial, stewardship, intrigue, learning, prowess."
+        ),
         "type": "skill_id",
     },
     "trigger": {
         "description": "Conditions that must be true for the option to appear.",
         "usage": "trigger = { is_adult = yes }",
-        "notes": "If trigger fails, option is hidden from player. Use 'show_as_unavailable' to gray out instead.",
+        "notes": (
+            "If trigger fails, option is hidden from player. "
+            "Use 'show_as_unavailable' to gray out instead."
+        ),
         "type": "trigger_block",
     },
     "show_as_unavailable": {
@@ -422,8 +440,11 @@ CK3_OPTION_FIELDS = {
     },
     "ai_chance": {
         "description": "Controls how likely AI characters are to pick this option.",
-        "usage": "ai_chance = { base = 50 modifier = { add = 20 has_trait = brave } }",
-        "notes": "Higher values = more likely. Can use modifiers to adjust based on character traits/situation.",
+        "usage": ("ai_chance = { base = 50 modifier = { add = 20 has_trait = brave } }"),
+        "notes": (
+            "Higher values = more likely. Can use modifiers to adjust based "
+            "on character traits/situation."
+        ),
         "type": "ai_weight_block",
     },
     "fallback": {
@@ -458,7 +479,10 @@ CK3_EVENT_FIELDS = {
     "type": {
         "description": "The type of event, determining its presentation style.",
         "usage": "type = character_event",
-        "notes": "Required. Options: character_event, letter_event, duel_event, court_event, fullscreen_event.",
+        "notes": (
+            "Required. Options: character_event, letter_event, duel_event, "
+            "court_event, fullscreen_event."
+        ),
         "type": "event_type",
     },
     "title": {
@@ -476,7 +500,10 @@ CK3_EVENT_FIELDS = {
     "theme": {
         "description": "Visual and audio theme for the event.",
         "usage": "theme = seduction",
-        "notes": "Affects background music, colors, and overall mood. Common: seduction, intrigue, war, diplomacy, faith.",
+        "notes": (
+            "Affects background music, colors, and overall mood. "
+            "Common: seduction, intrigue, war, diplomacy, faith."
+        ),
         "type": "theme_id",
     },
     "window": {
@@ -518,7 +545,10 @@ CK3_EVENT_FIELDS = {
     "immediate": {
         "description": "Effects that execute immediately when the event fires.",
         "usage": "immediate = { save_scope_as = protagonist }",
-        "notes": "Runs before the player sees the event. Use for setup, saving scopes, hidden effects.",
+        "notes": (
+            "Runs before the player sees the event. Use for setup, "
+            "saving scopes, hidden effects."
+        ),
         "type": "effect_block",
     },
     "on_trigger_fail": {
@@ -541,7 +571,7 @@ CK3_EVENT_FIELDS = {
     },
 }
 
-# CK3 Portrait Block Fields  
+# CK3 Portrait Block Fields
 # Fields used inside portrait blocks (left_portrait, right_portrait, etc.)
 CK3_PORTRAIT_FIELDS = {
     "character": {
@@ -553,7 +583,10 @@ CK3_PORTRAIT_FIELDS = {
     "animation": {
         "description": "The animation the character performs in the portrait.",
         "usage": "animation = happiness",
-        "notes": "Common: happiness, sadness, anger, fear, ecstasy, shock, disgust, flirtation, personality_bold.",
+        "notes": (
+            "Common: happiness, sadness, anger, fear, ecstasy, shock, "
+            "disgust, flirtation, personality_bold."
+        ),
         "type": "animation_id",
     },
     "outfit_tags": {
@@ -588,4 +621,3 @@ CK3_CONTEXT_FIELDS = {
     **CK3_EVENT_FIELDS,
     **CK3_PORTRAIT_FIELDS,
 }
-

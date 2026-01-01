@@ -22,7 +22,7 @@ def fixtures_dir():
 @pytest.fixture
 def sample_event_text():
     """Sample valid event text."""
-    return '''namespace = test_mod
+    return """namespace = test_mod
 
 test_mod.0001 = {
     type = character_event
@@ -46,13 +46,13 @@ test_mod.0001 = {
         add_gold = 100
     }
 }
-'''
+"""
 
 
 @pytest.fixture
 def syntax_error_text():
     """Sample text with syntax errors."""
-    return '''namespace = test_mod
+    return """namespace = test_mod
 
 test_mod.0001 = {
     type = character_event
@@ -64,13 +64,13 @@ test_mod.0001 = {
         name = test_mod.0001.a
     }
 }
-'''
+"""
 
 
 @pytest.fixture
 def scope_chain_text():
     """Sample text with scope chains."""
-    return '''test_mod.0001 = {
+    return """test_mod.0001 = {
     type = character_event
     trigger = {
         liege = {
@@ -84,7 +84,7 @@ def scope_chain_text():
         scope:target = { add_gold = 100 }
     }
 }
-'''
+"""
 
 
 @pytest.fixture

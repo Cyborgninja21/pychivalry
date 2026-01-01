@@ -86,7 +86,7 @@ class TestGenerateEventTemplateCommand:
         """Test generating a template with default arguments."""
         ls = CK3LanguageServer("test", "v1")
         result = generate_event_template_command(ls, [])
-        
+
         assert "template" in result
         assert "event_id" in result
         assert "localization_keys" in result
@@ -98,7 +98,7 @@ class TestGenerateEventTemplateCommand:
         """Test generating a template with custom namespace."""
         ls = CK3LanguageServer("test", "v1")
         result = generate_event_template_command(ls, ["custom_mod"])
-        
+
         assert result["event_id"] == "custom_mod.0001"
         assert "custom_mod.0001 = {" in result["template"]
 
@@ -106,7 +106,7 @@ class TestGenerateEventTemplateCommand:
         """Test generating a template with custom event number."""
         ls = CK3LanguageServer("test", "v1")
         result = generate_event_template_command(ls, ["my_mod", "1234"])
-        
+
         assert result["event_id"] == "my_mod.1234"
         assert "my_mod.1234 = {" in result["template"]
 
@@ -114,16 +114,16 @@ class TestGenerateEventTemplateCommand:
         """Test generating a template with custom event type."""
         ls = CK3LanguageServer("test", "v1")
         result = generate_event_template_command(ls, ["my_mod", "0001", "letter_event"])
-        
+
         assert "type = letter_event" in result["template"]
 
     def test_template_structure(self):
         """Test that the template has proper structure."""
         ls = CK3LanguageServer("test", "v1")
         result = generate_event_template_command(ls, ["test_mod", "0001"])
-        
+
         template = result["template"]
-        
+
         # Check required elements
         assert "test_mod.0001 = {" in template
         assert "type = character_event" in template
@@ -143,14 +143,14 @@ class TestGetWorkspaceStatsCommand:
         """Test that stats returns a dictionary."""
         ls = CK3LanguageServer("test", "v1")
         result = get_workspace_stats_command(ls, [])
-        
+
         assert isinstance(result, dict)
 
     def test_has_expected_keys(self):
         """Test that stats has all expected keys."""
         ls = CK3LanguageServer("test", "v1")
         result = get_workspace_stats_command(ls, [])
-        
+
         expected_keys = [
             "scanned",
             "events",
@@ -167,7 +167,7 @@ class TestGetWorkspaceStatsCommand:
             "opinion_modifiers",
             "scripted_guis",
         ]
-        
+
         for key in expected_keys:
             assert key in result, f"Missing key: {key}"
 
@@ -175,7 +175,7 @@ class TestGetWorkspaceStatsCommand:
         """Test that initial values are 0 or False for empty workspace."""
         ls = CK3LanguageServer("test", "v1")
         result = get_workspace_stats_command(ls, [])
-        
+
         assert result["scanned"] is False
         assert result["events"] == 0
         assert result["scripted_effects"] == 0
@@ -188,7 +188,7 @@ class TestFindOrphanedLocalizationCommand:
         """Test that command returns a dictionary."""
         ls = CK3LanguageServer("test", "v1")
         result = find_orphaned_localization_command(ls, [])
-        
+
         assert isinstance(result, dict)
         assert "orphaned_keys" in result
         assert "total_count" in result
@@ -197,7 +197,7 @@ class TestFindOrphanedLocalizationCommand:
         """Test that empty workspace has no orphaned keys."""
         ls = CK3LanguageServer("test", "v1")
         result = find_orphaned_localization_command(ls, [])
-        
+
         assert result["orphaned_keys"] == []
         assert result["total_count"] == 0
 
@@ -209,7 +209,7 @@ class TestCheckDependenciesCommand:
         """Test that command returns a dictionary."""
         ls = CK3LanguageServer("test", "v1")
         result = check_dependencies_command(ls, [])
-        
+
         assert isinstance(result, dict)
         assert "defined_effects" in result
         assert "defined_triggers" in result
@@ -224,7 +224,7 @@ class TestShowEventChainCommand:
         """Test that command requires event ID."""
         ls = CK3LanguageServer("test", "v1")
         result = show_event_chain_command(ls, [])
-        
+
         assert "error" in result
         assert "Event ID required" in result["error"]
 
@@ -232,7 +232,7 @@ class TestShowEventChainCommand:
         """Test that command handles nonexistent event."""
         ls = CK3LanguageServer("test", "v1")
         result = show_event_chain_command(ls, ["nonexistent.0001"])
-        
+
         assert "error" in result
         assert "not found" in result["error"]
 
@@ -291,9 +291,9 @@ class TestApplyWorkspaceEdit:
             start_char=0,
             end_line=0,
             end_char=5,
-            new_text="hello"
+            new_text="hello",
         )
-        
+
         assert isinstance(edit, types.WorkspaceEdit)
         assert "file:///test.txt" in edit.changes
         assert len(edit.changes["file:///test.txt"]) == 1
@@ -301,43 +301,38 @@ class TestApplyWorkspaceEdit:
     def test_create_insert_edit_returns_workspace_edit(self):
         """Test that create_insert_edit returns a WorkspaceEdit."""
         ls = CK3LanguageServer("test", "v1")
-        edit = ls.create_insert_edit(
-            uri="file:///test.txt",
-            line=5,
-            character=10,
-            text="inserted"
-        )
-        
+        edit = ls.create_insert_edit(uri="file:///test.txt", line=5, character=10, text="inserted")
+
         assert isinstance(edit, types.WorkspaceEdit)
         assert "file:///test.txt" in edit.changes
 
     def test_create_multi_file_edit_returns_workspace_edit(self):
         """Test that create_multi_file_edit returns a WorkspaceEdit."""
         ls = CK3LanguageServer("test", "v1")
-        
+
         changes = {
             "file:///a.txt": [
                 types.TextEdit(
                     range=types.Range(
                         start=types.Position(line=0, character=0),
-                        end=types.Position(line=0, character=0)
+                        end=types.Position(line=0, character=0),
                     ),
-                    new_text="file a"
+                    new_text="file a",
                 )
             ],
             "file:///b.txt": [
                 types.TextEdit(
                     range=types.Range(
                         start=types.Position(line=0, character=0),
-                        end=types.Position(line=0, character=0)
+                        end=types.Position(line=0, character=0),
                     ),
-                    new_text="file b"
+                    new_text="file b",
                 )
-            ]
+            ],
         }
-        
+
         edit = ls.create_multi_file_edit(changes)
-        
+
         assert isinstance(edit, types.WorkspaceEdit)
         assert "file:///a.txt" in edit.changes
         assert "file:///b.txt" in edit.changes
@@ -351,9 +346,9 @@ class TestApplyWorkspaceEdit:
             start_char=5,
             end_line=15,
             end_char=20,
-            new_text="replaced"
+            new_text="replaced",
         )
-        
+
         text_edit = edit.changes["file:///test.txt"][0]
         assert text_edit.range.start.line == 10
         assert text_edit.range.start.character == 5
@@ -364,13 +359,8 @@ class TestApplyWorkspaceEdit:
     def test_insert_edit_has_zero_width_range(self):
         """Test that insert edits have zero-width range (start == end)."""
         ls = CK3LanguageServer("test", "v1")
-        edit = ls.create_insert_edit(
-            uri="file:///test.txt",
-            line=5,
-            character=10,
-            text="inserted"
-        )
-        
+        edit = ls.create_insert_edit(uri="file:///test.txt", line=5, character=10, text="inserted")
+
         text_edit = edit.changes["file:///test.txt"][0]
         assert text_edit.range.start.line == text_edit.range.end.line
         assert text_edit.range.start.character == text_edit.range.end.character
