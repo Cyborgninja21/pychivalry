@@ -159,62 +159,61 @@ class CK3LanguageServer(LanguageServer):
     def __init__(self, *args, **kwargs):
         """Initialize the CK3 language server."""
         super().__init__(*args, **kwargs)
-        
+
         # Document ASTs (updated on open/change)
         self.document_asts: Dict[str, List[CK3Node]] = {}
-        
+
         # Cross-document index for navigation
         self.index = DocumentIndex()
-        
+
         # Track whether workspace has been scanned
         self._workspace_scanned = False
-        
+
         # User configuration cache
         self._config_cache: Dict[str, Any] = {}
-        
+
         # =====================================================================
         # Threading Infrastructure
         # =====================================================================
-        
+
         # Thread pool for CPU-bound operations (parsing, diagnostics, etc.)
         # Use 2-4 workers to balance parallelism without overwhelming the system
         self._thread_pool = ThreadPoolExecutor(
-            max_workers=min(4, (os.cpu_count() or 1) + 1),
-            thread_name_prefix="ck3-worker"
+            max_workers=min(4, (os.cpu_count() or 1) + 1), thread_name_prefix="ck3-worker"
         )
-        
+
         # Thread-safety locks for shared data structures
-        self._ast_lock = threading.RLock()      # Protects document_asts
-        self._index_lock = threading.RLock()    # Protects index operations
-        
+        self._ast_lock = threading.RLock()  # Protects document_asts
+        self._index_lock = threading.RLock()  # Protects index operations
+
         # =====================================================================
         # Async Document Update Infrastructure
         # =====================================================================
-        
+
         # Pending document updates (for debouncing)
         # Maps URI -> asyncio.Task for scheduled updates
         self._pending_updates: Dict[str, asyncio.Task] = {}
-        
+
         # Document versions to detect stale updates
         self._document_versions: Dict[str, int] = {}
-        
+
         # Base debounce delay in seconds (150ms is good for typing)
         self._debounce_delay = 0.15
-        
+
         # =====================================================================
         # AST Caching by Content Hash (Tier 2 Optimization)
         # =====================================================================
-        
+
         # Cache ASTs by content hash to avoid re-parsing unchanged content
         # Uses OrderedDict for LRU eviction
         self._ast_cache: OrderedDict[str, List[CK3Node]] = OrderedDict()
         self._ast_cache_max = 50  # Maximum cached ASTs
         self._ast_cache_lock = threading.Lock()
-        
+
         # =====================================================================
         # Pre-emptive Parsing Infrastructure (Tier 4 Optimization)
         # =====================================================================
-        
+
         # Queue of files to pre-parse (low priority background work)
         self._preparse_queue: List[str] = []
         self._preparse_lock = threading.Lock()
@@ -222,45 +221,45 @@ class CK3LanguageServer(LanguageServer):
     # =====================================================================
     # Thread-Safe Document Access
     # =====================================================================
-    
+
     def get_ast(self, uri: str) -> List[CK3Node]:
         """
         Thread-safe access to document AST.
-        
+
         Args:
             uri: Document URI
-            
+
         Returns:
             List of AST nodes, or empty list if not found
         """
         with self._ast_lock:
             return self.document_asts.get(uri, [])
-    
+
     def set_ast(self, uri: str, ast: List[CK3Node]):
         """
         Thread-safe update of document AST.
-        
+
         Args:
             uri: Document URI
             ast: New AST nodes
         """
         with self._ast_lock:
             self.document_asts[uri] = ast
-    
+
     def remove_ast(self, uri: str):
         """
         Thread-safe removal of document AST.
-        
+
         Args:
             uri: Document URI
         """
         with self._ast_lock:
             self.document_asts.pop(uri, None)
-    
+
     def get_document_version(self, uri: str) -> int:
         """Get the current document version for staleness detection."""
         return self._document_versions.get(uri, 0)
-    
+
     def increment_document_version(self, uri: str) -> int:
         """Increment and return the new document version."""
         self._document_versions[uri] = self._document_versions.get(uri, 0) + 1
@@ -269,46 +268,46 @@ class CK3LanguageServer(LanguageServer):
     # =====================================================================
     # Adaptive Debounce (Tier 2 Optimization)
     # =====================================================================
-    
+
     def get_adaptive_debounce_delay(self, source: str) -> float:
         """
         Calculate debounce delay based on document size.
-        
+
         Smaller files get faster feedback, larger files get more debouncing
         to prevent excessive parsing during rapid typing.
-        
+
         Args:
             source: Document source text
-            
+
         Returns:
             Debounce delay in seconds
         """
-        line_count = source.count('\n')
-        
+        line_count = source.count("\n")
+
         if line_count < 500:
-            return 0.08   # 80ms for small files - faster feedback
+            return 0.08  # 80ms for small files - faster feedback
         elif line_count < 2000:
-            return 0.15   # 150ms for medium files (default)
+            return 0.15  # 150ms for medium files (default)
         elif line_count < 5000:
-            return 0.25   # 250ms for large files
+            return 0.25  # 250ms for large files
         else:
-            return 0.40   # 400ms for very large files
+            return 0.40  # 400ms for very large files
 
     # =====================================================================
     # AST Content Hash Caching (Tier 2 Optimization)
     # =====================================================================
-    
+
     def _compute_content_hash(self, source: str) -> str:
         """Compute MD5 hash of document content for cache lookup."""
-        return hashlib.md5(source.encode('utf-8', errors='replace')).hexdigest()
-    
+        return hashlib.md5(source.encode("utf-8", errors="replace")).hexdigest()
+
     def get_cached_ast(self, source: str) -> Optional[List[CK3Node]]:
         """
         Get AST from content hash cache if available.
-        
+
         Args:
             source: Document source text
-            
+
         Returns:
             Cached AST or None if not in cache
         """
@@ -320,11 +319,11 @@ class CK3LanguageServer(LanguageServer):
                 logger.debug(f"AST cache hit for hash {content_hash[:8]}...")
                 return self._ast_cache[content_hash]
         return None
-    
+
     def cache_ast(self, source: str, ast: List[CK3Node]):
         """
         Store AST in content hash cache.
-        
+
         Args:
             source: Document source text
             ast: Parsed AST to cache
@@ -334,19 +333,21 @@ class CK3LanguageServer(LanguageServer):
             # Evict oldest if at capacity
             while len(self._ast_cache) >= self._ast_cache_max:
                 self._ast_cache.popitem(last=False)
-            
+
             self._ast_cache[content_hash] = ast
-            logger.debug(f"AST cached with hash {content_hash[:8]}... (cache size: {len(self._ast_cache)})")
-    
+            logger.debug(
+                f"AST cached with hash {content_hash[:8]}... (cache size: {len(self._ast_cache)})"
+            )
+
     def get_or_parse_ast(self, source: str) -> List[CK3Node]:
         """
         Get AST from cache or parse if not cached.
-        
+
         This is the primary method for obtaining an AST with caching.
-        
+
         Args:
             source: Document source text
-            
+
         Returns:
             Parsed AST (from cache or freshly parsed)
         """
@@ -354,7 +355,7 @@ class CK3LanguageServer(LanguageServer):
         cached = self.get_cached_ast(source)
         if cached is not None:
             return cached
-        
+
         # Parse and cache
         ast = parse_document(source)
         self.cache_ast(source, ast)
@@ -363,14 +364,14 @@ class CK3LanguageServer(LanguageServer):
     # =====================================================================
     # Server Communication: Show Message
     # =====================================================================
-    
+
     def notify_info(self, message: str):
         """
         Show an information message to the user.
-        
+
         This displays a non-intrusive notification in the editor's UI.
         Safe to call even when not connected to a client.
-        
+
         Args:
             message: The message to display
         """
@@ -379,14 +380,14 @@ class CK3LanguageServer(LanguageServer):
         except Exception:
             pass  # Ignore if not connected
         logger.info(f"User notification: {message}")
-    
+
     def notify_warning(self, message: str):
         """
         Show a warning message to the user.
-        
+
         This displays a warning notification in the editor's UI.
         Safe to call even when not connected to a client.
-        
+
         Args:
             message: The warning message to display
         """
@@ -395,14 +396,14 @@ class CK3LanguageServer(LanguageServer):
         except Exception:
             pass  # Ignore if not connected
         logger.warning(f"User warning: {message}")
-    
+
     def notify_error(self, message: str):
         """
         Show an error message to the user.
-        
+
         This displays an error notification in the editor's UI.
         Safe to call even when not connected to a client.
-        
+
         Args:
             message: The error message to display
         """
@@ -411,15 +412,15 @@ class CK3LanguageServer(LanguageServer):
         except Exception:
             pass  # Ignore if not connected
         logger.error(f"User error: {message}")
-    
+
     def log_message(self, message: str, msg_type: types.MessageType = types.MessageType.Log):
         """
         Log a message to the editor's output channel.
-        
+
         This writes to the language server output channel without
         showing a popup notification to the user.
         Safe to call even when not connected to a client.
-        
+
         Args:
             message: The message to log
             msg_type: The message type (Log, Info, Warning, Error)
@@ -432,7 +433,7 @@ class CK3LanguageServer(LanguageServer):
     # =====================================================================
     # Server Communication: Progress Reporting
     # =====================================================================
-    
+
     async def with_progress(
         self,
         title: str,
@@ -441,15 +442,15 @@ class CK3LanguageServer(LanguageServer):
     ):
         """
         Execute a task with progress reporting.
-        
+
         This shows a progress indicator in the editor while the task runs.
         The task function receives a callback to report progress.
-        
+
         Args:
             title: Title of the progress notification
             task_func: Async function that takes (report_progress) callback
             cancellable: Whether the user can cancel the operation
-            
+
         Example:
             async def do_scan(report_progress):
                 report_progress("Scanning events...", 25)
@@ -457,15 +458,15 @@ class CK3LanguageServer(LanguageServer):
                 report_progress("Scanning effects...", 50)
                 await scan_effects()
                 report_progress("Done!", 100)
-            
+
             await server.with_progress("Indexing Workspace", do_scan)
         """
         token = str(uuid.uuid4())
-        
+
         try:
             # Create progress
             await self.progress.create_async(token)
-            
+
             # Begin progress
             self.progress.begin(
                 token,
@@ -473,9 +474,9 @@ class CK3LanguageServer(LanguageServer):
                     title=title,
                     cancellable=cancellable,
                     percentage=0,
-                )
+                ),
             )
-            
+
             # Define report callback
             def report_progress(message: str, percentage: Optional[int] = None):
                 self.progress.report(
@@ -483,59 +484,52 @@ class CK3LanguageServer(LanguageServer):
                     types.WorkDoneProgressReport(
                         message=message,
                         percentage=percentage,
-                    )
+                    ),
                 )
-            
+
             # Execute the task
             await task_func(report_progress)
-            
+
         finally:
             # End progress
-            self.progress.end(
-                token,
-                types.WorkDoneProgressEnd(message="Complete")
-            )
+            self.progress.end(token, types.WorkDoneProgressEnd(message="Complete"))
 
     # =====================================================================
     # Server Communication: Configuration
     # =====================================================================
-    
+
     async def get_user_configuration(self, section: str = "ck3LanguageServer") -> Dict[str, Any]:
         """
         Get user configuration from the client.
-        
+
         This retrieves settings from the user's VS Code settings.json.
-        
+
         Args:
             section: Configuration section name
-            
+
         Returns:
             Dictionary of configuration values
         """
         try:
             config = await self.get_configuration_async(
-                types.ConfigurationParams(
-                    items=[
-                        types.ConfigurationItem(section=section)
-                    ]
-                )
+                types.ConfigurationParams(items=[types.ConfigurationItem(section=section)])
             )
             if config and len(config) > 0:
                 self._config_cache = config[0] or {}
                 return self._config_cache
         except Exception as e:
             logger.warning(f"Failed to get configuration: {e}")
-        
+
         return self._config_cache
-    
+
     def get_cached_config(self, key: str, default: Any = None) -> Any:
         """
         Get a cached configuration value.
-        
+
         Args:
             key: Configuration key
             default: Default value if key not found
-            
+
         Returns:
             Configuration value or default
         """
@@ -544,7 +538,7 @@ class CK3LanguageServer(LanguageServer):
     # =====================================================================
     # Server Communication: Apply Workspace Edit
     # =====================================================================
-    
+
     async def apply_edit(
         self,
         edit: types.WorkspaceEdit,
@@ -552,17 +546,17 @@ class CK3LanguageServer(LanguageServer):
     ) -> bool:
         """
         Apply a workspace edit to modify files programmatically.
-        
+
         This allows the server to make changes to files in the workspace,
         such as refactoring operations, code generation, or bulk edits.
-        
+
         Args:
             edit: The WorkspaceEdit containing changes to apply
             label: Optional label for the edit (shown in undo history)
-            
+
         Returns:
             True if the edit was applied successfully, False otherwise
-            
+
         Example:
             # Create a simple text edit
             edit = types.WorkspaceEdit(
@@ -592,7 +586,7 @@ class CK3LanguageServer(LanguageServer):
         except Exception as e:
             logger.error(f"Error applying workspace edit: {e}", exc_info=True)
             return False
-    
+
     def create_text_edit(
         self,
         uri: str,
@@ -604,9 +598,9 @@ class CK3LanguageServer(LanguageServer):
     ) -> types.WorkspaceEdit:
         """
         Create a simple workspace edit for a single file change.
-        
+
         Helper method to create WorkspaceEdit objects more easily.
-        
+
         Args:
             uri: File URI to edit
             start_line: Starting line (0-indexed)
@@ -614,7 +608,7 @@ class CK3LanguageServer(LanguageServer):
             end_line: Ending line (0-indexed)
             end_char: Ending character (0-indexed)
             new_text: Text to insert/replace
-            
+
         Returns:
             WorkspaceEdit ready to apply
         """
@@ -631,29 +625,33 @@ class CK3LanguageServer(LanguageServer):
                 ]
             }
         )
-    
-    def create_insert_edit(self, uri: str, line: int, character: int, text: str) -> types.WorkspaceEdit:
+
+    def create_insert_edit(
+        self, uri: str, line: int, character: int, text: str
+    ) -> types.WorkspaceEdit:
         """
         Create a workspace edit that inserts text at a position.
-        
+
         Args:
             uri: File URI to edit
             line: Line to insert at (0-indexed)
             character: Character position to insert at (0-indexed)
             text: Text to insert
-            
+
         Returns:
             WorkspaceEdit ready to apply
         """
         return self.create_text_edit(uri, line, character, line, character, text)
-    
-    def create_multi_file_edit(self, changes: Dict[str, List[types.TextEdit]]) -> types.WorkspaceEdit:
+
+    def create_multi_file_edit(
+        self, changes: Dict[str, List[types.TextEdit]]
+    ) -> types.WorkspaceEdit:
         """
         Create a workspace edit that modifies multiple files.
-        
+
         Args:
             changes: Dictionary mapping file URIs to lists of TextEdits
-            
+
         Returns:
             WorkspaceEdit ready to apply
         """
@@ -662,27 +660,27 @@ class CK3LanguageServer(LanguageServer):
     # =====================================================================
     # Async Document Update Scheduling
     # =====================================================================
-    
+
     async def schedule_document_update(self, uri: str, doc_source: str):
         """
         Schedule document parsing with debouncing.
-        
+
         This method:
         1. Cancels any pending update for this document
         2. Schedules a new update after the debounce delay
         3. Runs parsing and diagnostics in the thread pool
         4. Publishes diagnostics when complete
-        
+
         Args:
             uri: Document URI
             doc_source: Current document source text
         """
         # Increment version to track this update
         version = self.increment_document_version(uri)
-        
+
         # Calculate adaptive debounce delay based on document size
         debounce_delay = self.get_adaptive_debounce_delay(doc_source)
-        
+
         # Cancel any pending update for this document
         if uri in self._pending_updates:
             self._pending_updates[uri].cancel()
@@ -690,18 +688,18 @@ class CK3LanguageServer(LanguageServer):
                 await self._pending_updates[uri]
             except asyncio.CancelledError:
                 pass
-        
+
         async def do_update():
             """Perform the actual update after debounce delay."""
             try:
                 # Wait for adaptive debounce period
                 await asyncio.sleep(debounce_delay)
-                
+
                 # Check if this update is still current
                 if self.get_document_version(uri) != version:
                     logger.debug(f"Skipping stale update for {uri} (version {version})")
                     return
-                
+
                 # Get current document content
                 try:
                     doc = self.workspace.get_text_document(uri)
@@ -709,27 +707,25 @@ class CK3LanguageServer(LanguageServer):
                 except Exception:
                     # Document may have been closed
                     return
-                
+
                 # Try to get AST from content hash cache first
                 loop = asyncio.get_event_loop()
                 ast = await loop.run_in_executor(
-                    self._thread_pool,
-                    self.get_or_parse_ast,
-                    current_source
+                    self._thread_pool, self.get_or_parse_ast, current_source
                 )
-                
+
                 # Check again if still current before updating
                 if self.get_document_version(uri) != version:
                     logger.debug(f"Skipping stale AST update for {uri}")
                     return
-                
+
                 # Update AST (thread-safe)
                 self.set_ast(uri, ast)
-                
+
                 # Update index (thread-safe)
                 with self._index_lock:
                     self.index.update_from_ast(uri, ast)
-                
+
                 # =========================================================
                 # Streaming Diagnostics (Tier 3 Optimization)
                 # =========================================================
@@ -737,14 +733,16 @@ class CK3LanguageServer(LanguageServer):
                 syntax_diags = await loop.run_in_executor(
                     self._thread_pool,
                     self._collect_syntax_diagnostics_sync,
-                    uri, current_source, ast
+                    uri,
+                    current_source,
+                    ast,
                 )
-                
+
                 # Check if still current
                 if self.get_document_version(uri) != version:
                     logger.debug(f"Skipping stale syntax diagnostics for {uri}")
                     return
-                
+
                 # Publish syntax errors immediately
                 self.text_document_publish_diagnostics(
                     types.PublishDiagnosticsParams(
@@ -752,19 +750,17 @@ class CK3LanguageServer(LanguageServer):
                         diagnostics=syntax_diags,
                     )
                 )
-                
+
                 # Phase 2: Run semantic analysis in background
                 semantic_diags = await loop.run_in_executor(
-                    self._thread_pool,
-                    self._collect_semantic_diagnostics_sync,
-                    uri, ast
+                    self._thread_pool, self._collect_semantic_diagnostics_sync, uri, ast
                 )
-                
+
                 # Check again before final publish
                 if self.get_document_version(uri) != version:
                     logger.debug(f"Skipping stale semantic diagnostics for {uri}")
                     return
-                
+
                 # Publish complete diagnostics (syntax + semantic)
                 all_diagnostics = syntax_diags + semantic_diags
                 self.text_document_publish_diagnostics(
@@ -773,65 +769,61 @@ class CK3LanguageServer(LanguageServer):
                         diagnostics=all_diagnostics,
                     )
                 )
-                
-                logger.debug(f"Async update complete for {uri} (version {version}, debounce {debounce_delay*1000:.0f}ms, {len(syntax_diags)} syntax + {len(semantic_diags)} semantic diags)")
-                
+
+                logger.debug(
+                    f"Async update complete for {uri} (version {version}, debounce {debounce_delay*1000:.0f}ms, {len(syntax_diags)} syntax + {len(semantic_diags)} semantic diags)"
+                )
+
             except asyncio.CancelledError:
                 logger.debug(f"Update cancelled for {uri}")
                 raise
             except Exception as e:
                 logger.error(f"Error in async document update for {uri}: {e}", exc_info=True)
-        
+
         # Schedule the update
         self._pending_updates[uri] = asyncio.create_task(do_update())
-    
+
     def _collect_diagnostics_sync(
-        self, 
-        uri: str, 
-        source: str, 
-        ast: List[CK3Node]
+        self, uri: str, source: str, ast: List[CK3Node]
     ) -> List[types.Diagnostic]:
         """
         Synchronous wrapper for diagnostics collection (for thread pool).
-        
+
         Args:
             uri: Document URI
             source: Document source text
             ast: Parsed AST
-            
+
         Returns:
             List of diagnostics
         """
         try:
             # Create a minimal document object for the diagnostics function
             doc = TextDocument(uri=uri, source=source)
-            
+
             # Get index with lock
             with self._index_lock:
                 index = self.index
-            
+
             return collect_all_diagnostics(doc, ast, index)
         except Exception as e:
             logger.error(f"Error collecting diagnostics: {e}", exc_info=True)
             return []
-    
+
     def _collect_syntax_diagnostics_sync(
-        self, 
-        uri: str, 
-        source: str, 
-        ast: List[CK3Node]
+        self, uri: str, source: str, ast: List[CK3Node]
     ) -> List[types.Diagnostic]:
         """
         Collect only syntax diagnostics for fast initial feedback.
-        
+
         This is called first to provide immediate error highlighting,
         while semantic analysis runs in the background.
-        
+
         Args:
             uri: Document URI
             source: Document source text
             ast: Parsed AST
-            
+
         Returns:
             List of syntax diagnostics only
         """
@@ -841,37 +833,35 @@ class CK3LanguageServer(LanguageServer):
         except Exception as e:
             logger.error(f"Error collecting syntax diagnostics: {e}", exc_info=True)
             return []
-    
+
     def _collect_semantic_diagnostics_sync(
-        self, 
-        uri: str, 
-        ast: List[CK3Node]
+        self, uri: str, ast: List[CK3Node]
     ) -> List[types.Diagnostic]:
         """
         Collect semantic diagnostics (effects, triggers, scopes).
-        
+
         This runs after syntax diagnostics for progressive error discovery.
-        
+
         Args:
             uri: Document URI
             ast: Parsed AST
-            
+
         Returns:
             List of semantic and scope diagnostics
         """
         try:
             diagnostics = []
-            
+
             # Get index with lock
             with self._index_lock:
                 index = self.index
-            
+
             # Check semantics (effects, triggers, etc.)
             diagnostics.extend(check_semantics(ast, index))
-            
+
             # Check scopes
             diagnostics.extend(check_scopes(ast, index))
-            
+
             return diagnostics
         except Exception as e:
             logger.error(f"Error collecting semantic diagnostics: {e}", exc_info=True)
@@ -880,24 +870,24 @@ class CK3LanguageServer(LanguageServer):
     # =====================================================================
     # Lifecycle Management
     # =====================================================================
-    
+
     def shutdown(self):
         """
         Clean shutdown of server resources.
-        
+
         This method:
         1. Cancels all pending document updates
         2. Shuts down the thread pool gracefully
         """
         logger.info("Shutting down CK3 Language Server...")
-        
+
         # Cancel all pending updates
         for uri, task in self._pending_updates.items():
             task.cancel()
             logger.debug(f"Cancelled pending update for {uri}")
-        
+
         self._pending_updates.clear()
-        
+
         # Shutdown thread pool
         self._thread_pool.shutdown(wait=True, cancel_futures=True)
         logger.info("Thread pool shut down")
@@ -939,23 +929,18 @@ class CK3LanguageServer(LanguageServer):
 
             if workspace_folders:
                 folder_count = len(workspace_folders)
-                logger.info(
-                    f"Scanning {folder_count} workspace folder(s): {workspace_folders}"
-                )
-                
+                logger.info(f"Scanning {folder_count} workspace folder(s): {workspace_folders}")
+
                 # Perform the actual scan in thread pool with lock
                 # Pass the executor for parallel scanning (2-4x faster)
                 loop = asyncio.get_event_loop()
-                
+
                 def scan_with_lock():
                     with self._index_lock:
                         self.index.scan_workspace(workspace_folders, executor=self._thread_pool)
-                
-                await loop.run_in_executor(
-                    self._thread_pool, 
-                    scan_with_lock
-                )
-                
+
+                await loop.run_in_executor(self._thread_pool, scan_with_lock)
+
                 # Notify user of scan results (thread-safe access)
                 with self._index_lock:
                     stats = (
@@ -982,7 +967,7 @@ class CK3LanguageServer(LanguageServer):
 
         This is called on first document open to index all custom effects
         and triggers in the mod's common/ folder.
-        
+
         Note: This is the synchronous fallback. The async version with
         progress reporting is preferred.
         """
@@ -1037,14 +1022,14 @@ class CK3LanguageServer(LanguageServer):
         """
         try:
             ast = parse_document(doc.source)
-            
+
             # Thread-safe AST update
             self.set_ast(doc.uri, ast)
-            
+
             # Thread-safe index update
             with self._index_lock:
                 self.index.update_from_ast(doc.uri, ast)
-            
+
             logger.debug(f"Parsed and indexed document: {doc.uri}")
             return ast
         except Exception as e:
@@ -1065,7 +1050,7 @@ class CK3LanguageServer(LanguageServer):
         try:
             # Thread-safe AST access
             ast = self.get_ast(doc.uri)
-            
+
             # Thread-safe index access
             with self._index_lock:
                 diagnostics = collect_all_diagnostics(doc, ast, self.index)
@@ -1124,7 +1109,7 @@ async def did_open(ls: CK3LanguageServer, params: types.DidOpenTextDocumentParam
     if not ls._workspace_scanned:
         logger.info("First document open - triggering workspace scan")
         await ls._scan_workspace_folders_async()
-        
+
         # Re-publish diagnostics now that workspace is indexed
         # This clears false positives for custom triggers/effects
         ls.publish_diagnostics_for_document(doc)
@@ -1158,14 +1143,14 @@ async def did_change(ls: CK3LanguageServer, params: types.DidChangeTextDocumentP
     """
     uri = params.text_document.uri
     logger.debug(f"Document changed: {uri}")
-    
+
     # Get current document content
     try:
         doc = ls.workspace.get_text_document(uri)
     except Exception as e:
         logger.warning(f"Could not get document {uri}: {e}")
         return
-    
+
     # Schedule async update (debounced, runs in thread pool)
     await ls.schedule_document_update(uri, doc.source)
 
@@ -1195,18 +1180,18 @@ def did_close(ls: CK3LanguageServer, params: types.DidCloseTextDocumentParams):
     """
     uri = params.text_document.uri
     logger.info(f"Document closed: {uri}")
-    
+
     # Cancel any pending update for this document
     if uri in ls._pending_updates:
         ls._pending_updates[uri].cancel()
         del ls._pending_updates[uri]
-    
+
     # Remove version tracking
     ls._document_versions.pop(uri, None)
-    
+
     # Thread-safe AST removal
     ls.remove_ast(uri)
-    
+
     # Thread-safe index removal
     with ls._index_lock:
         ls.index.remove_document(uri)
@@ -1255,14 +1240,14 @@ def completions(ls: CK3LanguageServer, params: types.CompletionParams):
     try:
         doc = ls.workspace.get_text_document(params.text_document.uri)
         ast = ls.get_ast(doc.uri)
-        
+
         # Get the current line text for context detection
-        lines = doc.source.split('\n')
-        line_text = lines[params.position.line] if params.position.line < len(lines) else ''
-        
+        lines = doc.source.split("\n")
+        line_text = lines[params.position.line] if params.position.line < len(lines) else ""
+
         # Find the AST node at cursor position for context
         node = get_node_at_position(ast, params.position) if ast else None
-        
+
         # Get context-aware completions
         return get_context_aware_completions(
             document_uri=doc.uri,
@@ -1473,34 +1458,34 @@ def code_action(ls: CK3LanguageServer, params: types.CodeActionParams):
     """
     try:
         doc = ls.workspace.get_text_document(params.text_document.uri)
-        
+
         # Get selected text (if any)
-        lines = doc.source.split('\n')
-        selected_text = ''
+        lines = doc.source.split("\n")
+        selected_text = ""
         if params.range.start.line == params.range.end.line:
             # Single line selection
-            line = lines[params.range.start.line] if params.range.start.line < len(lines) else ''
-            selected_text = line[params.range.start.character:params.range.end.character]
+            line = lines[params.range.start.line] if params.range.start.line < len(lines) else ""
+            selected_text = line[params.range.start.character : params.range.end.character]
         else:
             # Multi-line selection
             selected_lines = []
             for i in range(params.range.start.line, min(params.range.end.line + 1, len(lines))):
                 if i == params.range.start.line:
-                    selected_lines.append(lines[i][params.range.start.character:])
+                    selected_lines.append(lines[i][params.range.start.character :])
                 elif i == params.range.end.line:
-                    selected_lines.append(lines[i][:params.range.end.character])
+                    selected_lines.append(lines[i][: params.range.end.character])
                 else:
                     selected_lines.append(lines[i])
-            selected_text = '\n'.join(selected_lines)
-        
+            selected_text = "\n".join(selected_lines)
+
         # Detect context (trigger vs effect block)
         ast = ls.get_ast(doc.uri)
         node = get_node_at_position(ast, params.range.start) if ast else None
-        context = 'unknown'
+        context = "unknown"
         if node:
-            ctx = detect_context(node, params.range.start, '', ls.index)
+            ctx = detect_context(node, params.range.start, "", ls.index)
             context = ctx.block_type
-        
+
         # Get all applicable code actions
         actions = get_all_code_actions(
             uri=doc.uri,
@@ -1510,10 +1495,10 @@ def code_action(ls: CK3LanguageServer, params: types.CodeActionParams):
             selected_text=selected_text,
             context=context,
         )
-        
+
         # Convert to LSP code actions
         lsp_actions = [convert_to_lsp_code_action(action) for action in actions]
-        
+
         return lsp_actions if lsp_actions else None
 
     except Exception as e:
@@ -1530,7 +1515,7 @@ def references(ls: CK3LanguageServer, params: types.ReferenceParams):
     This feature allows users to find all places where a symbol (event, effect,
     trigger, saved scope, etc.) is referenced. This is useful for understanding
     how events are connected, where effects are used, and for refactoring.
-    
+
     Runs in thread pool as it iterates through all open document ASTs.
 
     Args:
@@ -1566,7 +1551,7 @@ def references(ls: CK3LanguageServer, params: types.ReferenceParams):
         # Thread-safe iteration over ASTs
         with ls._ast_lock:
             ast_items = list(ls.document_asts.items())
-        
+
         for uri, ast in ast_items:
             try:
                 # Find all occurrences of the word in this document
@@ -1753,7 +1738,7 @@ def workspace_symbol(ls: CK3LanguageServer, params: types.WorkspaceSymbolParams)
     This feature allows users to quickly find and navigate to any symbol in the
     workspace by name. It supports fuzzy matching and is typically invoked with
     Ctrl+T in VS Code.
-    
+
     Runs in thread pool as it searches through the full index.
 
     Args:
@@ -1870,7 +1855,7 @@ def semantic_tokens_full(ls: CK3LanguageServer, params: types.SemanticTokensPara
 
     Unlike TextMate grammars (regex-based), semantic tokens understand:
     - Whether a word is an effect vs trigger based on context
-    - Scope types and their relationships  
+    - Scope types and their relationships
     - Custom mod definitions (scripted effects, triggers, etc.)
     - Event definitions vs references
 
@@ -1906,14 +1891,14 @@ def semantic_tokens_full(ls: CK3LanguageServer, params: types.SemanticTokensPara
     """
     try:
         doc = ls.workspace.get_text_document(params.text_document.uri)
-        
+
         # Thread-safe index access
         with ls._index_lock:
             index = ls.index
-        
+
         # Get semantic tokens using the module
         return get_semantic_tokens(doc.source, index)
-        
+
     except Exception as e:
         logger.error(f"Error in semantic_tokens handler: {e}", exc_info=True)
         return types.SemanticTokens(data=[])
@@ -1922,6 +1907,7 @@ def semantic_tokens_full(ls: CK3LanguageServer, params: types.SemanticTokensPara
 # =============================================================================
 # Document Formatting
 # =============================================================================
+
 
 @server.feature(
     types.TEXT_DOCUMENT_FORMATTING,
@@ -1959,15 +1945,15 @@ def document_formatting(ls: CK3LanguageServer, params: types.DocumentFormattingP
     """
     try:
         doc = ls.workspace.get_text_document(params.text_document.uri)
-        
+
         # Get formatting edits
         edits = format_document(doc.source, params.options)
-        
+
         if edits:
             logger.debug(f"Formatting document: {len(edits)} edit(s)")
-        
+
         return edits if edits else None
-        
+
     except Exception as e:
         logger.error(f"Error in document_formatting handler: {e}", exc_info=True)
         return None
@@ -2011,15 +1997,15 @@ def range_formatting(ls: CK3LanguageServer, params: types.DocumentRangeFormattin
     """
     try:
         doc = ls.workspace.get_text_document(params.text_document.uri)
-        
+
         # Get formatting edits for the range
         edits = format_range(doc.source, params.range, params.options)
-        
+
         if edits:
             logger.debug(f"Formatting range: {len(edits)} edit(s)")
-        
+
         return edits if edits else None
-        
+
     except Exception as e:
         logger.error(f"Error in range_formatting handler: {e}", exc_info=True)
         return None
@@ -2028,6 +2014,7 @@ def range_formatting(ls: CK3LanguageServer, params: types.DocumentRangeFormattin
 # =============================================================================
 # Code Lens
 # =============================================================================
+
 
 @server.feature(
     types.TEXT_DOCUMENT_CODE_LENS,
@@ -2059,10 +2046,10 @@ def code_lens(ls: CK3LanguageServer, params: types.CodeLensParams):
     """
     try:
         doc = ls.workspace.get_text_document(params.text_document.uri)
-        
+
         # Get code lenses using the module
         return get_code_lenses(doc.source, doc.uri, ls.index)
-        
+
     except Exception as e:
         logger.error(f"Error in code_lens handler: {e}", exc_info=True)
         return None
@@ -2090,7 +2077,7 @@ def code_lens_resolve(ls: CK3LanguageServer, params: types.CodeLens):
     """
     try:
         return resolve_code_lens(params, ls.index)
-        
+
     except Exception as e:
         logger.error(f"Error in code_lens_resolve handler: {e}", exc_info=True)
         return params
@@ -2099,6 +2086,7 @@ def code_lens_resolve(ls: CK3LanguageServer, params: types.CodeLens):
 # =============================================================================
 # Inlay Hints
 # =============================================================================
+
 
 @server.feature(
     types.TEXT_DOCUMENT_INLAY_HINT,
@@ -2134,7 +2122,7 @@ def inlay_hint(ls: CK3LanguageServer, params: types.InlayHintParams):
     """
     try:
         doc = ls.workspace.get_text_document(params.text_document.uri)
-        
+
         # Get inlay hint configuration from initialization options
         config = InlayHintConfig(
             show_scope_types=True,
@@ -2142,15 +2130,15 @@ def inlay_hint(ls: CK3LanguageServer, params: types.InlayHintParams):
             show_iterator_types=True,
             show_parameter_names=False,
         )
-        
+
         # Get inlay hints for the range
         hints = get_inlay_hints(doc.source, params.range, ls.index, config)
-        
+
         if hints:
             logger.debug(f"Providing {len(hints)} inlay hint(s)")
-        
+
         return hints if hints else None
-        
+
     except Exception as e:
         logger.error(f"Error in inlay_hint handler: {e}", exc_info=True)
         return None
@@ -2178,7 +2166,7 @@ def inlay_hint_resolve(ls: CK3LanguageServer, params: types.InlayHint):
     """
     try:
         return resolve_inlay_hint(params)
-        
+
     except Exception as e:
         logger.error(f"Error in inlay_hint_resolve handler: {e}", exc_info=True)
         return params
@@ -2187,6 +2175,7 @@ def inlay_hint_resolve(ls: CK3LanguageServer, params: types.InlayHint):
 # =============================================================================
 # Signature Help
 # =============================================================================
+
 
 @server.feature(
     types.TEXT_DOCUMENT_SIGNATURE_HELP,
@@ -2226,15 +2215,17 @@ def signature_help(ls: CK3LanguageServer, params: types.SignatureHelpParams):
     """
     try:
         doc = ls.workspace.get_text_document(params.text_document.uri)
-        
+
         # Get signature help for the current position
         help_result = get_signature_help(doc.source, params.position)
-        
+
         if help_result:
-            logger.debug(f"Providing signature help: {help_result.signatures[0].label if help_result.signatures else 'none'}")
-        
+            logger.debug(
+                f"Providing signature help: {help_result.signatures[0].label if help_result.signatures else 'none'}"
+            )
+
         return help_result
-        
+
     except Exception as e:
         logger.error(f"Error in signature_help handler: {e}", exc_info=True)
         return None
@@ -2243,6 +2234,7 @@ def signature_help(ls: CK3LanguageServer, params: types.SignatureHelpParams):
 # =============================================================================
 # Document Highlight
 # =============================================================================
+
 
 @server.feature(types.TEXT_DOCUMENT_DOCUMENT_HIGHLIGHT)
 @server.thread()  # Run in thread pool - pattern matching
@@ -2279,14 +2271,14 @@ def document_highlight(
     """
     try:
         doc = ls.workspace.get_text_document(params.text_document.uri)
-        
+
         highlights = get_document_highlights(doc.source, params.position)
-        
+
         if highlights:
             logger.debug(f"Found {len(highlights)} highlight(s) at position {params.position}")
-        
+
         return highlights
-        
+
     except Exception as e:
         logger.error(f"Error in document_highlight handler: {e}", exc_info=True)
         return None
@@ -2295,6 +2287,7 @@ def document_highlight(
 # =============================================================================
 # Document Links
 # =============================================================================
+
 
 @server.feature(types.TEXT_DOCUMENT_DOCUMENT_LINK)
 def document_link(
@@ -2330,26 +2323,24 @@ def document_link(
     """
     try:
         doc = ls.workspace.get_text_document(params.text_document.uri)
-        
+
         # Get workspace folders for path resolution
         workspace_folders = _get_workspace_folder_paths(ls)
-        
+
         links = get_document_links(doc.source, params.text_document.uri, workspace_folders)
-        
+
         if links:
             logger.debug(f"Found {len(links)} document link(s)")
-        
+
         return links if links else None
-        
+
     except Exception as e:
         logger.error(f"Error in document_link handler: {e}", exc_info=True)
         return None
 
 
 @server.feature(types.DOCUMENT_LINK_RESOLVE)
-def document_link_resolve(
-    ls: CK3LanguageServer, link: types.DocumentLink
-) -> types.DocumentLink:
+def document_link_resolve(ls: CK3LanguageServer, link: types.DocumentLink) -> types.DocumentLink:
     """
     Resolve a document link that was returned without a full target.
 
@@ -2374,10 +2365,10 @@ def document_link_resolve(
 def _get_workspace_folder_paths(ls: CK3LanguageServer) -> List[str]:
     """
     Get workspace folder paths from the language server.
-    
+
     Args:
         ls: Language server instance
-        
+
     Returns:
         List of workspace folder paths
     """
@@ -2387,6 +2378,7 @@ def _get_workspace_folder_paths(ls: CK3LanguageServer) -> List[str]:
             folder_uri = folder.uri if hasattr(folder, "uri") else folder
             if folder_uri.startswith("file:///"):
                 from urllib.parse import unquote
+
                 path = unquote(folder_uri[8:])
                 if len(path) > 2 and path[0] == "/" and path[2] == ":":
                     path = path[1:]
@@ -2399,6 +2391,7 @@ def _get_workspace_folder_paths(ls: CK3LanguageServer) -> List[str]:
 # =============================================================================
 # Rename
 # =============================================================================
+
 
 @server.feature(types.TEXT_DOCUMENT_PREPARE_RENAME)
 def prepare_rename(
@@ -2427,16 +2420,16 @@ def prepare_rename(
     """
     try:
         doc = ls.workspace.get_text_document(params.text_document.uri)
-        
+
         result = do_prepare_rename(doc.source, params.position)
-        
+
         if result:
             logger.debug(f"Prepare rename: {result.placeholder}")
         else:
             logger.debug("No renamable symbol at position")
-        
+
         return result
-        
+
     except Exception as e:
         logger.error(f"Error in prepare_rename handler: {e}", exc_info=True)
         return None
@@ -2444,9 +2437,7 @@ def prepare_rename(
 
 @server.feature(types.TEXT_DOCUMENT_RENAME)
 @server.thread()  # Run in thread pool - scans workspace files
-def rename(
-    ls: CK3LanguageServer, params: types.RenameParams
-) -> Optional[types.WorkspaceEdit]:
+def rename(ls: CK3LanguageServer, params: types.RenameParams) -> Optional[types.WorkspaceEdit]:
     """
     Perform a rename operation.
 
@@ -2479,7 +2470,7 @@ def rename(
     try:
         doc = ls.workspace.get_text_document(params.text_document.uri)
         workspace_folders = _get_workspace_folder_paths(ls)
-        
+
         edit = perform_rename(
             doc.source,
             params.position,
@@ -2487,7 +2478,7 @@ def rename(
             params.text_document.uri,
             workspace_folders,
         )
-        
+
         if edit:
             # Count total edits
             total_edits = sum(len(edits) for edits in (edit.changes or {}).values())
@@ -2495,9 +2486,9 @@ def rename(
             logger.info(f"Rename: {total_edits} edits across {total_files} files")
         else:
             logger.debug("Rename returned no edits")
-        
+
         return edit
-        
+
     except Exception as e:
         logger.error(f"Error in rename handler: {e}", exc_info=True)
         return None
@@ -2506,6 +2497,7 @@ def rename(
 # =============================================================================
 # Folding Range
 # =============================================================================
+
 
 @server.feature(
     types.TEXT_DOCUMENT_FOLDING_RANGE,
@@ -2544,13 +2536,13 @@ def folding_range(
     """
     try:
         doc = ls.workspace.get_text_document(params.text_document.uri)
-        
+
         ranges = get_folding_ranges(doc.source)
-        
+
         logger.debug(f"Folding ranges: {len(ranges)} ranges for {params.text_document.uri}")
-        
+
         return ranges if ranges else None
-        
+
     except Exception as e:
         logger.error(f"Error in folding_range handler: {e}", exc_info=True)
         return None
@@ -2560,31 +2552,32 @@ def folding_range(
 # Custom Commands
 # =============================================================================
 
+
 @server.command("ck3.validateWorkspace")
 async def validate_workspace_command(ls: CK3LanguageServer, args: List[Any]):
     """
     Command: Validate entire workspace.
-    
+
     Scans all files in the workspace and reports validation results.
     Shows progress during validation and summarizes findings.
-    
+
     Args:
         ls: The language server instance
         args: Command arguments (unused)
-        
+
     Returns:
         Dictionary with validation results
     """
     logger.info("Executing ck3.validateWorkspace command")
-    
+
     async def validate_with_progress(report_progress):
         report_progress("Validating workspace...", 0)
-        
+
         # Force rescan of workspace
         ls._workspace_scanned = False
-        
+
         report_progress("Scanning workspace files...", 25)
-        
+
         # Get workspace folders and scan
         workspace_folders = []
         if ls.workspace.folders:
@@ -2592,27 +2585,28 @@ async def validate_workspace_command(ls: CK3LanguageServer, args: List[Any]):
                 folder_uri = folder.uri if hasattr(folder, "uri") else folder
                 if folder_uri.startswith("file:///"):
                     from urllib.parse import unquote
+
                     path = unquote(folder_uri[8:])
                     if len(path) > 2 and path[0] == "/" and path[2] == ":":
                         path = path[1:]
                     workspace_folders.append(path)
                 else:
                     workspace_folders.append(folder_uri)
-        
+
         if workspace_folders:
             loop = asyncio.get_event_loop()
-            
+
             # Run scan in thread pool with thread-safe index access
             def scan_with_lock():
                 with ls._index_lock:
                     ls.index.scan_workspace(workspace_folders)
-            
+
             await loop.run_in_executor(ls._thread_pool, scan_with_lock)
-        
+
         ls._workspace_scanned = True
-        
+
         report_progress("Analyzing results...", 75)
-        
+
         # Thread-safe stats collection
         with ls._index_lock:
             stats = {
@@ -2623,13 +2617,13 @@ async def validate_workspace_command(ls: CK3LanguageServer, args: List[Any]):
                 "character_flags": len(ls.index.character_flags),
                 "saved_scopes": len(ls.index.saved_scopes),
             }
-        
+
         report_progress("Validation complete!", 100)
         return stats
-    
+
     try:
         stats = await ls.with_progress("Validating CK3 Workspace", validate_with_progress)
-        
+
         # Show summary message
         summary = (
             f"Workspace validated: {stats['events']} events, "
@@ -2638,9 +2632,9 @@ async def validate_workspace_command(ls: CK3LanguageServer, args: List[Any]):
             f"{stats['localization_keys']} loc keys"
         )
         ls.notify_info(summary)
-        
+
         return stats
-        
+
     except Exception as e:
         logger.error(f"Error validating workspace: {e}", exc_info=True)
         ls.notify_error(f"Validation failed: {str(e)}")
@@ -2651,29 +2645,29 @@ async def validate_workspace_command(ls: CK3LanguageServer, args: List[Any]):
 async def rescan_workspace_command(ls: CK3LanguageServer, args: List[Any]):
     """
     Command: Rescan workspace for symbols.
-    
+
     Forces a complete rescan of the workspace, useful when files
     have been added or modified outside the editor.
-    
+
     Args:
         ls: The language server instance
         args: Command arguments (unused)
-        
+
     Returns:
         Dictionary with scan results
     """
     logger.info("Executing ck3.rescanWorkspace command")
-    
+
     # Reset scan state
     ls._workspace_scanned = False
-    
+
     # Thread-safe index replacement
     with ls._index_lock:
         ls.index = DocumentIndex()
-    
+
     # Rescan with progress
     await ls._scan_workspace_folders_async()
-    
+
     # Thread-safe stats collection
     with ls._index_lock:
         return {
@@ -2688,18 +2682,18 @@ async def rescan_workspace_command(ls: CK3LanguageServer, args: List[Any]):
 def get_workspace_stats_command(ls: CK3LanguageServer, args: List[Any]):
     """
     Command: Get workspace statistics.
-    
+
     Returns current workspace index statistics without rescanning.
-    
+
     Args:
         ls: The language server instance
         args: Command arguments (unused)
-        
+
     Returns:
         Dictionary with workspace statistics
     """
     logger.info("Executing ck3.getWorkspaceStats command")
-    
+
     # Thread-safe stats collection
     with ls._index_lock:
         return {
@@ -2724,30 +2718,30 @@ def get_workspace_stats_command(ls: CK3LanguageServer, args: List[Any]):
 def generate_event_template_command(ls: CK3LanguageServer, args: List[Any]):
     """
     Command: Generate an event template.
-    
+
     Returns a template for a new CK3 event that can be inserted
     into the current document.
-    
+
     Args:
         ls: The language server instance
         args: Command arguments:
             - args[0]: Event namespace (optional, default: "my_mod")
             - args[1]: Event number (optional, default: "0001")
             - args[2]: Event type (optional, default: "character_event")
-        
+
     Returns:
         Dictionary with the event template text
     """
     logger.info("Executing ck3.generateEventTemplate command")
-    
+
     # Parse arguments
     namespace = args[0] if args and len(args) > 0 else "my_mod"
     event_num = args[1] if args and len(args) > 1 else "0001"
     event_type = args[2] if args and len(args) > 2 else "character_event"
-    
+
     event_id = f"{namespace}.{event_num}"
-    
-    template = f'''{event_id} = {{
+
+    template = f"""{event_id} = {{
 	type = {event_type}
 	title = {event_id}.t
 	desc = {event_id}.desc
@@ -2773,8 +2767,8 @@ def generate_event_template_command(ls: CK3LanguageServer, args: List[Any]):
 		# Alternative option
 	}}
 }}
-'''
-    
+"""
+
     return {
         "template": template,
         "event_id": event_id,
@@ -2783,7 +2777,7 @@ def generate_event_template_command(ls: CK3LanguageServer, args: List[Any]):
             f"{event_id}.desc",
             f"{event_id}.a",
             f"{event_id}.b",
-        ]
+        ],
     }
 
 
@@ -2791,44 +2785,44 @@ def generate_event_template_command(ls: CK3LanguageServer, args: List[Any]):
 def find_orphaned_localization_command(ls: CK3LanguageServer, args: List[Any]):
     """
     Command: Find localization keys that may be orphaned.
-    
+
     Compares localization keys with event IDs to find potential
     orphaned (unused) localization entries.
-    
+
     Note: This is a heuristic check - it only looks at event-related
     keys, not all possible references.
-    
+
     Args:
         ls: The language server instance
         args: Command arguments (unused)
-        
+
     Returns:
         Dictionary with potentially orphaned keys
     """
     logger.info("Executing ck3.findOrphanedLocalization command")
-    
+
     # Get all event-related prefixes
     event_prefixes = set()
     for event_id in ls.index.events.keys():
         event_prefixes.add(event_id)
-    
+
     # Find loc keys that look like event keys but don't have matching events
     orphaned = []
     for loc_key in ls.index.localization.keys():
         # Check if this looks like an event localization key
         # Pattern: namespace.number.suffix (e.g., my_mod.0001.t)
-        parts = loc_key.split('.')
+        parts = loc_key.split(".")
         if len(parts) >= 3 and parts[-2].isdigit():
             # Reconstruct the event ID
-            potential_event_id = '.'.join(parts[:-1])
+            potential_event_id = ".".join(parts[:-1])
             if potential_event_id not in event_prefixes:
                 orphaned.append(loc_key)
-    
+
     if orphaned:
         ls.notify_warning(f"Found {len(orphaned)} potentially orphaned localization keys")
     else:
         ls.notify_info("No orphaned localization keys found")
-    
+
     return {
         "orphaned_keys": orphaned[:100],  # Limit to first 100
         "total_count": len(orphaned),
@@ -2839,53 +2833,55 @@ def find_orphaned_localization_command(ls: CK3LanguageServer, args: List[Any]):
 def show_event_chain_command(ls: CK3LanguageServer, args: List[Any]):
     """
     Command: Show event chain starting from a given event.
-    
+
     Analyzes trigger_event calls to build an event chain visualization.
-    
+
     Args:
         ls: The language server instance
         args: Command arguments:
             - args[0]: Starting event ID
-        
+
     Returns:
         Dictionary with event chain information
     """
     logger.info("Executing ck3.showEventChain command")
-    
+
     if not args or not args[0]:
         return {"error": "Event ID required"}
-    
+
     start_event = args[0]
-    
+
     if start_event not in ls.index.events:
         return {"error": f"Event '{start_event}' not found"}
-    
+
     # Import workspace module for event chain analysis
     from .workspace import extract_trigger_event_calls
-    
+
     # Build event chain (BFS traversal)
     visited = set()
     chain = []
     queue = [start_event]
-    
+
     while queue and len(visited) < 50:  # Limit depth
         current = queue.pop(0)
         if current in visited:
             continue
-        
+
         visited.add(current)
-        
+
         # Get event content if available
         event_loc = ls.index.events.get(current)
         if event_loc:
             # We'd need to read the file content to extract trigger_event calls
             # For now, just report the chain structure
-            chain.append({
-                "event_id": current,
-                "file": event_loc.uri,
-                "line": event_loc.range.start.line,
-            })
-    
+            chain.append(
+                {
+                    "event_id": current,
+                    "file": event_loc.uri,
+                    "line": event_loc.range.start.line,
+                }
+            )
+
     return {
         "start_event": start_event,
         "chain": chain,
@@ -2897,34 +2893,34 @@ def show_event_chain_command(ls: CK3LanguageServer, args: List[Any]):
 def check_dependencies_command(ls: CK3LanguageServer, args: List[Any]):
     """
     Command: Check for undefined dependencies.
-    
+
     Finds scripted effects and triggers that are used but not defined
     in the current workspace.
-    
+
     Args:
         ls: The language server instance
         args: Command arguments (unused)
-        
+
     Returns:
         Dictionary with dependency check results
     """
     logger.info("Executing ck3.checkDependencies command")
-    
+
     # This would require tracking usages, which we partially do
     # For now, return current index stats
-    
+
     result = {
         "defined_effects": len(ls.index.scripted_effects),
         "defined_triggers": len(ls.index.scripted_triggers),
         "indexed_events": len(ls.index.events),
-        "status": "Check complete"
+        "status": "Check complete",
     }
-    
+
     ls.notify_info(
         f"Dependencies: {result['defined_effects']} effects, "
         f"{result['defined_triggers']} triggers defined"
     )
-    
+
     return result
 
 
@@ -2932,28 +2928,28 @@ def check_dependencies_command(ls: CK3LanguageServer, args: List[Any]):
 def show_namespace_events_command(ls: CK3LanguageServer, args: List[Any]):
     """
     Command: Show all events in a namespace.
-    
+
     Lists all events belonging to a specific namespace, useful for
     navigating event chains and understanding mod structure.
-    
+
     Args:
         ls: The language server instance
         args: Command arguments:
             - args[0]: Namespace name (e.g., "rq_nts_daughter")
-        
+
     Returns:
         Dictionary with namespace events
     """
     logger.info("Executing ck3.showNamespaceEvents command")
-    
+
     if not args or not args[0]:
         return {"error": "Namespace name required"}
-    
+
     namespace = args[0]
-    
+
     # Get events for this namespace
     events = ls.index.get_events_for_namespace(namespace)
-    
+
     if not events:
         ls.notify_info(f"No events found in namespace '{namespace}'")
         return {
@@ -2961,22 +2957,24 @@ def show_namespace_events_command(ls: CK3LanguageServer, args: List[Any]):
             "events": [],
             "count": 0,
         }
-    
+
     # Build event list with locations and titles
     event_list = []
     for event_id in events:
         event_loc = ls.index.find_event(event_id)
         title = ls.index.get_event_localized_title(event_id) or "(no title)"
-        
-        event_list.append({
-            "event_id": event_id,
-            "title": title,
-            "file": event_loc.uri if event_loc else None,
-            "line": event_loc.range.start.line if event_loc else None,
-        })
-    
+
+        event_list.append(
+            {
+                "event_id": event_id,
+                "title": title,
+                "file": event_loc.uri if event_loc else None,
+                "line": event_loc.range.start.line if event_loc else None,
+            }
+        )
+
     ls.notify_info(f"Found {len(events)} events in namespace '{namespace}'")
-    
+
     return {
         "namespace": namespace,
         "events": event_list,
@@ -2988,10 +2986,10 @@ def show_namespace_events_command(ls: CK3LanguageServer, args: List[Any]):
 async def insert_text_at_cursor_command(ls: CK3LanguageServer, args: List[Any]):
     """
     Command: Insert text at a specific position in a file.
-    
+
     This command demonstrates the apply_edit functionality by inserting
     text at a specified position.
-    
+
     Args:
         ls: The language server instance
         args: Command arguments:
@@ -2999,24 +2997,24 @@ async def insert_text_at_cursor_command(ls: CK3LanguageServer, args: List[Any]):
             - args[1]: Line number (0-indexed)
             - args[2]: Character position (0-indexed)
             - args[3]: Text to insert
-        
+
     Returns:
         Dictionary with success status
     """
     logger.info("Executing ck3.insertTextAtCursor command")
-    
+
     if not args or len(args) < 4:
         return {"error": "Required arguments: uri, line, character, text"}
-    
+
     uri = args[0]
     line = int(args[1])
     character = int(args[2])
     text = args[3]
-    
+
     try:
         edit = ls.create_insert_edit(uri, line, character, text)
         success = await ls.apply_edit(edit, "Insert text")
-        
+
         if success:
             ls.notify_info("Text inserted successfully")
             return {"success": True}
@@ -3032,36 +3030,36 @@ async def insert_text_at_cursor_command(ls: CK3LanguageServer, args: List[Any]):
 async def generate_localization_stubs_command(ls: CK3LanguageServer, args: List[Any]):
     """
     Command: Generate localization stubs for an event.
-    
+
     Creates localization entries for a given event ID and optionally
     inserts them into a localization file using apply_edit.
-    
+
     Args:
         ls: The language server instance
         args: Command arguments:
             - args[0]: Event ID (e.g., "my_mod.0001")
             - args[1]: (Optional) Target localization file URI
             - args[2]: (Optional) Line to insert at (0-indexed)
-        
+
     Returns:
         Dictionary with generated localization text and success status
     """
     logger.info("Executing ck3.generateLocalizationStubs command")
-    
+
     if not args or len(args) < 1:
         return {"error": "Event ID required"}
-    
+
     event_id = args[0]
     target_uri = args[1] if len(args) > 1 else None
     insert_line = int(args[2]) if len(args) > 2 else None
-    
+
     # Generate localization stub text
-    loc_text = f''' {event_id}.t:0 "Event Title"
+    loc_text = f""" {event_id}.t:0 "Event Title"
  {event_id}.desc:0 "Event description goes here."
  {event_id}.a:0 "First Option"
  {event_id}.b:0 "Second Option"
-'''
-    
+"""
+
     result = {
         "event_id": event_id,
         "localization_text": loc_text,
@@ -3070,15 +3068,15 @@ async def generate_localization_stubs_command(ls: CK3LanguageServer, args: List[
             f"{event_id}.desc",
             f"{event_id}.a",
             f"{event_id}.b",
-        ]
+        ],
     }
-    
+
     # If target file and line specified, insert the text
     if target_uri and insert_line is not None:
         try:
             edit = ls.create_insert_edit(target_uri, insert_line, 0, loc_text)
             success = await ls.apply_edit(edit, f"Add localization for {event_id}")
-            
+
             result["inserted"] = success
             if success:
                 ls.notify_info(f"Localization stubs for {event_id} inserted")
@@ -3091,7 +3089,7 @@ async def generate_localization_stubs_command(ls: CK3LanguageServer, args: List[
     else:
         result["inserted"] = False
         result["message"] = "No target file specified - text returned but not inserted"
-    
+
     return result
 
 
@@ -3099,41 +3097,41 @@ async def generate_localization_stubs_command(ls: CK3LanguageServer, args: List[
 async def rename_event_command(ls: CK3LanguageServer, args: List[Any]):
     """
     Command: Rename an event ID across files.
-    
+
     This is a refactoring command that renames an event ID in both
     the event definition and all trigger_event references.
-    
+
     Note: This is a basic implementation - a full rename would also
     update localization keys.
-    
+
     Args:
         ls: The language server instance
         args: Command arguments:
             - args[0]: Old event ID (e.g., "my_mod.0001")
             - args[1]: New event ID (e.g., "my_mod.0100")
-        
+
     Returns:
         Dictionary with rename results
     """
     logger.info("Executing ck3.renameEvent command")
-    
+
     if not args or len(args) < 2:
         return {"error": "Required arguments: old_event_id, new_event_id"}
-    
+
     old_id = args[0]
     new_id = args[1]
-    
+
     # Find the event definition
     event_loc = ls.index.find_event(old_id)
     if not event_loc:
         return {"error": f"Event '{old_id}' not found"}
-    
+
     # Create edits to rename
     # This is a simplified version - full implementation would:
     # 1. Parse the file to find exact positions
     # 2. Find all trigger_event references
     # 3. Update localization keys
-    
+
     try:
         # For now, just report what would be changed
         result = {
@@ -3142,12 +3140,12 @@ async def rename_event_command(ls: CK3LanguageServer, args: List[Any]):
             "definition_file": event_loc.uri,
             "definition_line": event_loc.range.start.line,
             "message": "Event rename functionality requires parsing files for exact positions. Use find-and-replace for now.",
-            "suggestion": f"Replace '{old_id}' with '{new_id}' in your event files and localization."
+            "suggestion": f"Replace '{old_id}' with '{new_id}' in your event files and localization.",
         }
-        
+
         ls.notify_info(f"To rename: Replace '{old_id}' with '{new_id}'")
         return result
-        
+
     except Exception as e:
         logger.error(f"Error renaming event: {e}", exc_info=True)
         return {"error": str(e)}

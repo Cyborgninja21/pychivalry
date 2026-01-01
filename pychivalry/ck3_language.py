@@ -541,7 +541,7 @@ CK3_EVENT_FIELDS = {
     },
 }
 
-# CK3 Portrait Block Fields  
+# CK3 Portrait Block Fields
 # Fields used inside portrait blocks (left_portrait, right_portrait, etc.)
 CK3_PORTRAIT_FIELDS = {
     "character": {
@@ -588,4 +588,3 @@ CK3_CONTEXT_FIELDS = {
     **CK3_EVENT_FIELDS,
     **CK3_PORTRAIT_FIELDS,
 }
-

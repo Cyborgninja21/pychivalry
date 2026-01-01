@@ -34,7 +34,14 @@ from functools import lru_cache
 from typing import List, Optional, Set, Dict, Any, Tuple
 from lsprotocol import types
 
-from .ck3_language import CK3_KEYWORDS, CK3_EFFECTS, CK3_TRIGGERS, CK3_SCOPES, CK3_EVENT_TYPES, CK3_BOOLEAN_VALUES
+from .ck3_language import (
+    CK3_KEYWORDS,
+    CK3_EFFECTS,
+    CK3_TRIGGERS,
+    CK3_SCOPES,
+    CK3_EVENT_TYPES,
+    CK3_BOOLEAN_VALUES,
+)
 from .parser import CK3Node
 from .scopes import get_scope_links, get_scope_lists, get_resulting_scope
 from .indexer import DocumentIndex
@@ -46,6 +53,7 @@ from .indexer import DocumentIndex
 # These functions generate the same items repeatedly, so we cache the results.
 # Since CompletionItem objects are created fresh each time and the source data
 # (CK3_EFFECTS, CK3_TRIGGERS, etc.) is immutable, caching is safe.
+
 
 @lru_cache(maxsize=1)
 def _cached_trigger_completions() -> Tuple[types.CompletionItem, ...]:
@@ -112,7 +120,9 @@ def _cached_all_keyword_completions() -> Tuple[types.CompletionItem, ...]:
 
 
 @lru_cache(maxsize=32)
-def _cached_keyword_completions(keywords_tuple: Tuple[str, ...]) -> Tuple[types.CompletionItem, ...]:
+def _cached_keyword_completions(
+    keywords_tuple: Tuple[str, ...],
+) -> Tuple[types.CompletionItem, ...]:
     """Generate and cache keyword completions for specific keyword sets."""
     items = []
     for keyword in keywords_tuple:
@@ -131,7 +141,7 @@ def _cached_keyword_completions(keywords_tuple: Tuple[str, ...]) -> Tuple[types.
 class CompletionContext:
     """
     Represents the context where completion is triggered.
-    
+
     Attributes:
         block_type: Type of block ('trigger', 'effect', 'immediate', 'option', 'limit', etc.)
         scope_type: Current scope type ('character', 'title', 'province', etc.)
@@ -142,15 +152,16 @@ class CompletionContext:
         saved_scopes: Set of saved scope names from document
         incomplete_text: Partial text before cursor for filtering
     """
-    block_type: str = 'unknown'
-    scope_type: str = 'character'  # Default scope
+
+    block_type: str = "unknown"
+    scope_type: str = "character"  # Default scope
     after_dot: bool = False
     after_colon: bool = False
     in_assignment: bool = False
     trigger_character: Optional[str] = None
     saved_scopes: Set[str] = None
-    incomplete_text: str = ''
-    
+    incomplete_text: str = ""
+
     def __post_init__(self):
         if self.saved_scopes is None:
             self.saved_scopes = set()
@@ -160,168 +171,181 @@ def detect_context(
     node: Optional[CK3Node],
     position: types.Position,
     line_text: str,
-    document_index: Optional[DocumentIndex] = None
+    document_index: Optional[DocumentIndex] = None,
 ) -> CompletionContext:
     """
     Detect the completion context from AST node and cursor position.
-    
+
     Analyzes the current AST node and its parents to determine what kind of
     completion suggestions are appropriate.
-    
+
     Args:
         node: AST node at cursor position (None if not found)
         position: Cursor position in document
         line_text: Full text of the line where cursor is located
         document_index: Document index with saved scopes (optional)
-    
+
     Returns:
         CompletionContext with detected context information
     """
     context = CompletionContext()
-    
+
     # Extract partial text before cursor for filtering
     if position.character > 0 and position.character <= len(line_text):
         # Get text from start of word to cursor
-        before_cursor = line_text[:position.character]
+        before_cursor = line_text[: position.character]
         # Find last word boundary (space, =, {, etc.)
-        word_start = max(
-            before_cursor.rfind(' '),
-            before_cursor.rfind('='),
-            before_cursor.rfind('{'),
-            before_cursor.rfind('\t')
-        ) + 1
+        word_start = (
+            max(
+                before_cursor.rfind(" "),
+                before_cursor.rfind("="),
+                before_cursor.rfind("{"),
+                before_cursor.rfind("\t"),
+            )
+            + 1
+        )
         context.incomplete_text = before_cursor[word_start:].strip()
-    
+
     # Check for special trigger characters
     if position.character > 0:
-        char_before = line_text[position.character - 1] if position.character <= len(line_text) else ''
-        if char_before == '.':
+        char_before = (
+            line_text[position.character - 1] if position.character <= len(line_text) else ""
+        )
+        if char_before == ".":
             context.after_dot = True
-            context.trigger_character = '.'
-        elif position.character >= 6 and line_text[position.character - 6:position.character] == 'scope:':
+            context.trigger_character = "."
+        elif (
+            position.character >= 6
+            and line_text[position.character - 6 : position.character] == "scope:"
+        ):
             context.after_colon = True
-            context.trigger_character = ':'
-        elif char_before in ['_', '=']:
+            context.trigger_character = ":"
+        elif char_before in ["_", "="]:
             context.trigger_character = char_before
-    
+
     # Check if in assignment (key = value)
-    if '=' in line_text[:position.character]:
+    if "=" in line_text[: position.character]:
         context.in_assignment = True
-    
+
     # Collect saved scopes from document
     if document_index:
         context.saved_scopes = set(document_index.saved_scopes.keys())
-    
+
     # Walk up AST to find enclosing block and scope
     current = node
     while current:
         # Detect block type
-        if current.type == 'block':
-            key = current.key.lower() if current.key else ''
-            if key in ['trigger', 'limit']:
-                context.block_type = 'trigger'
+        if current.type == "block":
+            key = current.key.lower() if current.key else ""
+            if key in ["trigger", "limit"]:
+                context.block_type = "trigger"
                 break
-            elif key in ['effect', 'immediate', 'after']:
-                context.block_type = 'effect'
+            elif key in ["effect", "immediate", "after"]:
+                context.block_type = "effect"
                 break
-            elif key == 'option':
-                context.block_type = 'option'  # Can have both triggers and effects
+            elif key == "option":
+                context.block_type = "option"  # Can have both triggers and effects
                 break
-            elif key.startswith('every_') or key.startswith('any_') or key.startswith('random_') or key.startswith('ordered_'):
+            elif (
+                key.startswith("every_")
+                or key.startswith("any_")
+                or key.startswith("random_")
+                or key.startswith("ordered_")
+            ):
                 # Inside an iterator - next level is limit or effect
-                context.block_type = 'iterator'
+                context.block_type = "iterator"
                 # Continue to check if we're in the limit sub-block
-            
+
         # Detect scope type from parent scopes or list iterators
-        if current.scope_type and current.scope_type != 'unknown':
+        if current.scope_type and current.scope_type != "unknown":
             context.scope_type = current.scope_type
-        
+
         current = current.parent
-    
+
     return context
 
 
 def filter_by_context(context: CompletionContext) -> List[types.CompletionItem]:
     """
     Generate completion items filtered by context.
-    
+
     This is the main filtering logic that decides what completions to show
     based on the detected context.
-    
+
     Args:
         context: Detected completion context
-    
+
     Returns:
         List of completion items appropriate for the context
     """
     items = []
-    
+
     # Handle dot notation (scope chain completion)
     if context.after_dot:
         return get_scope_link_completions(context)
-    
+
     # Handle scope: notation (saved scope completion)
     if context.after_colon:
         return get_saved_scope_completions(context)
-    
+
     # Context-specific completions
-    if context.block_type == 'trigger':
+    if context.block_type == "trigger":
         # Inside trigger block: only triggers
         items.extend(create_trigger_completions())
-        items.extend(create_keyword_completions(['limit', 'NOT', 'AND', 'OR', 'NAND', 'NOR']))
-    
-    elif context.block_type == 'effect':
+        items.extend(create_keyword_completions(["limit", "NOT", "AND", "OR", "NAND", "NOR"]))
+
+    elif context.block_type == "effect":
         # Inside effect block: only effects
         items.extend(create_effect_completions())
-        items.extend(create_keyword_completions(['limit', 'if', 'else', 'else_if']))
-    
-    elif context.block_type == 'option':
+        items.extend(create_keyword_completions(["limit", "if", "else", "else_if"]))
+
+    elif context.block_type == "option":
         # Inside option: both effects and nested triggers
         items.extend(create_effect_completions())
         items.extend(create_trigger_completions())
-        items.extend(create_keyword_completions(['trigger', 'trigger_event', 'show_as_tooltip']))
-    
-    elif context.block_type == 'iterator':
+        items.extend(create_keyword_completions(["trigger", "trigger_event", "show_as_tooltip"]))
+
+    elif context.block_type == "iterator":
         # Inside iterator: suggest limit block
-        items.extend(create_keyword_completions(['limit']))
+        items.extend(create_keyword_completions(["limit"]))
         items.extend(create_effect_completions())
-    
+
     else:
         # Unknown context: provide all completions (backwards compatibility)
         items.extend(create_all_completions())
-    
+
     # Add scope navigation if appropriate
     if not context.after_dot and not context.after_colon:
         items.extend(create_scope_completions())
-    
+
     # Add snippets for top-level contexts
-    if context.block_type == 'unknown':
+    if context.block_type == "unknown":
         items.extend(create_snippet_completions())
-    
+
     return items
 
 
 def get_scope_link_completions(context: CompletionContext) -> List[types.CompletionItem]:
     """
     Get completion items for scope links after a dot.
-    
+
     When user types "liege." we show valid scope links from character scope.
-    
+
     Args:
         context: Completion context with scope_type
-    
+
     Returns:
         List of completion items for valid scope links
     """
     items = []
-    
+
     # Get valid scope links for current scope type
     scope_link_names = get_scope_links(context.scope_type)
-    
+
     for link_name in scope_link_names:
         # Get the resulting scope type for this link
         target_scope = get_resulting_scope(context.scope_type, link_name)
-        
+
         items.append(
             types.CompletionItem(
                 label=link_name,
@@ -330,17 +354,17 @@ def get_scope_link_completions(context: CompletionContext) -> List[types.Complet
                 documentation=types.MarkupContent(
                     kind=types.MarkupKind.Markdown,
                     value=f"Navigate from **{context.scope_type}** to **{target_scope}** scope.\n\n"
-                          f"Example: `{context.scope_type}.{link_name}`"
+                    f"Example: `{context.scope_type}.{link_name}`",
                 ),
             )
         )
-    
+
     # Also add scope lists (for iteration)
     scope_list_names = get_scope_lists(context.scope_type)
     for list_name in scope_list_names:
         # Get the resulting scope for this list
         target_scope = get_resulting_scope(context.scope_type, list_name)
-        
+
         items.append(
             types.CompletionItem(
                 label=list_name,
@@ -349,28 +373,28 @@ def get_scope_link_completions(context: CompletionContext) -> List[types.Complet
                 documentation=types.MarkupContent(
                     kind=types.MarkupKind.Markdown,
                     value=f"Iterate over list of **{target_scope}** from **{context.scope_type}** scope.\n\n"
-                          f"Example: `every_{list_name} = {{ ... }}`"
+                    f"Example: `every_{list_name} = {{ ... }}`",
                 ),
             )
         )
-    
+
     return items
 
 
 def get_saved_scope_completions(context: CompletionContext) -> List[types.CompletionItem]:
     """
     Get completion items for saved scopes after 'scope:'.
-    
+
     When user types "scope:" we show all saved scopes from the document.
-    
+
     Args:
         context: Completion context with saved_scopes set
-    
+
     Returns:
         List of completion items for saved scopes
     """
     items = []
-    
+
     for scope_name in sorted(context.saved_scopes):
         items.append(
             types.CompletionItem(
@@ -380,11 +404,11 @@ def get_saved_scope_completions(context: CompletionContext) -> List[types.Comple
                 documentation=types.MarkupContent(
                     kind=types.MarkupKind.Markdown,
                     value=f"Reference to saved scope **{scope_name}**.\n\n"
-                          f"Must be saved earlier with `save_scope_as = {scope_name}`"
+                    f"Must be saved earlier with `save_scope_as = {scope_name}`",
                 ),
             )
         )
-    
+
     # If no saved scopes, provide a hint
     if not items:
         items.append(
@@ -393,10 +417,10 @@ def get_saved_scope_completions(context: CompletionContext) -> List[types.Comple
                 kind=types.CompletionItemKind.Text,
                 detail="Use save_scope_as to create saved scopes",
                 documentation="No saved scopes found in this document. "
-                             "Use save_scope_as = scope_name to save the current scope.",
+                "Use save_scope_as = scope_name to save the current scope.",
             )
         )
-    
+
     return items
 
 
@@ -430,7 +454,7 @@ def create_all_completions() -> List[types.CompletionItem]:
     items.extend(create_effect_completions())
     items.extend(create_trigger_completions())
     items.extend(create_scope_completions())
-    
+
     # Add event types
     for event_type in CK3_EVENT_TYPES:
         items.append(
@@ -441,7 +465,7 @@ def create_all_completions() -> List[types.CompletionItem]:
                 documentation=f"CK3 event type: {event_type}",
             )
         )
-    
+
     # Add boolean values
     for bool_val in CK3_BOOLEAN_VALUES:
         items.append(
@@ -452,19 +476,19 @@ def create_all_completions() -> List[types.CompletionItem]:
                 documentation=f"Boolean value: {bool_val}",
             )
         )
-    
+
     return items
 
 
 def create_snippet_completions() -> List[types.CompletionItem]:
     """
     Create snippet completions for common CK3 patterns.
-    
+
     Snippets are templates with placeholders that the user can tab through.
     Uses LSP's InsertTextFormat.Snippet format.
     """
     snippets = []
-    
+
     # Event template
     snippets.append(
         types.CompletionItem(
@@ -494,7 +518,7 @@ def create_snippet_completions() -> List[types.CompletionItem]:
             insert_text_format=types.InsertTextFormat.Snippet,
         )
     )
-    
+
     # Trigger event snippet
     snippets.append(
         types.CompletionItem(
@@ -506,7 +530,7 @@ def create_snippet_completions() -> List[types.CompletionItem]:
             insert_text_format=types.InsertTextFormat.Snippet,
         )
     )
-    
+
     # Option snippet
     snippets.append(
         types.CompletionItem(
@@ -521,7 +545,7 @@ def create_snippet_completions() -> List[types.CompletionItem]:
             insert_text_format=types.InsertTextFormat.Snippet,
         )
     )
-    
+
     # Save scope snippet
     snippets.append(
         types.CompletionItem(
@@ -533,7 +557,7 @@ def create_snippet_completions() -> List[types.CompletionItem]:
             insert_text_format=types.InsertTextFormat.Snippet,
         )
     )
-    
+
     # Triggered description snippet
     snippets.append(
         types.CompletionItem(
@@ -550,7 +574,7 @@ def create_snippet_completions() -> List[types.CompletionItem]:
             insert_text_format=types.InsertTextFormat.Snippet,
         )
     )
-    
+
     return snippets
 
 
@@ -563,19 +587,19 @@ def get_context_aware_completions(
 ) -> types.CompletionList:
     """
     Main entry point for context-aware completions.
-    
+
     This function is called by the LSP server's completion handler. It:
     1. Detects the context from AST and cursor position
     2. Filters completions based on context
     3. Returns a CompletionList for the client
-    
+
     Args:
         document_uri: URI of the document
         position: Cursor position in the document
         ast: Parsed AST of the document (may be None)
         line_text: Full text of the line at cursor position
         document_index: Document index with saved scopes
-    
+
     Returns:
         CompletionList with context-aware completion items
     """
@@ -585,13 +609,13 @@ def get_context_aware_completions(
         # Implementation note: get_node_at_position should be called here
         # For now, we pass the root node
         node = ast
-    
+
     # Detect context
     context = detect_context(node, position, line_text, document_index)
-    
+
     # Get filtered completions
     items = filter_by_context(context)
-    
+
     # Return completion list
     return types.CompletionList(
         is_incomplete=False,  # We return all relevant items

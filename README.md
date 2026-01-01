@@ -62,7 +62,7 @@ pychivalry brings modern IDE features to CK3 mod development—auto-completion, 
 - [ ] **Semantic Tokens** — Rich syntax highlighting
 - [ ] **Workspace Validation** — Cross-file validation
 
-**Status**: 657+ tests • Comprehensive CK3 support • Ready for production use
+**Status**: 1,142+ tests • Comprehensive CK3 support • Production ready (v1.0.0)
 
 ## 🚀 Quick Start
 

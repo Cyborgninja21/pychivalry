@@ -15,8 +15,8 @@ from pychivalry.indexer import DocumentIndex
 @st.composite
 def ck3_identifier(draw):
     """Generate valid CK3 identifiers."""
-    first_char = draw(st.sampled_from('abcdefghijklmnopqrstuvwxyz_'))
-    rest = draw(st.text(alphabet='abcdefghijklmnopqrstuvwxyz0123456789_', min_size=0, max_size=20))
+    first_char = draw(st.sampled_from("abcdefghijklmnopqrstuvwxyz_"))
+    rest = draw(st.text(alphabet="abcdefghijklmnopqrstuvwxyz0123456789_", min_size=0, max_size=20))
     return first_char + rest
 
 
@@ -31,12 +31,16 @@ def ck3_namespace(draw):
 def ck3_simple_assignment(draw):
     """Generate simple key = value assignments."""
     key = draw(ck3_identifier())
-    value = draw(st.one_of(
-        st.integers(min_value=-1000, max_value=1000).map(str),
-        st.booleans().map(lambda b: "yes" if b else "no"),
-        ck3_identifier(),
-        st.text(alphabet='abcdefghijklmnopqrstuvwxyz ', min_size=1, max_size=50).map(lambda s: f'"{s}"')
-    ))
+    value = draw(
+        st.one_of(
+            st.integers(min_value=-1000, max_value=1000).map(str),
+            st.booleans().map(lambda b: "yes" if b else "no"),
+            ck3_identifier(),
+            st.text(alphabet="abcdefghijklmnopqrstuvwxyz ", min_size=1, max_size=50).map(
+                lambda s: f'"{s}"'
+            ),
+        )
+    )
     return f"{key} = {value}\n"
 
 
@@ -47,7 +51,7 @@ def ck3_block(draw, max_depth=3):
         # Nested block
         name = draw(ck3_identifier())
         num_statements = draw(st.integers(min_value=0, max_value=5))
-        statements = [draw(ck3_block(max_depth=max_depth-1)) for _ in range(num_statements)]
+        statements = [draw(ck3_block(max_depth=max_depth - 1)) for _ in range(num_statements)]
         return f"{name} = {{\n{''.join(statements)}}}\n"
     else:
         # Simple assignment
@@ -69,9 +73,11 @@ class TestParserRobustness:
             # No uncaught exceptions allowed
             pytest.fail(f"Parser crashed on input: {repr(text[:100])}\nError: {e}")
 
-    @given(st.integers(min_value=0, max_value=10).flatmap(
-        lambda n: st.lists(ck3_simple_assignment(), min_size=0, max_size=n)
-    ))
+    @given(
+        st.integers(min_value=0, max_value=10).flatmap(
+            lambda n: st.lists(ck3_simple_assignment(), min_size=0, max_size=n)
+        )
+    )
     @settings(max_examples=50)
     def test_parser_handles_valid_assignments(self, assignments):
         """Parser should handle lists of valid assignments."""
@@ -79,7 +85,7 @@ class TestParserRobustness:
         result = parse_document(content)
         assert result is not None
 
-    @given(st.text(alphabet='{}[]()=\n\t ', min_size=0, max_size=200))
+    @given(st.text(alphabet="{}[]()=\n\t ", min_size=0, max_size=200))
     @settings(max_examples=50)
     def test_parser_handles_brackets_and_delimiters(self, text):
         """Parser should handle random combinations of brackets and delimiters."""
@@ -99,14 +105,14 @@ class TestParserRobustness:
         content += "value = 1\n"
         content += "}\n" * depth
         content += "}\n"
-        
+
         try:
             result = parse_document(content)
             assert result is not None
         except RecursionError:
             pytest.skip("Recursion limit reached - expected for very deep nesting")
 
-    @given(st.text(alphabet='"\'\n', min_size=0, max_size=100))
+    @given(st.text(alphabet="\"'\n", min_size=0, max_size=100))
     @settings(max_examples=50)
     def test_parser_handles_quotes(self, text):
         """Parser should handle various quote combinations."""
@@ -145,7 +151,11 @@ class TestDiagnosticsRobustness:
 class TestCompletionsRobustness:
     """Test completions handles edge cases."""
 
-    @given(st.text(min_size=0, max_size=200), st.integers(min_value=0, max_value=20), st.integers(min_value=0, max_value=100))
+    @given(
+        st.text(min_size=0, max_size=200),
+        st.integers(min_value=0, max_value=20),
+        st.integers(min_value=0, max_value=100),
+    )
     @settings(max_examples=30, suppress_health_check=[HealthCheck.too_slow])
     def test_completions_handles_arbitrary_position(self, text, line, col):
         """Completions should handle arbitrary cursor positions without crashing."""
@@ -154,12 +164,12 @@ class TestCompletionsRobustness:
             index = DocumentIndex()
             # Index expects AST (list of nodes), not a document object
             index.index_document("fuzz.txt", ast)
-            
+
             # Try to get completions at position
             position = (line, col)
             # get_context_aware_completions expects AST (list), not document
             completions = get_context_aware_completions(ast, position, index)
-            
+
             # Should return list (possibly empty)
             assert isinstance(completions, list)
         except (IndexError, AttributeError, ValueError) as e:
@@ -193,7 +203,7 @@ class TestPropertyInvariants:
         """Property: Valid CK3 syntax should produce parseable AST."""
         content = namespace + "".join(assignments)
         ast = parse_document(content)
-        
+
         # AST should be created as a list
         assert ast is not None
         assert isinstance(ast, list)
@@ -245,9 +255,9 @@ class TestEdgeCases:
             "event = {",
             "event = { id =",
             "event = { id = test.001",
-            '{"key": "missing_close_brace"'
+            '{"key": "missing_close_brace"',
         ]
-        
+
         for content in incomplete:
             result = parse_document(content)
             assert result is not None  # Should not crash
@@ -258,7 +268,7 @@ class TestEdgeCases:
         """Parser should handle invalid UTF-8 sequences."""
         try:
             # Try to decode as UTF-8, with error handling
-            text = binary_data.decode('utf-8', errors='replace')
+            text = binary_data.decode("utf-8", errors="replace")
             result = parse_document(text)
             assert result is not None
         except Exception:

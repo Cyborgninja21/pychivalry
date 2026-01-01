@@ -32,222 +32,208 @@ logger = logging.getLogger(__name__)
 # This maps what type of object a list iterator produces
 LIST_BASE_SCOPE_TYPES: Dict[str, str] = {
     # Character lists
-    'vassal': 'character',
-    'courtier': 'character',
-    'child': 'character',
-    'spouse': 'character',
-    'concubine': 'character',
-    'consort': 'character',
-    'sibling': 'character',
-    'parent': 'character',
-    'close_family_member': 'character',
-    'extended_family_member': 'character',
-    'family_member': 'character',
-    'dynasty_member': 'character',
-    'house_member': 'character',
-    'knight': 'character',
-    'councillor': 'character',
-    'realm_character': 'character',
-    'neighboring_realm_same_rank_owner': 'character',
-    'liege_or_above': 'character',
-    'ally': 'character',
-    'truce_holder': 'character',
-    'truce_target': 'character',
-    'heir': 'character',
-    'pretender': 'character',
-    'prisoner': 'character',
-    'player': 'character',
-    'living_character': 'character',
-    'ruler': 'character',
-    'independent_ruler': 'character',
-    'pool_character': 'character',
-    'hostage': 'character',
-    'warden': 'character',
-    'guest': 'character',
-    'claimant': 'character',
-    'legitimized_bastard': 'character',
-    'foreign_court_guest': 'character',
-    'traveling_family_member': 'character',
-    'friend': 'character',
-    'rival': 'character',
-    'lover': 'character',
-    'potential_marriage_option': 'character',
-    
+    "vassal": "character",
+    "courtier": "character",
+    "child": "character",
+    "spouse": "character",
+    "concubine": "character",
+    "consort": "character",
+    "sibling": "character",
+    "parent": "character",
+    "close_family_member": "character",
+    "extended_family_member": "character",
+    "family_member": "character",
+    "dynasty_member": "character",
+    "house_member": "character",
+    "knight": "character",
+    "councillor": "character",
+    "realm_character": "character",
+    "neighboring_realm_same_rank_owner": "character",
+    "liege_or_above": "character",
+    "ally": "character",
+    "truce_holder": "character",
+    "truce_target": "character",
+    "heir": "character",
+    "pretender": "character",
+    "prisoner": "character",
+    "player": "character",
+    "living_character": "character",
+    "ruler": "character",
+    "independent_ruler": "character",
+    "pool_character": "character",
+    "hostage": "character",
+    "warden": "character",
+    "guest": "character",
+    "claimant": "character",
+    "legitimized_bastard": "character",
+    "foreign_court_guest": "character",
+    "traveling_family_member": "character",
+    "friend": "character",
+    "rival": "character",
+    "lover": "character",
+    "potential_marriage_option": "character",
     # Title lists
-    'held_title': 'landed_title',
-    'claim': 'landed_title',
-    'de_jure_county': 'landed_title',
-    'de_jure_county_holder': 'character',
-    'in_de_jure_hierarchy': 'landed_title',
-    'sub_realm_title': 'landed_title',
-    'directly_owned_province': 'province',
-    'realm_province': 'province',
-    'neighboring_county': 'landed_title',
-    'title_to_title_neighboring_county': 'landed_title',
-    'county_in_region': 'landed_title',
-    
-    # Dynasty/House lists  
-    'dynasty': 'dynasty',
-    'house': 'dynasty_house',
-    
+    "held_title": "landed_title",
+    "claim": "landed_title",
+    "de_jure_county": "landed_title",
+    "de_jure_county_holder": "character",
+    "in_de_jure_hierarchy": "landed_title",
+    "sub_realm_title": "landed_title",
+    "directly_owned_province": "province",
+    "realm_province": "province",
+    "neighboring_county": "landed_title",
+    "title_to_title_neighboring_county": "landed_title",
+    "county_in_region": "landed_title",
+    # Dynasty/House lists
+    "dynasty": "dynasty",
+    "house": "dynasty_house",
     # Province lists
-    'province': 'province',
-    'realm_barony': 'landed_title',
-    
+    "province": "province",
+    "realm_barony": "landed_title",
     # Faith/Culture lists
-    'faith': 'faith',
-    'culture': 'culture',
-    
+    "faith": "faith",
+    "culture": "culture",
     # War/Combat lists
-    'war': 'war',
-    'war_participant': 'character',
-    'war_ally': 'character',
-    'war_enemy': 'character',
-    'army': 'army',
-    'regiment': 'regiment',
-    
+    "war": "war",
+    "war_participant": "character",
+    "war_ally": "character",
+    "war_enemy": "character",
+    "army": "army",
+    "regiment": "regiment",
     # Scheme lists
-    'scheme': 'scheme',
-    'targeting_scheme': 'scheme',
-    'owned_scheme': 'scheme',
-    
+    "scheme": "scheme",
+    "targeting_scheme": "scheme",
+    "owned_scheme": "scheme",
     # Secret lists
-    'secret': 'secret',
-    'known_secret': 'secret',
-    
+    "secret": "secret",
+    "known_secret": "secret",
     # Activity lists
-    'activity': 'activity',
-    
+    "activity": "activity",
     # Artifact lists
-    'artifact': 'artifact',
-    'inventory_artifact': 'artifact',
-    
+    "artifact": "artifact",
+    "inventory_artifact": "artifact",
     # Story lists
-    'story': 'story_cycle',
-    
+    "story": "story_cycle",
     # Memory lists
-    'memory': 'character_memory',
-    
+    "memory": "character_memory",
     # Inspiration lists
-    'inspiration': 'inspiration',
-    
+    "inspiration": "inspiration",
     # Relation lists
-    'relation': 'character',
-    
+    "relation": "character",
     # Trait lists
-    'trait': 'trait',
+    "trait": "trait",
 }
 
 # Scope link to resulting type mappings (more comprehensive)
 SCOPE_LINK_TYPES: Dict[str, Dict[str, str]] = {
-    'character': {
-        'liege': 'character',
-        'liege_or_court_owner': 'character',
-        'top_liege': 'character',
-        'spouse': 'character',
-        'primary_spouse': 'character',
-        'betrothed': 'character',
-        'father': 'character',
-        'mother': 'character',
-        'real_father': 'character',
-        'primary_title': 'landed_title',
-        'capital_county': 'landed_title',
-        'capital_province': 'province',
-        'location': 'province',
-        'court_owner': 'character',
-        'host': 'character',
-        'dynasty': 'dynasty',
-        'dynasty_head': 'character',
-        'house': 'dynasty_house',
-        'house_head': 'character',
-        'faith': 'faith',
-        'religion': 'religion',
-        'culture': 'culture',
-        'culture_group': 'culture_group',
-        'employer': 'character',
-        'killer': 'character',
-        'heir': 'character',
-        'player_heir': 'character',
-        'designated_heir': 'character',
-        'primary_partner': 'character',
-        'pregnancy_assumed_father': 'character',
-        'ghw_beneficiary': 'character',
-        'council_task': 'council_task',
-        'commanded_army': 'army',
-        'joined_faction': 'faction',
-        'primary_war_enemy': 'character',
-        'primary_defender': 'character',
-        'primary_attacker': 'character',
+    "character": {
+        "liege": "character",
+        "liege_or_court_owner": "character",
+        "top_liege": "character",
+        "spouse": "character",
+        "primary_spouse": "character",
+        "betrothed": "character",
+        "father": "character",
+        "mother": "character",
+        "real_father": "character",
+        "primary_title": "landed_title",
+        "capital_county": "landed_title",
+        "capital_province": "province",
+        "location": "province",
+        "court_owner": "character",
+        "host": "character",
+        "dynasty": "dynasty",
+        "dynasty_head": "character",
+        "house": "dynasty_house",
+        "house_head": "character",
+        "faith": "faith",
+        "religion": "religion",
+        "culture": "culture",
+        "culture_group": "culture_group",
+        "employer": "character",
+        "killer": "character",
+        "heir": "character",
+        "player_heir": "character",
+        "designated_heir": "character",
+        "primary_partner": "character",
+        "pregnancy_assumed_father": "character",
+        "ghw_beneficiary": "character",
+        "council_task": "council_task",
+        "commanded_army": "army",
+        "joined_faction": "faction",
+        "primary_war_enemy": "character",
+        "primary_defender": "character",
+        "primary_attacker": "character",
     },
-    'landed_title': {
-        'holder': 'character',
-        'previous_holder': 'character',
-        'de_jure_liege': 'landed_title',
-        'de_facto_liege': 'landed_title',
-        'title_capital_county': 'landed_title',
-        'capital_county': 'landed_title',
-        'capital_barony': 'landed_title',
-        'capital_province': 'province',
-        'duchy': 'landed_title',
-        'kingdom': 'landed_title',
-        'empire': 'landed_title',
-        'lessee': 'character',
-        'lease_holder': 'character',
+    "landed_title": {
+        "holder": "character",
+        "previous_holder": "character",
+        "de_jure_liege": "landed_title",
+        "de_facto_liege": "landed_title",
+        "title_capital_county": "landed_title",
+        "capital_county": "landed_title",
+        "capital_barony": "landed_title",
+        "capital_province": "province",
+        "duchy": "landed_title",
+        "kingdom": "landed_title",
+        "empire": "landed_title",
+        "lessee": "character",
+        "lease_holder": "character",
     },
-    'province': {
-        'county': 'landed_title',
-        'barony': 'landed_title',
-        'holder': 'character',
-        'faith': 'faith',
-        'culture': 'culture',
-        'terrain': 'terrain',
+    "province": {
+        "county": "landed_title",
+        "barony": "landed_title",
+        "holder": "character",
+        "faith": "faith",
+        "culture": "culture",
+        "terrain": "terrain",
     },
-    'dynasty': {
-        'dynast': 'character',
-        'dynasty_founder': 'character',
+    "dynasty": {
+        "dynast": "character",
+        "dynasty_founder": "character",
     },
-    'dynasty_house': {
-        'house_head': 'character',
-        'house_founder': 'character',
-        'dynasty': 'dynasty',
+    "dynasty_house": {
+        "house_head": "character",
+        "house_founder": "character",
+        "dynasty": "dynasty",
     },
-    'faith': {
-        'religion': 'religion',
-        'religious_head': 'character',
-        'great_holy_war': 'great_holy_war',
+    "faith": {
+        "religion": "religion",
+        "religious_head": "character",
+        "great_holy_war": "great_holy_war",
     },
-    'culture': {
-        'culture_head': 'character',
-        'culture_group': 'culture_group',
+    "culture": {
+        "culture_head": "character",
+        "culture_group": "culture_group",
     },
-    'war': {
-        'casus_belli': 'casus_belli',
-        'primary_attacker': 'character',
-        'primary_defender': 'character',
-        'claimant': 'character',
+    "war": {
+        "casus_belli": "casus_belli",
+        "primary_attacker": "character",
+        "primary_defender": "character",
+        "claimant": "character",
     },
-    'army': {
-        'army_owner': 'character',
-        'army_commander': 'character',
-        'location': 'province',
+    "army": {
+        "army_owner": "character",
+        "army_commander": "character",
+        "location": "province",
     },
-    'scheme': {
-        'scheme_owner': 'character',
-        'scheme_target': 'character',
+    "scheme": {
+        "scheme_owner": "character",
+        "scheme_target": "character",
     },
-    'faction': {
-        'faction_leader': 'character',
-        'faction_target': 'character',
-        'faction_war': 'war',
+    "faction": {
+        "faction_leader": "character",
+        "faction_target": "character",
+        "faction_war": "war",
     },
 }
 
 
-@dataclass  
+@dataclass
 class InlayHintConfig:
     """
     Configuration for inlay hint generation.
-    
+
     Attributes:
         show_scope_types: Show type hints for saved scopes
         show_link_types: Show type hints for scope links
@@ -255,6 +241,7 @@ class InlayHintConfig:
         show_parameter_names: Show parameter name hints
         max_hints_per_line: Maximum hints to show per line
     """
+
     show_scope_types: bool = True
     show_link_types: bool = True
     show_iterator_types: bool = True
@@ -265,11 +252,11 @@ class InlayHintConfig:
 def get_scope_type_for_link(current_scope: str, link: str) -> Optional[str]:
     """
     Get the resulting scope type for a scope link.
-    
+
     Args:
         current_scope: Current scope type
         link: Link name to follow
-        
+
     Returns:
         Resulting scope type, or None if unknown
     """
@@ -278,45 +265,45 @@ def get_scope_type_for_link(current_scope: str, link: str) -> Optional[str]:
     return None
 
 
-def get_scope_type_for_chain(chain: str, starting_scope: str = 'character') -> Optional[str]:
+def get_scope_type_for_chain(chain: str, starting_scope: str = "character") -> Optional[str]:
     """
     Get the resulting scope type for a scope chain.
-    
+
     Args:
         chain: Scope chain (e.g., 'liege.primary_title.holder')
         starting_scope: Starting scope type
-        
+
     Returns:
         Resulting scope type, or None if unknown
     """
     if not chain:
         return starting_scope
-    
-    parts = chain.split('.')
+
+    parts = chain.split(".")
     current_scope = starting_scope
-    
+
     for part in parts:
         # Skip universal links that preserve scope
-        if part in ['this', 'root', 'prev', 'from', 'fromfrom']:
+        if part in ["this", "root", "prev", "from", "fromfrom"]:
             continue
-        
+
         next_scope = get_scope_type_for_link(current_scope, part)
         if next_scope:
             current_scope = next_scope
         else:
             # Unknown link, but continue with best guess
             current_scope = get_resulting_scope(current_scope, part)
-    
+
     return current_scope
 
 
 def get_scope_type_for_iterator(iterator: str) -> Optional[str]:
     """
     Get the resulting scope type for a list iterator.
-    
+
     Args:
         iterator: List iterator (e.g., 'every_vassal', 'random_courtier')
-        
+
     Returns:
         Resulting scope type, or None if unknown
     """
@@ -334,36 +321,36 @@ def get_inlay_hints(
 ) -> List[types.InlayHint]:
     """
     Generate inlay hints for a document range.
-    
+
     Args:
         text: Document text
         range_: Range to generate hints for
         index: Document index for saved scope lookup
         config: Configuration options
-        
+
     Returns:
         List of InlayHint objects
     """
     if config is None:
         config = InlayHintConfig()
-    
+
     hints: List[types.InlayHint] = []
-    lines = text.split('\n')
-    
+    lines = text.split("\n")
+
     # Determine range to process
     start_line = range_.start.line
     end_line = min(range_.end.line + 1, len(lines))
-    
+
     for line_num in range(start_line, end_line):
         if line_num >= len(lines):
             break
-            
+
         line = lines[line_num]
         line_hints = _get_hints_for_line(line, line_num, index, config)
-        
+
         # Limit hints per line
-        hints.extend(line_hints[:config.max_hints_per_line])
-    
+        hints.extend(line_hints[: config.max_hints_per_line])
+
     return hints
 
 
@@ -375,35 +362,35 @@ def _get_hints_for_line(
 ) -> List[types.InlayHint]:
     """
     Generate inlay hints for a single line.
-    
+
     Args:
         line: Line text
         line_num: Line number (0-indexed)
         index: Document index
         config: Configuration options
-        
+
     Returns:
         List of InlayHint objects for this line
     """
     hints: List[types.InlayHint] = []
-    
+
     # Skip comments
     stripped = line.lstrip()
-    if stripped.startswith('#'):
+    if stripped.startswith("#"):
         return hints
-    
+
     # Find scope references: scope:name
     if config.show_scope_types:
         hints.extend(_find_scope_hints(line, line_num, index))
-    
+
     # Find scope chains: root.liege.primary_title
     if config.show_link_types:
         hints.extend(_find_chain_hints(line, line_num))
-    
+
     # Find list iterators: every_vassal, random_courtier
     if config.show_iterator_types:
         hints.extend(_find_iterator_hints(line, line_num))
-    
+
     return hints
 
 
@@ -414,28 +401,28 @@ def _find_scope_hints(
 ) -> List[types.InlayHint]:
     """
     Find hints for saved scope references (scope:name).
-    
+
     Args:
         line: Line text
         line_num: Line number
         index: Document index for scope type lookup
-        
+
     Returns:
         List of InlayHint objects
     """
     hints: List[types.InlayHint] = []
-    
+
     # Pattern to match scope:name
-    pattern = r'\bscope:([a-zA-Z_][a-zA-Z0-9_]*)'
-    
+    pattern = r"\bscope:([a-zA-Z_][a-zA-Z0-9_]*)"
+
     for match in re.finditer(pattern, line):
         scope_name = match.group(1)
         end_pos = match.end()
-        
+
         # Try to determine scope type
         # For now, we'll use heuristics based on common naming patterns
         scope_type = _infer_scope_type_from_name(scope_name)
-        
+
         if scope_type:
             hint = types.InlayHint(
                 position=types.Position(line=line_num, character=end_pos),
@@ -446,41 +433,41 @@ def _find_scope_hints(
                 tooltip=f"Saved scope '{scope_name}' is of type '{scope_type}'",
             )
             hints.append(hint)
-    
+
     return hints
 
 
 def _find_chain_hints(line: str, line_num: int) -> List[types.InlayHint]:
     """
     Find hints for scope chains (root.liege.primary_title).
-    
+
     Args:
         line: Line text
         line_num: Line number
-        
+
     Returns:
         List of InlayHint objects
     """
     hints: List[types.InlayHint] = []
-    
+
     # Pattern to match scope chains starting with root, prev, this, from, etc.
     # or character property chains
-    pattern = r'\b(root|this|prev|from|fromfrom)(\.[a-zA-Z_][a-zA-Z0-9_]*)+\b'
-    
+    pattern = r"\b(root|this|prev|from|fromfrom)(\.[a-zA-Z_][a-zA-Z0-9_]*)+\b"
+
     for match in re.finditer(pattern, line):
         chain = match.group(0)
         end_pos = match.end()
-        
+
         # Get the resulting scope type
-        parts = chain.split('.')
+        parts = chain.split(".")
         if len(parts) >= 2:
             # Start from character scope for root/this/prev
-            starting_scope = 'character'
-            chain_without_root = '.'.join(parts[1:])
-            
+            starting_scope = "character"
+            chain_without_root = ".".join(parts[1:])
+
             result_type = get_scope_type_for_chain(chain_without_root, starting_scope)
-            
-            if result_type and result_type != 'character':
+
+            if result_type and result_type != "character":
                 hint = types.InlayHint(
                     position=types.Position(line=line_num, character=end_pos),
                     label=f": {result_type}",
@@ -490,41 +477,41 @@ def _find_chain_hints(line: str, line_num: int) -> List[types.InlayHint]:
                     tooltip=f"Scope chain '{chain}' results in type '{result_type}'",
                 )
                 hints.append(hint)
-    
+
     return hints
 
 
 def _find_iterator_hints(line: str, line_num: int) -> List[types.InlayHint]:
     """
     Find hints for list iterators (every_vassal, random_courtier).
-    
+
     Args:
         line: Line text
         line_num: Line number
-        
+
     Returns:
         List of InlayHint objects
     """
     hints: List[types.InlayHint] = []
-    
+
     # Pattern to match list iterators followed by = {
-    pattern = r'\b(any_|every_|random_|ordered_)([a-zA-Z_][a-zA-Z0-9_]*)\s*='
-    
+    pattern = r"\b(any_|every_|random_|ordered_)([a-zA-Z_][a-zA-Z0-9_]*)\s*="
+
     for match in re.finditer(pattern, line):
         prefix = match.group(1)
         base = match.group(2)
         iterator = prefix + base
-        
+
         # Skip special cases that aren't actual iterators
-        if iterator in ['random_list', 'ordered_list']:
+        if iterator in ["random_list", "ordered_list"]:
             continue
-        
+
         # Position hint right after the iterator name
         iterator_end = match.start() + len(iterator)
-        
+
         # Get the resulting scope type
         result_type = LIST_BASE_SCOPE_TYPES.get(base)
-        
+
         if result_type:
             hint = types.InlayHint(
                 position=types.Position(line=line_num, character=iterator_end),
@@ -535,104 +522,141 @@ def _find_iterator_hints(line: str, line_num: int) -> List[types.InlayHint]:
                 tooltip=f"Iterator '{iterator}' iterates over '{result_type}' objects",
             )
             hints.append(hint)
-    
+
     return hints
 
 
 def _infer_scope_type_from_name(scope_name: str) -> Optional[str]:
     """
     Infer scope type from a saved scope name using naming conventions.
-    
+
     Common patterns:
     - *_character, *_target, *_actor -> character
     - *_title, *_county, *_duchy -> landed_title
     - *_province, *_location -> province
     - spouse, lover, friend, rival, etc. -> character
-    
+
     Args:
         scope_name: Name of the saved scope
-        
+
     Returns:
         Inferred scope type, or None if unknown
     """
     name_lower = scope_name.lower()
-    
+
     # Check more specific patterns FIRST before general character patterns
-    
+
     # Title indicators (check before character - "target_title" should be title, not character)
-    title_patterns = ['title', 'county', 'duchy', 'kingdom', 'empire', 'barony']
+    title_patterns = ["title", "county", "duchy", "kingdom", "empire", "barony"]
     for pattern in title_patterns:
         if pattern in name_lower:
-            return 'landed_title'
-    
+            return "landed_title"
+
     # Province indicators (check before character - has some overlapping terms)
-    province_patterns = ['province', 'location']
+    province_patterns = ["province", "location"]
     for pattern in province_patterns:
         if pattern in name_lower:
-            return 'province'
-    
+            return "province"
+
     # Dynasty indicators
-    if 'dynasty' in name_lower:
-        return 'dynasty'
-    
+    if "dynasty" in name_lower:
+        return "dynasty"
+
     # House indicators
-    if 'house' in name_lower:
-        return 'dynasty_house'
-    
+    if "house" in name_lower:
+        return "dynasty_house"
+
     # Faith indicators
-    if 'faith' in name_lower or 'religion' in name_lower:
-        return 'faith'
-    
+    if "faith" in name_lower or "religion" in name_lower:
+        return "faith"
+
     # Culture indicators
-    if 'culture' in name_lower:
-        return 'culture'
-    
+    if "culture" in name_lower:
+        return "culture"
+
     # War indicators
-    if 'war' in name_lower:
-        return 'war'
-    
+    if "war" in name_lower:
+        return "war"
+
     # Scheme indicators
-    if 'scheme' in name_lower:
-        return 'scheme'
-    
+    if "scheme" in name_lower:
+        return "scheme"
+
     # Character indicators (checked LAST since they're most common)
     character_patterns = [
-        'character', 'target', 'actor', 'recipient', 'owner', 'holder',
-        'spouse', 'lover', 'friend', 'rival', 'liege', 'vassal',
-        'father', 'mother', 'parent', 'child', 'sibling',
-        'killer', 'victim', 'attacker', 'defender',
-        'courtier', 'knight', 'councillor', 'host', 'guest',
-        'claimant', 'pretender', 'heir',
-        'player', 'ruler', 'emperor', 'king', 'duke', 'count',
-        'third_party', 'participant', 'candidate',
+        "character",
+        "target",
+        "actor",
+        "recipient",
+        "owner",
+        "holder",
+        "spouse",
+        "lover",
+        "friend",
+        "rival",
+        "liege",
+        "vassal",
+        "father",
+        "mother",
+        "parent",
+        "child",
+        "sibling",
+        "killer",
+        "victim",
+        "attacker",
+        "defender",
+        "courtier",
+        "knight",
+        "councillor",
+        "host",
+        "guest",
+        "claimant",
+        "pretender",
+        "heir",
+        "player",
+        "ruler",
+        "emperor",
+        "king",
+        "duke",
+        "count",
+        "third_party",
+        "participant",
+        "candidate",
     ]
-    
+
     for pattern in character_patterns:
-        if pattern in name_lower or name_lower.endswith(f'_{pattern}'):
-            return 'character'
-    
+        if pattern in name_lower or name_lower.endswith(f"_{pattern}"):
+            return "character"
+
     # Default to character for common simple names
     simple_character_names = [
-        'target', 'actor', 'recipient', 'owner', 'scope',
-        'spouse', 'lover', 'friend', 'rival',
+        "target",
+        "actor",
+        "recipient",
+        "owner",
+        "scope",
+        "spouse",
+        "lover",
+        "friend",
+        "rival",
     ]
     if name_lower in simple_character_names:
-        return 'character'
-    
+        return "character"
+
     return None
 
 
 def resolve_inlay_hint(hint: types.InlayHint) -> types.InlayHint:
     """
     Resolve an inlay hint with additional information.
-    
+
     This is called when inlay hints support resolve requests.
     Currently just returns the hint as-is since we populate
     all information upfront.
-    
+
     Args:
         hint: The inlay hint to resolve
-        
+
     Returns:
         The resolved inlay hint
     """
