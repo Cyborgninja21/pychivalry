@@ -353,7 +353,9 @@ def extract_selection_as_scripted_trigger(
         CodeAction for refactoring
 
     Example:
-        >>> action = extract_selection_as_scripted_trigger(uri, range, 'has_gold = 100', 'has_enough_gold')
+        >>> action = extract_selection_as_scripted_trigger(
+        ...     uri, range, 'has_gold = 100', 'has_enough_gold'
+        ... )
         >>> action.title
         "Extract as scripted trigger 'has_enough_gold'"
     """

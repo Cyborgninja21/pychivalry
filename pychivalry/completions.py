@@ -31,7 +31,7 @@ Integration:
 
 from dataclasses import dataclass
 from functools import lru_cache
-from typing import List, Optional, Set, Dict, Any, Tuple
+from typing import List, Optional, Set, Tuple
 from lsprotocol import types
 
 from .ck3_language import (
@@ -372,8 +372,11 @@ def get_scope_link_completions(context: CompletionContext) -> List[types.Complet
                 detail=f"Scope List → {target_scope}[]",
                 documentation=types.MarkupContent(
                     kind=types.MarkupKind.Markdown,
-                    value=f"Iterate over list of **{target_scope}** from **{context.scope_type}** scope.\n\n"
-                    f"Example: `every_{list_name} = {{ ... }}`",
+                    value=(
+                        f"Iterate over list of **{target_scope}** from "
+                        f"**{context.scope_type}** scope.\n\n"
+                        f"Example: `every_{list_name} = {{ ... }}`"
+                    ),
                 ),
             )
         )

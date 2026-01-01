@@ -17,7 +17,7 @@ LSP Methods:
 
 import logging
 import re
-from typing import Dict, List, Optional, Set, Tuple, Any
+from typing import Dict, List, Set, Tuple, Any
 from dataclasses import dataclass, field
 from lsprotocol import types
 

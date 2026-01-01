@@ -14,12 +14,11 @@ Hover content is formatted as Markdown for rich display in the editor.
 from typing import Optional
 from lsprotocol import types
 from pygls.workspace import TextDocument
-import re
 
 from .parser import CK3Node, get_node_at_position
 from .indexer import DocumentIndex
 from .ck3_language import CK3_EFFECTS, CK3_TRIGGERS, CK3_SCOPES, CK3_KEYWORDS, CK3_CONTEXT_FIELDS
-from .scopes import get_scope_links, get_available_scope_types
+from .scopes import get_scope_links
 import logging
 
 logger = logging.getLogger(__name__)

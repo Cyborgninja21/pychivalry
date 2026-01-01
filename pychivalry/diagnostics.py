@@ -12,7 +12,7 @@ This module provides validation and error detection for CK3 scripts, including:
 Diagnostics are published to the client via LSP's PublishDiagnostics notification.
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import List, Optional
 from lsprotocol import types
 from pygls.workspace import TextDocument
@@ -21,8 +21,6 @@ from .parser import CK3Node
 from .indexer import DocumentIndex
 from .scopes import (
     validate_scope_chain,
-    get_scope_triggers,
-    get_scope_effects,
     is_valid_list_base,
     parse_list_iterator,
 )
@@ -106,7 +104,10 @@ def check_syntax(doc: TextDocument, ast: List[CK3Node]) -> List[types.Diagnostic
                     # Unmatched closing bracket
                     diagnostics.append(
                         create_diagnostic(
-                            message="Unmatched closing bracket - no corresponding opening bracket found",
+                            message=(
+                                "Unmatched closing bracket - no corresponding "
+                                "opening bracket found"
+                            ),
                             range_=types.Range(
                                 start=types.Position(line=line_num, character=char_idx),
                                 end=types.Position(line=line_num, character=char_idx + 1),
@@ -144,7 +145,11 @@ def check_syntax(doc: TextDocument, ast: List[CK3Node]) -> List[types.Diagnostic
         # Primary diagnostic at the opening bracket - highlight the whole declaration
         diagnostics.append(
             create_diagnostic(
-                message=f"Unclosed bracket{key_context} - opened at line {line_num + 1}, expected closing '}}' before end of file (line {total_lines})",
+                message=(
+                    f"Unclosed bracket{key_context} - opened at line "
+                    f"{line_num + 1}, expected closing '}}' before end of "
+                    f"file (line {total_lines})"
+                ),
                 range_=types.Range(
                     start=types.Position(line=line_num, character=key_start),
                     end=types.Position(line=line_num, character=line_end),
@@ -159,7 +164,9 @@ def check_syntax(doc: TextDocument, ast: List[CK3Node]) -> List[types.Diagnostic
         last_line_len = len(lines[last_line_idx]) if lines else 0
         diagnostics.append(
             create_diagnostic(
-                message=f"Missing closing '}}' for block opened at line {line_num + 1}{key_context}",
+                message=(
+                    f"Missing closing '}}' for block opened at line " f"{line_num + 1}{key_context}"
+                ),
                 range_=types.Range(
                     start=types.Position(line=last_line_idx, character=max(0, last_line_len - 1)),
                     end=types.Position(line=last_line_idx, character=last_line_len),
@@ -395,7 +402,10 @@ def check_semantics(ast: List[CK3Node], index: Optional[DocumentIndex]) -> List[
             if node.key in all_known_effects:
                 diagnostics.append(
                     create_diagnostic(
-                        message=f"Effect '{node.key}' used in trigger block (triggers should check conditions, not modify state)",
+                        message=(
+                            f"Effect '{node.key}' used in trigger block "
+                            "(triggers should check conditions, not modify state)"
+                        ),
                         range_=node.range,
                         severity=types.DiagnosticSeverity.Error,
                         code="CK3102",
@@ -506,7 +516,10 @@ def check_scopes(ast: List[CK3Node], index: Optional[DocumentIndex]) -> List[typ
             if index and scope_name not in index.saved_scopes:
                 diagnostics.append(
                     create_diagnostic(
-                        message=f"Undefined saved scope: '{scope_name}' (use save_scope_as to define it)",
+                        message=(
+                            f"Undefined saved scope: '{scope_name}' "
+                            "(use save_scope_as to define it)"
+                        ),
                         range_=node.range,
                         severity=types.DiagnosticSeverity.Warning,
                         code="CK3202",
