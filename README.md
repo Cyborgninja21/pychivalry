@@ -6,7 +6,13 @@
 
 **A Language Server for Crusader Kings 3 Modding**
 
-pychivalry brings modern IDE features to CK3 mod development—auto-completion, syntax awareness, go-to-definition, and intelligent assistance right in VS Code.
+CK3 modding is powerful but challenging—Paradox's custom scripting language lacks the tooling that modern developers expect. No autocomplete, no error checking, no documentation on hover. You're left hunting through wiki pages and guessing at syntax.
+
+**pychivalry changes that.**
+
+Built on the [Language Server Protocol](https://microsoft.github.io/language-server-protocol/), pychivalry brings the full power of modern IDE features to CK3 mod development. Get instant feedback on syntax errors, discover effects and triggers through intelligent autocomplete, navigate your mod with go-to-definition, and understand any scope chain at a glance—all without leaving VS Code.
+
+Whether you're writing your first event or maintaining a complex overhaul mod, pychivalry helps you write better scripts faster and catch mistakes before they crash your game.
 
 <!-- ![Demo placeholder](https://via.placeholder.com/800x400?text=Demo+GIF+Coming+Soon) -->
 
