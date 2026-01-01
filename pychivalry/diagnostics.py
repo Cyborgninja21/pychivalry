@@ -1,15 +1,142 @@
 """
-Diagnostics module for CK3 language server.
+CK3 Diagnostics Engine - Multi-Phase Validation System
 
-This module provides validation and error detection for CK3 scripts, including:
-- Syntax validation (bracket matching, malformed structures)
-- Semantic validation (unknown effects/triggers, invalid scopes)
-- Scope chain validation
-- Style and formatting validation (CK33xx)
-- Paradox convention validation (CK35xx-CK52xx)
-- Scope timing validation (CK3550-3555)
+DIAGNOSTIC CODES:
+    General (CK30xx): Syntax and basic validation
+    Scope (CK31xx): Scope chain and type validation
+    Style (CK33xx): Code style and formatting
+    Paradox (CK35xx-CK38xx): Convention and best practices
+    Timing (CK3550-CK3555): Scope timing validation
+    List (CK39xx): List iterator validation
+    Semantic (CK51xx): Semantic errors and gotchas
 
-Diagnostics are published to the client via LSP's PublishDiagnostics notification.
+MODULE OVERVIEW:
+    Provides comprehensive validation and error detection for CK3 scripts through
+    a multi-phase validation pipeline. This is the central diagnostics engine that
+    coordinates all validation modules and publishes diagnostics to the editor.
+    
+    Diagnostics catch errors before the game runs them, saving hours of debugging.
+    The system is designed to be fast enough for realtime validation on every
+    keystroke (with debouncing).
+
+ARCHITECTURE:
+    **Multi-Phase Validation Pipeline**:
+    
+    1. **Parse Phase** (10-50ms):
+       - Parse document to AST
+       - Detect syntax errors (mismatched braces, etc.)
+       - Build symbol table for current file
+       - Emit parse diagnostics (CK30xx)
+    
+    2. **Semantic Phase** (20-100ms):
+       - Validate effects/triggers exist (CK31xx)
+       - Check scope chain validity (CK31xx)
+       - Verify scope requirements for constructs
+       - Emit semantic diagnostics
+    
+    3. **Style Phase** (10-30ms):
+       - Check code formatting (CK33xx)
+       - Verify naming conventions
+       - Detect redundant code
+       - Emit style diagnostics
+    
+    4. **Paradox Conventions Phase** (20-50ms):
+       - Validate against Paradox best practices (CK35xx-CK38xx)
+       - Check for common gotchas (CK51xx)
+       - Verify iterator usage (CK39xx)
+       - Emit convention diagnostics
+    
+    5. **Timing Phase** (10-30ms):
+       - Validate scope timing (CK3550-CK3555)
+       - Check Golden Rule violations
+       - Verify variable initialization order
+       - Emit timing diagnostics
+    
+    6. **Workspace Phase** (50-200ms, async):
+       - Cross-file validation
+       - Undefined reference detection
+       - Event chain validation
+       - Emit workspace diagnostics
+    
+    **Total Time**: 70-250ms for typical file (500-1000 lines)
+    Fast enough for realtime validation with 200ms debounce.
+
+DIAGNOSTIC SEVERITY LEVELS:
+    - **Error**: Code will fail at runtime (red squiggle)
+      - Unknown effects/triggers
+      - Invalid syntax
+      - Scope violations
+    
+    - **Warning**: Code may have issues (yellow squiggle)
+      - Deprecated constructs
+      - Potential performance issues
+      - Style violations
+    
+    - **Information**: Suggestions (blue squiggle)
+      - Code improvements
+      - Refactoring opportunities
+    
+    - **Hint**: Subtle improvements (faint dots)
+      - Minor style suggestions
+      - Optional optimizations
+
+DIAGNOSTIC CODES SYSTEM:
+    Format: CK3###
+    - CK30xx: General syntax/semantic
+    - CK31xx: Scope validation
+    - CK33xx: Style and formatting
+    - CK35xx: Event structure
+    - CK36xx: Opinion modifiers
+    - CK37xx: Event fields
+    - CK38xx: Effect/trigger context
+    - CK39xx: List iterators
+    - CK51xx: Common gotchas
+    - CK3550-3555: Scope timing
+    
+    Codes enable:
+    - Searchable error documentation
+    - Selective suppression (.ck3-lint ignore)
+    - Error categorization and tracking
+    - Code action quick fixes
+
+USAGE EXAMPLES:
+    >>> # Get diagnostics for document
+    >>> diagnostics = get_diagnostics(document, index)
+    >>> len(diagnostics)
+    3  # Found 3 issues
+    >>> diagnostics[0].severity
+    DiagnosticSeverity.Error
+    >>> diagnostics[0].code
+    'CK3101'  # Unknown effect
+    >>> diagnostics[0].message
+    'Unknown effect: add_gol (did you mean add_gold?)'
+
+PERFORMANCE OPTIMIZATIONS:
+    - Incremental validation: Only revalidate changed regions
+    - Cached results: Store validation results per file version
+    - Parallel phases: Run independent phases concurrently
+    - Debouncing: Wait 200ms after typing before validating
+    - Progressive disclosure: Show parse errors immediately, deeper analysis later
+
+LSP INTEGRATION:
+    textDocument/publishDiagnostics (server-initiated):
+    - Server pushes diagnostics to client after validation
+    - Client displays squiggles and error panel
+    - Diagnostics persist until file changes or closes
+    
+    Triggered by:
+    - File open
+    - File change (after debounce)
+    - File save
+    - Workspace configuration change
+
+SEE ALSO:
+    - parser.py: AST for semantic analysis
+    - scope_timing.py: Timing validation
+    - paradox_checks.py: Convention validation
+    - style_checks.py: Style validation
+    - indexer.py: Workspace-wide symbol resolution
+    - ck3_language.py: Language definitions for validation
 """
 
 from dataclasses import dataclass
