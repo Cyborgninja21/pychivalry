@@ -20,21 +20,64 @@ Whether you're writing your first event or maintaining a complex overhaul mod, p
 
 ### Available Now
 
-| Feature | Description |
-|---------|-------------|
-| **🔤 Context-Aware Auto-completion** | 150+ CK3 keywords, effects, triggers, and scopes with intelligent filtering |
-| **✅ Real-Time Diagnostics** | Syntax, semantic, and scope validation as you type |
-| **📖 Hover Documentation** | Rich tooltips for effects, triggers, scopes, events, and saved scopes |
-| **🔗 Go to Definition** | Jump to events, scripted effects/triggers, localization keys, and more |
-| **🔍 Scope System** | Full scope chain validation and saved scope tracking |
-| **📋 List Iterators** | Validates any_, every_, random_, ordered_ patterns with parameters |
-| **🔢 Script Values** | Formula and range validation with operations support |
-| **💾 Variables** | Full variable system support (var:, local_var:, global_var:) |
-| **📝 Event Validation** | Event structure, themes, portraits, and option validation |
-| **🔧 Code Actions** | Quick fixes for typos, refactoring suggestions |
-| **📁 File Support** | `.txt`, `.gui`, `.gfx`, and `.asset` files |
-| **🔄 Live Sync** | Real-time document tracking as you type |
-| **⚡ Fast** | Lightweight Python server with instant responses |
+#### 🔤 Context-Aware Auto-completion
+150+ CK3 keywords, effects, triggers, and scopes with intelligent filtering.
+
+<!-- ![Auto-completion demo](assets/images/autocomplete.png) -->
+
+#### ✅ Real-Time Diagnostics
+Syntax, semantic, and scope validation as you type.
+
+<!-- ![Diagnostics demo](assets/images/diagnostics.png) -->
+
+#### 📖 Hover Documentation
+Rich tooltips for effects, triggers, scopes, events, and saved scopes.
+
+<!-- ![Hover demo](assets/images/hover.png) -->
+
+#### 🔗 Go to Definition
+Jump to events, scripted effects/triggers, localization keys, and more.
+
+<!-- ![Go to definition demo](assets/images/goto-definition.png) -->
+
+#### 🔍 Scope System
+Full scope chain validation and saved scope tracking.
+
+<!-- ![Scope validation demo](assets/images/scope-system.png) -->
+
+#### 📋 List Iterators
+Validates any_, every_, random_, ordered_ patterns with parameters.
+
+<!-- ![List iterators demo](assets/images/list-iterators.png) -->
+
+#### 🔢 Script Values
+Formula and range validation with operations support.
+
+<!-- ![Script values demo](assets/images/script-values.png) -->
+
+#### 💾 Variables
+Full variable system support (var:, local_var:, global_var:).
+
+<!-- ![Variables demo](assets/images/variables.png) -->
+
+#### 📝 Event Validation
+Event structure, themes, portraits, and option validation.
+
+<!-- ![Event validation demo](assets/images/event-validation.png) -->
+
+#### 🔧 Code Actions
+Quick fixes for typos, refactoring suggestions.
+
+<!-- ![Code actions demo](assets/images/code-actions.png) -->
+
+#### 📁 File Support
+`.txt`, `.gui`, `.gfx`, and `.asset` files.
+
+#### 🔄 Live Sync
+Real-time document tracking as you type.
+
+#### ⚡ Fast
+Lightweight Python server with instant responses.
 
 ### Auto-completion Includes
 
