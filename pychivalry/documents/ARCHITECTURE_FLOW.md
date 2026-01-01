@@ -6,6 +6,41 @@ This document illustrates the chain of events and data flow for the CK3 Language
 
 ## 🏗️ High-Level Architecture
 
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                        PyChivalry Architecture                          │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  ┌────────────────┐                                                     │
+│  │  VS Code /     │  ◄──── JSON-RPC over stdin/stdout ────►            │
+│  │  Editor Client │                                                     │
+│  └────────────────┘                                                     │
+│         │                                                               │
+│         │ LSP Requests (completion, hover, diagnostics, etc.)          │
+│         ▼                                                               │
+│  ┌────────────────────────────────────────────────────────────┐        │
+│  │            server.py - CK3LanguageServer                   │        │
+│  │  (extends pygls LanguageServer)                            │        │
+│  ├────────────────────────────────────────────────────────────┤        │
+│  │  Server State:                                             │        │
+│  │    • document_asts: Dict[uri, List[CK3Node]]              │        │
+│  │    • index: DocumentIndex (cross-file symbols)             │        │
+│  │    • thread_pool: ThreadPoolExecutor (2-4 workers)         │        │
+│  │    • ast_cache: Dict[hash, AST] (content-based)            │        │
+│  │    • pending_updates: Dict[uri, Task] (debounce)           │        │
+│  └────────────────────────────────────────────────────────────┘        │
+│         │                                                               │
+│         │ Delegates to feature modules                                 │
+│         ▼                                                               │
+│  ┌────────────────────────────────────────────────────────────┐        │
+│  │  Core Modules: parser.py, indexer.py, diagnostics.py      │        │
+│  │  LSP Features: completions.py, hover.py, navigation.py    │        │
+│  │  Validators: events.py, scopes.py, style_checks.py        │        │
+│  └────────────────────────────────────────────────────────────┘        │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
 | Layer | Component | Description |
 |-------|-----------|-------------|
 | **Client** | VS Code / Editor | Sends LSP requests via JSON-RPC over stdin/stdout |
@@ -25,6 +60,76 @@ This document illustrates the chain of events and data flow for the CK3 Language
 ---
 
 ## 📄 Document Lifecycle
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                      Document Lifecycle Flow                            │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  ┌──────────────────┐                                                   │
+│  │ Document Opens   │                                                   │
+│  │ (didOpen)        │                                                   │
+│  └────────┬─────────┘                                                   │
+│           │                                                             │
+│           ├──► 1. Get document from workspace                          │
+│           │                                                             │
+│           ├──► 2. parser.py → tokenize()                               │
+│           │    └─ Break text into tokens                               │
+│           │                                                             │
+│           ├──► 3. parser.py → parse_document()                         │
+│           │    └─ Build AST from tokens                                │
+│           │                                                             │
+│           ├──► 4. indexer.py → update_from_ast()                       │
+│           │    └─ Extract & index symbols                              │
+│           │                                                             │
+│           ├──► 5. First open? → indexer.py                             │
+│           │    └─ Scan workspace folders (parallel)                    │
+│           │                                                             │
+│           ├──► 6. diagnostics.py → collect_all_diagnostics()           │
+│           │    └─ Validate & find errors                               │
+│           │                                                             │
+│           └──► 7. Publish diagnostics to client                        │
+│                                                                         │
+│  ┌──────────────────┐                                                   │
+│  │ Document Changes │                                                   │
+│  │ (didChange)      │                                                   │
+│  └────────┬─────────┘                                                   │
+│           │                                                             │
+│           ├──► 1. Increment version (track for cancellation)           │
+│           │                                                             │
+│           ├──► 2. Calculate adaptive debounce                          │
+│           │    └─ 80ms (small) → 400ms (very large files)              │
+│           │                                                             │
+│           ├──► 3. Cancel pending update (if exists)                    │
+│           │                                                             │
+│           ├──► 4. Schedule async task (non-blocking)                   │
+│           │                                                             │
+│           ├──► 5. Wait debounce period                                 │
+│           │    └─ Coalesce rapid keystrokes                            │
+│           │                                                             │
+│           ├──► 6. Check version still current                          │
+│           │    └─ Skip if newer changes arrived                        │
+│           │                                                             │
+│           ├──► 7. Parse in thread pool                                 │
+│           │    └─ get_or_parse_ast() with cache                        │
+│           │                                                             │
+│           ├──► 8. Publish syntax errors FIRST                          │
+│           │    └─ Fast feedback (CK3001, CK3002)                       │
+│           │                                                             │
+│           └──► 9. Publish semantic errors                              │
+│                └─ Slower analysis (CK3101+, CK3201+)                   │
+│                                                                         │
+│  ┌──────────────────┐                                                   │
+│  │ Document Closes  │                                                   │
+│  │ (didClose)       │                                                   │
+│  └────────┬─────────┘                                                   │
+│           │                                                             │
+│           ├──► 1. Remove from document_asts                            │
+│           ├──► 2. Clear pending updates                                │
+│           └──► 3. Optionally clear diagnostics                         │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+```
 
 ### 1. Document Open (`textDocument/didOpen`)
 
@@ -64,13 +169,21 @@ This document illustrates the chain of events and data flow for the CK3 Language
 
 ## 🔍 Diagnostics Pipeline
 
-| Pipeline Function | Output Codes | Validation Focus |
-|-------------------|-------------|------------------|
-| `collect_all_diagnostics()` | - | Main orchestrator function |
-| `check_syntax()` | CK3001, CK3002 | Brackets, structure validation |
-| `check_semantics()` | CK3101-CK3103 | Effects/triggers validation |
-| `check_scopes()` | CK3201-CK3203 | Scope chains validation |
-| Domain Validators | Various | Module-specific validations (see below) |
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    diagnostics.py - Main Pipeline                       │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  collect_all_diagnostics()                                              │
+│       │                                                                 │
+│       ├──► check_syntax()      → CK3001, CK3002 (brackets, structure)  │
+│       ├──► check_semantics()   → CK3101-CK3103 (effects/triggers)      │
+│       ├──► check_scopes()      → CK3201-CK3203 (scope chains)          │
+│       │                                                                 │
+│       └──► Domain Validators (see below)                                │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+```
 
 ### Core Diagnostic Codes
 
@@ -87,21 +200,101 @@ This document illustrates the chain of events and data flow for the CK3 Language
 
 ### Domain-Specific Validators
 
-| Validator Module | Diagnostic Codes | Validation Scope |
-|------------------|------------------|------------------|
-| `events.py` | EVENT-001 to EVENT-006 | Event types, themes, portraits, options |
-| `lists.py` | LIST-001 to LIST-005 | any_, every_, random_, ordered_ iterators |
-| `localization.py` | LOC-001 to LOC-006 | Character functions, formatting codes, icons |
-| `script_values.py` | VALUE-001 to VALUE-006 | Fixed/range/formula values, conditionals |
-| `scripted_blocks.py` | SCRIPT-001 to SCRIPT-006 | Scripted triggers/effects, $PARAM$ syntax |
-| `variables.py` | VAR-001 to VAR-006 | var:, local_var:, global_var: references |
-| `style_checks.py` | Style warnings | Code style and conventions |
-| `paradox_checks.py` | Convention warnings | Paradox-specific conventions |
-| `scope_timing.py` | Timing warnings | Scope performance validation |
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    Domain Validation Modules                            │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  diagnostics.py                                                         │
+│       │                                                                 │
+│       ├──► events.py           EVENT-001 to EVENT-006                  │
+│       │    └─ Event types, themes, portraits, options                   │
+│       │                                                                 │
+│       ├──► lists.py            LIST-001 to LIST-005                    │
+│       │    └─ any_, every_, random_, ordered_ iterators                 │
+│       │                                                                 │
+│       ├──► localization.py     LOC-001 to LOC-006                      │
+│       │    └─ Character functions, formatting codes, icons              │
+│       │                                                                 │
+│       ├──► script_values.py    VALUE-001 to VALUE-006                  │
+│       │    └─ Fixed/range/formula values, conditionals                  │
+│       │                                                                 │
+│       ├──► scripted_blocks.py  SCRIPT-001 to SCRIPT-006                │
+│       │    └─ Scripted triggers/effects, $PARAM$ syntax                 │
+│       │                                                                 │
+│       ├──► variables.py        VAR-001 to VAR-006                      │
+│       │    └─ var:, local_var:, global_var: references                  │
+│       │                                                                 │
+│       ├──► style_checks.py     Style warnings                          │
+│       ├──► paradox_checks.py   Paradox convention validation           │
+│       └──► scope_timing.py     Scope timing validation                 │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
 ## 💡 Completion System
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                      Completion System Flow                             │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  User types trigger character: _ . : =                                 │
+│           │                                                             │
+│           ▼                                                             │
+│  ┌──────────────────────────────────────────────────────────┐          │
+│  │ 1. Get AST node at cursor position                       │          │
+│  │    parser.py → get_node_at_position()                    │          │
+│  └────────────────────┬─────────────────────────────────────┘          │
+│                       │                                                 │
+│                       ▼                                                 │
+│  ┌──────────────────────────────────────────────────────────┐          │
+│  │ 2. Analyze line text & detect context                    │          │
+│  │    completions.py → detect_context()                     │          │
+│  │    ├─ Check block type (trigger/effect/option)           │          │
+│  │    ├─ Check scope type from parent blocks                │          │
+│  │    └─ Identify trigger character                         │          │
+│  └────────────────────┬─────────────────────────────────────┘          │
+│                       │                                                 │
+│                       ▼                                                 │
+│  ┌──────────────────────────────────────────────────────────┐          │
+│  │ 3. Route to appropriate completion source                │          │
+│  │                                                           │          │
+│  │  Trigger '_' ──► Keywords/effects/triggers               │          │
+│  │                  └─ ck3_language.py definitions          │          │
+│  │                                                           │          │
+│  │  Trigger '.' ──► Scope links for current scope           │          │
+│  │                  └─ scopes.py → get_scope_links()        │          │
+│  │                                                           │          │
+│  │  Trigger ':' ──► Saved scopes from index                 │          │
+│  │                  └─ indexer.py → saved_scopes            │          │
+│  │                                                           │          │
+│  │  Trigger '=' ──► Values/blocks                           │          │
+│  │                  └─ Context-appropriate values           │          │
+│  └────────────────────┬─────────────────────────────────────┘          │
+│                       │                                                 │
+│                       ▼                                                 │
+│  ┌──────────────────────────────────────────────────────────┐          │
+│  │ 4. Filter by context                                      │          │
+│  │                                                           │          │
+│  │  In trigger block ──► CK3_TRIGGERS only                  │          │
+│  │  In effect block  ──► CK3_EFFECTS only                   │          │
+│  │  In option block  ──► Both triggers & effects            │          │
+│  │  Unknown context  ──► All keywords + snippets            │          │
+│  └────────────────────┬─────────────────────────────────────┘          │
+│                       │                                                 │
+│                       ▼                                                 │
+│  ┌──────────────────────────────────────────────────────────┐          │
+│  │ 5. Return CompletionList to client                       │          │
+│  │    • Label, kind, detail, documentation                  │          │
+│  │    • Insert text / snippet                               │          │
+│  │    • Sort text for ordering                              │          │
+│  └──────────────────────────────────────────────────────────┘          │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+```
 
 ### Trigger Characters
 
@@ -137,6 +330,59 @@ This document illustrates the chain of events and data flow for the CK3 Language
 
 ## 🎨 Semantic Tokens
 
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                     Semantic Tokens Pipeline                            │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  textDocument/semanticTokens/full request received                     │
+│           │                                                             │
+│           ▼                                                             │
+│  ┌──────────────────────────────────────────────────────────┐          │
+│  │ semantic_tokens.py → analyze_document()                  │          │
+│  └────────────────────┬─────────────────────────────────────┘          │
+│                       │                                                 │
+│                       ├──► Iterate through lines                       │
+│                       │                                                 │
+│                       ▼                                                 │
+│  ┌──────────────────────────────────────────────────────────┐          │
+│  │ For each line:                                            │          │
+│  │                                                           │          │
+│  │  1. Track context state                                  │          │
+│  │     ├─ Brace depth (nesting level)                       │          │
+│  │     ├─ Block type (trigger/effect/event)                 │          │
+│  │     └─ Current scope                                     │          │
+│  │                                                           │          │
+│  │  2. tokenize_line()                                      │          │
+│  │     └─ Apply regex patterns:                             │          │
+│  │        ├─ Keywords: if, else, trigger, effect, limit     │          │
+│  │        ├─ Functions: add_gold, has_trait, trigger_event  │          │
+│  │        ├─ Variables: root, prev, scope:xxx               │          │
+│  │        ├─ Properties: liege, primary_title               │          │
+│  │        ├─ Strings: localization keys                     │          │
+│  │        ├─ Numbers: 100, -50, 3.14                        │          │
+│  │        ├─ Comments: # comment text                       │          │
+│  │        ├─ Events: namespace.0001                         │          │
+│  │        ├─ Macros: any_vassal, every_courtier            │          │
+│  │        └─ Enums: yes, no, brave                          │          │
+│  │                                                           │          │
+│  │  3. Classify each token by type & modifiers              │          │
+│  │     └─ namespace, class, function, variable, etc.        │          │
+│  └────────────────────┬─────────────────────────────────────┘          │
+│                       │                                                 │
+│                       ▼                                                 │
+│  ┌──────────────────────────────────────────────────────────┐          │
+│  │ encode_tokens()                                           │          │
+│  │  └─ Convert to LSP delta encoding format                 │          │
+│  │     (line delta, start delta, length, type, modifiers)   │          │
+│  └────────────────────┬─────────────────────────────────────┘          │
+│                       │                                                 │
+│                       ▼                                                 │
+│  Return SemanticTokens response to client                              │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
 ### Token Types
 
 | Token Type | CK3 Usage | Example |
@@ -166,6 +412,72 @@ This document illustrates the chain of events and data flow for the CK3 Language
 ---
 
 ## 🔗 Navigation & Cross-File Features
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                  Navigation & Cross-File System                         │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  ┌──────────────────────────────────────────────────────────┐          │
+│  │              DocumentIndex (indexer.py)                   │          │
+│  │  Cross-file symbol tracking with 13 symbol types         │          │
+│  ├──────────────────────────────────────────────────────────┤          │
+│  │                                                           │          │
+│  │  namespaces          → namespace declarations            │          │
+│  │  events              → event definitions                 │          │
+│  │  scripted_effects    → reusable effects                  │          │
+│  │  scripted_triggers   → reusable triggers                 │          │
+│  │  scripted_lists      → list definitions                  │          │
+│  │  script_values       → value definitions                 │          │
+│  │  on_actions          → event hooks                       │          │
+│  │  saved_scopes        → scope references                  │          │
+│  │  localization        → loc keys & text                   │          │
+│  │  character_flags     → flag definitions                  │          │
+│  │  character_interactions → interaction defs               │          │
+│  │  modifiers           → modifier definitions              │          │
+│  │  on_action_definitions → on_action defs                  │          │
+│  │                                                           │          │
+│  └──────────────┬───────────────────────────────────────────┘          │
+│                 │                                                       │
+│                 │ Provides data for:                                   │
+│                 │                                                       │
+│  ┌──────────────┴───────────────────────────────────────────┐          │
+│  │                                                           │          │
+│  │  textDocument/definition                                 │          │
+│  │  ├─ navigation.py → find_definition()                    │          │
+│  │  │  └─ Search index for symbol location                 │          │
+│  │  │     └─ Return Location (uri, range)                  │          │
+│  │  │                                                       │          │
+│  │  textDocument/references                                 │          │
+│  │  ├─ navigation.py → find_references()                   │          │
+│  │  │  └─ Search all workspace docs for symbol             │          │
+│  │  │     └─ Return List[Location]                         │          │
+│  │  │                                                       │          │
+│  │  textDocument/hover                                      │          │
+│  │  ├─ hover.py → get_hover_info()                         │          │
+│  │  │  └─ Look up in index or language data                │          │
+│  │  │     └─ Return documentation markdown                 │          │
+│  │  │                                                       │          │
+│  │  workspace/symbol                                        │          │
+│  │  ├─ symbols.py → search_workspace_symbols()             │          │
+│  │  │  └─ Query index by pattern                           │          │
+│  │  │     └─ Return List[SymbolInformation]                │          │
+│  │  │                                                       │          │
+│  │  textDocument/documentSymbol                             │          │
+│  │  └─ symbols.py → extract_document_symbols()             │          │
+│  │     └─ Walk AST and extract hierarchy                   │          │
+│  │        └─ Return List[DocumentSymbol]                   │          │
+│  │                                                           │          │
+│  └───────────────────────────────────────────────────────────┘          │
+│                                                                         │
+│  Index Maintenance:                                                     │
+│  • On document open: update_from_ast() extracts symbols                │
+│  • On document change: incremental index update                        │
+│  • On document close: remove_document() cleans up                      │
+│  • First open: scan_workspace() parallel folder scan                   │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+```
 
 ### Supported Operations
 
@@ -337,11 +649,10 @@ This document illustrates the chain of events and data flow for the CK3 Language
 | `local_var:` | Block temporary | `local_var:temp_gold` |
 | `global_var:` | Save game persistent | `global_var:mod_enabled` |
 
-| Operation Category | Available Operations |
-|-------------------|---------------------|
-| **Effects** | `set_variable`, `change_variable`, `clamp_variable`, `round_variable`, `remove_variable` |
-| **Triggers** | `has_variable`, comparisons (`var:name >= 10`) |
-| **Lists** | `add_to_variable_list`, `remove_list_variable`, `any_in_list`, `every_in_list` |
+**Variable Operations:**
+- Effects: `set_variable`, `change_variable`, `clamp_variable`, `round_variable`, `remove_variable`
+- Triggers: `has_variable`, comparisons (`var:name >= 10`)
+- Lists: `add_to_variable_list`, `remove_list_variable`, `any_in_list`, `every_in_list`
 
 ### symbols.py - Document Outline
 
@@ -356,281 +667,164 @@ This document illustrates the chain of events and data flow for the CK3 Language
 
 ---
 
-## 🔧 Additional Core Modules
+## 🏛️ Complete Module Dependency Structure
 
-### parser.py - AST Generation
-
-| Component | Type | Purpose |
-|-----------|------|---------|
-| `CK3Node` | Class | AST node with type, key, value, range, parent, scope_type, children |
-| `CK3Token` | Class | Lexical token with type, value, line, character |
-| `tokenize()` | Function | Breaks text into lexical tokens |
-| `parse_document()` | Function | Converts tokens to Abstract Syntax Tree |
-| `get_node_at_position()` | Function | Finds AST node at cursor position |
-
-| Supported Syntax | Examples |
-|------------------|----------|
-| Assignments | `key = value` |
-| Blocks | `key = { ... }` |
-| Lists | `key = { item1 item2 }` |
-| Comments | `# comment` |
-| Operators | `=`, `>`, `<`, `>=`, `<=`, `!=`, `==` |
-| Strings | Quoted with escape sequences |
-| Numbers | Including negative and decimals |
-
-### completions.py - Context-Aware Suggestions
-
-| Trigger | Context | Completion Source |
-|---------|---------|-------------------|
-| `_` | Keyword continuation | Effects, triggers, keywords |
-| `.` | Scope navigation | Scope links for current scope |
-| `:` | Saved scope | Saved scopes from index |
-| `=` | Value assignment | Values, blocks |
-
-| Context Type | Available Completions |
-|--------------|----------------------|
-| Trigger block | CK3 triggers only |
-| Effect block | CK3 effects only |
-| Option block | Both triggers and effects |
-| Unknown | All keywords + snippets |
-
-### navigation.py - Go-To-Definition & References
-
-| Feature | Supported Symbols |
-|---------|------------------|
-| **Go to Definition** | Event IDs, scripted effects/triggers, localization keys, saved scopes, character flags, modifiers, on-actions |
-| **Find References** | All symbol types across workspace |
-| **Cross-File** | Full workspace symbol tracking |
-
-### hover.py - Documentation Display
-
-| Hover Information | Source |
-|-------------------|--------|
-| Effect documentation | `ck3_language.py` definitions |
-| Trigger documentation | `ck3_language.py` definitions |
-| Event definitions | Document index |
-| Scope information | `scopes.py` data |
-| Localization values | Localization index |
-| Custom definitions | User's scripted effects/triggers |
-
-### ck3_language.py - Language Definitions
-
-| Constant | Contents |
-|----------|----------|
-| `CK3_EFFECTS` | All CK3 effect keywords |
-| `CK3_TRIGGERS` | All CK3 trigger keywords |
-| `CK3_SCOPES` | All scope types and iterators |
-| `CK3_EVENT_TYPES` | Event type keywords |
-| `CK3_KEYWORDS` | Control flow keywords |
-| `CK3_BOOLEAN_VALUES` | yes, no, true, false |
-
-### scopes.py - Scope Type System
-
-| Scope Type | Description |
-|------------|-------------|
-| `character` | Individual characters |
-| `landed_title` | Titles and holdings |
-| `province` | Map provinces |
-| `faith` | Religions |
-| `culture` | Cultural groups |
-| `dynasty` | Family dynasties |
-| `house` | Noble houses |
-| `artifact` | Items and artifacts |
-| `story` | Story cycles |
-| `scheme` | Character schemes |
-
-| Function | Purpose |
-|----------|---------|
-| `validate_scope_chain()` | Validates scope navigation paths |
-| `get_scope_type_for_link()` | Determines resulting scope type |
-| `track_scope_changes()` | Tracks scope context through AST |
-
-### code_actions.py - Quick Fixes
-
-| Action Type | Use Case |
-|-------------|----------|
-| Quick fixes | Typo corrections, Did you mean... |
-| Add namespace | Missing namespace declarations |
-| Fix scope chains | Invalid scope navigation |
-| Extract scripted effect | Selection to reusable code |
-| Extract scripted trigger | Selection to reusable condition |
-| Generate localization | Create missing loc keys |
-
-### code_lens.py - Inline Annotations
-
-| Code Lens Type | Information Displayed |
-|----------------|----------------------|
-| Event references | Number of times event is triggered |
-| Missing localization | Warning for undefined keys |
-| Scripted usage | Usage counts for effects/triggers |
-| Namespace stats | Event count per namespace |
-| Orphaned code | Unused definitions |
-
-### semantic_tokens.py - Syntax Highlighting
-
-| Token Type | CK3 Usage |
-|------------|-----------|
-| `namespace` | Event namespace declarations |
-| `class` | Event type keywords |
-| `function` | Effects and triggers |
-| `variable` | Scopes, saved scopes |
-| `property` | Scope links |
-| `string` | Localization keys |
-| `number` | Numeric values |
-| `keyword` | Control flow (if, else, limit) |
-| `comment` | Comment lines |
-| `event` | Event IDs |
-| `macro` | List iterators |
-| `enumMember` | Boolean values, traits |
-
-### formatting.py - Code Formatting
-
-| Formatting Rule | Convention |
-|-----------------|------------|
-| Indentation | Tab characters (Paradox standard) |
-| Brace placement | Opening brace on same line |
-| Operator spacing | Consistent spacing around `=` |
-| Block separation | Blank lines between blocks |
-| Trailing whitespace | Trimmed |
-| Assignment alignment | Aligned for readability |
-
-### folding.py - Code Folding
-
-| Foldable Structure | Description |
-|-------------------|-------------|
-| Event blocks | Complete event definitions |
-| Named blocks | trigger, effect, option, immediate |
-| Nested blocks | Any `{ }` structure |
-| Comment blocks | Consecutive comment lines |
-| Region markers | `# region` / `# endregion` |
-
-### document_highlight.py - Symbol Highlighting
-
-| Highlight Type | Usage |
-|----------------|-------|
-| Read | Symbol being accessed |
-| Write | Symbol being defined |
-| Text | General text match |
-
-| Supported Symbols |
-|------------------|
-| Saved scopes (scope:xxx) |
-| Variables (var:, local_var:, global_var:) |
-| Character flags |
-| Event references |
-
-### document_links.py - Clickable Links
-
-| Link Type | Pattern |
-|-----------|---------|
-| File paths | `common/scripted_effects/my_effects.txt` |
-| GFX paths | `gfx/interface/icons/icon.dds` |
-| URLs | `https://ck3.paradoxwikis.com/...` |
-| Event IDs | `# See rq.0001` |
-
-### rename.py - Symbol Renaming
-
-| Renameable Symbol | Scope |
-|-------------------|-------|
-| Events | Definition and all references |
-| Saved scopes | Definition and all usages |
-| Scripted effects/triggers | Definition and all calls |
-| Variables | Definition and all references |
-| Character flags | Set/check operations |
-| Localization keys | Event-related keys |
-
-### signature_help.py - Parameter Hints
-
-| Feature | Display |
-|---------|---------|
-| Effect parameters | Structured parameter documentation |
-| Trigger parameters | Parameter types and usage |
-| Scripted parameters | Custom parameter documentation |
-| Active parameter | Highlighted current parameter |
-
-### inlay_hints.py - Inline Type Hints
-
-| Hint Type | Example |
-|-----------|---------|
-| Scope types | `scope:friend` → `: character` |
-| Chain results | `root.primary_title` → `: landed_title` |
-| Iterator targets | `every_vassal` → `→ character` |
-| Parameter names | Effect parameter labels |
-
-### workspace.py - Workspace Operations
-
-| Feature | Description |
-|---------|-------------|
-| Workspace validation | Cross-file consistency checks |
-| Reference checking | Find undefined dependencies |
-| Dependency analysis | Build dependency graphs |
-| Event chain extraction | Track event trigger chains |
-| Project refactoring | Multi-file changes |
-
-### style_checks.py - Code Style Validation
-
-| Style Check | Focus |
-|-------------|-------|
-| Indentation | Tab vs space consistency |
-| Naming conventions | snake_case enforcement |
-| Comment quality | Documentation standards |
-| Code organization | Structure and layout |
-| Line length | Readability limits |
-| Trailing whitespace | Cleanup |
-
-### paradox_checks.py - Best Practices
-
-| Check Type | Purpose |
-|------------|---------|
-| Performance issues | Expensive operations detection |
-| Common mistakes | Typical modding errors |
-| Optimization suggestions | Scope chain improvements |
-| Event trigger optimization | Efficiency recommendations |
-| Memory warnings | Resource usage alerts |
-
-### scope_timing.py - Performance Analysis
-
-| Analysis Type | Detection |
-|---------------|-----------|
-| Deep scope chains | Excessive navigation depth |
-| Expensive iterators | Performance-heavy loops |
-| Nested loops | Multiple iteration levels |
-| Large limit blocks | Complex condition blocks |
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    PyChivalry Module Architecture                       │
+│                         (31 Python Modules)                             │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  ┌──────────────────────────────────────────────────────────┐          │
+│  │                     server.py (Core)                      │          │
+│  │          CK3LanguageServer - Main LSP Entry Point         │          │
+│  │                                                           │          │
+│  │  • 20 LSP feature handlers (didOpen, completion, etc.)   │          │
+│  │  • 11 custom commands (validateWorkspace, etc.)          │          │
+│  │  • Server state management & coordination                │          │
+│  └────────────────────┬─────────────────────────────────────┘          │
+│                       │                                                 │
+│         ┌─────────────┼─────────────┬──────────────────────────┐       │
+│         │             │             │                          │       │
+│         ▼             ▼             ▼                          ▼       │
+│  ┌────────────┐ ┌───────────┐ ┌──────────────┐  ┌──────────────────┐  │
+│  │ parser.py  │ │indexer.py │ │ck3_language  │  │  diagnostics.py  │  │
+│  │  (Core)    │ │  (Core)   │ │    .py       │  │     (Core)       │  │
+│  ├────────────┤ ├───────────┤ │   (Data)     │  ├──────────────────┤  │
+│  │            │ │           │ ├──────────────┤  │                  │  │
+│  │• tokenize()│ │• Document │ │              │  │• check_syntax()  │  │
+│  │• parse_    │ │  Index    │ │• CK3_EFFECTS │  │• check_         │  │
+│  │  document()│ │• Symbol   │ │• CK3_TRIGGERS│  │  semantics()    │  │
+│  │• get_node_ │ │  tracking │ │• CK3_SCOPES  │  │• check_scopes() │  │
+│  │  at_pos()  │ │• Cross-   │ │• CK3_KEYWORDS│  │                  │  │
+│  │            │ │  file refs│ │• Static defs │  │                  │  │
+│  │• CK3Node   │ │• 13 symbol│ │              │  │                  │  │
+│  │• CK3Token  │ │  types    │ │              │  │                  │  │
+│  └────────────┘ └───────────┘ └──────────────┘  └─────────┬────────┘  │
+│         │             │              │                      │           │
+│         │             │              │        ┌─────────────┴────┐      │
+│         │             │              │        │                  │      │
+│         │             │              │        ▼                  ▼      │
+│         │             │              │  ┌────────────┐    ┌──────────┐ │
+│         │             │              │  │ scopes.py  │    │events.py │ │
+│         │             │              │  │ (Validator)│    │(Validator│ │
+│         │             │              │  ├────────────┤    ├──────────┤ │
+│         │             │              │  │• Scope type│    │• Event   │ │
+│         │             │              │  │  system    │    │  struct  │ │
+│         │             │              │  │• validate_ │    │  valid.  │ │
+│         │             │              │  │  scope_    │    │• Theme   │ │
+│         │             │              │  │  chain()   │    │  checks  │ │
+│         │             │              │  │• get_scope_│    │• Loc key │ │
+│         │             │              │  │  links()   │    │  checks  │ │
+│         │             │              │  └────────────┘    └──────────┘ │
+│         │             │              │                                  │
+│         │             │              │  ┌──────────────────────────┐   │
+│         │             │              │  │  Additional Validators   │   │
+│         │             │              │  ├──────────────────────────┤   │
+│         │             │              │  │• lists.py (iterators)    │   │
+│         │             │              │  │• localization.py (loc)   │   │
+│         │             │              │  │• script_values.py (calc) │   │
+│         │             │              │  │• scripted_blocks.py      │   │
+│         │             │              │  │• variables.py (var sys)  │   │
+│         │             │              │  │• style_checks.py         │   │
+│         │             │              │  │• paradox_checks.py       │   │
+│         │             │              │  │• scope_timing.py (perf)  │   │
+│         │             │              │  └──────────────────────────┘   │
+│         │             │              │                                  │
+│         │             │              │                                  │
+│  ┌──────┴─────────────┴──────────────┴────────────────────────────┐   │
+│  │                      LSP Feature Modules                        │   │
+│  │                 (Depend on Core + Data + Validators)            │   │
+│  ├─────────────────────────────────────────────────────────────────┤   │
+│  │                                                                 │   │
+│  │  ┌─────────────────┐  ┌─────────────────┐  ┌────────────────┐ │   │
+│  │  │ completions.py  │  │  hover.py       │  │ navigation.py  │ │   │
+│  │  │ • Context-aware │  │  • Doc on hover │  │ • Go-to-def    │ │   │
+│  │  │   suggestions   │  │  • Effect/trig  │  │ • Find refs    │ │   │
+│  │  │ • Trigger chars │  │    docs         │  │ • Cross-file   │ │   │
+│  │  └─────────────────┘  └─────────────────┘  └────────────────┘ │   │
+│  │                                                                 │   │
+│  │  ┌─────────────────┐  ┌─────────────────┐  ┌────────────────┐ │   │
+│  │  │code_actions.py  │  │ code_lens.py    │  │semantic_tokens │ │   │
+│  │  │ • Quick fixes   │  │ • Ref counts    │  │     .py        │ │   │
+│  │  │ • Refactorings  │  │ • Inline annot. │  │ • Syntax       │ │   │
+│  │  └─────────────────┘  └─────────────────┘  │   highlight    │ │   │
+│  │                                             └────────────────┘ │   │
+│  │  ┌─────────────────┐  ┌─────────────────┐  ┌────────────────┐ │   │
+│  │  │ formatting.py   │  │  folding.py     │  │document_       │ │   │
+│  │  │ • Code format   │  │  • Code folding │  │  highlight.py  │ │   │
+│  │  │ • Indentation   │  │  • Regions      │  │ • Symbol       │ │   │
+│  │  │ • Paradox style │  │                 │  │   highlight    │ │   │
+│  │  └─────────────────┘  └─────────────────┘  └────────────────┘ │   │
+│  │                                                                 │   │
+│  │  ┌─────────────────┐  ┌─────────────────┐  ┌────────────────┐ │   │
+│  │  │document_links   │  │  rename.py      │  │signature_help  │ │   │
+│  │  │     .py         │  │  • Symbol       │  │     .py        │ │   │
+│  │  │ • Clickable     │  │    rename       │  │ • Parameter    │ │   │
+│  │  │   file paths    │  │  • Cross-file   │  │   hints        │ │   │
+│  │  └─────────────────┘  └─────────────────┘  └────────────────┘ │   │
+│  │                                                                 │   │
+│  │  ┌─────────────────┐  ┌─────────────────┐                     │   │
+│  │  │ inlay_hints.py  │  │  symbols.py     │                     │   │
+│  │  │ • Type hints    │  │  • Doc outline  │                     │   │
+│  │  │ • Inline annot. │  │  • Symbol tree  │                     │   │
+│  │  └─────────────────┘  └─────────────────┘                     │   │
+│  │                                                                 │   │
+│  └─────────────────────────────────────────────────────────────────┘   │
+│                                                                         │
+│  ┌─────────────────────────────────────────────────────────────────┐   │
+│  │                    workspace.py (Support)                       │   │
+│  │  • Workspace-wide validation                                    │   │
+│  │  • Cross-file reference checking                                │   │
+│  │  • Project refactoring support                                  │   │
+│  └─────────────────────────────────────────────────────────────────┘   │
+│                                                                         │
+│  Module Count Summary:                                                 │
+│  • Core Infrastructure: 4 modules (server, parser, indexer, diag.)    │
+│  • LSP Features: 15 modules (completion, hover, navigation, etc.)     │
+│  • CK3 Domain Logic: 2 modules (ck3_language, scopes)                 │
+│  • Domain Validators: 8 modules (events, lists, localization, etc.)   │
+│  • Support: 2 modules (workspace, data/__init__)                      │
+│  ─────────────────────────────────────────────────────────────────     │
+│  Total: 31 Python modules                                              │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
-## 📊 Complete Module Summary
+## 📊 Module Summary Table
 
-| Module | Category | Primary Function |
-|--------|----------|------------------|
-| `__init__.py` | Core | Package initialization |
-| `server.py` | Core | LSP server implementation |
-| `parser.py` | Core | AST generation and tokenization |
-| `indexer.py` | Core | Cross-file symbol indexing |
-| `diagnostics.py` | Core | Error detection pipeline |
-| `completions.py` | LSP Feature | Auto-completion |
-| `hover.py` | LSP Feature | Documentation on hover |
-| `navigation.py` | LSP Feature | Go-to-definition, references |
-| `code_actions.py` | LSP Feature | Quick fixes and refactoring |
-| `code_lens.py` | LSP Feature | Inline annotations |
-| `semantic_tokens.py` | LSP Feature | Syntax highlighting |
-| `formatting.py` | LSP Feature | Code formatting |
-| `folding.py` | LSP Feature | Code folding ranges |
-| `document_highlight.py` | LSP Feature | Symbol highlighting |
-| `document_links.py` | LSP Feature | Clickable links |
-| `rename.py` | LSP Feature | Symbol renaming |
-| `signature_help.py` | LSP Feature | Parameter hints |
-| `inlay_hints.py` | LSP Feature | Inline type hints |
-| `symbols.py` | LSP Feature | Document outline |
-| `ck3_language.py` | CK3 Logic | Language definitions |
-| `scopes.py` | CK3 Logic | Scope type system |
-| `events.py` | Domain Validator | Event validation |
-| `lists.py` | Domain Validator | List iterator validation |
-| `script_values.py` | Domain Validator | Script value validation |
-| `variables.py` | Domain Validator | Variable system |
-| `scripted_blocks.py` | Domain Validator | Scripted effects/triggers |
-| `localization.py` | Domain Validator | Localization validation |
-| `style_checks.py` | Validation | Code style checks |
-| `paradox_checks.py` | Validation | Best practices |
-| `scope_timing.py` | Validation | Performance analysis |
-| `workspace.py` | Support | Workspace operations |
+| Module | Category | Primary Function | Dependencies |
+|--------|----------|------------------|--------------|
+| `server.py` | Core | LSP server, feature coordination | All modules |
+| `parser.py` | Core | Tokenization, AST generation | - |
+| `indexer.py` | Core | Cross-file symbol indexing | parser |
+| `diagnostics.py` | Core | Error detection pipeline | parser, indexer, validators |
+| `ck3_language.py` | Data | Language definitions & constants | - |
+| `scopes.py` | CK3 Logic | Scope type system & validation | ck3_language |
+| `completions.py` | LSP Feature | Context-aware auto-completion | parser, indexer, ck3_language |
+| `hover.py` | LSP Feature | Documentation on hover | indexer, ck3_language |
+| `navigation.py` | LSP Feature | Go-to-def, find references | indexer |
+| `code_actions.py` | LSP Feature | Quick fixes, refactorings | parser, indexer |
+| `code_lens.py` | LSP Feature | Inline annotations | indexer |
+| `semantic_tokens.py` | LSP Feature | Syntax highlighting | parser, ck3_language |
+| `formatting.py` | LSP Feature | Code formatting | parser |
+| `folding.py` | LSP Feature | Code folding ranges | parser |
+| `document_highlight.py` | LSP Feature | Symbol highlighting | parser |
+| `document_links.py` | LSP Feature | Clickable file links | - |
+| `rename.py` | LSP Feature | Symbol renaming | parser, indexer |
+| `signature_help.py` | LSP Feature | Parameter hints | parser, ck3_language |
+| `inlay_hints.py` | LSP Feature | Inline type hints | parser, scopes |
+| `symbols.py` | LSP Feature | Document outline | parser |
+| `events.py` | Domain Validator | Event validation | parser, indexer |
+| `lists.py` | Domain Validator | List iterator validation | parser, scopes |
+| `localization.py` | Domain Validator | Localization validation | indexer |
+| `script_values.py` | Domain Validator | Script value validation | parser |
+| `scripted_blocks.py` | Domain Validator | Scripted blocks validation | parser, indexer |
+| `variables.py` | Domain Validator | Variable system validation | parser |
+| `style_checks.py` | Validator | Code style checks | parser |
+| `paradox_checks.py` | Validator | Best practices validation | parser, scopes |
+| `scope_timing.py` | Validator | Performance analysis | parser, scopes |
+| `workspace.py` | Support | Workspace operations | indexer |
+| `data/__init__.py` | Support | Package data management | - |
