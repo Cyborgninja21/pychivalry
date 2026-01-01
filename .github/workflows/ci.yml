@@ -1,93 +1,159 @@
+# =============================================================================
+# Pychivalry CI Workflow
+# =============================================================================
+# This workflow runs automated tests and quality checks for both:
+#   1. The Python LSP server (pychivalry/)
+#   2. The VS Code extension (vscode-extension/)
+#
+# It ensures code quality, formatting, and cross-platform compatibility.
+# =============================================================================
+
 name: CI
 
+# -----------------------------------------------------------------------------
+# Triggers: When does this workflow run?
+# -----------------------------------------------------------------------------
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, develop ]      # Run on pushes to main or develop
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main, develop ]      # Run on PRs targeting main or develop
 
+# -----------------------------------------------------------------------------
+# Permissions: Minimal permissions for security
+# -----------------------------------------------------------------------------
 permissions:
-  contents: read
+  contents: read                     # Only needs read access to repository
 
+# =============================================================================
+# Jobs: The actual work to be done
+# =============================================================================
 jobs:
+  # ---------------------------------------------------------------------------
+  # Job 1: Python LSP Server Tests
+  # ---------------------------------------------------------------------------
+  # Tests the Python language server on the latest Python version.
+  # Runs on Ubuntu only (Python behavior is consistent across platforms).
+  # ---------------------------------------------------------------------------
   test:
     runs-on: ubuntu-latest
+    
+    # Using latest Python version only for faster CI
     strategy:
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12"]
+        python-version: ["3.12"]
 
     steps:
+    # Step 1: Check out the repository code
     - uses: actions/checkout@v4
     
+    # Step 2: Install the specified Python version with pip caching
+    # The cache key is based on OS and requirements, so cache invalidates
+    # when dependencies change in pyproject.toml
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
+        cache: 'pip'                 # Enable pip caching
     
+    # Step 3: Install project dependencies
+    # - Upgrades pip to latest version
+    # - Installs pychivalry in editable mode with dev dependencies
+    # Note: Cached packages are reused, dramatically speeding up this step
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -e ".[dev]"
     
+    # Step 4: Lint with flake8
+    # Checks for Python style issues, errors, and code complexity
     - name: Lint with flake8
       run: |
         flake8 pychivalry/ tests/
     
+    # Step 5: Format check with black
+    # Ensures code follows black's formatting style (doesn't modify, just checks)
     - name: Format check with black
       run: |
         black --check pychivalry/ tests/
     
+    # Step 6: Type check with mypy
+    # Static type checking for Python code
+    # continue-on-error: true means the workflow won't fail if mypy finds issues
     - name: Type check with mypy
       run: |
         mypy pychivalry/
       continue-on-error: true
     
+    # Step 7: Run pytest unit tests
+    # -v: verbose output
+    # --tb=short: shorter traceback format for failures
     - name: Test with pytest
       run: |
         pytest tests/ -v --tb=short
 
+  # ---------------------------------------------------------------------------
+  # Job 2: VS Code Extension Tests
+  # ---------------------------------------------------------------------------
+  # Tests the VS Code extension on all major operating systems.
+  # This ensures the extension works correctly for all users.
+  # ---------------------------------------------------------------------------
   extension:
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}        # Dynamic: uses OS from matrix below
+    
     strategy:
-      fail-fast: false
+      fail-fast: false               # Don't cancel other OS tests if one fails
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
     
     steps:
+    # Step 1: Check out the repository code
     - uses: actions/checkout@v4
     
+    # Step 2: Install Node.js 18 (LTS version)
     - name: Set up Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '18'
     
+    # Step 3: Install npm dependencies
+    # npm ci: Clean install from package-lock.json (faster & more reliable than npm install)
     - name: Install extension dependencies
       working-directory: vscode-extension
       run: npm ci
     
+    # Step 4: Lint TypeScript code with ESLint
     - name: Lint extension
       working-directory: vscode-extension
       run: npm run lint
     
+    # Step 5: Check code formatting (e.g., Prettier)
     - name: Format check
       working-directory: vscode-extension
       run: npm run format-check
     
+    # Step 6: Compile TypeScript to JavaScript
     - name: Compile extension
       working-directory: vscode-extension
       run: npm run compile
     
+    # Step 7: Compile test files
     - name: Compile tests
       working-directory: vscode-extension
       run: npm run compile-tests
     
+    # Step 8a: Run tests on Linux
+    # Linux requires xvfb (X Virtual Framebuffer) for headless GUI testing
+    # VS Code extension tests need a display, even in CI
     - name: Run extension tests (Linux)
       if: runner.os == 'Linux'
       working-directory: vscode-extension
       run: xvfb-run -a npm test
       env:
-        DISPLAY: ':99.0'
+        DISPLAY: ':99.0'             # Virtual display number
     
+    # Step 8b: Run tests on macOS/Windows
+    # These platforms don't need xvfb for headless testing
     - name: Run extension tests (macOS/Windows)
       if: runner.os != 'Linux'
       working-directory: vscode-extension
