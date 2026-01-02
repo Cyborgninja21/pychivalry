@@ -2,10 +2,8 @@
 Tests for workspace features module.
 """
 
-import pytest
 from pychivalry.workspace import (
     ModDescriptor,
-    UndefinedReference,
     EventChainLink,
     LocalizationCoverage,
     parse_mod_descriptor,
