@@ -840,7 +840,73 @@ async function startServer(context: vscode.ExtensionContext): Promise<void> {
 
         // Register log watcher notification handlers
         
-        // Combined game log (all files with formatting)
+        // Bulk notification handlers (efficient)
+        client.onNotification('ck3/logEntry/combined/bulk', (params: any) => {
+            const channel = getLogChannel('combined', 'CK3L: Game Log');
+            const timestamp = params.timestamp || new Date().toLocaleTimeString();
+            const sourceFile = params.log_file ? `[${params.log_file}]` : '';
+            
+            // Batch append all lines at once
+            const output = params.lines
+                .map((line: string) => `[${timestamp}] ${sourceFile} ${line}`)
+                .join('\n');
+            channel.append(output + '\n');
+        });
+        
+        client.onNotification('ck3/logEntry/game/bulk', (params: any) => {
+            const channel = getLogChannel('game', 'CK3L: game.log');
+            channel.append(params.lines.join('\n') + '\n');
+        });
+        
+        client.onNotification('ck3/logEntry/error/bulk', (params: any) => {
+            const channel = getLogChannel('error', 'CK3L: error.log');
+            channel.append(params.lines.join('\n') + '\n');
+        });
+        
+        client.onNotification('ck3/logEntry/exceptions/bulk', (params: any) => {
+            const channel = getLogChannel('exceptions', 'CK3L: exceptions.log');
+            channel.append(params.lines.join('\n') + '\n');
+        });
+        
+        client.onNotification('ck3/logEntry/system/bulk', (params: any) => {
+            const channel = getLogChannel('system', 'CK3L: system.log');
+            channel.append(params.lines.join('\n') + '\n');
+        });
+        
+        client.onNotification('ck3/logEntry/setup/bulk', (params: any) => {
+            const channel = getLogChannel('setup', 'CK3L: setup.log');
+            channel.append(params.lines.join('\n') + '\n');
+        });
+        
+        client.onNotification('ck3/logEntry/pattern/bulk', (params: any) => {
+            const channel = getLogChannel('patterns', 'CK3L: Error Patterns');
+            
+            // Format all pattern matches and append in one batch
+            const output = params.results.map((result: any) => {
+                const icon = getSeverityIcon(result.severity);
+                const timestamp = result.timestamp || new Date().toLocaleTimeString();
+                let lines = [`[${timestamp}] ${icon} ${result.message}`];
+                
+                if (result.source_file) {
+                    lines.push(`  → ${result.source_file}:${result.line_number || '?'}`);
+                }
+                
+                if (result.suggestions && result.suggestions.length > 0) {
+                    lines.push(`  💡 Suggestions: ${result.suggestions.join(', ')}`);
+                }
+                
+                if (result.log_file) {
+                    lines.push(`  📁 From: ${result.log_file}`);
+                }
+                
+                lines.push(''); // Blank line
+                return lines.join('\n');
+            }).join('\n');
+            
+            channel.append(output);
+        });
+        
+        // Legacy single-line handlers (kept for backward compatibility)
         client.onNotification('ck3/logEntry/combined', (params: any) => {
             const channel = getLogChannel('combined', 'CK3L: Game Log');
             const timestamp = params.timestamp || new Date().toLocaleTimeString();
@@ -848,7 +914,6 @@ async function startServer(context: vscode.ExtensionContext): Promise<void> {
             channel.appendLine(`[${timestamp}] ${sourceFile} ${params.message}`);
         });
         
-        // Individual log file channels
         client.onNotification('ck3/logEntry/game', (params: any) => {
             const channel = getLogChannel('game', 'CK3L: game.log');
             channel.appendLine(params.raw_line || params.message);
@@ -874,7 +939,6 @@ async function startServer(context: vscode.ExtensionContext): Promise<void> {
             channel.appendLine(params.raw_line || params.message);
         });
         
-        // Pattern-matched errors only
         client.onNotification('ck3/logEntry/pattern', (params: any) => {
             const channel = getLogChannel('patterns', 'CK3L: Error Patterns');
             const icon = getSeverityIcon(params.severity);

@@ -715,19 +715,21 @@ class CK3LogWatcher:
             total_lines_found += len(lines)
             logger.info(f"Found {len(lines)} existing lines in {file_pattern}")
             
-            # Send raw lines to appropriate channels
-            for line in lines:
-                if line.strip():  # Only send non-empty lines
-                    self._send_raw_log_notification(line, file_pattern)
+            # Filter out empty lines
+            non_empty_lines = [line for line in lines if line.strip()]
+            
+            # Send raw lines to appropriate channels in bulk
+            if non_empty_lines:
+                self._send_bulk_raw_log_notification(non_empty_lines, file_pattern)
             
             # Process through analyzer for pattern matching
             try:
                 results = self.analyzer.analyze_batch(lines, file_pattern)
                 
-                # Send pattern-matched results
-                for result in results:
-                    self._send_log_entry_notification(result, file_pattern)
-                    total_errors_found += 1
+                # Send pattern-matched results in bulk
+                if results:
+                    self._send_bulk_pattern_notification(results, file_pattern)
+                    total_errors_found += len(results)
                     
             except Exception as e:
                 logger.error(f"Error analyzing existing logs from {file_pattern}: {e}", exc_info=True)
@@ -757,22 +759,26 @@ class CK3LogWatcher:
         Notes:
             - Called by CK3LogFileHandler when new content is detected
             - Runs in watcher thread (not main LSP thread)
-            - Sends results via LSP notifications to multiple channels
+            - Uses bulk notifications for efficiency
         """
         file_name = os.path.basename(file_path)
         
-        # Send all raw lines to appropriate file-specific channels
-        for line in lines:
-            if line.strip():  # Only send non-empty lines
-                self._send_raw_log_notification(line, file_name)
+        # Filter out empty lines
+        non_empty_lines = [line for line in lines if line.strip()]
+        
+        if not non_empty_lines:
+            return
+        
+        # Send all raw lines in bulk to appropriate channels
+        self._send_bulk_raw_log_notification(non_empty_lines, file_name)
         
         # Send to analyzer for pattern matching
         try:
             results = self.analyzer.analyze_batch(lines, file_name)
             
-            # Send pattern-matched results to appropriate channels
-            for result in results:
-                self._send_log_entry_notification(result, file_name)
+            # Send pattern-matched results in bulk
+            if results:
+                self._send_bulk_pattern_notification(results, file_name)
                 
         except Exception as e:
             logger.error(f"Error analyzing log lines from {file_name}: {e}", exc_info=True)
@@ -790,50 +796,87 @@ class CK3LogWatcher:
         except Exception as e:
             logger.error(f"Error sending notification {method}: {e}", exc_info=True)
     
-    def _send_raw_log_notification(self, raw_line: str, log_file: str) -> None:
+    def _send_bulk_raw_log_notification(self, lines: List[str], log_file: str) -> None:
         """
-        Send raw log line to combined and file-specific channels.
+        Send multiple raw log lines in bulk to combined and file-specific channels.
+        
+        This is much more efficient than sending individual notifications per line.
         
         Args:
-            raw_line: The raw log line text
+            lines: List of raw log line texts
             log_file: Name of the source log file (e.g., "game.log", "error.log")
         """
         from datetime import datetime
         
+        if not lines:
+            return
+        
         timestamp = datetime.now().strftime("%H:%M:%S")
         
-        # Send to combined log (all files)
+        # Send to combined log (all files) in bulk
         combined_params = {
-            'message': raw_line,
-            'raw_line': raw_line,
+            'lines': lines,
             'log_file': log_file,
             'timestamp': timestamp
         }
-        self._send_notification("ck3/logEntry/combined", combined_params)
+        self._send_notification("ck3/logEntry/combined/bulk", combined_params)
         
-        # Send to file-specific channel
+        # Send to file-specific channel in bulk
         file_channel_map = {
-            'game.log': 'ck3/logEntry/game',
-            'error.log': 'ck3/logEntry/error',
-            'exceptions.log': 'ck3/logEntry/exceptions',
-            'system.log': 'ck3/logEntry/system',
-            'setup.log': 'ck3/logEntry/setup'
+            'game.log': 'ck3/logEntry/game/bulk',
+            'error.log': 'ck3/logEntry/error/bulk',
+            'exceptions.log': 'ck3/logEntry/exceptions/bulk',
+            'system.log': 'ck3/logEntry/system/bulk',
+            'setup.log': 'ck3/logEntry/setup/bulk'
         }
         
         channel_method = file_channel_map.get(log_file)
         if channel_method:
             file_params = {
-                'message': raw_line,
-                'raw_line': raw_line,
+                'lines': lines,
                 'timestamp': timestamp
             }
             self._send_notification(channel_method, file_params)
     
+    def _send_bulk_pattern_notification(self, results: List["LogAnalysisResult"], log_file: str) -> None:
+        """
+        Send multiple pattern-matched results in bulk.
+        
+        Args:
+            results: List of LogAnalysisResult objects
+            log_file: Name of the source log file
+        """
+        from dataclasses import asdict
+        
+        if not results:
+            return
+        
+        try:
+            # Convert all results to dicts
+            results_data = []
+            for result in results:
+                params = asdict(result)
+                
+                # Convert datetime to ISO string
+                if hasattr(result, 'timestamp') and result.timestamp:
+                    params['timestamp'] = result.timestamp.isoformat()
+                
+                # Add log file source
+                params['log_file'] = log_file
+                results_data.append(params)
+            
+            # Send bulk notification
+            self._send_notification("ck3/logEntry/pattern/bulk", {'results': results_data})
+            
+        except Exception as e:
+            logger.error(f"Error sending bulk pattern notification: {e}", exc_info=True)
+    
     def _send_log_entry_notification(self, result: "LogAnalysisResult", log_file: str) -> None:
         """
-        Send log entry notification to client.
+        Send single log entry notification to client.
         
-        Sends pattern-matched errors to the Error Patterns channel.
+        NOTE: Deprecated in favor of _send_bulk_pattern_notification for better performance.
+        Kept for backward compatibility.
         
         Args:
             result: Log analysis result to send
