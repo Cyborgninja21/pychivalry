@@ -126,6 +126,36 @@
         "command": "ck3LanguageServer.renameEvent",
         "title": "Rename Event",
         "category": "CK3"
+      },
+      {
+        "command": "ck3LanguageServer.startLogWatcher",
+        "title": "Start Game Log Watcher",
+        "category": "CK3"
+      },
+      {
+        "command": "ck3LanguageServer.stopLogWatcher",
+        "title": "Stop Game Log Watcher",
+        "category": "CK3"
+      },
+      {
+        "command": "ck3LanguageServer.pauseLogWatcher",
+        "title": "Pause Game Log Watcher",
+        "category": "CK3"
+      },
+      {
+        "command": "ck3LanguageServer.resumeLogWatcher",
+        "title": "Resume Game Log Watcher",
+        "category": "CK3"
+      },
+      {
+        "command": "ck3LanguageServer.clearGameLogs",
+        "title": "Clear Game Log Diagnostics",
+        "category": "CK3"
+      },
+      {
+        "command": "ck3LanguageServer.showLogStatistics",
+        "title": "Show Game Log Statistics",
+        "category": "CK3"
       }
     ],
     "menus": {
@@ -181,6 +211,30 @@
         {
           "command": "ck3LanguageServer.renameEvent",
           "when": "editorLangId == ck3"
+        },
+        {
+          "command": "ck3LanguageServer.startLogWatcher",
+          "when": "true"
+        },
+        {
+          "command": "ck3LanguageServer.stopLogWatcher",
+          "when": "true"
+        },
+        {
+          "command": "ck3LanguageServer.pauseLogWatcher",
+          "when": "true"
+        },
+        {
+          "command": "ck3LanguageServer.resumeLogWatcher",
+          "when": "true"
+        },
+        {
+          "command": "ck3LanguageServer.clearGameLogs",
+          "when": "true"
+        },
+        {
+          "command": "ck3LanguageServer.showLogStatistics",
+          "when": "true"
         }
       ]
     },
@@ -280,6 +334,70 @@
           "minimum": 1,
           "maximum": 10,
           "description": "Maximum number of inlay hints to show per line",
+          "scope": "resource"
+        },
+        "ck3LanguageServer.logWatcher.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable the CK3 game log watcher for real-time error detection",
+          "scope": "resource"
+        },
+        "ck3LanguageServer.logWatcher.autoStart": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically start watching game logs when opening a CK3 workspace",
+          "scope": "resource"
+        },
+        "ck3LanguageServer.logWatcher.logPath": {
+          "type": "string",
+          "default": "",
+          "description": "Custom path to CK3 logs directory (leave empty for auto-detection)",
+          "scope": "resource"
+        },
+        "ck3LanguageServer.logWatcher.showInOutput": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show game log entries in the GameLogs output channel",
+          "scope": "resource"
+        },
+        "ck3LanguageServer.logWatcher.maxLogSize": {
+          "type": "number",
+          "default": 100,
+          "minimum": 10,
+          "maximum": 1000,
+          "description": "Maximum size of game.log to process in MB (older content will be skipped)",
+          "scope": "resource"
+        },
+        "ck3LanguageServer.logWatcher.debounceDelay": {
+          "type": "number",
+          "default": 500,
+          "minimum": 100,
+          "maximum": 5000,
+          "description": "Delay in milliseconds before processing log changes (reduces CPU usage)",
+          "scope": "resource"
+        },
+        "ck3LanguageServer.logWatcher.patterns": {
+          "type": "array",
+          "default": [],
+          "description": "Additional custom regex patterns for error detection",
+          "items": {
+            "type": "object",
+            "properties": {
+              "pattern": {
+                "type": "string",
+                "description": "Regular expression pattern to match"
+              },
+              "severity": {
+                "type": "string",
+                "enum": ["error", "warning", "info"],
+                "description": "Severity level for matched patterns"
+              },
+              "message": {
+                "type": "string",
+                "description": "Custom message template (use {0}, {1} for capture groups)"
+              }
+            }
+          },
           "scope": "resource"
         }
       }
