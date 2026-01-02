@@ -1857,7 +1857,6 @@ async def references(ls: CK3LanguageServer, params: types.ReferenceParams):
         priority=TaskPriority.HIGH,
         task_name="find_references"
     )
-        return None
 
 
 def _find_word_references_in_ast(word: str, ast: List[CK3Node], uri: str) -> List[types.Location]:
