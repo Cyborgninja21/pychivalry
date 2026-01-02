@@ -2,10 +2,23 @@
 Paradox Convention Validation - CK3-Specific Best Practices and Pitfall Detection
 
 DIAGNOSTIC CODES:
+    CK3420: Invalid portrait position
+    CK3421: Portrait missing character
+    CK3422: Invalid animation
+    CK3430: Invalid theme
+    CK3440: triggered_desc missing trigger
+    CK3441: triggered_desc missing desc
+    CK3450: Option missing name
     CK3656: Inline opinion value (should use opinion modifier)
     CK3760: Event missing type declaration (character_event, etc.)
+    CK3761: Invalid event type
+    CK3762: Hidden event with options (options are ignored)
     CK3763: Event with no option blocks (players need choices)
+    CK3764: Non-hidden event missing desc
+    CK3766: Multiple after blocks (only first executes)
+    CK3767: Empty event block
     CK3768: Multiple immediate blocks (only one allowed per event)
+    CK3769: Non-hidden event has no portraits
     CK3870: Effect used in trigger block (triggers don't execute effects)
     CK3871: Effect used in limit block (limits are triggers, not effects)
     CK3872: Redundant trigger = { always = yes } (always true anyway)
@@ -94,6 +107,7 @@ from lsprotocol import types
 from .parser import CK3Node
 from .indexer import DocumentIndex
 from .ck3_language import CK3_EFFECTS, CK3_TRIGGERS
+from . import events
 
 logger = logging.getLogger(__name__)
 
@@ -525,6 +539,506 @@ def check_common_gotchas(ast: List[CK3Node], config: ParadoxConfig) -> List[type
     return diagnostics
 
 
+# =============================================================================
+# PHASE 1 QUICK WINS - Event Validation Checks
+# =============================================================================
+
+
+def check_event_type_valid(ast: List[CK3Node], config: ParadoxConfig) -> List[types.Diagnostic]:
+    """
+    Check for invalid event types.
+
+    Detects:
+    - CK3761: Invalid event type (not in EVENT_TYPES)
+    """
+    diagnostics = []
+
+    if not config.event_structure:
+        return diagnostics
+
+    for node in ast:
+        # Check if this looks like an event
+        if "." in node.key and node.children:
+            for child in node.children:
+                if child.key == "type" and child.value:
+                    event_type = str(child.value)
+                    if not events.is_valid_event_type(event_type):
+                        diagnostics.append(
+                            create_paradox_diagnostic(
+                                message=f"Invalid event type '{event_type}'. Valid types: {', '.join(sorted(events.EVENT_TYPES))}",
+                                node_range=child.range,
+                                severity=types.DiagnosticSeverity.Error,
+                                code="CK3761",
+                            )
+                        )
+
+    return diagnostics
+
+
+def check_event_has_desc(ast: List[CK3Node], config: ParadoxConfig) -> List[types.Diagnostic]:
+    """
+    Check for missing desc in non-hidden events.
+
+    Detects:
+    - CK3764: Non-hidden event missing desc field
+    """
+    diagnostics = []
+
+    if not config.event_structure:
+        return diagnostics
+
+    for node in ast:
+        # Check if this looks like an event
+        if "." in node.key and node.children:
+            parts = node.key.split(".")
+            if len(parts) == 2:
+                try:
+                    int(parts[1])  # Event ID should be numeric
+                    # This is an event
+                    has_desc = False
+                    is_hidden = False
+
+                    for child in node.children:
+                        if child.key == "desc":
+                            has_desc = True
+                        elif child.key == "hidden" and child.value in ("yes", True):
+                            is_hidden = True
+
+                    # Warn if not hidden and missing desc
+                    if not has_desc and not is_hidden:
+                        diagnostics.append(
+                            create_paradox_diagnostic(
+                                message=f"Event '{node.key}' is missing 'desc' field. Events need descriptions for players to understand what's happening.",
+                                node_range=node.range,
+                                severity=types.DiagnosticSeverity.Warning,
+                                code="CK3764",
+                            )
+                        )
+
+                except ValueError:
+                    pass
+
+    return diagnostics
+
+
+def check_option_has_name(ast: List[CK3Node], config: ParadoxConfig) -> List[types.Diagnostic]:
+    """
+    Check for options missing name field.
+
+    Detects:
+    - CK3450: Option missing 'name' field for localization
+    """
+    diagnostics = []
+
+    if not config.event_structure:
+        return diagnostics
+
+    def check_option_node(node: CK3Node):
+        """Check if an option node has a name."""
+        if node.key == "option":
+            has_name = any(child.key == "name" for child in node.children)
+            if not has_name:
+                diagnostics.append(
+                    create_paradox_diagnostic(
+                        message="Option block is missing required 'name' field for localization",
+                        node_range=node.range,
+                        severity=types.DiagnosticSeverity.Error,
+                        code="CK3450",
+                    )
+                )
+
+        # Recurse into children
+        for child in node.children:
+            check_option_node(child)
+
+    for node in ast:
+        check_option_node(node)
+
+    return diagnostics
+
+
+def check_triggered_desc_structure(
+    ast: List[CK3Node], config: ParadoxConfig
+) -> List[types.Diagnostic]:
+    """
+    Check triggered_desc block structure.
+
+    Detects:
+    - CK3440: triggered_desc missing trigger
+    - CK3441: triggered_desc missing desc
+    """
+    diagnostics = []
+
+    if not config.event_structure:
+        return diagnostics
+
+    def check_node(node: CK3Node):
+        """Recursively check for triggered_desc blocks."""
+        if node.key == "triggered_desc":
+            has_trigger = False
+            has_desc = False
+
+            for child in node.children:
+                if child.key == "trigger":
+                    has_trigger = True
+                elif child.key == "desc":
+                    has_desc = True
+
+            if not has_trigger:
+                diagnostics.append(
+                    create_paradox_diagnostic(
+                        message="triggered_desc block is missing required 'trigger' field",
+                        node_range=node.range,
+                        severity=types.DiagnosticSeverity.Error,
+                        code="CK3440",
+                    )
+                )
+
+            if not has_desc:
+                diagnostics.append(
+                    create_paradox_diagnostic(
+                        message="triggered_desc block is missing required 'desc' field",
+                        node_range=node.range,
+                        severity=types.DiagnosticSeverity.Error,
+                        code="CK3441",
+                    )
+                )
+
+        # Recurse
+        for child in node.children:
+            check_node(child)
+
+    for node in ast:
+        check_node(node)
+
+    return diagnostics
+
+
+def check_portrait_position(ast: List[CK3Node], config: ParadoxConfig) -> List[types.Diagnostic]:
+    """
+    Check for invalid portrait positions.
+
+    Detects:
+    - CK3420: Invalid portrait position
+    """
+    diagnostics = []
+
+    if not config.event_structure:
+        return diagnostics
+
+    def check_node(node: CK3Node):
+        """Check if node is a portrait position."""
+        if node.key.endswith("_portrait"):
+            if not events.is_valid_portrait_position(node.key):
+                valid_positions = ", ".join(sorted(events.PORTRAIT_POSITIONS))
+                diagnostics.append(
+                    create_paradox_diagnostic(
+                        message=f"Invalid portrait position '{node.key}'. Valid positions: {valid_positions}",
+                        node_range=node.range,
+                        severity=types.DiagnosticSeverity.Error,
+                        code="CK3420",
+                    )
+                )
+
+        # Recurse
+        for child in node.children:
+            check_node(child)
+
+    for node in ast:
+        check_node(node)
+
+    return diagnostics
+
+
+def check_portrait_has_character(
+    ast: List[CK3Node], config: ParadoxConfig
+) -> List[types.Diagnostic]:
+    """
+    Check that portrait blocks have character field.
+
+    Detects:
+    - CK3421: Portrait missing character
+    """
+    diagnostics = []
+
+    if not config.event_structure:
+        return diagnostics
+
+    def check_node(node: CK3Node):
+        """Check if portrait node has character."""
+        if events.is_valid_portrait_position(node.key):
+            # This is a portrait position - check if it has a character
+            has_character = any(child.key == "character" for child in node.children)
+            if not has_character and node.children:  # Has content but no character
+                diagnostics.append(
+                    create_paradox_diagnostic(
+                        message=f"Portrait '{node.key}' is missing required 'character' field",
+                        node_range=node.range,
+                        severity=types.DiagnosticSeverity.Warning,
+                        code="CK3421",
+                    )
+                )
+
+        # Recurse
+        for child in node.children:
+            check_node(child)
+
+    for node in ast:
+        check_node(node)
+
+    return diagnostics
+
+
+def check_animation_valid(ast: List[CK3Node], config: ParadoxConfig) -> List[types.Diagnostic]:
+    """
+    Check for invalid animation names.
+
+    Detects:
+    - CK3422: Invalid animation
+    """
+    diagnostics = []
+
+    if not config.event_structure:
+        return diagnostics
+
+    def check_node(node: CK3Node):
+        """Check if animation is valid."""
+        if node.key == "animation" and node.value:
+            animation = str(node.value)
+            if not events.is_valid_portrait_animation(animation):
+                valid_animations = ", ".join(sorted(events.PORTRAIT_ANIMATIONS))
+                diagnostics.append(
+                    create_paradox_diagnostic(
+                        message=f"Invalid animation '{animation}'. Valid animations: {valid_animations}",
+                        node_range=node.range,
+                        severity=types.DiagnosticSeverity.Warning,
+                        code="CK3422",
+                    )
+                )
+
+        # Recurse
+        for child in node.children:
+            check_node(child)
+
+    for node in ast:
+        check_node(node)
+
+    return diagnostics
+
+
+def check_theme_valid(ast: List[CK3Node], config: ParadoxConfig) -> List[types.Diagnostic]:
+    """
+    Check for invalid theme names.
+
+    Detects:
+    - CK3430: Invalid theme
+    """
+    diagnostics = []
+
+    if not config.event_structure:
+        return diagnostics
+
+    def check_node(node: CK3Node):
+        """Check if theme is valid."""
+        if node.key == "theme" and node.value:
+            theme = str(node.value)
+            if not events.is_valid_theme(theme):
+                valid_themes = ", ".join(sorted(events.EVENT_THEMES))
+                diagnostics.append(
+                    create_paradox_diagnostic(
+                        message=f"Invalid theme '{theme}'. Valid themes: {valid_themes}",
+                        node_range=node.range,
+                        severity=types.DiagnosticSeverity.Warning,
+                        code="CK3430",
+                    )
+                )
+
+        # Recurse
+        for child in node.children:
+            check_node(child)
+
+    for node in ast:
+        check_node(node)
+
+    return diagnostics
+
+
+def check_hidden_event_options(
+    ast: List[CK3Node], config: ParadoxConfig
+) -> List[types.Diagnostic]:
+    """
+    Check for hidden events with option blocks.
+
+    Detects:
+    - CK3762: Hidden event with options (options are ignored)
+    """
+    diagnostics = []
+
+    if not config.event_structure:
+        return diagnostics
+
+    for node in ast:
+        # Check if this looks like an event
+        if "." in node.key and node.children:
+            parts = node.key.split(".")
+            if len(parts) == 2:
+                try:
+                    int(parts[1])  # Event ID should be numeric
+                    # This is an event
+                    is_hidden = False
+                    has_options = False
+
+                    for child in node.children:
+                        if child.key == "hidden" and child.value in ("yes", True):
+                            is_hidden = True
+                        elif child.key == "option":
+                            has_options = True
+
+                    if is_hidden and has_options:
+                        diagnostics.append(
+                            create_paradox_diagnostic(
+                                message=f"Hidden event '{node.key}' has option blocks, but options are ignored in hidden events",
+                                node_range=node.range,
+                                severity=types.DiagnosticSeverity.Warning,
+                                code="CK3762",
+                            )
+                        )
+
+                except ValueError:
+                    pass
+
+    return diagnostics
+
+
+def check_multiple_after_blocks(
+    ast: List[CK3Node], config: ParadoxConfig
+) -> List[types.Diagnostic]:
+    """
+    Check for multiple after blocks in events.
+
+    Detects:
+    - CK3766: Multiple after blocks (only first executes)
+    """
+    diagnostics = []
+
+    if not config.event_structure:
+        return diagnostics
+
+    for node in ast:
+        # Check if this looks like an event
+        if "." in node.key and node.children:
+            parts = node.key.split(".")
+            if len(parts) == 2:
+                try:
+                    int(parts[1])  # Event ID should be numeric
+                    # Count after blocks
+                    after_count = sum(1 for child in node.children if child.key == "after")
+
+                    if after_count > 1:
+                        diagnostics.append(
+                            create_paradox_diagnostic(
+                                message=f"Event '{node.key}' has {after_count} after blocks - only the first will execute",
+                                node_range=node.range,
+                                severity=types.DiagnosticSeverity.Error,
+                                code="CK3766",
+                            )
+                        )
+
+                except ValueError:
+                    pass
+
+    return diagnostics
+
+
+def check_empty_event(ast: List[CK3Node], config: ParadoxConfig) -> List[types.Diagnostic]:
+    """
+    Check for empty event blocks.
+
+    Detects:
+    - CK3767: Empty event block (no meaningful content)
+    """
+    diagnostics = []
+
+    if not config.event_structure:
+        return diagnostics
+
+    for node in ast:
+        # Check if this looks like an event
+        if "." in node.key:
+            parts = node.key.split(".")
+            if len(parts) == 2:
+                try:
+                    int(parts[1])  # Event ID should be numeric
+                    # Check if event has any non-comment children
+                    has_content = any(
+                        child.type != "comment" for child in node.children
+                    ) if node.children else False
+
+                    if not has_content:
+                        diagnostics.append(
+                            create_paradox_diagnostic(
+                                message=f"Event '{node.key}' is empty - it has no fields or content",
+                                node_range=node.range,
+                                severity=types.DiagnosticSeverity.Warning,
+                                code="CK3767",
+                            )
+                        )
+
+                except ValueError:
+                    pass
+
+    return diagnostics
+
+
+def check_event_has_portraits(ast: List[CK3Node], config: ParadoxConfig) -> List[types.Diagnostic]:
+    """
+    Check for non-hidden character events without portraits.
+
+    Detects:
+    - CK3769: Non-hidden character event has no portraits
+    """
+    diagnostics = []
+
+    if not config.event_structure:
+        return diagnostics
+
+    for node in ast:
+        # Check if this looks like an event
+        if "." in node.key and node.children:
+            parts = node.key.split(".")
+            if len(parts) == 2:
+                try:
+                    int(parts[1])  # Event ID should be numeric
+                    # Check event properties
+                    is_character_event = False
+                    is_hidden = False
+                    has_portraits = False
+
+                    for child in node.children:
+                        if child.key == "type" and child.value == "character_event":
+                            is_character_event = True
+                        elif child.key == "hidden" and child.value in ("yes", True):
+                            is_hidden = True
+                        elif events.is_valid_portrait_position(child.key):
+                            has_portraits = True
+
+                    # Warn if character event, not hidden, and no portraits
+                    if is_character_event and not is_hidden and not has_portraits:
+                        diagnostics.append(
+                            create_paradox_diagnostic(
+                                message=f"Character event '{node.key}' has no portrait positions defined. Consider adding left_portrait, right_portrait, etc.",
+                                node_range=node.range,
+                                severity=types.DiagnosticSeverity.Information,
+                                code="CK3769",
+                            )
+                        )
+
+                except ValueError:
+                    pass
+
+    return diagnostics
+
+
 def check_paradox_conventions(
     ast: List[CK3Node],
     index: Optional[DocumentIndex] = None,
@@ -553,6 +1067,20 @@ def check_paradox_conventions(
         diagnostics.extend(check_event_structure(ast, config))
         diagnostics.extend(check_redundant_triggers(ast, config))
         diagnostics.extend(check_common_gotchas(ast, config))
+
+        # Phase 1 Quick Wins - Event validation checks
+        diagnostics.extend(check_event_type_valid(ast, config))
+        diagnostics.extend(check_event_has_desc(ast, config))
+        diagnostics.extend(check_option_has_name(ast, config))
+        diagnostics.extend(check_triggered_desc_structure(ast, config))
+        diagnostics.extend(check_portrait_position(ast, config))
+        diagnostics.extend(check_portrait_has_character(ast, config))
+        diagnostics.extend(check_animation_valid(ast, config))
+        diagnostics.extend(check_theme_valid(ast, config))
+        diagnostics.extend(check_hidden_event_options(ast, config))
+        diagnostics.extend(check_multiple_after_blocks(ast, config))
+        diagnostics.extend(check_empty_event(ast, config))
+        diagnostics.extend(check_event_has_portraits(ast, config))
 
         logger.debug(f"Paradox convention checks found {len(diagnostics)} issues")
 

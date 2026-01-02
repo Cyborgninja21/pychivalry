@@ -27,25 +27,20 @@ This document identifies validation checks that **should be implemented** based 
 
 ### Currently Validated
 - ✅ CK3760: Missing event type declaration (`paradox_checks.py`)
+- ✅ CK3761: Invalid event type (`paradox_checks.py`)
+- ✅ CK3762: Hidden event with options (`paradox_checks.py`)
 - ✅ CK3763: Event has no options (`paradox_checks.py`)
+- ✅ CK3764: Non-hidden event missing desc (`paradox_checks.py`)
+- ✅ CK3766: Multiple after blocks (`paradox_checks.py`)
+- ✅ CK3767: Empty event block (`paradox_checks.py`)
 - ✅ CK3768: Multiple immediate blocks (`paradox_checks.py`)
-
-### Partially Implemented (in helper modules, not as diagnostics)
-- 🟡 `events.py` has `is_valid_event_type()` - validates against `EVENT_TYPES` set
-- 🟡 `events.py` has `validate_event_fields()` - checks required fields
-- 🟡 `events.py` has `validate_option()` - checks option has `name` field
+- ✅ CK3769: Non-hidden event has no portraits (`paradox_checks.py`)
 
 ### Missing Checks
 
 | Proposed Code | Severity | Check | Description |
 |---------------|----------|-------|-------------|
-| **CK3761** | Error | Invalid event type | `type` must be one of: `character_event`, `letter_event`, `duel_event`, `none`, `empty` (Note: helper exists in `events.py` but not wired to diagnostics) |
-| **CK3762** | Warning | Hidden event with options | Event has `hidden = yes` but also has `option` blocks (options are ignored) |
-| **CK3764** | Warning | Missing desc | Non-hidden event lacks `desc` for display text (Note: helper exists but not wired) |
 | **CK3765** | Warning | Missing title | Event lacks `title` (title is optional but recommended) |
-| **CK3766** | Error | Multiple after blocks | Only first `after` block executes (same as immediate) |
-| **CK3767** | Warning | Empty event block | Event definition contains no meaningful content |
-| **CK3769** | Information | No portraits | Non-hidden event has no portrait positions defined |
 
 ### Example
 
@@ -107,24 +102,21 @@ my_events.10001 = {  # WARNING: IDs > 9999 are buggy
 ## 3. Portrait Validation Gaps
 
 ### Currently Validated
-- ❌ No portrait validation diagnostics exist
+- ✅ CK3420: Invalid portrait position (`paradox_checks.py`)
+- ✅ CK3421: Portrait missing character (`paradox_checks.py`)
+- ✅ CK3422: Invalid animation (`paradox_checks.py` - note: animation list incomplete)
 
-### Partially Implemented (data exists but not wired as diagnostics)
-- 🟡 `events.py` has `PORTRAIT_POSITIONS` set with 5 valid positions
+### Data Status
+- ✅ `events.py` has `PORTRAIT_POSITIONS` set with 5 valid positions
 - 🟡 `events.py` has `PORTRAIT_ANIMATIONS` set (limited subset ~17 animations)
-- 🟡 `events.py` has `is_valid_portrait_position()` and `is_valid_portrait_animation()` helpers
-- 🟡 `events.py` has `validate_portrait_configuration()` helper
-- 🟡 `style_checks.py` has `valid_compound_identifiers` with portrait positions for merged ID detection
-- 🟡 `ck3_language.py` has `CK3_PORTRAIT_FIELDS` dict with field documentation
-- 🟡 `hover.py` provides hover info for portrait fields
+- ✅ `events.py` has `is_valid_portrait_position()` and `is_valid_portrait_animation()` helpers
+- ✅ `style_checks.py` has `valid_compound_identifiers` with portrait positions
+- ✅ `ck3_language.py` has `CK3_PORTRAIT_FIELDS` dict with field documentation
 
 ### Missing Checks
 
 | Proposed Code | Severity | Check | Description |
 |---------------|----------|-------|-------------|
-| **CK3420** | Error | Invalid portrait position | Portrait key not one of: `left_portrait`, `right_portrait`, `lower_left_portrait`, `lower_center_portrait`, `lower_right_portrait` |
-| **CK3421** | Warning | Missing character in portrait | Portrait block lacks required `character` parameter |
-| **CK3422** | Warning | Invalid animation | Animation name not in known animations list (Note: `events.py` has `PORTRAIT_ANIMATIONS` but incomplete - only ~17 of 150+ animations) |
 | **CK3423** | Error | triggered_animation missing trigger | `triggered_animation` block lacks `trigger` |
 | **CK3424** | Error | triggered_animation missing animation | `triggered_animation` block lacks `animation` |
 | **CK3425** | Warning | triggered_outfit missing trigger | `triggered_outfit` block lacks `trigger` |
@@ -163,20 +155,19 @@ left_portrait = {
 ## 4. Theme and Background Validation Gaps
 
 ### Currently Validated
-- ❌ No theme/background validation diagnostics exist
+- ✅ CK3430: Invalid theme (`paradox_checks.py` - note: theme list incomplete)
 
-### Partially Implemented (data exists but not wired as diagnostics)
-- 🟡 `events.py` has `EVENT_THEMES` set (~32 themes but incomplete)
-- 🟡 `events.py` has `is_valid_theme()` helper function
-- 🟡 `ck3_language.py` has `CK3_EVENT_FIELDS` with `theme` documentation
-- 🟡 `semantic_tokens.py` recognizes `theme` as a token type
-- 🟡 `hover.py` provides hover info for themes
+### Data Status
+- 🟡 `events.py` has `EVENT_THEMES` set (~32 themes but incomplete - needs expansion to ~72)
+- ✅ `events.py` has `is_valid_theme()` helper function
+- ✅ `ck3_language.py` has `CK3_EVENT_FIELDS` with `theme` documentation
+- ✅ `semantic_tokens.py` recognizes `theme` as a token type
+- ✅ `hover.py` provides hover info for themes
 
 ### Missing Checks
 
 | Proposed Code | Severity | Check | Description |
 |---------------|----------|-------|-------------|
-| **CK3430** | Warning | Invalid theme | `theme` value not in known themes list |
 | **CK3431** | Warning | Invalid override_background | Background name not in known backgrounds list |
 | **CK3432** | Warning | Invalid override_environment | Environment name not in known environments list |
 | **CK3433** | Information | Redundant override | `override_background` matches theme's default background |
@@ -214,20 +205,19 @@ my_event.1 = {
 ## 5. Description Block Validation Gaps
 
 ### Currently Validated
-- ❌ No description block validation diagnostics exist
+- ✅ CK3440: triggered_desc missing trigger (`paradox_checks.py`)
+- ✅ CK3441: triggered_desc missing desc (`paradox_checks.py`)
 
-### Partially Implemented (data/helpers exist)
-- 🟡 `events.py` has `validate_dynamic_description()` helper - checks `triggered_desc` structure
-- 🟡 `scope_timing.py` handles `triggered_desc` for scope timing validation (CK3552)
-- 🟡 `completions.py` provides completion for `triggered_desc` blocks
-- 🟡 `hover.py` provides hover info for `desc` field
+### Data/Helper Status
+- ✅ `events.py` has `validate_dynamic_description()` helper
+- ✅ `scope_timing.py` handles `triggered_desc` for scope timing validation (CK3552)
+- ✅ `completions.py` provides completion for `triggered_desc` blocks
+- ✅ `hover.py` provides hover info for `desc` field
 
 ### Missing Checks
 
 | Proposed Code | Severity | Check | Description |
 |---------------|----------|-------|-------------|
-| **CK3440** | Error | triggered_desc missing trigger | `triggered_desc` block lacks `trigger` block (Note: helper exists in `events.py` - wire to diagnostics) |
-| **CK3441** | Error | triggered_desc missing desc | `triggered_desc` block lacks `desc` (Note: helper exists in `events.py` - wire to diagnostics) |
 | **CK3442** | Warning | first_valid no fallback | `first_valid` block has no unconditional fallback `desc` |
 | **CK3443** | Warning | Empty desc block | `desc = { }` with no content |
 | **CK3444** | Information | Literal string in desc | Using `desc = "text"` instead of localization key |
@@ -264,21 +254,20 @@ desc = {
 ## 6. Option Block Validation Gaps
 
 ### Currently Validated
-- ❌ No option-specific validation diagnostics exist
+- ✅ CK3450: Option missing name (`paradox_checks.py`)
 
-### Partially Implemented (data/helpers exist)
-- 🟡 `events.py` has `validate_option()` helper - checks for required `name` field
-- 🟡 `ck3_language.py` has comprehensive `CK3_OPTION_FIELDS` dict with all option fields
-- 🟡 `diagnostics.py` has `skill` in `COMMON_PARAMETERS` for effect validation
-- 🟡 `hover.py` provides hover info for option fields (`name`, `trait`, `skill`, `ai_chance`, etc.)
-- 🟡 `completions.py` provides option block completions
-- 🟡 `symbols.py` extracts option symbols with names
+### Data/Helper Status
+- ✅ `events.py` has `validate_option()` helper
+- ✅ `ck3_language.py` has comprehensive `CK3_OPTION_FIELDS` dict with all option fields
+- ✅ `diagnostics.py` has `skill` in `COMMON_PARAMETERS` for effect validation
+- ✅ `hover.py` provides hover info for option fields
+- ✅ `completions.py` provides option block completions
+- ✅ `symbols.py` extracts option symbols with names
 
 ### Missing Checks
 
 | Proposed Code | Severity | Check | Description |
 |---------------|----------|-------|-------------|
-| **CK3450** | Error | Option missing name | Option block lacks required `name` parameter (Note: helper exists in `events.py` - wire to diagnostics) |
 | **CK3451** | Warning | Invalid trait reference | `trait = xxx` references unknown trait |
 | **CK3452** | Warning | Invalid skill reference | `skill = xxx` not one of: `diplomacy`, `martial`, `stewardship`, `intrigue`, `learning`, `prowess` |
 | **CK3453** | Warning | Invalid add_internal_flag | Value not `special` or `dangerous` |

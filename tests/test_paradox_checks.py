@@ -513,3 +513,461 @@ test.0001 = {
 
         # Should catch missing type (CK3760)
         assert "CK3760" in codes
+
+
+# =============================================================================
+# PHASE 1 QUICK WINS - Event Validation Tests
+# =============================================================================
+
+
+class TestEventTypeValidation:
+    """Tests for CK3761: Invalid event type."""
+
+    def test_valid_event_type_no_error(self):
+        """Valid event types should not produce errors."""
+        text = """mymod.0001 = {
+    type = character_event
+}"""
+        ast = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_event_type_valid
+        diagnostics = check_event_type_valid(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3761" not in codes
+
+    def test_invalid_event_type_error(self):
+        """Invalid event type should produce CK3761."""
+        text = """mymod.0001 = {
+    type = invalid_event_type
+}"""
+        ast = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_event_type_valid
+        diagnostics = check_event_type_valid(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3761" in codes
+
+
+class TestEventDescValidation:
+    """Tests for CK3764: Missing desc in non-hidden event."""
+
+    def test_event_with_desc_no_error(self):
+        """Event with desc should not produce error."""
+        text = """mymod.0001 = {
+    type = character_event
+    desc = mymod.0001.desc
+}"""
+        ast = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_event_has_desc
+        diagnostics = check_event_has_desc(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3764" not in codes
+
+    def test_hidden_event_without_desc_no_error(self):
+        """Hidden event without desc should not produce error."""
+        text = """mymod.0001 = {
+    type = character_event
+    hidden = yes
+}"""
+        ast = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_event_has_desc
+        diagnostics = check_event_has_desc(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3764" not in codes
+
+    def test_non_hidden_event_without_desc_error(self):
+        """Non-hidden event without desc should produce CK3764."""
+        text = """mymod.0001 = {
+    type = character_event
+    title = mymod.0001.t
+}"""
+        ast = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_event_has_desc
+        diagnostics = check_event_has_desc(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3764" in codes
+
+
+class TestOptionNameValidation:
+    """Tests for CK3450: Option missing name."""
+
+    def test_option_with_name_no_error(self):
+        """Option with name should not produce error."""
+        text = """mymod.0001 = {
+    option = {
+        name = mymod.0001.a
+        add_gold = 100
+    }
+}"""
+        ast = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_option_has_name
+        diagnostics = check_option_has_name(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3450" not in codes
+
+    def test_option_without_name_error(self):
+        """Option without name should produce CK3450."""
+        text = """mymod.0001 = {
+    option = {
+        add_gold = 100
+    }
+}"""
+        ast = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_option_has_name
+        diagnostics = check_option_has_name(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3450" in codes
+
+
+class TestTriggeredDescValidation:
+    """Tests for CK3440/CK3441: triggered_desc structure."""
+
+    def test_triggered_desc_complete_no_error(self):
+        """Complete triggered_desc should not produce error."""
+        text = """mymod.0001 = {
+    desc = {
+        triggered_desc = {
+            trigger = { always = yes }
+            desc = mymod.0001.desc
+        }
+    }
+}"""
+        ast = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_triggered_desc_structure
+        diagnostics = check_triggered_desc_structure(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3440" not in codes
+        assert "CK3441" not in codes
+
+    def test_triggered_desc_missing_trigger_error(self):
+        """triggered_desc without trigger should produce CK3440."""
+        text = """mymod.0001 = {
+    desc = {
+        triggered_desc = {
+            desc = mymod.0001.desc
+        }
+    }
+}"""
+        ast = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_triggered_desc_structure
+        diagnostics = check_triggered_desc_structure(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3440" in codes
+
+    def test_triggered_desc_missing_desc_error(self):
+        """triggered_desc without desc should produce CK3441."""
+        text = """mymod.0001 = {
+    desc = {
+        triggered_desc = {
+            trigger = { always = yes }
+        }
+    }
+}"""
+        ast = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_triggered_desc_structure
+        diagnostics = check_triggered_desc_structure(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3441" in codes
+
+
+class TestPortraitPositionValidation:
+    """Tests for CK3420: Invalid portrait position."""
+
+    def test_valid_portrait_position_no_error(self):
+        """Valid portrait positions should not produce error."""
+        text = """mymod.0001 = {
+    left_portrait = root
+    right_portrait = scope:other
+}"""
+        ast = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_portrait_position
+        diagnostics = check_portrait_position(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3420" not in codes
+
+    def test_invalid_portrait_position_error(self):
+        """Invalid portrait position should produce CK3420."""
+        text = """mymod.0001 = {
+    center_portrait = root
+}"""
+        ast = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_portrait_position
+        diagnostics = check_portrait_position(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3420" in codes
+
+
+class TestPortraitCharacterValidation:
+    """Tests for CK3421: Portrait missing character."""
+
+    def test_portrait_with_character_no_error(self):
+        """Portrait with character should not produce error."""
+        text = """mymod.0001 = {
+    left_portrait = {
+        character = root
+        animation = happiness
+    }
+}"""
+        ast = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_portrait_has_character
+        diagnostics = check_portrait_has_character(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3421" not in codes
+
+    def test_portrait_without_character_warning(self):
+        """Portrait without character should produce CK3421."""
+        text = """mymod.0001 = {
+    left_portrait = {
+        animation = happiness
+    }
+}"""
+        ast = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_portrait_has_character
+        diagnostics = check_portrait_has_character(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3421" in codes
+
+
+class TestAnimationValidation:
+    """Tests for CK3422: Invalid animation."""
+
+    def test_valid_animation_no_error(self):
+        """Valid animation should not produce error."""
+        text = """mymod.0001 = {
+    left_portrait = {
+        character = root
+        animation = happiness
+    }
+}"""
+        ast = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_animation_valid
+        diagnostics = check_animation_valid(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3422" not in codes
+
+    def test_invalid_animation_warning(self):
+        """Invalid animation should produce CK3422."""
+        text = """mymod.0001 = {
+    left_portrait = {
+        character = root
+        animation = flying
+    }
+}"""
+        ast = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_animation_valid
+        diagnostics = check_animation_valid(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3422" in codes
+
+
+class TestThemeValidation:
+    """Tests for CK3430: Invalid theme."""
+
+    def test_valid_theme_no_error(self):
+        """Valid theme should not produce error."""
+        text = """mymod.0001 = {
+    theme = diplomacy
+}"""
+        ast = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_theme_valid
+        diagnostics = check_theme_valid(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3430" not in codes
+
+    def test_invalid_theme_warning(self):
+        """Invalid theme should produce CK3430."""
+        text = """mymod.0001 = {
+    theme = invalid_theme
+}"""
+        ast = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_theme_valid
+        diagnostics = check_theme_valid(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3430" in codes
+
+
+class TestHiddenEventOptionsValidation:
+    """Tests for CK3762: Hidden event with options."""
+
+    def test_hidden_event_no_options_no_error(self):
+        """Hidden event without options should not produce error."""
+        text = """mymod.0001 = {
+    type = character_event
+    hidden = yes
+    immediate = {
+        add_gold = 100
+    }
+}"""
+        ast = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_hidden_event_options
+        diagnostics = check_hidden_event_options(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3762" not in codes
+
+    def test_visible_event_with_options_no_error(self):
+        """Visible event with options should not produce error."""
+        text = """mymod.0001 = {
+    type = character_event
+    option = {
+        name = mymod.0001.a
+    }
+}"""
+        ast = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_hidden_event_options
+        diagnostics = check_hidden_event_options(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3762" not in codes
+
+    def test_hidden_event_with_options_warning(self):
+        """Hidden event with options should produce CK3762."""
+        text = """mymod.0001 = {
+    type = character_event
+    hidden = yes
+    option = {
+        name = mymod.0001.a
+    }
+}"""
+        ast = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_hidden_event_options
+        diagnostics = check_hidden_event_options(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3762" in codes
+
+
+class TestMultipleAfterBlocksValidation:
+    """Tests for CK3766: Multiple after blocks."""
+
+    def test_single_after_block_no_error(self):
+        """Single after block should not produce error."""
+        text = """mymod.0001 = {
+    type = character_event
+    after = {
+        add_gold = 100
+    }
+}"""
+        ast = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_multiple_after_blocks
+        diagnostics = check_multiple_after_blocks(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3766" not in codes
+
+    def test_multiple_after_blocks_error(self):
+        """Multiple after blocks should produce CK3766."""
+        text = """mymod.0001 = {
+    type = character_event
+    after = {
+        add_gold = 100
+    }
+    after = {
+        add_prestige = 100
+    }
+}"""
+        ast = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_multiple_after_blocks
+        diagnostics = check_multiple_after_blocks(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3766" in codes
+
+
+class TestEmptyEventValidation:
+    """Tests for CK3767: Empty event block."""
+
+    def test_event_with_content_no_error(self):
+        """Event with content should not produce error."""
+        text = """mymod.0001 = {
+    type = character_event
+}"""
+        ast = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_empty_event
+        diagnostics = check_empty_event(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3767" not in codes
+
+    def test_empty_event_warning(self):
+        """Empty event should produce CK3767."""
+        text = """mymod.0001 = {
+}"""
+        ast = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_empty_event
+        diagnostics = check_empty_event(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3767" in codes
+
+
+class TestEventPortraitsValidation:
+    """Tests for CK3769: Non-hidden event has no portraits."""
+
+    def test_character_event_with_portraits_no_error(self):
+        """Character event with portraits should not produce error."""
+        text = """mymod.0001 = {
+    type = character_event
+    left_portrait = root
+}"""
+        ast = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_event_has_portraits
+        diagnostics = check_event_has_portraits(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3769" not in codes
+
+    def test_hidden_character_event_no_portraits_no_error(self):
+        """Hidden character event without portraits should not produce error."""
+        text = """mymod.0001 = {
+    type = character_event
+    hidden = yes
+}"""
+        ast = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_event_has_portraits
+        diagnostics = check_event_has_portraits(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3769" not in codes
+
+    def test_letter_event_no_portraits_no_error(self):
+        """Letter event without portraits should not produce error."""
+        text = """mymod.0001 = {
+    type = letter_event
+}"""
+        ast = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_event_has_portraits
+        diagnostics = check_event_has_portraits(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3769" not in codes
+
+    def test_character_event_no_portraits_info(self):
+        """Character event without portraits should produce CK3769 info."""
+        text = """mymod.0001 = {
+    type = character_event
+    title = mymod.0001.t
+    desc = mymod.0001.desc
+}"""
+        ast = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_event_has_portraits
+        diagnostics = check_event_has_portraits(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3769" in codes
