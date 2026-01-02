@@ -188,7 +188,6 @@ SEE ALSO:
 import asyncio
 import hashlib
 import logging
-import os
 import threading
 import uuid
 from collections import OrderedDict
