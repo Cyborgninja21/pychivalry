@@ -971,3 +971,402 @@ class TestEventPortraitsValidation:
         diagnostics = check_event_has_portraits(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3769" in codes
+
+
+# =============================================================================
+# TRIGGER EXTENSION VALIDATION TESTS (CK3510-CK3513)
+# =============================================================================
+
+
+class TestTriggerExtensions:
+    """Tests for trigger_if/trigger_else validation."""
+
+    def test_trigger_if_with_limit_no_error(self):
+        """trigger_if with limit should not produce error."""
+        text = """mymod.0001 = {
+    type = character_event
+    option = {
+        name = mymod.0001.a
+        trigger_if = {
+            limit = { is_ai = yes }
+            add_gold = 100
+        }
+    }
+}"""
+        ast = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_trigger_extensions
+        diagnostics = check_trigger_extensions(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3512" not in codes
+
+    def test_trigger_if_missing_limit_error(self):
+        """trigger_if without limit should produce CK3512."""
+        text = """mymod.0001 = {
+    type = character_event
+    option = {
+        name = mymod.0001.a
+        trigger_if = {
+            add_gold = 100
+        }
+    }
+}"""
+        ast = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_trigger_extensions
+        diagnostics = check_trigger_extensions(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3512" in codes
+
+    def test_trigger_if_empty_limit_warning(self):
+        """trigger_if with empty limit should produce CK3513."""
+        text = """mymod.0001 = {
+    type = character_event
+    option = {
+        name = mymod.0001.a
+        trigger_if = {
+            limit = { }
+            add_gold = 100
+        }
+    }
+}"""
+        ast = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_trigger_extensions
+        diagnostics = check_trigger_extensions(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3513" in codes
+
+    def test_trigger_else_without_trigger_if_error(self):
+        """trigger_else without trigger_if should produce CK3510."""
+        text = """mymod.0001 = {
+    type = character_event
+    option = {
+        name = mymod.0001.a
+        trigger_else = {
+            add_gold = 100
+        }
+    }
+}"""
+        ast = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_trigger_extensions
+        diagnostics = check_trigger_extensions(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3510" in codes
+
+    def test_trigger_else_after_trigger_if_no_error(self):
+        """trigger_else after trigger_if should not produce CK3510."""
+        text = """mymod.0001 = {
+    type = character_event
+    option = {
+        name = mymod.0001.a
+        trigger_if = {
+            limit = { is_ai = yes }
+            add_gold = 100
+        }
+        trigger_else = {
+            add_prestige = 100
+        }
+    }
+}"""
+        ast = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_trigger_extensions
+        diagnostics = check_trigger_extensions(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3510" not in codes
+
+    def test_multiple_trigger_else_error(self):
+        """Multiple trigger_else blocks should produce CK3511."""
+        text = """mymod.0001 = {
+    type = character_event
+    option = {
+        name = mymod.0001.a
+        trigger_if = {
+            limit = { is_ai = yes }
+            add_gold = 100
+        }
+        trigger_else = {
+            add_prestige = 100
+        }
+        trigger_else = {
+            add_piety = 100
+        }
+    }
+}"""
+        ast = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_trigger_extensions
+        diagnostics = check_trigger_extensions(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3511" in codes
+
+
+# =============================================================================
+# AFTER BLOCK VALIDATION TESTS (CK3520-CK3521)
+# =============================================================================
+
+
+class TestAfterBlockValidation:
+    """Tests for after block validation."""
+
+    def test_after_in_normal_event_no_error(self):
+        """after block in normal event with options should not produce error."""
+        text = """mymod.0001 = {
+    type = character_event
+    option = {
+        name = mymod.0001.a
+    }
+    after = {
+        add_gold = 100
+    }
+}"""
+        ast = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_after_block_issues
+        diagnostics = check_after_block_issues(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3520" not in codes
+        assert "CK3521" not in codes
+
+    def test_after_in_hidden_event_warning(self):
+        """after block in hidden event should produce CK3520."""
+        text = """mymod.0001 = {
+    type = character_event
+    hidden = yes
+    after = {
+        add_gold = 100
+    }
+}"""
+        ast = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_after_block_issues
+        diagnostics = check_after_block_issues(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3520" in codes
+
+    def test_after_without_options_warning(self):
+        """after block without options should produce CK3521."""
+        text = """mymod.0001 = {
+    type = character_event
+    desc = mymod.0001.desc
+    after = {
+        add_gold = 100
+    }
+}"""
+        ast = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_after_block_issues
+        diagnostics = check_after_block_issues(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3521" in codes
+
+
+# =============================================================================
+# AI CHANCE VALIDATION TESTS (CK3610-CK3614)
+# =============================================================================
+
+
+class TestAIChanceValidation:
+    """Tests for ai_chance validation."""
+
+    def test_ai_chance_normal_base_no_error(self):
+        """ai_chance with normal base should not produce error."""
+        text = """mymod.0001 = {
+    type = character_event
+    option = {
+        name = mymod.0001.a
+        ai_chance = {
+            base = 50
+        }
+    }
+}"""
+        ast = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_ai_chance_issues
+        diagnostics = check_ai_chance_issues(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3610" not in codes
+        assert "CK3611" not in codes
+        assert "CK3612" not in codes
+
+    def test_ai_chance_negative_base_warning(self):
+        """ai_chance with negative base should produce CK3610."""
+        text = """mymod.0001 = {
+    type = character_event
+    option = {
+        name = mymod.0001.a
+        ai_chance = {
+            base = -50
+        }
+    }
+}"""
+        ast = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_ai_chance_issues
+        diagnostics = check_ai_chance_issues(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3610" in codes
+
+    def test_ai_chance_high_base_info(self):
+        """ai_chance with high base should produce CK3611 info."""
+        text = """mymod.0001 = {
+    type = character_event
+    option = {
+        name = mymod.0001.a
+        ai_chance = {
+            base = 150
+        }
+    }
+}"""
+        ast = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_ai_chance_issues
+        diagnostics = check_ai_chance_issues(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3611" in codes
+
+    def test_ai_chance_zero_base_no_modifiers_warning(self):
+        """ai_chance with zero base and no modifiers should produce CK3612."""
+        text = """mymod.0001 = {
+    type = character_event
+    option = {
+        name = mymod.0001.a
+        ai_chance = {
+            base = 0
+        }
+    }
+}"""
+        ast = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_ai_chance_issues
+        diagnostics = check_ai_chance_issues(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3612" in codes
+
+    def test_ai_chance_zero_base_with_modifiers_no_error(self):
+        """ai_chance with zero base but modifiers should not produce CK3612."""
+        text = """mymod.0001 = {
+    type = character_event
+    option = {
+        name = mymod.0001.a
+        ai_chance = {
+            base = 0
+            modifier = {
+                is_ai = yes
+                add = 100
+            }
+        }
+    }
+}"""
+        ast = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_ai_chance_issues
+        diagnostics = check_ai_chance_issues(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3612" not in codes
+
+
+# =============================================================================
+# DESC VALIDATION TESTS (CK3442-CK3443)
+# =============================================================================
+
+
+class TestDescValidation:
+    """Tests for desc block validation."""
+
+    def test_desc_with_value_no_error(self):
+        """desc with value should not produce error."""
+        text = """mymod.0001 = {
+    type = character_event
+    desc = mymod.0001.desc
+}"""
+        ast = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_desc_issues
+        diagnostics = check_desc_issues(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3443" not in codes
+
+    def test_desc_with_triggered_desc_no_error(self):
+        """triggered desc with content should not produce error."""
+        text = """mymod.0001 = {
+    type = character_event
+    desc = {
+        trigger = { is_ai = yes }
+        desc = mymod.0001.desc.ai
+    }
+}"""
+        ast = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_desc_issues
+        diagnostics = check_desc_issues(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3443" not in codes
+
+    def test_empty_desc_block_warning(self):
+        """Empty desc block should produce CK3443."""
+        text = """mymod.0001 = {
+    type = character_event
+    desc = { }
+}"""
+        ast = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_desc_issues
+        diagnostics = check_desc_issues(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3443" in codes
+
+
+# =============================================================================
+# OPTION VALIDATION TESTS (CK3453, CK3456)
+# =============================================================================
+
+
+class TestOptionValidation:
+    """Tests for option block validation."""
+
+    def test_option_single_name_no_error(self):
+        """Option with single name should not produce error."""
+        text = """mymod.0001 = {
+    type = character_event
+    option = {
+        name = mymod.0001.a
+    }
+}"""
+        ast = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_option_issues
+        diagnostics = check_option_issues(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3453" not in codes
+
+    def test_option_multiple_names_warning(self):
+        """Option with multiple names should produce CK3453."""
+        text = """mymod.0001 = {
+    type = character_event
+    option = {
+        name = mymod.0001.a
+        name = mymod.0001.b
+    }
+}"""
+        ast = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_option_issues
+        diagnostics = check_option_issues(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3453" in codes
+
+    def test_empty_option_warning(self):
+        """Empty option should produce CK3456."""
+        text = """mymod.0001 = {
+    type = character_event
+    option = { }
+}"""
+        ast = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_option_issues
+        diagnostics = check_option_issues(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3456" in codes

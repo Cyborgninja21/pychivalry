@@ -12,11 +12,12 @@ This document provides a comprehensive reference of all diagnostic codes impleme
 4. [Style Checks (CK33xx)](#style-checks-ck33xx)
 5. [Event Validation - Phase 1 Quick Wins (CK3420-CK3450, CK3761-CK3769)](#event-validation---phase-1-quick-wins-ck3420-ck3450-ck3761-ck3769)
 6. [Scope Timing Checks (CK3550-CK3555)](#scope-timing-checks-ck3550-ck3555)
-7. [Opinion Modifier Checks (CK36xx)](#opinion-modifier-checks-ck36xx)
-8. [Event Structure Checks (CK37xx)](#event-structure-checks-ck37xx)
-9. [Effect/Trigger Context Checks (CK38xx)](#effecttrigger-context-checks-ck38xx)
-10. [List Iterator Checks (CK39xx)](#list-iterator-checks-ck39xx)
-11. [Common Gotchas (CK51xx)](#common-gotchas-ck51xx)
+7. [Localization Validation (CK3600-CK3604)](#localization-validation-ck3600-ck3604--implemented) ✅
+8. [Opinion Modifier Checks (CK36xx)](#opinion-modifier-checks-ck36xx)
+9. [Event Structure Checks (CK37xx)](#event-structure-checks-ck37xx)
+10. [Effect/Trigger Context Checks (CK38xx)](#effecttrigger-context-checks-ck38xx)
+11. [List Iterator Checks (CK39xx)](#list-iterator-checks-ck39xx)
+12. [Common Gotchas (CK51xx)](#common-gotchas-ck51xx)
 
 ---
 
@@ -636,22 +637,22 @@ trigger = {
 | Portrait Validation | CK3420-CK3422 | 3 | ✅ Implemented |
 | Theme Validation | CK3430 | 1 | ✅ Implemented |
 | Description Validation | CK3440-CK3441 | 2 | ✅ Implemented |
-| Option Validation | CK3450-CK3451 | 2 | ✅ Implemented |
+| Option Validation | CK3450-CK3456 | 4 | ✅ Implemented |
+| Trigger Extensions | CK3510-CK3513 | 4 | ✅ Implemented |
+| After Block Validation | CK3520-CK3521 | 2 | ✅ Implemented |
 | Scope Timing | CK3550-CK3554 | 5 | ✅ Implemented |
+| Localization Validation | CK3600-CK3604 | 5 | ✅ Implemented |
+| AI Chance Validation | CK3610-CK3614 | 4 | ✅ Implemented |
 | Opinion Modifiers | CK3656 | 1 | ✅ Implemented |
 | Event Structure | CK3760-CK3769 | 9 | ✅ Implemented |
 | Effect/Trigger Context | CK3870-CK3873 | 4 | ✅ Implemented |
 | List Iterators | CK3875-CK3977 | 3 | ✅ Implemented |
 | Common Gotchas | CK5142 | 1 | ✅ Implemented |
-| **Total Implemented** | | **52** | |
+| **Total Implemented** | | **70** | |
 | | | | |
 | Namespace/ID Validation | CK3400-CK3406 | 7 | ⚠️ Planned (Phase 3) |
-| Trigger Extensions | CK3510-CK3515 | 6 | ⚠️ Planned (Phase 4) |
 | On Action Validation | CK3500-CK3508 | 9 | ⚠️ Planned (Phase 9) |
-| After Block Validation | CK3520-CK3521 | 2 | ⚠️ Planned (Phase 11) |
-| Localization Validation | CK3600-CK3603 | 4 | ⚠️ Planned (Phase 10) |
-| AI Chance Validation | CK3610-CK3614 | 5 | ⚠️ Planned (Phase 12) |
-| **Total Planned** | | **33** | |
+| **Total Planned** | | **16** | |
 
 ---
 
@@ -660,11 +661,13 @@ trigger = {
 ### ✅ Completed Phases
 - **Phase 1 (Quick Wins)**: 12 checks - All implemented
 - **Phase 2 (Event Structure)**: 7 checks - All implemented
+- **Phase 4 (Trigger Extensions)**: 4 checks - All implemented
+- **Phase 11 (After Blocks)**: 2 checks - All implemented
+- **Phase 12 (AI Chance)**: 4 checks - All implemented
 
 ### 🔴 Remaining Phases
 - **Phase 3 (Namespace & ID)**: 7 checks - Not started
-- **Phase 4 (Trigger Extensions)**: 6 checks - Not started
-- **Phase 5-12 (Advanced)**: 20+ checks - Not started
+- **Phase 9 (On Action)**: 9 checks - Not started
 
 ---
 
@@ -697,7 +700,7 @@ trigger = {
 | **CK3430** | Warning | **Invalid theme** - Event theme not recognized |
 | **CK3431** | Warning | **Invalid override_background** - Background not recognized |
 
-### Description Validation (CK3440-CK3443) - ✅ Phase 1 IMPLEMENTED (CK3440-CK3441 only)
+### Description Validation (CK3440-CK3443) - ✅ Phase 1 IMPLEMENTED
 
 | Code | Severity | Description |
 |------|----------|-------------|
@@ -706,7 +709,7 @@ trigger = {
 | **CK3442** | Warning | **desc missing localization key** - desc used without localization reference |
 | **CK3443** | Warning | **Empty desc block** - desc block has no content |
 
-### Option Validation (CK3450-CK3456) - ✅ Phase 1 IMPLEMENTED (CK3450 only)
+### Option Validation (CK3450-CK3456) - ✅ Phase 1 IMPLEMENTED
 
 | Code | Severity | Description |
 |------|----------|-------------|
@@ -727,7 +730,9 @@ trigger = {
 | **CK3507** | Warning | **chance_to_happen > 100** - Value will be clamped |
 | **CK3508** | Warning | **Wrong file path** - on_action vs on_actions folder |
 
-### Trigger Extension Validation (CK3510-CK3513) - Phase 4
+### Trigger Extension Validation (CK3510-CK3513) - ✅ Phase 4 IMPLEMENTED
+
+**Module:** `paradox_checks.py`
 
 | Code | Severity | Description |
 |------|----------|-------------|
@@ -736,25 +741,80 @@ trigger = {
 | **CK3512** | Error | **trigger_if missing limit** - trigger_if requires limit block |
 | **CK3513** | Warning | **Empty trigger_if limit** - Condition always passes |
 
-### After Block Validation (CK3520-CK3521) - Phase 11
+### After Block Validation (CK3520-CK3521) - ✅ Phase 11 IMPLEMENTED
+
+**Module:** `paradox_checks.py`
 
 | Code | Severity | Description |
 |------|----------|-------------|
-| **CK3520** | Warning | **after block in hidden event** - Won't execute |
+| **CK3520** | Warning | **after block in hidden event** - Won't execute as expected |
 | **CK3521** | Warning | **after block without options** - Won't execute |
 
-### Localization Validation (CK3601-CK3603) - Phase 10
+### Localization Validation (CK3600-CK3604) - ✅ IMPLEMENTED
+
+**Module:** `localization.py`
+
+These checks validate localization key usage, encoding, and naming conventions. Missing localization keys are one of the most common modding mistakes - they cause blank text in-game with no error message.
 
 | Code | Severity | Description |
 |------|----------|-------------|
-| **CK3601** | Info | **Literal text usage** - Consider using localization key |
-| **CK3603** | Hint | **Inconsistent key naming** - Doesn't follow namespace.id.element pattern |
+| **CK3600** | Warning | **Missing localization key** - Referenced key not found in loc files. Includes fuzzy matching suggestions for typos. |
+| **CK3601** | Info | **Literal text usage** - Consider using localization key instead of literal string in title/desc/name fields. |
+| **CK3602** | Warning | **Encoding issue** - Localization file not UTF-8-BOM encoded. CK3 requires this encoding. |
+| **CK3603** | Hint | **Inconsistent key naming** - Key doesn't follow namespace.id.suffix pattern (e.g., my_mod.0001.t). |
+| **CK3604** | Warning | **Unused localization key** - Key defined in loc file but never referenced (workspace-wide analysis). |
 
-### AI Chance Validation (CK3610-CK3614) - Phase 12
+#### Examples
+
+```pdx
+# CK3600: Missing localization key (with fuzzy suggestion)
+my_event.0001 = {
+    title = my_evnt.0001.t  # WARNING: Key not found. Did you mean 'my_event.0001.t'?
+    desc = my_event.0001.desc
+}
+
+# CK3601: Literal text usage
+my_event.0002 = {
+    title = "My Event Title"  # INFO: Consider using localization key
+    desc = "Some description"  # INFO: Consider using localization key
+}
+
+# CK3603: Inconsistent key naming
+my_event.0003 = {
+    title = random_key_name  # HINT: Doesn't follow namespace.id.suffix pattern
+    desc = my_event.0003.desc  # OK
+}
+```
+
+#### Localization File Example (CK3602)
+
+```yaml
+# Missing UTF-8-BOM marker - WARNING: CK3602
+l_english:
+  my_event.0001.t: "Event Title"
+
+# Correct - file should start with UTF-8-BOM (bytes EF BB BF)
+```
+
+#### Fuzzy Matching Features
+
+CK3600 includes intelligent fuzzy matching to help catch common mistakes:
+
+- **Typos**: `my_evnt.0001.t` → suggests `my_event.0001.t`
+- **Wrong suffixes**: `my_event.0001.title` → suggests `my_event.0001.t` (CK3 uses `.t`)
+- **Wrong suffixes**: `my_event.0001.description` → suggests `my_event.0001.desc`
+- **Namespace matching**: Suggests keys from the same mod namespace
+- **Prefix matching**: Suggests keys for the same event
+
+### AI Chance Validation (CK3610-CK3614) - ✅ Phase 12 IMPLEMENTED
+
+**Module:** `paradox_checks.py`
 
 | Code | Severity | Description |
 |------|----------|-------------|
-| **CK3610** | Warning | **Negative base ai_chance** - AI will never select option |
+| **CK3610** | Warning | **Negative base ai_chance** - AI will never select option unless modifiers bring it positive |
+| **CK3611** | Info | **High base ai_chance** - Value over 100 heavily weights this option |
+| **CK3612** | Warning | **Zero base ai_chance** - AI will never select option (no modifiers) |
 | **CK3614** | Info | **Modifier without trigger** - Applies unconditionally |
 
 ### Event Structure Validation (CK3760-CK3769) - ✅ Phase 1 & 2 IMPLEMENTED

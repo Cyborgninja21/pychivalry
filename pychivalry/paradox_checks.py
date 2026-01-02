@@ -8,7 +8,21 @@ DIAGNOSTIC CODES:
     CK3430: Invalid theme
     CK3440: triggered_desc missing trigger
     CK3441: triggered_desc missing desc
+    CK3442: desc missing localization key
+    CK3443: Empty desc block
     CK3450: Option missing name
+    CK3453: Option with multiple names
+    CK3456: Empty option block
+    CK3510: trigger_else without trigger_if
+    CK3511: Multiple trigger_else blocks
+    CK3512: trigger_if missing limit
+    CK3513: Empty trigger_if limit
+    CK3520: after block in hidden event
+    CK3521: after block without options
+    CK3610: Negative base ai_chance
+    CK3611: ai_chance > 100
+    CK3612: ai_chance = 0
+    CK3614: Modifier without trigger (applies unconditionally)
     CK3656: Inline opinion value (should use opinion modifier)
     CK3760: Event missing type declaration (character_event, etc.)
     CK3761: Invalid event type
@@ -1039,6 +1053,421 @@ def check_event_has_portraits(ast: List[CK3Node], config: ParadoxConfig) -> List
     return diagnostics
 
 
+# =============================================================================
+# TRIGGER EXTENSION VALIDATION (CK3510-CK3513)
+# =============================================================================
+
+
+def check_trigger_extensions(ast: List[CK3Node], config: ParadoxConfig) -> List[types.Diagnostic]:
+    """
+    Check for trigger extension issues (trigger_if/trigger_else).
+
+    Detects:
+    - CK3510: trigger_else without trigger_if
+    - CK3511: Multiple trigger_else blocks (only first will execute)
+    - CK3512: trigger_if missing limit
+    - CK3513: Empty trigger_if limit (condition always passes)
+    """
+    diagnostics = []
+
+    if not config.event_structure:
+        return diagnostics
+
+    def check_trigger_if_else(parent_node: CK3Node):
+        """Check trigger_if/trigger_else patterns within a parent node."""
+        # Track trigger_if and trigger_else blocks in sequence
+        trigger_if_seen = False
+        trigger_else_count = 0
+
+        for child in parent_node.children:
+            if child.key == "trigger_if":
+                trigger_if_seen = True
+                trigger_else_count = 0  # Reset for new trigger_if chain
+
+                # CK3512: Check if trigger_if has limit
+                has_limit = any(c.key == "limit" for c in child.children)
+                if not has_limit:
+                    diagnostics.append(
+                        create_paradox_diagnostic(
+                            message="trigger_if block is missing required 'limit' field. Add a condition for when this should apply.",
+                            node_range=child.range,
+                            severity=types.DiagnosticSeverity.Error,
+                            code="CK3512",
+                        )
+                    )
+                else:
+                    # CK3513: Check if limit is empty
+                    for c in child.children:
+                        if c.key == "limit":
+                            limit_children = [lc for lc in c.children if lc.type != "comment"]
+                            if len(limit_children) == 0:
+                                diagnostics.append(
+                                    create_paradox_diagnostic(
+                                        message="trigger_if limit is empty - condition always passes. Add a trigger condition or remove the trigger_if.",
+                                        node_range=c.range,
+                                        severity=types.DiagnosticSeverity.Warning,
+                                        code="CK3513",
+                                    )
+                                )
+                            break
+
+            elif child.key == "trigger_else_if":
+                # trigger_else_if needs a preceding trigger_if
+                if not trigger_if_seen:
+                    diagnostics.append(
+                        create_paradox_diagnostic(
+                            message="trigger_else_if without preceding trigger_if - this block will never execute.",
+                            node_range=child.range,
+                            severity=types.DiagnosticSeverity.Error,
+                            code="CK3510",
+                        )
+                    )
+
+                # Check for limit
+                has_limit = any(c.key == "limit" for c in child.children)
+                if not has_limit:
+                    diagnostics.append(
+                        create_paradox_diagnostic(
+                            message="trigger_else_if block is missing required 'limit' field.",
+                            node_range=child.range,
+                            severity=types.DiagnosticSeverity.Error,
+                            code="CK3512",
+                        )
+                    )
+
+            elif child.key == "trigger_else":
+                trigger_else_count += 1
+
+                # CK3510: trigger_else without trigger_if
+                if not trigger_if_seen:
+                    diagnostics.append(
+                        create_paradox_diagnostic(
+                            message="trigger_else without preceding trigger_if - this block will never execute correctly.",
+                            node_range=child.range,
+                            severity=types.DiagnosticSeverity.Error,
+                            code="CK3510",
+                        )
+                    )
+
+                # CK3511: Multiple trigger_else blocks
+                if trigger_else_count > 1:
+                    diagnostics.append(
+                        create_paradox_diagnostic(
+                            message="Multiple trigger_else blocks - only the first will execute. Remove duplicate trigger_else blocks.",
+                            node_range=child.range,
+                            severity=types.DiagnosticSeverity.Error,
+                            code="CK3511",
+                        )
+                    )
+
+            # If we encounter something else, don't reset trigger_if_seen
+            # (blocks can have other content between trigger_if and trigger_else)
+
+            # Recurse into children
+            check_trigger_if_else(child)
+
+    for node in ast:
+        check_trigger_if_else(node)
+
+    return diagnostics
+
+
+# =============================================================================
+# AFTER BLOCK VALIDATION (CK3520-CK3521)
+# =============================================================================
+
+
+def check_after_block_issues(ast: List[CK3Node], config: ParadoxConfig) -> List[types.Diagnostic]:
+    """
+    Check for after block issues.
+
+    Detects:
+    - CK3520: after block in hidden event (won't execute as expected)
+    - CK3521: after block without options (won't execute)
+    """
+    diagnostics = []
+
+    if not config.event_structure:
+        return diagnostics
+
+    for node in ast:
+        # Check if this looks like an event
+        if "." in node.key and node.children:
+            parts = node.key.split(".")
+            if len(parts) == 2:
+                try:
+                    int(parts[1])  # Event ID should be numeric
+                    # This is an event - check for after block issues
+                    is_hidden = False
+                    has_after = False
+                    has_option = False
+                    after_range = None
+
+                    for child in node.children:
+                        if child.key == "hidden" and child.value in ("yes", True):
+                            is_hidden = True
+                        elif child.key == "after":
+                            has_after = True
+                            after_range = child.range
+                        elif child.key == "option":
+                            has_option = True
+
+                    # CK3520: after in hidden event
+                    if is_hidden and has_after and after_range:
+                        diagnostics.append(
+                            create_paradox_diagnostic(
+                                message=f"Hidden event '{node.key}' has an 'after' block - after blocks only run after player chooses an option, so this won't execute in hidden events.",
+                                node_range=after_range,
+                                severity=types.DiagnosticSeverity.Warning,
+                                code="CK3520",
+                            )
+                        )
+
+                    # CK3521: after without options
+                    if has_after and not has_option and not is_hidden and after_range:
+                        diagnostics.append(
+                            create_paradox_diagnostic(
+                                message=f"Event '{node.key}' has 'after' block but no options - after blocks only run after player chooses an option.",
+                                node_range=after_range,
+                                severity=types.DiagnosticSeverity.Warning,
+                                code="CK3521",
+                            )
+                        )
+
+                except ValueError:
+                    pass
+
+    return diagnostics
+
+
+# =============================================================================
+# AI CHANCE VALIDATION (CK3610-CK3614)
+# =============================================================================
+
+
+def check_ai_chance_issues(ast: List[CK3Node], config: ParadoxConfig) -> List[types.Diagnostic]:
+    """
+    Check for ai_chance issues in option blocks.
+
+    Detects:
+    - CK3610: Negative base ai_chance (AI will never select)
+    - CK3611: ai_chance > 100 with base (unusual, may be intentional)
+    - CK3612: ai_chance = 0 (AI will never select)
+    - CK3614: modifier without trigger (applies unconditionally)
+    """
+    diagnostics = []
+
+    if not config.event_structure:
+        return diagnostics
+
+    def check_ai_chance_node(node: CK3Node):
+        """Check ai_chance block for issues."""
+        if node.key == "ai_chance":
+            base_value = None
+            has_modifier = False
+            modifier_without_trigger = False
+
+            for child in node.children:
+                if child.key == "base":
+                    try:
+                        base_value = float(child.value) if child.value else None
+                    except (ValueError, TypeError):
+                        pass
+
+                elif child.key == "modifier":
+                    has_modifier = True
+                    # Check if modifier has a trigger
+                    has_trigger = any(
+                        c.key in ("trigger", "limit", "is_ai", "is_adult", "has_trait")
+                        or c.key.startswith("is_") or c.key.startswith("has_")
+                        for c in child.children
+                    )
+                    # Also check for common trigger patterns at top level
+                    has_condition = any(
+                        c.key not in ("add", "factor", "mult", "multiply")
+                        for c in child.children
+                    )
+
+                    if not has_trigger and not has_condition:
+                        # Check if it's just add/factor without condition
+                        only_math = all(
+                            c.key in ("add", "factor", "mult", "multiply")
+                            for c in child.children
+                        )
+                        if only_math and len(child.children) > 0:
+                            modifier_without_trigger = True
+
+            # CK3610: Negative base
+            if base_value is not None and base_value < 0:
+                diagnostics.append(
+                    create_paradox_diagnostic(
+                        message=f"ai_chance has negative base ({base_value}) - AI will never select this option unless modifiers bring it positive.",
+                        node_range=node.range,
+                        severity=types.DiagnosticSeverity.Warning,
+                        code="CK3610",
+                    )
+                )
+
+            # CK3612: Zero base with no modifiers
+            elif base_value == 0 and not has_modifier:
+                diagnostics.append(
+                    create_paradox_diagnostic(
+                        message="ai_chance has base = 0 with no modifiers - AI will never select this option.",
+                        node_range=node.range,
+                        severity=types.DiagnosticSeverity.Warning,
+                        code="CK3612",
+                    )
+                )
+
+            # CK3611: Very high base (info only)
+            elif base_value is not None and base_value > 100:
+                diagnostics.append(
+                    create_paradox_diagnostic(
+                        message=f"ai_chance has high base ({base_value}) - this heavily weights this option. Is this intentional?",
+                        node_range=node.range,
+                        severity=types.DiagnosticSeverity.Information,
+                        code="CK3611",
+                    )
+                )
+
+            # CK3614: Modifier without trigger
+            if modifier_without_trigger:
+                diagnostics.append(
+                    create_paradox_diagnostic(
+                        message="ai_chance modifier has no trigger condition - it applies unconditionally. Consider adding a trigger.",
+                        node_range=node.range,
+                        severity=types.DiagnosticSeverity.Information,
+                        code="CK3614",
+                    )
+                )
+
+        # Recurse
+        for child in node.children:
+            check_ai_chance_node(child)
+
+    for node in ast:
+        check_ai_chance_node(node)
+
+    return diagnostics
+
+
+# =============================================================================
+# ADDITIONAL DESC/OPTION VALIDATION (CK3442-CK3443, CK3453, CK3456)
+# =============================================================================
+
+
+def check_desc_issues(ast: List[CK3Node], config: ParadoxConfig) -> List[types.Diagnostic]:
+    """
+    Check for desc block issues.
+
+    Detects:
+    - CK3442: desc without localization key reference
+    - CK3443: Empty desc block
+    """
+    diagnostics = []
+
+    if not config.event_structure:
+        return diagnostics
+
+    def check_desc_node(node: CK3Node, in_event: bool = False):
+        """Check desc blocks for issues."""
+        if node.key == "desc" and in_event:
+            # Check for empty desc
+            if node.children:
+                # desc = { ... } form
+                non_comment_children = [c for c in node.children if c.type != "comment"]
+                if len(non_comment_children) == 0:
+                    diagnostics.append(
+                        create_paradox_diagnostic(
+                            message="Empty desc block - event needs a description for players.",
+                            node_range=node.range,
+                            severity=types.DiagnosticSeverity.Warning,
+                            code="CK3443",
+                        )
+                    )
+            elif node.value is None or (isinstance(node.value, str) and node.value.strip() == ""):
+                # desc = without value
+                diagnostics.append(
+                    create_paradox_diagnostic(
+                        message="desc field has no value - provide a localization key.",
+                        node_range=node.range,
+                        severity=types.DiagnosticSeverity.Warning,
+                        code="CK3443",
+                    )
+                )
+
+        # Check if we're entering an event
+        is_event = False
+        if "." in node.key:
+            parts = node.key.split(".")
+            if len(parts) == 2:
+                try:
+                    int(parts[1])
+                    is_event = True
+                except ValueError:
+                    pass
+
+        # Recurse
+        for child in node.children:
+            check_desc_node(child, in_event or is_event)
+
+    for node in ast:
+        check_desc_node(node)
+
+    return diagnostics
+
+
+def check_option_issues(ast: List[CK3Node], config: ParadoxConfig) -> List[types.Diagnostic]:
+    """
+    Check for option block issues beyond missing name.
+
+    Detects:
+    - CK3453: Option with multiple names
+    - CK3456: Empty option block
+    """
+    diagnostics = []
+
+    if not config.event_structure:
+        return diagnostics
+
+    def check_option_node(node: CK3Node):
+        """Check option blocks for issues."""
+        if node.key == "option":
+            name_count = sum(1 for child in node.children if child.key == "name")
+            non_comment_children = [c for c in node.children if c.type != "comment"]
+
+            # CK3453: Multiple names
+            if name_count > 1:
+                diagnostics.append(
+                    create_paradox_diagnostic(
+                        message=f"Option has {name_count} 'name' fields - only the first will be used. Remove duplicate names.",
+                        node_range=node.range,
+                        severity=types.DiagnosticSeverity.Warning,
+                        code="CK3453",
+                    )
+                )
+
+            # CK3456: Empty option
+            if len(non_comment_children) == 0:
+                diagnostics.append(
+                    create_paradox_diagnostic(
+                        message="Empty option block - options need at least a 'name' field for localization.",
+                        node_range=node.range,
+                        severity=types.DiagnosticSeverity.Warning,
+                        code="CK3456",
+                    )
+                )
+
+        # Recurse
+        for child in node.children:
+            check_option_node(child)
+
+    for node in ast:
+        check_option_node(node)
+
+    return diagnostics
+
+
 def check_paradox_conventions(
     ast: List[CK3Node],
     index: Optional[DocumentIndex] = None,
@@ -1081,6 +1510,13 @@ def check_paradox_conventions(
         diagnostics.extend(check_multiple_after_blocks(ast, config))
         diagnostics.extend(check_empty_event(ast, config))
         diagnostics.extend(check_event_has_portraits(ast, config))
+
+        # New validation checks - Trigger extensions, After blocks, AI chance
+        diagnostics.extend(check_trigger_extensions(ast, config))
+        diagnostics.extend(check_after_block_issues(ast, config))
+        diagnostics.extend(check_ai_chance_issues(ast, config))
+        diagnostics.extend(check_desc_issues(ast, config))
+        diagnostics.extend(check_option_issues(ast, config))
 
         logger.debug(f"Paradox convention checks found {len(diagnostics)} issues")
 
