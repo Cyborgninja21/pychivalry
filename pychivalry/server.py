@@ -195,6 +195,9 @@ from collections import OrderedDict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Dict, List, Optional, Any, Set, Tuple
 
+# Import enhanced thread pool manager
+from .thread_manager import ThreadPoolManager, TaskPriority, TaskStats
+
 # Import the LanguageServer class from pygls
 # This is the core class that handles LSP protocol communication
 from pygls.lsp.server import LanguageServer
@@ -329,11 +332,17 @@ class CK3LanguageServer(LanguageServer):
         # Threading Infrastructure
         # =====================================================================
 
-        # Thread pool for CPU-bound operations (parsing, diagnostics, etc.)
-        # Use 2-4 workers to balance parallelism without overwhelming the system
-        self._thread_pool = ThreadPoolExecutor(
-            max_workers=min(4, (os.cpu_count() or 1) + 1), thread_name_prefix="ck3-worker"
+        # Enhanced thread pool manager for CPU-bound operations
+        # Provides priority queuing, monitoring, and graceful shutdown
+        self._thread_manager = ThreadPoolManager(
+            max_workers=min(4, (os.cpu_count() or 1) + 1),
+            thread_name_prefix="ck3-worker",
+            enable_monitoring=True
         )
+        
+        # Legacy thread pool reference for backwards compatibility during migration
+        # This will be removed once all operations are migrated
+        self._thread_pool = self._thread_manager._executor
 
         # Thread-safety locks for shared data structures
         self._ast_lock = threading.RLock()  # Protects document_asts
@@ -379,6 +388,72 @@ class CK3LanguageServer(LanguageServer):
         # Queue of files to pre-parse (low priority background work)
         self._preparse_queue: List[str] = []
         self._preparse_lock = threading.Lock()
+
+    # =====================================================================
+    # Enhanced Thread Pool Interface
+    # =====================================================================
+
+    async def run_in_thread(
+        self,
+        func: callable,
+        *args,
+        priority: TaskPriority = TaskPriority.NORMAL,
+        task_name: Optional[str] = None,
+        **kwargs
+    ):
+        """
+        Run a CPU-bound function in the custom thread pool.
+        
+        This is the preferred method for executing CPU-intensive operations
+        like parsing, diagnostics, and workspace scanning.
+        
+        Args:
+            func: Function to execute
+            *args: Positional arguments for the function
+            priority: Task priority (CRITICAL, HIGH, NORMAL, LOW)
+            task_name: Optional name for monitoring
+            **kwargs: Keyword arguments for the function
+        
+        Returns:
+            Result from the function execution
+        
+        Example:
+            ```python
+            ast = await self.run_in_thread(
+                parse_document, 
+                content,
+                priority=TaskPriority.HIGH,
+                task_name="parse_main_event_file"
+            )
+            ```
+        """
+        loop = asyncio.get_event_loop()
+        future = self._thread_manager.submit_task(
+            func, *args, priority=priority, task_name=task_name, **kwargs
+        )
+        # Wait for the future to complete in an asyncio-compatible way
+        return await loop.run_in_executor(None, future.result)
+    
+    def get_thread_pool_stats(self) -> TaskStats:
+        """
+        Get current thread pool statistics.
+        
+        Returns:
+            TaskStats object with active, queued, completed task counts
+        
+        Example:
+            ```python
+            stats = self.get_thread_pool_stats()
+            logger.info(f"Thread pool: {stats}")
+            ```
+        """
+        return self._thread_manager.get_stats()
+    
+    def log_thread_pool_stats(self):
+        """Log current thread pool statistics at DEBUG level."""
+        if logger.isEnabledFor(logging.DEBUG):
+            stats = self.get_thread_pool_stats()
+            logger.debug(str(stats))
 
     # =====================================================================
     # Thread-Safe Document Access
@@ -871,9 +946,11 @@ class CK3LanguageServer(LanguageServer):
                     return
 
                 # Try to get AST from content hash cache first
-                loop = asyncio.get_event_loop()
-                ast = await loop.run_in_executor(
-                    self._thread_pool, self.get_or_parse_ast, current_source
+                ast = await self.run_in_thread(
+                    self.get_or_parse_ast, 
+                    current_source,
+                    priority=TaskPriority.HIGH,
+                    task_name=f"parse_{uri.split('/')[-1]}"
                 )
 
                 # Check again if still current before updating
@@ -892,12 +969,13 @@ class CK3LanguageServer(LanguageServer):
                 # Streaming Diagnostics (Tier 3 Optimization)
                 # =========================================================
                 # Phase 1: Publish syntax errors immediately for fast feedback
-                syntax_diags = await loop.run_in_executor(
-                    self._thread_pool,
+                syntax_diags = await self.run_in_thread(
                     self._collect_syntax_diagnostics_sync,
                     uri,
                     current_source,
                     ast,
+                    priority=TaskPriority.HIGH,
+                    task_name="syntax_diagnostics"
                 )
 
                 # Check if still current
@@ -914,8 +992,12 @@ class CK3LanguageServer(LanguageServer):
                 )
 
                 # Phase 2: Run semantic analysis in background
-                semantic_diags = await loop.run_in_executor(
-                    self._thread_pool, self._collect_semantic_diagnostics_sync, uri, ast
+                semantic_diags = await self.run_in_thread(
+                    self._collect_semantic_diagnostics_sync,
+                    uri,
+                    ast,
+                    priority=TaskPriority.NORMAL,
+                    task_name="semantic_diagnostics"
                 )
 
                 # Check again before final publish
@@ -1050,9 +1132,12 @@ class CK3LanguageServer(LanguageServer):
 
         self._pending_updates.clear()
 
-        # Shutdown thread pool
-        self._thread_pool.shutdown(wait=True, cancel_futures=True)
-        logger.info("Thread pool shut down")
+        # Shutdown enhanced thread pool manager
+        shutdown_success = self._thread_manager.shutdown(wait=True, timeout=10)
+        if shutdown_success:
+            logger.info("Thread pool manager shut down successfully")
+        else:
+            logger.warning("Thread pool manager shutdown timed out")
 
     # =====================================================================
     # Workspace Scanning with Progress
@@ -1095,13 +1180,15 @@ class CK3LanguageServer(LanguageServer):
 
                 # Perform the actual scan in thread pool with lock
                 # Pass the executor for parallel scanning (2-4x faster)
-                loop = asyncio.get_event_loop()
-
                 def scan_with_lock():
                     with self._index_lock:
                         self.index.scan_workspace(workspace_folders, executor=self._thread_pool)
 
-                await loop.run_in_executor(self._thread_pool, scan_with_lock)
+                await self.run_in_thread(
+                    scan_with_lock,
+                    priority=TaskPriority.NORMAL,
+                    task_name="workspace_scan"
+                )
 
                 # Notify user of scan results (thread-safe access)
                 with self._index_lock:
@@ -1676,8 +1763,7 @@ def code_action(ls: CK3LanguageServer, params: types.CodeActionParams):
 
 
 @server.feature(types.TEXT_DOCUMENT_REFERENCES)
-@server.thread()  # Run in thread pool - iterates all ASTs
-def references(ls: CK3LanguageServer, params: types.ReferenceParams):
+async def references(ls: CK3LanguageServer, params: types.ReferenceParams):
     """
     Find all references to a symbol across the workspace.
 
@@ -1685,7 +1771,7 @@ def references(ls: CK3LanguageServer, params: types.ReferenceParams):
     trigger, saved scope, etc.) is referenced. This is useful for understanding
     how events are connected, where effects are used, and for refactoring.
 
-    Runs in thread pool as it iterates through all open document ASTs.
+    Runs in custom thread pool as it iterates through all open document ASTs.
 
     Args:
         ls: The CK3 language server instance
@@ -1702,65 +1788,75 @@ def references(ls: CK3LanguageServer, params: types.ReferenceParams):
         This is a request from client to server. The server should respond with
         a Location[], or null if no references found.
     """
-    try:
-        doc = ls.workspace.get_text_document(params.text_document.uri)
+    def _references_sync():
+        """Synchronous implementation of references logic."""
+        try:
+            doc = ls.workspace.get_text_document(params.text_document.uri)
 
-        # Get word at cursor position
-        from .hover import get_word_at_position
+            # Get word at cursor position
+            from .hover import get_word_at_position
 
-        word = get_word_at_position(doc, params.position)
+            word = get_word_at_position(doc, params.position)
 
-        if not word:
+            if not word:
+                return None
+
+            logger.debug(f"Find references for: {word}")
+
+            references_list = []
+
+            # Thread-safe iteration over ASTs
+            with ls._ast_lock:
+                ast_items = list(ls.document_asts.items())
+
+            for uri, ast in ast_items:
+                try:
+                    # Find all occurrences of the word in this document
+                    refs = _find_word_references_in_ast(word, ast, uri)
+                    references_list.extend(refs)
+                except Exception as e:
+                    logger.warning(f"Error searching {uri}: {e}")
+                    continue
+
+            # If include_declaration is False, filter out the definition itself
+            if not params.context.include_declaration:
+                # Try to find the definition location
+                def_location = None
+
+                # Thread-safe index access
+                with ls._index_lock:
+                    # Check various symbol types
+                    if "." in word and ls.index:
+                        def_location = ls.index.find_event(word)
+                    if not def_location and ls.index:
+                        def_location = ls.index.find_scripted_effect(word)
+                    if not def_location and ls.index:
+                        def_location = ls.index.find_scripted_trigger(word)
+                    if not def_location and word.startswith("scope:") and ls.index:
+                        scope_name = word[6:]
+                        def_location = ls.index.find_saved_scope(scope_name)
+
+                # Filter out the definition
+                if def_location:
+                    references_list = [
+                        ref
+                        for ref in references_list
+                        if ref.uri != def_location.uri
+                        or ref.range.start.line != def_location.range.start.line
+                    ]
+
+            return references_list if references_list else None
+
+        except Exception as e:
+            logger.error(f"Error in references handler: {e}", exc_info=True)
             return None
-
-        logger.debug(f"Find references for: {word}")
-
-        references_list = []
-
-        # Thread-safe iteration over ASTs
-        with ls._ast_lock:
-            ast_items = list(ls.document_asts.items())
-
-        for uri, ast in ast_items:
-            try:
-                # Find all occurrences of the word in this document
-                refs = _find_word_references_in_ast(word, ast, uri)
-                references_list.extend(refs)
-            except Exception as e:
-                logger.warning(f"Error searching {uri}: {e}")
-                continue
-
-        # If include_declaration is False, filter out the definition itself
-        if not params.context.include_declaration:
-            # Try to find the definition location
-            def_location = None
-
-            # Thread-safe index access
-            with ls._index_lock:
-                # Check various symbol types
-                if "." in word and ls.index:
-                    def_location = ls.index.find_event(word)
-                if not def_location and ls.index:
-                    def_location = ls.index.find_scripted_effect(word)
-                if not def_location and ls.index:
-                    def_location = ls.index.find_scripted_trigger(word)
-                if not def_location and word.startswith("scope:") and ls.index:
-                    scope_name = word[6:]
-                    def_location = ls.index.find_saved_scope(scope_name)
-
-            # Filter out the definition
-            if def_location:
-                references_list = [
-                    ref
-                    for ref in references_list
-                    if ref.uri != def_location.uri
-                    or ref.range.start.line != def_location.range.start.line
-                ]
-
-        return references_list if references_list else None
-
-    except Exception as e:
-        logger.error(f"Error in references handler: {e}", exc_info=True)
+    
+    # Execute in custom thread pool with HIGH priority (user-initiated action)
+    return await ls.run_in_thread(
+        _references_sync,
+        priority=TaskPriority.HIGH,
+        task_name="find_references"
+    )
         return None
 
 
@@ -1916,8 +2012,7 @@ def _extract_symbol_from_node(node: CK3Node) -> Optional[types.DocumentSymbol]:
 
 
 @server.feature(types.WORKSPACE_SYMBOL)
-@server.thread()  # Run in thread pool - searches entire index
-def workspace_symbol(ls: CK3LanguageServer, params: types.WorkspaceSymbolParams):
+async def workspace_symbol(ls: CK3LanguageServer, params: types.WorkspaceSymbolParams):
     """
     Search for symbols across the entire workspace.
 
@@ -1925,7 +2020,7 @@ def workspace_symbol(ls: CK3LanguageServer, params: types.WorkspaceSymbolParams)
     workspace by name. It supports fuzzy matching and is typically invoked with
     Ctrl+T in VS Code.
 
-    Runs in thread pool as it searches through the full index.
+    Runs in custom thread pool as it searches through the full index.
 
     Args:
         ls: The CK3 language server instance
@@ -1939,86 +2034,95 @@ def workspace_symbol(ls: CK3LanguageServer, params: types.WorkspaceSymbolParams)
         This is a request from client to server. The server should respond with
         SymbolInformation[] or WorkspaceSymbol[], or null.
     """
-    try:
-        query = params.query.lower()
+    def _workspace_symbol_sync():
+        """Synchronous implementation of workspace symbol search."""
+        try:
+            query = params.query.lower()
 
-        if not query:
+            if not query:
+                return None
+
+            symbols = []
+
+            # Thread-safe index access - wrap all index reads in lock
+            with ls._index_lock:
+                # Search events
+                if ls.index:
+                    for event_id, location in ls.index.events.items():
+                        if query in event_id.lower():
+                            symbols.append(
+                                types.SymbolInformation(
+                                    name=event_id,
+                                    kind=types.SymbolKind.Event,
+                                    location=location,
+                                    container_name="Event",
+                                )
+                            )
+
+                # Search scripted effects
+                if ls.index:
+                    for effect_name, location in ls.index.scripted_effects.items():
+                        if query in effect_name.lower():
+                            symbols.append(
+                                types.SymbolInformation(
+                                    name=effect_name,
+                                    kind=types.SymbolKind.Function,
+                                    location=location,
+                                    container_name="Scripted Effect",
+                                )
+                            )
+
+                # Search scripted triggers
+                if ls.index:
+                    for trigger_name, location in ls.index.scripted_triggers.items():
+                        if query in trigger_name.lower():
+                            symbols.append(
+                                types.SymbolInformation(
+                                    name=trigger_name,
+                                    kind=types.SymbolKind.Function,
+                                    location=location,
+                                    container_name="Scripted Trigger",
+                                )
+                            )
+
+                # Search script values
+                if ls.index:
+                    for value_name, location in ls.index.script_values.items():
+                        if query in value_name.lower():
+                            symbols.append(
+                                types.SymbolInformation(
+                                    name=value_name,
+                                    kind=types.SymbolKind.Variable,
+                                    location=location,
+                                    container_name="Script Value",
+                                )
+                            )
+
+                # Search on_actions
+                if ls.index:
+                    for on_action_name, location in ls.index.on_action_definitions.items():
+                        if query in on_action_name.lower():
+                            symbols.append(
+                                types.SymbolInformation(
+                                    name=on_action_name,
+                                    kind=types.SymbolKind.Event,
+                                    location=location,
+                                    container_name="On-Action",
+                                )
+                            )
+
+            return symbols if symbols else None
+
+        except Exception as e:
+            logger.error(f"Error in workspace_symbol handler: {e}", exc_info=True)
             return None
-
-        symbols = []
-
-        # Thread-safe index access - wrap all index reads in lock
-        with ls._index_lock:
-            # Search events
-            if ls.index:
-                for event_id, location in ls.index.events.items():
-                    if query in event_id.lower():
-                        symbols.append(
-                            types.SymbolInformation(
-                                name=event_id,
-                                kind=types.SymbolKind.Event,
-                                location=location,
-                                container_name="Event",
-                            )
-                        )
-
-            # Search scripted effects
-            if ls.index:
-                for effect_name, location in ls.index.scripted_effects.items():
-                    if query in effect_name.lower():
-                        symbols.append(
-                            types.SymbolInformation(
-                                name=effect_name,
-                                kind=types.SymbolKind.Function,
-                                location=location,
-                                container_name="Scripted Effect",
-                            )
-                        )
-
-            # Search scripted triggers
-            if ls.index:
-                for trigger_name, location in ls.index.scripted_triggers.items():
-                    if query in trigger_name.lower():
-                        symbols.append(
-                            types.SymbolInformation(
-                                name=trigger_name,
-                                kind=types.SymbolKind.Function,
-                                location=location,
-                                container_name="Scripted Trigger",
-                            )
-                        )
-
-            # Search script values
-            if ls.index:
-                for value_name, location in ls.index.script_values.items():
-                    if query in value_name.lower():
-                        symbols.append(
-                            types.SymbolInformation(
-                                name=value_name,
-                                kind=types.SymbolKind.Variable,
-                                location=location,
-                                container_name="Script Value",
-                            )
-                        )
-
-            # Search on_actions
-            if ls.index:
-                for on_action_name, location in ls.index.on_action_definitions.items():
-                    if query in on_action_name.lower():
-                        symbols.append(
-                            types.SymbolInformation(
-                                name=on_action_name,
-                                kind=types.SymbolKind.Event,
-                                location=location,
-                                container_name="On-Action",
-                            )
-                        )
-
-        return symbols if symbols else None
-
-    except Exception as e:
-        logger.error(f"Error in workspace_symbol handler: {e}", exc_info=True)
-        return None
+    
+    # Execute in custom thread pool with HIGH priority (user-initiated search)
+    return await ls.run_in_thread(
+        _workspace_symbol_sync,
+        priority=TaskPriority.HIGH,
+        task_name="workspace_symbol_search"
+    )
 
 
 @server.feature(
@@ -2801,14 +2905,16 @@ async def validate_workspace_command(ls: CK3LanguageServer, *args: Any):
                     workspace_folders.append(folder_uri)
 
         if workspace_folders:
-            loop = asyncio.get_event_loop()
-
             # Run scan in thread pool with thread-safe index access
             def scan_with_lock():
                 with ls._index_lock:
                     ls.index.scan_workspace(workspace_folders)
 
-            await loop.run_in_executor(ls._thread_pool, scan_with_lock)
+            await ls.run_in_thread(
+                scan_with_lock,
+                priority=TaskPriority.NORMAL,
+                task_name="workspace_validation_scan"
+            )
 
         ls._workspace_scanned = True
 
