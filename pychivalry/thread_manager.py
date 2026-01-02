@@ -282,11 +282,14 @@ class ThreadPoolManager:
                         info = self._task_info[task_id]
                         info.completed_at = time.time()
                         info.status = "completed"
-                        logger.debug(
-                            f"Task completed: id={task_id}, "
-                            f"duration={info.duration():.3f}s, "
-                            f"wait={info.wait_time():.3f}s"
-                        )
+                        duration = info.duration()
+                        wait = info.wait_time()
+                        if duration is not None and wait is not None:
+                            logger.debug(
+                                f"Task completed: id={task_id}, "
+                                f"duration={duration:.3f}s, "
+                                f"wait={wait:.3f}s"
+                            )
             
             with self._stats_lock:
                 self._completed_tasks += 1
