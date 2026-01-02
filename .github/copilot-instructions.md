@@ -39,6 +39,50 @@ Total planned edits: [number]
 - If you discover additional needed changes during editing:
   - STOP and update the plan
   - Get approval before continuing
+
+#### COMMIT AFTER COMPLETION
+After completing a logical unit of work (e.g., implementing a feature phase, completing all edits in a plan), commit the changes with a detailed message:
+
+1. **Stage and review changes:**
+   ```bash
+   git add -A && git status
+   ```
+
+2. **Commit with structured message:**
+   Use conventional commit format with detailed bullet points:
+   ```bash
+   git commit -m "type: Brief summary (Phase X if applicable)
+   
+   - High-level change category
+     * Specific implementation detail
+     * Specific implementation detail
+     * Bullet list of key changes/additions:
+       - Sub-detail with command/feature name
+       - Sub-detail with command/feature name
+   - Another high-level change category
+     * Implementation details
+     * Key additions/modifications
+   - Implementation notes
+   - Error handling additions
+   
+   Next: [What comes next in the project plan]"
+   ```
+
+3. **Commit message structure:**
+   - **Type prefix:** `feat:`, `fix:`, `refactor:`, `docs:`, `test:`, `chore:`
+   - **Summary line:** Clear, concise description (50-72 chars) with phase number if part of a plan
+   - **Body:** Organized bullet list with categories and nested details
+     - Use `-` for major categories
+     - Use `*` for implementation details under each category
+     - Use `-` for sub-items under implementation details
+   - **Footer:** "Next:" statement indicating upcoming work
+
+4. **When to commit:**
+   - After completing all edits in an approved plan
+   - After implementing a complete feature phase
+   - When reaching a logical checkpoint with working code
+   - Before switching to a different major task
+   - NOT after every single small edit (unless explicitly requested)
                 
 ### REFACTORING GUIDANCE
 When refactoring large files:

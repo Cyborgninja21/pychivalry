@@ -122,8 +122,8 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# VS Code
-.vscode/
+# VS Code (allow workspace configuration for development)
+# .vscode/ is now tracked for development setup
 *.code-workspace
 
 # IDEs

@@ -1,0 +1,134 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "🐍 LSP Server - Full Reinstall",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pychivalry.server",
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "justMyCode": false,
+      "preLaunchTask": "Install Python Dependencies",
+      "presentation": {
+        "group": "1-server-only",
+        "order": 1
+      }
+    },
+    {
+      "name": "🐍 LSP Server - Quick Launch",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pychivalry.server",
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "justMyCode": false,
+      "presentation": {
+        "group": "1-server-only",
+        "order": 2
+      }
+    },
+    {
+      "name": "🐍 LSP Server - Watch Mode (Manual Restart)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pychivalry.server",
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "justMyCode": false,
+      "presentation": {
+        "group": "1-server-only",
+        "order": 3
+      }
+    },
+    {
+      "name": "🎯 Extension - Full Rebuild",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}/vscode-extension",
+        "${workspaceFolder}/examples"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/vscode-extension/dist/**/*.js"
+      ],
+      "preLaunchTask": "Build Extension (Install + Compile)",
+      "presentation": {
+        "group": "2-extension-only",
+        "order": 1
+      }
+    },
+    {
+      "name": "🎯 Extension - Quick Compile",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}/vscode-extension",
+        "${workspaceFolder}/examples"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/vscode-extension/dist/**/*.js"
+      ],
+      "preLaunchTask": "npm: compile",
+      "presentation": {
+        "group": "2-extension-only",
+        "order": 2
+      }
+    },
+    {
+      "name": "🎯 Extension - Watch Mode",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}/vscode-extension",
+        "${workspaceFolder}/examples"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/vscode-extension/dist/**/*.js"
+      ],
+      "preLaunchTask": "npm: watch",
+      "presentation": {
+        "group": "2-extension-only",
+        "order": 3
+      }
+    }
+  ],
+  "compounds": [
+    {
+      "name": "🔥 Full Stack - Complete Reinstall",
+      "configurations": [
+        "🐍 LSP Server - Full Reinstall",
+        "🎯 Extension - Full Rebuild"
+      ],
+      "stopAll": true,
+      "presentation": {
+        "group": "3-full-stack",
+        "order": 1
+      }
+    },
+    {
+      "name": "🔥 Full Stack - Quick Recompile",
+      "configurations": [
+        "🐍 LSP Server - Quick Launch",
+        "🎯 Extension - Quick Compile"
+      ],
+      "stopAll": true,
+      "presentation": {
+        "group": "3-full-stack",
+        "order": 2
+      }
+    },
+    {
+      "name": "🔥 Full Stack - Watch Mode",
+      "configurations": [
+        "🐍 LSP Server - Watch Mode (Manual Restart)",
+        "🎯 Extension - Watch Mode"
+      ],
+      "stopAll": true,
+      "presentation": {
+        "group": "3-full-stack",
+        "order": 3
+      }
+    }
+  ]
+}

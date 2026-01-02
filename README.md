@@ -70,6 +70,18 @@ Quick fixes for typos, refactoring suggestions.
 
 <!-- ![Code actions demo](assets/images/code-actions.png) -->
 
+#### 🎮 Live Game Log Analysis (NEW!)
+Real-time monitoring of CK3 game logs with intelligent error detection:
+- Watch `game.log` for errors as you test your mod
+- 10+ error pattern types with fuzzy-match suggestions
+- Diagnostics appear directly in VS Code Problems panel
+- Performance analytics and statistics tracking
+- Custom pattern support for mod-specific validation
+
+See [Log Watcher Usage Guide](plan%20docs/LOG_WATCHER_USAGE.md) for details.
+
+<!-- ![Log watcher demo](assets/images/log-watcher.png) -->
+
 #### 📁 File Support
 `.txt`, `.gui`, `.gfx`, and `.asset` files.
 

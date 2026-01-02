@@ -15,6 +15,92 @@ const execAsync = promisify(exec);
 let client: LanguageClient | undefined;
 let statusBar: CK3StatusBar;
 
+// Log file output channels (created once and reused)
+const logChannels = {
+    combined: null as vscode.OutputChannel | null,
+    game: null as vscode.OutputChannel | null,
+    error: null as vscode.OutputChannel | null,
+    exceptions: null as vscode.OutputChannel | null,
+    system: null as vscode.OutputChannel | null,
+    setup: null as vscode.OutputChannel | null,
+    patterns: null as vscode.OutputChannel | null,
+};
+
+function getLogChannel(type: keyof typeof logChannels, name: string): vscode.OutputChannel {
+    if (!logChannels[type]) {
+        // Use { log: true } option to enable ANSI color support
+        logChannels[type] = vscode.window.createOutputChannel(name, { log: true });
+    }
+    return logChannels[type]!;
+}
+
+// ANSI color codes for log output
+const Colors = {
+    // Foreground colors
+    reset: '\x1b[0m',
+    bright: '\x1b[1m',
+    dim: '\x1b[2m',
+    
+    black: '\x1b[30m',
+    red: '\x1b[31m',
+    green: '\x1b[32m',
+    yellow: '\x1b[33m',
+    blue: '\x1b[34m',
+    magenta: '\x1b[35m',
+    cyan: '\x1b[36m',
+    white: '\x1b[37m',
+    
+    // Bright variants
+    brightRed: '\x1b[91m',
+    brightGreen: '\x1b[92m',
+    brightYellow: '\x1b[93m',
+    brightBlue: '\x1b[94m',
+    brightMagenta: '\x1b[95m',
+    brightCyan: '\x1b[96m',
+    brightWhite: '\x1b[97m',
+    
+    // Background colors
+    bgRed: '\x1b[41m',
+    bgYellow: '\x1b[43m',
+};
+
+function colorizeLogLine(line: string): string {
+    // Color timestamps
+    line = line.replace(/\[(\d{2}:\d{2}:\d{2})\]/g, `${Colors.dim}[$1]${Colors.reset}`);
+    
+    // Color file sources
+    line = line.replace(/\[(game\.log|error\.log|exceptions\.log|system\.log|setup\.log)\]/g, 
+        (match, file) => {
+            const colorMap: Record<string, string> = {
+                'game.log': Colors.brightCyan,
+                'error.log': Colors.brightRed,
+                'exceptions.log': Colors.brightMagenta,
+                'system.log': Colors.brightYellow,
+                'setup.log': Colors.brightGreen,
+            };
+            return `${colorMap[file] || Colors.cyan}[${file}]${Colors.reset}`;
+        });
+    
+    // Color error indicators
+    line = line.replace(/\[E\]/g, `${Colors.brightRed}${Colors.bright}[E]${Colors.reset}`);
+    line = line.replace(/\[W\]/g, `${Colors.brightYellow}[W]${Colors.reset}`);
+    line = line.replace(/\[I\]/g, `${Colors.brightBlue}[I]${Colors.reset}`);
+    
+    // Color Error: prefix
+    line = line.replace(/^(\s*)Error:/gm, `$1${Colors.brightRed}${Colors.bright}Error:${Colors.reset}`);
+    
+    // Color Script system error!
+    line = line.replace(/(Script system error!)/g, `${Colors.bgRed}${Colors.brightWhite}$1${Colors.reset}`);
+    
+    // Color file paths
+    line = line.replace(/(file:\s+)([^\s]+)/g, `$1${Colors.brightCyan}$2${Colors.reset}`);
+    
+    // Color line numbers
+    line = line.replace(/\b(line:\s+)(\d+)/g, `$1${Colors.brightYellow}$2${Colors.reset}`);
+    
+    return line;
+}
+
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
     // Initialize multi-channel logger
     logger.initialize(context);
@@ -31,6 +117,15 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     }
 
     logger.logServer('CK3 Language Server extension activating...');
+
+    // Pre-create all log watcher channels so they appear in Output menu
+    getLogChannel('combined', 'CK3L: Live Monitor');
+    getLogChannel('game', 'CK3L: game.log');
+    getLogChannel('error', 'CK3L: error.log');
+    getLogChannel('exceptions', 'CK3L: exceptions.log');
+    getLogChannel('system', 'CK3L: system.log');
+    getLogChannel('setup', 'CK3L: setup.log');
+    getLogChannel('patterns', 'CK3L: Script Errors');
 
     // Register restart command
     context.subscriptions.push(
@@ -61,6 +156,11 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
                     label: '$(terminal) Command Results',
                     description: 'Output from CK3 commands',
                     category: LogCategory.Commands,
+                },
+                {
+                    label: '$(file-text) Game Logs',
+                    description: 'Real-time game.log monitoring',
+                    category: LogCategory.GameLogs,
                 },
                 {
                     label: '$(debug) LSP Trace',
@@ -114,7 +214,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
             try {
                 const result = await client.sendRequest('workspace/executeCommand', {
                     command: 'ck3.validateWorkspace',
-                    arguments: [],
                 });
                 logger.logCommand(`Validation result: ${JSON.stringify(result, null, 2)}`);
                 logger.showChannel(LogCategory.Commands);
@@ -134,7 +233,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
             try {
                 const result = await client.sendRequest('workspace/executeCommand', {
                     command: 'ck3.rescanWorkspace',
-                    arguments: [],
                 });
                 logger.logCommand(`Rescan result: ${JSON.stringify(result, null, 2)}`);
                 vscode.window.showInformationMessage('Workspace rescan complete');
@@ -154,7 +252,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
             try {
                 const result = (await client.sendRequest('workspace/executeCommand', {
                     command: 'ck3.getWorkspaceStats',
-                    arguments: [],
                 })) as Record<string, number | boolean>;
 
                 // Show stats in a nice format
@@ -273,7 +370,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
             try {
                 const result = (await client.sendRequest('workspace/executeCommand', {
                     command: 'ck3.findOrphanedLocalization',
-                    arguments: [],
                 })) as { orphaned_keys: string[]; total_count: number };
 
                 if (result.orphaned_keys.length > 0) {
@@ -305,7 +401,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
             try {
                 await client.sendRequest('workspace/executeCommand', {
                     command: 'ck3.checkDependencies',
-                    arguments: [],
                 });
             } catch (error) {
                 const message = error instanceof Error ? error.message : String(error);
@@ -485,6 +580,212 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         })
     );
 
+    // =========================================================================
+    // Log Watcher Commands
+    // =========================================================================
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand('ck3LanguageServer.startLogWatcher', async () => {
+            if (!client) {
+                vscode.window.showErrorMessage('CK3 Language Server is not running');
+                return;
+            }
+
+            try {
+                // Get custom log path from settings
+                const config = vscode.workspace.getConfiguration('ck3LanguageServer');
+                const logPath = config.get<string>('logWatcher.logPath', '');
+
+                logger.logDebug(`[startLogWatcher] Custom log path from settings: '${logPath}'`);
+                const args = logPath ? [logPath] : [];
+                logger.logDebug(`[startLogWatcher] Sending arguments: ${JSON.stringify(args)}`);
+                
+                const requestPayload = {
+                    command: 'ck3.startLogWatcher',
+                    arguments: args,
+                };
+                logger.logDebug(`[startLogWatcher] Full request payload: ${JSON.stringify(requestPayload)}`);
+
+                const result = (await client.sendRequest('workspace/executeCommand', requestPayload)) as { success: boolean; path?: string; watching?: string[]; error?: string; message?: string };
+
+                logger.logDebug(`[startLogWatcher] Server response: ${JSON.stringify(result)}`);
+
+                if (result.success) {
+                    logger.logServer(`Log watcher started: ${result.path}`);
+                    logger.logServer(`Monitoring files: ${result.watching?.join(', ')}`);
+                    
+                    // Show welcome message in GameLogs channel
+                    const gameLogsChannel = logger.getChannel(LogCategory.GameLogs);
+                    if (gameLogsChannel) {
+                        gameLogsChannel.appendLine('='.repeat(80));
+                        gameLogsChannel.appendLine('CK3 Game Log Watcher Started');
+                        gameLogsChannel.appendLine(`Monitoring: ${result.watching?.join(', ')}`);
+                        gameLogsChannel.appendLine(`Log path: ${result.path}`);
+                        gameLogsChannel.appendLine('='.repeat(80));
+                        gameLogsChannel.appendLine('');
+                    }
+                    
+                    vscode.window.showInformationMessage(
+                        `Now monitoring CK3 logs: ${result.watching?.length} files`
+                    );
+                } else {
+                    vscode.window.showErrorMessage(`Failed to start log watcher: ${result.error || result.message}`);
+                }
+            } catch (error) {
+                const message = error instanceof Error ? error.message : String(error);
+                vscode.window.showErrorMessage(`Failed to start log watcher: ${message}`);
+            }
+        })
+    );
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand('ck3LanguageServer.stopLogWatcher', async () => {
+            if (!client) {
+                vscode.window.showErrorMessage('CK3 Language Server is not running');
+                return;
+            }
+
+            try {
+                const result = (await client.sendRequest('workspace/executeCommand', {
+                    command: 'ck3.stopLogWatcher',
+                })) as { success: boolean; message?: string };
+
+                if (result.success) {
+                    logger.logServer('Log watcher stopped');
+                    vscode.window.showInformationMessage('Log monitoring stopped');
+                } else {
+                    vscode.window.showWarningMessage('Log watcher was not running');
+                }
+            } catch (error) {
+                const message = error instanceof Error ? error.message : String(error);
+                vscode.window.showErrorMessage(`Failed to stop log watcher: ${message}`);
+            }
+        })
+    );
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand('ck3LanguageServer.pauseLogWatcher', async () => {
+            if (!client) {
+                vscode.window.showErrorMessage('CK3 Language Server is not running');
+                return;
+            }
+
+            try {
+                const result = (await client.sendRequest('workspace/executeCommand', {
+                    command: 'ck3.pauseLogWatcher',
+                    arguments: [],
+                })) as { success: boolean };
+
+                if (result.success) {
+                    vscode.window.showInformationMessage('Log monitoring paused');
+                }
+            } catch (error) {
+                const message = error instanceof Error ? error.message : String(error);
+                vscode.window.showErrorMessage(`Failed to pause: ${message}`);
+            }
+        })
+    );
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand('ck3LanguageServer.resumeLogWatcher', async () => {
+            if (!client) {
+                vscode.window.showErrorMessage('CK3 Language Server is not running');
+                return;
+            }
+
+            try {
+                const result = (await client.sendRequest('workspace/executeCommand', {
+                    command: 'ck3.resumeLogWatcher',
+                    arguments: [],
+                })) as { success: boolean };
+
+                if (result.success) {
+                    vscode.window.showInformationMessage('Log monitoring resumed');
+                }
+            } catch (error) {
+                const message = error instanceof Error ? error.message : String(error);
+                vscode.window.showErrorMessage(`Failed to resume: ${message}`);
+            }
+        })
+    );
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand('ck3LanguageServer.clearGameLogs', async () => {
+            if (!client) {
+                vscode.window.showErrorMessage('CK3 Language Server is not running');
+                return;
+            }
+
+            try {
+                await client.sendRequest('workspace/executeCommand', {
+                    command: 'ck3.clearGameLogs',
+                });
+                
+                // Also clear the output channel
+                const channel = logger.getChannel(LogCategory.GameLogs);
+                if (channel) {
+                    channel.clear();
+                }
+                
+                vscode.window.showInformationMessage('Game log diagnostics cleared');
+            } catch (error) {
+                const message = error instanceof Error ? error.message : String(error);
+                vscode.window.showErrorMessage(`Failed to clear logs: ${message}`);
+            }
+        })
+    );
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand('ck3LanguageServer.showLogStatistics', async () => {
+            if (!client) {
+                vscode.window.showErrorMessage('CK3 Language Server is not running');
+                return;
+            }
+
+            try {
+                const result = (await client.sendRequest('workspace/executeCommand', {
+                    command: 'ck3.getLogStatistics',
+                })) as { success: boolean; statistics?: any; error?: string };
+
+                if (result.success && result.statistics) {
+                    const stats = result.statistics;
+                    const lines = [
+                        `📊 CK3 Game Log Statistics`,
+                        `─────────────────────────────`,
+                        `Total Lines Processed: ${stats.total_lines_processed}`,
+                        `Errors: ${stats.total_errors}`,
+                        `Warnings: ${stats.total_warnings}`,
+                        `Info: ${stats.total_info}`,
+                        ``,
+                        `Errors by Category:`,
+                    ];
+
+                    // Add errors by category
+                    for (const [category, count] of Object.entries(stats.errors_by_category)) {
+                        lines.push(`  ${category}: ${count}`);
+                    }
+
+                    // Add slow events if any
+                    if (Object.keys(stats.slow_events).length > 0) {
+                        lines.push('', 'Slow Events (>50ms):');
+                        for (const [event, timings] of Object.entries(stats.slow_events as Record<string, number[]>)) {
+                            const avg = timings.reduce((a, b) => a + b, 0) / timings.length;
+                            lines.push(`  ${event}: ${avg.toFixed(1)}ms avg`);
+                        }
+                    }
+
+                    logger.appendCommandLines(lines);
+                    logger.showChannel(LogCategory.Commands);
+                } else {
+                    vscode.window.showWarningMessage(result.error || 'No statistics available');
+                }
+            } catch (error) {
+                const message = error instanceof Error ? error.message : String(error);
+                vscode.window.showErrorMessage(`Failed to get statistics: ${message}`);
+            }
+        })
+    );
+
     // Start the server
     await startServer(context);
 
@@ -613,6 +914,156 @@ async function startServer(context: vscode.ExtensionContext): Promise<void> {
         logger.logServer('Language client started successfully');
         logger.logDebug(`Client state: running`);
         statusBar.updateState('running');
+
+        // Register log watcher notification handlers
+        
+        // Bulk notification handlers (efficient)
+        client.onNotification('ck3/logEntry/combined/bulk', (params: any) => {
+            const channel = getLogChannel('combined', 'CK3L: Live Monitor');
+            const sourceFile = params.log_file ? `[${params.log_file}]` : '';
+            
+            // Batch append all lines at once with colors (logs already have timestamps)
+            const output = params.lines
+                .map((line: string) => colorizeLogLine(`${sourceFile} ${line}`.trim()))
+                .join('\n');
+            channel.append(output + '\n');
+        });
+        
+        client.onNotification('ck3/logEntry/game/bulk', (params: any) => {
+            const channel = getLogChannel('game', 'CK3L: game.log');
+            const output = params.lines.map((line: string) => colorizeLogLine(line)).join('\n');
+            channel.append(output + '\n');
+        });
+        
+        client.onNotification('ck3/logEntry/error/bulk', (params: any) => {
+            const channel = getLogChannel('error', 'CK3L: error.log');
+            const output = params.lines.map((line: string) => colorizeLogLine(line)).join('\n');
+            channel.append(output + '\n');
+        });
+        
+        client.onNotification('ck3/logEntry/exceptions/bulk', (params: any) => {
+            const channel = getLogChannel('exceptions', 'CK3L: exceptions.log');
+            const output = params.lines.map((line: string) => colorizeLogLine(line)).join('\n');
+            channel.append(output + '\n');
+        });
+        
+        client.onNotification('ck3/logEntry/system/bulk', (params: any) => {
+            const channel = getLogChannel('system', 'CK3L: system.log');
+            const output = params.lines.map((line: string) => colorizeLogLine(line)).join('\n');
+            channel.append(output + '\n');
+        });
+        
+        client.onNotification('ck3/logEntry/setup/bulk', (params: any) => {
+            const channel = getLogChannel('setup', 'CK3L: setup.log');
+            const output = params.lines.map((line: string) => colorizeLogLine(line)).join('\n');
+            channel.append(output + '\n');
+        });
+        
+        client.onNotification('ck3/logEntry/pattern/bulk', (params: any) => {
+            const channel = getLogChannel('patterns', 'CK3L: Script Errors');
+            
+            // Format all pattern matches with colors
+            const output = params.results.map((result: any) => {
+                const icon = getSeverityIcon(result.severity);
+                const severityColor = result.severity === 1 ? Colors.brightRed : Colors.brightYellow;
+                
+                let lines = [
+                    `${severityColor}${icon}${Colors.reset} ${Colors.bright}${result.message}${Colors.reset}`
+                ];
+                
+                if (result.source_file) {
+                    lines.push(`  ${Colors.cyan}→${Colors.reset} ${Colors.brightCyan}${result.source_file}${Colors.reset}:${Colors.brightYellow}${result.line_number || '?'}${Colors.reset}`);
+                }
+                
+                if (result.suggestions && result.suggestions.length > 0) {
+                    lines.push(`  ${Colors.brightGreen}💡 Suggestions:${Colors.reset} ${Colors.green}${result.suggestions.join(', ')}${Colors.reset}`);
+                }
+                
+                if (result.log_file) {
+                    const fileColor = result.log_file.includes('error') ? Colors.brightRed : 
+                                     result.log_file.includes('exception') ? Colors.brightMagenta :
+                                     Colors.brightCyan;
+                    lines.push(`  ${Colors.dim}📁 From:${Colors.reset} ${fileColor}${result.log_file}${Colors.reset}`);
+                }
+                
+                lines.push(''); // Blank line
+                return lines.join('\n');
+            }).join('\n');
+            
+            channel.append(output);
+        });
+        
+        // Legacy single-line handlers (kept for backward compatibility)
+        client.onNotification('ck3/logEntry/combined', (params: any) => {
+            const channel = getLogChannel('combined', 'CK3L: Live Monitor');
+            const sourceFile = params.log_file ? `[${params.log_file}]` : '';
+            channel.appendLine(colorizeLogLine(`${sourceFile} ${params.message}`.trim()));
+        });
+        
+        client.onNotification('ck3/logEntry/game', (params: any) => {
+            const channel = getLogChannel('game', 'CK3L: game.log');
+            channel.appendLine(colorizeLogLine(params.raw_line || params.message));
+        });
+        
+        client.onNotification('ck3/logEntry/error', (params: any) => {
+            const channel = getLogChannel('error', 'CK3L: error.log');
+            channel.appendLine(colorizeLogLine(params.raw_line || params.message));
+        });
+        
+        client.onNotification('ck3/logEntry/exceptions', (params: any) => {
+            const channel = getLogChannel('exceptions', 'CK3L: exceptions.log');
+            channel.appendLine(colorizeLogLine(params.raw_line || params.message));
+        });
+        
+        client.onNotification('ck3/logEntry/system', (params: any) => {
+            const channel = getLogChannel('system', 'CK3L: system.log');
+            channel.appendLine(colorizeLogLine(params.raw_line || params.message));
+        });
+        
+        client.onNotification('ck3/logEntry/setup', (params: any) => {
+            const channel = getLogChannel('setup', 'CK3L: setup.log');
+            channel.appendLine(colorizeLogLine(params.raw_line || params.message));
+        });
+        
+        client.onNotification('ck3/logEntry/pattern', (params: any) => {
+            const channel = getLogChannel('patterns', 'CK3L: Script Errors');
+            const icon = getSeverityIcon(params.severity);
+            const severityColor = params.severity === 1 ? Colors.brightRed : Colors.brightYellow;
+            
+            channel.appendLine(`${severityColor}${icon}${Colors.reset} ${Colors.bright}${params.message}${Colors.reset}`);
+            
+            if (params.source_file) {
+                channel.appendLine(`  ${Colors.cyan}→${Colors.reset} ${Colors.brightCyan}${params.source_file}${Colors.reset}:${Colors.brightYellow}${params.line_number || '?'}${Colors.reset}`);
+            }
+            
+            if (params.suggestions && params.suggestions.length > 0) {
+                channel.appendLine(`  ${Colors.brightGreen}💡 Suggestions:${Colors.reset} ${Colors.green}${params.suggestions.join(', ')}${Colors.reset}`);
+            }
+            
+            if (params.log_file) {
+                const fileColor = params.log_file.includes('error') ? Colors.brightRed : 
+                                 params.log_file.includes('exception') ? Colors.brightMagenta :
+                                 Colors.brightCyan;
+                channel.appendLine(`  ${Colors.dim}📁 From:${Colors.reset} ${fileColor}${params.log_file}${Colors.reset}`);
+            }
+            channel.appendLine(''); // Blank line for readability
+        });
+
+        client.onNotification('ck3/logWatcherStarted', (params: any) => {
+            logger.logServer(`Log watcher started for ${params.files?.length || 0} files`);
+        });
+
+        client.onNotification('ck3/logWatcherStopped', () => {
+            logger.logServer('Log watcher stopped');
+        });
+
+        client.onNotification('ck3/logWatcherPaused', () => {
+            logger.logServer('Log watcher paused');
+        });
+
+        client.onNotification('ck3/logWatcherResumed', () => {
+            logger.logServer('Log watcher resumed');
+        });
 
         // Register for disposal
         context.subscriptions.push(client);
@@ -788,6 +1239,22 @@ async function showMenuCommand(): Promise<void> {
             description: 'Check for undefined dependencies',
         },
         {
+            label: '$(play) Start Log Watcher',
+            description: 'Monitor game logs for errors',
+        },
+        {
+            label: '$(debug-stop) Stop Log Watcher',
+            description: 'Stop monitoring game logs',
+        },
+        {
+            label: '$(graph-line) Show Log Statistics',
+            description: 'Display log analysis stats',
+        },
+        {
+            label: '$(clear-all) Clear Log Diagnostics',
+            description: 'Clear all log-related diagnostics',
+        },
+        {
             label: '$(output) Show Output',
             description: 'Open output channel',
         },
@@ -837,6 +1304,18 @@ async function showMenuCommand(): Promise<void> {
             case '$(references) Check Dependencies':
                 await vscode.commands.executeCommand('ck3LanguageServer.checkDependencies');
                 break;
+            case '$(play) Start Log Watcher':
+                await vscode.commands.executeCommand('ck3LanguageServer.startLogWatcher');
+                break;
+            case '$(debug-stop) Stop Log Watcher':
+                await vscode.commands.executeCommand('ck3LanguageServer.stopLogWatcher');
+                break;
+            case '$(graph-line) Show Log Statistics':
+                await vscode.commands.executeCommand('ck3LanguageServer.getLogStatistics');
+                break;
+            case '$(clear-all) Clear Log Diagnostics':
+                await vscode.commands.executeCommand('ck3LanguageServer.clearGameLogs');
+                break;
             case '$(output) Show Output':
                 await vscode.commands.executeCommand('ck3LanguageServer.showOutput');
                 break;
@@ -850,6 +1329,22 @@ async function showMenuCommand(): Promise<void> {
                 await vscode.commands.executeCommand('ck3LanguageServer.openDocumentation');
                 break;
         }
+    }
+}
+
+function getSeverityIcon(severity: any): string {
+    // Map LSP diagnostic severity to icons
+    switch(severity) {
+        case 1: // Error
+            return '❌';
+        case 2: // Warning  
+            return '⚠️';
+        case 3: // Information
+            return 'ℹ️';
+        case 4: // Hint
+            return '💡';
+        default:
+            return '📝';
     }
 }
 

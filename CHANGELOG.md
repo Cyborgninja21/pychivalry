@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **Live Game Log Analysis** - Real-time monitoring of CK3 game logs with intelligent error detection
+  - Auto-detect CK3 log directory on Windows, Linux, and macOS
+  - Monitor `game.log` for changes using OS-native file events (watchdog)
+  - Pattern-based error detection with 10 pre-defined error types
+  - Fuzzy matching suggestions for typos in effects/triggers
+  - LSP diagnostics integration - errors appear in Problems panel
+  - Statistics tracking (error counts, categories, performance metrics)
+  - VS Code commands: start/stop/pause/resume/clear/showStatistics
+  - GameLogs output channel with color-coded severity icons
+  - Configuration settings for auto-start, debounce delay, custom patterns
+  - Comprehensive user guide in `plan docs/LOG_WATCHER_USAGE.md`
+
+### Changed
+- Updated README.md to highlight new live log analysis feature
+- Added Copilot instructions for log watcher development workflow
+- Extended VS Code extension with 6 new commands and notification handlers
+
 ## [1.0.0] - 2026-01-01
 
 ### 🎉 First Stable Release

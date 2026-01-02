@@ -199,6 +199,7 @@ from typing import Dict, List, Optional, Any, Set, Tuple
 # This is the core class that handles LSP protocol communication
 from pygls.lsp.server import LanguageServer
 from pygls.workspace import TextDocument
+from pygls.uris import to_fs_path
 
 # Import LSP types from lsprotocol
 # These define the structure of LSP messages (requests, responses, notifications)
@@ -248,6 +249,11 @@ from .formatting import format_document, format_range
 
 # Import inlay hints
 from .inlay_hints import get_inlay_hints, resolve_inlay_hint, InlayHintConfig
+
+# Import log watcher components
+from .log_watcher import CK3LogWatcher, detect_ck3_log_path
+from .log_analyzer import CK3LogAnalyzer
+from .log_diagnostics import LogDiagnosticConverter
 
 # Import signature help
 from .signature_help import get_signature_help, get_trigger_characters, get_retrigger_characters
@@ -346,6 +352,15 @@ class CK3LanguageServer(LanguageServer):
 
         # Base debounce delay in seconds (150ms is good for typing)
         self._debounce_delay = 0.15
+
+        # =====================================================================
+        # Log Watcher Infrastructure
+        # =====================================================================
+
+        # Log watcher components (initialized on demand)
+        self.log_analyzer: Optional[CK3LogAnalyzer] = None
+        self.log_watcher: Optional[CK3LogWatcher] = None
+        self.log_diagnostic_converter: Optional[LogDiagnosticConverter] = None
 
         # =====================================================================
         # AST Caching by Content Hash (Tier 2 Optimization)
@@ -2700,8 +2715,28 @@ def folding_range(
 # =============================================================================
 
 
+def _normalize_command_args(raw_args: tuple[Any, ...]) -> tuple[Any, ...]:
+    """Normalize command args across pygls and direct function calls.
+
+    pygls expands LSP `workspace/executeCommand` params.arguments into positional
+    arguments when invoking handlers.
+
+    Some unit tests and legacy call sites invoke handlers directly using the
+    pre-pygls2 convention: `handler(ls, [arg1, arg2, ...])`. After switching
+    handlers to `*args` (to allow 0 arguments safely), that legacy style becomes
+    a single positional argument whose value is a list.
+
+    This helper unwraps that list/tuple into true positional arguments so both
+    styles behave identically.
+    """
+
+    if len(raw_args) == 1 and isinstance(raw_args[0], (list, tuple)):
+        return tuple(raw_args[0])
+    return raw_args
+
+
 @server.command("ck3.validateWorkspace")
-async def validate_workspace_command(ls: CK3LanguageServer, args: List[Any]):
+async def validate_workspace_command(ls: CK3LanguageServer, *args: Any):
     """
     Command: Validate entire workspace.
 
@@ -2716,6 +2751,7 @@ async def validate_workspace_command(ls: CK3LanguageServer, args: List[Any]):
         Dictionary with validation results
     """
     logger.info("Executing ck3.validateWorkspace command")
+    args = _normalize_command_args(args)
 
     async def validate_with_progress(report_progress):
         report_progress("Validating workspace...", 0)
@@ -2789,7 +2825,7 @@ async def validate_workspace_command(ls: CK3LanguageServer, args: List[Any]):
 
 
 @server.command("ck3.rescanWorkspace")
-async def rescan_workspace_command(ls: CK3LanguageServer, args: List[Any]):
+async def rescan_workspace_command(ls: CK3LanguageServer, *args: Any):
     """
     Command: Rescan workspace for symbols.
 
@@ -2804,6 +2840,7 @@ async def rescan_workspace_command(ls: CK3LanguageServer, args: List[Any]):
         Dictionary with scan results
     """
     logger.info("Executing ck3.rescanWorkspace command")
+    args = _normalize_command_args(args)
 
     # Reset scan state
     ls._workspace_scanned = False
@@ -2826,7 +2863,7 @@ async def rescan_workspace_command(ls: CK3LanguageServer, args: List[Any]):
 
 
 @server.command("ck3.getWorkspaceStats")
-def get_workspace_stats_command(ls: CK3LanguageServer, args: List[Any]):
+def get_workspace_stats_command(ls: CK3LanguageServer, *args: Any):
     """
     Command: Get workspace statistics.
 
@@ -2840,6 +2877,7 @@ def get_workspace_stats_command(ls: CK3LanguageServer, args: List[Any]):
         Dictionary with workspace statistics
     """
     logger.info("Executing ck3.getWorkspaceStats command")
+    args = _normalize_command_args(args)
 
     # Thread-safe stats collection
     with ls._index_lock:
@@ -2862,7 +2900,7 @@ def get_workspace_stats_command(ls: CK3LanguageServer, args: List[Any]):
 
 
 @server.command("ck3.generateEventTemplate")
-def generate_event_template_command(ls: CK3LanguageServer, args: List[Any]):
+def generate_event_template_command(ls: CK3LanguageServer, *args: Any):
     """
     Command: Generate an event template.
 
@@ -2880,6 +2918,10 @@ def generate_event_template_command(ls: CK3LanguageServer, args: List[Any]):
         Dictionary with the event template text
     """
     logger.info("Executing ck3.generateEventTemplate command")
+
+    # Supports both LSP-style args (positional) and legacy direct calls
+    # like generate_event_template_command(ls, [namespace, event_num, event_type]).
+    args = _normalize_command_args(args)
 
     # Parse arguments
     namespace = args[0] if args and len(args) > 0 else "my_mod"
@@ -2929,7 +2971,7 @@ def generate_event_template_command(ls: CK3LanguageServer, args: List[Any]):
 
 
 @server.command("ck3.findOrphanedLocalization")
-def find_orphaned_localization_command(ls: CK3LanguageServer, args: List[Any]):
+def find_orphaned_localization_command(ls: CK3LanguageServer, *args: Any):
     """
     Command: Find localization keys that may be orphaned.
 
@@ -2947,6 +2989,7 @@ def find_orphaned_localization_command(ls: CK3LanguageServer, args: List[Any]):
         Dictionary with potentially orphaned keys
     """
     logger.info("Executing ck3.findOrphanedLocalization command")
+    args = _normalize_command_args(args)
 
     # Get all event-related prefixes
     event_prefixes = set()
@@ -2977,7 +3020,7 @@ def find_orphaned_localization_command(ls: CK3LanguageServer, args: List[Any]):
 
 
 @server.command("ck3.showEventChain")
-def show_event_chain_command(ls: CK3LanguageServer, args: List[Any]):
+def show_event_chain_command(ls: CK3LanguageServer, *args: Any):
     """
     Command: Show event chain starting from a given event.
 
@@ -2992,6 +3035,9 @@ def show_event_chain_command(ls: CK3LanguageServer, args: List[Any]):
         Dictionary with event chain information
     """
     logger.info("Executing ck3.showEventChain command")
+
+    # Normalize args so tests calling show_event_chain_command(ls, [event_id]) work.
+    args = _normalize_command_args(args)
 
     if not args or not args[0]:
         return {"error": "Event ID required"}
@@ -3037,7 +3083,7 @@ def show_event_chain_command(ls: CK3LanguageServer, args: List[Any]):
 
 
 @server.command("ck3.checkDependencies")
-def check_dependencies_command(ls: CK3LanguageServer, args: List[Any]):
+def check_dependencies_command(ls: CK3LanguageServer, *args: Any):
     """
     Command: Check for undefined dependencies.
 
@@ -3052,6 +3098,7 @@ def check_dependencies_command(ls: CK3LanguageServer, args: List[Any]):
         Dictionary with dependency check results
     """
     logger.info("Executing ck3.checkDependencies command")
+    args = _normalize_command_args(args)
 
     # This would require tracking usages, which we partially do
     # For now, return current index stats
@@ -3072,7 +3119,7 @@ def check_dependencies_command(ls: CK3LanguageServer, args: List[Any]):
 
 
 @server.command("ck3.showNamespaceEvents")
-def show_namespace_events_command(ls: CK3LanguageServer, args: List[Any]):
+def show_namespace_events_command(ls: CK3LanguageServer, *args: Any):
     """
     Command: Show all events in a namespace.
 
@@ -3088,6 +3135,7 @@ def show_namespace_events_command(ls: CK3LanguageServer, args: List[Any]):
         Dictionary with namespace events
     """
     logger.info("Executing ck3.showNamespaceEvents command")
+    args = _normalize_command_args(args)
 
     if not args or not args[0]:
         return {"error": "Namespace name required"}
@@ -3130,7 +3178,7 @@ def show_namespace_events_command(ls: CK3LanguageServer, args: List[Any]):
 
 
 @server.command("ck3.insertTextAtCursor")
-async def insert_text_at_cursor_command(ls: CK3LanguageServer, args: List[Any]):
+async def insert_text_at_cursor_command(ls: CK3LanguageServer, *args: Any):
     """
     Command: Insert text at a specific position in a file.
 
@@ -3149,6 +3197,7 @@ async def insert_text_at_cursor_command(ls: CK3LanguageServer, args: List[Any]):
         Dictionary with success status
     """
     logger.info("Executing ck3.insertTextAtCursor command")
+    args = _normalize_command_args(args)
 
     if not args or len(args) < 4:
         return {"error": "Required arguments: uri, line, character, text"}
@@ -3174,7 +3223,7 @@ async def insert_text_at_cursor_command(ls: CK3LanguageServer, args: List[Any]):
 
 
 @server.command("ck3.generateLocalizationStubs")
-async def generate_localization_stubs_command(ls: CK3LanguageServer, args: List[Any]):
+async def generate_localization_stubs_command(ls: CK3LanguageServer, *args: Any):
     """
     Command: Generate localization stubs for an event.
 
@@ -3192,6 +3241,7 @@ async def generate_localization_stubs_command(ls: CK3LanguageServer, args: List[
         Dictionary with generated localization text and success status
     """
     logger.info("Executing ck3.generateLocalizationStubs command")
+    args = _normalize_command_args(args)
 
     if not args or len(args) < 1:
         return {"error": "Event ID required"}
@@ -3241,7 +3291,7 @@ async def generate_localization_stubs_command(ls: CK3LanguageServer, args: List[
 
 
 @server.command("ck3.renameEvent")
-async def rename_event_command(ls: CK3LanguageServer, args: List[Any]):
+async def rename_event_command(ls: CK3LanguageServer, *args: Any):
     """
     Command: Rename an event ID across files.
 
@@ -3261,6 +3311,7 @@ async def rename_event_command(ls: CK3LanguageServer, args: List[Any]):
         Dictionary with rename results
     """
     logger.info("Executing ck3.renameEvent command")
+    args = _normalize_command_args(args)
 
     if not args or len(args) < 2:
         return {"error": "Required arguments: old_event_id, new_event_id"}
@@ -3296,6 +3347,306 @@ async def rename_event_command(ls: CK3LanguageServer, args: List[Any]):
     except Exception as e:
         logger.error(f"Error renaming event: {e}", exc_info=True)
         return {"error": str(e)}
+
+
+# =============================================================================
+# Log Watcher Commands
+# =============================================================================
+
+
+@server.command("ck3.startLogWatcher")
+def start_log_watcher_command(ls: CK3LanguageServer, *args: Any):
+    """
+    Command: Start watching CK3 game logs.
+    
+    Begins real-time monitoring of CK3 log files for errors, warnings, and
+    performance issues. Detected issues are displayed in the editor.
+    
+    Args:
+        ls: The language server instance
+        args: Command arguments (optional):
+            - args[0] (optional): Custom log path (auto-detected if not provided)
+    
+    Returns:
+        Dictionary with status and details
+    """
+    args = _normalize_command_args(args)
+    logger.info("Executing ck3.startLogWatcher command")
+    logger.info(f"[startLogWatcher] Received args type: {type(args)}")
+    logger.info(f"[startLogWatcher] Received args value: {args}")
+    logger.info(f"[startLogWatcher] Args length: {len(args) if args else 'None'}")
+    
+    try:
+        # Get log path from args or auto-detect
+        log_path = args[0] if args and len(args) > 0 else None
+        logger.info(f"[startLogWatcher] Extracted log_path: {log_path}")
+        
+        if log_path is None:
+            log_path = detect_ck3_log_path()
+            if log_path is None:
+                return {
+                    "success": False,
+                    "error": "Could not auto-detect CK3 log directory",
+                    "message": "Please specify the log path manually in settings"
+                }
+        
+        # Initialize log watcher components if not already done
+        if ls.log_analyzer is None:
+            ls.log_analyzer = CK3LogAnalyzer(ls)
+            logger.info("Initialized log analyzer")
+        
+        if ls.log_diagnostic_converter is None:
+            # Get workspace root for path resolution
+            workspace_root = "."
+            if ls.workspace.folders:
+                # folders is a dict[str, WorkspaceFolder], get the first folder
+                first_folder = next(iter(ls.workspace.folders.values()))
+                # Convert URI to filesystem path
+                workspace_root = to_fs_path(first_folder.uri) or "."
+            ls.log_diagnostic_converter = LogDiagnosticConverter(ls, workspace_root)
+            logger.info(f"Initialized log diagnostic converter for {workspace_root}")
+        
+        if ls.log_watcher is None:
+            ls.log_watcher = CK3LogWatcher(ls, ls.log_analyzer)
+            logger.info("Initialized log watcher")
+        
+        # Start watching
+        if ls.log_watcher.start(log_path):
+            logger.info(f"Log watcher started successfully at {log_path}")
+            ls.notify_info(f"Now monitoring CK3 logs at: {log_path}")
+            
+            return {
+                "success": True,
+                "path": log_path,
+                "watching": ls.log_watcher.get_watched_files(),
+                "message": f"Monitoring {len(ls.log_watcher.get_watched_files())} log files"
+            }
+        else:
+            return {
+                "success": False,
+                "error": "Failed to start log watcher",
+                "message": "Check that the log path exists and is accessible"
+            }
+            
+    except Exception as e:
+        logger.error(f"Error starting log watcher: {e}", exc_info=True)
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+
+@server.command("ck3.stopLogWatcher")
+def stop_log_watcher_command(ls: CK3LanguageServer, *args: Any):
+    """
+    Command: Stop watching CK3 game logs.
+    
+    Stops monitoring log files and clears all game log diagnostics.
+    
+    Args:
+        ls: The language server instance
+    
+    Returns:
+        Dictionary with status
+    """
+    logger.info("Executing ck3.stopLogWatcher command")
+    args = _normalize_command_args(args)
+    
+    try:
+        if ls.log_watcher and ls.log_watcher.is_running():
+            ls.log_watcher.stop()
+            
+            # Clear all log diagnostics
+            if ls.log_diagnostic_converter:
+                ls.log_diagnostic_converter.clear_all_log_diagnostics()
+            
+            ls.notify_info("Stopped monitoring CK3 logs")
+            logger.info("Log watcher stopped")
+            
+            return {
+                "success": True,
+                "message": "Log monitoring stopped"
+            }
+        else:
+            return {
+                "success": False,
+                "error": "Log watcher is not running"
+            }
+            
+    except Exception as e:
+        logger.error(f"Error stopping log watcher: {e}", exc_info=True)
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+
+@server.command("ck3.pauseLogWatcher")
+def pause_log_watcher_command(ls: CK3LanguageServer, *args: Any):
+    """
+    Command: Pause log processing.
+    
+    Temporarily pause log analysis while keeping the watcher active.
+    
+    Args:
+        ls: The language server instance
+    
+    Returns:
+        Dictionary with status
+    """
+    logger.info("Executing ck3.pauseLogWatcher command")
+    args = _normalize_command_args(args)
+    
+    try:
+        if ls.log_watcher and ls.log_watcher.is_running():
+            ls.log_watcher.pause()
+            ls.notify_info("Log monitoring paused")
+            
+            return {
+                "success": True,
+                "message": "Log monitoring paused"
+            }
+        else:
+            return {
+                "success": False,
+                "error": "Log watcher is not running"
+            }
+            
+    except Exception as e:
+        logger.error(f"Error pausing log watcher: {e}", exc_info=True)
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+
+@server.command("ck3.resumeLogWatcher")
+def resume_log_watcher_command(ls: CK3LanguageServer, *args: Any):
+    """
+    Command: Resume log processing.
+    
+    Resume log analysis after pause.
+    
+    Args:
+        ls: The language server instance
+    
+    Returns:
+        Dictionary with status
+    """
+    logger.info("Executing ck3.resumeLogWatcher command")
+    args = _normalize_command_args(args)
+    
+    try:
+        if ls.log_watcher and ls.log_watcher.is_running():
+            ls.log_watcher.resume()
+            ls.notify_info("Log monitoring resumed")
+            
+            return {
+                "success": True,
+                "message": "Log monitoring resumed"
+            }
+        else:
+            return {
+                "success": False,
+                "error": "Log watcher is not running"
+            }
+            
+    except Exception as e:
+        logger.error(f"Error resuming log watcher: {e}", exc_info=True)
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+
+@server.command("ck3.clearGameLogs")
+def clear_game_logs_command(ls: CK3LanguageServer, *args: Any):
+    """
+    Command: Clear all game log diagnostics.
+    
+    Removes all diagnostics that came from game logs while preserving
+    static analysis diagnostics.
+    
+    Args:
+        ls: The language server instance
+    
+    Returns:
+        Dictionary with status
+    """
+    logger.info("Executing ck3.clearGameLogs command")
+    args = _normalize_command_args(args)
+    
+    try:
+        if ls.log_diagnostic_converter:
+            ls.log_diagnostic_converter.clear_all_log_diagnostics()
+            ls.notify_info("Cleared all game log diagnostics")
+            
+            return {
+                "success": True,
+                "message": "Game log diagnostics cleared"
+            }
+        else:
+            return {
+                "success": True,
+                "message": "No log diagnostics to clear"
+            }
+            
+    except Exception as e:
+        logger.error(f"Error clearing game logs: {e}", exc_info=True)
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+
+@server.command("ck3.getLogStatistics")
+def get_log_statistics_command(ls: CK3LanguageServer, *args: Any):
+    """
+    Command: Get accumulated log statistics.
+    
+    Returns statistics about errors found in game logs, including
+    error counts by category and performance metrics.
+    
+    Args:
+        ls: The language server instance
+    
+    Returns:
+        Dictionary with statistics
+    """
+    logger.info("Executing ck3.getLogStatistics command")
+    args = _normalize_command_args(args)
+    
+    try:
+        if not ls.log_analyzer:
+            return {
+                "success": False,
+                "error": "Log analyzer not initialized",
+                "message": "Start log watcher first"
+            }
+        
+        from dataclasses import asdict
+        stats = ls.log_analyzer.get_statistics()
+        
+        # Convert to dict for JSON serialization
+        stats_dict = asdict(stats)
+        
+        # Convert datetime to ISO string
+        if stats.start_time:
+            stats_dict['start_time'] = stats.start_time.isoformat()
+        if stats.last_update:
+            stats_dict['last_update'] = stats.last_update.isoformat()
+        
+        return {
+            "success": True,
+            "statistics": stats_dict
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting log statistics: {e}", exc_info=True)
+        return {
+            "success": False,
+            "error": str(e)
+        }
 
 
 def main():
