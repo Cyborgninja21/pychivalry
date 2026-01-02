@@ -2714,8 +2714,28 @@ def folding_range(
 # =============================================================================
 
 
+def _normalize_command_args(raw_args: tuple[Any, ...]) -> tuple[Any, ...]:
+    """Normalize command args across pygls and direct function calls.
+
+    pygls expands LSP `workspace/executeCommand` params.arguments into positional
+    arguments when invoking handlers.
+
+    Some unit tests and legacy call sites invoke handlers directly using the
+    pre-pygls2 convention: `handler(ls, [arg1, arg2, ...])`. After switching
+    handlers to `*args` (to allow 0 arguments safely), that legacy style becomes
+    a single positional argument whose value is a list.
+
+    This helper unwraps that list/tuple into true positional arguments so both
+    styles behave identically.
+    """
+
+    if len(raw_args) == 1 and isinstance(raw_args[0], (list, tuple)):
+        return tuple(raw_args[0])
+    return raw_args
+
+
 @server.command("ck3.validateWorkspace")
-async def validate_workspace_command(ls: CK3LanguageServer, args: List[Any]):
+async def validate_workspace_command(ls: CK3LanguageServer, *args: Any):
     """
     Command: Validate entire workspace.
 
@@ -2730,6 +2750,7 @@ async def validate_workspace_command(ls: CK3LanguageServer, args: List[Any]):
         Dictionary with validation results
     """
     logger.info("Executing ck3.validateWorkspace command")
+    args = _normalize_command_args(args)
 
     async def validate_with_progress(report_progress):
         report_progress("Validating workspace...", 0)
@@ -2803,7 +2824,7 @@ async def validate_workspace_command(ls: CK3LanguageServer, args: List[Any]):
 
 
 @server.command("ck3.rescanWorkspace")
-async def rescan_workspace_command(ls: CK3LanguageServer, args: List[Any]):
+async def rescan_workspace_command(ls: CK3LanguageServer, *args: Any):
     """
     Command: Rescan workspace for symbols.
 
@@ -2818,6 +2839,7 @@ async def rescan_workspace_command(ls: CK3LanguageServer, args: List[Any]):
         Dictionary with scan results
     """
     logger.info("Executing ck3.rescanWorkspace command")
+    args = _normalize_command_args(args)
 
     # Reset scan state
     ls._workspace_scanned = False
@@ -2840,7 +2862,7 @@ async def rescan_workspace_command(ls: CK3LanguageServer, args: List[Any]):
 
 
 @server.command("ck3.getWorkspaceStats")
-def get_workspace_stats_command(ls: CK3LanguageServer, args: List[Any]):
+def get_workspace_stats_command(ls: CK3LanguageServer, *args: Any):
     """
     Command: Get workspace statistics.
 
@@ -2854,6 +2876,7 @@ def get_workspace_stats_command(ls: CK3LanguageServer, args: List[Any]):
         Dictionary with workspace statistics
     """
     logger.info("Executing ck3.getWorkspaceStats command")
+    args = _normalize_command_args(args)
 
     # Thread-safe stats collection
     with ls._index_lock:
@@ -2876,7 +2899,7 @@ def get_workspace_stats_command(ls: CK3LanguageServer, args: List[Any]):
 
 
 @server.command("ck3.generateEventTemplate")
-def generate_event_template_command(ls: CK3LanguageServer, args: List[Any]):
+def generate_event_template_command(ls: CK3LanguageServer, *args: Any):
     """
     Command: Generate an event template.
 
@@ -2894,6 +2917,10 @@ def generate_event_template_command(ls: CK3LanguageServer, args: List[Any]):
         Dictionary with the event template text
     """
     logger.info("Executing ck3.generateEventTemplate command")
+
+    # Supports both LSP-style args (positional) and legacy direct calls
+    # like generate_event_template_command(ls, [namespace, event_num, event_type]).
+    args = _normalize_command_args(args)
 
     # Parse arguments
     namespace = args[0] if args and len(args) > 0 else "my_mod"
@@ -2943,7 +2970,7 @@ def generate_event_template_command(ls: CK3LanguageServer, args: List[Any]):
 
 
 @server.command("ck3.findOrphanedLocalization")
-def find_orphaned_localization_command(ls: CK3LanguageServer, args: List[Any]):
+def find_orphaned_localization_command(ls: CK3LanguageServer, *args: Any):
     """
     Command: Find localization keys that may be orphaned.
 
@@ -2961,6 +2988,7 @@ def find_orphaned_localization_command(ls: CK3LanguageServer, args: List[Any]):
         Dictionary with potentially orphaned keys
     """
     logger.info("Executing ck3.findOrphanedLocalization command")
+    args = _normalize_command_args(args)
 
     # Get all event-related prefixes
     event_prefixes = set()
@@ -2991,7 +3019,7 @@ def find_orphaned_localization_command(ls: CK3LanguageServer, args: List[Any]):
 
 
 @server.command("ck3.showEventChain")
-def show_event_chain_command(ls: CK3LanguageServer, args: List[Any]):
+def show_event_chain_command(ls: CK3LanguageServer, *args: Any):
     """
     Command: Show event chain starting from a given event.
 
@@ -3006,6 +3034,9 @@ def show_event_chain_command(ls: CK3LanguageServer, args: List[Any]):
         Dictionary with event chain information
     """
     logger.info("Executing ck3.showEventChain command")
+
+    # Normalize args so tests calling show_event_chain_command(ls, [event_id]) work.
+    args = _normalize_command_args(args)
 
     if not args or not args[0]:
         return {"error": "Event ID required"}
@@ -3051,7 +3082,7 @@ def show_event_chain_command(ls: CK3LanguageServer, args: List[Any]):
 
 
 @server.command("ck3.checkDependencies")
-def check_dependencies_command(ls: CK3LanguageServer, args: List[Any]):
+def check_dependencies_command(ls: CK3LanguageServer, *args: Any):
     """
     Command: Check for undefined dependencies.
 
@@ -3066,6 +3097,7 @@ def check_dependencies_command(ls: CK3LanguageServer, args: List[Any]):
         Dictionary with dependency check results
     """
     logger.info("Executing ck3.checkDependencies command")
+    args = _normalize_command_args(args)
 
     # This would require tracking usages, which we partially do
     # For now, return current index stats
@@ -3086,7 +3118,7 @@ def check_dependencies_command(ls: CK3LanguageServer, args: List[Any]):
 
 
 @server.command("ck3.showNamespaceEvents")
-def show_namespace_events_command(ls: CK3LanguageServer, args: List[Any]):
+def show_namespace_events_command(ls: CK3LanguageServer, *args: Any):
     """
     Command: Show all events in a namespace.
 
@@ -3102,6 +3134,7 @@ def show_namespace_events_command(ls: CK3LanguageServer, args: List[Any]):
         Dictionary with namespace events
     """
     logger.info("Executing ck3.showNamespaceEvents command")
+    args = _normalize_command_args(args)
 
     if not args or not args[0]:
         return {"error": "Namespace name required"}
@@ -3144,7 +3177,7 @@ def show_namespace_events_command(ls: CK3LanguageServer, args: List[Any]):
 
 
 @server.command("ck3.insertTextAtCursor")
-async def insert_text_at_cursor_command(ls: CK3LanguageServer, args: List[Any]):
+async def insert_text_at_cursor_command(ls: CK3LanguageServer, *args: Any):
     """
     Command: Insert text at a specific position in a file.
 
@@ -3163,6 +3196,7 @@ async def insert_text_at_cursor_command(ls: CK3LanguageServer, args: List[Any]):
         Dictionary with success status
     """
     logger.info("Executing ck3.insertTextAtCursor command")
+    args = _normalize_command_args(args)
 
     if not args or len(args) < 4:
         return {"error": "Required arguments: uri, line, character, text"}
@@ -3188,7 +3222,7 @@ async def insert_text_at_cursor_command(ls: CK3LanguageServer, args: List[Any]):
 
 
 @server.command("ck3.generateLocalizationStubs")
-async def generate_localization_stubs_command(ls: CK3LanguageServer, args: List[Any]):
+async def generate_localization_stubs_command(ls: CK3LanguageServer, *args: Any):
     """
     Command: Generate localization stubs for an event.
 
@@ -3206,6 +3240,7 @@ async def generate_localization_stubs_command(ls: CK3LanguageServer, args: List[
         Dictionary with generated localization text and success status
     """
     logger.info("Executing ck3.generateLocalizationStubs command")
+    args = _normalize_command_args(args)
 
     if not args or len(args) < 1:
         return {"error": "Event ID required"}
@@ -3255,7 +3290,7 @@ async def generate_localization_stubs_command(ls: CK3LanguageServer, args: List[
 
 
 @server.command("ck3.renameEvent")
-async def rename_event_command(ls: CK3LanguageServer, args: List[Any]):
+async def rename_event_command(ls: CK3LanguageServer, *args: Any):
     """
     Command: Rename an event ID across files.
 
@@ -3275,6 +3310,7 @@ async def rename_event_command(ls: CK3LanguageServer, args: List[Any]):
         Dictionary with rename results
     """
     logger.info("Executing ck3.renameEvent command")
+    args = _normalize_command_args(args)
 
     if not args or len(args) < 2:
         return {"error": "Required arguments: old_event_id, new_event_id"}
@@ -3318,7 +3354,7 @@ async def rename_event_command(ls: CK3LanguageServer, args: List[Any]):
 
 
 @server.command("ck3.startLogWatcher")
-def start_log_watcher_command(ls: CK3LanguageServer, args: Optional[List[Any]] = None):
+def start_log_watcher_command(ls: CK3LanguageServer, *args: Any):
     """
     Command: Start watching CK3 game logs.
     
@@ -3333,6 +3369,7 @@ def start_log_watcher_command(ls: CK3LanguageServer, args: Optional[List[Any]] =
     Returns:
         Dictionary with status and details
     """
+    args = _normalize_command_args(args)
     logger.info("Executing ck3.startLogWatcher command")
     logger.info(f"[startLogWatcher] Received args type: {type(args)}")
     logger.info(f"[startLogWatcher] Received args value: {args}")
@@ -3396,7 +3433,7 @@ def start_log_watcher_command(ls: CK3LanguageServer, args: Optional[List[Any]] =
 
 
 @server.command("ck3.stopLogWatcher")
-def stop_log_watcher_command(ls: CK3LanguageServer, args: Optional[List[Any]] = None):
+def stop_log_watcher_command(ls: CK3LanguageServer, *args: Any):
     """
     Command: Stop watching CK3 game logs.
     
@@ -3404,12 +3441,12 @@ def stop_log_watcher_command(ls: CK3LanguageServer, args: Optional[List[Any]] = 
     
     Args:
         ls: The language server instance
-        args: Command arguments (none required)
     
     Returns:
         Dictionary with status
     """
     logger.info("Executing ck3.stopLogWatcher command")
+    args = _normalize_command_args(args)
     
     try:
         if ls.log_watcher and ls.log_watcher.is_running():
@@ -3441,7 +3478,7 @@ def stop_log_watcher_command(ls: CK3LanguageServer, args: Optional[List[Any]] = 
 
 
 @server.command("ck3.pauseLogWatcher")
-def pause_log_watcher_command(ls: CK3LanguageServer, args: Optional[List[Any]] = None):
+def pause_log_watcher_command(ls: CK3LanguageServer, *args: Any):
     """
     Command: Pause log processing.
     
@@ -3449,12 +3486,12 @@ def pause_log_watcher_command(ls: CK3LanguageServer, args: Optional[List[Any]] =
     
     Args:
         ls: The language server instance
-        args: Command arguments (none required)
     
     Returns:
         Dictionary with status
     """
     logger.info("Executing ck3.pauseLogWatcher command")
+    args = _normalize_command_args(args)
     
     try:
         if ls.log_watcher and ls.log_watcher.is_running():
@@ -3480,7 +3517,7 @@ def pause_log_watcher_command(ls: CK3LanguageServer, args: Optional[List[Any]] =
 
 
 @server.command("ck3.resumeLogWatcher")
-def resume_log_watcher_command(ls: CK3LanguageServer, args: Optional[List[Any]] = None):
+def resume_log_watcher_command(ls: CK3LanguageServer, *args: Any):
     """
     Command: Resume log processing.
     
@@ -3488,12 +3525,12 @@ def resume_log_watcher_command(ls: CK3LanguageServer, args: Optional[List[Any]] 
     
     Args:
         ls: The language server instance
-        args: Command arguments (none required)
     
     Returns:
         Dictionary with status
     """
     logger.info("Executing ck3.resumeLogWatcher command")
+    args = _normalize_command_args(args)
     
     try:
         if ls.log_watcher and ls.log_watcher.is_running():
@@ -3519,7 +3556,7 @@ def resume_log_watcher_command(ls: CK3LanguageServer, args: Optional[List[Any]] 
 
 
 @server.command("ck3.clearGameLogs")
-def clear_game_logs_command(ls: CK3LanguageServer, args: Optional[List[Any]] = None):
+def clear_game_logs_command(ls: CK3LanguageServer, *args: Any):
     """
     Command: Clear all game log diagnostics.
     
@@ -3528,12 +3565,12 @@ def clear_game_logs_command(ls: CK3LanguageServer, args: Optional[List[Any]] = N
     
     Args:
         ls: The language server instance
-        args: Command arguments (none required)
     
     Returns:
         Dictionary with status
     """
     logger.info("Executing ck3.clearGameLogs command")
+    args = _normalize_command_args(args)
     
     try:
         if ls.log_diagnostic_converter:
@@ -3559,7 +3596,7 @@ def clear_game_logs_command(ls: CK3LanguageServer, args: Optional[List[Any]] = N
 
 
 @server.command("ck3.getLogStatistics")
-def get_log_statistics_command(ls: CK3LanguageServer, args: Optional[List[Any]] = None):
+def get_log_statistics_command(ls: CK3LanguageServer, *args: Any):
     """
     Command: Get accumulated log statistics.
     
@@ -3568,12 +3605,12 @@ def get_log_statistics_command(ls: CK3LanguageServer, args: Optional[List[Any]] 
     
     Args:
         ls: The language server instance
-        args: Command arguments (none required)
     
     Returns:
         Dictionary with statistics
     """
     logger.info("Executing ck3.getLogStatistics command")
+    args = _normalize_command_args(args)
     
     try:
         if not ls.log_analyzer:

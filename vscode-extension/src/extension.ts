@@ -119,7 +119,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
             try {
                 const result = await client.sendRequest('workspace/executeCommand', {
                     command: 'ck3.validateWorkspace',
-                    arguments: [],
                 });
                 logger.logCommand(`Validation result: ${JSON.stringify(result, null, 2)}`);
                 logger.showChannel(LogCategory.Commands);
@@ -139,7 +138,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
             try {
                 const result = await client.sendRequest('workspace/executeCommand', {
                     command: 'ck3.rescanWorkspace',
-                    arguments: [],
                 });
                 logger.logCommand(`Rescan result: ${JSON.stringify(result, null, 2)}`);
                 vscode.window.showInformationMessage('Workspace rescan complete');
@@ -159,7 +157,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
             try {
                 const result = (await client.sendRequest('workspace/executeCommand', {
                     command: 'ck3.getWorkspaceStats',
-                    arguments: [],
                 })) as Record<string, number | boolean>;
 
                 // Show stats in a nice format
@@ -278,7 +275,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
             try {
                 const result = (await client.sendRequest('workspace/executeCommand', {
                     command: 'ck3.findOrphanedLocalization',
-                    arguments: [],
                 })) as { orphaned_keys: string[]; total_count: number };
 
                 if (result.orphaned_keys.length > 0) {
@@ -310,7 +306,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
             try {
                 await client.sendRequest('workspace/executeCommand', {
                     command: 'ck3.checkDependencies',
-                    arguments: [],
                 });
             } catch (error) {
                 const message = error instanceof Error ? error.message : String(error);
@@ -558,7 +553,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
             try {
                 const result = (await client.sendRequest('workspace/executeCommand', {
                     command: 'ck3.stopLogWatcher',
-                    arguments: [],
                 })) as { success: boolean; message?: string };
 
                 if (result.success) {
@@ -630,7 +624,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
             try {
                 await client.sendRequest('workspace/executeCommand', {
                     command: 'ck3.clearGameLogs',
-                    arguments: [],
                 });
                 
                 // Also clear the output channel
@@ -657,7 +650,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
             try {
                 const result = (await client.sendRequest('workspace/executeCommand', {
                     command: 'ck3.getLogStatistics',
-                    arguments: [],
                 })) as { success: boolean; statistics?: any; error?: string };
 
                 if (result.success && result.statistics) {

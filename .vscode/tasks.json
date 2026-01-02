@@ -61,8 +61,15 @@
       "type": "npm",
       "script": "watch",
       "path": "vscode-extension/",
-      "problemMatcher": "$tsc-watch",
       "isBackground": true,
+      "problemMatcher": {
+        "base": "$tsc-watch",
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^\\s*\\d{1,2}:\\d{1,2}:\\d{1,2}(?: AM| PM)? - File change detected\\. Starting incremental compilation\\.\\.\\.",
+          "endsPattern": "^\\s*\\d{1,2}:\\d{1,2}:\\d{1,2}(?: AM| PM)? - (?:Compilation complete\\.|Found \\d+ errors?\\. Watching for file changes\\.)"
+        }
+      },
       "presentation": {
         "reveal": "never",
         "panel": "dedicated"
