@@ -485,6 +485,201 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         })
     );
 
+    // =========================================================================
+    // Log Watcher Commands
+    // =========================================================================
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand('ck3LanguageServer.startLogWatcher', async () => {
+            if (!client) {
+                vscode.window.showErrorMessage('CK3 Language Server is not running');
+                return;
+            }
+
+            try {
+                // Get custom log path from settings
+                const config = vscode.workspace.getConfiguration('ck3LanguageServer');
+                const logPath = config.get<string>('logWatcher.path', '');
+
+                const result = (await client.sendRequest('workspace/executeCommand', {
+                    command: 'ck3.startLogWatcher',
+                    arguments: logPath ? [logPath] : [],
+                })) as { success: boolean; path?: string; watching?: string[]; error?: string; message?: string };
+
+                if (result.success) {
+                    logger.logServer(`Log watcher started: ${result.path}`);
+                    logger.logServer(`Monitoring files: ${result.watching?.join(', ')}`);
+                    
+                    // Create GameLogs channel if not exists
+                    if (!logger.getChannel(LogCategory.GameLogs)) {
+                        const channel = vscode.window.createOutputChannel('CK3: Game Logs');
+                        logger['channels'].set(LogCategory.GameLogs, channel);
+                    }
+                    
+                    vscode.window.showInformationMessage(
+                        `Now monitoring CK3 logs: ${result.watching?.length} files`
+                    );
+                } else {
+                    vscode.window.showErrorMessage(`Failed to start log watcher: ${result.error || result.message}`);
+                }
+            } catch (error) {
+                const message = error instanceof Error ? error.message : String(error);
+                vscode.window.showErrorMessage(`Failed to start log watcher: ${message}`);
+            }
+        })
+    );
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand('ck3LanguageServer.stopLogWatcher', async () => {
+            if (!client) {
+                vscode.window.showErrorMessage('CK3 Language Server is not running');
+                return;
+            }
+
+            try {
+                const result = (await client.sendRequest('workspace/executeCommand', {
+                    command: 'ck3.stopLogWatcher',
+                    arguments: [],
+                })) as { success: boolean; message?: string };
+
+                if (result.success) {
+                    logger.logServer('Log watcher stopped');
+                    vscode.window.showInformationMessage('Log monitoring stopped');
+                } else {
+                    vscode.window.showWarningMessage('Log watcher was not running');
+                }
+            } catch (error) {
+                const message = error instanceof Error ? error.message : String(error);
+                vscode.window.showErrorMessage(`Failed to stop log watcher: ${message}`);
+            }
+        })
+    );
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand('ck3LanguageServer.pauseLogWatcher', async () => {
+            if (!client) {
+                vscode.window.showErrorMessage('CK3 Language Server is not running');
+                return;
+            }
+
+            try {
+                const result = (await client.sendRequest('workspace/executeCommand', {
+                    command: 'ck3.pauseLogWatcher',
+                    arguments: [],
+                })) as { success: boolean };
+
+                if (result.success) {
+                    vscode.window.showInformationMessage('Log monitoring paused');
+                }
+            } catch (error) {
+                const message = error instanceof Error ? error.message : String(error);
+                vscode.window.showErrorMessage(`Failed to pause: ${message}`);
+            }
+        })
+    );
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand('ck3LanguageServer.resumeLogWatcher', async () => {
+            if (!client) {
+                vscode.window.showErrorMessage('CK3 Language Server is not running');
+                return;
+            }
+
+            try {
+                const result = (await client.sendRequest('workspace/executeCommand', {
+                    command: 'ck3.resumeLogWatcher',
+                    arguments: [],
+                })) as { success: boolean };
+
+                if (result.success) {
+                    vscode.window.showInformationMessage('Log monitoring resumed');
+                }
+            } catch (error) {
+                const message = error instanceof Error ? error.message : String(error);
+                vscode.window.showErrorMessage(`Failed to resume: ${message}`);
+            }
+        })
+    );
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand('ck3LanguageServer.clearGameLogs', async () => {
+            if (!client) {
+                vscode.window.showErrorMessage('CK3 Language Server is not running');
+                return;
+            }
+
+            try {
+                await client.sendRequest('workspace/executeCommand', {
+                    command: 'ck3.clearGameLogs',
+                    arguments: [],
+                });
+                
+                // Also clear the output channel
+                const channel = logger.getChannel(LogCategory.GameLogs);
+                if (channel) {
+                    channel.clear();
+                }
+                
+                vscode.window.showInformationMessage('Game log diagnostics cleared');
+            } catch (error) {
+                const message = error instanceof Error ? error.message : String(error);
+                vscode.window.showErrorMessage(`Failed to clear logs: ${message}`);
+            }
+        })
+    );
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand('ck3LanguageServer.showLogStatistics', async () => {
+            if (!client) {
+                vscode.window.showErrorMessage('CK3 Language Server is not running');
+                return;
+            }
+
+            try {
+                const result = (await client.sendRequest('workspace/executeCommand', {
+                    command: 'ck3.getLogStatistics',
+                    arguments: [],
+                })) as { success: boolean; statistics?: any; error?: string };
+
+                if (result.success && result.statistics) {
+                    const stats = result.statistics;
+                    const lines = [
+                        `📊 CK3 Game Log Statistics`,
+                        `─────────────────────────────`,
+                        `Total Lines Processed: ${stats.total_lines_processed}`,
+                        `Errors: ${stats.total_errors}`,
+                        `Warnings: ${stats.total_warnings}`,
+                        `Info: ${stats.total_info}`,
+                        ``,
+                        `Errors by Category:`,
+                    ];
+
+                    // Add errors by category
+                    for (const [category, count] of Object.entries(stats.errors_by_category)) {
+                        lines.push(`  ${category}: ${count}`);
+                    }
+
+                    // Add slow events if any
+                    if (Object.keys(stats.slow_events).length > 0) {
+                        lines.push('', 'Slow Events (>50ms):');
+                        for (const [event, timings] of Object.entries(stats.slow_events as Record<string, number[]>)) {
+                            const avg = timings.reduce((a, b) => a + b, 0) / timings.length;
+                            lines.push(`  ${event}: ${avg.toFixed(1)}ms avg`);
+                        }
+                    }
+
+                    logger.appendCommandLines(lines);
+                    logger.showChannel(LogCategory.Commands);
+                } else {
+                    vscode.window.showWarningMessage(result.error || 'No statistics available');
+                }
+            } catch (error) {
+                const message = error instanceof Error ? error.message : String(error);
+                vscode.window.showErrorMessage(`Failed to get statistics: ${message}`);
+            }
+        })
+    );
+
     // Start the server
     await startServer(context);
 
@@ -613,6 +808,40 @@ async function startServer(context: vscode.ExtensionContext): Promise<void> {
         logger.logServer('Language client started successfully');
         logger.logDebug(`Client state: running`);
         statusBar.updateState('running');
+
+        // Register log watcher notification handlers
+        client.onNotification('ck3/logEntry', (params: any) => {
+            const channel = logger.getChannel(LogCategory.GameLogs);
+            if (channel) {
+                const icon = getSeverityIcon(params.severity);
+                const timestamp = new Date().toLocaleTimeString();
+                channel.appendLine(`[${timestamp}] ${icon} ${params.message}`);
+                
+                if (params.source_file) {
+                    channel.appendLine(`  → ${params.source_file}:${params.line_number || '?'}`);
+                }
+                
+                if (params.suggestions && params.suggestions.length > 0) {
+                    channel.appendLine(`  💡 Suggestions: ${params.suggestions.join(', ')}`);
+                }
+            }
+        });
+
+        client.onNotification('ck3/logWatcherStarted', (params: any) => {
+            logger.logServer(`Log watcher started for ${params.files?.length || 0} files`);
+        });
+
+        client.onNotification('ck3/logWatcherStopped', () => {
+            logger.logServer('Log watcher stopped');
+        });
+
+        client.onNotification('ck3/logWatcherPaused', () => {
+            logger.logServer('Log watcher paused');
+        });
+
+        client.onNotification('ck3/logWatcherResumed', () => {
+            logger.logServer('Log watcher resumed');
+        });
 
         // Register for disposal
         context.subscriptions.push(client);
@@ -850,6 +1079,22 @@ async function showMenuCommand(): Promise<void> {
                 await vscode.commands.executeCommand('ck3LanguageServer.openDocumentation');
                 break;
         }
+    }
+}
+
+function getSeverityIcon(severity: any): string {
+    // Map LSP diagnostic severity to icons
+    switch(severity) {
+        case 1: // Error
+            return '❌';
+        case 2: // Warning  
+            return '⚠️';
+        case 3: // Information
+            return 'ℹ️';
+        case 4: // Hint
+            return '💡';
+        default:
+            return '📝';
     }
 }
 

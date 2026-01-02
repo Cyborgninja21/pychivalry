@@ -9,6 +9,7 @@ export enum LogCategory {
     Commands = 'Commands',
     Trace = 'Trace',
     Performance = 'Performance',
+    GameLogs = 'GameLogs',
 }
 
 /**

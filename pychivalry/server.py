@@ -249,6 +249,11 @@ from .formatting import format_document, format_range
 # Import inlay hints
 from .inlay_hints import get_inlay_hints, resolve_inlay_hint, InlayHintConfig
 
+# Import log watcher components
+from .log_watcher import CK3LogWatcher, detect_ck3_log_path
+from .log_analyzer import CK3LogAnalyzer
+from .log_diagnostics import LogDiagnosticConverter
+
 # Import signature help
 from .signature_help import get_signature_help, get_trigger_characters, get_retrigger_characters
 
@@ -346,6 +351,15 @@ class CK3LanguageServer(LanguageServer):
 
         # Base debounce delay in seconds (150ms is good for typing)
         self._debounce_delay = 0.15
+
+        # =====================================================================
+        # Log Watcher Infrastructure
+        # =====================================================================
+
+        # Log watcher components (initialized on demand)
+        self.log_analyzer: Optional[CK3LogAnalyzer] = None
+        self.log_watcher: Optional[CK3LogWatcher] = None
+        self.log_diagnostic_converter: Optional[LogDiagnosticConverter] = None
 
         # =====================================================================
         # AST Caching by Content Hash (Tier 2 Optimization)
@@ -3296,6 +3310,298 @@ async def rename_event_command(ls: CK3LanguageServer, args: List[Any]):
     except Exception as e:
         logger.error(f"Error renaming event: {e}", exc_info=True)
         return {"error": str(e)}
+
+
+# =============================================================================
+# Log Watcher Commands
+# =============================================================================
+
+
+@server.command("ck3.startLogWatcher")
+def start_log_watcher_command(ls: CK3LanguageServer, args: List[Any]):
+    """
+    Command: Start watching CK3 game logs.
+    
+    Begins real-time monitoring of CK3 log files for errors, warnings, and
+    performance issues. Detected issues are displayed in the editor.
+    
+    Args:
+        ls: The language server instance
+        args: Command arguments:
+            - args[0] (optional): Custom log path (auto-detected if not provided)
+    
+    Returns:
+        Dictionary with status and details
+    """
+    logger.info("Executing ck3.startLogWatcher command")
+    
+    try:
+        # Get log path from args or auto-detect
+        log_path = args[0] if args and len(args) > 0 else None
+        
+        if log_path is None:
+            log_path = detect_ck3_log_path()
+            if log_path is None:
+                return {
+                    "success": False,
+                    "error": "Could not auto-detect CK3 log directory",
+                    "message": "Please specify the log path manually in settings"
+                }
+        
+        # Initialize log watcher components if not already done
+        if ls.log_analyzer is None:
+            ls.log_analyzer = CK3LogAnalyzer(ls)
+            logger.info("Initialized log analyzer")
+        
+        if ls.log_diagnostic_converter is None:
+            # Get workspace root for path resolution
+            workspace_root = "."
+            if ls.workspace.folders:
+                workspace_root = ls.workspace.folders[0].path
+            ls.log_diagnostic_converter = LogDiagnosticConverter(ls, workspace_root)
+            logger.info(f"Initialized log diagnostic converter for {workspace_root}")
+        
+        if ls.log_watcher is None:
+            ls.log_watcher = CK3LogWatcher(ls, ls.log_analyzer)
+            logger.info("Initialized log watcher")
+        
+        # Start watching
+        if ls.log_watcher.start(log_path):
+            logger.info(f"Log watcher started successfully at {log_path}")
+            ls.notify_info(f"Now monitoring CK3 logs at: {log_path}")
+            
+            return {
+                "success": True,
+                "path": log_path,
+                "watching": ls.log_watcher.get_watched_files(),
+                "message": f"Monitoring {len(ls.log_watcher.get_watched_files())} log files"
+            }
+        else:
+            return {
+                "success": False,
+                "error": "Failed to start log watcher",
+                "message": "Check that the log path exists and is accessible"
+            }
+            
+    except Exception as e:
+        logger.error(f"Error starting log watcher: {e}", exc_info=True)
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+
+@server.command("ck3.stopLogWatcher")
+def stop_log_watcher_command(ls: CK3LanguageServer, args: List[Any]):
+    """
+    Command: Stop watching CK3 game logs.
+    
+    Stops monitoring log files and clears all game log diagnostics.
+    
+    Args:
+        ls: The language server instance
+        args: Command arguments (none required)
+    
+    Returns:
+        Dictionary with status
+    """
+    logger.info("Executing ck3.stopLogWatcher command")
+    
+    try:
+        if ls.log_watcher and ls.log_watcher.is_running():
+            ls.log_watcher.stop()
+            
+            # Clear all log diagnostics
+            if ls.log_diagnostic_converter:
+                ls.log_diagnostic_converter.clear_all_log_diagnostics()
+            
+            ls.notify_info("Stopped monitoring CK3 logs")
+            logger.info("Log watcher stopped")
+            
+            return {
+                "success": True,
+                "message": "Log monitoring stopped"
+            }
+        else:
+            return {
+                "success": False,
+                "error": "Log watcher is not running"
+            }
+            
+    except Exception as e:
+        logger.error(f"Error stopping log watcher: {e}", exc_info=True)
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+
+@server.command("ck3.pauseLogWatcher")
+def pause_log_watcher_command(ls: CK3LanguageServer, args: List[Any]):
+    """
+    Command: Pause log processing.
+    
+    Temporarily pause log analysis while keeping the watcher active.
+    
+    Args:
+        ls: The language server instance
+        args: Command arguments (none required)
+    
+    Returns:
+        Dictionary with status
+    """
+    logger.info("Executing ck3.pauseLogWatcher command")
+    
+    try:
+        if ls.log_watcher and ls.log_watcher.is_running():
+            ls.log_watcher.pause()
+            ls.notify_info("Log monitoring paused")
+            
+            return {
+                "success": True,
+                "message": "Log monitoring paused"
+            }
+        else:
+            return {
+                "success": False,
+                "error": "Log watcher is not running"
+            }
+            
+    except Exception as e:
+        logger.error(f"Error pausing log watcher: {e}", exc_info=True)
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+
+@server.command("ck3.resumeLogWatcher")
+def resume_log_watcher_command(ls: CK3LanguageServer, args: List[Any]):
+    """
+    Command: Resume log processing.
+    
+    Resume log analysis after pause.
+    
+    Args:
+        ls: The language server instance
+        args: Command arguments (none required)
+    
+    Returns:
+        Dictionary with status
+    """
+    logger.info("Executing ck3.resumeLogWatcher command")
+    
+    try:
+        if ls.log_watcher and ls.log_watcher.is_running():
+            ls.log_watcher.resume()
+            ls.notify_info("Log monitoring resumed")
+            
+            return {
+                "success": True,
+                "message": "Log monitoring resumed"
+            }
+        else:
+            return {
+                "success": False,
+                "error": "Log watcher is not running"
+            }
+            
+    except Exception as e:
+        logger.error(f"Error resuming log watcher: {e}", exc_info=True)
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+
+@server.command("ck3.clearGameLogs")
+def clear_game_logs_command(ls: CK3LanguageServer, args: List[Any]):
+    """
+    Command: Clear all game log diagnostics.
+    
+    Removes all diagnostics that came from game logs while preserving
+    static analysis diagnostics.
+    
+    Args:
+        ls: The language server instance
+        args: Command arguments (none required)
+    
+    Returns:
+        Dictionary with status
+    """
+    logger.info("Executing ck3.clearGameLogs command")
+    
+    try:
+        if ls.log_diagnostic_converter:
+            ls.log_diagnostic_converter.clear_all_log_diagnostics()
+            ls.notify_info("Cleared all game log diagnostics")
+            
+            return {
+                "success": True,
+                "message": "Game log diagnostics cleared"
+            }
+        else:
+            return {
+                "success": True,
+                "message": "No log diagnostics to clear"
+            }
+            
+    except Exception as e:
+        logger.error(f"Error clearing game logs: {e}", exc_info=True)
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+
+@server.command("ck3.getLogStatistics")
+def get_log_statistics_command(ls: CK3LanguageServer, args: List[Any]):
+    """
+    Command: Get accumulated log statistics.
+    
+    Returns statistics about errors found in game logs, including
+    error counts by category and performance metrics.
+    
+    Args:
+        ls: The language server instance
+        args: Command arguments (none required)
+    
+    Returns:
+        Dictionary with statistics
+    """
+    logger.info("Executing ck3.getLogStatistics command")
+    
+    try:
+        if not ls.log_analyzer:
+            return {
+                "success": False,
+                "error": "Log analyzer not initialized",
+                "message": "Start log watcher first"
+            }
+        
+        from dataclasses import asdict
+        stats = ls.log_analyzer.get_statistics()
+        
+        # Convert to dict for JSON serialization
+        stats_dict = asdict(stats)
+        
+        # Convert datetime to ISO string
+        if stats.start_time:
+            stats_dict['start_time'] = stats.start_time.isoformat()
+        if stats.last_update:
+            stats_dict['last_update'] = stats.last_update.isoformat()
+        
+        return {
+            "success": True,
+            "statistics": stats_dict
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting log statistics: {e}", exc_info=True)
+        return {
+            "success": False,
+            "error": str(e)
+        }
 
 
 def main():
