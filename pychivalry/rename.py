@@ -109,8 +109,9 @@ import os
 import logging
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple, Set
-from urllib.parse import quote, unquote
 from lsprotocol import types
+
+from .utils import path_to_uri
 
 logger = logging.getLogger(__name__)
 
@@ -537,7 +538,7 @@ def _scan_folder_for_symbol(
                 continue
 
             filepath = os.path.join(root, filename)
-            uri = _path_to_uri(filepath)
+            uri = path_to_uri(filepath)
 
             if uri in processed_uris:
                 continue
@@ -592,7 +593,7 @@ def find_localization_keys_for_event(
                     continue
 
                 filepath = os.path.join(root, filename)
-                uri = _path_to_uri(filepath)
+                uri = path_to_uri(filepath)
 
                 try:
                     with open(filepath, "r", encoding="utf-8-sig") as f:
@@ -730,15 +731,3 @@ def _is_valid_name(name: str, symbol_type: str) -> bool:
 
     # Other symbols must be valid identifiers
     return bool(re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*$", name))
-
-
-def _path_to_uri(path: str) -> str:
-    """Convert a file path to a file:// URI."""
-    path = os.path.normpath(path)
-    path = path.replace("\\", "/")
-
-    if len(path) >= 2 and path[1] == ":":
-        path = "/" + path
-
-    path = quote(path, safe="/:")
-    return f"file://{path}"

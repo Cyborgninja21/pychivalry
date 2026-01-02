@@ -25,4 +25,4 @@ def test_package_version():
     import pychivalry
 
     assert hasattr(pychivalry, "__version__")
-    assert pychivalry.__version__ == "0.1.0"
+    assert pychivalry.__version__ == "1.1.0"

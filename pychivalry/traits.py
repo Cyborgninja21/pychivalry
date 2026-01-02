@@ -97,7 +97,7 @@ SEE ALSO:
     - completions.py: Provides trait completions with rich metadata
 """
 
-from typing import Dict, List, Optional, Tuple, Set
+from typing import Any, Dict, List, Optional, Tuple, Set
 from pathlib import Path
 from pychivalry.data import get_traits, DATA_DIR
 import logging

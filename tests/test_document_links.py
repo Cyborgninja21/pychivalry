@@ -14,10 +14,9 @@ from pychivalry.document_links import (
     get_link_at_position,
     find_localization_references,
     LinkInfo,
-    _path_to_uri,
-    _uri_to_path,
     _find_mod_root,
 )
+from pychivalry.utils import path_to_uri, uri_to_path
 
 
 # =============================================================================
@@ -388,7 +387,7 @@ class TestPathResolution:
         """Should convert Windows path to URI."""
         path = "C:\\Users\\test\\mod\\events\\file.txt"
 
-        uri = _path_to_uri(path)
+        uri = path_to_uri(path)
 
         assert uri.startswith("file://")
         assert "Users" in uri
@@ -398,7 +397,7 @@ class TestPathResolution:
         """Should convert Unix path to URI."""
         path = "/home/user/mod/events/file.txt"
 
-        uri = _path_to_uri(path)
+        uri = path_to_uri(path)
 
         assert uri.startswith("file://")
         assert "home" in uri
@@ -407,7 +406,7 @@ class TestPathResolution:
         """Should convert URI to Windows path."""
         uri = "file:///C:/Users/test/file.txt"
 
-        path = _uri_to_path(uri)
+        path = uri_to_path(uri)
 
         assert path is not None
         assert "Users" in path or "test" in path
@@ -416,7 +415,7 @@ class TestPathResolution:
         """Should convert URI to Unix path."""
         uri = "file:///home/user/file.txt"
 
-        path = _uri_to_path(uri)
+        path = uri_to_path(uri)
 
         assert path is not None
         assert "home" in path
@@ -425,7 +424,7 @@ class TestPathResolution:
         """Should return None for non-file URIs."""
         uri = "https://example.com/file.txt"
 
-        path = _uri_to_path(uri)
+        path = uri_to_path(uri)
 
         assert path is None
 

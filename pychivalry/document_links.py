@@ -99,8 +99,10 @@ import os
 import logging
 from dataclasses import dataclass
 from typing import List, Optional
-from urllib.parse import quote
 from lsprotocol import types
+
+from .utils import path_to_uri, uri_to_path, position_in_range
+from urllib.parse import quote
 
 logger = logging.getLogger(__name__)
 
@@ -216,7 +218,7 @@ def get_document_links(
     lines = text.split("\n")
 
     # Extract document path for resolving relative links
-    doc_path = _uri_to_path(document_uri)
+    doc_path = uri_to_path(document_uri)
     doc_dir = os.path.dirname(doc_path) if doc_path else None
 
     for line_num, line in enumerate(lines):
@@ -409,7 +411,7 @@ def _resolve_path(
     for folder in workspace_folders:
         full_path = os.path.join(folder, path)
         if os.path.exists(full_path):
-            return _path_to_uri(full_path)
+            return path_to_uri(full_path)
 
     return None
 
@@ -434,7 +436,7 @@ def _resolve_relative_path(
     full_path = os.path.normpath(os.path.join(doc_dir, path))
 
     if os.path.exists(full_path):
-        return _path_to_uri(full_path)
+        return path_to_uri(full_path)
 
     return None
 
@@ -469,40 +471,6 @@ def _find_mod_root(start_dir: str) -> Optional[str]:
         current = parent
 
     return None
-
-
-def _path_to_uri(path: str) -> str:
-    """Convert a file path to a file:// URI."""
-    # Normalize path
-    path = os.path.normpath(path)
-
-    # Convert to forward slashes
-    path = path.replace("\\", "/")
-
-    # Handle Windows drive letters
-    if len(path) >= 2 and path[1] == ":":
-        path = "/" + path
-
-    # Encode spaces and special characters
-    path = quote(path, safe="/:")
-
-    return f"file://{path}"
-
-
-def _uri_to_path(uri: str) -> Optional[str]:
-    """Convert a file:// URI to a file path."""
-    if not uri.startswith("file://"):
-        return None
-
-    from urllib.parse import unquote
-
-    path = unquote(uri[7:])
-
-    # Handle Windows paths (file:///C:/...)
-    if len(path) > 2 and path[0] == "/" and path[2] == ":":
-        path = path[1:]
-
-    return path
 
 
 def _get_url_tooltip(url: str) -> str:
@@ -624,21 +592,7 @@ def get_link_at_position(
     links = get_document_links(text, document_uri, workspace_folders)
 
     for link in links:
-        if _position_in_range(position, link.range):
+        if position_in_range(position, link.range):
             return link
 
     return None
-
-
-def _position_in_range(position: types.Position, range_: types.Range) -> bool:
-    """Check if a position is within a range."""
-    if position.line < range_.start.line or position.line > range_.end.line:
-        return False
-
-    if position.line == range_.start.line and position.character < range_.start.character:
-        return False
-
-    if position.line == range_.end.line and position.character > range_.end.character:
-        return False
-
-    return True
