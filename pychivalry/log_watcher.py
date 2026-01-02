@@ -395,18 +395,6 @@ class CK3LogWatcher:
         watcher.stop()
         ```
     """
-        watcher.start("/path/to/logs")
-        
-        # Pause temporarily
-        watcher.pause()
-        
-        # Resume
-        watcher.resume()
-        
-        # Stop completely
-        watcher.stop()
-        ```
-    """
     
     # Default files to watch
     DEFAULT_WATCHED_FILES = [
@@ -454,6 +442,13 @@ class CK3LogWatcher:
         self.is_paused: bool = False
         self._lock = threading.Lock()
         self.initial_lines_to_scan = initial_lines_to_scan
+        
+        # Store reference to main event loop for thread-safe notifications
+        try:
+            self._main_loop = asyncio.get_event_loop()
+        except RuntimeError:
+            # If no event loop exists yet, get the running loop
+            self._main_loop = asyncio.get_running_loop()
         
         logger.info("CK3LogWatcher initialized")
     
@@ -835,17 +830,16 @@ class CK3LogWatcher:
         Send notification to LSP client in a thread-safe manner.
         
         Thread-safe: Can be called from watchdog observer thread.
-        Uses asyncio.get_event_loop().call_soon_threadsafe() to schedule
-        the notification call in the main event loop.
+        Uses the stored main event loop reference with call_soon_threadsafe()
+        to schedule the notification call in the main event loop.
         
         Args:
             method: LSP notification method name
             params: Notification parameters
         """
         try:
-            # Schedule notification in main event loop (thread-safe)
-            loop = asyncio.get_event_loop()
-            loop.call_soon_threadsafe(self._do_notify, method, params)
+            # Use stored main event loop reference (thread-safe)
+            self._main_loop.call_soon_threadsafe(self._do_notify, method, params)
         except Exception as e:
             logger.error(f"Error scheduling notification {method}: {e}", exc_info=True)
     

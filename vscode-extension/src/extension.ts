@@ -17,18 +17,19 @@ let statusBar: CK3StatusBar;
 
 // Log file output channels (created once and reused)
 const logChannels = {
-    combined: null as vscode.OutputChannel | null,
-    game: null as vscode.OutputChannel | null,
-    error: null as vscode.OutputChannel | null,
-    exceptions: null as vscode.OutputChannel | null,
-    system: null as vscode.OutputChannel | null,
-    setup: null as vscode.OutputChannel | null,
-    patterns: null as vscode.OutputChannel | null,
+    combined: null as vscode.LogOutputChannel | null,
+    game: null as vscode.LogOutputChannel | null,
+    error: null as vscode.LogOutputChannel | null,
+    exceptions: null as vscode.LogOutputChannel | null,
+    system: null as vscode.LogOutputChannel | null,
+    setup: null as vscode.LogOutputChannel | null,
+    patterns: null as vscode.LogOutputChannel | null,
 };
 
-function getLogChannel(type: keyof typeof logChannels, name: string): vscode.OutputChannel {
+function getLogChannel(type: keyof typeof logChannels, name: string): vscode.LogOutputChannel {
     if (!logChannels[type]) {
-        logChannels[type] = vscode.window.createOutputChannel(name);
+        // Use LogOutputChannel for ANSI color support
+        logChannels[type] = vscode.window.createOutputChannel(name, { log: true });
     }
     return logChannels[type]!;
 }
