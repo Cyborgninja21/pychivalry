@@ -1025,8 +1025,8 @@ class CK3LanguageServer(LanguageServer):
         """
         Clean shutdown of server resources.
 
-        This method:
-        1. Cancels all pending document updates
+        Cancels all pending document updates and clears internal state.
+        Note: Thread pool is managed by pygls and does not require explicit shutdown.
         """
         logger.info("Shutting down CK3 Language Server...")
 
@@ -1078,7 +1078,10 @@ class CK3LanguageServer(LanguageServer):
                 logger.info(f"Scanning {folder_count} workspace folder(s): {workspace_folders}")
 
                 # Perform the actual scan in thread pool with lock
-                # Pass None for executor to use sequential scanning (simpler)
+                # Use sequential scanning (executor=None) for simplicity
+                # Note: Sequential scanning is slower but simpler. If performance
+                # becomes an issue, consider implementing parallel scanning with
+                # asyncio.gather() and asyncio.to_thread() for individual files.
                 def scan_with_lock():
                     with self._index_lock:
                         self.index.scan_workspace(workspace_folders, executor=None)
