@@ -12,6 +12,15 @@ Thank you for your interest in contributing to pychivalry! This document provide
 
 ### Setting Up Development Environment
 
+**Quick Setup (Recommended):**
+
+Run the automated setup script to install all dependencies and configure pre-commit hooks:
+```bash
+./tools/setup-dev-env.sh
+```
+
+**Manual Setup:**
+
 1. Fork and clone the repository:
 ```bash
 git clone https://github.com/YOUR_USERNAME/pychivalry.git
@@ -23,10 +32,43 @@ cd pychivalry
 pip install -e ".[dev]"
 ```
 
-3. For VS Code extension development:
+3. Install pre-commit hooks (recommended):
+```bash
+pre-commit install
+```
+
+This will automatically run code formatters and linters before each commit, ensuring code quality and consistency.
+
+4. For VS Code extension development:
 ```bash
 cd vscode-extension
 npm install
+```
+
+### Pre-commit Hooks
+
+The project uses pre-commit hooks to automatically check and format code before commits. These hooks:
+
+- **Python:**
+  - Format code with Black
+  - Check code style with flake8
+  - Sort imports with isort
+  - Check for trailing whitespace and other issues
+
+- **TypeScript (VS Code extension):**
+  - Format code with Prettier
+  - Lint with ESLint
+
+**Manual execution:**
+```bash
+# Run on all files
+pre-commit run --all-files
+
+# Run on staged files only
+pre-commit run
+
+# Skip hooks for a specific commit (not recommended)
+git commit --no-verify -m "message"
 ```
 
 ## Development Workflow
@@ -40,26 +82,27 @@ git checkout -b feature/your-feature-name
 
 2. Make your changes to the codebase
 
-3. Format your code with Black:
+3. The pre-commit hooks will automatically run when you commit. If you want to run them manually:
 ```bash
+# Format and lint all code
+pre-commit run --all-files
+
+# Or run individual tools
 black pychivalry/ tests/
-```
-
-4. Run linters:
-```bash
 flake8 pychivalry/ tests/
-mypy pychivalry/
+isort pychivalry/ tests/
 ```
 
-5. Run tests:
+4. Run tests:
 ```bash
 pytest tests/ -v
 ```
 
-6. Commit your changes with a descriptive message:
+5. Commit your changes with a descriptive message:
 ```bash
 git commit -m "Add feature: description of your change"
 ```
+The pre-commit hooks will run automatically and fix most formatting issues.
 
 ### Code Style
 
@@ -94,8 +137,9 @@ git commit -m "Add feature: description of your change"
 ### Pull Request Checklist
 
 - [ ] Tests pass (`pytest tests/`)
-- [ ] Code is formatted with Black
-- [ ] No linting errors (`flake8 pychivalry/ tests/`)
+- [ ] Pre-commit hooks pass (`pre-commit run --all-files`)
+- [ ] Code is formatted with Black (automatic with pre-commit)
+- [ ] No linting errors (automatic with pre-commit)
 - [ ] Type checking passes (`mypy pychivalry/`)
 - [ ] Documentation is updated
 - [ ] CHANGELOG.md is updated
