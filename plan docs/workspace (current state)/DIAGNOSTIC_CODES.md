@@ -128,7 +128,6 @@ These checks validate code style and formatting according to Paradox conventions
 |------|----------|-------------|
 | **CK3301** | Warning | **Inconsistent indentation** - Content not indented at expected level |
 | **CK3303** | Information | **Spaces instead of tabs** - Paradox convention prefers tabs for indentation |
-| **CK3305** | Warning | **Block content not indented** - Content inside block should be indented relative to parent |
 | **CK3307** | Warning | **Closing brace misalignment** - Closing `}` doesn't match indentation of opening block |
 
 ### Statement Structure Checks
@@ -164,7 +163,6 @@ These checks validate code style and formatting according to Paradox conventions
 |------|----------|-------------|
 | **CK3330** | Error | **Unclosed brace** - Opening `{` without matching closing `}` |
 | **CK3331** | Error | **Extra closing brace** - Closing `}` without matching opening `{` |
-| **CK3332** | Error | **Brace mismatch in block** - Braces don't match within a block |
 
 ### Scope Reference Checks
 
@@ -253,6 +251,7 @@ These checks validate CK3 event structure, options, portraits, animations, theme
 | Code | Severity | Description |
 |------|----------|-------------|
 | **CK3450** | Error | **Option missing name** - Option block lacks required 'name' field for localization |
+| **CK3451** | Warning | **Invalid trait reference** - Trait name not recognized in valid traits list |
 
 ### Event Structure Checks
 
@@ -307,6 +306,17 @@ my_event.5 = {
 my_event.6 = {
     option = {
         add_gold = 100  # ERROR: Missing 'name' field
+    }
+}
+
+# CK3451: Invalid trait reference
+my_event.6b = {
+    option = {
+        name = my_event.6b.a
+        trigger = {
+            has_trait = super_speed  # WARNING: Unknown trait
+        }
+        add_trait = awesomeness  # WARNING: Unknown trait
     }
 }
 
@@ -370,7 +380,6 @@ These checks validate the "Golden Rule" of CK3 event scripting: scopes created i
 | **CK3552** | Error | **Scope in triggered_desc trigger** - Using `scope:xxx` in triggered_desc trigger, but scope is saved in immediate |
 | **CK3553** | Error | **Variable checked before set** - Checking `var:xxx` in trigger, but variable is set in immediate |
 | **CK3554** | Warning | **Temporary scope across events** - Using `save_temporary_scope_as` but triggering another event (scope won't persist) |
-| **CK3555** | Warning | **Scope not passed to triggered event** - Scope needed in triggered event but not passed |
 
 ### Examples
 
@@ -596,7 +605,6 @@ These checks catch common CK3 scripting mistakes and gotchas.
 
 | Code | Severity | Description |
 |------|----------|-------------|
-| **CK5137** | Warning | **is_alive without exists** - Checking `is_alive` on a scope that might not exist |
 | **CK5142** | Error | **Character comparison with =** - Using `scope:a = scope:b` instead of `scope:a = { this = scope:b }` |
 
 ### Examples
@@ -624,18 +632,18 @@ trigger = {
 | Syntax Checks | CK3001-CK3002 | 2 | ✅ Implemented |
 | Semantic Checks | CK3101-CK3103 | 3 | ✅ Implemented |
 | Scope Checks | CK3201-CK3203 | 3 | ✅ Implemented |
-| Style Checks | CK33xx | 15 | ✅ Implemented |
+| Style Checks | CK33xx | 13 | ✅ Implemented |
 | Portrait Validation | CK3420-CK3422 | 3 | ✅ Implemented |
 | Theme Validation | CK3430 | 1 | ✅ Implemented |
 | Description Validation | CK3440-CK3441 | 2 | ✅ Implemented |
-| Option Validation | CK3450 | 1 | ✅ Implemented |
-| Scope Timing | CK3550-CK3555 | 6 | ✅ Implemented |
+| Option Validation | CK3450-CK3451 | 2 | ✅ Implemented |
+| Scope Timing | CK3550-CK3554 | 5 | ✅ Implemented |
 | Opinion Modifiers | CK3656 | 1 | ✅ Implemented |
 | Event Structure | CK3760-CK3769 | 9 | ✅ Implemented |
 | Effect/Trigger Context | CK3870-CK3873 | 4 | ✅ Implemented |
 | List Iterators | CK3875-CK3977 | 3 | ✅ Implemented |
-| Common Gotchas | CK5137-CK5142 | 2 | ✅ Implemented |
-| **Total Implemented** | | **55** | |
+| Common Gotchas | CK5142 | 1 | ✅ Implemented |
+| **Total Implemented** | | **52** | |
 | | | | |
 | Namespace/ID Validation | CK3400-CK3406 | 7 | ⚠️ Planned (Phase 3) |
 | Trigger Extensions | CK3510-CK3515 | 6 | ⚠️ Planned (Phase 4) |

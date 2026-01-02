@@ -48,17 +48,17 @@ This document outlines the phased implementation plan for adding missing validat
 | Phase | New Codes | Cumulative Total | Status |
 |-------|-----------|------------------|--------|
 | Phase 1 | 13 | 55 | ✅ COMPLETE (Jan 2, 2026) |
-| Phase 2 | 7 | 62 | 🔴 Not Started |
-| Phase 3 | 7 | 68 | 🔴 Not Started |
-| Phase 4 | 6 | 74 | 🔴 Not Started |
-| Phase 5 | 7 | 81 | 🔴 Not Started |
-| Phase 6 | 6 | 87 | 🔴 Not Started |
-| Phase 7 | 7 | 94 | 🔴 Not Started |
-| Phase 8 | 10 | 104 | 🔴 Not Started |
-| Phase 9 | 9 | 113 | 🔴 Not Started |
-| Phase 10 | 5 | 118 | 🔴 Not Started |
-| Phase 11 | 4 | 122 | 🔴 Not Started |
-| Phase 12 | 5 | 127 | 🔴 Not Started |
+| Phase 2 | 6 | 61 | ✅ COMPLETE (Jan 2, 2026) |
+| Phase 3 | 7 | 68 | 🟡 Issue #26 Created |
+| Phase 4 | 6 | 74 | 🟡 Issue #32 Created |
+| Phase 5 | 7 | 81 | 🟡 Issue #27 Created |
+| Phase 6 | 6 | 87 | 🟡 Issue #28 Created |
+| Phase 7 | 7 | 94 | 🟡 Issue #29 Created |
+| Phase 8 | 10 | 104 | 🟡 Issue #30 Created |
+| Phase 9 | 9 | 113 | 🟡 Issue #31 Created |
+| Phase 10 | 5 | 118 | 🟡 Issue #33 Created |
+| Phase 11 | 4 | 122 | 🟡 Issue #19 Created |
+| Phase 12 | 5 | 127 | 🟡 Issues #20-24 Created |
 
 ---
 
@@ -304,107 +304,20 @@ All 12 Phase 1 checks implemented:
 **Effort:** Low-Medium  
 **Impact:** High  
 **Dependencies:** Phase 1  
-**Status:** ✅ **COMPLETE**
+**Status:** ✅ **COMPLETE** (January 2, 2026)
 
-All Phase 2 checks are fully implemented and active in `paradox_checks.py`.
+All Phase 2 checks are fully implemented and active in [paradox_checks.py](../../pychivalry/paradox_checks.py).
 
-### Tasks
-
-#### 2.1 Hidden Event with Options (CK3762)
-
-```python
-def check_hidden_event_options(node: CK3Node) -> List[Diagnostic]:
-    """CK3762: Hidden event with options (options are ignored)"""
-    if node.is_event():
-        is_hidden = node.find_child("hidden")
-        if is_hidden and is_hidden.value == "yes":
-            options = node.find_children("option")
-            if options:
-                return [Diagnostic(
-                    range=options[0].range,
-                    message="Hidden event has option blocks which will be ignored",
-                    severity=DiagnosticSeverity.Warning,
-                    code="CK3762"
-                )]
-    return []
-```
-
-#### 2.2 Multiple After Blocks (CK3766)
-
-```python
-def check_multiple_after_blocks(node: CK3Node) -> List[Diagnostic]:
-    """CK3766: Multiple after blocks (only first executes)"""
-    if node.is_event():
-        after_blocks = node.find_children("after")
-        if len(after_blocks) > 1:
-            return [Diagnostic(
-                range=after_blocks[1].range,
-                message="Multiple 'after' blocks - only the first executes",
-                severity=DiagnosticSeverity.Error,
-                code="CK3766"
-            )]
-    return []
-```
-
-#### 2.3 Empty Event Block (CK3767)
-
-```python
-def check_empty_event(node: CK3Node) -> List[Diagnostic]:
-    """CK3767: Empty event block"""
-    if node.is_event():
-        meaningful_children = [c for c in node.children 
-                              if c.key not in ("type", "hidden")]
-        if not meaningful_children:
-            return [Diagnostic(
-                range=node.range,
-                message="Event block contains no meaningful content",
-                severity=DiagnosticSeverity.Warning,
-                code="CK3767"
-            )]
-    return []
-```
-
-#### 2.4 No Portraits (CK3769)
-
-```python
-def check_event_has_portraits(node: CK3Node) -> List[Diagnostic]:
-    """CK3769: Non-hidden event has no portraits"""
-    if node.is_event():
-        is_hidden = node.find_child("hidden")
-        if not is_hidden or is_hidden.value != "yes":
-            portrait_positions = ["left_portrait", "right_portrait", 
-                                 "lower_left_portrait", "lower_center_portrait",
-                                 "lower_right_portrait"]
-            has_portrait = any(node.has_child(p) for p in portrait_positions)
-            if not has_portrait:
-                return [Diagnostic(
-                    range=node.range,
-                    message="Non-hidden event has no portrait positions defined",
-                    severity=DiagnosticSeverity.Information,
-                    code="CK3769"
-                )]
-    return []
-```
-
-### Remaining Tasks
-- [ ] CK3765: Missing title (optional but recommended)
-- [ ] Event type context validation (character_event needs character scope)
-- [ ] Integrate with existing CK3760, CK3763, CK3768 checks
-
-### Deliverables
-- [x] Complete event structure validation in `paradox_checks.py`
-- [ ] Unit tests for all 7 checks
-- [ ] Integration test with complete event example
-
-### Implementation Summary
-All 7 Phase 2 checks implemented:
+**Implementation Summary:**
+- ✅ All 6 Phase 2 checks implemented
 - ✅ CK3762: Hidden event with options (line 866)
 - ✅ CK3766: Multiple after blocks (line 913)
 - ✅ CK3767: Empty event block (line 953)
 - ✅ CK3769: No portraits (line 993)
-- ✅ CK3760: Missing event type (already in base checks)
-- ✅ CK3763: Event no options (already in base checks)
-- ✅ CK3768: Multiple immediate blocks (already in base checks)
+- ✅ CK3760, CK3763, CK3768 already in base checks
+- ✅ Tests passing in test_paradox_checks.py
+
+**Note:** CK3765 (Missing title) tracked separately in [Issue #25](https://github.com/Cyborgninja21/pychivalry/issues/25).
 
 ### Actual Effort
 - **Code Changes:** ~200 lines
@@ -417,132 +330,33 @@ All 7 Phase 2 checks implemented:
 **Priority:** 🔴 Critical  
 **Effort:** Medium  
 **Impact:** High  
-**Dependencies:** Phase 1 (uses existing namespace tracking in `code_lens.py`)
+**Dependencies:** Phase 1 (uses existing namespace tracking in `code_lens.py`)  
+**Status:** 🟡 **Tracked in [Issue #26](https://github.com/Cyborgninja21/pychivalry/issues/26)**
 
-### Tasks
+### Diagnostic Codes (NOT IMPLEMENTED)
+- CK3400: File has events but no namespace declaration
+- CK3401: Event ID doesn't use declared namespace
+- CK3402: Event ID exceeds 9999 (causes buggy event calling)
+- CK3403: Namespace contains invalid characters
+- CK3404: Duplicate event ID across workspace
+- CK3405: Non-sequential IDs (large gaps in numbering)
+- CK3406: Invalid event ID format (not `namespace.number`)
 
-#### 3.1 Missing Namespace (CK3400)
-
-```python
-def check_file_has_namespace(document: TextDocument, ast: List[CK3Node]) -> List[Diagnostic]:
-    """CK3400: File has events but no namespace declaration"""
-    has_namespace = any(node.key == "namespace" for node in ast)
-    has_events = any(is_event_definition(node) for node in ast)
-    
-    if has_events and not has_namespace:
-        return [Diagnostic(
-            range=Range(Position(0, 0), Position(0, 0)),
-            message="File contains events but no namespace declaration",
-            severity=DiagnosticSeverity.Error,
-            code="CK3400"
-        )]
-    return []
-```
-
-#### 3.2 Event ID Mismatch (CK3401)
-
-```python
-def check_event_namespace_match(node: CK3Node, namespace: str) -> List[Diagnostic]:
-    """CK3401: Event ID doesn't use declared namespace"""
-    if is_event_definition(node):
-        event_id = node.key  # e.g., "my_events.1"
-        event_namespace = event_id.split(".")[0] if "." in event_id else ""
-        if event_namespace != namespace:
-            return [Diagnostic(
-                range=node.range,
-                message=f"Event '{event_id}' uses namespace '{event_namespace}' but file declares '{namespace}'",
-                severity=DiagnosticSeverity.Error,
-                code="CK3401"
-            )]
-    return []
-```
-
-#### 3.3 Event ID > 9999 (CK3402)
-
-```python
-def check_event_id_range(node: CK3Node) -> List[Diagnostic]:
-    """CK3402: Event ID exceeds 9999 (causes buggy event calling)"""
-    if is_event_definition(node) and "." in node.key:
-        try:
-            event_num = int(node.key.split(".")[-1])
-            if event_num > 9999:
-                return [Diagnostic(
-                    range=node.range,
-                    message=f"Event ID {event_num} exceeds 9999. IDs > 9999 cause buggy event calling.",
-                    severity=DiagnosticSeverity.Warning,
-                    code="CK3402"
-                )]
-        except ValueError:
-            pass
-    return []
-```
-
-#### 3.4 Invalid Namespace Characters (CK3403)
-
-```python
-def check_namespace_characters(node: CK3Node) -> List[Diagnostic]:
-    """CK3403: Namespace contains invalid characters"""
-    if node.key == "namespace":
-        namespace = node.value
-        if not namespace.replace("_", "").isalnum() or "." in namespace:
-            return [Diagnostic(
-                range=node.range,
-                message=f"Namespace '{namespace}' contains invalid characters. Use only alphanumeric and underscores.",
-                severity=DiagnosticSeverity.Error,
-                code="CK3403"
-            )]
-    return []
-```
-
-#### 3.5 Duplicate Event ID (CK3404)
-
-**Requires:** Workspace-level validation using `DocumentIndex`
-
-```python
-def check_duplicate_event_ids(index: DocumentIndex) -> Dict[str, List[Diagnostic]]:
-    """CK3404: Duplicate event ID across workspace"""
-    diagnostics_by_file = {}
-    event_locations = {}  # event_id -> [(file, range), ...]
-    
-    for file, events in index.events.items():
-        for event_id, event_range in events:
-            if event_id not in event_locations:
-                event_locations[event_id] = []
-            event_locations[event_id].append((file, event_range))
-    
-    for event_id, locations in event_locations.items():
-        if len(locations) > 1:
-            for file, range in locations:
-                if file not in diagnostics_by_file:
-                    diagnostics_by_file[file] = []
-                other_files = [f for f, r in locations if f != file]
-                diagnostics_by_file[file].append(Diagnostic(
-                    range=range,
-                    message=f"Duplicate event ID '{event_id}'. Also defined in: {', '.join(other_files)}",
-                    severity=DiagnosticSeverity.Error,
-                    code="CK3404"
-                ))
-    
-    return diagnostics_by_file
-```
-
-#### 3.6 Additional Checks
-
-| Code | Check | Implementation |
-|------|-------|----------------|
-| CK3405 | Non-sequential IDs | Compare consecutive event IDs for large gaps |
-| CK3406 | Invalid event ID format | Validate `namespace.number` pattern |
-
-### Deliverables
-- [ ] Namespace validation functions in `paradox_checks.py`
-- [ ] Workspace-level duplicate detection using `DocumentIndex`
-- [ ] Update indexer to track event IDs with locations
-- [ ] Tests for all 7 checks
+### Key Implementation Requirements
+- Leverage existing namespace tracking in `code_lens.py`
+- Workspace-level duplicate detection using `DocumentIndex`
+- Update indexer to track event IDs with locations
+- Validate namespace format and event ID structure
+- Check for namespace/ID mismatches
 
 ### Estimated Effort
 - **Code Changes:** ~250 lines
 - **Time:** 3-5 hours
+- **See [Issue #26](https://github.com/Cyborgninja21/pychivalry/issues/26) for detailed implementation plan**
 
+---
+
+## Phase 4: Trigger Block Extensions
 ---
 
 ## Phase 4: Trigger Block Extensions
@@ -550,100 +364,27 @@ def check_duplicate_event_ids(index: DocumentIndex) -> Dict[str, List[Diagnostic
 **Priority:** 🔴 Critical  
 **Effort:** Medium  
 **Impact:** High  
-**Dependencies:** None
+**Dependencies:** None  
+**Status:** 🟡 **Tracked in [Issue #32](https://github.com/Cyborgninja21/pychivalry/issues/32)**
 
-### Tasks
+### Diagnostic Codes (NOT IMPLEMENTED)
+- CK3510: trigger_else without preceding trigger_if
+- CK3511: Multiple trigger_else blocks (only first executes)
+- CK3512: trigger_if block lacks required 'limit' block
+- CK3513: trigger_if with empty limit always passes
+- CK3514: on_trigger_fail defined (informational)
+- CK3515: Duplicate trigger conditions
 
-#### 4.1 trigger_else Without trigger_if (CK3510)
-
-```python
-def check_trigger_else_structure(node: CK3Node) -> List[Diagnostic]:
-    """CK3510: trigger_else without preceding trigger_if"""
-    diagnostics = []
-    if node.key == "trigger" and node.is_block():
-        children = node.children
-        for i, child in enumerate(children):
-            if child.key == "trigger_else":
-                # Check if preceded by trigger_if
-                has_trigger_if = any(
-                    c.key == "trigger_if" 
-                    for c in children[:i]
-                )
-                if not has_trigger_if:
-                    diagnostics.append(Diagnostic(
-                        range=child.range,
-                        message="trigger_else without preceding trigger_if",
-                        severity=DiagnosticSeverity.Error,
-                        code="CK3510"
-                    ))
-    return diagnostics
-```
-
-#### 4.2 Multiple trigger_else (CK3511)
-
-```python
-def check_multiple_trigger_else(node: CK3Node) -> List[Diagnostic]:
-    """CK3511: Multiple trigger_else blocks (only first executes)"""
-    if node.key == "trigger" and node.is_block():
-        trigger_else_blocks = [c for c in node.children if c.key == "trigger_else"]
-        if len(trigger_else_blocks) > 1:
-            return [Diagnostic(
-                range=trigger_else_blocks[1].range,
-                message="Multiple trigger_else blocks - only the first executes",
-                severity=DiagnosticSeverity.Warning,
-                code="CK3511"
-            )]
-    return []
-```
-
-#### 4.3 trigger_if Missing limit (CK3512)
-
-```python
-def check_trigger_if_has_limit(node: CK3Node) -> List[Diagnostic]:
-    """CK3512: trigger_if block lacks required 'limit' block"""
-    if node.key == "trigger_if" and node.is_block():
-        if not node.has_child("limit"):
-            return [Diagnostic(
-                range=node.range,
-                message="trigger_if block lacks required 'limit' block",
-                severity=DiagnosticSeverity.Error,
-                code="CK3512"
-            )]
-    return []
-```
-
-#### 4.4 Empty trigger_if limit (CK3513)
-
-```python
-def check_trigger_if_empty_limit(node: CK3Node) -> List[Diagnostic]:
-    """CK3513: trigger_if with empty limit always passes"""
-    if node.key == "trigger_if" and node.is_block():
-        limit = node.find_child("limit")
-        if limit and limit.is_block() and not limit.children:
-            return [Diagnostic(
-                range=limit.range,
-                message="trigger_if with empty limit always passes",
-                severity=DiagnosticSeverity.Warning,
-                code="CK3513"
-            )]
-    return []
-```
-
-#### 4.5 Additional Checks
-
-| Code | Check | Implementation |
-|------|-------|----------------|
-| CK3514 | on_trigger_fail defined | Information diagnostic |
-| CK3515 | Duplicate trigger conditions | Compare trigger children for duplicates |
-
-### Deliverables
-- [ ] Trigger extension validation in `paradox_checks.py`
-- [ ] Tests for all 6 checks
-- [ ] Update documentation
+### Key Implementation Requirements
+- Validate trigger_if/trigger_else block structure
+- Check for required limit blocks in trigger_if
+- Detect empty or missing limits
+- Compare trigger conditions for duplicates
 
 ### Estimated Effort
 - **Code Changes:** ~150 lines
 - **Time:** 2-3 hours
+- **See [Issue #32](https://github.com/Cyborgninja21/pychivalry/issues/32) for detailed implementation plan**
 
 ---
 

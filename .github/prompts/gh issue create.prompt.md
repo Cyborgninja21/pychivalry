@@ -1,7 +1,13 @@
-```prompt
+````prompt
 # gh issue create - Create GitHub Issue Assistant
 
 When the user asks for help creating GitHub issues, follow this structured workflow:
+
+## AI Assistant Behavior
+
+- If a requested label does not exist in the repository, the assistant SHOULD create the label using `gh label create` before creating the issue.
+- If the assistant creates any temporary files in the repository to supply the issue body (for example, an `issue_body.md` file), it MUST delete those files after the issue is successfully created. If deletion is not possible, leave a concise note in the issue body describing the temporary file and its location so maintainers can remove it.
+
 
 ## Creating Issues
 
@@ -14,9 +20,10 @@ The `gh issue create` command allows you to create issues for bug reports, featu
 ```bash
 # Create issue interactively - prompts for details
 gh issue create
-```
+````
 
 Prompts will ask for:
+
 - Title
 - Body/Description
 - Assignees
@@ -268,25 +275,31 @@ labels: bug, needs-triage
 ---
 
 ## Bug Description
+
 [Clear description]
 
 ## Steps to Reproduce
-1. 
-2. 
-3. 
+
+1.
+2.
+3.
 
 ## Expected Behavior
+
 [What should happen]
 
 ## Actual Behavior
+
 [What actually happens]
 
 ## Environment
-- OS: 
-- VS Code Version: 
-- Extension Version: 
+
+- OS:
+- VS Code Version:
+- Extension Version:
 
 ## Additional Context
+
 [Screenshots, logs, etc.]
 ```
 
@@ -366,5 +379,7 @@ gh issue create --web
 8. **Add to Milestones**: Track progress toward releases
 9. **Use Markdown**: Format for readability
 10. **Be Specific**: Avoid vague descriptions
+
+```
 
 ```
