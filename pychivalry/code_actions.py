@@ -107,6 +107,8 @@ from typing import List, Optional, Dict, Any
 from lsprotocol import types
 import re
 
+from pychivalry.ck3_language import CK3_EFFECTS, CK3_TRIGGERS
+
 
 @dataclass
 class CodeAction:
@@ -129,56 +131,9 @@ class TextReplacement:
 
 
 # Known effects and triggers for typo suggestions
-KNOWN_EFFECTS = [
-    "add_gold",
-    "add_prestige",
-    "add_piety",
-    "add_stress",
-    "add_dread",
-    "add_trait",
-    "remove_trait",
-    "add_title",
-    "create_title",
-    "set_variable",
-    "change_variable",
-    "trigger_event",
-    "random_list",
-    "save_scope_as",
-    "death",
-    "imprison",
-    "release_from_prison",
-    "add_character_flag",
-    "remove_character_flag",
-    "set_culture",
-    "set_faith",
-    "add_opinion",
-    "reverse_add_opinion",
-    "spawn_army",
-]
-
-KNOWN_TRIGGERS = [
-    "has_trait",
-    "has_title",
-    "has_gold",
-    "has_variable",
-    "is_alive",
-    "is_landed",
-    "is_at_war",
-    "has_character_flag",
-    "culture",
-    "faith",
-    "religion",
-    "age",
-    "diplomacy",
-    "martial",
-    "stewardship",
-    "intrigue",
-    "learning",
-    "prowess",
-    "any_vassal",
-    "any_courtier",
-    "can_have_children",
-]
+# Use the comprehensive lists from ck3_language.py
+KNOWN_EFFECTS = CK3_EFFECTS
+KNOWN_TRIGGERS = CK3_TRIGGERS
 
 
 def calculate_levenshtein_distance(s1: str, s2: str) -> int:
@@ -236,10 +191,29 @@ def find_similar_keywords(word: str, candidates: List[str], max_distance: int = 
         ['has_trait']
     """
     matches = []
+    word_lower = word.lower()
+    word_parts = word_lower.split("_")
+
     for candidate in candidates:
-        distance = calculate_levenshtein_distance(word.lower(), candidate.lower())
+        candidate_lower = candidate.lower()
+        distance = calculate_levenshtein_distance(word_lower, candidate_lower)
         if distance <= max_distance:
             matches.append((candidate, distance))
+        # Also match patterns where the word is a substring or base pattern
+        # e.g., 'add_lifestyle_xp' should match 'add_learning_lifestyle_xp'
+        elif word_lower in candidate_lower or candidate_lower.startswith(word_lower.rstrip("_")):
+            # Give these a higher distance so exact matches are preferred
+            matches.append((candidate, max_distance + 1))
+        # Check if key parts of the word appear in the candidate (for 3+ part words)
+        # e.g., 'add_lifestyle_xp' parts: ['add', 'lifestyle', 'xp'] should match
+        #       'add_learning_lifestyle_xp' which contains 'add', 'lifestyle', 'xp'
+        elif len(word_parts) >= 3:
+            # Check if ALL parts of the word appear in the candidate
+            candidate_parts = candidate_lower.split("_")
+            matching_parts = sum(1 for part in word_parts if part in candidate_parts)
+            if matching_parts == len(word_parts) and candidate_lower.startswith(word_parts[0]):
+                # All parts found and same prefix - likely a pattern match
+                matches.append((candidate, max_distance + 2))
 
     # Sort by distance
     matches.sort(key=lambda x: x[1])

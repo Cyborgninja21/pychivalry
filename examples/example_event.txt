@@ -77,7 +77,7 @@ example_events.0002 = {
 	type = character_event
 	title = example_events.0002.t
 	desc = example_events.0002.desc
-	theme = mental_break
+	theme = mental_health
 	
 	trigger = {
 		# Check for traits
@@ -105,7 +105,7 @@ example_events.0003 = {
 	type = character_event
 	title = example_events.0003.t
 	desc = example_events.0003.desc
-	theme = education
+	theme = learning
 	
 	trigger = {
 		age = 16
@@ -147,7 +147,7 @@ example_events.0004 = {
 	theme = faith
 	
 	trigger = {
-		faith = { has_doctrine = doctrine_pluralism_fundamentalist }
+		is_ruler = yes
 		NOT = { has_trait = generous }
 		gold >= 500
 	}
@@ -191,7 +191,7 @@ example_events.0005 = {
 	type = character_event
 	title = example_events.0005.t
 	desc = example_events.0005.desc
-	theme = health
+	theme = healthcare
 	
 	trigger = {
 		age >= 40
@@ -277,16 +277,13 @@ example_events.0007 = {
 	type = character_event
 	title = example_events.0007.t
 	desc = example_events.0007.desc
-	theme = party
+	theme = feast
 	
 	trigger = {
 		# Multiple trait checks
 		any_courtier = {
 			has_trait = drunkard
-			opinion = {
-				target = root
-				value >= 20
-			}
+			NOT = { has_relation_rival = root }
 		}
 		
 		NOR = {
@@ -306,10 +303,7 @@ example_events.0007 = {
 		random_courtier = {
 			limit = {
 				has_trait = drunkard
-				opinion = {
-					target = root
-					value >= 20
-				}
+				NOT = { has_relation_rival = root }
 			}
 			save_scope_as = drinking_buddy
 		}
@@ -333,7 +327,6 @@ example_events.0007 = {
 			add_opinion = {
 				target = root
 				modifier = friendship_opinion
-				opinion = 20
 			}
 		}
 		
@@ -392,7 +385,7 @@ example_events.0009 = {
 	type = character_event
 	title = example_events.0009.t
 	desc = example_events.0009.desc
-	theme = child
+	theme = childhood
 	
 	trigger = {
 		age < 3
@@ -430,16 +423,11 @@ example_events.0010 = {
 			has_trait = kinslayer
 			has_trait = deviant
 		}
-		any_scheme = {
-			scheme_type = murder
-		}
+		intrigue >= 15
 	}
 	
 	immediate = {
 		random_scheme = {
-			limit = {
-				scheme_type = murder
-			}
 			save_scope_as = murder_plot
 		}
 	}
@@ -453,14 +441,10 @@ example_events.0010 = {
 		# Check if target is family
 		if = {
 			limit = {
-				scope:murder_plot = {
-					scheme_target = {
-						OR = {
-							is_parent_of = root
-							is_child_of = root
-							is_sibling_of = root
-						}
-					}
+				OR = {
+					is_parent_of = scope:murder_plot.scheme_target
+					is_child_of = scope:murder_plot.scheme_target
+					is_sibling_of = scope:murder_plot.scheme_target
 				}
 			}
 			add_trait = kinslayer
@@ -524,18 +508,17 @@ example_decision = {
 		
 		if = {
 			limit = { has_trait = diligent }
-			add_lifestyle_xp = 100
+			add_stewardship_lifestyle_xp = 100
 		}
 		
 		every_vassal = {
 			limit = {
-				primary_title = { tier = tier_duchy }
+				highest_held_title_tier = tier_duchy
 				NOT = { has_trait = ambitious }
 			}
 			add_opinion = {
 				target = root
 				modifier = grateful_opinion
-				opinion = 10
 			}
 		}
 		
