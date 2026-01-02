@@ -624,8 +624,10 @@ def parse_effect_group(node: Any) -> EffectGroup:
         elif child.key == 'trigger':
             group.trigger = {'node': child}
         elif child.key == 'chance':
-            if isinstance(child.value, (int, float)):
+            try:
                 group.chance = int(child.value)
+            except (ValueError, TypeError):
+                pass  # Invalid chance value will be caught by validation
         elif child.key == 'triggered_effect':
             te = parse_triggered_effect(child)
             group.triggered_effects.append(te)

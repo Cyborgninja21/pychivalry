@@ -148,7 +148,7 @@ class TestEffectGroupParsing:
         
         effect_group = parse_effect_group(ast[0])
         assert effect_group is not None
-        assert effect_group.timing_unit is None
+        assert effect_group.timing_type is None
         assert effect_group.timing_value is None
 
 
@@ -169,33 +169,46 @@ class TestTriggeredEffectParsing:
         assert triggered.effect is not None
 
     def test_parse_triggered_effect_with_chance(self):
-        """Test parsing triggered_effect with chance modifier."""
-        text = """triggered_effect = {
+        """Test parsing effect_group with chance modifier (not triggered_effect)."""
+        # Note: chance is an effect_group attribute, not triggered_effect
+        text = """effect_group = {
+            days = 30
             trigger = { always = yes }
             chance = 50
-            effect = { add_gold = 500 }
-        }"""
-        ast = parse_document(text)
-        
-        triggered = parse_triggered_effect(ast[0])
-        assert triggered is not None
-        assert triggered.chance == 50
-
-    def test_parse_triggered_effect_with_first_valid(self):
-        """Test parsing triggered_effect with first_valid."""
-        text = """triggered_effect = {
-            trigger = { always = yes }
-            first_valid = {
-                effect = { add_gold = 100 }
-                effect = { add_prestige = 100 }
+            triggered_effect = {
+                trigger = { always = yes }
+                effect = { add_gold = 500 }
             }
         }"""
         ast = parse_document(text)
         
-        triggered = parse_triggered_effect(ast[0])
-        assert triggered is not None
-        assert triggered.first_valid is not None
-        assert len(triggered.first_valid.effects) == 2
+        effect_group = parse_effect_group(ast[0])
+        assert effect_group is not None
+        assert effect_group.chance == 50
+
+    def test_parse_triggered_effect_with_first_valid(self):
+        """Test parsing effect_group with first_valid (not triggered_effect)."""
+        # Note: first_valid is an effect_group attribute, not triggered_effect
+        text = """effect_group = {
+            days = 30
+            trigger = { always = yes }
+            first_valid = {
+                triggered_effect = {
+                    trigger = { has_trait = brave }
+                    effect = { add_gold = 100 }
+                }
+                triggered_effect = {
+                    trigger = { always = yes }
+                    effect = { add_prestige = 100 }
+                }
+            }
+        }"""
+        ast = parse_document(text)
+        
+        effect_group = parse_effect_group(ast[0])
+        assert effect_group is not None
+        assert effect_group.first_valid is not None
+        assert len(effect_group.first_valid.triggered_effects) == 2
 
 
 class TestStoryCycleParsing:
