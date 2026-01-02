@@ -190,3 +190,10 @@ coverage/
 
 # Optional REPL history
 .node_repl_history
+
+# User-generated game data (copyright Paradox Interactive)
+# Users must extract this from their own CK3 installation
+pychivalry/data/traits/*.yaml
+# Keep the directory structure and README
+!pychivalry/data/traits/README.md
+!pychivalry/data/traits/.gitkeep

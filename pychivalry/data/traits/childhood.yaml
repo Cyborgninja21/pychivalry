@@ -1,0 +1,24 @@
+# CK3 Childhood Traits
+# Auto-generated from CK3 game files
+# Total traits: 5
+
+bossy:
+  category: childhood
+  opposites: []
+  description: Bossy
+charming:
+  category: childhood
+  opposites: []
+  description: Charming
+curious:
+  category: childhood
+  opposites: []
+  description: Curious
+pensive:
+  category: childhood
+  opposites: []
+  description: Pensive
+rowdy:
+  category: childhood
+  opposites: []
+  description: Rowdy

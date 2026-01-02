@@ -1,0 +1,442 @@
+# CK3 Special Traits
+# Auto-generated from CK3 game files
+# Total traits: 71
+
+administrative_court_1:
+  category: court_type
+  opposites: []
+  group: administrative_court
+  level: 1
+  description: Administrative Court 1
+administrative_court_2:
+  category: court_type
+  opposites: []
+  group: administrative_court
+  level: 2
+  description: Administrative Court 2
+aggressive_attacker:
+  category: commander
+  opposites: []
+  description: Aggressive Attacker
+albino:
+  opposites: []
+  description: Albino
+beauty_bad_1:
+  opposites:
+  - beauty_good
+  - beauty_bad_2
+  - beauty_bad_3
+  group: beauty_bad
+  level: 1
+  description: Beauty Bad 1
+beauty_bad_2:
+  opposites:
+  - beauty_good
+  - beauty_bad_3
+  - beauty_bad_1
+  group: beauty_bad
+  level: 2
+  description: Beauty Bad 2
+beauty_bad_3:
+  opposites:
+  - beauty_good
+  - beauty_bad_2
+  - beauty_bad_1
+  group: beauty_bad
+  level: 3
+  description: Beauty Bad 3
+beauty_good_1:
+  opposites:
+  - beauty_bad
+  - beauty_good_2
+  - beauty_good_3
+  group: beauty_good
+  level: 1
+  description: Beauty Good 1
+beauty_good_2:
+  opposites:
+  - beauty_bad
+  - beauty_good_1
+  - beauty_good_3
+  group: beauty_good
+  level: 2
+  description: Beauty Good 2
+beauty_good_3:
+  opposites:
+  - beauty_bad
+  - beauty_good_2
+  - beauty_good_1
+  group: beauty_good
+  level: 3
+  description: Beauty Good 3
+bleeder:
+  opposites: []
+  description: Bleeder
+cautious_leader:
+  category: commander
+  opposites:
+  - reckless
+  description: Cautious Leader
+clubfooted:
+  opposites: []
+  description: Clubfooted
+confider:
+  opposites: []
+  description: Confider
+desert_warrior:
+  category: commander
+  opposites: []
+  description: Desert Warrior
+diplomatic_court_1:
+  category: court_type
+  opposites: []
+  group: diplomatic_court
+  level: 1
+  description: Diplomatic Court 1
+diplomatic_court_2:
+  category: court_type
+  opposites: []
+  group: diplomatic_court
+  level: 2
+  description: Diplomatic Court 2
+dull:
+  opposites:
+  - intellect_good
+  - shrewd
+  description: Dull
+dwarf:
+  opposites:
+  - giant
+  description: Dwarf
+fecund:
+  opposites:
+  - infertile
+  description: Fecund
+flexible_leader:
+  category: commander
+  opposites: []
+  description: Flexible Leader
+forder:
+  category: commander
+  opposites: []
+  description: Forder
+forest_fighter:
+  category: commander
+  opposites: []
+  description: Forest Fighter
+fp3_struggle_detractor:
+  opposites:
+  - fp3_struggle_supporter
+  description: Fp3 Struggle Detractor
+fp3_struggle_supporter:
+  opposites:
+  - fp3_struggle_detractor
+  description: Fp3 Struggle Supporter
+giant:
+  opposites:
+  - dwarf
+  description: Giant
+holy_warrior:
+  category: commander
+  opposites: []
+  description: Holy Warrior
+hunchbacked:
+  opposites: []
+  description: Hunchbacked
+immortal:
+  opposites:
+  - incapable
+  description: Immortal
+impotent:
+  opposites: []
+  description: Impotent
+inbred:
+  opposites: []
+  description: Inbred
+infertile:
+  opposites:
+  - fecund
+  description: Infertile
+intellect_bad_1:
+  opposites:
+  - shrewd
+  - intellect_good
+  - intellect_bad_2
+  - o
+  - prevent
+  - multiple
+  - tiers
+  - of
+  - the
+  - same
+  - congenital
+  - trait
+  - intellect_bad_3
+  group: intellect_bad
+  level: 1
+  description: Intellect Bad 1
+intellect_bad_2:
+  opposites:
+  - shrewd
+  - intellect_good
+  - intellect_bad_3
+  - o
+  - prevent
+  - multiple
+  - tiers
+  - of
+  - the
+  - same
+  - congenital
+  - trait
+  - intellect_bad_1
+  group: intellect_bad
+  level: 2
+  description: Intellect Bad 2
+intellect_bad_3:
+  opposites:
+  - shrewd
+  - intellect_good
+  - intellect_bad_2
+  - o
+  - prevent
+  - multiple
+  - tiers
+  - of
+  - the
+  - same
+  - congenital
+  - trait
+  - intellect_bad_1
+  group: intellect_bad
+  level: 3
+  description: Intellect Bad 3
+intellect_good_1:
+  opposites:
+  - dull
+  - intellect_bad
+  - intellect_good_2
+  - o
+  - prevent
+  - multiple
+  - tiers
+  - of
+  - the
+  - same
+  - congenital
+  - trait
+  - intellect_good_3
+  group: intellect_good
+  level: 1
+  description: Intellect Good 1
+intellect_good_2:
+  opposites:
+  - dull
+  - intellect_bad
+  - intellect_good_3
+  - o
+  - prevent
+  - multiple
+  - tiers
+  - of
+  - the
+  - same
+  - congenital
+  - trait
+  - intellect_good_1
+  group: intellect_good
+  level: 2
+  description: Intellect Good 2
+intellect_good_3:
+  opposites:
+  - dull
+  - intellect_bad
+  - intellect_good_2
+  - o
+  - prevent
+  - multiple
+  - tiers
+  - of
+  - the
+  - same
+  - congenital
+  - trait
+  - intellect_good_1
+  group: intellect_good
+  level: 3
+  description: Intellect Good 3
+intrigue_court_1:
+  category: court_type
+  opposites: []
+  group: intrigue_court
+  level: 1
+  description: Intrigue Court 1
+intrigue_court_2:
+  category: court_type
+  opposites: []
+  group: intrigue_court
+  level: 2
+  description: Intrigue Court 2
+jungle_stalker:
+  category: commander
+  opposites: []
+  description: Jungle Stalker
+lifestyle_traveler:
+  opposites: []
+  description: 'Lifestyle trait: Traveler'
+lisping:
+  opposites: []
+  description: Lisping
+logistician:
+  category: commander
+  opposites: []
+  description: Logistician
+military_engineer:
+  category: commander
+  opposites: []
+  description: Military Engineer
+open_terrain_expert:
+  category: commander
+  opposites: []
+  description: Open Terrain Expert
+organizer:
+  category: commander
+  opposites: []
+  description: Organizer
+physique_bad_1:
+  opposites:
+  - strong
+  - physique_good
+  - physique_bad_2
+  - physique_bad_3
+  group: physique_bad
+  level: 1
+  description: Physique Bad 1
+physique_bad_2:
+  opposites:
+  - strong
+  - physique_good
+  - physique_bad_3
+  - physique_bad_1
+  group: physique_bad
+  level: 2
+  description: Physique Bad 2
+physique_bad_3:
+  opposites:
+  - strong
+  - physique_good
+  - physique_bad_2
+  - physique_bad_1
+  group: physique_bad
+  level: 3
+  description: Physique Bad 3
+physique_good_1:
+  opposites:
+  - weak
+  - spindly
+  - physique_bad
+  - physique_good_2
+  - physique_good_3
+  group: physique_good
+  level: 1
+  description: Physique Good 1
+physique_good_2:
+  opposites:
+  - weak
+  - spindly
+  - physique_bad
+  - physique_good_1
+  - physique_good_3
+  group: physique_good
+  level: 2
+  description: Physique Good 2
+physique_good_3:
+  opposites:
+  - weak
+  - spindly
+  - physique_bad
+  - physique_good_1
+  - physique_good_2
+  group: physique_good
+  level: 3
+  description: Physique Good 3
+pure_blooded:
+  opposites: []
+  description: Pure Blooded
+reaver:
+  category: commander
+  opposites: []
+  description: Reaver
+reckless:
+  category: commander
+  opposites:
+  - cautious_leader
+  description: Reckless
+rough_terrain_expert:
+  category: commander
+  opposites: []
+  description: Rough Terrain Expert
+scaly:
+  opposites: []
+  description: Scaly
+scholarly_court_1:
+  category: court_type
+  opposites: []
+  group: scholarly_court
+  level: 1
+  description: Scholarly Court 1
+scholarly_court_2:
+  category: court_type
+  opposites: []
+  group: scholarly_court
+  level: 2
+  description: Scholarly Court 2
+shrewd:
+  opposites:
+  - intellect_bad
+  - dull
+  description: Shrewd
+spindly:
+  opposites:
+  - physique_good
+  description: Spindly
+strong:
+  opposites:
+  - weak
+  - physique_bad
+  description: Strong
+stuttering:
+  opposites: []
+  description: Stuttering
+tourney_participant:
+  opposites: []
+  level: 4
+  description: Tourney Participant
+unyielding_defender:
+  category: commander
+  opposites: []
+  description: Unyielding Defender
+warlike_court_1:
+  category: court_type
+  opposites: []
+  group: warlike_court
+  level: 1
+  description: Warlike Court 1
+warlike_court_2:
+  category: court_type
+  opposites: []
+  group: warlike_court
+  level: 2
+  description: Warlike Court 2
+weak:
+  opposites:
+  - strong
+  - physique_good
+  description: Weak
+wheezing:
+  opposites: []
+  description: Wheezing
+winter_soldier:
+  category: winter_commander
+  opposites: []
+  description: Winter Soldier

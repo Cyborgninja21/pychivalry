@@ -1,0 +1,191 @@
+# CK3 Personality Traits
+# Auto-generated from CK3 game files
+# Total traits: 36
+
+ambitious:
+  category: personality
+  opposites:
+  - content
+  description: Ambitious
+arbitrary:
+  category: personality
+  opposites:
+  - just
+  description: Arbitrary
+arrogant:
+  category: personality
+  opposites:
+  - humble
+  description: Arrogant
+brave:
+  category: personality
+  opposites:
+  - craven
+  description: Brave
+callous:
+  category: personality
+  opposites:
+  - compassionate
+  - sadistic
+  description: Callous
+calm:
+  category: personality
+  opposites:
+  - wrathful
+  description: Calm
+chaste:
+  category: personality
+  opposites:
+  - lustful
+  description: Chaste
+compassionate:
+  category: personality
+  opposites:
+  - callous
+  - sadistic
+  description: Compassionate
+content:
+  category: personality
+  opposites:
+  - ambitious
+  description: Content
+craven:
+  category: personality
+  opposites:
+  - brave
+  description: Craven
+cynical:
+  category: personality
+  opposites:
+  - zealous
+  description: Cynical
+deceitful:
+  category: personality
+  opposites:
+  - honest
+  description: Deceitful
+diligent:
+  category: personality
+  opposites:
+  - lazy
+  description: Diligent
+eccentric:
+  category: personality
+  opposites:
+  - fickle
+  - stubborn
+  description: Eccentric
+fickle:
+  category: personality
+  opposites:
+  - stubborn
+  - eccentric
+  description: Fickle
+forgiving:
+  category: personality
+  opposites:
+  - vengeful
+  description: Forgiving
+generous:
+  category: personality
+  opposites:
+  - greedy
+  description: Generous
+gluttonous:
+  category: personality
+  opposites:
+  - temperate
+  description: Gluttonous
+greedy:
+  category: personality
+  opposites:
+  - generous
+  description: Greedy
+gregarious:
+  category: personality
+  opposites:
+  - shy
+  description: Gregarious
+honest:
+  category: personality
+  opposites:
+  - deceitful
+  description: Honest
+humble:
+  category: personality
+  opposites:
+  - arrogant
+  description: Humble
+impatient:
+  category: personality
+  opposites:
+  - patient
+  description: Impatient
+just:
+  category: personality
+  opposites:
+  - arbitrary
+  level: 1
+  description: Just
+lazy:
+  category: personality
+  opposites:
+  - diligent
+  description: Lazy
+lustful:
+  category: personality
+  opposites:
+  - chaste
+  description: Lustful
+paranoid:
+  category: personality
+  opposites:
+  - trusting
+  description: Paranoid
+patient:
+  category: personality
+  opposites:
+  - impatient
+  description: Patient
+sadistic:
+  category: personality
+  opposites:
+  - compassionate
+  - callous
+  description: Sadistic
+shy:
+  category: personality
+  opposites:
+  - gregarious
+  description: Shy
+stubborn:
+  category: personality
+  opposites:
+  - fickle
+  - eccentric
+  description: Stubborn
+temperate:
+  category: personality
+  opposites:
+  - gluttonous
+  description: Temperate
+trusting:
+  category: personality
+  opposites:
+  - paranoid
+  description: Trusting
+vengeful:
+  category: personality
+  opposites:
+  - forgiving
+  description: Vengeful
+wrathful:
+  category: personality
+  opposites:
+  - calm
+  description: Wrathful
+zealous:
+  category: personality
+  opposites:
+  - cynical
+  description: Zealous

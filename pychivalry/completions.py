@@ -138,6 +138,7 @@ SEE ALSO:
     - hover.py: Documentation shown on hover over completion
 """
 
+import re
 from dataclasses import dataclass
 from functools import lru_cache
 from typing import List, Optional, Set, Tuple
@@ -372,6 +373,85 @@ def detect_context(
         current = current.parent
 
     return context
+
+
+def get_trait_completions(line_text: str, position: types.Position) -> Optional[List[types.CompletionItem]]:
+    """
+    Provide trait completions after trait keywords.
+    
+    This feature requires user-extracted trait data. Returns None if unavailable.
+    
+    Triggers on:
+    - has_trait = |
+    - add_trait = |
+    - remove_trait = |
+    
+    Args:
+        line_text: The line text before cursor
+        position: Cursor position
+        
+    Returns:
+        List of trait completions, or None if not in trait context
+        or if trait data not available
+        
+    Note:
+        Trait data must be extracted using VS Code command
+        "PyChivalry: Extract Trait Data from CK3 Installation"
+    """
+    from pychivalry.traits import is_trait_data_available, get_all_trait_names, get_trait_info
+    
+    # Check if we're after a trait keyword with equals
+    # Look for pattern: (has_trait|add_trait|remove_trait)\s*=\s*\S*$
+    trait_pattern = r'\b(has_trait|add_trait|remove_trait)\s*=\s*\S*$'
+    if not re.search(trait_pattern, line_text):
+        return None
+    
+    # Check if trait data is available
+    if not is_trait_data_available():
+        logger.debug("Trait data not available - skipping trait completions")
+        return None  # Fall through to regular completions
+    
+    trait_names = get_all_trait_names()
+    completions = []
+    
+    for trait_name in sorted(trait_names):
+        info = get_trait_info(trait_name)
+        
+        # Build detail and documentation
+        category = info.get('category', 'trait')
+        detail = category.replace('_', ' ').title()
+        
+        opposites = info.get('opposites', [])
+        description = info.get('description', trait_name.replace('_', ' ').title())
+        
+        docs = f"**{description}**\n\n"
+        docs += f"*Category: {detail}*\n\n"
+        
+        if opposites:
+            docs += f"**Opposite Traits:** {', '.join(opposites)}\n\n"
+        
+        group = info.get('group')
+        if group:
+            docs += f"**Group:** {group}\n\n"
+        
+        level = info.get('level')
+        if level is not None:
+            docs += f"**Level:** {level}\n\n"
+        
+        completion = types.CompletionItem(
+            label=trait_name,
+            kind=types.CompletionItemKind.Value,
+            detail=detail,
+            documentation=types.MarkupContent(
+                kind=types.MarkupKind.Markdown,
+                value=docs
+            ),
+            sort_text=f"trait_{trait_name}",
+            insert_text=trait_name,
+        )
+        completions.append(completion)
+    
+    return completions
 
 
 def filter_by_context(context: CompletionContext) -> List[types.CompletionItem]:
@@ -715,6 +795,14 @@ def get_context_aware_completions(
     Returns:
         CompletionList with context-aware completion items
     """
+    # Check for trait completions first (high priority, context-specific)
+    trait_completions = get_trait_completions(line_text, position)
+    if trait_completions is not None:
+        return types.CompletionList(
+            is_incomplete=False,
+            items=trait_completions,
+        )
+    
     # Find node at cursor position
     node = None
     if ast:

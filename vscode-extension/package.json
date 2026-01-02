@@ -68,6 +68,11 @@
         "category": "CK3"
       },
       {
+        "command": "ck3LanguageServer.extractTraitData",
+        "title": "Extract Trait Data from CK3 Installation",
+        "category": "CK3"
+      },
+      {
         "command": "ck3LanguageServer.showOutput",
         "title": "Show Output Channel",
         "category": "CK3"

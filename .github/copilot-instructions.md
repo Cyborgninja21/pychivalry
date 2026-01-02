@@ -1,6 +1,7 @@
 # COPILOT EDITS OPERATIONAL GUIDELINES
-                
+
 ## PRIME DIRECTIVE
+
 Avoid working on more than one file at a time.
 Multiple simultaneous edits to a file will cause corruption.
 Be chatting and teach about what you are doing while coding.
@@ -8,32 +9,38 @@ Be chatting and teach about what you are doing while coding.
 ## LARGE FILE & COMPLEX CHANGE PROTOCOL
 
 ### MANDATORY PLANNING PHASE
+
 When working with large files (>300 lines) or complex changes:
+
 1. ALWAYS start by creating a detailed plan BEFORE making any edits
 2. Your plan MUST include:
    - All functions/sections that need modification
    - The order in which changes should be applied
    - Dependencies between changes
    - Estimated number of separate edits required
-                
 3. Format your plan as:
+
 ## PROPOSED EDIT PLAN
+
 Working with: [filename]
 Total planned edits: [number]
 
 ### MAKING EDITS
+
 - Focus on one conceptual change at a time
 - Show clear "before" and "after" snippets when proposing changes
 - Include concise explanations of what changed and why
 - Always check if the edit maintains the project's coding style
 
 ### Edit sequence:
+
 1. [First specific change] - Purpose: [why]
 2. [Second specific change] - Purpose: [why]
 3. Do you approve this plan? I'll proceed with Edit [number] after your confirmation.
 4. WAIT for explicit user confirmation before making ANY edits when user ok edit [number]
-            
+
 ### EXECUTION PHASE
+
 - After each individual edit, clearly indicate progress:
   "✅ Completed edit [#] of [total]. Ready for next edit?"
 - If you discover additional needed changes during editing:
@@ -41,18 +48,21 @@ Total planned edits: [number]
   - Get approval before continuing
 
 #### COMMIT AFTER COMPLETION
+
 After completing a logical unit of work (e.g., implementing a feature phase, completing all edits in a plan), commit the changes with a detailed message:
 
 1. **Stage and review changes:**
+
    ```bash
    git add -A && git status
    ```
 
 2. **Commit with structured message:**
    Use conventional commit format with detailed bullet points:
+
    ```bash
    git commit -m "type: Brief summary (Phase X if applicable)
-   
+
    - High-level change category
      * Specific implementation detail
      * Specific implementation detail
@@ -64,11 +74,12 @@ After completing a logical unit of work (e.g., implementing a feature phase, com
      * Key additions/modifications
    - Implementation notes
    - Error handling additions
-   
+
    Next: [What comes next in the project plan]"
    ```
 
 3. **Commit message structure:**
+
    - **Type prefix:** `feat:`, `fix:`, `refactor:`, `docs:`, `test:`, `chore:`
    - **Summary line:** Clear, concise description (50-72 chars) with phase number if part of a plan
    - **Body:** Organized bullet list with categories and nested details
@@ -83,23 +94,40 @@ After completing a logical unit of work (e.g., implementing a feature phase, com
    - When reaching a logical checkpoint with working code
    - Before switching to a different major task
    - NOT after every single small edit (unless explicitly requested)
-                
+
 ### REFACTORING GUIDANCE
+
 When refactoring large files:
+
 - Break work into logical, independently functional chunks
 - Ensure each intermediate state maintains functionality
 - Consider temporary duplication as a valid interim step
 - Always indicate the refactoring pattern being applied
-                
+
 ### RATE LIMIT AVOIDANCE
+
 - For very large files, suggest splitting changes across multiple sessions
 - Prioritize changes that are logically complete units
 - Always provide clear stopping points
-            
+
+## Development Environment
+
+This project has the following tools installed and available:
+
+- **Git**: Version control for all project files
+- **GitHub CLI (`gh`)**: Installed for GitHub-specific operations (releases, PRs, issues)
+  - Use `gh release create` for creating GitHub releases
+  - Use `gh pr` commands for pull request management
+  - Use `gh issue` commands for issue management
+- **Python 3.9+**: Primary language for LSP server
+- **Node.js/npm**: Required for VS Code extension development
+
 ## General Requirements
+
 Use modern technologies as described below for all code suggestions. Prioritize clean, maintainable code with appropriate comments.
-            
+
 ## Python Requirements
+
 - **Target Version**: Python 3.9 or higher (compatible with 3.9, 3.10, 3.11, 3.12)
 - **Features to Use**:
   - Type hints for all function parameters and return types
@@ -140,6 +168,7 @@ Use modern technologies as described below for all code suggestions. Prioritize 
   - Implement incremental text document sync when possible
 
 ## TypeScript Requirements (VS Code Extension)
+
 - **Target**: ES2020, CommonJS module format
 - **Compiler Options**:
   - Strict mode enabled (`strict: true`)
@@ -176,8 +205,9 @@ Use modern technologies as described below for all code suggestions. Prioritize 
   - Show user-friendly error messages via `vscode.window.showErrorMessage`
   - Log detailed errors to OutputChannel for debugging
   - Handle LSP client connection errors gracefully
-            
+
 ## Folder Structure
+
 Follow this structured directory layout:
 
 ```
@@ -241,15 +271,16 @@ pychivalry/                   # Project root
 └── LICENSE                   # License file
 ```
 
-
 ## Documentation Requirements
+
 - Include docstrings for all Python modules, classes, and functions.
 - Include JSDoc/TSDoc comments for TypeScript code.
 - Document complex functions with clear examples.
 - Maintain concise Markdown documentation.
 - Minimum docblock info: `param`, `return`, `raises`/`throws`
-    
+
 ## Security Considerations
+
 - Sanitize all user inputs thoroughly.
 - Validate file paths to prevent directory traversal.
 - Handle untrusted script content safely during parsing.

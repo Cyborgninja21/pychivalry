@@ -101,6 +101,147 @@ function colorizeLogLine(line: string): string {
     return line;
 }
 
+/**
+ * Try to auto-detect CK3 installation path
+ */
+async function detectCK3Path(): Promise<string | null> {
+    const fs = require('fs');
+    const os = require('os');
+    const path = require('path');
+    const platform = os.platform();
+    
+    // Common Steam library locations
+    const steamPaths: Record<string, string[]> = {
+        'linux': [
+            path.join(os.homedir(), '.local/share/Steam/steamapps/common/Crusader Kings III'),
+            path.join(os.homedir(), '.steam/steam/steamapps/common/Crusader Kings III')
+        ],
+        'win32': [
+            'C:\\Program Files (x86)\\Steam\\steamapps\\common\\Crusader Kings III',
+            'D:\\SteamLibrary\\steamapps\\common\\Crusader Kings III',
+            'E:\\SteamLibrary\\steamapps\\common\\Crusader Kings III'
+        ],
+        'darwin': [
+            path.join(os.homedir(), 'Library/Application Support/Steam/steamapps/common/Crusader Kings III')
+        ]
+    };
+    
+    const paths = steamPaths[platform] || [];
+    
+    for (const p of paths) {
+        if (fs.existsSync(p)) {
+            return p;
+        }
+    }
+    
+    return null;
+}
+
+/**
+ * Get Python executable path from configuration
+ */
+function getPythonPath(): string {
+    const config = vscode.workspace.getConfiguration('ck3LanguageServer');
+    return config.get('pythonPath') || 'python';
+}
+
+/**
+ * Command: Extract CK3 trait data from game installation
+ */
+async function extractTraitData(context: vscode.ExtensionContext) {
+    const outputChannel = vscode.window.createOutputChannel('CK3 Trait Extraction');
+    outputChannel.show();
+    
+    try {
+        // Ask user to confirm and provide CK3 installation path
+        const proceed = await vscode.window.showInformationMessage(
+            'This will extract trait data from your Crusader Kings III installation. ' +
+            'The extracted data is for personal use only and not redistributed. Continue?',
+            'Yes', 'No'
+        );
+        
+        if (proceed !== 'Yes') {
+            return;
+        }
+        
+        // Try to detect CK3 installation path
+        let ck3Path = await detectCK3Path();
+        
+        if (!ck3Path) {
+            // Ask user to manually specify path
+            const selectedPath = await vscode.window.showOpenDialog({
+                canSelectFiles: false,
+                canSelectFolders: true,
+                canSelectMany: false,
+                title: 'Select Crusader Kings III installation folder',
+                openLabel: 'Select CK3 Folder'
+            });
+            
+            if (!selectedPath || selectedPath.length === 0) {
+                vscode.window.showWarningMessage('CK3 installation path not provided. Extraction cancelled.');
+                return;
+            }
+            
+            ck3Path = selectedPath[0].fsPath;
+        }
+        
+        // Validate path
+        const path = require('path');
+        const fs = require('fs');
+        const traitsFile = path.join(ck3Path, 'game', 'common', 'traits', '00_traits.txt');
+        if (!fs.existsSync(traitsFile)) {
+            vscode.window.showErrorMessage(
+                `Invalid CK3 installation path. Could not find: ${traitsFile}`
+            );
+            return;
+        }
+        
+        outputChannel.appendLine(`Using CK3 installation: ${ck3Path}`);
+        outputChannel.appendLine('Starting trait extraction...\n');
+        
+        // Get Python executable from language server config
+        const pythonPath = getPythonPath();
+        
+        // Get extension path and construct script path
+        const extensionPath = context.extensionPath;
+        const scriptPath = path.join(extensionPath, '..', 'tools', 'extract_traits.py');
+        
+        // Run extraction script
+        const cmd = `"${pythonPath}" "${scriptPath}" --ck3-path "${ck3Path}"`;
+        outputChannel.appendLine(`Running: ${cmd}\n`);
+        
+        const { stdout, stderr } = await execAsync(cmd);
+        
+        outputChannel.appendLine(stdout);
+        if (stderr) {
+            outputChannel.appendLine('Errors:\n' + stderr);
+        }
+        
+        // Check if successful
+        const outputDir = path.join(extensionPath, '..', 'pychivalry', 'data', 'traits');
+        const yamlFiles = fs.readdirSync(outputDir).filter((f: string) => f.endsWith('.yaml'));
+        
+        if (yamlFiles.length > 0) {
+            const result = await vscode.window.showInformationMessage(
+                `✅ Successfully extracted ${yamlFiles.length} trait data files! ` +
+                `Trait validation is now enabled. Restart the language server for changes to take effect.`,
+                'Restart Language Server', 'Later'
+            );
+            
+            if (result === 'Restart Language Server') {
+                await vscode.commands.executeCommand('ck3LanguageServer.restart');
+            }
+        } else {
+            vscode.window.showErrorMessage('Extraction completed but no data files were created. Check output for errors.');
+        }
+        
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        outputChannel.appendLine(`\nError: ${message}`);
+        vscode.window.showErrorMessage(`Failed to extract trait data: ${message}`);
+    }
+}
+
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
     // Initialize multi-channel logger
     logger.initialize(context);
@@ -133,6 +274,13 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
             logger.logServer('Restarting CK3 Language Server...');
             await deactivate();
             await startServer(context);
+        })
+    );
+
+    // Register trait extraction command
+    context.subscriptions.push(
+        vscode.commands.registerCommand('ck3LanguageServer.extractTraitData', async () => {
+            await extractTraitData(context);
         })
     );
 

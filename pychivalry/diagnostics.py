@@ -306,6 +306,77 @@ def check_syntax(doc: TextDocument, ast: List[CK3Node]) -> List[types.Diagnostic
     return diagnostics
 
 
+def check_trait_references(ast: List[CK3Node]) -> List[types.Diagnostic]:
+    """
+    Validate trait references in has_trait, add_trait, remove_trait.
+    
+    This validation is OPTIONAL and requires user-extracted trait data.
+    If trait data is not available, this check is silently skipped.
+    
+    Detects:
+    - CK3451: Unknown trait referenced
+    
+    Args:
+        ast: Parsed AST nodes
+        
+    Returns:
+        List of diagnostics for invalid trait references,
+        or empty list if trait data not available
+        
+    Note:
+        Trait data must be extracted by users from their own CK3 installation
+        using the VS Code command "PyChivalry: Extract Trait Data from CK3 Installation"
+        due to copyright restrictions.
+    """
+    from pychivalry.traits import is_trait_data_available, is_valid_trait, suggest_similar_traits
+    
+    # Skip trait validation if data not available (user hasn't extracted it)
+    if not is_trait_data_available():
+        logger.debug("Trait data not available - skipping trait validation")
+        return []
+    
+    diagnostics = []
+    
+    # Trait reference effects/triggers
+    trait_keywords = {'has_trait', 'add_trait', 'remove_trait'}
+    
+    def check_node(node: CK3Node):
+        if node.key in trait_keywords and node.value:
+            trait_name = node.value.strip()
+            
+            # Skip if it's a variable or scope reference
+            if trait_name.startswith('var:') or trait_name.startswith('scope:') or trait_name.startswith('local_var:') or trait_name.startswith('global_var:'):
+                return
+            
+            # Validate trait exists
+            if not is_valid_trait(trait_name):
+                # Get suggestions
+                suggestions = suggest_similar_traits(trait_name, max_suggestions=3)
+                
+                # Build message with suggestions
+                message = f"Unknown trait '{trait_name}'"
+                if suggestions:
+                    message += f". Did you mean: {', '.join(suggestions)}?"
+                
+                diagnostics.append(
+                    create_diagnostic(
+                        message=message,
+                        range_=node.range,
+                        severity=types.DiagnosticSeverity.Warning,
+                        code="CK3451",
+                    )
+                )
+        
+        # Recurse into children
+        for child in node.children:
+            check_node(child)
+    
+    for node in ast:
+        check_node(node)
+    
+    return diagnostics
+
+
 def check_semantics(ast: List[CK3Node], index: Optional[DocumentIndex]) -> List[types.Diagnostic]:
     """
     Check for semantic errors in the AST.
@@ -316,6 +387,7 @@ def check_semantics(ast: List[CK3Node], index: Optional[DocumentIndex]) -> List[
     - Triggers in effect blocks (warnings)
     - Undefined event references
     - Custom scripted effects/triggers (from workspace index)
+    - Trait references (CK3451)
 
     Args:
         ast: Parsed AST
@@ -325,6 +397,9 @@ def check_semantics(ast: List[CK3Node], index: Optional[DocumentIndex]) -> List[
         List of semantic diagnostics
     """
     diagnostics = []
+    
+    # Check trait references first (fast validation)
+    diagnostics.extend(check_trait_references(ast))
 
     # Get custom effects/triggers from workspace index
     custom_effects = index.get_all_scripted_effects() if index else set()

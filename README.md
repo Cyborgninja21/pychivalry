@@ -82,6 +82,17 @@ See [Log Watcher Usage Guide](plan%20docs/LOG_WATCHER_USAGE.md) for details.
 
 <!-- ![Log watcher demo](assets/images/log-watcher.png) -->
 
+#### 🎯 Trait Validation (OPTIONAL)
+Validate trait names in `has_trait`, `add_trait`, and `remove_trait`:
+- ✅ Warnings for unknown traits (CK3451)
+- 💡 Smart suggestions for typos ("Did you mean: brave, craven?")
+- 🔍 Auto-completion with all 297 CK3 traits
+- 📚 Hover documentation with trait details, opposites, categories
+
+**This feature is OPTIONAL** and requires you to extract trait data from your own CK3 installation.
+
+See **Optional: Trait Validation Setup** section below for setup instructions.
+
 #### 📁 File Support
 `.txt`, `.gui`, `.gfx`, and `.asset` files.
 
@@ -205,6 +216,52 @@ Add to your VS Code `settings.json`:
 
 **Command Palette:**
 - `CK3 Language Server: Restart` — Restart the server
+
+## 🎯 Optional: Trait Validation Setup
+
+PyChivalry can validate trait names (`has_trait`, `add_trait`, `remove_trait`) against CK3's trait list, providing:
+
+- ✅ Warnings for invalid trait names (CK3451)
+- 💡 Smart suggestions for misspelled traits
+- 🔍 Auto-completion with all 297 CK3 traits
+- 📚 Hover documentation with trait details
+
+**This feature is OPTIONAL** and requires you to extract trait data from your own CK3 installation.
+
+### Setup Steps
+
+1. **Open VS Code Command Palette** (`Ctrl+Shift+P` or `Cmd+Shift+P`)
+2. **Run:** `CK3: Extract Trait Data from CK3 Installation`
+3. **Select your CK3 installation folder** (auto-detected on Steam)
+4. **Restart the language server** when prompted
+
+The extraction tool will create local YAML files in `pychivalry/data/traits/` for your personal use.
+
+### Requirements
+
+- Crusader Kings III installed (Steam or standalone)
+- Python 3.9+ with PyYAML package
+
+### Privacy & Copyright
+
+- ⚠️ Extracted data contains game content that is **copyright Paradox Interactive AB**
+- ✅ Stored locally on your machine (not uploaded or distributed)
+- ✅ For personal use only (respects Paradox copyright)
+- ✅ Files are automatically gitignored
+
+### Without Trait Data
+
+The language server works perfectly without trait validation:
+
+- ✅ All other features work normally
+- ✅ Syntax validation
+- ✅ Scope validation  
+- ✅ Effect/trigger validation
+- ✅ Auto-completion (except trait-specific)
+- ✅ Hover documentation
+- ❌ Trait name validation (skipped)
+
+Trait validation is silently disabled when data files are not available—no errors or crashes.
 
 ## 📂 Project Structure
 
