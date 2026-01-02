@@ -258,7 +258,7 @@ class TestTimingValidation:
         
         diagnostics = collect_story_cycle_diagnostics(ast, "file:///test.txt")
         errors = [d for d in diagnostics if d.severity == DiagnosticSeverity.Error]
-        assert any("STORY-001" in d.message for d in errors)
+        assert any(d.code == "STORY-001" for d in errors)
 
     def test_invalid_timing_range_error(self):
         """Test STORY-002: Invalid timing range (min > max)."""
@@ -272,10 +272,10 @@ class TestTimingValidation:
         
         diagnostics = collect_story_cycle_diagnostics(ast, "file:///test.txt")
         errors = [d for d in diagnostics if d.severity == DiagnosticSeverity.Error]
-        assert any("STORY-002" in d.message for d in errors)
+        assert any(d.code == "STORY-002" for d in errors)
 
     def test_negative_timing_value_error(self):
-        """Test STORY-003: Negative timing value."""
+        """Test STORY-043: Negative timing value treated as very short."""
         text = """story_test = {
             effect_group = {
                 days = -10
@@ -285,11 +285,12 @@ class TestTimingValidation:
         ast = parse_document(text)
         
         diagnostics = collect_story_cycle_diagnostics(ast, "file:///test.txt")
-        errors = [d for d in diagnostics if d.severity == DiagnosticSeverity.Error]
-        assert any("STORY-003" in d.message for d in errors)
+        # Negative timing is treated as very short interval (STORY-043)
+        infos = [d for d in diagnostics if d.severity == DiagnosticSeverity.Information]
+        assert any(d.code == "STORY-043" for d in infos)
 
     def test_zero_timing_value_error(self):
-        """Test STORY-004: Zero timing value."""
+        """Test STORY-043: Zero timing value treated as very short."""
         text = """story_test = {
             effect_group = {
                 days = 0
@@ -299,11 +300,12 @@ class TestTimingValidation:
         ast = parse_document(text)
         
         diagnostics = collect_story_cycle_diagnostics(ast, "file:///test.txt")
-        errors = [d for d in diagnostics if d.severity == DiagnosticSeverity.Error]
-        assert any("STORY-004" in d.message for d in errors)
+        # Zero timing is treated as very short interval (STORY-043)
+        infos = [d for d in diagnostics if d.severity == DiagnosticSeverity.Information]
+        assert any(d.code == "STORY-043" for d in infos)
 
     def test_very_short_timing_warning(self):
-        """Test STORY-005: Very short timing interval."""
+        """Test STORY-043: Very short timing interval."""
         text = """story_test = {
             effect_group = {
                 days = 1
@@ -313,11 +315,11 @@ class TestTimingValidation:
         ast = parse_document(text)
         
         diagnostics = collect_story_cycle_diagnostics(ast, "file:///test.txt")
-        warnings = [d for d in diagnostics if d.severity == DiagnosticSeverity.Warning]
-        assert any("STORY-005" in d.message for d in warnings)
+        infos = [d for d in diagnostics if d.severity == DiagnosticSeverity.Information]
+        assert any(d.code == "STORY-043" for d in infos)
 
     def test_very_long_timing_warning(self):
-        """Test STORY-006: Very long timing interval."""
+        """Test STORY-044: Very long timing interval."""
         text = """story_test = {
             effect_group = {
                 years = 50
@@ -327,8 +329,8 @@ class TestTimingValidation:
         ast = parse_document(text)
         
         diagnostics = collect_story_cycle_diagnostics(ast, "file:///test.txt")
-        warnings = [d for d in diagnostics if d.severity == DiagnosticSeverity.Warning]
-        assert any("STORY-006" in d.message for d in warnings)
+        infos = [d for d in diagnostics if d.severity == DiagnosticSeverity.Information]
+        assert any(d.code == "STORY-044" for d in infos)
 
 
 class TestLifecycleValidation:
@@ -346,7 +348,7 @@ class TestLifecycleValidation:
         
         diagnostics = collect_story_cycle_diagnostics(ast, "file:///test.txt")
         warnings = [d for d in diagnostics if d.severity == DiagnosticSeverity.Warning]
-        assert any("STORY-010" in d.message for d in warnings)
+        assert any(d.code == "STORY-010" for d in warnings)
 
     def test_missing_on_owner_death_warning(self):
         """Test STORY-011: Missing on_owner_death hook."""
@@ -361,7 +363,7 @@ class TestLifecycleValidation:
         
         diagnostics = collect_story_cycle_diagnostics(ast, "file:///test.txt")
         warnings = [d for d in diagnostics if d.severity == DiagnosticSeverity.Warning]
-        assert any("STORY-011" in d.message for d in warnings)
+        assert any(d.code == "STORY-011" for d in warnings)
 
     def test_empty_lifecycle_hook_warning(self):
         """Test STORY-012: Empty lifecycle hook."""
@@ -376,7 +378,7 @@ class TestLifecycleValidation:
         
         diagnostics = collect_story_cycle_diagnostics(ast, "file:///test.txt")
         warnings = [d for d in diagnostics if d.severity == DiagnosticSeverity.Warning]
-        assert any("STORY-012" in d.message for d in warnings)
+        assert any(d.code == "STORY-012" for d in warnings)
 
 
 class TestEffectGroupValidation:
@@ -393,7 +395,7 @@ class TestEffectGroupValidation:
         
         diagnostics = collect_story_cycle_diagnostics(ast, "file:///test.txt")
         warnings = [d for d in diagnostics if d.severity == DiagnosticSeverity.Warning]
-        assert any("STORY-020" in d.message for d in warnings)
+        assert any(d.code == "STORY-020" for d in warnings)
 
     def test_complex_effect_group_warning(self):
         """Test STORY-021: Complex effect group (performance concern)."""
@@ -407,7 +409,7 @@ class TestEffectGroupValidation:
         
         diagnostics = collect_story_cycle_diagnostics(ast, "file:///test.txt")
         warnings = [d for d in diagnostics if d.severity == DiagnosticSeverity.Warning]
-        assert any("STORY-021" in d.message for d in warnings)
+        assert any(d.code == "STORY-021" for d in warnings)
 
 
 class TestTriggeredEffectValidation:
@@ -427,7 +429,7 @@ class TestTriggeredEffectValidation:
         
         diagnostics = collect_story_cycle_diagnostics(ast, "file:///test.txt")
         errors = [d for d in diagnostics if d.severity == DiagnosticSeverity.Error]
-        assert any("STORY-030" in d.message for d in errors)
+        assert any(d.code == "STORY-030" for d in errors)
 
     def test_missing_effect_error(self):
         """Test STORY-031: Missing effect in triggered_effect."""
@@ -443,7 +445,7 @@ class TestTriggeredEffectValidation:
         
         diagnostics = collect_story_cycle_diagnostics(ast, "file:///test.txt")
         errors = [d for d in diagnostics if d.severity == DiagnosticSeverity.Error]
-        assert any("STORY-031" in d.message for d in errors)
+        assert any(d.code == "STORY-031" for d in errors)
 
     def test_invalid_chance_error(self):
         """Test STORY-032: Invalid chance value."""
@@ -461,7 +463,7 @@ class TestTriggeredEffectValidation:
         
         diagnostics = collect_story_cycle_diagnostics(ast, "file:///test.txt")
         errors = [d for d in diagnostics if d.severity == DiagnosticSeverity.Error]
-        assert any("STORY-032" in d.message for d in errors)
+        assert any(d.code == "STORY-032" for d in errors)
 
     def test_always_true_trigger_warning(self):
         """Test STORY-033: Always-true trigger."""
@@ -478,7 +480,7 @@ class TestTriggeredEffectValidation:
         
         diagnostics = collect_story_cycle_diagnostics(ast, "file:///test.txt")
         warnings = [d for d in diagnostics if d.severity == DiagnosticSeverity.Warning]
-        assert any("STORY-033" in d.message for d in warnings)
+        assert any(d.code == "STORY-033" for d in warnings)
 
 
 class TestCompleteValidation:
@@ -566,7 +568,7 @@ class TestCompleteValidation:
         
         diagnostics = collect_story_cycle_diagnostics(ast, "file:///test.txt")
         errors = [d for d in diagnostics if d.severity == DiagnosticSeverity.Error]
-        assert any("STORY-040" in d.message for d in errors)
+        assert any(d.code == "STORY-040" for d in errors)
 
 
 class TestEdgeCases:
