@@ -1,0 +1,123 @@
+{
+    "Localization Entry": {
+        "prefix": "loc",
+        "body": "${1:key}:0 \"${2:text}\"",
+        "description": "Create a localization entry"
+    },
+    "Localization with Character Name": {
+        "prefix": "locname",
+        "body": "${1:key}:0 \"[${2|ROOT,scope:target,PREV|}.Get${3|Name,FirstName,Title,UIName,TitledFirstName|}]${4: text}\"",
+        "description": "Localization entry with character name function"
+    },
+    "Localization with Gender": {
+        "prefix": "locgender",
+        "body": "${1:key}:0 \"[${2|ROOT,scope:target,PREV|}.Get${3|HerHis,SheHe,HerHim,HerselfHimself,WomanMan,LadyLord,DaughterSon,SisterBrother|}]${4: text}\"",
+        "description": "Localization entry with gender-based text"
+    },
+    "Event Title Localization": {
+        "prefix": "locevt",
+        "body": [
+            "${1:namespace}.${2:0001}.t:0 \"${3:Event Title}\"",
+            "${1:namespace}.${2:0001}.desc:0 \"${4:Event description text.}\"",
+            "${1:namespace}.${2:0001}.a:0 \"${5:Option A text}\""
+        ],
+        "description": "Create localization for an event (title, description, option)"
+    },
+    "English Language Header": {
+        "prefix": "l_english",
+        "body": [
+            "l_english:",
+            " $0"
+        ],
+        "description": "Add English language header"
+    },
+    "German Language Header": {
+        "prefix": "l_german",
+        "body": [
+            "l_german:",
+            " $0"
+        ],
+        "description": "Add German language header"
+    },
+    "French Language Header": {
+        "prefix": "l_french",
+        "body": [
+            "l_french:",
+            " $0"
+        ],
+        "description": "Add French language header"
+    },
+    "Spanish Language Header": {
+        "prefix": "l_spanish",
+        "body": [
+            "l_spanish:",
+            " $0"
+        ],
+        "description": "Add Spanish language header"
+    },
+    "Positive Text (Green)": {
+        "prefix": "positive",
+        "body": "#P${1:positive text}#!",
+        "description": "Green positive text formatting"
+    },
+    "Negative Text (Red)": {
+        "prefix": "negative",
+        "body": "#N${1:negative text}#!",
+        "description": "Red negative text formatting"
+    },
+    "Flavor Text (Italic)": {
+        "prefix": "flavor",
+        "body": "#F${1:flavor text}#!",
+        "description": "Italicized flavor text formatting"
+    },
+    "Weak Text (Gray)": {
+        "prefix": "weak",
+        "body": "#W${1:weak text}#!",
+        "description": "Gray weak text formatting"
+    },
+    "Bold Text": {
+        "prefix": "bold",
+        "body": "#bold${1:bold text}#!",
+        "description": "Bold text formatting"
+    },
+    "Italic Text": {
+        "prefix": "italic",
+        "body": "#italic${1:italic text}#!",
+        "description": "Italic text formatting"
+    },
+    "Gold Icon": {
+        "prefix": "icongold",
+        "body": "@gold_icon!",
+        "description": "Insert gold icon"
+    },
+    "Prestige Icon": {
+        "prefix": "iconprestige",
+        "body": "@prestige_icon!",
+        "description": "Insert prestige icon"
+    },
+    "Piety Icon": {
+        "prefix": "iconpiety",
+        "body": "@piety_icon!",
+        "description": "Insert piety icon"
+    },
+    "Dread Icon": {
+        "prefix": "icondread",
+        "body": "@dread_icon!",
+        "description": "Insert dread icon"
+    },
+    "Stress Icon": {
+        "prefix": "iconstress",
+        "body": "@stress_icon!",
+        "description": "Insert stress icon"
+    },
+    "Newline": {
+        "prefix": "newline",
+        "body": "\\\\n",
+        "description": "Insert newline character"
+    },
+    "Concept Link": {
+        "prefix": "concept",
+        "body": "[${1:concept_name}|E]",
+        "description": "Insert a concept link"
+    }
+}

@@ -28,6 +28,7 @@
   ],
   "activationEvents": [
     "onLanguage:ck3",
+    "onLanguage:ck3-localization",
     "workspaceContains:**/*.{txt,gui,gfx,asset}"
   ],
   "main": "./dist/extension.js",
@@ -46,6 +47,26 @@
           ".asset"
         ],
         "configuration": "./language-configuration.json"
+      },
+      {
+        "id": "ck3-localization",
+        "aliases": [
+          "CK3 Localization",
+          "Yaml (CK3)"
+        ],
+        "filenamePatterns": [
+          "*_l_english.yml",
+          "*_l_german.yml",
+          "*_l_french.yml",
+          "*_l_spanish.yml",
+          "*_l_russian.yml",
+          "*_l_korean.yml",
+          "*_l_simp_chinese.yml",
+          "*_l_braz_por.yml",
+          "*_l_polish.yml",
+          "*_l_japanese.yml"
+        ],
+        "configuration": "./language-configuration-localization.json"
       }
     ],
     "grammars": [
@@ -53,12 +74,21 @@
         "language": "ck3",
         "scopeName": "source.ck3",
         "path": "./syntaxes/ck3.tmLanguage.json"
+      },
+      {
+        "language": "ck3-localization",
+        "scopeName": "source.ck3-localization",
+        "path": "./syntaxes/ck3-localization.tmLanguage.json"
       }
     ],
     "snippets": [
       {
         "language": "ck3",
         "path": "./snippets/ck3.json"
+      },
+      {
+        "language": "ck3-localization",
+        "path": "./snippets/ck3-localization.json"
       }
     ],
     "commands": [
