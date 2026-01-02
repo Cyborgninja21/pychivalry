@@ -519,19 +519,31 @@ def parse_timing_value(
     if not node:
         return (None, None)
     
+    # Only process timing keywords
+    if node.key not in ('days', 'months', 'years'):
+        return (None, None)
+    
     timing_type = node.key
     
-    # Check if value is a simple integer
-    if isinstance(node.value, (int, float)):
-        return (timing_type, int(node.value))
+    # Check if value is a simple number (assignment type)
+    if node.value is not None:
+        try:
+            return (timing_type, int(node.value))
+        except (ValueError, TypeError):
+            pass
     
-    # Check if value is a block (range)
-    if hasattr(node, 'children') and node.children:
-        # Extract numbers from children
+    # Check if it's a block with children (range specification)
+    if node.type == 'block' and hasattr(node, 'children') and node.children:
+        # Extract numbers from unnamed children (list items)
         numbers = []
         for child in node.children:
-            if isinstance(child.value, (int, float)):
-                numbers.append(int(child.value))
+            # In a range block like { 30 60 }, items don't have keys
+            if not child.key or child.key == "":
+                try:
+                    if child.value is not None:
+                        numbers.append(int(child.value))
+                except (ValueError, TypeError, AttributeError):
+                    continue
         
         if len(numbers) == 2:
             return (timing_type, (numbers[0], numbers[1]))
