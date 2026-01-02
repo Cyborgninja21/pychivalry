@@ -225,6 +225,10 @@ CK3_EFFECTS = [
     "start_activity",  # Start an activity
     "complete_activity",  # Complete an activity
     "leave_activity",  # Leave an activity
+    # Story cycle effects
+    "create_story",  # Create a new story cycle with specified type
+    "end_story",  # End the current story cycle and execute on_end block
+    "make_story_owner",  # Transfer story cycle ownership to another character
 ]
 
 # Common CK3 triggers (conditional checks)
@@ -328,6 +332,8 @@ CK3_TRIGGERS = [
     # Activity checks
     "is_in_activity",  # Check if character is in an activity
     "has_activity",  # Check if character has an activity
+    # Story cycle checks
+    "has_active_story",  # Check if character has an active story of specified type
     # War and military
     "is_defender_in_war",  # Check if character is defending in a war
     "is_attacker_in_war",  # Check if character is attacking in a war
@@ -689,9 +695,142 @@ CK3_PORTRAIT_FIELDS = {
     },
 }
 
+# ==============================================================================
+# Story Cycle Definitions
+# ==============================================================================
+
+# Story cycle-specific keywords
+# Story cycles are event managers that persist across time and character death.
+# They fire periodic effects and can store persistent state via variables.
+STORY_CYCLE_KEYWORDS = {
+    "on_setup",  # Lifecycle hook: runs when story is created via create_story
+    "on_end",  # Lifecycle hook: runs when story ends via end_story
+    "on_owner_death",  # Lifecycle hook: runs when story owner dies (while still alive)
+    "effect_group",  # Repeating pulse that fires effects periodically
+    "triggered_effect",  # Conditional effect within an effect_group
+    "first_valid",  # Choose first triggered_effect with true trigger
+    "story_owner",  # Reference the character who owns the story
+}
+
+# Timing keywords for effect_groups
+# Each effect_group must have exactly ONE of these timing keywords.
+# Values can be fixed integers or ranges { min max }.
+STORY_CYCLE_TIMING_KEYWORDS = {
+    "days",  # Fire every X days (e.g., days = 30 or days = { 30 60 })
+    "months",  # Fire every X months (e.g., months = 3)
+    "years",  # Fire every X years (e.g., years = 1 or years = { 1 5 })
+    "chance",  # Optional: probability 1-100 that effect fires (e.g., chance = 50)
+}
+
+# Story cycle effects
+# Effects specific to story cycle management
+STORY_CYCLE_EFFECTS = {
+    "end_story": "Ends the current story cycle and executes on_end block",
+    "make_story_owner": "Transfers story ownership to another character",
+    "create_story": "Creates a new story cycle with specified type",
+}
+
+# Story cycle triggers
+# Triggers for checking story cycle state
+STORY_CYCLE_TRIGGERS = {
+    "has_active_story": "Check if character has an active story of specified type",
+}
+
+# Story Cycle Field Documentation
+# Detailed documentation for story cycle structure and fields.
+# Story cycles are defined in common/story_cycles/ files.
+CK3_STORY_CYCLE_FIELDS = {
+    "on_setup": {
+        "description": "Executes when the story is created via create_story effect",
+        "context": "Story scope",
+        "example": (
+            "on_setup = {\n"
+            "    save_scope_value_as = { name = start_date value = current_date }\n"
+            "}"
+        ),
+        "notes": "Use for initialization logic and setting up initial variables",
+    },
+    "on_end": {
+        "description": "Executes when the story ends via end_story effect",
+        "context": "Story scope",
+        "example": (
+            "on_end = {\n"
+            "    debug_log = 'Story ended'\n"
+            "    debug_log_date = yes\n"
+            "}"
+        ),
+        "notes": "Use for cleanup logic and final notifications to story_owner",
+    },
+    "on_owner_death": {
+        "description": "Executes when story owner dies (while still alive, like on_death on_action)",
+        "context": "Story scope",
+        "example": (
+            "on_owner_death = {\n"
+            "    scope:story = { end_story = yes }\n"
+            "}"
+        ),
+        "notes": (
+            "Often contains end_story to cleanup or make_story_owner to transfer to heir. "
+            "Without this handler, story persists indefinitely even after owner dies."
+        ),
+    },
+    "effect_group": {
+        "description": "Repeating pulse that fires effects periodically based on timing interval",
+        "timing": "Requires ONE of: days, months, or years",
+        "example": (
+            "effect_group = {\n"
+            "    days = { 30 60 }  # Random interval\n"
+            "    trigger = { story_owner = { is_alive = yes } }\n"
+            "    chance = 50  # 50% probability\n"
+            "    triggered_effect = {\n"
+            "        trigger = { always = yes }\n"
+            "        effect = { add_gold = 10 }\n"
+            "    }\n"
+            "}"
+        ),
+        "notes": (
+            "Multiple effect_groups can exist in one story cycle. "
+            "Each fires independently based on its timing and conditions."
+        ),
+    },
+    "triggered_effect": {
+        "description": "Conditional effect within an effect_group - executes if trigger is true",
+        "required_fields": ["trigger", "effect"],
+        "example": (
+            "triggered_effect = {\n"
+            "    trigger = { has_trait = brave }\n"
+            "    effect = { add_prestige = 100 }\n"
+            "}"
+        ),
+        "notes": "Multiple triggered_effects can exist in one effect_group",
+    },
+    "first_valid": {
+        "description": "Chooses first triggered_effect with true trigger (like if/else_if chain)",
+        "example": (
+            "first_valid = {\n"
+            "    triggered_effect = {\n"
+            "        trigger = { has_trait = brave }\n"
+            "        effect = { add_prestige = 200 }\n"
+            "    }\n"
+            "    triggered_effect = {\n"
+            "        trigger = { always = yes }  # Fallback\n"
+            "        effect = { add_prestige = 50 }\n"
+            "    }\n"
+            "}"
+        ),
+        "notes": "Should have an unconditional fallback as the last triggered_effect",
+    },
+    "story_owner": {
+        "description": "References the character who owns this story cycle",
+        "usage": "story_owner = { add_gold = 100 }",
+        "notes": "Can be used in triggers and effects within the story cycle",
+    },
+}
+
 # Combined field lookup for all context-specific fields
 CK3_CONTEXT_FIELDS = {
     **CK3_OPTION_FIELDS,
     **CK3_EVENT_FIELDS,
     **CK3_PORTRAIT_FIELDS,
+    **CK3_STORY_CYCLE_FIELDS,
 }
