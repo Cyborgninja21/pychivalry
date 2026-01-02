@@ -340,8 +340,9 @@ class CK3LanguageServer(LanguageServer):
             enable_monitoring=True
         )
         
-        # Legacy thread pool reference for backwards compatibility during migration
-        # This will be removed once all operations are migrated
+        # BACKWARDS COMPATIBILITY: Legacy reference for indexer.py which expects
+        # a ThreadPoolExecutor. This allows gradual migration. Consider removing
+        # once indexer.py is updated to use ThreadPoolManager directly.
         self._thread_pool = self._thread_manager._executor
 
         # Thread-safety locks for shared data structures
@@ -427,12 +428,11 @@ class CK3LanguageServer(LanguageServer):
             )
             ```
         """
-        loop = asyncio.get_event_loop()
         future = self._thread_manager.submit_task(
             func, *args, priority=priority, task_name=task_name, **kwargs
         )
-        # Wait for the future to complete in an asyncio-compatible way
-        return await loop.run_in_executor(None, future.result)
+        # Convert Future to asyncio-compatible awaitable using asyncio.wrap_future
+        return await asyncio.wrap_future(future)
     
     def get_thread_pool_stats(self) -> TaskStats:
         """
