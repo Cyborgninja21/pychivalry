@@ -2138,8 +2138,7 @@ async def workspace_symbol(ls: CK3LanguageServer, params: types.WorkspaceSymbolP
         ],
     ),
 )
-@server.thread()  # Run in thread pool - CPU intensive tokenization
-def semantic_tokens_full(ls: CK3LanguageServer, params: types.SemanticTokensParams):
+async def semantic_tokens_full(ls: CK3LanguageServer, params: types.SemanticTokensParams):
     """
     Provide semantic tokens for rich syntax highlighting.
 
@@ -2179,19 +2178,28 @@ def semantic_tokens_full(ls: CK3LanguageServer, params: types.SemanticTokensPara
         - readonly: Immutable values
         - defaultLibrary: Built-in game effects/triggers
     """
-    try:
-        doc = ls.workspace.get_text_document(params.text_document.uri)
+    def _semantic_tokens_sync():
+        """Synchronous implementation of semantic tokenization."""
+        try:
+            doc = ls.workspace.get_text_document(params.text_document.uri)
 
-        # Thread-safe index access
-        with ls._index_lock:
-            index = ls.index
+            # Thread-safe index access
+            with ls._index_lock:
+                index = ls.index
 
-        # Get semantic tokens using the module
-        return get_semantic_tokens(doc.source, index)
+            # Get semantic tokens using the module
+            return get_semantic_tokens(doc.source, index)
 
-    except Exception as e:
-        logger.error(f"Error in semantic_tokens handler: {e}", exc_info=True)
-        return types.SemanticTokens(data=[])
+        except Exception as e:
+            logger.error(f"Error in semantic_tokens handler: {e}", exc_info=True)
+            return types.SemanticTokens(data=[])
+    
+    # Execute in custom thread pool with NORMAL priority (background highlighting)
+    return await ls.run_in_thread(
+        _semantic_tokens_sync,
+        priority=TaskPriority.NORMAL,
+        task_name="semantic_tokens"
+    )
 
 
 # =============================================================================
@@ -2203,8 +2211,7 @@ def semantic_tokens_full(ls: CK3LanguageServer, params: types.SemanticTokensPara
     types.TEXT_DOCUMENT_FORMATTING,
     types.DocumentFormattingOptions(),
 )
-@server.thread()  # Run in thread pool - line-by-line processing
-def document_formatting(ls: CK3LanguageServer, params: types.DocumentFormattingParams):
+async def document_formatting(ls: CK3LanguageServer, params: types.DocumentFormattingParams):
     """
     Format an entire CK3 document.
 
@@ -2233,28 +2240,36 @@ def document_formatting(ls: CK3LanguageServer, params: types.DocumentFormattingP
         - VS Code: Shift+Alt+F (Windows/Linux) or Shift+Option+F (Mac)
         - Or right-click -> Format Document
     """
-    try:
-        doc = ls.workspace.get_text_document(params.text_document.uri)
+    def _format_sync():
+        """Synchronous implementation of document formatting."""
+        try:
+            doc = ls.workspace.get_text_document(params.text_document.uri)
 
-        # Get formatting edits
-        edits = format_document(doc.source, params.options)
+            # Get formatting edits
+            edits = format_document(doc.source, params.options)
 
-        if edits:
-            logger.debug(f"Formatting document: {len(edits)} edit(s)")
+            if edits:
+                logger.debug(f"Formatting document: {len(edits)} edit(s)")
 
-        return edits if edits else None
+            return edits if edits else None
 
-    except Exception as e:
-        logger.error(f"Error in document_formatting handler: {e}", exc_info=True)
-        return None
+        except Exception as e:
+            logger.error(f"Error in document_formatting handler: {e}", exc_info=True)
+            return None
+    
+    # Execute in custom thread pool with HIGH priority (user-initiated action)
+    return await ls.run_in_thread(
+        _format_sync,
+        priority=TaskPriority.HIGH,
+        task_name="format_document"
+    )
 
 
 @server.feature(
     types.TEXT_DOCUMENT_RANGE_FORMATTING,
     types.DocumentRangeFormattingOptions(),
 )
-@server.thread()  # Run in thread pool
-def range_formatting(ls: CK3LanguageServer, params: types.DocumentRangeFormattingParams):
+async def range_formatting(ls: CK3LanguageServer, params: types.DocumentRangeFormattingParams):
     """
     Format a selected range within a CK3 document.
 
@@ -2285,20 +2300,29 @@ def range_formatting(ls: CK3LanguageServer, params: types.DocumentRangeFormattin
         - Select text, then use Format Selection command
         - VS Code: Ctrl+K Ctrl+F (Windows/Linux) or Cmd+K Cmd+F (Mac)
     """
-    try:
-        doc = ls.workspace.get_text_document(params.text_document.uri)
+    def _format_range_sync():
+        """Synchronous implementation of range formatting."""
+        try:
+            doc = ls.workspace.get_text_document(params.text_document.uri)
 
-        # Get formatting edits for the range
-        edits = format_range(doc.source, params.range, params.options)
+            # Get formatting edits for the range
+            edits = format_range(doc.source, params.range, params.options)
 
-        if edits:
-            logger.debug(f"Formatting range: {len(edits)} edit(s)")
+            if edits:
+                logger.debug(f"Formatting range: {len(edits)} edit(s)")
 
-        return edits if edits else None
+            return edits if edits else None
 
-    except Exception as e:
-        logger.error(f"Error in range_formatting handler: {e}", exc_info=True)
-        return None
+        except Exception as e:
+            logger.error(f"Error in range_formatting handler: {e}", exc_info=True)
+            return None
+    
+    # Execute in custom thread pool with HIGH priority (user-initiated action)
+    return await ls.run_in_thread(
+        _format_range_sync,
+        priority=TaskPriority.HIGH,
+        task_name="format_range"
+    )
 
 
 # =============================================================================
@@ -2310,8 +2334,7 @@ def range_formatting(ls: CK3LanguageServer, params: types.DocumentRangeFormattin
     types.TEXT_DOCUMENT_CODE_LENS,
     types.CodeLensOptions(resolve_provider=True),
 )
-@server.thread()  # Run in thread pool - reference counting
-def code_lens(ls: CK3LanguageServer, params: types.CodeLensParams):
+async def code_lens(ls: CK3LanguageServer, params: types.CodeLensParams):
     """
     Provide code lenses for CK3 scripts.
 
@@ -2334,15 +2357,24 @@ def code_lens(ls: CK3LanguageServer, params: types.CodeLensParams):
         CodeLens[] or null. Code lenses can have a command, or the command can
         be provided later via codeLens/resolve.
     """
-    try:
-        doc = ls.workspace.get_text_document(params.text_document.uri)
+    def _code_lens_sync():
+        """Synchronous implementation of code lens generation."""
+        try:
+            doc = ls.workspace.get_text_document(params.text_document.uri)
 
-        # Get code lenses using the module
-        return get_code_lenses(doc.source, doc.uri, ls.index)
+            # Get code lenses using the module
+            return get_code_lenses(doc.source, doc.uri, ls.index)
 
-    except Exception as e:
-        logger.error(f"Error in code_lens handler: {e}", exc_info=True)
-        return None
+        except Exception as e:
+            logger.error(f"Error in code_lens handler: {e}", exc_info=True)
+            return None
+    
+    # Execute in custom thread pool with NORMAL priority (background feature)
+    return await ls.run_in_thread(
+        _code_lens_sync,
+        priority=TaskPriority.NORMAL,
+        task_name="code_lens"
+    )
 
 
 @server.feature(types.CODE_LENS_RESOLVE)
@@ -2382,8 +2414,7 @@ def code_lens_resolve(ls: CK3LanguageServer, params: types.CodeLens):
     types.TEXT_DOCUMENT_INLAY_HINT,
     types.InlayHintOptions(resolve_provider=True),
 )
-@server.thread()  # Run in thread pool - pattern matching
-def inlay_hint(ls: CK3LanguageServer, params: types.InlayHintParams):
+async def inlay_hint(ls: CK3LanguageServer, params: types.InlayHintParams):
     """
     Provide inlay hints for CK3 scripts.
 
@@ -2410,28 +2441,37 @@ def inlay_hint(ls: CK3LanguageServer, params: types.InlayHintParams):
         Inlay hints appear automatically as you view code. They can be toggled
         via editor settings (e.g., Editor > Inlay Hints in VS Code).
     """
-    try:
-        doc = ls.workspace.get_text_document(params.text_document.uri)
+    def _inlay_hint_sync():
+        """Synchronous implementation of inlay hint generation."""
+        try:
+            doc = ls.workspace.get_text_document(params.text_document.uri)
 
-        # Get inlay hint configuration from initialization options
-        config = InlayHintConfig(
-            show_scope_types=True,
-            show_link_types=True,
-            show_iterator_types=True,
-            show_parameter_names=False,
-        )
+            # Get inlay hint configuration from initialization options
+            config = InlayHintConfig(
+                show_scope_types=True,
+                show_link_types=True,
+                show_iterator_types=True,
+                show_parameter_names=False,
+            )
 
-        # Get inlay hints for the range
-        hints = get_inlay_hints(doc.source, params.range, ls.index, config)
+            # Get inlay hints for the range
+            hints = get_inlay_hints(doc.source, params.range, ls.index, config)
 
-        if hints:
-            logger.debug(f"Providing {len(hints)} inlay hint(s)")
+            if hints:
+                logger.debug(f"Providing {len(hints)} inlay hint(s)")
 
-        return hints if hints else None
+            return hints if hints else None
 
-    except Exception as e:
-        logger.error(f"Error in inlay_hint handler: {e}", exc_info=True)
-        return None
+        except Exception as e:
+            logger.error(f"Error in inlay_hint handler: {e}", exc_info=True)
+            return None
+    
+    # Execute in custom thread pool with NORMAL priority (background annotation)
+    return await ls.run_in_thread(
+        _inlay_hint_sync,
+        priority=TaskPriority.NORMAL,
+        task_name="inlay_hints"
+    )
 
 
 @server.feature(types.INLAY_HINT_RESOLVE)
@@ -2527,8 +2567,7 @@ def signature_help(ls: CK3LanguageServer, params: types.SignatureHelpParams):
 
 
 @server.feature(types.TEXT_DOCUMENT_DOCUMENT_HIGHLIGHT)
-@server.thread()  # Run in thread pool - pattern matching
-def document_highlight(
+async def document_highlight(
     ls: CK3LanguageServer, params: types.DocumentHighlightParams
 ) -> Optional[List[types.DocumentHighlight]]:
     """
@@ -2559,19 +2598,28 @@ def document_highlight(
         Click on a saved scope like `scope:target` and all occurrences of
         `scope:target` and `save_scope_as = target` will be highlighted.
     """
-    try:
-        doc = ls.workspace.get_text_document(params.text_document.uri)
+    def _highlight_sync():
+        """Synchronous implementation of document highlighting."""
+        try:
+            doc = ls.workspace.get_text_document(params.text_document.uri)
 
-        highlights = get_document_highlights(doc.source, params.position)
+            highlights = get_document_highlights(doc.source, params.position)
 
-        if highlights:
-            logger.debug(f"Found {len(highlights)} highlight(s) at position {params.position}")
+            if highlights:
+                logger.debug(f"Found {len(highlights)} highlight(s) at position {params.position}")
 
-        return highlights
+            return highlights
 
-    except Exception as e:
-        logger.error(f"Error in document_highlight handler: {e}", exc_info=True)
-        return None
+        except Exception as e:
+            logger.error(f"Error in document_highlight handler: {e}", exc_info=True)
+            return None
+    
+    # Execute in custom thread pool with CRITICAL priority (immediate visual feedback)
+    return await ls.run_in_thread(
+        _highlight_sync,
+        priority=TaskPriority.CRITICAL,
+        task_name="document_highlight"
+    )
 
 
 # =============================================================================
@@ -2726,8 +2774,7 @@ def prepare_rename(
 
 
 @server.feature(types.TEXT_DOCUMENT_RENAME)
-@server.thread()  # Run in thread pool - scans workspace files
-def rename(ls: CK3LanguageServer, params: types.RenameParams) -> Optional[types.WorkspaceEdit]:
+async def rename(ls: CK3LanguageServer, params: types.RenameParams) -> Optional[types.WorkspaceEdit]:
     """
     Perform a rename operation.
 
@@ -2757,31 +2804,40 @@ def rename(ls: CK3LanguageServer, params: types.RenameParams) -> Optional[types.
         Place cursor on `scope:target`, press F2, type "new_target".
         All `scope:target` and `save_scope_as = target` are updated.
     """
-    try:
-        doc = ls.workspace.get_text_document(params.text_document.uri)
-        workspace_folders = _get_workspace_folder_paths(ls)
+    def _rename_sync():
+        """Synchronous implementation of rename operation."""
+        try:
+            doc = ls.workspace.get_text_document(params.text_document.uri)
+            workspace_folders = _get_workspace_folder_paths(ls)
 
-        edit = perform_rename(
-            doc.source,
-            params.position,
-            params.new_name,
-            params.text_document.uri,
-            workspace_folders,
-        )
+            edit = perform_rename(
+                doc.source,
+                params.position,
+                params.new_name,
+                params.text_document.uri,
+                workspace_folders,
+            )
 
-        if edit:
-            # Count total edits
-            total_edits = sum(len(edits) for edits in (edit.changes or {}).values())
-            total_files = len(edit.changes or {})
-            logger.info(f"Rename: {total_edits} edits across {total_files} files")
-        else:
-            logger.debug("Rename returned no edits")
+            if edit:
+                # Count total edits
+                total_edits = sum(len(edits) for edits in (edit.changes or {}).values())
+                total_files = len(edit.changes or {})
+                logger.info(f"Rename: {total_edits} edits across {total_files} files")
+            else:
+                logger.debug("Rename returned no edits")
 
-        return edit
+            return edit
 
-    except Exception as e:
-        logger.error(f"Error in rename handler: {e}", exc_info=True)
-        return None
+        except Exception as e:
+            logger.error(f"Error in rename handler: {e}", exc_info=True)
+            return None
+    
+    # Execute in custom thread pool with HIGH priority (user-initiated refactoring)
+    return await ls.run_in_thread(
+        _rename_sync,
+        priority=TaskPriority.HIGH,
+        task_name="rename_symbol"
+    )
 
 
 # =============================================================================
@@ -2793,8 +2849,7 @@ def rename(ls: CK3LanguageServer, params: types.RenameParams) -> Optional[types.
     types.TEXT_DOCUMENT_FOLDING_RANGE,
     types.FoldingRangeOptions(),
 )
-@server.thread()  # Run in thread pool - block detection
-def folding_range(
+async def folding_range(
     ls: CK3LanguageServer, params: types.FoldingRangeParams
 ) -> Optional[List[types.FoldingRange]]:
     """
@@ -2824,18 +2879,27 @@ def folding_range(
         Use Ctrl+Shift+[ to fold at cursor.
         Use Ctrl+Shift+] to unfold at cursor.
     """
-    try:
-        doc = ls.workspace.get_text_document(params.text_document.uri)
+    def _folding_range_sync():
+        """Synchronous implementation of folding range detection."""
+        try:
+            doc = ls.workspace.get_text_document(params.text_document.uri)
 
-        ranges = get_folding_ranges(doc.source)
+            ranges = get_folding_ranges(doc.source)
 
-        logger.debug(f"Folding ranges: {len(ranges)} ranges for {params.text_document.uri}")
+            logger.debug(f"Folding ranges: {len(ranges)} ranges for {params.text_document.uri}")
 
-        return ranges if ranges else None
+            return ranges if ranges else None
 
-    except Exception as e:
-        logger.error(f"Error in folding_range handler: {e}", exc_info=True)
-        return None
+        except Exception as e:
+            logger.error(f"Error in folding_range handler: {e}", exc_info=True)
+            return None
+    
+    # Execute in custom thread pool with NORMAL priority (background UI feature)
+    return await ls.run_in_thread(
+        _folding_range_sync,
+        priority=TaskPriority.NORMAL,
+        task_name="folding_ranges"
+    )
 
 
 # =============================================================================
