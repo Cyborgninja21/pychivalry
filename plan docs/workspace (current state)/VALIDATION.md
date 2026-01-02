@@ -321,6 +321,29 @@ config = DiagnosticConfig(
 diagnostics = collect_all_diagnostics(doc, ast, index, config)
 ```
 
+### Phase 1 & 2 Implementation Status
+
+**✅ Completed (55 diagnostic codes implemented):**
+
+- **Event Structure Validation**: All CK3760-CK3769 checks active
+- **Portrait Validation**: CK3420-CK3422 implemented (animation list needs expansion)
+- **Theme Validation**: CK3430 implemented (theme list needs expansion)
+- **Description Validation**: CK3440-CK3441 implemented
+- **Option Validation**: CK3450 implemented
+- **All base checks**: Syntax, semantic, scope, style, timing, etc.
+
+**🔴 Not Yet Implemented (33+ planned checks):**
+
+- Namespace & ID validation (CK3400-CK3406) - Phase 3
+- Trigger extensions (CK3510-CK3515) - Phase 4
+- On action validation (CK3500-CK3508) - Phase 9
+- After block validation (CK3520-CK3521) - Phase 11
+- Advanced desc/option checks - Phases 7-8
+- Localization validation (CK3600-CK3603) - Phase 10
+- AI chance validation (CK3610-CK3614) - Phase 12
+
+See [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) for detailed roadmap.
+
 ### Trait Validation
 
 Trait validation requires user-extracted data:

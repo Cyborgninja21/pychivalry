@@ -1,0 +1,142 @@
+# Test file for Phase 1 Quick Win validations
+
+namespace = test_phase1
+
+# Valid event - should have no errors
+test_phase1.0001 = {
+    type = character_event
+    title = test_phase1.0001.t
+    desc = test_phase1.0001.desc
+    theme = diplomacy
+    
+    left_portrait = {
+        character = root
+        animation = happiness
+    }
+    
+    option = {
+        name = test_phase1.0001.a
+        add_gold = 100
+    }
+}
+
+# CK3761: Invalid event type
+test_phase1.0010 = {
+    type = invalid_event
+    title = test_phase1.0010.t
+    desc = test_phase1.0010.desc
+}
+
+# CK3764: Missing desc in non-hidden event
+test_phase1.0020 = {
+    type = character_event
+    title = test_phase1.0020.t
+}
+
+# CK3450: Option missing name
+test_phase1.0030 = {
+    type = character_event
+    title = test_phase1.0030.t
+    desc = test_phase1.0030.desc
+    
+    option = {
+        add_gold = 100
+    }
+}
+
+# CK3440: triggered_desc missing trigger
+test_phase1.0040 = {
+    type = character_event
+    title = test_phase1.0040.t
+    desc = {
+        triggered_desc = {
+            desc = test_phase1.0040.desc
+        }
+    }
+}
+
+# CK3441: triggered_desc missing desc
+test_phase1.0050 = {
+    type = character_event
+    title = test_phase1.0050.t
+    desc = {
+        triggered_desc = {
+            trigger = { always = yes }
+        }
+    }
+}
+
+# CK3420: Invalid portrait position
+test_phase1.0060 = {
+    type = character_event
+    title = test_phase1.0060.t
+    desc = test_phase1.0060.desc
+    
+    center_portrait = root  # Invalid position
+}
+
+# CK3421: Portrait missing character
+test_phase1.0070 = {
+    type = character_event
+    title = test_phase1.0070.t
+    desc = test_phase1.0070.desc
+    
+    left_portrait = {
+        animation = happiness  # Missing character field
+    }
+}
+
+# CK3422: Invalid animation
+test_phase1.0080 = {
+    type = character_event
+    title = test_phase1.0080.t
+    desc = test_phase1.0080.desc
+    
+    left_portrait = {
+        character = root
+        animation = flying  # Invalid animation
+    }
+}
+
+# CK3430: Invalid theme
+test_phase1.0090 = {
+    type = character_event
+    title = test_phase1.0090.t
+    desc = test_phase1.0090.desc
+    theme = invalid_theme
+}
+
+# CK3762: Hidden event with options (ignored)
+test_phase1.0100 = {
+    type = character_event
+    hidden = yes
+    
+    option = {
+        name = test_phase1.0100.a
+    }
+}
+
+# CK3766: Multiple after blocks
+test_phase1.0110 = {
+    type = character_event
+    title = test_phase1.0110.t
+    desc = test_phase1.0110.desc
+    
+    after = {
+        add_gold = 100
+    }
+    after = {
+        add_prestige = 100
+    }
+}
+
+# CK3767: Empty event
+test_phase1.0120 = {
+}
+
+# CK3769: Character event with no portraits
+test_phase1.0130 = {
+    type = character_event
+    title = test_phase1.0130.t
+    desc = test_phase1.0130.desc
+}

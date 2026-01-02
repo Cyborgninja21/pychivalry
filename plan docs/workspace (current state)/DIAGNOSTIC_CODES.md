@@ -10,12 +10,13 @@ This document provides a comprehensive reference of all diagnostic codes impleme
 2. [Semantic Checks (CK3101-CK3103)](#semantic-checks-ck3101-ck3103)
 3. [Scope Checks (CK3201-CK3203)](#scope-checks-ck3201-ck3203)
 4. [Style Checks (CK33xx)](#style-checks-ck33xx)
-5. [Scope Timing Checks (CK3550-CK3555)](#scope-timing-checks-ck3550-ck3555)
-6. [Opinion Modifier Checks (CK36xx)](#opinion-modifier-checks-ck36xx)
-7. [Event Structure Checks (CK37xx)](#event-structure-checks-ck37xx)
-8. [Effect/Trigger Context Checks (CK38xx)](#effecttrigger-context-checks-ck38xx)
-9. [List Iterator Checks (CK39xx)](#list-iterator-checks-ck39xx)
-10. [Common Gotchas (CK51xx)](#common-gotchas-ck51xx)
+5. [Event Validation - Phase 1 Quick Wins (CK3420-CK3450, CK3761-CK3769)](#event-validation---phase-1-quick-wins-ck3420-ck3450-ck3761-ck3769)
+6. [Scope Timing Checks (CK3550-CK3555)](#scope-timing-checks-ck3550-ck3555)
+7. [Opinion Modifier Checks (CK36xx)](#opinion-modifier-checks-ck36xx)
+8. [Event Structure Checks (CK37xx)](#event-structure-checks-ck37xx)
+9. [Effect/Trigger Context Checks (CK38xx)](#effecttrigger-context-checks-ck38xx)
+10. [List Iterator Checks (CK39xx)](#list-iterator-checks-ck39xx)
+11. [Common Gotchas (CK51xx)](#common-gotchas-ck51xx)
 
 ---
 
@@ -216,6 +217,135 @@ namespace = my_events  # WARNING: Should be at top of file
 
 # CK3345: Merged identifier
 triggeradd_gold = 100  # ERROR: Missing newline between 'trigger' and 'add_gold'
+```
+
+---
+
+## Event Validation - Phase 1 Quick Wins (CK3420-CK3450, CK3761-CK3769)
+
+**Module:** `paradox_checks.py`
+
+These checks validate CK3 event structure, options, portraits, animations, themes, and descriptions. All checks in this section were implemented in Phase 1 of the validation expansion.
+
+### Portrait & Animation Checks
+
+| Code | Severity | Description |
+|------|----------|-------------|
+| **CK3420** | Error | **Invalid portrait position** - Portrait position name not recognized (valid: left_portrait, right_portrait, lower_left_portrait, lower_center_portrait, lower_right_portrait) |
+| **CK3421** | Warning | **Portrait missing character** - Portrait block lacks required 'character' field |
+| **CK3422** | Warning | **Invalid animation** - Animation name not recognized in valid animations list |
+
+### Theme Validation
+
+| Code | Severity | Description |
+|------|----------|-------------|
+| **CK3430** | Warning | **Invalid theme** - Theme name not recognized in valid themes list (diplomacy, intrigue, martial, etc.) |
+
+### Dynamic Description Checks
+
+| Code | Severity | Description |
+|------|----------|-------------|
+| **CK3440** | Error | **triggered_desc missing trigger** - triggered_desc block requires 'trigger' field |
+| **CK3441** | Error | **triggered_desc missing desc** - triggered_desc block requires 'desc' field |
+
+### Option Validation
+
+| Code | Severity | Description |
+|------|----------|-------------|
+| **CK3450** | Error | **Option missing name** - Option block lacks required 'name' field for localization |
+
+### Event Structure Checks
+
+| Code | Severity | Description |
+|------|----------|-------------|
+| **CK3761** | Error | **Invalid event type** - Event type not recognized (valid: character_event, letter_event, court_event, duel_event, feast_event, story_cycle) |
+| **CK3762** | Warning | **Hidden event with options** - Hidden events have option blocks, but options are ignored |
+| **CK3764** | Warning | **Non-hidden event missing desc** - Event is not hidden but lacks 'desc' field |
+| **CK3766** | Error | **Multiple after blocks** - Event has multiple 'after' blocks; only first will execute |
+| **CK3767** | Warning | **Empty event block** - Event has no fields or content |
+| **CK3769** | Information | **Character event has no portraits** - Character event has no portrait positions defined |
+
+### Examples
+
+```pdx
+# CK3420: Invalid portrait position
+my_event.1 = {
+    center_portrait = root  # ERROR: Not a valid position
+}
+
+# CK3421: Portrait missing character
+my_event.2 = {
+    left_portrait = {
+        animation = happiness  # WARNING: Missing 'character' field
+    }
+}
+
+# CK3422: Invalid animation
+my_event.3 = {
+    left_portrait = {
+        character = root
+        animation = flying  # WARNING: Not a valid animation
+    }
+}
+
+# CK3430: Invalid theme
+my_event.4 = {
+    theme = invalid_theme  # WARNING: Not a valid theme
+}
+
+# CK3440-CK3441: triggered_desc validation
+my_event.5 = {
+    desc = {
+        triggered_desc = {
+            # ERROR CK3440: Missing 'trigger' field
+            # ERROR CK3441: Missing 'desc' field
+        }
+    }
+}
+
+# CK3450: Option missing name
+my_event.6 = {
+    option = {
+        add_gold = 100  # ERROR: Missing 'name' field
+    }
+}
+
+# CK3761: Invalid event type
+my_event.7 = {
+    type = invalid_type  # ERROR: Not a valid event type
+}
+
+# CK3762: Hidden event with options
+my_event.8 = {
+    hidden = yes
+    option = {  # WARNING: Options ignored in hidden events
+        name = my_event.8.a
+    }
+}
+
+# CK3764: Missing desc in non-hidden event
+my_event.9 = {
+    type = character_event
+    title = my_event.9.t
+    # WARNING: Missing 'desc' field
+}
+
+# CK3766: Multiple after blocks
+my_event.10 = {
+    after = { add_gold = 100 }
+    after = { add_prestige = 100 }  # ERROR: Only first 'after' executes
+}
+
+# CK3767: Empty event
+my_event.11 = {
+    # WARNING: Event is empty
+}
+
+# CK3769: No portraits in character event
+my_event.12 = {
+    type = character_event
+    # INFO: Consider adding portrait positions
+}
 ```
 
 ---
@@ -489,35 +619,53 @@ trigger = {
 
 ## Summary Statistics
 
-| Category | Code Range | Count |
-|----------|------------|-------|
-| Syntax Checks | CK3001-CK3002 | 2 |
-| Semantic Checks | CK3101-CK3103 | 3 |
-| Scope Checks | CK3201-CK3203 | 3 |
-| Style Checks | CK33xx | 15 |
-| Namespace/ID Validation | CK3400-CK3403 | 4 |
-| Portrait Validation | CK3420-CK3422 | 3 |
-| Theme/Background Validation | CK3430-CK3431 | 2 |
-| Description Validation | CK3440-CK3443 | 4 |
-| Option Validation | CK3450-CK3456 | 3 |
-| On Action Validation | CK3500-CK3508 | 8 |
-| Trigger Extensions | CK3510-CK3513 | 4 |
-| After Block Validation | CK3520-CK3521 | 2 |
-| Scope Timing | CK3550-CK3555 | 6 |
-| Localization Validation | CK3601-CK3603 | 2 |
-| AI Chance Validation | CK3610-CK3614 | 2 |
-| Opinion Modifiers | CK36xx | 1 |
-| Event Structure | CK37xx | 9 |
-| Effect/Trigger Context | CK38xx | 4 |
-| List Iterators | CK39xx | 3 |
-| Common Gotchas | CK51xx | 2 |
-| **Total** | | **82** |
+| Category | Code Range | Count | Status |
+|----------|------------|-------|--------|
+| Syntax Checks | CK3001-CK3002 | 2 | ✅ Implemented |
+| Semantic Checks | CK3101-CK3103 | 3 | ✅ Implemented |
+| Scope Checks | CK3201-CK3203 | 3 | ✅ Implemented |
+| Style Checks | CK33xx | 15 | ✅ Implemented |
+| Portrait Validation | CK3420-CK3422 | 3 | ✅ Implemented |
+| Theme Validation | CK3430 | 1 | ✅ Implemented |
+| Description Validation | CK3440-CK3441 | 2 | ✅ Implemented |
+| Option Validation | CK3450 | 1 | ✅ Implemented |
+| Scope Timing | CK3550-CK3555 | 6 | ✅ Implemented |
+| Opinion Modifiers | CK3656 | 1 | ✅ Implemented |
+| Event Structure | CK3760-CK3769 | 9 | ✅ Implemented |
+| Effect/Trigger Context | CK3870-CK3873 | 4 | ✅ Implemented |
+| List Iterators | CK3875-CK3977 | 3 | ✅ Implemented |
+| Common Gotchas | CK5137-CK5142 | 2 | ✅ Implemented |
+| **Total Implemented** | | **55** | |
+| | | | |
+| Namespace/ID Validation | CK3400-CK3406 | 7 | ⚠️ Planned (Phase 3) |
+| Trigger Extensions | CK3510-CK3515 | 6 | ⚠️ Planned (Phase 4) |
+| On Action Validation | CK3500-CK3508 | 9 | ⚠️ Planned (Phase 9) |
+| After Block Validation | CK3520-CK3521 | 2 | ⚠️ Planned (Phase 11) |
+| Localization Validation | CK3600-CK3603 | 4 | ⚠️ Planned (Phase 10) |
+| AI Chance Validation | CK3610-CK3614 | 5 | ⚠️ Planned (Phase 12) |
+| **Total Planned** | | **33** | |
 
 ---
 
-## New Checks (Phase 1-12 Implementation)
+## Implementation Status by Phase
 
-### Namespace & ID Validation (CK3400-CK3403)
+### ✅ Completed Phases
+- **Phase 1 (Quick Wins)**: 12 checks - All implemented
+- **Phase 2 (Event Structure)**: 7 checks - All implemented
+
+### 🔴 Remaining Phases
+- **Phase 3 (Namespace & ID)**: 7 checks - Not started
+- **Phase 4 (Trigger Extensions)**: 6 checks - Not started
+- **Phase 5-12 (Advanced)**: 20+ checks - Not started
+
+---
+
+## Planned Checks (Future Implementation - Phases 3-12)
+
+> **Note:** The following diagnostic codes are **NOT YET IMPLEMENTED**. They represent planned validation checks from the implementation roadmap.
+> See [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) and [VALIDATION_GAPS.md](VALIDATION_GAPS.md) for details.
+
+### Namespace & ID Validation (CK3400-CK3403) - Phase 3
 
 | Code | Severity | Description |
 |------|----------|-------------|
@@ -526,7 +674,7 @@ trigger = {
 | **CK3402** | Warning | **Event ID exceeds 9999** - Event numbers should be under 9999 |
 | **CK3403** | Error | **Invalid namespace characters** - Namespace contains invalid characters |
 
-### Portrait Validation (CK3420-CK3422)
+### Portrait Validation (CK3420-CK3422) - ✅ Phase 1 IMPLEMENTED
 
 | Code | Severity | Description |
 |------|----------|-------------|
@@ -534,14 +682,14 @@ trigger = {
 | **CK3421** | Warning | **Portrait missing character** - Portrait block lacks 'character' parameter |
 | **CK3422** | Warning | **Invalid animation name** - Portrait animation not recognized |
 
-### Theme & Background Validation (CK3430-CK3431)
+### Theme & Background Validation (CK3430-CK3431) - ✅ Phase 1 IMPLEMENTED (CK3430 only)
 
 | Code | Severity | Description |
 |------|----------|-------------|
 | **CK3430** | Warning | **Invalid theme** - Event theme not recognized |
 | **CK3431** | Warning | **Invalid override_background** - Background not recognized |
 
-### Description Validation (CK3440-CK3443)
+### Description Validation (CK3440-CK3443) - ✅ Phase 1 IMPLEMENTED (CK3440-CK3441 only)
 
 | Code | Severity | Description |
 |------|----------|-------------|
@@ -550,7 +698,7 @@ trigger = {
 | **CK3442** | Warning | **desc missing localization key** - desc used without localization reference |
 | **CK3443** | Warning | **Empty desc block** - desc block has no content |
 
-### Option Validation (CK3450-CK3456)
+### Option Validation (CK3450-CK3456) - ✅ Phase 1 IMPLEMENTED (CK3450 only)
 
 | Code | Severity | Description |
 |------|----------|-------------|
@@ -558,7 +706,7 @@ trigger = {
 | **CK3453** | Warning | **Option with multiple names** - Option has multiple name parameters |
 | **CK3456** | Warning | **Empty option block** - Option block has no content |
 
-### On Action Validation (CK3500-CK3508)
+### On Action Validation (CK3500-CK3508) - Phase 9
 
 | Code | Severity | Description |
 |------|----------|-------------|
@@ -571,7 +719,7 @@ trigger = {
 | **CK3507** | Warning | **chance_to_happen > 100** - Value will be clamped |
 | **CK3508** | Warning | **Wrong file path** - on_action vs on_actions folder |
 
-### Trigger Extension Validation (CK3510-CK3513)
+### Trigger Extension Validation (CK3510-CK3513) - Phase 4
 
 | Code | Severity | Description |
 |------|----------|-------------|
@@ -580,28 +728,28 @@ trigger = {
 | **CK3512** | Error | **trigger_if missing limit** - trigger_if requires limit block |
 | **CK3513** | Warning | **Empty trigger_if limit** - Condition always passes |
 
-### After Block Validation (CK3520-CK3521)
+### After Block Validation (CK3520-CK3521) - Phase 11
 
 | Code | Severity | Description |
 |------|----------|-------------|
 | **CK3520** | Warning | **after block in hidden event** - Won't execute |
 | **CK3521** | Warning | **after block without options** - Won't execute |
 
-### Localization Validation (CK3601-CK3603)
+### Localization Validation (CK3601-CK3603) - Phase 10
 
 | Code | Severity | Description |
 |------|----------|-------------|
 | **CK3601** | Info | **Literal text usage** - Consider using localization key |
 | **CK3603** | Hint | **Inconsistent key naming** - Doesn't follow namespace.id.element pattern |
 
-### AI Chance Validation (CK3610-CK3614)
+### AI Chance Validation (CK3610-CK3614) - Phase 12
 
 | Code | Severity | Description |
 |------|----------|-------------|
 | **CK3610** | Warning | **Negative base ai_chance** - AI will never select option |
 | **CK3614** | Info | **Modifier without trigger** - Applies unconditionally |
 
-### Event Structure Validation (CK3760-CK3769)
+### Event Structure Validation (CK3760-CK3769) - ✅ Phase 1 & 2 IMPLEMENTED
 
 | Code | Severity | Description |
 |------|----------|-------------|

@@ -25,16 +25,16 @@ This document identifies validation checks that **should be implemented** based 
 
 ## 1. Event Structure Gaps
 
-### Currently Validated
+### Currently Validated (Phase 1 Complete - January 2, 2026)
 - ✅ CK3760: Missing event type declaration (`paradox_checks.py`)
-- ✅ CK3761: Invalid event type (`paradox_checks.py`)
-- ✅ CK3762: Hidden event with options (`paradox_checks.py`)
+- ✅ CK3761: Invalid event type (`paradox_checks.py`) **[Phase 1]**
+- ✅ CK3762: Hidden event with options (`paradox_checks.py`) **[Phase 1]**
 - ✅ CK3763: Event has no options (`paradox_checks.py`)
-- ✅ CK3764: Non-hidden event missing desc (`paradox_checks.py`)
-- ✅ CK3766: Multiple after blocks (`paradox_checks.py`)
-- ✅ CK3767: Empty event block (`paradox_checks.py`)
+- ✅ CK3764: Non-hidden event missing desc (`paradox_checks.py`) **[Phase 1]**
+- ✅ CK3766: Multiple after blocks (`paradox_checks.py`) **[Phase 1]**
+- ✅ CK3767: Empty event block (`paradox_checks.py`) **[Phase 1]**
 - ✅ CK3768: Multiple immediate blocks (`paradox_checks.py`)
-- ✅ CK3769: Non-hidden event has no portraits (`paradox_checks.py`)
+- ✅ CK3769: Non-hidden event has no portraits (`paradox_checks.py`) **[Phase 1]**
 
 ### Missing Checks
 
