@@ -432,102 +432,79 @@ def is_story_cycles_file(file_path: str) -> bool:
     return "common/story_cycles/" in normalized
 
 
-def check_for_effect(block: Optional[Dict[str, Any]], effect_name: str) -> bool:
+def check_for_effect(node: Any, effect_name: str) -> bool:
     """
-    Check if an effect is present in a block (recursively).
+    Check if an effect is present in a node (recursively).
     
     Args:
-        block: Block to search
+        node: Node to search
         effect_name: Effect name to find
     
     Returns:
         True if effect is found
     """
-    if not block or not isinstance(block, dict):
+    if not node:
         return False
     
-    # Direct check
-    if effect_name in block:
+    # Check direct key match
+    if hasattr(node, 'key') and node.key == effect_name:
         return True
     
-    # Recursive check in nested blocks
-    for value in block.values():
-        if isinstance(value, dict):
-            if check_for_effect(value, effect_name):
+    # Recursive check in children
+    if hasattr(node, 'children'):
+        for child in node.children:
+            if check_for_effect(child, effect_name):
                 return True
-        elif isinstance(value, list):
-            for item in value:
-                if isinstance(item, dict) and check_for_effect(item, effect_name):
-                    return True
     
     return False
 
 
 # ==============================================================================
-# PARSER FUNCTIONS (STUBS - TO BE IMPLEMENTED)
+# PARSER FUNCTIONS
 # ==============================================================================
 
-def parse_story_cycle(tree: Tree, source: str) -> Optional[StoryCycleDefinition]:
+def find_story_cycles(node: Any) -> List[Any]:
     """
-    Parse a story cycle definition from the AST.
+    Find all story cycle definition nodes in the AST.
+    
+    Story cycles are top-level assignments with blocks containing
+    story cycle-specific fields (on_setup, effect_group, etc.).
     
     Args:
-        tree: Parsed AST tree
-        source: Source code text
+        node: AST node to search from
     
     Returns:
-        StoryCycleDefinition if found, None otherwise
-    
-    TODO: Implement full parsing logic
+        List of story cycle nodes
     """
-    # TODO: Implement
-    return None
-
-
-def parse_effect_group(node: Any, source: str) -> EffectGroup:
-    """
-    Parse an effect_group block.
+    story_cycles = []
     
-    Args:
-        node: AST node for effect_group
-        source: Source code text
+    if not hasattr(node, 'children'):
+        return story_cycles
     
-    Returns:
-        Parsed EffectGroup
+    for child in node.children:
+        # Look for top-level blocks that might be story cycles
+        if child.type == 'assignment' and hasattr(child, 'children') and child.children:
+            # Check if this block contains story cycle fields
+            has_story_cycle_fields = False
+            for grandchild in child.children:
+                if grandchild.key in ('on_setup', 'on_end', 'on_owner_death', 'effect_group'):
+                    has_story_cycle_fields = True
+                    break
+            
+            if has_story_cycle_fields:
+                story_cycles.append(child)
     
-    TODO: Implement full parsing logic
-    """
-    # TODO: Implement
-    return EffectGroup(node=node)
-
-
-def parse_triggered_effect(node: Any, source: str) -> TriggeredEffect:
-    """
-    Parse a triggered_effect block.
-    
-    Args:
-        node: AST node for triggered_effect
-        source: Source code text
-    
-    Returns:
-        Parsed TriggeredEffect
-    
-    TODO: Implement full parsing logic
-    """
-    # TODO: Implement
-    return TriggeredEffect(node=node)
+    return story_cycles
 
 
 def parse_timing_value(
-    timing_node: Any, 
-    source: str
+    node: Any
 ) -> Tuple[Optional[str], Optional[Union[int, Tuple[int, int]]]]:
     """
-    Parse timing value (integer or range).
+    Parse timing value from a node (integer or range).
     
     Args:
-        timing_node: AST node for timing value
-        source: Source code text
+        node: AST node for timing (e.g., days, months, years)
     
     Returns:
         Tuple of (timing_type, timing_value)
@@ -535,25 +512,155 @@ def parse_timing_value(
         - timing_value: Integer or (min, max) tuple
     
     Examples:
-        >>> parse_timing_value(node, "days = 30")
-        ('days', 30)
-        
-        >>> parse_timing_value(node, "days = { 30 60 }")
-        ('days', (30, 60))
-    
-    TODO: Implement full parsing logic
+        days = 30  → ('days', 30)
+        days = { 30 60 }  → ('days', (30, 60))
+        months = 3  → ('months', 3)
     """
-    # TODO: Implement
-    return (None, None)
+    if not node:
+        return (None, None)
+    
+    timing_type = node.key
+    
+    # Check if value is a simple integer
+    if isinstance(node.value, (int, float)):
+        return (timing_type, int(node.value))
+    
+    # Check if value is a block (range)
+    if hasattr(node, 'children') and node.children:
+        # Extract numbers from children
+        numbers = []
+        for child in node.children:
+            if isinstance(child.value, (int, float)):
+                numbers.append(int(child.value))
+        
+        if len(numbers) == 2:
+            return (timing_type, (numbers[0], numbers[1]))
+        elif len(numbers) == 1:
+            return (timing_type, numbers[0])
+    
+    return (timing_type, None)
+
+
+def parse_triggered_effect(node: Any) -> TriggeredEffect:
+    """
+    Parse a triggered_effect block.
+    
+    Args:
+        node: AST node for triggered_effect
+    
+    Returns:
+        Parsed TriggeredEffect
+    """
+    effect = TriggeredEffect(node=node)
+    
+    if not hasattr(node, 'children'):
+        return effect
+    
+    for child in node.children:
+        if child.key == 'trigger':
+            effect.trigger = {'node': child}  # Store node for validation
+        elif child.key == 'effect':
+            effect.effect = {'node': child}  # Store node for validation
+    
+    return effect
+
+
+def parse_first_valid(node: Any) -> FirstValid:
+    """
+    Parse a first_valid block.
+    
+    Args:
+        node: AST node for first_valid
+    
+    Returns:
+        Parsed FirstValid
+    """
+    first_valid = FirstValid(node=node)
+    
+    if not hasattr(node, 'children'):
+        return first_valid
+    
+    for child in node.children:
+        if child.key == 'triggered_effect':
+            te = parse_triggered_effect(child)
+            first_valid.triggered_effects.append(te)
+    
+    return first_valid
+
+
+def parse_effect_group(node: Any) -> EffectGroup:
+    """
+    Parse an effect_group block.
+    
+    Args:
+        node: AST node for effect_group
+    
+    Returns:
+        Parsed EffectGroup
+    """
+    group = EffectGroup(node=node)
+    
+    if not hasattr(node, 'children'):
+        return group
+    
+    for child in node.children:
+        if child.key in ('days', 'months', 'years'):
+            timing_type, timing_value = parse_timing_value(child)
+            if not group.timing_type:  # Only set if not already set
+                group.timing_type = timing_type
+                group.timing_value = timing_value
+        elif child.key == 'trigger':
+            group.trigger = {'node': child}
+        elif child.key == 'chance':
+            if isinstance(child.value, (int, float)):
+                group.chance = int(child.value)
+        elif child.key == 'triggered_effect':
+            te = parse_triggered_effect(child)
+            group.triggered_effects.append(te)
+        elif child.key == 'first_valid':
+            group.first_valid = parse_first_valid(child)
+    
+    return group
+
+
+def parse_story_cycle(node: Any) -> StoryCycleDefinition:
+    """
+    Parse a story cycle definition from an AST node.
+    
+    Args:
+        node: AST node for story cycle (top-level assignment)
+    
+    Returns:
+        StoryCycleDefinition
+    """
+    story = StoryCycleDefinition(
+        name=node.key,
+        node=node
+    )
+    
+    if not hasattr(node, 'children'):
+        return story
+    
+    for child in node.children:
+        if child.key == 'on_setup':
+            story.on_setup = {'node': child}
+        elif child.key == 'on_end':
+            story.on_end = {'node': child}
+        elif child.key == 'on_owner_death':
+            story.on_owner_death = {'node': child}
+        elif child.key == 'effect_group':
+            group = parse_effect_group(child)
+            story.effect_groups.append(group)
+    
+    return story
 
 
 # ==============================================================================
-# VALIDATION FUNCTIONS (STUBS - TO BE IMPLEMENTED)
+# VALIDATION FUNCTIONS
 # ==============================================================================
 
 def validate_effect_group_timing(
-    group: EffectGroup, 
-    node: Any
+    group: EffectGroup
 ) -> List[Diagnostic]:
     """
     Validate timing syntax in effect_group.
@@ -568,23 +675,82 @@ def validate_effect_group_timing(
     
     Args:
         group: EffectGroup to validate
-        node: AST node for error reporting
     
     Returns:
         List of diagnostics
-    
-    TODO: Implement full validation logic
     """
     diagnostics: List[Diagnostic] = []
     
-    # TODO: Implement validation
+    if not group.node or not hasattr(group.node, 'range'):
+        return diagnostics
+    
+    # STORY-001: Missing timing keyword
+    if not group.timing_type:
+        diagnostics.append(create_diagnostic("STORY-001", group.node.range))
+        return diagnostics  # Can't do further timing validation without a type
+    
+    # STORY-002: Invalid timing format
+    if group.timing_value is None:
+        diagnostics.append(create_diagnostic("STORY-002", group.node.range))
+        return diagnostics
+    
+    # STORY-003: Invalid range
+    if isinstance(group.timing_value, tuple):
+        min_val, max_val = group.timing_value
+        if min_val < 0 or max_val < 0:
+            diagnostics.append(create_diagnostic(
+                "STORY-003", 
+                group.node.range,
+                f"Invalid timing range: values cannot be negative ({min_val}, {max_val})"
+            ))
+        elif min_val > max_val:
+            diagnostics.append(create_diagnostic(
+                "STORY-003",
+                group.node.range,
+                f"Invalid timing range: min ({min_val}) > max ({max_val})"
+            ))
+    
+    # STORY-004: Multiple timing keywords
+    timing_count = 0
+    if hasattr(group.node, 'children'):
+        for child in group.node.children:
+            if child.key in ('days', 'months', 'years'):
+                timing_count += 1
+    
+    if timing_count > 1:
+        diagnostics.append(create_diagnostic("STORY-004", group.node.range))
+    
+    # STORY-043: Very short interval
+    if group.timing_type == 'days' and isinstance(group.timing_value, int):
+        if group.timing_value < 30:
+            diagnostics.append(create_diagnostic(
+                "STORY-043",
+                group.node.range,
+                f"Very short interval ({group.timing_value} days) - may impact performance"
+            ))
+    elif group.timing_type == 'days' and isinstance(group.timing_value, tuple):
+        if group.timing_value[0] < 30:  # Check minimum value
+            diagnostics.append(create_diagnostic(
+                "STORY-043",
+                group.node.range,
+                f"Very short minimum interval ({group.timing_value[0]} days) - may impact performance"
+            ))
+    
+    # STORY-044: Very long interval
+    if group.timing_type == 'years':
+        interval = group.timing_value if isinstance(group.timing_value, int) else group.timing_value[1]
+        if interval > 5:
+            diagnostics.append(create_diagnostic(
+                "STORY-044",
+                group.node.range,
+                f"Very long interval ({interval} years) - player may not experience this"
+            ))
     
     return diagnostics
 
 
 def validate_triggered_effect(
-    effect: TriggeredEffect, 
-    node: Any
+    effect: TriggeredEffect
 ) -> List[Diagnostic]:
     """
     Validate triggered_effect structure.
@@ -595,23 +761,28 @@ def validate_triggered_effect(
     
     Args:
         effect: TriggeredEffect to validate
-        node: AST node for error reporting
     
     Returns:
         List of diagnostics
-    
-    TODO: Implement full validation logic
     """
     diagnostics: List[Diagnostic] = []
     
-    # TODO: Implement validation
+    if not effect.node or not hasattr(effect.node, 'range'):
+        return diagnostics
+    
+    # STORY-005: Missing trigger
+    if not effect.trigger:
+        diagnostics.append(create_diagnostic("STORY-005", effect.node.range))
+    
+    # STORY-006: Missing effect
+    if not effect.effect:
+        diagnostics.append(create_diagnostic("STORY-006", effect.node.range))
     
     return diagnostics
 
 
 def validate_story_cycle(
-    story: StoryCycleDefinition, 
-    node: Any,
+    story: StoryCycleDefinition,
     file_path: str
 ) -> List[Diagnostic]:
     """
@@ -623,24 +794,33 @@ def validate_story_cycle(
     
     Args:
         story: StoryCycleDefinition to validate
-        node: AST node for error reporting
         file_path: File path for directory check
     
     Returns:
         List of diagnostics
-    
-    TODO: Implement full validation logic
     """
     diagnostics: List[Diagnostic] = []
     
-    # TODO: Implement validation
+    if not story.node or not hasattr(story.node, 'range'):
+        return diagnostics
+    
+    # STORY-007: No effect groups
+    if not story.effect_groups:
+        diagnostics.append(create_diagnostic("STORY-007", story.node.range))
+    
+    # STORY-008: Not in correct directory
+    if not is_story_cycles_file(file_path):
+        diagnostics.append(create_diagnostic(
+            "STORY-008",
+            story.node.range,
+            f"Story cycle '{story.name}' should be in common/story_cycles/ directory"
+        ))
     
     return diagnostics
 
 
 def validate_story_cycle_lifecycle(
-    story: StoryCycleDefinition, 
-    node: Any
+    story: StoryCycleDefinition
 ) -> List[Diagnostic]:
     """
     Validate lifecycle management.
@@ -654,23 +834,54 @@ def validate_story_cycle_lifecycle(
     
     Args:
         story: StoryCycleDefinition to validate
-        node: AST node for error reporting
     
     Returns:
         List of diagnostics
-    
-    TODO: Implement full validation logic
     """
     diagnostics: List[Diagnostic] = []
     
-    # TODO: Implement validation
+    if not story.node or not hasattr(story.node, 'range'):
+        return diagnostics
+    
+    # STORY-020: No on_owner_death handler
+    if not story.on_owner_death:
+        diagnostics.append(create_diagnostic("STORY-020", story.node.range))
+    else:
+        # STORY-021: on_owner_death without cleanup
+        if story.on_owner_death and isinstance(story.on_owner_death, dict):
+            handler_node = story.on_owner_death.get('node')
+            has_end_story = handler_node and check_for_effect(handler_node, "end_story")
+            has_transfer = handler_node and check_for_effect(handler_node, "make_story_owner")
+            
+            if not (has_end_story or has_transfer):
+                range_ = handler_node.range if handler_node and hasattr(handler_node, 'range') else story.node.range
+                diagnostics.append(create_diagnostic("STORY-021", range_))
+    
+    # STORY-040: Empty on_setup
+    if story.on_setup and isinstance(story.on_setup, dict):
+        setup_node = story.on_setup.get('node')
+        if setup_node and (not hasattr(setup_node, 'children') or not setup_node.children):
+            diagnostics.append(create_diagnostic("STORY-040", setup_node.range))
+    
+    # STORY-041: Empty on_end
+    if story.on_end and isinstance(story.on_end, dict):
+        end_node = story.on_end.get('node')
+        if end_node and (not hasattr(end_node, 'children') or not end_node.children):
+            diagnostics.append(create_diagnostic("STORY-041", end_node.range))
+    
+    # STORY-045: Suggest debug logging in on_end
+    if story.on_end and isinstance(story.on_end, dict):
+        end_node = story.on_end.get('node')
+        if end_node:
+            has_debug_log = check_for_effect(end_node, "debug_log")
+            if not has_debug_log:
+                diagnostics.append(create_diagnostic("STORY-045", end_node.range))
     
     return diagnostics
 
 
 def validate_effect_group_logic(
-    group: EffectGroup, 
-    node: Any
+    group: EffectGroup
 ) -> List[Diagnostic]:
     """
     Validate effect_group logic and structure.
@@ -685,16 +896,57 @@ def validate_effect_group_logic(
     
     Args:
         group: EffectGroup to validate
-        node: AST node for error reporting
     
     Returns:
         List of diagnostics
-    
-    TODO: Implement full validation logic
     """
     diagnostics: List[Diagnostic] = []
     
-    # TODO: Implement validation
+    if not group.node or not hasattr(group.node, 'range'):
+        return diagnostics
+    
+    # STORY-022: effect_group without trigger
+    if not group.trigger:
+        diagnostics.append(create_diagnostic("STORY-022", group.node.range))
+    
+    # STORY-023 & STORY-024: Chance validation
+    if group.chance is not None:
+        if group.chance > 100:
+            diagnostics.append(create_diagnostic(
+                "STORY-023",
+                group.node.range,
+                f"chance = {group.chance} exceeds 100%"
+            ))
+        elif group.chance <= 0:
+            diagnostics.append(create_diagnostic(
+                "STORY-024",
+                group.node.range,
+                f"chance = {group.chance} means effect never fires"
+            ))
+    
+    # STORY-025: No triggered_effects
+    if not group.triggered_effects and not group.first_valid:
+        diagnostics.append(create_diagnostic("STORY-025", group.node.range))
+    
+    # STORY-026: first_valid without fallback
+    if group.first_valid and group.first_valid.triggered_effects:
+        last_effect = group.first_valid.triggered_effects[-1]
+        # Check if last effect has an unconditional trigger (always = yes)
+        if last_effect.trigger:
+            trigger_node = last_effect.trigger.get('node') if isinstance(last_effect.trigger, dict) else None
+            has_always = False
+            if trigger_node and hasattr(trigger_node, 'children'):
+                for child in trigger_node.children:
+                    if child.key == 'always' and child.value in (True, 'yes', 'true'):
+                        has_always = True
+                        break
+            
+            if not has_always and group.first_valid.node and hasattr(group.first_valid.node, 'range'):
+                diagnostics.append(create_diagnostic("STORY-026", group.first_valid.node.range))
+    
+    # STORY-027: Mixing triggered_effect and first_valid
+    if group.triggered_effects and group.first_valid:
+        diagnostics.append(create_diagnostic("STORY-027", group.node.range))
     
     return diagnostics
 
@@ -704,8 +956,7 @@ def validate_effect_group_logic(
 # ==============================================================================
 
 def collect_story_cycle_diagnostics(
-    tree: Tree,
-    source: str,
+    tree: Any,
     file_path: str
 ) -> List[Diagnostic]:
     """
@@ -715,19 +966,38 @@ def collect_story_cycle_diagnostics(
     
     Args:
         tree: Parsed AST tree
-        source: Source code text
         file_path: File path for context
     
     Returns:
         List of all diagnostics found
-    
-    TODO: Implement full collection logic
     """
     diagnostics: List[Diagnostic] = []
     
-    # TODO: Implement full collection
-    # 1. Parse story cycle definitions
-    # 2. Run all validation functions
-    # 3. Collect diagnostics
+    # Find all story cycle definitions in the AST
+    story_cycle_nodes = find_story_cycles(tree)
+    
+    for node in story_cycle_nodes:
+        # Parse the story cycle
+        story = parse_story_cycle(node)
+        
+        # Validate structure
+        diagnostics.extend(validate_story_cycle(story, file_path))
+        
+        # Validate lifecycle
+        diagnostics.extend(validate_story_cycle_lifecycle(story))
+        
+        # Validate each effect group
+        for group in story.effect_groups:
+            diagnostics.extend(validate_effect_group_timing(group))
+            diagnostics.extend(validate_effect_group_logic(group))
+            
+            # Validate triggered effects
+            for triggered_effect in group.triggered_effects:
+                diagnostics.extend(validate_triggered_effect(triggered_effect))
+            
+            # Validate first_valid if present
+            if group.first_valid:
+                for triggered_effect in group.first_valid.triggered_effects:
+                    diagnostics.extend(validate_triggered_effect(triggered_effect))
     
     return diagnostics
