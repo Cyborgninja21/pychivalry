@@ -296,6 +296,13 @@ desc = {
 
 This data can be used for validation.
 
+### Trait Data Availability
+✅ **Enhanced trait system implemented** (Phase 6): User-extracted trait data with 15+ property types including:
+- Skill bonuses (diplomacy, martial, stewardship, intrigue, learning, prowess)
+- Opinion modifiers (18+ types)
+- Lifestyle XP gains, ruler designer costs, flags, modifiers
+- See: `tools/extract_traits.py` for extraction, `pychivalry/traits.py` for query API
+
 ### Example
 
 ```pdx
@@ -585,7 +592,7 @@ To implement these checks, the following data files should be created in `pychiv
 | `themes.yaml` | **NEEDED** | All valid theme names (~72) |
 | `backgrounds.yaml` | **NEEDED** | All valid background names (~44) |
 | `environments.yaml` | **NEEDED** | All valid environment names (~44) |
-| `traits.yaml` | **NEEDED** | All valid trait names (for option validation) |
+| `traits/*.yaml` | ✅ **USER-EXTRACTED** | 297 traits with 15+ properties (personality, education, lifestyle, health, fame, childhood, special). **Copyright-compliant**: Users extract from own CK3 installation via VS Code command. See: `tools/extract_traits.py`, `pychivalry/traits.py` |
 | `on_actions.yaml` | **NEEDED** | Known on_actions with their scopes |
 | `scopes/*.yaml` | ✅ EXISTS | Character, title, province scope definitions |
 

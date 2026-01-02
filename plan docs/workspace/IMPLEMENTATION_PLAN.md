@@ -1137,9 +1137,21 @@ def check_background_valid(node: CK3Node) -> List[Diagnostic]:
 **Impact:** Medium  
 **Dependencies:** Phase 1 (basic option name check), Data files
 
-### Prerequisites: Create traits.yaml
+### Prerequisites: Trait Data
 
-Need comprehensive trait list for CK3451 validation.
+✅ **COMPLETED** (Phase 6): User-extracted trait system implemented with 15+ property types.
+
+**For CK3451 validation**, trait data is available via `pychivalry/traits.py` query API:
+- `is_valid_trait(trait_name)` - Check if trait exists
+- `get_all_trait_names()` - Get set of all 297 trait names
+- `get_trait_info(trait_name)` - Get complete trait metadata
+
+Users must extract trait data from their CK3 installation using:
+```
+VS Code Command: "CK3: Extract Trait Data from CK3 Installation"
+```
+
+See: [Trait Validation Setup](../../README.md#trait-validation-opt-in)
 
 ### Tasks
 
@@ -1321,7 +1333,7 @@ code_triggered:
 | `themes.yaml` | `data/` | **NEEDED** | Phase 6 | ~72 theme names |
 | `backgrounds.yaml` | `data/` | **NEEDED** | Phase 6 | ~44 background names |
 | `environments.yaml` | `data/` | **NEEDED** | Phase 6 | ~44 environment names |
-| `traits.yaml` | `data/` | **NEEDED** | Phase 8 | All valid trait names |
+| `traits/*.yaml` | `data/traits/` | ✅ **USER-EXTRACTED** | Phase 8 | **297 traits with 15+ properties** (skills, opinions, modifiers, XP gains, costs, flags). Users extract from own CK3 installation. See `tools/extract_traits.py` |
 | `on_actions.yaml` | `data/` | **NEEDED** | Phase 9 | ~30 on_actions with scopes |
 | `character.yaml` | `data/scopes/` | ✅ EXISTS | - | Character scope links |
 | `title.yaml` | `data/scopes/` | ✅ EXISTS | - | Title scope links |

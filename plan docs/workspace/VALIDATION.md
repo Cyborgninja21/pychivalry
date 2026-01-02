@@ -321,6 +321,30 @@ config = DiagnosticConfig(
 diagnostics = collect_all_diagnostics(doc, ast, index, config)
 ```
 
+### Trait Validation
+
+Trait validation requires user-extracted data:
+
+```python
+from pychivalry.traits import is_trait_data_available, is_valid_trait
+
+if is_trait_data_available():
+    # Trait data extracted - can validate trait references
+    if not is_valid_trait('brave'):
+        # Emit diagnostic for unknown trait
+        pass
+else:
+    # Gracefully skip trait validation
+    pass
+```
+
+Users extract trait data via VS Code command: **"CK3: Extract Trait Data from CK3 Installation"**
+
+See: [Enhanced Trait System](../../README.md#trait-validation-opt-in) for details on:
+- 15+ extracted property types (skills, opinions, modifiers, XP gains, costs, flags)
+- 10+ query functions for programmatic access
+- Rich tooltip display in completions
+
 ### Individual Module Configurations
 
 #### Style Configuration
