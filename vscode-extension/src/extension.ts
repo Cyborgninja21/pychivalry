@@ -1371,6 +1371,10 @@ async function showMenuCommand(): Promise<void> {
             description: 'Generate localization entries for an event',
         },
         {
+            label: '$(database) Extract Trait Data',
+            description: 'Extract trait data from CK3 installation',
+        },
+        {
             label: '$(edit) Rename Event',
             description: 'Rename an event ID',
         },
@@ -1439,6 +1443,9 @@ async function showMenuCommand(): Promise<void> {
                 break;
             case '$(symbol-string) Generate Localization Stubs':
                 await vscode.commands.executeCommand('ck3LanguageServer.generateLocalizationStubs');
+                break;
+            case '$(database) Extract Trait Data':
+                await vscode.commands.executeCommand('ck3LanguageServer.extractTraitData');
                 break;
             case '$(edit) Rename Event':
                 await vscode.commands.executeCommand('ck3LanguageServer.renameEvent');

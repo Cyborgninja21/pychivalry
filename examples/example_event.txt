@@ -1,69 +1,574 @@
 # Example CK3 Event File
-# This is a sample event demonstrating CK3 scripting syntax
+# This file demonstrates various CK3 scripting patterns for testing trait validation and completions
 
 namespace example_events
 
-# A simple character event
+# Trait Testing Event - Character becomes ambitious
 example_events.0001 = {
     type = character_event
     title = example_events.0001.t
     desc = example_events.0001.desc
-    theme = realm
+    theme = intrigue
     
-    # This event is triggered when a character becomes an adult
+    # Trigger checks for multiple traits
     trigger = {
         age >= 16
         is_ai = no
-    }
-    
-    # Weight for random selection
-    weight_multiplier = {
-        base = 1
-        
-        modifier = {
-            add = 1
-            has_trait = ambitious
+        NOT = { has_trait = ambitious }
+        OR = {
+            has_trait = diligent
+            has_trait = greedy
+            has_trait = arrogant
         }
     }
     
-    # Event fires once
-    immediate = {
-        # Some immediate effects
-        add_gold = 100
+    # Weight based on traits
+    weight_multiplier = {
+        base = 100
+        
+        modifier = {
+            add = 50
+            has_trait = greedy
+        }
+        
+        modifier = {
+            add = 30
+            has_trait = arrogant
+        }
+        
+        modifier = {
+            factor = 0.5
+            has_trait = content
+        }
     }
     
-    # First option
+    # Gain ambitious trait
     option = {
         name = example_events.0001.a
         
-        add_prestige = 50
-        add_character_modifier = {
-            modifier = example_modifier
-            years = 10
+        add_trait = ambitious
+        add_prestige = 100
+        
+        stress_impact = {
+            content = medium_stress_impact_gain
+            humble = minor_stress_impact_gain
         }
     }
     
-    # Second option
+    # Stay content
     option = {
         name = example_events.0001.b
-        
-        add_piety = 50
-        add_trait = content
-    }
-    
-    # Third option with trigger
-    option = {
-        name = example_events.0001.c
         trigger = {
-            gold >= 200
+            NOT = { has_trait = ambitious }
         }
         
-        remove_short_term_gold = 200
-        add_realm_law_skip_effect = crown_authority_2
+        add_trait = content
+        add_piety = 50
+        
+        stress_impact = {
+            ambitious = medium_stress_impact_gain
+            greedy = minor_stress_impact_gain
+        }
     }
 }
 
-# A decision example
+# Personality Trait Conflict Event
+example_events.0002 = {
+    type = character_event
+    title = example_events.0002.t
+    desc = example_events.0002.desc
+    theme = mental_break
+    
+    trigger = {
+        # Check for conflicting traits
+        has_trait = brave
+        has_trait = craven
+        # This is invalid - brave and craven are opposites
+    }
+    
+    immediate = {
+        # Remove one conflicting trait
+        if = {
+            limit = { has_trait = craven }
+            remove_trait = craven
+        }
+    }
+    
+    option = {
+        name = example_events.0002.a
+        add_trait = brave
+    }
+}
+
+# Education Trait Event
+example_events.0003 = {
+    type = character_event
+    title = example_events.0003.t
+    desc = example_events.0003.desc
+    theme = education
+    
+    trigger = {
+        age = 16
+        is_adult = yes
+        # Should have an education trait
+        NOR = {
+            has_trait = education_diplomacy_1
+            has_trait = education_diplomacy_2
+            has_trait = education_diplomacy_3
+            has_trait = education_diplomacy_4
+            has_trait = education_martial_1
+            has_trait = education_stewardship_1
+            has_trait = education_intrigue_1
+            has_trait = education_learning_1
+        }
+    }
+    
+    option = {
+        name = example_events.0003.a
+        add_trait = education_diplomacy_3
+    }
+    
+    option = {
+        name = example_events.0003.b
+        add_trait = education_martial_4
+    }
+    
+    option = {
+        name = example_events.0003.c
+        add_trait = education_stewardship_2
+    }
+}
+
+# Virtue and Sin Event
+example_events.0004 = {
+    type = character_event
+    title = example_events.0004.t
+    desc = example_events.0004.desc
+    theme = faith
+    
+    trigger = {
+        faith = { has_doctrine_parameter = virtue_generous }
+        NOT = { has_trait = generous }
+        gold >= 500
+    }
+    
+    # Give to charity and gain virtue
+    option = {
+        name = example_events.0004.a
+        
+        add_trait = generous
+        remove_short_term_gold = 500
+        add_piety = 200
+        
+        # Check if already has opposite sin
+        if = {
+            limit = { has_trait = greedy }
+            remove_trait = greedy
+        }
+        
+        stress_impact = {
+            greedy = major_stress_impact_gain
+            callous = medium_stress_impact_gain
+        }
+    }
+    
+    # Keep the gold
+    option = {
+        name = example_events.0004.b
+        
+        add_trait = greedy
+        add_gold = 100
+        
+        stress_impact = {
+            generous = major_stress_impact_gain
+            compassionate = medium_stress_impact_gain
+        }
+    }
+}
+
+# Health Trait Event
+example_events.0005 = {
+    type = character_event
+    title = example_events.0005.t
+    desc = example_events.0005.desc
+    theme = health
+    
+    trigger = {
+        age >= 40
+        NOT = {
+            has_trait = ill
+            has_trait = infirm
+            has_trait = incapable
+        }
+    }
+    
+    immediate = {
+        # Check current health status
+        if = {
+            limit = { has_trait = wounded_1 }
+            add_trait = wounded_2
+        }
+    }
+    
+    # Become ill
+    option = {
+        name = example_events.0005.a
+        
+        add_trait = ill
+        add_character_modifier = {
+            modifier = bedridden
+            months = 6
+        }
+    }
+    
+    # Age gracefully
+    option = {
+        name = example_events.0005.b
+        trigger = {
+            has_trait = healthy
+        }
+        
+        add_trait = hale
+        add_prestige = 50
+    }
+}
+
+# Lifestyle Trait Event
+example_events.0006 = {
+    type = character_event
+    title = example_events.0006.t
+    desc = example_events.0006.desc
+    theme = learning
+    
+    trigger = {
+        is_adult = yes
+        learning >= 12
+        NOT = {
+            has_trait = lifestyle_mystic
+            has_trait = lifestyle_scholar
+            has_trait = lifestyle_physician
+        }
+    }
+    
+    option = {
+        name = example_events.0006.a
+        add_trait = lifestyle_scholar
+        add_learning_lifestyle_xp = 100
+    }
+    
+    option = {
+        name = example_events.0006.b
+        add_trait = lifestyle_mystic
+        add_piety = 100
+    }
+    
+    option = {
+        name = example_events.0006.c
+        trigger = {
+            learning >= 15
+        }
+        add_trait = lifestyle_physician
+        add_learning_lifestyle_xp = 150
+    }
+}
+
+# Complex Trait Check Event
+example_events.0007 = {
+    type = character_event
+    title = example_events.0007.t
+    desc = example_events.0007.desc
+    theme = party
+    
+    trigger = {
+        # Multiple trait checks
+        any_courtier = {
+            has_trait = drunkard
+            opinion = { target = root value >= 20 }
+        }
+        
+        NOR = {
+            has_trait = temperate
+            has_trait = shy
+        }
+        
+        OR = {
+            has_trait = gregarious
+            has_trait = gluttonous
+            has_trait = reveler_1
+        }
+    }
+    
+    immediate = {
+        # Find a drinking companion
+        random_courtier = {
+            limit = {
+                has_trait = drunkard
+                opinion = { target = root value >= 20 }
+            }
+            save_scope_as = drinking_buddy
+        }
+    }
+    
+    # Join the revelry
+    option = {
+        name = example_events.0007.a
+        
+        if = {
+            limit = { NOT = { has_trait = drunkard } }
+            add_trait = drunkard
+        }
+        
+        if = {
+            limit = { NOT = { has_trait = reveler_1 } }
+            add_trait = reveler_1
+        }
+        
+        scope:drinking_buddy = {
+            add_opinion = {
+                target = root
+                modifier = friendship_opinion
+                opinion = 20
+            }
+        }
+        
+        stress_impact = {
+            temperate = major_stress_impact_gain
+            shy = medium_stress_impact_gain
+        }
+    }
+    
+    # Decline politely
+    option = {
+        name = example_events.0007.b
+        
+        add_trait = temperate
+        add_prestige = 25
+        
+        stress_impact = {
+            gregarious = medium_stress_impact_gain
+            gluttonous = minor_stress_impact_gain
+        }
+    }
+}
+
+# Complex Trait Check Event
+example_events.0007 = {
+    type = character_event
+    title = example_events.0007.t
+    desc = example_events.0007.desc
+    theme = party
+    
+    trigger = {
+        # Multiple trait checks
+        any_courtier = {
+            has_trait = drunkard
+            opinion = { target = root value >= 20 }
+        }
+        
+        NOR = {
+            has_trait = temperate
+            has_trait = shy
+        }
+        
+        OR = {
+            has_trait = gregarious
+            has_trait = gluttonous
+            has_trait = reveler_1
+        }
+    }
+    
+    immediate = {
+        # Find a drinking companion
+        random_courtier = {
+            limit = {
+                has_trait = drunkard
+                opinion = { target = root value >= 20 }
+            }
+            save_scope_as = drinking_buddy
+        }
+    }
+    
+    # Join the revelry
+    option = {
+        name = example_events.0007.a
+        
+        if = {
+            limit = { NOT = { has_trait = drunkard } }
+            add_trait = drunkard
+        }
+        
+        if = {
+            limit = { NOT = { has_trait = reveler_1 } }
+            add_trait = reveler_1
+        }
+        
+        scope:drinking_buddy = {
+            add_opinion = {
+                target = root
+                modifier = friendship_opinion
+                opinion = 20
+            }
+        }
+        
+        stress_impact = {
+            temperate = major_stress_impact_gain
+            shy = medium_stress_impact_gain
+        }
+    }
+    
+    # Decline politely
+    option = {
+        name = example_events.0007.b
+        
+        add_trait = temperate
+        add_prestige = 25
+        
+        stress_impact = {
+            gregarious = medium_stress_impact_gain
+            gluttonous = minor_stress_impact_gain
+        }
+    }
+}
+
+# Commander Trait Event
+example_events.0008 = {
+    type = character_event
+    title = example_events.0008.t
+    desc = example_events.0008.desc
+    theme = war
+    
+    trigger = {
+        is_adult = yes
+        martial >= 10
+        NOT = {
+            has_trait = lifestyle_blademaster
+            has_trait = commander_1
+        }
+        any_character_war = {
+            is_attacker = root
+        }
+    }
+    
+    option = {
+        name = example_events.0008.a
+        add_trait = lifestyle_blademaster
+        add_martial_lifestyle_xp = 200
+    }
+    
+    option = {
+        name = example_events.0008.b
+        add_trait = commander_1
+        add_prestige = 100
+    }
+}
+
+# Congenital Trait Event (for children)
+example_events.0009 = {
+    type = character_event
+    title = example_events.0009.t
+    desc = example_events.0009.desc
+    theme = child
+    
+    trigger = {
+        age < 3
+        is_alive = yes
+        # Check parents for congenital traits
+        OR = {
+            father = { has_trait = intelligent }
+            mother = { has_trait = intelligent }
+        }
+    }
+    
+    option = {
+        name = example_events.0009.a
+        add_trait = intelligent
+        add_trait = genius
+    }
+    
+    option = {
+        name = example_events.0009.b
+        add_trait = quick
+    }
+}
+
+# Criminal Trait Event
+example_events.0010 = {
+    type = character_event
+    title = example_events.0010.t
+    desc = example_events.0010.desc
+    theme = intrigue
+    
+    trigger = {
+        intrigue >= 12
+        NOT = {
+            has_trait = murderer
+            has_trait = kinslayer
+            has_trait = deviant
+        }
+        any_scheme = {
+            scheme_type = murder
+            scheme_is_ready = yes
+        }
+    }
+    
+    immediate = {
+        random_scheme = {
+            limit = {
+                scheme_type = murder
+            }
+            save_scope_as = murder_plot
+        }
+    }
+    
+    # Go through with it
+    option = {
+        name = example_events.0010.a
+        
+        scope:murder_plot = {
+            scheme_owner = {
+                add_trait = murderer
+            }
+        }
+        
+        # Check if target is family
+        if = {
+            limit = {
+                scope:murder_plot.scheme_target = {
+                    OR = {
+                        is_parent_of = root
+                        is_child_of = root
+                        is_sibling_of = root
+                    }
+                }
+            }
+            add_trait = kinslayer
+        }
+        
+        stress_impact = {
+            compassionate = massive_stress_impact_gain
+            just = major_stress_impact_gain
+        }
+    }
+    
+    # Call it off
+    option = {
+        name = example_events.0010.b
+        
+        scope:murder_plot = {
+            end_scheme = yes
+        }
+        
+        add_trait = compassionate
+        add_piety = 100
+        
+        stress_impact = {
+            vengeful = medium_stress_impact_gain
+            callous = minor_stress_impact_gain
+        }
+    }
+}
+
+# A decision example with trait requirements
 example_decision = {
     picture = "gfx/interface/illustrations/decisions/decision_misc.dds"
     
@@ -73,19 +578,37 @@ example_decision = {
     is_shown = {
         is_ruler = yes
         has_government = feudal_government
+        OR = {
+            has_trait = ambitious
+            has_trait = greedy
+            has_trait = diligent
+        }
     }
     
     is_valid = {
         gold >= 100
         prestige_level >= 2
+        NOT = { has_trait = lazy }
     }
     
     effect = {
         remove_short_term_gold = 100
         
+        # Give bonuses based on traits
+        if = {
+            limit = { has_trait = ambitious }
+            add_prestige = 200
+        }
+        
+        if = {
+            limit = { has_trait = diligent }
+            add_stewardship_lifestyle_xp = 100
+        }
+        
         every_vassal = {
             limit = {
                 highest_held_title_tier = tier_duchy
+                NOT = { has_trait = ambitious }
             }
             add_opinion = {
                 target = root
@@ -108,8 +631,18 @@ example_decision = {
         base = 100
         
         modifier = {
+            factor = 2.0
+            has_trait = ambitious
+        }
+        
+        modifier = {
             factor = 0.5
             gold < 200
+        }
+        
+        modifier = {
+            factor = 0
+            has_trait = lazy
         }
     }
 }

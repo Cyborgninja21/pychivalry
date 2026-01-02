@@ -1400,24 +1400,28 @@ def completions(ls: CK3LanguageServer, params: types.CompletionParams):
         - Trigger character handling (_, ., :, =)
     """
     try:
+        logger.debug(f"Completion request at {params.text_document.uri}:{params.position.line}:{params.position.character}")
         doc = ls.workspace.get_text_document(params.text_document.uri)
         ast = ls.get_ast(doc.uri)
 
         # Get the current line text for context detection
         lines = doc.source.split("\n")
         line_text = lines[params.position.line] if params.position.line < len(lines) else ""
+        logger.debug(f"Completion line text: '{line_text}'")
 
         # Find the AST node at cursor position for context
         node = get_node_at_position(ast, params.position) if ast else None
 
         # Get context-aware completions
-        return get_context_aware_completions(
+        result = get_context_aware_completions(
             document_uri=doc.uri,
             position=params.position,
             ast=node,
             line_text=line_text,
             document_index=ls.index,
         )
+        logger.debug(f"Returning {len(result.items) if result else 0} completion items")
+        return result
     except Exception as e:
         logger.error(f"Error in completions handler: {e}", exc_info=True)
         # Fallback to empty completion list on error
@@ -1459,10 +1463,13 @@ def hover(ls: CK3LanguageServer, params: types.HoverParams):
         - List iterator explanations
     """
     try:
+        logger.debug(f"Hover request at {params.text_document.uri}:{params.position.line}:{params.position.character}")
         doc = ls.workspace.get_text_document(params.text_document.uri)
         ast = ls.get_ast(doc.uri)
 
-        return create_hover_response(doc, params.position, ast, ls.index)
+        result = create_hover_response(doc, params.position, ast, ls.index)
+        logger.debug(f"Hover result: {'Found' if result else 'None'}")
+        return result
     except Exception as e:
         logger.error(f"Error in hover handler: {e}", exc_info=True)
         return None

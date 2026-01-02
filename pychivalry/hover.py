@@ -555,6 +555,89 @@ def get_hover_content(
         filename = loc.uri.split("/")[-1]
         return f"## ❓ `{word}`\n\n**🟨 Custom Scripted Trigger** — *Mod-defined*\n\n---\n\n📝 **Usage:**\n```ck3\n{word} = yes\n```\n\n📂 **Defined in:** `{filename}`\n\n📍 **Line:** {loc.range.start.line + 1}\n\n💡 *Go to Definition: Ctrl+Click*"
 
+    # Check if it's a trait (with extracted trait data)
+    from pychivalry.traits import is_trait_data_available, is_valid_trait, get_trait_info
+    
+    if is_trait_data_available() and is_valid_trait(word):
+        trait_info = get_trait_info(word)
+        if trait_info:
+            # Build comprehensive trait documentation
+            category = trait_info.get('category', 'trait')
+            description = trait_info.get('description', word.replace('_', ' ').title())
+            opposites = trait_info.get('opposites', [])
+            
+            doc = f"## ⚔️ `{word}`\n\n**🟢 Trait** — *{category.replace('_', ' ').title()}*\n\n---\n\n"
+            doc += f"📝 **Description:** {description}\n\n"
+            
+            if opposites:
+                doc += f"⚠️ **Opposite Traits:** {', '.join(opposites)}\n\n"
+            
+            # Add skill bonuses
+            skills = trait_info.get('skills', {})
+            if skills:
+                doc += "**📊 Skills:**\n"
+                for skill, value in skills.items():
+                    sign = '+' if value > 0 else ''
+                    doc += f"- {skill.capitalize()}: {sign}{value}\n"
+                doc += "\n"
+            
+            # Add opinion modifiers
+            opinions = trait_info.get('opinions', {})
+            if opinions:
+                doc += "**💭 Opinion Modifiers:**\n"
+                for opinion_type, value in list(opinions.items())[:5]:  # Show first 5
+                    sign = '+' if value > 0 else ''
+                    opinion_label = opinion_type.replace('_', ' ').title()
+                    doc += f"- {opinion_label}: {sign}{value}\n"
+                if len(opinions) > 5:
+                    doc += f"- *... and {len(opinions) - 5} more*\n"
+                doc += "\n"
+            
+            # Add lifestyle XP gains
+            xp_gains = trait_info.get('lifestyle_xp_gains', {})
+            if xp_gains:
+                doc += "**✨ Lifestyle XP:**\n"
+                for lifestyle, mult in xp_gains.items():
+                    sign = '+' if mult > 0 else ''
+                    doc += f"- {lifestyle.capitalize()}: {sign}{mult*100:.0f}%/month\n"
+                doc += "\n"
+            
+            # Add ruler designer cost
+            cost = trait_info.get('ruler_designer_cost')
+            if cost is not None:
+                doc += f"**💰 Ruler Designer Cost:** {cost} points\n\n"
+            
+            # Add key flags
+            flags = trait_info.get('flags', [])
+            if flags:
+                interesting_flags = [f for f in flags if not f.startswith('level_')][:3]
+                if interesting_flags:
+                    doc += "**🚩 Flags:**\n"
+                    for flag in interesting_flags:
+                        doc += f"- {flag.replace('_', ' ')}\n"
+                    doc += "\n"
+            
+            # Add key modifiers
+            modifiers = trait_info.get('modifiers', {})
+            if modifiers:
+                mod_list = list(modifiers.items())[:3]
+                if mod_list:
+                    doc += "**📈 Modifiers:**\n"
+                    for mod_name, mod_value in mod_list:
+                        sign = '+' if mod_value > 0 else ''
+                        mod_label = mod_name.replace('_', ' ').title()
+                        # Format as percentage if it's a mult
+                        if 'mult' in mod_name:
+                            doc += f"- {mod_label}: {sign}{mod_value*100:.0f}%\n"
+                        else:
+                            doc += f"- {mod_label}: {sign}{mod_value}\n"
+                    doc += "\n"
+            
+            doc += "---\n\n"
+            doc += "📝 **Usage:**\n```ck3\nhas_trait = " + word + "\nadd_trait = " + word + "\nremove_trait = " + word + "\n```"
+            
+            return doc
+
     # Check if it's a character interaction from workspace
     if index and word in index.character_interactions:
         loc = index.character_interactions[word]

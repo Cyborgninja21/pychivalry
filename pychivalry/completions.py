@@ -417,6 +417,10 @@ def get_trait_completions(line_text: str, position: types.Position) -> Optional[
     for trait_name in sorted(trait_names):
         info = get_trait_info(trait_name)
         
+        # Skip if trait info not available (shouldn't happen, but defensive)
+        if info is None:
+            continue
+        
         # Build detail and documentation with enhanced properties
         category = info.get('category', 'trait')
         detail = category.replace('_', ' ').title()
