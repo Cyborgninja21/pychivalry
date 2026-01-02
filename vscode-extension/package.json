@@ -238,170 +238,193 @@
         }
       ]
     },
-    "configuration": {
-      "type": "object",
-      "title": "CK3 Language Server",
-      "properties": {
-        "ck3LanguageServer.pythonPath": {
-          "type": "string",
-          "default": "python",
-          "description": "Path to Python executable to use for the language server",
-          "scope": "resource"
-        },
-        "ck3LanguageServer.args": {
-          "type": "array",
-          "default": [],
-          "description": "Additional arguments to pass to the language server",
-          "items": {
-            "type": "string"
+    "configuration": [
+      {
+        "title": "General",
+        "properties": {
+          "ck3LanguageServer.pythonPath": {
+            "type": "string",
+            "default": "python",
+            "description": "Path to Python executable to use for the language server",
+            "scope": "resource"
           },
-          "scope": "resource"
-        },
-        "ck3LanguageServer.trace.server": {
-          "type": "string",
-          "enum": [
-            "off",
-            "messages",
-            "verbose"
-          ],
-          "default": "off",
-          "description": "Traces the communication between VS Code and the language server",
-          "scope": "window"
-        },
-        "ck3LanguageServer.logLevel": {
-          "type": "string",
-          "enum": [
-            "debug",
-            "info",
-            "warning",
-            "error"
-          ],
-          "default": "info",
-          "description": "Log level for the language server. Setting to 'debug' enables additional Debug and Performance output channels.",
-          "scope": "resource"
-        },
-        "ck3LanguageServer.enable": {
-          "type": "boolean",
-          "default": true,
-          "description": "Enable/disable the CK3 language server",
-          "scope": "resource"
-        },
-        "ck3LanguageServer.formatting.enabled": {
-          "type": "boolean",
-          "default": true,
-          "description": "Enable document formatting for CK3 files",
-          "scope": "resource"
-        },
-        "ck3LanguageServer.formatting.insertSpaces": {
-          "type": "boolean",
-          "default": false,
-          "description": "Use spaces instead of tabs for indentation (Paradox convention uses tabs)",
-          "scope": "resource"
-        },
-        "ck3LanguageServer.formatting.tabSize": {
-          "type": "number",
-          "default": 4,
-          "description": "Number of spaces per tab (for display purposes)",
-          "scope": "resource"
-        },
-        "ck3LanguageServer.inlayHints.enabled": {
-          "type": "boolean",
-          "default": true,
-          "description": "Enable inlay hints for CK3 scripts",
-          "scope": "resource"
-        },
-        "ck3LanguageServer.inlayHints.showScopeTypes": {
-          "type": "boolean",
-          "default": true,
-          "description": "Show type hints after saved scopes (e.g., scope:friend → : character)",
-          "scope": "resource"
-        },
-        "ck3LanguageServer.inlayHints.showChainTypes": {
-          "type": "boolean",
-          "default": true,
-          "description": "Show type hints after scope chains (e.g., root.primary_title → : landed_title)",
-          "scope": "resource"
-        },
-        "ck3LanguageServer.inlayHints.showIteratorTypes": {
-          "type": "boolean",
-          "default": true,
-          "description": "Show type hints for list iterators (e.g., every_vassal → → character)",
-          "scope": "resource"
-        },
-        "ck3LanguageServer.inlayHints.maxHintsPerLine": {
-          "type": "number",
-          "default": 3,
-          "minimum": 1,
-          "maximum": 10,
-          "description": "Maximum number of inlay hints to show per line",
-          "scope": "resource"
-        },
-        "ck3LanguageServer.logWatcher.enabled": {
-          "type": "boolean",
-          "default": true,
-          "description": "Enable the CK3 game log watcher for real-time error detection",
-          "scope": "resource"
-        },
-        "ck3LanguageServer.logWatcher.autoStart": {
-          "type": "boolean",
-          "default": false,
-          "description": "Automatically start watching game logs when opening a CK3 workspace",
-          "scope": "resource"
-        },
-        "ck3LanguageServer.logWatcher.logPath": {
-          "type": "string",
-          "default": "",
-          "description": "Custom path to CK3 logs directory (leave empty for auto-detection)",
-          "scope": "resource"
-        },
-        "ck3LanguageServer.logWatcher.showInOutput": {
-          "type": "boolean",
-          "default": true,
-          "description": "Show game log entries in the GameLogs output channel",
-          "scope": "resource"
-        },
-        "ck3LanguageServer.logWatcher.maxLogSize": {
-          "type": "number",
-          "default": 100,
-          "minimum": 10,
-          "maximum": 1000,
-          "description": "Maximum size of game.log to process in MB (older content will be skipped)",
-          "scope": "resource"
-        },
-        "ck3LanguageServer.logWatcher.debounceDelay": {
-          "type": "number",
-          "default": 500,
-          "minimum": 100,
-          "maximum": 5000,
-          "description": "Delay in milliseconds before processing log changes (reduces CPU usage)",
-          "scope": "resource"
-        },
-        "ck3LanguageServer.logWatcher.patterns": {
-          "type": "array",
-          "default": [],
-          "description": "Additional custom regex patterns for error detection",
-          "items": {
-            "type": "object",
-            "properties": {
-              "pattern": {
-                "type": "string",
-                "description": "Regular expression pattern to match"
-              },
-              "severity": {
-                "type": "string",
-                "enum": ["error", "warning", "info"],
-                "description": "Severity level for matched patterns"
-              },
-              "message": {
-                "type": "string",
-                "description": "Custom message template (use {0}, {1} for capture groups)"
+          "ck3LanguageServer.args": {
+            "type": "array",
+            "default": [],
+            "description": "Additional arguments to pass to the language server",
+            "items": {
+              "type": "string"
+            },
+            "scope": "resource"
+          },
+          "ck3LanguageServer.trace.server": {
+            "type": "string",
+            "enum": [
+              "off",
+              "messages",
+              "verbose"
+            ],
+            "default": "off",
+            "description": "Traces the communication between VS Code and the language server",
+            "scope": "window"
+          },
+          "ck3LanguageServer.logLevel": {
+            "type": "string",
+            "enum": [
+              "debug",
+              "info",
+              "warning",
+              "error"
+            ],
+            "default": "info",
+            "description": "Log level for the language server. Setting to 'debug' enables additional Debug and Performance output channels.",
+            "scope": "resource"
+          },
+          "ck3LanguageServer.enable": {
+            "type": "boolean",
+            "default": true,
+            "description": "Enable/disable the CK3 language server",
+            "scope": "resource"
+          }
+        }
+      },
+      {
+        "title": "Formatting",
+        "properties": {
+          "ck3LanguageServer.formatting.enabled": {
+            "type": "boolean",
+            "default": true,
+            "description": "Enable document formatting for CK3 files",
+            "scope": "resource"
+          },
+          "ck3LanguageServer.formatting.insertSpaces": {
+            "type": "boolean",
+            "default": false,
+            "description": "Use spaces instead of tabs for indentation (Paradox convention uses tabs)",
+            "scope": "resource"
+          },
+          "ck3LanguageServer.formatting.tabSize": {
+            "type": "number",
+            "default": 4,
+            "description": "Number of spaces per tab (for display purposes)",
+            "scope": "resource"
+          }
+        }
+      },
+      {
+        "title": "Inlay Hints",
+        "properties": {
+          "ck3LanguageServer.inlayHints.enabled": {
+            "type": "boolean",
+            "default": true,
+            "description": "Enable inlay hints for CK3 scripts",
+            "scope": "resource"
+          },
+          "ck3LanguageServer.inlayHints.showScopeTypes": {
+            "type": "boolean",
+            "default": true,
+            "description": "Show type hints after saved scopes (e.g., scope:friend → : character)",
+            "scope": "resource"
+          },
+          "ck3LanguageServer.inlayHints.showChainTypes": {
+            "type": "boolean",
+            "default": true,
+            "description": "Show type hints after scope chains (e.g., root.primary_title → : landed_title)",
+            "scope": "resource"
+          },
+          "ck3LanguageServer.inlayHints.showIteratorTypes": {
+            "type": "boolean",
+            "default": true,
+            "description": "Show type hints for list iterators (e.g., every_vassal → → character)",
+            "scope": "resource"
+          },
+          "ck3LanguageServer.inlayHints.maxHintsPerLine": {
+            "type": "number",
+            "default": 3,
+            "minimum": 1,
+            "maximum": 10,
+            "description": "Maximum number of inlay hints to show per line",
+            "scope": "resource"
+          }
+        }
+      },
+      {
+        "title": "Game Log Watcher",
+        "properties": {
+          "ck3LanguageServer.logWatcher.enabled": {
+            "type": "boolean",
+            "default": true,
+            "description": "Enable the CK3 game log watcher for real-time error detection",
+            "scope": "resource",
+            "order": 1
+          },
+          "ck3LanguageServer.logWatcher.autoStart": {
+            "type": "boolean",
+            "default": false,
+            "description": "Automatically start watching game logs when opening a CK3 workspace",
+            "scope": "resource",
+            "order": 2
+          },
+          "ck3LanguageServer.logWatcher.logPath": {
+            "type": "string",
+            "default": "",
+            "description": "Custom path to CK3 logs directory (leave empty for auto-detection)",
+            "scope": "resource",
+            "order": 3
+          },
+          "ck3LanguageServer.logWatcher.showInOutput": {
+            "type": "boolean",
+            "default": true,
+            "description": "Show game log entries in the GameLogs output channel",
+            "scope": "resource",
+            "order": 4
+          },
+          "ck3LanguageServer.logWatcher.maxLogSize": {
+            "type": "number",
+            "default": 100,
+            "minimum": 10,
+            "maximum": 1000,
+            "description": "Maximum size of game.log to process in MB (older content will be skipped)",
+            "scope": "resource",
+            "order": 5
+          },
+          "ck3LanguageServer.logWatcher.debounceDelay": {
+            "type": "number",
+            "default": 500,
+            "minimum": 100,
+            "maximum": 5000,
+            "description": "Delay in milliseconds before processing log changes (reduces CPU usage)",
+            "scope": "resource",
+            "order": 6
+          },
+          "ck3LanguageServer.logWatcher.patterns": {
+            "type": "array",
+            "default": [],
+            "description": "Additional custom regex patterns for error detection",
+            "items": {
+              "type": "object",
+              "properties": {
+                "pattern": {
+                  "type": "string",
+                  "description": "Regular expression pattern to match"
+                },
+                "severity": {
+                  "type": "string",
+                  "enum": ["error", "warning", "info"],
+                  "description": "Severity level for matched patterns"
+                },
+                "message": {
+                  "type": "string",
+                  "description": "Custom message template (use {0}, {1} for capture groups)"
+                }
               }
-            }
-          },
-          "scope": "resource"
+            },
+            "scope": "resource",
+            "order": 7
+          }
         }
       }
-    }
+    ]
   },
   "scripts": {
     "vscode:prepublish": "npm run package",

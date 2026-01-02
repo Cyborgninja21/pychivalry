@@ -594,31 +594,34 @@ COMMON_LIST_BASES = {
     # =============================================================================
     "in_list",  # Iterate over a variable list created by add_to_variable_list
 }
-    "de_jure_duchy",
-    "de_jure_kingdom",
-    "de_jure_empire",
-    "county",
-    "duchy",
-    "kingdom",
-    "empire",
-    # Province lists
-    "county_province",
-    "neighboring_province",
-    # Dynasty/House lists
-    "dynasty_member",
-    "house_member",
-    # Faith/Culture lists
-    "faith_holy_order",
-    "faith_character",
-    # Artifact lists
-    "equipped_character_artifact",
-    "inventory_artifact",
-    "artifact",
-    "character_artifact",
-    "court_artifact",
-    # Variable lists
-    "in_list",  # For variable lists
-}
+
+# TODO: These entries below are reserved for future feature implementation
+# They are commented out to prevent syntax errors until the feature is ready
+#     "de_jure_duchy",
+#     "de_jure_kingdom",
+#     "de_jure_empire",
+#     "county",
+#     "duchy",
+#     "kingdom",
+#     "empire",
+#     # Province lists
+#     "county_province",
+#     "neighboring_province",
+#     # Dynasty/House lists
+#     "dynasty_member",
+#     "house_member",
+#     # Faith/Culture lists
+#     "faith_holy_order",
+#     "faith_character",
+#     # Artifact lists
+#     "equipped_character_artifact",
+#     "inventory_artifact",
+#     "artifact",
+#     "character_artifact",
+#     "court_artifact",
+#     # Variable lists
+#     "in_list",  # For variable lists
+# }
 
 
 # =============================================================================

@@ -32,6 +32,7 @@ export class CK3Logger {
         // Create primary channels (always created)
         this.createChannel(LogCategory.Server, 'CK3: Server');
         this.createChannel(LogCategory.Commands, 'CK3: Commands');
+        this.createChannel(LogCategory.GameLogs, 'CK3: Game Logs');
 
         // Create trace channel (will be used when tracing enabled)
         this.createChannel(LogCategory.Trace, 'CK3: Trace');

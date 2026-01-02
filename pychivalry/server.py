@@ -3318,7 +3318,7 @@ async def rename_event_command(ls: CK3LanguageServer, args: List[Any]):
 
 
 @server.command("ck3.startLogWatcher")
-def start_log_watcher_command(ls: CK3LanguageServer, args: List[Any]):
+def start_log_watcher_command(ls: CK3LanguageServer, args: Optional[List[Any]] = None):
     """
     Command: Start watching CK3 game logs.
     
@@ -3327,17 +3327,21 @@ def start_log_watcher_command(ls: CK3LanguageServer, args: List[Any]):
     
     Args:
         ls: The language server instance
-        args: Command arguments:
+        args: Command arguments (optional):
             - args[0] (optional): Custom log path (auto-detected if not provided)
     
     Returns:
         Dictionary with status and details
     """
     logger.info("Executing ck3.startLogWatcher command")
+    logger.info(f"[startLogWatcher] Received args type: {type(args)}")
+    logger.info(f"[startLogWatcher] Received args value: {args}")
+    logger.info(f"[startLogWatcher] Args length: {len(args) if args else 'None'}")
     
     try:
         # Get log path from args or auto-detect
         log_path = args[0] if args and len(args) > 0 else None
+        logger.info(f"[startLogWatcher] Extracted log_path: {log_path}")
         
         if log_path is None:
             log_path = detect_ck3_log_path()
@@ -3392,7 +3396,7 @@ def start_log_watcher_command(ls: CK3LanguageServer, args: List[Any]):
 
 
 @server.command("ck3.stopLogWatcher")
-def stop_log_watcher_command(ls: CK3LanguageServer, args: List[Any]):
+def stop_log_watcher_command(ls: CK3LanguageServer, args: Optional[List[Any]] = None):
     """
     Command: Stop watching CK3 game logs.
     
@@ -3437,7 +3441,7 @@ def stop_log_watcher_command(ls: CK3LanguageServer, args: List[Any]):
 
 
 @server.command("ck3.pauseLogWatcher")
-def pause_log_watcher_command(ls: CK3LanguageServer, args: List[Any]):
+def pause_log_watcher_command(ls: CK3LanguageServer, args: Optional[List[Any]] = None):
     """
     Command: Pause log processing.
     
@@ -3476,7 +3480,7 @@ def pause_log_watcher_command(ls: CK3LanguageServer, args: List[Any]):
 
 
 @server.command("ck3.resumeLogWatcher")
-def resume_log_watcher_command(ls: CK3LanguageServer, args: List[Any]):
+def resume_log_watcher_command(ls: CK3LanguageServer, args: Optional[List[Any]] = None):
     """
     Command: Resume log processing.
     
@@ -3515,7 +3519,7 @@ def resume_log_watcher_command(ls: CK3LanguageServer, args: List[Any]):
 
 
 @server.command("ck3.clearGameLogs")
-def clear_game_logs_command(ls: CK3LanguageServer, args: List[Any]):
+def clear_game_logs_command(ls: CK3LanguageServer, args: Optional[List[Any]] = None):
     """
     Command: Clear all game log diagnostics.
     
@@ -3555,7 +3559,7 @@ def clear_game_logs_command(ls: CK3LanguageServer, args: List[Any]):
 
 
 @server.command("ck3.getLogStatistics")
-def get_log_statistics_command(ls: CK3LanguageServer, args: List[Any]):
+def get_log_statistics_command(ls: CK3LanguageServer, args: Optional[List[Any]] = None):
     """
     Command: Get accumulated log statistics.
     

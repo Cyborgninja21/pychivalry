@@ -63,6 +63,11 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
                     category: LogCategory.Commands,
                 },
                 {
+                    label: '$(file-text) Game Logs',
+                    description: 'Real-time game.log monitoring',
+                    category: LogCategory.GameLogs,
+                },
+                {
                     label: '$(debug) LSP Trace',
                     description: 'Protocol communication (if enabled)',
                     category: LogCategory.Trace,
@@ -499,21 +504,35 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
             try {
                 // Get custom log path from settings
                 const config = vscode.workspace.getConfiguration('ck3LanguageServer');
-                const logPath = config.get<string>('logWatcher.path', '');
+                const logPath = config.get<string>('logWatcher.logPath', '');
 
-                const result = (await client.sendRequest('workspace/executeCommand', {
+                logger.logDebug(`[startLogWatcher] Custom log path from settings: '${logPath}'`);
+                const args = logPath ? [logPath] : [];
+                logger.logDebug(`[startLogWatcher] Sending arguments: ${JSON.stringify(args)}`);
+                
+                const requestPayload = {
                     command: 'ck3.startLogWatcher',
-                    arguments: logPath ? [logPath] : [],
-                })) as { success: boolean; path?: string; watching?: string[]; error?: string; message?: string };
+                    arguments: args,
+                };
+                logger.logDebug(`[startLogWatcher] Full request payload: ${JSON.stringify(requestPayload)}`);
+
+                const result = (await client.sendRequest('workspace/executeCommand', requestPayload)) as { success: boolean; path?: string; watching?: string[]; error?: string; message?: string };
+
+                logger.logDebug(`[startLogWatcher] Server response: ${JSON.stringify(result)}`);
 
                 if (result.success) {
                     logger.logServer(`Log watcher started: ${result.path}`);
                     logger.logServer(`Monitoring files: ${result.watching?.join(', ')}`);
                     
-                    // Create GameLogs channel if not exists
-                    if (!logger.getChannel(LogCategory.GameLogs)) {
-                        const channel = vscode.window.createOutputChannel('CK3: Game Logs');
-                        logger['channels'].set(LogCategory.GameLogs, channel);
+                    // Show welcome message in GameLogs channel
+                    const gameLogsChannel = logger.getChannel(LogCategory.GameLogs);
+                    if (gameLogsChannel) {
+                        gameLogsChannel.appendLine('='.repeat(80));
+                        gameLogsChannel.appendLine('CK3 Game Log Watcher Started');
+                        gameLogsChannel.appendLine(`Monitoring: ${result.watching?.join(', ')}`);
+                        gameLogsChannel.appendLine(`Log path: ${result.path}`);
+                        gameLogsChannel.appendLine('='.repeat(80));
+                        gameLogsChannel.appendLine('');
                     }
                     
                     vscode.window.showInformationMessage(
@@ -1017,6 +1036,22 @@ async function showMenuCommand(): Promise<void> {
             description: 'Check for undefined dependencies',
         },
         {
+            label: '$(play) Start Log Watcher',
+            description: 'Monitor game logs for errors',
+        },
+        {
+            label: '$(debug-stop) Stop Log Watcher',
+            description: 'Stop monitoring game logs',
+        },
+        {
+            label: '$(graph-line) Show Log Statistics',
+            description: 'Display log analysis stats',
+        },
+        {
+            label: '$(clear-all) Clear Log Diagnostics',
+            description: 'Clear all log-related diagnostics',
+        },
+        {
             label: '$(output) Show Output',
             description: 'Open output channel',
         },
@@ -1065,6 +1100,18 @@ async function showMenuCommand(): Promise<void> {
                 break;
             case '$(references) Check Dependencies':
                 await vscode.commands.executeCommand('ck3LanguageServer.checkDependencies');
+                break;
+            case '$(play) Start Log Watcher':
+                await vscode.commands.executeCommand('ck3LanguageServer.startLogWatcher');
+                break;
+            case '$(debug-stop) Stop Log Watcher':
+                await vscode.commands.executeCommand('ck3LanguageServer.stopLogWatcher');
+                break;
+            case '$(graph-line) Show Log Statistics':
+                await vscode.commands.executeCommand('ck3LanguageServer.getLogStatistics');
+                break;
+            case '$(clear-all) Clear Log Diagnostics':
+                await vscode.commands.executeCommand('ck3LanguageServer.clearGameLogs');
                 break;
             case '$(output) Show Output':
                 await vscode.commands.executeCommand('ck3LanguageServer.showOutput');

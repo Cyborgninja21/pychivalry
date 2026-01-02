@@ -1,0 +1,96 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Install All Dependencies",
+      "dependsOn": [
+        "Install Python Dependencies",
+        "Install Extension Dependencies"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "Install Python Dependencies",
+      "type": "shell",
+      "command": "pip install -e .",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "showReuseMessage": false
+      }
+    },
+    {
+      "label": "Install Extension Dependencies",
+      "type": "npm",
+      "script": "install",
+      "path": "vscode-extension/",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "showReuseMessage": false
+      }
+    },
+    {
+      "label": "Build Extension (Install + Compile)",
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "Install Extension Dependencies",
+        "npm: compile"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "npm: compile",
+      "type": "npm",
+      "script": "compile",
+      "path": "vscode-extension/",
+      "problemMatcher": "$tsc",
+      "presentation": {
+        "reveal": "silent",
+        "panel": "dedicated"
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "npm: watch",
+      "type": "npm",
+      "script": "watch",
+      "path": "vscode-extension/",
+      "problemMatcher": "$tsc-watch",
+      "isBackground": true,
+      "presentation": {
+        "reveal": "never",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "Run Tests",
+      "type": "shell",
+      "command": "python -m pytest tests/ -v",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      },
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "Run Log Watcher Tests",
+      "type": "shell",
+      "command": "python -m pytest tests/test_log_watcher_integration.py -v",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    }
+  ]
+}
