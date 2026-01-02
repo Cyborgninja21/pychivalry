@@ -81,6 +81,7 @@ import logging
 import os
 import platform
 import threading
+import asyncio
 from pathlib import Path
 from typing import TYPE_CHECKING, Dict, List, Optional, Set
 
@@ -785,7 +786,26 @@ class CK3LogWatcher:
     
     def _send_notification(self, method: str, params: dict) -> None:
         """
-        Send notification to LSP client.
+        Send notification to LSP client in a thread-safe manner.
+        
+        Thread-safe: Can be called from watchdog observer thread.
+        Uses asyncio.get_event_loop().call_soon_threadsafe() to schedule
+        the notification call in the main event loop.
+        
+        Args:
+            method: LSP notification method name
+            params: Notification parameters
+        """
+        try:
+            # Schedule notification in main event loop (thread-safe)
+            loop = asyncio.get_event_loop()
+            loop.call_soon_threadsafe(self._do_notify, method, params)
+        except Exception as e:
+            logger.error(f"Error scheduling notification {method}: {e}", exc_info=True)
+    
+    def _do_notify(self, method: str, params: dict) -> None:
+        """
+        Actually send the notification (called in main event loop).
         
         Args:
             method: LSP notification method name
