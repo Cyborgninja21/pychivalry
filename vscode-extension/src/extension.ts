@@ -17,18 +17,18 @@ let statusBar: CK3StatusBar;
 
 // Log file output channels (created once and reused)
 const logChannels = {
-    combined: null as vscode.LogOutputChannel | null,
-    game: null as vscode.LogOutputChannel | null,
-    error: null as vscode.LogOutputChannel | null,
-    exceptions: null as vscode.LogOutputChannel | null,
-    system: null as vscode.LogOutputChannel | null,
-    setup: null as vscode.LogOutputChannel | null,
-    patterns: null as vscode.LogOutputChannel | null,
+    combined: null as vscode.OutputChannel | null,
+    game: null as vscode.OutputChannel | null,
+    error: null as vscode.OutputChannel | null,
+    exceptions: null as vscode.OutputChannel | null,
+    system: null as vscode.OutputChannel | null,
+    setup: null as vscode.OutputChannel | null,
+    patterns: null as vscode.OutputChannel | null,
 };
 
-function getLogChannel(type: keyof typeof logChannels, name: string): vscode.LogOutputChannel {
+function getLogChannel(type: keyof typeof logChannels, name: string): vscode.OutputChannel {
     if (!logChannels[type]) {
-        // Use LogOutputChannel for ANSI color support
+        // Use { log: true } option to enable ANSI color support
         logChannels[type] = vscode.window.createOutputChannel(name, { log: true });
     }
     return logChannels[type]!;
@@ -117,6 +117,15 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     }
 
     logger.logServer('CK3 Language Server extension activating...');
+
+    // Pre-create all log watcher channels so they appear in Output menu
+    getLogChannel('combined', 'CK3L: Live Monitor');
+    getLogChannel('game', 'CK3L: game.log');
+    getLogChannel('error', 'CK3L: error.log');
+    getLogChannel('exceptions', 'CK3L: exceptions.log');
+    getLogChannel('system', 'CK3L: system.log');
+    getLogChannel('setup', 'CK3L: setup.log');
+    getLogChannel('patterns', 'CK3L: Script Errors');
 
     // Register restart command
     context.subscriptions.push(
@@ -910,13 +919,12 @@ async function startServer(context: vscode.ExtensionContext): Promise<void> {
         
         // Bulk notification handlers (efficient)
         client.onNotification('ck3/logEntry/combined/bulk', (params: any) => {
-            const channel = getLogChannel('combined', 'CK3L: Game Log');
-            const timestamp = params.timestamp || new Date().toLocaleTimeString();
+            const channel = getLogChannel('combined', 'CK3L: Live Monitor');
             const sourceFile = params.log_file ? `[${params.log_file}]` : '';
             
-            // Batch append all lines at once with colors
+            // Batch append all lines at once with colors (logs already have timestamps)
             const output = params.lines
-                .map((line: string) => colorizeLogLine(`[${timestamp}] ${sourceFile} ${line}`))
+                .map((line: string) => colorizeLogLine(`${sourceFile} ${line}`.trim()))
                 .join('\n');
             channel.append(output + '\n');
         });
@@ -952,16 +960,15 @@ async function startServer(context: vscode.ExtensionContext): Promise<void> {
         });
         
         client.onNotification('ck3/logEntry/pattern/bulk', (params: any) => {
-            const channel = getLogChannel('patterns', 'CK3L: Error Patterns');
+            const channel = getLogChannel('patterns', 'CK3L: Script Errors');
             
             // Format all pattern matches with colors
             const output = params.results.map((result: any) => {
                 const icon = getSeverityIcon(result.severity);
-                const timestamp = result.timestamp || new Date().toLocaleTimeString();
                 const severityColor = result.severity === 1 ? Colors.brightRed : Colors.brightYellow;
                 
                 let lines = [
-                    `${Colors.dim}[${timestamp}]${Colors.reset} ${severityColor}${icon}${Colors.reset} ${Colors.bright}${result.message}${Colors.reset}`
+                    `${severityColor}${icon}${Colors.reset} ${Colors.bright}${result.message}${Colors.reset}`
                 ];
                 
                 if (result.source_file) {
@@ -988,10 +995,9 @@ async function startServer(context: vscode.ExtensionContext): Promise<void> {
         
         // Legacy single-line handlers (kept for backward compatibility)
         client.onNotification('ck3/logEntry/combined', (params: any) => {
-            const channel = getLogChannel('combined', 'CK3L: Game Log');
-            const timestamp = params.timestamp || new Date().toLocaleTimeString();
+            const channel = getLogChannel('combined', 'CK3L: Live Monitor');
             const sourceFile = params.log_file ? `[${params.log_file}]` : '';
-            channel.appendLine(colorizeLogLine(`[${timestamp}] ${sourceFile} ${params.message}`));
+            channel.appendLine(colorizeLogLine(`${sourceFile} ${params.message}`.trim()));
         });
         
         client.onNotification('ck3/logEntry/game', (params: any) => {
@@ -1020,12 +1026,11 @@ async function startServer(context: vscode.ExtensionContext): Promise<void> {
         });
         
         client.onNotification('ck3/logEntry/pattern', (params: any) => {
-            const channel = getLogChannel('patterns', 'CK3L: Error Patterns');
+            const channel = getLogChannel('patterns', 'CK3L: Script Errors');
             const icon = getSeverityIcon(params.severity);
-            const timestamp = params.timestamp || new Date().toLocaleTimeString();
             const severityColor = params.severity === 1 ? Colors.brightRed : Colors.brightYellow;
             
-            channel.appendLine(`${Colors.dim}[${timestamp}]${Colors.reset} ${severityColor}${icon}${Colors.reset} ${Colors.bright}${params.message}${Colors.reset}`);
+            channel.appendLine(`${severityColor}${icon}${Colors.reset} ${Colors.bright}${params.message}${Colors.reset}`);
             
             if (params.source_file) {
                 channel.appendLine(`  ${Colors.cyan}→${Colors.reset} ${Colors.brightCyan}${params.source_file}${Colors.reset}:${Colors.brightYellow}${params.line_number || '?'}${Colors.reset}`);
