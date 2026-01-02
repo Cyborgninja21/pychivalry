@@ -126,3 +126,7 @@ Switch to **Option 3 (VSIX Package)** when preparing for release or testing the 
 - [ ] Create "Dev Mode" compound task that starts both Python server and TypeScript watch
 - [ ] Add extension test suite that runs in main instance
 - [ ] Document debugging setup for main instance vs Extension Development Host
+- [ ] Expand Hypothesis property-based testing
+    - Add targeted strategies for CK3 script syntax (nested blocks, lists, edge-case tokens)
+    - Add regression seeds for previously found failures
+    - Add CI-friendly profiles (e.g. fewer examples on CI, more locally)
