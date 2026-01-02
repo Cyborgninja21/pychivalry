@@ -114,7 +114,7 @@ VERSION:
 # - VS Code extension (package.json)
 # - This __init__.py file
 # Update all three when releasing new versions
-__version__ = "0.1.0"
+__version__ = "1.1.0"
 
 # Package name for PyPI and imports
 __name__ = "pychivalry"

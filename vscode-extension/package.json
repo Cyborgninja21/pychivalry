@@ -2,7 +2,7 @@
   "name": "ck3-language-support",
   "displayName": "Crusader Kings 3 Language Support",
   "description": "Language support for Crusader Kings 3 scripting language with LSP-powered features",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "publisher": "cyborgninja21",
   "license": "Apache-2.0",
   "repository": {
@@ -410,7 +410,11 @@
                 },
                 "severity": {
                   "type": "string",
-                  "enum": ["error", "warning", "info"],
+                  "enum": [
+                    "error",
+                    "warning",
+                    "info"
+                  ],
                   "description": "Severity level for matched patterns"
                 },
                 "message": {

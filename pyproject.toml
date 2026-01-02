@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pychivalry"
-version = "1.0.0"
+version = "1.1.0"
 description = "A Language Server Protocol implementation for Crusader Kings 3 scripting language"
 readme = "README.md"
 requires-python = ">=3.9"
