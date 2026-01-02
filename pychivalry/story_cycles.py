@@ -119,7 +119,7 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple, Union
 from lsprotocol.types import Diagnostic, DiagnosticSeverity, Range
 
-from .parser import Tree, get_node_text
+from .parser import CK3Node
 
 
 # ==============================================================================
