@@ -1846,8 +1846,19 @@ def _extract_symbol_from_node(node: CK3Node) -> Optional[types.DocumentSymbol]:
     Returns:
         DocumentSymbol or None
     """
+    # Check if this is a story cycle (block with story cycle-specific fields)
+    is_story_cycle = False
+    if node.type == "assignment" and hasattr(node, 'children'):
+        for child in node.children:
+            if child.key in ('on_setup', 'on_end', 'on_owner_death', 'effect_group'):
+                is_story_cycle = True
+                break
+    
     # Determine symbol kind based on node type
-    if node.type == "namespace":
+    if is_story_cycle:
+        kind = types.SymbolKind.Event
+        detail = "Story Cycle"
+    elif node.type == "namespace":
         kind = types.SymbolKind.Namespace
         detail = "Namespace"
     elif node.type == "event":
@@ -1856,6 +1867,12 @@ def _extract_symbol_from_node(node: CK3Node) -> Optional[types.DocumentSymbol]:
     elif node.key in ("trigger", "immediate", "after", "effect"):
         kind = types.SymbolKind.Object
         detail = node.key.capitalize()
+    elif node.key in ("on_setup", "on_end", "on_owner_death"):
+        kind = types.SymbolKind.Method
+        detail = "Lifecycle Hook"
+    elif node.key == "effect_group":
+        kind = types.SymbolKind.Object
+        detail = "Effect Group"
     elif node.key == "option":
         kind = types.SymbolKind.EnumMember
         # Try to find the option name

@@ -404,6 +404,86 @@ def extract_on_action_symbols(on_action_node: Dict) -> DocumentSymbol:
     )
 
 
+def extract_story_cycle_symbols(story_cycle_node) -> DocumentSymbol:
+    """
+    Extract symbols from a story cycle node.
+    
+    Story cycles contain:
+    - Story cycle ID (main symbol)
+    - on_setup block (child symbol)
+    - on_end block (child symbol)
+    - on_owner_death block (child symbol)
+    - effect_group blocks (child symbols)
+    
+    Args:
+        story_cycle_node: Parsed story cycle AST node
+    
+    Returns:
+        DocumentSymbol for the story cycle with children
+    """
+    # Get the story cycle name from the key
+    story_name = getattr(story_cycle_node, 'key', 'unknown_story')
+    
+    # Get position from range
+    range_obj = getattr(story_cycle_node, 'range', None)
+    if range_obj:
+        start_line = range_obj.start.line
+        start_char = range_obj.start.character
+        end_line = range_obj.end.line
+        end_char = range_obj.end.character
+    else:
+        start_line = start_char = end_line = end_char = 0
+    
+    story_symbol = create_document_symbol(
+        name=story_name,
+        construct_type="story_cycle",
+        start_line=start_line,
+        start_char=start_char,
+        end_line=end_line,
+        end_char=end_char,
+        detail="Story Cycle",
+    )
+    
+    # Walk children to find lifecycle hooks and effect groups
+    if hasattr(story_cycle_node, 'children'):
+        effect_group_count = 0
+        for child in story_cycle_node.children:
+            child_key = getattr(child, 'key', '')
+            child_range = getattr(child, 'range', None)
+            
+            if not child_range:
+                continue
+            
+            # Add lifecycle hooks as children
+            if child_key in ('on_setup', 'on_end', 'on_owner_death'):
+                hook_symbol = create_document_symbol(
+                    name=child_key,
+                    construct_type="lifecycle_hook",
+                    start_line=child_range.start.line,
+                    start_char=child_range.start.character,
+                    end_line=child_range.end.line,
+                    end_char=child_range.end.character,
+                    detail="Lifecycle Hook",
+                )
+                story_symbol.children.append(hook_symbol)
+            
+            # Add effect groups as children
+            elif child_key == 'effect_group':
+                effect_group_count += 1
+                effect_group_symbol = create_document_symbol(
+                    name=f"effect_group_{effect_group_count}",
+                    construct_type="effect_group",
+                    start_line=child_range.start.line,
+                    start_char=child_range.start.character,
+                    end_line=child_range.end.line,
+                    end_char=child_range.end.character,
+                    detail="Effect Group",
+                )
+                story_symbol.children.append(effect_group_symbol)
+    
+    return story_symbol
+
+
 def extract_document_symbols(parsed_document: Dict) -> List[DocumentSymbol]:
     """
     Extract all symbols from a parsed document.

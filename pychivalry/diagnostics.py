@@ -762,11 +762,13 @@ class DiagnosticConfig:
         style_enabled: Enable style/formatting checks (CK33xx)
         paradox_enabled: Enable Paradox convention checks (CK35xx+)
         scope_timing_enabled: Enable scope timing checks (CK3550-3555)
+        story_cycles_enabled: Enable story cycle validation (STORY-001+)
     """
 
     style_enabled: bool = True
     paradox_enabled: bool = True
     scope_timing_enabled: bool = True
+    story_cycles_enabled: bool = True
 
 
 def collect_all_diagnostics(
@@ -835,6 +837,17 @@ def collect_all_diagnostics(
                 logger.warning("scope_timing module not available")
             except Exception as e:
                 logger.error(f"Error in scope timing checks: {e}", exc_info=True)
+
+        # Story cycle validation (STORY-001+)
+        if config.story_cycles_enabled:
+            try:
+                from .story_cycles import collect_story_cycle_diagnostics
+
+                diagnostics.extend(collect_story_cycle_diagnostics(ast, doc.uri))
+            except ImportError:
+                logger.warning("story_cycles module not available")
+            except Exception as e:
+                logger.error(f"Error in story cycle checks: {e}", exc_info=True)
 
         logger.debug(f"Found {len(diagnostics)} diagnostics for {doc.uri}")
     except Exception as e:

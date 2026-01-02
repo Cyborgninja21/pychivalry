@@ -106,7 +106,7 @@ from pygls.workspace import TextDocument
 
 from .parser import CK3Node, get_node_at_position
 from .indexer import DocumentIndex
-from .ck3_language import CK3_EFFECTS, CK3_TRIGGERS, CK3_SCOPES, CK3_KEYWORDS, CK3_CONTEXT_FIELDS
+from .ck3_language import CK3_EFFECTS, CK3_TRIGGERS, CK3_SCOPES, CK3_KEYWORDS, CK3_CONTEXT_FIELDS, CK3_STORY_CYCLE_FIELDS
 from .scopes import get_scope_links
 import logging
 
@@ -516,6 +516,9 @@ def get_hover_content(
         elif word in CK3_PORTRAIT_FIELDS:
             category = "👤 Portrait Field"
             color_bar = "🟣"
+        elif word in CK3_STORY_CYCLE_FIELDS:
+            category = "📖 Story Cycle Field"
+            color_bar = "🟠"
         else:
             category = "📌 Script Field"
             color_bar = "⚪"

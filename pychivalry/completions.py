@@ -151,6 +151,8 @@ from .ck3_language import (
     CK3_SCOPES,
     CK3_EVENT_TYPES,
     CK3_BOOLEAN_VALUES,
+    STORY_CYCLE_KEYWORDS,
+    STORY_CYCLE_TIMING_KEYWORDS,
 )
 from .parser import CK3Node
 from .scopes import get_scope_links, get_scope_lists, get_resulting_scope
@@ -224,6 +226,26 @@ def _cached_all_keyword_completions() -> Tuple[types.CompletionItem, ...]:
                 kind=types.CompletionItemKind.Keyword,
                 detail="CK3 Keyword",
                 documentation=f"CK3 scripting keyword: {keyword}",
+            )
+        )
+    # Add story cycle keywords
+    for keyword in STORY_CYCLE_KEYWORDS:
+        items.append(
+            types.CompletionItem(
+                label=keyword,
+                kind=types.CompletionItemKind.Keyword,
+                detail="Story Cycle Keyword",
+                documentation=f"Story cycle keyword: {keyword}",
+            )
+        )
+    # Add story cycle timing keywords
+    for keyword in STORY_CYCLE_TIMING_KEYWORDS:
+        items.append(
+            types.CompletionItem(
+                label=keyword,
+                kind=types.CompletionItemKind.Keyword,
+                detail="Story Cycle Timing",
+                documentation=f"Story cycle timing keyword: {keyword}",
             )
         )
     return tuple(items)
@@ -830,6 +852,88 @@ def create_snippet_completions() -> List[types.CompletionItem]:
 \t\t${1:# Conditions}
 \t}
 \tdesc = ${2:description_key}
+}""",
+            insert_text_format=types.InsertTextFormat.Snippet,
+        )
+    )
+
+    # Story cycle template
+    snippets.append(
+        types.CompletionItem(
+            label="story_cycle",
+            kind=types.CompletionItemKind.Snippet,
+            detail="Story cycle template",
+            documentation="Create a new story cycle definition",
+            insert_text="""${1:story_name} = {
+\ton_setup = {
+\t\t${2:# Initial setup effects}
+\t}
+\t
+\ton_end = {
+\t\tdebug_log = "${1:story_name} ended"
+\t\tdebug_log_date = yes
+\t}
+\t
+\ton_owner_death = {
+\t\tscope:story = { end_story = yes }
+\t}
+\t
+\teffect_group = {
+\t\tdays = ${3:30}
+\t\ttrigger = {
+\t\t\tstory_owner = { is_alive = yes }
+\t\t}
+\t\t
+\t\ttriggered_effect = {
+\t\t\ttrigger = { ${4:always = yes} }
+\t\t\teffect = {
+\t\t\t\t${5:# Effects to execute}
+\t\t\t}
+\t\t}
+\t}
+}""",
+            insert_text_format=types.InsertTextFormat.Snippet,
+        )
+    )
+
+    # effect_group snippet
+    snippets.append(
+        types.CompletionItem(
+            label="effect_group",
+            kind=types.CompletionItemKind.Snippet,
+            detail="Story cycle effect group",
+            documentation="Periodic effect group for story cycles",
+            insert_text="""effect_group = {
+\t${1|days,months,years|} = ${2:30}
+\ttrigger = {
+\t\t${3:# When this group can fire}
+\t}
+\t
+\ttriggered_effect = {
+\t\ttrigger = { ${4:always = yes} }
+\t\teffect = {
+\t\t\t${5:# Effects to execute}
+\t\t}
+\t}
+}""",
+            insert_text_format=types.InsertTextFormat.Snippet,
+        )
+    )
+
+    # triggered_effect snippet
+    snippets.append(
+        types.CompletionItem(
+            label="triggered_effect",
+            kind=types.CompletionItemKind.Snippet,
+            detail="Conditional effect",
+            documentation="Conditional effect within effect_group",
+            insert_text="""triggered_effect = {
+\ttrigger = {
+\t\t${1:# Condition}
+\t}
+\teffect = {
+\t\t${2:# Effects}
+\t}
 }""",
             insert_text_format=types.InsertTextFormat.Snippet,
         )
