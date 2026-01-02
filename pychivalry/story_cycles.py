@@ -467,32 +467,35 @@ def find_story_cycles(node: Any) -> List[Any]:
     """
     Find all story cycle definition nodes in the AST.
     
-    Story cycles are top-level assignments with blocks containing
+    Story cycles are top-level blocks containing
     story cycle-specific fields (on_setup, effect_group, etc.).
     
     Args:
-        node: AST node to search from
+        node: AST node or list of nodes to search from
     
     Returns:
         List of story cycle nodes
     """
     story_cycles = []
     
-    if not hasattr(node, 'children'):
-        return story_cycles
+    # Handle both list and single node input
+    nodes_to_check = node if isinstance(node, list) else [node]
     
-    for child in node.children:
+    for check_node in nodes_to_check:
+        if not hasattr(check_node, 'children'):
+            continue
+            
         # Look for top-level blocks that might be story cycles
-        if child.type == 'assignment' and hasattr(child, 'children') and child.children:
+        if check_node.type == 'block' and hasattr(check_node, 'children') and check_node.children:
             # Check if this block contains story cycle fields
             has_story_cycle_fields = False
-            for grandchild in child.children:
-                if grandchild.key in ('on_setup', 'on_end', 'on_owner_death', 'effect_group'):
+            for child in check_node.children:
+                if child.key in ('on_setup', 'on_end', 'on_owner_death', 'effect_group'):
                     has_story_cycle_fields = True
                     break
             
             if has_story_cycle_fields:
-                story_cycles.append(child)
+                story_cycles.append(check_node)
     
     return story_cycles
 
@@ -624,8 +627,10 @@ def parse_effect_group(node: Any) -> EffectGroup:
         elif child.key == 'trigger':
             group.trigger = {'node': child}
         elif child.key == 'chance':
-            if isinstance(child.value, (int, float)):
+            try:
                 group.chance = int(child.value)
+            except (ValueError, TypeError):
+                pass  # Invalid chance value will be caught by validation
         elif child.key == 'triggered_effect':
             te = parse_triggered_effect(child)
             group.triggered_effects.append(te)

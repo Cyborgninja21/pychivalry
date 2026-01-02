@@ -307,7 +307,24 @@ Contributions are welcome! Whether it's:
 - 📖 Documentation improvements
 - 💡 Feature suggestions
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) to get started.
+### Quick Start for Contributors
+
+1. **Clone and set up development environment:**
+   ```bash
+   git clone https://github.com/Cyborgninja21/pychivalry.git
+   cd pychivalry
+   ./tools/setup-dev-env.sh
+   ```
+
+2. **Pre-commit hooks** are automatically installed to ensure code quality:
+   - Auto-formats Python code with Black
+   - Lints Python with flake8
+   - Formats TypeScript with Prettier
+   - Lints TypeScript with ESLint
+   
+   See [docs/PRE_COMMIT_SETUP.md](docs/PRE_COMMIT_SETUP.md) for details.
+
+3. See [CONTRIBUTING.md](CONTRIBUTING.md) for complete guidelines.
 
 ## 📄 License
 

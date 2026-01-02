@@ -4,7 +4,6 @@ Tests for CK3 Variables System Module
 Tests variable parsing, validation, and operations.
 """
 
-import pytest
 from pychivalry.variables import (
     parse_variable_reference,
     is_variable_reference,
