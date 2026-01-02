@@ -374,7 +374,8 @@ class CK3LogWatcher:
         self,
         server: "LanguageServer",
         analyzer: "CK3LogAnalyzer",
-        watched_files: Optional[List[str]] = None
+        watched_files: Optional[List[str]] = None,
+        initial_lines_to_scan: int = 200
     ) -> None:
         """
         Initialize the log watcher.
@@ -384,13 +385,16 @@ class CK3LogWatcher:
             analyzer: Log analyzer for pattern matching and error detection
             watched_files: Optional list of file patterns to watch
                           (defaults to DEFAULT_WATCHED_FILES)
+            initial_lines_to_scan: Number of lines to read from existing logs
+                                  on startup (default: 200, 0 to disable)
                           
         Example:
             ```python
             watcher = CK3LogWatcher(
                 server=my_server,
                 analyzer=my_analyzer,
-                watched_files=["game.log", "error.log"]
+                watched_files=["game.log", "error.log"],
+                initial_lines_to_scan=100
             )
             ```
         """
@@ -402,6 +406,7 @@ class CK3LogWatcher:
         self.watched_files: List[str] = watched_files or self.DEFAULT_WATCHED_FILES
         self.is_paused: bool = False
         self._lock = threading.Lock()
+        self.initial_lines_to_scan = initial_lines_to_scan
         
         logger.info("CK3LogWatcher initialized")
     
@@ -466,6 +471,9 @@ class CK3LogWatcher:
                 
                 logger.info(f"Started watching CK3 logs at: {log_path}")
                 logger.info(f"Monitoring files: {', '.join(self.watched_files)}")
+                
+                # Scan existing logs for recent entries
+                self._scan_existing_logs()
                 
                 # Notify client
                 self._send_notification("ck3/logWatcherStarted", {
@@ -605,6 +613,136 @@ class CK3LogWatcher:
         """
         return self.watched_files.copy()
     
+    def _read_last_n_lines(self, file_path: str, n: int) -> List[str]:
+        """
+        Read the last N lines from a file efficiently.
+        
+        Uses a buffer-based approach to avoid reading the entire file for large logs.
+        
+        Args:
+            file_path: Path to the file
+            n: Number of lines to read from the end
+            
+        Returns:
+            List of the last N lines (or fewer if file has fewer lines)
+            
+        Notes:
+            - Returns empty list if file doesn't exist or can't be read
+            - Handles various encodings gracefully
+            - Efficient for large files (doesn't read entire file)
+        """
+        try:
+            with open(file_path, 'rb') as f:
+                # Seek to end of file
+                f.seek(0, 2)
+                file_size = f.tell()
+                
+                if file_size == 0:
+                    return []
+                
+                # Buffer size for reading backwards
+                buffer_size = 8192
+                lines_found = []
+                block_number = 0
+                
+                while len(lines_found) < n and block_number * buffer_size < file_size:
+                    # Calculate position to read from
+                    block_number += 1
+                    offset = min(block_number * buffer_size, file_size)
+                    f.seek(file_size - offset)
+                    
+                    # Read block and decode
+                    block = f.read(min(buffer_size, offset))
+                    try:
+                        text = block.decode('utf-8', errors='replace')
+                    except:
+                        text = block.decode('latin-1', errors='replace')
+                    
+                    # Split into lines and prepend to found lines
+                    block_lines = text.split('\n')
+                    lines_found = block_lines + lines_found
+                
+                # Return last N lines (excluding empty trailing line)
+                result = [line for line in lines_found if line.strip()]
+                return result[-n:] if len(result) > n else result
+                
+        except FileNotFoundError:
+            logger.debug(f"File not found for initial scan: {file_path}")
+            return []
+        except PermissionError:
+            logger.warning(f"Permission denied reading file: {file_path}")
+            return []
+        except Exception as e:
+            logger.error(f"Error reading last lines from {file_path}: {e}")
+            return []
+    
+    def _scan_existing_logs(self) -> None:
+        """
+        Scan existing log files for recent entries.
+        
+        Reads the last N lines from each watched log file and processes them
+        through the analyzer. This allows seeing recent errors even if the
+        watcher wasn't running when they occurred.
+        
+        Notes:
+            - Called automatically by start() after observer starts
+            - Processes files in background to avoid blocking
+            - Updates handler positions to avoid re-processing on first change
+        """
+        if self.initial_lines_to_scan <= 0:
+            logger.info("Initial log scan disabled")
+            return
+        
+        if not self.watched_path:
+            return
+        
+        logger.info(f"Scanning last {self.initial_lines_to_scan} lines from existing logs")
+        total_lines_found = 0
+        total_errors_found = 0
+        
+        for file_pattern in self.watched_files:
+            file_path = os.path.join(self.watched_path, file_pattern)
+            
+            if not os.path.exists(file_path):
+                continue
+            
+            # Read last N lines
+            lines = self._read_last_n_lines(file_path, self.initial_lines_to_scan)
+            
+            if not lines:
+                continue
+            
+            total_lines_found += len(lines)
+            logger.info(f"Found {len(lines)} existing lines in {file_pattern}")
+            
+            # Send raw lines to appropriate channels
+            for line in lines:
+                if line.strip():  # Only send non-empty lines
+                    self._send_raw_log_notification(line, file_pattern)
+            
+            # Process through analyzer for pattern matching
+            try:
+                results = self.analyzer.analyze_batch(lines, file_pattern)
+                
+                # Send pattern-matched results
+                for result in results:
+                    self._send_log_entry_notification(result, file_pattern)
+                    total_errors_found += 1
+                    
+            except Exception as e:
+                logger.error(f"Error analyzing existing logs from {file_pattern}: {e}", exc_info=True)
+            
+            # Update handler position to end of file to avoid re-processing
+            if self.handler:
+                try:
+                    file_size = os.path.getsize(file_path)
+                    with self.handler.lock:
+                        self.handler.last_positions[file_path] = file_size
+                except Exception as e:
+                    logger.debug(f"Could not set initial position for {file_path}: {e}")
+        
+        logger.info(f"Initial scan complete: {total_lines_found} lines scanned, {total_errors_found} errors found")
+    
     def _handle_new_log_lines(self, file_path: str, lines: List[str]) -> None:
         """
         Process new log lines from a file.
@@ -619,17 +757,22 @@ class CK3LogWatcher:
         Notes:
             - Called by CK3LogFileHandler when new content is detected
             - Runs in watcher thread (not main LSP thread)
-            - Sends results via LSP notifications
+            - Sends results via LSP notifications to multiple channels
         """
         file_name = os.path.basename(file_path)
         
-        # Send to analyzer
+        # Send all raw lines to appropriate file-specific channels
+        for line in lines:
+            if line.strip():  # Only send non-empty lines
+                self._send_raw_log_notification(line, file_name)
+        
+        # Send to analyzer for pattern matching
         try:
             results = self.analyzer.analyze_batch(lines, file_name)
             
-            # Send each result to client
+            # Send pattern-matched results to appropriate channels
             for result in results:
-                self._send_log_entry_notification(result)
+                self._send_log_entry_notification(result, file_name)
                 
         except Exception as e:
             logger.error(f"Error analyzing log lines from {file_name}: {e}", exc_info=True)
@@ -643,16 +786,58 @@ class CK3LogWatcher:
             params: Notification parameters
         """
         try:
-            self.server.send_notification(method, params)
+            self.server.protocol.notify(method, params)
         except Exception as e:
             logger.error(f"Error sending notification {method}: {e}", exc_info=True)
     
-    def _send_log_entry_notification(self, result: "LogAnalysisResult") -> None:
+    def _send_raw_log_notification(self, raw_line: str, log_file: str) -> None:
+        """
+        Send raw log line to combined and file-specific channels.
+        
+        Args:
+            raw_line: The raw log line text
+            log_file: Name of the source log file (e.g., "game.log", "error.log")
+        """
+        from datetime import datetime
+        
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        
+        # Send to combined log (all files)
+        combined_params = {
+            'message': raw_line,
+            'raw_line': raw_line,
+            'log_file': log_file,
+            'timestamp': timestamp
+        }
+        self._send_notification("ck3/logEntry/combined", combined_params)
+        
+        # Send to file-specific channel
+        file_channel_map = {
+            'game.log': 'ck3/logEntry/game',
+            'error.log': 'ck3/logEntry/error',
+            'exceptions.log': 'ck3/logEntry/exceptions',
+            'system.log': 'ck3/logEntry/system',
+            'setup.log': 'ck3/logEntry/setup'
+        }
+        
+        channel_method = file_channel_map.get(log_file)
+        if channel_method:
+            file_params = {
+                'message': raw_line,
+                'raw_line': raw_line,
+                'timestamp': timestamp
+            }
+            self._send_notification(channel_method, file_params)
+    
+    def _send_log_entry_notification(self, result: "LogAnalysisResult", log_file: str) -> None:
         """
         Send log entry notification to client.
         
+        Sends pattern-matched errors to the Error Patterns channel.
+        
         Args:
             result: Log analysis result to send
+            log_file: Name of the log file this came from
         """
         from dataclasses import asdict
         
@@ -664,7 +849,11 @@ class CK3LogWatcher:
             if hasattr(result, 'timestamp') and result.timestamp:
                 params['timestamp'] = result.timestamp.isoformat()
             
-            self._send_notification("ck3/logEntry", params)
+            # Add log file source
+            params['log_file'] = log_file
+            
+            # Send to pattern-matched errors channel
+            self._send_notification("ck3/logEntry/pattern", params)
             
         except Exception as e:
             logger.error(f"Error sending log entry notification: {e}", exc_info=True)

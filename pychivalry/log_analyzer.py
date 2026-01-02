@@ -291,6 +291,44 @@ class CK3LogAnalyzer:
         """Register default error patterns for common CK3 errors."""
         
         patterns = [
+            # CK3 Script System Error (multi-line error from error.log)
+            # Format: [timestamp][E][file.cpp:line]: Script system error!
+            ErrorPattern(
+                regex=r"\[E\].*Script system error!",
+                severity=types.DiagnosticSeverity.Error,
+                category="script_system_error",
+                message_template="CK3 Script System Error",
+                action_type="show_error_details"
+            ),
+            
+            # CK3 Effect Error
+            # Format: Error: effect_name effect [ details ]
+            ErrorPattern(
+                regex=r"Error:\s+(\w+)\s+effect\s+\[",
+                severity=types.DiagnosticSeverity.Error,
+                category="effect_error",
+                message_template="Error in effect '{0}'",
+                action_type="suggest_similar_effect"
+            ),
+            
+            # Failed to read key reference (game rules, localization, etc.)
+            ErrorPattern(
+                regex=r"Failed to read key reference:\s+([^:]+):",
+                severity=types.DiagnosticSeverity.Warning,
+                category="missing_key_reference",
+                message_template="Missing key reference '{0}'",
+                action_type="check_key_definition"
+            ),
+            
+            # Unknown modifier error
+            ErrorPattern(
+                regex=r"Unknown modifier\s+'([^']+)'",
+                severity=types.DiagnosticSeverity.Error,
+                category="unknown_modifier",
+                message_template="Unknown modifier '{0}'",
+                action_type="suggest_valid_modifiers"
+            ),
+            
             # Unknown effect
             ErrorPattern(
                 regex=r"Unknown effect:?\s+['\"]?(\w+)['\"]?",
@@ -603,9 +641,8 @@ class CK3LogAnalyzer:
         """
         # Import from ck3_language module
         try:
-            from pychivalry.ck3_language import get_all_effects
-            effects = get_all_effects()
-            similar = get_close_matches(wrong_effect, effects, n=3, cutoff=0.6)
+            from pychivalry.ck3_language import CK3_EFFECTS
+            similar = get_close_matches(wrong_effect, CK3_EFFECTS, n=3, cutoff=0.6)
             return similar
         except ImportError:
             logger.warning("Could not import ck3_language for effect suggestions")
@@ -622,9 +659,8 @@ class CK3LogAnalyzer:
             List of similar valid trigger names
         """
         try:
-            from pychivalry.ck3_language import get_all_triggers
-            triggers = get_all_triggers()
-            similar = get_close_matches(wrong_trigger, triggers, n=3, cutoff=0.6)
+            from pychivalry.ck3_language import CK3_TRIGGERS
+            similar = get_close_matches(wrong_trigger, CK3_TRIGGERS, n=3, cutoff=0.6)
             return similar
         except ImportError:
             logger.warning("Could not import ck3_language for trigger suggestions")

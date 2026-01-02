@@ -15,6 +15,24 @@ const execAsync = promisify(exec);
 let client: LanguageClient | undefined;
 let statusBar: CK3StatusBar;
 
+// Log file output channels (created once and reused)
+const logChannels = {
+    combined: null as vscode.OutputChannel | null,
+    game: null as vscode.OutputChannel | null,
+    error: null as vscode.OutputChannel | null,
+    exceptions: null as vscode.OutputChannel | null,
+    system: null as vscode.OutputChannel | null,
+    setup: null as vscode.OutputChannel | null,
+    patterns: null as vscode.OutputChannel | null,
+};
+
+function getLogChannel(type: keyof typeof logChannels, name: string): vscode.OutputChannel {
+    if (!logChannels[type]) {
+        logChannels[type] = vscode.window.createOutputChannel(name);
+    }
+    return logChannels[type]!;
+}
+
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
     // Initialize multi-channel logger
     logger.initialize(context);
@@ -821,21 +839,60 @@ async function startServer(context: vscode.ExtensionContext): Promise<void> {
         statusBar.updateState('running');
 
         // Register log watcher notification handlers
-        client.onNotification('ck3/logEntry', (params: any) => {
-            const channel = logger.getChannel(LogCategory.GameLogs);
-            if (channel) {
-                const icon = getSeverityIcon(params.severity);
-                const timestamp = new Date().toLocaleTimeString();
-                channel.appendLine(`[${timestamp}] ${icon} ${params.message}`);
-                
-                if (params.source_file) {
-                    channel.appendLine(`  → ${params.source_file}:${params.line_number || '?'}`);
-                }
-                
-                if (params.suggestions && params.suggestions.length > 0) {
-                    channel.appendLine(`  💡 Suggestions: ${params.suggestions.join(', ')}`);
-                }
+        
+        // Combined game log (all files with formatting)
+        client.onNotification('ck3/logEntry/combined', (params: any) => {
+            const channel = getLogChannel('combined', 'CK3L: Game Log');
+            const timestamp = params.timestamp || new Date().toLocaleTimeString();
+            const sourceFile = params.log_file ? `[${params.log_file}]` : '';
+            channel.appendLine(`[${timestamp}] ${sourceFile} ${params.message}`);
+        });
+        
+        // Individual log file channels
+        client.onNotification('ck3/logEntry/game', (params: any) => {
+            const channel = getLogChannel('game', 'CK3L: game.log');
+            channel.appendLine(params.raw_line || params.message);
+        });
+        
+        client.onNotification('ck3/logEntry/error', (params: any) => {
+            const channel = getLogChannel('error', 'CK3L: error.log');
+            channel.appendLine(params.raw_line || params.message);
+        });
+        
+        client.onNotification('ck3/logEntry/exceptions', (params: any) => {
+            const channel = getLogChannel('exceptions', 'CK3L: exceptions.log');
+            channel.appendLine(params.raw_line || params.message);
+        });
+        
+        client.onNotification('ck3/logEntry/system', (params: any) => {
+            const channel = getLogChannel('system', 'CK3L: system.log');
+            channel.appendLine(params.raw_line || params.message);
+        });
+        
+        client.onNotification('ck3/logEntry/setup', (params: any) => {
+            const channel = getLogChannel('setup', 'CK3L: setup.log');
+            channel.appendLine(params.raw_line || params.message);
+        });
+        
+        // Pattern-matched errors only
+        client.onNotification('ck3/logEntry/pattern', (params: any) => {
+            const channel = getLogChannel('patterns', 'CK3L: Error Patterns');
+            const icon = getSeverityIcon(params.severity);
+            const timestamp = params.timestamp || new Date().toLocaleTimeString();
+            channel.appendLine(`[${timestamp}] ${icon} ${params.message}`);
+            
+            if (params.source_file) {
+                channel.appendLine(`  → ${params.source_file}:${params.line_number || '?'}`);
             }
+            
+            if (params.suggestions && params.suggestions.length > 0) {
+                channel.appendLine(`  💡 Suggestions: ${params.suggestions.join(', ')}`);
+            }
+            
+            if (params.log_file) {
+                channel.appendLine(`  📁 From: ${params.log_file}`);
+            }
+            channel.appendLine(''); // Blank line for readability
         });
 
         client.onNotification('ck3/logWatcherStarted', (params: any) => {
