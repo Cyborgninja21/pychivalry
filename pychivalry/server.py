@@ -199,6 +199,7 @@ from typing import Dict, List, Optional, Any, Set, Tuple
 # This is the core class that handles LSP protocol communication
 from pygls.lsp.server import LanguageServer
 from pygls.workspace import TextDocument
+from pygls.uris import to_fs_path
 
 # Import LSP types from lsprotocol
 # These define the structure of LSP messages (requests, responses, notifications)
@@ -3398,7 +3399,10 @@ def start_log_watcher_command(ls: CK3LanguageServer, *args: Any):
             # Get workspace root for path resolution
             workspace_root = "."
             if ls.workspace.folders:
-                workspace_root = ls.workspace.folders[0].path
+                # folders is a dict[str, WorkspaceFolder], get the first folder
+                first_folder = next(iter(ls.workspace.folders.values()))
+                # Convert URI to filesystem path
+                workspace_root = to_fs_path(first_folder.uri) or "."
             ls.log_diagnostic_converter = LogDiagnosticConverter(ls, workspace_root)
             logger.info(f"Initialized log diagnostic converter for {workspace_root}")
         

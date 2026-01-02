@@ -12,7 +12,7 @@
     {
       "label": "Install Python Dependencies",
       "type": "shell",
-      "command": "pip install -e .",
+      "command": "${command:python.interpreterPath} -m pip install -e '.[dev]'",
       "problemMatcher": [],
       "presentation": {
         "reveal": "always",
