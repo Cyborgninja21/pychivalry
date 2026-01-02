@@ -320,6 +320,36 @@ class CK3LogWatcher:
     This class manages the file system watcher, coordinates with the log
     analyzer, and provides control methods (start, stop, pause, resume).
     
+    **Monitored Files** (DEFAULT_WATCHED_FILES):
+    - game.log: Main game execution log
+    - error.log: Error messages and script system errors
+    - exceptions.log: Crash reports and exceptions
+    - system.log: System-level events and initialization
+    - setup.log: Game setup and configuration loading
+    
+    **Output Channels**:
+    Each log file sends data to multiple VS Code output channels:
+    
+    1. CK3L: Game Log
+       - Combined view of ALL files
+       - Format: [timestamp] [source_file] log_content
+       - Color-coded by source file
+    
+    2. CK3L: {filename} (5 individual channels)
+       - game.log, error.log, exceptions.log, system.log, setup.log
+       - Raw output from that specific file only
+       - ANSI colorized for readability
+    
+    3. CK3L: Error Patterns
+       - Only shows pattern-matched errors
+       - Includes suggestions and file locations
+       - Filtered view of important issues
+    
+    **Notification Methods**:
+    - ck3/logEntry/combined/bulk: Combined log batch
+    - ck3/logEntry/{filename}/bulk: Individual file batches
+    - ck3/logEntry/pattern/bulk: Pattern-matched error batches
+    
     **Architecture**:
     ```
     CK3LogWatcher
@@ -332,6 +362,7 @@ class CK3LogWatcher:
     - All public methods are thread-safe
     - Uses locks for state management
     - Observer runs in separate thread
+    - Notifications via asyncio.call_soon_threadsafe()
     
     Attributes:
         server: LSP server instance for notifications
@@ -342,13 +373,28 @@ class CK3LogWatcher:
         watched_files: List of file patterns to monitor
         is_paused: Whether log processing is paused
         is_running: Whether watcher is active
+        initial_lines_to_scan: Number of existing lines to read on startup
         
     Example:
         ```python
         # Create watcher
         watcher = CK3LogWatcher(server, analyzer)
         
-        # Start watching
+        # Start watching (auto-detects CK3 log path)
+        if watcher.start():
+            print(f"Monitoring: {watcher.get_watched_path()}")
+            print(f"Files: {watcher.get_watched_files()}")
+        
+        # Pause processing
+        watcher.pause()
+        
+        # Resume processing  
+        watcher.resume()
+        
+        # Stop completely
+        watcher.stop()
+        ```
+    """
         watcher.start("/path/to/logs")
         
         # Pause temporarily
