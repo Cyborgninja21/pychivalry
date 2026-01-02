@@ -417,19 +417,22 @@ def get_trait_completions(line_text: str, position: types.Position) -> Optional[
     for trait_name in sorted(trait_names):
         info = get_trait_info(trait_name)
         
-        # Build detail and documentation
+        # Build detail and documentation with enhanced properties
         category = info.get('category', 'trait')
         detail = category.replace('_', ' ').title()
         
         opposites = info.get('opposites', [])
         description = info.get('description', trait_name.replace('_', ' ').title())
         
+        # Start documentation with trait name and category
         docs = f"**{description}**\n\n"
         docs += f"*Category: {detail}*\n\n"
         
+        # Add opposites if any
         if opposites:
             docs += f"**Opposite Traits:** {', '.join(opposites)}\n\n"
         
+        # Add group and level
         group = info.get('group')
         if group:
             docs += f"**Group:** {group}\n\n"
@@ -437,6 +440,67 @@ def get_trait_completions(line_text: str, position: types.Position) -> Optional[
         level = info.get('level')
         if level is not None:
             docs += f"**Level:** {level}\n\n"
+        
+        # Add skill bonuses
+        skills = info.get('skills', {})
+        if skills:
+            docs += "**Skills:**\n"
+            for skill, value in skills.items():
+                sign = '+' if value > 0 else ''
+                docs += f"- {skill.capitalize()}: {sign}{value}\n"
+            docs += "\n"
+        
+        # Add opinion modifiers
+        opinions = info.get('opinions', {})
+        if opinions:
+            docs += "**Opinion Modifiers:**\n"
+            for opinion_type, value in opinions.items():
+                sign = '+' if value > 0 else ''
+                opinion_label = opinion_type.replace('_', ' ').title()
+                docs += f"- {opinion_label}: {sign}{value}\n"
+            docs += "\n"
+        
+        # Add lifestyle XP gains
+        xp_gains = info.get('lifestyle_xp_gains', {})
+        if xp_gains:
+            docs += "**Lifestyle XP:**\n"
+            for lifestyle, mult in xp_gains.items():
+                sign = '+' if mult > 0 else ''
+                docs += f"- {lifestyle.capitalize()}: {sign}{mult*100:.0f}%\n"
+            docs += "\n"
+        
+        # Add ruler designer cost
+        cost = info.get('ruler_designer_cost')
+        if cost is not None:
+            docs += f"**Ruler Designer Cost:** {cost} points\n\n"
+        
+        # Add key flags
+        flags = info.get('flags', [])
+        if flags:
+            # Show only the first 3 most interesting flags
+            interesting_flags = [f for f in flags if not f.startswith('level_')][:3]
+            if interesting_flags:
+                docs += "**Flags:**\n"
+                for flag in interesting_flags:
+                    docs += f"- {flag.replace('_', ' ')}\n"
+                docs += "\n"
+        
+        # Add key modifiers
+        modifiers = info.get('modifiers', {})
+        if modifiers:
+            # Show up to 3 most interesting modifiers
+            mod_list = list(modifiers.items())[:3]
+            if mod_list:
+                docs += "**Modifiers:**\n"
+                for mod_name, mod_value in mod_list:
+                    sign = '+' if mod_value > 0 else ''
+                    mod_label = mod_name.replace('_', ' ').title()
+                    # Format as percentage if it's a mult
+                    if 'mult' in mod_name:
+                        docs += f"- {mod_label}: {sign}{mod_value*100:.0f}%\n"
+                    else:
+                        docs += f"- {mod_label}: {sign}{mod_value}\n"
+                docs += "\n"
         
         completion = types.CompletionItem(
             label=trait_name,

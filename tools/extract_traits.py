@@ -128,19 +128,25 @@ def parse_trait_block(trait_name: str, block: str) -> Dict[str, Any]:
     """
     Parse a trait definition block.
     
-    Extracts:
-    - category
-    - opposites
-    - group
-    - level
-    - description (from desc key or computed)
+    Extracts all trait properties including:
+    - category, opposites, group, level
+    - skill bonuses (diplomacy, martial, stewardship, intrigue, learning, prowess)
+    - opinion modifiers
+    - lifestyle xp gains
+    - ruler designer cost
+    - flags
+    - culture modifiers
+    - minimum age, inherit chance, birth, random creation
+    - compatibility modifiers
+    - health/fertility effects
+    - descriptions
     
     Args:
         trait_name: Name of the trait
         block: The trait definition block content
         
     Returns:
-        Dictionary with trait metadata
+        Dictionary with all trait metadata
     """
     trait_data = {
         'name': trait_name,
@@ -173,6 +179,119 @@ def parse_trait_block(trait_name: str, block: str) -> Dict[str, Any]:
     level_match = re.search(r'level\s*=\s*(\d+)', block)
     if level_match:
         trait_data['level'] = int(level_match.group(1))
+    
+    # Extract skill bonuses
+    skills = {}
+    for skill in ['diplomacy', 'martial', 'stewardship', 'intrigue', 'learning', 'prowess']:
+        skill_match = re.search(rf'{skill}\s*=\s*([-]?\d+)', block)
+        if skill_match:
+            skills[skill] = int(skill_match.group(1))
+    if skills:
+        trait_data['skills'] = skills
+    
+    # Extract opinion modifiers
+    opinions = {}
+    opinion_patterns = [
+        'general_opinion', 'attraction_opinion', 'same_opinion', 'opposite_opinion',
+        'same_faith_opinion', 'dynasty_opinion', 'vassal_opinion', 'liege_opinion',
+        'glory_hound_opinion', 'ai_honor', 'ai_greed', 'ai_sociability',
+        'ai_vengefulness', 'ai_compassion', 'ai_boldness', 'ai_energy',
+        'ai_rationality', 'ai_zeal'
+    ]
+    for opinion_type in opinion_patterns:
+        opinion_match = re.search(rf'{opinion_type}\s*=\s*([-]?\d+)', block)
+        if opinion_match:
+            opinions[opinion_type] = int(opinion_match.group(1))
+    if opinions:
+        trait_data['opinions'] = opinions
+    
+    # Extract lifestyle XP gains
+    xp_gains = {}
+    for lifestyle in ['diplomacy', 'martial', 'stewardship', 'intrigue', 'learning']:
+        xp_match = re.search(rf'monthly_{lifestyle}_lifestyle_xp_gain_mult\s*=\s*([-]?[\d.]+)', block)
+        if xp_match:
+            xp_gains[lifestyle] = float(xp_match.group(1))
+    if xp_gains:
+        trait_data['lifestyle_xp_gains'] = xp_gains
+    
+    # Extract ruler designer cost
+    cost_match = re.search(r'ruler_designer_cost\s*=\s*([-]?\d+)', block)
+    if cost_match:
+        trait_data['ruler_designer_cost'] = int(cost_match.group(1))
+    
+    # Extract flags
+    flags = re.findall(r'flag\s*=\s*([a-z_][a-z0-9_]*)', block)
+    if flags:
+        trait_data['flags'] = flags
+    
+    # Extract minimum age
+    age_match = re.search(r'minimum_age\s*=\s*(\d+)', block)
+    if age_match:
+        trait_data['minimum_age'] = int(age_match.group(1))
+    
+    # Extract inherit chance
+    inherit_match = re.search(r'inherit_chance\s*=\s*([\d.]+)', block)
+    if inherit_match:
+        trait_data['inherit_chance'] = float(inherit_match.group(1))
+    
+    # Extract birth/random creation chance
+    birth_match = re.search(r'birth\s*=\s*([\d.]+)', block)
+    if birth_match:
+        trait_data['birth_chance'] = float(birth_match.group(1))
+    
+    random_match = re.search(r'random_creation\s*=\s*([\d.]+)', block)
+    if random_match:
+        trait_data['random_creation'] = float(random_match.group(1))
+    
+    # Extract compatibility modifiers
+    compat = {}
+    compat_patterns = ['compatibility', 'attract_opinion']
+    for pattern in compat_patterns:
+        compat_match = re.search(rf'{pattern}\s*=\s*([-]?\d+)', block)
+        if compat_match:
+            compat[pattern] = int(compat_match.group(1))
+    if compat:
+        trait_data['compatibility'] = compat
+    
+    # Extract health modifiers
+    health = {}
+    health_patterns = ['health', 'fertility', 'life_expectancy']
+    for pattern in health_patterns:
+        health_match = re.search(rf'{pattern}\s*=\s*([-]?[\d.]+)', block)
+        if health_match:
+            health[pattern] = float(health_match.group(1))
+    if health:
+        trait_data['health_modifiers'] = health
+    
+    # Extract stress gains/losses
+    stress = {}
+    stress_gain_match = re.search(r'stress_gain_mult\s*=\s*([-]?[\d.]+)', block)
+    if stress_gain_match:
+        stress['stress_gain_mult'] = float(stress_gain_match.group(1))
+    
+    stress_loss_match = re.search(r'stress_loss_mult\s*=\s*([-]?[\d.]+)', block)
+    if stress_loss_match:
+        stress['stress_loss_mult'] = float(stress_loss_match.group(1))
+    if stress:
+        trait_data['stress'] = stress
+    
+    # Extract misc numeric modifiers
+    modifiers = {}
+    modifier_patterns = [
+        'advantage', 'monthly_prestige', 'monthly_prestige_gain_mult',
+        'monthly_piety', 'monthly_piety_gain_mult', 
+        'monthly_gold_gain_mult', 'monthly_dynasty_prestige_mult',
+        'vassal_limit', 'domain_limit', 'tyranny_gain_mult',
+        'dread_baseline_add', 'dread_per_tyranny_mult', 'dread_decay_mult',
+        'short_reign_duration_mult', 'monthly_court_grandeur_change_mult'
+    ]
+    for pattern in modifier_patterns:
+        mod_match = re.search(rf'{pattern}\s*=\s*([-]?[\d.]+)', block)
+        if mod_match:
+            value = mod_match.group(1)
+            modifiers[pattern] = float(value) if '.' in value else int(value)
+    if modifiers:
+        trait_data['modifiers'] = modifiers
     
     # Generate description from trait name
     trait_data['description'] = generate_description(trait_name, trait_data)
