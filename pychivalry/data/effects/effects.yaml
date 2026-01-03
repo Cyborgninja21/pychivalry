@@ -1,0 +1,701 @@
+# CK3 Effects Documentation
+# Complete documentation for all Crusader Kings 3 effects
+version: "1.0"
+
+effects:
+  # ========== Character Modifiers ==========
+  add_character_modifier:
+    description: "Adds a temporary or permanent modifier to a character"
+    detail: "Character modifier with duration"
+    snippet: "add_character_modifier = {\n\tmodifier = ${1:modifier_name}\n\t${2|days,months,years|} = ${3:30}\n}"
+    scopes: [character]
+    example: |
+      add_character_modifier = {
+        modifier = stress_level_1
+        years = 5
+      }
+  
+  remove_character_modifier:
+    description: "Removes a modifier from a character"
+    detail: "Removes specified character modifier"
+    snippet: "remove_character_modifier = ${1:modifier_name}"
+    scopes: [character]
+    example: "remove_character_modifier = stress_level_1"
+  
+  # ========== Traits ==========
+  add_trait:
+    description: "Adds a trait to a character"
+    detail: "Grants specified trait"
+    snippet: "add_trait = ${1:trait_name}"
+    scopes: [character]
+    example: "add_trait = brave"
+  
+  remove_trait:
+    description: "Removes a trait from a character"
+    detail: "Removes specified trait if present"
+    snippet: "remove_trait = ${1:trait_name}"
+    scopes: [character]
+    example: "remove_trait = craven"
+  
+  # ========== Gold ==========
+  add_gold:
+    description: "Adds gold to character's treasury"
+    detail: "Can be simple value or script_value block"
+    snippet: "add_gold = ${1:100}"
+    scopes: [character]
+    example: |
+      add_gold = 500
+      add_gold = {
+        value = monthly_character_income
+        multiply = 2
+      }
+  
+  remove_gold:
+    description: "Removes gold from character's treasury"
+    detail: "Can be simple value or script_value block"
+    snippet: "remove_gold = ${1:100}"
+    scopes: [character]
+    example: "remove_gold = 200"
+  
+  add_short_term_gold:
+    description: "Adds short-term gold that doesn't accumulate savings"
+    detail: "Used for temporary gold gains"
+    snippet: "add_short_term_gold = ${1:100}"
+    scopes: [character]
+    example: "add_short_term_gold = 50"
+  
+  remove_short_term_gold:
+    description: "Removes short-term gold"
+    detail: "Deducts from temporary gold pool"
+    snippet: "remove_short_term_gold = ${1:100}"
+    scopes: [character]
+    example: "remove_short_term_gold = 30"
+  
+  # ========== Prestige ==========
+  add_prestige:
+    description: "Adds prestige to character"
+    detail: "Can be simple value or script_value block"
+    snippet: "add_prestige = ${1:100}"
+    scopes: [character]
+    example: "add_prestige = 200"
+  
+  remove_prestige:
+    description: "Removes prestige from character"
+    detail: "Deducts prestige points"
+    snippet: "remove_prestige = ${1:100}"
+    scopes: [character]
+    example: "remove_prestige = 50"
+  
+  # ========== Piety ==========
+  add_piety:
+    description: "Adds piety to character"
+    detail: "Can be simple value or script_value block"
+    snippet: "add_piety = ${1:100}"
+    scopes: [character]
+    example: "add_piety = 150"
+  
+  remove_piety:
+    description: "Removes piety from character"
+    detail: "Deducts piety points"
+    snippet: "remove_piety = ${1:100}"
+    scopes: [character]
+    example: "remove_piety = 75"
+  
+  # ========== Stress ==========
+  add_stress:
+    description: "Adds stress to character"
+    detail: "Increases stress level"
+    snippet: "add_stress = ${1:minor_stress_gain}"
+    scopes: [character]
+    example: "add_stress = medium_stress_gain"
+  
+  stress_impact:
+    description: "Adds stress based on personality traits"
+    detail: "Conditional stress gain based on character traits"
+    snippet: "stress_impact = {\n\t${1:trait_name} = ${2:minor_stress_impact_gain}\n}"
+    scopes: [character]
+    example: |
+      stress_impact = {
+        brave = minor_stress_impact_loss
+        craven = major_stress_impact_gain
+      }
+  
+  # ========== Lifestyle XP ==========
+  add_diplomacy_lifestyle_xp:
+    description: "Adds experience to diplomacy lifestyle"
+    detail: "Grants diplomacy skill XP"
+    snippet: "add_diplomacy_lifestyle_xp = ${1:100}"
+    scopes: [character]
+    example: "add_diplomacy_lifestyle_xp = 50"
+  
+  add_martial_lifestyle_xp:
+    description: "Adds experience to martial lifestyle"
+    detail: "Grants martial skill XP"
+    snippet: "add_martial_lifestyle_xp = ${1:100}"
+    scopes: [character]
+    example: "add_martial_lifestyle_xp = 75"
+  
+  add_stewardship_lifestyle_xp:
+    description: "Adds experience to stewardship lifestyle"
+    detail: "Grants stewardship skill XP"
+    snippet: "add_stewardship_lifestyle_xp = ${1:100}"
+    scopes: [character]
+    example: "add_stewardship_lifestyle_xp = 60"
+  
+  add_intrigue_lifestyle_xp:
+    description: "Adds experience to intrigue lifestyle"
+    detail: "Grants intrigue skill XP"
+    snippet: "add_intrigue_lifestyle_xp = ${1:100}"
+    scopes: [character]
+    example: "add_intrigue_lifestyle_xp = 80"
+  
+  add_learning_lifestyle_xp:
+    description: "Adds experience to learning lifestyle"
+    detail: "Grants learning skill XP"
+    snippet: "add_learning_lifestyle_xp = ${1:100}"
+    scopes: [character]
+    example: "add_learning_lifestyle_xp = 90"
+  
+  add_wanderer_lifestyle_xp:
+    description: "Adds experience to wanderer lifestyle"
+    detail: "Grants wanderer skill XP (special lifestyle)"
+    snippet: "add_wanderer_lifestyle_xp = ${1:100}"
+    scopes: [character]
+    example: "add_wanderer_lifestyle_xp = 40"
+  
+  # ========== Opinion ==========
+  add_opinion:
+    description: "Adds opinion modifier between two characters"
+    detail: "Creates opinion relationship"
+    snippet: "add_opinion = {\n\tmodifier = ${1:modifier_name}\n\ttarget = ${2:scope:target}\n}"
+    scopes: [character]
+    example: |
+      add_opinion = {
+        modifier = grateful
+        target = scope:friend
+        years = 10
+      }
+  
+  remove_opinion:
+    description: "Removes opinion modifier between characters"
+    detail: "Removes specific opinion modifier"
+    snippet: "remove_opinion = {\n\tmodifier = ${1:modifier_name}\n\ttarget = ${2:scope:target}\n}"
+    scopes: [character]
+    example: |
+      remove_opinion = {
+        modifier = angry
+        target = scope:enemy
+      }
+  
+  reverse_add_opinion:
+    description: "Adds opinion from target to this character"
+    detail: "Target character gains opinion of this character"
+    snippet: "reverse_add_opinion = {\n\tmodifier = ${1:modifier_name}\n\ttarget = ${2:scope:target}\n}"
+    scopes: [character]
+    example: |
+      reverse_add_opinion = {
+        modifier = grateful
+        target = scope:benefactor
+      }
+  
+  # ========== Relations ==========
+  set_relation_friend:
+    description: "Sets friend relation between characters"
+    detail: "Creates or reinforces friendship"
+    snippet: "set_relation_friend = ${1:scope:target}"
+    scopes: [character]
+    example: "set_relation_friend = scope:ally"
+  
+  remove_relation_friend:
+    description: "Removes friend relation"
+    detail: "Breaks friendship between characters"
+    snippet: "remove_relation_friend = ${1:scope:target}"
+    scopes: [character]
+    example: "remove_relation_friend = scope:former_friend"
+  
+  set_relation_lover:
+    description: "Sets lover relation between characters"
+    detail: "Creates romantic relationship"
+    snippet: "set_relation_lover = ${1:scope:target}"
+    scopes: [character]
+    example: "set_relation_lover = scope:romantic_interest"
+  
+  remove_relation_lover:
+    description: "Removes lover relation"
+    detail: "Ends romantic relationship"
+    snippet: "remove_relation_lover = ${1:scope:target}"
+    scopes: [character]
+    example: "remove_relation_lover = scope:ex_lover"
+  
+  set_relation_rival:
+    description: "Sets rival relation between characters"
+    detail: "Creates rivalry"
+    snippet: "set_relation_rival = ${1:scope:target}"
+    scopes: [character]
+    example: "set_relation_rival = scope:enemy"
+  
+  remove_relation_rival:
+    description: "Removes rival relation"
+    detail: "Ends rivalry between characters"
+    snippet: "remove_relation_rival = ${1:scope:target}"
+    scopes: [character]
+    example: "remove_relation_rival = scope:former_rival"
+  
+  # ========== Marriage & Divorce ==========
+  marry:
+    description: "Marries two characters together"
+    detail: "Creates marriage between characters"
+    snippet: "marry = ${1:scope:target}"
+    scopes: [character]
+    example: "marry = scope:betrothed"
+  
+  divorce:
+    description: "Divorces character from spouse"
+    detail: "Ends marriage with specified character"
+    snippet: "divorce = ${1:scope:spouse}"
+    scopes: [character]
+    example: "divorce = scope:spouse"
+  
+  # ========== Death ==========
+  death:
+    description: "Kills the character"
+    detail: "Can specify death reason and killer"
+    snippet: "death = {\n\tdeath_reason = ${1:death_vanished}\n}"
+    scopes: [character]
+    example: |
+      death = {
+        death_reason = death_execution
+        killer = scope:executioner
+      }
+  
+  # ========== Titles & Claims ==========
+  add_claim:
+    description: "Adds a claim to a title"
+    detail: "Can be pressed or unpressed claim"
+    snippet: "add_claim = ${1:title:k_france}"
+    scopes: [character]
+    example: "add_claim = title:k_england"
+  
+  remove_claim:
+    description: "Removes a claim on a title"
+    detail: "Removes existing claim"
+    snippet: "remove_claim = ${1:title:k_france}"
+    scopes: [character]
+    example: "remove_claim = title:d_normandy"
+  
+  create_title:
+    description: "Creates a new title"
+    detail: "Creates landed title with specified holder"
+    snippet: "create_title = {\n\ttitle = ${1:title_key}\n\tholder = ${2:root}\n}"
+    scopes: [character, landed_title]
+    example: |
+      create_title = {
+        title = k_custom_kingdom
+        holder = root
+      }
+  
+  destroy_title:
+    description: "Destroys a title"
+    detail: "Removes title from game"
+    snippet: "destroy_title = ${1:this}"
+    scopes: [landed_title]
+    example: "destroy_title = this"
+  
+  change_title_holder:
+    description: "Changes who holds a title"
+    detail: "Transfers title to new holder"
+    snippet: "change_title_holder = {\n\tholder = ${1:scope:new_holder}\n\tchange = ${2:scope:change}\n}"
+    scopes: [landed_title]
+    example: |
+      change_title_holder = {
+        holder = scope:heir
+        change = scope:title_change
+      }
+  
+  create_title_and_vassal_change:
+    description: "Creates a title change transaction"
+    detail: "For complex title transfers with vassals"
+    snippet: "create_title_and_vassal_change = {\n\ttype = ${1|conquest,inheritance,usurped|}\n\tsave_scope_as = ${2:change}\n}"
+    scopes: [character]
+    example: |
+      create_title_and_vassal_change = {
+        type = conquest
+        save_scope_as = title_change
+      }
+  
+  set_capital_county:
+    description: "Sets character's capital county"
+    detail: "Changes primary county holding"
+    snippet: "set_capital_county = ${1:scope:county}"
+    scopes: [character]
+    example: "set_capital_county = scope:new_capital"
+  
+  # ========== Government ==========
+  change_government:
+    description: "Changes character's government type"
+    detail: "Switches to different government form"
+    snippet: "change_government = ${1:feudal_government}"
+    scopes: [character]
+    example: "change_government = clan_government"
+  
+  # ========== Tyranny ==========
+  add_tyranny:
+    description: "Adds tyranny to character"
+    detail: "Increases tyranny level"
+    snippet: "add_tyranny = ${1:minor_tyranny_gain}"
+    scopes: [character]
+    example: "add_tyranny = medium_tyranny_gain"
+  
+  # ========== Flags ==========
+  add_character_flag:
+    description: "Adds a flag to character"
+    detail: "Temporary or permanent flag marker"
+    snippet: "add_character_flag = ${1:flag_name}"
+    scopes: [character]
+    example: |
+      add_character_flag = {
+        flag = has_seen_event
+        days = 30
+      }
+  
+  remove_character_flag:
+    description: "Removes a flag from character"
+    detail: "Clears specified flag"
+    snippet: "remove_character_flag = ${1:flag_name}"
+    scopes: [character]
+    example: "remove_character_flag = has_seen_event"
+  
+  add_flag:
+    description: "Adds a flag to current scope"
+    detail: "Generic flag for any scope type"
+    snippet: "add_flag = ${1:flag_name}"
+    scopes: [character, landed_title, province]
+    example: "add_flag = recently_conquered"
+  
+  remove_flag:
+    description: "Removes a flag from current scope"
+    detail: "Clears specified flag from scope"
+    snippet: "remove_flag = ${1:flag_name}"
+    scopes: [character, landed_title, province]
+    example: "remove_flag = recently_conquered"
+  
+  set_global_flag:
+    description: "Sets a global flag visible to all scopes"
+    detail: "Game-wide flag marker"
+    snippet: "set_global_flag = ${1:global_flag_name}"
+    scopes: [any]
+    example: "set_global_flag = black_death_started"
+  
+  remove_global_flag:
+    description: "Removes a global flag"
+    detail: "Clears game-wide flag"
+    snippet: "remove_global_flag = ${1:global_flag_name}"
+    scopes: [any]
+    example: "remove_global_flag = black_death_started"
+  
+  # ========== Variables ==========
+  set_variable:
+    description: "Sets a variable on current scope"
+    detail: "Stores value for later retrieval"
+    snippet: "set_variable = {\n\tname = ${1:var_name}\n\tvalue = ${2:value}\n}"
+    scopes: [any]
+    example: |
+      set_variable = {
+        name = my_counter
+        value = 5
+      }
+  
+  change_variable:
+    description: "Changes value of existing variable"
+    detail: "Adds or subtracts from variable"
+    snippet: "change_variable = {\n\tname = ${1:var_name}\n\t${2|add,subtract,multiply,divide|} = ${3:value}\n}"
+    scopes: [any]
+    example: |
+      change_variable = {
+        name = my_counter
+        add = 1
+      }
+  
+  remove_variable:
+    description: "Removes a variable from scope"
+    detail: "Deletes stored variable"
+    snippet: "remove_variable = ${1:var_name}"
+    scopes: [any]
+    example: "remove_variable = my_counter"
+  
+  # ========== Scopes ==========
+  save_scope_as:
+    description: "Saves current scope for later reference"
+    detail: "Creates named scope alias"
+    snippet: "save_scope_as = ${1:scope_name}"
+    scopes: [any]
+    example: "save_scope_as = my_character"
+  
+  save_temporary_scope_as:
+    description: "Saves current scope temporarily"
+    detail: "Scope alias valid only within current event/effect"
+    snippet: "save_temporary_scope_as = ${1:temp_scope}"
+    scopes: [any]
+    example: "save_temporary_scope_as = temp_target"
+  
+  # ========== Iteration ==========
+  every_courtier:
+    description: "Iterates over all courtiers"
+    detail: "Executes effects for each courtier"
+    snippet: "every_courtier = {\n\tlimit = { $1 }\n\t$0\n}"
+    scopes: [character]
+    example: |
+      every_courtier = {
+        limit = { is_adult = yes }
+        add_gold = 10
+      }
+  
+  random_courtier:
+    description: "Selects a random courtier"
+    detail: "Executes effects on one random courtier matching limit"
+    snippet: "random_courtier = {\n\tlimit = { $1 }\n\t$0\n}"
+    scopes: [character]
+    example: |
+      random_courtier = {
+        limit = { NOT = { has_trait = content } }
+        add_trait = content
+      }
+  
+  every_vassal:
+    description: "Iterates over all vassals"
+    detail: "Executes effects for each direct vassal"
+    snippet: "every_vassal = {\n\tlimit = { $1 }\n\t$0\n}"
+    scopes: [character]
+    example: |
+      every_vassal = {
+        limit = { primary_title = { tier = tier_duchy } }
+        add_opinion = {
+          modifier = grateful
+          target = root
+        }
+      }
+  
+  random_vassal:
+    description: "Selects a random vassal"
+    detail: "Executes effects on one random vassal matching limit"
+    snippet: "random_vassal = {\n\tlimit = { $1 }\n\t$0\n}"
+    scopes: [character]
+    example: |
+      random_vassal = {
+        limit = { is_powerful_vassal = yes }
+        add_prestige = 100
+      }
+  
+  # ========== Events ==========
+  trigger_event:
+    description: "Triggers an event"
+    detail: "Fires specified event with optional delay"
+    snippet: "trigger_event = {\n\tid = ${1:namespace.0001}\n}"
+    scopes: [character]
+    example: |
+      trigger_event = {
+        id = my_mod.0001
+        days = 7
+      }
+  
+  # ========== Story Cycles ==========
+  create_story:
+    description: "Creates a story cycle"
+    detail: "Starts persistent story with periodic effects"
+    snippet: "create_story = ${1:story_cycle_name}"
+    scopes: [character]
+    example: |
+      create_story = {
+        type = my_story_cycle
+        save_scope_as = my_story
+      }
+  
+  end_story:
+    description: "Ends a story cycle"
+    detail: "Terminates active story"
+    snippet: "end_story = yes"
+    scopes: [story]
+    example: "end_story = yes"
+  
+  make_story_owner:
+    description: "Transfers story ownership to another character"
+    detail: "Changes who owns the story cycle"
+    snippet: "make_story_owner = ${1:scope:new_owner}"
+    scopes: [story]
+    example: "make_story_owner = scope:heir"
+  
+  # ========== Activities ==========
+  start_activity:
+    description: "Starts an activity"
+    detail: "Begins activity like feast, hunt, etc."
+    snippet: "start_activity = {\n\tactivity = ${1:activity_type}\n}"
+    scopes: [character]
+    example: |
+      start_activity = {
+        activity = activity_feast
+      }
+  
+  complete_activity:
+    description: "Completes current activity"
+    detail: "Finishes ongoing activity"
+    snippet: "complete_activity = yes"
+    scopes: [character]
+    example: "complete_activity = yes"
+  
+  leave_activity:
+    description: "Character leaves current activity"
+    detail: "Removes character from activity"
+    snippet: "leave_activity = yes"
+    scopes: [character]
+    example: "leave_activity = yes"
+  
+  # ========== Control Flow ==========
+  if:
+    description: "Conditional execution"
+    detail: "Executes effects only if trigger is true"
+    snippet: "if = {\n\tlimit = { $1 }\n\t$0\n}"
+    scopes: [any]
+    example: |
+      if = {
+        limit = { is_adult = yes }
+        add_gold = 100
+      }
+  
+  else_if:
+    description: "Alternative condition after if"
+    detail: "Checked if previous if/else_if was false"
+    snippet: "else_if = {\n\tlimit = { $1 }\n\t$0\n}"
+    scopes: [any]
+    example: |
+      else_if = {
+        limit = { age >= 12 }
+        add_gold = 50
+      }
+  
+  else:
+    description: "Default case after if/else_if"
+    detail: "Executes if no previous conditions were true"
+    snippet: "else = {\n\t$0\n}"
+    scopes: [any]
+    example: |
+      else = {
+        add_gold = 10
+      }
+  
+  switch:
+    description: "Multi-way conditional branching"
+    detail: "Evaluates trigger and executes matching case"
+    snippet: "switch = {\n\ttrigger = ${1:variable}\n\t${2:value} = { $0 }\n}"
+    scopes: [any]
+    example: |
+      switch = {
+        trigger = var:my_state
+        1 = { add_gold = 100 }
+        2 = { add_prestige = 100 }
+      }
+  
+  random:
+    description: "Executes with probability"
+    detail: "Chance-based execution"
+    snippet: "random = {\n\tchance = ${1:50}\n\t$0\n}"
+    scopes: [any]
+    example: |
+      random = {
+        chance = 25
+        add_trait = lucky
+      }
+  
+  random_list:
+    description: "Executes one random option from list"
+    detail: "Weighted random selection"
+    snippet: "random_list = {\n\t${1:50} = { $0 }\n}"
+    scopes: [any]
+    example: |
+      random_list = {
+        50 = { add_gold = 100 }
+        30 = { add_prestige = 100 }
+        20 = { add_piety = 100 }
+      }
+  
+  # ========== UI & Presentation ==========
+  custom_tooltip:
+    description: "Shows custom text in effect tooltip"
+    detail: "Display localized message to player"
+    snippet: "custom_tooltip = ${1:localization_key}"
+    scopes: [any]
+    example: "custom_tooltip = my_mod_custom_message"
+  
+  hidden_effect:
+    description: "Executes effects without showing in tooltip"
+    detail: "Effects not visible to player"
+    snippet: "hidden_effect = {\n\t$0\n}"
+    scopes: [any]
+    example: |
+      hidden_effect = {
+        add_gold = -100
+      }
+  
+  show_as_tooltip:
+    description: "Shows effects in tooltip without executing"
+    detail: "Display only, doesn't actually execute"
+    snippet: "show_as_tooltip = {\n\t$0\n}"
+    scopes: [any]
+    example: |
+      show_as_tooltip = {
+        add_gold = 500
+      }
+  
+  # ========== Audio/Visual ==========
+  play_sound_effect:
+    description: "Plays a sound effect"
+    detail: "Triggers audio feedback"
+    snippet: "play_sound_effect = ${1:sound_name}"
+    scopes: [any]
+    example: "play_sound_effect = event:/SFX/Events/Positive/generic_positive"
+  
+  play_music_cue:
+    description: "Plays a music cue"
+    detail: "Triggers music track"
+    snippet: "play_music_cue = ${1:music_cue_name}"
+    scopes: [any]
+    example: "play_music_cue = mx_cue_combat"
+  
+  animate_custom:
+    description: "Triggers custom animation"
+    detail: "Plays character animation"
+    snippet: "animate_custom = ${1:animation_name}"
+    scopes: [character]
+    example: "animate_custom = personality_rational"
+  
+  # ========== Debug ==========
+  debug_log:
+    description: "Logs message to debug console"
+    detail: "For debugging scripts"
+    snippet: "debug_log = ${1:message}"
+    scopes: [any]
+    example: "debug_log = \"Event fired for character\""
+  
+  debug_log_scopes:
+    description: "Logs all current scopes to console"
+    detail: "Shows scope chain for debugging"
+    snippet: "debug_log_scopes = yes"
+    scopes: [any]
+    example: "debug_log_scopes = yes"
+  
+  assert_if:
+    description: "Asserts condition must be true"
+    detail: "Errors in debug if condition false"
+    snippet: "assert_if = {\n\tlimit = { $1 }\n\ttext = ${2:error_message}\n}"
+    scopes: [any]
+    example: |
+      assert_if = {
+        limit = { NOT = { exists = root } }
+        text = "Root scope does not exist!"
+      }
+  
+  assert_read:
+    description: "Marks variable as read for error checking"
+    detail: "Suppresses unused variable warnings"
+    snippet: "assert_read = ${1:variable_name}"
+    scopes: [any]
+    example: "assert_read = var:my_counter"

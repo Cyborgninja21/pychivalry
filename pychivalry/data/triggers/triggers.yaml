@@ -1,0 +1,652 @@
+# CK3 Triggers Documentation  
+# Complete documentation for all Crusader Kings 3 triggers
+version: "1.0"
+
+triggers:
+  # ========== Logical Operators ==========
+  AND:
+    description: "Logical AND - all conditions must be true"
+    detail: "Combines multiple conditions with AND logic"
+    snippet: "AND = {\n\t$1\n\t$2\n}"
+    scopes: [any]
+    example: |
+      AND = {
+        is_adult = yes
+        has_trait = brave
+      }
+  
+  OR:
+    description: "Logical OR - at least one condition must be true"
+    detail: "Combines multiple conditions with OR logic"
+    snippet: "OR = {\n\t$1\n\t$2\n}"
+    scopes: [any]
+    example: |
+      OR = {
+        is_ruler = yes
+        is_heir = yes
+      }
+  
+  NOT:
+    description: "Logical NOT - inverts condition"
+    detail: "Negates the result of inner conditions"
+    snippet: "NOT = { $1 }"
+    scopes: [any]
+    example: |
+      NOT = {
+        has_trait = craven
+      }
+  
+  NAND:
+    description: "Logical NAND - NOT (all conditions true)"
+    detail: "True if any condition is false"
+    snippet: "NAND = {\n\t$1\n\t$2\n}"
+    scopes: [any]
+    example: |
+      NAND = {
+        is_adult = yes
+        is_married = yes
+      }
+  
+  NOR:
+    description: "Logical NOR - NOT (any condition true)"
+    detail: "True only if all conditions are false"
+    snippet: "NOR = {\n\t$1\n\t$2\n}"
+    scopes: [any]
+    example: |
+      NOR = {
+        is_imprisoned = yes
+        is_at_war = yes
+      }
+  
+  # ========== Basic Character Checks ==========
+  age:
+    description: "Character's age in years"
+    detail: "Numeric comparison - age >= X"
+    snippet: "age >= ${1:16}"
+    scopes: [character]
+    example: "age >= 20"
+  
+  is_adult:
+    description: "Character is adult (age >= 16)"
+    detail: "Boolean check"
+    snippet: "is_adult = ${1|yes,no|}"
+    scopes: [character]
+    example: "is_adult = yes"
+  
+  is_child:
+    description: "Character is child (age < 16)"
+    detail: "Boolean check"
+    snippet: "is_child = ${1|yes,no|}"
+    scopes: [character]
+    example: "is_child = yes"
+  
+  is_alive:
+    description: "Character is alive"
+    detail: "Boolean check"
+    snippet: "is_alive = ${1|yes,no|}"
+    scopes: [character]
+    example: "is_alive = yes"
+  
+  is_female:
+    description: "Character is female"
+    detail: "Boolean check"
+    snippet: "is_female = ${1|yes,no|}"
+    scopes: [character]
+    example: "is_female = yes"
+  
+  is_male:
+    description: "Character is male"
+    detail: "Boolean check"
+    snippet: "is_male = ${1|yes,no|}"
+    scopes: [character]
+    example: "is_male = yes"
+  
+  is_ruler:
+    description: "Character is a ruler (holds at least one title)"
+    detail: "Boolean check"
+    snippet: "is_ruler = ${1|yes,no|}"
+    scopes: [character]
+    example: "is_ruler = yes"
+  
+  is_ai:
+    description: "Character is controlled by AI"
+    detail: "Boolean check"
+    snippet: "is_ai = ${1|yes,no|}"
+    scopes: [character]
+    example: "is_ai = yes"
+  
+  is_player:
+    description: "Character is controlled by human player"
+    detail: "Boolean check"
+    snippet: "is_player = ${1|yes,no|}"
+    scopes: [character]
+    example: "is_player = yes"
+  
+  is_married:
+    description: "Character is married"
+    detail: "Boolean check"
+    snippet: "is_married = ${1|yes,no|}"
+    scopes: [character]
+    example: "is_married = yes"
+  
+  # ========== Traits ==========
+  has_trait:
+    description: "Character has specified trait"
+    detail: "Checks for trait presence"
+    snippet: "has_trait = ${1:trait_name}"
+    scopes: [character]
+    example: "has_trait = brave"
+  
+  # ========== Resources ==========
+  gold:
+    description: "Character's gold amount"
+    detail: "Numeric comparison"
+    snippet: "gold >= ${1:100}"
+    scopes: [character]
+    example: "gold >= 500"
+  
+  prestige:
+    description: "Character's prestige amount"
+    detail: "Numeric comparison"
+    snippet: "prestige >= ${1:100}"
+    scopes: [character]
+    example: "prestige >= 1000"
+  
+  piety:
+    description: "Character's piety amount"
+    detail: "Numeric comparison"
+    snippet: "piety >= ${1:100}"
+    scopes: [character]
+    example: "piety >= 500"
+  
+  short_term_gold:
+    description: "Character's short-term gold amount"
+    detail: "Numeric comparison"
+    snippet: "short_term_gold >= ${1:100}"
+    scopes: [character]
+    example: "short_term_gold >= 50"
+  
+  # ========== Relations ==========
+  has_relation:
+    description: "Has specific relation with another character"
+    detail: "Checks for relation type"
+    snippet: "has_relation = {\n\ttype = ${1:friend}\n\ttarget = ${2:scope:target}\n}"
+    scopes: [character]
+    example: |
+      has_relation = {
+        type = lover
+        target = scope:spouse
+      }
+  
+  has_relation_friend:
+    description: "Has friend relation with character"
+    detail: "Checks for friendship"
+    snippet: "has_relation_friend = ${1:scope:target}"
+    scopes: [character]
+    example: "has_relation_friend = scope:ally"
+  
+  has_relation_lover:
+    description: "Has lover relation with character"
+    detail: "Checks for romantic relationship"
+    snippet: "has_relation_lover = ${1:scope:target}"
+    scopes: [character]
+    example: "has_relation_lover = scope:spouse"
+  
+  has_relation_rival:
+    description: "Has rival relation with character"
+    detail: "Checks for rivalry"
+    snippet: "has_relation_rival = ${1:scope:target}"
+    scopes: [character]
+    example: "has_relation_rival = scope:enemy"
+  
+  # ========== Opinion ==========
+  opinion:
+    description: "Opinion value between characters"
+    detail: "Numeric comparison of opinion"
+    snippet: "opinion = {\n\ttarget = ${1:scope:target}\n\tvalue >= ${2:0}\n}"
+    scopes: [character]
+    example: |
+      opinion = {
+        target = scope:liege
+        value >= 50
+      }
+  
+  has_opinion_modifier:
+    description: "Has specific opinion modifier towards another character"
+    detail: "Checks for opinion modifier presence"
+    snippet: "has_opinion_modifier = {\n\tmodifier = ${1:modifier_name}\n\ttarget = ${2:scope:target}\n}"
+    scopes: [character]
+    example: |
+      has_opinion_modifier = {
+        modifier = grateful
+        target = scope:benefactor
+      }
+  
+  reverse_has_opinion_modifier:
+    description: "Another character has opinion modifier towards this character"
+    detail: "Reverse opinion check"
+    snippet: "reverse_has_opinion_modifier = {\n\tmodifier = ${1:modifier_name}\n\ttarget = ${2:scope:target}\n}"
+    scopes: [character]
+    example: |
+      reverse_has_opinion_modifier = {
+        modifier = angry
+        target = scope:enemy
+      }
+  
+  # ========== Titles & Claims ==========
+  has_title:
+    description: "Character holds specified title"
+    detail: "Checks title ownership"
+    snippet: "has_title = ${1:title:k_france}"
+    scopes: [character]
+    example: "has_title = title:k_england"
+  
+  has_claim_on:
+    description: "Character has claim on title"
+    detail: "Checks for claim presence"
+    snippet: "has_claim_on = ${1:title:k_france}"
+    scopes: [character]
+    example: "has_claim_on = title:d_normandy"
+  
+  primary_title:
+    description: "Character's primary title"
+    detail: "Scopes to primary title"
+    snippet: "primary_title = { $1 }"
+    scopes: [character]
+    example: |
+      primary_title = {
+        tier = tier_kingdom
+      }
+  
+  highest_held_title_tier:
+    description: "Tier of highest title held"
+    detail: "Numeric tier comparison"
+    snippet: "highest_held_title_tier >= ${1|tier_barony,tier_county,tier_duchy,tier_kingdom,tier_empire|}"
+    scopes: [character]
+    example: "highest_held_title_tier >= tier_duchy"
+  
+  tier:
+    description: "Title tier level"
+    detail: "Checks title tier"
+    snippet: "tier = ${1|tier_barony,tier_county,tier_duchy,tier_kingdom,tier_empire|}"
+    scopes: [landed_title]
+    example: "tier = tier_kingdom"
+  
+  completely_controls:
+    description: "Completely controls title (all de jure land)"
+    detail: "Checks for complete control"
+    snippet: "completely_controls = ${1:title:k_france}"
+    scopes: [character]
+    example: "completely_controls = title:k_england"
+  
+  # ========== Culture & Faith ==========
+  culture:
+    description: "Character's culture"
+    detail: "Checks culture match"
+    snippet: "culture = ${1:culture:anglo_saxon}"
+    scopes: [character]
+    example: "culture = culture:french"
+  
+  has_culture:
+    description: "Has specific culture"
+    detail: "Checks culture type"
+    snippet: "has_culture = ${1:culture:norse}"
+    scopes: [character]
+    example: "has_culture = culture:irish"
+  
+  faith:
+    description: "Character's faith"
+    detail: "Checks faith match"
+    snippet: "faith = ${1:faith:catholic}"
+    scopes: [character]
+    example: "faith = faith:orthodox"
+  
+  has_faith:
+    description: "Has specific faith"
+    detail: "Checks faith type"
+    snippet: "has_faith = ${1:faith:sunni}"
+    scopes: [character]
+    example: "has_faith = faith:shiite"
+  
+  has_religion:
+    description: "Has specific religion"
+    detail: "Checks religion type"
+    snippet: "has_religion = ${1:religion:islam}"
+    scopes: [character]
+    example: "has_religion = religion:christianity"
+  
+  # ========== Dynasty ==========
+  dynasty:
+    description: "Character's dynasty"
+    detail: "Checks dynasty match"
+    snippet: "dynasty = ${1:dynasty:dynn_karling}"
+    scopes: [character]
+    example: "dynasty = dynasty:dynn_bourbon"
+  
+  has_dynasty:
+    description: "Has specific dynasty"
+    detail: "Checks dynasty type"
+    snippet: "has_dynasty = ${1:dynasty:dynn_jimena}"
+    scopes: [character]
+    example: "has_dynasty = dynasty:dynn_capet"
+  
+  # ========== Government ==========
+  has_government:
+    description: "Has specific government type"
+    detail: "Checks government form"
+    snippet: "has_government = ${1|feudal_government,clan_government,tribal_government|}"
+    scopes: [character]
+    example: "has_government = feudal_government"
+  
+  # ========== War ==========
+  is_at_war:
+    description: "Character is at war"
+    detail: "Boolean check"
+    snippet: "is_at_war = ${1|yes,no|}"
+    scopes: [character]
+    example: "is_at_war = yes"
+  
+  is_at_war_with:
+    description: "At war with specific character"
+    detail: "Checks for war between characters"
+    snippet: "is_at_war_with = ${1:scope:target}"
+    scopes: [character]
+    example: "is_at_war_with = scope:enemy"
+  
+  is_at_war_with_target_on_side:
+    description: "At war with target on specific side"
+    detail: "Complex war check"
+    snippet: "is_at_war_with_target_on_side = ${1:scope:target}"
+    scopes: [character]
+    example: "is_at_war_with_target_on_side = scope:liege"
+  
+  is_attacker_in_war:
+    description: "Is attacker in a war"
+    detail: "Checks war aggressor status"
+    snippet: "is_attacker_in_war = ${1:scope:war}"
+    scopes: [character]
+    example: "is_attacker_in_war = scope:current_war"
+  
+  is_defender_in_war:
+    description: "Is defender in a war"
+    detail: "Checks war defender status"
+    snippet: "is_defender_in_war = ${1:scope:war}"
+    scopes: [character]
+    example: "is_defender_in_war = scope:current_war"
+  
+  has_truce:
+    description: "Has truce with another character"
+    detail: "Checks for active truce"
+    snippet: "has_truce = ${1:scope:target}"
+    scopes: [character]
+    example: "has_truce = scope:former_enemy"
+  
+  # ========== Attraction ==========
+  is_attracted_to_gender_of:
+    description: "Is attracted to gender of target character"
+    detail: "Checks attraction compatibility"
+    snippet: "is_attracted_to_gender_of = ${1:scope:target}"
+    scopes: [character]
+    example: "is_attracted_to_gender_of = scope:spouse"
+  
+  is_attracted_to_men:
+    description: "Character is attracted to men"
+    detail: "Boolean check"
+    snippet: "is_attracted_to_men = ${1|yes,no|}"
+    scopes: [character]
+    example: "is_attracted_to_men = yes"
+  
+  is_attracted_to_women:
+    description: "Character is attracted to women"
+    detail: "Boolean check"
+    snippet: "is_attracted_to_women = ${1|yes,no|}"
+    scopes: [character]
+    example: "is_attracted_to_women = yes"
+  
+  # ========== Family ==========
+  is_close_family_of:
+    description: "Is close family member of character"
+    detail: "Checks family relationship"
+    snippet: "is_close_family_of = ${1:scope:target}"
+    scopes: [character]
+    example: "is_close_family_of = scope:parent"
+  
+  # ========== Modifiers ==========
+  has_character_modifier:
+    description: "Has specific character modifier"
+    detail: "Checks for modifier presence"
+    snippet: "has_character_modifier = ${1:modifier_name}"
+    scopes: [character]
+    example: "has_character_modifier = stressed"
+  
+  has_modifier:
+    description: "Has specific modifier (any scope)"
+    detail: "Generic modifier check"
+    snippet: "has_modifier = ${1:modifier_name}"
+    scopes: [any]
+    example: "has_modifier = recently_conquered"
+  
+  has_law:
+    description: "Realm has specific law"
+    detail: "Checks for law presence"
+    snippet: "has_law = ${1:law_name}"
+    scopes: [character]
+    example: "has_law = high_partition_succession_law"
+  
+  # ========== Flags ==========
+  has_character_flag:
+    description: "Has specific character flag"
+    detail: "Checks for flag presence"
+    snippet: "has_character_flag = ${1:flag_name}"
+    scopes: [character]
+    example: "has_character_flag = has_seen_event"
+  
+  has_flag:
+    description: "Has specific flag (any scope)"
+    detail: "Generic flag check"
+    snippet: "has_flag = ${1:flag_name}"
+    scopes: [any]
+    example: "has_flag = recently_conquered"
+  
+  has_global_flag:
+    description: "Global flag is set"
+    detail: "Checks game-wide flag"
+    snippet: "has_global_flag = ${1:global_flag_name}"
+    scopes: [any]
+    example: "has_global_flag = black_death_started"
+  
+  has_title_flag:
+    description: "Title has specific flag"
+    detail: "Checks title flag"
+    snippet: "has_title_flag = ${1:flag_name}"
+    scopes: [landed_title]
+    example: "has_title_flag = recently_conquered"
+  
+  has_province_flag:
+    description: "Province has specific flag"
+    detail: "Checks province flag"
+    snippet: "has_province_flag = ${1:flag_name}"
+    scopes: [province]
+    example: "has_province_flag = raided_recently"
+  
+  # ========== Variables ==========
+  has_variable:
+    description: "Has variable defined"
+    detail: "Checks variable existence"
+    snippet: "has_variable = ${1:var_name}"
+    scopes: [any]
+    example: "has_variable = my_counter"
+  
+  has_variable_list:
+    description: "Has variable list defined"
+    detail: "Checks list existence"
+    snippet: "has_variable_list = ${1:list_name}"
+    scopes: [any]
+    example: "has_variable_list = my_list"
+  
+  variable_list_size:
+    description: "Size of variable list"
+    detail: "Numeric comparison of list size"
+    snippet: "variable_list_size = {\n\tname = ${1:list_name}\n\tvalue >= ${2:1}\n}"
+    scopes: [any]
+    example: |
+      variable_list_size = {
+        name = my_list
+        value >= 5
+      }
+  
+  # ========== Story Cycles & Activities ==========
+  has_active_story:
+    description: "Has active story cycle"
+    detail: "Checks for story presence"
+    snippet: "has_active_story = ${1:story_cycle_name}"
+    scopes: [character]
+    example: "has_active_story = my_story_cycle"
+  
+  has_activity:
+    description: "Is in an activity"
+    detail: "Checks for activity participation"
+    snippet: "has_activity = ${1|yes,no|}"
+    scopes: [character]
+    example: "has_activity = yes"
+  
+  is_in_activity:
+    description: "Is in specific activity type"
+    detail: "Checks activity type"
+    snippet: "is_in_activity = ${1:activity_type}"
+    scopes: [character]
+    example: "is_in_activity = activity_feast"
+  
+  # ========== Schemes ==========
+  has_scheme:
+    description: "Has active scheme"
+    detail: "Checks for scheme presence"
+    snippet: "has_scheme = ${1|yes,no|}"
+    scopes: [character]
+    example: "has_scheme = yes"
+  
+  is_scheme_target_of:
+    description: "Is target of another character's scheme"
+    detail: "Checks if being schemed against"
+    snippet: "is_scheme_target_of = ${1:scope:schemer}"
+    scopes: [character]
+    example: "is_scheme_target_of = scope:rival"
+  
+  # ========== Game Rules ==========
+  has_game_rule:
+    description: "Game rule is set to value"
+    detail: "Checks game rule setting"
+    snippet: "has_game_rule = ${1:rule_name}"
+    scopes: [any]
+    example: "has_game_rule = ironman"
+  
+  # ========== Misc ==========
+  always:
+    description: "Always true"
+    detail: "Constant true value"
+    snippet: "always = ${1|yes,no|}"
+    scopes: [any]
+    example: "always = yes"
+  
+  exists:
+    description: "Scope exists"
+    detail: "Checks if scope is valid"
+    snippet: "exists = ${1:scope:target}"
+    scopes: [any]
+    example: "exists = scope:spouse"
+  
+  this:
+    description: "Reference to current scope"
+    detail: "Scope reference"
+    snippet: "this = ${1:scope:target}"
+    scopes: [any]
+    example: "this = scope:attacker"
+  
+  location:
+    description: "Character's location"
+    detail: "Scopes to location province"
+    snippet: "location = { $1 }"
+    scopes: [character]
+    example: |
+      location = {
+        has_province_flag = holy_site
+      }
+  
+  capital_county:
+    description: "Character's capital county"
+    detail: "Scopes to capital"
+    snippet: "capital_county = { $1 }"
+    scopes: [character]
+    example: |
+      capital_county = {
+        development_level >= 20
+      }
+  
+  custom:
+    description: "Custom trigger with localization"
+    detail: "Shows custom text in tooltip"
+    snippet: "custom = ${1:localization_key}"
+    scopes: [any]
+    example: "custom = my_mod_custom_trigger"
+  
+  custom_description:
+    description: "Custom description for trigger"
+    detail: "Shows custom text in failed tooltip"
+    snippet: "custom_description = {\n\ttext = ${1:localization_key}\n\t$2\n}"
+    scopes: [any]
+    example: |
+      custom_description = {
+        text = must_be_adult_and_ruler
+        is_adult = yes
+        is_ruler = yes
+      }
+  
+  limit:
+    description: "Limits iteration to matching items"
+    detail: "Filter condition for iterations"
+    snippet: "limit = { $1 }"
+    scopes: [any]
+    example: |
+      limit = {
+        is_adult = yes
+        is_ai = no
+      }
+  
+  trigger:
+    description: "Trigger block container"
+    detail: "Groups trigger conditions"
+    snippet: "trigger = { $1 }"
+    scopes: [any]
+    example: |
+      trigger = {
+        is_adult = yes
+        gold >= 100
+      }
+  
+  calc_true_if:
+    description: "Counts how many conditions are true"
+    detail: "Numeric count of true conditions"
+    snippet: "calc_true_if = {\n\tamount >= ${1:2}\n\t$2\n}"
+    scopes: [any]
+    example: |
+      calc_true_if = {
+        amount >= 3
+        has_trait = brave
+        has_trait = strong
+        has_trait = giant
+        has_trait = wrathful
+      }
+  
+  game_start:
+    description: "Current game start date"
+    detail: "Checks game start date"
+    snippet: "game_start = ${1:867.1.1}"
+    scopes: [any]
+    example: "game_start = 1066.9.15"
+  
+  debug_only:
+    description: "Only true in debug mode"
+    detail: "For debugging triggers"
+    snippet: "debug_only = ${1|yes,no|}"
+    scopes: [any]
+    example: "debug_only = yes"
