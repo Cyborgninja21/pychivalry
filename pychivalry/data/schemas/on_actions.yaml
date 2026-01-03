@@ -1,0 +1,221 @@
+# On-Action Validation Schema
+# Declarative validation rules for CK3 on_actions
+version: "1.0"
+file_type: on_action
+
+# File identification - when to apply this schema
+identification:
+  path_patterns:
+    - "*/common/on_action/*.txt"
+    - "*/common/on_action/**/*.txt"
+    - "common/on_action/*.txt"
+
+# ============ VALIDATION ============
+# Field definitions with validation rules
+fields:
+  trigger:
+    type: trigger_block
+    description: "Conditions for on_action to fire"
+    
+  effect:
+    type: effect_block
+    description: "Direct effects when on_action fires"
+    
+  events:
+    type: block
+    multiple: true
+    description: "Events to trigger"
+    schema: event_entry
+    
+  random_events:
+    type: block
+    description: "Random event selection"
+    schema: random_events
+    
+  first_valid:
+    type: block
+    description: "Fire first valid event"
+    schema: first_valid
+    
+  # Common on_action hooks
+  on_birth:
+    type: effect_block
+    description: "Fires when character is born"
+    
+  on_death:
+    type: effect_block
+    description: "Fires when character dies"
+    
+  on_combat_end:
+    type: effect_block
+    description: "Fires when combat ends"
+    
+  on_siege_end:
+    type: effect_block
+    description: "Fires when siege ends"
+    
+  on_marriage:
+    type: effect_block
+    description: "Fires when characters marry"
+    
+  on_divorce:
+    type: effect_block
+    description: "Fires when characters divorce"
+    
+  on_join_court:
+    type: effect_block
+    description: "Fires when character joins court"
+    
+  on_leave_court:
+    type: effect_block
+    description: "Fires when character leaves court"
+    
+  on_title_gain:
+    type: effect_block
+    description: "Fires when gaining a title"
+    
+  on_title_lost:
+    type: effect_block
+    description: "Fires when losing a title"
+    
+  on_war_started:
+    type: effect_block
+    description: "Fires when war begins"
+    
+  on_war_ended:
+    type: effect_block
+    description: "Fires when war ends"
+    
+  on_faith_conversion:
+    type: effect_block
+    description: "Fires when converting faith"
+    
+  on_culture_change:
+    type: effect_block
+    description: "Fires when changing culture"
+    
+  on_become_imprisoned:
+    type: effect_block
+    description: "Fires when imprisoned"
+    
+  on_released_from_prison:
+    type: effect_block
+    description: "Fires when released from prison"
+    
+  on_trait_gain:
+    type: effect_block
+    description: "Fires when gaining trait"
+    
+  on_trait_lost:
+    type: effect_block
+    description: "Fires when losing trait"
+
+# Nested schemas
+nested_schemas:
+  event_entry:
+    fields:
+      id:
+        type: string
+        description: "Event ID to trigger"
+      days:
+        type: integer
+        description: "Days delay before triggering"
+      months:
+        type: integer
+        description: "Months delay before triggering"
+      years:
+        type: integer
+        description: "Years delay before triggering"
+      trigger:
+        type: trigger_block
+        description: "Conditions for this event"
+        
+  random_events:
+    fields:
+      chance_to_happen:
+        type: integer
+        description: "Base chance percentage"
+      chance_of_no_event:
+        type: integer
+        description: "Chance no event fires"
+      modifier:
+        type: block
+        multiple: true
+        description: "Chance modifiers"
+        
+  first_valid:
+    fields:
+      on_action:
+        type: string
+        multiple: true
+        description: "On-action to check"
+
+# Cross-field validations
+validations:
+  - name: no_content
+    condition: "NOT effect.exists AND NOT events.exists AND NOT random_events.exists AND NOT first_valid.exists"
+    diagnostic: ON_ACTION-001
+    severity: warning
+    message: "On-action has no effects or events - does nothing"
+    
+  - name: empty_events_list
+    condition: "events.exists AND events.count == 0"
+    diagnostic: ON_ACTION-002
+    severity: warning
+    message: "On-action has empty events list"
+
+# ============ COMPLETIONS & HOVER ============
+field_docs:
+  trigger:
+    description: "Conditions for on_action to fire"
+    detail: "Trigger block - if false, on_action doesn't fire"
+    snippet: "trigger = {\n\t$0\n}"
+    
+  effect:
+    description: "Direct effects when firing"
+    detail: "Effect block - runs immediately"
+    snippet: "effect = {\n\t$0\n}"
+    
+  events:
+    description: "Events to trigger"
+    detail: "List of event IDs with optional conditions"
+    snippet: "events = {\n\t${1:namespace.0001}\n}"
+    
+  random_events:
+    description: "Random event selection"
+    detail: "Weighted random event triggering"
+    snippet: "random_events = {\n\tchance_to_happen = ${1:50}\n\t$0\n}"
+    
+  first_valid:
+    description: "Fire first valid event"
+    detail: "Checks events in order, triggers first valid one"
+    snippet: "first_valid = {\n\t$0\n}"
+
+# ============ SYMBOLS ============
+symbols:
+  primary:
+    kind: Event
+    name_from: key
+  children:
+    - field: trigger
+      kind: Object
+      name: "trigger"
+    - field: effect
+      kind: Function
+      name: "effect"
+    - field: events
+      kind: Array
+      name: "events"
+    - field: random_events
+      kind: Object
+      name: "random_events"
+    - field: first_valid
+      kind: Object
+      name: "first_valid"
+
+# ============ CODE LENS ============
+code_lens:
+  enabled: true
+  reference_count:
+    enabled: true
+    label: "{count} references"

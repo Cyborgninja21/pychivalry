@@ -33,6 +33,15 @@ categories:
   events:
     prefix: "EVENT"
     description: "Event-specific validation"
+  interactions:
+    prefix: "INTERACTION"
+    description: "Character interaction validation"
+  schemes:
+    prefix: "SCHEME"
+    description: "Scheme validation"
+  on_actions:
+    prefix: "ON_ACTION"
+    description: "On-action validation"
 
 diagnostics:
   # ============== Syntax (CK30xx) ==============
@@ -394,4 +403,72 @@ diagnostics:
     category: events
     message: "Letter event missing required 'sender' field"
     fix: "Add 'sender = scope:actor' or appropriate scope reference"
+    
+  # ============== Decisions (DECISION-xxx) ==============
+  DECISION-001:
+    severity: error
+    category: decisions
+    message: "Decision missing 'ai_check_interval' - AI will never consider this decision"
+    fix: "Add 'ai_check_interval = 12' (months)"
+    
+  DECISION-002:
+    severity: error
+    category: decisions
+    message: "Decision missing 'effect' block - decision does nothing"
+    fix: "Add 'effect = {{ ... }}' with decision effects"
+    
+  DECISION-003:
+    severity: information
+    category: decisions
+    message: "Decision has no is_shown or is_valid - always visible and available"
+    
+  DECISION-004:
+    severity: information
+    category: decisions
+    message: "Decision has effects but no cost or validity check - may be exploitable"
+    
+  # ============== Character Interactions (INTERACTION-xxx) ==============
+  INTERACTION-001:
+    severity: error
+    category: interactions
+    message: "Interaction missing 'category' field"
+    fix: "Add 'category = interaction_category_hostile' or appropriate category"
+    
+  INTERACTION-002:
+    severity: warning
+    category: interactions
+    message: "Interaction has no effects - does nothing"
+    
+  INTERACTION-003:
+    severity: information
+    category: interactions
+    message: "Interaction has no AI configuration - AI will never use"
+    
+  # ============== Schemes (SCHEME-xxx) ==============
+  SCHEME-001:
+    severity: error
+    category: schemes
+    message: "Scheme missing required 'skill' field"
+    fix: "Add 'skill = intrigue' or appropriate skill"
+    
+  SCHEME-002:
+    severity: warning
+    category: schemes
+    message: "Scheme has no effects - does nothing when executed"
+    
+  SCHEME-003:
+    severity: warning
+    category: schemes
+    message: "Scheme uses agents but has no valid_agent conditions"
+    
+  # ============== On-Actions (ON_ACTION-xxx) ==============
+  ON_ACTION-001:
+    severity: warning
+    category: on_actions
+    message: "On-action has no effects or events - does nothing"
+    
+  ON_ACTION-002:
+    severity: warning
+    category: on_actions
+    message: "On-action has empty events list"
 
