@@ -143,6 +143,9 @@ from dataclasses import dataclass
 from functools import lru_cache
 from typing import List, Optional, Set, Tuple
 from lsprotocol import types
+import logging
+
+logger = logging.getLogger(__name__)
 
 from .ck3_language import (
     CK3_KEYWORDS,
@@ -157,6 +160,7 @@ from .ck3_language import (
 from .parser import CK3Node
 from .scopes import get_scope_links, get_scope_lists, get_resulting_scope
 from .indexer import DocumentIndex
+from .effect_trigger_docs import get_effect_documentation, get_trigger_documentation, get_all_effects, get_all_triggers
 
 
 # =============================================================================
@@ -169,33 +173,81 @@ from .indexer import DocumentIndex
 
 @lru_cache(maxsize=1)
 def _cached_trigger_completions() -> Tuple[types.CompletionItem, ...]:
-    """Generate and cache trigger completion items."""
+    """Generate and cache trigger completion items from YAML documentation."""
     items = []
-    for trigger in CK3_TRIGGERS:
-        items.append(
-            types.CompletionItem(
-                label=trigger,
-                kind=types.CompletionItemKind.Function,
-                detail="CK3 Trigger",
-                documentation=f"CK3 trigger condition: {trigger}",
+    
+    # Try to load from YAML first
+    try:
+        all_triggers = get_all_triggers()
+        for trigger in all_triggers:
+            doc = get_trigger_documentation(trigger)
+            if doc:
+                # Create rich completion from YAML
+                items.append(
+                    types.CompletionItem(
+                        label=trigger,
+                        kind=types.CompletionItemKind.Function,
+                        detail=doc.get('detail', 'CK3 Trigger'),
+                        documentation=types.MarkupContent(
+                            kind=types.MarkupKind.Markdown,
+                            value=f"**{trigger}**\n\n{doc.get('description', '')}"
+                        ),
+                        insert_text=doc.get('snippet', trigger),
+                        insert_text_format=types.InsertTextFormat.Snippet,
+                    )
+                )
+    except Exception as e:
+        # Fallback to basic completions
+        logger.warning(f"Failed to load trigger docs from YAML, using fallback: {e}")
+        for trigger in CK3_TRIGGERS:
+            items.append(
+                types.CompletionItem(
+                    label=trigger,
+                    kind=types.CompletionItemKind.Function,
+                    detail="CK3 Trigger",
+                    documentation=f"CK3 trigger condition: {trigger}",
+                )
             )
-        )
     return tuple(items)
 
 
 @lru_cache(maxsize=1)
 def _cached_effect_completions() -> Tuple[types.CompletionItem, ...]:
-    """Generate and cache effect completion items."""
+    """Generate and cache effect completion items from YAML documentation."""
     items = []
-    for effect in CK3_EFFECTS:
-        items.append(
-            types.CompletionItem(
-                label=effect,
-                kind=types.CompletionItemKind.Function,
-                detail="CK3 Effect",
-                documentation=f"CK3 effect that modifies game state: {effect}",
+    
+    # Try to load from YAML first
+    try:
+        all_effects = get_all_effects()
+        for effect in all_effects:
+            doc = get_effect_documentation(effect)
+            if doc:
+                # Create rich completion from YAML
+                items.append(
+                    types.CompletionItem(
+                        label=effect,
+                        kind=types.CompletionItemKind.Function,
+                        detail=doc.get('detail', 'CK3 Effect'),
+                        documentation=types.MarkupContent(
+                            kind=types.MarkupKind.Markdown,
+                            value=f"**{effect}**\n\n{doc.get('description', '')}"
+                        ),
+                        insert_text=doc.get('snippet', effect),
+                        insert_text_format=types.InsertTextFormat.Snippet,
+                    )
+                )
+    except Exception as e:
+        # Fallback to basic completions
+        logger.warning(f"Failed to load effect docs from YAML, using fallback: {e}")
+        for effect in CK3_EFFECTS:
+            items.append(
+                types.CompletionItem(
+                    label=effect,
+                    kind=types.CompletionItemKind.Function,
+                    detail="CK3 Effect",
+                    documentation=f"CK3 effect that modifies game state: {effect}",
+                )
             )
-        )
     return tuple(items)
 
 

@@ -108,6 +108,10 @@ from .parser import CK3Node, get_node_at_position
 from .indexer import DocumentIndex
 from .ck3_language import CK3_EFFECTS, CK3_TRIGGERS, CK3_SCOPES, CK3_KEYWORDS, CK3_CONTEXT_FIELDS, CK3_STORY_CYCLE_FIELDS
 from .scopes import get_scope_links
+from .effect_trigger_docs import (
+    get_effect_documentation as get_effect_doc_yaml,
+    get_trigger_documentation as get_trigger_doc_yaml
+)
 import logging
 
 logger = logging.getLogger(__name__)
@@ -190,7 +194,7 @@ def get_word_range(doc: TextDocument, position: types.Position, word: str) -> ty
 
 def get_effect_documentation(effect: str) -> str:
     """
-    Get documentation for an effect.
+    Get documentation for an effect from YAML with fallback to hardcoded.
 
     Args:
         effect: Effect name
@@ -198,7 +202,32 @@ def get_effect_documentation(effect: str) -> str:
     Returns:
         Markdown-formatted documentation
     """
-    # Basic documentation - can be expanded from data files
+    # Try to load from YAML first
+    try:
+        doc = get_effect_doc_yaml(effect)
+        if doc:
+            # Build rich markdown from YAML
+            markdown_parts = [f"# Effect: {effect}"]
+            
+            if doc.get('description'):
+                markdown_parts.append(f"\n{doc['description']}")
+            
+            if doc.get('detail'):
+                markdown_parts.append(f"\n\n_{doc['detail']}_")
+            
+            if doc.get('scopes'):
+                scopes_str = ", ".join(doc['scopes'])
+                markdown_parts.append(f"\n\n**Valid Scopes:** {scopes_str}")
+            
+            if doc.get('example'):
+                example = doc['example']
+                markdown_parts.append(f"\n\n**Example:**\n```ck3\n{example}\n```")
+            
+            return "\n".join(markdown_parts)
+    except Exception as e:
+        logger.debug(f"Failed to load effect docs from YAML for {effect}: {e}")
+    
+    # Fallback to hardcoded basic docs
     effect_docs = {
         "add_gold": "💰 Adds gold to a character.\n\n---\n\n📝 **Usage:**\n```ck3\nadd_gold = 100\n```",
         "add_prestige": "👑 Adds prestige to a character.\n\n---\n\n📝 **Usage:**\n```ck3\nadd_prestige = 500\n```",
@@ -227,7 +256,7 @@ def get_effect_documentation(effect: str) -> str:
 
 def get_trigger_documentation(trigger: str) -> str:
     """
-    Get documentation for a trigger.
+    Get documentation for a trigger from YAML with fallback to hardcoded.
 
     Args:
         trigger: Trigger name
@@ -235,6 +264,34 @@ def get_trigger_documentation(trigger: str) -> str:
     Returns:
         Markdown-formatted documentation
     """
+    # Try to load from YAML first
+    try:
+        doc = get_trigger_doc_yaml(trigger)
+        if doc:
+            # Build rich markdown from YAML
+            markdown_parts = [f"# Trigger: {trigger}"]
+            
+            if doc.get('description'):
+                markdown_parts.append(f"\n{doc['description']}")
+            
+            if doc.get('detail'):
+                markdown_parts.append(f"\n\n_{doc['detail']}_")
+            
+            if doc.get('scopes'):
+                scopes_str = ", ".join(doc['scopes'])
+                markdown_parts.append(f"\n\n**Valid Scopes:** {scopes_str}")
+            
+            if doc.get('example'):
+                example = doc['example']
+                markdown_parts.append(f"\n\n**Example:**\n```ck3\n{example}\n```")
+            
+            markdown_parts.append("\n\n↩️ **Returns:** `boolean`")
+            
+            return "\n".join(markdown_parts)
+    except Exception as e:
+        logger.debug(f"Failed to load trigger docs from YAML for {trigger}: {e}")
+    
+    # Fallback to hardcoded basic docs
     trigger_docs = {
         "is_adult": "👤 Checks if character is 16 years or older.\n\n---\n\n📝 **Usage:**\n```ck3\nis_adult = yes\n```\n\n↩️ **Returns:** `boolean`",
         "is_alive": "💚 Checks if character is alive.\n\n---\n\n📝 **Usage:**\n```ck3\nis_alive = yes\n```\n\n↩️ **Returns:** `boolean`",
