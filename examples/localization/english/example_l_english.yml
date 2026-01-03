@@ -1,0 +1,227 @@
+############################################################
+# PYCHIVALRY EXAMPLE LOCALIZATION - ENGLISH
+# Text strings for mod content
+############################################################
+l_english:
+
+ # ===========================================
+ # DECISIONS
+ # ===========================================
+ 
+ # Host Feast Decision
+ example_host_feast_decision:0 "Host Example Feast"
+ example_host_feast_decision_desc:0 "Gather your court for a grand celebration. This will improve relations with your courtiers and reduce stress."
+ example_feast_will_begin_tooltip:0 "A feast will begin in 3 days"
+ 
+ # Study Texts Decision
+ example_study_texts_decision:0 "Study Ancient Texts"
+ example_study_texts_decision_desc:0 "Spend time studying scholarly works to gain wisdom and experience."
+ must_have_learning_focus:0 "Must have a Learning lifestyle focus"
+ must_not_be_busy:0 "Must not be occupied with other activities"
+ example_study_enlightenment_toast:0 "Moment of Enlightenment"
+ 
+ # Mentor Decision
+ example_mentor_character_decision:0 "Mentor a Young Courtier"
+ example_mentor_character_decision_desc:0 "Take a young member of your court under your wing and guide their education."
+ 
+ # Develop Capital Decision
+ example_develop_capital_decision:0 "Invest in Capital Development"
+ example_develop_capital_decision_desc:0 "Focus resources on developing your capital county."
+ example_capital_developed_tooltip:0 "Your capital's development will increase"
+ example_extra_development_tooltip:0 "Your stewardship skill grants additional development"
+
+ # ===========================================
+ # EVENTS - FEAST
+ # ===========================================
+ 
+ example_events.0001.t:0 "The Feast Begins"
+ example_events.0001.desc:0 "The great hall fills with the sounds of merriment as guests arrive for your feast. Servants bustle about carrying platters of food while musicians play lively tunes.\n\nHow grand shall this celebration be?"
+ example_events.0001.a:0 "Spare no expense!"
+ example_events.0001.b:0 "A modest but dignified affair"
+ example_events.0001.c:0 "I've changed my mind..."
+ 
+ example_events.0002.t:0 "A Feast Incident"
+ example_events.0002.desc_trouble:0 "[troublemaker.GetFirstName] has had too much to drink and is causing a scene at your feast!"
+ example_events.0002.desc_normal:0 "The feast proceeds smoothly, with guests enjoying the food and entertainment."
+ example_events.0002.a:0 "Diplomatically defuse the situation"
+ example_events.0002.a.success:0 "You skillfully calm the situation"
+ example_events.0002.a.failure:0 "Your attempts at diplomacy fall flat"
+ example_events.0002.b:0 "Have them escorted out"
+ example_events.0002.c:0 "Enjoy the festivities"
+ example_diplomacy_success:0 "Diplomatic Success"
+ 
+ example_events.0099.t:0 "Feast Concludes"
+ example_events.0099.desc:0 "As dawn breaks, the last guests depart and servants begin cleaning the hall. The feast has been a success, and your reputation has grown."
+ example_events.0099.a:0 "A night to remember!"
+
+ # ===========================================
+ # EVENTS - MENTORING
+ # ===========================================
+ 
+ example_events.0010.t:0 "Taking on a Student"
+ example_events.0010.desc:0 "Young [mentored_child.GetFirstName] looks up at you with eager eyes, ready to learn from your wisdom. What shall you teach them?"
+ example_events.0010.a:0 "The art of war and combat"
+ example_events.0010.b:0 "The pursuit of knowledge"
+ example_events.0010.c:0 "A well-rounded education"
+
+ # ===========================================
+ # EVENTS - BIRTH & INHERITANCE
+ # ===========================================
+ 
+ example_events.0100.t:0 "A Blessed Birth"
+ example_events.0100.desc:0 "The midwives speak in hushed, reverent tones. This child bears the marks of greatness - surely they are destined for great things."
+ example_events.0100.a:0 "The gods have blessed our dynasty!"
+ 
+ example_events.0200.t:0 "A New Era Begins"
+ example_events.0200.desc:0 "With the passing of your predecessor, you now bear the full weight of responsibility. The realm looks to you for leadership."
+ example_events.0200.a:0 "I shall honor their memory"
+ example_events.0200.b:0 "The future belongs to me now"
+
+ # ===========================================
+ # EVENTS - YEARLY RANDOM
+ # ===========================================
+ 
+ example_events.0300.t:0 "Whispers in the Court"
+ example_events.0300.desc:0 "Your keen ear catches snippets of intrigue floating through the corridors of power. Information is power."
+ example_events.0300.a:0 "Note this for future reference"
+ 
+ example_events.0301.t:0 "Economic Opportunity"
+ example_events.0301.desc:0 "A traveling merchant presents an opportunity for profitable trade. Your stewardship skills help you negotiate favorable terms."
+ example_events.0301.a:0 "A wise investment"
+ 
+ example_events.0302.t:0 "Scholarly Revelation"
+ example_events.0302.desc:0 "While reviewing ancient texts, you uncover a profound truth that deepens your understanding of the world."
+ example_events.0302.a:0 "Knowledge is its own reward"
+
+ # ===========================================
+ # EVENTS - TITLE & WEDDING
+ # ===========================================
+ 
+ example_events.0400.t:0 "A New Title"
+ example_events.0400.desc:0 "You have gained [title.GetNameNoTier]! This marks a significant expansion of your power and influence."
+ example_events.0400.a:0 "My realm grows ever greater!"
+ 
+ example_events.0500.t:0 "A Royal Wedding"
+ example_events.0500.desc:0 "Today you celebrate your union with [new_spouse.GetFirstName]. Guests from across the realm have gathered to witness this momentous occasion."
+ example_events.0500.a:0 "A grand celebration befitting our status!"
+ example_events.0500.b:0 "A simple, dignified ceremony"
+
+ # ===========================================
+ # STORY CYCLE - SCHOLAR'S QUEST
+ # ===========================================
+ 
+ example_story.0001.t:0 "Ancient Mysteries"
+ example_story.0001.desc:0 "While reviewing the library's holdings, you discover references to ancient texts of great wisdom, thought lost to time. Perhaps they could still be found..."
+ example_story.0001.a:0 "I must find these texts!"
+ example_story.0001.b:0 "I have more pressing concerns"
+ 
+ example_story.0002.t:0 "Following the Trail"
+ example_story.0002.desc:0 "Your research has uncovered a promising lead. The ancient texts may have been preserved in a distant monastery."
+ example_story.0002.a:0 "Consult [helpful_scholar.GetFirstName] for guidance"
+ example_story.0002.b:0 "I shall research this myself"
+ example_story.0002.c:0 "This quest is not worth my time"
+ example_story.0002.success:0 "Your brilliant research reveals crucial information!"
+ example_story.0002.failure:0 "Hours of fruitless study leave you frustrated"
+ 
+ example_story.0003.t:0 "The Journey Ahead"
+ example_story.0003.desc:0 "The path to knowledge lies before you. A distant library holds the answers you seek, but the journey will be long."
+ example_story.0003.a:0 "I shall go myself"
+ example_story.0003.b:0 "Send a trusted envoy"
+ 
+ example_story.0004.t:0 "Knowledge Uncovered"
+ example_story.0004.desc_great:0 "Your dedicated pursuit has been rewarded beyond measure! The ancient texts reveal secrets that transform your understanding of the world."
+ example_story.0004.desc_good:0 "Your quest has borne fruit. The texts you've found contain valuable wisdom that will serve you well."
+ example_story.0004.desc_normal:0 "Though the journey was difficult, you have managed to uncover some of the ancient knowledge you sought."
+ example_story.0004.a:0 "This knowledge shall guide my realm"
+
+ # ===========================================
+ # TRAITS
+ # ===========================================
+ 
+ trait_example_realm_scholar:0 "Realm Scholar"
+ trait_example_realm_scholar_desc:0 "This character has dedicated their life to scholarly pursuits, gaining deep knowledge and wisdom."
+ example_realm_scholar_ruler_desc:0 "As a ruler, your scholarly nature attracts learned advisors and improves the intellectual climate of your realm."
+ example_realm_scholar_desc:0 "Your love of learning marks you as a person of culture and wisdom."
+ 
+ trait_example_sharp_mind:0 "Sharp Mind"
+ trait_example_sharp_mind_desc:0 "Born with exceptional mental acuity, this character quickly grasps complex concepts and sees connections others miss."
+ 
+ trait_example_master_tactician:0 "Master Tactician"
+ trait_example_master_tactician_desc:0 "A commander of exceptional skill, whose tactical genius has won many battles."
+ 
+ trait_example_patron_of_arts:0 "Patron of the Arts"
+ trait_example_patron_of_arts_desc:0 "This character actively supports artists, musicians, and craftsmen, enriching their court's culture."
+ 
+ trait_example_battle_scarred:0 "Battle Scarred"
+ trait_example_battle_scarred_desc:0 "Years of combat have left their mark on this warrior's body, but also earned them respect."
+ 
+ trait_example_founders_legacy:0 "Founder's Legacy"
+ trait_example_founders_legacy_desc:0 "This character carries the proud legacy of their dynasty's founder."
+ 
+ trait_example_royal_confidant:0 "Royal Confidant"
+ trait_example_royal_confidant_desc:0 "A trusted advisor who holds the secrets of the realm."
+
+ # ===========================================
+ # MODIFIERS
+ # ===========================================
+ 
+ modifier_example_being_mentored_modifier:0 "Being Mentored"
+ modifier_example_feast_afterglow_modifier:0 "Feast Afterglow"
+ modifier_example_recently_studied_modifier:0 "Recently Studied"
+ modifier_example_war_preparation_modifier:0 "War Preparation"
+ modifier_example_devotion_modifier:0 "Period of Devotion"
+ modifier_example_prosperous_realm_modifier:0 "Prosperous Realm"
+ modifier_example_crisis_management_modifier:0 "Crisis Management"
+ modifier_example_development_focus_modifier:0 "Development Focus"
+ modifier_example_trade_hub_modifier:0 "Trade Hub"
+ modifier_example_military_encampment_modifier:0 "Military Encampment"
+ modifier_example_holy_site_modifier:0 "Holy Site Blessing"
+ modifier_example_plague_aftermath_modifier:0 "Plague Aftermath"
+ modifier_example_tournament_victor_modifier:0 "Tournament Victor"
+ modifier_example_diplomatic_triumph_modifier:0 "Diplomatic Triumph"
+ modifier_example_scandal_modifier:0 "Scandal"
+
+ # ===========================================
+ # OPINION MODIFIERS
+ # ===========================================
+ 
+ example_feast_host_opinion:0 "Hosted Feast for Me"
+ example_feast_guest_opinion:0 "Attended Their Feast"
+ example_mentor_opinion:0 "My Mentor"
+ example_student_opinion:0 "My Student"
+ example_dynasty_achievement_opinion:0 "Shared Dynasty Achievement"
+ example_family_helped_opinion:0 "Helped in Time of Need"
+ example_inheritance_dispute_opinion:0 "Inheritance Dispute"
+ example_battle_brothers_opinion:0 "Brothers in Battle"
+ example_defeated_by_opinion:0 "Defeated Me in Battle"
+ example_merciful_victory_opinion:0 "Showed Mercy in Victory"
+ example_cruel_victory_opinion:0 "Cruel in Victory"
+ example_pilgrimage_companion_opinion:0 "Pilgrimage Companion"
+ example_religious_donation_opinion:0 "Religious Benefactor"
+ example_false_heresy_accusation_opinion:0 "Falsely Accused of Heresy"
+ example_rare_gift_opinion:0 "Gifted a Rare Treasure"
+ example_public_insult_opinion:0 "Publicly Insulted Me"
+ example_honor_defended_opinion:0 "Defended My Honor"
+ example_rejected_romance_opinion:0 "Rejected My Advances"
+ example_granted_title_opinion:0 "Granted Me a Title"
+ example_revoked_title_opinion:0 "Revoked My Title"
+ example_protected_vassal_opinion:0 "Protected Me from Enemies"
+ example_ignored_request_opinion:0 "Ignored My Request"
+ example_fair_taxes_opinion:0 "Fair Tax Treatment"
+ example_excessive_taxes_opinion:0 "Excessive Taxation"
+ example_saved_life_opinion:0 "Saved My Life"
+ example_betrayed_trust_opinion:0 "Betrayed My Trust"
+ example_knows_secret_opinion:0 "Knows My Secret"
+ example_kept_secret_opinion:0 "Kept My Secret"
+ example_long_alliance_opinion:0 "Long-standing Alliance"
+ example_blood_feud_opinion:0 "Blood Feud"
+ example_childhood_friend_opinion:0 "Childhood Friend"
+
+ # ===========================================
+ # MISC TOOLTIPS
+ # ===========================================
+ 
+ example_rivalry_reason:0 "We became rivals"
+ example_special_army_name:0 "Special Forces"
+ example_claim_granted_title:0 "Claim Granted"
+ example_claim_granted_desc:0 "A claim has been granted against your title!"

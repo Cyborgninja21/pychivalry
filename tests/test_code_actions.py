@@ -96,6 +96,16 @@ class TestFindSimilarKeywords:
         results = find_similar_keywords("completely_different", KNOWN_EFFECTS, max_distance=2)
         assert len(results) == 0
 
+    def test_pattern_matching_lifestyle_xp(self):
+        """Test pattern matching for multi-part keywords like add_lifestyle_xp."""
+        results = find_similar_keywords("add_lifestyle_xp", KNOWN_EFFECTS, max_distance=2)
+        # Should match all lifestyle XP effects via pattern matching
+        assert "add_learning_lifestyle_xp" in results
+        assert "add_diplomacy_lifestyle_xp" in results
+        assert "add_martial_lifestyle_xp" in results
+        # Should have at least 6 lifestyle effects
+        assert len(results) >= 6
+
 
 class TestDidYouMeanAction:
     """Test 'Did you mean?' code actions."""

@@ -1,0 +1,284 @@
+############################################################
+# PYCHIVALRY EXAMPLE DECISIONS
+# Demonstrates decision structure, triggers, effects, and costs
+############################################################
+
+##################################################
+# Major Decision: Host Example Feast
+# Demonstrates: is_shown, is_valid, cost, effect
+##################################################
+example_host_feast_decision = {
+	picture = {
+		reference = "gfx/interface/illustrations/decisions/decision_feast.dds"
+	}
+	decision_group_type = major
+	desc = example_host_feast_decision_desc
+
+	ai_check_interval = 120
+
+	is_shown = {
+		is_ruler = yes
+		is_available_adult = yes
+		NOT = { has_character_flag = recently_hosted_example_feast }
+	}
+
+	is_valid = {
+		# Must have at least 3 courtiers
+		any_courtier = {
+			count >= 3
+			is_adult = yes
+		}
+		# Must not be at war
+		is_at_war = no
+		# Must have positive prestige
+		prestige >= 100
+	}
+
+	is_valid_showing_failures_only = {
+		is_imprisoned = no
+		NOT = { has_trait = incapable }
+	}
+
+	cost = {
+		gold = {
+			value = 50
+			if = {
+				limit = { has_trait = generous }
+				multiply = 1.5
+			}
+		}
+		prestige = 25
+	}
+
+	effect = {
+		# Add a cooldown flag
+		add_character_flag = {
+			flag = recently_hosted_example_feast
+			days = 365
+		}
+		
+		# Trigger the feast event
+		trigger_event = {
+			id = example_events.0001
+			days = 3
+		}
+		
+		# Show a notification
+		custom_tooltip = example_feast_will_begin_tooltip
+		
+		# Give stress relief
+		stress_impact = {
+			base = -10
+			gregarious = -10
+			shy = 10
+		}
+	}
+
+	ai_potential = {
+		short_term_gold >= 100
+		NOT = { has_trait = shy }
+	}
+
+	ai_will_do = {
+		base = 10
+		
+		modifier = {
+			add = 20
+			has_trait = gregarious
+		}
+		modifier = {
+			add = -10
+			has_trait = shy
+		}
+		modifier = {
+			factor = 0
+			stress >= 50
+		}
+	}
+}
+
+##################################################
+# Minor Decision: Study Ancient Texts
+# Demonstrates: script values, skill checks
+##################################################
+example_study_texts_decision = {
+	picture = {
+		reference = "gfx/interface/illustrations/decisions/decision_major_meditation.dds"
+	}
+	decision_group_type = minor
+	desc = example_study_texts_decision_desc
+
+	cooldown = { months = 6 }
+
+	is_shown = {
+		is_adult = yes
+		learning >= 8
+	}
+
+	is_valid = {
+		custom_description = {
+			text = must_have_learning_focus
+			has_focus = learning_scholarship_focus
+		}
+		custom_description = {
+			text = must_not_be_busy
+			is_available = yes
+		}
+	}
+
+	effect = {
+		# Use script value for XP gain
+		add_learning_lifestyle_xp = example_study_xp_value
+		
+		# Random chance for bonus
+		random = {
+			chance = learning
+			modifier = {
+				add = 10
+				has_trait = scholar
+			}
+			add_piety = 50
+			send_interface_toast = {
+				title = example_study_enlightenment_toast
+				left_icon = root
+			}
+		}
+		
+		# Small stress from effort
+		add_stress = 5
+	}
+
+	ai_will_do = {
+		base = 0
+	}
+}
+
+##################################################
+# Decision with Character Interaction
+# Demonstrates: character targets, scope switches
+##################################################
+example_mentor_character_decision = {
+	picture = {
+		reference = "gfx/interface/illustrations/decisions/decision_realm.dds"
+	}
+	decision_group_type = minor
+	desc = example_mentor_character_decision_desc
+
+	is_shown = {
+		is_ruler = yes
+		any_courtier = {
+			is_adult = no
+			age >= 6
+		}
+	}
+
+	is_valid = {
+		# Check for valid target with proper scoping
+		any_courtier = {
+			is_adult = no
+			age >= 6
+			NOT = { has_character_flag = being_mentored }
+		}
+	}
+
+	effect = {
+		# Save random eligible target
+		random_courtier = {
+			limit = {
+				is_adult = no
+				age >= 6
+				NOT = { has_character_flag = being_mentored }
+			}
+			weight = {
+				base = 1
+				modifier = {
+					add = 5
+					is_child_of = root
+				}
+			}
+			save_scope_as = mentored_child
+		}
+		
+		# Apply effect to saved scope
+		scope:mentored_child = {
+			add_character_flag = {
+				flag = being_mentored
+				years = 5
+			}
+			add_character_modifier = {
+				modifier = example_being_mentored_modifier
+				years = 5
+			}
+		}
+		
+		# Root effects
+		add_opinion = {
+			target = scope:mentored_child
+			modifier = mentor_opinion
+			opinion = 20
+		}
+		
+		trigger_event = example_events.0010
+	}
+
+	ai_will_do = {
+		base = 5
+	}
+}
+
+##################################################
+# Title-Based Decision
+# Demonstrates: title scopes, de jure checks
+##################################################
+example_develop_capital_decision = {
+	picture = {
+		reference = "gfx/interface/illustrations/decisions/decision_misc.dds"
+	}
+	decision_group_type = minor
+	desc = example_develop_capital_decision_desc
+
+	cooldown = { years = 5 }
+
+	is_shown = {
+		is_ruler = yes
+		highest_held_title_tier >= tier_county
+	}
+
+	is_valid = {
+		gold >= 200
+		capital_county = {
+			development_level < 50
+		}
+	}
+
+	cost = {
+		gold = 200
+	}
+
+	effect = {
+		capital_county = {
+			# Increase development
+			change_development_level = 1
+			
+			# Notify about specific county
+			custom_tooltip = example_capital_developed_tooltip
+		}
+		
+		# Random bonus based on stewardship
+		if = {
+			limit = { stewardship >= 15 }
+			capital_county = {
+				change_development_level = 1
+			}
+			custom_tooltip = example_extra_development_tooltip
+		}
+	}
+
+	ai_will_do = {
+		base = 10
+		modifier = {
+			add = 20
+			stewardship >= 12
+		}
+	}
+}

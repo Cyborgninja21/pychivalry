@@ -1,0 +1,136 @@
+{
+    "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+    "name": "CK3 Localization",
+    "scopeName": "source.ck3-localization",
+    "patterns": [
+        { "include": "#comments" },
+        { "include": "#language-header" },
+        { "include": "#localization-entry" }
+    ],
+    "repository": {
+        "comments": {
+            "name": "comment.line.number-sign.ck3-localization",
+            "match": "^\\s*#.*$"
+        },
+        "language-header": {
+            "name": "entity.name.section.ck3-localization",
+            "match": "^\\s*(l_(?:english|german|french|spanish|russian|korean|simp_chinese|braz_por|polish|japanese))\\s*:\\s*$",
+            "captures": {
+                "1": {
+                    "name": "entity.name.tag.language.ck3-localization"
+                }
+            }
+        },
+        "localization-entry": {
+            "begin": "^\\s*([\\w\\.]+):(\\d+)\\s+\"",
+            "end": "\"\\s*$",
+            "beginCaptures": {
+                "1": {
+                    "name": "entity.name.tag.key.ck3-localization"
+                },
+                "2": {
+                    "name": "constant.numeric.version.ck3-localization"
+                }
+            },
+            "contentName": "string.quoted.double.ck3-localization",
+            "patterns": [
+                { "include": "#string-content" }
+            ]
+        },
+        "string-content": {
+            "patterns": [
+                { "include": "#character-functions" },
+                { "include": "#text-formatting" },
+                { "include": "#icon-references" },
+                { "include": "#concept-links" },
+                { "include": "#escape-sequences" }
+            ]
+        },
+        "character-functions": {
+            "name": "meta.function-call.ck3-localization",
+            "begin": "\\[",
+            "end": "\\]",
+            "beginCaptures": {
+                "0": {
+                    "name": "punctuation.definition.bracket.square.begin.ck3-localization"
+                }
+            },
+            "endCaptures": {
+                "0": {
+                    "name": "punctuation.definition.bracket.square.end.ck3-localization"
+                }
+            },
+            "patterns": [
+                {
+                    "name": "support.function.character.ck3-localization",
+                    "match": "(GetName|GetFirstName|GetLastName|GetFullName|GetBirthName|GetNickname|GetTitle|GetTitledFirstName|GetTitledFirstNameNoTooltip|GetShortUIName|GetUIName|GetNameNoTooltip|GetTitledFirstNamePossessive|GetNamePossessive|GetFirstNamePossessive|GetHerHis|GetSheHe|GetHerHim|GetHerselfHimself|GetWomanMan|GetLadyLord|GetDaughterSon|GetSisterBrother|GetAdjective|GetFaith|GetReligiousHead|GetCulture|GetPlayer)"
+                },
+                {
+                    "name": "variable.language.scope.ck3-localization",
+                    "match": "\\b(ROOT|root|PREV|prev|FROM|from|THIS|this|scope:[\\w_]+)\\b"
+                },
+                {
+                    "name": "punctuation.accessor.ck3-localization",
+                    "match": "\\."
+                },
+                {
+                    "name": "variable.other.ck3-localization",
+                    "match": "[\\w_]+"
+                }
+            ]
+        },
+        "text-formatting": {
+            "patterns": [
+                {
+                    "name": "constant.character.format.emphasis.ck3-localization",
+                    "match": "#!"
+                },
+                {
+                    "name": "constant.character.format.positive.ck3-localization",
+                    "match": "#P"
+                },
+                {
+                    "name": "constant.character.format.negative.ck3-localization",
+                    "match": "#N"
+                },
+                {
+                    "name": "constant.character.format.flavor.ck3-localization",
+                    "match": "#F"
+                },
+                {
+                    "name": "constant.character.format.weak.ck3-localization",
+                    "match": "#W"
+                },
+                {
+                    "name": "constant.character.format.high.ck3-localization",
+                    "match": "#H"
+                },
+                {
+                    "name": "constant.character.format.color.ck3-localization",
+                    "match": "#[SEIORXLCYGBTMAV]"
+                },
+                {
+                    "name": "constant.character.format.style.ck3-localization",
+                    "match": "#(bold|italic|underline|strikethrough|sub|sup)"
+                },
+                {
+                    "name": "constant.character.format.newline.ck3-localization",
+                    "match": "\\\\n"
+                }
+            ]
+        },
+        "icon-references": {
+            "name": "constant.other.icon.ck3-localization",
+            "match": "@[\\w_/]+!"
+        },
+        "concept-links": {
+            "comment": "Concept links appear within character function brackets as |E, |U, |P, etc.",
+            "name": "markup.link.concept.ck3-localization",
+            "match": "\\|[EUPLRS]"
+        },
+        "escape-sequences": {
+            "name": "constant.character.escape.ck3-localization",
+            "match": "\\\\."
+        }
+    }
+}

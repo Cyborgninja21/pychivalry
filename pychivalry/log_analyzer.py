@@ -113,7 +113,7 @@ class ErrorPattern:
     Example:
         ```python
         pattern = ErrorPattern(
-            regex=r"Unknown effect: (\w+)",
+            regex=r"Unknown effect: (\\w+)",
             severity=types.DiagnosticSeverity.Error,
             category="unknown_effect",
             message_template="Unknown effect '{0}' used in script",
@@ -433,7 +433,7 @@ class CK3LogAnalyzer:
         Example:
             ```python
             custom_pattern = ErrorPattern(
-                regex=r"My custom error: (\w+)",
+                regex=r"My custom error: (\\w+)",
                 severity=types.DiagnosticSeverity.Error,
                 category="custom_error",
                 message_template="Custom error with {0}",

@@ -146,8 +146,19 @@ CK3_EFFECTS = [
     "remove_trait",  # Removes a trait from a character
     "add_gold",  # Increases character's gold/money by specified amount
     "remove_gold",  # Decreases character's gold (can go into debt)
+    "add_short_term_gold",  # Adds gold that's tracked for short-term cost calculations
+    "remove_short_term_gold",  # Removes short-term gold (common for costs/purchases)
     "add_prestige",  # Increases prestige (measure of reputation/fame)
+    "remove_prestige",  # Decreases prestige
     "add_piety",  # Increases piety (measure of religious devotion)
+    "remove_piety",  # Decreases piety
+    # Lifestyle XP effects - Add experience to specific lifestyle trees
+    "add_diplomacy_lifestyle_xp",  # Add XP to diplomacy lifestyle
+    "add_martial_lifestyle_xp",  # Add XP to martial lifestyle
+    "add_stewardship_lifestyle_xp",  # Add XP to stewardship lifestyle
+    "add_intrigue_lifestyle_xp",  # Add XP to intrigue lifestyle
+    "add_learning_lifestyle_xp",  # Add XP to learning lifestyle
+    "add_wanderer_lifestyle_xp",  # Add XP to wanderer lifestyle (Roads to Power DLC)
     "add_stress",  # Increases stress level (can lead to mental breaks)
     "add_tyranny",  # Increases tyranny (measure of despotic rule)
     "death",  # Kills the character (triggers death events and inheritance)
@@ -258,6 +269,10 @@ CK3_TRIGGERS = [
     "has_title",  # Check if character holds a specific title
     "has_claim_on",  # Check if character has a claim on a title
     "completely_controls",  # Check if character controls all counties in a title
+    # Title tier triggers (used in title scope)
+    "tier",  # Check title tier (tier = tier_duchy, tier >= tier_kingdom, etc.)
+    "highest_held_title_tier",  # Check character's highest title tier
+    "primary_title",  # Scope to character's primary title (also used as trigger)
     # Relationship checks - Test character relationships
     "has_relation",  # Check for specific relationship type (friend, rival, etc.)
     "has_relation_lover",  # Check if character has a lover relationship with target
@@ -430,6 +445,17 @@ CK3_BOOLEAN_VALUES = [
     "no",  # Boolean false (most common in CK3 scripts)
     "true",  # Boolean true (alternative syntax)
     "false",  # Boolean false (alternative syntax)
+]
+
+# CK3 Title Tier Values
+# These are the valid values for title tier comparisons (tier = X, highest_held_title_tier >= X)
+# Used in triggers that check or compare title ranks.
+CK3_TITLE_TIERS = [
+    "tier_barony",  # Lowest tier - baronies (castles, temples, cities)
+    "tier_county",  # Counties - the basic land-holding unit
+    "tier_duchy",  # Duchies - mid-tier titles grouping counties
+    "tier_kingdom",  # Kingdoms - major realm titles
+    "tier_empire",  # Empires - highest tier titles
 ]
 
 # File extensions for CK3 modding

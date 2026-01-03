@@ -1,0 +1,29 @@
+l_english:
+ # Event titles and descriptions
+ my_mod.0001.t:0 "A Test Event"
+ my_mod.0001.desc:0 "[ROOT.GetFirstName] has discovered something interesting. #boldThis is important!#!"
+ my_mod.0001.a:0 "Very well."
+ my_mod.0001.b:0 "I refuse!"
+
+ # Character name functions example
+ greeting_text:0 "[ROOT.GetTitledFirstName], you have received @gold_icon! 100 gold and @prestige_icon! 50 prestige."
+
+ # Gender-specific text
+ gender_example:0 "[scope:target.GetSheHe] told [scope:target.GetHerHis] advisor about the plan."
+
+ # Text formatting examples
+ positive_example:0 "#PYou gain influence!#!"
+ negative_example:0 "#NThis will cause problems.#!"
+ flavor_example:0 "#FThe wind whispers secrets...#!"
+ 
+ # Icon references
+ icon_example:0 "Costs: @gold_icon! 50 @prestige_icon! 25 @piety_icon! 10"
+
+ # Concept links
+ concept_example:0 "Learn about [martial|E] to improve your armies."
+
+ # Newlines
+ multiline_example:0 "First line.\nSecond line.\nThird line."
+
+ # Complex example
+ complex_event:0 "[ROOT.GetName] received word that [scope:enemy.GetFirstName] is plotting against [ROOT.GetHerHim]. #bold[ROOT.GetSheHe] must act quickly!#!"

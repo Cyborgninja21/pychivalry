@@ -1,0 +1,231 @@
+############################################################
+# PYCHIVALRY EXAMPLE SCRIPTED EFFECTS
+# Reusable effect blocks with parameters
+############################################################
+
+##################################################
+# Grant Gold Based on Tier
+# Parameters: RECIPIENT (character), MULTIPLIER (number)
+##################################################
+example_grant_tiered_gold_effect = {
+	$RECIPIENT$ = {
+		# Base gold by title tier
+		if = {
+			limit = { highest_held_title_tier = tier_barony }
+			add_gold = { value = 10 multiply = $MULTIPLIER$ }
+		}
+		else_if = {
+			limit = { highest_held_title_tier = tier_county }
+			add_gold = { value = 25 multiply = $MULTIPLIER$ }
+		}
+		else_if = {
+			limit = { highest_held_title_tier = tier_duchy }
+			add_gold = { value = 50 multiply = $MULTIPLIER$ }
+		}
+		else_if = {
+			limit = { highest_held_title_tier = tier_kingdom }
+			add_gold = { value = 100 multiply = $MULTIPLIER$ }
+		}
+		else_if = {
+			limit = { highest_held_title_tier = tier_empire }
+			add_gold = { value = 200 multiply = $MULTIPLIER$ }
+		}
+	}
+}
+
+##################################################
+# Add Lifestyle XP by Focus
+# Parameters: CHARACTER (character), AMOUNT (number)
+##################################################
+example_add_focus_xp_effect = {
+	$CHARACTER$ = {
+		# Add XP based on current focus
+		if = {
+			limit = { has_education_diplomacy_trigger = yes }
+			add_diplomacy_lifestyle_xp = $AMOUNT$
+		}
+		else_if = {
+			limit = { has_education_martial_trigger = yes }
+			add_martial_lifestyle_xp = $AMOUNT$
+		}
+		else_if = {
+			limit = { has_education_stewardship_trigger = yes }
+			add_stewardship_lifestyle_xp = $AMOUNT$
+		}
+		else_if = {
+			limit = { has_education_intrigue_trigger = yes }
+			add_intrigue_lifestyle_xp = $AMOUNT$
+		}
+		else_if = {
+			limit = { has_education_learning_trigger = yes }
+			add_learning_lifestyle_xp = $AMOUNT$
+		}
+	}
+}
+
+##################################################
+# Create Rival Relationship
+# Parameters: FIRST (character), SECOND (character)
+##################################################
+example_create_rivalry_effect = {
+	$FIRST$ = {
+		if = {
+			limit = {
+				NOT = { has_relation_rival = $SECOND$ }
+			}
+			set_relation_rival = {
+				target = $SECOND$
+				reason = example_rivalry_reason
+			}
+		}
+	}
+}
+
+##################################################
+# Spawn Custom Army
+# Parameters: COMMANDER (character), SIZE (number), TYPE (maa type)
+##################################################
+example_spawn_army_effect = {
+	spawn_army = {
+		uses_supply = yes
+		inheritable = no
+		name = example_special_army_name
+		levies = $SIZE$
+		men_at_arms = {
+			type = $TYPE$
+			stacks = 1
+		}
+		location = root.capital_province
+		save_scope_as = spawned_army
+	}
+	
+	# Assign commander if specified
+	if = {
+		limit = { exists = $COMMANDER$ }
+		scope:spawned_army = {
+			assign_commander = $COMMANDER$
+		}
+	}
+}
+
+##################################################
+# Apply Stress with Trait Modifiers
+# Parameters: BASE_STRESS (number)
+##################################################
+example_stress_with_traits_effect = {
+	stress_impact = {
+		base = $BASE_STRESS$
+		# Positive traits reduce stress
+		calm = -5
+		patient = -5
+		content = -5
+		# Negative traits increase stress
+		wrathful = 10
+		impatient = 10
+		ambitious = 5
+	}
+}
+
+##################################################
+# Setup Character Modifier with Duration
+# Parameters: TARGET, MODIFIER_TYPE, DURATION_YEARS
+##################################################
+example_apply_timed_modifier_effect = {
+	$TARGET$ = {
+		add_character_modifier = {
+			modifier = $MODIFIER_TYPE$
+			years = $DURATION_YEARS$
+		}
+	}
+}
+
+##################################################
+# Notify All Vassals
+# Parameters: EVENT_ID, DELAY_DAYS
+##################################################
+example_notify_vassals_effect = {
+	every_vassal = {
+		limit = { is_ai = no }
+		trigger_event = {
+			id = $EVENT_ID$
+			days = $DELAY_DAYS$
+		}
+	}
+	every_vassal = {
+		limit = { is_ai = yes }
+		trigger_event = {
+			id = $EVENT_ID$
+			days = { 1 $DELAY_DAYS$ }
+		}
+	}
+}
+
+##################################################
+# Create Court Event Participant List
+# Saves scope:participants as character list
+##################################################
+example_gather_court_participants_effect = {
+	# Clear any existing list
+	clear_saved_scope = participants
+	
+	# Add self
+	add_to_list = participants
+	
+	# Add spouse if exists
+	if = {
+		limit = { exists = primary_spouse }
+		primary_spouse = { add_to_list = participants }
+	}
+	
+	# Add councillors
+	every_councillor = {
+		add_to_list = participants
+	}
+	
+	# Add random courtiers up to 5
+	random_courtier = {
+		limit = {
+			is_adult = yes
+			NOT = { is_in_list = participants }
+		}
+		add_to_list = participants
+	}
+}
+
+##################################################
+# Grant Claim on Title
+# Parameters: CLAIMANT, TITLE
+##################################################
+example_grant_claim_effect = {
+	$CLAIMANT$ = {
+		add_pressed_claim = $TITLE$
+	}
+	
+	# Notify title holder
+	$TITLE$.holder = {
+		send_interface_message = {
+			type = event_generic_bad
+			title = example_claim_granted_title
+			desc = example_claim_granted_desc
+			left_icon = $CLAIMANT$
+			right_icon = $TITLE$
+		}
+	}
+}
+
+##################################################
+# Complex: Handle Dynasty Prestige Distribution
+##################################################
+example_distribute_dynasty_prestige_effect = {
+	dynasty = {
+		add_dynasty_prestige = 100
+		
+		every_dynasty_member = {
+			limit = {
+				is_alive = yes
+				is_adult = yes
+			}
+			add_prestige = 25
+		}
+	}
+}

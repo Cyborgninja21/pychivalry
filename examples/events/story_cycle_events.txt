@@ -1,0 +1,361 @@
+############################################################
+# PYCHIVALRY EXAMPLE STORY CYCLE EVENTS
+# Multi-event narrative chain
+############################################################
+
+namespace = example_story
+
+##################################################
+# Story Cycle: The Scholar's Quest
+# A multi-part story about seeking knowledge
+##################################################
+
+# Entry point - discovering ancient texts
+example_story.0001 = {
+	type = character_event
+	title = example_story.0001.t
+	desc = example_story.0001.desc
+	theme = learning
+	
+	left_portrait = {
+		character = root
+		animation = thinking
+	}
+	
+	trigger = {
+		is_ruler = yes
+		learning >= 12
+		NOT = { has_character_flag = started_scholar_quest }
+	}
+	
+	weight_multiplier = {
+		base = 1
+		modifier = {
+			add = 2
+			has_trait = scholar
+		}
+		modifier = {
+			add = 1
+			has_lifestyle = learning_lifestyle
+		}
+	}
+	
+	immediate = {
+		add_character_flag = {
+			flag = started_scholar_quest
+			years = 5
+		}
+		
+		# Create the story cycle
+		create_story = {
+			type = story_scholars_quest
+			save_scope_as = scholars_story
+		}
+	}
+	
+	# Begin the quest
+	option = {
+		name = example_story.0001.a
+		
+		set_variable = {
+			name = quest_progress
+			value = 1
+		}
+		
+		trigger_event = {
+			id = example_story.0002
+			days = { 30 60 }
+		}
+		
+		ai_chance = {
+			base = 80
+		}
+	}
+	
+	# Too busy for such pursuits
+	option = {
+		name = example_story.0001.b
+		
+		# End the story before it begins
+		scope:scholars_story = {
+			end_story = yes
+		}
+		
+		stress_impact = {
+			base = 10
+			scholar = 20
+		}
+		
+		ai_chance = {
+			base = 20
+		}
+	}
+}
+
+# Part 2 - Finding a clue
+example_story.0002 = {
+	type = character_event
+	title = example_story.0002.t
+	desc = example_story.0002.desc
+	theme = learning
+	
+	left_portrait = {
+		character = root
+		animation = happiness
+	}
+	
+	trigger = {
+		exists = var:quest_progress
+		var:quest_progress = 1
+	}
+	
+	immediate = {
+		# Find a helpful scholar
+		if = {
+			limit = {
+				any_courtier = {
+					learning >= 10
+					NOT = { this = root }
+				}
+			}
+			random_courtier = {
+				limit = {
+					learning >= 10
+					NOT = { this = root }
+				}
+				save_scope_as = helpful_scholar
+			}
+		}
+	}
+	
+	# Consult the scholar
+	option = {
+		name = example_story.0002.a
+		trigger = { exists = scope:helpful_scholar }
+		
+		scope:helpful_scholar = {
+			add_opinion = {
+				target = root
+				modifier = example_mentor_opinion
+			}
+		}
+		
+		change_variable = {
+			name = quest_progress
+			add = 1
+		}
+		
+		add_learning_lifestyle_xp = 50
+		
+		trigger_event = {
+			id = example_story.0003
+			days = { 20 40 }
+		}
+	}
+	
+	# Research alone
+	option = {
+		name = example_story.0002.b
+		
+		# Skill check
+		duel = {
+			skill = learning
+			value = 12
+			
+			50 = {
+				compare_modifier = {
+					value = scope:duel_value
+					multiplier = 5
+				}
+				desc = example_story.0002.success
+				
+				change_variable = {
+					name = quest_progress
+					add = 2  # Bonus progress
+				}
+				
+				add_learning_lifestyle_xp = 100
+			}
+			50 = {
+				compare_modifier = {
+					value = scope:duel_value
+					multiplier = -5
+				}
+				desc = example_story.0002.failure
+				
+				change_variable = {
+					name = quest_progress
+					add = 1
+				}
+				
+				add_stress = 15
+			}
+		}
+		
+		trigger_event = {
+			id = example_story.0003
+			days = { 30 60 }
+		}
+	}
+	
+	# Give up
+	option = {
+		name = example_story.0002.c
+		
+		# End story with small reward
+		add_piety = 25
+		
+		story = {
+			end_story = yes
+		}
+		
+		remove_variable = quest_progress
+	}
+}
+
+# Part 3 - The journey
+example_story.0003 = {
+	type = character_event
+	title = example_story.0003.t
+	desc = example_story.0003.desc
+	theme = travel
+	
+	left_portrait = {
+		character = root
+		animation = personality_bold
+	}
+	
+	trigger = {
+		exists = var:quest_progress
+		var:quest_progress >= 2
+	}
+	
+	# Travel to distant library
+	option = {
+		name = example_story.0003.a
+		
+		# Travel costs
+		remove_short_term_gold = 50
+		
+		change_variable = {
+			name = quest_progress
+			add = 1
+		}
+		
+		trigger_event = {
+			id = example_story.0004
+			days = { 60 90 }
+		}
+		
+		ai_chance = {
+			base = 70
+		}
+	}
+	
+	# Send an envoy instead
+	option = {
+		name = example_story.0003.b
+		
+		remove_short_term_gold = 25
+		
+		# Less progress but safer
+		random = {
+			chance = 60
+			change_variable = {
+				name = quest_progress
+				add = 1
+			}
+		}
+		
+		trigger_event = {
+			id = example_story.0004
+			days = { 90 120 }
+		}
+		
+		ai_chance = {
+			base = 30
+		}
+	}
+}
+
+# Part 4 - Discovery
+example_story.0004 = {
+	type = character_event
+	title = example_story.0004.t
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = { var:quest_progress >= 4 }
+				desc = example_story.0004.desc_great
+			}
+			triggered_desc = {
+				trigger = { var:quest_progress >= 3 }
+				desc = example_story.0004.desc_good
+			}
+			desc = example_story.0004.desc_normal
+		}
+	}
+	theme = learning
+	
+	left_portrait = {
+		character = root
+		animation = happiness
+	}
+	
+	immediate = {
+		# Calculate rewards based on progress
+		set_variable = {
+			name = quest_reward
+			value = {
+				value = var:quest_progress
+				multiply = 50
+			}
+		}
+	}
+	
+	# Triumphant conclusion
+	option = {
+		name = example_story.0004.a
+		
+		# XP based on progress
+		add_learning_lifestyle_xp = var:quest_reward
+		
+		# Prestige reward
+		add_prestige = var:quest_reward
+		
+		# Chance for trait based on progress
+		if = {
+			limit = { var:quest_progress >= 4 }
+			random = {
+				chance = 50
+				add_trait = scholar
+			}
+		}
+		
+		# Add modifier
+		add_character_modifier = {
+			modifier = example_recently_studied_modifier
+			years = 2
+		}
+		
+		# Cleanup
+		remove_variable = quest_progress
+		remove_variable = quest_reward
+		
+		# End the story
+		story = {
+			end_story = yes
+		}
+	}
+}
+
+##################################################
+# Story Cycle Type Definition
+# (Would normally be in common/story_cycles/)
+##################################################
+# story_scholars_quest = {
+#     # Story properties would go here
+#     on_setup = { }
+#     on_end = { }
+#     on_owner_death = { }
+# }

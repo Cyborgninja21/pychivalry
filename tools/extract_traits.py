@@ -49,7 +49,7 @@ def parse_ck3_trait_file(file_path: Path) -> Dict[str, Dict[str, Any]]:
     Returns:
         Dictionary mapping trait names to their parsed data
     """
-    print(f"[*] Reading {file_path}...")
+    print(f"[INFO] Reading {file_path}...")
     
     with open(file_path, 'r', encoding='utf-8') as f:
         content = f.read()
@@ -73,7 +73,7 @@ def parse_ck3_trait_file(file_path: Path) -> Dict[str, Dict[str, Any]]:
         end_pos = find_matching_brace(content, start_pos)
         
         if end_pos is None:
-            print(f"[!] Warning: Could not find closing brace for {trait_name}")
+            print(f"[WARN] Could not find closing brace for {trait_name}")
             continue
         
         trait_block = content[start_pos:end_pos]
@@ -82,7 +82,7 @@ def parse_ck3_trait_file(file_path: Path) -> Dict[str, Dict[str, Any]]:
         trait_data = parse_trait_block(trait_name, trait_block)
         traits[trait_name] = trait_data
     
-    print(f"[+] Successfully parsed {len(traits)} traits")
+    print(f"[OK] Successfully parsed {len(traits)} traits")
     return traits
 
 
@@ -369,7 +369,7 @@ def write_yaml_files(categorized: Dict[str, Dict[str, Dict[str, Any]]], output_d
     # Create output directory if it doesn't exist
     output_dir.mkdir(parents=True, exist_ok=True)
     
-    print(f"\n[*] Writing YAML files to {output_dir}...")
+    print(f"\n[INFO] Writing YAML files to {output_dir}...")
     
     for category, traits in sorted(categorized.items()):
         output_file = output_dir / f"{category}.yaml"
@@ -390,11 +390,11 @@ def write_yaml_files(categorized: Dict[str, Dict[str, Dict[str, Any]]], output_d
                      allow_unicode=True,
                      width=100)
         
-        print(f"  [+] {output_file.name}: {len(traits)} traits")
+        print(f"  [OK] {output_file.name}: {len(traits)} traits")
     
     # Print summary
     total_traits = sum(len(traits) for traits in categorized.values())
-    print(f"\n[+] Total: {total_traits} traits in {len(categorized)} categories")
+    print(f"\n[DONE] Total: {total_traits} traits in {len(categorized)} categories")
 
 
 def main():
@@ -421,25 +421,25 @@ def main():
     traits_file = args.ck3_path / 'game' / 'common' / 'traits' / '00_traits.txt'
     
     if not traits_file.exists():
-        print(f"[X] Error: Trait file not found at {traits_file}")
-        print(f"    Please specify correct CK3 path with --ck3-path")
+        print(f"[ERROR] Trait file not found at {traits_file}")
+        print(f"        Please specify correct CK3 path with --ck3-path")
         return 1
     
-    print(f"[*] CK3 Installation: {args.ck3_path}")
-    print(f"[*] Output directory: {args.output}")
+    print(f"[INFO] CK3 Installation: {args.ck3_path}")
+    print(f"[INFO] Output directory: {args.output}")
     print()
     
     # Parse traits
     traits = parse_ck3_trait_file(traits_file)
     
     # Categorize traits
-    print("\n[*] Categorizing traits...")
+    print("\n[INFO] Categorizing traits...")
     categorized = categorize_traits(traits)
     
     # Write YAML files
     write_yaml_files(categorized, args.output)
     
-    print("\n[+] Done! Trait extraction complete.")
+    print("\n[DONE] Trait extraction complete.")
     return 0
 
 

@@ -1,0 +1,111 @@
+############################################################
+# PYCHIVALRY EXAMPLE LAWS
+# Custom realm laws
+############################################################
+
+##################################################
+# Law Group: Example Administrative Laws
+##################################################
+example_administrative_laws = {
+	law_group = {
+		cumulative = no
+		default = example_admin_law_0
+	}
+	
+	can_title_have = {
+		highest_held_title_tier >= tier_duchy
+	}
+}
+
+##################################################
+# Law: Basic Administration
+##################################################
+example_admin_law_0 = {
+	group = example_administrative_laws
+	
+	modifier = {
+		# Default - no special effects
+	}
+	
+	can_keep = {
+		always = yes
+	}
+	
+	pass_cost = {
+		prestige = 0
+	}
+	
+	should_show_for_title = {
+		highest_held_title_tier >= tier_duchy
+	}
+	
+	flag = example_admin_basic
+}
+
+##################################################
+# Law: Centralized Administration
+##################################################
+example_admin_law_1 = {
+	group = example_administrative_laws
+	
+	modifier = {
+		domain_limit = 1
+		vassal_limit = -5
+		monthly_income_mult = 0.1
+	}
+	
+	can_pass = {
+		custom_description = {
+			text = example_requires_stewardship
+			stewardship >= 12
+		}
+	}
+	
+	can_keep = {
+		always = yes
+	}
+	
+	pass_cost = {
+		prestige = 200
+	}
+	
+	should_show_for_title = {
+		highest_held_title_tier >= tier_duchy
+	}
+	
+	flag = example_admin_centralized
+}
+
+##################################################
+# Law: Decentralized Administration
+##################################################
+example_admin_law_2 = {
+	group = example_administrative_laws
+	
+	modifier = {
+		domain_limit = -1
+		vassal_limit = 5
+		vassal_opinion = 10
+	}
+	
+	can_pass = {
+		custom_description = {
+			text = example_requires_diplomacy
+			diplomacy >= 12
+		}
+	}
+	
+	can_keep = {
+		always = yes
+	}
+	
+	pass_cost = {
+		prestige = 150
+	}
+	
+	should_show_for_title = {
+		highest_held_title_tier >= tier_duchy
+	}
+	
+	flag = example_admin_decentralized
+}

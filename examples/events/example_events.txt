@@ -1,0 +1,648 @@
+############################################################
+# PYCHIVALRY EXAMPLE EVENTS
+# Demonstrates various event patterns and features
+############################################################
+
+namespace = example_events
+
+##################################################
+# Event 0001: Feast Beginning
+# Triggered by decision
+##################################################
+example_events.0001 = {
+	type = character_event
+	title = example_events.0001.t
+	desc = example_events.0001.desc
+	theme = party
+	
+	left_portrait = {
+		character = root
+		animation = happiness
+	}
+	right_portrait = {
+		character = scope:feast_guest
+		animation = personality_bold
+	}
+	
+	immediate = {
+		# Set hosting flag
+		add_character_flag = hosting_example_feast
+		
+		# Pick a random guest for the portrait
+		random_courtier = {
+			limit = {
+				is_adult = yes
+				NOT = { this = root }
+			}
+			save_scope_as = feast_guest
+		}
+		
+		# Mark all courtiers as attending
+		every_courtier = {
+			add_character_flag = {
+				flag = attended_example_feast
+				days = 30
+			}
+		}
+	}
+	
+	# Option A: Grand celebration
+	option = {
+		name = example_events.0001.a
+		
+		# Extra cost for grand version
+		remove_short_term_gold = 25
+		
+		add_character_modifier = {
+			modifier = example_feast_afterglow_modifier
+			months = 6
+		}
+		
+		stress_impact = {
+			base = -20
+			shy = 15
+		}
+		
+		trigger_event = {
+			id = example_events.0002
+			days = 7
+		}
+		
+		ai_chance = {
+			base = 50
+			modifier = {
+				add = 30
+				has_trait = generous
+			}
+		}
+	}
+	
+	# Option B: Modest celebration
+	option = {
+		name = example_events.0001.b
+		
+		add_character_modifier = {
+			modifier = example_feast_afterglow_modifier
+			months = 3
+		}
+		
+		stress_impact = {
+			base = -10
+		}
+		
+		# Skip to conclusion
+		trigger_event = {
+			id = example_events.0099
+			days = 3
+		}
+		
+		ai_chance = {
+			base = 50
+			modifier = {
+				add = 20
+				has_trait = temperate
+			}
+		}
+	}
+	
+	# Option C: Cancel (trait-gated)
+	option = {
+		name = example_events.0001.c
+		trigger = {
+			OR = {
+				has_trait = shy
+				has_trait = paranoid
+			}
+		}
+		
+		# Refund some cost
+		add_gold = 25
+		
+		# But lose prestige
+		add_prestige = -50
+		
+		# Remove flags
+		remove_character_flag = hosting_example_feast
+		
+		ai_chance = {
+			base = 10
+		}
+	}
+}
+
+##################################################
+# Event 0002: Feast Incident
+# Chain event with multiple outcomes
+##################################################
+example_events.0002 = {
+	type = character_event
+	title = example_events.0002.t
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = { exists = scope:troublemaker }
+				desc = example_events.0002.desc_trouble
+			}
+			desc = example_events.0002.desc_normal
+		}
+	}
+	theme = party
+	
+	left_portrait = root
+	
+	trigger = {
+		has_character_flag = hosting_example_feast
+	}
+	
+	immediate = {
+		# Chance for an incident
+		random = {
+			chance = 30
+			random_courtier = {
+				limit = {
+					is_adult = yes
+					OR = {
+						has_trait = drunkard
+						has_trait = wrathful
+						has_trait = deceitful
+					}
+				}
+				save_scope_as = troublemaker
+			}
+		}
+	}
+	
+	# Handle the incident diplomatically
+	option = {
+		name = example_events.0002.a
+		trigger = { exists = scope:troublemaker }
+		
+		skill = diplomacy
+		
+		duel = {
+			skill = diplomacy
+			target = scope:troublemaker
+			
+			50 = {
+				compare_modifier = {
+					value = scope:duel_value
+					multiplier = 3.5
+				}
+				desc = example_events.0002.a.success
+				send_interface_toast = {
+					title = example_diplomacy_success
+					left_icon = root
+				}
+				add_prestige = 50
+			}
+			50 = {
+				compare_modifier = {
+					value = scope:duel_value
+					multiplier = -3.5
+				}
+				desc = example_events.0002.a.failure
+				scope:troublemaker = {
+					add_opinion = {
+						target = root
+						modifier = example_public_insult_opinion
+					}
+				}
+				add_stress = 15
+			}
+		}
+	}
+	
+	# Throw them out
+	option = {
+		name = example_events.0002.b
+		trigger = { exists = scope:troublemaker }
+		
+		scope:troublemaker = {
+			add_opinion = {
+				target = root
+				modifier = example_public_insult_opinion
+			}
+		}
+		
+		add_dread = 5
+		
+		ai_chance = {
+			base = 30
+			modifier = {
+				add = 30
+				has_trait = wrathful
+			}
+		}
+	}
+	
+	# No incident - enjoy the feast
+	option = {
+		name = example_events.0002.c
+		trigger = { NOT = { exists = scope:troublemaker } }
+		
+		add_prestige = 25
+		stress_impact = {
+			base = -10
+		}
+	}
+}
+
+##################################################
+# Event 0010: Mentoring Child
+# Character interaction event
+##################################################
+example_events.0010 = {
+	type = character_event
+	title = example_events.0010.t
+	desc = example_events.0010.desc
+	theme = education
+	
+	left_portrait = {
+		character = root
+		animation = thinking
+	}
+	right_portrait = {
+		character = scope:mentored_child
+		animation = personality_content
+	}
+	
+	trigger = {
+		exists = scope:mentored_child
+	}
+	
+	# Focus on martial training
+	option = {
+		name = example_events.0010.a
+		trigger = { martial >= 10 }
+		
+		scope:mentored_child = {
+			add_character_modifier = {
+				modifier = example_being_mentored_modifier
+				years = 5
+			}
+			# Small skill boost in martial
+			random = {
+				chance = 50
+				add_trait = lifestyle_blademaster_1
+			}
+		}
+		
+		ai_chance = {
+			base = 30
+			modifier = {
+				add = 30
+				martial >= 15
+			}
+		}
+	}
+	
+	# Focus on scholarly pursuits
+	option = {
+		name = example_events.0010.b
+		trigger = { learning >= 10 }
+		
+		scope:mentored_child = {
+			add_learning_lifestyle_xp = 100
+		}
+		
+		add_piety = 25
+		
+		ai_chance = {
+			base = 30
+			modifier = {
+				add = 30
+				learning >= 15
+			}
+		}
+	}
+	
+	# General mentorship
+	option = {
+		name = example_events.0010.c
+		
+		scope:mentored_child = {
+			example_add_focus_xp_effect = {
+				CHARACTER = this
+				AMOUNT = 50
+			}
+		}
+		
+		add_opinion = {
+			target = scope:mentored_child
+			modifier = example_mentor_opinion
+		}
+	}
+}
+
+##################################################
+# Event 0099: Feast Conclusion
+# Cleanup and rewards
+##################################################
+example_events.0099 = {
+	type = character_event
+	title = example_events.0099.t
+	desc = example_events.0099.desc
+	theme = party
+	
+	left_portrait = {
+		character = root
+		animation = happiness
+	}
+	
+	trigger = {
+		has_character_flag = hosting_example_feast
+	}
+	
+	immediate = {
+		# Calculate guest satisfaction
+		set_variable = {
+			name = feast_satisfaction
+			value = 50
+		}
+		if = {
+			limit = { has_trait = generous }
+			change_variable = {
+				name = feast_satisfaction
+				add = 20
+			}
+		}
+		if = {
+			limit = { diplomacy >= 15 }
+			change_variable = {
+				name = feast_satisfaction
+				add = 15
+			}
+		}
+	}
+	
+	option = {
+		name = example_events.0099.a
+		
+		# Rewards based on satisfaction
+		add_prestige = var:feast_satisfaction
+		
+		# Fire on_action for mod extension
+		fire_on_action = example_on_feast_completed
+		
+		# Cleanup
+		remove_character_flag = hosting_example_feast
+		remove_variable = feast_satisfaction
+	}
+}
+
+##################################################
+# Event 0100: Special Birth
+# Triggered from on_birth_child
+##################################################
+example_events.0100 = {
+	type = character_event
+	title = example_events.0100.t
+	desc = example_events.0100.desc
+	theme = birth
+	
+	left_portrait = {
+		character = scope:child
+		animation = personality_content
+	}
+	right_portrait = {
+		character = scope:mother
+		animation = happiness
+	}
+	
+	trigger = {
+		# scope:child and scope:mother set by on_action
+		exists = scope:child
+		scope:child = {
+			OR = {
+				has_trait = genius
+				has_trait = beautiful
+				has_trait = herculean
+			}
+		}
+	}
+	
+	option = {
+		name = example_events.0100.a
+		
+		add_prestige = 100
+		add_dynasty_prestige = 50
+		
+		scope:child = {
+			add_character_flag = {
+				flag = blessed_birth
+				years = 16
+			}
+		}
+	}
+}
+
+##################################################
+# Event 0200: Inheritance Notification
+# Triggered from on_death
+##################################################
+example_events.0200 = {
+	type = character_event
+	title = example_events.0200.t
+	desc = example_events.0200.desc
+	theme = death
+	
+	left_portrait = {
+		character = root
+		animation = grief
+	}
+	
+	trigger = {
+		is_ruler = yes
+	}
+	
+	option = {
+		name = example_events.0200.a
+		
+		# Honor the predecessor
+		add_piety = 50
+		
+		stress_impact = {
+			base = 20
+			callous = -20
+			compassionate = 10
+		}
+	}
+	
+	option = {
+		name = example_events.0200.b
+		
+		# Move on quickly
+		add_prestige = 25
+		
+		stress_impact = {
+			base = -10
+			ambitious = -10
+		}
+	}
+}
+
+##################################################
+# Event 0300-0302: Random Yearly Events
+##################################################
+example_events.0300 = {
+	type = character_event
+	title = example_events.0300.t
+	desc = example_events.0300.desc
+	theme = intrigue
+	
+	left_portrait = root
+	
+	trigger = {
+		is_ruler = yes
+		intrigue >= 8
+	}
+	
+	weight_multiplier = {
+		base = 1
+		modifier = {
+			add = 1
+			has_trait = schemer
+		}
+	}
+	
+	option = {
+		name = example_events.0300.a
+		add_intrigue_lifestyle_xp = 50
+	}
+}
+
+example_events.0301 = {
+	type = character_event
+	title = example_events.0301.t
+	desc = example_events.0301.desc
+	theme = stewardship
+	
+	left_portrait = root
+	
+	trigger = {
+		is_ruler = yes
+		stewardship >= 8
+	}
+	
+	weight_multiplier = {
+		base = 1
+		modifier = {
+			add = 1
+			has_trait = architect
+		}
+	}
+	
+	option = {
+		name = example_events.0301.a
+		add_gold = example_stewardship_gold_value
+	}
+}
+
+example_events.0302 = {
+	type = character_event
+	title = example_events.0302.t
+	desc = example_events.0302.desc
+	theme = learning
+	
+	left_portrait = root
+	
+	trigger = {
+		is_ruler = yes
+		learning >= 10
+	}
+	
+	weight_multiplier = {
+		base = 1
+		modifier = {
+			add = 2
+			has_trait = scholar
+		}
+	}
+	
+	option = {
+		name = example_events.0302.a
+		add_piety = 50
+		add_learning_lifestyle_xp = 100
+	}
+}
+
+##################################################
+# Event 0400: Title Gained Celebration
+##################################################
+example_events.0400 = {
+	type = character_event
+	title = example_events.0400.t
+	desc = example_events.0400.desc
+	theme = realm
+	
+	left_portrait = {
+		character = root
+		animation = personality_bold
+	}
+	
+	trigger = {
+		scope:title.tier >= tier_duchy
+	}
+	
+	option = {
+		name = example_events.0400.a
+		
+		add_prestige = {
+			value = 100
+			if = {
+				limit = { scope:title.tier = tier_kingdom }
+				multiply = 2
+			}
+			if = {
+				limit = { scope:title.tier = tier_empire }
+				multiply = 4
+			}
+		}
+	}
+}
+
+##################################################
+# Event 0500: Royal Wedding
+##################################################
+example_events.0500 = {
+	type = character_event
+	title = example_events.0500.t
+	desc = example_events.0500.desc
+	theme = party
+	
+	left_portrait = {
+		character = root
+		animation = happiness
+	}
+	right_portrait = {
+		character = scope:new_spouse
+		animation = happiness
+	}
+	
+	trigger = {
+		exists = scope:new_spouse
+	}
+	
+	option = {
+		name = example_events.0500.a
+		
+		# Grand celebration
+		remove_short_term_gold = 100
+		
+		add_prestige = 200
+		
+		scope:new_spouse = {
+			add_opinion = {
+				target = root
+				modifier = example_feast_guest_opinion
+			}
+		}
+	}
+	
+	option = {
+		name = example_events.0500.b
+		
+		# Simple ceremony
+		add_prestige = 50
+	}
+}
