@@ -11,23 +11,21 @@
     "tests",
     "-v"
   ],
-  
   // CK3 language server settings
   "ck3LanguageServer.enable": true,
   "ck3LanguageServer.pythonPath": "python",
   "ck3LanguageServer.logLevel": "debug",
   "ck3LanguageServer.trace.server": "verbose",
-  
   // Log watcher settings for development
   "ck3LanguageServer.logWatcher.enabled": true,
   "ck3LanguageServer.logWatcher.autoStart": false,
   "ck3LanguageServer.logWatcher.showInOutput": true,
   "ck3LanguageServer.logWatcher.debounceDelay": 500,
-  
   // Editor settings
   "editor.formatOnSave": true,
-  "editor.rulers": [100],
-  
+  "editor.rulers": [
+    100
+  ],
   // Files to exclude
   "files.exclude": {
     "**/__pycache__": true,
@@ -36,12 +34,14 @@
     "**/node_modules": true,
     "**/dist": true
   },
-  
   // Search exclude
   "search.exclude": {
     "**/node_modules": true,
     "**/dist": true,
     "**/.pytest_cache": true,
     "**/__pycache__": true
-  }
+  },
+  "python-envs.defaultEnvManager": "ms-python.python:conda",
+  "python-envs.defaultPackageManager": "ms-python.python:conda",
+  "python-envs.pythonProjects": []
 }

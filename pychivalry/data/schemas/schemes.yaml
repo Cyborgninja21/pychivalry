@@ -1,0 +1,344 @@
+# Scheme Validation Schema
+# Declarative validation rules for CK3 schemes
+version: "1.0"
+file_type: scheme
+
+# File identification - when to apply this schema
+identification:
+  path_patterns:
+    - "*/common/schemes/*.txt"
+    - "*/common/schemes/**/*.txt"
+    - "common/schemes/*.txt"
+
+# Field Order Configuration (Phase 8.3)
+field_order:
+  enabled: true
+  mode: flexible
+  order:
+    - skill
+    - desc
+    - success_desc
+    - discovery_desc
+    - icon
+    - illustration
+    - category
+    - target_type
+    - is_secret
+    - allow
+    - valid
+    - on_start
+    - on_phase_completed
+    - on_hud_click
+    - on_ready
+    - on_monthly
+    - power_per_skill_point
+    - resistance_per_skill_point
+    - base_progress_goal
+    - phases_per_agent_charge
+    - agent_leave_threshold
+    - ai_value
+    - cooldown
+
+# Constants - reusable value lists
+constants:
+  skill_types:
+    - diplomacy
+    - martial
+    - stewardship
+    - intrigue
+    - learning
+    - prowess
+    
+  scheme_types:
+    - hostile
+    - personal
+
+# ============ VALIDATION ============
+# Field definitions with validation rules
+fields:
+  skill:
+    required: true
+    type: enum
+    values: $skill_types
+    diagnostic: SCHEME-001
+    message: "Scheme missing required 'skill' field"
+    description: "Primary skill used for this scheme"
+    
+  desc:
+    type: localization_key
+    description: "Description localization key"
+    
+  success_desc:
+    type: localization_key
+    description: "Success message localization key"
+    
+  discovery_desc:
+    type: localization_key
+    description: "Discovery message localization key"
+    
+  icon:
+    type: string
+    description: "Icon displayed for scheme"
+    
+  illustration:
+    type: string
+    description: "Illustration image for scheme"
+    
+  category:
+    type: enum
+    values: $scheme_types
+    description: "Scheme category (hostile or personal)"
+    
+  power_per_skill_point:
+    type: number
+    description: "Scheme power gained per skill point"
+    
+  power_per_agent_skill_point:
+    type: number
+    description: "Scheme power from agent skill points"
+    
+  resistance_per_skill_point:
+    type: number
+    description: "Target's resistance per skill point"
+    
+  resistance_per_agent_skill_point:
+    type: number
+    description: "Target's resistance from agent skill points"
+    
+  spymaster_power_per_skill_point:
+    type: number
+    description: "Power bonus from spymaster skill"
+    
+  spymaster_resistance_per_skill_point:
+    type: number
+    description: "Resistance bonus from spymaster skill"
+    
+  tier:
+    type: integer
+    description: "Scheme tier/difficulty"
+    
+  base_progress_goal:
+    type: integer
+    description: "Base progress needed to succeed"
+    
+  base_maximum_success_chance:
+    type: number
+    description: "Maximum success chance percentage"
+    
+  base_secrecy:
+    type: integer
+    description: "Base secrecy value"
+    
+  maximum_breaches:
+    type: integer
+    description: "Maximum security breaches before discovery"
+    
+  minimum_progress_chance:
+    type: number
+    description: "Minimum progress chance per month"
+    
+  maximum_progress_chance:
+    type: number
+    description: "Maximum progress chance per month"
+    
+  phases_per_agent_charge:
+    type: integer
+    description: "Phases consumed per agent action"
+    
+  agent_leave_threshold:
+    type: integer
+    description: "Threshold for agents leaving"
+    
+  is_secret:
+    type: boolean
+    description: "Whether scheme is secret"
+    
+  uses_resistance:
+    type: boolean
+    description: "Whether target can resist"
+    
+  uses_agents:
+    type: boolean
+    description: "Whether scheme can use agents"
+    
+  use_secrecy:
+    type: boolean
+    description: "Whether scheme uses secrecy mechanics"
+    
+  hostile:
+    type: boolean
+    description: "Whether scheme is hostile"
+    
+  is_basic:
+    type: boolean
+    description: "Whether this is a basic scheme"
+    
+  allow:
+    type: trigger_block
+    description: "Conditions for scheme to be available"
+    
+  valid:
+    type: trigger_block
+    description: "Conditions for scheme to remain valid"
+    
+  valid_agent:
+    type: trigger_block
+    description: "Conditions for character to be valid agent"
+    
+  agent_join_chance:
+    type: block
+    schema: ai_value
+    description: "Chance for agent to join"
+    
+  agent_leave_threshold_chance:
+    type: block
+    schema: ai_value
+    description: "Chance for agent to leave"
+    
+  on_start:
+    type: effect_block
+    description: "Effects when scheme starts"
+    
+  on_phase_completed:
+    type: effect_block
+    description: "Effects each phase"
+    
+  on_hud_click:
+    type: effect_block
+    description: "Effects when clicking scheme in HUD"
+    
+  on_ready:
+    type: effect_block
+    description: "Effects when scheme is ready"
+    
+  on_monthly:
+    type: effect_block
+    description: "Monthly pulse effects"
+    
+  success_chance_growth_per_skill_point:
+    type: number
+    description: "Success chance growth per skill"
+    
+  base_success_chance:
+    type: number
+    description: "Base success chance"
+    
+  cooldown:
+    type: block
+    schema: cooldown
+    description: "Cooldown after scheme ends"
+    
+  freeze_scheme_when_traveling:
+    type: boolean
+    description: "Pause when owner traveling"
+    
+  freeze_scheme_when_imprisoned:
+    type: boolean
+    description: "Pause when owner imprisoned"
+
+# Nested schemas
+nested_schemas:
+  ai_value:
+    fields:
+      base:
+        type: integer
+      compare_modifier:
+        type: block
+        multiple: true
+      modifier:
+        type: block
+        multiple: true
+        
+  cooldown:
+    fields:
+      days:
+        type: integer
+      months:
+        type: integer
+      years:
+        type: integer
+
+# Cross-field validations
+validations:
+  - name: no_effects
+    condition: "NOT on_start.exists AND NOT on_phase_completed.exists AND NOT on_ready.exists"
+    diagnostic: SCHEME-002
+    severity: warning
+    message: "Scheme has no effects - does nothing when executed"
+    
+  - name: missing_agent_config
+    condition: "uses_agents.value == yes AND NOT valid_agent.exists"
+    diagnostic: SCHEME-003
+    severity: warning
+    message: "Scheme uses agents but has no valid_agent conditions"
+
+# ============ COMPLETIONS & HOVER ============
+field_docs:
+  skill:
+    description: "Primary skill for this scheme"
+    detail: "Required - determines which skill affects scheme power"
+    snippet: "skill = ${1|diplomacy,martial,stewardship,intrigue,learning|}"
+    
+  allow:
+    description: "Conditions for scheme availability"
+    detail: "Trigger block - must be true to start scheme"
+    snippet: "allow = {\n\t$0\n}"
+    
+  valid:
+    description: "Conditions for scheme to remain valid"
+    detail: "Trigger block - scheme ends if false"
+    snippet: "valid = {\n\t$0\n}"
+    
+  on_start:
+    description: "Effects when scheme starts"
+    detail: "Effect block - runs when scheme is initiated"
+    snippet: "on_start = {\n\t$0\n}"
+    
+  on_ready:
+    description: "Effects when scheme is ready"
+    detail: "Effect block - runs when scheme reaches 100% progress"
+    snippet: "on_ready = {\n\t$0\n}"
+    
+  power_per_skill_point:
+    description: "Scheme power per skill point"
+    detail: "Decimal value - typical: 5.0"
+    snippet: "power_per_skill_point = ${1:5.0}"
+    
+  base_progress_goal:
+    description: "Progress needed for success"
+    detail: "Integer - typical: 100-300"
+    snippet: "base_progress_goal = ${1:200}"
+
+# ============ SYMBOLS ============
+symbols:
+  primary:
+    kind: Class
+    name_from: key
+    detail_from: skill
+  children:
+    - field: allow
+      kind: Object
+      name: "allow"
+    - field: valid
+      kind: Object
+      name: "valid"
+    - field: on_start
+      kind: Function
+      name: "on_start"
+    - field: on_ready
+      kind: Function
+      name: "on_ready"
+    - field: on_phase_completed
+      kind: Function
+      name: "on_phase_completed"
+
+# ============ CODE LENS ============
+code_lens:
+  enabled: true
+  reference_count:
+    enabled: true
+    label: "{count} references"
+  missing_localization:
+    enabled: true
+    fields: [desc, success_desc]
+    label: "⚠️ Missing: {field}"

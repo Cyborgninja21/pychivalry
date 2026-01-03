@@ -1,0 +1,360 @@
+# Event Validation Schema
+# Declarative validation rules for CK3 events
+version: "1.0"
+file_type: event
+
+# File identification - when to apply this schema
+identification:
+  path_patterns:
+    - "*/events/*.txt"
+    - "*/events/**/*.txt"
+    - "events/*.txt"
+  block_pattern: "^[a-z_]+\\.[0-9]+$"  # namespace.0001 format
+
+# Field Order Configuration (Phase 8.3)
+field_order:
+  enabled: true
+  mode: flexible  # flexible = hints only, strict = warnings for each out-of-order field
+  order:
+    - type
+    - title
+    - desc
+    - theme
+    - sender
+    - left_portrait
+    - right_portrait
+    - lower_left_portrait
+    - lower_center_portrait
+    - lower_right_portrait
+    - trigger
+    - is_triggered_only
+    - immediate
+    - after
+    - option
+    - widgets
+
+# Constants - reusable value lists
+constants:
+  event_types:
+    - character_event
+    - letter_event
+    - court_event
+    - duel_event
+    - feast_event
+    - story_cycle
+    
+  themes:
+    - default
+    - diplomacy
+    - intrigue
+    - martial
+    - stewardship
+    - learning
+    - seduction
+    - temptation
+    - romance
+    - faith
+    - culture
+    - war
+    - death
+    - dread
+    - dungeon
+    - feast
+    - hunt
+    - travel
+    - pet
+    - friendly
+    - unfriendly
+    - healthcare
+    - physical_health
+    - mental_health
+    - childhood
+    - pregnancy
+    - family
+    - realm
+    - vassal
+    - courtier
+    - realm_
+    - liege
+    - tax
+    
+  portrait_positions:
+    - left_portrait
+    - right_portrait
+    - lower_left_portrait
+    - lower_center_portrait
+    - lower_right_portrait
+    
+  animations:
+    - idle
+    - happiness
+    - sadness
+    - anger
+    - fear
+    - disgust
+    - flirtation
+    - shock
+    - boredom
+    - scheme
+    - personality_bold
+    - personality_cautious
+    - personality_compassionate
+    - personality_greedy
+    - personality_honorable
+    - personality_rational
+    - personality_vengeful
+
+# ============ VALIDATION ============
+# Field definitions with validation rules
+fields:
+  type:
+    required: true
+    type: enum
+    values: $event_types
+    diagnostic: CK3760
+    invalid_diagnostic: CK3761
+    
+  title:
+    required: true
+    type: localization_key
+    diagnostic: CK3760
+    
+  desc:
+    required_unless: [hidden]
+    type: localization_key_or_block
+    diagnostic: CK3764
+    
+  sender:
+    required_when:
+      field: type
+      equals: letter_event
+    type: scope_reference
+    diagnostic: EVENT-003
+    message: "Letter event missing required 'sender' field"
+    
+  theme:
+    type: enum
+    values: $themes
+    diagnostic: CK3430
+    
+  hidden:
+    type: boolean
+    default: false
+    
+  immediate:
+    type: effect_block
+    max_count: 1
+    count_diagnostic: CK3768
+    
+  after:
+    type: effect_block
+    max_count: 1
+    count_diagnostic: CK3766
+    
+  trigger:
+    type: trigger_block
+    
+  option:
+    type: block
+    schema: option
+    min_count: 1
+    min_count_unless: [hidden]
+    count_diagnostic: CK3763
+
+  # Portrait positions - all use the same portrait schema
+  left_portrait:
+    type: block
+    schema: portrait
+  right_portrait:
+    type: block
+    schema: portrait
+  lower_left_portrait:
+    type: block
+    schema: portrait
+  lower_center_portrait:
+    type: block
+    schema: portrait
+  lower_right_portrait:
+    type: block
+    schema: portrait
+
+# Nested schemas for complex block structures
+nested_schemas:
+  option:
+    fields:
+      name:
+        required: true
+        type: localization_key
+        max_count: 1
+        diagnostic: CK3450
+        count_diagnostic: CK3453
+      trigger:
+        type: trigger_block
+      ai_chance:
+        type: block
+        schema: ai_chance
+    validations:
+      - name: empty_option
+        condition: "children.count == 0"
+        diagnostic: CK3456
+
+  ai_chance:
+    fields:
+      base:
+        type: number
+      modifier:
+        type: block
+        multiple: true
+    validations:
+      - name: negative_base
+        condition: "base.value < 0"
+        diagnostic: CK3610
+      - name: zero_base_no_modifier
+        condition: "base.value == 0 AND modifier.count == 0"
+        diagnostic: CK3612
+
+  portrait:
+    fields:
+      character:
+        required: true
+        type: scope_reference
+        diagnostic: CK3421
+      animation:
+        type: enum
+        values: $animations
+        diagnostic: CK3422
+
+  triggered_desc:
+    fields:
+      trigger:
+        required: true
+        type: trigger_block
+        diagnostic: CK3440
+      desc:
+        required: true
+        type: localization_key
+        diagnostic: CK3441
+
+# Top-level cross-field validations
+validations:
+  - name: hidden_with_options
+    condition: "hidden.value == yes AND option.count > 0"
+    diagnostic: CK3762
+    
+  - name: after_in_hidden
+    condition: "hidden.value == yes AND after.exists"
+    diagnostic: CK3520
+    
+  - name: after_without_options
+    condition: "after.exists AND option.count == 0 AND hidden.value != yes"
+    diagnostic: CK3521
+    
+  - name: empty_event
+    condition: "children.count == 0"
+    diagnostic: CK3767
+
+# ============ COMPLETIONS & HOVER ============
+# Field documentation for completions and hover features
+field_docs:
+  type:
+    description: "Event type determines display style and available features"
+    detail: "Required - character_event, letter_event, etc."
+    snippet: "type = ${1|character_event,letter_event,court_event,duel_event,feast_event,story_cycle|}"
+    
+  title:
+    description: "Localization key for the event title displayed at the top"
+    detail: "Required localization reference"
+    snippet: "title = ${1:namespace.XXXX.t}"
+    
+  desc:
+    description: "Event description text or triggered_desc block"
+    detail: "Localization key or block with triggered_desc"
+    snippet: "desc = ${1:namespace.XXXX.desc}"
+    
+  sender:
+    description: "Character who sends the letter (letter_event only)"
+    detail: "Required for letter_event - scope reference"
+    snippet: "sender = ${1:scope:actor}"
+    
+  theme:
+    description: "Visual theme affecting event window appearance"
+    detail: "Optional - affects background and styling"
+    snippet: "theme = ${1|default,diplomacy,intrigue,martial,stewardship,learning|}"
+    
+  hidden:
+    description: "If yes, event fires silently without popup"
+    detail: "Optional - defaults to no"
+    snippet: "hidden = ${1|yes,no|}"
+    
+  immediate:
+    description: "Effects that run immediately when event fires, before options shown"
+    detail: "Effect block - runs before player sees event"
+    snippet: "immediate = {\n\t$0\n}"
+    
+  after:
+    description: "Effects that run after player selects an option"
+    detail: "Effect block - runs after option selection"
+    snippet: "after = {\n\t$0\n}"
+    
+  trigger:
+    description: "Conditions required for event to fire"
+    detail: "Trigger block - all conditions must be true"
+    snippet: "trigger = {\n\t$0\n}"
+    
+  option:
+    description: "Player choice option with effects"
+    detail: "Required unless hidden - at least one option"
+    snippet: "option = {\n\tname = ${1:namespace.XXXX.a}\n\t$0\n}"
+    
+  left_portrait:
+    description: "Character portrait on the left side of event window"
+    detail: "Portrait configuration block"
+    snippet: "left_portrait = {\n\tcharacter = ${1:root}\n\t$0\n}"
+    
+  right_portrait:
+    description: "Character portrait on the right side of event window"
+    detail: "Portrait configuration block"
+    snippet: "right_portrait = {\n\tcharacter = ${1:scope:actor}\n\t$0\n}"
+
+# ============ SYMBOLS ============
+# Document outline and symbol configuration
+symbols:
+  primary:
+    kind: Event                    # LSP SymbolKind for events
+    name_from: key                 # Use block key (namespace.0001) as name
+    detail_from: type              # Show event type in detail
+  children:
+    - field: option
+      kind: EnumMember             # Options appear as enum members
+      name_from: name              # Use localization key as name
+      fallback_name: "(unnamed option)"
+    - field: immediate
+      kind: Function               # immediate block as function
+      name: "immediate"
+    - field: after
+      kind: Function               # after block as function
+      name: "after"
+    - field: trigger
+      kind: Object                 # trigger block as object
+      name: "trigger"
+
+# ============ CODE LENS ============
+# Inline actionable information configuration
+code_lens:
+  enabled: true
+  reference_count:
+    enabled: true
+    label: "{count} references"
+    icon: "🔗"
+    search_patterns:
+      - "trigger_event\\s*=\\s*\\{?\\s*id\\s*=\\s*{id}"
+      - "trigger_event\\s*=\\s*{id}"
+  missing_localization:
+    enabled: true
+    fields: [title, desc]
+    label: "⚠️ Missing: {field}"
+  namespace_summary:
+    enabled: true
+    pattern: "^namespace\\s*="
+    label: "{count} events in namespace"
+    icon: "📦"

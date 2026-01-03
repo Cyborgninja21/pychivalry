@@ -1,0 +1,288 @@
+# Decision Validation Schema
+# Declarative validation rules for CK3 decisions
+version: "1.0"
+file_type: decision
+
+# File identification - when to apply this schema
+identification:
+  path_patterns:
+    - "*/common/decisions/*.txt"
+    - "*/common/decisions/**/*.txt"
+    - "common/decisions/*.txt"
+
+# Field Order Configuration (Phase 8.3)
+field_order:
+  enabled: true
+  mode: flexible
+  order:
+    - picture
+    - major
+    - ai_check_interval
+    - is_shown
+    - is_valid
+    - is_valid_showing_failures_only
+    - effect
+    - ai_potential
+    - ai_will_do
+    - cost
+    - cooldown
+    - widget
+
+# Constants - reusable value lists
+constants:
+  confirmation_types:
+    - single_yes_no_choice
+    - send_interface_message
+    - send_interface_toast
+    - send_interface_title
+
+# ============ VALIDATION ============
+# Field definitions with validation rules
+fields:
+  picture:
+    type: string
+    description: "Icon displayed for the decision"
+    
+  major:
+    type: boolean
+    default: false
+    description: "If yes, decision shows as major decision in UI"
+    
+  ai_check_interval:
+    required: true
+    type: integer
+    diagnostic: DECISION-001
+    message: "Decision missing 'ai_check_interval' - AI will never consider this decision"
+    description: "Months between AI evaluations of this decision"
+    
+  is_shown:
+    type: trigger_block
+    description: "Conditions for decision to appear in UI"
+    
+  is_valid:
+    type: trigger_block
+    description: "Conditions for decision to be clickable"
+    
+  is_valid_showing_failures_only:
+    type: trigger_block
+    description: "Additional conditions shown only when invalid"
+    
+  title:
+    type: localization_key
+    description: "Localization key for decision title"
+    
+  desc:
+    type: localization_key
+    description: "Localization key for decision description"
+    
+  selection_tooltip:
+    type: localization_key
+    description: "Tooltip shown when hovering over decision"
+    
+  confirm_text:
+    type: localization_key
+    description: "Text on confirmation button"
+    
+  custom_tooltip:
+    type: localization_key
+    description: "Custom tooltip override"
+    
+  cost:
+    type: block
+    schema: cost
+    description: "Resources required to take decision"
+    
+  effect:
+    required: true
+    type: effect_block
+    diagnostic: DECISION-002
+    message: "Decision missing 'effect' block - decision does nothing"
+    description: "Effects that execute when decision is taken"
+    
+  ai_potential:
+    type: trigger_block
+    description: "AI will never consider if this returns false"
+    
+  ai_will_do:
+    type: block
+    schema: ai_will_do
+    description: "AI weight for taking this decision"
+    
+  widget:
+    type: block
+    schema: widget
+    description: "Custom UI widget configuration"
+    
+  cooldown:
+    type: block
+    schema: cooldown
+    description: "Cooldown before decision can be taken again"
+    
+  sort_order:
+    type: integer
+    description: "Display order in decision list"
+    
+  should_create_alert:
+    type: boolean
+    description: "Whether to create notification when available"
+    
+  confirm_icon:
+    type: string
+    description: "Icon shown in confirmation dialog"
+    
+  confirm_text_content:
+    type: string
+    description: "Additional confirmation text"
+    
+  ai_goal:
+    type: boolean
+    description: "Whether AI considers this a goal"
+
+# Nested schemas for complex block structures
+nested_schemas:
+  cost:
+    fields:
+      gold:
+        type: integer
+        description: "Gold cost"
+      prestige:
+        type: integer
+        description: "Prestige cost"
+      piety:
+        type: integer
+        description: "Piety/devotion cost"
+      renown:
+        type: integer
+        description: "Dynasty renown cost"
+      dread:
+        type: integer
+        description: "Dread cost"
+        
+  ai_will_do:
+    fields:
+      base:
+        type: integer
+        description: "Base AI weight"
+      modifier:
+        type: block
+        multiple: true
+        description: "Conditional AI weight modifier"
+        schema: ai_modifier
+        
+  ai_modifier:
+    fields:
+      add:
+        type: integer
+        description: "Add to weight"
+      multiply:
+        type: number
+        description: "Multiply weight"
+      factor:
+        type: number
+        description: "Multiply weight (alternative syntax)"
+        
+  widget:
+    fields:
+      gui:
+        type: string
+        description: "GUI widget type"
+      controller:
+        type: string
+        description: "Widget controller"
+        
+  cooldown:
+    fields:
+      days:
+        type: integer
+      months:
+        type: integer
+      years:
+        type: integer
+
+# Cross-field validations
+validations:
+  - name: no_visibility
+    condition: "NOT is_shown.exists AND NOT is_valid.exists"
+    diagnostic: DECISION-003
+    severity: information
+    message: "Decision has no is_shown or is_valid - always visible and available"
+    
+  - name: effect_without_cost
+    condition: "effect.exists AND NOT cost.exists AND NOT is_valid.exists"
+    diagnostic: DECISION-004
+    severity: information
+    message: "Decision has effects but no cost or validity check - may be exploitable"
+
+# ============ COMPLETIONS & HOVER ============
+# Field documentation for completions and hover
+field_docs:
+  ai_check_interval:
+    description: "Months between AI evaluations"
+    detail: "Required - how often AI considers this decision"
+    snippet: "ai_check_interval = ${1:12}"
+    
+  is_shown:
+    description: "Conditions for decision to appear in UI"
+    detail: "Trigger block - must be true for decision to be visible"
+    snippet: "is_shown = {\n\t$0\n}"
+    
+  is_valid:
+    description: "Conditions for decision to be clickable"
+    detail: "Trigger block - must be true for decision to be available"
+    snippet: "is_valid = {\n\t$0\n}"
+    
+  effect:
+    description: "Effects when decision is taken"
+    detail: "Required - what happens when player takes decision"
+    snippet: "effect = {\n\t$0\n}"
+    
+  cost:
+    description: "Resources required to take decision"
+    detail: "Cost block with gold, prestige, piety, etc."
+    snippet: "cost = {\n\t${1:gold = 100}\n}"
+    
+  ai_will_do:
+    description: "AI weight for taking decision"
+    detail: "Weight block - higher weight = AI more likely to take"
+    snippet: "ai_will_do = {\n\tbase = ${1:50}\n}"
+    
+  major:
+    description: "Display as major decision"
+    detail: "If yes, shows as important decision in UI"
+    snippet: "major = ${1|yes,no|}"
+
+# ============ SYMBOLS ============
+# Symbol extraction rules for document outline
+symbols:
+  primary:
+    kind: Function
+    name_from: key
+    detail_from: title
+  children:
+    - field: is_shown
+      kind: Object
+      name: "is_shown"
+    - field: is_valid
+      kind: Object
+      name: "is_valid"
+    - field: effect
+      kind: Function
+      name: "effect"
+    - field: cost
+      kind: Object
+      name: "cost"
+    - field: ai_will_do
+      kind: Object
+      name: "ai_will_do"
+
+# ============ CODE LENS ============
+# Code lens configuration
+code_lens:
+  enabled: true
+  reference_count:
+    enabled: true
+    label: "{count} references"
+  missing_localization:
+    enabled: true
+    fields: [title, desc]
+    label: "⚠️ Missing: {field}"

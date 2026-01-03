@@ -1,0 +1,237 @@
+# Generic Validation Rules for CK3 Script Files
+# These rules apply universally across all file types
+# They encode Paradox scripting best practices and common pitfalls
+
+version: "1.0"
+description: "Schema-driven generic validation rules for CK3 scripts"
+
+# Rule categories matching diagnostic code ranges
+categories:
+  context_violations:
+    prefix: "CK38"
+    description: "Effect/trigger context violations"
+  
+  iterator_misuse:
+    prefix: "CK39"
+    description: "List iterator validation"
+  
+  common_gotchas:
+    prefix: "CK51"
+    description: "Common CK3 gotchas and pitfalls"
+
+# Generic validation rules
+# Each rule defines:
+#   - diagnostic: Diagnostic code from diagnostics.yaml
+#   - pattern: What to detect (AST pattern matching)
+#   - context: Where this pattern is invalid
+#   - severity: error, warning, or info
+#   - enabled: Can be toggled on/off
+
+rules:
+  # ============== Context Violations (CK38xx) ==============
+  
+  effect_in_trigger_block:
+    diagnostic: CK3870
+    severity: error
+    enabled: true
+    description: "Effects cannot be used in trigger blocks"
+    pattern:
+      type: effect_usage
+      # Pattern matches any effect name from CK3_EFFECTS or scripted_effects
+      match: "is_effect"
+    context:
+      # Invalid when inside these block types
+      parent_blocks: ["trigger", "can_send", "is_shown", "is_valid", "is_highlighted"]
+      exclude_blocks: ["if", "else_if", "else", "AND", "OR", "NOT", "NOR", "NAND"]
+    message: "Effect '{name}' used in {context} block. Effects cannot be used in trigger contexts."
+    fix: "Remove this effect or move it to an effect block (e.g., 'effect' or 'immediate')"
+  
+  effect_in_limit_block:
+    diagnostic: CK3871
+    severity: error
+    enabled: true
+    description: "Effects cannot be used in limit blocks"
+    pattern:
+      type: effect_usage
+      match: "is_effect"
+    context:
+      parent_blocks: ["limit"]
+      exclude_blocks: ["if", "else_if", "else", "AND", "OR", "NOT"]
+    message: "Effect '{name}' used in limit block. Limits are triggers, not effects."
+    fix: "Remove this effect or move it outside the limit block"
+  
+  trigger_in_effect_block:
+    diagnostic: CK3872
+    severity: warning
+    enabled: false  # Optional check, disabled by default
+    description: "Trigger used in effect block (may not work as expected)"
+    pattern:
+      type: trigger_usage
+      match: "is_trigger"
+    context:
+      parent_blocks: ["effect", "immediate", "on_accept", "on_decline"]
+      # Some triggers are valid in effects (conditional checks)
+      exclude_names: ["if", "trigger_if", "trigger_else", "random", "hidden_effect"]
+    message: "Trigger '{name}' used in effect block. Consider using 'if' for conditions."
+  
+  redundant_always_yes:
+    diagnostic: CK3872
+    severity: warning
+    enabled: true
+    description: "Redundant trigger = { always = yes }"
+    pattern:
+      type: redundant_check
+      match_key: "trigger"
+      match_child_key: "always"
+      match_child_value: "yes"
+    message: "Redundant 'trigger = {{ always = yes }}' - always true anyway"
+    fix: "Remove this trigger block, it serves no purpose"
+  
+  impossible_always_no:
+    diagnostic: CK3873
+    severity: error
+    enabled: true
+    description: "Impossible trigger = { always = no }"
+    pattern:
+      type: redundant_check
+      match_key: "trigger"
+      match_child_key: "always"
+      match_child_value: "no"
+    message: "Impossible 'trigger = {{ always = no }}' - code will never execute"
+    fix: "Remove this block or fix the condition - it can never be true"
+  
+  # ============== Iterator Misuse (CK39xx) ==============
+  
+  random_without_limit:
+    diagnostic: CK3875
+    severity: warning
+    enabled: true
+    description: "Missing limit in random_ iterator"
+    pattern:
+      type: iterator_check
+      match_prefix: "random_"
+      require_child: "limit"
+    message: "'{iterator}' without limit - selection probability is undefined"
+    fix: "Add 'limit = {{ <conditions> }}' to specify which items can be selected"
+  
+  effect_in_any_iterator:
+    diagnostic: CK3976
+    severity: warning
+    enabled: true
+    description: "Effect in any_ iterator (should use every_ for effects)"
+    pattern:
+      type: iterator_with_effects
+      match_prefix: "any_"
+      contains: "effects"
+    message: "Effects in '{iterator}' - use 'every_' for effects, 'any_' for checks"
+    fix: "Change to 'every_{scope}' if you want to modify all matching items"
+  
+  every_without_limit:
+    diagnostic: CK3977
+    severity: info
+    enabled: true
+    description: "every_ without limit (affects ALL matching)"
+    pattern:
+      type: iterator_check
+      match_prefix: "every_"
+      require_child: "limit"
+      optional: true  # Just a warning, not required
+    message: "'{iterator}' without limit - will affect ALL {scope}, potentially expensive"
+    fix: "Consider adding 'limit = {{ <conditions> }}' to restrict which items are affected"
+  
+  # ============== Common CK3 Gotchas (CK51xx) ==============
+  
+  is_alive_without_exists:
+    diagnostic: CK5137
+    severity: warning
+    enabled: true
+    description: "is_alive without exists check (crashes if target doesn't exist)"
+    pattern:
+      type: missing_prerequisite
+      check_key: "is_alive"
+      requires_check: "exists"
+      scope_resolution: true  # Check if exists is in parent or sibling
+    message: "Using 'is_alive' without 'exists' check - will crash if {scope} doesn't exist"
+    fix: "Add 'exists = <scope>' check before 'is_alive', or wrap in 'if = {{ exists = <scope> is_alive = yes }}'"
+  
+  character_comparison_equals:
+    diagnostic: CK5142
+    severity: error
+    enabled: true
+    description: "Character comparison with = instead of 'this'"
+    pattern:
+      type: comparison_syntax
+      operator: "="
+      # Detect patterns like "scope = some_character" where it should be "scope = { this = some_character }"
+      match_context: "scope_comparison"
+    message: "Character comparison with '=' - use 'this' keyword for character comparisons"
+    fix: "Change to: {scope} = {{ this = {target} }}"
+  
+  # ============== Opinion Modifiers (CK36xx) ==============
+  
+  inline_opinion_value:
+    diagnostic: CK3656
+    severity: info
+    enabled: true
+    description: "Inline opinion value (should use opinion modifier)"
+    pattern:
+      type: value_check
+      match_key: "opinion"
+      value_type: "number"
+      # Direct numeric values like "opinion = 50" instead of opinion modifier
+    message: "Inline opinion value - consider using opinion_modifier for maintainability"
+    fix: "Create an opinion modifier and reference it instead of hardcoding the value"
+
+# Configuration for rule categories
+# Allows enabling/disabling entire categories at once
+configuration:
+  effect_trigger_context:
+    enabled: true
+    rules: ["effect_in_trigger_block", "effect_in_limit_block", "redundant_always_yes", "impossible_always_no"]
+  
+  list_iterators:
+    enabled: true
+    rules: ["random_without_limit", "effect_in_any_iterator", "every_without_limit"]
+  
+  common_gotchas:
+    enabled: true
+    rules: ["is_alive_without_exists", "character_comparison_equals"]
+  
+  opinion_modifiers:
+    enabled: true
+    rules: ["inline_opinion_value"]
+
+# Pattern matching documentation
+# Explains how pattern types work for schema authors
+pattern_types:
+  effect_usage:
+    description: "Matches when a known effect is used"
+    checks: "Node key is in CK3_EFFECTS or scripted_effects index"
+  
+  trigger_usage:
+    description: "Matches when a known trigger is used"
+    checks: "Node key is in CK3_TRIGGERS or scripted_triggers index"
+  
+  iterator_check:
+    description: "Checks iterator usage patterns"
+    checks: "Validates iterator has required children like 'limit'"
+  
+  iterator_with_effects:
+    description: "Detects effects inside iterator blocks"
+    checks: "Scans iterator children for effect usage"
+  
+  redundant_check:
+    description: "Detects redundant trigger patterns"
+    checks: "Matches specific key/value combinations"
+  
+  missing_prerequisite:
+    description: "Checks for missing prerequisite triggers"
+    checks: "Validates that prerequisite check exists before dependent check"
+  
+  comparison_syntax:
+    description: "Validates comparison operator usage"
+    checks: "Detects incorrect syntax for comparisons"
+  
+  value_check:
+    description: "Validates value types and usage"
+    checks: "Checks if values are inline vs referenced"

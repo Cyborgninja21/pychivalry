@@ -1,0 +1,189 @@
+# Story Cycle Validation Schema
+# Declarative validation rules for CK3 story cycles
+version: "1.0"
+file_type: story_cycle
+
+# File identification - when to apply this schema
+identification:
+  path_patterns:
+    - "*/common/story_cycles/*.txt"
+    - "*/common/story_cycles/**/*.txt"
+    - "common/story_cycles/*.txt"
+
+# Field Order Configuration (Phase 8.3)
+field_order:
+  enabled: true
+  mode: flexible
+  order:
+    - on_setup
+    - on_end
+    - on_owner_death
+    - effect_group
+
+# ============ VALIDATION ============
+# Field definitions with validation rules
+fields:
+  on_setup:
+    type: effect_block
+    warnings:
+      - condition: "children.count == 0"
+        diagnostic: STORY-040
+        
+  on_end:
+    type: effect_block
+    warnings:
+      - condition: "children.count == 0"
+        diagnostic: STORY-041
+        
+  on_owner_death:
+    type: effect_block
+    # Note: "recommended" field creates a warning if missing
+    # This will be handled by a custom validation since we need to check for
+    # specific effects (end_story, make_story_owner) in the block
+        
+  effect_group:
+    type: block
+    schema: effect_group
+    min_count: 1
+    count_diagnostic: STORY-007
+
+# Nested schemas for complex block structures
+nested_schemas:
+  effect_group:
+    fields:
+      # Timing fields - at least one required
+      days:
+        type: integer_or_range
+      months:
+        type: integer_or_range
+      years:
+        type: integer_or_range
+        
+      trigger:
+        type: trigger_block
+        
+      chance:
+        type: number
+        warnings:
+          - condition: "value > 100"
+            diagnostic: STORY-023
+          - condition: "value <= 0"
+            diagnostic: STORY-024
+            
+      triggered_effect:
+        type: block
+        schema: triggered_effect
+        multiple: true
+        
+      first_valid:
+        type: block
+        schema: first_valid
+    
+    validations:
+      # Check that at least one timing keyword is present
+      - name: missing_timing
+        condition: "NOT days.exists AND NOT months.exists AND NOT years.exists"
+        diagnostic: STORY-001
+        
+      # Check for multiple timing keywords
+      - name: multiple_timing
+        condition: "(days.exists AND months.exists) OR (days.exists AND years.exists) OR (months.exists AND years.exists)"
+        diagnostic: STORY-004
+        
+      # Check that effect_group has at least one triggered_effect or first_valid
+      - name: no_effects
+        condition: "triggered_effect.count == 0 AND NOT first_valid.exists"
+        diagnostic: STORY-025
+        
+      # Warn about mixing triggered_effect and first_valid
+      - name: mixed_patterns
+        condition: "triggered_effect.count > 0 AND first_valid.exists"
+        diagnostic: STORY-027
+        
+      # Warn about effect_group without trigger
+      - name: no_trigger
+        condition: "NOT trigger.exists"
+        diagnostic: STORY-022
+
+  triggered_effect:
+    fields:
+      trigger:
+        required: true
+        type: trigger_block
+        diagnostic: STORY-005
+        
+      effect:
+        required: true
+        type: effect_block
+        diagnostic: STORY-006
+
+  first_valid:
+    fields:
+      triggered_effect:
+        type: block
+        schema: triggered_effect
+        multiple: true
+
+# Top-level story cycle validations
+validations:
+  # Warn if on_owner_death is missing
+  - name: missing_owner_death
+    condition: "NOT on_owner_death.exists"
+    diagnostic: STORY-020
+
+# ============ COMPLETIONS & HOVER ============
+# Field documentation for completions and hover features
+field_docs:
+  on_setup:
+    description: "Effects that run when the story cycle is created"
+    detail: "Effect block - initialization logic"
+    snippet: "on_setup = {\n\t$0\n}"
+    
+  on_end:
+    description: "Effects that run when the story cycle ends"
+    detail: "Effect block - cleanup logic"
+    snippet: "on_end = {\n\t$0\n}"
+    
+  on_owner_death:
+    description: "Effects that run when the story owner dies"
+    detail: "Effect block - should call end_story or make_story_owner"
+    snippet: "on_owner_death = {\n\tscope:story = {\n\t\tend_story = yes\n\t}\n}"
+    
+  effect_group:
+    description: "Periodic effect group that fires at regular intervals"
+    detail: "Block with timing keyword and triggered_effect blocks"
+    snippet: "effect_group = {\n\t${1|days,months,years|} = ${2:30}\n\t\n\ttriggered_effect = {\n\t\ttrigger = { $3 }\n\t\teffect = { $0 }\n\t}\n}"
+
+# ============ SYMBOLS ============
+# Document outline and symbol configuration
+symbols:
+  primary:
+    kind: Class                    # Story cycles shown as classes
+    name_from: key                 # Use block key as name
+    detail: "Story Cycle"
+  children:
+    - field: on_setup
+      kind: Function
+      name: "on_setup"
+    - field: on_end
+      kind: Function
+      name: "on_end"
+    - field: on_owner_death
+      kind: Function
+      name: "on_owner_death"
+    - field: effect_group
+      kind: Method                 # Effect groups as methods
+      name_pattern: "effect_group_{index}"  # Numbered: effect_group_1, effect_group_2, etc.
+
+# ============ CODE LENS ============
+# Inline actionable information configuration
+code_lens:
+  enabled: true
+  reference_count:
+    enabled: true
+    label: "{count} references"
+    icon: "🔗"
+  effect_group_summary:
+    enabled: true
+    label: "{count} effect groups"
+    icon: "⚡"

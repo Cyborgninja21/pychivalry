@@ -1,0 +1,374 @@
+# Character Interaction Validation Schema
+# Declarative validation rules for CK3 character interactions
+version: "1.0"
+file_type: character_interaction
+
+# File identification - when to apply this schema
+identification:
+  path_patterns:
+    - "*/common/character_interactions/*.txt"
+    - "*/common/character_interactions/**/*.txt"
+    - "common/character_interactions/*.txt"
+
+# Field Order Configuration (Phase 8.3)
+field_order:
+  enabled: true
+  mode: flexible
+  order:
+    - category
+    - interface_priority
+    - icon
+    - is_shown
+    - can_send
+    - is_highlighted
+    - on_accept
+    - on_decline
+    - on_auto_accept
+    - ai_targets
+    - ai_frequency
+    - ai_potential
+    - ai_accept
+    - ai_will_do
+    - cooldown
+    - redirect
+
+# Constants - reusable value lists
+constants:
+  categories:
+    - interaction_category_hostile
+    - interaction_category_friendly
+    - interaction_category_diplomacy
+    - interaction_category_vassal
+    - interaction_category_religion
+    - interaction_category_prison
+    - interaction_category_uncategorized
+    
+  interface_priorities:
+    - 0
+    - 10
+    - 20
+    - 30
+    - 40
+    - 50
+    - 60
+    - 70
+    - 80
+    - 90
+    - 100
+
+# ============ VALIDATION ============
+# Field definitions with validation rules
+fields:
+  category:
+    type: enum
+    values: $categories
+    description: "UI category for this interaction"
+    diagnostic: INTERACTION-001
+    
+  icon:
+    type: string
+    description: "Icon displayed for interaction"
+    
+  common_interaction:
+    type: boolean
+    description: "If yes, shows in common interactions list"
+    
+  interface_priority:
+    type: integer
+    description: "Display order in interaction list (higher = earlier)"
+    
+  desc:
+    type: localization_key
+    description: "Localization key for interaction description"
+    
+  greeting:
+    type: enum
+    values: [positive, negative, negative_with_title]
+    description: "Type of greeting in interaction window"
+    
+  notification_text:
+    type: localization_key
+    description: "Text shown in notification"
+    
+  prompt:
+    type: localization_key
+    description: "Prompt text in interaction window"
+    
+  is_shown:
+    type: trigger_block
+    description: "Conditions for interaction to appear"
+    
+  is_valid_showing_failures_only:
+    type: trigger_block
+    description: "Validity conditions shown only when false"
+    
+  can_be_picked:
+    type: trigger_block
+    description: "Conditions for interaction to be selectable"
+    
+  can_send:
+    type: trigger_block
+    description: "Conditions for sending the interaction"
+    
+  on_accept:
+    type: effect_block
+    description: "Effects when target accepts"
+    
+  on_decline:
+    type: effect_block
+    description: "Effects when target declines"
+    
+  on_send:
+    type: effect_block
+    description: "Effects when interaction is sent"
+    
+  on_auto_accept:
+    type: effect_block
+    description: "Effects when automatically accepted"
+    
+  auto_accept:
+    type: boolean
+    description: "Whether target auto-accepts"
+    
+  ai_targets:
+    type: block
+    schema: ai_targets
+    description: "Defines who AI can target"
+    
+  ai_target_quick_trigger:
+    type: block
+    description: "Quick filter for AI targets"
+    
+  ai_frequency:
+    type: integer
+    description: "Months between AI considerations"
+    
+  ai_potential:
+    type: trigger_block
+    description: "AI will never use if false"
+    
+  ai_will_do:
+    type: block
+    schema: ai_will_do
+    description: "AI weight for using interaction"
+    
+  ai_accept:
+    type: block
+    schema: ai_accept
+    description: "AI weight for accepting interaction"
+    
+  ai_min_reply_days:
+    type: integer
+    description: "Minimum days AI waits before replying"
+    
+  ai_max_reply_days:
+    type: integer
+    description: "Maximum days AI waits before replying"
+    
+  cooldown:
+    type: block
+    schema: cooldown
+    description: "Cooldown before interaction can be used again"
+    
+  cooldown_against_recipient:
+    type: block
+    schema: cooldown
+    description: "Cooldown against specific target"
+    
+  redirect:
+    type: block
+    schema: redirect
+    description: "Redirect to another character"
+    
+  options:
+    type: block
+    schema: options
+    description: "Interaction options/choices"
+    
+  localization_values:
+    type: block
+    description: "Custom localization value definitions"
+    
+  can_be_picked_title:
+    type: localization_key
+    description: "Tooltip for can_be_picked"
+    
+  can_send_title:
+    type: localization_key
+    description: "Tooltip for can_send"
+    
+  send_option:
+    type: localization_key
+    description: "Text on send button"
+    
+  is_highlighted:
+    type: trigger_block
+    description: "Conditions for highlighting interaction"
+    
+  can_be_picked_ai:
+    type: trigger_block
+    description: "AI-specific can_be_picked conditions"
+    
+  show_effects_in_notification:
+    type: boolean
+    description: "Whether to show effects in notification"
+    
+  popup_on_receive:
+    type: boolean
+    description: "Whether to show popup when receiving"
+    
+  pause_on_receive:
+    type: boolean
+    description: "Whether to pause game when receiving"
+    
+  pre_answer_yes_key:
+    type: localization_key
+    description: "Text before accept effects"
+    
+  pre_answer_no_key:
+    type: localization_key
+    description: "Text before decline effects"
+    
+  pre_answer_maybe_key:
+    type: localization_key
+    description: "Text before conditional effects"
+
+# Nested schemas
+nested_schemas:
+  ai_targets:
+    fields:
+      max:
+        type: integer
+        description: "Maximum number of targets"
+        
+  ai_will_do:
+    fields:
+      base:
+        type: integer
+      modifier:
+        type: block
+        multiple: true
+        schema: ai_modifier
+        
+  ai_accept:
+    fields:
+      base:
+        type: integer
+      modifier:
+        type: block
+        multiple: true
+        schema: ai_modifier
+        
+  ai_modifier:
+    fields:
+      add:
+        type: integer
+      multiply:
+        type: number
+      factor:
+        type: number
+        
+  cooldown:
+    fields:
+      days:
+        type: integer
+      months:
+        type: integer
+      years:
+        type: integer
+        
+  redirect:
+    fields:
+      scope:
+        type: scope_reference
+      soundeffect:
+        type: string
+        
+  options:
+    # Complex nested structure - placeholder
+    pass
+
+# Cross-field validations
+validations:
+  - name: no_effects
+    condition: "NOT on_accept.exists AND NOT on_decline.exists AND NOT on_send.exists"
+    diagnostic: INTERACTION-002
+    severity: warning
+    message: "Interaction has no effects - does nothing"
+    
+  - name: missing_ai_config
+    condition: "NOT ai_frequency.exists AND NOT ai_potential.exists"
+    diagnostic: INTERACTION-003
+    severity: information
+    message: "Interaction has no AI configuration - AI will never use"
+
+# ============ COMPLETIONS & HOVER ============
+field_docs:
+  category:
+    description: "UI category for this interaction"
+    detail: "Required - determines where interaction appears"
+    snippet: "category = ${1|interaction_category_hostile,interaction_category_friendly,interaction_category_diplomacy|}"
+    
+  is_shown:
+    description: "Conditions for interaction to be visible"
+    detail: "Trigger block - must be true to show interaction"
+    snippet: "is_shown = {\n\t$0\n}"
+    
+  can_send:
+    description: "Conditions for sending interaction"
+    detail: "Trigger block - must be true to send"
+    snippet: "can_send = {\n\t$0\n}"
+    
+  on_accept:
+    description: "Effects when target accepts"
+    detail: "Effect block - runs in scope:recipient"
+    snippet: "on_accept = {\n\t$0\n}"
+    
+  on_decline:
+    description: "Effects when target declines"
+    detail: "Effect block - runs in scope:recipient"
+    snippet: "on_decline = {\n\t$0\n}"
+    
+  ai_accept:
+    description: "AI weight for accepting"
+    detail: "Weight block - higher = more likely to accept"
+    snippet: "ai_accept = {\n\tbase = ${1:0}\n}"
+    
+  ai_will_do:
+    description: "AI weight for using interaction"
+    detail: "Weight block - higher = AI more likely to use"
+    snippet: "ai_will_do = {\n\tbase = ${1:10}\n}"
+
+# ============ SYMBOLS ============
+symbols:
+  primary:
+    kind: Interface
+    name_from: key
+    detail_from: category
+  children:
+    - field: is_shown
+      kind: Object
+      name: "is_shown"
+    - field: can_send
+      kind: Object
+      name: "can_send"
+    - field: on_accept
+      kind: Function
+      name: "on_accept"
+    - field: on_decline
+      kind: Function
+      name: "on_decline"
+    - field: ai_accept
+      kind: Object
+      name: "ai_accept"
+
+# ============ CODE LENS ============
+code_lens:
+  enabled: true
+  reference_count:
+    enabled: true
+    label: "{count} uses"
+  missing_localization:
+    enabled: true
+    fields: [desc, prompt]
+    label: "⚠️ Missing: {field}"
