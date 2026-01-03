@@ -1,0 +1,122 @@
+# Story Cycle Validation Schema
+# Declarative validation rules for CK3 story cycles
+version: "1.0"
+file_type: story_cycle
+
+# File identification - when to apply this schema
+identification:
+  path_patterns:
+    - "*/common/story_cycles/*.txt"
+    - "*/common/story_cycles/**/*.txt"
+    - "common/story_cycles/*.txt"
+
+# ============ VALIDATION ============
+# Field definitions with validation rules
+fields:
+  on_setup:
+    type: effect_block
+    warnings:
+      - condition: "children.count == 0"
+        diagnostic: STORY-040
+        
+  on_end:
+    type: effect_block
+    warnings:
+      - condition: "children.count == 0"
+        diagnostic: STORY-041
+        
+  on_owner_death:
+    type: effect_block
+    # Note: "recommended" field creates a warning if missing
+    # This will be handled by a custom validation since we need to check for
+    # specific effects (end_story, make_story_owner) in the block
+        
+  effect_group:
+    type: block
+    schema: effect_group
+    min_count: 1
+    count_diagnostic: STORY-007
+
+# Nested schemas for complex block structures
+nested_schemas:
+  effect_group:
+    fields:
+      # Timing fields - at least one required
+      days:
+        type: integer_or_range
+      months:
+        type: integer_or_range
+      years:
+        type: integer_or_range
+        
+      trigger:
+        type: trigger_block
+        
+      chance:
+        type: number
+        warnings:
+          - condition: "value > 100"
+            diagnostic: STORY-023
+          - condition: "value <= 0"
+            diagnostic: STORY-024
+            
+      triggered_effect:
+        type: block
+        schema: triggered_effect
+        multiple: true
+        
+      first_valid:
+        type: block
+        schema: first_valid
+    
+    validations:
+      # Check that at least one timing keyword is present
+      - name: missing_timing
+        condition: "NOT days.exists AND NOT months.exists AND NOT years.exists"
+        diagnostic: STORY-001
+        
+      # Check for multiple timing keywords
+      - name: multiple_timing
+        condition: "(days.exists AND months.exists) OR (days.exists AND years.exists) OR (months.exists AND years.exists)"
+        diagnostic: STORY-004
+        
+      # Check that effect_group has at least one triggered_effect or first_valid
+      - name: no_effects
+        condition: "triggered_effect.count == 0 AND NOT first_valid.exists"
+        diagnostic: STORY-025
+        
+      # Warn about mixing triggered_effect and first_valid
+      - name: mixed_patterns
+        condition: "triggered_effect.count > 0 AND first_valid.exists"
+        diagnostic: STORY-027
+        
+      # Warn about effect_group without trigger
+      - name: no_trigger
+        condition: "NOT trigger.exists"
+        diagnostic: STORY-022
+
+  triggered_effect:
+    fields:
+      trigger:
+        required: true
+        type: trigger_block
+        diagnostic: STORY-005
+        
+      effect:
+        required: true
+        type: effect_block
+        diagnostic: STORY-006
+
+  first_valid:
+    fields:
+      triggered_effect:
+        type: block
+        schema: triggered_effect
+        multiple: true
+
+# Top-level story cycle validations
+validations:
+  # Warn if on_owner_death is missing
+  - name: missing_owner_death
+    condition: "NOT on_owner_death.exists"
+    diagnostic: STORY-020
