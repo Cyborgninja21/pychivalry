@@ -6,19 +6,19 @@ file_type: story_cycle
 # File identification - when to apply this schema
 identification:
   path_patterns:
-    - "*/common/story_cycles/*.txt"
-    - "*/common/story_cycles/**/*.txt"
-    - "common/story_cycles/*.txt"
+  - "*/common/story_cycles/*.txt"
+  - "*/common/story_cycles/**/*.txt"
+  - "common/story_cycles/*.txt"
 
 # Field Order Configuration (Phase 8.3)
 field_order:
   enabled: true
   mode: flexible
   order:
-    - on_setup
-    - on_end
-    - on_owner_death
-    - effect_group
+  - on_setup
+  - on_end
+  - on_owner_death
+  - effect_group
 
 # ============ VALIDATION ============
 # Field definitions with validation rules
@@ -26,21 +26,21 @@ fields:
   on_setup:
     type: effect_block
     warnings:
-      - condition: "children.count == 0"
-        diagnostic: STORY-040
-        
+    - condition: "children.count == 0"
+      diagnostic: STORY-040
+
   on_end:
     type: effect_block
     warnings:
-      - condition: "children.count == 0"
-        diagnostic: STORY-041
-        
+    - condition: "children.count == 0"
+      diagnostic: STORY-041
+
   on_owner_death:
     type: effect_block
     # Note: "recommended" field creates a warning if missing
     # This will be handled by a custom validation since we need to check for
     # specific effects (end_story, make_story_owner) in the block
-        
+
   effect_group:
     type: block
     schema: effect_group
@@ -51,59 +51,90 @@ fields:
 nested_schemas:
   effect_group:
     fields:
-      # Timing fields - at least one required
+      # Timing fields - exactly one required (days/weeks/months/years)
       days:
         type: integer_or_range
+        description: "Interval in days (e.g., 30 or { 30 60 } for range)"
+      weeks:
+        type: integer_or_range
+        description: "Interval in weeks (e.g., 4 or { 2 4 } for range)"
       months:
         type: integer_or_range
+        description: "Interval in months (e.g., 6 or { 3 6 } for range)"
       years:
         type: integer_or_range
-        
+        description: "Interval in years (e.g., 2 or { 1 3 } for range)"
+
       trigger:
         type: trigger_block
-        
+        description: "Condition for this effect_group to be eligible to fire"
+
       chance:
         type: number
+        description: "Percentage chance to fire when interval elapses (0-100, default 100)"
         warnings:
-          - condition: "value > 100"
-            diagnostic: STORY-023
-          - condition: "value <= 0"
-            diagnostic: STORY-024
-            
+        - condition: "value > 100"
+          diagnostic: STORY-023
+        - condition: "value <= 0"
+          diagnostic: STORY-024
+
       triggered_effect:
         type: block
         schema: triggered_effect
         multiple: true
-        
+        description: "Conditional effect - requires trigger and effect blocks"
+
       first_valid:
         type: block
         schema: first_valid
-    
+        description: "Execute the FIRST triggered_effect whose trigger passes"
+
+      random_valid:
+        type: block
+        schema: random_valid
+        description: "Execute ONE randomly selected triggered_effect whose trigger passes"
+
+      fallback:
+        type: effect_block
+        description: "Effects to run ONLY if no triggered_effect fired"
+
     validations:
-      # Check that at least one timing keyword is present
-      - name: missing_timing
-        condition: "NOT days.exists AND NOT months.exists AND NOT years.exists"
-        diagnostic: STORY-001
-        
-      # Check for multiple timing keywords
-      - name: multiple_timing
-        condition: "(days.exists AND months.exists) OR (days.exists AND years.exists) OR (months.exists AND years.exists)"
-        diagnostic: STORY-004
-        
-      # Check that effect_group has at least one triggered_effect or first_valid
-      - name: no_effects
-        condition: "triggered_effect.count == 0 AND NOT first_valid.exists"
-        diagnostic: STORY-025
-        
-      # Warn about mixing triggered_effect and first_valid
-      - name: mixed_patterns
-        condition: "triggered_effect.count > 0 AND first_valid.exists"
-        diagnostic: STORY-027
-        
-      # Warn about effect_group without trigger
-      - name: no_trigger
-        condition: "NOT trigger.exists"
-        diagnostic: STORY-022
+    # Check that at least one timing keyword is present
+    - name: missing_timing
+      condition: "NOT days.exists AND NOT weeks.exists AND NOT months.exists AND NOT years.exists"
+      diagnostic: STORY-001
+
+    # Check for multiple timing keywords (only one allowed)
+    - name: multiple_timing
+      condition: "(days.exists + weeks.exists + months.exists + years.exists) > 1"
+      diagnostic: STORY-004
+
+    # Check that effect_group has at least one triggered_effect, first_valid, or random_valid
+    - name: no_effects
+      condition: "triggered_effect.count == 0 AND NOT first_valid.exists AND NOT random_valid.exists"
+      diagnostic: STORY-025
+
+    # Warn about mixing triggered_effect with selection blocks
+    - name: mixed_patterns
+      condition: "triggered_effect.count > 0 AND (first_valid.exists OR random_valid.exists)"
+      diagnostic: STORY-027
+
+    # Warn about effect_group without trigger
+    - name: no_trigger
+      condition: "NOT trigger.exists"
+      diagnostic: STORY-022
+
+    # Performance hint: very short interval (< 7 days)
+    - name: short_interval
+      condition: "days.exists AND days.value < 7"
+      diagnostic: STORY-043
+      severity: info
+
+    # Performance hint: very long interval (> 10 years)
+    - name: long_interval
+      condition: "years.exists AND years.value > 10"
+      diagnostic: STORY-044
+      severity: info
 
   triggered_effect:
     fields:
@@ -111,11 +142,21 @@ nested_schemas:
         required: true
         type: trigger_block
         diagnostic: STORY-005
-        
+        description: "Condition that must pass for this effect to fire"
+
       effect:
         required: true
         type: effect_block
         diagnostic: STORY-006
+        description: "Effects to execute when trigger passes"
+
+      chance:
+        type: number
+        description: "Override group-level chance (0-100)"
+
+      weight:
+        type: number
+        description: "Weight for random_valid selection (default 1)"
 
   first_valid:
     fields:
@@ -123,13 +164,22 @@ nested_schemas:
         type: block
         schema: triggered_effect
         multiple: true
+        description: "Evaluated in order - first passing trigger fires"
+
+  random_valid:
+    fields:
+      triggered_effect:
+        type: block
+        schema: triggered_effect
+        multiple: true
+        description: "Randomly select from triggered_effects whose triggers pass"
 
 # Top-level story cycle validations
 validations:
-  # Warn if on_owner_death is missing
-  - name: missing_owner_death
-    condition: "NOT on_owner_death.exists"
-    diagnostic: STORY-020
+# Warn if on_owner_death is missing
+- name: missing_owner_death
+  condition: "NOT on_owner_death.exists"
+  diagnostic: STORY-020
 
 # ============ COMPLETIONS & HOVER ============
 # Field documentation for completions and hover features
@@ -137,43 +187,149 @@ field_docs:
   on_setup:
     description: "Effects that run when the story cycle is created"
     detail: "Effect block - initialization logic"
+    scope_context: "root = story cycle, scope:story = same as root, story_owner = owning character"
     snippet: "on_setup = {\n\t$0\n}"
-    
+
   on_end:
     description: "Effects that run when the story cycle ends"
-    detail: "Effect block - cleanup logic"
+    detail: "Effect block - cleanup logic (remove modifiers, variables)"
+    scope_context: "root = story cycle, scope:story = same as root, story_owner = owning character"
     snippet: "on_end = {\n\t$0\n}"
-    
+
   on_owner_death:
     description: "Effects that run when the story owner dies"
-    detail: "Effect block - should call end_story or make_story_owner"
-    snippet: "on_owner_death = {\n\tscope:story = {\n\t\tend_story = yes\n\t}\n}"
-    
+    detail: "Effect block - should call end_story or make_story_owner to prevent orphaned stories"
+    scope_context: "root = story cycle, scope:story = same as root, story_owner = dying character"
+    snippet: "on_owner_death = {
+
+      \tif = {
+
+      \t\tlimit = { exists = story_owner.player_heir }
+
+      \t\tmake_story_owner = story_owner.player_heir
+
+      \t}
+
+      \telse = {
+
+      \t\tscope:story = { end_story = yes }
+
+      \t}
+
+      }"
+
   effect_group:
     description: "Periodic effect group that fires at regular intervals"
-    detail: "Block with timing keyword and triggered_effect blocks"
-    snippet: "effect_group = {\n\t${1|days,months,years|} = ${2:30}\n\t\n\ttriggered_effect = {\n\t\ttrigger = { $3 }\n\t\teffect = { $0 }\n\t}\n}"
+    detail: "Block with timing keyword (days/weeks/months/years), optional trigger, and triggered_effect blocks"
+    scope_context: "root = story cycle, scope:story = same as root, story_owner = owning character"
+    snippet: "effect_group = {
+
+      \t${1|days,weeks,months,years|} = ${2:30}
+
+
+      \ttrigger = {
+
+      \t\t$3
+
+      \t}
+
+
+      \ttriggered_effect = {
+
+      \t\ttrigger = { $4 }
+
+      \t\teffect = { $0 }
+
+      \t}
+
+      }"
+
+  first_valid:
+    description: "Execute the FIRST triggered_effect whose trigger passes"
+    detail: "Container for multiple triggered_effect blocks - evaluated in order"
+    scope_context: "Inherits from parent effect_group"
+    snippet: "first_valid = {
+
+      \ttriggered_effect = {
+
+      \t\ttrigger = { $1 }
+
+      \t\teffect = { $2 }
+
+      \t}
+
+      \ttriggered_effect = {
+
+      \t\ttrigger = { always = yes }
+
+      \t\teffect = { $0 }
+
+      \t}
+
+      }"
+
+  random_valid:
+    description: "Execute ONE randomly selected triggered_effect whose trigger passes"
+    detail: "Container for multiple triggered_effect blocks - random selection"
+    scope_context: "Inherits from parent effect_group"
+    snippet: "random_valid = {
+
+      \ttriggered_effect = {
+
+      \t\ttrigger = { $1 }
+
+      \t\teffect = { $2 }
+
+      \t}
+
+      \ttriggered_effect = {
+
+      \t\ttrigger = { $3 }
+
+      \t\teffect = { $0 }
+
+      \t}
+
+      }"
+
+  fallback:
+    description: "Effects that run ONLY if no triggered_effect fired"
+    detail: "Effect block - catch-all fallback"
+    scope_context: "Inherits from parent effect_group"
+    snippet: "fallback = {\n\t$0\n}"
+
+  triggered_effect:
+    description: "Conditional effect with trigger and effect blocks"
+    detail: "Requires both trigger and effect - fires if trigger passes"
+    scope_context: "Inherits from parent effect_group"
+    snippet: "triggered_effect = {
+
+      \ttrigger = { $1 }
+
+      \teffect = { $0 }
+
+      }"
 
 # ============ SYMBOLS ============
 # Document outline and symbol configuration
 symbols:
   primary:
-    kind: Class                    # Story cycles shown as classes
-    name_from: key                 # Use block key as name
+    kind: Class # Story cycles shown as classes
+    name_from: key # Use block key as name
     detail: "Story Cycle"
   children:
-    - field: on_setup
-      kind: Function
-      name: "on_setup"
-    - field: on_end
-      kind: Function
-      name: "on_end"
-    - field: on_owner_death
-      kind: Function
-      name: "on_owner_death"
-    - field: effect_group
-      kind: Method                 # Effect groups as methods
-      name_pattern: "effect_group_{index}"  # Numbered: effect_group_1, effect_group_2, etc.
+  - field: on_setup
+    kind: Function
+    name: "on_setup"
+  - field: on_end
+    kind: Function
+    name: "on_end"
+  - field: on_owner_death
+    kind: Function
+    name: "on_owner_death"
+  - field: effect_group
+    kind: Method # Effect groups as methods
+    name_pattern: "effect_group_{index}" # Numbered: effect_group_1, effect_group_2, etc.
 
 # ============ CODE LENS ============
 # Inline actionable information configuration

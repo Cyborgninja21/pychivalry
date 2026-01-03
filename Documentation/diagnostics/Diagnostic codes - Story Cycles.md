@@ -20,9 +20,9 @@ Story cycles are validated by the schema-driven validation system using `story_c
 |----------|-------|
 | **Severity** | Error |
 | **Category** | Story Cycles |
-| **Message** | `effect_group missing timing keyword (days/months/years)` |
+| **Message** | `effect_group missing timing keyword (days/weeks/months/years)` |
 
-Effect groups must specify when they fire using `days`, `months`, or `years`.
+Effect groups must specify when they fire using `days`, `weeks`, `months`, or `years`.
 
 ```pdx
 # ❌ STORY-001: Missing timing
@@ -55,7 +55,7 @@ my_story = {
 |----------|-------|
 | **Severity** | Error |
 | **Category** | Story Cycles |
-| **Message** | `Multiple timing keywords in effect_group (use only one of days/months/years)` |
+| **Message** | `Multiple timing keywords in effect_group (use only one of days/weeks/months/years)` |
 
 Only one timing keyword is allowed per effect_group.
 
@@ -64,6 +64,13 @@ Only one timing keyword is allowed per effect_group.
 effect_group = {
     days = 30
     months = 1  # ERROR: Can't have both
+    triggered_effect = { ... }
+}
+
+# ❌ STORY-004: Also wrong
+effect_group = {
+    weeks = 2
+    days = 14  # ERROR: Can't have both
     triggered_effect = { ... }
 }
 ```
@@ -186,25 +193,50 @@ effect_group = {
 
 ---
 
-### STORY-025: Trigger Without triggered_effect
+### STORY-025: No Effect Selection Pattern
 
 | Property | Value |
 |----------|-------|
 | **Severity** | Warning |
 | **Category** | Story Cycles |
-| **Message** | `effect_group has trigger but no triggered_effect blocks` |
+| **Message** | `effect_group has no triggered_effect, first_valid, or random_valid blocks` |
+
+Effect groups need at least one effect selection pattern to do anything useful.
+
+```pdx
+# ⚠️ STORY-025: No effect selection
+effect_group = {
+    days = 30
+    trigger = { is_adult = yes }
+    # Missing triggered_effect, first_valid, or random_valid!
+}
+```
 
 ---
 
-### STORY-027: Mixing triggered_effect and first_valid
+### STORY-027: Mixing triggered_effect with Selection Blocks
 
 | Property | Value |
 |----------|-------|
 | **Severity** | Warning |
 | **Category** | Story Cycles |
-| **Message** | `Mixing triggered_effect and first_valid in same effect_group is confusing` |
+| **Message** | `Mixing triggered_effect with first_valid/random_valid in same effect_group is confusing` |
 
-Choose one pattern per effect_group for clarity.
+Choose one pattern per effect_group for clarity:
+- **Direct `triggered_effect`**: All matching effects fire
+- **`first_valid`**: First matching effect fires
+- **`random_valid`**: Random matching effect fires
+
+```pdx
+# ⚠️ STORY-027: Mixing patterns
+effect_group = {
+    days = 30
+    triggered_effect = { ... }     # Direct triggered_effect
+    first_valid = {                # AND first_valid - confusing!
+        triggered_effect = { ... }
+    }
+}
+```
 
 ---
 
@@ -300,21 +332,127 @@ Intervals over 10+ years may never fire during a typical playthrough.
 
 | Code | Severity | Description |
 |------|----------|-------------|
-| **STORY-001** | Error | Effect group missing timing keyword |
-| **STORY-004** | Error | Multiple timing keywords |
-| **STORY-005** | Error | triggered_effect missing trigger |
-| **STORY-006** | Error | triggered_effect missing effect |
-| **STORY-007** | Error | No effect_group blocks |
+| **STORY-001** | Error | Effect group missing timing keyword (days/weeks/months/years) |
+| **STORY-004** | Error | Multiple timing keywords in same effect_group |
+| **STORY-005** | Error | triggered_effect missing trigger block |
+| **STORY-006** | Error | triggered_effect missing effect block |
+| **STORY-007** | Error | Story cycle has no effect_group blocks |
 | **STORY-020** | Warning | Missing on_owner_death handler |
-| **STORY-022** | Warning | Effect group fires unconditionally |
+| **STORY-022** | Warning | Effect group fires unconditionally (no trigger) |
 | **STORY-023** | Warning | Chance exceeds 100% |
-| **STORY-024** | Warning | Zero/negative chance |
-| **STORY-025** | Warning | Trigger without triggered_effect |
-| **STORY-027** | Warning | Mixing triggered_effect and first_valid |
+| **STORY-024** | Warning | Zero/negative chance (effect never fires) |
+| **STORY-025** | Warning | No effect selection pattern (triggered_effect/first_valid/random_valid) |
+| **STORY-027** | Warning | Mixing triggered_effect with selection blocks |
 | **STORY-040** | Info | Empty on_setup block |
 | **STORY-041** | Info | Empty on_end block |
-| **STORY-043** | Info | Very short interval |
-| **STORY-044** | Info | Very long interval |
+| **STORY-043** | Info | Very short interval (performance) |
+| **STORY-044** | Info | Very long interval (may never fire) |
+
+---
+
+## Effect Selection Patterns Reference
+
+Story cycles support multiple patterns for selecting which effects to execute:
+
+### Pattern A: Direct `triggered_effect` (All Matching Fire)
+
+```pdx
+effect_group = {
+    days = 30
+    triggered_effect = {
+        trigger = { condition_1 = yes }
+        effect = { effect_1 = yes }
+    }
+    triggered_effect = {
+        trigger = { condition_2 = yes }
+        effect = { effect_2 = yes }  # Both can fire if both triggers pass
+    }
+}
+```
+
+### Pattern B: `first_valid` (First Matching Fires)
+
+```pdx
+effect_group = {
+    days = 30
+    first_valid = {
+        triggered_effect = {
+            trigger = { high_priority_condition = yes }
+            effect = { high_priority_effect = yes }
+        }
+        triggered_effect = {
+            trigger = { always = yes }  # Fallback
+            effect = { default_effect = yes }
+        }
+    }
+}
+```
+
+### Pattern C: `random_valid` (Random Matching Fires)
+
+```pdx
+effect_group = {
+    days = 30
+    random_valid = {
+        triggered_effect = {
+            trigger = { condition_1 = yes }
+            effect = { random_effect_1 = yes }
+        }
+        triggered_effect = {
+            trigger = { condition_2 = yes }
+            effect = { random_effect_2 = yes }  # One selected at random
+        }
+    }
+}
+```
+
+### Pattern D: `fallback` (Default if Nothing Fires)
+
+```pdx
+effect_group = {
+    days = 30
+    first_valid = {
+        triggered_effect = {
+            trigger = { rare_condition = yes }
+            effect = { special_effect = yes }
+        }
+    }
+    fallback = {
+        # Runs only if no triggered_effect in first_valid fired
+        default_effect = yes
+    }
+}
+```
+
+---
+
+## Scope Context Reference
+
+| Block | `root` | `scope:story` | `story_owner` |
+|-------|--------|---------------|---------------|
+| `on_setup` | story cycle | same as root | owning character |
+| `on_end` | story cycle | same as root | owning character |
+| `on_owner_death` | story cycle | same as root | dying character |
+| `effect_group` | story cycle | same as root | owning character |
+
+### Common Story Operations
+
+```pdx
+# End the story
+scope:story = { end_story = yes }
+
+# Transfer ownership (in on_owner_death)
+make_story_owner = story_owner.player_heir
+
+# Store variable on story
+set_variable = { name = my_var value = 5 }
+
+# Access story owner
+story_owner = { trigger_event = my_event.001 }
+
+# Check story variable
+trigger = { var:my_var >= 5 }
+```
 
 ---
 
