@@ -123,6 +123,14 @@ from .indexer import DocumentIndex
 from .ck3_language import CK3_EFFECTS, CK3_TRIGGERS
 from . import events
 
+# NEW: Import generic rules validator for schema-driven validation
+try:
+    from .generic_rules_validator import validate_generic_rules
+    GENERIC_RULES_AVAILABLE = True
+except ImportError:
+    logger.warning("generic_rules_validator not available, using legacy validation")
+    GENERIC_RULES_AVAILABLE = False
+
 logger = logging.getLogger(__name__)
 
 
@@ -1477,6 +1485,18 @@ def check_paradox_conventions(
     Collect all Paradox convention diagnostics for an AST.
 
     This is the main entry point for Paradox convention checking.
+    
+    ARCHITECTURE UPDATE (Phase 6.9):
+        Generic validation rules are now schema-driven via generic_rules.yaml.
+        This allows updating validation rules without modifying Python code.
+        
+        The function now:
+        1. First tries schema-driven generic rules (generic_rules_validator.py)
+        2. Falls back to legacy hardcoded checks for compatibility
+        3. Adds file-type-specific event validation checks
+        
+        Future: Legacy checks (effect_in_trigger, list_iterator, etc.) will be
+        deprecated once all rules are migrated to schema.
 
     Args:
         ast: Parsed AST
@@ -1490,12 +1510,25 @@ def check_paradox_conventions(
     diagnostics = []
 
     try:
-        diagnostics.extend(check_effect_in_trigger_context(ast, index, config))
-        diagnostics.extend(check_list_iterator_misuse(ast, index, config))
-        diagnostics.extend(check_opinion_modifiers(ast, index, config))
+        # NEW: Schema-driven generic rules (Phase 6.9)
+        if GENERIC_RULES_AVAILABLE:
+            generic_config = {
+                "effect_trigger_context": config.effect_trigger_context,
+                "list_iterators": config.list_iterators,
+                "common_gotchas": config.common_gotchas,
+                "opinion_modifiers": config.opinion_modifiers,
+            }
+            diagnostics.extend(validate_generic_rules(ast, index, generic_config))
+        else:
+            # LEGACY: Fallback to hardcoded checks if schema system unavailable
+            diagnostics.extend(check_effect_in_trigger_context(ast, index, config))
+            diagnostics.extend(check_list_iterator_misuse(ast, index, config))
+            diagnostics.extend(check_opinion_modifiers(ast, index, config))
+            diagnostics.extend(check_redundant_triggers(ast, config))
+            diagnostics.extend(check_common_gotchas(ast, config))
+        
+        # File-type-specific checks (still using legacy approach)
         diagnostics.extend(check_event_structure(ast, config))
-        diagnostics.extend(check_redundant_triggers(ast, config))
-        diagnostics.extend(check_common_gotchas(ast, config))
 
         # Phase 1 Quick Wins - Event validation checks
         diagnostics.extend(check_event_type_valid(ast, config))
