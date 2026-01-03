@@ -1,0 +1,265 @@
+---
+name: vscode-extension-workflow
+description: Development workflow for the VS Code extension component. Use this when working on the TypeScript extension code.
+---
+
+# VS Code Extension Development Workflow
+
+## Initial Setup
+
+```bash
+cd vscode-extension
+npm install
+npm run compile
+```
+
+## Development Cycle
+
+### 1. Edit TypeScript Code
+
+Files to modify:
+- `src/extension.ts` - Main extension entry point
+- `package.json` - Extension manifest and configuration
+- `syntaxes/` - TextMate grammar files
+- `snippets/` - Code snippet definitions
+
+### 2. Compile TypeScript
+
+```bash
+# One-time compilation
+npm run compile
+
+# Watch mode (auto-recompile on changes)
+npm run watch
+```
+
+### 3. Test in Extension Development Host
+
+**Method 1: VS Code Command**
+1. Open `vscode-extension/` folder in VS Code
+2. Press `F5` to launch Extension Development Host
+3. In the new window, open a `.txt` file to test
+
+**Method 2: Command Line**
+```bash
+code --extensionDevelopmentPath=/path/to/vscode-extension
+```
+
+### 4. Debug Extension
+
+**Set breakpoints in TypeScript:**
+1. Open `src/extension.ts`
+2. Click left gutter to set breakpoint
+3. Press `F5` to start debugging
+4. Breakpoint will hit when code executes
+
+**View Debug Console:**
+- In Extension Development Host: Help → Toggle Developer Tools
+- Check Console tab for `console.log()` output
+- Check Network tab for LSP communication
+
+**View Output Channel:**
+```typescript
+const outputChannel = vscode.window.createOutputChannel("CK3 Language Server");
+outputChannel.appendLine("Debug message");
+outputChannel.show();
+```
+
+### 5. Test LSP Communication
+
+**Enable verbose logging:**
+In Extension Development Host settings:
+```json
+{
+  "ck3LanguageServer.trace.server": "verbose"
+}
+```
+
+**View LSP messages:**
+- Output panel → Select "CK3 Language Server"
+- See request/response JSON for all LSP calls
+
+### 6. Lint and Format
+
+```bash
+# Run ESLint
+npm run lint
+
+# Auto-fix linting issues
+npm run lint:fix
+
+# Format with Prettier
+npm run format
+```
+
+## Common Tasks
+
+### Adding New Configuration Setting
+
+1. Edit `package.json`:
+```json
+{
+  "contributes": {
+    "configuration": {
+      "properties": {
+        "ck3LanguageServer.newSetting": {
+          "type": "boolean",
+          "default": true,
+          "description": "Description of setting"
+        }
+      }
+    }
+  }
+}
+```
+
+2. Access in TypeScript:
+```typescript
+const config = vscode.workspace.getConfiguration('ck3LanguageServer');
+const value = config.get<boolean>('newSetting');
+```
+
+### Adding New Command
+
+1. Register in `package.json`:
+```json
+{
+  "contributes": {
+    "commands": [
+      {
+        "command": "ck3.myCommand",
+        "title": "CK3: My Command"
+      }
+    ]
+  }
+}
+```
+
+2. Implement in `extension.ts`:
+```typescript
+const disposable = vscode.commands.registerCommand('ck3.myCommand', () => {
+  vscode.window.showInformationMessage('Command executed!');
+});
+context.subscriptions.push(disposable);
+```
+
+### Adding File Association
+
+In `package.json`:
+```json
+{
+  "contributes": {
+    "languages": [
+      {
+        "id": "ck3",
+        "extensions": [".txt", ".gui"],
+        "aliases": ["CK3 Script", "ck3"]
+      }
+    ]
+  }
+}
+```
+
+### Adding Syntax Highlighting
+
+1. Create/edit `syntaxes/ck3.tmLanguage.json`
+2. Define patterns:
+```json
+{
+  "patterns": [
+    {
+      "match": "\\b(namespace|trigger|effect)\\b",
+      "name": "keyword.control.ck3"
+    }
+  ]
+}
+```
+
+3. Reference in `package.json`:
+```json
+{
+  "contributes": {
+    "grammars": [
+      {
+        "language": "ck3",
+        "scopeName": "source.ck3",
+        "path": "./syntaxes/ck3.tmLanguage.json"
+      }
+    ]
+  }
+}
+```
+
+## Packaging Extension
+
+### Create VSIX Package
+
+```bash
+# Install vsce if not already installed
+npm install -g @vscode/vsce
+
+# Package extension
+cd vscode-extension
+vsce package
+```
+
+This creates a `.vsix` file that can be installed.
+
+### Install VSIX Locally
+
+```bash
+code --install-extension pychivalry-*.vsix
+```
+
+Or in VS Code: Extensions → ... → Install from VSIX
+
+### Publish to Marketplace
+
+```bash
+# Login
+vsce login <publisher>
+
+# Publish
+vsce publish
+```
+
+## Troubleshooting
+
+### Extension Not Activating
+
+Check `package.json` activation events:
+```json
+{
+  "activationEvents": [
+    "onLanguage:ck3",
+    "workspaceContains:**/*.txt"
+  ]
+}
+```
+
+### Language Server Not Starting
+
+1. Check Python path in settings
+2. Verify `pychivalry` is installed: `python -m pychivalry --version`
+3. Check Output panel for error messages
+
+### Syntax Highlighting Not Working
+
+1. Reload VS Code window: Command Palette → "Developer: Reload Window"
+2. Check if TextMate grammar has errors
+3. Use "Developer: Inspect Editor Tokens and Scopes" command
+
+### Changes Not Reflecting
+
+1. Stop Extension Development Host
+2. Recompile: `npm run compile`
+3. Press `F5` again to restart
+
+## Best Practices
+
+1. **Always compile before testing**: Run `npm run compile`
+2. **Use watch mode during development**: `npm run watch`
+3. **Check LSP logs**: Enable verbose tracing
+4. **Test with real CK3 mod files**: Use `examples/` directory
+5. **Handle errors gracefully**: Wrap LSP calls in try-catch
+6. **Dispose resources**: Add disposables to `context.subscriptions`

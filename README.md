@@ -324,7 +324,14 @@ Contributions are welcome! Whether it's:
    
    See [docs/PRE_COMMIT_SETUP.md](docs/PRE_COMMIT_SETUP.md) for details.
 
-3. See [CONTRIBUTING.md](CONTRIBUTING.md) for complete guidelines.
+3. **GitHub Copilot** is configured to assist development:
+   - Instructions and coding standards in [`.github/copilot-instructions.md`](.github/copilot-instructions.md)
+   - Custom prompts for common tasks in [`.github/prompts/`](.github/prompts/)
+   - Specialized skills in [`.github/skills/`](.github/skills/)
+   
+   See [`.github/README.md`](.github/README.md) for details on using Copilot with this project.
+
+4. See [CONTRIBUTING.md](CONTRIBUTING.md) for complete guidelines.
 
 ## 📄 License
 

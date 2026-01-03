@@ -1,10 +1,12 @@
 # Documentation Prompts
 
-This directory contains reference documentation for maintaining code quality and understanding the pychivalry architecture.
+This directory contains reference documentation for maintaining code quality, understanding the pychivalry architecture, and specialized development guides.
 
 ## Files
 
-### `documentation_standard.md`
+### Core Documentation
+
+#### `documentation_standard.md`
 **Purpose**: Defines the comprehensive documentation standard for all Python files in pychivalry.
 
 **Use this when**:
@@ -20,7 +22,7 @@ This directory contains reference documentation for maintaining code quality and
 - Class/dataclass documentation patterns
 - Examples of excellent documentation
 
-### `architecture_and_flow.md`
+#### `architecture_and_flow.md`
 **Purpose**: Explains the system architecture, module interactions, and data flow through the language server.
 
 **Use this when**:
@@ -35,6 +37,86 @@ This directory contains reference documentation for maintaining code quality and
 - Critical dependencies and relationships
 - Performance considerations
 - Documentation priority order
+
+### LSP Development Guides
+
+#### `LSP Feature Implementation.prompt.md`
+**Purpose**: Step-by-step guide for implementing new Language Server Protocol features.
+
+**Use this when**:
+- Adding new LSP capabilities (completions, hover, code actions, etc.)
+- Understanding the LSP implementation pattern
+- Integrating with the VS Code extension
+
+**Key sections**:
+- LSP specification overview
+- Feature module structure
+- Handler registration
+- Testing patterns
+- Common implementation patterns
+
+#### `Debugging LSP Server Issues.prompt.md`
+**Purpose**: Comprehensive troubleshooting guide for LSP server problems.
+
+**Use this when**:
+- Server not starting or crashing
+- Features not working correctly
+- Performance issues
+- Communication problems between client and server
+
+**Key sections**:
+- Quick diagnostics checklist
+- Common issues and solutions
+- Debugging tools (profiling, logging, inspection)
+- Testing approaches
+
+#### `Adding New CK3 Language Features.prompt.md`
+**Purpose**: Guide for adding support for new CK3 scripting language elements.
+
+**Use this when**:
+- Adding new CK3 effects, triggers, or scopes
+- Supporting new game version features
+- Expanding language definitions
+
+**Key sections**:
+- Language element types (keywords, effects, triggers, scopes)
+- Definition patterns
+- Validation implementation
+- Testing checklist
+
+#### `Test Writing Best Practices.prompt.md`
+**Purpose**: Patterns and guidelines for writing high-quality pytest tests.
+
+**Use this when**:
+- Writing new tests
+- Improving test coverage
+- Refactoring existing tests
+- Learning testing patterns
+
+**Key sections**:
+- Unit test structure
+- Async test patterns
+- Fixtures and parametrization
+- Integration testing
+- Performance testing
+
+#### `VS Code Extension Packaging.prompt.md`
+**Purpose**: Complete guide for packaging and distributing the VS Code extension.
+
+**Use this when**:
+- Creating releases
+- Publishing to marketplace
+- Distributing the extension
+- Managing versions
+
+**Key sections**:
+- Pre-packaging checklist
+- VSIX creation process
+- Marketplace publishing
+- GitHub releases
+- Version management
+
+### Git Workflow Assistants
 
 ## Quick Start
 

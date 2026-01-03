@@ -1,0 +1,120 @@
+---
+name: lsp-feature-debugging
+description: Step-by-step guide for debugging Language Server Protocol features. Use this when troubleshooting LSP features like completions, hover, diagnostics, or navigation.
+---
+
+# Debugging LSP Features
+
+Follow this systematic approach when debugging LSP features:
+
+## 1. Enable Server Tracing
+
+Set trace level to verbose in VS Code settings:
+```json
+{
+  "ck3LanguageServer.trace.server": "verbose"
+}
+```
+
+Check the Output panel → "CK3 Language Server" for detailed logs.
+
+## 2. Identify the Feature Type
+
+Determine which LSP feature is failing:
+- **Completions** (`textDocument/completion`)
+- **Hover** (`textDocument/hover`)
+- **Diagnostics** (`textDocument/publishDiagnostics`)
+- **Go to Definition** (`textDocument/definition`)
+- **Find References** (`textDocument/references`)
+- **Document Symbols** (`textDocument/documentSymbol`)
+- **Code Actions** (`textDocument/codeAction`)
+
+## 3. Check Request/Response Flow
+
+1. Look for the request in server logs (search for method name)
+2. Check if the request reaches the handler
+3. Verify the response format matches LSP specification
+4. Check for exceptions or error messages
+
+## 4. Verify Document State
+
+Common issues:
+- Document not opened in server memory
+- Document content out of sync
+- URI format mismatches (file:// vs filesystem paths)
+
+Check logs for `textDocument/didOpen` and `textDocument/didChange` events.
+
+## 5. Test Parsing
+
+For syntax-related features, verify the parser:
+```python
+from pychivalry.parser import CK3Parser
+
+parser = CK3Parser()
+ast = parser.parse_text(document_content)
+# Check if AST is correct
+```
+
+## 6. Isolate the Issue
+
+Create a minimal test case:
+1. Create small test file with the issue
+2. Write a unit test for the specific feature
+3. Run test with verbose logging
+4. Step through with debugger
+
+## 7. Common LSP Issues
+
+**Empty completions:**
+- Check position calculation (line/character zero-indexed)
+- Verify context is being extracted correctly
+- Check if trigger characters are configured
+
+**Wrong hover position:**
+- Verify position-to-AST node mapping
+- Check if character encoding (UTF-16 vs UTF-8) matches
+
+**Diagnostics not updating:**
+- Check if `publishDiagnostics` is called after document change
+- Verify document URI format
+
+**Go to definition fails:**
+- Check if indexer has scanned the target file
+- Verify symbol lookup in index
+- Check if URI conversion is correct
+
+## 8. Use pytest for Reproducible Tests
+
+Write a failing test first:
+```python
+@pytest.mark.asyncio
+async def test_completion_at_position():
+    server = create_test_server()
+    doc = "namespace = test\n"
+    result = await server.completion(doc, line=0, character=10)
+    assert len(result.items) > 0
+```
+
+## 9. Check LSP Protocol Conformance
+
+Verify responses match the specification:
+- https://microsoft.github.io/language-server-protocol/
+
+Use the LSP inspector in VS Code (Help → Toggle Developer Tools).
+
+## 10. Performance Profiling
+
+If the feature is slow:
+```python
+import cProfile
+import pstats
+
+profiler = cProfile.Profile()
+profiler.enable()
+# Run the feature
+profiler.disable()
+stats = pstats.Stats(profiler)
+stats.sort_stats('cumulative')
+stats.print_stats(20)
+```

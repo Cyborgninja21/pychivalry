@@ -1,0 +1,223 @@
+---
+name: pytest-testing-patterns
+description: Guide for writing effective pytest tests for the pychivalry language server. Use this when adding new tests or improving test coverage.
+---
+
+# PyTest Testing Patterns for PyChivalry
+
+## Test Structure
+
+### Basic Test Template
+
+```python
+import pytest
+from pychivalry.parser import CK3Parser
+from pychivalry.diagnostics import DiagnosticsEngine
+
+def test_feature_name():
+    """Test description explaining what is being tested."""
+    # Arrange
+    parser = CK3Parser()
+    input_text = "test_input"
+    
+    # Act
+    result = parser.parse_text(input_text)
+    
+    # Assert
+    assert result is not None
+    assert len(result.errors) == 0
+```
+
+## Async Tests (for LSP handlers)
+
+```python
+@pytest.mark.asyncio
+async def test_completion_handler():
+    """Test completion handler with document context."""
+    from pychivalry.server import CK3LanguageServer
+    
+    server = CK3LanguageServer()
+    # Create test document
+    uri = "file:///test.txt"
+    content = "namespace = test"
+    
+    # Call handler
+    result = await server.completion(uri, line=0, character=10)
+    
+    assert result is not None
+    assert len(result.items) > 0
+```
+
+## Fixtures for Common Setup
+
+```python
+@pytest.fixture
+def sample_ck3_code():
+    """Fixture providing sample CK3 script."""
+    return """
+    namespace = my_mod
+    
+    my_event = {
+        type = character_event
+        title = my_event.title
+    }
+    """
+
+@pytest.fixture
+def parser():
+    """Fixture providing configured parser."""
+    return CK3Parser()
+
+def test_with_fixtures(parser, sample_ck3_code):
+    """Test using fixtures."""
+    result = parser.parse_text(sample_ck3_code)
+    assert result.events is not None
+```
+
+## Parametrized Tests
+
+```python
+@pytest.mark.parametrize("input_text,expected_count", [
+    ("has_trait = brave", 1),
+    ("has_trait = brave\nhas_trait = craven", 2),
+    ("", 0),
+])
+def test_trait_detection(input_text, expected_count):
+    """Test trait detection with various inputs."""
+    from pychivalry.traits import find_trait_references
+    
+    result = find_trait_references(input_text)
+    assert len(result) == expected_count
+```
+
+## Testing Exceptions
+
+```python
+def test_invalid_syntax_raises_error():
+    """Test that invalid syntax raises appropriate error."""
+    parser = CK3Parser()
+    
+    with pytest.raises(SyntaxError) as exc_info:
+        parser.parse_text("invalid {{{")
+    
+    assert "unexpected token" in str(exc_info.value).lower()
+```
+
+## Testing Diagnostics
+
+```python
+def test_diagnostic_generation():
+    """Test that diagnostics are generated correctly."""
+    from pychivalry.diagnostics import DiagnosticsEngine
+    
+    engine = DiagnosticsEngine()
+    code = "has_trait = unknown_trait_xyz"
+    
+    diagnostics = engine.validate(code)
+    
+    assert len(diagnostics) == 1
+    assert diagnostics[0].severity == DiagnosticSeverity.Warning
+    assert "unknown trait" in diagnostics[0].message.lower()
+```
+
+## Benchmarking Tests
+
+```python
+@pytest.mark.benchmark
+def test_parser_performance(benchmark):
+    """Benchmark parser performance on large file."""
+    parser = CK3Parser()
+    large_file = generate_large_ck3_file(1000)  # 1000 events
+    
+    result = benchmark(parser.parse_text, large_file)
+    
+    assert result is not None
+```
+
+## Integration Tests
+
+```python
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_full_workflow():
+    """Integration test covering multiple features."""
+    server = create_test_server()
+    
+    # Open document
+    await server.did_open("file:///test.txt", "namespace = test")
+    
+    # Get completions
+    completions = await server.completion("file:///test.txt", 0, 10)
+    assert len(completions.items) > 0
+    
+    # Get hover
+    hover = await server.hover("file:///test.txt", 0, 5)
+    assert hover is not None
+```
+
+## Test Organization
+
+```
+tests/
+├── test_parser.py           # Parser tests
+├── test_diagnostics.py      # Diagnostics tests
+├── test_completions.py      # Completion tests
+├── test_hover.py            # Hover tests
+├── integration/             # Integration tests
+│   └── test_full_workflow.py
+├── fixtures/                # Test data files
+│   └── sample_events.txt
+└── conftest.py             # Shared fixtures
+```
+
+## Running Tests
+
+```bash
+# Run all tests
+pytest tests/ -v
+
+# Run specific test file
+pytest tests/test_parser.py -v
+
+# Run tests matching pattern
+pytest tests/ -k "completion" -v
+
+# Run with coverage
+pytest tests/ --cov=pychivalry --cov-report=html
+
+# Skip slow tests
+pytest tests/ -m "not slow"
+
+# Run only integration tests
+pytest tests/ -m integration
+```
+
+## Common Patterns
+
+### Testing with temporary files
+
+```python
+def test_with_temp_file(tmp_path):
+    """Test using temporary file."""
+    test_file = tmp_path / "test.txt"
+    test_file.write_text("namespace = test")
+    
+    result = process_file(str(test_file))
+    assert result is not None
+```
+
+### Mocking external dependencies
+
+```python
+from unittest.mock import Mock, patch
+
+def test_with_mock():
+    """Test with mocked dependency."""
+    with patch('pychivalry.external.api_call') as mock_api:
+        mock_api.return_value = {"status": "ok"}
+        
+        result = function_using_api()
+        
+        assert result["status"] == "ok"
+        mock_api.assert_called_once()
+```

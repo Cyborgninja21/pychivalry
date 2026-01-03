@@ -71,6 +71,23 @@ pre-commit run
 git commit --no-verify -m "message"
 ```
 
+### GitHub Copilot Support
+
+This project is configured for GitHub Copilot to provide AI-assisted development:
+
+**Configuration files:**
+- [`.github/copilot-instructions.md`](.github/copilot-instructions.md) — Main instructions, coding standards, and guidelines
+- [`.github/prompts/`](.github/prompts/) — Custom prompts for documentation, architecture, and common tasks
+- [`.github/skills/`](.github/skills/) — Specialized skills like GitHub Actions debugging
+
+**Using Copilot with this project:**
+- Copilot automatically reads the instructions when assisting with code
+- Use `@workspace` in Copilot Chat to ask project-specific questions
+- Reference prompt files for specialized tasks (e.g., `@workspace /prompts/documentation_standard.md`)
+- Follow the established patterns for consistency
+
+See [`.github/README.md`](.github/README.md) for complete documentation on the Copilot setup.
+
 ## Development Workflow
 
 ### Making Changes

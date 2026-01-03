@@ -1,0 +1,263 @@
+---
+name: ck3-validation-debugging
+description: Debugging guide for CK3 script validation issues. Use when diagnostics are incorrect, missing, or producing false positives.
+---
+
+# Debugging CK3 Script Validation
+
+## Understanding the Validation Pipeline
+
+```
+CK3 Script → Parser → AST → Validators → Diagnostics → VS Code Problems Panel
+```
+
+Each stage can introduce issues.
+
+## 1. Verify Parser Output
+
+First, ensure the parser correctly interprets the script:
+
+```python
+from pychivalry.parser import CK3Parser
+
+parser = CK3Parser()
+script = """
+namespace = my_mod
+my_event = {
+    type = character_event
+    has_trait = brave
+}
+"""
+
+ast = parser.parse_text(script)
+print(ast.to_dict())  # Inspect structure
+```
+
+**Check for:**
+- Correct node types (Event, Effect, Trigger, etc.)
+- Proper parent-child relationships
+- Position information (line, column, offset)
+- Error nodes for syntax issues
+
+## 2. Test Individual Validators
+
+Validators in pychivalry:
+- `scopes.py` - Scope validation
+- `traits.py` - Trait validation
+- `events.py` - Event structure
+- `lists.py` - List iterators (any_*, every_*)
+- `script_values.py` - Script values and formulas
+- `variables.py` - Variable references
+- `localization.py` - Localization keys
+
+Test individually:
+
+```python
+from pychivalry.scopes import ScopeValidator
+
+validator = ScopeValidator()
+diagnostics = validator.validate(ast, document_uri)
+
+for diag in diagnostics:
+    print(f"{diag.severity}: {diag.message} at {diag.range}")
+```
+
+## 3. Debug Scope Chain Validation
+
+Scope issues are common. Debug the scope tracker:
+
+```python
+from pychivalry.scopes import ScopeTracker
+
+tracker = ScopeTracker()
+tracker.enter_scope("character")
+
+# Simulate navigation
+tracker.navigate_to("root")
+tracker.navigate_to("liege")
+
+print(f"Current scope: {tracker.current_scope}")
+print(f"Scope chain: {tracker.get_chain()}")
+```
+
+**Common scope problems:**
+- Wrong initial scope assumed
+- Scope transitions not recognized
+- Saved scopes (`save_scope_as`) not tracked
+- `root`/`prev` not handled correctly
+
+## 4. Test Trait Validation
+
+If trait warnings are incorrect:
+
+```python
+from pychivalry.traits import TraitValidator
+
+validator = TraitValidator()
+code = "add_trait = brave"
+
+diagnostics = validator.validate_trait_references(code)
+
+# Check if trait data loaded
+print(f"Loaded traits: {len(validator.traits)}")
+print(f"Trait 'brave' exists: {'brave' in validator.traits}")
+```
+
+**Note:** Trait validation requires extracted CK3 data. If not present, it's silently skipped.
+
+## 5. Debug Event Validation
+
+For event structure issues:
+
+```python
+from pychivalry.events import EventValidator
+
+validator = EventValidator()
+event_code = """
+my_event = {
+    type = character_event
+    title = my_event.title
+    desc = my_event.desc
+    
+    option = {
+        name = my_event.a
+    }
+}
+"""
+
+diagnostics = validator.validate_event(event_ast)
+
+# Check expected vs actual
+for diag in diagnostics:
+    print(f"{diag.code}: {diag.message}")
+```
+
+## 6. Test List Iterator Validation
+
+For `any_*`, `every_*`, `random_*` issues:
+
+```python
+from pychivalry.lists import ListValidator
+
+validator = ListValidator()
+code = """
+any_vassal = {
+    limit = { is_adult = yes }
+    add_gold = 100
+}
+"""
+
+diagnostics = validator.validate_lists(ast)
+
+# Verify:
+# - List type recognized
+# - limit block allowed
+# - Scope transitions correct
+```
+
+## 7. Debug Script Value Validation
+
+For formula and value issues:
+
+```python
+from pychivalry.script_values import ScriptValueValidator
+
+validator = ScriptValueValidator()
+code = "add_gold = { value = 100 multiply = 2 }"
+
+diagnostics = validator.validate_script_values(ast)
+
+# Check:
+# - Formula recognized
+# - Operations valid
+# - Scope references resolved
+```
+
+## 8. Check Localization Key Validation
+
+For localization key issues:
+
+```python
+from pychivalry.localization import LocalizationValidator
+
+validator = LocalizationValidator()
+validator.load_localization_files(workspace_path)
+
+code = 'title = my_event.title'
+diagnostics = validator.validate_keys(code)
+
+# Verify localization files loaded
+print(f"Loaded keys: {len(validator.keys)}")
+```
+
+## 9. Reproduce with Minimal Example
+
+Create minimal test case:
+
+```python
+def test_specific_validation_issue():
+    """Reproduce the exact validation problem."""
+    script = """
+    # Exact code that produces wrong diagnostic
+    """
+    
+    engine = DiagnosticsEngine()
+    diagnostics = engine.validate(script)
+    
+    # Assert expected behavior
+    assert len(diagnostics) == 1
+    assert diagnostics[0].code == "CK3XXX"
+```
+
+## 10. Check Diagnostic Codes
+
+Each validator uses specific diagnostic codes:
+
+- `CK3001-CK3099` - Parser/syntax errors
+- `CK3100-CK3199` - Scope validation
+- `CK3200-CK3299` - Event validation
+- `CK3300-CK3399` - List validation
+- `CK3400-CK3499` - Script value validation
+- `CK3500-CK3599` - Variable validation
+- `CK3600-CK3699` - Localization validation
+
+Search codebase for the code to find the validator.
+
+## Common Issues and Solutions
+
+### False Positive: "Unknown scope transition"
+
+**Cause:** Scope transition not in scope data
+**Fix:** Add to `pychivalry/data/scopes/*.yaml`
+
+### Missing Diagnostic: Invalid trait not caught
+
+**Cause:** Trait data not extracted
+**Solution:** Run trait extraction command in VS Code
+
+### Wrong Scope After List Iterator
+
+**Cause:** Scope transition for list not handled
+**Fix:** Check `lists.py` scope_after_iteration logic
+
+### Formula Validation Too Strict
+
+**Cause:** Valid CK3 formula pattern not recognized
+**Fix:** Update `script_values.py` patterns
+
+### Localization Keys Not Found
+
+**Cause:** Localization files not scanned
+**Fix:** Ensure workspace has localization/ folder
+
+## Debugging Checklist
+
+- [ ] Parser produces correct AST
+- [ ] Individual validator works in isolation
+- [ ] Scope chain correctly tracked
+- [ ] Required data files loaded (traits, localization)
+- [ ] Diagnostic code and severity appropriate
+- [ ] Range highlights correct text
+- [ ] Message is clear and actionable
+- [ ] Test case reproduces the issue
+- [ ] Fix doesn't break other validation
