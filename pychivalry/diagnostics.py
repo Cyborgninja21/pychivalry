@@ -763,12 +763,14 @@ class DiagnosticConfig:
         paradox_enabled: Enable Paradox convention checks (CK35xx+)
         scope_timing_enabled: Enable scope timing checks (CK3550-3555)
         story_cycles_enabled: Enable story cycle validation (STORY-001+)
+        schema_enabled: Enable schema-driven validation (all codes)
     """
 
     style_enabled: bool = True
     paradox_enabled: bool = True
     scope_timing_enabled: bool = True
     story_cycles_enabled: bool = True
+    schema_enabled: bool = True
 
 
 def collect_all_diagnostics(
@@ -848,6 +850,33 @@ def collect_all_diagnostics(
                 logger.warning("story_cycles module not available")
             except Exception as e:
                 logger.error(f"Error in story cycle checks: {e}", exc_info=True)
+
+        # Schema-driven validation (CK37xx, EVENT-xxx, etc.)
+        if config.schema_enabled:
+            try:
+                from .schema_loader import SchemaLoader
+                from .schema_validator import SchemaValidator
+                
+                # Get file path from URI for schema matching
+                file_path = doc.uri.replace('file://', '')
+                
+                # Initialize schema system (cached after first load)
+                if not hasattr(collect_all_diagnostics, '_schema_loader'):
+                    collect_all_diagnostics._schema_loader = SchemaLoader()
+                    collect_all_diagnostics._schema_loader.load_all()
+                
+                loader = collect_all_diagnostics._schema_loader
+                validator = SchemaValidator(loader)
+                
+                # Run schema validation
+                schema_diagnostics = validator.validate(file_path, ast)
+                diagnostics.extend(schema_diagnostics)
+                
+                logger.debug(f"Schema validation found {len(schema_diagnostics)} diagnostics")
+            except ImportError:
+                logger.warning("schema_loader/schema_validator modules not available")
+            except Exception as e:
+                logger.error(f"Error in schema validation: {e}", exc_info=True)
 
         logger.debug(f"Found {len(diagnostics)} diagnostics for {doc.uri}")
     except Exception as e:

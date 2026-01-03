@@ -138,8 +138,8 @@ class SchemaValidator:
         for field_name, field_def in fields.items():
             field_nodes = present_fields.get(field_name, [])
 
-            # Check required field
-            if field_def.get('required'):
+            # Check required field (including conditional requirements)
+            if field_def.get('required') or field_def.get('required_when'):
                 if not self._check_required(node, field_name, field_def, present_fields):
                     diagnostics.append(
                         self._create_diagnostic(
@@ -287,6 +287,10 @@ class SchemaValidator:
                     return True  # Condition not met, field not required
             else:
                 return True  # Condition field not present, field not required
+        
+        # If field is not required at all (no 'required' or 'required_when'), consider it satisfied
+        if not field_def.get('required') and not when_condition:
+            return True
 
         # Field is required and conditions don't exempt it
         return field_name in present_fields

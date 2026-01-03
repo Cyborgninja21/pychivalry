@@ -30,6 +30,9 @@ categories:
   decisions:
     prefix: "DECISION"
     description: "Decision validation"
+  events:
+    prefix: "EVENT"
+    description: "Event-specific validation"
 
 diagnostics:
   # ============== Syntax (CK30xx) ==============
@@ -384,3 +387,11 @@ diagnostics:
     severity: hint
     category: story_cycles
     message: "Consider adding debug_log in on_end for testing"
+    
+  # ============== Events (EVENT-xxx) ==============
+  EVENT-003:
+    severity: error
+    category: events
+    message: "Letter event missing required 'sender' field"
+    fix: "Add 'sender = scope:actor' or appropriate scope reference"
+
