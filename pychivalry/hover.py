@@ -422,6 +422,73 @@ def get_keyword_documentation(keyword: str) -> str:
     )
 
 
+def get_localization_concept_documentation(concept: str) -> Optional[str]:
+    """
+    Get documentation for a game concept in localization.
+
+    Args:
+        concept: The concept name
+
+    Returns:
+        Markdown-formatted documentation, or None if not found
+    """
+    from pychivalry.localization import GAME_CONCEPTS
+
+    if concept.lower() not in GAME_CONCEPTS:
+        return None
+
+    # Common concept descriptions
+    concept_docs = {
+        "vassal": "A vassal is a character who holds titles under another character (their liege).\n\nVassals provide levies, taxes, and other benefits to their liege.",
+        "liege": "A liege is the feudal superior who grants titles to vassals.\n\nCharacters can have opinions of their liege which affects their behavior.",
+        "opinion": "Opinion represents how characters feel about each other.\n\nHigher opinion improves relations, lower opinion can lead to conflict.",
+        "gold": "The primary currency in CK3.\n\nUsed for hiring mercenaries, constructing buildings, and other actions.",
+        "prestige": "Represents a character's fame and reputation.\n\nEarned through military victories, marriages, and other achievements.",
+        "piety": "Measures religious devotion.\n\nEarned through religious actions and used for holy wars and reforms.",
+        "dread": "Represents how much others fear this character.\n\nHigh dread prevents factions and plots but may reduce opinions.",
+        "stress": "A measure of character psychological pressure.\n\nGained from actions against personality traits, causes health problems.",
+        "faith": "A character's religion.\n\nDetermines available doctrines, holy sites, and interactions.",
+        "culture": "A character's cultural identity.\n\nDetermines available innovations, languages, and traditions.",
+        "dynasty": "An extended family lineage.\n\nMembers of a dynasty share renown and can support each other.",
+        "house": "A branch of a dynasty.\n\nHouses have their own mottos and can split from parent dynasties.",
+        "title": "A feudal holding like a barony, county, duchy, kingdom, or empire.\n\nTitles provide income, levies, and prestige.",
+        "claim": "A legal right to a title.\n\nClaims can be pressed through war or inheritance.",
+        "alliance": "A formal agreement between rulers.\n\nAlliances provide military support but require reciprocal obligations.",
+        "hook": "Leverage over another character.\n\nCan be used to force cooperation or extract favors.",
+        "scheme": "A secret plot against another character.\n\nIncludes murder, seduction, fabrication of claims, and more.",
+        "secret": "Hidden information about a character.\n\nCan be exposed to damage reputation or used for blackmail.",
+        "trait": "A personality or physical characteristic.\n\nTraits provide modifiers and affect AI behavior.",
+    }
+
+    description = concept_docs.get(concept.lower(), f"Game concept: {concept}")
+    return f"📖 {description}"
+
+
+def get_localization_variable_documentation(variable: str) -> str:
+    """
+    Get documentation for a localization variable.
+
+    Args:
+        variable: The variable name
+
+    Returns:
+        Markdown-formatted documentation
+    """
+    # Common variable names in CK3 localization
+    common_vars = {
+        "VALUE": "A numeric value calculated in the event/effect.\n\nFormat specifiers: |+ (show +), |- (show only -), |V0 (0 decimals)",
+        "SIZE": "The size or count of something.\n\nFormat specifiers: |V0 (integer), |V1 (1 decimal)",
+        "GOLD": "Amount of gold involved in the transaction.",
+        "CHARACTER": "The character involved (often the target).",
+        "TARGET": "The target of the action.",
+        "ACTOR": "The character performing the action.",
+        "RECIPIENT": "The character receiving the action.",
+    }
+
+    doc = common_vars.get(variable, f"Event variable: {variable}")
+    return f"💠 {doc}\n\n📝 **Usage:** `${variable}$` or with format: `${variable}|+$`"
+
+
 def get_hover_content(
     word: str, node: Optional[CK3Node], index: Optional[DocumentIndex]
 ) -> Optional[str]:
@@ -752,6 +819,23 @@ def get_hover_content(
             return f"## 🎯 `{word}`\n\n**🔵 Saved Scope Reference**\n\n---\n\n✅ Defined with `save_scope_as = {scope_name}`\n\n📂 **Location:** `{filename}:{loc.range.start.line + 1}`"
         else:
             return f"## 🎯 `{word}`\n\n**🔴 Saved Scope Reference**\n\n---\n\n⚠️ **Warning:** This scope has not been defined!\n\n💡 Use `save_scope_as = {scope_name}` to define it."
+
+    # Check if it's a localization-specific function (hover in .yml files)
+    from pychivalry.localization import is_character_function, get_character_function_description
+    if is_character_function(word):
+        description = get_character_function_description(word)
+        return f"## 📝 `{word}`\n\n**🟦 Character Function** — *Localization*\n\n---\n\n{description}\n\n---\n\n📝 **Usage:**\n```yaml\n[CHARACTER.{word}]\n[scope:target.{word}]\n```"
+
+    # Check if it's a localization formatting code
+    from pychivalry.localization import is_text_formatting_code, get_formatting_code_description
+    if word.startswith("#") and is_text_formatting_code(word):
+        description = get_formatting_code_description(word)
+        return f"## 🎨 `{word}`\n\n**🟨 Formatting Code** — *Localization*\n\n---\n\n{description}\n\n---\n\n📝 **Example:**\n```yaml\n{word}formatted text#!\n```"
+
+    # Check if it's a game concept (in localization context)
+    concept_doc = get_localization_concept_documentation(word)
+    if concept_doc:
+        return f"## 📖 `{word}`\n\n**🟧 Game Concept** — *Localization Link*\n\n---\n\n{concept_doc}\n\n---\n\n📝 **Usage:**\n```yaml\n[{word}|E]\n```\n\n💡 Context 'E' enables tooltip on hover in-game."
 
     # No documentation available
     return None

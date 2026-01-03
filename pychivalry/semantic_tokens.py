@@ -765,6 +765,7 @@ def analyze_document(
 def get_semantic_tokens(
     source: str,
     index: Optional[DocumentIndex] = None,
+    file_uri: Optional[str] = None,
 ) -> types.SemanticTokens:
     """
     Get semantic tokens for a document in LSP format.
@@ -772,17 +773,254 @@ def get_semantic_tokens(
     Args:
         source: Document source text
         index: Document index for custom definitions
+        file_uri: Optional URI of the file (used to detect .yml files)
 
     Returns:
         SemanticTokens object with encoded data
     """
     try:
-        tokens = analyze_document(source, index)
+        # Check if this is a localization file
+        if file_uri and (file_uri.endswith(".yml") or file_uri.endswith(".yaml")):
+            tokens = analyze_localization_file(source)
+        else:
+            tokens = analyze_document(source, index)
         data = encode_tokens(tokens)
         return types.SemanticTokens(data=data)
     except Exception as e:
         logger.error(f"Error generating semantic tokens: {e}", exc_info=True)
         return types.SemanticTokens(data=[])
+
+
+def analyze_localization_file(source: str) -> List[SemanticToken]:
+    """
+    Analyze a localization (.yml) file and extract semantic tokens.
+
+    Highlights:
+    - Localization keys (key_name:0)
+    - Character functions ([CHARACTER.GetName])
+    - Formatting codes (#bold, #color_blue)
+    - Icon references (@gold_icon!)
+    - Variable substitutions ($VALUE$, $SIZE|+$)
+    - Concept links ([vassal|E])
+    - Scope references (CHARACTER, ROOT, scope:target)
+
+    Args:
+        source: Document source text
+
+    Returns:
+        List of SemanticToken objects
+    """
+    from pychivalry.localization import (
+        CHARACTER_FUNCTIONS,
+        TEXT_FORMATTING_CODES,
+        ICON_REFERENCES,
+        LOCALIZATION_SCOPES,
+    )
+
+    tokens = []
+    lines = source.split("\n")
+
+    for line_num, line in enumerate(lines):
+        # Skip empty lines and comments
+        if not line.strip() or line.strip().startswith("#"):
+            continue
+
+        # Check for language header (l_english:, l_french:, etc.)
+        if re.match(r"^\s*l_\w+\s*:\s*$", line):
+            match = re.match(r"^\s*(l_\w+)\s*:\s*$", line)
+            if match:
+                tokens.append(
+                    SemanticToken(
+                        line=line_num,
+                        start=match.start(1),
+                        length=len(match.group(1)),
+                        token_type=TOKEN_TYPE_INDEX["keyword"],
+                        modifiers=get_modifier_bits("declaration"),
+                    )
+                )
+            continue
+
+        # Check for localization key (key_name:0 or key_name:)
+        key_match = re.match(r"^\s*([a-zA-Z_][\w\.]*)\s*:(\d*)\s+", line)
+        if key_match:
+            key_name = key_match.group(1)
+            version = key_match.group(2)
+
+            # Tokenize key name
+            tokens.append(
+                SemanticToken(
+                    line=line_num,
+                    start=key_match.start(1),
+                    length=len(key_name),
+                    token_type=TOKEN_TYPE_INDEX["string"],
+                    modifiers=get_modifier_bits("declaration"),
+                )
+            )
+
+            # Tokenize version number if present
+            if version:
+                tokens.append(
+                    SemanticToken(
+                        line=line_num,
+                        start=key_match.start(2),
+                        length=len(version),
+                        token_type=TOKEN_TYPE_INDEX["number"],
+                    )
+                )
+
+            # Get the content after the key (the localized text)
+            content_start = key_match.end()
+            content = line[content_start:]
+
+            # Tokenize the localized text content
+            tokens.extend(tokenize_localization_content(content, line_num, content_start))
+
+    return tokens
+
+
+def tokenize_localization_content(
+    content: str, line_num: int, content_start: int
+) -> List[SemanticToken]:
+    """
+    Tokenize the content of a localization string.
+
+    Handles:
+    - Character functions: [CHARACTER.GetName]
+    - Formatting codes: #bold, #color_blue
+    - Icon references: @gold_icon!
+    - Variable substitutions: $VALUE$, $SIZE|+$
+    - Concept links: [vassal|E]
+
+    Args:
+        content: The localization text content
+        line_num: Line number
+        content_start: Starting column offset for this content
+
+    Returns:
+        List of SemanticToken objects
+    """
+    from pychivalry.localization import (
+        CHARACTER_FUNCTIONS,
+        TEXT_FORMATTING_CODES,
+        is_character_function,
+        is_text_formatting_code,
+    )
+
+    tokens = []
+
+    # Pattern for scope chains: [CHARACTER.GetName], [scope:target.GetUIName]
+    scope_pattern = r"\[([\w:]+(?:\.[\w:]+)*)\]"
+    for match in re.finditer(scope_pattern, content):
+        chain = match.group(1)
+        parts = chain.split(".")
+
+        # Check if it's a scope chain (has dots) vs a concept link (no dots or has |)
+        if "." in chain:
+            # This is a scope chain
+            # Tokenize first part (scope)
+            first_part = parts[0]
+            first_start = content_start + match.start() + 1  # +1 for [
+
+            tokens.append(
+                SemanticToken(
+                    line=line_num,
+                    start=first_start,
+                    length=len(first_part),
+                    token_type=TOKEN_TYPE_INDEX["variable"],
+                    modifiers=get_modifier_bits("readonly"),
+                )
+            )
+
+            # Tokenize remaining parts (functions/accessors)
+            current_pos = first_start + len(first_part)
+            for part in parts[1:]:
+                current_pos += 1  # Skip the dot
+                if is_character_function(part):
+                    tokens.append(
+                        SemanticToken(
+                            line=line_num,
+                            start=current_pos,
+                            length=len(part),
+                            token_type=TOKEN_TYPE_INDEX["function"],
+                            modifiers=get_modifier_bits("defaultLibrary"),
+                        )
+                    )
+                current_pos += len(part)
+
+    # Pattern for concept links: [vassal|E]
+    concept_pattern = r"\[([a-zA-Z_]\w*)\|([EIUeiu])\]"
+    for match in re.finditer(concept_pattern, content):
+        concept = match.group(1)
+        context = match.group(2)
+
+        # Tokenize concept name
+        tokens.append(
+            SemanticToken(
+                line=line_num,
+                start=content_start + match.start() + 1,  # +1 for [
+                length=len(concept),
+                token_type=TOKEN_TYPE_INDEX["enumMember"],
+            )
+        )
+
+    # Pattern for formatting codes: #bold, #color_blue, #N
+    format_pattern = r"(#[A-Za-z_]+)"
+    for match in re.finditer(format_pattern, content):
+        code = match.group(1)
+        if is_text_formatting_code(code):
+            tokens.append(
+                SemanticToken(
+                    line=line_num,
+                    start=content_start + match.start(),
+                    length=len(code),
+                    token_type=TOKEN_TYPE_INDEX["keyword"],
+                    modifiers=get_modifier_bits("defaultLibrary"),
+                )
+            )
+
+    # Pattern for icon references: @gold_icon!
+    icon_pattern = r"(@\w+(?:_icon)?!)"
+    for match in re.finditer(icon_pattern, content):
+        icon = match.group(1)
+        tokens.append(
+            SemanticToken(
+                line=line_num,
+                start=content_start + match.start(),
+                length=len(icon),
+                token_type=TOKEN_TYPE_INDEX["property"],
+            )
+        )
+
+    # Pattern for variable substitutions: $VALUE$, $SIZE|+$
+    var_pattern = r"\$([A-Za-z0-9_]+)(?:\|([+\-V0-9UE]+))?\$"
+    for match in re.finditer(var_pattern, content):
+        var_name = match.group(1)
+        format_spec = match.group(2)
+
+        # Tokenize variable name
+        tokens.append(
+            SemanticToken(
+                line=line_num,
+                start=content_start + match.start() + 1,  # +1 for $
+                length=len(var_name),
+                token_type=TOKEN_TYPE_INDEX["variable"],
+            )
+        )
+
+        # Tokenize format specifier if present
+        if format_spec:
+            # Calculate position (after variable name and |)
+            spec_start = content_start + match.start() + 1 + len(var_name) + 1
+            tokens.append(
+                SemanticToken(
+                    line=line_num,
+                    start=spec_start,
+                    length=len(format_spec),
+                    token_type=TOKEN_TYPE_INDEX["parameter"],
+                )
+            )
+
+    return tokens
 
 
 # Export the legend for server registration

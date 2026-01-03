@@ -994,6 +994,186 @@ def create_snippet_completions() -> List[types.CompletionItem]:
     return snippets
 
 
+def get_localization_completions(line_text: str, position: types.Position) -> Optional[List[types.CompletionItem]]:
+    """
+    Provide completions for localization file (.yml) syntax.
+
+    Detects context:
+    - Inside [brackets] → scope functions, concept links
+    - Inside $variables$ → variable names, format specifiers
+    - After # → formatting codes
+    - After @ → icon references
+
+    Args:
+        line_text: The line text before cursor
+        position: Cursor position
+
+    Returns:
+        List of completion items, or None if not in localization context
+    """
+    from pychivalry.localization import (
+        CHARACTER_FUNCTIONS,
+        TEXT_FORMATTING_CODES,
+        ICON_REFERENCES,
+        GAME_CONCEPTS,
+        LOCALIZATION_SCOPES,
+    )
+
+    # Check if we're inside brackets [...]
+    # Count brackets before cursor
+    text_before = line_text[:position.character]
+    open_brackets = text_before.count("[")
+    close_brackets = text_before.count("]")
+
+    if open_brackets > close_brackets:
+        # Inside brackets - offer scope functions and concepts
+        completions = []
+
+        # If there's a dot, we're in a scope chain - offer functions
+        if "." in text_before.split("[")[-1]:
+            for func in sorted(CHARACTER_FUNCTIONS):
+                completions.append(
+                    types.CompletionItem(
+                        label=func,
+                        kind=types.CompletionItemKind.Function,
+                        detail="Character Function",
+                        documentation=types.MarkupContent(
+                            kind=types.MarkupKind.Markdown,
+                            value=f"Character function for localization.\n\nUsage: `[CHARACTER.{func}]`",
+                        ),
+                        insert_text=func,
+                    )
+                )
+        else:
+            # No dot yet - offer scopes
+            for scope in sorted(LOCALIZATION_SCOPES):
+                completions.append(
+                    types.CompletionItem(
+                        label=scope,
+                        kind=types.CompletionItemKind.Variable,
+                        detail="Scope",
+                        documentation=types.MarkupContent(
+                            kind=types.MarkupKind.Markdown,
+                            value=f"Scope reference: `{scope}`\n\nUsage: `[{scope}.GetName]`",
+                        ),
+                        insert_text=f"{scope}.",
+                        insert_text_format=types.InsertTextFormat.PlainText,
+                    )
+                )
+
+            # Also offer concepts
+            for concept in sorted(list(GAME_CONCEPTS)[:20]):  # Limit to avoid huge list
+                completions.append(
+                    types.CompletionItem(
+                        label=f"{concept}|E",
+                        kind=types.CompletionItemKind.Value,
+                        detail="Game Concept",
+                        documentation=types.MarkupContent(
+                            kind=types.MarkupKind.Markdown,
+                            value=f"Game concept link.\n\nUsage: `[{concept}|E]`",
+                        ),
+                        insert_text=f"{concept}|E",
+                    )
+                )
+
+        return completions if completions else None
+
+    # Check if we're after # (formatting codes)
+    if text_before and text_before[-1] == "#":
+        completions = []
+        for code in sorted(TEXT_FORMATTING_CODES):
+            # Remove the # prefix for display since it's already typed
+            code_without_hash = code[1:]
+            completions.append(
+                types.CompletionItem(
+                    label=code_without_hash,
+                    kind=types.CompletionItemKind.Keyword,
+                    detail="Formatting Code",
+                    documentation=types.MarkupContent(
+                        kind=types.MarkupKind.Markdown,
+                        value=f"Text formatting code.\n\nUsage: `{code}text#!`",
+                    ),
+                    insert_text=code_without_hash,
+                )
+            )
+        return completions
+
+    # Check if we're after @ (icon references)
+    if text_before and text_before[-1] == "@":
+        completions = []
+        for icon in sorted(ICON_REFERENCES):
+            # Remove the @ prefix and ! suffix for display
+            icon_name = icon[1:-1]  # Remove @ and !
+            completions.append(
+                types.CompletionItem(
+                    label=icon_name,
+                    kind=types.CompletionItemKind.Value,
+                    detail="Icon Reference",
+                    documentation=types.MarkupContent(
+                        kind=types.MarkupKind.Markdown,
+                        value=f"Icon reference.\n\nUsage: `{icon}`",
+                    ),
+                    insert_text=f"{icon_name}!",
+                )
+            )
+        return completions
+
+    # Check if we're inside $variables$ 
+    open_dollars = text_before.count("$")
+    if open_dollars % 2 == 1:  # Odd number means we're inside a variable
+        # Check if there's already a | for format specifier
+        last_dollar = text_before.rfind("$")
+        var_content = text_before[last_dollar + 1:]
+
+        if "|" in var_content:
+            # Offer format specifiers
+            format_specs = ["+", "-", "V0", "V1", "V2", "U", "E"]
+            completions = []
+            for spec in format_specs:
+                spec_docs = {
+                    "+": "Show + sign for positive values",
+                    "-": "Show - sign for negative values only",
+                    "V0": "Format as value with 0 decimal places",
+                    "V1": "Format as value with 1 decimal place",
+                    "V2": "Format as value with 2 decimal places",
+                    "U": "Format as uppercase",
+                    "E": "Special format",
+                }
+                completions.append(
+                    types.CompletionItem(
+                        label=spec,
+                        kind=types.CompletionItemKind.Constant,
+                        detail="Format Specifier",
+                        documentation=types.MarkupContent(
+                            kind=types.MarkupKind.Markdown,
+                            value=spec_docs.get(spec, f"Format specifier: {spec}"),
+                        ),
+                        insert_text=spec,
+                    )
+                )
+            return completions
+        else:
+            # Offer common variable names
+            common_vars = ["VALUE", "SIZE", "GOLD", "CHARACTER", "TARGET", "ACTOR", "RECIPIENT"]
+            completions = []
+            for var in common_vars:
+                completions.append(
+                    types.CompletionItem(
+                        label=var,
+                        kind=types.CompletionItemKind.Variable,
+                        detail="Event Variable",
+                        documentation=types.MarkupContent(
+                            kind=types.MarkupKind.Markdown,
+                            value=f"Event variable.\n\nUsage: `${var}$` or `${var}|+$`",
+                        ),
+                        insert_text=f"{var}$",
+                    )
+                )
+            return completions
+
+    return None
+
+
 def get_context_aware_completions(
     document_uri: str,
     position: types.Position,
@@ -1019,6 +1199,15 @@ def get_context_aware_completions(
     Returns:
         CompletionList with context-aware completion items
     """
+    # Check if this is a localization file (.yml)
+    if document_uri.endswith(".yml") or document_uri.endswith(".yaml"):
+        loc_completions = get_localization_completions(line_text, position)
+        if loc_completions is not None:
+            return types.CompletionList(
+                is_incomplete=False,
+                items=loc_completions,
+            )
+
     # Check for trait completions first (high priority, context-specific)
     trait_completions = get_trait_completions(line_text, position)
     if trait_completions is not None:

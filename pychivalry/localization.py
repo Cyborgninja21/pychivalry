@@ -126,8 +126,9 @@ class LocalizationKey:
     key_type: Optional[str] = None
 
 
-# Character name functions
+# Character name functions - Comprehensive set from CK3 base game
 CHARACTER_FUNCTIONS = {
+    # Basic name functions
     "GetName",
     "GetFirstName",
     "GetLastName",
@@ -137,51 +138,181 @@ CHARACTER_FUNCTIONS = {
     "GetTitle",
     "GetTitledFirstName",
     "GetTitledFirstNameNoTooltip",
+    # UI name functions
     "GetShortUIName",
+    "GetShortUINameNoTooltip",
+    "GetShortUINamePossessive",
     "GetUIName",
+    "GetUINameNoTooltip",
     "GetNameNoTooltip",
+    # Possessive forms
     "GetTitledFirstNamePossessive",
     "GetNamePossessive",
     "GetFirstNamePossessive",
+    # Gender-based pronouns
     "GetHerHis",
     "GetSheHe",
     "GetHerHim",
     "GetHerselfHimself",
+    "GetWomanMan",
+    "GetGirlBoy",
+    "GetDaughterSon",
+    "GetLadyLord",
+    "GetQueenKing",
+    # Additional name variants
+    "GetFullBaseName",
+    "GetBaseNameNoTooltip",
+    "GetNameNoTitles",
+    # Dynasty and house
+    "GetDynastyName",
+    "GetHouseName",
+    # Special accessors - these are part of scope chains but count as functions
+    # When used like [CHARACTER.GetFaith.GetAdjective]
+    "GetAdjective",        # Used on faith/culture
+    "GetNameNoTooltip",
+    "GetReligiousHead",     # Used on faith
+    "GetCollectiveNoun",    # Used on faith/culture
+    "GetName",              # Universal - works on many scopes
+    "GetTypeName",          # Used on schemes, interactions
+    "GetTextIcon",          # Used on various scopes
+    # Custom function placeholder
+    "Custom",               # Special: Custom('GetCourt'), etc.
+    # MakeScope special functions
+    "MakeScope",            # Intermediate for .ScriptValue()
+    "ScriptValue",          # After MakeScope: MakeScope.ScriptValue('name')
 }
 
-# Text formatting codes
+# Text formatting codes - Comprehensive set from CK3
 TEXT_FORMATTING_CODES = {
-    "#P",
-    "#N",
+    # Basic formatting
+    "#P",           # Possessive
+    "#N",           # Newline (uppercase)
+    "#n",           # Newline (lowercase) - case matters!
     "#bold",
     "#italic",
     "#underline",
-    "#!",
-    "#weak",
-    "#high",
-    "#low",
-    "#V",
-    "#v",
-    "#L",
-    "#EMP",
+    "#!",           # End formatting / emphasis
+    "#X",           # Clear all formatting
+    # Emphasis and importance
+    "#weak",        # Weak/de-emphasized text
+    "#high",        # High importance
+    "#low",         # Low importance
+    "#EMP",         # Emphasis (uppercase)
+    "#emphasis",    # Emphasis (lowercase)
+    # Value display
+    "#V",           # Value display (uppercase)
+    "#v",           # Value display (lowercase)
+    "#L",           # Link/reference
+    # Colors - Positive/Negative
+    "#positive",    # Positive color (green)
+    "#negative",    # Negative color (red)
+    "#P",           # Positive (short form)
+    "#negative",    # Negative
+    # Named colors
+    "#color_blue",
+    "#color_red",
+    "#color_green",
+    "#color_yellow",
+    "#color_white",
+    "#color_black",
+    "#color_gray",
+    "#color_grey",
+    "#color_purple",
+    "#color_orange",
+    # Tutorial highlighting
+    "#TUT_KW",      # Tutorial keyword highlighting
+    "#tutorial",
+    # Special formats
+    "#BOLD",        # Bold (uppercase variant)
+    "#ITALIC",      # Italic (uppercase variant)
 }
 
-# Icon references
+# Icon references - Comprehensive set from CK3 base game
 ICON_REFERENCES = {
+    # Currency and resources
     "@gold_icon!",
     "@prestige_icon!",
     "@piety_icon!",
+    "@renown_icon!",
+    "@tyranny_icon!",
+    # Character attributes
     "@dread_icon!",
     "@stress_icon!",
     "@prowess_icon!",
+    "@health_icon!",
+    "@fertility_icon!",
+    # Skills
+    "@diplomacy_icon!",
+    "@martial_icon!",
+    "@stewardship_icon!",
+    "@intrigue_icon!",
+    "@learning_icon!",
+    # Relationships
     "@hook_icon!",
     "@weak_hook_icon!",
     "@strong_hook_icon!",
     "@opinion_icon!",
+    "@alliance_icon!",
+    # Military and governance
     "@knight_icon!",
     "@councillor_icon!",
+    "@commander_icon!",
+    "@soldier_icon!",
+    "@levy_icon!",
+    "@control_icon!",
+    # UI and system
     "@warning_icon!",
     "@death_icon!",
+    "@titles_icon!",
+    "@council_icon!",
+    "@portrait_icon!",
+    "@portrait_punishment_icon!",
+    "@obedience_icon!",
+    # Buildings and holdings
+    "@building_icon!",
+    "@holding_icon!",
+    "@barony_icon!",
+    "@county_icon!",
+    "@duchy_icon!",
+    "@kingdom_icon!",
+    "@empire_icon!",
+    # Religion and culture
+    "@faith_icon!",
+    "@religion_icon!",
+    "@culture_icon!",
+    "@dynasty_icon!",
+    "@house_icon!",
+    # Special mechanics
+    "@scheme_icon!",
+    "@secret_icon!",
+    "@trait_icon!",
+    "@modifier_icon!",
+    "@decision_icon!",
+    "@event_icon!",
+    # Combat and war
+    "@war_icon!",
+    "@siege_icon!",
+    "@battle_icon!",
+    "@raid_icon!",
+    # Time and calendar
+    "@date_icon!",
+    "@age_icon!",
+    "@time_icon!",
+    # Miscellaneous short forms
+    "@gold!",
+    "@prestige!",
+    "@piety!",
+    "@dread!",
+    "@obedience_i!",
+    # Additional icons
+    "@crown_icon!",
+    "@realm_icon!",
+    "@vassal_icon!",
+    "@law_icon!",
+    "@succession_icon!",
+    "@development_icon!",
+    "@innovation_icon!",
+    "@lifestyle_icon!",
 }
 
 
@@ -452,6 +583,378 @@ def validate_localization_references(text: str) -> List[Tuple[str, str]]:
     return issues
 
 
+# =============================================================================
+# SCOPE VALIDATION FOR LOCALIZATION
+# =============================================================================
+
+# Valid scope names that can appear in localization
+LOCALIZATION_SCOPES = {
+    "CHARACTER",
+    "TARGET_CHARACTER",
+    "ROOT",
+    "SCOPE",
+    "FROM",
+    "PREV",
+    "THIS",
+    # Common saved scope patterns
+    "actor",
+    "recipient",
+    "target",
+    "liege",
+    "spouse",
+    "killer",
+    "victim",
+    "defender",
+    "attacker",
+    "employer",
+    "employee",
+    # Generic scope references
+    "scope",  # For scope:variable references
+}
+
+
+def extract_scope_chains(text: str) -> List[str]:
+    """
+    Extract scope chain references from localization text.
+
+    Examples:
+        [CHARACTER.GetName]
+        [ROOT.GetTitle]
+        [scope:target.GetFirstName]
+        [liege.GetShortUIName]
+        [CHARACTER.GetFaith.GetAdjective|U]
+        [CHARACTER.Custom('GetCourt')]
+
+    Args:
+        text: The localization text to search
+
+    Returns:
+        List of complete scope chain strings (e.g., ['CHARACTER.GetName', 'ROOT.GetTitle'])
+    """
+    # Pattern matches: [optional_scope.Function] or [scope:name.Function]
+    # Also matches chains with functions that have parentheses or format specifiers
+    # Simplified to capture everything between brackets that looks like a scope chain
+    pattern = r"\[([\w:]+(?:\.[\w:]+)*(?:\([^)]*\))?)\|?[EIUeiu]?\]"
+    matches = re.findall(pattern, text)
+    
+    # Filter to only include chains that look like scopes (not simple concepts)
+    # A scope chain has at least one dot or starts with 'scope:'
+    result = []
+    for match in matches:
+        if "." in match or match.startswith("scope:"):
+            result.append(match)
+    
+    return result
+
+
+def validate_scope_chain(chain: str) -> Tuple[bool, Optional[str]]:
+    """
+    Validate a scope chain reference in localization.
+
+    Examples:
+        CHARACTER.GetName → valid
+        ROOT.GetTitle → valid
+        scope:target.GetFirstName → valid
+        CHARACTER.GetFaith.GetAdjective → valid (multi-part accessor)
+        InvalidScope.GetName → invalid
+
+    Args:
+        chain: The scope chain to validate (e.g., "CHARACTER.GetName")
+
+    Returns:
+        Tuple of (is_valid, error_message)
+    """
+    if not chain:
+        return (False, "Empty scope chain")
+
+    # Remove any parentheses content (like Custom('GetCourt'))
+    chain_cleaned = re.sub(r"\([^)]*\)", "", chain)
+    
+    parts = chain_cleaned.split(".")
+
+    # First part should be a scope or scope:variable
+    first_part = parts[0]
+
+    # Check for scope:variable pattern
+    if first_part.startswith("scope:"):
+        scope_var = first_part[6:]  # Remove "scope:" prefix
+        if not scope_var:
+            return (False, "Empty scope variable name after 'scope:'")
+        # Variable name is valid, continue to check rest of chain
+        remaining_parts = parts[1:]
+    else:
+        # Should be a known scope name (case insensitive for built-in scopes)
+        if first_part.upper() not in LOCALIZATION_SCOPES and first_part not in LOCALIZATION_SCOPES:
+            # Allow lowercase scope names that are common (like 'liege', 'actor', etc.)
+            if first_part.lower() not in {s.lower() for s in LOCALIZATION_SCOPES}:
+                return (False, f"Unknown scope: {first_part}")
+        remaining_parts = parts[1:]
+
+    # Validate remaining parts (should be functions or scope links)
+    # In multi-part chains, intermediate parts may be scope links that return objects with methods
+    for i, part in enumerate(remaining_parts):
+        if not part:  # Skip empty parts
+            continue
+            
+        # Check if it's a character function
+        if part.startswith("Get"):
+            if not is_character_function(part):
+                # For intermediate Get functions (like GetFaith), they might return scopes
+                # that have their own Get functions, so we allow them as intermediate steps
+                if i < len(remaining_parts) - 1:
+                    # This is an intermediate part, allow it
+                    continue
+                else:
+                    # This is the final part and it's unknown
+                    return (False, f"Unknown character function: {part}")
+        # Check for special accessor functions
+        elif part in ["Custom", "MakeScope", "ScriptValue"]:
+            # These are valid intermediate functions
+            continue
+        # For other parts, we assume they're scope links (would need scope.py integration for full validation)
+        # We'll allow them for now
+        else:
+            # Basic validation - must be alphanumeric
+            if not re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*$", part):
+                return (False, f"Invalid scope link or function: {part}")
+
+    return (True, None)
+
+
+# =============================================================================
+# VARIABLE SUBSTITUTION VALIDATION
+# =============================================================================
+
+
+def extract_variable_substitutions(text: str) -> List[Tuple[str, Optional[str]]]:
+    """
+    Extract variable substitutions from localization text.
+
+    Format: $VARIABLE$ or $VARIABLE|format$
+
+    Args:
+        text: The localization text to search
+
+    Returns:
+        List of tuples (variable_name, format_specifier)
+        Format specifier is None if not present
+
+    Examples:
+        >>> extract_variable_substitutions("$gold$ coins")
+        [('gold', None)]
+
+        >>> extract_variable_substitutions("$VALUE|+$ gold")
+        [('VALUE', '+')]
+
+        >>> extract_variable_substitutions("$VALUE|-$ and $SIZE|V0$")
+        [('VALUE', '-'), ('SIZE', 'V0')]
+    """
+    # Pattern: $WORD$ or $WORD|FORMAT$
+    # Allow any word (including those starting with numbers for detection/validation)
+    pattern = r"\$([A-Za-z0-9_]+)(?:\|([+\-V0-9UE]+))?\$"
+    matches = re.findall(pattern, text)
+    # Convert empty strings to None for format specifier
+    return [(var, fmt if fmt else None) for var, fmt in matches]
+
+
+def validate_variable_substitution(
+    variable: str, format_spec: Optional[str] = None
+) -> Tuple[bool, Optional[str]]:
+    """
+    Validate a variable substitution.
+
+    Args:
+        variable: The variable name
+        format_spec: Optional format specifier (e.g., '+', '-', 'V0', 'U')
+
+    Returns:
+        Tuple of (is_valid, error_message)
+
+    Examples:
+        >>> validate_variable_substitution('VALUE', '+')
+        (True, None)
+
+        >>> validate_variable_substitution('VALUE', 'invalid')
+        (False, "Unknown format specifier: invalid")
+    """
+    # Variable name must be alphanumeric + underscores, start with letter
+    if not re.match(r"^[A-Za-z_][A-Za-z0-9_]*$", variable):
+        return (False, f"Invalid variable name: {variable}")
+
+    # If format specifier is present, validate it
+    if format_spec:
+        # Valid format specifiers
+        valid_formats = {
+            "+",      # Positive format (show + sign)
+            "-",      # Negative format (only show - sign)
+            "U",      # Uppercase
+            "E",      # ???
+            "V0",     # Value format with 0 decimals
+            "V1",     # Value format with 1 decimal
+            "V2",     # Value format with 2 decimals
+        }
+
+        if format_spec not in valid_formats:
+            return (False, f"Unknown format specifier: {format_spec}")
+
+    return (True, None)
+
+
+def validate_all_variable_substitutions(text: str) -> List[Tuple[str, str]]:
+    """
+    Validate all variable substitutions in localization text.
+
+    Args:
+        text: The localization text to validate
+
+    Returns:
+        List of (variable, issue) tuples for problems found
+
+    Examples:
+        >>> validate_all_variable_substitutions("$VALUE|+$ gold")
+        []
+
+        >>> validate_all_variable_substitutions("$123invalid$ text")
+        [('123invalid', 'Invalid variable name: 123invalid')]
+    """
+    issues = []
+    variables = extract_variable_substitutions(text)
+
+    for var, fmt in variables:
+        is_valid, error = validate_variable_substitution(var, fmt)
+        if not is_valid:
+            issues.append((var, error))
+
+    return issues
+
+
+# =============================================================================
+# CONCEPT LINK VALIDATION
+# =============================================================================
+
+# Known game concepts from CK3
+GAME_CONCEPTS = {
+    "vassal",
+    "liege",
+    "opinion",
+    "gold",
+    "prestige",
+    "piety",
+    "dread",
+    "stress",
+    "faith",
+    "culture",
+    "dynasty",
+    "house",
+    "title",
+    "claim",
+    "alliance",
+    "war",
+    "de_jure",
+    "de_facto",
+    "line_of_succession",
+    "heir",
+    "council",
+    "councillor",
+    "knight",
+    "scheme",
+    "secret",
+    "hook",
+    "weak_hook",
+    "strong_hook",
+    "trait",
+    "skill",
+    "diplomacy",
+    "martial",
+    "stewardship",
+    "intrigue",
+    "learning",
+    "prowess",
+    "health",
+    "fertility",
+    "modifier",
+    "character_modifier",
+    "opinion_modifier",
+    "county",
+    "duchy",
+    "kingdom",
+    "empire",
+    "barony",
+    "holding",
+    "building",
+    "men_at_arms",
+    "levy",
+    "control",
+    "development",
+    "renown",
+    "legitimacy",
+    "devotion",
+    "splendor",
+    "grandeur",
+}
+
+
+def extract_concept_links(text: str) -> List[Tuple[str, str]]:
+    """
+    Extract concept links from localization text.
+
+    Format: [concept|context] where context is usually E, I, or other single letters
+
+    Args:
+        text: The localization text to search
+
+    Returns:
+        List of tuples (concept, context)
+
+    Examples:
+        >>> extract_concept_links("[vassal|E] is important")
+        [('vassal', 'E')]
+
+        >>> extract_concept_links("[gold_i] and [opinion|E]")
+        [('gold_i', ''), ('opinion', 'E')]
+    """
+    # Pattern matches [word|context] or [word_i] (inline icons)
+    pattern = r"\[([a-zA-Z_][a-zA-Z0-9_]*)\|?([EIUei]?)\]"
+    # Filter out matches that look like scope chains (contain dots or colons)
+    matches = re.findall(pattern, text)
+    result = []
+    for match in matches:
+        # Skip if it looks like a scope chain (would have dots)
+        full_match_text = text[text.find(f"[{match[0]}"):text.find(f"[{match[0]}") + len(match[0]) + 10]
+        if "." in full_match_text or ":" in full_match_text or match[0].startswith("Get"):
+            continue
+        result.append(match)
+    return result
+
+
+def validate_concept_link_reference(
+    concept: str, context: str, allow_unknown: bool = True
+) -> Tuple[bool, Optional[str]]:
+    """
+    Validate a concept link reference.
+
+    Args:
+        concept: The concept name
+        context: The context character (E, I, U, etc.)
+        allow_unknown: Whether to allow unknown concepts (default True for mod support)
+
+    Returns:
+        Tuple of (is_valid, error_message)
+    """
+    if not concept:
+        return (False, "Empty concept name")
+
+    # Check if concept is in known list (if strict validation)
+    if not allow_unknown and concept.lower() not in GAME_CONCEPTS:
+        return (False, f"Unknown game concept: {concept}")
+
+    # Validate context if present
+    if context and context not in ["E", "I", "U", "e", "i", "u"]:
+        return (False, f"Invalid concept context: {context}. Expected E, I, or U")
+
+    return (True, None)
+
+
 def get_character_function_description(func_name: str) -> str:
     """
     Get a description of a character function.
@@ -463,16 +966,46 @@ def get_character_function_description(func_name: str) -> str:
         Description string
     """
     descriptions = {
+        # Basic name functions
         "GetName": "Returns the character's full name",
         "GetFirstName": "Returns the character's first name only",
         "GetLastName": "Returns the character's last name/dynasty name",
+        "GetFullName": "Returns the character's full name with all titles",
+        "GetBirthName": "Returns the character's birth name (before any changes)",
+        "GetNickname": "Returns the character's nickname if they have one",
         "GetTitle": "Returns the character's primary title",
         "GetTitledFirstName": "Returns first name with title (e.g., 'King John')",
-        "GetUIName": "Returns name formatted for UI display",
-        "GetNickname": "Returns the character's nickname if they have one",
+        "GetTitledFirstNameNoTooltip": "Returns titled first name without hover tooltip",
+        # UI name functions
+        "GetShortUIName": "Returns short UI name suitable for display in lists",
+        "GetShortUINameNoTooltip": "Returns short UI name without hover tooltip",
+        "GetShortUINamePossessive": "Returns short UI name in possessive form",
+        "GetUIName": "Returns name formatted for UI display with tooltips",
+        "GetUINameNoTooltip": "Returns UI name without hover tooltip",
+        "GetNameNoTooltip": "Returns name without hover tooltip",
+        # Possessive forms
+        "GetTitledFirstNamePossessive": "Returns titled first name in possessive form (e.g., \"King John's\")",
+        "GetNamePossessive": "Returns name in possessive form",
+        "GetFirstNamePossessive": "Returns first name in possessive form",
+        # Gender-based pronouns
         "GetHerHis": "Returns 'her' or 'his' based on character gender",
         "GetSheHe": "Returns 'she' or 'he' based on character gender",
         "GetHerHim": "Returns 'her' or 'him' based on character gender",
+        "GetHerselfHimself": "Returns 'herself' or 'himself' based on character gender",
+        "GetWomanMan": "Returns 'woman' or 'man' based on character gender",
+        "GetGirlBoy": "Returns 'girl' or 'boy' based on character gender",
+        "GetDaughterSon": "Returns 'daughter' or 'son' based on character gender",
+        "GetLadyLord": "Returns 'lady' or 'lord' based on character gender",
+        "GetQueenKing": "Returns 'queen' or 'king' based on character gender",
+        # Special functions
+        "GetAdjective": "Returns adjective form (for faith/culture)",
+        "GetReligiousHead": "Returns religious head of faith",
+        "GetCollectiveNoun": "Returns collective noun (for faith/culture)",
+        "GetTypeName": "Returns type name (for schemes, interactions)",
+        "GetTextIcon": "Returns text icon representation",
+        "Custom": "Custom function with parameter: Custom('GetCourt')",
+        "MakeScope": "Creates scope for chaining: MakeScope.ScriptValue('name')",
+        "ScriptValue": "Script value accessor (used with MakeScope)",
     }
     return descriptions.get(func_name, f"Character function: {func_name}")
 
@@ -488,14 +1021,43 @@ def get_formatting_code_description(code: str) -> str:
         Description string
     """
     descriptions = {
+        # Basic formatting
         "#P": "Makes preceding word possessive (adds 's or ')",
-        "#N": "Inserts a newline",
+        "#N": "Inserts a newline (uppercase)",
+        "#n": "Inserts a newline (lowercase)",
         "#bold": "Makes following text bold",
+        "#BOLD": "Makes following text bold (uppercase)",
         "#italic": "Makes following text italic",
-        "#!": "Emphasizes the preceding text",
+        "#ITALIC": "Makes following text italic (uppercase)",
+        "#underline": "Underlines following text",
+        "#!": "Ends formatting or emphasizes the preceding text",
+        "#X": "Clears all formatting",
+        # Emphasis and importance
         "#weak": "Formats text as weak/de-emphasized",
         "#high": "Formats text as high importance",
         "#low": "Formats text as low importance",
+        "#EMP": "Emphasizes text (uppercase)",
+        "#emphasis": "Emphasizes text (lowercase)",
+        # Value and display
+        "#V": "Value display format (uppercase)",
+        "#v": "Value display format (lowercase)",
+        "#L": "Link/reference formatting",
+        # Colors
+        "#positive": "Positive color (green)",
+        "#negative": "Negative color (red)",
+        "#color_blue": "Blue text color",
+        "#color_red": "Red text color",
+        "#color_green": "Green text color",
+        "#color_yellow": "Yellow text color",
+        "#color_white": "White text color",
+        "#color_black": "Black text color",
+        "#color_gray": "Gray text color",
+        "#color_grey": "Grey text color (alternate spelling)",
+        "#color_purple": "Purple text color",
+        "#color_orange": "Orange text color",
+        # Tutorial
+        "#TUT_KW": "Tutorial keyword highlighting",
+        "#tutorial": "Tutorial text formatting",
     }
     return descriptions.get(code, f"Formatting code: {code}")
 
