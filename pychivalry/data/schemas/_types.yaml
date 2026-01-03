@@ -5,7 +5,7 @@ version: "1.0"
 types:
   boolean:
     description: "Boolean value (yes/no or true/false)"
-    values: [yes, no, true, false]
+    values: ["yes", "no", "true", "false"]
     
   localization_key:
     description: "Reference to localization file entry"

@@ -493,7 +493,7 @@ class SchemaValidator:
         Validate a field value against type pattern definitions.
 
         This implements Phase 8.1 pattern validation, checking values against
-        patterns defined in _types.yaml.
+        patterns defined in _types.yaml. Phase 8.2 extends this with one_of support.
 
         Args:
             value: The value to validate
@@ -513,6 +513,10 @@ class SchemaValidator:
         if not type_def:
             # No type definition found, skip pattern validation
             return None
+
+        # Phase 8.2: Handle one_of types (type composition)
+        if 'one_of' in type_def:
+            return self._validate_one_of_type(value, type_def, field_type)
 
         # Check if type has a pattern
         pattern = type_def.get('pattern')
@@ -536,6 +540,82 @@ class SchemaValidator:
 
         # Pattern matches
         return None
+
+    def _validate_one_of_type(
+        self,
+        value: Any,
+        type_def: Dict[str, Any],
+        parent_type: str
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Validate a value against a one_of type definition (Phase 8.2).
+
+        one_of types allow a field to match any of several type options. For example,
+        localization_key_or_block can be either a localization_key string or a block
+        containing triggered_desc/first_valid/random_valid.
+
+        Args:
+            value: The value to validate
+            type_def: The type definition containing one_of
+            parent_type: The parent type name for error messages
+
+        Returns:
+            Dictionary with error details if all options fail, None if any option passes
+        """
+        one_of_options = type_def.get('one_of', [])
+        
+        # Try each option - if any passes, the validation passes
+        for option in one_of_options:
+            option_type = option.get('type')
+            if not option_type:
+                continue
+            
+            # Special handling for block types
+            if option_type == 'block':
+                # For blocks, we need the actual node to check structure
+                # For now, if value looks like a block (None/not a simple string), consider it valid
+                # This is a simplified check; full block validation happens elsewhere
+                if value is None or (isinstance(value, str) and value.strip() == ''):
+                    # Empty value could be a block reference
+                    return None
+                continue
+            
+            # For other types, check if referenced type definition validates
+            option_type_def = self.loader.get_type_definition(option_type)
+            if option_type_def:
+                # Check pattern if defined
+                pattern = option.get('pattern') or option_type_def.get('pattern')
+                if pattern:
+                    try:
+                        if re.match(pattern, str(value)):
+                            # This option matches
+                            return None
+                    except re.error:
+                        pass
+                else:
+                    # No pattern to check, assume valid
+                    return None
+            elif option_type == 'string':
+                # string type always matches strings
+                if isinstance(value, str):
+                    # Check pattern if specified in option
+                    pattern = option.get('pattern')
+                    if pattern:
+                        try:
+                            if re.match(pattern, str(value)):
+                                return None
+                        except re.error:
+                            pass
+                    else:
+                        return None
+        
+        # None of the options matched - return error
+        diagnostic_code = self._get_pattern_diagnostic_code(parent_type)
+        return {
+            'code': diagnostic_code,
+            'severity': 'warning',
+            'pattern': f"one_of[{', '.join(o.get('type', 'unknown') for o in one_of_options)}]"
+        }
 
     def _get_pattern_diagnostic_code(self, field_type: str) -> str:
         """
