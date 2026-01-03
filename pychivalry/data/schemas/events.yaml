@@ -11,6 +11,28 @@ identification:
     - "events/*.txt"
   block_pattern: "^[a-z_]+\\.[0-9]+$"  # namespace.0001 format
 
+# Field Order Configuration (Phase 8.3)
+field_order:
+  enabled: true
+  mode: flexible  # flexible = hints only, strict = warnings for each out-of-order field
+  order:
+    - type
+    - title
+    - desc
+    - theme
+    - sender
+    - left_portrait
+    - right_portrait
+    - lower_left_portrait
+    - lower_center_portrait
+    - lower_right_portrait
+    - trigger
+    - is_triggered_only
+    - immediate
+    - after
+    - option
+    - widgets
+
 # Constants - reusable value lists
 constants:
   event_types:

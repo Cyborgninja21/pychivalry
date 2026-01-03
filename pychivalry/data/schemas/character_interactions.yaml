@@ -10,6 +10,28 @@ identification:
     - "*/common/character_interactions/**/*.txt"
     - "common/character_interactions/*.txt"
 
+# Field Order Configuration (Phase 8.3)
+field_order:
+  enabled: true
+  mode: flexible
+  order:
+    - category
+    - interface_priority
+    - icon
+    - is_shown
+    - can_send
+    - is_highlighted
+    - on_accept
+    - on_decline
+    - on_auto_accept
+    - ai_targets
+    - ai_frequency
+    - ai_potential
+    - ai_accept
+    - ai_will_do
+    - cooldown
+    - redirect
+
 # Constants - reusable value lists
 constants:
   categories:

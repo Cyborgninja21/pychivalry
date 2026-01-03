@@ -10,6 +10,16 @@ identification:
     - "*/common/story_cycles/**/*.txt"
     - "common/story_cycles/*.txt"
 
+# Field Order Configuration (Phase 8.3)
+field_order:
+  enabled: true
+  mode: flexible
+  order:
+    - on_setup
+    - on_end
+    - on_owner_death
+    - effect_group
+
 # ============ VALIDATION ============
 # Field definitions with validation rules
 fields:

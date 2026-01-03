@@ -10,6 +10,35 @@ identification:
     - "*/common/schemes/**/*.txt"
     - "common/schemes/*.txt"
 
+# Field Order Configuration (Phase 8.3)
+field_order:
+  enabled: true
+  mode: flexible
+  order:
+    - skill
+    - desc
+    - success_desc
+    - discovery_desc
+    - icon
+    - illustration
+    - category
+    - target_type
+    - is_secret
+    - allow
+    - valid
+    - on_start
+    - on_phase_completed
+    - on_hud_click
+    - on_ready
+    - on_monthly
+    - power_per_skill_point
+    - resistance_per_skill_point
+    - base_progress_goal
+    - phases_per_agent_charge
+    - agent_leave_threshold
+    - ai_value
+    - cooldown
+
 # Constants - reusable value lists
 constants:
   skill_types:

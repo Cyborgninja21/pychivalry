@@ -134,6 +134,16 @@ class SchemaValidator:
                 present_fields[child.key] = []
             present_fields[child.key].append(child)
 
+        # Phase 8.3: Field order validation
+        field_order_config = schema.get('field_order', {})
+        if field_order_config.get('enabled', False):
+            order_diags = self._validate_field_order(
+                node,
+                field_order_config,
+                present_fields
+            )
+            diagnostics.extend(order_diags)
+
         # Validate each field definition
         for field_name, field_def in fields.items():
             field_nodes = present_fields.get(field_name, [])
@@ -267,6 +277,108 @@ class SchemaValidator:
                                 **self._get_template_vars(field_node)
                             )
                         )
+
+        return diagnostics
+
+    def _validate_field_order(
+        self,
+        node: CK3Node,
+        field_order_config: Dict[str, Any],
+        present_fields: Dict[str, List[CK3Node]]
+    ) -> List[Diagnostic]:
+        """
+        Validate field ordering according to schema configuration.
+
+        Args:
+            node: The block node being validated
+            field_order_config: Configuration for field ordering
+            present_fields: Dictionary of present fields
+
+        Returns:
+            List of diagnostics for ordering issues
+        """
+        diagnostics: List[Diagnostic] = []
+
+        # Get expected order and mode
+        expected_order = field_order_config.get('order', [])
+        mode = field_order_config.get('mode', 'flexible')  # flexible or strict
+
+        if not expected_order or not node.children:
+            return diagnostics
+
+        # Build a map of field positions in the actual source
+        actual_positions: Dict[str, int] = {}
+        for idx, child in enumerate(node.children):
+            if child.key not in actual_positions:
+                actual_positions[child.key] = idx
+
+        # Check ordering based on mode
+        if mode == 'strict':
+            # Strict mode: fields must appear in exact order
+            # Check if fields appear in the expected sequence
+            expected_positions: Dict[str, int] = {
+                field: idx for idx, field in enumerate(expected_order)
+            }
+
+            # Find fields that appear out of order
+            seen_fields = []
+            for child in node.children:
+                if child.key in expected_positions:
+                    seen_fields.append((child.key, expected_positions[child.key]))
+
+            # Check if seen fields are in ascending order
+            for i in range(len(seen_fields) - 1):
+                current_field, current_pos = seen_fields[i]
+                next_field, next_pos = seen_fields[i + 1]
+
+                if current_pos > next_pos:
+                    # Out of order
+                    diagnostics.append(
+                        self._create_diagnostic(
+                            'SCHEMA-010',
+                            node.children[actual_positions[next_field]].range,
+                            'information',
+                            field=next_field,
+                            other_field=current_field
+                        )
+                    )
+
+        else:  # flexible mode
+            # Flexible mode: just recommend the order if significantly out of order
+            # Build recommended order hint if more than 2 fields are present
+            present_ordered_fields = [
+                field for field in expected_order
+                if field in actual_positions
+            ]
+
+            if len(present_ordered_fields) >= 3:
+                # Check if any field is significantly out of order
+                # (appears after a field that should come later)
+                expected_positions: Dict[str, int] = {
+                    field: idx for idx, field in enumerate(expected_order)
+                }
+
+                out_of_order_count = 0
+                for i in range(len(present_ordered_fields) - 1):
+                    current_field = present_ordered_fields[i]
+                    next_field = present_ordered_fields[i + 1]
+
+                    current_actual = actual_positions[current_field]
+                    next_actual = actual_positions[next_field]
+
+                    if current_actual > next_actual:
+                        out_of_order_count += 1
+
+                # If multiple fields out of order, show a hint
+                if out_of_order_count >= 2:
+                    diagnostics.append(
+                        self._create_diagnostic(
+                            'SCHEMA-011',
+                            node.range,
+                            'hint',
+                            expected_order=', '.join(present_ordered_fields)
+                        )
+                    )
 
         return diagnostics
 

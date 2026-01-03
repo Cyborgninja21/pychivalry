@@ -10,6 +10,18 @@ identification:
     - "*/common/on_action/**/*.txt"
     - "common/on_action/*.txt"
 
+# Field Order Configuration (Phase 8.3)
+field_order:
+  enabled: true
+  mode: flexible
+  order:
+    - trigger
+    - effect
+    - events
+    - random_events
+    - first_valid
+    - on_actions
+
 # ============ VALIDATION ============
 # Field definitions with validation rules
 fields:

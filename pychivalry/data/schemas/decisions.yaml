@@ -10,6 +10,24 @@ identification:
     - "*/common/decisions/**/*.txt"
     - "common/decisions/*.txt"
 
+# Field Order Configuration (Phase 8.3)
+field_order:
+  enabled: true
+  mode: flexible
+  order:
+    - picture
+    - major
+    - ai_check_interval
+    - is_shown
+    - is_valid
+    - is_valid_showing_failures_only
+    - effect
+    - ai_potential
+    - ai_will_do
+    - cost
+    - cooldown
+    - widget
+
 # Constants - reusable value lists
 constants:
   confirmation_types:
