@@ -100,6 +100,8 @@ class SymbolInfo:
 
 
 # Patterns for different symbol types
+# NOTE: Order matters! More specific patterns (like localization) should come before
+# generic patterns (like event_id) to ensure proper matching priority.
 SYMBOL_PATTERNS = {
     # Saved scopes: scope:name
     "scope_reference": re.compile(r"\bscope:([a-zA-Z_][a-zA-Z0-9_]*)"),
@@ -107,7 +109,12 @@ SYMBOL_PATTERNS = {
     "scope_definition": re.compile(
         r"\bsave_(?:temporary_)?scope_as\s*=\s*([a-zA-Z_][a-zA-Z0-9_]*)"
     ),
-    # Event IDs: namespace.0001
+    # Localization keys: title = key.with.dots, desc = namespace.number.suffix
+    # Must come BEFORE event_id to match full keys like namespace.0001.t or namespace.0001.desc
+    "localization": re.compile(
+        r"\b(?:title|desc|name|tooltip|text|first_valid|triggered_desc|custom_tooltip)\s*=\s*([a-zA-Z_][a-zA-Z0-9_.]+)"
+    ),
+    # Event IDs: namespace.0001 (only matches namespace.number without suffix)
     "event_id": re.compile(r"\b([a-zA-Z_][a-zA-Z0-9_]*\.\d+)\b"),
     # Variables: var:name, local_var:name, global_var:name
     "variable": re.compile(r"\b((?:local_)?(?:global_)?var):([a-zA-Z_][a-zA-Z0-9_]*)"),
@@ -133,10 +140,6 @@ SYMBOL_PATTERNS = {
     ),
     # Trait references
     "trait": re.compile(r"\b(?:has_trait|add_trait|remove_trait)\s*=\s*([a-zA-Z_][a-zA-Z0-9_]*)"),
-    # Localization keys (basic pattern)
-    "localization": re.compile(
-        r"(?:title|desc|name|tooltip)\s*=\s*([a-zA-Z_][a-zA-Z0-9_.]*[a-zA-Z0-9_])"
-    ),
 }
 
 
