@@ -1,0 +1,63 @@
+# Base Schema - Common patterns and reusable templates
+# Other schemas can extend this to inherit common definitions
+version: "1.0"
+
+# Common field definitions that many file types share
+common_fields:
+  trigger:
+    description: "Condition block - all triggers must be true"
+    type: trigger_block
+    
+  immediate:
+    description: "Effects that run immediately when fired"
+    type: effect_block
+    max_count: 1
+    
+  hidden:
+    description: "If yes, fires without UI/notification"
+    type: boolean
+    default: false
+
+# Common nested schemas
+common_nested_schemas:
+  ai_will_do:
+    description: "AI behavior control with base value and modifiers"
+    fields:
+      base:
+        description: "Base AI weight"
+        type: number
+      modifier:
+        description: "Conditional weight modifier"
+        type: block
+        multiple: true
+        schema: ai_modifier
+        
+  ai_modifier:
+    description: "Conditional modifier for AI behavior"
+    fields:
+      factor:
+        description: "Multiplicative weight modifier"
+        type: number
+      add:
+        description: "Additive weight modifier"
+        type: number
+      trigger:
+        description: "Conditions for this modifier to apply"
+        type: trigger_block
+
+# Common validation patterns
+common_validations:
+  empty_block:
+    condition: "children.count == 0"
+    severity: warning
+    message: "Empty block - consider adding content or removing"
+    
+  always_yes_trigger:
+    condition: "trigger.value == 'always = yes'"
+    severity: information
+    message: "Trigger always = yes is redundant - consider removing"
+    
+  always_no_trigger:
+    condition: "trigger.value == 'always = no'"
+    severity: warning
+    message: "Trigger always = no makes this impossible to fire"

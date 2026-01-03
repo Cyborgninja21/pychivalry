@@ -1,0 +1,386 @@
+# Centralized Diagnostic Codes for PyChivalry
+# All diagnostic codes used throughout the validation system
+version: "1.0"
+
+categories:
+  syntax:
+    prefix: "CK30"
+    description: "Syntax and parsing errors"
+  scope:
+    prefix: "CK31"
+    description: "Scope chain and type validation"
+  style:
+    prefix: "CK33"
+    description: "Code style and formatting"
+  event_structure:
+    prefix: "CK37"
+    description: "Event structure validation"
+  context:
+    prefix: "CK38"
+    description: "Effect/trigger context violations"
+  iterators:
+    prefix: "CK39"
+    description: "List iterator validation"
+  gotchas:
+    prefix: "CK51"
+    description: "Common CK3 gotchas"
+  story_cycles:
+    prefix: "STORY"
+    description: "Story cycle validation"
+  decisions:
+    prefix: "DECISION"
+    description: "Decision validation"
+
+diagnostics:
+  # ============== Syntax (CK30xx) ==============
+  CK3001:
+    severity: error
+    category: syntax
+    message: "Unmatched closing bracket - no corresponding opening bracket found"
+    
+  CK3002:
+    severity: error
+    category: syntax
+    message: "Unclosed bracket - opened at line {line}, expected closing '}}'"
+    
+  # ============== Scope (CK31xx) ==============
+  CK3101:
+    severity: warning
+    category: scope
+    message: "Unknown trigger: '{key}'"
+    
+  CK3102:
+    severity: error
+    category: scope
+    message: "Effect '{key}' used in trigger block (triggers check conditions, not modify state)"
+    
+  CK3103:
+    severity: warning
+    category: scope
+    message: "Unknown effect: '{key}'"
+    
+  CK3201:
+    severity: error
+    category: scope
+    message: "Invalid scope chain: {details}"
+    
+  CK3202:
+    severity: warning
+    category: scope
+    message: "Undefined saved scope: '{name}' (use save_scope_as to define it)"
+    
+  # ============== Event Structure (CK37xx) ==============
+  CK3760:
+    severity: error
+    category: event_structure
+    message: "Event '{id}' missing 'type' declaration (e.g., type = character_event)"
+    fix: "Add 'type = character_event' or appropriate event type"
+    
+  CK3761:
+    severity: error
+    category: event_structure
+    message: "Invalid event type '{value}'. Valid types: {valid_values}"
+    
+  CK3762:
+    severity: warning
+    category: event_structure
+    message: "Hidden event '{id}' has option blocks, but options are ignored in hidden events"
+    
+  CK3763:
+    severity: warning
+    category: event_structure
+    message: "Event '{id}' has no option blocks - player cannot interact"
+    
+  CK3764:
+    severity: warning
+    category: event_structure
+    message: "Event '{id}' is missing 'desc' field"
+    
+  CK3766:
+    severity: error
+    category: event_structure
+    message: "Event '{id}' has {count} after blocks - only the first will execute"
+    
+  CK3767:
+    severity: warning
+    category: event_structure
+    message: "Event '{id}' is empty - it has no fields or content"
+    
+  CK3768:
+    severity: error
+    category: event_structure
+    message: "Event '{id}' has {count} immediate blocks - only the first will execute"
+    
+  CK3769:
+    severity: information
+    category: event_structure
+    message: "Character event '{id}' has no portrait positions defined"
+    
+  # ============== Options (CK345x) ==============
+  CK3450:
+    severity: error
+    category: event_structure
+    message: "Option block is missing required 'name' field for localization"
+    fix: "Add 'name = your_event.option_a'"
+    
+  CK3453:
+    severity: warning
+    category: event_structure
+    message: "Option has {count} 'name' fields - only the first will be used"
+    
+  CK3456:
+    severity: warning
+    category: event_structure
+    message: "Empty option block - options need at least a 'name' field"
+    
+  # ============== Portraits (CK342x) ==============
+  CK3420:
+    severity: error
+    category: event_structure
+    message: "Invalid portrait position '{value}'. Valid: {valid_values}"
+    
+  CK3421:
+    severity: warning
+    category: event_structure
+    message: "Portrait '{position}' is missing required 'character' field"
+    
+  CK3422:
+    severity: warning
+    category: event_structure
+    message: "Invalid animation '{value}'. Valid: {valid_values}"
+    
+  CK3430:
+    severity: warning
+    category: event_structure
+    message: "Invalid theme '{value}'. Valid: {valid_values}"
+    
+  # ============== triggered_desc (CK344x) ==============
+  CK3440:
+    severity: error
+    category: event_structure
+    message: "triggered_desc block is missing required 'trigger' field"
+    
+  CK3441:
+    severity: error
+    category: event_structure
+    message: "triggered_desc block is missing required 'desc' field"
+    
+  CK3443:
+    severity: warning
+    category: event_structure
+    message: "Empty desc block - event needs a description"
+    
+  # ============== trigger_if/else (CK351x) ==============
+  CK3510:
+    severity: error
+    category: event_structure
+    message: "trigger_else without preceding trigger_if - this block will never execute"
+    
+  CK3511:
+    severity: error
+    category: event_structure
+    message: "Multiple trigger_else blocks - only the first will execute"
+    
+  CK3512:
+    severity: error
+    category: event_structure
+    message: "trigger_if block is missing required 'limit' field"
+    
+  CK3513:
+    severity: warning
+    category: event_structure
+    message: "trigger_if limit is empty - condition always passes"
+    
+  # ============== After blocks (CK352x) ==============
+  CK3520:
+    severity: warning
+    category: event_structure
+    message: "Hidden event has 'after' block - after blocks only run after player chooses an option"
+    
+  CK3521:
+    severity: warning
+    category: event_structure
+    message: "Event has 'after' block but no options - after block won't execute"
+    
+  # ============== AI Chance (CK361x) ==============
+  CK3610:
+    severity: warning
+    category: event_structure
+    message: "ai_chance has negative base ({value}) - AI will never select unless modifiers bring it positive"
+    
+  CK3611:
+    severity: information
+    category: event_structure
+    message: "ai_chance has high base ({value}) - heavily weights this option"
+    
+  CK3612:
+    severity: warning
+    category: event_structure
+    message: "ai_chance has base = 0 with no modifiers - AI will never select this option"
+    
+  CK3614:
+    severity: information
+    category: event_structure
+    message: "ai_chance modifier has no trigger - applies unconditionally"
+    
+  # ============== Opinion (CK365x) ==============
+  CK3656:
+    severity: error
+    category: context
+    message: "Inline opinion value in {effect}. Define opinion modifier in common/opinion_modifiers/"
+    
+  # ============== Context (CK387x) ==============
+  CK3870:
+    severity: error
+    category: context
+    message: "Effect '{effect}' used in trigger block. Effects cannot be used in trigger contexts."
+    
+  CK3871:
+    severity: error
+    category: context
+    message: "Effect '{effect}' used in limit block. Limits are triggers, not effects."
+    
+  CK3872:
+    severity: information
+    category: context
+    message: "'trigger = {{ always = yes }}' is redundant - remove the trigger block"
+    
+  CK3873:
+    severity: warning
+    category: context
+    message: "'trigger = {{ always = no }}' makes this event impossible to fire"
+    
+  CK3875:
+    severity: warning
+    category: iterators
+    message: "'{iterator}' without limit - selection is completely random"
+    
+  # ============== Iterators (CK397x) ==============
+  CK3976:
+    severity: error
+    category: iterators
+    message: "Effect '{effect}' used in '{iterator}' iterator. any_* iterators are trigger-only; use every_* or random_*"
+    
+  CK3977:
+    severity: information
+    category: iterators
+    message: "'{iterator}' without limit - affects ALL entries. Add limit or comment if intentional."
+    
+  # ============== Gotchas (CK51xx) ==============
+  CK5137:
+    severity: warning
+    category: gotchas
+    message: "is_alive without exists check - may crash if target doesn't exist"
+    
+  CK5142:
+    severity: error
+    category: gotchas
+    message: "Character comparison '{expr}' may not work. Use '{scope} = {{ this = {target} }}'"
+    
+  # ============== Story Cycles (STORY-xxx) ==============
+  STORY-001:
+    severity: error
+    category: story_cycles
+    message: "effect_group missing timing keyword (days/months/years)"
+    fix: "Add timing like 'days = 30' or 'months = {{ 1 3 }}'"
+    
+  STORY-002:
+    severity: error
+    category: story_cycles
+    message: "Invalid timing format: expected integer or {{ min max }} range"
+    
+  STORY-003:
+    severity: error
+    category: story_cycles
+    message: "Invalid timing range: min ({min}) must be ≤ max ({max}) and both positive"
+    
+  STORY-004:
+    severity: error
+    category: story_cycles
+    message: "Multiple timing keywords in effect_group (use only one of days/months/years)"
+    
+  STORY-005:
+    severity: error
+    category: story_cycles
+    message: "triggered_effect missing required 'trigger' block"
+    
+  STORY-006:
+    severity: error
+    category: story_cycles
+    message: "triggered_effect missing required 'effect' block"
+    
+  STORY-007:
+    severity: error
+    category: story_cycles
+    message: "Story cycle has no effect_group blocks (does nothing)"
+    
+  STORY-008:
+    severity: error
+    category: story_cycles
+    message: "Story cycle '{name}' should be in common/story_cycles/ directory"
+    
+  STORY-020:
+    severity: warning
+    category: story_cycles
+    message: "Story lacks on_owner_death handler (may persist indefinitely)"
+    fix: "Add on_owner_death = {{ scope:story = {{ end_story = yes }} }}"
+    
+  STORY-021:
+    severity: warning
+    category: story_cycles
+    message: "on_owner_death should call end_story or make_story_owner"
+    
+  STORY-022:
+    severity: warning
+    category: story_cycles
+    message: "effect_group without trigger fires unconditionally every interval"
+    
+  STORY-023:
+    severity: warning
+    category: story_cycles
+    message: "chance value ({value}) exceeds 100%"
+    
+  STORY-024:
+    severity: warning
+    category: story_cycles
+    message: "chance value ({value}) is 0 or negative (effect never fires)"
+    
+  STORY-025:
+    severity: warning
+    category: story_cycles
+    message: "effect_group has trigger but no triggered_effect blocks"
+    
+  STORY-026:
+    severity: warning
+    category: story_cycles
+    message: "first_valid should have an unconditional fallback effect"
+    
+  STORY-027:
+    severity: warning
+    category: story_cycles
+    message: "Mixing triggered_effect and first_valid in same effect_group is confusing"
+    
+  STORY-040:
+    severity: information
+    category: story_cycles
+    message: "on_setup block is empty - consider initialization logic"
+    
+  STORY-041:
+    severity: information
+    category: story_cycles
+    message: "on_end block is empty - consider cleanup logic"
+    
+  STORY-043:
+    severity: information
+    category: story_cycles
+    message: "Very short interval ({value} days) - may impact performance"
+    
+  STORY-044:
+    severity: information
+    category: story_cycles
+    message: "Very long interval ({value} years) - player may not experience this"
+    
+  STORY-045:
+    severity: hint
+    category: story_cycles
+    message: "Consider adding debug_log in on_end for testing"

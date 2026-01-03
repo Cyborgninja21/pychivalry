@@ -1,0 +1,63 @@
+# Base Type Definitions for Schema System
+# Reusable field types used across multiple schemas
+version: "1.0"
+
+types:
+  boolean:
+    description: "Boolean value (yes/no or true/false)"
+    values: [yes, no, true, false]
+    
+  localization_key:
+    description: "Reference to localization file entry"
+    pattern: "^[a-z][a-z0-9_.]*$"
+    
+  localization_key_or_block:
+    description: "Localization key or complex desc block"
+    one_of:
+      - type: localization_key
+      - type: block
+        contains: [triggered_desc, first_valid, random_valid]
+        
+  scope_reference:
+    description: "Reference to a scope (character, title, etc.)"
+    pattern: "^(scope:|root|prev|this|from|[a-z_]+).*$"
+    
+  effect_block:
+    description: "Block containing effects (state modifications)"
+    context: effect
+    
+  trigger_block:
+    description: "Block containing triggers (conditions)"
+    context: trigger
+    
+  integer:
+    description: "Integer value"
+    pattern: "^-?[0-9]+$"
+    
+  number:
+    description: "Numeric value (integer or decimal)"
+    pattern: "^-?[0-9]+\\.?[0-9]*$"
+    
+  integer_or_range:
+    description: "Integer or range block like { 30 60 }"
+    one_of:
+      - type: integer
+      - type: block
+        description: "Range block with min and max values"
+        
+  number_or_script_value:
+    description: "Numeric value or script value reference"
+    one_of:
+      - type: number
+      - type: string
+        pattern: "^[a-z_][a-z0-9_]*$"
+        
+  enum:
+    description: "One of a predefined set of values"
+    # values defined per-field in schema
+    
+  string:
+    description: "Text string value"
+    
+  block:
+    description: "Generic nested block"
