@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 # Schema and diagnostics file locations
 SCHEMAS_DIR = Path(__file__).parent / "data" / "schemas"
 DIAGNOSTICS_FILE = Path(__file__).parent / "data" / "diagnostics.yaml"
+TYPES_FILE = SCHEMAS_DIR / "_types.yaml"
 
 
 class SchemaLoader:
@@ -34,6 +35,7 @@ class SchemaLoader:
         """Initialize the schema loader with empty caches."""
         self._schemas: Dict[str, Dict[str, Any]] = {}
         self._diagnostics: Dict[str, Dict[str, Any]] = {}
+        self._types: Dict[str, Dict[str, Any]] = {}  # Type definitions from _types.yaml
         self._file_type_cache: Dict[str, str] = {}  # path -> schema_name
         self._loaded = False
 
@@ -43,9 +45,10 @@ class SchemaLoader:
             return
 
         self._load_diagnostics()
+        self._load_types()
         self._load_schemas()
         self._loaded = True
-        logger.info(f"Loaded {len(self._schemas)} schemas and {len(self._diagnostics)} diagnostics")
+        logger.info(f"Loaded {len(self._schemas)} schemas, {len(self._diagnostics)} diagnostics, and {len(self._types)} type definitions")
 
     def _load_diagnostics(self) -> None:
         """Load centralized diagnostics definitions from diagnostics.yaml."""
@@ -61,6 +64,21 @@ class SchemaLoader:
                     logger.debug(f"Loaded {len(self._diagnostics)} diagnostic definitions")
         except Exception as e:
             logger.error(f"Failed to load diagnostics from {DIAGNOSTICS_FILE}: {e}")
+
+    def _load_types(self) -> None:
+        """Load type definitions from _types.yaml."""
+        if not TYPES_FILE.exists():
+            logger.warning(f"Types file not found: {TYPES_FILE}")
+            return
+
+        try:
+            with open(TYPES_FILE, 'r', encoding='utf-8') as f:
+                data = yaml.safe_load(f)
+                if data and 'types' in data:
+                    self._types = data['types']
+                    logger.debug(f"Loaded {len(self._types)} type definitions")
+        except Exception as e:
+            logger.error(f"Failed to load types from {TYPES_FILE}: {e}")
 
     def _load_schemas(self) -> None:
         """Load all schema files from the schemas directory."""
@@ -198,10 +216,26 @@ class SchemaLoader:
 
         return self._diagnostics.copy()
 
+    def get_type_definition(self, type_name: str) -> Optional[Dict[str, Any]]:
+        """
+        Get type definition from _types.yaml by name.
+
+        Args:
+            type_name: The type name (e.g., 'localization_key', 'integer', 'effect_block')
+
+        Returns:
+            The type definition dictionary if found, None otherwise
+        """
+        if not self._loaded:
+            self.load_all()
+
+        return self._types.get(type_name)
+
     def clear_cache(self) -> None:
         """Clear all caches and force reload on next access."""
         self._schemas.clear()
         self._diagnostics.clear()
+        self._types.clear()
         self._file_type_cache.clear()
         self._loaded = False
         logger.info("Schema cache cleared")

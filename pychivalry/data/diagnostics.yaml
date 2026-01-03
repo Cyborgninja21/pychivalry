@@ -42,6 +42,9 @@ categories:
   on_actions:
     prefix: "ON_ACTION"
     description: "On-action validation"
+  schema:
+    prefix: "SCHEMA"
+    description: "Schema-driven validation (patterns, types, order)"
 
 diagnostics:
   # ============== Syntax (CK30xx) ==============
@@ -471,4 +474,58 @@ diagnostics:
     severity: warning
     category: on_actions
     message: "On-action has empty events list"
+    
+  # ============== Schema Validation (SCHEMA-xxx) ==============
+  SCHEMA-001:
+    severity: warning
+    category: schema
+    message: "Invalid localization key format: '{value}' (expected lowercase with dots/underscores)"
+    fix: "Use format: lowercase_with_underscores or dots.between.parts"
+    
+  SCHEMA-002:
+    severity: warning
+    category: schema
+    message: "Invalid scope reference format: '{value}'"
+    fix: "Use: scope:variable_name, root, prev, this, from, or scope chain"
+    
+  SCHEMA-003:
+    severity: warning
+    category: schema
+    message: "Invalid number format: '{value}'"
+    fix: "Use valid number format (e.g., 100, -5, 3.14)"
+    
+  SCHEMA-004:
+    severity: warning
+    category: schema
+    message: "Value '{value}' does not match required pattern: {pattern}"
+    
+  SCHEMA-010:
+    severity: information
+    category: schema
+    message: "Field '{field}' should appear before '{other_field}' for consistency"
+    
+  SCHEMA-011:
+    severity: hint
+    category: schema
+    message: "Recommended field order: {expected_order}"
+    
+  SCHEMA-020:
+    severity: error
+    category: schema
+    message: "Range values must be in order: min ({min}) should be less than max ({max})"
+    
+  SCHEMA-021:
+    severity: warning
+    category: schema
+    message: "Range block should contain exactly 2 values (min and max), found {count}"
+    
+  SCHEMA-022:
+    severity: warning
+    category: schema
+    message: "Expected {expected_type} but got {actual_type}"
+    
+  SCHEMA-023:
+    severity: error
+    category: schema
+    message: "Block type mismatch: expected {expected_context} block but found {actual_context}"
 

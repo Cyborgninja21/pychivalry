@@ -207,6 +207,27 @@ class SchemaValidator:
                             )
                         )
 
+            # Pattern validation (Phase 8.1)
+            if field_nodes and field_def.get('type'):
+                for field_node in field_nodes:
+                    if field_node.value:  # Only validate if there's a value
+                        pattern_diag = self._validate_pattern(
+                            field_node.value,
+                            field_def.get('type'),
+                            field_name
+                        )
+                        if pattern_diag:
+                            template_vars = self._get_template_vars(field_node)
+                            template_vars['pattern'] = pattern_diag.get('pattern', '')
+                            diagnostics.append(
+                                self._create_diagnostic(
+                                    pattern_diag['code'],
+                                    field_node.range,
+                                    pattern_diag.get('severity', 'warning'),
+                                    **template_vars
+                                )
+                            )
+
             # Nested schema validation
             if 'schema' in field_def:
                 nested_schema_name = field_def['schema']
@@ -461,6 +482,82 @@ class SchemaValidator:
             # Type mismatch in comparison
             return False
         return False
+
+    def _validate_pattern(
+        self,
+        value: str,
+        field_type: str,
+        field_name: str
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Validate a field value against type pattern definitions.
+
+        This implements Phase 8.1 pattern validation, checking values against
+        patterns defined in _types.yaml.
+
+        Args:
+            value: The value to validate
+            field_type: The field type (e.g., 'localization_key', 'integer')
+            field_name: Name of the field being validated (for context)
+
+        Returns:
+            Dictionary with 'code', 'severity', and 'pattern' if validation fails,
+            None if validation passes
+        """
+        # Skip pattern validation for enum types (already handled separately)
+        if field_type == 'enum':
+            return None
+
+        # Get type definition from _types.yaml
+        type_def = self.loader.get_type_definition(field_type)
+        if not type_def:
+            # No type definition found, skip pattern validation
+            return None
+
+        # Check if type has a pattern
+        pattern = type_def.get('pattern')
+        if not pattern:
+            # No pattern defined for this type
+            return None
+
+        # Validate value against pattern
+        try:
+            if not re.match(pattern, str(value)):
+                # Pattern mismatch - determine specific diagnostic code
+                diagnostic_code = self._get_pattern_diagnostic_code(field_type)
+                return {
+                    'code': diagnostic_code,
+                    'severity': 'warning',
+                    'pattern': pattern
+                }
+        except re.error as e:
+            logger.warning(f"Invalid regex pattern for type {field_type}: {pattern} ({e})")
+            return None
+
+        # Pattern matches
+        return None
+
+    def _get_pattern_diagnostic_code(self, field_type: str) -> str:
+        """
+        Get the appropriate diagnostic code for a pattern validation failure.
+
+        Args:
+            field_type: The field type that failed validation
+
+        Returns:
+            The diagnostic code to use
+        """
+        # Map common types to specific diagnostic codes
+        type_to_diagnostic = {
+            'localization_key': 'SCHEMA-001',
+            'localization_key_or_block': 'SCHEMA-001',
+            'scope_reference': 'SCHEMA-002',
+            'integer': 'SCHEMA-003',
+            'number': 'SCHEMA-003',
+            'number_or_script_value': 'SCHEMA-003',
+        }
+
+        return type_to_diagnostic.get(field_type, 'SCHEMA-004')
 
     def _get_template_vars(self, node: CK3Node) -> Dict[str, Any]:
         """
