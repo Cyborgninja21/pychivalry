@@ -1,0 +1,604 @@
+###############################################################################
+# Rance Quest - Rise of the Wolf Queen Story Cycle
+# File: rise_of_the_wolf_queen_story_cycle.txt
+###############################################################################
+# STORY: story_rise_of_wolf_queen
+# STARTED BY: embrace_wolf_queen_destiny_decision (common/decisions/)
+#
+# OVERVIEW:
+#   From her first breath, she was different. Her grandfather declared:
+#   "A she-wolf, ready to pounce."
+#
+#   By thirteen, she had begun her conquest - not of lands, but of secrets.
+#   She blackmailed a maid into teaching lockpicking. She stole her brother's
+#   Roman erotica. She took the Archmage's oldest spellbook. And she claimed
+#   the Crown of Circe itself.
+#
+#   Now grown, she speaks the words that will echo through eternity:
+#   "I will be the Queen of The Eternal City! Summon the demons!
+#    I'll trade every last soul for a little comfort!"
+#
+# STARTING TRAITS: Ambitious, Witch, Brave
+###############################################################################
+
+# ============================================================================
+# SCRIPT DEPENDENCIES
+# ============================================================================
+#
+# CHARACTER MODIFIERS (common/modifiers/rq_rise_wolf_queen_modifiers.txt):
+#   she_wolf_ready_to_pounce     - Core prophecy modifier (permanent)
+#   demonic_insight              - Witch's tome effect (6 months)
+#   demons_bargain               - Demon pact effect (5 years)
+#   blessing_of_circe            - Crown of Circe effect (5 years)
+#
+# OPINION MODIFIERS (common/opinion_modifiers/rq_rise_wolf_queen_opinion_modifiers.txt):
+#   Thief: rq_wolf_queen_loyal_informant_opinion, rq_wolf_queen_exposed_opinion, etc.
+#   Witch: rq_wolf_queen_magically_bound_opinion, rq_wolf_queen_magically_dominated_opinion
+#   Warrior: rq_wolf_queen_defeated_by_opinion, rq_wolf_queen_conquered_opinion, etc.
+#
+# EVENTS TRIGGERED (events/rq_rise_wolf_queen_events/):
+#   rq_rise_wolf_queen.0001      - "The Wolf Awakens" - on_setup
+#   rq_rise_wolf_queen.1001      - "The Thief's Instinct" - monthly
+#   rq_rise_wolf_queen.2001      - "Whispers from the Tome" - quarterly
+#   rq_rise_wolf_queen.3001      - "The She-Wolf Hunts" - bi-annual (war)
+#   rq_rise_wolf_queen.3002      - "The Wolf Must Run" - bi-annual (peace)
+#   rq_rise_wolf_queen.4001-4004 - Annual progress events
+#   rq_rise_wolf_queen.5001      - "The Demon's Bargain" - every 2 years
+#   rq_rise_wolf_queen.6001      - "The Crown of Circe" - every 5 years
+#   rq_rise_wolf_queen.8001      - "The Wolf's Cub" - on_owner_death
+#   rq_rise_wolf_queen.9001-9003 - Ending events
+#
+# DECISION (common/decisions/rq_wolf_queen_decision.txt):
+#   embrace_wolf_queen_destiny_decision - Starts this story cycle
+#
+# LOCALIZATION (localization/english/):
+#   rq_rise_wolf_queen_l_english.yml          - Core events, setup, endings
+#   rq_rise_wolf_queen_thief_l_english.yml    - Thief path events (1002-1020)
+#   rq_rise_wolf_queen_witch_l_english.yml    - Witch path events (2002-2020)
+#   rq_rise_wolf_queen_warrior_l_english.yml  - Warrior path events (3003-3020)
+#
+# ============================================================================
+
+# ============================================================================
+# STORY VARIABLES
+# ============================================================================
+#
+# wolf_queen_ambition (on story):
+#   Tracks progress toward the Eternal City
+#   - +20: Empire-level realm (annual)
+#   - +10: Kingdom-level realm (annual)
+#   - +5: Still a ruler (annual)
+#   - +5: War with brave trait (bi-annual)
+#   - Victory threshold: 100
+#
+# secrets_claimed (on story):
+#   Counts secrets discovered via thief events
+#   - Starts at 3 (maid, erotica, spellbook)
+#   - +1 per monthly thief event
+#
+# souls_promised (on story):
+#   Counts souls promised to demons
+#   - Starts at 0
+#   - +100 per demon bargain accepted
+#
+# ============================================================================
+
+story_rise_of_wolf_queen = {
+	# ───────────────────────────────────────────────────────────────────────────
+	# ON_SETUP: The Wolf's Awakening
+	# ───────────────────────────────────────────────────────────────────────────
+	on_setup = {
+		# Trait gains moved to the initiation decision
+		# (emplace initial traits and modifiers when the decision is taken)
+		
+		# Track her ambition's growth
+		set_variable = {
+			name = wolf_queen_ambition
+			value = 0
+		}
+		
+		# Track secrets stolen (starts at 3: maid, erotica, spellbook)
+		set_variable = {
+			name = secrets_claimed
+			value = 3
+		}
+		
+		# Track souls promised
+		set_variable = {
+			name = souls_promised
+			value = 0
+		}
+		
+		# Trigger the awakening event
+		story_owner = {
+			trigger_event = {
+				id = rq_rise_wolf_queen.0001
+				days = 1
+			}
+		}
+	}
+	
+	# ───────────────────────────────────────────────────────────────────────────
+	# ON_END: The Wolf's Legacy
+	# ───────────────────────────────────────────────────────────────────────────
+	on_end = {
+		story_owner = {
+			# Did she achieve her dream?
+			if = {
+				limit = {
+					has_title = title:e_roman_empire
+				}
+				trigger_event = rq_rise_wolf_queen.9001
+			}
+			else_if = {
+				limit = {
+					root.var:wolf_queen_ambition >= 100
+				}
+				trigger_event = rq_rise_wolf_queen.9002
+			}
+			else = {
+				trigger_event = rq_rise_wolf_queen.9003
+			}
+			
+			# Clean up modifiers
+			remove_character_modifier = she_wolf_ready_to_pounce
+		}
+	}
+	
+	# ───────────────────────────────────────────────────────────────────────────
+	# ON_OWNER_DEATH: The Wolf Falls
+	# ───────────────────────────────────────────────────────────────────────────
+	on_owner_death = {
+		# Can a daughter inherit the wolf's destiny?
+		if = {
+			limit = {
+				any_child = {
+					is_female = yes
+					is_alive = yes
+					age >= 13
+					OR = {
+						has_trait = ambitious
+						has_trait = brave
+						intrigue >= 10
+					}
+				}
+			}
+			random_child = {
+				limit = {
+					is_female = yes
+					is_alive = yes
+					age >= 13
+				}
+				weight = {
+					base = 1
+					modifier = { add = 5 has_trait = ambitious }
+					modifier = { add = 3 has_trait = brave }
+					modifier = { add = 2 intrigue >= 12 }
+				}
+				save_scope_as = new_wolf_queen
+			}
+			if = {
+				limit = { exists = scope:new_wolf_queen }
+				make_story_owner = scope:new_wolf_queen
+				scope:new_wolf_queen = {
+					trigger_event = rq_rise_wolf_queen.8001
+				}
+			}
+		}
+		else = {
+			# No worthy heir - the wolf's line ends
+			end_story = yes
+		}
+	}
+	
+	# ═══════════════════════════════════════════════════════════════════════════
+	# EFFECT GROUPS: The Wolf's Journey
+	# ═══════════════════════════════════════════════════════════════════════════
+	
+	# ───────────────────────────────────────────────────────────────────────────
+	# Monthly: The Thief's Instinct
+	# Small chance to discover a secret each month
+	# ───────────────────────────────────────────────────────────────────────────
+	effect_group = {
+		months = 1
+		
+		trigger = {
+			story_owner = {
+				is_adult = yes
+				intrigue >= 8
+			}
+		}
+		
+		triggered_effect = {
+			trigger = {
+				story_owner = {
+					is_adult = yes
+					intrigue >= 8
+				}
+			}
+			effect = {
+				story_owner = {
+					random = {
+						chance = 15
+						modifier = {
+							add = 5
+							has_trait = schemer
+						}
+						modifier = {
+							add = 10
+							has_trait = witch
+						}
+						# Random selection from Thief path events
+						random_list = {
+							10 = { trigger_event = rq_rise_wolf_queen.1001 } # Core event
+							5 = { trigger_event = rq_rise_wolf_queen.1002 }  # Servant's Whispers
+							5 = { trigger_event = rq_rise_wolf_queen.1003 }  # Locked Chest
+							5 = { trigger_event = rq_rise_wolf_queen.1004 }  # Letters in the Night
+							5 = { trigger_event = rq_rise_wolf_queen.1005 }  # Drunk Confessor
+							5 = { trigger_event = rq_rise_wolf_queen.1006 }  # Maid's Legacy
+							5 = { trigger_event = rq_rise_wolf_queen.1007 }  # Forbidden Archives
+							5 = { trigger_event = rq_rise_wolf_queen.1008 }  # Merchant's Ledger
+							5 = { trigger_event = rq_rise_wolf_queen.1009 }  # Pillow Talk
+							5 = { trigger_event = rq_rise_wolf_queen.1010 }  # Poisoner's Trade
+							5 = { trigger_event = rq_rise_wolf_queen.1011 }  # Brother's Shame
+							5 = { trigger_event = rq_rise_wolf_queen.1012 }  # Hidden Passage
+							5 = { trigger_event = rq_rise_wolf_queen.1013 }  # Forged Seal
+							5 = { trigger_event = rq_rise_wolf_queen.1014 }  # Coin and Confession
+							5 = { trigger_event = rq_rise_wolf_queen.1015 }  # Wolf's Ears
+							# Lust events (lower chance, trait gated)
+							3 = { 
+								modifier = {
+									factor = 2
+									has_trait = lustful
+								}
+								trigger_event = rq_rise_wolf_queen.1016 # Pillow Secrets
+							}
+							3 = {
+								modifier = {
+									factor = 2
+									has_trait = lustful
+								}
+								trigger_event = rq_rise_wolf_queen.1017 # Blackmail Boudoir
+							}
+							3 = {
+								modifier = {
+									factor = 2
+									has_trait = lustful
+								}
+								trigger_event = rq_rise_wolf_queen.1018 # Spy's Reward
+							}
+							3 = {
+								modifier = {
+									factor = 2
+									has_trait = lustful
+								}
+								trigger_event = rq_rise_wolf_queen.1019 # Honeyed Trap
+							}
+							3 = {
+								modifier = {
+									factor = 2
+									has_trait = lustful
+								}
+								trigger_event = rq_rise_wolf_queen.1020 # Wolf's Appetite
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	# ───────────────────────────────────────────────────────────────────────────
+	# Quarterly: The Witch's Whispers
+	# Mystical insights from the archmage's stolen tome
+	# ───────────────────────────────────────────────────────────────────────────
+	effect_group = {
+		months = 3
+		
+		trigger = {
+			story_owner = {
+				has_trait = witch
+				learning >= 6
+			}
+		}
+		
+		triggered_effect = {
+			trigger = {
+				story_owner = {
+					has_trait = witch
+					learning >= 6
+				}
+			}
+			effect = {
+				story_owner = {
+					random_list = {
+						20 = {
+							# Learning insight
+							add_piety = 10
+						}
+						20 = {
+							# Intrigue insight
+							add_prestige = 10
+						}
+						# Random selection from Witch path events
+						5 = { trigger_event = rq_rise_wolf_queen.2001 }  # Core event
+						3 = { trigger_event = rq_rise_wolf_queen.2002 }  # Blood Ink
+						3 = { trigger_event = rq_rise_wolf_queen.2003 }  # Circe's Vision
+						3 = { trigger_event = rq_rise_wolf_queen.2004 }  # Archmage's Ghost
+						3 = { trigger_event = rq_rise_wolf_queen.2005 }  # Familiar's Offer
+						3 = { trigger_event = rq_rise_wolf_queen.2006 }  # Thirteenth Page
+						3 = { trigger_event = rq_rise_wolf_queen.2007 }  # Moonlit Ritual
+						3 = { trigger_event = rq_rise_wolf_queen.2008 }  # Witch's Mark
+						3 = { trigger_event = rq_rise_wolf_queen.2009 }  # Poison Knowledge
+						3 = { trigger_event = rq_rise_wolf_queen.2010 }  # Lover's Curse
+						3 = { trigger_event = rq_rise_wolf_queen.2011 }  # Daughter of Aeaea
+						3 = { trigger_event = rq_rise_wolf_queen.2012 }  # Price of Knowing
+						3 = { trigger_event = rq_rise_wolf_queen.2013 }  # Shapechanger's Secret
+						3 = { trigger_event = rq_rise_wolf_queen.2014 }  # Demon's Name
+						3 = { trigger_event = rq_rise_wolf_queen.2015 }  # Eternal City Wards
+						# Lust events (lower chance, trait gated)
+						2 = {
+							modifier = {
+								factor = 2
+								has_trait = lustful
+							}
+							trigger_event = rq_rise_wolf_queen.2016 # Succubus Pact
+						}
+						2 = {
+							modifier = {
+								factor = 2
+								has_trait = lustful
+							}
+							trigger_event = rq_rise_wolf_queen.2017 # Circe's Seduction
+						}
+						2 = {
+							modifier = {
+								factor = 2
+								has_trait = lustful
+							}
+							trigger_event = rq_rise_wolf_queen.2018 # Blood and Pleasure
+						}
+						2 = {
+							modifier = {
+								factor = 2
+								has_trait = lustful
+							}
+							trigger_event = rq_rise_wolf_queen.2019 # Familiar's Form
+						}
+						2 = {
+							modifier = {
+								factor = 2
+								has_trait = lustful
+							}
+							trigger_event = rq_rise_wolf_queen.2020 # Rite of Domination
+						}
+						10 = {
+							# Nothing this season - the book is silent
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	# ───────────────────────────────────────────────────────────────────────────
+	# Bi-Annual: The Shieldmaiden's Challenge
+	# War events for brave warriors, tournament events during peace
+	# ───────────────────────────────────────────────────────────────────────────
+	effect_group = {
+		months = 6
+		
+		triggered_effect = {
+			trigger = {
+				story_owner = {
+					has_trait = brave
+					is_at_war = yes
+				}
+			}
+			effect = {
+				change_variable = {
+					name = wolf_queen_ambition
+					add = 5
+				}
+				story_owner = {
+					add_prestige = 50
+					# Random selection from Warrior path combat events
+					random_list = {
+						10 = { trigger_event = rq_rise_wolf_queen.3001 } # Core war event
+						5 = { trigger_event = rq_rise_wolf_queen.3005 }  # Blood on Snow
+						5 = { trigger_event = rq_rise_wolf_queen.3006 }  # Siege Master
+						5 = { trigger_event = rq_rise_wolf_queen.3007 }  # Ambush
+						5 = { trigger_event = rq_rise_wolf_queen.3012 }  # Berserker's Fury
+						5 = { trigger_event = rq_rise_wolf_queen.3013 }  # Shield Wall
+						5 = { trigger_event = rq_rise_wolf_queen.3014 }  # Enemy Commander
+						5 = { trigger_event = rq_rise_wolf_queen.3015 }  # Wolf Queen's Banner
+						# Lust events during war (lower chance)
+						3 = {
+							modifier = {
+								factor = 2
+								has_trait = lustful
+							}
+							trigger_event = rq_rise_wolf_queen.3016 # Victor's Spoils
+						}
+						3 = {
+							modifier = {
+								factor = 2
+								has_trait = lustful
+							}
+							trigger_event = rq_rise_wolf_queen.3019 # Conquer and Claim
+						}
+						3 = {
+							modifier = {
+								factor = 2
+								has_trait = lustful
+							}
+							trigger_event = rq_rise_wolf_queen.3020 # Defeated's Submission
+						}
+					}
+				}
+			}
+		}
+		
+		triggered_effect = {
+			trigger = {
+				story_owner = {
+					has_trait = brave
+					is_at_war = no
+					prowess >= 12
+				}
+			}
+			effect = {
+				story_owner = {
+					# Random selection from Warrior path peace events
+					random_list = {
+						10 = { trigger_event = rq_rise_wolf_queen.3002 } # Core peace event
+						5 = { trigger_event = rq_rise_wolf_queen.3003 }  # Grandfather's Blade
+						5 = { trigger_event = rq_rise_wolf_queen.3004 }  # Champion's Challenge
+						5 = { trigger_event = rq_rise_wolf_queen.3008 }  # Wolf Pack
+						5 = { trigger_event = rq_rise_wolf_queen.3009 }  # Duel for Honor
+						5 = { trigger_event = rq_rise_wolf_queen.3010 }  # Melee Victor
+						5 = { trigger_event = rq_rise_wolf_queen.3011 }  # Grandfather's Lesson
+						# Lust events during peace (lower chance)
+						3 = {
+							modifier = {
+								factor = 2
+								has_trait = lustful
+							}
+							trigger_event = rq_rise_wolf_queen.3017 # Champion's Reward
+						}
+						3 = {
+							modifier = {
+								factor = 2
+								has_trait = lustful
+							}
+							trigger_event = rq_rise_wolf_queen.3018 # Shield Sisters
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	# ───────────────────────────────────────────────────────────────────────────
+	# Annual: The Conqueror's Progress
+	# Tracks realm growth toward the Eternal City
+	# ───────────────────────────────────────────────────────────────────────────
+	effect_group = {
+		years = 1
+		
+		first_valid = {
+			# Best: She has claimed significant territory
+			triggered_effect = {
+				trigger = {
+					story_owner = {
+						realm_size >= 50
+						prestige_level >= 4
+					}
+				}
+				effect = {
+					change_variable = {
+						name = wolf_queen_ambition
+						add = 20
+					}
+					story_owner = {
+						trigger_event = rq_rise_wolf_queen.4001
+					}
+				}
+			}
+			
+			# Good: She grows in power
+			triggered_effect = {
+				trigger = {
+					story_owner = {
+						realm_size >= 20
+						prestige_level >= 2
+					}
+				}
+				effect = {
+					change_variable = {
+						name = wolf_queen_ambition
+						add = 10
+					}
+					story_owner = {
+						trigger_event = rq_rise_wolf_queen.4002
+					}
+				}
+			}
+			
+			# Moderate: She holds her ground
+			triggered_effect = {
+				trigger = {
+					story_owner = {
+						is_ruler = yes
+					}
+				}
+				effect = {
+					change_variable = {
+						name = wolf_queen_ambition
+						add = 5
+					}
+					story_owner = {
+						trigger_event = rq_rise_wolf_queen.4003
+					}
+				}
+			}
+			
+			# Fallback: She has fallen from power
+			triggered_effect = {
+				trigger = { always = yes }
+				effect = {
+					story_owner = {
+						add_stress = 20
+						trigger_event = rq_rise_wolf_queen.4004
+					}
+				}
+			}
+		}
+	}
+	
+	# ───────────────────────────────────────────────────────────────────────────
+	# Every 2 Years: The Demon's Bargain
+	# Temptation to trade souls for power
+	# ───────────────────────────────────────────────────────────────────────────
+	effect_group = {
+		years = 2
+		
+		chance = 30
+		
+		triggered_effect = {
+			trigger = {
+				story_owner = {
+					has_trait = witch
+					piety < 0
+				}
+			}
+			effect = {
+				story_owner = {
+					trigger_event = rq_rise_wolf_queen.5001
+				}
+			}
+		}
+	}
+	
+	# ───────────────────────────────────────────────────────────────────────────
+	# Every 5 Years: Crown of Circe Resonance
+	# The stolen crown speaks to worthy wielders
+	# ───────────────────────────────────────────────────────────────────────────
+	effect_group = {
+		years = 5
+		
+		triggered_effect = {
+			trigger = {
+				story_owner = {
+					is_female = yes
+					learning >= 10
+				}
+			}
+			effect = {
+				story_owner = {
+					trigger_event = rq_rise_wolf_queen.6001
+				}
+			}
+		}
+	}
+}

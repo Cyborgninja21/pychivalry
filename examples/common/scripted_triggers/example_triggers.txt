@@ -1,0 +1,248 @@
+############################################################
+# PYCHIVALRY EXAMPLE SCRIPTED TRIGGERS
+# Reusable condition blocks
+############################################################
+
+##################################################
+# Basic Availability Checks
+##################################################
+
+# Character is available for events and decisions
+example_is_available_trigger = {
+	is_alive = yes
+	is_busy = no
+	is_imprisoned = no
+	NOT = { has_trait = incapable }
+}
+
+# Character can participate in physical activities
+example_can_do_physical_trigger = {
+	is_adult = yes
+	is_alive = yes
+	NOR = {
+		has_trait = incapable
+		has_trait = infirm
+		has_trait_rank = { trait = wounded rank >= 2 }
+	}
+}
+
+# Character is a valid ruler for mod features
+example_valid_ruler_trigger = {
+	is_ruler = yes
+	is_alive = yes
+	is_adult = yes
+	NOT = { is_at_war = yes }
+}
+
+##################################################
+# Skill Check Triggers
+##################################################
+
+# High skill in at least one area
+example_has_high_skill_trigger = {
+	OR = {
+		diplomacy >= 16
+		martial >= 16
+		stewardship >= 16
+		intrigue >= 16
+		learning >= 16
+	}
+}
+
+# Is good at combat
+example_is_warrior_trigger = {
+	martial >= 12
+	prowess >= 10
+	OR = {
+		has_trait = brave
+		has_trait = wrathful
+		has_trait = lifestyle_blademaster
+	}
+}
+
+# Is skilled diplomat
+example_is_diplomat_trigger = {
+	diplomacy >= 12
+	OR = {
+		has_trait = diplomat
+		has_trait = gregarious
+		has_trait = honest
+	}
+}
+
+##################################################
+# Relationship Triggers
+##################################################
+
+# Has good relationship with target
+example_likes_target_trigger = {
+	opinion = {
+		target = $TARGET$
+		value >= 20
+	}
+	NOT = { has_relation_rival = $TARGET$ }
+}
+
+# Is close family of target
+example_is_close_family_trigger = {
+	OR = {
+		is_spouse_of = $TARGET$
+		is_child_of = $TARGET$
+		is_parent_of = $TARGET$
+		is_sibling_of = $TARGET$
+	}
+}
+
+# Is trusted by target (for secrets/schemes)
+example_is_trusted_trigger = {
+	opinion = {
+		target = $TARGET$
+		value >= 40
+	}
+	reverse_opinion = {
+		target = $TARGET$
+		value >= 40
+	}
+}
+
+##################################################
+# Trait Combination Triggers
+##################################################
+
+# Has personality suitable for ruling
+example_has_ruler_personality_trigger = {
+	calc_true_if = {
+		amount >= 2
+		has_trait = just
+		has_trait = patient
+		has_trait = diligent
+		has_trait = temperate
+		has_trait = brave
+	}
+}
+
+# Has negative personality traits
+example_has_bad_personality_trigger = {
+	OR = {
+		has_trait = cruel
+		has_trait = arbitrary
+		has_trait = lazy
+		has_trait = greedy
+		has_trait = craven
+	}
+}
+
+# Is scholarly character
+example_is_scholarly_trigger = {
+	learning >= 10
+	OR = {
+		has_trait = scholar
+		has_trait = theologian
+		has_trait = mystic
+		has_lifestyle = learning_lifestyle
+	}
+}
+
+##################################################
+# Title and Realm Triggers
+##################################################
+
+# Controls significant territory
+example_is_major_ruler_trigger = {
+	is_ruler = yes
+	OR = {
+		highest_held_title_tier >= tier_kingdom
+		AND = {
+			highest_held_title_tier = tier_duchy
+			sub_realm_size >= 10
+		}
+	}
+}
+
+# Has stable realm
+example_has_stable_realm_trigger = {
+	is_at_war = no
+	NOT = {
+		any_vassal = {
+			is_powerful_vassal = yes
+			opinion = {
+				target = root
+				value < -20
+			}
+		}
+	}
+	short_term_gold >= 0
+}
+
+# Can afford major expense
+example_can_afford_major_trigger = {
+	short_term_gold >= major_gold_value
+	monthly_character_income >= 5
+}
+
+##################################################
+# Religion and Culture Triggers
+##################################################
+
+# Same faith as target
+example_same_faith_trigger = {
+	faith = $TARGET$.faith
+}
+
+# Same culture as target
+example_same_culture_trigger = {
+	culture = $TARGET$.culture
+}
+
+# Is pious character
+example_is_pious_trigger = {
+	piety_level >= 3
+	OR = {
+		has_trait = zealous
+		has_trait = devoted
+		has_focus = learning_theology_focus
+	}
+}
+
+##################################################
+# Complex Compound Triggers
+##################################################
+
+# Is ideal heir candidate
+example_ideal_heir_trigger = {
+	is_adult = yes
+	NOR = {
+		has_trait = incapable
+		has_trait = lunatic
+	}
+	example_has_high_skill_trigger = yes
+	example_has_ruler_personality_trigger = yes
+}
+
+# Can be trusted with responsibility
+example_trustworthy_character_trigger = {
+	NOR = {
+		has_trait = deceitful
+		has_trait = arbitrary
+		has_trait = greedy
+		has_secret_trait_trigger = { TRAIT = any }
+	}
+	OR = {
+		has_trait = honest
+		has_trait = just
+		example_is_close_family_trigger = { TARGET = root }
+	}
+}
+
+# Is valid feast guest
+example_valid_feast_guest_trigger = {
+	is_available = yes
+	is_adult = yes
+	NOT = { has_trait = incapable }
+	NOT = { 
+		opinion = {
+			target = root
+			value < -40
+		}
+	}
+}

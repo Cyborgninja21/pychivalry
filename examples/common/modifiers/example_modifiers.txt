@@ -1,0 +1,218 @@
+############################################################
+# PYCHIVALRY EXAMPLE MODIFIERS
+# Static modifiers applied to characters/provinces
+############################################################
+
+##################################################
+# Character Modifiers
+##################################################
+
+# Being mentored by a skilled teacher
+example_being_mentored_modifier = {
+	icon = learning_focus
+	
+	# Skill bonuses while learning
+	diplomacy = 1
+	martial = 1
+	stewardship = 1
+	intrigue = 1
+	learning = 1
+	
+	# XP boost
+	monthly_diplomacy_lifestyle_xp_gain_mult = 0.05
+	monthly_martial_lifestyle_xp_gain_mult = 0.05
+	monthly_stewardship_lifestyle_xp_gain_mult = 0.05
+	monthly_intrigue_lifestyle_xp_gain_mult = 0.05
+	monthly_learning_lifestyle_xp_gain_mult = 0.05
+}
+
+# Feast afterglow
+example_feast_afterglow_modifier = {
+	icon = prestige_positive
+	
+	# Positive mood
+	stress_gain_mult = -0.15
+	
+	# Social benefits
+	general_opinion = 5
+	
+	# Monthly prestige boost
+	monthly_prestige = 0.2
+}
+
+# Recently studied
+example_recently_studied_modifier = {
+	icon = learning_focus
+	
+	# Learning boost
+	learning = 2
+	
+	# Piety from contemplation
+	monthly_piety = 0.1
+}
+
+# Battle preparation
+example_war_preparation_modifier = {
+	icon = martial_focus
+	
+	# Combat readiness
+	martial = 2
+	prowess = 3
+	
+	# Army benefits
+	advantage = 2
+	
+	# But stressed
+	stress_gain_mult = 0.1
+}
+
+# Religious devotion period
+example_devotion_modifier = {
+	icon = piety_level_4
+	
+	# Piety gains
+	monthly_piety = 1.0
+	monthly_piety_gain_mult = 0.25
+	
+	# Learning boost
+	learning = 2
+	
+	# But less worldly
+	monthly_gold_gain_mult = -0.1
+}
+
+# Realm prosperity
+example_prosperous_realm_modifier = {
+	icon = domain_positive
+	
+	# Economic benefits
+	monthly_gold_gain_mult = 0.1
+	
+	# Vassal happiness
+	vassal_opinion = 10
+	
+	# Domain efficiency
+	domain_limit = 1
+}
+
+# Crisis management
+example_crisis_management_modifier = {
+	icon = stress
+	
+	# Stressed but effective
+	stress_gain_mult = 0.25
+	
+	# Leadership in crisis
+	martial = 3
+	stewardship = 3
+	
+	# Vassal respect
+	vassal_opinion = 5
+}
+
+##################################################
+# Province/County Modifiers
+##################################################
+
+# Development focus
+example_development_focus_modifier = {
+	icon = stewardship_focus
+	
+	# Development speed
+	development_growth_factor = 0.2
+	
+	# Construction speed
+	build_speed = -0.1
+}
+
+# Trade hub
+example_trade_hub_modifier = {
+	icon = gold_positive
+	
+	# Tax income
+	tax_mult = 0.15
+	
+	# Development
+	development_growth_factor = 0.1
+}
+
+# Military encampment
+example_military_encampment_modifier = {
+	icon = martial_focus
+	
+	# Levy bonus
+	levy_size = 0.2
+	
+	# Reinforcement
+	levy_reinforcement_rate = 0.1
+}
+
+# Holy site bonus
+example_holy_site_modifier = {
+	icon = piety_level_3
+	
+	# Piety generation
+	monthly_county_control_change_add = 0.1
+	
+	# Pilgrim attraction (represented as tax)
+	tax_mult = 0.05
+}
+
+# Plague aftermath
+example_plague_aftermath_modifier = {
+	icon = health_bad
+	
+	# Population loss
+	levy_size = -0.3
+	tax_mult = -0.2
+	
+	# But recovery
+	development_growth_factor = 0.15
+}
+
+##################################################
+# Timed Modifiers (with decay hints)
+##################################################
+
+# Tournament victory fame (meant to be temporary)
+example_tournament_victor_modifier = {
+	icon = martial_focus
+	
+	# Fame and respect
+	monthly_prestige = 0.5
+	general_opinion = 10
+	
+	# Martial reputation
+	prowess = 2
+	martial = 1
+}
+
+# Diplomatic success
+example_diplomatic_triumph_modifier = {
+	icon = diplomacy_focus
+	
+	# Diplomatic clout
+	diplomacy = 2
+	
+	# Opinion
+	general_opinion = 10
+	vassal_opinion = 5
+	
+	# Prestige
+	monthly_prestige = 0.3
+}
+
+# Scandal (negative)
+example_scandal_modifier = {
+	icon = diplomacy_negative
+	
+	# Reputation damage
+	general_opinion = -15
+	vassal_opinion = -10
+	
+	# Stress
+	stress_gain_mult = 0.2
+	
+	# Prestige loss
+	monthly_prestige = -0.3
+}
