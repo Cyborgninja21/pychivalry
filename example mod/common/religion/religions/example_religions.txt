@@ -1,0 +1,466 @@
+# ############################################################################
+# # EXAMPLE RELIGIONS - PyChivalry Example Mod
+# # 
+# # This file demonstrates religion family and faith definitions in CK3.
+# # Religion families group related faiths together (e.g., Christianity).
+# # Each faith within a family can have unique doctrines, holy sites, and modifiers.
+# #
+# # File location: common/religion/religions/
+# ############################################################################
+# 
+# ############################################################################
+# # PAGAN RELIGION FAMILY
+# # A custom pagan religion family with nature-based faiths
+# ############################################################################
+# 
+# example_pagan_family = {
+# 	
+# 	# Family-level settings apply to all faiths in this family
+# 	graphical_faith = pagan_gfx
+# 	piety_icon_group = pagan
+# 	doctrine_background_icon = core_tenet_banner_pagan
+# 	
+# 	# Whether AI rulers can create new faiths in this family
+# 	ai_will_create_new_faith = yes
+# 	
+# 	# Hostility levels: hostile, evil, righteous
+# 	hostility_doctrine = doctrine_pluralism_pluralistic
+# 	
+# 	# Religious head type for the family
+# 	religious_head_title = none  # No family-wide head
+# 	
+# 	# ========================================================================
+# 	# FAMILY DOCTRINES - Default doctrines for all faiths in this family
+# 	# ========================================================================
+# 	
+# 	doctrine = doctrine_no_head  # No religious head by default
+# 	doctrine = doctrine_gender_male_dominated
+# 	doctrine = doctrine_pluralism_pluralistic
+# 	doctrine = doctrine_theocracy_temporal
+# 	
+# 	# Marriage doctrines
+# 	doctrine = doctrine_monogamy
+# 	doctrine = doctrine_divorce_allowed
+# 	doctrine = doctrine_bastardry_legitimization
+# 	doctrine = doctrine_consanguinity_cousins
+# 	
+# 	# Crime doctrines
+# 	doctrine = doctrine_homosexuality_shunned
+# 	doctrine = doctrine_adultery_men_shunned
+# 	doctrine = doctrine_adultery_women_shunned
+# 	doctrine = doctrine_kinslaying_close_kin_crime
+# 	doctrine = doctrine_deviancy_shunned
+# 	doctrine = doctrine_witchcraft_accepted
+# 	
+# 	# Clergy doctrines
+# 	doctrine = doctrine_clerical_function_recruitment
+# 	doctrine = doctrine_clerical_gender_either
+# 	doctrine = doctrine_clerical_marriage_allowed
+# 	doctrine = doctrine_clerical_succession_temporal_appointment
+# 	
+# 	# ========================================================================
+# 	# TRAITS - Virtues and sins for this religion family
+# 	# ========================================================================
+# 	
+# 	traits = {
+# 		virtues = {
+# 			brave
+# 			generous
+# 			just
+# 			temperate
+# 		}
+# 		sins = {
+# 			craven
+# 			greedy
+# 			arbitrary
+# 			gluttonous
+# 		}
+# 	}
+# 	
+# 	# ========================================================================
+# 	# CUSTOM FAITH ICONS - Available icons when creating new faiths
+# 	# ========================================================================
+# 	
+# 	custom_faith_icons = {
+# 		custom_faith_1
+# 		custom_faith_2
+# 		custom_faith_3
+# 		custom_faith_4
+# 		custom_faith_5
+# 		custom_faith_6
+# 		custom_faith_7
+# 		custom_faith_8
+# 		custom_faith_9
+# 		custom_faith_10
+# 	}
+# 	
+# 	# ========================================================================
+# 	# HOLY ORDER NAMES - Names for holy orders in this religion
+# 	# ========================================================================
+# 	
+# 	holy_order_names = {
+# 		{ name = holy_order_warriors_of_the_wild }
+# 		{ name = holy_order_guardians_of_nature }
+# 		{ name = holy_order_forest_knights }
+# 		{ name = holy_order_storm_brotherhood }
+# 	}
+# 	
+# 	# ========================================================================
+# 	# HOLY ORDER MAA (Men-at-Arms types for holy orders)
+# 	# ========================================================================
+# 	
+# 	holy_order_maa = {
+# 		heavy_infantry
+# 		pikemen
+# 	}
+# 	
+# 	# ========================================================================
+# 	# FAITH: EXAMPLE_DRUIDISM
+# 	# A nature-worshipping unreformed pagan faith
+# 	# ========================================================================
+# 	
+# 	example_druidism = {
+# 		
+# 		# Visual settings
+# 		color = { 0.3 0.6 0.2 }  # Forest green
+# 		icon = druidism
+# 		
+# 		# Reformed status - unreformed pagans have penalties
+# 		reformed = no
+# 		
+# 		# Religious head - none for unreformed
+# 		religious_head = none
+# 		
+# 		# ====================================================================
+# 		# HOLY SITES - 5 holy sites for this faith
+# 		# Referenced from common/religion/holy_sites/
+# 		# ====================================================================
+# 		
+# 		holy_site = example_stonehenge
+# 		holy_site = example_sacred_grove
+# 		holy_site = example_ancient_oak
+# 		holy_site = example_spring_temple
+# 		holy_site = example_hilltop_shrine
+# 		
+# 		# ====================================================================
+# 		# DOCTRINE OVERRIDES - Faith-specific doctrine changes
+# 		# ====================================================================
+# 		
+# 		doctrine = doctrine_spiritual_head  # Override family default
+# 		doctrine = doctrine_clerical_function_taxation
+# 		doctrine = doctrine_witchcraft_virtuous  # Witchcraft is good
+# 		
+# 		# Core tenets - define the faith's identity
+# 		doctrine = tenet_human_sacrifice
+# 		doctrine = tenet_sacred_groves
+# 		doctrine = tenet_ancestor_worship
+# 		
+# 		# ====================================================================
+# 		# LOCALIZATION REFERENCES
+# 		# These keys should be defined in localization files
+# 		# ====================================================================
+# 		
+# 		# Faith name: example_druidism (localized)
+# 		# Faith desc: example_druidism_desc
+# 		# Adherent: example_druidism_adherent
+# 		# Adherent plural: example_druidism_adherent_plural
+# 		# Adjective: example_druidism_adj
+# 		# Religious head title: example_druidism_head_title
+# 		
+# 		# ====================================================================
+# 		# RESERVED MALE/FEMALE NAMES for clergy
+# 		# ====================================================================
+# 		
+# 		reserved_male_names = {
+# 			Drustan Cadeyrn Brennus Vercingetorix Artaius
+# 		}
+# 		
+# 		reserved_female_names = {
+# 			Brigantia Epona Andraste Veleda Cartimandua
+# 		}
+# 	}
+# 	
+# 	# ========================================================================
+# 	# FAITH: EXAMPLE_REFORMED_DRUIDISM
+# 	# The reformed version with organized clergy and head of faith
+# 	# ========================================================================
+# 	
+# 	example_reformed_druidism = {
+# 		
+# 		color = { 0.2 0.5 0.1 }  # Darker green
+# 		icon = reformed_druidism
+# 		
+# 		reformed = yes
+# 		
+# 		# ====================================================================
+# 		# RELIGIOUS HEAD DEFINITION
+# 		# Creates a theocratic title for the head of faith
+# 		# ====================================================================
+# 		
+# 		religious_head = d_reformed_druidism
+# 		
+# 		# Alternative: Create a dynamic religious head
+# 		# create_head = {
+# 		# 	temporal = no
+# 		# 	name = {
+# 		# 		key = religious_head_title_archdruid
+# 		# 		# Variables can be passed for localization
+# 		# 	}
+# 		# 	landless = yes
+# 		# 	culture = root.culture
+# 		# 	gender = either
+# 		# }
+# 		
+# 		holy_site = example_stonehenge
+# 		holy_site = example_sacred_grove
+# 		holy_site = example_ancient_oak
+# 		holy_site = example_spring_temple
+# 		holy_site = example_hilltop_shrine
+# 		
+# 		# Reformed doctrine overrides
+# 		doctrine = doctrine_spiritual_head
+# 		doctrine = doctrine_temporal_head
+# 		doctrine = doctrine_clerical_function_taxation
+# 		doctrine = doctrine_clerical_succession_spiritual_appointment
+# 		
+# 		doctrine = tenet_sacred_groves
+# 		doctrine = tenet_ancestor_worship
+# 		doctrine = tenet_sanctity_of_nature
+# 		
+# 		# ====================================================================
+# 		# FAITH MODIFIERS - Bonuses for followers of this faith
+# 		# ====================================================================
+# 		
+# 		# These would need custom modifier definitions
+# 		# faith_modifier = {
+# 		# 	monthly_piety_gain_mult = 0.1
+# 		# 	learning_per_piety_level = 1
+# 		# }
+# 		
+# 		reserved_male_names = {
+# 			Drustan Cadeyrn Brennus Vercingetorix Artaius Myrddin
+# 		}
+# 		
+# 		reserved_female_names = {
+# 			Brigantia Epona Andraste Veleda Cartimandua Ceridwen
+# 		}
+# 	}
+# }
+# 
+# ############################################################################
+# # ABRAHAMIC RELIGION FAMILY
+# # An example Abrahamic-style religion with monotheistic faiths
+# ############################################################################
+# 
+# example_abrahamic_family = {
+# 	
+# 	graphical_faith = christian_gfx
+# 	piety_icon_group = christian
+# 	doctrine_background_icon = core_tenet_banner_christian
+# 	
+# 	ai_will_create_new_faith = no  # More restrictive
+# 	
+# 	hostility_doctrine = doctrine_pluralism_fundamentalist
+# 	
+# 	# ========================================================================
+# 	# FAMILY DOCTRINES
+# 	# ========================================================================
+# 	
+# 	doctrine = doctrine_spiritual_head
+# 	doctrine = doctrine_gender_male_dominated
+# 	doctrine = doctrine_pluralism_righteous
+# 	doctrine = doctrine_theocracy_lay_clergy
+# 	
+# 	# Marriage
+# 	doctrine = doctrine_monogamy
+# 	doctrine = doctrine_divorce_disallowed
+# 	doctrine = doctrine_bastardry_none
+# 	doctrine = doctrine_consanguinity_restricted
+# 	
+# 	# Crimes
+# 	doctrine = doctrine_homosexuality_crime
+# 	doctrine = doctrine_adultery_men_crime
+# 	doctrine = doctrine_adultery_women_crime
+# 	doctrine = doctrine_kinslaying_any_dynasty_member_crime
+# 	doctrine = doctrine_deviancy_crime
+# 	doctrine = doctrine_witchcraft_crime
+# 	
+# 	# Clergy
+# 	doctrine = doctrine_clerical_function_taxation
+# 	doctrine = doctrine_clerical_gender_male_only
+# 	doctrine = doctrine_clerical_marriage_disallowed
+# 	doctrine = doctrine_clerical_succession_spiritual_appointment
+# 	
+# 	# ========================================================================
+# 	# TRAITS
+# 	# ========================================================================
+# 	
+# 	traits = {
+# 		virtues = {
+# 			humble
+# 			chaste
+# 			temperate
+# 			patient
+# 			charitable
+# 			diligent
+# 			honest
+# 		}
+# 		sins = {
+# 			arrogant
+# 			lustful
+# 			gluttonous
+# 			wrathful
+# 			greedy
+# 			lazy
+# 			deceitful
+# 		}
+# 	}
+# 	
+# 	custom_faith_icons = {
+# 		custom_faith_christian_1
+# 		custom_faith_christian_2
+# 		custom_faith_christian_3
+# 		custom_faith_christian_4
+# 	}
+# 	
+# 	holy_order_names = {
+# 		{ name = holy_order_knights_of_the_light }
+# 		{ name = holy_order_sacred_defenders }
+# 		{ name = holy_order_blessed_warriors }
+# 		{ name = holy_order_divine_templars }
+# 	}
+# 	
+# 	holy_order_maa = {
+# 		heavy_cavalry
+# 		heavy_infantry
+# 	}
+# 	
+# 	# ========================================================================
+# 	# FAITH: EXAMPLE_ORTHODOX_BRANCH
+# 	# A conservative, traditional faith in the family
+# 	# ========================================================================
+# 	
+# 	example_orthodox_branch = {
+# 		
+# 		color = { 0.6 0.4 0.0 }  # Gold/brown
+# 		icon = orthodox
+# 		
+# 		reformed = yes  # Abrahamic faiths are always "reformed"
+# 		
+# 		# ====================================================================
+# 		# RELIGIOUS HEAD - Ecumenical Patriarch style
+# 		# ====================================================================
+# 		
+# 		religious_head = d_example_orthodox_patriarch
+# 		
+# 		# Alternative: Autocephalous (multiple heads)
+# 		# has_autocephalous_patriarchs = yes
+# 		
+# 		holy_site = example_holy_city
+# 		holy_site = example_ancient_cathedral
+# 		holy_site = example_desert_monastery
+# 		holy_site = example_mountain_chapel
+# 		holy_site = example_river_shrine
+# 		
+# 		# ====================================================================
+# 		# DOCTRINE OVERRIDES
+# 		# ====================================================================
+# 		
+# 		doctrine = doctrine_temporal_head  # Patriarch has temporal power
+# 		doctrine = doctrine_divorce_allowed  # Override family restriction
+# 		doctrine = doctrine_clerical_marriage_allowed  # Priests can marry
+# 		
+# 		# Core tenets
+# 		doctrine = tenet_monasticism
+# 		doctrine = tenet_communion
+# 		doctrine = tenet_icons
+# 		
+# 		reserved_male_names = {
+# 			Alexios Konstantinos Theodoros Nikolaos Basileios
+# 		}
+# 		
+# 		reserved_female_names = {
+# 			Theodora Irene Helena Sophia Anastasia
+# 		}
+# 	}
+# 	
+# 	# ========================================================================
+# 	# FAITH: EXAMPLE_REFORMIST_BRANCH
+# 	# A more liberal, reformed faith branch
+# 	# ========================================================================
+# 	
+# 	example_reformist_branch = {
+# 		
+# 		color = { 0.2 0.3 0.6 }  # Blue
+# 		icon = reformist
+# 		
+# 		reformed = yes
+# 		
+# 		# No centralized religious head
+# 		religious_head = none
+# 		
+# 		holy_site = example_holy_city
+# 		holy_site = example_university_cathedral
+# 		holy_site = example_reform_temple
+# 		holy_site = example_scholars_hall
+# 		holy_site = example_printing_monastery
+# 		
+# 		# ====================================================================
+# 		# LIBERAL DOCTRINE OVERRIDES
+# 		# ====================================================================
+# 		
+# 		doctrine = doctrine_no_head
+# 		doctrine = doctrine_gender_equal
+# 		doctrine = doctrine_divorce_allowed
+# 		doctrine = doctrine_pluralism_pluralistic  # Tolerant of others
+# 		doctrine = doctrine_homosexuality_accepted
+# 		
+# 		# Clergy changes
+# 		doctrine = doctrine_clerical_gender_either
+# 		doctrine = doctrine_clerical_marriage_allowed
+# 		doctrine = doctrine_clerical_succession_temporal_appointment
+# 		
+# 		# Core tenets
+# 		doctrine = tenet_mendicant_preachers
+# 		doctrine = tenet_literalism
+# 		doctrine = tenet_communal_identity
+# 		
+# 		# ====================================================================
+# 		# SPECIAL FLAGS
+# 		# ====================================================================
+# 		
+# 		# Flag to mark this faith for special event triggers
+# 		# flag = example_reformist_faith_flag
+# 		
+# 		# Fervor settings
+# 		# starting_fervor = 75
+# 		
+# 		reserved_male_names = {
+# 			Martin Johannes Wilhelm Friedrich Heinrich
+# 		}
+# 		
+# 		reserved_female_names = {
+# 			Katharina Elisabeth Maria Anna Margarethe
+# 		}
+# 	}
+# }
+# 
+# ############################################################################
+# # NOTES FOR MODDERS:
+# #
+# # 1. Religion families must have unique names (script keys)
+# # 2. Faith names within a family must also be unique
+# # 3. Doctrines reference definitions in common/religion/doctrines/
+# # 4. Holy sites reference definitions in common/religion/holy_sites/
+# # 5. Religious head titles (d_xxx) must be defined in common/landed_titles/
+# # 6. Localization keys follow pattern: faith_name, faith_name_desc, 
+# #    faith_name_adherent, faith_name_adherent_plural, faith_name_adj
+# # 7. Icons must be defined in the appropriate GFX files
+# # 8. Traits referenced must exist in common/traits/
+# #
+# # SCOPE REFERENCES:
+# # - root = the character evaluating the faith
+# # - scope:faith = the faith being evaluated
+# # - scope:religion = the religion family
+# #
+# ############################################################################

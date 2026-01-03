@@ -1,0 +1,558 @@
+# ############################################################
+# # PYCHIVALRY EXAMPLE ACTIVITIES
+# # Activity definitions for feasts, hunts, tournaments
+# ############################################################
+# 
+# ##################################################
+# # ACTIVITY: Grand Feast
+# # A lavish celebration to improve relations
+# ##################################################
+# example_grand_feast = {
+# 	
+# 	# Display conditions
+# 	is_shown = {
+# 		is_ruler = yes
+# 		is_landed = yes
+# 		highest_held_title_tier >= tier_county
+# 	}
+# 	
+# 	# Start requirements
+# 	can_start = {
+# 		is_adult = yes
+# 		is_available = yes
+# 		is_at_war = no
+# 		gold >= 100
+# 		custom_tooltip = {
+# 			text = can_start_feast_tooltip
+# 			NOT = { has_character_flag = recent_feast }
+# 		}
+# 	}
+# 	
+# 	# Requirements shown even when failing
+# 	can_start_showing_failures_only = {
+# 		is_imprisoned = no
+# 		is_incapable = no
+# 	}
+# 	
+# 	# Activity costs
+# 	cost = {
+# 		gold = {
+# 			value = 100
+# 			multiply = highest_held_title_tier
+# 		}
+# 		prestige = 50
+# 	}
+# 	
+# 	# Cooldown period
+# 	cooldown = { years = 3 }
+# 	
+# 	# Validity during activity
+# 	is_valid = {
+# 		is_alive = yes
+# 		is_landed = yes
+# 	}
+# 	
+# 	# Effects when starting
+# 	on_start = {
+# 		add_character_flag = {
+# 			flag = hosting_feast
+# 			years = 1
+# 		}
+# 		trigger_event = {
+# 			id = example_feast_events.0001
+# 			days = 1
+# 		}
+# 	}
+# 	
+# 	# Effects when completing successfully
+# 	on_complete = {
+# 		remove_character_flag = hosting_feast
+# 		add_character_flag = {
+# 			flag = recent_feast
+# 			years = 3
+# 		}
+# 		add_prestige = 100
+# 		stress_impact = {
+# 			gregarious = medium_stress_loss
+# 			shy = medium_stress_gain
+# 		}
+# 	}
+# 	
+# 	# Effects when invalidated
+# 	on_invalidated = {
+# 		remove_character_flag = hosting_feast
+# 		trigger_event = example_feast_events.9999
+# 	}
+# 	
+# 	# Activity phases
+# 	phases = {
+# 		# Phase 1: Preparation
+# 		preparation_phase = {
+# 			duration = { days = 14 }
+# 			
+# 			on_phase_start = {
+# 				trigger_event = example_feast_events.0010
+# 			}
+# 			
+# 			on_phase_end = {
+# 				trigger_event = example_feast_events.0019
+# 			}
+# 		}
+# 		
+# 		# Phase 2: Main Feast
+# 		feast_phase = {
+# 			duration = { days = 7 }
+# 			is_main_phase = yes
+# 			
+# 			on_phase_start = {
+# 				trigger_event = example_feast_events.0100
+# 			}
+# 			
+# 			# Random events during feast
+# 			random_events = {
+# 				100 = example_feast_events.0101
+# 				100 = example_feast_events.0102
+# 				100 = example_feast_events.0103
+# 			}
+# 		}
+# 		
+# 		# Phase 3: Conclusion
+# 		conclusion_phase = {
+# 			duration = { days = 3 }
+# 			
+# 			on_phase_end = {
+# 				# Distribute rewards
+# 				every_attending_character = {
+# 					add_opinion = {
+# 						target = root
+# 						modifier = feast_hosted_opinion
+# 						years = 5
+# 					}
+# 				}
+# 			}
+# 		}
+# 	}
+# 	
+# 	# Guest invitation rules
+# 	guest_invite_rules = {
+# 		defaults = {
+# 			can_be_invited = {
+# 				is_adult = yes
+# 				NOT = { is_at_war_with = root }
+# 			}
+# 			should_be_invited = {
+# 				is_vassal_of = root
+# 			}
+# 		}
+# 		rules = {
+# 			# Vassals
+# 			3 = {
+# 				is_vassal_of = root
+# 			}
+# 			# Family
+# 			2 = {
+# 				is_close_family_of = root
+# 			}
+# 			# Neighbors
+# 			1 = {
+# 				any_neighboring_realm_same_rank_owner = {
+# 					this = root
+# 				}
+# 			}
+# 		}
+# 	}
+# 	
+# 	# AI decision weight
+# 	ai_will_do = {
+# 		base = 50
+# 		
+# 		modifier = {
+# 			factor = 1.5
+# 			has_trait = gregarious
+# 		}
+# 		modifier = {
+# 			factor = 0.5
+# 			has_trait = shy
+# 		}
+# 		modifier = {
+# 			factor = 2
+# 			any_vassal = {
+# 				opinion = {
+# 					target = root
+# 					value < 0
+# 				}
+# 			}
+# 		}
+# 	}
+# 	
+# 	# Activity options
+# 	options = {
+# 		example_feast_option_lavish = {
+# 			cost = {
+# 				gold = 50
+# 			}
+# 			modifier = {
+# 				prestige_gain_mult = 0.25
+# 			}
+# 		}
+# 		example_feast_option_modest = {
+# 			cost = {
+# 				gold = -25
+# 			}
+# 			modifier = {
+# 				prestige_gain_mult = -0.25
+# 			}
+# 		}
+# 	}
+# }
+# 
+# ##################################################
+# # ACTIVITY: Grand Hunt
+# # A hunting expedition for sport and bonding
+# ##################################################
+# example_grand_hunt = {
+# 	
+# 	is_shown = {
+# 		is_ruler = yes
+# 		is_landed = yes
+# 	}
+# 	
+# 	can_start = {
+# 		is_adult = yes
+# 		is_available = yes
+# 		is_at_war = no
+# 		gold >= 50
+# 		NOT = { has_trait = infirm }
+# 		# Must have huntable terrain
+# 		capital_county = {
+# 			OR = {
+# 				terrain = forest
+# 				terrain = taiga
+# 				terrain = plains
+# 				terrain = hills
+# 			}
+# 		}
+# 	}
+# 	
+# 	cost = {
+# 		gold = 50
+# 		prestige = 25
+# 	}
+# 	
+# 	cooldown = { years = 2 }
+# 	
+# 	is_valid = {
+# 		is_alive = yes
+# 		is_landed = yes
+# 		NOT = { has_trait = incapable }
+# 	}
+# 	
+# 	on_start = {
+# 		add_character_flag = {
+# 			flag = on_hunt
+# 			years = 1
+# 		}
+# 	}
+# 	
+# 	on_complete = {
+# 		remove_character_flag = on_hunt
+# 		add_prestige = 50
+# 		
+# 		# Chance for special outcomes
+# 		random_list = {
+# 			70 = { # Normal success
+# 				trigger_event = example_hunt_events.0100
+# 			}
+# 			20 = { # Great success
+# 				trigger_event = example_hunt_events.0101
+# 			}
+# 			10 = { # Accident
+# 				trigger_event = example_hunt_events.0102
+# 			}
+# 		}
+# 	}
+# 	
+# 	phases = {
+# 		# Phase 1: Track Prey
+# 		tracking_phase = {
+# 			duration = { days = 3 }
+# 			
+# 			on_phase_start = {
+# 				trigger_event = example_hunt_events.0010
+# 			}
+# 		}
+# 		
+# 		# Phase 2: The Chase
+# 		chase_phase = {
+# 			duration = { days = 2 }
+# 			is_main_phase = yes
+# 			
+# 			random_events = {
+# 				100 = example_hunt_events.0020
+# 				50 = example_hunt_events.0021
+# 			}
+# 		}
+# 		
+# 		# Phase 3: The Kill
+# 		kill_phase = {
+# 			duration = { days = 1 }
+# 			
+# 			on_phase_end = {
+# 				scope:prey = {
+# 					# Set hunt outcome
+# 				}
+# 			}
+# 		}
+# 	}
+# 	
+# 	# Travel requirements
+# 	travel_entourage = {
+# 		min = 5
+# 		max = 20
+# 		
+# 		preferred = {
+# 			has_trait = hunter
+# 		}
+# 	}
+# 	
+# 	# Outcome chances
+# 	outcome_weights = {
+# 		success = {
+# 			base = 60
+# 			modifier = {
+# 				add = 20
+# 				has_trait = hunter
+# 			}
+# 			modifier = {
+# 				add = 10
+# 				prowess >= 12
+# 			}
+# 		}
+# 		failure = {
+# 			base = 30
+# 			modifier = {
+# 				add = 20
+# 				age >= 50
+# 			}
+# 		}
+# 		disaster = {
+# 			base = 10
+# 			modifier = {
+# 				add = 10
+# 				has_trait = reckless
+# 			}
+# 		}
+# 	}
+# 	
+# 	ai_will_do = {
+# 		base = 40
+# 		
+# 		modifier = {
+# 			factor = 2
+# 			has_trait = hunter
+# 		}
+# 		modifier = {
+# 			factor = 0.5
+# 			age >= 60
+# 		}
+# 	}
+# }
+# 
+# ##################################################
+# # ACTIVITY: Grand Tournament
+# # A martial competition for glory and renown
+# ##################################################
+# example_grand_tournament = {
+# 	
+# 	is_shown = {
+# 		is_ruler = yes
+# 		highest_held_title_tier >= tier_duchy
+# 	}
+# 	
+# 	can_start = {
+# 		is_adult = yes
+# 		is_available = yes
+# 		gold >= 200
+# 		prestige >= 200
+# 		NOT = { has_character_flag = recent_tournament }
+# 	}
+# 	
+# 	cost = {
+# 		gold = 200
+# 		prestige = 100
+# 	}
+# 	
+# 	cooldown = { years = 5 }
+# 	
+# 	is_valid = {
+# 		is_alive = yes
+# 		is_landed = yes
+# 	}
+# 	
+# 	on_start = {
+# 		add_character_flag = hosting_tournament
+# 	}
+# 	
+# 	on_complete = {
+# 		remove_character_flag = hosting_tournament
+# 		add_character_flag = {
+# 			flag = recent_tournament
+# 			years = 5
+# 		}
+# 		add_prestige = 200
+# 		
+# 		# Dynasty renown for hosting
+# 		dynasty = {
+# 			add_dynasty_prestige = 100
+# 		}
+# 	}
+# 	
+# 	# Participant roles
+# 	participant_roles = {
+# 		champion = {
+# 			max = 1
+# 			requirements = {
+# 				is_knight = yes
+# 				prowess >= 15
+# 			}
+# 		}
+# 		competitor = {
+# 			min = 8
+# 			max = 32
+# 			requirements = {
+# 				is_adult = yes
+# 				can_be_combatant_based_on_gender_trigger = { DOMINATED_GENDER = root }
+# 			}
+# 		}
+# 		spectator = {
+# 			max = 100
+# 			requirements = {
+# 				is_alive = yes
+# 			}
+# 		}
+# 	}
+# 	
+# 	phases = {
+# 		# Phase 1: Melee
+# 		melee_phase = {
+# 			duration = { days = 2 }
+# 			
+# 			on_phase_start = {
+# 				trigger_event = example_tournament_events.0100
+# 			}
+# 			
+# 			random_events = {
+# 				100 = example_tournament_events.0101
+# 				50 = example_tournament_events.0102
+# 			}
+# 		}
+# 		
+# 		# Phase 2: Joust
+# 		joust_phase = {
+# 			duration = { days = 3 }
+# 			is_main_phase = yes
+# 			
+# 			on_phase_start = {
+# 				trigger_event = example_tournament_events.0200
+# 			}
+# 			
+# 			random_events = {
+# 				100 = example_tournament_events.0201
+# 				75 = example_tournament_events.0202
+# 				25 = example_tournament_events.0203  # Injury
+# 			}
+# 		}
+# 		
+# 		# Phase 3: Archery
+# 		archery_phase = {
+# 			duration = { days = 1 }
+# 			
+# 			on_phase_end = {
+# 				trigger_event = example_tournament_events.0300
+# 			}
+# 		}
+# 		
+# 		# Phase 4: Awards Ceremony
+# 		awards_phase = {
+# 			duration = { days = 1 }
+# 			
+# 			on_phase_end = {
+# 				# Crown the champion
+# 				scope:tournament_winner = {
+# 					add_prestige = 500
+# 					add_character_flag = {
+# 						flag = tournament_champion
+# 						years = 5
+# 					}
+# 				}
+# 			}
+# 		}
+# 	}
+# 	
+# 	# Scoring system
+# 	scoring_system = {
+# 		melee_victory = 10
+# 		joust_victory = 15
+# 		archery_victory = 5
+# 		
+# 		bonuses = {
+# 			unhorsing_opponent = 5
+# 			showing_mercy = 3
+# 			impressive_display = 2
+# 		}
+# 	}
+# 	
+# 	# Prize distribution
+# 	prize_pool = {
+# 		first_place = {
+# 			gold = 100
+# 			prestige = 200
+# 		}
+# 		second_place = {
+# 			gold = 50
+# 			prestige = 100
+# 		}
+# 		third_place = {
+# 			gold = 25
+# 			prestige = 50
+# 		}
+# 	}
+# 	
+# 	# Risk of injury/death
+# 	injury_risk = {
+# 		base = 10
+# 		modifier = {
+# 			add = 5
+# 			NOT = { has_trait = athletic }
+# 		}
+# 		modifier = {
+# 			add = 10
+# 			age >= 45
+# 		}
+# 	}
+# 	
+# 	death_risk = {
+# 		base = 1
+# 		modifier = {
+# 			add = 2
+# 			has_trait = reckless
+# 		}
+# 	}
+# 	
+# 	ai_will_do = {
+# 		base = 30
+# 		
+# 		modifier = {
+# 			factor = 2
+# 			has_trait = brave
+# 		}
+# 		modifier = {
+# 			factor = 1.5
+# 			prowess >= 12
+# 		}
+# 		modifier = {
+# 			factor = 0.5
+# 			has_trait = craven
+# 		}
+# 	}
+# }

@@ -1,0 +1,239 @@
+# # Example Legends
+# # Demonstrates: legend definitions, spread, chronicle (DLC feature)
+# 
+# ### LEGEND TYPES ###
+# 
+# example_legend_type_heroic = {
+# 	# Legend category
+# 	category = heroic
+# 	
+# 	# Icon
+# 	icon = "gfx/interface/icons/legends/legend_heroic.dds"
+# 	
+# 	# Base properties
+# 	base_spread_speed = 1.0
+# 	base_max_provinces = 50
+# 	
+# 	# Who can create this legend type
+# 	can_create = {
+# 		is_adult = yes
+# 		OR = {
+# 			has_trait = brave
+# 			martial >= 15
+# 			prowess >= 15
+# 		}
+# 	}
+# 	
+# 	# Modifiers while legend is active
+# 	owner_modifier = {
+# 		monthly_prestige = 0.5
+# 		knight_effectiveness_mult = 0.1
+# 	}
+# 	
+# 	# Province modifier where legend has spread
+# 	province_modifier = {
+# 		levy_size = 0.05
+# 	}
+# 	
+# 	# AI weight to create
+# 	ai_will_do = {
+# 		base = 20
+# 		
+# 		modifier = {
+# 			add = 30
+# 			has_trait = ambitious
+# 		}
+# 		
+# 		modifier = {
+# 			add = 20
+# 			martial >= 18
+# 		}
+# 	}
+# }
+# 
+# example_legend_type_pious = {
+# 	category = pious
+# 	
+# 	icon = "gfx/interface/icons/legends/legend_pious.dds"
+# 	
+# 	base_spread_speed = 0.8
+# 	base_max_provinces = 75  # Religious legends spread further
+# 	
+# 	can_create = {
+# 		is_adult = yes
+# 		OR = {
+# 			has_trait = zealous
+# 			learning >= 15
+# 			piety_level >= 3
+# 		}
+# 	}
+# 	
+# 	owner_modifier = {
+# 		monthly_piety = 1.0
+# 		clergy_opinion = 10
+# 	}
+# 	
+# 	province_modifier = {
+# 		county_opinion_add = 5
+# 	}
+# 	
+# 	# Spreads faster in same faith
+# 	spread_modifier = {
+# 		faith = root.faith
+# 		speed_mult = 1.5
+# 	}
+# 	
+# 	ai_will_do = {
+# 		base = 15
+# 		
+# 		modifier = {
+# 			add = 35
+# 			has_trait = zealous
+# 		}
+# 	}
+# }
+# 
+# example_legend_type_wise = {
+# 	category = wise
+# 	
+# 	icon = "gfx/interface/icons/legends/legend_wise.dds"
+# 	
+# 	base_spread_speed = 0.6  # Slower spread
+# 	base_max_provinces = 40
+# 	
+# 	can_create = {
+# 		is_adult = yes
+# 		learning >= 15
+# 	}
+# 	
+# 	owner_modifier = {
+# 		monthly_prestige = 0.3
+# 		development_growth_mult = 0.1
+# 	}
+# 	
+# 	province_modifier = {
+# 		development_growth = 0.1
+# 	}
+# 	
+# 	ai_will_do = {
+# 		base = 10
+# 		
+# 		modifier = {
+# 			add = 25
+# 			learning >= 18
+# 		}
+# 	}
+# }
+# 
+# ### LEGEND SEEDS (Starting Points) ###
+# 
+# example_legend_seed_battle = {
+# 	# What triggers this legend seed
+# 	trigger = {
+# 		# Won a major battle
+# 		has_character_flag = won_major_battle
+# 	}
+# 	
+# 	# Which legend type this becomes
+# 	legend_type = example_legend_type_heroic
+# 	
+# 	# Initial properties
+# 	base_quality = 3  # Out of 5
+# 	
+# 	# Story elements
+# 	chronicle_entries = {
+# 		"example_legend_chronicle_battle_1"
+# 		"example_legend_chronicle_battle_2"
+# 	}
+# 	
+# 	# Weight for AI/random selection
+# 	weight = {
+# 		base = 100
+# 		
+# 		modifier = {
+# 			add = 50
+# 			martial >= 15
+# 		}
+# 	}
+# }
+# 
+# example_legend_seed_miracle = {
+# 	trigger = {
+# 		has_character_flag = witnessed_miracle
+# 	}
+# 	
+# 	legend_type = example_legend_type_pious
+# 	
+# 	base_quality = 4
+# 	
+# 	chronicle_entries = {
+# 		"example_legend_chronicle_miracle_1"
+# 		"example_legend_chronicle_miracle_2"
+# 	}
+# 	
+# 	weight = {
+# 		base = 80
+# 		
+# 		modifier = {
+# 			add = 40
+# 			has_trait = zealous
+# 		}
+# 	}
+# }
+# 
+# ### LEGEND PROMOTIONS ###
+# 
+# example_legend_promotion_spread = {
+# 	# Action to spread legend
+# 	
+# 	can_use = {
+# 		has_legend = yes
+# 		gold >= 100
+# 	}
+# 	
+# 	cost = {
+# 		gold = 100
+# 	}
+# 	
+# 	effect = {
+# 		legend = {
+# 			add_spread_progress = 25
+# 		}
+# 	}
+# 	
+# 	ai_will_do = {
+# 		base = 50
+# 	}
+# }
+# 
+# example_legend_promotion_quality = {
+# 	# Action to improve legend quality
+# 	
+# 	can_use = {
+# 		has_legend = yes
+# 		gold >= 200
+# 		prestige >= 100
+# 	}
+# 	
+# 	cost = {
+# 		gold = 200
+# 		prestige = 100
+# 	}
+# 	
+# 	effect = {
+# 		legend = {
+# 			add_quality = 1
+# 		}
+# 	}
+# 	
+# 	ai_will_do = {
+# 		base = 30
+# 		
+# 		modifier = {
+# 			add = 20
+# 			legend = {
+# 				quality < 4
+# 			}
+# 		}
+# 	}
+# }

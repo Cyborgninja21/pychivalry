@@ -1,310 +1,310 @@
-############################################################
-# PYCHIVALRY EXAMPLE CHARACTER INTERACTIONS
-# Custom character interactions
-############################################################
-
-##################################################
-# Interaction: Request Mentorship
-# Ask a skilled character to mentor you
-##################################################
-example_request_mentorship_interaction = {
-	category = interaction_category_friendly
-	desc = example_request_mentorship_interaction_desc
-	icon = learning_focus
-	
-	# Who can be targeted
-	is_shown = {
-		NOT = { scope:actor = scope:recipient }
-		scope:recipient = {
-			is_adult = yes
-			OR = {
-				diplomacy >= 12
-				martial >= 12
-				stewardship >= 12
-				intrigue >= 12
-				learning >= 12
-			}
-		}
-	}
-	
-	# Valid conditions
-	is_valid_showing_failures_only = {
-		scope:actor = {
-			is_adult = yes
-			NOT = { has_character_flag = has_mentor }
-		}
-		scope:recipient = {
-			is_available = yes
-			NOT = { is_at_war_with = scope:actor }
-		}
-	}
-	
-	# Cost to request
-	cost = {
-		prestige = {
-			value = 50
-			if = {
-				limit = { 
-					scope:recipient = { is_ruler = yes }
-				}
-				multiply = 2
-			}
-		}
-	}
-	
-	# AI acceptance calculation
-	ai_accept = {
-		base = -20
-		
-		# Opinion matters
-		opinion_modifier = {
-			opinion_target = scope:actor
-			multiplier = 0.5
-		}
-		
-		# Teaching traits
-		modifier = {
-			add = 20
-			has_trait = patient
-		}
-		modifier = {
-			add = 15
-			has_trait = diligent
-		}
-		modifier = {
-			add = -20
-			has_trait = lazy
-		}
-		modifier = {
-			add = -15
-			has_trait = impatient
-		}
-		
-		# Family bonus
-		modifier = {
-			add = 30
-			is_close_or_extended_family_of = scope:actor
-		}
-		
-		# Same dynasty
-		modifier = {
-			add = 20
-			dynasty = scope:actor.dynasty
-		}
-	}
-	
-	# On acceptance
-	on_accept = {
-		scope:actor = {
-			add_character_flag = {
-				flag = has_mentor
-				years = 3
-			}
-			add_opinion = {
-				target = scope:recipient
-				modifier = example_mentor_opinion
-			}
-		}
-		
-		scope:recipient = {
-			add_opinion = {
-				target = scope:actor
-				modifier = example_student_opinion
-			}
-			
-			trigger_event = {
-				id = example_events.0010
-				days = 7
-			}
-		}
-	}
-	
-	# On decline
-	on_decline = {
-		scope:actor = {
-			add_stress = 10
-			add_opinion = {
-				target = scope:recipient
-				modifier = example_rejected_romance_opinion  # Reusing similar modifier
-			}
-		}
-	}
-	
-	# AI behavior
-	ai_targets = {
-		ai_recipients = liege
-		ai_recipients = courtiers
-	}
-	
-	ai_potential = {
-		is_at_war = no
-		NOT = { has_character_flag = has_mentor }
-	}
-	
-	ai_frequency = 24
-	
-	ai_will_do = {
-		base = 10
-		modifier = {
-			add = 20
-			has_trait = ambitious
-		}
-	}
-}
-
-##################################################
-# Interaction: Challenge to Duel
-# Challenge someone to single combat
-##################################################
-example_challenge_duel_interaction = {
-	category = interaction_category_hostile
-	desc = example_challenge_duel_interaction_desc
-	icon = martial_focus
-	
-	is_shown = {
-		NOT = { scope:actor = scope:recipient }
-		scope:actor = {
-			is_adult = yes
-			prowess >= 8
-		}
-		scope:recipient = {
-			is_adult = yes
-		}
-	}
-	
-	is_valid_showing_failures_only = {
-		scope:actor = {
-			NOT = { has_trait = craven }
-			is_available = yes
-		}
-		scope:recipient = {
-			is_available = yes
-			NOR = {
-				has_trait = incapable
-				is_imprisoned = yes
-			}
-		}
-	}
-	
-	cooldown = { months = 12 }
-	
-	# AI acceptance
-	ai_accept = {
-		base = -10
-		
-		# Prowess comparison
-		modifier = {
-			add = 30
-			prowess >= scope:actor.prowess
-		}
-		modifier = {
-			add = -30
-			prowess < scope:actor.prowess
-		}
-		
-		# Personality
-		modifier = {
-			add = 30
-			has_trait = brave
-		}
-		modifier = {
-			add = 20
-			has_trait = wrathful
-		}
-		modifier = {
-			add = -40
-			has_trait = craven
-		}
-		modifier = {
-			add = -20
-			has_trait = content
-		}
-		
-		# Honor
-		modifier = {
-			add = 20
-			opinion = {
-				target = scope:actor
-				value < -20
-			}
-		}
-	}
-	
-	on_accept = {
-		# Trigger duel event
-		scope:actor = {
-			save_scope_as = duelist_1
-		}
-		scope:recipient = {
-			save_scope_as = duelist_2
-		}
-		
-		# Simple duel resolution
-		scope:actor = {
-			duel = {
-				skill = prowess
-				target = scope:recipient
-				
-				50 = {
-					compare_modifier = {
-						value = scope:duel_value
-						multiplier = 5
-					}
-					desc = example_duel_victory
-					
-					add_prestige = 100
-					add_dread = 10
-					
-					scope:recipient = {
-						add_prestige = -50
-						add_stress = 20
-					}
-				}
-				50 = {
-					compare_modifier = {
-						value = scope:duel_value
-						multiplier = -5
-					}
-					desc = example_duel_defeat
-					
-					add_prestige = -50
-					add_stress = 20
-					
-					scope:recipient = {
-						add_prestige = 100
-						add_dread = 10
-					}
-				}
-			}
-		}
-	}
-	
-	on_decline = {
-		# Coward!
-		scope:recipient = {
-			add_prestige = -25
-		}
-		scope:actor = {
-			add_prestige = 25
-		}
-	}
-	
-	ai_potential = {
-		has_trait = brave
-		prowess >= 10
-	}
-	
-	ai_frequency = 60
-	
-	ai_will_do = {
-		base = 5
-		modifier = {
-			add = 20
-			has_trait = wrathful
-		}
-		modifier = {
-			add = 10
-			has_relation_rival = scope:recipient
-		}
-	}
-}
+# ############################################################
+# # PYCHIVALRY EXAMPLE CHARACTER INTERACTIONS
+# # Custom character interactions
+# ############################################################
+# 
+# ##################################################
+# # Interaction: Request Mentorship
+# # Ask a skilled character to mentor you
+# ##################################################
+# example_request_mentorship_interaction = {
+# 	category = interaction_category_friendly
+# 	desc = example_request_mentorship_interaction_desc
+# 	icon = learning_focus
+# 	
+# 	# Who can be targeted
+# 	is_shown = {
+# 		NOT = { scope:actor = scope:recipient }
+# 		scope:recipient = {
+# 			is_adult = yes
+# 			OR = {
+# 				diplomacy >= 12
+# 				martial >= 12
+# 				stewardship >= 12
+# 				intrigue >= 12
+# 				learning >= 12
+# 			}
+# 		}
+# 	}
+# 	
+# 	# Valid conditions
+# 	is_valid_showing_failures_only = {
+# 		scope:actor = {
+# 			is_adult = yes
+# 			NOT = { has_character_flag = has_mentor }
+# 		}
+# 		scope:recipient = {
+# 			is_available = yes
+# 			NOT = { is_at_war_with = scope:actor }
+# 		}
+# 	}
+# 	
+# 	# Cost to request
+# 	cost = {
+# 		prestige = {
+# 			value = 50
+# 			if = {
+# 				limit = { 
+# 					scope:recipient = { is_ruler = yes }
+# 				}
+# 				multiply = 2
+# 			}
+# 		}
+# 	}
+# 	
+# 	# AI acceptance calculation
+# 	ai_accept = {
+# 		base = -20
+# 		
+# 		# Opinion matters
+# 		opinion_modifier = {
+# 			opinion_target = scope:actor
+# 			multiplier = 0.5
+# 		}
+# 		
+# 		# Teaching traits
+# 		modifier = {
+# 			add = 20
+# 			has_trait = patient
+# 		}
+# 		modifier = {
+# 			add = 15
+# 			has_trait = diligent
+# 		}
+# 		modifier = {
+# 			add = -20
+# 			has_trait = lazy
+# 		}
+# 		modifier = {
+# 			add = -15
+# 			has_trait = impatient
+# 		}
+# 		
+# 		# Family bonus
+# 		modifier = {
+# 			add = 30
+# 			is_close_or_extended_family_of = scope:actor
+# 		}
+# 		
+# 		# Same dynasty
+# 		modifier = {
+# 			add = 20
+# 			dynasty = scope:actor.dynasty
+# 		}
+# 	}
+# 	
+# 	# On acceptance
+# 	on_accept = {
+# 		scope:actor = {
+# 			add_character_flag = {
+# 				flag = has_mentor
+# 				years = 3
+# 			}
+# 			add_opinion = {
+# 				target = scope:recipient
+# 				modifier = example_mentor_opinion
+# 			}
+# 		}
+# 		
+# 		scope:recipient = {
+# 			add_opinion = {
+# 				target = scope:actor
+# 				modifier = example_student_opinion
+# 			}
+# 			
+# 			trigger_event = {
+# 				id = example_events.0010
+# 				days = 7
+# 			}
+# 		}
+# 	}
+# 	
+# 	# On decline
+# 	on_decline = {
+# 		scope:actor = {
+# 			add_stress = 10
+# 			add_opinion = {
+# 				target = scope:recipient
+# 				modifier = example_rejected_romance_opinion  # Reusing similar modifier
+# 			}
+# 		}
+# 	}
+# 	
+# 	# AI behavior
+# 	ai_targets = {
+# 		ai_recipients = liege
+# 		ai_recipients = courtiers
+# 	}
+# 	
+# 	ai_potential = {
+# 		is_at_war = no
+# 		NOT = { has_character_flag = has_mentor }
+# 	}
+# 	
+# 	ai_frequency = 24
+# 	
+# 	ai_will_do = {
+# 		base = 10
+# 		modifier = {
+# 			add = 20
+# 			has_trait = ambitious
+# 		}
+# 	}
+# }
+# 
+# ##################################################
+# # Interaction: Challenge to Duel
+# # Challenge someone to single combat
+# ##################################################
+# example_challenge_duel_interaction = {
+# 	category = interaction_category_hostile
+# 	desc = example_challenge_duel_interaction_desc
+# 	icon = martial_focus
+# 	
+# 	is_shown = {
+# 		NOT = { scope:actor = scope:recipient }
+# 		scope:actor = {
+# 			is_adult = yes
+# 			prowess >= 8
+# 		}
+# 		scope:recipient = {
+# 			is_adult = yes
+# 		}
+# 	}
+# 	
+# 	is_valid_showing_failures_only = {
+# 		scope:actor = {
+# 			NOT = { has_trait = craven }
+# 			is_available = yes
+# 		}
+# 		scope:recipient = {
+# 			is_available = yes
+# 			NOR = {
+# 				has_trait = incapable
+# 				is_imprisoned = yes
+# 			}
+# 		}
+# 	}
+# 	
+# 	cooldown = { months = 12 }
+# 	
+# 	# AI acceptance
+# 	ai_accept = {
+# 		base = -10
+# 		
+# 		# Prowess comparison
+# 		modifier = {
+# 			add = 30
+# 			prowess >= scope:actor.prowess
+# 		}
+# 		modifier = {
+# 			add = -30
+# 			prowess < scope:actor.prowess
+# 		}
+# 		
+# 		# Personality
+# 		modifier = {
+# 			add = 30
+# 			has_trait = brave
+# 		}
+# 		modifier = {
+# 			add = 20
+# 			has_trait = wrathful
+# 		}
+# 		modifier = {
+# 			add = -40
+# 			has_trait = craven
+# 		}
+# 		modifier = {
+# 			add = -20
+# 			has_trait = content
+# 		}
+# 		
+# 		# Honor
+# 		modifier = {
+# 			add = 20
+# 			opinion = {
+# 				target = scope:actor
+# 				value < -20
+# 			}
+# 		}
+# 	}
+# 	
+# 	on_accept = {
+# 		# Trigger duel event
+# 		scope:actor = {
+# 			save_scope_as = duelist_1
+# 		}
+# 		scope:recipient = {
+# 			save_scope_as = duelist_2
+# 		}
+# 		
+# 		# Simple duel resolution
+# 		scope:actor = {
+# 			duel = {
+# 				skill = prowess
+# 				target = scope:recipient
+# 				
+# 				50 = {
+# 					compare_modifier = {
+# 						value = scope:duel_value
+# 						multiplier = 5
+# 					}
+# 					desc = example_duel_victory
+# 					
+# 					add_prestige = 100
+# 					add_dread = 10
+# 					
+# 					scope:recipient = {
+# 						add_prestige = -50
+# 						add_stress = 20
+# 					}
+# 				}
+# 				50 = {
+# 					compare_modifier = {
+# 						value = scope:duel_value
+# 						multiplier = -5
+# 					}
+# 					desc = example_duel_defeat
+# 					
+# 					add_prestige = -50
+# 					add_stress = 20
+# 					
+# 					scope:recipient = {
+# 						add_prestige = 100
+# 						add_dread = 10
+# 					}
+# 				}
+# 			}
+# 		}
+# 	}
+# 	
+# 	on_decline = {
+# 		# Coward!
+# 		scope:recipient = {
+# 			add_prestige = -25
+# 		}
+# 		scope:actor = {
+# 			add_prestige = 25
+# 		}
+# 	}
+# 	
+# 	ai_potential = {
+# 		has_trait = brave
+# 		prowess >= 10
+# 	}
+# 	
+# 	ai_frequency = 60
+# 	
+# 	ai_will_do = {
+# 		base = 5
+# 		modifier = {
+# 			add = 20
+# 			has_trait = wrathful
+# 		}
+# 		modifier = {
+# 			add = 10
+# 			has_relation_rival = scope:recipient
+# 		}
+# 	}
+# }

@@ -1,227 +1,227 @@
-############################################################
-# PYCHIVALRY EXAMPLE OPINION MODIFIERS
-# Relationship opinion modifiers
-############################################################
-
-##################################################
-# General Opinion Modifiers
-##################################################
-
-# From hosting a feast
-example_feast_host_opinion = {
-	opinion = 15
-	months = 24
-	
-	# Decays slowly
-	decay = 1
-}
-
-# From being invited to feast
-example_feast_guest_opinion = {
-	opinion = 10
-	months = 12
-}
-
-# From mentorship
-example_mentor_opinion = {
-	opinion = 25
-	months = 60
-}
-
-# From being mentored
-example_student_opinion = {
-	opinion = 20
-	months = 60
-}
-
-##################################################
-# Dynasty and Family
-##################################################
-
-# Shared dynasty accomplishment
-example_dynasty_achievement_opinion = {
-	opinion = 15
-	months = 120
-}
-
-# Family helped in crisis
-example_family_helped_opinion = {
-	opinion = 30
-	months = 60
-}
-
-# Inheritance dispute
-example_inheritance_dispute_opinion = {
-	opinion = -25
-	months = 120
-	decay = 1
-}
-
-##################################################
-# War and Conflict
-##################################################
-
-# Fought together in battle
-example_battle_brothers_opinion = {
-	opinion = 20
-	months = 60
-}
-
-# Was defeated by
-example_defeated_by_opinion = {
-	opinion = -20
-	months = 36
-}
-
-# Merciful victor
-example_merciful_victory_opinion = {
-	opinion = 15
-	months = 48
-}
-
-# Cruel victor
-example_cruel_victory_opinion = {
-	opinion = -40
-	months = 120
-	decay = 1
-}
-
-##################################################
-# Religious
-##################################################
-
-# Shared pilgrimage
-example_pilgrimage_companion_opinion = {
-	opinion = 25
-	months = 60
-}
-
-# Religious donation
-example_religious_donation_opinion = {
-	opinion = 15
-	months = 36
-}
-
-# Heresy accusation (false)
-example_false_heresy_accusation_opinion = {
-	opinion = -35
-	months = 120
-}
-
-##################################################
-# Court and Social
-##################################################
-
-# Gifted rare artifact
-example_rare_gift_opinion = {
-	opinion = 35
-	months = 60
-}
-
-# Insulted at court
-example_public_insult_opinion = {
-	opinion = -25
-	months = 36
-}
-
-# Defended honor
-example_honor_defended_opinion = {
-	opinion = 30
-	months = 48
-}
-
-# Romantic rejection
-example_rejected_romance_opinion = {
-	opinion = -20
-	months = 24
-	decay = 2
-}
-
-##################################################
-# Vassal Relations
-##################################################
-
-# Liege granted title
-example_granted_title_opinion = {
-	opinion = 40
-	months = 120
-}
-
-# Liege revoked title
-example_revoked_title_opinion = {
-	opinion = -60
-	months = 240
-	decay = 1
-}
-
-# Protected from enemy
-example_protected_vassal_opinion = {
-	opinion = 25
-	months = 60
-}
-
-# Ignored vassal request
-example_ignored_request_opinion = {
-	opinion = -15
-	months = 24
-}
-
-# Fair tax treatment
-example_fair_taxes_opinion = {
-	opinion = 10
-	months = 36
-}
-
-# Excessive taxation
-example_excessive_taxes_opinion = {
-	opinion = -20
-	months = 24
-}
-
-##################################################
-# Special and Rare
-##################################################
-
-# Saved life
-example_saved_life_opinion = {
-	opinion = 50
-	months = 240
-}
-
-# Betrayed trust
-example_betrayed_trust_opinion = {
-	opinion = -60
-	months = 240
-	decay = 1
-}
-
-# Discovered secret
-example_knows_secret_opinion = {
-	opinion = -30
-	months = 120
-}
-
-# Kept secret safe
-example_kept_secret_opinion = {
-	opinion = 25
-	months = 60
-}
-
-##################################################
-# Stacking and Persistent
-##################################################
-
-# Long-term alliance (doesn't decay)
-example_long_alliance_opinion = {
-	opinion = 20
-}
-
-# Blood feud (persistent negative)
-example_blood_feud_opinion = {
-	opinion = -50
-}
-
-# Childhood friend
-example_childhood_friend_opinion = {
-	opinion = 30
-}
+# ############################################################
+# # PYCHIVALRY EXAMPLE OPINION MODIFIERS
+# # Relationship opinion modifiers
+# ############################################################
+# 
+# ##################################################
+# # General Opinion Modifiers
+# ##################################################
+# 
+# # From hosting a feast
+# example_feast_host_opinion = {
+# 	opinion = 15
+# 	months = 24
+# 	
+# 	# Decays slowly
+# 	decay = 1
+# }
+# 
+# # From being invited to feast
+# example_feast_guest_opinion = {
+# 	opinion = 10
+# 	months = 12
+# }
+# 
+# # From mentorship
+# example_mentor_opinion = {
+# 	opinion = 25
+# 	months = 60
+# }
+# 
+# # From being mentored
+# example_student_opinion = {
+# 	opinion = 20
+# 	months = 60
+# }
+# 
+# ##################################################
+# # Dynasty and Family
+# ##################################################
+# 
+# # Shared dynasty accomplishment
+# example_dynasty_achievement_opinion = {
+# 	opinion = 15
+# 	months = 120
+# }
+# 
+# # Family helped in crisis
+# example_family_helped_opinion = {
+# 	opinion = 30
+# 	months = 60
+# }
+# 
+# # Inheritance dispute
+# example_inheritance_dispute_opinion = {
+# 	opinion = -25
+# 	months = 120
+# 	decay = 1
+# }
+# 
+# ##################################################
+# # War and Conflict
+# ##################################################
+# 
+# # Fought together in battle
+# example_battle_brothers_opinion = {
+# 	opinion = 20
+# 	months = 60
+# }
+# 
+# # Was defeated by
+# example_defeated_by_opinion = {
+# 	opinion = -20
+# 	months = 36
+# }
+# 
+# # Merciful victor
+# example_merciful_victory_opinion = {
+# 	opinion = 15
+# 	months = 48
+# }
+# 
+# # Cruel victor
+# example_cruel_victory_opinion = {
+# 	opinion = -40
+# 	months = 120
+# 	decay = 1
+# }
+# 
+# ##################################################
+# # Religious
+# ##################################################
+# 
+# # Shared pilgrimage
+# example_pilgrimage_companion_opinion = {
+# 	opinion = 25
+# 	months = 60
+# }
+# 
+# # Religious donation
+# example_religious_donation_opinion = {
+# 	opinion = 15
+# 	months = 36
+# }
+# 
+# # Heresy accusation (false)
+# example_false_heresy_accusation_opinion = {
+# 	opinion = -35
+# 	months = 120
+# }
+# 
+# ##################################################
+# # Court and Social
+# ##################################################
+# 
+# # Gifted rare artifact
+# example_rare_gift_opinion = {
+# 	opinion = 35
+# 	months = 60
+# }
+# 
+# # Insulted at court
+# example_public_insult_opinion = {
+# 	opinion = -25
+# 	months = 36
+# }
+# 
+# # Defended honor
+# example_honor_defended_opinion = {
+# 	opinion = 30
+# 	months = 48
+# }
+# 
+# # Romantic rejection
+# example_rejected_romance_opinion = {
+# 	opinion = -20
+# 	months = 24
+# 	decay = 2
+# }
+# 
+# ##################################################
+# # Vassal Relations
+# ##################################################
+# 
+# # Liege granted title
+# example_granted_title_opinion = {
+# 	opinion = 40
+# 	months = 120
+# }
+# 
+# # Liege revoked title
+# example_revoked_title_opinion = {
+# 	opinion = -60
+# 	months = 240
+# 	decay = 1
+# }
+# 
+# # Protected from enemy
+# example_protected_vassal_opinion = {
+# 	opinion = 25
+# 	months = 60
+# }
+# 
+# # Ignored vassal request
+# example_ignored_request_opinion = {
+# 	opinion = -15
+# 	months = 24
+# }
+# 
+# # Fair tax treatment
+# example_fair_taxes_opinion = {
+# 	opinion = 10
+# 	months = 36
+# }
+# 
+# # Excessive taxation
+# example_excessive_taxes_opinion = {
+# 	opinion = -20
+# 	months = 24
+# }
+# 
+# ##################################################
+# # Special and Rare
+# ##################################################
+# 
+# # Saved life
+# example_saved_life_opinion = {
+# 	opinion = 50
+# 	months = 240
+# }
+# 
+# # Betrayed trust
+# example_betrayed_trust_opinion = {
+# 	opinion = -60
+# 	months = 240
+# 	decay = 1
+# }
+# 
+# # Discovered secret
+# example_knows_secret_opinion = {
+# 	opinion = -30
+# 	months = 120
+# }
+# 
+# # Kept secret safe
+# example_kept_secret_opinion = {
+# 	opinion = 25
+# 	months = 60
+# }
+# 
+# ##################################################
+# # Stacking and Persistent
+# ##################################################
+# 
+# # Long-term alliance (doesn't decay)
+# example_long_alliance_opinion = {
+# 	opinion = 20
+# }
+# 
+# # Blood feud (persistent negative)
+# example_blood_feud_opinion = {
+# 	opinion = -50
+# }
+# 
+# # Childhood friend
+# example_childhood_friend_opinion = {
+# 	opinion = 30
+# }

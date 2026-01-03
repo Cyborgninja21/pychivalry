@@ -1,230 +1,230 @@
-############################################################
-# PYCHIVALRY EXAMPLE SCHEME TYPES
-# Custom scheme definitions
-############################################################
-
-##################################################
-# Scheme: Gather Intelligence
-# A non-hostile scheme to learn about a target
-##################################################
-example_gather_intelligence_scheme = {
-	skill = intrigue
-	desc = example_gather_intelligence_scheme_desc
-	
-	# Scheme properties
-	hostile = no
-	icon = intrigue_focus
-	
-	# Base values
-	base_success_chance = 50
-	base_progress_goal = 100
-	power_per_skill_point = 2
-	resistance_per_skill_point = 1
-	
-	# Maximum power modifier
-	max_scheme_power_bonus = 100
-	max_scheme_resistance_bonus = 100
-	
-	# Duration
-	minimum_days_before_outcome = 30
-	maximum_days_before_outcome = 365
-	
-	# Who can be targeted
-	is_valid = {
-		is_ruler = yes
-		NOT = { this = scope:owner }
-	}
-	
-	# Requirements to start
-	is_valid_showing_failures_only = {
-		scope:owner = {
-			is_available = yes
-			intrigue >= 8
-		}
-		scope:target = {
-			is_alive = yes
-		}
-	}
-	
-	# Success/failure chance modifiers
-	success_chance = {
-		base = 50
-		
-		# Skill difference
-		modifier = {
-			add = {
-				value = scope:owner.intrigue
-				subtract = scope:target.intrigue
-				multiply = 2
-			}
-			desc = SCHEME_INTRIGUE_DIFF
-		}
-		
-		# Traits
-		modifier = {
-			add = 15
-			scope:owner = { has_trait = schemer }
-			desc = trait_schemer
-		}
-		modifier = {
-			add = 10
-			scope:owner = { has_trait = paranoid }
-			desc = trait_paranoid
-		}
-		modifier = {
-			add = -20
-			scope:target = { has_trait = paranoid }
-			desc = SCHEME_TARGET_TRAIT
-		}
-	}
-	
-	# On success
-	on_succeed = {
-		scope:owner = {
-			# Gain information
-			add_intrigue_lifestyle_xp = 100
-			
-			# Learn a secret if target has one
-			scope:target = {
-				random_secret = {
-					limit = {
-						NOT = { 
-							any_secret_knower = { this = scope:owner }
-						}
-					}
-					save_scope_as = discovered_secret
-				}
-			}
-			
-			if = {
-				limit = { exists = scope:discovered_secret }
-				scope:discovered_secret = {
-					expose_secret = scope:owner
-				}
-				send_interface_toast = {
-					title = example_intelligence_gathered_toast
-					left_icon = scope:owner
-					right_icon = scope:target
-				}
-			}
-			else = {
-				# No secret, but still useful information
-				add_opinion = {
-					target = scope:target
-					modifier = example_knows_secret_opinion
-				}
-			}
-		}
-	}
-	
-	# On failure
-	on_fail = {
-		scope:owner = {
-			add_stress = 10
-			add_intrigue_lifestyle_xp = 25
-		}
-	}
-	
-	# On discovery (if target finds out)
-	on_discover = {
-		scope:target = {
-			add_opinion = {
-				target = scope:owner
-				modifier = example_knows_secret_opinion
-				opinion = -30
-			}
-		}
-	}
-}
-
-##################################################
-# Scheme: Spread Influence
-# Build support among target's court
-##################################################
-example_spread_influence_scheme = {
-	skill = diplomacy
-	desc = example_spread_influence_scheme_desc
-	
-	hostile = no
-	icon = diplomacy_focus
-	
-	base_success_chance = 40
-	base_progress_goal = 150
-	power_per_skill_point = 2
-	resistance_per_skill_point = 1
-	
-	max_scheme_power_bonus = 75
-	max_scheme_resistance_bonus = 75
-	
-	minimum_days_before_outcome = 60
-	maximum_days_before_outcome = 730
-	
-	is_valid = {
-		is_ruler = yes
-		NOT = { this = scope:owner }
-		NOT = { is_at_war_with = scope:owner }
-	}
-	
-	is_valid_showing_failures_only = {
-		scope:owner = {
-			is_ruler = yes
-			diplomacy >= 10
-		}
-	}
-	
-	success_chance = {
-		base = 40
-		
-		modifier = {
-			add = {
-				value = scope:owner.diplomacy
-				subtract = scope:target.diplomacy
-				multiply = 2
-			}
-			desc = SCHEME_DIPLOMACY_DIFF
-		}
-		
-		modifier = {
-			add = 20
-			scope:owner = { has_trait = diplomat }
-			desc = trait_diplomat
-		}
-		modifier = {
-			add = 10
-			scope:owner = { has_trait = gregarious }
-			desc = trait_gregarious
-		}
-	}
-	
-	on_succeed = {
-		scope:owner = {
-			add_diplomacy_lifestyle_xp = 150
-			
-			# Gain positive opinion
-			add_opinion = {
-				target = scope:target
-				modifier = example_long_alliance_opinion
-			}
-			
-			# Some courtiers become friendly
-			scope:target = {
-				random_courtier = {
-					limit = {
-						is_adult = yes
-						NOT = { this = scope:target }
-					}
-					add_opinion = {
-						target = scope:owner
-						modifier = example_feast_guest_opinion
-					}
-				}
-			}
-		}
-	}
-	
-	on_fail = {
-		scope:owner = {
-			add_stress = 15
-		}
-	}
-}
+# ############################################################
+# # PYCHIVALRY EXAMPLE SCHEME TYPES
+# # Custom scheme definitions
+# ############################################################
+# 
+# ##################################################
+# # Scheme: Gather Intelligence
+# # A non-hostile scheme to learn about a target
+# ##################################################
+# example_gather_intelligence_scheme = {
+# 	skill = intrigue
+# 	desc = example_gather_intelligence_scheme_desc
+# 	
+# 	# Scheme properties
+# 	hostile = no
+# 	icon = intrigue_focus
+# 	
+# 	# Base values
+# 	base_success_chance = 50
+# 	base_progress_goal = 100
+# 	power_per_skill_point = 2
+# 	resistance_per_skill_point = 1
+# 	
+# 	# Maximum power modifier
+# 	max_scheme_power_bonus = 100
+# 	max_scheme_resistance_bonus = 100
+# 	
+# 	# Duration
+# 	minimum_days_before_outcome = 30
+# 	maximum_days_before_outcome = 365
+# 	
+# 	# Who can be targeted
+# 	is_valid = {
+# 		is_ruler = yes
+# 		NOT = { this = scope:owner }
+# 	}
+# 	
+# 	# Requirements to start
+# 	is_valid_showing_failures_only = {
+# 		scope:owner = {
+# 			is_available = yes
+# 			intrigue >= 8
+# 		}
+# 		scope:target = {
+# 			is_alive = yes
+# 		}
+# 	}
+# 	
+# 	# Success/failure chance modifiers
+# 	success_chance = {
+# 		base = 50
+# 		
+# 		# Skill difference
+# 		modifier = {
+# 			add = {
+# 				value = scope:owner.intrigue
+# 				subtract = scope:target.intrigue
+# 				multiply = 2
+# 			}
+# 			desc = SCHEME_INTRIGUE_DIFF
+# 		}
+# 		
+# 		# Traits
+# 		modifier = {
+# 			add = 15
+# 			scope:owner = { has_trait = schemer }
+# 			desc = trait_schemer
+# 		}
+# 		modifier = {
+# 			add = 10
+# 			scope:owner = { has_trait = paranoid }
+# 			desc = trait_paranoid
+# 		}
+# 		modifier = {
+# 			add = -20
+# 			scope:target = { has_trait = paranoid }
+# 			desc = SCHEME_TARGET_TRAIT
+# 		}
+# 	}
+# 	
+# 	# On success
+# 	on_succeed = {
+# 		scope:owner = {
+# 			# Gain information
+# 			add_intrigue_lifestyle_xp = 100
+# 			
+# 			# Learn a secret if target has one
+# 			scope:target = {
+# 				random_secret = {
+# 					limit = {
+# 						NOT = { 
+# 							any_secret_knower = { this = scope:owner }
+# 						}
+# 					}
+# 					save_scope_as = discovered_secret
+# 				}
+# 			}
+# 			
+# 			if = {
+# 				limit = { exists = scope:discovered_secret }
+# 				scope:discovered_secret = {
+# 					expose_secret = scope:owner
+# 				}
+# 				send_interface_toast = {
+# 					title = example_intelligence_gathered_toast
+# 					left_icon = scope:owner
+# 					right_icon = scope:target
+# 				}
+# 			}
+# 			else = {
+# 				# No secret, but still useful information
+# 				add_opinion = {
+# 					target = scope:target
+# 					modifier = example_knows_secret_opinion
+# 				}
+# 			}
+# 		}
+# 	}
+# 	
+# 	# On failure
+# 	on_fail = {
+# 		scope:owner = {
+# 			add_stress = 10
+# 			add_intrigue_lifestyle_xp = 25
+# 		}
+# 	}
+# 	
+# 	# On discovery (if target finds out)
+# 	on_discover = {
+# 		scope:target = {
+# 			add_opinion = {
+# 				target = scope:owner
+# 				modifier = example_knows_secret_opinion
+# 				opinion = -30
+# 			}
+# 		}
+# 	}
+# }
+# 
+# ##################################################
+# # Scheme: Spread Influence
+# # Build support among target's court
+# ##################################################
+# example_spread_influence_scheme = {
+# 	skill = diplomacy
+# 	desc = example_spread_influence_scheme_desc
+# 	
+# 	hostile = no
+# 	icon = diplomacy_focus
+# 	
+# 	base_success_chance = 40
+# 	base_progress_goal = 150
+# 	power_per_skill_point = 2
+# 	resistance_per_skill_point = 1
+# 	
+# 	max_scheme_power_bonus = 75
+# 	max_scheme_resistance_bonus = 75
+# 	
+# 	minimum_days_before_outcome = 60
+# 	maximum_days_before_outcome = 730
+# 	
+# 	is_valid = {
+# 		is_ruler = yes
+# 		NOT = { this = scope:owner }
+# 		NOT = { is_at_war_with = scope:owner }
+# 	}
+# 	
+# 	is_valid_showing_failures_only = {
+# 		scope:owner = {
+# 			is_ruler = yes
+# 			diplomacy >= 10
+# 		}
+# 	}
+# 	
+# 	success_chance = {
+# 		base = 40
+# 		
+# 		modifier = {
+# 			add = {
+# 				value = scope:owner.diplomacy
+# 				subtract = scope:target.diplomacy
+# 				multiply = 2
+# 			}
+# 			desc = SCHEME_DIPLOMACY_DIFF
+# 		}
+# 		
+# 		modifier = {
+# 			add = 20
+# 			scope:owner = { has_trait = diplomat }
+# 			desc = trait_diplomat
+# 		}
+# 		modifier = {
+# 			add = 10
+# 			scope:owner = { has_trait = gregarious }
+# 			desc = trait_gregarious
+# 		}
+# 	}
+# 	
+# 	on_succeed = {
+# 		scope:owner = {
+# 			add_diplomacy_lifestyle_xp = 150
+# 			
+# 			# Gain positive opinion
+# 			add_opinion = {
+# 				target = scope:target
+# 				modifier = example_long_alliance_opinion
+# 			}
+# 			
+# 			# Some courtiers become friendly
+# 			scope:target = {
+# 				random_courtier = {
+# 					limit = {
+# 						is_adult = yes
+# 						NOT = { this = scope:target }
+# 					}
+# 					add_opinion = {
+# 						target = scope:owner
+# 						modifier = example_feast_guest_opinion
+# 					}
+# 				}
+# 			}
+# 		}
+# 	}
+# 	
+# 	on_fail = {
+# 		scope:owner = {
+# 			add_stress = 15
+# 		}
+# 	}
+# }

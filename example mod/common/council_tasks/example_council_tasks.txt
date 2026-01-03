@@ -1,0 +1,306 @@
+# # Example Council Tasks
+# # Demonstrates: council task definitions, effects, requirements
+# 
+# ### CHANCELLOR TASKS ###
+# 
+# example_task_improve_relations = {
+# 	# Which council position can do this
+# 	position = chancellor
+# 	
+# 	# Task category
+# 	task_type = task_type_county
+# 	
+# 	# Requirements to perform this task
+# 	task_progress_trigger = {
+# 		councillor_liege_has_diarchy_active_trigger = no
+# 	}
+# 	
+# 	# Target selection
+# 	county_target = {
+# 		# What counties can be targeted
+# 		filter = {
+# 			is_de_jure_liege_or_above = root.liege
+# 		}
+# 		
+# 		# AI weight for selecting counties
+# 		weight = {
+# 			value = 10
+# 			modifier = {
+# 				add = 5
+# 				holder = { 
+# 					NOT = { has_relation_friend = root.liege }
+# 				}
+# 			}
+# 		}
+# 	}
+# 	
+# 	# Effects while performing task
+# 	on_monthly = {
+# 		trigger_event = {
+# 			on_action = chancellor_improve_relations_pulse
+# 			days = { 14 28 }
+# 		}
+# 	}
+# 	
+# 	# Potential result
+# 	potential_county = {
+# 		# Opinion improvement chance
+# 		add_to_temporary_list = valid_county
+# 	}
+# 	
+# 	# Effect based on skill
+# 	effect = {
+# 		# Base effect
+# 		liege = {
+# 			add_opinion = {
+# 				target = scope:councillor
+# 				modifier = opinion_grateful
+# 				opinion = 5
+# 			}
+# 		}
+# 	}
+# 	
+# 	# Monthly progress
+# 	monthly_progress = {
+# 		add = councillor_diplomacy_skill
+# 		multiply = 0.5
+# 	}
+# 	
+# 	# AI preferences
+# 	ai_will_do = {
+# 		value = 100
+# 	}
+# }
+# 
+# ### MARSHAL TASKS ###
+# 
+# example_task_train_levies = {
+# 	position = marshal
+# 	
+# 	task_type = task_type_county
+# 	
+# 	task_progress_trigger = {
+# 		always = yes
+# 	}
+# 	
+# 	county_target = {
+# 		filter = {
+# 			holder = root.liege
+# 		}
+# 		
+# 		weight = {
+# 			value = 10
+# 			modifier = {
+# 				add = 10
+# 				NOT = { has_county_modifier = recently_trained }
+# 			}
+# 		}
+# 	}
+# 	
+# 	on_start = {
+# 		# Apply county modifier
+# 		scope:county = {
+# 			add_county_modifier = {
+# 				modifier = training_in_progress
+# 				years = 1
+# 			}
+# 		}
+# 	}
+# 	
+# 	on_monthly = {
+# 		# Progress happens monthly
+# 		random = {
+# 			chance = 10
+# 			trigger_event = {
+# 				id = marshal_training_event.0001
+# 			}
+# 		}
+# 	}
+# 	
+# 	on_finish = {
+# 		scope:county = {
+# 			remove_county_modifier = training_in_progress
+# 			add_county_modifier = {
+# 				modifier = well_trained_levies
+# 				years = 5
+# 			}
+# 		}
+# 	}
+# 	
+# 	monthly_progress = {
+# 		add = councillor_martial_skill
+# 		multiply = 0.4
+# 	}
+# 	
+# 	ai_will_do = {
+# 		value = 75
+# 		modifier = {
+# 			add = 50
+# 			liege = { is_at_war = yes }
+# 		}
+# 	}
+# }
+# 
+# ### STEWARD TASKS ###
+# 
+# example_task_collect_taxes = {
+# 	position = steward
+# 	
+# 	task_type = task_type_county
+# 	
+# 	task_progress_trigger = {
+# 		always = yes
+# 	}
+# 	
+# 	county_target = {
+# 		filter = {
+# 			holder = root.liege
+# 		}
+# 		
+# 		weight = {
+# 			value = 10
+# 			modifier = {
+# 				add = development_level
+# 			}
+# 		}
+# 	}
+# 	
+# 	# Provides ongoing bonus
+# 	county_modifier = {
+# 		county_opinion_add = -5  # People don't like tax collectors
+# 		tax_mult = 0.1
+# 	}
+# 	
+# 	on_monthly = {
+# 		random = {
+# 			chance = 5
+# 			trigger_event = {
+# 				id = steward_tax_event.0001
+# 			}
+# 		}
+# 	}
+# 	
+# 	monthly_progress = {
+# 		add = councillor_stewardship_skill
+# 		multiply = 0.3
+# 	}
+# 	
+# 	ai_will_do = {
+# 		value = 100
+# 		modifier = {
+# 			add = 50
+# 			liege = { gold < 100 }
+# 		}
+# 	}
+# }
+# 
+# ### SPYMASTER TASKS ###
+# 
+# example_task_find_secrets = {
+# 	position = spymaster
+# 	
+# 	task_type = task_type_general
+# 	
+# 	task_progress_trigger = {
+# 		always = yes
+# 	}
+# 	
+# 	on_monthly = {
+# 		# Chance to discover secrets
+# 		random = {
+# 			chance = councillor_intrigue_skill
+# 			trigger_event = {
+# 				id = spymaster_secrets_event.0001
+# 			}
+# 		}
+# 	}
+# 	
+# 	# Effect modifier
+# 	effect = {
+# 		liege = {
+# 			# Increases chance to discover hostile schemes
+# 			add_character_modifier = {
+# 				modifier = vigilant_spymaster
+# 				days = 30
+# 			}
+# 		}
+# 	}
+# 	
+# 	monthly_progress = {
+# 		add = councillor_intrigue_skill
+# 		multiply = 0.5
+# 	}
+# 	
+# 	ai_will_do = {
+# 		value = 80
+# 		modifier = {
+# 			add = 40
+# 			liege = {
+# 				any_scheme = {
+# 					scheme_target = root.liege
+# 				}
+# 			}
+# 		}
+# 	}
+# }
+# 
+# ### COURT CHAPLAIN TASKS ###
+# 
+# example_task_convert_county = {
+# 	position = court_chaplain
+# 	
+# 	task_type = task_type_county
+# 	
+# 	task_progress_trigger = {
+# 		always = yes
+# 	}
+# 	
+# 	county_target = {
+# 		filter = {
+# 			holder = root.liege
+# 			NOT = { faith = root.liege.faith }
+# 		}
+# 		
+# 		weight = {
+# 			value = 10
+# 			modifier = {
+# 				add = 20
+# 				# Prioritize capital
+# 				this = root.liege.capital_county
+# 			}
+# 		}
+# 	}
+# 	
+# 	on_monthly = {
+# 		# Conversion progress
+# 		scope:county = {
+# 			change_county_faith_progress = {
+# 				faith = root.liege.faith
+# 				amount = councillor_learning_skill
+# 			}
+# 		}
+# 	}
+# 	
+# 	on_finish = {
+# 		scope:county = {
+# 			set_county_faith = root.liege.faith
+# 		}
+# 		
+# 		root.liege = {
+# 			add_piety = 100
+# 		}
+# 	}
+# 	
+# 	monthly_progress = {
+# 		add = councillor_learning_skill
+# 		multiply = 0.25
+# 	}
+# 	
+# 	ai_will_do = {
+# 		value = 90
+# 		modifier = {
+# 			add = 50
+# 			liege = { has_trait = zealous }
+# 		}
+# 	}
+# }

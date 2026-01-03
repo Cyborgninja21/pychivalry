@@ -1,0 +1,931 @@
+# ################################################################################
+# # EXAMPLE ARTIFACTS FILE
+# # This file demonstrates CK3 artifact definitions including templates and
+# # specific artifacts with various features like modifiers, triggers, and visuals.
+# #
+# # Artifacts are equipment items that characters can own, equip, and benefit from.
+# # They use a template system where templates define base stats by rarity,
+# # and specific artifacts can override or extend template properties.
+# ################################################################################
+# 
+# ################################################################################
+# # ARTIFACT TEMPLATES
+# # Templates define the base structure for artifact types. Specific artifacts
+# # can reference these templates to inherit their properties.
+# ################################################################################
+# 
+# # ==============================================================================
+# # WEAPON TEMPLATE
+# # Primary armament artifacts providing combat bonuses
+# # ==============================================================================
+# example_weapon_template = {
+# 	slot = primary_armament
+# 	type = weapon
+# 	
+# 	# Rarity-based modifiers - each rarity tier has different stat bonuses
+# 	# Valid rarities: common, masterwork, famed, illustrious
+# 	
+# 	common = {
+# 		# Base modifiers for common quality weapons
+# 		base_modifier = {
+# 			prowess = 1
+# 			knight_effectiveness_mult = 0.05
+# 		}
+# 		# Maximum durability for this rarity
+# 		max_durability = 50
+# 	}
+# 	
+# 	masterwork = {
+# 		base_modifier = {
+# 			prowess = 3
+# 			knight_effectiveness_mult = 0.10
+# 			advantage = 2
+# 		}
+# 		max_durability = 75
+# 	}
+# 	
+# 	famed = {
+# 		base_modifier = {
+# 			prowess = 5
+# 			knight_effectiveness_mult = 0.15
+# 			advantage = 4
+# 			monthly_prestige = 0.25
+# 		}
+# 		max_durability = 100
+# 	}
+# 	
+# 	illustrious = {
+# 		base_modifier = {
+# 			prowess = 8
+# 			knight_effectiveness_mult = 0.25
+# 			advantage = 6
+# 			monthly_prestige = 0.5
+# 			dread_baseline_add = 5
+# 		}
+# 		max_durability = 150
+# 	}
+# 	
+# 	# Visual configuration for the artifact
+# 	visuals = {
+# 		# Icon displayed in UI
+# 		icon = "gfx/interface/icons/artifacts/sword.dds"
+# 		# 3D asset reference for character rendering
+# 		asset = {
+# 			trigger = { always = yes }
+# 			reference = "sword_western_01"
+# 		}
+# 		# Portrait modifier when equipped
+# 		portrait_modifier = {
+# 			trigger = { always = yes }
+# 			modifier = sword_western_portrait_modifier
+# 		}
+# 	}
+# 	
+# 	# Determines who can equip this artifact type
+# 	can_equip = {
+# 		# Must be an adult to wield weapons
+# 		is_adult = yes
+# 		# Cannot be incapable
+# 		NOT = { has_trait = incapable }
+# 	}
+# 	
+# 	# Determines who benefits from the artifact's effects
+# 	# Can be different from can_equip (e.g., regalia affecting realm)
+# 	can_benefit_from = {
+# 		is_adult = yes
+# 		NOT = { has_trait = incapable }
+# 	}
+# 	
+# 	# AI weight for equipping this artifact type
+# 	ai_will_equip = {
+# 		value = 100
+# 		# AI knights prioritize weapons
+# 		if = {
+# 			limit = { is_knight = yes }
+# 			add = 50
+# 		}
+# 		# Martial rulers also value weapons
+# 		if = {
+# 			limit = {
+# 				is_ruler = yes
+# 				has_education_martial_trigger = yes
+# 			}
+# 			add = 25
+# 		}
+# 	}
+# }
+# 
+# # ==============================================================================
+# # ARMOR TEMPLATE
+# # Defensive equipment providing toughness and protection
+# # ==============================================================================
+# example_armor_template = {
+# 	slot = armor
+# 	type = armor
+# 	
+# 	common = {
+# 		base_modifier = {
+# 			tough_ruler_levy_contribution_mult = 0.05
+# 			prowess = 1
+# 		}
+# 		max_durability = 60
+# 	}
+# 	
+# 	masterwork = {
+# 		base_modifier = {
+# 			tough_ruler_levy_contribution_mult = 0.10
+# 			prowess = 2
+# 			knight_effectiveness_mult = 0.05
+# 		}
+# 		max_durability = 90
+# 	}
+# 	
+# 	famed = {
+# 		base_modifier = {
+# 			tough_ruler_levy_contribution_mult = 0.15
+# 			prowess = 4
+# 			knight_effectiveness_mult = 0.10
+# 			dread_baseline_add = 3
+# 		}
+# 		max_durability = 120
+# 	}
+# 	
+# 	illustrious = {
+# 		base_modifier = {
+# 			tough_ruler_levy_contribution_mult = 0.25
+# 			prowess = 6
+# 			knight_effectiveness_mult = 0.15
+# 			dread_baseline_add = 5
+# 			monthly_prestige = 0.25
+# 		}
+# 		max_durability = 180
+# 	}
+# 	
+# 	# Material variants affect appearance and potentially modifiers
+# 	# These can be selected during artifact creation
+# 	material_variants = {
+# 		iron = {
+# 			# Iron is the base material - no additional modifiers
+# 			weight = 100
+# 		}
+# 		steel = {
+# 			# Steel provides slight durability bonus
+# 			weight = 50
+# 			modifier = {
+# 				artifact_durability_mult = 0.10
+# 			}
+# 		}
+# 		ornate = {
+# 			# Ornate armor sacrifices some protection for prestige
+# 			weight = 25
+# 			modifier = {
+# 				monthly_prestige = 0.15
+# 				artifact_durability_mult = -0.05
+# 			}
+# 		}
+# 	}
+# 	
+# 	# Durability system - armor degrades over time
+# 	durability = {
+# 		# Durability lost per year naturally
+# 		yearly_decay = 1
+# 		# Extra decay when owner participates in battles
+# 		decay_on_battle = 5
+# 		# Extra decay on owner death
+# 		decay_on_owner_death = 10
+# 	}
+# 	
+# 	# Cost to repair the artifact
+# 	repair_cost = {
+# 		# Base gold cost scaled by missing durability percentage
+# 		gold = {
+# 			value = 25
+# 			multiply = {
+# 				value = 1
+# 				subtract = scope:artifact.durability_percentage
+# 			}
+# 		}
+# 	}
+# 	
+# 	visuals = {
+# 		icon = "gfx/interface/icons/artifacts/armor.dds"
+# 		asset = {
+# 			trigger = { always = yes }
+# 			reference = "armor_western_01"
+# 		}
+# 	}
+# 	
+# 	can_equip = {
+# 		is_adult = yes
+# 		NOT = { has_trait = incapable }
+# 	}
+# 	
+# 	can_benefit_from = {
+# 		is_adult = yes
+# 	}
+# 	
+# 	ai_will_equip = {
+# 		value = 100
+# 		if = {
+# 			limit = { is_knight = yes }
+# 			add = 75
+# 		}
+# 		if = {
+# 			limit = { prowess >= 12 }
+# 			add = 25
+# 		}
+# 	}
+# }
+# 
+# # ==============================================================================
+# # REGALIA TEMPLATE
+# # Symbols of royal authority providing prestige and legitimacy
+# # ==============================================================================
+# example_regalia_template = {
+# 	slot = regalia
+# 	type = regalia
+# 	
+# 	common = {
+# 		base_modifier = {
+# 			monthly_prestige = 0.25
+# 			diplomacy = 1
+# 		}
+# 		# Court grandeur bonus when displayed at court
+# 		court_grandeur_baseline = 1
+# 		max_durability = 100
+# 	}
+# 	
+# 	masterwork = {
+# 		base_modifier = {
+# 			monthly_prestige = 0.5
+# 			diplomacy = 2
+# 			short_reign_duration_mult = -0.10
+# 		}
+# 		court_grandeur_baseline = 3
+# 		max_durability = 150
+# 	}
+# 	
+# 	famed = {
+# 		base_modifier = {
+# 			monthly_prestige = 1.0
+# 			diplomacy = 3
+# 			short_reign_duration_mult = -0.20
+# 			vassal_opinion = 5
+# 		}
+# 		court_grandeur_baseline = 5
+# 		max_durability = 200
+# 	}
+# 	
+# 	illustrious = {
+# 		base_modifier = {
+# 			monthly_prestige = 2.0
+# 			diplomacy = 5
+# 			short_reign_duration_mult = -0.30
+# 			vassal_opinion = 10
+# 			general_opinion = 5
+# 		}
+# 		court_grandeur_baseline = 8
+# 		# Legitimacy effects for illustrious regalia
+# 		legitimacy_modifier = {
+# 			legitimacy_baseline_add = 5
+# 		}
+# 		max_durability = 300
+# 	}
+# 	
+# 	visuals = {
+# 		icon = "gfx/interface/icons/artifacts/regalia.dds"
+# 		asset = {
+# 			trigger = { always = yes }
+# 			reference = "regalia_crown_01"
+# 		}
+# 	}
+# 	
+# 	# Regalia typically requires being a ruler to equip
+# 	can_equip = {
+# 		is_ruler = yes
+# 		highest_held_title_tier >= tier_county
+# 	}
+# 	
+# 	can_benefit_from = {
+# 		is_ruler = yes
+# 	}
+# 	
+# 	ai_will_equip = {
+# 		value = 100
+# 		# Higher tier rulers prioritize regalia more
+# 		if = {
+# 			limit = { highest_held_title_tier >= tier_kingdom }
+# 			add = 50
+# 		}
+# 		if = {
+# 			limit = { highest_held_title_tier >= tier_empire }
+# 			add = 100
+# 		}
+# 		# Diplomacy-focused rulers value regalia
+# 		if = {
+# 			limit = { has_education_diplomacy_trigger = yes }
+# 			add = 25
+# 		}
+# 	}
+# }
+# 
+# ################################################################################
+# # SPECIFIC ARTIFACTS
+# # Individual artifacts with unique properties, history, and effects
+# ################################################################################
+# 
+# # ==============================================================================
+# # ANCESTRAL SWORD
+# # A legendary weapon passed down through generations of a dynasty
+# # ==============================================================================
+# example_ancestral_sword = {
+# 	# Mark as unique - only one can exist in the game
+# 	unique = yes
+# 	
+# 	# Reference the weapon template for base properties
+# 	template = example_weapon_template
+# 	
+# 	slot = primary_armament
+# 	type = weapon
+# 	
+# 	# Override template modifiers with unique bonuses
+# 	modifier = {
+# 		prowess = 6
+# 		knight_effectiveness_mult = 0.20
+# 		advantage = 5
+# 		monthly_prestige = 0.75
+# 		# Unique dynasty-focused bonus
+# 		dynasty_prestige_mult = 0.15
+# 		# House members fight better when this sword is in the family
+# 		house_opinion = 10
+# 	}
+# 	
+# 	# Starting quality/durability
+# 	rarity = famed
+# 	max_durability = 125
+# 	
+# 	# Effect triggered when the artifact is first created
+# 	creation_effect = {
+# 		# Add historical significance
+# 		set_artifact_flag = ancestral_weapon
+# 		# Record the founding dynasty
+# 		set_artifact_variable = {
+# 			name = founding_dynasty
+# 			value = scope:owner.dynasty
+# 		}
+# 		# Add initial history entry
+# 		add_artifact_history = {
+# 			type = created
+# 			date = current_date
+# 			actor = scope:owner
+# 			description = artifact_history_ancestral_sword_forged
+# 		}
+# 		# Prestige for creating such a weapon
+# 		scope:owner = {
+# 			add_prestige = 250
+# 			# Notify dynasty members
+# 			every_dynasty_member = {
+# 				limit = { NOT = { this = scope:owner } }
+# 				send_interface_toast = {
+# 					title = ancestral_sword_created_toast
+# 					left_icon = scope:owner
+# 					right_icon = scope:artifact
+# 				}
+# 			}
+# 		}
+# 	}
+# 	
+# 	# Artifact interaction flags
+# 	can_be_gifted = yes
+# 	can_be_stolen = yes
+# 	can_be_destroyed = no  # Ancestral weapons should persist
+# 	can_be_sold = no       # Cannot sell family heirlooms
+# 	
+# 	# Extra bonuses when wielded by dynasty members
+# 	equipped_modifier = {
+# 		trigger = {
+# 			# Check if wielder is from the founding dynasty
+# 			exists = scope:artifact.var:founding_dynasty
+# 			dynasty = scope:artifact.var:founding_dynasty
+# 		}
+# 		modifier = {
+# 			prowess = 2
+# 			monthly_dynasty_prestige_mult = 0.10
+# 			opinion_of_liege = 10
+# 		}
+# 	}
+# 	
+# 	visuals = {
+# 		icon = "gfx/interface/icons/artifacts/sword_ancestral.dds"
+# 		asset = {
+# 			trigger = { always = yes }
+# 			reference = "sword_ancestral_01"
+# 		}
+# 		# Special glow effect for legendary weapons
+# 		effect = {
+# 			trigger = { rarity = illustrious }
+# 			reference = "legendary_weapon_glow"
+# 		}
+# 	}
+# 	
+# 	can_equip = {
+# 		is_adult = yes
+# 		NOT = { has_trait = incapable }
+# 		# Prefer dynasty members but allow others
+# 		trigger_if = {
+# 			limit = {
+# 				exists = scope:artifact.var:founding_dynasty
+# 				NOT = { dynasty = scope:artifact.var:founding_dynasty }
+# 			}
+# 			# Non-dynasty members need high prowess to wield it
+# 			prowess >= 12
+# 		}
+# 	}
+# 	
+# 	can_benefit_from = {
+# 		is_adult = yes
+# 	}
+# 	
+# 	ai_will_equip = {
+# 		value = 150
+# 		# Dynasty members always want to equip it
+# 		if = {
+# 			limit = {
+# 				exists = scope:artifact.var:founding_dynasty
+# 				dynasty = scope:artifact.var:founding_dynasty
+# 			}
+# 			add = 100
+# 		}
+# 		# Warriors especially value it
+# 		if = {
+# 			limit = { has_trait = brave }
+# 			add = 25
+# 		}
+# 	}
+# }
+# 
+# # ==============================================================================
+# # HOLY RELIC
+# # A sacred artifact providing religious benefits
+# # ==============================================================================
+# example_holy_relic = {
+# 	unique = yes
+# 	
+# 	slot = antiquity
+# 	type = relic
+# 	
+# 	# Religious character modifiers
+# 	modifier = {
+# 		monthly_piety = 1.0
+# 		monthly_piety_gain_mult = 0.15
+# 		clergy_opinion = 15
+# 		same_faith_opinion = 5
+# 		learning = 2
+# 		# Bonus to converting others
+# 		ai_boldness = 10
+# 	}
+# 	
+# 	rarity = illustrious
+# 	max_durability = 200
+# 	
+# 	# Relic provides faith-specific bonuses
+# 	faith_modifier = {
+# 		# Monthly fervor for your faith when equipped by ruler
+# 		monthly_fervor = 0.25
+# 	}
+# 	
+# 	# Effect on creation (finding the relic)
+# 	creation_effect = {
+# 		set_artifact_flag = holy_relic
+# 		# Record the faith it's associated with
+# 		set_artifact_variable = {
+# 			name = associated_faith
+# 			value = scope:owner.faith
+# 		}
+# 		scope:owner = {
+# 			add_piety = 500
+# 			# Religious head may take notice
+# 			if = {
+# 				limit = { exists = faith.religious_head }
+# 				faith.religious_head = {
+# 					send_interface_toast = {
+# 						title = holy_relic_discovered_toast
+# 						left_icon = scope:owner
+# 					}
+# 				}
+# 			}
+# 		}
+# 	}
+# 	
+# 	can_be_gifted = yes
+# 	can_be_stolen = yes
+# 	can_be_destroyed = no  # Holy relics cannot be destroyed
+# 	can_be_sold = no
+# 	
+# 	# Full benefits only for characters of the correct faith
+# 	can_benefit_from = {
+# 		# Must share faith with the relic's origin
+# 		OR = {
+# 			NOT = { exists = scope:artifact.var:associated_faith }
+# 			faith = scope:artifact.var:associated_faith
+# 			# Or be of a related faith (same religion family)
+# 			faith = {
+# 				religion = scope:artifact.var:associated_faith.religion
+# 			}
+# 		}
+# 	}
+# 	
+# 	can_equip = {
+# 		is_adult = yes
+# 		# Only pious characters would possess a relic
+# 		piety_level >= 1
+# 		NOT = { has_trait = cynical }
+# 	}
+# 	
+# 	# Conditional modifiers based on faith alignment
+# 	equipped_modifier = {
+# 		trigger = {
+# 			faith = scope:artifact.var:associated_faith
+# 		}
+# 		# Full bonus for correct faith
+# 		modifier = {
+# 			monthly_piety = 0.5
+# 			theocracy_government_vassal_opinion = 10
+# 		}
+# 	}
+# 	
+# 	equipped_modifier = {
+# 		trigger = {
+# 			NOT = { faith = scope:artifact.var:associated_faith }
+# 			faith.religion = scope:artifact.var:associated_faith.religion
+# 		}
+# 		# Partial bonus for related faith
+# 		modifier = {
+# 			monthly_piety = 0.25
+# 		}
+# 	}
+# 	
+# 	visuals = {
+# 		icon = "gfx/interface/icons/artifacts/relic_holy.dds"
+# 		asset = {
+# 			trigger = { always = yes }
+# 			reference = "relic_religious_01"
+# 		}
+# 	}
+# 	
+# 	ai_will_equip = {
+# 		value = 125
+# 		# Zealous characters highly value relics
+# 		if = {
+# 			limit = { has_trait = zealous }
+# 			add = 75
+# 		}
+# 		# Learning-focused characters also value them
+# 		if = {
+# 			limit = { has_education_learning_trigger = yes }
+# 			add = 25
+# 		}
+# 		# Cynical characters don't care as much
+# 		if = {
+# 			limit = { has_trait = cynical }
+# 			add = -50
+# 		}
+# 	}
+# }
+# 
+# # ==============================================================================
+# # CROWN JEWELS
+# # Regalia symbolizing royal authority and legitimacy
+# # ==============================================================================
+# example_crown_jewels = {
+# 	unique = yes
+# 	
+# 	slot = regalia
+# 	type = regalia
+# 	
+# 	# Legitimacy and prestige focused modifiers
+# 	modifier = {
+# 		monthly_prestige = 1.5
+# 		monthly_prestige_gain_mult = 0.10
+# 		diplomacy = 4
+# 		vassal_opinion = 10
+# 		general_opinion = 5
+# 		short_reign_duration_mult = -0.25
+# 		# Legitimacy baseline bonus
+# 		legitimacy_baseline_add = 10
+# 	}
+# 	
+# 	# Court grandeur when displayed
+# 	court_grandeur_baseline = 6
+# 	
+# 	rarity = illustrious
+# 	max_durability = 250
+# 	
+# 	# Realm-wide effects when equipped by the ruler
+# 	realm_modifier = {
+# 		# Realm stability bonuses
+# 		development_growth_factor = 0.05
+# 		# Tax efficiency from stable rule
+# 		domain_tax_mult = 0.05
+# 	}
+# 	
+# 	# Required for coronation activities
+# 	# Characters without proper regalia have reduced legitimacy
+# 	coronation_artifact = yes
+# 	
+# 	creation_effect = {
+# 		set_artifact_flag = crown_jewels
+# 		set_artifact_flag = coronation_regalia
+# 		# Record creating realm
+# 		set_artifact_variable = {
+# 			name = origin_title
+# 			value = scope:owner.primary_title
+# 		}
+# 		scope:owner = {
+# 			add_prestige = 500
+# 			# Boost legitimacy upon creation
+# 			add_legitimacy = 10
+# 		}
+# 	}
+# 	
+# 	can_be_gifted = no   # Crown jewels stay with the realm
+# 	can_be_stolen = yes  # But can be stolen by usurpers
+# 	can_be_destroyed = no
+# 	can_be_sold = no
+# 	
+# 	can_equip = {
+# 		is_ruler = yes
+# 		# Must be at least a duke to wear crown jewels
+# 		highest_held_title_tier >= tier_duchy
+# 		# Cannot be a prisoner
+# 		is_imprisoned = no
+# 	}
+# 	
+# 	can_benefit_from = {
+# 		is_ruler = yes
+# 		highest_held_title_tier >= tier_duchy
+# 	}
+# 	
+# 	# Extra legitimacy bonus for the "rightful" owner
+# 	equipped_modifier = {
+# 		trigger = {
+# 			exists = scope:artifact.var:origin_title
+# 			has_title = scope:artifact.var:origin_title
+# 		}
+# 		modifier = {
+# 			legitimacy_baseline_add = 5
+# 			vassal_opinion = 5
+# 		}
+# 	}
+# 	
+# 	# Penalty for wearing stolen crown jewels
+# 	equipped_modifier = {
+# 		trigger = {
+# 			exists = scope:artifact.var:origin_title
+# 			NOT = { has_title = scope:artifact.var:origin_title }
+# 			# The rightful owner exists and is not you
+# 			scope:artifact.var:origin_title.holder = {
+# 				is_alive = yes
+# 				NOT = { this = root }
+# 			}
+# 		}
+# 		modifier = {
+# 			legitimacy_baseline_add = -5
+# 			general_opinion = -5
+# 		}
+# 	}
+# 	
+# 	visuals = {
+# 		icon = "gfx/interface/icons/artifacts/crown_jewels.dds"
+# 		asset = {
+# 			trigger = { always = yes }
+# 			reference = "regalia_crown_jewels_01"
+# 		}
+# 		# Different visual for emperors
+# 		asset = {
+# 			trigger = { highest_held_title_tier >= tier_empire }
+# 			reference = "regalia_imperial_crown_01"
+# 		}
+# 	}
+# 	
+# 	ai_will_equip = {
+# 		value = 200
+# 		# Rulers always want their crown jewels
+# 		if = {
+# 			limit = {
+# 				exists = scope:artifact.var:origin_title
+# 				has_title = scope:artifact.var:origin_title
+# 			}
+# 			add = 100
+# 		}
+# 		# Ambitious rulers want to claim legitimacy
+# 		if = {
+# 			limit = { has_trait = ambitious }
+# 			add = 50
+# 		}
+# 	}
+# }
+# 
+# # ==============================================================================
+# # BOOK OF KNOWLEDGE
+# # A scholarly tome providing learning and innovation benefits
+# # ==============================================================================
+# example_book_of_knowledge = {
+# 	unique = yes
+# 	
+# 	slot = miscellaneous
+# 	type = book
+# 	
+# 	# Learning and scholarship focused modifiers
+# 	modifier = {
+# 		learning = 4
+# 		monthly_learning_lifestyle_xp_gain_mult = 0.20
+# 		# General lifestyle XP bonus
+# 		monthly_lifestyle_xp_gain_mult = 0.10
+# 		# Innovation spread bonus
+# 		cultural_head_fascination_mult = 0.15
+# 		# Development from scholarly rule
+# 		development_growth_factor = 0.03
+# 	}
+# 	
+# 	rarity = famed
+# 	max_durability = 100
+# 	
+# 	# Books are fragile - special durability rules
+# 	durability = {
+# 		yearly_decay = 2
+# 		decay_on_owner_death = 15
+# 		# Books don't decay in battle
+# 		decay_on_battle = 0
+# 	}
+# 	
+# 	creation_effect = {
+# 		set_artifact_flag = scholarly_tome
+# 		# Record the culture of origin
+# 		set_artifact_variable = {
+# 			name = origin_culture
+# 			value = scope:owner.culture
+# 		}
+# 		scope:owner = {
+# 			add_prestige = 150
+# 			# Gain learning lifestyle XP
+# 			add_learning_lifestyle_xp = 500
+# 			# Cultural head appreciates scholarly work
+# 			if = {
+# 				limit = { culture.culture_head = this }
+# 				add_prestige = 100
+# 			}
+# 		}
+# 	}
+# 	
+# 	can_be_gifted = yes
+# 	can_be_stolen = yes
+# 	can_be_destroyed = yes  # Books can be burned
+# 	can_be_sold = yes       # Scholarly works can be sold
+# 	
+# 	can_equip = {
+# 		is_adult = yes
+# 		# Must be literate or learned to use the book
+# 		OR = {
+# 			has_trait = scholar
+# 			has_trait = theologian
+# 			has_trait = physician
+# 			has_education_learning_trigger = yes
+# 			learning >= 12
+# 		}
+# 	}
+# 	
+# 	can_benefit_from = {
+# 		is_adult = yes
+# 		# Even illiterate rulers can benefit from advisors reading to them
+# 		OR = {
+# 			learning >= 8
+# 			has_education_learning_trigger = yes
+# 			any_courtier = {
+# 				has_trait = scholar
+# 			}
+# 		}
+# 	}
+# 	
+# 	# Scholar trait synergies
+# 	equipped_modifier = {
+# 		trigger = {
+# 			has_trait = scholar
+# 		}
+# 		modifier = {
+# 			learning = 2
+# 			monthly_learning_lifestyle_xp_gain_mult = 0.10
+# 			# Scholars can decipher more from the text
+# 			cultural_head_fascination_mult = 0.10
+# 		}
+# 	}
+# 	
+# 	# Theologian synergy
+# 	equipped_modifier = {
+# 		trigger = {
+# 			has_trait = theologian
+# 		}
+# 		modifier = {
+# 			learning = 1
+# 			monthly_piety = 0.25
+# 			monthly_learning_lifestyle_xp_gain_mult = 0.05
+# 		}
+# 	}
+# 	
+# 	# Physician synergy
+# 	equipped_modifier = {
+# 		trigger = {
+# 			has_trait = physician
+# 		}
+# 		modifier = {
+# 			health = 0.25
+# 			negate_health_penalty_add = 0.15
+# 		}
+# 	}
+# 	
+# 	# Innovation bonuses for culture heads
+# 	equipped_modifier = {
+# 		trigger = {
+# 			culture.culture_head = this
+# 		}
+# 		modifier = {
+# 			# Faster innovation progress
+# 			cultural_head_fascination_mult = 0.10
+# 			# Spread innovations to neighbors
+# 			development_growth_factor = 0.02
+# 		}
+# 	}
+# 	
+# 	# Quality system for books
+# 	quality = {
+# 		# Quality affects the knowledge contained
+# 		poor = {
+# 			modifier = {
+# 				learning = -1
+# 			}
+# 		}
+# 		average = {
+# 			# No additional modifiers
+# 		}
+# 		good = {
+# 			modifier = {
+# 				learning = 1
+# 			}
+# 		}
+# 		excellent = {
+# 			modifier = {
+# 				learning = 2
+# 				monthly_learning_lifestyle_xp_gain_mult = 0.05
+# 			}
+# 		}
+# 		masterpiece = {
+# 			modifier = {
+# 				learning = 3
+# 				monthly_learning_lifestyle_xp_gain_mult = 0.10
+# 				monthly_prestige = 0.25
+# 			}
+# 		}
+# 	}
+# 	
+# 	visuals = {
+# 		icon = "gfx/interface/icons/artifacts/book_knowledge.dds"
+# 		asset = {
+# 			trigger = { always = yes }
+# 			reference = "book_scholarly_01"
+# 		}
+# 		# Special visual for masterpiece quality
+# 		asset = {
+# 			trigger = { artifact_quality >= quality_masterpiece }
+# 			reference = "book_illuminated_01"
+# 		}
+# 	}
+# 	
+# 	ai_will_equip = {
+# 		value = 100
+# 		# Scholars love books
+# 		if = {
+# 			limit = { has_trait = scholar }
+# 			add = 100
+# 		}
+# 		# Learning education increases value
+# 		if = {
+# 			limit = { has_education_learning_trigger = yes }
+# 			add = 50
+# 		}
+# 		# High learning characters value books
+# 		if = {
+# 			limit = { learning >= 15 }
+# 			add = 50
+# 		}
+# 		# Culture heads especially value them
+# 		if = {
+# 			limit = { culture.culture_head = this }
+# 			add = 75
+# 		}
+# 		# Warriors don't care much for books
+# 		if = {
+# 			limit = { has_trait = brave }
+# 			add = -25
+# 		}
+# 	}
+# }

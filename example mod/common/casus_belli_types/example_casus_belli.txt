@@ -1,134 +1,134 @@
-############################################################
-# PYCHIVALRY EXAMPLE CASUS BELLI
-# Custom war declaration types
-############################################################
-
-##################################################
-# CB: Claim of Scholarly Right
-# A unique CB based on cultural/scholarly claims
-##################################################
-example_scholarly_claim_cb = {
-	group = conquest
-	
-	combine_into_one = yes
-	should_show_war_goal_subview = yes
-	mutually_exclusive_titles = { always = yes }
-	
-	# Allowed/blocked conditions
-	allowed_for_character = {
-		learning >= 15
-		OR = {
-			has_trait = scholar
-			has_perk = know_thyself_perk
-		}
-	}
-	
-	allowed_against_character = {
-		is_independent_ruler = yes
-	}
-	
-	# Valid targets
-	valid_to_start = {
-		scope:defender = {
-			any_held_title = {
-				tier = tier_county
-				# Target counties with libraries or universities
-				any_county_province = {
-					has_building = example_grand_library
-				}
-			}
-		}
-	}
-	
-	target_titles = neighbor_land_or_water
-	target_title_tier = tier_county
-	target_de_jure_regions_above = no
-	
-	# AI decision making
-	ai_score = {
-		base = 50
-		modifier = {
-			add = 25
-			has_trait = ambitious
-		}
-	}
-	
-	# War score thresholds
-	full_occupation_warscore = 75
-	
-	# Costs
-	cost = {
-		piety = {
-			value = 250
-			if = {
-				limit = { piety_level >= 3 }
-				multiply = 0.5
-			}
-		}
-		prestige = {
-			value = 200
-		}
-	}
-	
-	# What happens in war
-	on_declaration = {
-		on_declared_war = yes
-		
-		scope:attacker = {
-			add_character_modifier = {
-				modifier = example_war_preparation_modifier
-				years = 1
-			}
-		}
-	}
-	
-	# Victory effects
-	on_victory = {
-		create_title_and_vassal_change = {
-			type = conquest
-			save_scope_as = change
-			add_claim_on_loss = yes
-		}
-		
-		scope:attacker = {
-			every_in_list = {
-				list = target_titles
-				change_title_holder = {
-					holder = scope:attacker
-					change = scope:change
-				}
-			}
-		}
-		
-		resolve_title_and_vassal_change = scope:change
-		
-		scope:attacker = {
-			add_prestige = major_prestige_gain
-			add_piety = 100
-		}
-		
-		scope:defender = {
-			add_prestige = major_prestige_loss
-		}
-	}
-	
-	# Defeat effects
-	on_defeat = {
-		scope:attacker = {
-			add_prestige = major_prestige_loss
-			add_stress = 50
-		}
-		
-		scope:defender = {
-			add_prestige = major_prestige_gain
-		}
-	}
-	
-	# White peace
-	on_invalidated = {
-		# Neither side gains
-	}
-	
-	# Truce duration
-	truce_days = 1825  # 5 years
-}
+# ############################################################
+# # PYCHIVALRY EXAMPLE CASUS BELLI
+# # Custom war declaration types
+# ############################################################
+# 
+# ##################################################
+# # CB: Claim of Scholarly Right
+# # A unique CB based on cultural/scholarly claims
+# ##################################################
+# example_scholarly_claim_cb = {
+# 	group = conquest
+# 	
+# 	combine_into_one = yes
+# 	should_show_war_goal_subview = yes
+# 	mutually_exclusive_titles = { always = yes }
+# 	
+# 	# Allowed/blocked conditions
+# 	allowed_for_character = {
+# 		learning >= 15
+# 		OR = {
+# 			has_trait = scholar
+# 			has_perk = know_thyself_perk
+# 		}
+# 	}
+# 	
+# 	allowed_against_character = {
+# 		is_independent_ruler = yes
+# 	}
+# 	
+# 	# Valid targets
+# 	valid_to_start = {
+# 		scope:defender = {
+# 			any_held_title = {
+# 				tier = tier_county
+# 				# Target counties with libraries or universities
+# 				any_county_province = {
+# 					has_building = example_grand_library
+# 				}
+# 			}
+# 		}
+# 	}
+# 	
+# 	target_titles = neighbor_land_or_water
+# 	target_title_tier = tier_county
+# 	target_de_jure_regions_above = no
+# 	
+# 	# AI decision making
+# 	ai_score = {
+# 		base = 50
+# 		modifier = {
+# 			add = 25
+# 			has_trait = ambitious
+# 		}
+# 	}
+# 	
+# 	# War score thresholds
+# 	full_occupation_warscore = 75
+# 	
+# 	# Costs
+# 	cost = {
+# 		piety = {
+# 			value = 250
+# 			if = {
+# 				limit = { piety_level >= 3 }
+# 				multiply = 0.5
+# 			}
+# 		}
+# 		prestige = {
+# 			value = 200
+# 		}
+# 	}
+# 	
+# 	# What happens in war
+# 	on_declaration = {
+# 		on_declared_war = yes
+# 		
+# 		scope:attacker = {
+# 			add_character_modifier = {
+# 				modifier = example_war_preparation_modifier
+# 				years = 1
+# 			}
+# 		}
+# 	}
+# 	
+# 	# Victory effects
+# 	on_victory = {
+# 		create_title_and_vassal_change = {
+# 			type = conquest
+# 			save_scope_as = change
+# 			add_claim_on_loss = yes
+# 		}
+# 		
+# 		scope:attacker = {
+# 			every_in_list = {
+# 				list = target_titles
+# 				change_title_holder = {
+# 					holder = scope:attacker
+# 					change = scope:change
+# 				}
+# 			}
+# 		}
+# 		
+# 		resolve_title_and_vassal_change = scope:change
+# 		
+# 		scope:attacker = {
+# 			add_prestige = major_prestige_gain
+# 			add_piety = 100
+# 		}
+# 		
+# 		scope:defender = {
+# 			add_prestige = major_prestige_loss
+# 		}
+# 	}
+# 	
+# 	# Defeat effects
+# 	on_defeat = {
+# 		scope:attacker = {
+# 			add_prestige = major_prestige_loss
+# 			add_stress = 50
+# 		}
+# 		
+# 		scope:defender = {
+# 			add_prestige = major_prestige_gain
+# 		}
+# 	}
+# 	
+# 	# White peace
+# 	on_invalidated = {
+# 		# Neither side gains
+# 	}
+# 	
+# 	# Truce duration
+# 	truce_days = 1825  # 5 years
+# }

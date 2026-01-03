@@ -1,0 +1,174 @@
+# # Example Dynasties
+# # Demonstrates: dynasty definitions, mottos, modifiers
+# 
+# example_dynasty = {
+# 	# Dynasty name - uses localization
+# 	name = "example_dynasty"
+# 	
+# 	# Dynasty culture and religion at start
+# 	culture = "example_culture"
+# 	
+# 	# Coat of arms
+# 	coat_of_arms = {
+# 		template = "plain"
+# 		color1 = "red"
+# 		color2 = "gold"
+# 		pattern = "solid"
+# 		
+# 		colored_emblem = {
+# 			texture = "ce_lion_rampant.dds"
+# 			color1 = "gold"
+# 			instance = { position = { 0.5 0.5 } scale = { 0.7 0.7 } }
+# 		}
+# 	}
+# 	
+# 	# Dynasty head at game start (uses character ID)
+# 	# forced_founding_house = yes
+# 	
+# 	# Starting prestige
+# 	dynasty_prestige = 1000
+# 	
+# 	# Dynasty motto (optional)
+# 	motto = "example_dynasty_motto"
+# }
+# 
+# example_dynasty_2 = {
+# 	name = "example_dynasty_2"
+# 	
+# 	culture = "example_culture"
+# 	
+# 	coat_of_arms = {
+# 		template = "quartered"
+# 		color1 = "blue"
+# 		color2 = "white"
+# 		
+# 		colored_emblem = {
+# 			texture = "ce_eagle.dds"
+# 			color1 = "white"
+# 			instance = { position = { 0.5 0.5 } scale = { 0.6 0.6 } }
+# 		}
+# 	}
+# 	
+# 	dynasty_prestige = 500
+# }
+# 
+# example_vassal_dynasty = {
+# 	name = "example_vassal_dynasty"
+# 	
+# 	culture = "example_culture"
+# 	
+# 	coat_of_arms = {
+# 		template = "plain"
+# 		color1 = "green"
+# 		color2 = "gold"
+# 		
+# 		colored_emblem = {
+# 			texture = "ce_tree.dds"
+# 			color1 = "gold"
+# 			instance = { position = { 0.5 0.5 } scale = { 0.65 0.65 } }
+# 		}
+# 	}
+# 	
+# 	dynasty_prestige = 300
+# }
+# 
+# example_minor_dynasty = {
+# 	name = "example_minor_dynasty"
+# 	
+# 	culture = "example_culture"
+# 	
+# 	coat_of_arms = {
+# 		template = "plain"
+# 		color1 = "yellow"
+# 		color2 = "black"
+# 		
+# 		colored_emblem = {
+# 			texture = "ce_cross.dds"
+# 			color1 = "black"
+# 			instance = { position = { 0.5 0.5 } scale = { 0.5 0.5 } }
+# 		}
+# 	}
+# 	
+# 	dynasty_prestige = 100
+# }
+# 
+# example_enemy_dynasty = {
+# 	name = "example_enemy_dynasty"
+# 	
+# 	culture = "example_nomad_culture"
+# 	
+# 	coat_of_arms = {
+# 		template = "plain"
+# 		color1 = "black"
+# 		color2 = "red"
+# 		
+# 		colored_emblem = {
+# 			texture = "ce_wolf.dds"
+# 			color1 = "red"
+# 			instance = { position = { 0.5 0.5 } scale = { 0.7 0.7 } }
+# 		}
+# 	}
+# 	
+# 	dynasty_prestige = 750
+# }
+# 
+# example_foreign_dynasty = {
+# 	name = "example_foreign_dynasty"
+# 	
+# 	culture = "example_mountain_culture"
+# 	
+# 	coat_of_arms = {
+# 		template = "plain"
+# 		color1 = "purple"
+# 		color2 = "silver"
+# 		
+# 		colored_emblem = {
+# 			texture = "ce_crown.dds"
+# 			color1 = "silver"
+# 			instance = { position = { 0.5 0.5 } scale = { 0.6 0.6 } }
+# 		}
+# 	}
+# 	
+# 	dynasty_prestige = 400
+# }
+# 
+# example_local_dynasty = {
+# 	name = "example_local_dynasty"
+# 	
+# 	culture = "example_culture"
+# 	
+# 	coat_of_arms = {
+# 		template = "plain"
+# 		color1 = "brown"
+# 		color2 = "white"
+# 		
+# 		colored_emblem = {
+# 			texture = "ce_boar.dds"
+# 			color1 = "white"
+# 			instance = { position = { 0.5 0.5 } scale = { 0.6 0.6 } }
+# 		}
+# 	}
+# 	
+# 	dynasty_prestige = 50
+# }
+# 
+# example_new_dynasty = {
+# 	name = "example_new_dynasty"
+# 	
+# 	culture = "example_hybrid_culture"
+# 	
+# 	coat_of_arms = {
+# 		template = "per_pale"
+# 		color1 = "red"
+# 		color2 = "blue"
+# 		
+# 		colored_emblem = {
+# 			texture = "ce_sword.dds"
+# 			color1 = "gold"
+# 			instance = { position = { 0.5 0.5 } scale = { 0.6 0.6 } }
+# 		}
+# 	}
+# 	
+# 	# Started later
+# 	dynasty_prestige = 200
+# }

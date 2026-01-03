@@ -1,0 +1,253 @@
+# # Example Struggle
+# # Demonstrates: struggle system definitions (DLC feature - Fate of Iberia style)
+# 
+# ### STRUGGLE DEFINITION ###
+# 
+# example_struggle = {
+# 	# Unique identifier
+# 	# name uses localization
+# 	
+# 	# Struggle cultures and faiths involved
+# 	cultures = {
+# 		culture:example_culture
+# 		culture:example_rival_culture
+# 		culture:example_neutral_culture
+# 	}
+# 	
+# 	faiths = {
+# 		faith:example_faith
+# 		faith:example_rival_faith
+# 	}
+# 	
+# 	# Geographic region
+# 	regions = {
+# 		region_example_struggle_area
+# 	}
+# 	
+# 	# Starting phase
+# 	start_phase = example_phase_tension
+# 	
+# 	# Who is involved
+# 	involvement = {
+# 		involved = {
+# 			# Characters who are actively part of the struggle
+# 			OR = {
+# 				culture = { is_in_list = struggle_cultures }
+# 				faith = { is_in_list = struggle_faiths }
+# 				capital_province = {
+# 					geographical_region = region_example_struggle_area
+# 				}
+# 			}
+# 		}
+# 		
+# 		interloper = {
+# 			# Characters from outside who get involved
+# 			NOT = { is_involved = yes }
+# 			any_held_title = {
+# 				tier >= tier_county
+# 				title_province = {
+# 					geographical_region = region_example_struggle_area
+# 				}
+# 			}
+# 		}
+# 	}
+# 	
+# 	# Phases of the struggle
+# 	phases = {
+# 		example_phase_tension = {
+# 			# Modifiers during this phase
+# 			modifier = {
+# 				# Opinion penalties between factions
+# 				different_faith_opinion = -20
+# 			}
+# 			
+# 			# Parameters
+# 			parameters = {
+# 				holy_wars_enabled = yes
+# 				truces_short = yes
+# 			}
+# 			
+# 			# Catalyst to next phase
+# 			catalyst = {
+# 				# What advances to next phase
+# 				catalyst_type = example_catalyst_war
+# 				required_amount = 3
+# 				
+# 				# Which phase this leads to
+# 				target_phase = example_phase_conflict
+# 			}
+# 			
+# 			# Alternative catalyst
+# 			catalyst = {
+# 				catalyst_type = example_catalyst_marriage
+# 				required_amount = 5
+# 				
+# 				target_phase = example_phase_compromise
+# 			}
+# 		}
+# 		
+# 		example_phase_conflict = {
+# 			modifier = {
+# 				different_faith_opinion = -40
+# 				same_faith_opinion = 10
+# 			}
+# 			
+# 			parameters = {
+# 				holy_wars_enabled = yes
+# 				holy_wars_cheaper = yes
+# 				truces_ignored = yes
+# 			}
+# 			
+# 			catalyst = {
+# 				catalyst_type = example_catalyst_conquest
+# 				required_amount = 5
+# 				target_phase = example_phase_resolution_military
+# 			}
+# 			
+# 			catalyst = {
+# 				catalyst_type = example_catalyst_truce
+# 				required_amount = 3
+# 				target_phase = example_phase_tension
+# 			}
+# 		}
+# 		
+# 		example_phase_compromise = {
+# 			modifier = {
+# 				different_faith_opinion = -5
+# 				different_culture_opinion = 0
+# 			}
+# 			
+# 			parameters = {
+# 				holy_wars_enabled = no
+# 				intermarriage_bonus = yes
+# 				trade_bonus = yes
+# 			}
+# 			
+# 			catalyst = {
+# 				catalyst_type = example_catalyst_alliance
+# 				required_amount = 5
+# 				target_phase = example_phase_resolution_peaceful
+# 			}
+# 			
+# 			catalyst = {
+# 				catalyst_type = example_catalyst_betrayal
+# 				required_amount = 2
+# 				target_phase = example_phase_tension
+# 			}
+# 		}
+# 		
+# 		# End phases (struggle concludes)
+# 		example_phase_resolution_military = {
+# 			# Military victory ending
+# 			is_ending_phase = yes
+# 			
+# 			modifier = {
+# 				# Winner bonuses
+# 			}
+# 			
+# 			on_start = {
+# 				# Struggle ends - effects applied
+# 				every_involved_character = {
+# 					limit = {
+# 						is_involved = yes
+# 					}
+# 					add_prestige = 500
+# 				}
+# 			}
+# 		}
+# 		
+# 		example_phase_resolution_peaceful = {
+# 			# Peaceful coexistence ending
+# 			is_ending_phase = yes
+# 			
+# 			modifier = {
+# 				different_faith_opinion = 10
+# 				different_culture_opinion = 10
+# 			}
+# 			
+# 			on_start = {
+# 				# Peaceful ending effects
+# 				every_involved_character = {
+# 					add_piety = 200
+# 					add_prestige = 200
+# 				}
+# 			}
+# 		}
+# 	}
+# }
+# 
+# ### CATALYST TYPES ###
+# 
+# example_catalyst_war = {
+# 	# Wars between involved parties
+# 	trigger = {
+# 		is_at_war = yes
+# 		primary_war_target = {
+# 			is_involved_in_struggle = struggle:example_struggle
+# 		}
+# 	}
+# 	
+# 	# How much this contributes
+# 	contribution = 1
+# }
+# 
+# example_catalyst_marriage = {
+# 	# Inter-faith/culture marriages
+# 	trigger = {
+# 		has_married_recently = yes
+# 		any_spouse = {
+# 			OR = {
+# 				NOT = { faith = root.faith }
+# 				NOT = { culture = root.culture }
+# 			}
+# 			is_involved_in_struggle = struggle:example_struggle
+# 		}
+# 	}
+# 	
+# 	contribution = 1
+# }
+# 
+# example_catalyst_conquest = {
+# 	# Taking territory from other faction
+# 	trigger = {
+# 		has_recently_conquered_county = yes
+# 	}
+# 	
+# 	contribution = 1
+# }
+# 
+# example_catalyst_truce = {
+# 	# Making peace
+# 	trigger = {
+# 		has_made_peace_recently = yes
+# 	}
+# 	
+# 	contribution = 1
+# }
+# 
+# example_catalyst_alliance = {
+# 	# Cross-faction alliance
+# 	trigger = {
+# 		any_ally = {
+# 			OR = {
+# 				NOT = { faith = root.faith }
+# 				NOT = { culture = root.culture }
+# 			}
+# 			is_involved_in_struggle = struggle:example_struggle
+# 		}
+# 	}
+# 	
+# 	contribution = 1
+# }
+# 
+# example_catalyst_betrayal = {
+# 	# Breaking alliance or truce
+# 	trigger = {
+# 		OR = {
+# 			has_broken_truce = yes
+# 			has_broken_alliance_recently = yes
+# 		}
+# 	}
+# 	
+# 	contribution = 2  # High impact
+# }

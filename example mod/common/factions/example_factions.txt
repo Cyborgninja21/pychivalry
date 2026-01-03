@@ -1,0 +1,254 @@
+# # Example Factions
+# # Demonstrates: faction types, demands, war on refuse
+# 
+# example_faction_independence = {
+# 	# Faction type category
+# 	type = independence
+# 	
+# 	# Who can create this faction
+# 	can_create = {
+# 		is_vassal = yes
+# 		NOT = { has_trait = content }
+# 		NOT = { has_relation_friend = liege }
+# 	}
+# 	
+# 	# Who can join this faction
+# 	can_join = {
+# 		is_vassal = yes
+# 		NOT = { has_relation_friend = liege }
+# 		NOT = { is_at_war_with = scope:faction.faction_target }
+# 	}
+# 	
+# 	# Requirements to press demands
+# 	can_press_demands = {
+# 		faction_power >= 80
+# 		scope:faction.faction_target = {
+# 			is_at_war = no
+# 		}
+# 	}
+# 	
+# 	# Demand effects if accepted
+# 	on_demand_accepted = {
+# 		scope:faction.faction_target = {
+# 			# All faction members gain independence
+# 			every_faction_member = {
+# 				create_title_and_vassal_change = {
+# 					type = independency
+# 					save_scope_as = change
+# 				}
+# 				become_independent = {
+# 					change = scope:change
+# 				}
+# 			}
+# 		}
+# 	}
+# 	
+# 	# War if demands refused
+# 	on_demand_refused = {
+# 		# Start independence war
+# 		scope:faction.special_character = {
+# 			start_war = {
+# 				casus_belli = independence_war
+# 				target = scope:faction.faction_target
+# 			}
+# 		}
+# 	}
+# 	
+# 	# AI weight to create faction
+# 	ai_create_score = {
+# 		base = 0
+# 		
+# 		modifier = {
+# 			add = 50
+# 			opinion = {
+# 				target = liege
+# 				value < -20
+# 			}
+# 		}
+# 		
+# 		modifier = {
+# 			add = 25
+# 			has_trait = ambitious
+# 		}
+# 	}
+# 	
+# 	# AI weight to join faction
+# 	ai_join_score = {
+# 		base = 0
+# 		
+# 		modifier = {
+# 			add = 30
+# 			opinion = {
+# 				target = liege
+# 				value < -10
+# 			}
+# 		}
+# 		
+# 		modifier = {
+# 			add = 20
+# 			faction_power >= 50
+# 		}
+# 	}
+# 	
+# 	# Power calculation
+# 	power_threshold = 80
+# 	
+# 	# How power is calculated
+# 	power = {
+# 		base = 0
+# 		
+# 		# Military strength of faction members
+# 		faction_member_power = {
+# 			value = 1.0
+# 		}
+# 	}
+# }
+# 
+# example_faction_liberty = {
+# 	type = liberty
+# 	
+# 	can_create = {
+# 		is_vassal = yes
+# 		liege = {
+# 			has_realm_law = crown_authority_3
+# 		}
+# 	}
+# 	
+# 	can_join = {
+# 		is_vassal = yes
+# 		NOT = { has_trait = content }
+# 	}
+# 	
+# 	can_press_demands = {
+# 		faction_power >= 100
+# 	}
+# 	
+# 	# Demands lower crown authority
+# 	on_demand_accepted = {
+# 		scope:faction.faction_target = {
+# 			add_realm_law = crown_authority_2
+# 		}
+# 		
+# 		every_faction_member = {
+# 			add_opinion = {
+# 				target = scope:faction.faction_target
+# 				modifier = opinion_faction_won
+# 				opinion = 20
+# 			}
+# 		}
+# 	}
+# 	
+# 	on_demand_refused = {
+# 		scope:faction.special_character = {
+# 			start_war = {
+# 				casus_belli = liberty_war
+# 				target = scope:faction.faction_target
+# 			}
+# 		}
+# 	}
+# 	
+# 	ai_create_score = {
+# 		base = 0
+# 		
+# 		modifier = {
+# 			add = 40
+# 			has_trait = ambitious
+# 		}
+# 		
+# 		modifier = {
+# 			add = 30
+# 			opinion = {
+# 				target = liege
+# 				value < 0
+# 			}
+# 		}
+# 	}
+# 	
+# 	ai_join_score = {
+# 		base = 0
+# 		
+# 		modifier = {
+# 			add = 25
+# 			liege = {
+# 				has_realm_law = crown_authority_3
+# 			}
+# 		}
+# 	}
+# 	
+# 	power_threshold = 100
+# }
+# 
+# example_faction_claimant = {
+# 	type = claimant
+# 	
+# 	# Requires a claimant
+# 	special_character = yes
+# 	
+# 	can_create = {
+# 		is_vassal = yes
+# 		scope:claimant = {
+# 			has_claim_on = scope:faction.faction_target.primary_title
+# 		}
+# 	}
+# 	
+# 	can_join = {
+# 		is_vassal = yes
+# 		OR = {
+# 			opinion = {
+# 				target = scope:faction.special_character
+# 				value > 0
+# 			}
+# 			opinion = {
+# 				target = liege
+# 				value < -20
+# 			}
+# 		}
+# 	}
+# 	
+# 	can_press_demands = {
+# 		faction_power >= 100
+# 	}
+# 	
+# 	on_demand_accepted = {
+# 		# Claimant takes over
+# 		scope:faction.special_character = {
+# 			get_title = scope:faction.faction_target.primary_title
+# 		}
+# 	}
+# 	
+# 	on_demand_refused = {
+# 		scope:faction.special_character = {
+# 			start_war = {
+# 				casus_belli = claim_faction_war
+# 				target = scope:faction.faction_target
+# 				claimant = scope:faction.special_character
+# 			}
+# 		}
+# 	}
+# 	
+# 	ai_create_score = {
+# 		base = 0
+# 		
+# 		modifier = {
+# 			add = 60
+# 			opinion = {
+# 				target = scope:claimant
+# 				value > 50
+# 			}
+# 		}
+# 	}
+# 	
+# 	ai_join_score = {
+# 		base = 0
+# 		
+# 		modifier = {
+# 			add = 40
+# 			opinion = {
+# 				target = scope:faction.special_character
+# 				value > 20
+# 			}
+# 		}
+# 	}
+# 	
+# 	power_threshold = 100
+# }

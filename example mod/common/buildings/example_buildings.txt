@@ -1,251 +1,251 @@
-############################################################
-# PYCHIVALRY EXAMPLE BUILDINGS
-# Custom building definitions for counties
-############################################################
-
-##################################################
-# Special Building: Grand Library
-##################################################
-example_grand_library = {
-	# Can only be built in capitals with high development
-	construction_time = 730  # 2 years
-	
-	type = duchy_capital
-	
-	# Requirements
-	can_construct = {
-		building_requirement_castle_city_church = {
-			LEVEL = 01
-		}
-	}
-	
-	can_construct_showing_failures_only = {
-		culture = {
-			has_innovation = innovation_development_01
-		}
-	}
-	
-	# Tiers of the building
-	# Level 1
-	cost_gold = 500
-	
-	# Effects per level
-	province_modifier = {
-		monthly_income = 0.5
-	}
-	
-	character_modifier = {
-		learning = 2
-		monthly_learning_lifestyle_xp_gain_mult = 0.05
-	}
-	
-	county_modifier = {
-		development_growth_factor = 0.1
-	}
-	
-	# AI priority
-	ai_value = {
-		base = 10
-		modifier = {
-			add = 20
-			holder = {
-				learning >= 12
-			}
-		}
-	}
-	
-	# Visual representation
-	flag = example_library_building
-	
-	next_building = example_grand_library_2
-}
-
-example_grand_library_2 = {
-	construction_time = 1095  # 3 years
-	
-	type = duchy_capital
-	
-	can_construct = {
-		building_requirement_castle_city_church = {
-			LEVEL = 02
-		}
-	}
-	
-	cost_gold = 750
-	
-	province_modifier = {
-		monthly_income = 1.0
-	}
-	
-	character_modifier = {
-		learning = 4
-		monthly_learning_lifestyle_xp_gain_mult = 0.1
-		monthly_piety = 0.25
-	}
-	
-	county_modifier = {
-		development_growth_factor = 0.2
-	}
-	
-	ai_value = {
-		base = 15
-		modifier = {
-			add = 25
-			holder = {
-				learning >= 15
-			}
-		}
-	}
-	
-	flag = example_library_building
-	
-	next_building = example_grand_library_3
-}
-
-example_grand_library_3 = {
-	construction_time = 1460  # 4 years
-	
-	type = duchy_capital
-	
-	can_construct = {
-		building_requirement_castle_city_church = {
-			LEVEL = 03
-		}
-	}
-	
-	cost_gold = 1000
-	
-	province_modifier = {
-		monthly_income = 1.5
-	}
-	
-	character_modifier = {
-		learning = 6
-		monthly_learning_lifestyle_xp_gain_mult = 0.15
-		monthly_piety = 0.5
-		diplomacy = 1
-	}
-	
-	county_modifier = {
-		development_growth_factor = 0.3
-	}
-	
-	ai_value = {
-		base = 20
-		modifier = {
-			add = 30
-			holder = {
-				learning >= 18
-			}
-		}
-	}
-	
-	flag = example_library_building
-}
-
-##################################################
-# Special Building: Training Grounds
-##################################################
-example_training_grounds = {
-	construction_time = 365
-	
-	type = castle
-	
-	can_construct = {
-		building_requirement_castle_city_church = {
-			LEVEL = 01
-		}
-	}
-	
-	cost_gold = 300
-	
-	province_modifier = {
-		levy_size = 0.05
-		levy_reinforcement_rate = 0.1
-	}
-	
-	county_modifier = {
-		# No county effects at level 1
-	}
-	
-	ai_value = {
-		base = 15
-		modifier = {
-			add = 20
-			holder = {
-				martial >= 12
-			}
-		}
-	}
-	
-	next_building = example_training_grounds_2
-}
-
-example_training_grounds_2 = {
-	construction_time = 730
-	
-	type = castle
-	
-	can_construct = {
-		building_requirement_castle_city_church = {
-			LEVEL = 02
-		}
-	}
-	
-	cost_gold = 500
-	
-	province_modifier = {
-		levy_size = 0.1
-		levy_reinforcement_rate = 0.15
-	}
-	
-	character_modifier = {
-		knight_effectiveness_mult = 0.1
-	}
-	
-	ai_value = {
-		base = 20
-		modifier = {
-			add = 25
-			holder = {
-				martial >= 15
-			}
-		}
-	}
-	
-	next_building = example_training_grounds_3
-}
-
-example_training_grounds_3 = {
-	construction_time = 1095
-	
-	type = castle
-	
-	can_construct = {
-		building_requirement_castle_city_church = {
-			LEVEL = 03
-		}
-	}
-	
-	cost_gold = 750
-	
-	province_modifier = {
-		levy_size = 0.15
-		levy_reinforcement_rate = 0.2
-	}
-	
-	character_modifier = {
-		knight_effectiveness_mult = 0.2
-		prowess = 2
-	}
-	
-	ai_value = {
-		base = 25
-		modifier = {
-			add = 30
-			holder = {
-				martial >= 18
-			}
-		}
-	}
-}
+# ############################################################
+# # PYCHIVALRY EXAMPLE BUILDINGS
+# # Custom building definitions for counties
+# ############################################################
+# 
+# ##################################################
+# # Special Building: Grand Library
+# ##################################################
+# example_grand_library = {
+# 	# Can only be built in capitals with high development
+# 	construction_time = 730  # 2 years
+# 	
+# 	type = duchy_capital
+# 	
+# 	# Requirements
+# 	can_construct = {
+# 		building_requirement_castle_city_church = {
+# 			LEVEL = 01
+# 		}
+# 	}
+# 	
+# 	can_construct_showing_failures_only = {
+# 		culture = {
+# 			has_innovation = innovation_development_01
+# 		}
+# 	}
+# 	
+# 	# Tiers of the building
+# 	# Level 1
+# 	cost_gold = 500
+# 	
+# 	# Effects per level
+# 	province_modifier = {
+# 		monthly_income = 0.5
+# 	}
+# 	
+# 	character_modifier = {
+# 		learning = 2
+# 		monthly_learning_lifestyle_xp_gain_mult = 0.05
+# 	}
+# 	
+# 	county_modifier = {
+# 		development_growth_factor = 0.1
+# 	}
+# 	
+# 	# AI priority
+# 	ai_value = {
+# 		base = 10
+# 		modifier = {
+# 			add = 20
+# 			holder = {
+# 				learning >= 12
+# 			}
+# 		}
+# 	}
+# 	
+# 	# Visual representation
+# 	flag = example_library_building
+# 	
+# 	next_building = example_grand_library_2
+# }
+# 
+# example_grand_library_2 = {
+# 	construction_time = 1095  # 3 years
+# 	
+# 	type = duchy_capital
+# 	
+# 	can_construct = {
+# 		building_requirement_castle_city_church = {
+# 			LEVEL = 02
+# 		}
+# 	}
+# 	
+# 	cost_gold = 750
+# 	
+# 	province_modifier = {
+# 		monthly_income = 1.0
+# 	}
+# 	
+# 	character_modifier = {
+# 		learning = 4
+# 		monthly_learning_lifestyle_xp_gain_mult = 0.1
+# 		monthly_piety = 0.25
+# 	}
+# 	
+# 	county_modifier = {
+# 		development_growth_factor = 0.2
+# 	}
+# 	
+# 	ai_value = {
+# 		base = 15
+# 		modifier = {
+# 			add = 25
+# 			holder = {
+# 				learning >= 15
+# 			}
+# 		}
+# 	}
+# 	
+# 	flag = example_library_building
+# 	
+# 	next_building = example_grand_library_3
+# }
+# 
+# example_grand_library_3 = {
+# 	construction_time = 1460  # 4 years
+# 	
+# 	type = duchy_capital
+# 	
+# 	can_construct = {
+# 		building_requirement_castle_city_church = {
+# 			LEVEL = 03
+# 		}
+# 	}
+# 	
+# 	cost_gold = 1000
+# 	
+# 	province_modifier = {
+# 		monthly_income = 1.5
+# 	}
+# 	
+# 	character_modifier = {
+# 		learning = 6
+# 		monthly_learning_lifestyle_xp_gain_mult = 0.15
+# 		monthly_piety = 0.5
+# 		diplomacy = 1
+# 	}
+# 	
+# 	county_modifier = {
+# 		development_growth_factor = 0.3
+# 	}
+# 	
+# 	ai_value = {
+# 		base = 20
+# 		modifier = {
+# 			add = 30
+# 			holder = {
+# 				learning >= 18
+# 			}
+# 		}
+# 	}
+# 	
+# 	flag = example_library_building
+# }
+# 
+# ##################################################
+# # Special Building: Training Grounds
+# ##################################################
+# example_training_grounds = {
+# 	construction_time = 365
+# 	
+# 	type = castle
+# 	
+# 	can_construct = {
+# 		building_requirement_castle_city_church = {
+# 			LEVEL = 01
+# 		}
+# 	}
+# 	
+# 	cost_gold = 300
+# 	
+# 	province_modifier = {
+# 		levy_size = 0.05
+# 		levy_reinforcement_rate = 0.1
+# 	}
+# 	
+# 	county_modifier = {
+# 		# No county effects at level 1
+# 	}
+# 	
+# 	ai_value = {
+# 		base = 15
+# 		modifier = {
+# 			add = 20
+# 			holder = {
+# 				martial >= 12
+# 			}
+# 		}
+# 	}
+# 	
+# 	next_building = example_training_grounds_2
+# }
+# 
+# example_training_grounds_2 = {
+# 	construction_time = 730
+# 	
+# 	type = castle
+# 	
+# 	can_construct = {
+# 		building_requirement_castle_city_church = {
+# 			LEVEL = 02
+# 		}
+# 	}
+# 	
+# 	cost_gold = 500
+# 	
+# 	province_modifier = {
+# 		levy_size = 0.1
+# 		levy_reinforcement_rate = 0.15
+# 	}
+# 	
+# 	character_modifier = {
+# 		knight_effectiveness_mult = 0.1
+# 	}
+# 	
+# 	ai_value = {
+# 		base = 20
+# 		modifier = {
+# 			add = 25
+# 			holder = {
+# 				martial >= 15
+# 			}
+# 		}
+# 	}
+# 	
+# 	next_building = example_training_grounds_3
+# }
+# 
+# example_training_grounds_3 = {
+# 	construction_time = 1095
+# 	
+# 	type = castle
+# 	
+# 	can_construct = {
+# 		building_requirement_castle_city_church = {
+# 			LEVEL = 03
+# 		}
+# 	}
+# 	
+# 	cost_gold = 750
+# 	
+# 	province_modifier = {
+# 		levy_size = 0.15
+# 		levy_reinforcement_rate = 0.2
+# 	}
+# 	
+# 	character_modifier = {
+# 		knight_effectiveness_mult = 0.2
+# 		prowess = 2
+# 	}
+# 	
+# 	ai_value = {
+# 		base = 25
+# 		modifier = {
+# 			add = 30
+# 			holder = {
+# 				martial >= 18
+# 			}
+# 		}
+# 	}
+# }

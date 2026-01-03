@@ -1,0 +1,322 @@
+# ============================================================================
+# EXAMPLE TRADITIONS - CK3 Culture System
+# ============================================================================
+# Traditions are cultural features that provide modifiers and unlock content.
+# Categories: realm, combat, regional, ritual, societal
+# Each tradition has costs, requirements, and various modifier blocks.
+# ============================================================================
+
+# ----------------------------------------------------------------------------
+# WARRIOR TRADITION (Combat Category)
+# ----------------------------------------------------------------------------
+# A combat-focused tradition emphasizing martial prowess and warfare.
+
+# example_warrior_tradition = {
+# 	category = combat
+# 	
+# 	# Graphical layers for the tradition icon
+# 	layers = {
+# 		0 = martial
+# 		1 = western
+# 		4 = soldier
+# 	}
+# 	
+# 	# Conditions for when this tradition can be selected
+# 	can_pick = {
+# 		# Culture must have bellicose or stoic ethos
+# 		OR = {
+# 			culture_pillar:ethos_bellicose = yes
+# 			culture_pillar:ethos_stoic = yes
+# 		}
+# 		# Cannot already have a pacifist tradition
+# 		NOT = { has_cultural_tradition = tradition_pacifism }
+# 	}
+# 	
+# 	# Conditions for when this tradition appears in the list
+# 	is_shown = {
+# 		# Always shown if culture has at least 5 counties
+# 		any_culture_county = {
+# 			count >= 5
+# 		}
+# 	}
+# 	
+# 	# Modifiers applied to all characters of this culture
+# 	character_modifier = {
+# 		prowess = 2
+# 		knight_effectiveness_mult = 0.1
+# 		monthly_martial_lifestyle_xp_gain_mult = 0.1
+# 		army_maintenance_mult = -0.05
+# 	}
+# 	
+# 	# Modifiers applied to counties of this culture
+# 	county_modifier = {
+# 		levy_size = 0.1
+# 		garrison_size = 0.05
+# 	}
+# 	
+# 	# Cost to adopt this tradition
+# 	cost = {
+# 		prestige = {
+# 			# Base cost modified by various factors
+# 			add = {
+# 				value = tradition_base_cost
+# 				desc = BASE
+# 			}
+# 			# Cheaper if ruler has high martial
+# 			if = {
+# 				limit = {
+# 					scope:character = {
+# 						martial >= 15
+# 					}
+# 				}
+# 				multiply = {
+# 					value = 0.8
+# 					desc = tradition_high_martial_discount
+# 				}
+# 			}
+# 		}
+# 	}
+# 	
+# 	# AI weight for selecting this tradition
+# 	ai_will_do = {
+# 		value = 100
+# 		if = {
+# 			limit = {
+# 				scope:character = {
+# 					has_trait = brave
+# 				}
+# 			}
+# 			add = 50
+# 		}
+# 	}
+# }
+
+# ----------------------------------------------------------------------------
+# SCHOLARLY TRADITION (Realm Category)
+# ----------------------------------------------------------------------------
+# A tradition focused on learning, education, and knowledge preservation.
+
+# example_scholarly_tradition = {
+# 	category = realm
+# 	
+# 	layers = {
+# 		0 = learning
+# 		1 = mediterranean
+# 		4 = book
+# 	}
+# 	
+# 	can_pick = {
+# 		# Requires scholarly or communal ethos
+# 		OR = {
+# 			culture_pillar:ethos_spiritual = yes
+# 			culture_pillar:ethos_communal = yes
+# 		}
+# 		# Must have a university or temple
+# 		any_culture_county = {
+# 			OR = {
+# 				has_building = university_01
+# 				has_building = temple_01
+# 			}
+# 		}
+# 	}
+# 	
+# 	is_shown = {
+# 		# Only shown for cultures with literate heritage
+# 		NOT = { has_cultural_pillar = heritage_steppe }
+# 	}
+# 	
+# 	character_modifier = {
+# 		learning = 3
+# 		monthly_learning_lifestyle_xp_gain_mult = 0.15
+# 		development_growth_factor = 0.1
+# 		cultural_head_fascination_mult = 0.1
+# 	}
+# 	
+# 	county_modifier = {
+# 		development_growth = 0.1
+# 		build_gold_cost = -0.05
+# 	}
+# 	
+# 	# Culture-wide modifier (affects innovation speed)
+# 	culture_modifier = {
+# 		cultural_acceptance_gain_mult = 0.1
+# 	}
+# 	
+# 	cost = {
+# 		prestige = {
+# 			add = {
+# 				value = tradition_base_cost
+# 				desc = BASE
+# 			}
+# 			multiply = {
+# 				value = 1.2
+# 				desc = tradition_scholarly_premium
+# 			}
+# 		}
+# 	}
+# 	
+# 	ai_will_do = {
+# 		value = 80
+# 		if = {
+# 			limit = {
+# 				scope:character = {
+# 					learning >= 12
+# 				}
+# 			}
+# 			add = 40
+# 		}
+# 	}
+# }
+
+# ----------------------------------------------------------------------------
+# MOUNTAIN HERITAGE TRADITION (Regional Category)
+# ----------------------------------------------------------------------------
+# A regional tradition for cultures living in mountainous terrain.
+
+# example_mountain_heritage_tradition = {
+# 	category = regional
+# 	
+# 	layers = {
+# 		0 = stewardship
+# 		1 = mountain
+# 		4 = fortress
+# 	}
+# 	
+# 	can_pick = {
+# 		# At least 3 counties must be in mountains
+# 		any_culture_county = {
+# 			count >= 3
+# 			terrain = mountains
+# 		}
+# 	}
+# 	
+# 	is_shown = {
+# 		# Only shown if culture has mountain counties
+# 		any_culture_county = {
+# 			terrain = mountains
+# 		}
+# 	}
+# 	
+# 	# Parameters that affect game mechanics
+# 	parameters = {
+# 		mountain_trait_bonus = yes
+# 		unlock_maa_mountaineer = yes
+# 	}
+# 	
+# 	character_modifier = {
+# 		mountains_advantage = 5
+# 		mountains_attrition_mult = -0.3
+# 		defender_advantage = 3
+# 	}
+# 	
+# 	county_modifier = {
+# 		mountains_development_growth_factor = 0.2
+# 		mountains_holding_construction_time_mult = -0.1
+# 	}
+# 	
+# 	cost = {
+# 		prestige = {
+# 			add = {
+# 				value = tradition_base_cost
+# 				desc = BASE
+# 			}
+# 		}
+# 	}
+# 	
+# 	ai_will_do = {
+# 		value = 100
+# 		# Higher priority if most counties are mountains
+# 		if = {
+# 			limit = {
+# 				percent_culture_counties = {
+# 					percent >= 0.5
+# 					terrain = mountains
+# 				}
+# 			}
+# 			add = 100
+# 		}
+# 	}
+# }
+
+# ----------------------------------------------------------------------------
+# ANCESTRAL VENERATION TRADITION (Ritual Category)
+# ----------------------------------------------------------------------------
+# A ritual tradition focused on honoring ancestors and elders.
+
+# example_ancestral_veneration_tradition = {
+# 	category = ritual
+# 	
+# 	layers = {
+# 		0 = diplomacy
+# 		1 = eastern
+# 		4 = ancestor
+# 	}
+# 	
+# 	can_pick = {
+# 		# Must not have certain conflicting traditions
+# 		NOR = {
+# 			has_cultural_tradition = tradition_legalistic
+# 			has_cultural_tradition = tradition_by_the_sword
+# 		}
+# 	}
+# 	
+# 	is_shown = {
+# 		always = yes
+# 	}
+# 	
+# 	parameters = {
+# 		ancestor_worship_events = yes
+# 		elder_council_available = yes
+# 	}
+# 	
+# 	character_modifier = {
+# 		diplomacy = 1
+# 		dynasty_opinion = 10
+# 		dynasty_prestige_mult = 0.1
+# 		stress_loss_mult = 0.1
+# 	}
+# 	
+# 	# Triggered modifier that only applies under certain conditions
+# 	triggered_character_modifier = {
+# 		trigger = {
+# 			age >= 50
+# 		}
+# 		modifier = {
+# 			general_opinion = 5
+# 			monthly_prestige = 0.2
+# 		}
+# 	}
+# 	
+# 	cost = {
+# 		prestige = {
+# 			add = {
+# 				value = tradition_base_cost
+# 				desc = BASE
+# 			}
+# 			# Discount for older rulers
+# 			if = {
+# 				limit = {
+# 					scope:character = {
+# 						age >= 60
+# 					}
+# 				}
+# 				multiply = {
+# 					value = 0.75
+# 					desc = tradition_elder_discount
+# 				}
+# 			}
+# 		}
+# 	}
+# 	
+# 	ai_will_do = {
+# 		value = 60
+# 		if = {
+# 			limit = {
+# 				scope:character = {
+# 					has_trait = patient
+# 				}
+# 			}
+# 			add = 30
+# 		}
+# 	}
+# }

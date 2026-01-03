@@ -1,0 +1,131 @@
+# # Example Province History
+# # Demonstrates: terrain, culture, religion, buildings, special buildings
+# 
+# # Province IDs are defined in map_data - these are examples
+# 
+# # Capital province of example county
+# 1001 = {
+# 	# Base terrain (usually set in map files, but can be modified)
+# 	terrain = farmlands
+# 	
+# 	# Initial state at earliest bookmark
+# 	867.1.1 = {
+# 		culture = example_culture
+# 		religion = example_faith
+# 		holding = castle_holding
+# 		
+# 		# Special building slot
+# 		special_building_slot = example_special_slot
+# 		special_building = example_great_castle_01
+# 		
+# 		# Regular buildings
+# 		buildings = {
+# 			common_tradeport_01
+# 			farm_estates_01
+# 		}
+# 	}
+# 	
+# 	# Cultural shift event
+# 	950.1.1 = {
+# 		culture = example_hybrid_culture
+# 	}
+# 	
+# 	# Religious conversion
+# 	1050.1.1 = {
+# 		religion = example_reformed_faith
+# 	}
+# }
+# 
+# # Secondary province - coastal
+# 1002 = {
+# 	terrain = plains
+# 	
+# 	867.1.1 = {
+# 		culture = example_culture
+# 		religion = example_faith
+# 		holding = city_holding
+# 		
+# 		# Coastal province buildings
+# 		buildings = {
+# 			common_tradeport_01
+# 			guild_halls_01
+# 		}
+# 	}
+# }
+# 
+# # Mountain province
+# 1003 = {
+# 	terrain = mountains
+# 	
+# 	867.1.1 = {
+# 		culture = example_mountain_culture
+# 		religion = example_faith
+# 		holding = tribal_holding
+# 		
+# 		buildings = {
+# 			hill_farms_01
+# 		}
+# 	}
+# 	
+# 	# Converted to feudal
+# 	1000.1.1 = {
+# 		holding = castle_holding
+# 	}
+# }
+# 
+# # Temple province
+# 1004 = {
+# 	terrain = farmlands
+# 	
+# 	867.1.1 = {
+# 		culture = example_culture
+# 		religion = example_faith
+# 		holding = church_holding
+# 		
+# 		# Holy site marker
+# 		special_building_slot = holy_site_example_faith
+# 		
+# 		buildings = {
+# 			monastery_01
+# 		}
+# 	}
+# }
+# 
+# # Devastated province (shows effects)
+# 1005 = {
+# 	terrain = wetlands
+# 	
+# 	867.1.1 = {
+# 		culture = example_culture
+# 		religion = example_faith
+# 		holding = castle_holding
+# 	}
+# 	
+# 	# Plague hit
+# 	890.1.1 = {
+# 		# Development loss would be applied via event
+# 	}
+# 	
+# 	# Raided
+# 	920.5.15 = {
+# 		# Raid effects applied via event
+# 	}
+# }
+# 
+# # Frontier province
+# 1006 = {
+# 	terrain = steppe
+# 	
+# 	867.1.1 = {
+# 		culture = example_nomad_culture
+# 		religion = example_pagan_faith
+# 		holding = tribal_holding
+# 	}
+# 	
+# 	# Conquered and converted
+# 	980.1.1 = {
+# 		culture = example_culture
+# 		religion = example_faith
+# 		holding = castle_holding
+# 	}
+# }

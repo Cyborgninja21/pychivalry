@@ -1,0 +1,656 @@
+# ########################################
+# # CK3 Government Types Example File
+# # 
+# # Government types define how a realm operates, including:
+# # - Valid holding types
+# # - Succession rules
+# # - Council mechanics
+# # - Character modifiers
+# # - AI behavior weights
+# #
+# # Location: common/governments/
+# # File naming: <name>_governments.txt
+# ########################################
+# 
+# ########################################
+# # EXAMPLE 1: FEUDAL GOVERNMENT
+# # Standard feudal hierarchy with vassals,
+# # dynasty mechanics, and castle holdings
+# ########################################
+# 
+# example_feudal_government = {
+# 	
+# 	# ========== DYNASTY MECHANICS ==========
+# 	# Controls dynasty-related features for rulers
+# 	
+# 	create_cadet_branches = yes				# Rulers can create cadet branches of their dynasty
+# 	rulers_should_have_dynasty = yes		# Rulers are expected to have a dynasty
+# 	dynasty_named_realms = yes				# Realms can be named after dynasties
+# 	
+# 	# ========== COUNCIL MECHANICS ==========
+# 	# Defines available council positions and powers
+# 	
+# 	council_positions_allowed = yes			# Rulers can have council positions
+# 	
+# 	# ========== VASSAL CONTRACTS ==========
+# 	# Controls vassal contract modification rights
+# 	
+# 	vassal_contract_modification_blocked = no	# Vassals can negotiate contracts
+# 	
+# 	# ========== HOLDING TYPES ==========
+# 	# Defines which holdings this government can use
+# 	
+# 	# Valid holdings that can be owned
+# 	valid_holdings = {
+# 		castle_holding
+# 		city_holding						# Can also hold cities (with penalties)
+# 	}
+# 	
+# 	# The primary/preferred holding type
+# 	primary_holding = castle_holding
+# 	
+# 	# Required holdings in controlled counties
+# 	required_county_holdings = {
+# 		castle_holding = 1					# Must have at least 1 castle
+# 	}
+# 	
+# 	# ========== COURT POSITIONS ==========
+# 	# Available court positions for this government type
+# 	
+# 	court_positions = {
+# 		court_physician_court_position
+# 		bodyguard_court_position
+# 		champion_court_position
+# 		master_of_hunt_court_position
+# 		court_tutor_court_position
+# 		food_taster_court_position
+# 		seneschal_court_position
+# 		cupbearer_court_position
+# 		chief_eunuch_court_position
+# 		court_jester_court_position
+# 		court_poet_court_position
+# 		court_musician_court_position
+# 		executioner_court_position
+# 	}
+# 	
+# 	# ========== CHARACTER MODIFIERS ==========
+# 	# Passive bonuses/penalties for rulers with this government
+# 	
+# 	character_modifier = {
+# 		levy_size = 0.1						# 10% more levies
+# 		men_at_arms_maintenance = -0.05		# 5% cheaper men-at-arms
+# 		vassal_limit = 5					# +5 vassal limit
+# 		domain_limit = 1					# +1 domain limit
+# 		monthly_prestige = 0.5				# Passive prestige gain
+# 		knight_limit = 2					# +2 knight limit
+# 	}
+# 	
+# 	# ========== FLAGS ==========
+# 	# Special flags that can be checked in triggers/effects
+# 	
+# 	flag = {
+# 		government_is_feudal					# General feudal flag
+# 		government_allows_marriage_alliances	# Can form marriage alliances
+# 		government_has_council					# Has functional council
+# 		government_can_hold_tournaments			# Can host tournaments
+# 	}
+# 	
+# 	# ========== CAN GET GOVERNMENT TRIGGER ==========
+# 	# Conditions for a character to have/switch to this government
+# 	
+# 	can_get_government = {
+# 		# Basic requirements
+# 		is_landed = yes
+# 		
+# 		# Must not be tribal or theocratic
+# 		NOR = {
+# 			has_government = tribal_government
+# 			has_government = theocracy_government
+# 		}
+# 		
+# 		# Culture or religion requirements
+# 		OR = {
+# 			culture = {
+# 				has_cultural_pillar = heritage_example
+# 			}
+# 			faith = {
+# 				has_doctrine = doctrine_temporal_head
+# 			}
+# 		}
+# 		
+# 		# Title tier requirements
+# 		highest_held_title_tier >= tier_county
+# 	}
+# 	
+# 	# ========== AI GOAL WEIGHT ==========
+# 	# How much the AI prioritizes getting/keeping this government
+# 	
+# 	ai_goal_weight = {
+# 		base = 100							# Base weight
+# 		
+# 		# Prefer if culture matches
+# 		modifier = {
+# 			add = 50
+# 			culture = {
+# 				has_cultural_tradition = tradition_castle_keepers
+# 			}
+# 		}
+# 		
+# 		# Prefer if already feudal
+# 		modifier = {
+# 			add = 100
+# 			has_government = feudal_government
+# 		}
+# 	}
+# }
+# 
+# ########################################
+# # EXAMPLE 2: REPUBLIC GOVERNMENT
+# # Merchant republic with trade focus,
+# # city holdings, and elected leaders
+# ########################################
+# 
+# example_republic_government = {
+# 	
+# 	# ========== DYNASTY MECHANICS ==========
+# 	# Republics have different dynasty rules
+# 	
+# 	create_cadet_branches = no				# No cadet branches in republics
+# 	rulers_should_have_dynasty = yes		# Still want dynasties
+# 	dynasty_named_realms = no				# Realms named after titles, not dynasties
+# 	
+# 	# ========== COUNCIL MECHANICS ==========
+# 	
+# 	council_positions_allowed = yes
+# 	
+# 	# ========== VASSAL CONTRACTS ==========
+# 	
+# 	vassal_contract_modification_blocked = yes	# Fixed merchant contracts
+# 	
+# 	# ========== HOLDING TYPES ==========
+# 	
+# 	valid_holdings = {
+# 		city_holding						# Primary type for republics
+# 		castle_holding						# Can hold castles too
+# 	}
+# 	
+# 	primary_holding = city_holding
+# 	
+# 	required_county_holdings = {
+# 		city_holding = 1					# Must have at least 1 city
+# 	}
+# 	
+# 	# ========== SUCCESSION LAWS ==========
+# 	# Available succession types for this government
+# 	
+# 	allowed_succession_laws = {
+# 		republic_elective					# Standard republic election
+# 		patrician_elective					# Among patrician families
+# 	}
+# 	
+# 	# Blocked succession types
+# 	blocked_succession_laws = {
+# 		male_only_law
+# 		female_only_law
+# 		primogeniture_law
+# 		ultimogeniture_law
+# 	}
+# 	
+# 	# ========== COURT POSITIONS ==========
+# 	# Merchant-focused court positions
+# 	
+# 	court_positions = {
+# 		court_physician_court_position
+# 		bodyguard_court_position
+# 		seneschal_court_position
+# 		food_taster_court_position
+# 		# Trade-specific positions
+# 		trade_minister_court_position
+# 		harbormaster_court_position
+# 		# No military-focused positions
+# 	}
+# 	
+# 	# ========== CHARACTER MODIFIERS ==========
+# 	# Trade and gold focused bonuses
+# 	
+# 	character_modifier = {
+# 		# Economic bonuses
+# 		domain_tax_mult = 0.2				# 20% more taxes
+# 		monthly_income = 1.0				# Flat gold income
+# 		development_growth_factor = 0.15	# Faster development
+# 		build_gold_cost = -0.1				# 10% cheaper buildings
+# 		
+# 		# Military penalties
+# 		levy_size = -0.2					# 20% fewer levies
+# 		men_at_arms_limit = -2				# Fewer men-at-arms slots
+# 		knight_limit = -2					# Fewer knights
+# 		
+# 		# Trade bonuses
+# 		republic_trade_value = 0.25			# 25% more trade value
+# 		diplomatic_range_mult = 0.5			# Longer diplomatic range
+# 		
+# 		# Opinion modifiers
+# 		republic_opinion = 10				# Better relations with republics
+# 		feudal_opinion = -10				# Worse relations with feudal
+# 	}
+# 	
+# 	# ========== FLAGS ==========
+# 	
+# 	flag = {
+# 		government_is_republic
+# 		government_has_patricians
+# 		government_focuses_trade
+# 		government_elects_rulers
+# 	}
+# 	
+# 	# ========== CAN GET GOVERNMENT TRIGGER ==========
+# 	
+# 	can_get_government = {
+# 		is_landed = yes
+# 		
+# 		# Must control a city
+# 		any_held_title = {
+# 			tier = tier_barony
+# 			title_capital_barony = {
+# 				has_holding_type = city_holding
+# 			}
+# 		}
+# 		
+# 		# Cultural requirements
+# 		OR = {
+# 			culture = {
+# 				has_cultural_tradition = tradition_republican_legacy
+# 			}
+# 			# Or controlling a historical republic
+# 			any_held_title = {
+# 				has_title_flag = historical_republic
+# 			}
+# 		}
+# 		
+# 		# Cannot be clergy
+# 		is_clergy = no
+# 	}
+# 	
+# 	# ========== AI GOAL WEIGHT ==========
+# 	
+# 	ai_goal_weight = {
+# 		base = 50							# Lower base than feudal
+# 		
+# 		# Strong preference for merchant cultures
+# 		modifier = {
+# 			add = 150
+# 			culture = {
+# 				has_cultural_tradition = tradition_maritime_mercantilism
+# 			}
+# 		}
+# 		
+# 		# Prefer if stewardship focused
+# 		modifier = {
+# 			add = 25
+# 			stewardship >= 12
+# 		}
+# 		
+# 		# Avoid if martial focused
+# 		modifier = {
+# 			add = -50
+# 			martial >= 15
+# 		}
+# 	}
+# }
+# 
+# ########################################
+# # EXAMPLE 3: TRIBAL GOVERNMENT
+# # Prestige-based tribal system with
+# # limited structures and raiding focus
+# ########################################
+# 
+# example_tribal_government = {
+# 	
+# 	# ========== DYNASTY MECHANICS ==========
+# 	# Tribal dynasties work differently
+# 	
+# 	create_cadet_branches = no				# Tribes don't create cadet branches
+# 	rulers_should_have_dynasty = yes		# Chiefs should have lineage
+# 	dynasty_named_realms = no				# Realms named after tribes/titles
+# 	
+# 	# ========== COUNCIL MECHANICS ==========
+# 	# Limited council in tribal governments
+# 	
+# 	council_positions_allowed = yes			# Has council but limited
+# 	
+# 	# ========== VASSAL CONTRACTS ==========
+# 	
+# 	vassal_contract_modification_blocked = yes	# No formal contracts - tribal loyalty
+# 	
+# 	# ========== HOLDING TYPES ==========
+# 	
+# 	valid_holdings = {
+# 		tribal_holding						# Primary tribal holding
+# 	}
+# 	
+# 	primary_holding = tribal_holding
+# 	
+# 	required_county_holdings = {
+# 		tribal_holding = 1
+# 	}
+# 	
+# 	# Cannot build certain holding types
+# 	invalid_holdings = {
+# 		castle_holding
+# 		city_holding
+# 		temple_holding
+# 	}
+# 	
+# 	# ========== SUCCESSION LAWS ==========
+# 	
+# 	allowed_succession_laws = {
+# 		tribal_elective						# Elders/warriors choose
+# 		tanistry_elective					# Celtic-style election
+# 		confederate_partition				# Realm splitting
+# 	}
+# 	
+# 	blocked_succession_laws = {
+# 		primogeniture_law					# Too "civilized"
+# 		high_partition_law
+# 	}
+# 	
+# 	# ========== COURT POSITIONS ==========
+# 	# Limited tribal court positions
+# 	
+# 	court_positions = {
+# 		court_physician_court_position		# Tribal healers
+# 		bodyguard_court_position			# Tribal champions
+# 		champion_court_position
+# 		master_of_hunt_court_position		# Important for tribes
+# 		# No administrative positions
+# 	}
+# 	
+# 	# ========== CHARACTER MODIFIERS ==========
+# 	# Prestige-focused, military bonuses, economic penalties
+# 	
+# 	character_modifier = {
+# 		# Prestige-based economy
+# 		monthly_prestige = 1.0				# Good prestige income
+# 		monthly_prestige_gain_mult = 0.25	# Bonus prestige gain
+# 		
+# 		# Military bonuses
+# 		levy_size = 0.3						# 30% more levies
+# 		levy_reinforcement_rate = 0.25		# Faster levy replenishment
+# 		army_maintenance_mult = -0.2		# Cheaper armies
+# 		raid_speed = 0.25					# Faster raiding
+# 		
+# 		# Economic penalties
+# 		domain_tax_mult = -0.5				# 50% less taxes
+# 		build_gold_cost = 0.5				# 50% more expensive buildings
+# 		development_growth_factor = -0.25	# Slower development
+# 		
+# 		# Tribal-specific
+# 		tribal_opinion = 15					# Better relations with tribes
+# 		feudal_opinion = -15				# Worse relations with feudal
+# 		
+# 		# Raiding benefits
+# 		max_loot_mult = 0.25				# More loot from raids
+# 	}
+# 	
+# 	# ========== FLAGS ==========
+# 	
+# 	flag = {
+# 		government_is_tribal
+# 		government_can_raid_neighbors
+# 		government_uses_prestige_for_laws
+# 		government_has_tribal_authority
+# 	}
+# 	
+# 	# ========== CAN GET GOVERNMENT TRIGGER ==========
+# 	
+# 	can_get_government = {
+# 		is_landed = yes
+# 		
+# 		# Must have tribal holding or be tribal culture
+# 		OR = {
+# 			any_held_title = {
+# 				tier = tier_barony
+# 				title_capital_barony = {
+# 					has_holding_type = tribal_holding
+# 				}
+# 			}
+# 			culture = {
+# 				has_cultural_era = culture_era_tribal
+# 			}
+# 		}
+# 		
+# 		# Cannot be organized religion head
+# 		NOT = {
+# 			any_held_title = {
+# 				is_head_of_faith = yes
+# 			}
+# 		}
+# 	}
+# 	
+# 	# ========== AI GOAL WEIGHT ==========
+# 	
+# 	ai_goal_weight = {
+# 		base = 75
+# 		
+# 		# Strong preference if tribal culture
+# 		modifier = {
+# 			add = 200
+# 			culture = {
+# 				has_cultural_era = culture_era_tribal
+# 			}
+# 		}
+# 		
+# 		# Avoid if high development lands
+# 		modifier = {
+# 			add = -100
+# 			capital_county = {
+# 				development_level >= 20
+# 			}
+# 		}
+# 		
+# 		# Prefer if martial focused
+# 		modifier = {
+# 			add = 50
+# 			martial >= 12
+# 		}
+# 		
+# 		# Prefer if has raider trait
+# 		modifier = {
+# 			add = 75
+# 			has_trait = viking
+# 		}
+# 	}
+# }
+# 
+# ########################################
+# # EXAMPLE 4: THEOCRACY GOVERNMENT
+# # Religious government with temple focus,
+# # clergy mechanics, and faith requirements
+# ########################################
+# 
+# example_theocracy_government = {
+# 	
+# 	# ========== DYNASTY MECHANICS ==========
+# 	# Theocracies typically don't have dynasty succession
+# 	
+# 	create_cadet_branches = no				# No dynasties in theocracy
+# 	rulers_should_have_dynasty = no			# Rulers are clergy, not dynasts
+# 	dynasty_named_realms = no				# Realms named after faith/title
+# 	
+# 	# ========== RELIGIOUS MECHANICS ==========
+# 	# Theocracy-specific settings
+# 	
+# 	religious_head_title = yes				# Can be religious head
+# 	theocratic_lease = yes					# Holdings leased, not inherited
+# 	
+# 	# ========== COUNCIL MECHANICS ==========
+# 	
+# 	council_positions_allowed = yes
+# 	
+# 	# ========== VASSAL CONTRACTS ==========
+# 	
+# 	vassal_contract_modification_blocked = yes	# Religious hierarchy is fixed
+# 	
+# 	# ========== HOLDING TYPES ==========
+# 	
+# 	valid_holdings = {
+# 		temple_holding						# Primary for theocracies
+# 		castle_holding						# Can hold castles (with penalty)
+# 	}
+# 	
+# 	primary_holding = temple_holding
+# 	
+# 	required_county_holdings = {
+# 		temple_holding = 1					# Must have temple
+# 	}
+# 	
+# 	# ========== SUCCESSION LAWS ==========
+# 	# Theocratic succession is unique
+# 	
+# 	allowed_succession_laws = {
+# 		theocratic_succession				# Appointed by religious authority
+# 		ecclesiastical_elective				# Elected by clergy
+# 	}
+# 	
+# 	blocked_succession_laws = {
+# 		primogeniture_law					# No inheritance
+# 		ultimogeniture_law
+# 		partition_law
+# 		male_only_law						# Based on clergy rules, not gender
+# 		female_only_law
+# 	}
+# 	
+# 	# ========== COURT POSITIONS ==========
+# 	# Religion-focused court positions
+# 	
+# 	court_positions = {
+# 		court_physician_court_position		# Healing is religious duty
+# 		court_chaplain_court_position		# Important for theocracy
+# 		food_taster_court_position
+# 		# Religious-specific positions
+# 		high_almoner_court_position
+# 		master_of_ceremonies_court_position
+# 		keeper_of_relics_court_position
+# 		# Limited military positions
+# 		bodyguard_court_position
+# 	}
+# 	
+# 	# ========== CHARACTER MODIFIERS ==========
+# 	# Piety-focused, religious bonuses
+# 	
+# 	character_modifier = {
+# 		# Piety bonuses
+# 		monthly_piety = 2.0					# Strong piety income
+# 		monthly_piety_gain_mult = 0.5		# 50% more piety gain
+# 		
+# 		# Learning bonuses
+# 		learning = 3						# Educated clergy
+# 		monthly_learning_lifestyle_xp_gain_mult = 0.25
+# 		
+# 		# Religious bonuses
+# 		clergy_opinion = 25					# Great relations with clergy
+# 		same_faith_opinion = 10				# Better relations with faithful
+# 		different_faith_opinion = -20		# Worse relations with heathens
+# 		
+# 		# Conversion bonuses
+# 		faith_conversion_piety_cost_mult = -0.25	# Cheaper conversions
+# 		county_opinion_add = 5				# Subjects like pious rulers
+# 		
+# 		# Military penalties
+# 		levy_size = -0.15					# Fewer levies
+# 		knight_limit = -3					# Fewer knights
+# 		men_at_arms_limit = -1				# Limited military
+# 		
+# 		# Economic balance
+# 		domain_tax_mult = 0.1				# Slight tax bonus (tithes)
+# 		build_piety_cost = -0.2				# Cheaper religious buildings
+# 	}
+# 	
+# 	# ========== FLAGS ==========
+# 	
+# 	flag = {
+# 		government_is_theocracy
+# 		government_has_clergy_rulers
+# 		government_can_declare_holy_wars
+# 		government_holds_religious_authority
+# 		government_cannot_marry
+# 	}
+# 	
+# 	# ========== MARRIAGE/FAMILY RESTRICTIONS ==========
+# 	# Many theocracies restrict marriage
+# 	
+# 	can_marry = {
+# 		# Only if faith allows clerical marriage
+# 		faith = {
+# 			has_doctrine = doctrine_clerical_marriage_allowed
+# 		}
+# 	}
+# 	
+# 	# ========== CAN GET GOVERNMENT TRIGGER ==========
+# 	
+# 	can_get_government = {
+# 		is_landed = yes
+# 		
+# 		# Must be clergy
+# 		is_clergy = yes
+# 		
+# 		# Must have temple or religious title
+# 		OR = {
+# 			any_held_title = {
+# 				tier = tier_barony
+# 				title_capital_barony = {
+# 					has_holding_type = temple_holding
+# 				}
+# 			}
+# 			any_held_title = {
+# 				is_head_of_faith = yes
+# 			}
+# 		}
+# 		
+# 		# Must not be excommunicated
+# 		NOT = {
+# 			has_trait = excommunicated
+# 		}
+# 		
+# 		# Learning requirement
+# 		learning >= 8
+# 	}
+# 	
+# 	# ========== AI GOAL WEIGHT ==========
+# 	
+# 	ai_goal_weight = {
+# 		base = 50							# Low base - specialized government
+# 		
+# 		# Strong preference if clergy
+# 		modifier = {
+# 			add = 200
+# 			is_clergy = yes
+# 		}
+# 		
+# 		# Preference based on learning
+# 		modifier = {
+# 			add = 50
+# 			learning >= 15
+# 		}
+# 		
+# 		# Avoid if has heirs
+# 		modifier = {
+# 			add = -100
+# 			any_child = {
+# 				is_alive = yes
+# 			}
+# 		}
+# 		
+# 		# Strong preference if zealous
+# 		modifier = {
+# 			add = 100
+# 			has_trait = zealous
+# 		}
+# 		
+# 		# Avoid if cynical
+# 		modifier = {
+# 			add = -75
+# 			has_trait = cynical
+# 		}
+# 	}
+# }

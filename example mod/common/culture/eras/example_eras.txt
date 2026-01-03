@@ -1,0 +1,341 @@
+# ============================================================================
+# EXAMPLE ERAS - CK3 Culture System
+# ============================================================================
+# Eras represent technological periods in the game.
+# Cultures progress through eras, unlocking innovations as they advance.
+# Each era has requirements and provides access to new innovations.
+# Standard eras: tribal, early_medieval, high_medieval, late_medieval
+# ============================================================================
+
+# ----------------------------------------------------------------------------
+# TRIBAL ERA (Starting Era)
+# ----------------------------------------------------------------------------
+# The earliest technological period. All cultures start here or higher.
+
+# example_tribal_era = {
+# 	# Internal era type - used by game systems
+# 	culture_era = culture_era_tribal
+# 	
+# 	# Display information
+# 	icon = "gfx/interface/icons/culture_eras/era_tribal.dds"
+# 	
+# 	# No year requirement - this is the starting era
+# 	
+# 	# ========================================
+# 	# ERA REQUIREMENTS
+# 	# ========================================
+# 	# Conditions to enter this era (usually automatic for tribal)
+# 	
+# 	can_progress_to_era = {
+# 		always = yes	# Tribal is the starting era
+# 	}
+# 	
+# 	# ========================================
+# 	# INNOVATIONS AVAILABLE IN THIS ERA
+# 	# ========================================
+# 	# These can be researched once in this era
+# 	
+# 	innovations = {
+# 		# Military innovations
+# 		innovation_motte
+# 		innovation_barracks
+# 		innovation_mustering_grounds
+# 		innovation_bannus
+# 		
+# 		# Civic innovations
+# 		innovation_development_01
+# 		innovation_currency_01
+# 		innovation_plenary_assemblies
+# 		innovation_ledger
+# 		
+# 		# Regional/Cultural innovations
+# 		innovation_longships		# Norse-specific
+# 		innovation_elephantry		# Indian-specific
+# 		innovation_camel_riders		# Desert cultures
+# 	}
+# 	
+# 	# ========================================
+# 	# ERA MODIFIERS
+# 	# ========================================
+# 	# Applied to all cultures in this era
+# 	
+# 	modifier = {
+# 		development_growth = -0.1
+# 		cultural_acceptance_gain_mult = -0.1
+# 	}
+# }
+
+# ----------------------------------------------------------------------------
+# EARLY MEDIEVAL ERA
+# ----------------------------------------------------------------------------
+# First advancement from tribal society.
+
+# example_early_medieval_era = {
+# 	culture_era = culture_era_early_medieval
+# 	
+# 	icon = "gfx/interface/icons/culture_eras/era_early_medieval.dds"
+# 	
+# 	# ========================================
+# 	# YEAR TRIGGER
+# 	# ========================================
+# 	# Cannot enter this era before a certain date
+# 	
+# 	year = 900	# Earliest possible year to enter this era
+# 	
+# 	# ========================================
+# 	# ERA REQUIREMENTS
+# 	# ========================================
+# 	
+# 	can_progress_to_era = {
+# 		# Must have completed enough tribal innovations
+# 		culture = {
+# 			has_innovation = innovation_motte
+# 			has_innovation = innovation_development_01
+# 			has_innovation = innovation_currency_01
+# 		}
+# 		
+# 		# Must have enough development in culture counties
+# 		any_culture_county = {
+# 			count >= 3
+# 			development_level >= 10
+# 		}
+# 	}
+# 	
+# 	# ========================================
+# 	# INNOVATIONS AVAILABLE IN THIS ERA
+# 	# ========================================
+# 	
+# 	innovations = {
+# 		# Military
+# 		innovation_battlements
+# 		innovation_mangonel
+# 		innovation_quilted_armor
+# 		innovation_knights
+# 		innovation_horseshoes
+# 		
+# 		# Civic
+# 		innovation_development_02
+# 		innovation_currency_02
+# 		innovation_casus_belli
+# 		innovation_chronicle_writing
+# 		innovation_royal_prerogative
+# 		
+# 		# Law/Succession
+# 		innovation_hereditary_rule
+# 		innovation_heraldry
+# 	}
+# 	
+# 	# ========================================
+# 	# ERA MODIFIERS
+# 	# ========================================
+# 	
+# 	modifier = {
+# 		development_growth = 0
+# 		levy_size = 0.05
+# 	}
+# }
+
+# ----------------------------------------------------------------------------
+# HIGH MEDIEVAL ERA
+# ----------------------------------------------------------------------------
+# The height of medieval society.
+
+# example_high_medieval_era = {
+# 	culture_era = culture_era_high_medieval
+# 	
+# 	icon = "gfx/interface/icons/culture_eras/era_high_medieval.dds"
+# 	
+# 	# ========================================
+# 	# YEAR TRIGGER
+# 	# ========================================
+# 	
+# 	year = 1050
+# 	
+# 	# ========================================
+# 	# ERA REQUIREMENTS
+# 	# ========================================
+# 	
+# 	can_progress_to_era = {
+# 		culture = {
+# 			# Must have key early medieval innovations
+# 			has_innovation = innovation_battlements
+# 			has_innovation = innovation_hereditary_rule
+# 			has_innovation = innovation_development_02
+# 			
+# 			# Must have researched enough innovations
+# 			number_of_innovations >= 15
+# 		}
+# 		
+# 		# Higher development requirement
+# 		any_culture_county = {
+# 			count >= 5
+# 			development_level >= 20
+# 		}
+# 	}
+# 	
+# 	# ========================================
+# 	# INNOVATIONS AVAILABLE IN THIS ERA
+# 	# ========================================
+# 	
+# 	innovations = {
+# 		# Military
+# 		innovation_castle_baileys
+# 		innovation_trebuchet
+# 		innovation_hoardings
+# 		innovation_arched_saddle
+# 		innovation_advanced_bowmaking
+# 		innovation_men_at_arms
+# 		
+# 		# Civic
+# 		innovation_development_03
+# 		innovation_currency_03
+# 		innovation_guilds
+# 		innovation_urbanization
+# 		innovation_windmills
+# 		
+# 		# Law/Succession
+# 		innovation_primogeniture
+# 		innovation_royal_court
+# 	}
+# 	
+# 	# ========================================
+# 	# ERA MODIFIERS
+# 	# ========================================
+# 	
+# 	modifier = {
+# 		development_growth = 0.1
+# 		levy_size = 0.1
+# 		building_slot_add = 1
+# 	}
+# }
+
+# ----------------------------------------------------------------------------
+# LATE MEDIEVAL ERA
+# ----------------------------------------------------------------------------
+# The final technological period before the Renaissance.
+
+# example_late_medieval_era = {
+# 	culture_era = culture_era_late_medieval
+# 	
+# 	icon = "gfx/interface/icons/culture_eras/era_late_medieval.dds"
+# 	
+# 	# ========================================
+# 	# YEAR TRIGGER
+# 	# ========================================
+# 	
+# 	year = 1200
+# 	
+# 	# ========================================
+# 	# ERA REQUIREMENTS
+# 	# ========================================
+# 	
+# 	can_progress_to_era = {
+# 		culture = {
+# 			# Must have key high medieval innovations
+# 			has_innovation = innovation_primogeniture
+# 			has_innovation = innovation_men_at_arms
+# 			has_innovation = innovation_development_03
+# 			
+# 			# Significant innovation progress
+# 			number_of_innovations >= 25
+# 		}
+# 		
+# 		# Highest development requirement
+# 		any_culture_county = {
+# 			count >= 8
+# 			development_level >= 30
+# 		}
+# 		
+# 		# Must be a significant culture
+# 		culture = {
+# 			number_of_counties >= 20
+# 		}
+# 	}
+# 	
+# 	# ========================================
+# 	# INNOVATIONS AVAILABLE IN THIS ERA
+# 	# ========================================
+# 	
+# 	innovations = {
+# 		# Military
+# 		innovation_machicolations
+# 		innovation_bombard
+# 		innovation_royal_armory
+# 		innovation_plate_armor
+# 		innovation_standing_armies
+# 		
+# 		# Civic
+# 		innovation_development_04
+# 		innovation_currency_04
+# 		innovation_banking
+# 		innovation_universities
+# 		innovation_cranes
+# 		
+# 		# Law/Succession
+# 		innovation_absolute_authority
+# 		innovation_centralization
+# 	}
+# 	
+# 	# ========================================
+# 	# ERA MODIFIERS
+# 	# ========================================
+# 	
+# 	modifier = {
+# 		development_growth = 0.2
+# 		levy_size = 0.15
+# 		building_slot_add = 2
+# 		men_at_arms_limit = 2
+# 		knight_effectiveness_mult = 0.1
+# 	}
+# 	
+# 	# ========================================
+# 	# TRIGGERED MODIFIERS
+# 	# ========================================
+# 	# Additional bonuses under certain conditions
+# 	
+# 	triggered_modifier = {
+# 		trigger = {
+# 			culture = {
+# 				has_innovation = innovation_universities
+# 			}
+# 		}
+# 		modifier = {
+# 			development_growth = 0.1
+# 			monthly_learning_lifestyle_xp_gain_mult = 0.1
+# 		}
+# 	}
+# }
+
+# ============================================================================
+# ERA PROGRESSION EVENTS
+# ============================================================================
+# When a culture advances to a new era, events can fire.
+
+# example_era_advancement_event = {
+# 	# This would be defined in events folder, referenced here for context
+# 	# on_era_change = {
+# 	# 	events = {
+# 	# 		culture_era_events.0001	# Notification event
+# 	# 		culture_era_events.0002	# Flavor event
+# 	# 	}
+# 	# }
+# }
+
+# ============================================================================
+# INNOVATION SPREAD SETTINGS
+# ============================================================================
+# Configuration for how innovations spread between cultures.
+
+# example_innovation_spread = {
+# 	# Base monthly progress for fascination
+# 	# base_fascination_progress = 1.0
+# 	
+# 	# Progress from cultural head's learning
+# 	# learning_progress_mult = 0.03
+# 	
+# 	# Progress from development in culture counties
+# 	# development_progress_mult = 0.01
+# 	
+# 	# Spread from neighbor cultures with the innovation
+# 	# neighbor_spread_chance = 0.05
+# }

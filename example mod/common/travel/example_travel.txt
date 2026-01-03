@@ -1,0 +1,303 @@
+# # Example Travel
+# # Demonstrates: travel point types, travel options, travel events
+# 
+# ### TRAVEL POINT TYPES ###
+# 
+# example_travel_point_landmark = {
+# 	# What kind of point this is
+# 	type = landmark
+# 	
+# 	# Base travel time modifier
+# 	travel_time_modifier = -0.1  # Faster - well-known route
+# 	
+# 	# Danger level
+# 	danger = 0
+# 	
+# 	# Province requirements
+# 	province_requirement = {
+# 		# Has a famous landmark
+# 		has_building = landmark_building
+# 	}
+# 	
+# 	# Effect when arriving
+# 	on_arrival = {
+# 		add_prestige = 25
+# 		
+# 		# Potential event
+# 		random = {
+# 			chance = 30
+# 			trigger_event = {
+# 				id = travel_landmark.0001
+# 			}
+# 		}
+# 	}
+# }
+# 
+# example_travel_point_dangerous = {
+# 	type = dangerous_area
+# 	
+# 	travel_time_modifier = 0.2  # Slower - cautious travel
+# 	
+# 	danger = 50
+# 	
+# 	province_requirement = {
+# 		OR = {
+# 			terrain = mountains
+# 			terrain = jungle
+# 			has_county_modifier = bandit_infestation
+# 		}
+# 	}
+# 	
+# 	on_arrival = {
+# 		# Danger event
+# 		random = {
+# 			chance = danger
+# 			trigger_event = {
+# 				id = travel_danger.0001
+# 			}
+# 		}
+# 	}
+# }
+# 
+# example_travel_point_holy_site = {
+# 	type = holy_site
+# 	
+# 	travel_time_modifier = 0
+# 	
+# 	danger = 0
+# 	
+# 	province_requirement = {
+# 		has_holy_site_for = root.faith
+# 	}
+# 	
+# 	on_arrival = {
+# 		add_piety = 50
+# 		
+# 		# Pilgrimage progress
+# 		if = {
+# 			limit = {
+# 				has_character_flag = on_pilgrimage
+# 			}
+# 			change_variable = {
+# 				name = pilgrimage_progress
+# 				add = 1
+# 			}
+# 		}
+# 		
+# 		trigger_event = {
+# 			id = travel_holy_site.0001
+# 		}
+# 	}
+# }
+# 
+# ### TRAVEL OPTIONS ###
+# 
+# example_travel_option_fast = {
+# 	# This is a travel option players can choose
+# 	
+# 	# Requirements
+# 	can_select = {
+# 		gold >= 50
+# 	}
+# 	
+# 	# Cost
+# 	cost = {
+# 		gold = 50
+# 	}
+# 	
+# 	# Effects on travel
+# 	travel_modifier = {
+# 		travel_speed_mult = 0.3
+# 		travel_danger_mult = 0.1  # Slightly more dangerous
+# 	}
+# 	
+# 	# Safety penalty
+# 	danger_modifier = 5
+# 	
+# 	# Description key
+# 	# desc = travel_option_fast_desc
+# }
+# 
+# example_travel_option_safe = {
+# 	can_select = {
+# 		gold >= 100
+# 	}
+# 	
+# 	cost = {
+# 		gold = 100
+# 	}
+# 	
+# 	travel_modifier = {
+# 		travel_speed_mult = -0.2  # Slower
+# 		travel_danger_mult = -0.5  # Much safer
+# 	}
+# 	
+# 	danger_modifier = -20
+# 	
+# 	# Extra guards
+# 	on_start = {
+# 		add_character_modifier = {
+# 			modifier = traveling_with_guards
+# 			days = 365
+# 		}
+# 	}
+# }
+# 
+# example_travel_option_incognito = {
+# 	can_select = {
+# 		intrigue >= 8
+# 	}
+# 	
+# 	cost = {
+# 		gold = 25
+# 	}
+# 	
+# 	travel_modifier = {
+# 		travel_speed_mult = 0
+# 	}
+# 	
+# 	danger_modifier = -10
+# 	
+# 	# Hidden identity
+# 	on_start = {
+# 		add_character_flag = {
+# 			flag = traveling_incognito
+# 			days = 365
+# 		}
+# 	}
+# 	
+# 	# Special events
+# 	on_travel_pulse = {
+# 		random = {
+# 			chance = 10
+# 			trigger_event = {
+# 				id = travel_incognito.0001
+# 			}
+# 		}
+# 	}
+# }
+# 
+# ### TRAVEL ACTIVITIES ###
+# 
+# example_travel_activity_pilgrimage = {
+# 	# Major travel type
+# 	
+# 	can_start = {
+# 		is_adult = yes
+# 		gold >= 100
+# 		NOT = { has_character_flag = recently_pilgrimaged }
+# 	}
+# 	
+# 	cost = {
+# 		gold = 100
+# 		piety = 25
+# 	}
+# 	
+# 	# Destination requirements
+# 	destination_requirement = {
+# 		has_holy_site_for = root.faith
+# 	}
+# 	
+# 	# How long it takes
+# 	travel_time = {
+# 		base = 60  # 60 days base
+# 		
+# 		# Modified by distance
+# 		per_province = 5
+# 	}
+# 	
+# 	# Events during travel
+# 	on_travel_pulse = {
+# 		random = {
+# 			chance = 20
+# 			trigger_event = {
+# 				id = pilgrimage_travel.0001
+# 			}
+# 		}
+# 	}
+# 	
+# 	# Arrival
+# 	on_arrival = {
+# 		add_piety = 200
+# 		
+# 		# Trait chance
+# 		random = {
+# 			chance = 25
+# 			add_trait = pilgrim
+# 		}
+# 		
+# 		# Stress relief
+# 		add_stress = -50
+# 		
+# 		# Cooldown
+# 		add_character_flag = {
+# 			flag = recently_pilgrimaged
+# 			years = 5
+# 		}
+# 	}
+# 	
+# 	# AI consideration
+# 	ai_will_do = {
+# 		base = 10
+# 		
+# 		modifier = {
+# 			add = 30
+# 			has_trait = zealous
+# 		}
+# 		
+# 		modifier = {
+# 			add = 20
+# 			piety_level < 2
+# 		}
+# 	}
+# }
+# 
+# example_travel_activity_hunt = {
+# 	can_start = {
+# 		is_adult = yes
+# 		gold >= 50
+# 	}
+# 	
+# 	cost = {
+# 		gold = 50
+# 	}
+# 	
+# 	destination_requirement = {
+# 		OR = {
+# 			terrain = forest
+# 			terrain = taiga
+# 			terrain = jungle
+# 		}
+# 	}
+# 	
+# 	travel_time = {
+# 		base = 30
+# 	}
+# 	
+# 	on_travel_pulse = {
+# 		random = {
+# 			chance = 30
+# 			trigger_event = {
+# 				id = hunt_travel.0001
+# 			}
+# 		}
+# 	}
+# 	
+# 	on_arrival = {
+# 		add_prestige = 50
+# 		
+# 		# Hunting success event
+# 		trigger_event = {
+# 			id = hunt_conclusion.0001
+# 		}
+# 	}
+# 	
+# 	ai_will_do = {
+# 		base = 15
+# 		
+# 		modifier = {
+# 			add = 25
+# 			has_trait = hunter
+# 		}
+# 	}
+# }

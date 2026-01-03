@@ -1,299 +1,299 @@
-############################################################
-# PYCHIVALRY EXAMPLE SCRIPT VALUES
-# Dynamic calculations used in events/decisions
-############################################################
-
-##################################################
-# Basic Skill-Based Values
-##################################################
-
-# XP gained from studying (scales with learning)
-example_study_xp_value = {
-	value = 50
-	add = learning
-	multiply = 2
-	
-	# Bonus for relevant traits
-	if = {
-		limit = { has_trait = scholar }
-		multiply = 1.5
-	}
-	if = {
-		limit = { has_trait = diligent }
-		multiply = 1.25
-	}
-	
-	# Minimum value
-	min = 25
-	max = 500
-}
-
-# Gold reward based on stewardship
-example_stewardship_gold_value = {
-	value = 25
-	add = stewardship
-	multiply = 3
-	
-	if = {
-		limit = { has_trait = greedy }
-		multiply = 1.5
-	}
-	
-	min = 10
-}
-
-# Prestige from martial feat
-example_martial_prestige_value = {
-	value = 50
-	add = {
-		value = martial
-		multiply = 2
-	}
-	add = {
-		value = prowess
-		multiply = 1
-	}
-	
-	if = {
-		limit = { is_famous_knight_trigger = yes }
-		multiply = 2
-	}
-}
-
-##################################################
-# Tier-Based Scaling Values
-##################################################
-
-# Cost scales with realm size
-example_realm_scaled_cost_value = {
-	value = 100
-	
-	add = {
-		value = sub_realm_size
-		multiply = 5
-	}
-	
-	# Discount for good stewardship
-	if = {
-		limit = { stewardship >= 16 }
-		multiply = 0.8
-	}
-	
-	min = 50
-	max = 1000
-}
-
-# Duration based on title tier
-example_tier_duration_value = {
-	value = 365  # Base: 1 year
-	
-	if = {
-		limit = { highest_held_title_tier = tier_county }
-		value = 180  # 6 months
-	}
-	else_if = {
-		limit = { highest_held_title_tier = tier_duchy }
-		value = 365  # 1 year
-	}
-	else_if = {
-		limit = { highest_held_title_tier = tier_kingdom }
-		value = 730  # 2 years
-	}
-	else_if = {
-		limit = { highest_held_title_tier = tier_empire }
-		value = 1095  # 3 years
-	}
-}
-
-##################################################
-# Opinion and Relationship Values
-##################################################
-
-# Opinion modifier strength
-example_dynamic_opinion_value = {
-	value = 10
-	
-	# Higher for diplomats
-	if = {
-		limit = { diplomacy >= 16 }
-		add = 10
-	}
-	else_if = {
-		limit = { diplomacy >= 12 }
-		add = 5
-	}
-	
-	# Trait bonuses
-	if = {
-		limit = { has_trait = diplomat }
-		add = 5
-	}
-	if = {
-		limit = { has_trait = gregarious }
-		add = 5
-	}
-	
-	max = 40
-}
-
-# Dread from ruthless action
-example_dread_gain_value = {
-	value = 20
-	
-	if = {
-		limit = { has_trait = cruel }
-		add = 10
-	}
-	if = {
-		limit = { has_trait = sadistic }
-		add = 15
-	}
-	if = {
-		limit = { has_trait = callous }
-		add = 5
-	}
-	
-	# Reduce for known merciful rulers
-	if = {
-		limit = { has_trait = compassionate }
-		multiply = 0.5
-	}
-}
-
-##################################################
-# Probability and Chance Values
-##################################################
-
-# Success chance for risky action
-example_success_chance_value = {
-	value = 50
-	
-	# Skill bonuses
-	add = {
-		value = intrigue
-		multiply = 2
-	}
-	
-	# Trait modifiers
-	if = {
-		limit = { has_trait = schemer }
-		add = 15
-	}
-	if = {
-		limit = { has_trait = paranoid }
-		add = 10
-	}
-	if = {
-		limit = { has_trait = trusting }
-		subtract = 20
-	}
-	
-	min = 5
-	max = 95
-}
-
-# Inheritance chance modifier
-example_inheritance_modifier_value = {
-	value = 1.0
-	
-	if = {
-		limit = { has_trait = fecund }
-		multiply = 1.5
-	}
-	if = {
-		limit = { has_trait_rank = { trait = beauty rank >= 1 } }
-		multiply = 1.25
-	}
-	if = {
-		limit = { has_trait_rank = { trait = intellect rank >= 1 } }
-		multiply = 1.25
-	}
-}
-
-##################################################
-# Army and Combat Values
-##################################################
-
-# Army size for spawning
-example_army_size_value = {
-	value = 500
-	
-	add = {
-		value = domain_size
-		multiply = 100
-	}
-	
-	if = {
-		limit = { has_trait = organizer }
-		multiply = 1.25
-	}
-	
-	min = 300
-	max = 5000
-}
-
-# Combat advantage modifier
-example_combat_advantage_value = {
-	value = 0
-	
-	if = {
-		limit = { martial >= 20 }
-		add = 4
-	}
-	else_if = {
-		limit = { martial >= 15 }
-		add = 2
-	}
-	
-	if = {
-		limit = { has_trait = strategist }
-		add = 2
-	}
-	if = {
-		limit = { has_trait = holy_warrior }
-		add = 2
-	}
-}
-
-##################################################
-# Development and Building Values
-##################################################
-
-# Development speed modifier
-example_development_speed_value = {
-	value = 1.0
-	
-	add = {
-		value = stewardship
-		multiply = 0.02
-	}
-	
-	if = {
-		limit = { has_trait = architect }
-		multiply = 1.25
-	}
-	if = {
-		limit = { culture = { has_innovation = innovation_development_01 } }
-		multiply = 1.1
-	}
-}
-
-# Building cost discount
-example_building_discount_value = {
-	value = 1.0
-	
-	if = {
-		limit = { stewardship >= 16 }
-		multiply = 0.9
-	}
-	if = {
-		limit = { has_trait = architect }
-		multiply = 0.85
-	}
-	if = {
-		limit = { has_perk = planned_development_perk }
-		multiply = 0.9
-	}
-	
-	min = 0.5
-}
+# ############################################################
+# # PYCHIVALRY EXAMPLE SCRIPT VALUES
+# # Dynamic calculations used in events/decisions
+# ############################################################
+# 
+# ##################################################
+# # Basic Skill-Based Values
+# ##################################################
+# 
+# # XP gained from studying (scales with learning)
+# example_study_xp_value = {
+# 	value = 50
+# 	add = learning
+# 	multiply = 2
+# 	
+# 	# Bonus for relevant traits
+# 	if = {
+# 		limit = { has_trait = scholar }
+# 		multiply = 1.5
+# 	}
+# 	if = {
+# 		limit = { has_trait = diligent }
+# 		multiply = 1.25
+# 	}
+# 	
+# 	# Minimum value
+# 	min = 25
+# 	max = 500
+# }
+# 
+# # Gold reward based on stewardship
+# example_stewardship_gold_value = {
+# 	value = 25
+# 	add = stewardship
+# 	multiply = 3
+# 	
+# 	if = {
+# 		limit = { has_trait = greedy }
+# 		multiply = 1.5
+# 	}
+# 	
+# 	min = 10
+# }
+# 
+# # Prestige from martial feat
+# example_martial_prestige_value = {
+# 	value = 50
+# 	add = {
+# 		value = martial
+# 		multiply = 2
+# 	}
+# 	add = {
+# 		value = prowess
+# 		multiply = 1
+# 	}
+# 	
+# 	if = {
+# 		limit = { is_famous_knight_trigger = yes }
+# 		multiply = 2
+# 	}
+# }
+# 
+# ##################################################
+# # Tier-Based Scaling Values
+# ##################################################
+# 
+# # Cost scales with realm size
+# example_realm_scaled_cost_value = {
+# 	value = 100
+# 	
+# 	add = {
+# 		value = sub_realm_size
+# 		multiply = 5
+# 	}
+# 	
+# 	# Discount for good stewardship
+# 	if = {
+# 		limit = { stewardship >= 16 }
+# 		multiply = 0.8
+# 	}
+# 	
+# 	min = 50
+# 	max = 1000
+# }
+# 
+# # Duration based on title tier
+# example_tier_duration_value = {
+# 	value = 365  # Base: 1 year
+# 	
+# 	if = {
+# 		limit = { highest_held_title_tier = tier_county }
+# 		value = 180  # 6 months
+# 	}
+# 	else_if = {
+# 		limit = { highest_held_title_tier = tier_duchy }
+# 		value = 365  # 1 year
+# 	}
+# 	else_if = {
+# 		limit = { highest_held_title_tier = tier_kingdom }
+# 		value = 730  # 2 years
+# 	}
+# 	else_if = {
+# 		limit = { highest_held_title_tier = tier_empire }
+# 		value = 1095  # 3 years
+# 	}
+# }
+# 
+# ##################################################
+# # Opinion and Relationship Values
+# ##################################################
+# 
+# # Opinion modifier strength
+# example_dynamic_opinion_value = {
+# 	value = 10
+# 	
+# 	# Higher for diplomats
+# 	if = {
+# 		limit = { diplomacy >= 16 }
+# 		add = 10
+# 	}
+# 	else_if = {
+# 		limit = { diplomacy >= 12 }
+# 		add = 5
+# 	}
+# 	
+# 	# Trait bonuses
+# 	if = {
+# 		limit = { has_trait = diplomat }
+# 		add = 5
+# 	}
+# 	if = {
+# 		limit = { has_trait = gregarious }
+# 		add = 5
+# 	}
+# 	
+# 	max = 40
+# }
+# 
+# # Dread from ruthless action
+# example_dread_gain_value = {
+# 	value = 20
+# 	
+# 	if = {
+# 		limit = { has_trait = cruel }
+# 		add = 10
+# 	}
+# 	if = {
+# 		limit = { has_trait = sadistic }
+# 		add = 15
+# 	}
+# 	if = {
+# 		limit = { has_trait = callous }
+# 		add = 5
+# 	}
+# 	
+# 	# Reduce for known merciful rulers
+# 	if = {
+# 		limit = { has_trait = compassionate }
+# 		multiply = 0.5
+# 	}
+# }
+# 
+# ##################################################
+# # Probability and Chance Values
+# ##################################################
+# 
+# # Success chance for risky action
+# example_success_chance_value = {
+# 	value = 50
+# 	
+# 	# Skill bonuses
+# 	add = {
+# 		value = intrigue
+# 		multiply = 2
+# 	}
+# 	
+# 	# Trait modifiers
+# 	if = {
+# 		limit = { has_trait = schemer }
+# 		add = 15
+# 	}
+# 	if = {
+# 		limit = { has_trait = paranoid }
+# 		add = 10
+# 	}
+# 	if = {
+# 		limit = { has_trait = trusting }
+# 		subtract = 20
+# 	}
+# 	
+# 	min = 5
+# 	max = 95
+# }
+# 
+# # Inheritance chance modifier
+# example_inheritance_modifier_value = {
+# 	value = 1.0
+# 	
+# 	if = {
+# 		limit = { has_trait = fecund }
+# 		multiply = 1.5
+# 	}
+# 	if = {
+# 		limit = { has_trait_rank = { trait = beauty rank >= 1 } }
+# 		multiply = 1.25
+# 	}
+# 	if = {
+# 		limit = { has_trait_rank = { trait = intellect rank >= 1 } }
+# 		multiply = 1.25
+# 	}
+# }
+# 
+# ##################################################
+# # Army and Combat Values
+# ##################################################
+# 
+# # Army size for spawning
+# example_army_size_value = {
+# 	value = 500
+# 	
+# 	add = {
+# 		value = domain_size
+# 		multiply = 100
+# 	}
+# 	
+# 	if = {
+# 		limit = { has_trait = organizer }
+# 		multiply = 1.25
+# 	}
+# 	
+# 	min = 300
+# 	max = 5000
+# }
+# 
+# # Combat advantage modifier
+# example_combat_advantage_value = {
+# 	value = 0
+# 	
+# 	if = {
+# 		limit = { martial >= 20 }
+# 		add = 4
+# 	}
+# 	else_if = {
+# 		limit = { martial >= 15 }
+# 		add = 2
+# 	}
+# 	
+# 	if = {
+# 		limit = { has_trait = strategist }
+# 		add = 2
+# 	}
+# 	if = {
+# 		limit = { has_trait = holy_warrior }
+# 		add = 2
+# 	}
+# }
+# 
+# ##################################################
+# # Development and Building Values
+# ##################################################
+# 
+# # Development speed modifier
+# example_development_speed_value = {
+# 	value = 1.0
+# 	
+# 	add = {
+# 		value = stewardship
+# 		multiply = 0.02
+# 	}
+# 	
+# 	if = {
+# 		limit = { has_trait = architect }
+# 		multiply = 1.25
+# 	}
+# 	if = {
+# 		limit = { culture = { has_innovation = innovation_development_01 } }
+# 		multiply = 1.1
+# 	}
+# }
+# 
+# # Building cost discount
+# example_building_discount_value = {
+# 	value = 1.0
+# 	
+# 	if = {
+# 		limit = { stewardship >= 16 }
+# 		multiply = 0.9
+# 	}
+# 	if = {
+# 		limit = { has_trait = architect }
+# 		multiply = 0.85
+# 	}
+# 	if = {
+# 		limit = { has_perk = planned_development_perk }
+# 		multiply = 0.9
+# 	}
+# 	
+# 	min = 0.5
+# }

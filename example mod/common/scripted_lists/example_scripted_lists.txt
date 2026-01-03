@@ -1,0 +1,227 @@
+# # Example Scripted Lists
+# # Demonstrates: reusable character/title/province lists
+# 
+# ### CHARACTER LISTS ###
+# 
+# # List of powerful vassals
+# example_powerful_vassals_list = {
+# 	type = character
+# 	
+# 	# Base scope for the list
+# 	base_scope = character
+# 	
+# 	# Who goes in this list
+# 	list = {
+# 		every_vassal = {
+# 			limit = {
+# 				# Only direct vassals
+# 				is_vassal_of = root
+# 				
+# 				# Must have significant military
+# 				max_military_strength >= 500
+# 				
+# 				# Must be landed
+# 				is_landed = yes
+# 			}
+# 			
+# 			add_to_list = example_powerful_vassals_list
+# 		}
+# 	}
+# 	
+# 	# Sorting (optional)
+# 	order_by = max_military_strength
+# }
+# 
+# # List of courtiers suitable for council
+# example_councillor_candidates_list = {
+# 	type = character
+# 	
+# 	base_scope = character
+# 	
+# 	list = {
+# 		every_courtier = {
+# 			limit = {
+# 				is_adult = yes
+# 				NOT = { is_incapable_trigger = yes }
+# 				is_imprisoned = no
+# 			}
+# 			
+# 			add_to_list = example_councillor_candidates_list
+# 		}
+# 		
+# 		# Also include landed vassals
+# 		every_vassal = {
+# 			limit = {
+# 				is_adult = yes
+# 				NOT = { is_incapable_trigger = yes }
+# 			}
+# 			
+# 			add_to_list = example_councillor_candidates_list
+# 		}
+# 	}
+# 	
+# 	order_by = stewardship  # Default sort by stewardship
+# }
+# 
+# # List of heirs and claimants
+# example_succession_characters_list = {
+# 	type = character
+# 	
+# 	base_scope = character
+# 	
+# 	list = {
+# 		# Direct heirs
+# 		every_heir_to_title = {
+# 			title = root.primary_title
+# 			limit = {
+# 				NOT = { this = root }
+# 			}
+# 			add_to_list = example_succession_characters_list
+# 		}
+# 		
+# 		# Claimants
+# 		every_claimant = {
+# 			limit = {
+# 				has_claim_on = root.primary_title
+# 				NOT = { this = root }
+# 			}
+# 			add_to_list = example_succession_characters_list
+# 		}
+# 	}
+# 	
+# 	order_by = claim_strength
+# }
+# 
+# # List of marriage candidates
+# example_marriage_candidates_list = {
+# 	type = character
+# 	
+# 	base_scope = character
+# 	
+# 	list = {
+# 		every_ruler = {
+# 			limit = {
+# 				is_adult = yes
+# 				is_married = no
+# 				NOT = { this = root }
+# 				
+# 				# Appropriate rank
+# 				highest_held_title_tier >= tier_county
+# 				
+# 				# Not hostile
+# 				NOT = { is_at_war_with = root }
+# 			}
+# 			
+# 			add_to_list = example_marriage_candidates_list
+# 		}
+# 	}
+# 	
+# 	order_by = diplomacy
+# }
+# 
+# ### TITLE LISTS ###
+# 
+# # List of claimable titles
+# example_claimable_titles_list = {
+# 	type = title
+# 	
+# 	base_scope = character
+# 	
+# 	list = {
+# 		every_claim = {
+# 			limit = {
+# 				tier >= tier_county
+# 				
+# 				# Has a holder
+# 				exists = holder
+# 				
+# 				# Not already held by us
+# 				NOT = { holder = root }
+# 			}
+# 			
+# 			add_to_list = example_claimable_titles_list
+# 		}
+# 	}
+# 	
+# 	order_by = tier
+# }
+# 
+# # List of de jure titles to claim
+# example_de_jure_claims_list = {
+# 	type = title
+# 	
+# 	base_scope = character
+# 	
+# 	list = {
+# 		primary_title = {
+# 			every_de_jure_county = {
+# 				limit = {
+# 					NOT = { holder = root }
+# 					holder = {
+# 						NOT = { is_vassal_of = root }
+# 					}
+# 				}
+# 				
+# 				add_to_list = example_de_jure_claims_list
+# 			}
+# 		}
+# 	}
+# }
+# 
+# ### PROVINCE/COUNTY LISTS ###
+# 
+# # List of undeveloped counties
+# example_undeveloped_counties_list = {
+# 	type = title
+# 	
+# 	base_scope = character
+# 	
+# 	list = {
+# 		every_held_title = {
+# 			limit = {
+# 				tier = tier_county
+# 				development_level < 10
+# 			}
+# 			
+# 			add_to_list = example_undeveloped_counties_list
+# 		}
+# 	}
+# 	
+# 	order_by = development_level
+# }
+# 
+# # List of counties under siege
+# example_besieged_counties_list = {
+# 	type = title
+# 	
+# 	base_scope = character
+# 	
+# 	list = {
+# 		every_held_title = {
+# 			limit = {
+# 				tier = tier_county
+# 				is_under_siege = yes
+# 			}
+# 			
+# 			add_to_list = example_besieged_counties_list
+# 		}
+# 	}
+# }
+# 
+# # List of counties needing conversion
+# example_wrong_faith_counties_list = {
+# 	type = title
+# 	
+# 	base_scope = character
+# 	
+# 	list = {
+# 		every_held_title = {
+# 			limit = {
+# 				tier = tier_county
+# 				NOT = { faith = root.faith }
+# 			}
+# 			
+# 			add_to_list = example_wrong_faith_counties_list
+# 		}
+# 	}
+# }

@@ -1,0 +1,336 @@
+# # Example Character History
+# # Demonstrates: character definitions, traits, skills, relations, events
+# 
+# # Emperor characters
+# example_emperor_1 = {
+# 	name = "Aldric"
+# 	dynasty = dynasty:example_dynasty
+# 	religion = faith:example_faith
+# 	culture = culture:example_culture
+# 	
+# 	# Birth date - required
+# 	867.1.1 = {
+# 		birth = yes
+# 	}
+# 	
+# 	# Actually born earlier for 867 start
+# 	820.5.15 = {
+# 		birth = yes
+# 	}
+# 	
+# 	# Base stats
+# 	martial = 14
+# 	diplomacy = 16
+# 	stewardship = 12
+# 	intrigue = 8
+# 	learning = 10
+# 	prowess = 11
+# 	
+# 	# Traits
+# 	trait = ambitious
+# 	trait = brave
+# 	trait = just
+# 	trait = education_martial_4
+# 	
+# 	# Physical traits
+# 	trait = handsome
+# 	trait = strong
+# 	
+# 	# Sexuality (optional)
+# 	sexuality = heterosexual
+# 	
+# 	# Father and mother
+# 	father = example_father_1
+# 	mother = example_mother_1
+# 	
+# 	# Death
+# 	899.3.14 = {
+# 		death = { 
+# 			death_reason = death_old_age 
+# 		}
+# 	}
+# }
+# 
+# example_emperor_2 = {
+# 	name = "Aldric"
+# 	dynasty = dynasty:example_dynasty
+# 	religion = faith:example_faith
+# 	culture = culture:example_culture
+# 	
+# 	845.8.20 = {
+# 		birth = yes
+# 	}
+# 	
+# 	martial = 10
+# 	diplomacy = 12
+# 	stewardship = 15
+# 	intrigue = 14
+# 	learning = 8
+# 	prowess = 7
+# 	
+# 	trait = greedy
+# 	trait = paranoid
+# 	trait = education_stewardship_3
+# 	
+# 	father = example_emperor_1
+# 	mother = example_empress_1
+# 	
+# 	# Marriage
+# 	870.4.1 = {
+# 		add_spouse = example_wife_1
+# 	}
+# 	
+# 	# Gained trait through event
+# 	890.1.1 = {
+# 		add_trait = wounded
+# 	}
+# 	
+# 	# Recovered
+# 	891.6.15 = {
+# 		remove_trait = wounded
+# 	}
+# 	
+# 	925.11.3 = {
+# 		death = {
+# 			death_reason = death_battle
+# 			killer = example_rival_1
+# 		}
+# 	}
+# }
+# 
+# example_emperor_3 = {
+# 	name = "Magnus"
+# 	dynasty = dynasty:example_dynasty_2
+# 	religion = faith:example_faith
+# 	culture = culture:example_culture
+# 	
+# 	960.2.10 = {
+# 		birth = yes
+# 	}
+# 	
+# 	martial = 18
+# 	diplomacy = 14
+# 	stewardship = 11
+# 	intrigue = 13
+# 	learning = 9
+# 	prowess = 16
+# 	
+# 	trait = ambitious
+# 	trait = brave
+# 	trait = wrathful
+# 	trait = education_martial_4
+# 	trait = giant
+# 	
+# 	# DNA for portrait
+# 	dna = example_emperor_3_dna
+# 	
+# 	# Nickname gained
+# 	985.1.1 = {
+# 		give_nickname = nick_the_great
+# 	}
+# 	
+# 	1035.7.22 = {
+# 		death = {
+# 			death_reason = death_old_age
+# 		}
+# 	}
+# }
+# 
+# # Supporting characters
+# example_empress_1 = {
+# 	name = "Elara"
+# 	dynasty = dynasty:example_foreign_dynasty
+# 	religion = faith:example_faith
+# 	culture = culture:example_culture
+# 	
+# 	828.12.1 = {
+# 		birth = yes
+# 	}
+# 	
+# 	female = yes
+# 	
+# 	martial = 4
+# 	diplomacy = 18
+# 	stewardship = 14
+# 	intrigue = 16
+# 	learning = 12
+# 	prowess = 3
+# 	
+# 	trait = beautiful
+# 	trait = ambitious
+# 	trait = education_diplomacy_4
+# 	trait = schemer
+# 	
+# 	# Children will be generated through add_spouse
+# 	
+# 	905.2.28 = {
+# 		death = {
+# 			death_reason = death_natural_causes
+# 		}
+# 	}
+# }
+# 
+# example_king_1 = {
+# 	name = "Theodric"
+# 	dynasty = dynasty:example_vassal_dynasty
+# 	religion = faith:example_faith
+# 	culture = culture:example_culture
+# 	
+# 	835.3.8 = {
+# 		birth = yes
+# 	}
+# 	
+# 	martial = 12
+# 	diplomacy = 14
+# 	stewardship = 10
+# 	intrigue = 6
+# 	learning = 8
+# 	prowess = 13
+# 	
+# 	trait = content
+# 	trait = just
+# 	trait = honest
+# 	trait = education_diplomacy_3
+# 	
+# 	# Vassal relation
+# 	867.1.1 = {
+# 		employer = example_emperor_1
+# 	}
+# 	
+# 	892.9.17 = {
+# 		death = {
+# 			death_reason = death_natural_causes
+# 		}
+# 	}
+# }
+# 
+# example_duke_1 = {
+# 	name = "Harold"
+# 	dynasty = dynasty:example_minor_dynasty
+# 	religion = faith:example_faith
+# 	culture = culture:example_culture
+# 	
+# 	840.7.22 = {
+# 		birth = yes
+# 	}
+# 	
+# 	martial = 8
+# 	diplomacy = 10
+# 	stewardship = 14
+# 	intrigue = 12
+# 	learning = 6
+# 	prowess = 9
+# 	
+# 	trait = greedy
+# 	trait = arbitrary
+# 	trait = education_stewardship_2
+# 	
+# 	879.1.5 = {
+# 		death = {
+# 			death_reason = death_murder_unknown
+# 		}
+# 	}
+# }
+# 
+# example_duke_2 = {
+# 	name = "Edwin"
+# 	dynasty = dynasty:example_minor_dynasty
+# 	religion = faith:example_faith
+# 	culture = culture:example_culture
+# 	
+# 	855.11.30 = {
+# 		birth = yes
+# 	}
+# 	
+# 	father = example_duke_1
+# 	
+# 	martial = 11
+# 	diplomacy = 8
+# 	stewardship = 16
+# 	intrigue = 10
+# 	learning = 7
+# 	prowess = 10
+# 	
+# 	trait = diligent
+# 	trait = temperate
+# 	trait = education_stewardship_3
+# 	
+# 	# Inherited duchy
+# 	880.6.10 = {
+# 		# Effect happens through title history
+# 	}
+# 	
+# 	920.4.12 = {
+# 		death = {
+# 			death_reason = death_old_age
+# 		}
+# 	}
+# }
+# 
+# example_count_1 = {
+# 	name = "Wulfric"
+# 	dynasty = dynasty:example_local_dynasty
+# 	religion = faith:example_faith
+# 	culture = culture:example_culture
+# 	
+# 	842.9.5 = {
+# 		birth = yes
+# 	}
+# 	
+# 	martial = 10
+# 	diplomacy = 6
+# 	stewardship = 12
+# 	intrigue = 8
+# 	learning = 5
+# 	prowess = 12
+# 	
+# 	trait = brave
+# 	trait = stubborn
+# 	trait = education_martial_2
+# 	
+# 	# Low-born origin (no dynasty)
+# 	# dynasty = none
+# 	
+# 	895.12.25 = {
+# 		death = {
+# 			death_reason = death_natural_causes
+# 		}
+# 	}
+# }
+# 
+# # Rival character for killing
+# example_rival_1 = {
+# 	name = "Ragnar"
+# 	dynasty = dynasty:example_enemy_dynasty
+# 	religion = faith:example_faith
+# 	culture = culture:example_culture
+# 	
+# 	860.6.6 = {
+# 		birth = yes
+# 	}
+# 	
+# 	martial = 20
+# 	diplomacy = 6
+# 	stewardship = 4
+# 	intrigue = 14
+# 	learning = 3
+# 	prowess = 22
+# 	
+# 	trait = cruel
+# 	trait = wrathful
+# 	trait = ambitious
+# 	trait = berserker
+# 	trait = education_martial_4
+# 	trait = scarred
+# 	
+# 	# Gained rival relation through event
+# 	890.1.1 = {
+# 		set_relation_rival = example_emperor_2
+# 	}
+# 	
+# 	940.8.8 = {
+# 		death = {
+# 			death_reason = death_execution
+# 		}
+# 	}
+# }

@@ -1,165 +1,165 @@
-############################################################
-# PYCHIVALRY EXAMPLE ON_ACTIONS
-# Demonstrates: on_action hooks, event triggering
-############################################################
-
-##################################################
-# On Character Birth
-# Demonstrates: birth handling, parent checks
-##################################################
-on_birth_child = {
-	events = {
-		example_events.0100  # Check for special birth
-	}
-}
-
-##################################################
-# On Ruler Death
-# Demonstrates: death handling, succession
-##################################################
-on_death = {
-	# Only trigger for rulers with our mod flag
-	effect = {
-		if = {
-			limit = {
-				has_character_flag = example_mod_active
-				is_ruler = yes
-			}
-			every_held_title = {
-				limit = { tier >= tier_county }
-				save_scope_as = inherited_title
-			}
-			
-			# Notify heir about inheritance
-			primary_heir = {
-				trigger_event = {
-					id = example_events.0200
-					days = 1
-				}
-			}
-		}
-	}
-}
-
-##################################################
-# On War Start
-# Demonstrates: war triggers, enemy scope
-##################################################
-on_war_started = {
-	# events = { }
-	
-	effect = {
-		# Save war participants
-		scope:attacker = {
-			save_scope_as = war_aggressor
-		}
-		scope:defender = {
-			save_scope_as = war_defender
-		}
-		
-		# Log war for debugging
-		debug_log = "Example mod: War started between [war_aggressor.GetName] and [war_defender.GetName]"
-	}
-}
-
-##################################################
-# Yearly Pulse
-# Demonstrates: periodic events, random selection
-##################################################
-on_yearly_pulse = {
-	random_events = {
-		chance_to_happen = 25
-		100 = example_events.0300
-		50 = example_events.0301
-		25 = example_events.0302
-	}
-}
-
-##################################################
-# Monthly Player Pulse
-# Demonstrates: player-only triggers
-##################################################
-on_monthly_player_pulse = {
-	effect = {
-		# Update mod variables for player
-		if = {
-			limit = {
-				NOT = { has_variable = example_mod_months_played }
-			}
-			set_variable = {
-				name = example_mod_months_played
-				value = 0
-			}
-		}
-		change_variable = {
-			name = example_mod_months_played
-			add = 1
-		}
-	}
-}
-
-##################################################
-# On Title Gained
-# Demonstrates: title transfer handling
-##################################################
-on_title_gain = {
-	events = {
-		example_events.0400  # Title celebration
-	}
-}
-
-##################################################
-# On Marriage
-# Demonstrates: relationship handling
-##################################################
-on_marriage = {
-	effect = {
-		# Both partners get notification
-		scope:spouse = {
-			save_scope_as = new_spouse
-		}
-		
-		# Trigger wedding celebration for rulers
-		if = {
-			limit = {
-				is_ruler = yes
-				highest_held_title_tier >= tier_duchy
-			}
-			trigger_event = {
-				id = example_events.0500
-				days = 7
-			}
-		}
-	}
-}
-
-##################################################
-# Custom On Action - Called from effects
-# Demonstrates: custom hooks
-##################################################
-example_on_feast_completed = {
-	effect = {
-		# Clean up feast flags
-		remove_character_flag = hosting_example_feast
-		
-		# Grant rewards
-		add_prestige = 100
-		
-		# Random guest bonuses
-		every_courtier = {
-			limit = {
-				has_character_flag = attended_example_feast
-			}
-			remove_character_flag = attended_example_feast
-			add_opinion = {
-				target = root
-				modifier = feast_host_opinion
-				opinion = 10
-			}
-		}
-	}
-	
-	events = {
-		example_events.0099  # Feast conclusion event
-	}
-}
+# ############################################################
+# # PYCHIVALRY EXAMPLE ON_ACTIONS
+# # Demonstrates: on_action hooks, event triggering
+# ############################################################
+# 
+# ##################################################
+# # On Character Birth
+# # Demonstrates: birth handling, parent checks
+# ##################################################
+# on_birth_child = {
+# 	events = {
+# 		example_events.0100  # Check for special birth
+# 	}
+# }
+# 
+# ##################################################
+# # On Ruler Death
+# # Demonstrates: death handling, succession
+# ##################################################
+# on_death = {
+# 	# Only trigger for rulers with our mod flag
+# 	effect = {
+# 		if = {
+# 			limit = {
+# 				has_character_flag = example_mod_active
+# 				is_ruler = yes
+# 			}
+# 			every_held_title = {
+# 				limit = { tier >= tier_county }
+# 				save_scope_as = inherited_title
+# 			}
+# 			
+# 			# Notify heir about inheritance
+# 			primary_heir = {
+# 				trigger_event = {
+# 					id = example_events.0200
+# 					days = 1
+# 				}
+# 			}
+# 		}
+# 	}
+# }
+# 
+# ##################################################
+# # On War Start
+# # Demonstrates: war triggers, enemy scope
+# ##################################################
+# on_war_started = {
+# 	# events = { }
+# 	
+# 	effect = {
+# 		# Save war participants
+# 		scope:attacker = {
+# 			save_scope_as = war_aggressor
+# 		}
+# 		scope:defender = {
+# 			save_scope_as = war_defender
+# 		}
+# 		
+# 		# Log war for debugging
+# 		debug_log = "Example mod: War started between [war_aggressor.GetName] and [war_defender.GetName]"
+# 	}
+# }
+# 
+# ##################################################
+# # Yearly Pulse
+# # Demonstrates: periodic events, random selection
+# ##################################################
+# on_yearly_pulse = {
+# 	random_events = {
+# 		chance_to_happen = 25
+# 		100 = example_events.0300
+# 		50 = example_events.0301
+# 		25 = example_events.0302
+# 	}
+# }
+# 
+# ##################################################
+# # Monthly Player Pulse
+# # Demonstrates: player-only triggers
+# ##################################################
+# on_monthly_player_pulse = {
+# 	effect = {
+# 		# Update mod variables for player
+# 		if = {
+# 			limit = {
+# 				NOT = { has_variable = example_mod_months_played }
+# 			}
+# 			set_variable = {
+# 				name = example_mod_months_played
+# 				value = 0
+# 			}
+# 		}
+# 		change_variable = {
+# 			name = example_mod_months_played
+# 			add = 1
+# 		}
+# 	}
+# }
+# 
+# ##################################################
+# # On Title Gained
+# # Demonstrates: title transfer handling
+# ##################################################
+# on_title_gain = {
+# 	events = {
+# 		example_events.0400  # Title celebration
+# 	}
+# }
+# 
+# ##################################################
+# # On Marriage
+# # Demonstrates: relationship handling
+# ##################################################
+# on_marriage = {
+# 	effect = {
+# 		# Both partners get notification
+# 		scope:spouse = {
+# 			save_scope_as = new_spouse
+# 		}
+# 		
+# 		# Trigger wedding celebration for rulers
+# 		if = {
+# 			limit = {
+# 				is_ruler = yes
+# 				highest_held_title_tier >= tier_duchy
+# 			}
+# 			trigger_event = {
+# 				id = example_events.0500
+# 				days = 7
+# 			}
+# 		}
+# 	}
+# }
+# 
+# ##################################################
+# # Custom On Action - Called from effects
+# # Demonstrates: custom hooks
+# ##################################################
+# example_on_feast_completed = {
+# 	effect = {
+# 		# Clean up feast flags
+# 		remove_character_flag = hosting_example_feast
+# 		
+# 		# Grant rewards
+# 		add_prestige = 100
+# 		
+# 		# Random guest bonuses
+# 		every_courtier = {
+# 			limit = {
+# 				has_character_flag = attended_example_feast
+# 			}
+# 			remove_character_flag = attended_example_feast
+# 			add_opinion = {
+# 				target = root
+# 				modifier = feast_host_opinion
+# 				opinion = 10
+# 			}
+# 		}
+# 	}
+# 	
+# 	events = {
+# 		example_events.0099  # Feast conclusion event
+# 	}
+# }

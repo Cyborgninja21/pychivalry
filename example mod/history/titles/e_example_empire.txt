@@ -1,0 +1,113 @@
+# # Example Title History
+# # Demonstrates: date blocks, holder assignments, law changes, development
+# 
+# e_example_empire = {
+# 	# Initial creation
+# 	867.1.1 = {
+# 		holder = character:example_emperor_1
+# 		liege = 0  # Independent
+# 		
+# 		# Set initial laws
+# 		change_development_level = 10
+# 		
+# 		succession_laws = {
+# 			confederate_partition
+# 		}
+# 		
+# 		# Grant de jure drift
+# 		de_jure_drift_kingdom = k_example_kingdom
+# 	}
+# 	
+# 	# Succession event
+# 	899.3.15 = {
+# 		holder = character:example_emperor_2
+# 	}
+# 	
+# 	# Law change
+# 	925.1.1 = {
+# 		succession_laws = {
+# 			high_partition
+# 		}
+# 	}
+# 	
+# 	# Title destroyed
+# 	962.7.20 = {
+# 		holder = 0  # No holder - title dormant
+# 	}
+# 	
+# 	# Title recreated
+# 	1000.1.1 = {
+# 		holder = character:example_emperor_3
+# 		
+# 		# Set gender law
+# 		gender_law = male_preference
+# 	}
+# }
+# 
+# k_example_kingdom = {
+# 	867.1.1 = {
+# 		holder = character:example_king_1
+# 		liege = e_example_empire
+# 		
+# 		# Development and laws
+# 		change_development_level = 8
+# 		
+# 		succession_laws = {
+# 			partition
+# 		}
+# 	}
+# 	
+# 	# Becomes independent
+# 	962.7.20 = {
+# 		liege = 0
+# 	}
+# 	
+# 	# Reintegrated into empire
+# 	1000.1.1 = {
+# 		liege = e_example_empire
+# 	}
+# }
+# 
+# d_example_duchy = {
+# 	867.1.1 = {
+# 		holder = character:example_duke_1
+# 		liege = k_example_kingdom
+# 		
+# 		change_development_level = 5
+# 	}
+# 	
+# 	# Granted to different character
+# 	880.6.10 = {
+# 		holder = character:example_duke_2
+# 	}
+# }
+# 
+# c_example_county = {
+# 	867.1.1 = {
+# 		holder = character:example_count_1
+# 		liege = d_example_duchy
+# 		
+# 		change_development_level = 3
+# 		
+# 		# Set county culture and faith
+# 		culture = culture:example_culture
+# 		religion = faith:example_faith
+# 	}
+# 	
+# 	# Culture shift
+# 	950.1.1 = {
+# 		culture = culture:example_hybrid_culture
+# 	}
+# }
+# 
+# b_example_barony = {
+# 	867.1.1 = {
+# 		holder = character:example_count_1  # Same as county holder
+# 		
+# 		# Building constructions
+# 		buildings = {
+# 			castle_01
+# 			curtain_wall_01
+# 		}
+# 	}
+# }

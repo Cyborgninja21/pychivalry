@@ -1,57 +1,57 @@
-############################################################
-# PYCHIVALRY EXAMPLE STORY CYCLE DEFINITION
-# Defines the story cycle type for the Scholar's Quest
-############################################################
-
-##################################################
-# Story Type: Scholar's Quest
-# A narrative arc about seeking ancient knowledge
-##################################################
-story_scholars_quest = {
-	# Story only for rulers
-	on_setup = {
-		# Initialize story variables
-		story_owner = {
-			set_variable = {
-				name = scholars_quest_active
-				value = yes
-			}
-		}
-	}
-	
-	on_end = {
-		# Cleanup when story ends
-		story_owner = {
-			if = {
-				limit = { has_variable = scholars_quest_active }
-				remove_variable = scholars_quest_active
-			}
-			if = {
-				limit = { has_variable = quest_progress }
-				remove_variable = quest_progress
-			}
-			if = {
-				limit = { has_variable = quest_reward }
-				remove_variable = quest_reward
-			}
-		}
-	}
-	
-	on_owner_death = {
-		# Story ends if owner dies
-		end_story = yes
-	}
-	
-	# Effect block runs periodically
-	effect = {
-		# Check if story should continue
-		if = {
-			limit = {
-				story_owner = {
-					is_alive = no
-				}
-			}
-			end_story = yes
-		}
-	}
-}
+# ############################################################
+# # PYCHIVALRY EXAMPLE STORY CYCLE DEFINITION
+# # Defines the story cycle type for the Scholar's Quest
+# ############################################################
+# 
+# ##################################################
+# # Story Type: Scholar's Quest
+# # A narrative arc about seeking ancient knowledge
+# ##################################################
+# story_scholars_quest = {
+# 	# Story only for rulers
+# 	on_setup = {
+# 		# Initialize story variables
+# 		story_owner = {
+# 			set_variable = {
+# 				name = scholars_quest_active
+# 				value = yes
+# 			}
+# 		}
+# 	}
+# 	
+# 	on_end = {
+# 		# Cleanup when story ends
+# 		story_owner = {
+# 			if = {
+# 				limit = { has_variable = scholars_quest_active }
+# 				remove_variable = scholars_quest_active
+# 			}
+# 			if = {
+# 				limit = { has_variable = quest_progress }
+# 				remove_variable = quest_progress
+# 			}
+# 			if = {
+# 				limit = { has_variable = quest_reward }
+# 				remove_variable = quest_reward
+# 			}
+# 		}
+# 	}
+# 	
+# 	on_owner_death = {
+# 		# Story ends if owner dies
+# 		end_story = yes
+# 	}
+# 	
+# 	# Effect block runs periodically
+# 	effect = {
+# 		# Check if story should continue
+# 		if = {
+# 			limit = {
+# 				story_owner = {
+# 					is_alive = no
+# 				}
+# 			}
+# 			end_story = yes
+# 		}
+# 	}
+# }

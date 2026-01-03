@@ -1,0 +1,266 @@
+# ============================================================================
+# EXAMPLE PILLARS - CK3 Culture System
+# ============================================================================
+# Pillars are the foundational elements of a culture:
+# - Ethos: The cultural values and worldview
+# - Heritage: The historical/ethnic background
+# - Language: The linguistic family
+# - Martial Custom: Rules about who can be warriors
+# ============================================================================
+
+# ############################################################################
+# ETHOS PILLARS
+# ############################################################################
+# Ethos defines the core values and priorities of a culture.
+# Each culture has exactly one ethos.
+
+# ----------------------------------------------------------------------------
+# BELLICOSE ETHOS
+# ----------------------------------------------------------------------------
+# A warlike ethos focused on conquest and martial glory.
+
+# example_bellicose_ethos = {
+# 	type = ethos
+# 	
+# 	# Icon displayed in the culture window
+# 	icon = "gfx/interface/icons/culture_pillars/ethos_bellicose.dds"
+# 	
+# 	# Color used in culture maps
+# 	color = { 0.8 0.2 0.2 }
+# 	
+# 	# Modifiers applied to all characters of cultures with this ethos
+# 	character_modifier = {
+# 		prowess = 2
+# 		knight_effectiveness_mult = 0.15
+# 		monthly_martial_lifestyle_xp_gain_mult = 0.1
+# 		hostile_scheme_power_mult = 0.1
+# 	}
+# 	
+# 	# AI behavior modifiers
+# 	ai_honor = 10
+# 	ai_boldness = 20
+# 	ai_greed = 10
+# 	
+# 	# Parameters that unlock features
+# 	parameters = {
+# 		martial_education_more_valued = yes
+# 		can_use_conquest_cbs = yes
+# 	}
+# 	
+# 	# Determines which traditions are compatible
+# 	tradition_tags = {
+# 		combat_traditions = 2		# Can have 2 extra combat traditions
+# 		ritual_traditions = -1		# One fewer ritual tradition allowed
+# 	}
+# }
+
+# ----------------------------------------------------------------------------
+# BUREAUCRATIC ETHOS
+# ----------------------------------------------------------------------------
+# An ethos focused on administration, law, and governance.
+
+# example_bureaucratic_ethos = {
+# 	type = ethos
+# 	
+# 	icon = "gfx/interface/icons/culture_pillars/ethos_bureaucratic.dds"
+# 	
+# 	color = { 0.4 0.4 0.8 }
+# 	
+# 	character_modifier = {
+# 		stewardship = 2
+# 		domain_tax_mult = 0.1
+# 		development_growth_factor = 0.1
+# 		monthly_stewardship_lifestyle_xp_gain_mult = 0.1
+# 	}
+# 	
+# 	# County-level effects for bureaucratic cultures
+# 	county_modifier = {
+# 		county_opinion_add = 5
+# 		development_growth = 0.1
+# 	}
+# 	
+# 	ai_honor = 0
+# 	ai_boldness = -10
+# 	ai_greed = 15
+# 	ai_rationality = 20
+# 	
+# 	parameters = {
+# 		stewardship_education_more_valued = yes
+# 		unlock_administrative_innovations = yes
+# 		meritocratic_succession_available = yes
+# 	}
+# 	
+# 	tradition_tags = {
+# 		realm_traditions = 2
+# 		combat_traditions = -1
+# 	}
+# }
+
+# ############################################################################
+# HERITAGE PILLARS
+# ############################################################################
+# Heritage represents the historical and ethnic background of a culture.
+# Affects starting innovations, cultural acceptance, and available traditions.
+
+# ----------------------------------------------------------------------------
+# NORTHERN HERITAGE
+# ----------------------------------------------------------------------------
+# Heritage representing cultures from cold northern regions.
+
+# example_northern_heritage = {
+# 	type = heritage
+# 	
+# 	icon = "gfx/interface/icons/culture_pillars/heritage_north_germanic.dds"
+# 	
+# 	color = { 0.3 0.5 0.7 }
+# 	
+# 	# Heritages define which innovations start unlocked
+# 	starting_innovations = {
+# 		innovation_longships
+# 		innovation_huscarls
+# 		innovation_northern_lords
+# 	}
+# 	
+# 	character_modifier = {
+# 		winter_advantage = 5
+# 		cold_terrain_attrition_mult = -0.2
+# 		same_heritage_opinion = 10
+# 	}
+# 	
+# 	# Parameters specific to this heritage
+# 	parameters = {
+# 		can_raid_at_sea = yes
+# 		winter_soldiers_modifier = yes
+# 		unlock_varangian_veterans = yes
+# 	}
+# 	
+# 	# Cultural acceptance baseline with other heritages
+# 	cultural_acceptance = {
+# 		heritage_west_germanic = 30	# Moderate acceptance
+# 		heritage_central_germanic = 25
+# 		heritage_byzantine = 10		# Low acceptance
+# 	}
+# }
+
+# ############################################################################
+# LANGUAGE PILLARS
+# ############################################################################
+# Language affects cultural acceptance and communication between cultures.
+
+# ----------------------------------------------------------------------------
+# ANCIENT LANGUAGE
+# ----------------------------------------------------------------------------
+# A classical or ancient language family.
+
+# example_ancient_language = {
+# 	type = language
+# 	
+# 	icon = "gfx/interface/icons/culture_pillars/language_latin.dds"
+# 	
+# 	color = { 0.6 0.5 0.3 }
+# 	
+# 	# Languages primarily affect acceptance
+# 	character_modifier = {
+# 		learning = 1
+# 		same_language_opinion = 5
+# 	}
+# 	
+# 	# Parameters for language features
+# 	parameters = {
+# 		classical_education_available = yes
+# 		scholarly_traditions_bonus = yes
+# 	}
+# 	
+# 	# Acceptance bonus with cultures sharing this language
+# 	same_language_acceptance_bonus = 25
+# 	
+# 	# Related languages (partial mutual intelligibility)
+# 	related_languages = {
+# 		language_iberian = 15
+# 		language_french = 15
+# 		language_italian = 20
+# 	}
+# }
+
+# ############################################################################
+# MARTIAL CUSTOM PILLARS
+# ############################################################################
+# Martial customs define who can serve as knights and commanders.
+
+# ----------------------------------------------------------------------------
+# EQUAL MARTIAL CUSTOM
+# ----------------------------------------------------------------------------
+# Both men and women can serve equally as warriors.
+
+# example_equal_martial = {
+# 	type = martial_custom
+# 	
+# 	icon = "gfx/interface/icons/culture_pillars/martial_custom_equal.dds"
+# 	
+# 	color = { 0.6 0.4 0.6 }
+# 	
+# 	# This pillar allows women as knights and commanders
+# 	parameters = {
+# 		women_can_be_knights = yes
+# 		women_can_be_commanders = yes
+# 		women_can_hold_military_titles = yes
+# 	}
+# 	
+# 	character_modifier = {
+# 		# Larger pool of potential knights
+# 		knight_limit = 2
+# 		# Opinion effects
+# 		female_same_culture_opinion = 10
+# 	}
+# 	
+# 	# Affects marriage and inheritance
+# 	succession_parameters = {
+# 		female_preference_allowed = yes
+# 		equal_succession_allowed = yes
+# 	}
+# 	
+# 	# AI will factor this into decisions
+# 	ai_will_do = {
+# 		value = 50
+# 		# More likely for cultures with female rulers
+# 		if = {
+# 			limit = {
+# 				any_culture_ruler = {
+# 					is_female = yes
+# 				}
+# 			}
+# 			add = 50
+# 		}
+# 	}
+# }
+
+# ----------------------------------------------------------------------------
+# MALE ONLY MARTIAL CUSTOM
+# ----------------------------------------------------------------------------
+# Only men can serve as warriors (traditional/default).
+
+# example_male_only_martial = {
+# 	type = martial_custom
+# 	
+# 	icon = "gfx/interface/icons/culture_pillars/martial_custom_male_only.dds"
+# 	
+# 	color = { 0.5 0.5 0.5 }
+# 	
+# 	parameters = {
+# 		women_can_be_knights = no
+# 		women_can_be_commanders = no
+# 		traditional_gender_roles = yes
+# 	}
+# 	
+# 	character_modifier = {
+# 		# No specific modifiers - this is the "default"
+# 	}
+# 	
+# 	succession_parameters = {
+# 		male_preference_default = yes
+# 	}
+# 	
+# 	ai_will_do = {
+# 		value = 100	# Default choice for AI
+# 	}
+# }

@@ -1,0 +1,146 @@
+# # Example GUI Window Definition
+# # Demonstrates: custom window definitions, layout, buttons, widgets
+# 
+# window = {
+# 	name = "example_custom_window"
+# 	
+# 	# Window positioning
+# 	size = { 600 400 }
+# 	position = { 100 100 }
+# 	
+# 	# Can be moved/resized
+# 	movable = yes
+# 	
+# 	# Layer (z-order)
+# 	layer = windows_layer
+# 	
+# 	# Visibility binding
+# 	visible = "[GetVariableSystem.Exists('show_example_window')]"
+# 	
+# 	# Background
+# 	background = {
+# 		name = "background"
+# 		texture = "gfx/interface/window_backgrounds/window_background.dds"
+# 		
+# 		spriteType = Corneredtiled
+# 		
+# 		modify_texture = {
+# 			texture = "gfx/interface/window_backgrounds/window_background_overlay.dds"
+# 			blend_mode = overlay
+# 		}
+# 	}
+# 	
+# 	# Header
+# 	widget = {
+# 		name = "header"
+# 		size = { 100% 50 }
+# 		position = { 0 0 }
+# 		
+# 		# Title bar background
+# 		background = {
+# 			using = Background_Header
+# 		}
+# 		
+# 		# Title text
+# 		text_single = {
+# 			name = "title"
+# 			position = { 20 10 }
+# 			text = "EXAMPLE_WINDOW_TITLE"  # Localization key
+# 			
+# 			default_format = "#high"
+# 			max_width = 400
+# 		}
+# 		
+# 		# Close button
+# 		button_close = {
+# 			position = { -40 10 }
+# 			parentanchor = top|right
+# 			
+# 			onclick = "[GetVariableSystem.Clear('show_example_window')]"
+# 		}
+# 	}
+# 	
+# 	# Content area
+# 	vbox = {
+# 		name = "content"
+# 		position = { 20 60 }
+# 		
+# 		spacing = 10
+# 		
+# 		# Description text
+# 		text_multi = {
+# 			name = "description"
+# 			size = { 560 100 }
+# 			
+# 			text = "EXAMPLE_WINDOW_DESCRIPTION"
+# 			
+# 			default_format = "#low"
+# 		}
+# 		
+# 		# Horizontal divider
+# 		divider = {
+# 			size = { 560 3 }
+# 		}
+# 		
+# 		# Character portrait (if applicable)
+# 		widget = {
+# 			size = { 560 80 }
+# 			
+# 			portrait_head = {
+# 				name = "character_portrait"
+# 				position = { 10 0 }
+# 				
+# 				# Bind to a character
+# 				datacontext = "[GetPlayer]"
+# 				
+# 				visible = "[Character.IsValid]"
+# 			}
+# 			
+# 			# Character info next to portrait
+# 			vbox = {
+# 				position = { 100 5 }
+# 				spacing = 5
+# 				
+# 				text_single = {
+# 					text = "[Character.GetName]"
+# 					default_format = "#high"
+# 				}
+# 				
+# 				text_single = {
+# 					text = "[Character.GetPrimaryTitle.GetName]"
+# 					default_format = "#low"
+# 				}
+# 			}
+# 		}
+# 		
+# 		# Buttons row
+# 		hbox = {
+# 			spacing = 20
+# 			margin_top = 20
+# 			
+# 			# Action button
+# 			button_standard = {
+# 				name = "action_button"
+# 				size = { 150 40 }
+# 				
+# 				text = "EXAMPLE_ACTION_BUTTON"
+# 				
+# 				onclick = "[GetScriptedGui('example_action_gui').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+# 				
+# 				enabled = "[GetScriptedGui('example_action_gui').IsValid(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+# 				
+# 				tooltip = "EXAMPLE_ACTION_TOOLTIP"
+# 			}
+# 			
+# 			# Cancel button
+# 			button_standard = {
+# 				name = "cancel_button"
+# 				size = { 150 40 }
+# 				
+# 				text = "CANCEL"
+# 				
+# 				onclick = "[GetVariableSystem.Clear('show_example_window')]"
+# 			}
+# 		}
+# 	}
+# }

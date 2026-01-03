@@ -1,0 +1,263 @@
+# # Example Landed Titles
+# # Demonstrates: title definitions, de jure structure, coat of arms
+# 
+# ### EMPIRE TIER ###
+# e_example_empire = {
+# 	# Color on map
+# 	color = { 180 50 50 }
+# 	color2 = { 255 200 50 }
+# 	
+# 	# Capital
+# 	capital = c_example_capital_county
+# 	
+# 	# Can be created by player/AI
+# 	can_create = {
+# 		prestige >= 8000
+# 		gold >= 1500
+# 		realm_size >= 120
+# 		# Must control 80% of de jure
+# 		completely_controls_region = region_example_empire
+# 	}
+# 	
+# 	# Can be held
+# 	can_hold = {
+# 		always = yes
+# 	}
+# 	
+# 	# AI will try to create
+# 	ai_primary_priority = {
+# 		add = 500
+# 	}
+# 	
+# 	# De jure kingdoms within this empire
+# 	de_jure_liege = none  # Top level
+# 	
+# 	# Coat of arms
+# 	coat_of_arms = {
+# 		template = "plain"
+# 		color1 = "red"
+# 		color2 = "gold"
+# 		
+# 		colored_emblem = {
+# 			texture = "ce_imperial_eagle.dds"
+# 			color1 = "gold"
+# 		}
+# 	}
+# }
+# 
+# ### KINGDOM TIER ###
+# k_example_kingdom = {
+# 	color = { 150 80 80 }
+# 	color2 = { 255 220 100 }
+# 	
+# 	capital = c_example_capital_county
+# 	
+# 	can_create = {
+# 		prestige >= 3000
+# 		gold >= 500
+# 		realm_size >= 35
+# 	}
+# 	
+# 	ai_primary_priority = {
+# 		add = 200
+# 	}
+# 	
+# 	de_jure_liege = e_example_empire
+# }
+# 
+# k_example_rival_kingdom = {
+# 	color = { 80 80 150 }
+# 	color2 = { 100 100 200 }
+# 	
+# 	capital = c_example_rival_capital
+# 	
+# 	can_create = {
+# 		prestige >= 3000
+# 		gold >= 500
+# 		realm_size >= 30
+# 	}
+# 	
+# 	de_jure_liege = e_example_empire
+# }
+# 
+# ### DUCHY TIER ###
+# d_example_duchy = {
+# 	color = { 170 100 100 }
+# 	color2 = { 255 200 100 }
+# 	
+# 	capital = c_example_capital_county
+# 	
+# 	can_create = {
+# 		prestige >= 1000
+# 		gold >= 200
+# 	}
+# 	
+# 	de_jure_liege = k_example_kingdom
+# }
+# 
+# d_example_coastal_duchy = {
+# 	color = { 100 120 170 }
+# 	color2 = { 150 180 220 }
+# 	
+# 	capital = c_example_port_county
+# 	
+# 	can_create = {
+# 		prestige >= 1000
+# 		gold >= 200
+# 	}
+# 	
+# 	de_jure_liege = k_example_kingdom
+# }
+# 
+# d_example_mountain_duchy = {
+# 	color = { 120 120 120 }
+# 	color2 = { 180 180 180 }
+# 	
+# 	capital = c_example_mountain_county
+# 	
+# 	can_create = {
+# 		prestige >= 1000
+# 		gold >= 200
+# 	}
+# 	
+# 	de_jure_liege = k_example_kingdom
+# }
+# 
+# ### COUNTY TIER ###
+# c_example_capital_county = {
+# 	color = { 180 110 110 }
+# 	color2 = { 255 200 100 }
+# 	
+# 	# County culture and religion (at game start)
+# 	# Usually set in history files
+# 	
+# 	de_jure_liege = d_example_duchy
+# 	
+# 	# Baronies within this county
+# 	b_example_capital = {
+# 		# Province ID for map
+# 		province = 1001
+# 		
+# 		# Holding type
+# 		type = castle
+# 		
+# 		# Is this the county capital?
+# 		capital = yes
+# 	}
+# 	
+# 	b_example_city = {
+# 		province = 1001
+# 		type = city
+# 	}
+# 	
+# 	b_example_temple = {
+# 		province = 1001
+# 		type = temple
+# 	}
+# }
+# 
+# c_example_county = {
+# 	color = { 170 100 100 }
+# 	
+# 	de_jure_liege = d_example_duchy
+# 	
+# 	b_example_barony = {
+# 		province = 1002
+# 		type = castle
+# 		capital = yes
+# 	}
+# }
+# 
+# c_example_port_county = {
+# 	color = { 100 130 180 }
+# 	
+# 	de_jure_liege = d_example_coastal_duchy
+# 	
+# 	b_example_port = {
+# 		province = 1003
+# 		type = city
+# 		capital = yes
+# 	}
+# 	
+# 	b_example_port_castle = {
+# 		province = 1003
+# 		type = castle
+# 	}
+# }
+# 
+# c_example_mountain_county = {
+# 	color = { 130 130 130 }
+# 	
+# 	de_jure_liege = d_example_mountain_duchy
+# 	
+# 	b_example_mountain_hold = {
+# 		province = 1004
+# 		type = castle
+# 		capital = yes
+# 	}
+# }
+# 
+# c_example_rival_capital = {
+# 	color = { 90 90 160 }
+# 	
+# 	de_jure_liege = k_example_rival_kingdom
+# 	
+# 	b_example_rival_castle = {
+# 		province = 1005
+# 		type = castle
+# 		capital = yes
+# 	}
+# }
+# 
+# ### SPECIAL TITLES ###
+# 
+# # Titular title (no de jure land)
+# k_example_titular = {
+# 	color = { 200 180 50 }
+# 	color2 = { 255 220 100 }
+# 	
+# 	# No capital - titular
+# 	capital = none
+# 	
+# 	# No de jure - titular
+# 	definite_form = yes
+# 	
+# 	# Cannot be created normally
+# 	can_create = {
+# 		custom_description = {
+# 			text = "example_titular_creation_requirement"
+# 			has_character_flag = can_create_titular
+# 		}
+# 	}
+# 	
+# 	# But can always be held
+# 	can_hold = {
+# 		always = yes
+# 	}
+# 	
+# 	# Landless title
+# 	landless = yes
+# }
+# 
+# # Holy order title
+# d_holy_order_example = {
+# 	color = { 255 255 255 }
+# 	color2 = { 200 200 50 }
+# 	
+# 	capital = c_example_temple_county
+# 	
+# 	# Holy order flag
+# 	holy_order = yes
+# 	
+# 	# Created by religious head
+# 	can_create = {
+# 		is_religious_head = yes
+# 	}
+# 	
+# 	# Holy order can only be held by clergy
+# 	can_hold = {
+# 		is_clergy = yes
+# 	}
+# 	
+# 	de_jure_liege = none
+# }

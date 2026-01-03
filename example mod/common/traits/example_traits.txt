@@ -1,259 +1,259 @@
-############################################################
-# PYCHIVALRY EXAMPLE TRAITS
-# Custom trait definitions
-############################################################
-
-##################################################
-# Personality Trait: Scholar of the Realm
-##################################################
-example_realm_scholar = {
-	category = personality
-	
-	# Trait properties
-	index = 1001  # Custom index (avoid vanilla conflicts)
-	
-	# Opposites
-	opposites = {
-		lazy
-		ignorant
-	}
-	
-	# Skill modifiers
-	learning = 3
-	diplomacy = 1
-	
-	# Monthly gains
-	monthly_learning_lifestyle_xp_gain_mult = 0.15
-	monthly_piety = 0.5
-	
-	# Opinion modifiers
-	general_opinion = 5
-	attraction_opinion = 10
-	same_opinion = 25  # Other scholars like you
-	
-	# Stress effects
-	stress_gain_mult = -0.1
-	
-	# AI weights
-	ai_rationality = 25
-	ai_zeal = -10
-	
-	# Ruler designer
-	ruler_designer_cost = 50
-	
-	# Flags
-	flag = can_research_topics
-	flag = attracts_scholars
-	
-	# Description for localization
-	desc = {
-		first_valid = {
-			triggered_desc = {
-				trigger = { is_ruler = yes }
-				desc = example_realm_scholar_ruler_desc
-			}
-			desc = example_realm_scholar_desc
-		}
-	}
-	
-	# Icon (reference to gfx file)
-	icon = example_realm_scholar
-}
-
-##################################################
-# Congenital Trait: Sharp Mind
-##################################################
-example_sharp_mind = {
-	category = fame
-	
-	# This is a congenital trait
-	genetic = yes
-	inherit_chance = 50
-	birth = 5
-	random_creation = 10
-	
-	# Skill bonuses
-	learning = 2
-	intrigue = 2
-	
-	# Level system (if part of a group)
-	# level = 1
-	# group = intellect
-	
-	# Health effects
-	health = 0.25
-	
-	# Compatibility
-	compatibility = { 
-		example_sharp_mind = 15
-	}
-	
-	# AI modifiers
-	ai_rationality = 20
-	ai_boldness = 10
-	
-	# Designer cost
-	ruler_designer_cost = 40
-}
-
-##################################################
-# Commander Trait: Master Tactician
-##################################################
-example_master_tactician = {
-	category = commander_trait
-	
-	# Only for commanders
-	commander = yes
-	
-	# Martial bonuses
-	martial = 4
-	prowess = 2
-	
-	# Combat advantages
-	advantage = 4
-	
-	# Army effects
-	counter_efficiency = 0.15
-	
-	# Opinion
-	vassal_opinion = 10
-	
-	# AI commander selection
-	ai_boldness = 15
-	
-	# Cost in designer
-	ruler_designer_cost = 75
-}
-
-##################################################
-# Lifestyle Trait: Patron of Arts
-##################################################
-example_patron_of_arts = {
-	category = lifestyle
-	
-	# Court effects
-	monthly_prestige = 0.5
-	monthly_prestige_gain_mult = 0.1
-	
-	# Diplomacy focus
-	diplomacy = 2
-	
-	# Court grandeur
-	monthly_court_grandeur_change_mult = 0.1
-	
-	# Opinion effects
-	general_opinion = 10
-	
-	# Stress from art events reduced
-	stress_gain_mult = -0.1
-	
-	# Flag for event targeting
-	flag = patron_of_arts
-	
-	# Designer
-	ruler_designer_cost = 35
-}
-
-##################################################
-# Health Trait: Battle Scarred
-##################################################
-example_battle_scarred = {
-	category = health
-	
-	# Physical effects
-	prowess = -2
-	health = -0.25
-	
-	# But gain respect
-	martial = 1
-	general_opinion = 5
-	attraction_opinion = -10
-	
-	# Dread effect
-	dread_baseline_add = 5
-	
-	# Flag for event checks
-	flag = has_battle_wounds
-	
-	# Shown on portraits
-	shown_in_encyclopedia = yes
-}
-
-##################################################
-# Education Trait Extension (example level)
-##################################################
-example_education_special_4 = {
-	category = education
-	
-	# Part of education group
-	group = education
-	level = 4
-	
-	# Strong bonuses for max level
-	diplomacy = 4
-	martial = 2
-	stewardship = 4
-	intrigue = 2
-	learning = 4
-	
-	# Monthly effects
-	monthly_prestige = 0.5
-	monthly_piety = 0.25
-	
-	# XP gains
-	monthly_diplomacy_lifestyle_xp_gain_mult = 0.1
-	monthly_stewardship_lifestyle_xp_gain_mult = 0.1
-	monthly_learning_lifestyle_xp_gain_mult = 0.1
-	
-	# AI values
-	ai_rationality = 20
-	ai_energy = 10
-	
-	# Designer
-	ruler_designer_cost = 100
-}
-
-##################################################
-# Dynasty Trait: Founder's Legacy
-##################################################
-example_founders_legacy = {
-	category = dynasty_house
-	
-	# Dynasty prestige effects
-	monthly_dynasty_prestige_mult = 0.1
-	
-	# Personal stats
-	diplomacy = 2
-	
-	# Opinion within dynasty
-	dynasty_opinion = 20
-	
-	# Shown prominently
-	shown_in_encyclopedia = yes
-	
-	# Flag
-	flag = dynasty_founder_descendant
-}
-
-##################################################
-# Court Trait: Royal Confidant
-##################################################
-example_royal_confidant = {
-	category = court
-	
-	# Intrigue focus
-	intrigue = 3
-	
-	# Opinion effects
-	general_opinion = 5
-	liege_opinion = 25
-	
-	# Scheme effects
-	scheme_power_mult = 0.1
-	
-	# Flag for court events
-	flag = trusted_advisor
-	
-	# Cannot be given away easily
-	shown_in_encyclopedia = yes
-}
+# ############################################################
+# # PYCHIVALRY EXAMPLE TRAITS
+# # Custom trait definitions
+# ############################################################
+# 
+# ##################################################
+# # Personality Trait: Scholar of the Realm
+# ##################################################
+# example_realm_scholar = {
+# 	category = personality
+# 	
+# 	# Trait properties
+# 	index = 1001  # Custom index (avoid vanilla conflicts)
+# 	
+# 	# Opposites
+# 	opposites = {
+# 		lazy
+# 		ignorant
+# 	}
+# 	
+# 	# Skill modifiers
+# 	learning = 3
+# 	diplomacy = 1
+# 	
+# 	# Monthly gains
+# 	monthly_learning_lifestyle_xp_gain_mult = 0.15
+# 	monthly_piety = 0.5
+# 	
+# 	# Opinion modifiers
+# 	general_opinion = 5
+# 	attraction_opinion = 10
+# 	same_opinion = 25  # Other scholars like you
+# 	
+# 	# Stress effects
+# 	stress_gain_mult = -0.1
+# 	
+# 	# AI weights
+# 	ai_rationality = 25
+# 	ai_zeal = -10
+# 	
+# 	# Ruler designer
+# 	ruler_designer_cost = 50
+# 	
+# 	# Flags
+# 	flag = can_research_topics
+# 	flag = attracts_scholars
+# 	
+# 	# Description for localization
+# 	desc = {
+# 		first_valid = {
+# 			triggered_desc = {
+# 				trigger = { is_ruler = yes }
+# 				desc = example_realm_scholar_ruler_desc
+# 			}
+# 			desc = example_realm_scholar_desc
+# 		}
+# 	}
+# 	
+# 	# Icon (reference to gfx file)
+# 	icon = example_realm_scholar
+# }
+# 
+# ##################################################
+# # Congenital Trait: Sharp Mind
+# ##################################################
+# example_sharp_mind = {
+# 	category = fame
+# 	
+# 	# This is a congenital trait
+# 	genetic = yes
+# 	inherit_chance = 50
+# 	birth = 5
+# 	random_creation = 10
+# 	
+# 	# Skill bonuses
+# 	learning = 2
+# 	intrigue = 2
+# 	
+# 	# Level system (if part of a group)
+# 	# level = 1
+# 	# group = intellect
+# 	
+# 	# Health effects
+# 	health = 0.25
+# 	
+# 	# Compatibility
+# 	compatibility = { 
+# 		example_sharp_mind = 15
+# 	}
+# 	
+# 	# AI modifiers
+# 	ai_rationality = 20
+# 	ai_boldness = 10
+# 	
+# 	# Designer cost
+# 	ruler_designer_cost = 40
+# }
+# 
+# ##################################################
+# # Commander Trait: Master Tactician
+# ##################################################
+# example_master_tactician = {
+# 	category = commander_trait
+# 	
+# 	# Only for commanders
+# 	commander = yes
+# 	
+# 	# Martial bonuses
+# 	martial = 4
+# 	prowess = 2
+# 	
+# 	# Combat advantages
+# 	advantage = 4
+# 	
+# 	# Army effects
+# 	counter_efficiency = 0.15
+# 	
+# 	# Opinion
+# 	vassal_opinion = 10
+# 	
+# 	# AI commander selection
+# 	ai_boldness = 15
+# 	
+# 	# Cost in designer
+# 	ruler_designer_cost = 75
+# }
+# 
+# ##################################################
+# # Lifestyle Trait: Patron of Arts
+# ##################################################
+# example_patron_of_arts = {
+# 	category = lifestyle
+# 	
+# 	# Court effects
+# 	monthly_prestige = 0.5
+# 	monthly_prestige_gain_mult = 0.1
+# 	
+# 	# Diplomacy focus
+# 	diplomacy = 2
+# 	
+# 	# Court grandeur
+# 	monthly_court_grandeur_change_mult = 0.1
+# 	
+# 	# Opinion effects
+# 	general_opinion = 10
+# 	
+# 	# Stress from art events reduced
+# 	stress_gain_mult = -0.1
+# 	
+# 	# Flag for event targeting
+# 	flag = patron_of_arts
+# 	
+# 	# Designer
+# 	ruler_designer_cost = 35
+# }
+# 
+# ##################################################
+# # Health Trait: Battle Scarred
+# ##################################################
+# example_battle_scarred = {
+# 	category = health
+# 	
+# 	# Physical effects
+# 	prowess = -2
+# 	health = -0.25
+# 	
+# 	# But gain respect
+# 	martial = 1
+# 	general_opinion = 5
+# 	attraction_opinion = -10
+# 	
+# 	# Dread effect
+# 	dread_baseline_add = 5
+# 	
+# 	# Flag for event checks
+# 	flag = has_battle_wounds
+# 	
+# 	# Shown on portraits
+# 	shown_in_encyclopedia = yes
+# }
+# 
+# ##################################################
+# # Education Trait Extension (example level)
+# ##################################################
+# example_education_special_4 = {
+# 	category = education
+# 	
+# 	# Part of education group
+# 	group = education
+# 	level = 4
+# 	
+# 	# Strong bonuses for max level
+# 	diplomacy = 4
+# 	martial = 2
+# 	stewardship = 4
+# 	intrigue = 2
+# 	learning = 4
+# 	
+# 	# Monthly effects
+# 	monthly_prestige = 0.5
+# 	monthly_piety = 0.25
+# 	
+# 	# XP gains
+# 	monthly_diplomacy_lifestyle_xp_gain_mult = 0.1
+# 	monthly_stewardship_lifestyle_xp_gain_mult = 0.1
+# 	monthly_learning_lifestyle_xp_gain_mult = 0.1
+# 	
+# 	# AI values
+# 	ai_rationality = 20
+# 	ai_energy = 10
+# 	
+# 	# Designer
+# 	ruler_designer_cost = 100
+# }
+# 
+# ##################################################
+# # Dynasty Trait: Founder's Legacy
+# ##################################################
+# example_founders_legacy = {
+# 	category = dynasty_house
+# 	
+# 	# Dynasty prestige effects
+# 	monthly_dynasty_prestige_mult = 0.1
+# 	
+# 	# Personal stats
+# 	diplomacy = 2
+# 	
+# 	# Opinion within dynasty
+# 	dynasty_opinion = 20
+# 	
+# 	# Shown prominently
+# 	shown_in_encyclopedia = yes
+# 	
+# 	# Flag
+# 	flag = dynasty_founder_descendant
+# }
+# 
+# ##################################################
+# # Court Trait: Royal Confidant
+# ##################################################
+# example_royal_confidant = {
+# 	category = court
+# 	
+# 	# Intrigue focus
+# 	intrigue = 3
+# 	
+# 	# Opinion effects
+# 	general_opinion = 5
+# 	liege_opinion = 25
+# 	
+# 	# Scheme effects
+# 	scheme_power_mult = 0.1
+# 	
+# 	# Flag for court events
+# 	flag = trusted_advisor
+# 	
+# 	# Cannot be given away easily
+# 	shown_in_encyclopedia = yes
+# }

@@ -1,0 +1,264 @@
+# # Example Vassal Stances
+# # Demonstrates: vassal contract stance definitions
+# 
+# ### LOYAL STANCE ###
+# 
+# example_vassal_stance_loyal = {
+# 	# Stance category
+# 	type = loyal
+# 	
+# 	# When can this stance be chosen
+# 	can_pick = {
+# 		is_vassal = yes
+# 		NOT = { has_trait = ambitious }
+# 		opinion = {
+# 			target = liege
+# 			value >= 0
+# 		}
+# 	}
+# 	
+# 	# Effects on the vassal
+# 	vassal_modifier = {
+# 		monthly_prestige = 0.2
+# 		liege_opinion = 15
+# 	}
+# 	
+# 	# Effects on the liege from this vassal
+# 	liege_modifier = {
+# 		levy_contribution_mult = 0.1
+# 		tax_contribution_mult = 0.1
+# 	}
+# 	
+# 	# Vassal cannot join factions
+# 	parameters = {
+# 		can_join_factions = no
+# 		gives_military_access = yes
+# 	}
+# 	
+# 	# AI weight to pick this stance
+# 	ai_will_do = {
+# 		base = 50
+# 		
+# 		modifier = {
+# 			add = 30
+# 			opinion = {
+# 				target = liege
+# 				value >= 50
+# 			}
+# 		}
+# 		
+# 		modifier = {
+# 			add = 20
+# 			has_trait = content
+# 		}
+# 		
+# 		modifier = {
+# 			add = -30
+# 			has_trait = ambitious
+# 		}
+# 	}
+# }
+# 
+# ### DEFIANT STANCE ###
+# 
+# example_vassal_stance_defiant = {
+# 	type = defiant
+# 	
+# 	can_pick = {
+# 		is_vassal = yes
+# 		OR = {
+# 			has_trait = ambitious
+# 			opinion = {
+# 				target = liege
+# 				value < -20
+# 			}
+# 		}
+# 	}
+# 	
+# 	vassal_modifier = {
+# 		monthly_prestige = -0.1
+# 		liege_opinion = -20
+# 	}
+# 	
+# 	liege_modifier = {
+# 		levy_contribution_mult = -0.2
+# 		tax_contribution_mult = -0.2
+# 	}
+# 	
+# 	parameters = {
+# 		can_join_factions = yes
+# 		can_start_factions = yes
+# 		gives_military_access = no
+# 	}
+# 	
+# 	ai_will_do = {
+# 		base = 10
+# 		
+# 		modifier = {
+# 			add = 40
+# 			opinion = {
+# 				target = liege
+# 				value < -30
+# 			}
+# 		}
+# 		
+# 		modifier = {
+# 			add = 30
+# 			has_trait = ambitious
+# 		}
+# 		
+# 		modifier = {
+# 			add = 20
+# 			liege = {
+# 				is_at_war = yes
+# 			}
+# 		}
+# 	}
+# }
+# 
+# ### NEUTRAL STANCE ###
+# 
+# example_vassal_stance_neutral = {
+# 	type = neutral
+# 	
+# 	can_pick = {
+# 		is_vassal = yes
+# 	}
+# 	
+# 	# Default - no special modifiers
+# 	vassal_modifier = {
+# 		# None
+# 	}
+# 	
+# 	liege_modifier = {
+# 		# None
+# 	}
+# 	
+# 	parameters = {
+# 		can_join_factions = yes
+# 		can_start_factions = no
+# 		gives_military_access = yes
+# 	}
+# 	
+# 	ai_will_do = {
+# 		base = 100  # Default stance
+# 		
+# 		modifier = {
+# 			add = -50
+# 			opinion = {
+# 				target = liege
+# 				value >= 40
+# 			}
+# 		}
+# 		
+# 		modifier = {
+# 			add = -30
+# 			opinion = {
+# 				target = liege
+# 				value < -20
+# 			}
+# 		}
+# 	}
+# }
+# 
+# ### OPPORTUNIST STANCE ###
+# 
+# example_vassal_stance_opportunist = {
+# 	type = opportunist
+# 	
+# 	can_pick = {
+# 		is_vassal = yes
+# 		intrigue >= 10
+# 	}
+# 	
+# 	vassal_modifier = {
+# 		monthly_prestige = 0.1
+# 		scheme_power_mult = 0.1
+# 	}
+# 	
+# 	liege_modifier = {
+# 		levy_contribution_mult = 0.05
+# 		tax_contribution_mult = -0.1
+# 	}
+# 	
+# 	parameters = {
+# 		can_join_factions = yes
+# 		can_start_factions = yes  # But only when liege is weak
+# 		gives_military_access = yes
+# 	}
+# 	
+# 	# Special effect: joins winning side
+# 	on_liege_losing_war = {
+# 		random = {
+# 			chance = 50
+# 			add_to_faction = scope:enemy_faction
+# 		}
+# 	}
+# 	
+# 	ai_will_do = {
+# 		base = 20
+# 		
+# 		modifier = {
+# 			add = 30
+# 			has_trait = deceitful
+# 		}
+# 		
+# 		modifier = {
+# 			add = 20
+# 			intrigue >= 15
+# 		}
+# 		
+# 		modifier = {
+# 			add = 25
+# 			has_trait = greedy
+# 		}
+# 	}
+# }
+# 
+# ### MILITARY STANCE ###
+# 
+# example_vassal_stance_military = {
+# 	type = military
+# 	
+# 	can_pick = {
+# 		is_vassal = yes
+# 		martial >= 10
+# 	}
+# 	
+# 	vassal_modifier = {
+# 		monthly_prestige = 0.15
+# 		knight_effectiveness_mult = 0.1
+# 	}
+# 	
+# 	liege_modifier = {
+# 		levy_contribution_mult = 0.25
+# 		tax_contribution_mult = -0.15
+# 	}
+# 	
+# 	parameters = {
+# 		can_join_factions = yes
+# 		gives_military_access = yes
+# 		provides_extra_knights = yes
+# 	}
+# 	
+# 	ai_will_do = {
+# 		base = 30
+# 		
+# 		modifier = {
+# 			add = 30
+# 			martial >= 15
+# 		}
+# 		
+# 		modifier = {
+# 			add = 25
+# 			has_trait = brave
+# 		}
+# 		
+# 		modifier = {
+# 			add = 20
+# 			liege = {
+# 				is_at_war = yes
+# 			}
+# 		}
+# 	}
+# }

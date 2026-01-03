@@ -1,0 +1,234 @@
+# # Example Council Positions
+# # Demonstrates: council position definitions, tasks, requirements
+# 
+# example_council_chancellor = {
+# 	# Skill associated with this position
+# 	skill = diplomacy
+# 	
+# 	# Is this a landed position?
+# 	is_landed_position = no
+# 	
+# 	# Requirements to hold this position
+# 	valid_character = {
+# 		is_adult = yes
+# 		NOT = { is_incapable_trigger = yes }
+# 	}
+# 	
+# 	# Requirements for AI to consider this character
+# 	can_be_councillor = {
+# 		is_adult = yes
+# 		NOT = { has_trait = incapable }
+# 		diplomacy >= 5
+# 	}
+# 	
+# 	# Modifier applied to the councillor
+# 	councillor_modifier = {
+# 		monthly_prestige = 0.25
+# 	}
+# 	
+# 	# Modifier applied to the liege when position is filled
+# 	liege_modifier = {
+# 		diplomacy = 1
+# 	}
+# 	
+# 	# AI weight for selecting councillors
+# 	ai_weight = {
+# 		base = 100
+# 		
+# 		modifier = {
+# 			factor = 1.5
+# 			diplomacy >= 15
+# 		}
+# 		
+# 		modifier = {
+# 			factor = 0.5
+# 			has_trait = shy
+# 		}
+# 	}
+# 	
+# 	# Portrait position in council view
+# 	portrait_position = { 0 0 }
+# }
+# 
+# example_council_marshal = {
+# 	skill = martial
+# 	
+# 	is_landed_position = no
+# 	
+# 	valid_character = {
+# 		is_adult = yes
+# 		NOT = { is_incapable_trigger = yes }
+# 		is_male = yes  # Example of gender restriction
+# 	}
+# 	
+# 	can_be_councillor = {
+# 		is_adult = yes
+# 		NOT = { has_trait = incapable }
+# 		martial >= 5
+# 	}
+# 	
+# 	councillor_modifier = {
+# 		monthly_prestige = 0.2
+# 		prowess = 2
+# 	}
+# 	
+# 	liege_modifier = {
+# 		martial = 1
+# 		levy_size = 0.02
+# 	}
+# 	
+# 	ai_weight = {
+# 		base = 100
+# 		
+# 		modifier = {
+# 			factor = 2.0
+# 			martial >= 18
+# 		}
+# 		
+# 		modifier = {
+# 			factor = 1.5
+# 			has_trait = brave
+# 		}
+# 	}
+# 	
+# 	portrait_position = { 1 0 }
+# }
+# 
+# example_council_steward = {
+# 	skill = stewardship
+# 	
+# 	is_landed_position = no
+# 	
+# 	valid_character = {
+# 		is_adult = yes
+# 		NOT = { is_incapable_trigger = yes }
+# 	}
+# 	
+# 	can_be_councillor = {
+# 		is_adult = yes
+# 		NOT = { has_trait = incapable }
+# 		stewardship >= 5
+# 	}
+# 	
+# 	councillor_modifier = {
+# 		monthly_income_mult = 0.05
+# 	}
+# 	
+# 	liege_modifier = {
+# 		stewardship = 1
+# 		domain_limit = 1
+# 	}
+# 	
+# 	ai_weight = {
+# 		base = 100
+# 		
+# 		modifier = {
+# 			factor = 2.0
+# 			stewardship >= 18
+# 		}
+# 		
+# 		modifier = {
+# 			factor = 1.5
+# 			has_trait = greedy
+# 		}
+# 	}
+# 	
+# 	portrait_position = { 2 0 }
+# }
+# 
+# example_council_spymaster = {
+# 	skill = intrigue
+# 	
+# 	is_landed_position = no
+# 	
+# 	valid_character = {
+# 		is_adult = yes
+# 		NOT = { is_incapable_trigger = yes }
+# 	}
+# 	
+# 	can_be_councillor = {
+# 		is_adult = yes
+# 		NOT = { has_trait = incapable }
+# 		intrigue >= 5
+# 	}
+# 	
+# 	councillor_modifier = {
+# 		monthly_prestige = 0.1
+# 		scheme_power_mult = 0.1
+# 	}
+# 	
+# 	liege_modifier = {
+# 		intrigue = 1
+# 		hostile_scheme_resistance_add = 5
+# 	}
+# 	
+# 	ai_weight = {
+# 		base = 100
+# 		
+# 		modifier = {
+# 			factor = 2.0
+# 			intrigue >= 18
+# 		}
+# 		
+# 		modifier = {
+# 			factor = 1.5
+# 			has_trait = deceitful
+# 		}
+# 		
+# 		modifier = {
+# 			factor = 0.1
+# 			has_trait = honest
+# 		}
+# 	}
+# 	
+# 	portrait_position = { 3 0 }
+# }
+# 
+# example_council_chaplain = {
+# 	skill = learning
+# 	
+# 	is_landed_position = no
+# 	
+# 	# Only clergy can be court chaplain (usually)
+# 	valid_character = {
+# 		is_adult = yes
+# 		NOT = { is_incapable_trigger = yes }
+# 		OR = {
+# 			is_clergy = yes
+# 			liege = {
+# 				faith = { has_doctrine = doctrine_clerical_function_taxation }
+# 			}
+# 		}
+# 	}
+# 	
+# 	can_be_councillor = {
+# 		is_adult = yes
+# 		NOT = { has_trait = incapable }
+# 		learning >= 5
+# 	}
+# 	
+# 	councillor_modifier = {
+# 		monthly_piety = 0.3
+# 	}
+# 	
+# 	liege_modifier = {
+# 		learning = 1
+# 		monthly_piety_mult = 0.05
+# 	}
+# 	
+# 	ai_weight = {
+# 		base = 100
+# 		
+# 		modifier = {
+# 			factor = 2.0
+# 			learning >= 18
+# 		}
+# 		
+# 		modifier = {
+# 			factor = 1.5
+# 			has_trait = zealous
+# 		}
+# 	}
+# 	
+# 	portrait_position = { 4 0 }
+# }

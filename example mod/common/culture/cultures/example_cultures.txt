@@ -1,0 +1,314 @@
+# ============================================================================
+# EXAMPLE CULTURES - CK3 Culture System
+# ============================================================================
+# Cultures define the complete cultural identity of characters and counties.
+# Each culture has:
+# - Pillars (ethos, heritage, language, martial_custom)
+# - Traditions (cultural features providing modifiers)
+# - Name lists (for character and dynasty generation)
+# - Graphics settings (CoA, buildings, clothing, units)
+# - Ethnicities (appearance distribution)
+# ============================================================================
+
+# ----------------------------------------------------------------------------
+# VALORIA CULTURE
+# ----------------------------------------------------------------------------
+# A fictional warrior culture with northern heritage.
+
+# example_valoria = {
+# 	# Color displayed on culture map mode
+# 	color = { 0.6 0.2 0.2 }
+# 	
+# 	# Parent culture (for hybrid/divergent cultures)
+# 	# parent = culture:norse
+# 	
+# 	# Creation date (for historical cultures)
+# 	created = 867.1.1
+# 	
+# 	# ========================================
+# 	# CULTURAL PILLARS
+# 	# ========================================
+# 	# Each culture must have exactly one of each pillar type
+# 	
+# 	ethos = ethos_bellicose
+# 	heritage = heritage_north_germanic
+# 	language = language_norse
+# 	martial_custom = martial_custom_male_only
+# 	
+# 	# ========================================
+# 	# TRADITIONS
+# 	# ========================================
+# 	# List of cultural traditions (typically 4-6)
+# 	
+# 	traditions = {
+# 		tradition_warrior_culture
+# 		tradition_northern_stories
+# 		tradition_seafaring
+# 		tradition_winter_warriors
+# 	}
+# 	
+# 	# ========================================
+# 	# NAME LISTS
+# 	# ========================================
+# 	# Names used for character generation
+# 	
+# 	# Male first names with optional weights
+# 	name_list = {
+# 		male_names = {
+# 			Bjorn = 100			# Common name (high weight)
+# 			Erik = 80
+# 			Harald = 75
+# 			Ragnar = 70
+# 			Sigurd = 65
+# 			Thorvald = 60
+# 			Ulf = 55
+# 			Ivar = 50
+# 			Leif = 45
+# 			Olaf = 40			# Less common (lower weight)
+# 		}
+# 		
+# 		female_names = {
+# 			Astrid = 100
+# 			Freya = 85
+# 			Ingrid = 80
+# 			Sigrid = 75
+# 			Helga = 70
+# 			Thyra = 65
+# 			Ragnhild = 60
+# 			Gunnhild = 55
+# 			Asa = 50
+# 			Liv = 45
+# 		}
+# 		
+# 		# Dynasty/family names
+# 		dynasty_names = {
+# 			Ironside = 50
+# 			Bloodaxe = 40
+# 			Fairhair = 35
+# 			Bluetooth = 30
+# 			Wartooth = 25
+# 			Seafarer = 20
+# 			Winterborn = 15
+# 		}
+# 		
+# 		# Patronymic/matronymic patterns
+# 		# {0} = parent's name
+# 		patronym_prefix = ""
+# 		patronym_suffix_male = "sson"
+# 		patronym_suffix_female = "sdottir"
+# 	}
+# 	
+# 	# ========================================
+# 	# GRAPHICS SETTINGS
+# 	# ========================================
+# 	# Visual representation of the culture
+# 	
+# 	# Coat of Arms graphics set
+# 	coa_gfx = { norse_coa_gfx }
+# 	
+# 	# Building appearance
+# 	building_gfx = { norse_building_gfx western_building_gfx }
+# 	
+# 	# Character clothing
+# 	clothing_gfx = { norse_clothing_gfx }
+# 	
+# 	# Military unit appearance
+# 	unit_gfx = { norse_unit_gfx }
+# 	
+# 	# ========================================
+# 	# ETHNICITIES
+# 	# ========================================
+# 	# Character appearance (weighted distribution)
+# 	
+# 	ethnicities = {
+# 		10 = caucasian_northern_blond
+# 		5 = caucasian_northern_ginger
+# 		3 = caucasian_northern_brown_hair
+# 	}
+# }
+
+# ----------------------------------------------------------------------------
+# SCHOLARIA CULTURE
+# ----------------------------------------------------------------------------
+# A fictional scholarly culture focused on learning and administration.
+
+# example_scholaria = {
+# 	color = { 0.3 0.3 0.7 }
+# 	
+# 	created = 900.1.1
+# 	
+# 	# ========================================
+# 	# CULTURAL PILLARS
+# 	# ========================================
+# 	
+# 	ethos = ethos_bureaucratic
+# 	heritage = heritage_byzantine
+# 	language = language_greek
+# 	martial_custom = martial_custom_male_only
+# 	
+# 	# ========================================
+# 	# TRADITIONS
+# 	# ========================================
+# 	
+# 	traditions = {
+# 		tradition_philosopher_culture
+# 		tradition_legalistic
+# 		tradition_court_eunuchs
+# 		tradition_practiced_pirates		# Maritime heritage
+# 		tradition_astute_diplomats
+# 	}
+# 	
+# 	# ========================================
+# 	# NAME LISTS
+# 	# ========================================
+# 	
+# 	name_list = {
+# 		male_names = {
+# 			Alexios = 100
+# 			Konstantinos = 95
+# 			Theodoros = 90
+# 			Basileios = 85
+# 			Ioannes = 80
+# 			Nikephoros = 75
+# 			Michaelos = 70
+# 			Andronikos = 65
+# 			Georgios = 60
+# 			Demetrios = 55
+# 		}
+# 		
+# 		female_names = {
+# 			Theodora = 100
+# 			Irene = 95
+# 			Anna = 90
+# 			Zoe = 85
+# 			Eudokia = 80
+# 			Maria = 75
+# 			Helena = 70
+# 			Sophia = 65
+# 			Anastasia = 60
+# 			Euphrosyne = 55
+# 		}
+# 		
+# 		dynasty_names = {
+# 			Komnenos = 50
+# 			Doukas = 45
+# 			Palaiologos = 40
+# 			Angelos = 35
+# 			Laskaris = 30
+# 			Kantakouzenos = 25
+# 		}
+# 	}
+# 	
+# 	# ========================================
+# 	# GRAPHICS SETTINGS
+# 	# ========================================
+# 	
+# 	coa_gfx = { byzantine_coa_gfx }
+# 	building_gfx = { byzantine_building_gfx mediterranean_building_gfx }
+# 	clothing_gfx = { byzantine_clothing_gfx }
+# 	unit_gfx = { byzantine_unit_gfx }
+# 	
+# 	# ========================================
+# 	# ETHNICITIES
+# 	# ========================================
+# 	
+# 	ethnicities = {
+# 		10 = mediterranean
+# 		5 = caucasian_mediterranean
+# 		2 = arab
+# 	}
+# }
+
+# ----------------------------------------------------------------------------
+# HYBRID CULTURE EXAMPLE
+# ----------------------------------------------------------------------------
+# Example of a hybrid culture created from two parent cultures.
+
+# example_hybrid_culture = {
+# 	color = { 0.5 0.4 0.5 }
+# 	
+# 	# Hybrid cultures have parents
+# 	parents = { example_valoria example_scholaria }
+# 	
+# 	created = 1000.1.1
+# 	
+# 	# ========================================
+# 	# CULTURAL PILLARS
+# 	# ========================================
+# 	# Hybrids can mix pillars from parents
+# 	
+# 	ethos = ethos_bellicose			# From Valoria
+# 	heritage = heritage_byzantine		# From Scholaria
+# 	language = language_greek			# From Scholaria
+# 	martial_custom = martial_custom_equal	# Neither - chosen at creation
+# 	
+# 	# ========================================
+# 	# TRADITIONS
+# 	# ========================================
+# 	# Can inherit from both parents plus add new ones
+# 	
+# 	traditions = {
+# 		tradition_warrior_culture		# From Valoria
+# 		tradition_philosopher_culture	# From Scholaria
+# 		tradition_seafaring			# From Valoria
+# 		tradition_legalistic			# From Scholaria
+# 	}
+# 	
+# 	# ========================================
+# 	# NAME LISTS
+# 	# ========================================
+# 	# Can mix names from both parent cultures
+# 	
+# 	name_list = {
+# 		male_names = {
+# 			# Norse-influenced
+# 			Bjorn = 50
+# 			Erik = 45
+# 			# Greek-influenced
+# 			Alexios = 50
+# 			Konstantinos = 45
+# 			# Hybrid names
+# 			Bjornikos = 30
+# 			Erikios = 25
+# 		}
+# 		
+# 		female_names = {
+# 			# Norse-influenced
+# 			Astrid = 50
+# 			Freya = 45
+# 			# Greek-influenced
+# 			Theodora = 50
+# 			Anna = 45
+# 			# Hybrid names
+# 			Theofrid = 25
+# 			Astriana = 25
+# 		}
+# 		
+# 		dynasty_names = {
+# 			Ironaxe = 30
+# 			Seakomenos = 25
+# 			Northpalaiologos = 20
+# 		}
+# 	}
+# 	
+# 	# ========================================
+# 	# GRAPHICS SETTINGS
+# 	# ========================================
+# 	# Usually takes from one parent or mixes
+# 	
+# 	coa_gfx = { byzantine_coa_gfx norse_coa_gfx }
+# 	building_gfx = { byzantine_building_gfx }
+# 	clothing_gfx = { norse_clothing_gfx byzantine_clothing_gfx }
+# 	unit_gfx = { byzantine_unit_gfx }
+# 	
+# 	# ========================================
+# 	# ETHNICITIES
+# 	# ========================================
+# 	# Mix from both parents
+# 	
+# 	ethnicities = {
+# 		5 = caucasian_northern_blond
+# 		5 = mediterranean
+# 		3 = caucasian_mediterranean
+# 	}
+# }

@@ -1,0 +1,314 @@
+# # Example Focuses (Lifestyle Focus Selection)
+# # Demonstrates: focus definitions, modifiers, XP gains
+# 
+# ### DIPLOMACY FOCUSES ###
+# 
+# example_focus_foreign_affairs = {
+# 	# Which lifestyle tree
+# 	lifestyle = diplomacy_lifestyle
+# 	
+# 	# Skill requirement
+# 	education_skill = diplomacy
+# 	
+# 	# Modifier while focus is active
+# 	modifier = {
+# 		diplomacy = 3
+# 		monthly_diplomacy_lifestyle_xp_gain_mult = 0.1
+# 		foreign_ruler_opinion = 10
+# 	}
+# 	
+# 	# Focus icon
+# 	icon = "gfx/interface/icons/focuses/focus_foreign_affairs.dds"
+# 	
+# 	# Description
+# 	# desc = focus_foreign_affairs_desc
+# 	
+# 	# Requirements
+# 	is_valid = {
+# 		is_adult = yes
+# 	}
+# 	
+# 	# AI weight
+# 	ai_selection_behavior = {
+# 		base = 50
+# 		
+# 		modifier = {
+# 			add = 30
+# 			diplomacy >= 12
+# 		}
+# 		
+# 		modifier = {
+# 			add = 20
+# 			any_neighboring_ruler = {
+# 				count >= 3
+# 			}
+# 		}
+# 	}
+# }
+# 
+# example_focus_family = {
+# 	lifestyle = diplomacy_lifestyle
+# 	
+# 	education_skill = diplomacy
+# 	
+# 	modifier = {
+# 		diplomacy = 2
+# 		monthly_diplomacy_lifestyle_xp_gain_mult = 0.1
+# 		fertility = 0.2
+# 		dynasty_opinion = 10
+# 	}
+# 	
+# 	icon = "gfx/interface/icons/focuses/focus_family.dds"
+# 	
+# 	is_valid = {
+# 		is_adult = yes
+# 	}
+# 	
+# 	ai_selection_behavior = {
+# 		base = 50
+# 		
+# 		modifier = {
+# 			add = 40
+# 			is_dynasty_head = yes
+# 		}
+# 		
+# 		modifier = {
+# 			add = 25
+# 			num_children < 2
+# 		}
+# 	}
+# }
+# 
+# ### MARTIAL FOCUSES ###
+# 
+# example_focus_authority = {
+# 	lifestyle = martial_lifestyle
+# 	
+# 	education_skill = martial
+# 	
+# 	modifier = {
+# 		martial = 3
+# 		monthly_martial_lifestyle_xp_gain_mult = 0.1
+# 		dread_baseline_add = 10
+# 		vassal_opinion = -5
+# 	}
+# 	
+# 	icon = "gfx/interface/icons/focuses/focus_authority.dds"
+# 	
+# 	is_valid = {
+# 		is_adult = yes
+# 	}
+# 	
+# 	ai_selection_behavior = {
+# 		base = 40
+# 		
+# 		modifier = {
+# 			add = 40
+# 			any_vassal = {
+# 				opinion = {
+# 					target = root
+# 					value < 0
+# 				}
+# 			}
+# 		}
+# 	}
+# }
+# 
+# example_focus_chivalry = {
+# 	lifestyle = martial_lifestyle
+# 	
+# 	education_skill = martial
+# 	
+# 	modifier = {
+# 		martial = 2
+# 		monthly_martial_lifestyle_xp_gain_mult = 0.1
+# 		prowess = 3
+# 		knight_effectiveness_mult = 0.1
+# 	}
+# 	
+# 	icon = "gfx/interface/icons/focuses/focus_chivalry.dds"
+# 	
+# 	is_valid = {
+# 		is_adult = yes
+# 		NOT = { has_trait = craven }
+# 	}
+# 	
+# 	ai_selection_behavior = {
+# 		base = 50
+# 		
+# 		modifier = {
+# 			add = 30
+# 			has_trait = brave
+# 		}
+# 		
+# 		modifier = {
+# 			add = 20
+# 			prowess >= 10
+# 		}
+# 	}
+# }
+# 
+# ### STEWARDSHIP FOCUSES ###
+# 
+# example_focus_wealth = {
+# 	lifestyle = stewardship_lifestyle
+# 	
+# 	education_skill = stewardship
+# 	
+# 	modifier = {
+# 		stewardship = 3
+# 		monthly_stewardship_lifestyle_xp_gain_mult = 0.1
+# 		monthly_income_mult = 0.1
+# 	}
+# 	
+# 	icon = "gfx/interface/icons/focuses/focus_wealth.dds"
+# 	
+# 	is_valid = {
+# 		is_adult = yes
+# 	}
+# 	
+# 	ai_selection_behavior = {
+# 		base = 60
+# 		
+# 		modifier = {
+# 			add = 30
+# 			has_trait = greedy
+# 		}
+# 		
+# 		modifier = {
+# 			add = 20
+# 			gold < 200
+# 		}
+# 	}
+# }
+# 
+# example_focus_domain = {
+# 	lifestyle = stewardship_lifestyle
+# 	
+# 	education_skill = stewardship
+# 	
+# 	modifier = {
+# 		stewardship = 2
+# 		monthly_stewardship_lifestyle_xp_gain_mult = 0.1
+# 		domain_limit = 1
+# 		build_speed = -0.15
+# 	}
+# 	
+# 	icon = "gfx/interface/icons/focuses/focus_domain.dds"
+# 	
+# 	is_valid = {
+# 		is_adult = yes
+# 	}
+# 	
+# 	ai_selection_behavior = {
+# 		base = 50
+# 		
+# 		modifier = {
+# 			add = 40
+# 			domain_size >= domain_limit
+# 		}
+# 	}
+# }
+# 
+# ### INTRIGUE FOCUSES ###
+# 
+# example_focus_skulduggery = {
+# 	lifestyle = intrigue_lifestyle
+# 	
+# 	education_skill = intrigue
+# 	
+# 	modifier = {
+# 		intrigue = 3
+# 		monthly_intrigue_lifestyle_xp_gain_mult = 0.1
+# 		scheme_power_mult = 0.15
+# 	}
+# 	
+# 	icon = "gfx/interface/icons/focuses/focus_skulduggery.dds"
+# 	
+# 	is_valid = {
+# 		is_adult = yes
+# 	}
+# 	
+# 	ai_selection_behavior = {
+# 		base = 40
+# 		
+# 		modifier = {
+# 			add = 30
+# 			has_trait = deceitful
+# 		}
+# 		
+# 		modifier = {
+# 			add = 25
+# 			any_scheme = {
+# 				scheme_owner = root
+# 			}
+# 		}
+# 	}
+# }
+# 
+# ### LEARNING FOCUSES ###
+# 
+# example_focus_scholarship = {
+# 	lifestyle = learning_lifestyle
+# 	
+# 	education_skill = learning
+# 	
+# 	modifier = {
+# 		learning = 3
+# 		monthly_learning_lifestyle_xp_gain_mult = 0.1
+# 		development_growth_mult = 0.1
+# 	}
+# 	
+# 	icon = "gfx/interface/icons/focuses/focus_scholarship.dds"
+# 	
+# 	is_valid = {
+# 		is_adult = yes
+# 	}
+# 	
+# 	ai_selection_behavior = {
+# 		base = 50
+# 		
+# 		modifier = {
+# 			add = 30
+# 			learning >= 12
+# 		}
+# 		
+# 		modifier = {
+# 			add = 20
+# 			has_trait = diligent
+# 		}
+# 	}
+# }
+# 
+# example_focus_theology = {
+# 	lifestyle = learning_lifestyle
+# 	
+# 	education_skill = learning
+# 	
+# 	modifier = {
+# 		learning = 2
+# 		monthly_learning_lifestyle_xp_gain_mult = 0.1
+# 		monthly_piety = 0.5
+# 		clergy_opinion = 15
+# 	}
+# 	
+# 	icon = "gfx/interface/icons/focuses/focus_theology.dds"
+# 	
+# 	is_valid = {
+# 		is_adult = yes
+# 	}
+# 	
+# 	ai_selection_behavior = {
+# 		base = 40
+# 		
+# 		modifier = {
+# 			add = 40
+# 			has_trait = zealous
+# 		}
+# 		
+# 		modifier = {
+# 			add = 25
+# 			is_clergy = yes
+# 		}
+# 	}
+# }

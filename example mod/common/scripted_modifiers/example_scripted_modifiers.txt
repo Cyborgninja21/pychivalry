@@ -1,0 +1,320 @@
+# # Example Scripted Modifiers
+# # Demonstrates: complex modifier logic for AI and values
+# 
+# ### CHARACTER SELECTION MODIFIERS ###
+# 
+# # Used for AI spouse selection
+# example_marriage_modifier = {
+# 	# Base value
+# 	value = 0
+# 	
+# 	# Prefer same faith
+# 	if = {
+# 		limit = {
+# 			faith = scope:actor.faith
+# 		}
+# 		add = 25
+# 	}
+# 	
+# 	# Prefer same culture
+# 	if = {
+# 		limit = {
+# 			culture = scope:actor.culture
+# 		}
+# 		add = 15
+# 	}
+# 	
+# 	# Prefer higher rank
+# 	if = {
+# 		limit = {
+# 			highest_held_title_tier >= tier_duchy
+# 		}
+# 		add = 30
+# 	}
+# 	
+# 	# Diplomacy bonus
+# 	add = {
+# 		value = diplomacy
+# 		multiply = 2
+# 	}
+# 	
+# 	# Fertility consideration
+# 	if = {
+# 		limit = {
+# 			is_female = yes
+# 			age < 40
+# 		}
+# 		add = 20
+# 	}
+# 	
+# 	# Penalty for old age
+# 	if = {
+# 		limit = {
+# 			age >= 50
+# 		}
+# 		add = -30
+# 	}
+# 	
+# 	# Traits
+# 	if = {
+# 		limit = {
+# 			has_trait = beautiful
+# 		}
+# 		add = 15
+# 	}
+# 	
+# 	if = {
+# 		limit = {
+# 			has_trait = genius
+# 		}
+# 		add = 20
+# 	}
+# 	
+# 	if = {
+# 		limit = {
+# 			has_trait = ugly
+# 		}
+# 		add = -10
+# 	}
+# }
+# 
+# ### AI BEHAVIOR MODIFIERS ###
+# 
+# # War target selection
+# example_war_target_modifier = {
+# 	value = 0
+# 	
+# 	# Prefer weaker targets
+# 	if = {
+# 		limit = {
+# 			max_military_strength < scope:attacker.max_military_strength
+# 		}
+# 		add = 50
+# 	}
+# 	
+# 	# Penalty for allies of target
+# 	multiply = {
+# 		value = 1.0
+# 		if = {
+# 			limit = {
+# 				any_ally = {
+# 					max_military_strength >= scope:attacker.max_military_strength
+# 				}
+# 			}
+# 			subtract = 0.5
+# 		}
+# 	}
+# 	
+# 	# Bonus for claims
+# 	if = {
+# 		limit = {
+# 			scope:attacker = {
+# 				any_claim = {
+# 					holder = root
+# 				}
+# 			}
+# 		}
+# 		add = 100
+# 	}
+# 	
+# 	# Proximity bonus
+# 	if = {
+# 		limit = {
+# 			any_neighboring_realm = {
+# 				holder = scope:attacker
+# 			}
+# 		}
+# 		add = 30
+# 	}
+# }
+# 
+# ### COUNCIL SELECTION MODIFIERS ###
+# 
+# # For AI choosing council members
+# example_councillor_modifier = {
+# 	value = 0
+# 	
+# 	# Base: relevant skill
+# 	add = {
+# 		value = scope:councillor_skill
+# 		multiply = 5
+# 	}
+# 	
+# 	# Opinion bonus
+# 	if = {
+# 		limit = {
+# 			opinion = {
+# 				target = scope:liege
+# 				value >= 50
+# 			}
+# 		}
+# 		add = 20
+# 	}
+# 	
+# 	# Penalty for powerful vassals not on council
+# 	if = {
+# 		limit = {
+# 			is_powerful_vassal_of = scope:liege
+# 			NOT = { is_councillor_of = scope:liege }
+# 		}
+# 		add = 40  # They expect a position
+# 	}
+# 	
+# 	# Family bonus
+# 	if = {
+# 		limit = {
+# 			dynasty = scope:liege.dynasty
+# 		}
+# 		add = 15
+# 	}
+# 	
+# 	# Trusted friend
+# 	if = {
+# 		limit = {
+# 			has_relation_friend = scope:liege
+# 		}
+# 		add = 25
+# 	}
+# 	
+# 	# Rival penalty
+# 	if = {
+# 		limit = {
+# 			has_relation_rival = scope:liege
+# 		}
+# 		add = -50
+# 	}
+# }
+# 
+# ### EVENT/DECISION WEIGHT MODIFIERS ###
+# 
+# # For random event selection
+# example_event_weight_modifier = {
+# 	value = 100  # Base weight
+# 	
+# 	# Increase for certain traits
+# 	if = {
+# 		limit = {
+# 			has_trait = ambitious
+# 		}
+# 		multiply = 1.5
+# 	}
+# 	
+# 	# Decrease for opposing traits
+# 	if = {
+# 		limit = {
+# 			has_trait = content
+# 		}
+# 		multiply = 0.5
+# 	}
+# 	
+# 	# Scale with skill
+# 	multiply = {
+# 		value = 1.0
+# 		add = {
+# 			value = diplomacy
+# 			divide = 20
+# 		}
+# 	}
+# 	
+# 	# Time-based modifier
+# 	if = {
+# 		limit = {
+# 			has_character_flag = recently_had_event
+# 		}
+# 		multiply = 0.1
+# 	}
+# }
+# 
+# ### SCHEME POWER MODIFIERS ###
+# 
+# # For scheme success calculation
+# example_scheme_modifier = {
+# 	value = 0
+# 	
+# 	# Intrigue skill
+# 	add = {
+# 		value = intrigue
+# 		multiply = 3
+# 	}
+# 	
+# 	# Agent bonuses
+# 	multiply = {
+# 		value = 1.0
+# 		every_scheme_agent = {
+# 			add = {
+# 				value = intrigue
+# 				divide = 100
+# 			}
+# 		}
+# 	}
+# 	
+# 	# Target's defense
+# 	subtract = {
+# 		value = scope:target.intrigue
+# 		multiply = 2
+# 	}
+# 	
+# 	# Spymaster bonus
+# 	if = {
+# 		limit = {
+# 			exists = cp:councillor_spymaster
+# 			cp:councillor_spymaster = {
+# 				intrigue >= 15
+# 			}
+# 		}
+# 		add = 15
+# 	}
+# 	
+# 	# Target awareness penalty
+# 	if = {
+# 		limit = {
+# 			scope:target = {
+# 				has_character_modifier = suspicious
+# 			}
+# 		}
+# 		subtract = 20
+# 	}
+# }
+# 
+# ### OPINION CALCULATION MODIFIERS ###
+# 
+# # Dynamic opinion modifier
+# example_opinion_modifier = {
+# 	value = 0
+# 	
+# 	# Same dynasty bonus
+# 	if = {
+# 		limit = {
+# 			dynasty = scope:target.dynasty
+# 		}
+# 		add = 10
+# 	}
+# 	
+# 	# Same faith
+# 	if = {
+# 		limit = {
+# 			faith = scope:target.faith
+# 		}
+# 		add = 10
+# 	}
+# 	else = {
+# 		subtract = 10
+# 	}
+# 	
+# 	# Trait compatibility
+# 	if = {
+# 		limit = {
+# 			has_trait = honest
+# 			scope:target = { has_trait = honest }
+# 		}
+# 		add = 15
+# 	}
+# 	
+# 	if = {
+# 		limit = {
+# 			has_trait = deceitful
+# 			scope:target = { has_trait = honest }
+# 		}
+# 		subtract = 20
+# 	}
+# }

@@ -1,0 +1,232 @@
+# # Example Game Rules
+# # Demonstrates: game rule definitions, options, effects
+# 
+# example_rule_difficulty = {
+# 	# Rule category
+# 	category = "example_rules"
+# 	
+# 	# Default option
+# 	default = "normal"
+# 	
+# 	# Options
+# 	option = {
+# 		name = "easy"
+# 		
+# 		# Modifiers applied with this rule
+# 		modifier = {
+# 			# Player bonuses
+# 			monthly_income_mult = 0.25
+# 			levy_size = 0.25
+# 			monthly_prestige = 1.0
+# 		}
+# 		
+# 		# Flags set by this rule
+# 		flag = easy_mode
+# 	}
+# 	
+# 	option = {
+# 		name = "normal"
+# 		
+# 		# No modifiers - balanced
+# 		
+# 		flag = normal_mode
+# 	}
+# 	
+# 	option = {
+# 		name = "hard"
+# 		
+# 		modifier = {
+# 			# Player penalties / AI bonuses
+# 			monthly_income_mult = -0.1
+# 			ai_rationality = 50
+# 		}
+# 		
+# 		flag = hard_mode
+# 	}
+# 	
+# 	option = {
+# 		name = "very_hard"
+# 		
+# 		modifier = {
+# 			monthly_income_mult = -0.25
+# 			levy_size = -0.15
+# 			ai_rationality = 100
+# 		}
+# 		
+# 		flag = very_hard_mode
+# 	}
+# }
+# 
+# example_rule_gender_laws = {
+# 	category = "example_rules"
+# 	
+# 	default = "historical"
+# 	
+# 	option = {
+# 		name = "historical"
+# 		# Uses historical gender laws
+# 		flag = gender_historical
+# 	}
+# 	
+# 	option = {
+# 		name = "equal"
+# 		# All realms start with equal gender laws
+# 		flag = gender_equal
+# 		
+# 		# Effect when game starts
+# 		on_start_effect = {
+# 			every_independent_ruler = {
+# 				add_realm_law = equal_gender_law
+# 			}
+# 		}
+# 	}
+# 	
+# 	option = {
+# 		name = "male_only"
+# 		flag = gender_male_only
+# 	}
+# 	
+# 	option = {
+# 		name = "female_only"
+# 		flag = gender_female_only
+# 	}
+# }
+# 
+# example_rule_epidemics = {
+# 	category = "example_rules"
+# 	
+# 	default = "dynamic"
+# 	
+# 	option = {
+# 		name = "off"
+# 		# No epidemics
+# 		flag = epidemics_off
+# 	}
+# 	
+# 	option = {
+# 		name = "historical"
+# 		# Only historical plagues
+# 		flag = epidemics_historical
+# 	}
+# 	
+# 	option = {
+# 		name = "dynamic"
+# 		# Random epidemics can occur
+# 		flag = epidemics_dynamic
+# 	}
+# 	
+# 	option = {
+# 		name = "deadly"
+# 		# More frequent and severe epidemics
+# 		flag = epidemics_deadly
+# 		
+# 		modifier = {
+# 			epidemic_resistance = -25
+# 		}
+# 	}
+# }
+# 
+# example_rule_natural_deaths = {
+# 	category = "example_rules"
+# 	
+# 	default = "on"
+# 	
+# 	option = {
+# 		name = "on"
+# 		# Normal death chances
+# 		flag = natural_death_on
+# 	}
+# 	
+# 	option = {
+# 		name = "reduced"
+# 		# Characters live longer
+# 		flag = natural_death_reduced
+# 		
+# 		modifier = {
+# 			health = 1.0
+# 		}
+# 	}
+# 	
+# 	option = {
+# 		name = "off"
+# 		# Only violent deaths (not recommended)
+# 		flag = natural_death_off
+# 		
+# 		modifier = {
+# 			health = 10.0
+# 		}
+# 	}
+# }
+# 
+# example_rule_ai_aggression = {
+# 	category = "example_rules"
+# 	
+# 	default = "normal"
+# 	
+# 	option = {
+# 		name = "passive"
+# 		# AI rarely declares war
+# 		flag = ai_passive
+# 		
+# 		modifier = {
+# 			ai_war_chance = -50
+# 		}
+# 	}
+# 	
+# 	option = {
+# 		name = "normal"
+# 		flag = ai_normal
+# 	}
+# 	
+# 	option = {
+# 		name = "aggressive"
+# 		# AI more likely to declare war
+# 		flag = ai_aggressive
+# 		
+# 		modifier = {
+# 			ai_war_chance = 50
+# 		}
+# 	}
+# 	
+# 	option = {
+# 		name = "very_aggressive"
+# 		flag = ai_very_aggressive
+# 		
+# 		modifier = {
+# 			ai_war_chance = 100
+# 		}
+# 	}
+# }
+# 
+# example_rule_realm_stability = {
+# 	category = "example_rules"
+# 	
+# 	default = "normal"
+# 	
+# 	option = {
+# 		name = "stable"
+# 		# Fewer factions and revolts
+# 		flag = realm_stable
+# 		
+# 		modifier = {
+# 			faction_power_threshold_mult = 0.5
+# 			vassal_opinion = 10
+# 		}
+# 	}
+# 	
+# 	option = {
+# 		name = "normal"
+# 		flag = realm_normal
+# 	}
+# 	
+# 	option = {
+# 		name = "chaotic"
+# 		# More internal conflict
+# 		flag = realm_chaotic
+# 		
+# 		modifier = {
+# 			faction_power_threshold_mult = -0.25
+# 			vassal_opinion = -5
+# 		}
+# 	}
+# }

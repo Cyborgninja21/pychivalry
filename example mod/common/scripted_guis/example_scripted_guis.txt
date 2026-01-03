@@ -1,0 +1,212 @@
+# # Example Scripted GUIs
+# # Demonstrates: scripted GUI definitions for custom interfaces
+# 
+# ### CHARACTER PANEL ADDITIONS ###
+# 
+# example_character_info_gui = {
+# 	# Scope when checking visibility
+# 	scope = character
+# 	
+# 	# When to show this GUI element
+# 	is_shown = {
+# 		is_landed = yes
+# 	}
+# 	
+# 	# Dynamic GUI effects
+# 	effect = {
+# 		# Custom effect when clicked
+# 		custom_tooltip = example_character_info_tooltip
+# 	}
+# 	
+# 	# Is this enabled/clickable
+# 	is_valid = {
+# 		always = yes
+# 	}
+# 	
+# 	# AI should ignore this GUI
+# 	ai_is_valid = {
+# 		always = no
+# 	}
+# }
+# 
+# ### WINDOW SCRIPTED GUIS ###
+# 
+# example_custom_window = {
+# 	scope = character
+# 	
+# 	# Window visibility
+# 	is_shown = {
+# 		has_character_flag = show_example_window
+# 	}
+# 	
+# 	# Save data for GUI
+# 	saved_scopes = {
+# 		target_character
+# 		selected_county
+# 	}
+# 	
+# 	effect = {
+# 		# Triggered when window action is performed
+# 		if = {
+# 			limit = {
+# 				exists = scope:target_character
+# 			}
+# 			add_opinion = {
+# 				target = scope:target_character
+# 				modifier = opinion_grateful
+# 				opinion = 10
+# 			}
+# 		}
+# 		
+# 		remove_character_flag = show_example_window
+# 	}
+# 	
+# 	is_valid = {
+# 		gold >= 50
+# 	}
+# 	
+# 	ai_is_valid = {
+# 		always = no
+# 	}
+# }
+# 
+# ### LIST SCRIPTED GUIS ###
+# 
+# example_list_gui = {
+# 	scope = character
+# 	
+# 	# For lists of items
+# 	is_shown = {
+# 		is_landed = yes
+# 	}
+# 	
+# 	# Generate list items
+# 	saved_scopes = {
+# 		selected_item
+# 	}
+# 	
+# 	# Effect when item selected
+# 	effect = {
+# 		if = {
+# 			limit = {
+# 				exists = scope:selected_item
+# 			}
+# 			scope:selected_item = {
+# 				# Do something with selected item
+# 			}
+# 		}
+# 	}
+# 	
+# 	is_valid = {
+# 		exists = scope:selected_item
+# 	}
+# }
+# 
+# ### TOOLTIP SCRIPTED GUIS ###
+# 
+# example_tooltip_gui = {
+# 	scope = character
+# 	
+# 	is_shown = {
+# 		always = yes
+# 	}
+# 	
+# 	# Used for custom tooltips
+# 	effect = {
+# 		custom_tooltip = {
+# 			text = example_tooltip_text
+# 			# Show detailed breakdown
+# 			show_as_tooltip = {
+# 				add_gold = 100
+# 				add_prestige = 50
+# 			}
+# 		}
+# 	}
+# 	
+# 	is_valid = {
+# 		always = yes
+# 	}
+# }
+# 
+# ### DECISION-LIKE SCRIPTED GUI ###
+# 
+# example_action_gui = {
+# 	scope = character
+# 	
+# 	is_shown = {
+# 		is_ruler = yes
+# 		NOT = { has_character_flag = recently_used_action }
+# 	}
+# 	
+# 	# Cost display
+# 	effect = {
+# 		# Remove cost
+# 		remove_short_term_gold = 100
+# 		
+# 		# Apply effect
+# 		add_prestige = 200
+# 		
+# 		# Add cooldown
+# 		add_character_flag = {
+# 			flag = recently_used_action
+# 			years = 5
+# 		}
+# 		
+# 		# Trigger event
+# 		trigger_event = {
+# 			id = example_event.0001
+# 		}
+# 	}
+# 	
+# 	is_valid = {
+# 		gold >= 100
+# 		NOT = { has_character_flag = recently_used_action }
+# 	}
+# 	
+# 	ai_is_valid = {
+# 		gold >= 500  # AI needs more gold before using
+# 	}
+# 	
+# 	ai_will_do = {
+# 		base = 10
+# 		
+# 		modifier = {
+# 			add = 20
+# 			prestige < 500
+# 		}
+# 	}
+# }
+# 
+# ### COURT SCRIPTED GUI ###
+# 
+# example_court_action = {
+# 	scope = character
+# 	
+# 	is_shown = {
+# 		has_royal_court = yes
+# 	}
+# 	
+# 	# Court-specific action
+# 	effect = {
+# 		change_court_grandeur_current = 10
+# 		
+# 		stress_impact = {
+# 			ambitious = medium_stress_loss
+# 			lazy = minor_stress_gain
+# 		}
+# 	}
+# 	
+# 	is_valid = {
+# 		has_royal_court = yes
+# 		court_grandeur_current < court_grandeur_maximum
+# 	}
+# 	
+# 	ai_will_do = {
+# 		base = 5
+# 		
+# 		modifier = {
+# 			add = 15
+# 			court_grandeur_current_level < expected_court_grandeur_level
+# 		}
+# 	}
+# }

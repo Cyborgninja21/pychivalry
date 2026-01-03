@@ -1,0 +1,306 @@
+# # Example Succession Election
+# # Demonstrates: election law definitions, candidate scoring
+# 
+# ### ELECTION TYPES ###
+# 
+# example_election_feudal = {
+# 	# Who can vote
+# 	elector_qualification = {
+# 		# Direct vassals of the title holder
+# 		is_vassal_of = scope:holder
+# 		highest_held_title_tier >= tier_county
+# 	}
+# 	
+# 	# Additional electors (always vote)
+# 	elector_limit = {
+# 		# Title holder always votes
+# 		OR = {
+# 			this = scope:holder
+# 			# Religious head for theocratic realms
+# 			AND = {
+# 				exists = scope:holder.faith.religious_head
+# 				this = scope:holder.faith.religious_head
+# 			}
+# 		}
+# 	}
+# 	
+# 	# Who can be elected
+# 	candidate_qualification = {
+# 		is_adult = yes
+# 		NOT = { is_incapable_trigger = yes }
+# 		
+# 		OR = {
+# 			# Dynasty members
+# 			dynasty = scope:holder.dynasty
+# 			
+# 			# Claimants
+# 			has_claim_on = scope:title
+# 			
+# 			# Powerful vassals
+# 			is_powerful_vassal_of = scope:holder
+# 		}
+# 	}
+# 	
+# 	# Scoring for candidates
+# 	candidate_score = {
+# 		base = 0
+# 		
+# 		# Dynasty bonus
+# 		elector_modifier = {
+# 			same_dynasty_candidate_score
+# 		}
+# 		
+# 		# Prestige matters
+# 		candidate_modifier = {
+# 			add = prestige_level
+# 			multiply = 10
+# 		}
+# 		
+# 		# Opinion of candidate
+# 		elector_modifier = {
+# 			add = {
+# 				value = opinion
+# 				target = scope:candidate
+# 				multiply = 0.5
+# 			}
+# 		}
+# 		
+# 		# Claims
+# 		candidate_modifier = {
+# 			if = {
+# 				limit = {
+# 					has_claim_on = scope:title
+# 				}
+# 				add = 25
+# 			}
+# 		}
+# 		
+# 		# Age (prefer experienced but not elderly)
+# 		candidate_modifier = {
+# 			if = {
+# 				limit = {
+# 					age >= 20
+# 					age <= 50
+# 				}
+# 				add = 10
+# 			}
+# 		}
+# 		
+# 		# Skills
+# 		candidate_modifier = {
+# 			add = {
+# 				value = diplomacy
+# 				multiply = 2
+# 			}
+# 		}
+# 		
+# 		# Traits
+# 		candidate_modifier = {
+# 			if = {
+# 				limit = { has_trait = just }
+# 				add = 10
+# 			}
+# 			if = {
+# 				limit = { has_trait = arbitrary }
+# 				add = -10
+# 			}
+# 		}
+# 	}
+# 	
+# 	# Elector voting preferences
+# 	elector_score_modifier = {
+# 		# Personal relations
+# 		if = {
+# 			limit = {
+# 				has_relation_friend = scope:candidate
+# 			}
+# 			add = 30
+# 		}
+# 		
+# 		if = {
+# 			limit = {
+# 				has_relation_rival = scope:candidate
+# 			}
+# 			add = -50
+# 		}
+# 		
+# 		# Same faith
+# 		if = {
+# 			limit = {
+# 				faith = scope:candidate.faith
+# 			}
+# 			add = 15
+# 		}
+# 		
+# 		# Same culture
+# 		if = {
+# 			limit = {
+# 				culture = scope:candidate.culture
+# 			}
+# 			add = 10
+# 		}
+# 		
+# 		# Dynasty loyalty
+# 		if = {
+# 			limit = {
+# 				dynasty = scope:holder.dynasty
+# 				scope:candidate.dynasty = scope:holder.dynasty
+# 			}
+# 			add = 20
+# 		}
+# 	}
+# }
+# 
+# example_election_tanistry = {
+# 	# Celtic-style election
+# 	
+# 	elector_qualification = {
+# 		dynasty = scope:holder.dynasty
+# 		is_adult = yes
+# 	}
+# 	
+# 	candidate_qualification = {
+# 		dynasty = scope:holder.dynasty
+# 		is_adult = yes
+# 		is_male = yes
+# 		NOT = { is_incapable_trigger = yes }
+# 	}
+# 	
+# 	candidate_score = {
+# 		base = 0
+# 		
+# 		# Age and experience valued
+# 		candidate_modifier = {
+# 			add = {
+# 				value = age
+# 				min = 16
+# 				max = 60
+# 			}
+# 		}
+# 		
+# 		# Martial prowess
+# 		candidate_modifier = {
+# 			add = {
+# 				value = martial
+# 				multiply = 3
+# 			}
+# 			add = {
+# 				value = prowess
+# 				multiply = 2
+# 			}
+# 		}
+# 		
+# 		# Prestige
+# 		candidate_modifier = {
+# 			add = {
+# 				value = prestige
+# 				divide = 100
+# 				max = 50
+# 			}
+# 		}
+# 		
+# 		# Direct children penalty (to prevent primogeniture behavior)
+# 		candidate_modifier = {
+# 			if = {
+# 				limit = {
+# 					is_child_of = scope:holder
+# 				}
+# 				add = -25
+# 			}
+# 		}
+# 	}
+# 	
+# 	elector_score_modifier = {
+# 		# Favor kinship
+# 		if = {
+# 			limit = {
+# 				is_close_family_of = scope:candidate
+# 			}
+# 			add = 20
+# 		}
+# 		
+# 		# Opinion
+# 		add = {
+# 			value = opinion
+# 			target = scope:candidate
+# 			multiply = 0.3
+# 		}
+# 	}
+# }
+# 
+# example_election_theocratic = {
+# 	# Religious election
+# 	
+# 	elector_qualification = {
+# 		is_clergy = yes
+# 		faith = scope:holder.faith
+# 		highest_held_title_tier >= tier_county
+# 	}
+# 	
+# 	candidate_qualification = {
+# 		is_clergy = yes
+# 		faith = scope:holder.faith
+# 		is_adult = yes
+# 		NOT = { is_incapable_trigger = yes }
+# 	}
+# 	
+# 	candidate_score = {
+# 		base = 0
+# 		
+# 		# Piety is primary
+# 		candidate_modifier = {
+# 			add = {
+# 				value = piety
+# 				divide = 50
+# 				max = 100
+# 			}
+# 		}
+# 		
+# 		# Learning
+# 		candidate_modifier = {
+# 			add = {
+# 				value = learning
+# 				multiply = 4
+# 			}
+# 		}
+# 		
+# 		# Religious traits
+# 		candidate_modifier = {
+# 			if = {
+# 				limit = { has_trait = zealous }
+# 				add = 25
+# 			}
+# 			if = {
+# 				limit = { has_trait = cynical }
+# 				add = -30
+# 			}
+# 			if = {
+# 				limit = { has_trait = temperate }
+# 				add = 10
+# 			}
+# 			if = {
+# 				limit = { has_trait = lustful }
+# 				add = -20
+# 			}
+# 		}
+# 		
+# 		# Education
+# 		candidate_modifier = {
+# 			if = {
+# 				limit = { has_trait = education_learning_4 }
+# 				add = 30
+# 			}
+# 		}
+# 	}
+# 	
+# 	elector_score_modifier = {
+# 		# Same-mindedness
+# 		if = {
+# 			limit = {
+# 				has_trait = zealous
+# 				scope:candidate = { has_trait = zealous }
+# 			}
+# 			add = 25
+# 		}
+# 	}
+# }

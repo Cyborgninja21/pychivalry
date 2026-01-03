@@ -1,0 +1,129 @@
+# # Example Bookmarks
+# # Demonstrates: start date definitions, playable characters, descriptions
+# 
+# example_bookmark_867 = {
+# 	# Start date
+# 	start_date = "867.1.1"
+# 	
+# 	# Is this bookmark available?
+# 	is_playable = yes
+# 	
+# 	# Recommended for new players
+# 	recommended = yes
+# 	
+# 	# Bookmark group
+# 	group = group_bookmark_early
+# 	
+# 	# Default selected character
+# 	default = yes
+# 	
+# 	# Characters available in this bookmark
+# 	character = {
+# 		name = "example_bookmark_character_1"
+# 		dynasty = dynasty:example_dynasty
+# 		dynasty_splendor_level = 3
+# 		
+# 		# What this character controls
+# 		title = e_example_empire
+# 		government = feudal_government
+# 		
+# 		# Character type for AI hints
+# 		type = 1  # Beginner friendly
+# 		
+# 		# Position on bookmark map
+# 		position = { 500 300 }
+# 		
+# 		# Animation and portrait
+# 		animation = personality_bold
+# 		
+# 		# Description localization key
+# 		# description = bookmark_example_emperor_desc
+# 	}
+# 	
+# 	character = {
+# 		name = "example_bookmark_character_2"
+# 		dynasty = dynasty:example_vassal_dynasty
+# 		dynasty_splendor_level = 1
+# 		
+# 		title = k_example_kingdom
+# 		government = feudal_government
+# 		
+# 		type = 2  # Intermediate
+# 		
+# 		position = { 550 350 }
+# 		
+# 		animation = personality_rational
+# 	}
+# 	
+# 	character = {
+# 		name = "example_bookmark_character_3"
+# 		dynasty = dynasty:example_enemy_dynasty
+# 		dynasty_splendor_level = 2
+# 		
+# 		title = k_example_rival_kingdom
+# 		government = tribal_government
+# 		
+# 		type = 3  # Advanced - tribal start
+# 		
+# 		position = { 600 280 }
+# 		
+# 		animation = personality_bold
+# 	}
+# 	
+# 	# Weight for random selection
+# 	weight = {
+# 		value = 100
+# 	}
+# }
+# 
+# example_bookmark_1066 = {
+# 	start_date = "1066.9.15"
+# 	
+# 	is_playable = yes
+# 	recommended = no
+# 	
+# 	group = group_bookmark_high_medieval
+# 	
+# 	character = {
+# 		name = "example_bookmark_character_1066_1"
+# 		dynasty = dynasty:example_dynasty
+# 		dynasty_splendor_level = 5
+# 		
+# 		title = e_example_empire
+# 		government = feudal_government
+# 		
+# 		type = 1
+# 		
+# 		position = { 500 300 }
+# 		
+# 		animation = personality_forgiving
+# 	}
+# 	
+# 	character = {
+# 		name = "example_bookmark_character_1066_2"
+# 		dynasty = dynasty:example_new_dynasty
+# 		dynasty_splendor_level = 2
+# 		
+# 		title = d_example_duchy
+# 		government = feudal_government
+# 		
+# 		type = 2
+# 		
+# 		position = { 520 340 }
+# 		
+# 		animation = personality_cynical
+# 	}
+# 	
+# 	weight = {
+# 		value = 75
+# 	}
+# }
+# 
+# # Bookmark groups
+# group_bookmark_early = {
+# 	default_start_date = "867.1.1"
+# }
+# 
+# group_bookmark_high_medieval = {
+# 	default_start_date = "1066.9.15"
+# }

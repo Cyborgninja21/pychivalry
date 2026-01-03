@@ -1,0 +1,584 @@
+# ############################################################################
+# # EXAMPLE HOLY SITES - PyChivalry Example Mod
+# # 
+# # This file demonstrates holy site definitions in CK3.
+# # Holy sites are sacred locations that grant bonuses to faiths that control them.
+# # Each holy site references a county and optionally a specific barony.
+# #
+# # File location: common/religion/holy_sites/
+# ############################################################################
+# 
+# ############################################################################
+# # HOLY SITE: STONEHENGE (Example Druidic Site)
+# # A famous megalithic monument sacred to nature worshippers
+# ############################################################################
+# 
+# example_stonehenge = {
+# 	
+# 	# ========================================================================
+# 	# LOCATION DEFINITION
+# 	# The county where this holy site is located
+# 	# ========================================================================
+# 	
+# 	county = c_wiltshire  # Must reference a valid county title
+# 	
+# 	# Optional: Specific barony within the county
+# 	barony = b_stonehenge  # If omitted, defaults to county capital
+# 	
+# 	# ========================================================================
+# 	# IS_ACTIVE TRIGGER
+# 	# Conditions for when this holy site is active/valid
+# 	# ========================================================================
+# 	
+# 	is_active = {
+# 		# Site is active if the county exists and is controlled
+# 		always = yes
+# 		
+# 		# Alternative conditions:
+# 		# county = {
+# 		# 	holder = {
+# 		# 		is_ai = no  # Only active for player-held counties
+# 		# 	}
+# 		# }
+# 	}
+# 	
+# 	# ========================================================================
+# 	# CHARACTER MODIFIER
+# 	# Bonuses granted to a character who controls this holy site
+# 	# Applied to the holder of the county
+# 	# ========================================================================
+# 	
+# 	character_modifier = {
+# 		monthly_piety_gain_add = 0.5
+# 		learning = 2
+# 		monthly_prestige_gain_mult = 0.05
+# 		
+# 		# Faith-specific bonuses
+# 		same_faith_opinion = 10
+# 		clergy_opinion = 15
+# 	}
+# 	
+# 	# ========================================================================
+# 	# COUNTY MODIFIER
+# 	# Bonuses applied to the county itself
+# 	# ========================================================================
+# 	
+# 	county_modifier = {
+# 		monthly_county_control_change_add = 0.2
+# 		development_growth_factor = 0.1
+# 		tax_mult = 0.1
+# 	}
+# 	
+# 	# ========================================================================
+# 	# FLAGS
+# 	# Custom flags that can be checked in other scripts
+# 	# ========================================================================
+# 	
+# 	flag = druidic_holy_site
+# 	flag = megalithic_monument
+# }
+# 
+# ############################################################################
+# # HOLY SITE: SACRED GROVE
+# # An ancient forest clearing sacred to druids
+# ############################################################################
+# 
+# example_sacred_grove = {
+# 	
+# 	county = c_gwynedd  # Welsh county
+# 	
+# 	# No specific barony - uses county capital
+# 	
+# 	is_active = {
+# 		# Active only if the county has sufficient development
+# 		county = {
+# 			development_level >= 5
+# 		}
+# 	}
+# 	
+# 	character_modifier = {
+# 		monthly_piety_gain_add = 0.4
+# 		fertility = 0.1
+# 		health = 0.25
+# 		stress_loss_mult = 0.15
+# 		
+# 		# Nature-themed bonuses
+# 		hostile_scheme_resistance_add = 5
+# 	}
+# 	
+# 	county_modifier = {
+# 		levy_size = 0.1
+# 		supply_limit_mult = 0.15
+# 		
+# 		# Building bonuses
+# 		build_speed = -0.1
+# 	}
+# 	
+# 	flag = druidic_holy_site
+# 	flag = forest_sacred_site
+# 	
+# 	# ========================================================================
+# 	# EFFECT BLOCK
+# 	# Effects triggered when certain conditions are met
+# 	# (This is a demonstration - actual implementation varies)
+# 	# ========================================================================
+# 	
+# 	# on_gain_control = {
+# 	# 	# Effect when a faith gains control of this site
+# 	# 	add_piety = 250
+# 	# 	add_prestige = 100
+# 	# }
+# 	# 
+# 	# on_lose_control = {
+# 	# 	# Effect when a faith loses control
+# 	# 	add_piety = -100
+# 	# }
+# }
+# 
+# ############################################################################
+# # HOLY SITE: ANCIENT OAK
+# # A thousand-year-old oak tree worshipped as divine
+# ############################################################################
+# 
+# example_ancient_oak = {
+# 	
+# 	county = c_thuringia  # Germanic region
+# 	barony = b_erfurt
+# 	
+# 	is_active = {
+# 		# Active unless destroyed by certain events
+# 		NOT = {
+# 			has_county_modifier = sacred_tree_destroyed
+# 		}
+# 	}
+# 	
+# 	character_modifier = {
+# 		monthly_piety_gain_add = 0.35
+# 		diplomacy = 1
+# 		intrigue = 1
+# 		
+# 		# Wisdom from the ancient tree
+# 		scheme_power_add = 3
+# 		personal_scheme_success_add = 5
+# 	}
+# 	
+# 	county_modifier = {
+# 		development_growth_factor = 0.05
+# 		monthly_county_control_change_add = 0.1
+# 		popular_opinion = 10
+# 	}
+# 	
+# 	flag = druidic_holy_site
+# 	flag = sacred_tree
+# }
+# 
+# ############################################################################
+# # HOLY SITE: SPRING TEMPLE
+# # A temple built around a sacred healing spring
+# ############################################################################
+# 
+# example_spring_temple = {
+# 	
+# 	county = c_bath  # Named for its Roman baths
+# 	barony = b_bath
+# 	
+# 	is_active = {
+# 		# Check that the temple building exists
+# 		# county = {
+# 		# 	any_county_province = {
+# 		# 		has_building = temple_01
+# 		# 	}
+# 		# }
+# 		always = yes
+# 	}
+# 	
+# 	character_modifier = {
+# 		monthly_piety_gain_add = 0.45
+# 		health = 0.5
+# 		negate_health_penalty_add = 0.25
+# 		
+# 		# Healing waters attract pilgrims
+# 		monthly_income_mult = 0.05
+# 	}
+# 	
+# 	county_modifier = {
+# 		development_growth_factor = 0.15
+# 		tax_mult = 0.15
+# 		
+# 		# Healing site bonuses
+# 		epidemic_resistance = 0.2
+# 	}
+# 	
+# 	flag = druidic_holy_site
+# 	flag = healing_site
+# 	flag = water_sacred_site
+# }
+# 
+# ############################################################################
+# # HOLY SITE: HILLTOP SHRINE
+# # A shrine on a prominent hilltop with views across the land
+# ############################################################################
+# 
+# example_hilltop_shrine = {
+# 	
+# 	county = c_gloucester
+# 	
+# 	is_active = {
+# 		# Always active
+# 		always = yes
+# 	}
+# 	
+# 	character_modifier = {
+# 		monthly_piety_gain_add = 0.3
+# 		martial = 2
+# 		
+# 		# Strategic hilltop position
+# 		advantage = 2
+# 		defender_advantage = 3
+# 		
+# 		# Visible landmark inspires troops
+# 		army_maintenance_mult = -0.05
+# 	}
+# 	
+# 	county_modifier = {
+# 		levy_size = 0.15
+# 		garrison_size = 0.1
+# 		fort_level = 1
+# 	}
+# 	
+# 	flag = druidic_holy_site
+# 	flag = hilltop_site
+# 	flag = military_sacred_site
+# }
+# 
+# ############################################################################
+# # ABRAHAMIC HOLY SITES
+# # Holy sites for the example_abrahamic_family religions
+# ############################################################################
+# 
+# # ========================================================================
+# # HOLY CITY - Primary holy site for Abrahamic faiths
+# # ========================================================================
+# 
+# example_holy_city = {
+# 	
+# 	county = c_jerusalem  # The Holy City
+# 	barony = b_jerusalem
+# 	
+# 	is_active = {
+# 		always = yes
+# 	}
+# 	
+# 	character_modifier = {
+# 		monthly_piety_gain_add = 1.0
+# 		monthly_prestige_gain_add = 0.5
+# 		
+# 		# Controlling the Holy City grants great influence
+# 		diplomacy = 3
+# 		different_faith_opinion = -10  # Others resent your control
+# 		same_faith_opinion = 20
+# 		
+# 		# Religious authority
+# 		theocrat_opinion = 20
+# 		clergy_opinion = 15
+# 	}
+# 	
+# 	county_modifier = {
+# 		development_growth_factor = 0.2
+# 		tax_mult = 0.25
+# 		
+# 		# Pilgrimage destination
+# 		monthly_county_control_change_add = 0.3
+# 		popular_opinion = 15
+# 	}
+# 	
+# 	flag = abrahamic_holy_site
+# 	flag = major_holy_site
+# 	flag = pilgrimage_destination
+# }
+# 
+# # ========================================================================
+# # ANCIENT CATHEDRAL - Historic church site
+# # ========================================================================
+# 
+# example_ancient_cathedral = {
+# 	
+# 	county = c_roma  # Rome
+# 	barony = b_roma
+# 	
+# 	is_active = {
+# 		# Check for existing religious building
+# 		# Simplified - always active
+# 		always = yes
+# 	}
+# 	
+# 	character_modifier = {
+# 		monthly_piety_gain_add = 0.75
+# 		learning = 3
+# 		
+# 		# Ancient religious authority
+# 		church_opinion = 20
+# 		monthly_dynasty_prestige_mult = 0.1
+# 	}
+# 	
+# 	county_modifier = {
+# 		development_growth_factor = 0.15
+# 		build_gold_cost = -0.1  # Building traditions
+# 		holding_build_gold_cost = -0.1
+# 	}
+# 	
+# 	flag = abrahamic_holy_site
+# 	flag = cathedral_site
+# }
+# 
+# # ========================================================================
+# # DESERT MONASTERY - Isolated monastic community
+# # ========================================================================
+# 
+# example_desert_monastery = {
+# 	
+# 	county = c_sinai  # Sinai Peninsula
+# 	
+# 	is_active = {
+# 		always = yes
+# 	}
+# 	
+# 	character_modifier = {
+# 		monthly_piety_gain_add = 0.6
+# 		stress_loss_mult = 0.25
+# 		
+# 		# Monastic isolation
+# 		hostile_scheme_resistance_add = 10
+# 		intrigue = -1  # Isolated from political intrigue
+# 		learning = 2
+# 	}
+# 	
+# 	county_modifier = {
+# 		# Desert county - limited development
+# 		levy_size = 0.05
+# 		development_growth_factor = 0.05
+# 	}
+# 	
+# 	flag = abrahamic_holy_site
+# 	flag = monastery_site
+# 	flag = isolated_site
+# }
+# 
+# # ========================================================================
+# # MOUNTAIN CHAPEL - High altitude spiritual site
+# # ========================================================================
+# 
+# example_mountain_chapel = {
+# 	
+# 	county = c_armenia  # Armenian highlands
+# 	barony = b_ani
+# 	
+# 	is_active = {
+# 		# Could check for specific terrain
+# 		# county = {
+# 		# 	any_county_province = {
+# 		# 		terrain = mountains
+# 		# 	}
+# 		# }
+# 		always = yes
+# 	}
+# 	
+# 	character_modifier = {
+# 		monthly_piety_gain_add = 0.5
+# 		
+# 		# Mountain fortress
+# 		martial = 1
+# 		defender_advantage = 5
+# 		
+# 		# Spiritual clarity
+# 		monthly_lifestyle_xp_gain_mult = 0.1
+# 	}
+# 	
+# 	county_modifier = {
+# 		garrison_size = 0.2
+# 		fort_level = 1
+# 		supply_limit_mult = -0.1  # Mountains are harsh
+# 	}
+# 	
+# 	flag = abrahamic_holy_site
+# 	flag = mountain_site
+# }
+# 
+# # ========================================================================
+# # RIVER SHRINE - Holy site at a river crossing
+# # ========================================================================
+# 
+# example_river_shrine = {
+# 	
+# 	county = c_jordan  # Jordan River region
+# 	
+# 	is_active = {
+# 		always = yes
+# 	}
+# 	
+# 	character_modifier = {
+# 		monthly_piety_gain_add = 0.4
+# 		
+# 		# Baptism site - purification themes
+# 		health = 0.15
+# 		fertility = 0.05
+# 		
+# 		# Trade crossroads
+# 		stewardship = 1
+# 	}
+# 	
+# 	county_modifier = {
+# 		development_growth_factor = 0.1
+# 		tax_mult = 0.1
+# 		
+# 		# River trade
+# 		supply_limit_mult = 0.1
+# 	}
+# 	
+# 	flag = abrahamic_holy_site
+# 	flag = river_site
+# 	flag = baptism_site
+# }
+# 
+# ############################################################################
+# # REFORMIST BRANCH HOLY SITES
+# # Unique sites for the more academic/reform-focused faith
+# ############################################################################
+# 
+# example_university_cathedral = {
+# 	
+# 	county = c_oxford  # University town
+# 	
+# 	is_active = {
+# 		always = yes
+# 	}
+# 	
+# 	character_modifier = {
+# 		monthly_piety_gain_add = 0.4
+# 		learning = 4
+# 		
+# 		# Academic prestige
+# 		monthly_lifestyle_xp_gain_mult = 0.15
+# 		cultural_head_fascination_mult = 0.1
+# 	}
+# 	
+# 	county_modifier = {
+# 		development_growth_factor = 0.2
+# 		build_speed = -0.15
+# 	}
+# 	
+# 	flag = reformist_holy_site
+# 	flag = academic_site
+# }
+# 
+# example_reform_temple = {
+# 	
+# 	county = c_wittenberg  # Site of religious reform
+# 	
+# 	is_active = {
+# 		always = yes
+# 	}
+# 	
+# 	character_modifier = {
+# 		monthly_piety_gain_add = 0.5
+# 		diplomacy = 2
+# 		
+# 		# Reform movement
+# 		different_faith_opinion = 10
+# 		same_faith_opinion = 5
+# 	}
+# 	
+# 	county_modifier = {
+# 		popular_opinion = 10
+# 		monthly_county_control_change_add = 0.2
+# 	}
+# 	
+# 	flag = reformist_holy_site
+# }
+# 
+# example_scholars_hall = {
+# 	
+# 	county = c_paris  # Major European learning center
+# 	barony = b_paris
+# 	
+# 	is_active = {
+# 		always = yes
+# 	}
+# 	
+# 	character_modifier = {
+# 		monthly_piety_gain_add = 0.35
+# 		learning = 3
+# 		stewardship = 1
+# 		
+# 		# Scholarly debates
+# 		scheme_power_add = 2
+# 	}
+# 	
+# 	county_modifier = {
+# 		development_growth_factor = 0.15
+# 		tax_mult = 0.05
+# 	}
+# 	
+# 	flag = reformist_holy_site
+# 	flag = academic_site
+# }
+# 
+# example_printing_monastery = {
+# 	
+# 	county = c_mainz  # Gutenberg's city
+# 	
+# 	is_active = {
+# 		# Could be conditional on game date
+# 		# current_date >= 1440.1.1
+# 		always = yes
+# 	}
+# 	
+# 	character_modifier = {
+# 		monthly_piety_gain_add = 0.4
+# 		learning = 2
+# 		
+# 		# Spread of ideas
+# 		monthly_prestige_gain_mult = 0.1
+# 		cultural_head_fascination_mult = 0.05
+# 	}
+# 	
+# 	county_modifier = {
+# 		development_growth_factor = 0.1
+# 		build_gold_cost = -0.05
+# 	}
+# 	
+# 	flag = reformist_holy_site
+# 	flag = printing_site
+# }
+# 
+# ############################################################################
+# # NOTES FOR MODDERS:
+# #
+# # 1. Holy sites must reference valid county titles from landed_titles
+# # 2. Barony reference is optional - defaults to county capital
+# # 3. is_active can use any valid trigger conditions
+# # 4. character_modifier applies to the county holder
+# # 5. county_modifier applies to the county itself
+# # 6. Flags can be checked with has_holy_site_flag trigger
+# # 7. Holy sites are assigned to faiths in religion definitions
+# # 8. Each faith typically has 5 holy sites
+# # 9. Controlling 3+ holy sites enables Great Holy Wars
+# #
+# # SCOPE REFERENCES IN TRIGGERS:
+# # - county = the county where the holy site is located
+# # - holder = the character who holds the county
+# # - faith = the faith this holy site belongs to
+# #
+# # COMMON MODIFIERS:
+# # - monthly_piety_gain_add: Flat piety gain
+# # - development_growth_factor: % bonus to development
+# # - tax_mult: % bonus to taxes
+# # - levy_size: % bonus to levies
+# # - Various opinion modifiers
+# #
+# # CONTROLLING HOLY SITES:
+# # - Character must hold the county (directly or through vassals)
+# # - Character must be of the faith that claims the site
+# # - Some sites may have additional is_active requirements
+# #
+# ############################################################################

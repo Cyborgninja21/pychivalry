@@ -1,0 +1,254 @@
+# # Example Holdings
+# # Demonstrates: holding type definitions, buildings, upgrades
+# 
+# example_castle_holding = {
+# 	# Holding type category
+# 	primary_building = yes
+# 	
+# 	# What governments can use this
+# 	valid_for_government = {
+# 		feudal_government
+# 		clan_government
+# 	}
+# 	
+# 	# Graphics
+# 	flag = castle_holding
+# 	
+# 	# Base production
+# 	base_tax = 4
+# 	base_levy = 400
+# 	
+# 	# Building slots
+# 	building_slots = 8
+# 	
+# 	# Requirements to construct
+# 	can_construct = {
+# 		# Usually unrestricted for primary holding
+# 		always = yes
+# 	}
+# 	
+# 	# Cost to construct
+# 	construction_cost = {
+# 		gold = 500
+# 		prestige = 100
+# 	}
+# 	
+# 	# Construction time (days)
+# 	construction_time = 365
+# 	
+# 	# Province modifier while holding exists
+# 	province_modifier = {
+# 		defender_advantage = 5
+# 	}
+# 	
+# 	# County modifier
+# 	county_modifier = {
+# 		levy_size = 0.1
+# 	}
+# 	
+# 	# AI weight
+# 	ai_weight = {
+# 		value = 100
+# 	}
+# }
+# 
+# example_city_holding = {
+# 	primary_building = yes
+# 	
+# 	valid_for_government = {
+# 		republic_government
+# 		feudal_government
+# 	}
+# 	
+# 	flag = city_holding
+# 	
+# 	base_tax = 8
+# 	base_levy = 100
+# 	
+# 	building_slots = 6
+# 	
+# 	can_construct = {
+# 		always = yes
+# 	}
+# 	
+# 	construction_cost = {
+# 		gold = 400
+# 		prestige = 50
+# 	}
+# 	
+# 	construction_time = 270
+# 	
+# 	province_modifier = {
+# 		development_growth = 0.2
+# 	}
+# 	
+# 	county_modifier = {
+# 		tax_mult = 0.15
+# 	}
+# 	
+# 	ai_weight = {
+# 		value = 80
+# 	}
+# }
+# 
+# example_temple_holding = {
+# 	primary_building = yes
+# 	
+# 	valid_for_government = {
+# 		theocracy_government
+# 	}
+# 	
+# 	flag = church_holding
+# 	
+# 	base_tax = 6
+# 	base_levy = 150
+# 	
+# 	building_slots = 5
+# 	
+# 	can_construct = {
+# 		always = yes
+# 	}
+# 	
+# 	construction_cost = {
+# 		gold = 350
+# 		piety = 100
+# 	}
+# 	
+# 	construction_time = 300
+# 	
+# 	province_modifier = {
+# 		# Faster conversion
+# 	}
+# 	
+# 	county_modifier = {
+# 		monthly_county_control_growth_add = 0.1
+# 	}
+# 	
+# 	ai_weight = {
+# 		value = 60
+# 	}
+# }
+# 
+# example_tribal_holding = {
+# 	primary_building = yes
+# 	
+# 	valid_for_government = {
+# 		tribal_government
+# 	}
+# 	
+# 	flag = tribal_holding
+# 	
+# 	base_tax = 1
+# 	base_levy = 600
+# 	
+# 	building_slots = 4
+# 	
+# 	can_construct = {
+# 		always = yes
+# 	}
+# 	
+# 	construction_cost = {
+# 		gold = 100
+# 		prestige = 200
+# 	}
+# 	
+# 	construction_time = 180
+# 	
+# 	province_modifier = {
+# 		supply_limit_mult = 0.1
+# 	}
+# 	
+# 	county_modifier = {
+# 		levy_reinforcement_rate = 0.1
+# 	}
+# 	
+# 	# Can be upgraded to castle
+# 	can_upgrade_to = {
+# 		example_castle_holding
+# 	}
+# 	
+# 	upgrade_cost = {
+# 		gold = 300
+# 		prestige = 100
+# 	}
+# 	
+# 	ai_weight = {
+# 		value = 90
+# 	}
+# }
+# 
+# ### SPECIAL HOLDINGS ###
+# 
+# example_special_fortress = {
+# 	primary_building = no
+# 	special_building = yes
+# 	
+# 	flag = special_fortress
+# 	
+# 	# Only in certain provinces
+# 	can_construct = {
+# 		OR = {
+# 			terrain = mountains
+# 			terrain = hills
+# 		}
+# 	}
+# 	
+# 	construction_cost = {
+# 		gold = 1000
+# 		prestige = 300
+# 	}
+# 	
+# 	construction_time = 730
+# 	
+# 	province_modifier = {
+# 		defender_advantage = 15
+# 		fort_level = 3
+# 		garrison_size = 0.5
+# 	}
+# 	
+# 	county_modifier = {
+# 		levy_size = 0.2
+# 	}
+# 	
+# 	# Character modifier for holder
+# 	owner_modifier = {
+# 		monthly_prestige = 0.5
+# 		martial = 1
+# 	}
+# }
+# 
+# example_grand_temple = {
+# 	primary_building = no
+# 	special_building = yes
+# 	
+# 	flag = grand_temple
+# 	
+# 	can_construct = {
+# 		holder = {
+# 			faith = {
+# 				has_holy_site = root.province
+# 			}
+# 		}
+# 	}
+# 	
+# 	construction_cost = {
+# 		gold = 1500
+# 		piety = 500
+# 	}
+# 	
+# 	construction_time = 1095
+# 	
+# 	province_modifier = {
+# 		development_growth = 0.1
+# 	}
+# 	
+# 	county_modifier = {
+# 		monthly_county_control_growth_add = 0.2
+# 	}
+# 	
+# 	owner_modifier = {
+# 		monthly_piety = 1.0
+# 		clergy_opinion = 20
+# 		learning = 2
+# 	}
+# }

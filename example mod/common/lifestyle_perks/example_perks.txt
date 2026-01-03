@@ -1,106 +1,106 @@
-############################################################
-# PYCHIVALRY EXAMPLE LIFESTYLE PERKS
-# Custom perks for lifestyle trees
-############################################################
-
-##################################################
-# Perk Tree: Scholar's Path (Learning Extension)
-##################################################
-
-# Perk: Ancient Knowledge
-example_ancient_knowledge_perk = {
-	lifestyle = learning_lifestyle
-	
-	# Position in perk tree
-	tree = medicine
-	position = { 0 0 }
-	
-	# What it does
-	character_modifier = {
-		learning = 2
-		monthly_learning_lifestyle_xp_gain_mult = 0.05
-	}
-	
-	# Cost
-	effect = {
-		# Immediate effect on unlock
-		add_piety = 100
-	}
-}
-
-# Perk: Keeper of Secrets
-example_keeper_of_secrets_perk = {
-	lifestyle = intrigue_lifestyle
-	
-	tree = schemer
-	position = { 1 1 }
-	
-	# Prerequisite perk (would reference vanilla perk)
-	# parent = truth_is_relative_perk
-	
-	character_modifier = {
-		intrigue = 2
-		scheme_secrecy_add = 5
-		dread_baseline_add = 5
-	}
-	
-	effect = {
-		# Can discover secrets more easily
-		add_character_flag = enhanced_secret_discovery
-	}
-}
-
-# Perk: Battle Commander
-example_battle_commander_perk = {
-	lifestyle = martial_lifestyle
-	
-	tree = strategist
-	position = { 2 0 }
-	
-	character_modifier = {
-		martial = 3
-		advantage = 3
-		prowess = 2
-	}
-	
-	effect = {
-		add_prestige = 200
-		add_dread = 10
-	}
-}
-
-# Perk: Master Negotiator
-example_master_negotiator_perk = {
-	lifestyle = diplomacy_lifestyle
-	
-	tree = family_hierarch
-	position = { 0 2 }
-	
-	character_modifier = {
-		diplomacy = 3
-		general_opinion = 10
-		vassal_opinion = 5
-	}
-	
-	effect = {
-		add_prestige = 150
-	}
-}
-
-# Perk: Efficient Administrator
-example_efficient_admin_perk = {
-	lifestyle = stewardship_lifestyle
-	
-	tree = architect
-	position = { 1 0 }
-	
-	character_modifier = {
-		stewardship = 2
-		domain_limit = 1
-		monthly_income_mult = 0.05
-	}
-	
-	effect = {
-		add_gold = 200
-	}
-}
+# ############################################################
+# # PYCHIVALRY EXAMPLE LIFESTYLE PERKS
+# # Custom perks for lifestyle trees
+# ############################################################
+# 
+# ##################################################
+# # Perk Tree: Scholar's Path (Learning Extension)
+# ##################################################
+# 
+# # Perk: Ancient Knowledge
+# example_ancient_knowledge_perk = {
+# 	lifestyle = learning_lifestyle
+# 	
+# 	# Position in perk tree
+# 	tree = medicine
+# 	position = { 0 0 }
+# 	
+# 	# What it does
+# 	character_modifier = {
+# 		learning = 2
+# 		monthly_learning_lifestyle_xp_gain_mult = 0.05
+# 	}
+# 	
+# 	# Cost
+# 	effect = {
+# 		# Immediate effect on unlock
+# 		add_piety = 100
+# 	}
+# }
+# 
+# # Perk: Keeper of Secrets
+# example_keeper_of_secrets_perk = {
+# 	lifestyle = intrigue_lifestyle
+# 	
+# 	tree = schemer
+# 	position = { 1 1 }
+# 	
+# 	# Prerequisite perk (would reference vanilla perk)
+# 	# parent = truth_is_relative_perk
+# 	
+# 	character_modifier = {
+# 		intrigue = 2
+# 		scheme_secrecy_add = 5
+# 		dread_baseline_add = 5
+# 	}
+# 	
+# 	effect = {
+# 		# Can discover secrets more easily
+# 		add_character_flag = enhanced_secret_discovery
+# 	}
+# }
+# 
+# # Perk: Battle Commander
+# example_battle_commander_perk = {
+# 	lifestyle = martial_lifestyle
+# 	
+# 	tree = strategist
+# 	position = { 2 0 }
+# 	
+# 	character_modifier = {
+# 		martial = 3
+# 		advantage = 3
+# 		prowess = 2
+# 	}
+# 	
+# 	effect = {
+# 		add_prestige = 200
+# 		add_dread = 10
+# 	}
+# }
+# 
+# # Perk: Master Negotiator
+# example_master_negotiator_perk = {
+# 	lifestyle = diplomacy_lifestyle
+# 	
+# 	tree = family_hierarch
+# 	position = { 0 2 }
+# 	
+# 	character_modifier = {
+# 		diplomacy = 3
+# 		general_opinion = 10
+# 		vassal_opinion = 5
+# 	}
+# 	
+# 	effect = {
+# 		add_prestige = 150
+# 	}
+# }
+# 
+# # Perk: Efficient Administrator
+# example_efficient_admin_perk = {
+# 	lifestyle = stewardship_lifestyle
+# 	
+# 	tree = architect
+# 	position = { 1 0 }
+# 	
+# 	character_modifier = {
+# 		stewardship = 2
+# 		domain_limit = 1
+# 		monthly_income_mult = 0.05
+# 	}
+# 	
+# 	effect = {
+# 		add_gold = 200
+# 	}
+# }
