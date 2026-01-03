@@ -113,7 +113,7 @@ PERFORMANCE OPTIMIZATIONS:
     2. **Incremental Parsing**: Only reparse changed regions
     3. **Debouncing**: Delay validation 200ms after typing
     4. **Lazy Evaluation**: Resolve code lenses on-demand
-    5. **Parallel Processing**: Use ThreadPoolExecutor for workspace scan
+    5. **Parallel Processing**: Use pygls thread pool for CPU-bound work
     6. **Incremental Index**: Update index incrementally, not full rebuild
     
     Typical response times:
@@ -188,11 +188,9 @@ SEE ALSO:
 import asyncio
 import hashlib
 import logging
-import os
 import threading
 import uuid
 from collections import OrderedDict
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Dict, List, Optional, Any, Set, Tuple
 
 # Import the LanguageServer class from pygls
@@ -328,12 +326,6 @@ class CK3LanguageServer(LanguageServer):
         # =====================================================================
         # Threading Infrastructure
         # =====================================================================
-
-        # Thread pool for CPU-bound operations (parsing, diagnostics, etc.)
-        # Use 2-4 workers to balance parallelism without overwhelming the system
-        self._thread_pool = ThreadPoolExecutor(
-            max_workers=min(4, (os.cpu_count() or 1) + 1), thread_name_prefix="ck3-worker"
-        )
 
         # Thread-safety locks for shared data structures
         self._ast_lock = threading.RLock()  # Protects document_asts
@@ -871,10 +863,7 @@ class CK3LanguageServer(LanguageServer):
                     return
 
                 # Try to get AST from content hash cache first
-                loop = asyncio.get_event_loop()
-                ast = await loop.run_in_executor(
-                    self._thread_pool, self.get_or_parse_ast, current_source
-                )
+                ast = await asyncio.to_thread(self.get_or_parse_ast, current_source)
 
                 # Check again if still current before updating
                 if self.get_document_version(uri) != version:
@@ -892,8 +881,7 @@ class CK3LanguageServer(LanguageServer):
                 # Streaming Diagnostics (Tier 3 Optimization)
                 # =========================================================
                 # Phase 1: Publish syntax errors immediately for fast feedback
-                syntax_diags = await loop.run_in_executor(
-                    self._thread_pool,
+                syntax_diags = await asyncio.to_thread(
                     self._collect_syntax_diagnostics_sync,
                     uri,
                     current_source,
@@ -914,8 +902,8 @@ class CK3LanguageServer(LanguageServer):
                 )
 
                 # Phase 2: Run semantic analysis in background
-                semantic_diags = await loop.run_in_executor(
-                    self._thread_pool, self._collect_semantic_diagnostics_sync, uri, ast
+                semantic_diags = await asyncio.to_thread(
+                    self._collect_semantic_diagnostics_sync, uri, ast
                 )
 
                 # Check again before final publish
@@ -1037,9 +1025,8 @@ class CK3LanguageServer(LanguageServer):
         """
         Clean shutdown of server resources.
 
-        This method:
-        1. Cancels all pending document updates
-        2. Shuts down the thread pool gracefully
+        Cancels all pending document updates and clears internal state.
+        Note: Thread pool is managed by pygls and does not require explicit shutdown.
         """
         logger.info("Shutting down CK3 Language Server...")
 
@@ -1049,10 +1036,7 @@ class CK3LanguageServer(LanguageServer):
             logger.debug(f"Cancelled pending update for {uri}")
 
         self._pending_updates.clear()
-
-        # Shutdown thread pool
-        self._thread_pool.shutdown(wait=True, cancel_futures=True)
-        logger.info("Thread pool shut down")
+        logger.info("Shutdown complete")
 
     # =====================================================================
     # Workspace Scanning with Progress
@@ -1094,14 +1078,15 @@ class CK3LanguageServer(LanguageServer):
                 logger.info(f"Scanning {folder_count} workspace folder(s): {workspace_folders}")
 
                 # Perform the actual scan in thread pool with lock
-                # Pass the executor for parallel scanning (2-4x faster)
-                loop = asyncio.get_event_loop()
-
+                # Use sequential scanning (executor=None) for simplicity
+                # Note: Sequential scanning is slower but simpler. If performance
+                # becomes an issue, consider implementing parallel scanning with
+                # asyncio.gather() and asyncio.to_thread() for individual files.
                 def scan_with_lock():
                     with self._index_lock:
-                        self.index.scan_workspace(workspace_folders, executor=self._thread_pool)
+                        self.index.scan_workspace(workspace_folders, executor=None)
 
-                await loop.run_in_executor(self._thread_pool, scan_with_lock)
+                await asyncio.to_thread(scan_with_lock)
 
                 # Notify user of scan results (thread-safe access)
                 with self._index_lock:
@@ -2801,14 +2786,12 @@ async def validate_workspace_command(ls: CK3LanguageServer, *args: Any):
                     workspace_folders.append(folder_uri)
 
         if workspace_folders:
-            loop = asyncio.get_event_loop()
-
             # Run scan in thread pool with thread-safe index access
             def scan_with_lock():
                 with ls._index_lock:
                     ls.index.scan_workspace(workspace_folders)
 
-            await loop.run_in_executor(ls._thread_pool, scan_with_lock)
+            await asyncio.to_thread(scan_with_lock)
 
         ls._workspace_scanned = True
 
