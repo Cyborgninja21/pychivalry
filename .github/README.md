@@ -71,11 +71,23 @@ Custom prompt files for specialized tasks:
 - `gh run rerun.prompt.md` - Re-running failed workflows
 - `gh release delete.prompt.md` - Release management
 
+#### LSP Development Guides
+- `LSP Feature Implementation.prompt.md` - Step-by-step guide for implementing new LSP features
+- `Debugging LSP Server Issues.prompt.md` - Comprehensive LSP server troubleshooting guide
+- `Adding New CK3 Language Features.prompt.md` - Guide for adding CK3 effects, triggers, and scopes
+- `Test Writing Best Practices.prompt.md` - Patterns and guidelines for pytest tests
+- `VS Code Extension Packaging.prompt.md` - Complete extension packaging and distribution guide
+
 ### 3. `skills/` Directory
 
 Specialized skills for common tasks:
 - `github-actions-failure-debugging` - Step-by-step CI/CD debugging workflow
 - `tool-list.md` - Comprehensive list of development tools and their usage
+- `lsp-feature-debugging` - Debugging LSP features (completions, hover, diagnostics)
+- `pytest-testing-patterns` - Effective pytest patterns for language server testing
+- `vscode-extension-workflow` - VS Code extension development workflow and debugging
+- `ck3-validation-debugging` - Debugging CK3 script validation issues
+- `lsp-performance-optimization` - Performance profiling and optimization for LSP servers
 
 ## 🚀 How to Use
 

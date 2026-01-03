@@ -1,0 +1,393 @@
+---
+name: lsp-performance-optimization
+description: Guide for optimizing language server performance. Use when the LSP server is slow, uses too much memory, or causes VS Code to lag.
+---
+
+# LSP Performance Optimization
+
+## Performance Bottlenecks
+
+Common performance issues in language servers:
+1. **Slow parsing** - Complex grammar or large files
+2. **Validation overhead** - Too many validators running
+3. **Memory leaks** - Documents not released
+4. **Indexing delays** - Scanning too many files
+5. **Synchronous operations** - Blocking the event loop
+
+## Profiling the Language Server
+
+### 1. CPU Profiling
+
+```python
+import cProfile
+import pstats
+from pychivalry.server import main
+
+profiler = cProfile.Profile()
+profiler.enable()
+
+# Run server for a session
+main()
+
+profiler.disable()
+stats = pstats.Stats(profiler)
+stats.sort_stats('cumulative')
+stats.print_stats(30)  # Top 30 functions
+```
+
+### 2. Memory Profiling
+
+```python
+from memory_profiler import profile
+
+@profile
+def heavy_function():
+    # Function to profile
+    pass
+```
+
+Run with: `python -m memory_profiler script.py`
+
+### 3. Line-by-Line Profiling
+
+```python
+from line_profiler import LineProfiler
+
+profiler = LineProfiler()
+profiler.add_function(function_to_profile)
+profiler.enable()
+# Run code
+profiler.disable()
+profiler.print_stats()
+```
+
+## Optimization Strategies
+
+### 1. Cache Parser Results
+
+**Problem:** Re-parsing unchanged documents
+
+**Solution:** Cache AST with document version
+
+```python
+class DocumentCache:
+    def __init__(self):
+        self._cache = {}  # uri -> (version, ast)
+    
+    def get(self, uri: str, version: int):
+        if uri in self._cache:
+            cached_version, ast = self._cache[uri]
+            if cached_version == version:
+                return ast
+        return None
+    
+    def set(self, uri: str, version: int, ast):
+        self._cache[uri] = (version, ast)
+```
+
+### 2. Incremental Parsing
+
+**Problem:** Full re-parse on every change
+
+**Solution:** Parse only changed regions
+
+```python
+def incremental_parse(old_ast, change_range, new_text):
+    # Identify affected nodes
+    affected = find_nodes_in_range(old_ast, change_range)
+    
+    # Re-parse only affected subtree
+    new_subtree = parse_text(new_text)
+    
+    # Replace in AST
+    replace_subtree(old_ast, affected, new_subtree)
+    
+    return old_ast
+```
+
+### 3. Lazy Validation
+
+**Problem:** All validators run on every change
+
+**Solution:** Debounce and prioritize validation
+
+```python
+import asyncio
+from typing import Callable
+
+class DebounceValidator:
+    def __init__(self, delay: float = 0.5):
+        self.delay = delay
+        self._task = None
+    
+    async def debounce_validate(self, validate_fn: Callable):
+        if self._task:
+            self._task.cancel()
+        
+        async def delayed():
+            await asyncio.sleep(self.delay)
+            await validate_fn()
+        
+        self._task = asyncio.create_task(delayed())
+```
+
+### 4. Background Indexing
+
+**Problem:** Indexing blocks main thread
+
+**Solution:** Index in background with progress
+
+```python
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
+
+class BackgroundIndexer:
+    def __init__(self):
+        self.executor = ThreadPoolExecutor(max_workers=2)
+    
+    async def index_workspace(self, workspace_path):
+        loop = asyncio.get_event_loop()
+        
+        # Run in thread pool
+        await loop.run_in_executor(
+            self.executor,
+            self._index_files,
+            workspace_path
+        )
+    
+    def _index_files(self, workspace_path):
+        # Heavy indexing work
+        pass
+```
+
+### 5. Limit Scope of Operations
+
+**Problem:** Processing entire workspace on every request
+
+**Solution:** Process only relevant files
+
+```python
+def find_references(symbol, workspace):
+    # Bad: Search all files
+    # for file in workspace.all_files:
+    #     search_file(file, symbol)
+    
+    # Good: Search only likely locations
+    candidates = workspace.index.get_files_with_symbol(symbol)
+    for file in candidates:
+        search_file(file, symbol)
+```
+
+### 6. Optimize Data Structures
+
+**Problem:** Slow lookups in large dictionaries
+
+**Solution:** Use appropriate data structures
+
+```python
+# Bad: List for many lookups
+traits = ["brave", "craven", ...]  # O(n) lookup
+
+# Good: Set for membership testing
+traits = {"brave", "craven", ...}  # O(1) lookup
+
+# Good: Trie for prefix matching
+class Trie:
+    def __init__(self):
+        self.root = {}
+    
+    def add(self, word):
+        node = self.root
+        for char in word:
+            node = node.setdefault(char, {})
+        node['$'] = True
+    
+    def search_prefix(self, prefix):
+        node = self.root
+        for char in prefix:
+            if char not in node:
+                return []
+            node = node[char]
+        return self._collect_words(node, prefix)
+```
+
+### 7. Batch Document Updates
+
+**Problem:** Many small document updates
+
+**Solution:** Batch changes and process once
+
+```python
+class BatchProcessor:
+    def __init__(self, batch_size=10, timeout=1.0):
+        self.batch_size = batch_size
+        self.timeout = timeout
+        self.pending = []
+        self._task = None
+    
+    async def add(self, item):
+        self.pending.append(item)
+        
+        if len(self.pending) >= self.batch_size:
+            await self._process_batch()
+        elif not self._task:
+            self._task = asyncio.create_task(self._wait_and_process())
+    
+    async def _wait_and_process(self):
+        await asyncio.sleep(self.timeout)
+        await self._process_batch()
+    
+    async def _process_batch(self):
+        if self.pending:
+            batch = self.pending[:]
+            self.pending.clear()
+            await process(batch)
+        self._task = None
+```
+
+### 8. Stream Large Results
+
+**Problem:** Returning huge completion lists
+
+**Solution:** Paginate or stream results
+
+```python
+async def get_completions(position, limit=100):
+    all_items = compute_all_completions(position)
+    
+    # Return top N most relevant
+    scored = score_completions(all_items, position)
+    return sorted(scored, reverse=True)[:limit]
+```
+
+## Memory Optimization
+
+### 1. Release Document Cache
+
+```python
+class DocumentManager:
+    def __init__(self, max_cache_size=50):
+        self.max_cache_size = max_cache_size
+        self.cache = OrderedDict()
+    
+    def add(self, uri, document):
+        if len(self.cache) >= self.max_cache_size:
+            self.cache.popitem(last=False)  # LRU eviction
+        self.cache[uri] = document
+```
+
+### 2. Use Weak References for Cross-References
+
+```python
+import weakref
+
+class Symbol:
+    def __init__(self):
+        self.references = []  # Strong refs
+    
+    def add_weak_reference(self, ref):
+        self.references.append(weakref.ref(ref))
+    
+    def get_references(self):
+        return [r() for r in self.references if r() is not None]
+```
+
+### 3. Avoid Storing Full Text
+
+```python
+# Bad: Store entire document
+class Document:
+    def __init__(self, text):
+        self.text = text  # Could be megabytes
+        self.lines = text.split('\n')
+
+# Good: Store only metadata
+class Document:
+    def __init__(self, uri):
+        self.uri = uri
+        self.version = 0
+        self.ast = None  # Parsed structure, not text
+```
+
+## Monitoring Performance
+
+### Add Performance Metrics
+
+```python
+import time
+from functools import wraps
+
+def measure_time(func):
+    @wraps(func)
+    async def wrapper(*args, **kwargs):
+        start = time.perf_counter()
+        result = await func(*args, **kwargs)
+        elapsed = time.perf_counter() - start
+        
+        if elapsed > 0.1:  # Log slow operations
+            logger.warning(f"{func.__name__} took {elapsed:.3f}s")
+        
+        return result
+    return wrapper
+
+@measure_time
+async def completion_handler(params):
+    # Implementation
+    pass
+```
+
+### Track Memory Usage
+
+```python
+import psutil
+import os
+
+def get_memory_usage():
+    process = psutil.Process(os.getpid())
+    return process.memory_info().rss / 1024 / 1024  # MB
+
+# Log periodically
+async def memory_monitor():
+    while True:
+        await asyncio.sleep(60)  # Every minute
+        mem = get_memory_usage()
+        logger.info(f"Memory usage: {mem:.1f} MB")
+```
+
+## Performance Testing
+
+```python
+import pytest
+import time
+
+def test_completion_performance(benchmark):
+    """Ensure completions are fast enough."""
+    def run_completion():
+        return get_completions(sample_document, line=10, char=5)
+    
+    result = benchmark(run_completion)
+    assert len(result) > 0
+
+@pytest.mark.performance
+def test_parse_large_file():
+    """Test parsing performance on large file."""
+    large_file = "has_trait = brave\n" * 10000
+    
+    start = time.perf_counter()
+    ast = parser.parse_text(large_file)
+    elapsed = time.perf_counter() - start
+    
+    assert elapsed < 1.0  # Should complete in < 1 second
+    assert ast is not None
+```
+
+## Quick Wins Checklist
+
+- [ ] Enable AST caching
+- [ ] Debounce validation (500ms delay)
+- [ ] Limit completion results (100 items)
+- [ ] Index only workspace files, not dependencies
+- [ ] Use sets for lookups instead of lists
+- [ ] Release documents when closed
+- [ ] Profile to find actual bottlenecks
+- [ ] Add performance tests
