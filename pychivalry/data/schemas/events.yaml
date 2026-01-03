@@ -230,3 +230,66 @@ validations:
   - name: empty_event
     condition: "children.count == 0"
     diagnostic: CK3767
+
+# ============ COMPLETIONS & HOVER ============
+# Field documentation for completions and hover features
+field_docs:
+  type:
+    description: "Event type determines display style and available features"
+    detail: "Required - character_event, letter_event, etc."
+    snippet: "type = ${1|character_event,letter_event,court_event,duel_event,feast_event,story_cycle|}"
+    
+  title:
+    description: "Localization key for the event title displayed at the top"
+    detail: "Required localization reference"
+    snippet: "title = ${1:namespace.XXXX.t}"
+    
+  desc:
+    description: "Event description text or triggered_desc block"
+    detail: "Localization key or block with triggered_desc"
+    snippet: "desc = ${1:namespace.XXXX.desc}"
+    
+  sender:
+    description: "Character who sends the letter (letter_event only)"
+    detail: "Required for letter_event - scope reference"
+    snippet: "sender = ${1:scope:actor}"
+    
+  theme:
+    description: "Visual theme affecting event window appearance"
+    detail: "Optional - affects background and styling"
+    snippet: "theme = ${1|default,diplomacy,intrigue,martial,stewardship,learning|}"
+    
+  hidden:
+    description: "If yes, event fires silently without popup"
+    detail: "Optional - defaults to no"
+    snippet: "hidden = ${1|yes,no|}"
+    
+  immediate:
+    description: "Effects that run immediately when event fires, before options shown"
+    detail: "Effect block - runs before player sees event"
+    snippet: "immediate = {\n\t$0\n}"
+    
+  after:
+    description: "Effects that run after player selects an option"
+    detail: "Effect block - runs after option selection"
+    snippet: "after = {\n\t$0\n}"
+    
+  trigger:
+    description: "Conditions required for event to fire"
+    detail: "Trigger block - all conditions must be true"
+    snippet: "trigger = {\n\t$0\n}"
+    
+  option:
+    description: "Player choice option with effects"
+    detail: "Required unless hidden - at least one option"
+    snippet: "option = {\n\tname = ${1:namespace.XXXX.a}\n\t$0\n}"
+    
+  left_portrait:
+    description: "Character portrait on the left side of event window"
+    detail: "Portrait configuration block"
+    snippet: "left_portrait = {\n\tcharacter = ${1:root}\n\t$0\n}"
+    
+  right_portrait:
+    description: "Character portrait on the right side of event window"
+    detail: "Portrait configuration block"
+    snippet: "right_portrait = {\n\tcharacter = ${1:scope:actor}\n\t$0\n}"
