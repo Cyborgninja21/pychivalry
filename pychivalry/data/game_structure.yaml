@@ -1,0 +1,1051 @@
+# CK3 Game Folder Structure Registry
+# This file documents the folder structure of Crusader Kings III
+# Used for: mod initialization, path validation, schema selection, documentation
+#
+# Fields:
+#   description: Human-readable purpose of the folder
+#   moddable: Whether mods typically add/override files here
+#   file_patterns: Expected file extensions/patterns
+#   schema: Associated validation schema (if any)
+#   load_order: How files are loaded (alphabetical, explicit, etc.)
+#   children: Nested subfolders
+
+metadata:
+  game: "Crusader Kings III"
+  version: "1.x"
+  source: "base game analysis"
+  last_updated: "2026-01-03"
+
+folders:
+  events:
+    description: "Event scripts - narrative events triggered by game conditions"
+    moddable: true
+    file_patterns: [ "*.txt" ]
+    schema: "events.yaml"
+    load_order: "alphabetical"
+    children:
+      activities:
+        description: "Events related to activities (feasts, hunts, pilgrimages, etc.)"
+        moddable: true
+        children:
+          chariot_race_activity:
+            description: "Chariot racing activity events"
+            moddable: true
+          coronation_activity:
+            description: "Coronation ceremony events"
+            moddable: true
+          debate_activity:
+            description: "Scholarly debate events"
+            moddable: true
+          feast_activity:
+            description: "Feast activity events"
+            moddable: true
+            children:
+              main_events:
+                description: "Primary feast event chain"
+                moddable: true
+          festival_activity:
+            description: "Festival celebration events"
+            moddable: true
+          funeral_activity:
+            description: "Funeral ceremony events"
+            moddable: true
+          hunt_activity:
+            description: "Hunting activity events"
+            moddable: true
+          petition_liege_activity:
+            description: "Petition liege activity events"
+            moddable: true
+          pilgrimage_activity:
+            description: "Religious pilgrimage events"
+            moddable: true
+          playdate_activity:
+            description: "Child playdate events"
+            moddable: true
+
+      artifacts:
+        description: "Artifact-related events (creation, discovery, etc.)"
+        moddable: true
+
+      councillor_task_events:
+        description: "Events for council task assignments"
+        moddable: true
+        children:
+          councillor_spouse_events:
+            description: "Events involving councillor spouses"
+            moddable: true
+
+      courtier_guest_management_events:
+        description: "Events for managing courtiers and guests"
+        moddable: true
+
+      court_events:
+        description: "General court-related events"
+        moddable: true
+
+      culture_events:
+        description: "Culture formation and change events"
+        moddable: true
+
+      death_events:
+        description: "Events related to character death"
+        moddable: true
+
+      decisions_events:
+        description: "Events triggered by player decisions"
+        moddable: true
+
+      education_and_childhood:
+        description: "Child education and coming-of-age events"
+        moddable: true
+
+      factions:
+        description: "Faction formation and civil war events"
+        moddable: true
+
+      government_events:
+        description: "Government type-specific events"
+        moddable: true
+
+      interaction_events:
+        description: "Character interaction follow-up events"
+        moddable: true
+
+      legacy_events:
+        description: "Dynasty legacy unlock events"
+        moddable: true
+
+      lifestyles:
+        description: "Lifestyle perk and focus events"
+        moddable: true
+        children:
+          governance_lifestyle:
+            description: "Stewardship lifestyle events"
+            moddable: true
+          intrigue_lifestyle:
+            description: "Intrigue lifestyle events"
+            moddable: true
+          scholarship_lifestyle:
+            description: "Learning lifestyle events"
+            moddable: true
+          statecraft_lifestyle:
+            description: "Diplomacy lifestyle events"
+            moddable: true
+          warfare_lifestyle:
+            description: "Martial lifestyle events"
+            moddable: true
+
+      nickname_events:
+        description: "Events that grant character nicknames"
+        moddable: true
+
+      prison_events:
+        description: "Imprisonment and dungeon events"
+        moddable: true
+
+      relations_events:
+        description: "Character relationship events"
+        moddable: true
+
+      religion_events:
+        description: "Religious conversion and faith events"
+        moddable: true
+
+      scheme_events:
+        description: "Scheme-related events organized by scheme type"
+        moddable: true
+        children:
+          abduct_scheme:
+            description: "Abduction scheme events"
+            moddable: true
+          befriend_scheme:
+            description: "Befriend scheme events"
+            moddable: true
+          claim_throne_scheme:
+            description: "Claim throne scheme events"
+            moddable: true
+          court_scheme:
+            description: "Court intrigue scheme events"
+            moddable: true
+          elope_scheme:
+            description: "Elopement scheme events"
+            moddable: true
+          fabricate_hook_scheme:
+            description: "Fabricate hook scheme events"
+            moddable: true
+          learn_language_scheme:
+            description: "Language learning scheme events"
+            moddable: true
+          murder_scheme:
+            description: "Murder scheme events"
+            moddable: true
+          seduce_scheme:
+            description: "Seduction scheme events"
+            moddable: true
+          steal_back_artifact_scheme:
+            description: "Artifact theft scheme events"
+            moddable: true
+          steal_herd_scheme:
+            description: "Herd stealing scheme events"
+            moddable: true
+          sway_scheme:
+            description: "Sway opinion scheme events"
+            moddable: true
+
+      secret_events:
+        description: "Secret revelation and discovery events"
+        moddable: true
+
+      story_cycles:
+        description: "Multi-event story arc chains"
+        moddable: true
+        children:
+          murders_at_court:
+            description: "Murder mystery story cycle"
+            moddable: true
+          peasant_affair:
+            description: "Peasant romance story cycle"
+            moddable: true
+
+      stress_events:
+        description: "Mental break and stress coping events"
+        moddable: true
+
+      trait_specific_events:
+        description: "Events triggered by specific traits"
+        moddable: true
+
+      travel_events:
+        description: "Travel and journey events"
+        moddable: true
+
+      war_events:
+        description: "Warfare and battle events"
+        moddable: true
+
+      yearly_events:
+        description: "Annual pulse events"
+        moddable: true
+
+  gfx:
+    description: "Graphics assets - icons, UI elements, portraits, map visuals"
+    moddable: true
+    file_patterns: [ "*.dds", "*.png", "*.mesh", "*.asset", "*.anim", "*.txt", "*.particle2", "*.shader", "*.fxh", "*.bk2", "*.tga", "*.cur", "*.skin" ]
+    children:
+      coat_of_arms:
+        description: "Coat of arms emblems, patterns, and color palettes"
+        moddable: true
+      compound_nodes:
+        description: "UI component node definitions"
+        moddable: true
+      court_scene:
+        description: "Royal Court 3D scene definitions"
+        moddable: true
+      cursors:
+        description: "Mouse cursor graphics"
+        moddable: true
+      fonts:
+        description: "Font definition files"
+        moddable: true
+      FX:
+        description: "Shader and visual effects"
+        moddable: true
+      interface:
+        description: "UI icons, buttons, illustrations, and visual elements"
+        moddable: true
+      lines:
+        description: "Connection line graphics"
+        moddable: true
+      map:
+        description: "Map visuals, terrain textures, borders"
+        moddable: true
+      models:
+        description: "3D models for portraits, units, artifacts"
+        moddable: true
+      particles:
+        description: "Particle effect definitions"
+        moddable: true
+      portraits:
+        description: "Portrait system - accessories, cameras, animations"
+        moddable: true
+      skins:
+        description: "HUD skin customization"
+        moddable: true
+
+  gui:
+    description: "User interface definitions - windows, widgets, layouts"
+    moddable: true
+    file_patterns: [ "*.gui", "*.txt" ]
+    children:
+      activity_locale_widgets:
+        description: "Locale-specific widgets for activities"
+        moddable: true
+      activity_window_widgets:
+        description: "UI widgets for activity windows"
+        moddable: true
+      decision_view_widgets:
+        description: "Widgets for decision view interfaces"
+        moddable: true
+      event_window_widgets:
+        description: "Reusable widgets for event windows"
+        moddable: true
+      event_windows:
+        description: "Event window layouts and definitions"
+        moddable: true
+      POPS:
+        description: "Portrait and character display UI"
+        moddable: true
+      scripted_widgets:
+        description: "Reusable scripted widget definitions"
+        moddable: true
+      shared:
+        description: "Shared UI components used across multiple windows"
+        moddable: true
+
+  map_data:
+    description: "Map definitions - geographical regions, terrain"
+    moddable: true
+    file_patterns: [ "*.txt", "*.csv", "*.png", "*.dat", "*.heightmap", "*.map" ]
+    children:
+      geographical_regions:
+        description: "Map region definitions for territorial groupings"
+        moddable: true
+
+  music:
+    description: "Music playlists and configuration"
+    moddable: true
+    file_patterns: [ "*.txt", "*.asset" ]
+    children:
+      in_game:
+        description: "In-game music tracks and playlists"
+        moddable: true
+      main_themes:
+        description: "Main menu theme music"
+        moddable: true
+      music_player_categories:
+        description: "Music player category definitions"
+        moddable: true
+
+  sound:
+    description: "Sound effects and audio banks"
+    moddable: true
+    file_patterns: [ "*.bank", "*.txt", "*.asset" ]
+    children:
+      banks:
+        description: "FMOD sound bank files"
+        moddable: true
+      map:
+        description: "Map-related ambient sounds"
+        moddable: true
+        children:
+          ambience:
+            description: "Ambient sound effects"
+            moddable: true
+
+  common:
+    description: "Core game definitions - traits, decisions, cultures, religions, governments, etc."
+    moddable: true
+    file_patterns: [ "*.txt", "*.json" ]
+    load_order: "alphabetical"
+    children:
+      # Accolades & Knights
+      accolade_icons:
+        description: "Knight accolade icon definitions"
+        moddable: true
+      accolade_names:
+        description: "Knight accolade naming rules"
+        moddable: true
+      accolade_types:
+        description: "Knight accolade type definitions"
+        moddable: true
+
+      # Activities
+      activities:
+        description: "Activity type definitions (feasts, hunts, etc.)"
+        moddable: true
+        children:
+          activity_group_types:
+            description: "Activity group type definitions"
+            moddable: true
+          activity_locales:
+            description: "Activity locale definitions"
+            moddable: true
+          activity_types:
+            description: "Individual activity type definitions"
+            moddable: true
+          guest_invite_rules:
+            description: "Guest invitation rule definitions"
+            moddable: true
+          intents:
+            description: "Activity intent definitions"
+            moddable: true
+          pulse_actions:
+            description: "Activity pulse action definitions"
+            moddable: true
+
+      # AI
+      ai_goaltypes:
+        description: "AI goal priority definitions"
+        moddable: true
+      ai_war_stances:
+        description: "AI war behavior settings"
+        moddable: true
+
+      # Artifacts
+      artifacts:
+        description: "Artifact system definitions"
+        moddable: true
+        children:
+          blueprints:
+            description: "Artifact blueprint definitions"
+            moddable: true
+          feature_groups:
+            description: "Artifact feature group definitions"
+            moddable: true
+          features:
+            description: "Artifact feature definitions"
+            moddable: true
+          slots:
+            description: "Artifact slot definitions"
+            moddable: true
+          templates:
+            description: "Artifact template definitions"
+            moddable: true
+          types:
+            description: "Artifact type definitions"
+            moddable: true
+          visuals:
+            description: "Artifact visual definitions"
+            moddable: true
+
+      # Bookmarks
+      bookmark_portraits:
+        description: "Bookmark character portrait settings"
+        moddable: true
+      bookmarks:
+        description: "Start date bookmark definitions"
+        moddable: true
+        children:
+          bookmarks:
+            description: "Individual bookmark definitions"
+            moddable: true
+          challenge_characters:
+            description: "Challenge mode character definitions"
+            moddable: true
+          groups:
+            description: "Bookmark group definitions"
+            moddable: true
+
+      # Buildings
+      buildings:
+        description: "Holding building definitions"
+        moddable: true
+
+      # Casus Belli
+      casus_belli_groups:
+        description: "War justification groupings"
+        moddable: true
+      casus_belli_types:
+        description: "War justification type definitions"
+        moddable: true
+
+      # Character
+      character_backgrounds:
+        description: "Ruler designer background options"
+        moddable: true
+      character_interaction_categories:
+        description: "Interaction menu categories"
+        moddable: true
+      character_interactions:
+        description: "Right-click character interaction definitions"
+        moddable: true
+      character_memory_types:
+        description: "Character memory type definitions"
+        moddable: true
+
+      # Coat of Arms
+      coat_of_arms:
+        description: "Coat of arms pattern and emblem definitions"
+        moddable: true
+        children:
+          coat_of_arms:
+            description: "Individual coat of arms definitions"
+            moddable: true
+          dynamic_definitions:
+            description: "Dynamic CoA generation rules"
+            moddable: true
+          options:
+            description: "CoA option definitions"
+            moddable: true
+          template_lists:
+            description: "CoA template list definitions"
+            moddable: true
+
+      # Combat
+      combat_effects:
+        description: "Battle effect definitions"
+        moddable: true
+      combat_phase_events:
+        description: "Combat phase event triggers"
+        moddable: true
+
+      # DLC Features
+      confederation_types:
+        description: "Confederation government types"
+        moddable: true
+
+      # Council
+      council_positions:
+        description: "Council seat definitions"
+        moddable: true
+      council_tasks:
+        description: "Council job task definitions"
+        moddable: true
+
+      # Court
+      court_amenities:
+        description: "Royal Court amenity definitions"
+        moddable: true
+      court_positions:
+        description: "Court position job definitions"
+        moddable: true
+        children:
+          tasks:
+            description: "Court position task definitions"
+            moddable: true
+          types:
+            description: "Court position type definitions"
+            moddable: true
+      court_types:
+        description: "Court type definitions"
+        moddable: true
+      courtier_guest_management:
+        description: "Guest management rules"
+        moddable: true
+
+      # Culture
+      culture:
+        description: "Culture system definitions (pillars, traditions, innovations)"
+        moddable: true
+        children:
+          aesthetics_bundles:
+            description: "Culture aesthetic bundle definitions"
+            moddable: true
+          creation_names:
+            description: "Culture creation naming rules"
+            moddable: true
+          cultures:
+            description: "Individual culture definitions"
+            moddable: true
+          eras:
+            description: "Culture era definitions"
+            moddable: true
+          innovations:
+            description: "Culture innovation definitions"
+            moddable: true
+          name_equivalency:
+            description: "Name equivalency mappings"
+            moddable: true
+          name_lists:
+            description: "Culture name list definitions"
+            moddable: true
+          pillars:
+            description: "Culture pillar definitions"
+            moddable: true
+          traditions:
+            description: "Culture tradition definitions"
+            moddable: true
+
+      # Localization Helpers
+      customizable_localization:
+        description: "Dynamic text generation rules"
+        moddable: true
+
+      # Death
+      deathreasons:
+        description: "Character death reason definitions"
+        moddable: true
+
+      # Decisions
+      decision_group_types:
+        description: "Decision category groupings"
+        moddable: true
+      decisions:
+        description: "Player decision definitions"
+        moddable: true
+        children:
+          dlc_decisions:
+            description: "DLC-specific decision definitions"
+            moddable: true
+
+      # DLC Features
+      diarchies:
+        description: "Regency and diarchy system definitions"
+        moddable: true
+        children:
+          diarchy_mandates:
+            description: "Diarchy mandate definitions"
+            moddable: true
+          diarchy_types:
+            description: "Diarchy type definitions"
+            moddable: true
+      domiciles:
+        description: "Adventurer home definitions"
+        moddable: true
+        children:
+          buildings:
+            description: "Domicile building definitions"
+            moddable: true
+          types:
+            description: "Domicile type definitions"
+            moddable: true
+
+      # DNA & Portraits
+      dna_data:
+        description: "Character DNA preset definitions"
+        moddable: true
+
+      # Dynasty
+      dynasties:
+        description: "Dynasty definitions"
+        moddable: true
+      dynasty_house_motto_inserts:
+        description: "House motto text insert rules"
+        moddable: true
+      dynasty_house_mottos:
+        description: "House motto definitions"
+        moddable: true
+      dynasty_houses:
+        description: "Cadet branch house definitions"
+        moddable: true
+      dynasty_legacies:
+        description: "Dynasty legacy tree definitions"
+        moddable: true
+      dynasty_perks:
+        description: "Dynasty legacy perk definitions"
+        moddable: true
+
+      # Localization
+      effect_localization:
+        description: "Effect text generation rules"
+        moddable: true
+
+      # DLC Features
+      epidemics:
+        description: "Disease and epidemic definitions"
+        moddable: true
+
+      # Portraits
+      ethnicities:
+        description: "Character ethnicity settings"
+        moddable: true
+
+      # Events
+      event_2d_effects:
+        description: "Event 2D visual effect definitions"
+        moddable: true
+      event_backgrounds:
+        description: "Event scene background definitions"
+        moddable: true
+      event_themes:
+        description: "Event window theme definitions"
+        moddable: true
+      event_transitions:
+        description: "Event transition effect definitions"
+        moddable: true
+
+      # Factions
+      factions:
+        description: "Faction type definitions"
+        moddable: true
+
+      # Localization
+      flavorization:
+        description: "Name and title flavor rules"
+        moddable: true
+
+      # Lifestyle
+      focuses:
+        description: "Lifestyle focus definitions"
+        moddable: true
+
+      # Game Setup
+      game_concepts:
+        description: "Encyclopedia game concept definitions"
+        moddable: true
+      game_rules:
+        description: "Game rule option definitions"
+        moddable: true
+
+      # Portraits
+      genes:
+        description: "Character genetic trait definitions"
+        moddable: true
+
+      # Government
+      governments:
+        description: "Government type definitions"
+        moddable: true
+
+      # Great Projects
+      great_projects:
+        description: "Special building and wonder definitions"
+        moddable: true
+        children:
+          types:
+            description: "Great project type definitions"
+            moddable: true
+
+      # Court
+      guest_system:
+        description: "Guest recruitment mechanics"
+        moddable: true
+
+      # Holdings
+      holdings:
+        description: "Holding type definitions"
+        moddable: true
+
+      # Hooks
+      hook_types:
+        description: "Hook type definitions"
+        moddable: true
+
+      # House Features
+      house_aspirations:
+        description: "House aspiration goal definitions"
+        moddable: true
+      house_relation_types:
+        description: "House relationship type definitions"
+        moddable: true
+      house_unities:
+        description: "House unity mechanic definitions"
+        moddable: true
+
+      # UI
+      important_actions:
+        description: "Alert and important action definitions"
+        moddable: true
+
+      # Court
+      inspirations:
+        description: "Court inspiration definitions"
+        moddable: true
+
+      # Titles
+      landed_titles:
+        description: "Title definitions (empires, kingdoms, duchies, counties, baronies)"
+        moddable: true
+
+      # Laws
+      laws:
+        description: "Realm law definitions"
+        moddable: true
+
+      # DLC Features
+      lease_contracts:
+        description: "Land lease contract definitions"
+        moddable: true
+      legends:
+        description: "Legend system definitions"
+        moddable: true
+        children:
+          chronicles:
+            description: "Legend chronicle definitions"
+            moddable: true
+          legend_seeds:
+            description: "Legend seed definitions"
+            moddable: true
+          legend_types:
+            description: "Legend type definitions"
+            moddable: true
+      legitimacy:
+        description: "Legitimacy system definitions"
+        moddable: true
+
+      # Lifestyle
+      lifestyle_perks:
+        description: "Lifestyle perk definitions"
+        moddable: true
+      lifestyles:
+        description: "Lifestyle tree definitions"
+        moddable: true
+
+      # Military
+      men_at_arms_types:
+        description: "Army unit type definitions"
+        moddable: true
+
+      # Messages
+      message_filter_types:
+        description: "Message filter definitions"
+        moddable: true
+      message_group_types:
+        description: "Message category definitions"
+        moddable: true
+      messages:
+        description: "Notification message definitions"
+        moddable: true
+
+      # Modifiers
+      modifiers:
+        description: "Static modifier definitions"
+        moddable: true
+
+      # Colors
+      named_colors:
+        description: "Named color definitions"
+        moddable: true
+
+      # Nicknames
+      nicknames:
+        description: "Character nickname definitions"
+        moddable: true
+
+      # Events
+      on_action:
+        description: "Event trigger hook definitions"
+        moddable: true
+        children:
+          activities:
+            description: "Activity-related on_actions"
+            moddable: true
+          dlc:
+            description: "DLC-specific on_actions"
+            moddable: true
+          lifestyles:
+            description: "Lifestyle-related on_actions"
+            moddable: true
+          relations:
+            description: "Relation-related on_actions"
+            moddable: true
+          schemes:
+            description: "Scheme-related on_actions"
+            moddable: true
+          story_cycles:
+            description: "Story cycle on_actions"
+            moddable: true
+
+      # Opinions
+      opinion_modifiers:
+        description: "Opinion modifier definitions"
+        moddable: true
+
+      # Portraits
+      portrait_types:
+        description: "Portrait type definitions"
+        moddable: true
+
+      # Terrain
+      province_terrain:
+        description: "Province terrain assignments"
+        moddable: true
+
+      # DLC Features
+      raids:
+        description: "Raid mechanic definitions"
+        moddable: true
+        children:
+          intents:
+            description: "Raid intent definitions"
+            moddable: true
+
+      # Religion
+      religion:
+        description: "Religion and faith system definitions"
+        moddable: true
+        children:
+          doctrines:
+            description: "Religious doctrine definitions"
+            moddable: true
+          fervor_modifiers:
+            description: "Faith fervor modifier definitions"
+            moddable: true
+          holy_sites:
+            description: "Holy site definitions"
+            moddable: true
+          religion_families:
+            description: "Religion family definitions"
+            moddable: true
+          religions:
+            description: "Religion and faith definitions"
+            moddable: true
+      # Schemes
+      schemes:
+        description: "Scheme type definitions"
+        moddable: true
+        children:
+          agent_types:
+            description: "Scheme agent type definitions"
+            moddable: true
+          pulse_actions:
+            description: "Scheme pulse action definitions"
+            moddable: true
+          scheme_countermeasures:
+            description: "Scheme countermeasure definitions"
+            moddable: true
+          scheme_types:
+            description: "Scheme type definitions"
+            moddable: true
+
+      # Scripting
+      script_values:
+        description: "Script value calculation definitions"
+        moddable: true
+      scripted_effects:
+        description: "Reusable scripted effect definitions"
+        moddable: true
+      scripted_lists:
+        description: "Scripted list definitions"
+        moddable: true
+      scripted_modifiers:
+        description: "Dynamic modifier definitions"
+        moddable: true
+      scripted_triggers:
+        description: "Reusable scripted trigger definitions"
+        moddable: true
+
+      # Secrets
+      secret_types:
+        description: "Secret type definitions"
+        moddable: true
+
+      # DLC Features
+      situation:
+        description: "Realm situation system definitions"
+        moddable: true
+        children:
+          catalysts:
+            description: "Situation catalyst definitions"
+            moddable: true
+          situation_group_types:
+            description: "Situation group type definitions"
+            moddable: true
+          situations:
+            description: "Situation definitions"
+            moddable: true
+      story_cycles:
+        description: "Story cycle definitions"
+        moddable: true
+      struggle:
+        description: "Struggle system definitions"
+        moddable: true
+        children:
+          catalysts:
+            description: "Struggle catalyst definitions"
+            moddable: true
+          struggles:
+            description: "Struggle definitions"
+            moddable: true
+
+      # Vassals
+      subject_contracts:
+        description: "Vassal contract definitions"
+        moddable: true
+        children:
+          contracts:
+            description: "Contract definitions"
+            moddable: true
+          groups:
+            description: "Contract group definitions"
+            moddable: true
+      succession_appointment:
+        description: "Appointment succession definitions"
+        moddable: true
+      succession_election:
+        description: "Elective succession definitions"
+        moddable: true
+
+      # UI
+      suggestions:
+        description: "UI suggestion definitions"
+        moddable: true
+
+      # DLC Features
+      task_contracts:
+        description: "Task contract definitions"
+        moddable: true
+      tax_slots:
+        description: "Tax slot system definitions"
+        moddable: true
+        children:
+          obligations:
+            description: "Tax obligation definitions"
+            moddable: true
+          types:
+            description: "Tax slot type definitions"
+            moddable: true
+
+      # Terrain
+      terrain_types:
+        description: "Terrain type definitions"
+        moddable: true
+
+      # Traits
+      traits:
+        description: "Character trait definitions"
+        moddable: true
+
+      # Travel
+      travel:
+        description: "Travel system definitions"
+        moddable: true
+        children:
+          point_of_interest_types:
+            description: "Travel point of interest type definitions"
+            moddable: true
+          travel_options:
+            description: "Travel option definitions"
+            moddable: true
+
+      # Localization
+      trigger_localization:
+        description: "Trigger text generation rules"
+        moddable: true
+
+      # Vassals
+      vassal_stances:
+        description: "Vassal stance definitions"
+        moddable: true
+
+  history:
+    description: "Historical data - character histories, title holders, province setup"
+    moddable: true
+    file_patterns: [ "*.txt" ]
+    children:
+      artifacts:
+        description: "Historical artifact ownership and creation"
+        moddable: true
+      characters:
+        description: "Character history - births, deaths, traits, relations"
+        moddable: true
+      cultures:
+        description: "Culture history and initial setup"
+        moddable: true
+      province_mapping:
+        description: "Province ID mappings for map data"
+        moddable: true
+      provinces:
+        description: "Province history - buildings, religion, culture"
+        moddable: true
+      situations:
+        description: "Situation initial states"
+        moddable: true
+      struggles:
+        description: "Struggle initial states and setup"
+        moddable: true
+      titles:
+        description: "Title history - holders, succession laws"
+        moddable: true
+      wars:
+        description: "Historical war definitions"
+        moddable: true
+
+  localization:
+    description: "Text strings and translations for all game content"
+    moddable: true
+    file_patterns: [ "*.yml" ]
+    children:
+      english:
+        description: "English text strings - primary modding language"
+        moddable: true

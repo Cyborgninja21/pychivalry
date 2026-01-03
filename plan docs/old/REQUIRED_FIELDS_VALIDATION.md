@@ -15,20 +15,20 @@ This document tracks which LSP features work for which file types/locations. Use
 
 **All file types below use declarative YAML schemas** - validation, completions, hover, symbols, and code lens are now schema-driven!
 
-| File Type | Location | Required Fields | Effect/Trigger Context | Scope Chains | Cross-File Refs | Loc Keys | Duplicates | Value Checks | Performance | Schema |
-|-----------|----------|-----------------|----------------------|--------------|-----------------|----------|------------|--------------|-------------|--------|
-| Events | `events/` | ✅ `type`, `title`, `desc` | ✅ | ✅ | ✅ scripted, ⚠️ events | ✅ code lens | ✅ immediate, trigger_else | ✅ ai_chance | ✅ iterators | ✅ `events.yaml` |
-| Letter Events | `events/` | ✅ `type`, `title`, `desc`, `sender` | ✅ | ✅ | ✅ scripted, ⚠️ events | ✅ code lens | ✅ | ✅ ai_chance | ✅ iterators | ✅ `events.yaml` |
-| Event Options | `events/` | ✅ `name` (conditional) | ✅ | ✅ | ✅ | ✅ | ✅ multiple names | ✅ | ✅ | ✅ `events.yaml` |
-| Event triggered_desc | `events/` | ✅ `trigger`, `desc` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ `events.yaml` |
-| Event Portraits | `events/` | ✅ `character` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ `events.yaml` |
-| Story Cycles | `common/story_cycles/` | ✅ `effect_group` + timing | ✅ | ✅ | ✅ scripted | ✅ code lens | ✅ | ✅ chance > 100 | ✅ short intervals | ✅ `story_cycles.yaml` |
-| Story triggered_effect | `common/story_cycles/` | ✅ `trigger`, `effect` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ `story_cycles.yaml` |
-| Decisions | `common/decisions/` | ✅ `ai_check_interval`, `effect` | ✅ | ✅ | ✅ indexed | ✅ code lens | ✅ | ✅ cost, cooldown | ✅ | ✅ `decisions.yaml` |
-| Character Interactions | `common/character_interactions/` | ✅ `category` | ✅ | ✅ | ✅ indexed | ✅ code lens | ✅ | ✅ cooldown | ✅ | ✅ `character_interactions.yaml` |
-| Schemes | `common/schemes/` | ✅ `skill` | ✅ | ✅ | ✅ indexed | ✅ code lens | ✅ | ✅ power, cooldown | ✅ | ✅ `schemes.yaml` |
-| On Actions | `common/on_actions/` | ✅ events or `effect` | ✅ | ✅ | ✅ indexed | ✅ code lens | ✅ | ✅ event weights | ✅ | ✅ `on_actions.yaml` |
-| Mod Descriptor | `descriptor.mod` | ✅ `name` | N/A | N/A | N/A | N/A | ❌ | ❌ | N/A | ❌ |
+| File Type | Location | Required Fields | Effect/Trigger Context | Scope Chains | Cross-File Refs | Loc Keys | Duplicates | Value Checks | Performance | Field Order | Pattern Validation | Type Resolution | Schema |
+|-----------|----------|-----------------|----------------------|--------------|-----------------|----------|------------|--------------|-------------|-------------|-------------------|-----------------|--------|
+| Events | `events/` | ✅ `type`, `title`, `desc` | ✅ | ✅ | ✅ scripted, ⚠️ events | ✅ code lens | ✅ immediate, trigger_else | ✅ ai_chance | ✅ iterators | ❌ | ❌ | ❌ | ✅ `events.yaml` |
+| Letter Events | `events/` | ✅ `type`, `title`, `desc`, `sender` | ✅ | ✅ | ✅ scripted, ⚠️ events | ✅ code lens | ✅ | ✅ ai_chance | ✅ iterators | ❌ | ❌ | ❌ | ✅ `events.yaml` |
+| Event Options | `events/` | ✅ `name` (conditional) | ✅ | ✅ | ✅ | ✅ | ✅ multiple names | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ `events.yaml` |
+| Event triggered_desc | `events/` | ✅ `trigger`, `desc` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ `events.yaml` |
+| Event Portraits | `events/` | ✅ `character` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ `events.yaml` |
+| Story Cycles | `common/story_cycles/` | ✅ `effect_group` + timing | ✅ | ✅ | ✅ scripted | ✅ code lens | ✅ | ✅ chance > 100 | ✅ short intervals | ❌ | ❌ | ❌ | ✅ `story_cycles.yaml` |
+| Story triggered_effect | `common/story_cycles/` | ✅ `trigger`, `effect` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ `story_cycles.yaml` |
+| Decisions | `common/decisions/` | ✅ `ai_check_interval`, `effect` | ✅ | ✅ | ✅ indexed | ✅ code lens | ✅ | ✅ cost, cooldown | ✅ | ❌ | ❌ | ❌ | ✅ `decisions.yaml` |
+| Character Interactions | `common/character_interactions/` | ✅ `category` | ✅ | ✅ | ✅ indexed | ✅ code lens | ✅ | ✅ cooldown | ✅ | ❌ | ❌ | ❌ | ✅ `character_interactions.yaml` |
+| Schemes | `common/schemes/` | ✅ `skill` | ✅ | ✅ | ✅ indexed | ✅ code lens | ✅ | ✅ power, cooldown | ✅ | ❌ | ❌ | ❌ | ✅ `schemes.yaml` |
+| On Actions | `common/on_actions/` | ✅ events or `effect` | ✅ | ✅ | ✅ indexed | ✅ code lens | ✅ | ✅ event weights | ✅ | ❌ | ❌ | ❌ | ✅ `on_actions.yaml` |
+| Mod Descriptor | `descriptor.mod` | ✅ `name` | N/A | N/A | N/A | N/A | ❌ | ❌ | N/A | N/A | N/A | N/A | ❌ |
 
 ### Schema-Driven Architecture Benefits
 - **60% code reduction** - 2,500+ lines of hardcoded validation removed
@@ -79,46 +79,46 @@ This document tracks which LSP features work for which file types/locations. Use
 
 **Note:** The schema-driven architecture makes it easy to add support for new file types. Creating a new schema file takes ~2 hours instead of days of Python coding.
 
-| File Type | Location | Required Fields | Effect/Trigger Context | Scope Chains | Cross-File Refs | Loc Keys | Duplicates | Value Checks | Performance | Priority | Schema Status |
-|-----------|----------|-----------------|----------------------|--------------|-----------------|----------|------------|--------------|-------------|----------|---------------|
-| Traits | `common/traits/` | ❌ `category` | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | Medium | 🔄 Planned |
-| Casus Belli | `common/casus_belli_types/` | ❌ `war_score` | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | Medium | 🔄 Planned |
-| Buildings | `common/buildings/` | ❌ `type`, `cost` | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | Medium | 🔄 Planned |
-| Laws | `common/laws/` | ❌ succession or effects | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | Medium | 🔄 Planned |
-| Factions | `common/factions/` | ❌ `power_threshold` | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | Medium | 🔄 Planned |
-| Council Tasks | `common/council_tasks/` | ❌ `position`, `effect` | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
-| Council Positions | `common/council_positions/` | ❌ `skill` | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
-| Focuses | `common/focuses/` | ❌ `lifestyle` | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
-| Lifestyle Perks | `common/lifestyle_perks/` | ❌ `tree`, `position` | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
-| Cultures | `common/culture/cultures/` | ❌ `heritage`, `ethos` | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
-| Culture Traditions | `common/culture/traditions/` | ❌ `category` | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
-| Culture Pillars | `common/culture/pillars/` | ❌ `type` | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
-| Culture Eras | `common/culture/eras/` | ❌ `year` | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
-| Religions | `common/religion/religions/` | ❌ `family`, `doctrine` | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
-| Doctrines | `common/religion/doctrines/` | ❌ `group` | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
-| Holy Sites | `common/religion/holy_sites/` | ❌ `county` | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
-| Holdings | `common/holdings/` | ❌ `building_slot` | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
-| Landed Titles | `common/landed_titles/` | ❌ | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
-| Dynasties | `common/dynasties/` | ❌ | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
-| Bookmarks | `common/bookmarks/` | ❌ `date`, `characters` | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
-| Game Rules | `common/game_rules/` | ❌ `option` | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
-| Succession Election | `common/succession_election/` | ❌ `electors` | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
-| Vassal Stances | `common/vassal_stances/` | ❌ | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
-| Travel | `common/travel/` | ❌ | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
-| Legends | `common/legends/` | ❌ | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
-| Struggle | `common/struggle/` | ❌ `phases` | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
-| Scripted Effects | `common/scripted_effects/` | N/A | ✅ generic rules | ✅ | ✅ indexed | ✅ | ✅ | ✅ | ✅ | Low | ⚠️ Effects YAML |
-| Scripted Triggers | `common/scripted_triggers/` | N/A | ✅ generic rules | ✅ | ✅ indexed | ✅ | ✅ | ✅ | ✅ | Low | ⚠️ Triggers YAML |
-| Scripted GUIs | `common/scripted_guis/` | ❌ `scope` | ⚠️ generic only | ✅ | ✅ indexed | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
-| Scripted Lists | `common/scripted_lists/` | ❌ | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
-| Scripted Modifiers | `common/scripted_modifiers/` | ❌ | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
-| Script Values | `common/script_values/` | ❌ | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
-| Modifiers | `common/modifiers/` | ❌ | ⚠️ generic only | ✅ | ✅ indexed | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
-| Opinion Modifiers | `common/opinion_modifiers/` | ❌ `opinion` | ✅ generic rules | ✅ | ✅ indexed | ❌ | ❌ | ✅ inline values | ✅ | Low | ⚠️ Generic rules |
-| Activities | `common/activities/` | ❌ `phases` | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
-| Artifacts | `common/artifacts/` | ❌ `slot`, `type` | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
-| Governments | `common/governments/` | ❌ | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
-| Men at Arms | `common/men_at_arms_types/` | ❌ `damage`, `toughness` | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
+| File Type | Location | Required Fields | Effect/Trigger Context | Scope Chains | Cross-File Refs | Loc Keys | Duplicates | Value Checks | Performance | Field Order | Pattern Validation | Type Resolution | Priority | Schema Status |
+|-----------|----------|-----------------|----------------------|--------------|-----------------|----------|------------|--------------|-------------|-------------|-------------------|-----------------|----------|---------------|
+| Traits | `common/traits/` | ❌ `category` | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | Medium | 🔄 Planned |
+| Casus Belli | `common/casus_belli_types/` | ❌ `war_score` | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | Medium | 🔄 Planned |
+| Buildings | `common/buildings/` | ❌ `type`, `cost` | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | Medium | 🔄 Planned |
+| Laws | `common/laws/` | ❌ succession or effects | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | Medium | 🔄 Planned |
+| Factions | `common/factions/` | ❌ `power_threshold` | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | Medium | 🔄 Planned |
+| Council Tasks | `common/council_tasks/` | ❌ `position`, `effect` | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
+| Council Positions | `common/council_positions/` | ❌ `skill` | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
+| Focuses | `common/focuses/` | ❌ `lifestyle` | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
+| Lifestyle Perks | `common/lifestyle_perks/` | ❌ `tree`, `position` | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
+| Cultures | `common/culture/cultures/` | ❌ `heritage`, `ethos` | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
+| Culture Traditions | `common/culture/traditions/` | ❌ `category` | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
+| Culture Pillars | `common/culture/pillars/` | ❌ `type` | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
+| Culture Eras | `common/culture/eras/` | ❌ `year` | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
+| Religions | `common/religion/religions/` | ❌ `family`, `doctrine` | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
+| Doctrines | `common/religion/doctrines/` | ❌ `group` | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
+| Holy Sites | `common/religion/holy_sites/` | ❌ `county` | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
+| Holdings | `common/holdings/` | ❌ `building_slot` | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
+| Landed Titles | `common/landed_titles/` | ❌ | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
+| Dynasties | `common/dynasties/` | ❌ | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
+| Bookmarks | `common/bookmarks/` | ❌ `date`, `characters` | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
+| Game Rules | `common/game_rules/` | ❌ `option` | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
+| Succession Election | `common/succession_election/` | ❌ `electors` | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
+| Vassal Stances | `common/vassal_stances/` | ❌ | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
+| Travel | `common/travel/` | ❌ | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
+| Legends | `common/legends/` | ❌ | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
+| Struggle | `common/struggle/` | ❌ `phases` | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
+| Scripted Effects | `common/scripted_effects/` | N/A | ✅ generic rules | ✅ | ✅ indexed | ✅ | ✅ | ✅ | ✅ | N/A | ❌ | ❌ | Low | ⚠️ Effects YAML |
+| Scripted Triggers | `common/scripted_triggers/` | N/A | ✅ generic rules | ✅ | ✅ indexed | ✅ | ✅ | ✅ | ✅ | N/A | ❌ | ❌ | Low | ⚠️ Triggers YAML |
+| Scripted GUIs | `common/scripted_guis/` | ❌ `scope` | ⚠️ generic only | ✅ | ✅ indexed | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
+| Scripted Lists | `common/scripted_lists/` | ❌ | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
+| Scripted Modifiers | `common/scripted_modifiers/` | ❌ | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
+| Script Values | `common/script_values/` | ❌ | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
+| Modifiers | `common/modifiers/` | ❌ | ⚠️ generic only | ✅ | ✅ indexed | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
+| Opinion Modifiers | `common/opinion_modifiers/` | ❌ `opinion` | ✅ generic rules | ✅ | ✅ indexed | ❌ | ❌ | ✅ inline values | ✅ | ❌ | ❌ | ❌ | Low | ⚠️ Generic rules |
+| Activities | `common/activities/` | ❌ `phases` | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
+| Artifacts | `common/artifacts/` | ❌ `slot`, `type` | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
+| Governments | `common/governments/` | ❌ | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
+| Men at Arms | `common/men_at_arms_types/` | ❌ `damage`, `toughness` | ⚠️ generic only | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
 
 ---
 
@@ -240,6 +240,18 @@ The `indexer.py` tracks these symbols across the workspace:
 - every_ without limit warning
 - Unknown effect/trigger validation (if indexed)
 - Scope chain validation (where context available)
+
+### New Validation Feature Columns
+
+| Column | Description | Example |
+|--------|-------------|---------|
+| **Field Order** | Validates fields appear in conventional order (style) | `type` before `title` before `desc` in events |
+| **Pattern Validation** | Validates field values match expected patterns | Loc keys match `^[a-z][a-z0-9_.]*$`, numbers are numeric |
+| **Type Resolution** | Resolves `type: localization_key` from `_types.yaml` and enforces its pattern | `type: scope_reference` → enforces scope pattern |
+
+**Implementation Priority:**
+- **Pattern Validation + Type Resolution** (recommended): Catches real bugs (invalid loc keys, bad scope refs)
+- **Field Order**: Style preference only (CK3 is order-insensitive)
 
 ---
 
