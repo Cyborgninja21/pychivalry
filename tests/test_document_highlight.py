@@ -465,6 +465,118 @@ after = {
 
 
 # =============================================================================
+# Test: Localization Key Highlighting
+# =============================================================================
+
+
+class TestDocumentHighlightLocalization:
+    """Tests for highlighting localization keys."""
+
+    def test_localization_key_with_suffix(self):
+        """Should detect full localization key with suffix like .defeat."""
+        text = """root = {
+    send_interface_toast = {
+        title = rq_rise_wolf_queen.3004.defeat
+        add_prestige = -100
+    }
+}"""
+        position = types.Position(line=2, character=20)  # On the loc key
+
+        symbol = get_symbol_at_position(text, position)
+
+        assert symbol is not None
+        assert symbol.name == "rq_rise_wolf_queen.3004.defeat"
+        assert symbol.symbol_type == "localization"
+
+    def test_localization_key_standard_title(self):
+        """Should detect standard .t title localization key."""
+        text = "title = my_event.0001.t"
+        position = types.Position(line=0, character=15)
+
+        symbol = get_symbol_at_position(text, position)
+
+        assert symbol is not None
+        assert symbol.name == "my_event.0001.t"
+        assert symbol.symbol_type == "localization"
+
+    def test_localization_key_desc(self):
+        """Should detect .desc localization key."""
+        text = "desc = my_event.0001.desc"
+        position = types.Position(line=0, character=15)
+
+        symbol = get_symbol_at_position(text, position)
+
+        assert symbol is not None
+        assert symbol.name == "my_event.0001.desc"
+        assert symbol.symbol_type == "localization"
+
+    def test_localization_key_tooltip(self):
+        """Should detect tooltip localization key."""
+        text = "tooltip = custom_tooltip_key.tt"
+        position = types.Position(line=0, character=15)
+
+        symbol = get_symbol_at_position(text, position)
+
+        assert symbol is not None
+        assert symbol.name == "custom_tooltip_key.tt"
+        assert symbol.symbol_type == "localization"
+
+    def test_localization_key_custom_tooltip(self):
+        """Should detect custom_tooltip localization key."""
+        text = "custom_tooltip = my_mod.some_tooltip"
+        position = types.Position(line=0, character=25)
+
+        symbol = get_symbol_at_position(text, position)
+
+        assert symbol is not None
+        assert symbol.name == "my_mod.some_tooltip"
+        assert symbol.symbol_type == "localization"
+
+    def test_localization_highlight_multiple_occurrences(self):
+        """Should highlight all occurrences of the same localization key."""
+        text = """option = {
+    name = my_mod.0001.option_a
+    trigger = { always = yes }
+}
+option = {
+    name = my_mod.0001.option_a
+    trigger = { always = no }
+}"""
+        position = types.Position(line=1, character=15)
+
+        highlights = get_document_highlights(text, position)
+
+        assert highlights is not None
+        assert len(highlights) == 2
+
+    def test_localization_not_confused_with_event_id(self):
+        """Should correctly identify localization keys vs event IDs.
+        
+        Localization keys like 'my_event.0001.t' should be detected as
+        localization type when in title/desc/name context, not as event IDs.
+        """
+        text = """title = rq_rise_wolf_queen.3004.defeat
+trigger_event = {
+    id = rq_rise_wolf_queen.3004
+}"""
+        # Test localization key
+        loc_position = types.Position(line=0, character=20)
+        loc_symbol = get_symbol_at_position(text, loc_position)
+
+        assert loc_symbol is not None
+        assert loc_symbol.symbol_type == "localization"
+        assert loc_symbol.name == "rq_rise_wolf_queen.3004.defeat"
+
+        # Test event ID (should still work)
+        event_position = types.Position(line=2, character=10)
+        event_symbol = get_symbol_at_position(text, event_position)
+
+        assert event_symbol is not None
+        assert event_symbol.symbol_type == "event_id"
+        assert event_symbol.name == "rq_rise_wolf_queen.3004"
+
+
+# =============================================================================
 # Test: Edge Cases
 # =============================================================================
 
