@@ -47,7 +47,7 @@
       "request": "launch",
       "args": [
         "--extensionDevelopmentPath=${workspaceFolder}/vscode-extension",
-        "${workspaceFolder}/examples"
+        "${workspaceFolder}/example mod"
       ],
       "outFiles": [
         "${workspaceFolder}/vscode-extension/dist/**/*.js"
@@ -64,7 +64,7 @@
       "request": "launch",
       "args": [
         "--extensionDevelopmentPath=${workspaceFolder}/vscode-extension",
-        "${workspaceFolder}/examples"
+        "${workspaceFolder}/example mod"
       ],
       "outFiles": [
         "${workspaceFolder}/vscode-extension/dist/**/*.js"
@@ -81,7 +81,7 @@
       "request": "launch",
       "args": [
         "--extensionDevelopmentPath=${workspaceFolder}/vscode-extension",
-        "${workspaceFolder}/examples"
+        "${workspaceFolder}/example mod"
       ],
       "outFiles": [
         "${workspaceFolder}/vscode-extension/dist/**/*.js"
