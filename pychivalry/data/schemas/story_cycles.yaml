@@ -143,3 +143,37 @@ field_docs:
     description: "Periodic effect group that fires at regular intervals"
     detail: "Block with timing keyword and triggered_effect blocks"
     snippet: "effect_group = {\n\t${1|days,months,years|} = ${2:30}\n\t\n\ttriggered_effect = {\n\t\ttrigger = { $3 }\n\t\teffect = { $0 }\n\t}\n}"
+
+# ============ SYMBOLS ============
+# Document outline and symbol configuration
+symbols:
+  primary:
+    kind: Class                    # Story cycles shown as classes
+    name_from: key                 # Use block key as name
+    detail: "Story Cycle"
+  children:
+    - field: on_setup
+      kind: Function
+      name: "on_setup"
+    - field: on_end
+      kind: Function
+      name: "on_end"
+    - field: on_owner_death
+      kind: Function
+      name: "on_owner_death"
+    - field: effect_group
+      kind: Method                 # Effect groups as methods
+      name_pattern: "effect_group_{index}"  # Numbered: effect_group_1, effect_group_2, etc.
+
+# ============ CODE LENS ============
+# Inline actionable information configuration
+code_lens:
+  enabled: true
+  reference_count:
+    enabled: true
+    label: "{count} references"
+    icon: "🔗"
+  effect_group_summary:
+    enabled: true
+    label: "{count} effect groups"
+    icon: "⚡"

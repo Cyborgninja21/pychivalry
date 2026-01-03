@@ -484,44 +484,82 @@ def extract_story_cycle_symbols(story_cycle_node) -> DocumentSymbol:
     return story_symbol
 
 
-def extract_document_symbols(parsed_document: Dict) -> List[DocumentSymbol]:
+def extract_document_symbols(parsed_document: Dict, file_path: str = None, schema_loader=None) -> List[DocumentSymbol]:
     """
     Extract all symbols from a parsed document.
+    
+    Now supports schema-driven extraction: if a schema is available for the file type,
+    symbols are extracted according to the schema configuration. Otherwise, falls back
+    to the original hardcoded extraction logic.
 
     Args:
-        parsed_document: Parsed CK3 document
+        parsed_document: Parsed CK3 document (Dict or AST list)
+        file_path: Optional file path for schema lookup
+        schema_loader: Optional SchemaLoader for schema-driven extraction
 
     Returns:
         List of top-level DocumentSymbol objects
     """
+    # Try schema-driven extraction first
+    if file_path and schema_loader:
+        try:
+            from .schema_symbols import get_schema_symbols
+            
+            # If parsed_document is a list (AST), use it directly
+            if isinstance(parsed_document, list):
+                schema_symbols = get_schema_symbols(file_path, parsed_document, schema_loader)
+                if schema_symbols:
+                    # Convert LSP symbols back to internal format for compatibility
+                    return [_lsp_to_internal(s) for s in schema_symbols]
+        except Exception as e:
+            # Fall back to hardcoded extraction on any error
+            import logging
+            logging.getLogger(__name__).debug(f"Schema symbol extraction failed: {e}")
+    
+    # Original hardcoded extraction logic (fallback)
     symbols = []
 
     # Extract events
-    if "events" in parsed_document:
-        for event_node in parsed_document["events"]:
-            symbols.append(extract_event_symbols(event_node))
+    if isinstance(parsed_document, dict):
+        if "events" in parsed_document:
+            for event_node in parsed_document["events"]:
+                symbols.append(extract_event_symbols(event_node))
 
-    # Extract scripted effects
-    if "scripted_effects" in parsed_document:
-        for effect_node in parsed_document["scripted_effects"]:
-            symbols.append(extract_scripted_effect_symbols(effect_node))
+        # Extract scripted effects
+        if "scripted_effects" in parsed_document:
+            for effect_node in parsed_document["scripted_effects"]:
+                symbols.append(extract_scripted_effect_symbols(effect_node))
 
-    # Extract scripted triggers
-    if "scripted_triggers" in parsed_document:
-        for trigger_node in parsed_document["scripted_triggers"]:
-            symbols.append(extract_scripted_trigger_symbols(trigger_node))
+        # Extract scripted triggers
+        if "scripted_triggers" in parsed_document:
+            for trigger_node in parsed_document["scripted_triggers"]:
+                symbols.append(extract_scripted_trigger_symbols(trigger_node))
 
-    # Extract script values
-    if "script_values" in parsed_document:
-        for value_node in parsed_document["script_values"]:
-            symbols.append(extract_script_value_symbols(value_node))
+        # Extract script values
+        if "script_values" in parsed_document:
+            for value_node in parsed_document["script_values"]:
+                symbols.append(extract_script_value_symbols(value_node))
 
-    # Extract on_actions
-    if "on_actions" in parsed_document:
-        for on_action_node in parsed_document["on_actions"]:
-            symbols.append(extract_on_action_symbols(on_action_node))
+        # Extract on_actions
+        if "on_actions" in parsed_document:
+            for on_action_node in parsed_document["on_actions"]:
+                symbols.append(extract_on_action_symbols(on_action_node))
 
     return symbols
+
+
+def _lsp_to_internal(lsp_symbol: types.DocumentSymbol) -> DocumentSymbol:
+    """Convert LSP DocumentSymbol back to internal format."""
+    internal = DocumentSymbol(
+        name=lsp_symbol.name,
+        kind=lsp_symbol.kind,
+        range=lsp_symbol.range,
+        selection_range=lsp_symbol.selection_range,
+        detail=lsp_symbol.detail
+    )
+    if lsp_symbol.children:
+        internal.children = [_lsp_to_internal(child) for child in lsp_symbol.children]
+    return internal
 
 
 def convert_to_lsp_document_symbol(symbol: DocumentSymbol) -> types.DocumentSymbol:

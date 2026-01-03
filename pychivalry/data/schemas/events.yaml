@@ -293,3 +293,46 @@ field_docs:
     description: "Character portrait on the right side of event window"
     detail: "Portrait configuration block"
     snippet: "right_portrait = {\n\tcharacter = ${1:scope:actor}\n\t$0\n}"
+
+# ============ SYMBOLS ============
+# Document outline and symbol configuration
+symbols:
+  primary:
+    kind: Event                    # LSP SymbolKind for events
+    name_from: key                 # Use block key (namespace.0001) as name
+    detail_from: type              # Show event type in detail
+  children:
+    - field: option
+      kind: EnumMember             # Options appear as enum members
+      name_from: name              # Use localization key as name
+      fallback_name: "(unnamed option)"
+    - field: immediate
+      kind: Function               # immediate block as function
+      name: "immediate"
+    - field: after
+      kind: Function               # after block as function
+      name: "after"
+    - field: trigger
+      kind: Object                 # trigger block as object
+      name: "trigger"
+
+# ============ CODE LENS ============
+# Inline actionable information configuration
+code_lens:
+  enabled: true
+  reference_count:
+    enabled: true
+    label: "{count} references"
+    icon: "🔗"
+    search_patterns:
+      - "trigger_event\\s*=\\s*\\{?\\s*id\\s*=\\s*{id}"
+      - "trigger_event\\s*=\\s*{id}"
+  missing_localization:
+    enabled: true
+    fields: [title, desc]
+    label: "⚠️ Missing: {field}"
+  namespace_summary:
+    enabled: true
+    pattern: "^namespace\\s*="
+    label: "{count} events in namespace"
+    icon: "📦"

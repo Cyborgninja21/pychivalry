@@ -135,17 +135,22 @@ def get_code_lenses(
     document_text: str,
     document_uri: str,
     document_index: Any,
+    schema_loader=None,
 ) -> List[types.CodeLens]:
     """
     Generate code lenses for a CK3 document.
 
     Identifies events, scripted effects, scripted triggers, and namespaces
     in the document and creates code lenses showing reference counts.
+    
+    Now supports schema-driven code lens configuration: if a schema is available,
+    code lens behavior is determined by the schema's code_lens section.
 
     Args:
         document_text: Full document text
         document_uri: Document URI
         document_index: Index with workspace symbols
+        schema_loader: Optional SchemaLoader for schema-driven configuration
 
     Returns:
         List of CodeLens objects
@@ -155,14 +160,28 @@ def get_code_lenses(
 
     # Track what we've already added lenses for to avoid duplicates
     processed_symbols: Set[str] = set()
+    
+    # Check if schema defines code lens configuration
+    schema = None
+    code_lens_config = None
+    if schema_loader:
+        schema = schema_loader.get_schema_for_file(document_uri)
+        if schema:
+            code_lens_config = schema.get('code_lens', {})
+            
+    # If schema explicitly disables code lenses, return empty
+    if code_lens_config and not code_lens_config.get('enabled', True):
+        return []
 
-    # Find namespace declarations
-    namespace_lenses = _find_namespace_lenses(lines, document_uri, document_index)
-    lenses.extend(namespace_lenses)
+    # Find namespace declarations (if configured in schema or as fallback)
+    if not code_lens_config or code_lens_config.get('namespace_summary', {}).get('enabled', True):
+        namespace_lenses = _find_namespace_lenses(lines, document_uri, document_index)
+        lenses.extend(namespace_lenses)
 
-    # Find event definitions
-    event_lenses = _find_event_lenses(lines, document_uri, document_index, processed_symbols)
-    lenses.extend(event_lenses)
+    # Find event definitions (if configured in schema or as fallback)
+    if not code_lens_config or code_lens_config.get('reference_count', {}).get('enabled', True):
+        event_lenses = _find_event_lenses(lines, document_uri, document_index, processed_symbols)
+        lenses.extend(event_lenses)
 
     # Find scripted effect definitions (if this is a scripted_effects file)
     if "scripted_effects" in document_uri:
