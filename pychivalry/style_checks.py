@@ -744,6 +744,7 @@ def check_scope_references(lines: List[str], config: StyleConfig) -> List[types.
         "third_party",
         "guest",
         "host",
+        "challenger",
     }
 
     # Pattern to find scope: references

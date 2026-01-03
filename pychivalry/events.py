@@ -103,6 +103,9 @@ SEE ALSO:
 from typing import Dict, List, Optional, Set, Tuple
 from dataclasses import dataclass, field
 
+# Import data loader for YAML-based animation definitions
+from pychivalry.data import get_animations
+
 
 # =============================================================================
 # DATA STRUCTURES - Event Representation
@@ -197,26 +200,25 @@ PORTRAIT_POSITIONS = {
     "lower_right_portrait",
 }
 
-# Portrait animations
-PORTRAIT_ANIMATIONS = {
-    "idle",
-    "happiness",
-    "sadness",
-    "anger",
-    "fear",
-    "disgust",
-    "flirtation",
-    "shock",
-    "boredom",
-    "scheme",
-    "personality_bold",
-    "personality_cautious",
-    "personality_compassionate",
-    "personality_greedy",
-    "personality_honorable",
-    "personality_rational",
-    "personality_vengeful",
-}
+
+def _load_portrait_animations() -> Set[str]:
+    """
+    Load valid portrait animations from YAML data file.
+    
+    Returns a set of animation names for fast membership testing.
+    The animations are loaded from data/animations.yaml.
+    
+    Returns:
+        Set of valid animation names
+    """
+    animations = get_animations()
+    return set(animations.keys())
+
+
+# Portrait animations - loaded from data/animations.yaml
+# This allows easy updates when new animations are added to the game
+PORTRAIT_ANIMATIONS = _load_portrait_animations()
+
 
 # Required fields by event type
 REQUIRED_FIELDS = {

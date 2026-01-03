@@ -214,62 +214,150 @@ Follow this structured directory layout:
 
 ```
 pychivalry/                   # Project root
+├── .github/                  # GitHub configuration
+│   └── copilot-instructions.md  # AI assistant guidelines
 ├── pychivalry/               # Main Python package (LSP server source code)
 │   ├── __init__.py           # Package init with feature overview
 │   ├── server.py             # LSP server entry point and protocol handlers
 │   ├── parser.py             # CK3 script parser, converts text to AST
+│   ├── utils.py              # Shared utility functions
+│   │
+│   │   # Core LSP Features
 │   ├── diagnostics.py        # Error detection and validation coordination
 │   ├── completions.py        # Context-aware auto-completion provider
 │   ├── hover.py              # Hover documentation for effects/triggers/scopes
 │   ├── navigation.py         # Go-to definition and find references
 │   ├── symbols.py            # Document outline and breadcrumb navigation
 │   ├── formatting.py         # Document formatting to Paradox conventions
-│   ├── ck3_language.py       # CK3 language definitions (keywords, effects, triggers)
 │   ├── code_actions.py       # Quick fixes and refactoring actions
 │   ├── code_lens.py          # Inline actionable info (reference counts, etc.)
 │   ├── document_highlight.py # Highlight all occurrences of a symbol
 │   ├── document_links.py     # Clickable links for file paths, URLs, event IDs
-│   ├── events.py             # Event validation and processing
 │   ├── folding.py            # Code folding for blocks and events
-│   ├── indexer.py            # Cross-file symbol indexing
 │   ├── inlay_hints.py        # Inline type annotations for scopes
-│   ├── lists.py              # List iterator validation (any_*, every_*, etc.)
-│   ├── localization.py       # Localization syntax and reference validation
-│   ├── paradox_checks.py     # Paradox convention and common pitfall validation
 │   ├── rename.py             # Workspace-wide symbol renaming
+│   ├── semantic_tokens.py    # Context-aware syntax highlighting tokens
+│   ├── signature_help.py     # Parameter hints for effects/triggers
+│   │
+│   │   # Schema-Driven Validation System
+│   ├── schema_loader.py      # YAML schema loading and inheritance resolution
+│   ├── schema_validator.py   # Schema-based validation engine
+│   ├── schema_completions.py # Schema-aware auto-completions
+│   ├── schema_hover.py       # Schema-based hover documentation
+│   ├── schema_symbols.py     # Schema-driven document symbols
+│   ├── generic_rules_validator.py  # Generic validation rules engine
+│   │
+│   │   # CK3 Game Logic Validation
+│   ├── ck3_language.py       # CK3 language definitions (keywords, effects, triggers)
+│   ├── effect_trigger_docs.py # Effect and trigger documentation
+│   ├── events.py             # Event validation and processing
 │   ├── scopes.py             # Scope type tracking and validation
 │   ├── scope_timing.py       # "Golden Rule" validation (immediate vs trigger timing)
 │   ├── script_values.py      # Script value and formula validation
 │   ├── scripted_blocks.py    # Scripted triggers/effects validation
-│   ├── semantic_tokens.py    # Context-aware syntax highlighting tokens
-│   ├── signature_help.py     # Parameter hints for effects/triggers
-│   ├── style_checks.py       # Code style validation (indentation, whitespace)
+│   ├── lists.py              # List iterator validation (any_*, every_*, etc.)
 │   ├── variables.py          # Variable system validation (var:, local_var:, global_var:)
+│   ├── traits.py             # Trait validation and lookups
+│   ├── story_cycles.py       # Story cycle validation
+│   │
+│   │   # Code Quality & Style
+│   ├── paradox_checks.py     # Paradox convention and common pitfall validation
+│   ├── style_checks.py       # Code style validation (indentation, whitespace)
+│   ├── localization.py       # Localization syntax and reference validation
+│   │
+│   │   # Workspace & Indexing
 │   ├── workspace.py          # Cross-file validation and mod descriptor parsing
+│   ├── indexer.py            # Cross-file symbol indexing
+│   │
+│   │   # Game Log Integration
+│   ├── log_watcher.py        # Real-time game log monitoring
+│   ├── log_analyzer.py       # Game log parsing and analysis
+│   ├── log_diagnostics.py    # Diagnostics from game log errors
+│   │
+│   ├── documents/            # Architecture documentation
+│   │   └── ARCHITECTURE_FLOW.md  # System flow documentation
+│   │
 │   └── data/                 # Static data files for CK3 game definitions
 │       ├── __init__.py       # Data loader for YAML game definitions
-│       └── scopes/           # Scope type definitions (YAML)
-│           ├── character.yaml  # Character scope links and operations
-│           ├── province.yaml   # Province scope links and operations
-│           └── title.yaml      # Landed title scope links and operations
+│       ├── game_structure.yaml   # CK3 folder/file structure mapping
+│       ├── diagnostics.yaml      # Diagnostic message definitions
+│       │
+│       ├── schemas/          # Content type validation schemas (YAML)
+│       │   ├── _base.yaml        # Base schema definitions and inheritance
+│       │   ├── _types.yaml       # Reusable type definitions
+│       │   ├── events.yaml       # Event file schema
+│       │   ├── decisions.yaml    # Decision file schema
+│       │   ├── character_interactions.yaml  # Interaction schema
+│       │   ├── on_actions.yaml   # On-action hook schema
+│       │   ├── schemes.yaml      # Scheme file schema
+│       │   ├── story_cycles.yaml # Story cycle schema
+│       │   └── generic_rules.yaml # Generic validation rules
+│       │
+│       ├── scopes/           # Scope type definitions (YAML)
+│       │   ├── character.yaml    # Character scope links and operations
+│       │   ├── province.yaml     # Province scope links and operations
+│       │   └── title.yaml        # Landed title scope links and operations
+│       │
+│       ├── effects/          # Effect definitions
+│       │   └── effects.yaml      # All game effects with signatures
+│       │
+│       ├── triggers/         # Trigger definitions
+│       │   └── triggers.yaml     # All game triggers with signatures
+│       │
+│       └── traits/           # Trait definitions by category
+│           ├── childhood.yaml    # Childhood traits
+│           ├── education.yaml    # Education traits
+│           ├── fame.yaml         # Fame/legacy traits
+│           ├── health.yaml       # Health-related traits
+│           ├── lifestyle.yaml    # Lifestyle traits
+│           ├── personality.yaml  # Personality traits
+│           └── special.yaml      # Special/unique traits
+│
 ├── vscode-extension/         # VS Code extension (TypeScript)
 │   ├── src/                  # Extension source code
-│   ├── syntaxes/             # TextMate grammars
-│   ├── snippets/             # Code snippets
+│   ├── syntaxes/             # TextMate grammars for syntax highlighting
+│   ├── snippets/             # Code snippets for common patterns
+│   ├── test-workspace/       # Test workspace for extension development
 │   ├── package.json          # Extension manifest
-│   └── tsconfig.json         # TypeScript configuration
+│   ├── tsconfig.json         # TypeScript configuration
+│   └── webpack.config.js     # Build configuration
+│
 ├── tests/                    # Unit and integration tests
+│   ├── conftest.py           # Pytest configuration and fixtures
 │   ├── fixtures/             # Test fixture files
 │   ├── integration/          # Integration tests
-│   ├── performance/          # Performance tests
-│   └── test_*.py             # Test modules
-├── examples/                 # Example Paradox script files
-├── plan docs/                # Project documentation and plans
+│   ├── performance/          # Performance benchmarks
+│   ├── regression/           # Regression test cases
+│   ├── fuzzing/              # Fuzz testing
+│   └── test_*.py             # Test modules (one per source module)
+│
+├── example mod/              # Example CK3 mod for testing
+│   ├── descriptor.mod        # Mod descriptor
+│   ├── common/               # Common game files
+│   ├── events/               # Event files
+│   ├── localization/         # Localization files
+│   └── ...                   # Other mod directories
+│
+├── docs/                     # User documentation
+│   ├── SCHEMA_AUTHORING_GUIDE.md  # How to write schemas
+│   ├── VALIDATION.md         # Validation system docs
+│   └── PRE_COMMIT_*.md       # Pre-commit hook guides
+│
+├── Documentation/            # Developer documentation
+│   ├── feature_matrix.md     # Feature implementation status
+│   └── diagnostics/          # Diagnostic documentation
+│
+├── plan docs/                # Project planning documents
 ├── tools/                    # Development and setup scripts
+│   ├── extract_traits.py     # Trait extraction utility
+│   ├── Install-Prerequisites.ps1  # Windows setup script
+│   └── setup-dev-env.sh      # Unix setup script
+│
 ├── pyproject.toml            # Python project configuration
 ├── README.md                 # Project readme
 ├── CHANGELOG.md              # Version history
 ├── CONTRIBUTING.md           # Contribution guidelines
+├── SECURITY.md               # Security policy
 └── LICENSE                   # License file
 ```
 

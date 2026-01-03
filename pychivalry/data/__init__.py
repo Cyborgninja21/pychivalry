@@ -459,6 +459,47 @@ def load_traits() -> Dict[str, Dict[str, Any]]:
     return load_all_files_in_directory(traits_dir)
 
 
+def load_animations() -> Dict[str, Dict[str, Any]]:
+    """
+    Load animation definitions from data/animations.yaml.
+
+    Animations are the visual poses/expressions used in portrait blocks.
+    Each animation definition includes metadata for categorization.
+
+    Data Structure:
+    Each animation is defined with:
+    - description: Human-readable explanation of the animation
+    - category: Animation category (emotion, personality, combat, etc.)
+
+    Returns:
+        Dictionary mapping animation names to their definition objects.
+        
+        Structure:
+        {
+            'happiness': {
+                'description': 'Joyful expression',
+                'category': 'emotion'
+            },
+            'thinking': {
+                'description': 'Thoughtful/contemplative pose',
+                'category': 'emotion'
+            },
+            ...
+        }
+
+    Examples:
+        >>> animations = load_animations()
+        >>> 'thinking' in animations  # True
+        >>> animations['happiness']['category']  # 'emotion'
+
+    See Also:
+        get_animations() - Cached version of this function
+    """
+    # Load from single animations.yaml file
+    animations_file = DATA_DIR / "animations.yaml"
+    return load_yaml_file(animations_file)
+
+
 # =============================================================================
 # CACHING SYSTEM
 # =============================================================================
@@ -478,6 +519,9 @@ _triggers_cache: Optional[Dict[str, Dict[str, Any]]] = None
 
 # Cache for trait definitions (brave, cruel, genius, etc.)
 _traits_cache: Optional[Dict[str, Dict[str, Any]]] = None
+
+# Cache for animation definitions (idle, happiness, thinking, etc.)
+_animations_cache: Optional[Dict[str, Dict[str, Any]]] = None
 
 
 # =============================================================================
@@ -618,6 +662,35 @@ def get_traits(use_cache: bool = True) -> Dict[str, Dict[str, Any]]:
     return _traits_cache
 
 
+def get_animations(use_cache: bool = True) -> Dict[str, Dict[str, Any]]:
+    """
+    Get animation definitions with intelligent caching.
+
+    See get_scopes() for detailed documentation on caching behavior.
+    This function works identically but for animation definitions.
+
+    Args:
+        use_cache: Whether to use cached data (default: True)
+
+    Returns:
+        Complete animation definitions dictionary
+
+    Examples:
+        >>> animations = get_animations()
+        >>> 'thinking' in animations  # True
+        >>> 'happiness' in animations  # True
+    """
+    # Declare we're modifying the global cache variable
+    global _animations_cache
+
+    # Load if cache is invalid or use_cache is False
+    if not use_cache or _animations_cache is None:
+        _animations_cache = load_animations()
+
+    # Return cached data
+    return _animations_cache
+
+
 def clear_cache():
     """
     Clear all cached data to force reload on next access.
@@ -646,10 +719,10 @@ def clear_cache():
         O(1) - just sets four variables to None
 
     Side Effects:
-        Next call to get_scopes/effects/triggers/traits will reload from disk
+        Next call to get_scopes/effects/triggers/traits/animations will reload from disk
     """
     # Declare we're modifying all global cache variables
-    global _scopes_cache, _effects_cache, _triggers_cache, _traits_cache
+    global _scopes_cache, _effects_cache, _triggers_cache, _traits_cache, _animations_cache
     
     # Reset all caches to None
     # This invalidates the cache and forces reload on next access
@@ -657,3 +730,4 @@ def clear_cache():
     _effects_cache = None
     _triggers_cache = None
     _traits_cache = None
+    _animations_cache = None

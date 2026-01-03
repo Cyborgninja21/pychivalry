@@ -1,0 +1,1123 @@
+# =============================================================================
+# CK3 Portrait Animations
+# =============================================================================
+# Source: Extracted from base game events (game/events/**/*.txt)
+# Total: 251 unique animations
+#
+# This file defines valid animation names for portrait blocks in events.
+# Animations control how characters appear in event windows.
+#
+# To add new animations:
+# 1. Find the animation name in the base game's animations.txt or events
+# 2. Add it to the appropriate category below
+# 3. The LSP will automatically recognize it
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Default/Idle Animations
+# -----------------------------------------------------------------------------
+idle:
+  description: Default standing pose
+  category: default
+
+frontend_center_idle:
+  description: Frontend menu center idle pose
+  category: default
+
+frontend_left_idle:
+  description: Frontend menu left idle pose
+  category: default
+
+frontend_right_idle:
+  description: Frontend menu right idle pose
+  category: default
+
+# -----------------------------------------------------------------------------
+# Basic Emotion Animations
+# -----------------------------------------------------------------------------
+happiness:
+  description: Joyful expression
+  category: emotion
+
+sadness:
+  description: Sorrowful expression
+  category: emotion
+
+anger:
+  description: Angry expression
+  category: emotion
+
+fear:
+  description: Fearful expression
+  category: emotion
+
+disgust:
+  description: Disgusted expression
+  category: emotion
+
+shock:
+  description: Surprised/shocked expression
+  category: emotion
+
+boredom:
+  description: Bored/disinterested expression
+  category: emotion
+
+flirtation:
+  description: Flirtatious expression
+  category: emotion
+
+flirtation_left:
+  description: Flirtatious expression looking left
+  category: emotion
+
+worry:
+  description: Worried expression
+  category: emotion
+
+stress:
+  description: Stressed expression
+  category: emotion
+
+shame:
+  description: Shameful/embarrassed expression
+  category: emotion
+
+ecstasy:
+  description: Ecstatic expression
+  category: emotion
+
+pain:
+  description: Expression of pain
+  category: emotion
+
+rage:
+  description: Intense anger
+  category: emotion
+
+grief:
+  description: Grieving expression
+  category: emotion
+
+thinking:
+  description: Thoughtful/contemplative pose
+  category: emotion
+
+dismissal:
+  description: Dismissive gesture
+  category: emotion
+
+love:
+  description: Loving expression
+  category: emotion
+
+disappointed:
+  description: Disappointed expression
+  category: emotion
+
+disapproval:
+  description: Disapproving expression
+  category: emotion
+
+disbelief:
+  description: Disbelieving expression
+  category: emotion
+
+interested:
+  description: Interested expression
+  category: emotion
+
+interested_left:
+  description: Interested expression looking left
+  category: emotion
+
+nervous:
+  description: Nervous expression
+  category: emotion
+
+stunned:
+  description: Stunned expression
+  category: emotion
+
+eyeroll:
+  description: Eye rolling expression
+  category: emotion
+
+schadenfreude:
+  description: Schadenfreude expression (pleasure at others' misfortune)
+  category: emotion
+
+manic:
+  description: Manic expression
+  category: emotion
+
+delirium:
+  description: Delirious expression
+  category: emotion
+
+paranoia:
+  description: Paranoid expression
+  category: emotion
+
+eccentric:
+  description: Eccentric expression
+  category: emotion
+
+wailing:
+  description: Wailing/crying loudly
+  category: emotion
+
+crying:
+  description: Crying animation
+  category: emotion
+
+laugh:
+  description: Laughing animation
+  category: emotion
+
+# -----------------------------------------------------------------------------
+# Personality Animations
+# -----------------------------------------------------------------------------
+personality_bold:
+  description: Confident/bold stance
+  category: personality
+
+personality_callous:
+  description: Cold/callous expression
+  category: personality
+
+personality_compassionate:
+  description: Kind/caring expression
+  category: personality
+
+personality_content:
+  description: Satisfied/content expression
+  category: personality
+
+personality_coward:
+  description: Cowardly/fearful stance
+  category: personality
+
+personality_cynical:
+  description: Cynical/skeptical expression
+  category: personality
+
+personality_dishonorable:
+  description: Dishonorable/shameless stance
+  category: personality
+
+personality_forgiving:
+  description: Forgiving/merciful expression
+  category: personality
+
+personality_greedy:
+  description: Greedy/covetous expression
+  category: personality
+
+personality_honorable:
+  description: Noble/honorable stance
+  category: personality
+
+personality_irrational:
+  description: Irrational/unpredictable stance
+  category: personality
+
+personality_rational:
+  description: Calm/logical stance
+  category: personality
+
+personality_vengeful:
+  description: Vengeful/bitter expression
+  category: personality
+
+personality_zealous:
+  description: Zealous/fervent expression
+  category: personality
+
+# -----------------------------------------------------------------------------
+# Scheme/Intrigue Animations
+# -----------------------------------------------------------------------------
+scheme:
+  description: Scheming/plotting pose
+  category: intrigue
+
+scheme_prep_pick_best_stance:
+  description: Scheme preparation stance
+  category: intrigue
+
+eavesdrop:
+  description: Eavesdropping pose
+  category: intrigue
+
+assassin:
+  description: Assassin pose
+  category: intrigue
+
+poison:
+  description: Poisoning animation
+  category: intrigue
+
+bribing:
+  description: Bribing animation
+  category: intrigue
+
+menacing:
+  description: Menacing pose
+  category: intrigue
+
+menacing_wooden_sword:
+  description: Menacing pose with wooden sword
+  category: intrigue
+
+threatening:
+  description: Threatening pose
+  category: intrigue
+
+# -----------------------------------------------------------------------------
+# Combat - Aggressive Weapon Animations
+# -----------------------------------------------------------------------------
+aggressive_axe:
+  description: Aggressive stance with axe
+  category: combat
+
+aggressive_dagger:
+  description: Aggressive stance with dagger
+  category: combat
+
+aggressive_hammer:
+  description: Aggressive stance with hammer
+  category: combat
+
+aggressive_mace:
+  description: Aggressive stance with mace
+  category: combat
+
+aggressive_spear:
+  description: Aggressive stance with spear
+  category: combat
+
+aggressive_sword:
+  description: Aggressive stance with sword
+  category: combat
+
+aggressive_unarmed:
+  description: Aggressive unarmed stance
+  category: combat
+
+aggressive_wooden_sword:
+  description: Aggressive stance with wooden sword
+  category: combat
+
+# -----------------------------------------------------------------------------
+# Combat - Celebrate Weapon Animations
+# -----------------------------------------------------------------------------
+celebrate_axe:
+  description: Victory celebration with axe
+  category: combat
+
+celebrate_dagger:
+  description: Victory celebration with dagger
+  category: combat
+
+celebrate_hammer:
+  description: Victory celebration with hammer
+  category: combat
+
+celebrate_mace:
+  description: Victory celebration with mace
+  category: combat
+
+celebrate_spear:
+  description: Victory celebration with spear
+  category: combat
+
+celebrate_sword:
+  description: Victory celebration with sword
+  category: combat
+
+celebrate_wooden_sword:
+  description: Victory celebration with wooden sword
+  category: combat
+
+# -----------------------------------------------------------------------------
+# Combat - Marshal Animations
+# -----------------------------------------------------------------------------
+marshal:
+  description: Marshal commanding pose
+  category: combat
+
+marshal_axe:
+  description: Marshal pose with axe
+  category: combat
+
+marshal_dagger:
+  description: Marshal pose with dagger
+  category: combat
+
+marshal_mace:
+  description: Marshal pose with mace
+  category: combat
+
+marshal_random_weapon:
+  description: Marshal pose with random weapon
+  category: combat
+
+marshal_shield:
+  description: Marshal pose with shield
+  category: combat
+
+marshal_wooden_sword:
+  description: Marshal pose with wooden sword
+  category: combat
+
+# -----------------------------------------------------------------------------
+# Combat - Duel/Fight Animations
+# -----------------------------------------------------------------------------
+duel_celebrate:
+  description: Duel victory celebration
+  category: combat
+
+duel_wield_weapon:
+  description: Duel weapon wielding stance
+  category: combat
+
+sword_coup_degrace:
+  description: Sword coup de grace (finishing blow)
+  category: combat
+
+sword_yield_start:
+  description: Sword yield/surrender start
+  category: combat
+
+wooden_sword_coup_degrace:
+  description: Wooden sword coup de grace
+  category: combat
+
+wooden_sword_yield_start:
+  description: Wooden sword yield start
+  category: combat
+
+random_weapon_aggressive:
+  description: Aggressive with random weapon
+  category: combat
+
+random_weapon_celebrate:
+  description: Celebrate with random weapon
+  category: combat
+
+random_weapon_coup_degrace:
+  description: Coup de grace with random weapon
+  category: combat
+
+random_weapon_yield:
+  description: Yield with random weapon
+  category: combat
+
+inspect_weapon:
+  description: Inspecting weapon
+  category: combat
+
+relaxed_spear:
+  description: Relaxed stance with spear
+  category: combat
+
+# -----------------------------------------------------------------------------
+# Combat - Wrestling Animations
+# -----------------------------------------------------------------------------
+wrestling_victory:
+  description: Wrestling victory pose
+  category: combat
+
+wrestling_yield_start:
+  description: Wrestling yield/submission
+  category: combat
+
+# -----------------------------------------------------------------------------
+# Combat - War Animations
+# -----------------------------------------------------------------------------
+war_attacker:
+  description: War attacker pose
+  category: combat
+
+war_defender:
+  description: War defender pose
+  category: combat
+
+war_over_loss:
+  description: War over - defeat pose
+  category: combat
+
+war_over_tie:
+  description: War over - tie/stalemate pose
+  category: combat
+
+war_over_win:
+  description: War over - victory pose
+  category: combat
+
+hero_flex:
+  description: Heroic flexing pose
+  category: combat
+
+# -----------------------------------------------------------------------------
+# Bow/Archery Animations
+# -----------------------------------------------------------------------------
+bow_closed:
+  description: Bow at rest (closed)
+  category: archery
+
+bow_closed_blunt:
+  description: Bow at rest with blunt arrow
+  category: archery
+
+bow_drawn:
+  description: Bow drawn ready to fire
+  category: archery
+
+bow_drawn_blunt:
+  description: Bow drawn with blunt arrow
+  category: archery
+
+bow_idle:
+  description: Bow idle stance
+  category: archery
+
+crossbow:
+  description: Crossbow stance
+  category: archery
+
+# -----------------------------------------------------------------------------
+# Horse/Mounted Animations
+# -----------------------------------------------------------------------------
+horse_archer_aggressive:
+  description: Mounted archer aggressive pose
+  category: mounted
+
+horse_archer_idle:
+  description: Mounted archer idle
+  category: mounted
+
+horse_conversing_left:
+  description: Conversing on horseback, looking left
+  category: mounted
+
+horse_conversing_right:
+  description: Conversing on horseback, looking right
+  category: mounted
+
+horse_exhausted:
+  description: Exhausted on horseback
+  category: mounted
+
+horse_surveying:
+  description: Surveying from horseback
+  category: mounted
+
+horse_sword_shield:
+  description: Mounted with sword and shield
+  category: mounted
+
+standing_horse:
+  description: Standing beside horse
+  category: mounted
+
+# -----------------------------------------------------------------------------
+# Jockey/Racing Animations
+# -----------------------------------------------------------------------------
+jockey_gallop:
+  description: Jockey galloping
+  category: mounted
+
+jockey_idle:
+  description: Jockey idle on horse
+  category: mounted
+
+jockey_lance_couched_gallop:
+  description: Jockey galloping with couched lance
+  category: mounted
+
+jockey_lance_tilted:
+  description: Jockey with tilted lance
+  category: mounted
+
+jockey_loss:
+  description: Jockey after losing race
+  category: mounted
+
+jockey_victory:
+  description: Jockey after winning race
+  category: mounted
+
+jockey_walk:
+  description: Jockey walking horse
+  category: mounted
+
+jockey_wave:
+  description: Jockey waving
+  category: mounted
+
+# -----------------------------------------------------------------------------
+# Chariot Animations
+# -----------------------------------------------------------------------------
+chariot_happy:
+  description: Happy in chariot
+  category: mounted
+
+chariot_neutral:
+  description: Neutral in chariot
+  category: mounted
+
+chariot_shocked:
+  description: Shocked in chariot
+  category: mounted
+
+chariot_w_horses_happy:
+  description: Happy in chariot with horses
+  category: mounted
+
+chariot_w_horses_neutral:
+  description: Neutral in chariot with horses
+  category: mounted
+
+# -----------------------------------------------------------------------------
+# Hunting Animations
+# -----------------------------------------------------------------------------
+hunting_carcass_start:
+  description: Hunting with carcass
+  category: hunting
+
+hunting_falcon:
+  description: Falconry pose
+  category: hunting
+
+hunting_horn:
+  description: Blowing hunting horn
+  category: hunting
+
+hunting_knife_start:
+  description: Hunting with knife
+  category: hunting
+
+hunting_longbow_aim_arrow_default:
+  description: Aiming longbow
+  category: hunting
+
+hunting_longbow_rest_arrow_default:
+  description: Longbow at rest
+  category: hunting
+
+hunting_shortbow_aim_arrow_default:
+  description: Aiming shortbow
+  category: hunting
+
+hunting_shortbow_rest_arrow_default:
+  description: Shortbow at rest
+  category: hunting
+
+# -----------------------------------------------------------------------------
+# Council Position Animations
+# -----------------------------------------------------------------------------
+chancellor:
+  description: Chancellor council pose
+  category: council
+
+steward:
+  description: Steward council pose
+  category: council
+
+spymaster:
+  description: Spymaster council pose
+  category: council
+
+chaplain:
+  description: Court chaplain pose
+  category: council
+
+# -----------------------------------------------------------------------------
+# Throne Room Animations
+# -----------------------------------------------------------------------------
+throne_room_ruler:
+  description: Ruler on throne
+  category: throne_room
+
+throne_room_ruler_hu:
+  description: Ruler on throne with hu (tablet)
+  category: throne_room
+
+throne_room_chancellor:
+  description: Chancellor in throne room
+  category: throne_room
+
+throne_room_applaud_1:
+  description: Applauding in throne room
+  category: throne_room
+
+throne_room_bow_1:
+  description: Bowing in throne room (variant 1)
+  category: throne_room
+
+throne_room_bow_2:
+  description: Bowing in throne room (variant 2)
+  category: throne_room
+
+throne_room_bow_3:
+  description: Bowing in throne room (variant 3)
+  category: throne_room
+
+throne_room_cheer_1:
+  description: Cheering in throne room (variant 1)
+  category: throne_room
+
+throne_room_cheer_2:
+  description: Cheering in throne room (variant 2)
+  category: throne_room
+
+throne_room_conversation_1:
+  description: Conversation in throne room (variant 1)
+  category: throne_room
+
+throne_room_conversation_2:
+  description: Conversation in throne room (variant 2)
+  category: throne_room
+
+throne_room_conversation_3:
+  description: Conversation in throne room (variant 3)
+  category: throne_room
+
+throne_room_conversation_4:
+  description: Conversation in throne room (variant 4)
+  category: throne_room
+
+throne_room_curtsey_1:
+  description: Curtsey in throne room
+  category: throne_room
+
+throne_room_kneel_1:
+  description: Kneeling in throne room (variant 1)
+  category: throne_room
+
+throne_room_kneel_2:
+  description: Kneeling in throne room (variant 2)
+  category: throne_room
+
+throne_room_messenger_3:
+  description: Messenger in throne room
+  category: throne_room
+
+throne_room_one_handed_passive_1:
+  description: One-handed weapon passive (variant 1)
+  category: throne_room
+
+throne_room_one_handed_passive_2:
+  description: One-handed weapon passive (variant 2)
+  category: throne_room
+
+throne_room_one_handed_passive_3:
+  description: One-handed weapon passive (variant 3)
+  category: throne_room
+
+throne_room_two_handed_passive_1:
+  description: Two-handed weapon passive
+  category: throne_room
+
+throne_room_two_handed_passive_shield:
+  description: Two-handed weapon with shield passive
+  category: throne_room
+
+throne_room_wooden_sword:
+  description: Wooden sword in throne room
+  category: throne_room
+
+throne_room_writer:
+  description: Writer in throne room
+  category: throne_room
+
+# -----------------------------------------------------------------------------
+# Wedding/Ceremony Animations
+# -----------------------------------------------------------------------------
+wedding_bride_left:
+  description: Bride position (left side)
+  category: ceremony
+
+wedding_groom_right:
+  description: Groom position (right side)
+  category: ceremony
+
+wedding_priest:
+  description: Priest performing wedding
+  category: ceremony
+
+wedding_drunk:
+  description: Drunk at wedding
+  category: ceremony
+
+wedding_happy_cry:
+  description: Happy crying at wedding
+  category: ceremony
+
+wedding_objection_start:
+  description: Wedding objection start
+  category: ceremony
+
+reception_bride_right:
+  description: Reception bride (right side)
+  category: ceremony
+
+reception_groom_left:
+  description: Reception groom (left side)
+  category: ceremony
+
+crowning:
+  description: Crowning ceremony
+  category: ceremony
+
+# -----------------------------------------------------------------------------
+# Musical Instrument Animations
+# -----------------------------------------------------------------------------
+lute_active:
+  description: Playing lute
+  category: instrument
+
+lute_idle:
+  description: Holding lute idle
+  category: instrument
+
+alto_flute_active:
+  description: Playing alto flute
+  category: instrument
+
+chifonie_idle:
+  description: Holding chifonie (hurdy-gurdy) idle
+  category: instrument
+
+shawm_idle:
+  description: Holding shawm idle
+  category: instrument
+
+instrument_active:
+  description: Playing generic instrument
+  category: instrument
+
+instrument_idle:
+  description: Holding generic instrument idle
+  category: instrument
+
+# -----------------------------------------------------------------------------
+# Religious Animations
+# -----------------------------------------------------------------------------
+prayer:
+  description: Prayer pose
+  category: religious
+
+prostration:
+  description: Prostration (full bow to ground)
+  category: religious
+
+# -----------------------------------------------------------------------------
+# Social/Diplomatic Animations
+# -----------------------------------------------------------------------------
+admiration:
+  description: Admiring expression
+  category: social
+
+beg:
+  description: Begging pose
+  category: social
+
+obsequious_bow:
+  description: Obsequious/servile bow
+  category: social
+
+pondering:
+  description: Pondering/thinking
+  category: social
+
+acknowledging:
+  description: Acknowledging/nodding animation
+  category: social
+
+stayback:
+  description: Stay back gesture
+  category: social
+
+go_to_your_room:
+  description: Dismissing/sending away gesture
+  category: social
+
+# -----------------------------------------------------------------------------
+# Activity Animations
+# -----------------------------------------------------------------------------
+reading:
+  description: Reading animation
+  category: activity
+
+page_flipping:
+  description: Flipping pages animation
+  category: activity
+
+writing:
+  description: Writing animation
+  category: activity
+
+drink:
+  description: Drinking animation
+  category: activity
+
+drink_goblet:
+  description: Drinking from goblet
+  category: activity
+
+toast:
+  description: Toast/cheers animation
+  category: activity
+
+toast_goblet:
+  description: Toast with goblet
+  category: activity
+
+dancing:
+  description: Dancing animation
+  category: activity
+
+dancing_plague:
+  description: Dancing plague animation
+  category: activity
+
+debating:
+  description: Debating animation
+  category: activity
+
+betting:
+  description: Betting/gambling animation
+  category: activity
+
+survey:
+  description: Surveying animation
+  category: activity
+
+survey_staff:
+  description: Surveying with staff
+  category: activity
+
+storyteller:
+  description: Storytelling animation
+  category: activity
+
+fanning:
+  description: Fanning animation
+  category: activity
+
+fanning_coyly:
+  description: Coy fanning animation
+  category: activity
+
+lantern:
+  description: Holding lantern
+  category: activity
+
+serving_tray:
+  description: Carrying serving tray
+  category: activity
+
+# -----------------------------------------------------------------------------
+# Chess Animations
+# -----------------------------------------------------------------------------
+chess_certain_win:
+  description: Certain of winning chess
+  category: activity
+
+chess_cocky:
+  description: Cocky chess player
+  category: activity
+
+# -----------------------------------------------------------------------------
+# Teacher/Education Animations
+# -----------------------------------------------------------------------------
+happy_teacher:
+  description: Happy teacher
+  category: education
+
+stressed_teacher:
+  description: Stressed teacher
+  category: education
+
+# -----------------------------------------------------------------------------
+# Child Animations
+# -----------------------------------------------------------------------------
+child_hobby_horse:
+  description: Child with hobby horse
+  category: child
+
+clutching_ball:
+  description: Child clutching ball
+  category: child
+
+clutching_doll:
+  description: Child clutching doll
+  category: child
+
+clutching_toy:
+  description: Child clutching toy
+  category: child
+
+peekaboo:
+  description: Peekaboo animation
+  category: child
+
+# -----------------------------------------------------------------------------
+# Health/Status Animations
+# -----------------------------------------------------------------------------
+sick:
+  description: Sick/ill animation
+  category: health
+
+sick_stomach:
+  description: Stomach sickness
+  category: health
+
+cough:
+  description: Coughing animation
+  category: health
+
+shiver:
+  description: Shivering animation
+  category: health
+
+severelywounded:
+  description: Severely wounded
+  category: health
+
+pregnant:
+  description: Pregnant stance
+  category: health
+
+newborn:
+  description: Newborn baby animation
+  category: health
+
+dead:
+  description: Dead/dying pose
+  category: health
+
+# -----------------------------------------------------------------------------
+# Prison Animations
+# -----------------------------------------------------------------------------
+prisonhouse:
+  description: House arrest pose
+  category: prison
+
+prisondungeon:
+  description: Dungeon prisoner pose
+  category: prison
+
+# -----------------------------------------------------------------------------
+# Map Animations (Mini portraits)
+# -----------------------------------------------------------------------------
+map_disbelief:
+  description: Map portrait disbelief
+  category: map
+
+map_disgust:
+  description: Map portrait disgust
+  category: map
+
+map_fear:
+  description: Map portrait fear
+  category: map
+
+map_schadenfreude:
+  description: Map portrait schadenfreude
+  category: map
+
+map_worry:
+  description: Map portrait worry
+  category: map
+
+# -----------------------------------------------------------------------------
+# Japanese/East Asian Animations
+# -----------------------------------------------------------------------------
+chudan_no_kamae:
+  description: Middle guard sword stance (Japanese)
+  category: japanese
+
+gedan_no_kamae:
+  description: Low guard sword stance (Japanese)
+  category: japanese
+
+hasso_no_kamae:
+  description: High guard sword stance (Japanese)
+  category: japanese
+
+seiza:
+  description: Formal kneeling position (Japanese)
+  category: japanese
+
+japanese_war_fan:
+  description: Japanese war fan pose
+  category: japanese
+
+# -----------------------------------------------------------------------------
+# Chinese/East Asian Animations
+# -----------------------------------------------------------------------------
+gongshou:
+  description: Respectful hand gesture (Chinese)
+  category: chinese
+
+gongshou_with_hu:
+  description: Respectful gesture with hu tablet (Chinese)
+  category: chinese
+
+wu_shu_bao_quan_li:
+  description: Martial arts salute (Chinese)
+  category: chinese
+
+holding_hu:
+  description: Holding hu (ceremonial tablet)
+  category: chinese
+
+emperor:
+  description: Emperor pose
+  category: chinese
+
+scepter:
+  description: Holding scepter
+  category: chinese
+
+# -----------------------------------------------------------------------------
+# Holding Object Animations
+# -----------------------------------------------------------------------------
+holding_scrolls:
+  description: Holding scrolls
+  category: holding
+
+holding_staff:
+  description: Holding staff
+  category: holding
+
+# -----------------------------------------------------------------------------
+# Medical Animations
+# -----------------------------------------------------------------------------
+physician:
+  description: Physician pose
+  category: medical
+
+# -----------------------------------------------------------------------------
+# Outcome/Result Animations
+# -----------------------------------------------------------------------------
+loss_1:
+  description: Loss/defeat animation
+  category: outcome
+
+# -----------------------------------------------------------------------------
+# Scepter/Royal Animations
+# -----------------------------------------------------------------------------
+emotion_thinking_scepter:
+  description: Thinking while holding scepter
+  category: royal
+
+# -----------------------------------------------------------------------------
+# Shepherd Animations
+# -----------------------------------------------------------------------------
+shepherd_with_sheep:
+  description: Shepherd with sheep
+  category: misc

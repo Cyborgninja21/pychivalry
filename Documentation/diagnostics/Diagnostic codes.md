@@ -240,7 +240,7 @@ These checks validate portrait definitions, positions, and animations in events.
 |------|----------|-------------|
 | **CK3420** | Error | **Invalid portrait position** - Portrait position not recognized (valid: `left_portrait`, `right_portrait`, `lower_left_portrait`, `lower_center_portrait`, `lower_right_portrait`) |
 | **CK3421** | Warning | **Portrait missing character** - Portrait block lacks required `character` field |
-| **CK3422** | Warning | **Invalid animation** - Animation name not recognized in valid animations list |
+| **CK3422** | Warning | **Invalid animation** - Animation name not recognized in valid animations list (251 animations loaded from `data/animations.yaml`) |
 
 ### Examples
 
@@ -257,13 +257,17 @@ my_event.2 = {
     }
 }
 
-# CK3422: Invalid animation
+# CK3422: Invalid animation (251 animations loaded from data/animations.yaml)
 my_event.3 = {
     left_portrait = {
         character = root
         animation = flying  # WARNING: Not a valid animation
     }
 }
+
+# Valid animations include: happiness, sadness, anger, thinking, personality_bold,
+# aggressive_sword, throne_room_ruler, wedding_bride_left, and 243 more...
+# See pychivalry/data/animations.yaml for the complete list.
 ```
 
 ---

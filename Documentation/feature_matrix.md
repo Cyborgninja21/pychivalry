@@ -33,6 +33,7 @@ Use this as a reference for:
 8. Diagnostic messages (error/warning templates)
 9. Effect documentation (all 79 effects with examples)
 10. Trigger documentation (all 80 triggers with examples)
+11. Portrait animations (251 animations from `data/animations.yaml`)
 
 **What Stays in Python:**
 - Parser (AST construction)
@@ -298,12 +299,13 @@ For a comprehensive list of **all moddable content types** in CK3, see **[ck3_co
 | 9 | `traits.py` | Trait data: 297 CK3 traits with properties (skills, opinions, costs, flags), typo suggestions, filtering | ❌ N/A (data module) | ✅ Via YAML (`traits.yaml`) |
 | 10 | `scopes.py` | Scope system: loads scope definitions from YAML, scope links/lists/triggers/effects per type, chain validation | ❌ N/A (context-based) | ✅ Via YAML (`data/scopes/`) |
 | 11 | `lists.py` | List iterator definitions: any_/every_/random_/ordered_ prefixes, parameter validation, resulting scope types | ❌ N/A (utility module) | ❌ (hardcoded configs) |
+| 11b | `data/animations.yaml` | Portrait animation definitions: 251 valid CK3 animations organized by category (emotion, combat, ceremony, etc.) | ❌ N/A (data file) | ✅ Core data |
 
 #### File-Type-Specific Validation
 
 | # | Module | Features Provided | File Type Awareness | Schema-Driven |
 |---|--------|-------------------|---------------------|---------------|
-| 12 | `events.py` | Event validation: 6 event types, 30+ themes, portrait positions/animations, dynamic descriptions, EVENT-001–006 | ✅ Events only | ❌ (hardcoded sets) |
+| 12 | `events.py` | Event validation: 6 event types, 30+ themes, portrait positions, 251 animations (YAML-loaded), dynamic descriptions, EVENT-001–006 | ✅ Events only | ✅ Animations via YAML |
 | 13 | `story_cycles.py` | Story cycle validation: timing, lifecycle hooks, effect_group, triggered_effect, STORY-001–045 diagnostics | ✅ Story cycles only | ❌ (hardcoded structure) |
 | 14 | `localization.py` | Localization validation: fuzzy matching, character functions, formatting codes, icons, CK3600–CK3604 diagnostics | ✅ .yml loc files + refs | ❌ (hardcoded patterns) |
 | 15 | `scripted_blocks.py` | Scripted triggers/effects: parameter extraction ($PARAM$), validation, inline refs, scope requirements | ✅ scripted_effects/triggers | ❌ (hardcoded patterns) |
