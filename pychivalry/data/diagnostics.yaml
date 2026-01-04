@@ -45,6 +45,9 @@ categories:
   schema:
     prefix: "SCHEMA"
     description: "Schema-driven validation (patterns, types, order)"
+  graphics:
+    prefix: "GFX"
+    description: "Graphics file validation"
 
 diagnostics:
   # ============== Syntax (CK30xx) ==============
@@ -528,4 +531,11 @@ diagnostics:
     severity: error
     category: schema
     message: "Block type mismatch: expected {expected_context} block but found {actual_context}"
+
+  # ============== Graphics (GFX-xxx) ==============
+  GFX001:
+    severity: warning
+    category: graphics
+    message: "Graphics file not found: '{path}'"
+    fix: "Create the file or fix the path reference"
 
