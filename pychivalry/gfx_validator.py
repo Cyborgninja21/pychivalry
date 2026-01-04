@@ -8,7 +8,7 @@ MODULE OVERVIEW:
     Validates that referenced graphics files (DDS, PNG, TGA) exist on disk.
     Prevents pink/black checkerboard patterns in-game by catching missing
     files during development.
-    
+
     Works in conjunction with document_links.py which makes GFX paths clickable.
 
 ARCHITECTURE:
@@ -18,7 +18,7 @@ ARCHITECTURE:
     3. Resolve paths relative to workspace folders
     4. Check if files exist on disk
     5. Generate diagnostics for missing files
-    
+
     **Supported Patterns**:
     - icon = "gfx/path/to/file.dds"
     - texture = "gfx/path/to/file.dds"
@@ -26,7 +26,7 @@ ARCHITECTURE:
     - background = "gfx/path/to/file.dds"
     - portrait_texture = "gfx/path/to/file.dds"
     - sprite = "gfx/path/to/file.dds"
-    
+
     **File Types**:
     - .dds (DirectDraw Surface - primary format)
     - .png (Portable Network Graphics)
@@ -46,7 +46,7 @@ PERFORMANCE:
     - File existence check: ~1ms per file (cached by OS)
     - Typical file: ~5-10 graphics references
     - Total time: ~10-20ms per file
-    
+
     Caching Strategy:
     - OS-level file system cache handles repeated checks
     - No additional caching needed in Python layer
@@ -64,7 +64,6 @@ SEE ALSO:
 """
 
 import os
-import re
 import logging
 from typing import List, Optional, Set
 from lsprotocol import types
@@ -89,18 +88,18 @@ GRAPHICS_KEYWORDS = {
     "illustration",
     "image",
     "activity_window_background",  # Activities
-    "background_texture",           # GUI
-    "icon_texture",                 # GUI
+    "background_texture",  # GUI
+    "icon_texture",  # GUI
 }
 
 
 def is_graphics_reference(key: str) -> bool:
     """
     Check if a key is a graphics file reference.
-    
+
     Args:
         key: The key to check (e.g., "icon", "texture")
-        
+
     Returns:
         True if the key references graphics files
     """
@@ -110,32 +109,32 @@ def is_graphics_reference(key: str) -> bool:
 def extract_file_path(value: str) -> Optional[str]:
     """
     Extract file path from a value string.
-    
+
     Handles quoted strings and returns the path.
-    
+
     Args:
         value: Value string (may include quotes)
-        
+
     Returns:
         Cleaned file path or None if invalid
     """
     if not value:
         return None
-    
+
     # Remove quotes if present
     cleaned = value.strip().strip('"').strip("'")
-    
+
     # Must contain a path separator to be a file path
     if "/" not in cleaned and "\\" not in cleaned:
         return None
-    
+
     # Normalize path separators
     cleaned = cleaned.replace("\\", "/")
-    
+
     # Must look like a graphics path (start with gfx/ or be a relative path)
     if not (cleaned.startswith("gfx/") or cleaned.startswith("../") or cleaned.startswith("./")):
         return None
-    
+
     return cleaned
 
 
@@ -146,69 +145,69 @@ def resolve_graphics_path(
 ) -> Optional[str]:
     """
     Resolve a graphics path to an absolute file path.
-    
+
     Searches workspace folders for the file, similar to document_links.py.
-    
+
     Args:
         path: Relative path (e.g., "gfx/interface/icons/icon.dds")
         workspace_folders: List of workspace folder paths
         doc_dir: Directory of current document
-        
+
     Returns:
         Absolute file path if found, None otherwise
     """
     if not workspace_folders:
         workspace_folders = []
-    
+
     # Add doc_dir's parent as potential root (for mod structure)
     if doc_dir:
         potential_root = _find_mod_root(doc_dir)
         if potential_root and potential_root not in workspace_folders:
             workspace_folders = [potential_root] + list(workspace_folders)
-    
+
     # Normalize path separators
     path = path.replace("\\", "/")
-    
+
     # Try each workspace folder
     for folder in workspace_folders:
         full_path = os.path.join(folder, path)
         if os.path.exists(full_path):
             return full_path
-    
+
     return None
 
 
 def _find_mod_root(start_dir: str) -> Optional[str]:
     """
     Find the mod root directory by looking for descriptor.mod or standard folders.
-    
+
     This is a simplified version of the function from document_links.py.
-    
+
     Args:
         start_dir: Directory to start searching from
-        
+
     Returns:
         Mod root path if found, None otherwise
     """
     current = start_dir
-    
+
     # Limit search depth
     for _ in range(10):
         # Check for descriptor.mod
         if os.path.exists(os.path.join(current, "descriptor.mod")):
             return current
-        
+
         # Check for common CK3 mod structure
         if os.path.isdir(os.path.join(current, "common")) or os.path.isdir(
             os.path.join(current, "events")
         ):
             return current
-        
+
         parent = os.path.dirname(current)
         if parent == current:
             break
         current = parent
-    
+
     return None
 
 
@@ -219,33 +218,33 @@ def check_graphics_files(
 ) -> List[types.Diagnostic]:
     """
     Check for missing graphics file references in the AST.
-    
+
     Validates that all referenced graphics files exist on disk.
-    
+
     Args:
         ast: Parsed AST nodes
         workspace_folders: List of workspace folder paths
         doc_dir: Directory of current document
-        
+
     Returns:
         List of diagnostics for missing graphics files
     """
     diagnostics = []
     checked_paths: Set[str] = set()  # Avoid duplicate checks
-    
+
     def check_node(node: CK3Node):
         """Recursively check a node for graphics references."""
         # Check if this is a graphics reference assignment
         if node.key and is_graphics_reference(node.key) and node.value:
             # Extract the file path
             file_path = extract_file_path(node.value)
-            
+
             if file_path and file_path not in checked_paths:
                 checked_paths.add(file_path)
-                
+
                 # Resolve to absolute path
                 resolved = resolve_graphics_path(file_path, workspace_folders, doc_dir)
-                
+
                 if not resolved:
                     # File not found - create diagnostic
                     diagnostics.append(
@@ -257,13 +256,13 @@ def check_graphics_files(
                         )
                     )
                     logger.debug(f"Missing graphics file: {file_path} (node at {node.range})")
-        
+
         # Recursively check children
         for child in node.children:
             check_node(child)
-    
+
     # Check all top-level nodes
     for node in ast:
         check_node(node)
-    
+
     return diagnostics

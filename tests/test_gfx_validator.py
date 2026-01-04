@@ -5,9 +5,6 @@ Tests the gfx_validator module which checks for missing graphics file references
 """
 
 import os
-import tempfile
-import pytest
-from pathlib import Path
 from lsprotocol import types
 
 from pychivalry.gfx_validator import (
@@ -157,7 +154,7 @@ class TestModRootFinding:
     def test_find_mod_root_with_descriptor(self, tmp_path):
         """Should find mod root by descriptor.mod."""
         descriptor = tmp_path / "descriptor.mod"
-        descriptor.write_text("version = \"1.0\"")
+        descriptor.write_text('version = "1.0"')
 
         root = _find_mod_root(str(tmp_path))
         assert root == str(tmp_path)
@@ -379,11 +376,11 @@ class TestRealWorldScenarios:
         text = """
         rq_grand_debauch = {
             activity_window_background = "gfx/interface/activities/missing_activity.dds"
-            
+
             phase_1 = {
                 icon = "gfx/interface/icons/phase1_missing.dds"
             }
-            
+
             phase_2 = {
                 icon = "gfx/interface/icons/phase2_missing.dds"
             }
@@ -404,7 +401,7 @@ class TestRealWorldScenarios:
         test_events.0001 = {
             type = character_event
             background = "gfx/interface/illustrations/event_scenes/missing_scene.dds"
-            
+
             option = {
                 name = test_events.0001.a
             }
@@ -421,7 +418,7 @@ class TestRealWorldScenarios:
         text = """
         my_decision = {
             icon = "gfx/interface/icons/decisions/missing_decision.dds"
-            
+
             is_shown = {
                 always = yes
             }
