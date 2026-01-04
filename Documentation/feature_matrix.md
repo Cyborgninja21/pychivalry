@@ -172,7 +172,34 @@ For a comprehensive list of **all moddable content types** in CK3, see **[ck3_co
 - **Code Lens**: Reference counts and warnings configured in schema
 - **Validation**: All validation rules defined declaratively in YAML
 
+---
 
+## 2.5. KNOWN VALIDATION GAPS
+
+> ⚠️ **Important:** The following validation types are NOT yet implemented. These represent common error patterns that are only caught at runtime.
+
+### Missing Graphics File Validation (GFX Paths)
+
+**Status:** ❌ Not Implemented | **Priority:** Medium | **Issue:** Planned
+
+PyChivalry does NOT validate that referenced graphics files exist. Missing `.dds` files cause pink/black checkerboard patterns in-game but generate no editor warnings.
+
+| Pattern | Example | File Types Affected |
+|---------|---------|---------------------|
+| `texture = "..."` | `texture = "gfx/interface/icons/icon.dds"` | Events, Activities, GUI |
+| `reference = "..."` | `reference = "gfx/interface/illustrations/scene.dds"` | Activity backgrounds |
+| `icon = "..."` | `icon = "gfx/interface/icons/decision.dds"` | Decisions, Interactions |
+| `background = "..."` | `background = "gfx/interface/backgrounds/bg.dds"` | Events, Activities |
+
+**Current Behavior:**
+- `document_links.py` makes GFX paths clickable with "File not found" tooltip
+- No diagnostic/error is generated
+
+**Proposed Diagnostic:** `GFX001` - Missing graphics file reference
+
+**Real-World Impact:** Activity `rq_grand_debauch` showed checkerboard because `activity_window_background` referenced non-existent placeholder files. Only discovered at runtime.
+
+---
 
 ## 3. NOT YET VALIDATED FILE TYPES
 

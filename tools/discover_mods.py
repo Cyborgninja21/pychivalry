@@ -112,15 +112,23 @@ class ModDiscovery:
     def _log(self, message: str) -> None:
         """Print log message if verbose."""
         if self.verbose:
-            print(f"[INFO] {message}")
+            self._safe_print(f"[INFO] {message}")
     
     def _warn(self, message: str) -> None:
         """Print warning message."""
-        print(f"[WARN] {message}")
+        self._safe_print(f"[WARN] {message}")
     
     def _error(self, message: str) -> None:
         """Print error message."""
-        print(f"[ERROR] {message}")
+        self._safe_print(f"[ERROR] {message}")
+    
+    def _safe_print(self, message: str) -> None:
+        """Print message with safe encoding for Windows console."""
+        try:
+            print(message)
+        except UnicodeEncodeError:
+            # Fall back to ASCII-safe version
+            print(message.encode('ascii', 'replace').decode('ascii'))
     
     def _load_registry(self) -> Dict[str, Any]:
         """Load the mod registry YAML file."""
@@ -181,12 +189,15 @@ class ModDiscovery:
         
         return None
     
-    def discover_mods(self, additional_paths: Optional[List[Path]] = None) -> List[ModInfo]:
+    def discover_mods(self, additional_paths: Optional[List[Path]] = None, scan_all: bool = False,
+                       exclude_paths: Optional[List[Path]] = None) -> List[ModInfo]:
         """
-        Discover installed mods matching the registry.
+        Discover installed mods.
         
         Args:
             additional_paths: Additional paths to search for mods
+            scan_all: If True, discover ALL mods (not just registered ones)
+            exclude_paths: Paths to exclude (e.g., mods being developed)
             
         Returns:
             List of discovered mod info
@@ -195,7 +206,12 @@ class ModDiscovery:
         if additional_paths:
             search_paths.extend(additional_paths)
         
+        # Normalize exclude paths for comparison
+        exclude_set = {p.resolve() for p in (exclude_paths or [])}
+        
         self._log(f"Searching {len(search_paths)} locations for mods...")
+        if exclude_set:
+            self._log(f"  Excluding {len(exclude_set)} path(s): {[str(p) for p in exclude_set]}")
         
         discovered = []
         seen_paths: Set[Path] = set()
@@ -219,7 +235,13 @@ class ModDiscovery:
                 # Skip if we've already found this mod path
                 if item in seen_paths:
                     continue
-                    
+                
+                # Skip excluded paths (mods being developed)
+                if item.resolve() in exclude_set:
+                    self._log(f"    [SKIP] Excluding workspace mod: {item.name}")
+                    continue
+                
+                # Try to identify as registered mod first
                 mod_id = self._identify_mod(item)
                 if mod_id:
                     seen_paths.add(item)
@@ -234,7 +256,58 @@ class ModDiscovery:
                     )
                     
                     discovered.append(mod_info)
-                    self._log(f"    ✓ Found: {mod_info.name} ({mod_id}) at {item}")
+                    self._log(f"    [+] Found (registered): {mod_info.name} ({mod_id}) at {item}")
+                elif scan_all:
+                    # Check if it looks like a CK3 mod
+                    mod_info = self._identify_generic_mod(item)
+                    if mod_info:
+                        seen_paths.add(item)
+                        discovered.append(mod_info)
+                        self._log(f"    [+] Found (unregistered): {mod_info.name} at {item}")
+        
+        return discovered
+    
+    def _identify_generic_mod(self, folder_path: Path) -> Optional[ModInfo]:
+        """
+        Identify a generic CK3 mod from its folder.
+        
+        Returns ModInfo if it looks like a valid CK3 mod, None otherwise.
+        """
+        # Check for descriptor.mod (required for CK3 mods)
+        descriptor = folder_path / "descriptor.mod"
+        if not descriptor.exists():
+            # Also check for .mod files in the folder
+            mod_files = list(folder_path.glob("*.mod"))
+            if not mod_files:
+                return None
+            descriptor = mod_files[0]
+        
+        # Parse descriptor for mod name
+        try:
+            content = descriptor.read_text(encoding='utf-8')
+        except Exception:
+            return None
+        
+        # Extract mod name from descriptor
+        name_match = re.search(r'name\s*=\s*"([^"]+)"', content)
+        mod_name = name_match.group(1) if name_match else folder_path.name
+        
+        # Create a sanitized mod_id from the folder name
+        mod_id = re.sub(r'[^a-z0-9_]', '_', folder_path.name.lower())
+        mod_id = re.sub(r'_+', '_', mod_id).strip('_')
+        if not mod_id:
+            mod_id = "unknown_mod"
+        
+        # Mark as unregistered for extraction purposes
+        mod_id = f"_unregistered_{mod_id}"
+        
+        return ModInfo(
+            mod_id=mod_id,
+            name=mod_name,
+            path=folder_path,
+            version=self._get_mod_version(folder_path),
+            checksum=self._calculate_checksum(folder_path)
+        )
         
         return discovered
     
@@ -250,6 +323,60 @@ class ModDiscovery:
             except Exception:
                 pass
         return None
+    
+    def _get_generic_extraction_rules(self) -> Dict[str, Any]:
+        """
+        Return generic extraction rules for unregistered mods.
+        
+        These rules extract ALL traits, triggers, and effects without prefix filtering.
+        """
+        return {
+            'traits': {
+                'sources': [
+                    {
+                        'path': 'common/traits/*.txt',
+                        'pattern': r'^([a-z_][a-z0-9_]*)\s*=\s*\{',
+                        'include_prefixes': [],  # No filtering - get all
+                    }
+                ]
+            },
+            'triggers': {
+                'sources': [
+                    {
+                        'path': 'common/scripted_triggers/*.txt',
+                        'pattern': r'^([a-z_][a-z0-9_]*)\s*=\s*\{',
+                        'include_prefixes': [],
+                    }
+                ]
+            },
+            'effects': {
+                'sources': [
+                    {
+                        'path': 'common/scripted_effects/*.txt',
+                        'pattern': r'^([a-z_][a-z0-9_]*)\s*=\s*\{',
+                        'include_prefixes': [],
+                    }
+                ]
+            },
+            'opinion_modifiers': {
+                'sources': [
+                    {
+                        'path': 'common/opinion_modifiers/*.txt',
+                        'pattern': r'^([a-z_][a-z0-9_]*)\s*=\s*\{',
+                        'include_prefixes': [],
+                    }
+                ]
+            },
+            'scopes': {
+                'sources': [
+                    {
+                        'path': 'common/scripted_relations/*.txt',
+                        'pattern': r'^([a-z_][a-z0-9_]*)\s*=\s*\{',
+                        'include_prefixes': [],
+                    }
+                ]
+            },
+        }
     
     def _extract_definitions(self, mod_path: Path, extraction_rules: Dict[str, Any]) -> ExtractedData:
         """
@@ -357,9 +484,12 @@ class ModDiscovery:
         
         self._log(f"Extracting data from {mod_info.name}...")
         
-        # Get extraction rules from registry
-        mod_config = self.registry['mods'].get(mod_info.mod_id, {})
-        extraction_rules = mod_config.get('extraction_rules', {})
+        # Get extraction rules from registry, or use generic rules for unregistered mods
+        if mod_info.mod_id.startswith('_unregistered_'):
+            extraction_rules = self._get_generic_extraction_rules()
+        else:
+            mod_config = self.registry['mods'].get(mod_info.mod_id, {})
+            extraction_rules = mod_config.get('extraction_rules', {})
         
         # Extract definitions
         data = self._extract_definitions(mod_info.path, extraction_rules)
@@ -384,21 +514,24 @@ class ModDiscovery:
         return data
     
     def discover_and_extract_all(self, additional_paths: Optional[List[Path]] = None, 
-                                  force: bool = False) -> Dict[str, ExtractedData]:
+                                  force: bool = False, scan_all: bool = False,
+                                  exclude_paths: Optional[List[Path]] = None) -> Dict[str, ExtractedData]:
         """
         Discover all mods and extract their data.
         
         Args:
             additional_paths: Additional paths to search
             force: Force re-extraction even if cached
+            scan_all: If True, scan ALL mods (not just registered ones)
+            exclude_paths: Paths to exclude (e.g., mods being developed)
             
         Returns:
             Dictionary mapping mod_id to extracted data
         """
-        mods = self.discover_mods(additional_paths)
+        mods = self.discover_mods(additional_paths, scan_all=scan_all, exclude_paths=exclude_paths)
         
         if not mods:
-            self._log("No registered mods found in standard locations.")
+            self._log("No mods found in standard locations.")
             return {}
         
         results = {}
@@ -515,6 +648,17 @@ def main():
         help='Quiet mode (minimal output)'
     )
     parser.add_argument(
+        '--all', '-a',
+        action='store_true',
+        help='Scan ALL mods (not just registered ones)'
+    )
+    parser.add_argument(
+        '--exclude', '-e',
+        type=Path,
+        action='append',
+        help='Exclude mod paths (e.g., mods you are developing)'
+    )
+    parser.add_argument(
         '--output', '-o',
         type=Path,
         help='Output JSON file for results'
@@ -538,21 +682,24 @@ def main():
         
         # Gather additional paths
         additional_paths = args.mod_path or []
+        exclude_paths = [p.resolve() for p in (args.exclude or [])]
         
         # Clean mode - just clean up stale entries without full extraction
         if args.clean:
-            mods = discovery.discover_mods(additional_paths)
+            mods = discovery.discover_mods(additional_paths, scan_all=args.all, exclude_paths=exclude_paths)
             discovered_ids = {m.mod_id for m in mods}
             discovery._cleanup_stale_cache(discovered_ids)
-            print(f"\n✅ Cache cleanup complete. {len(discovered_ids)} active mod(s) found.")
+            print(f"\n[OK] Cache cleanup complete. {len(discovered_ids)} active mod(s) found.")
             return 0
         
         # List mode
         if args.list:
-            mods = discovery.discover_mods(additional_paths)
-            print(f"\nDiscovered {len(mods)} registered mod(s):\n")
+            mods = discovery.discover_mods(additional_paths, scan_all=args.all, exclude_paths=exclude_paths)
+            mod_type = "all" if args.all else "registered"
+            print(f"\nDiscovered {len(mods)} {mod_type} mod(s):\n")
             for mod in mods:
-                print(f"  • {mod.name}")
+                registered = "" if mod.mod_id.startswith('_unregistered_') else " [registered]"
+                print(f"  - {mod.name}{registered}")
                 print(f"    ID: {mod.mod_id}")
                 print(f"    Path: {mod.path}")
                 if mod.version:
@@ -562,7 +709,7 @@ def main():
         
         # Extract specific mod
         if args.mod:
-            mods = discovery.discover_mods(additional_paths)
+            mods = discovery.discover_mods(additional_paths, scan_all=args.all, exclude_paths=exclude_paths)
             target = next((m for m in mods if m.mod_id == args.mod), None)
             
             if not target:
@@ -579,10 +726,11 @@ def main():
             return 0
         
         # Extract all mods
-        results = discovery.discover_and_extract_all(additional_paths, force=args.force)
+        results = discovery.discover_and_extract_all(additional_paths, force=args.force, 
+                                                      scan_all=args.all, exclude_paths=exclude_paths)
         
         if results:
-            print(f"\n✅ Successfully extracted data from {len(results)} mod(s)!")
+            print(f"\n[OK] Successfully extracted data from {len(results)} mod(s)!")
             
             if args.output:
                 output_data = {mod_id: data.to_dict() for mod_id, data in results.items()}
