@@ -1,0 +1,140 @@
+# =============================================================================
+# Carnalitas Traits
+# =============================================================================
+# Character traits added by the Carnalitas mod
+# These are NOT vanilla CK3 traits - requires Carnalitas dependency
+#
+# Categories:
+#   - Lifestyle traits (prostitute, etc.)
+#   - Status traits (slave, etc.)
+#   - Body type traits (futanari, body modifications)
+#   - Sexual preference traits
+#   - Relationship traits
+# =============================================================================
+
+metadata:
+  mod_name: Carnalitas
+  mod_version: "2.x"
+  description: "Adult content framework mod traits"
+  source: "https://www.loverslab.com/files/file/14207-carnalitas-unified-sex-mod-framework-for-ck3/"
+
+# =============================================================================
+# LIFESTYLE TRAITS
+# =============================================================================
+
+lifestyle_prostitute:
+  category: lifestyle
+  description: "Character works as a prostitute"
+  opposites: []
+  effects:
+  - "Monthly gold income from clients"
+  - "Opinion penalties with pious characters"
+  triggers_available:
+  - has_trait = lifestyle_prostitute
+
+lifestyle_prostitute_famous:
+  category: lifestyle
+  description: "Famous prostitute with enhanced reputation"
+  opposites: []
+
+# =============================================================================
+# STATUS TRAITS
+# =============================================================================
+
+slave:
+  category: status
+  description: "Character is enslaved"
+  opposites: []
+  effects:
+  - "Cannot hold titles"
+  - "Owned by another character"
+  notes: "Use carn_is_slave_trigger for checks"
+
+slave_concubine:
+  category: status
+  description: "Slave serving as concubine"
+  opposites: []
+
+slave_captain:
+  category: status
+  description: "Slave in military leadership role"
+  opposites: []
+
+slave_eunuch:
+  category: status
+  description: "Castrated slave"
+  opposites: []
+
+# =============================================================================
+# BODY TYPE TRAITS
+# =============================================================================
+
+futa:
+  category: body_type
+  description: "Futanari body type"
+  opposites: []
+  notes: "From Carnalitas Futanari submod"
+
+futa_big:
+  category: body_type
+  description: "Futanari with larger anatomy"
+  opposites: []
+
+futa_huge:
+  category: body_type
+  description: "Futanari with very large anatomy"
+  opposites: []
+
+body_modified:
+  category: body_type
+  description: "Character has body modifications"
+  opposites: []
+
+# =============================================================================
+# SEXUAL/PREFERENCE TRAITS
+# =============================================================================
+
+deviant:
+  category: personality
+  description: "Character has deviant sexual preferences"
+  opposites: []
+  effects:
+  - "More likely to engage in taboo activities"
+
+# Note: 'deviant' may also be in vanilla - check for conflicts
+
+# =============================================================================  
+# RELATIONSHIP/EXPERIENCE TRAITS
+# =============================================================================
+
+carn_pregnancy_scare:
+  category: temporary
+  description: "Character had a pregnancy scare"
+  opposites: []
+  duration: "Temporary flag"
+
+carn_recent_sex:
+  category: temporary
+  description: "Character recently had sex"
+  opposites: []
+  duration: "Short duration flag"
+
+# =============================================================================
+# STD/HEALTH TRAITS
+# =============================================================================
+
+has_std:
+  category: health
+  description: "Character has a sexually transmitted disease"
+  opposites: []
+  notes: "Use has_std_trigger for checks"
+
+great_pox:
+  category: health
+  description: "Syphilis-like disease"
+  opposites: []
+
+lovers_pox:
+  category: health
+  description: "Herpes-like disease"
+  opposites: []

@@ -40,6 +40,7 @@ HIGHLIGHTED SYMBOL TYPES:
     4. **Character Flags**: has_character_flag/add_character_flag
     5. **Scripted Effects/Triggers**: Definitions and call sites
     6. **Localization Keys**: References across title/desc/option
+    7. **Decision Group Types**: Definitions and decision_group_type = refs
 
 USAGE EXAMPLES:
     >>> # Cursor on "target" in: scope:target
@@ -280,6 +281,10 @@ def _classify_word(line: str, word: str, start: int) -> Optional[str]:
     if prefix.endswith(("has_character_flag =", "add_character_flag =", "remove_character_flag =")):
         return "flag"
 
+    # Check for decision_group_type context
+    if prefix.endswith("decision_group_type =") or "decision_group_type" in prefix:
+        return "decision_group_type"
+
     # Check for scripted effect/trigger suffix
     if word.endswith("_effect"):
         return "scripted_effect"
@@ -493,6 +498,22 @@ def _get_patterns_for_symbol(
         patterns.append(
             (
                 re.compile(rf"\bmodifier\s*=\s*{name}\b"),
+                types.DocumentHighlightKind.Read,
+            )
+        )
+
+    elif symbol.symbol_type == "decision_group_type":
+        # Definition in decision_group_types folder (WRITE)
+        patterns.append(
+            (
+                re.compile(rf"^{name}\s*=\s*\{{", re.MULTILINE),
+                types.DocumentHighlightKind.Write,
+            )
+        )
+        # Usage in decisions (READ)
+        patterns.append(
+            (
+                re.compile(rf"\bdecision_group_type\s*=\s*{name}\b"),
                 types.DocumentHighlightKind.Read,
             )
         )

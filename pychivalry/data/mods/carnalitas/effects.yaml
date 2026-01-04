@@ -1,0 +1,200 @@
+# =============================================================================
+# Carnalitas Scripted Effects
+# =============================================================================
+# Scripted effects provided by Carnalitas mod
+# These are the recommended API for interacting with Carnalitas systems
+# =============================================================================
+
+metadata:
+  mod_name: Carnalitas
+  mod_version: "2.x"
+  description: "Carnalitas scripted effects for validation"
+
+# =============================================================================
+# SEX SCENE EFFECTS (v2 API - PREFERRED)
+# =============================================================================
+
+carn_sex_scene_effect_v2:
+  scopes: [character]
+  description: "Trigger a sex scene with popup event"
+  parameters:
+    PARTNER: "Target character scope (required)"
+  example: |
+    # Set flags BEFORE calling
+    carn_sex_scene_is_vaginal_effect = yes
+    carn_sex_scene_is_consensual_effect = yes
+    carn_sex_scene_effect_v2 = { PARTNER = scope:target }
+  notes: "Set scene type flags before calling this effect"
+
+carn_had_sex_with_effect_v2:
+  scopes: [character]
+  description: "Silent sex - apply consequences without popup"
+  parameters:
+    PARTNER: "Target character scope (required)"
+  example: |
+    carn_had_sex_with_effect_v2 = { PARTNER = scope:lover }
+
+# =============================================================================
+# SEX SCENE TYPE FLAGS
+# =============================================================================
+# These must be set BEFORE calling carn_sex_scene_effect_v2
+
+carn_sex_scene_is_vaginal_effect:
+  scopes: [character]
+  description: "Flag sex scene as vaginal"
+  parameters: []
+  example: "carn_sex_scene_is_vaginal_effect = yes"
+
+carn_sex_scene_is_anal_effect:
+  scopes: [character]
+  description: "Flag sex scene as anal"
+  parameters: []
+
+carn_sex_scene_is_oral_effect:
+  scopes: [character]
+  description: "Flag sex scene as oral"
+  parameters: []
+
+carn_sex_scene_is_manual_effect:
+  scopes: [character]
+  description: "Flag sex scene as manual stimulation"
+  parameters: []
+
+# =============================================================================
+# SEX SCENE CONSENT FLAGS
+# =============================================================================
+
+carn_sex_scene_is_consensual_effect:
+  scopes: [character]
+  description: "Flag sex scene as consensual"
+  parameters: []
+  example: "carn_sex_scene_is_consensual_effect = yes"
+
+carn_sex_scene_is_nonconsensual_effect:
+  scopes: [character]
+  description: "Flag sex scene as non-consensual"
+  parameters: []
+  notes: "Use carefully - applies stress and opinion penalties"
+
+# =============================================================================
+# SEX SCENE CONTEXT FLAGS
+# =============================================================================
+
+carn_sex_scene_is_adultery_effect:
+  scopes: [character]
+  description: "Flag that sex constitutes adultery"
+  parameters: []
+
+carn_sex_scene_is_incest_effect:
+  scopes: [character]
+  description: "Flag that sex is incestuous"
+  parameters: []
+
+carn_sex_scene_no_pregnancy_effect:
+  scopes: [character]
+  description: "Prevent pregnancy from this encounter"
+  parameters: []
+
+carn_sex_scene_no_disease_effect:
+  scopes: [character]
+  description: "Prevent disease transmission from this encounter"
+  parameters: []
+
+# =============================================================================
+# CLOTHING EFFECTS
+# =============================================================================
+
+carn_undress_character_effect:
+  scopes: [character]
+  description: "Remove character's clothing"
+  parameters: []
+  example: "carn_undress_character_effect = yes"
+
+carn_dress_character_effect:
+  scopes: [character]
+  description: "Restore character's clothing"
+  parameters: []
+  example: "carn_dress_character_effect = yes"
+
+# =============================================================================
+# SLAVE SYSTEM EFFECTS
+# =============================================================================
+
+carn_enslave_effect:
+  scopes: [character]
+  description: "Enslave this character to root"
+  parameters: []
+  example: |
+    scope:prisoner = {
+      carn_enslave_effect = yes
+    }
+
+carn_free_slave_effect:
+  scopes: [character]
+  description: "Free this slave"
+  parameters: []
+
+carn_set_slave_owner_effect:
+  scopes: [character]
+  description: "Set a new owner for this slave"
+  parameters:
+    OWNER: "New owner character scope"
+
+# =============================================================================
+# PROSTITUTION EFFECTS
+# =============================================================================
+
+carn_make_prostitute_effect:
+  scopes: [character]
+  description: "Make character a prostitute"
+  parameters: []
+
+carn_stop_prostitute_effect:
+  scopes: [character]
+  description: "Remove prostitute status from character"
+  parameters: []
+
+# =============================================================================
+# RELATIONSHIP EFFECTS
+# =============================================================================
+
+carn_add_sex_partner_effect:
+  scopes: [character]
+  description: "Add character as a sex partner to root"
+  parameters: []
+
+carn_remove_sex_partner_effect:
+  scopes: [character]
+  description: "Remove character as sex partner from root"
+  parameters: []
+
+# =============================================================================
+# PREGNANCY EFFECTS
+# =============================================================================
+
+carn_check_pregnancy_effect:
+  scopes: [character]
+  description: "Check and potentially start pregnancy after sex"
+  parameters:
+    FATHER: "Potential father character scope"
+
+carn_set_pregnancy_father_effect:
+  scopes: [character]
+  description: "Set the father of current pregnancy"
+  parameters:
+    FATHER: "Father character scope"
+
+# =============================================================================
+# STD EFFECTS
+# =============================================================================
+
+carn_check_std_transmission_effect:
+  scopes: [character]
+  description: "Check for STD transmission after sex"
+  parameters:
+    PARTNER: "Sex partner character scope"
+
+carn_cure_std_effect:
+  scopes: [character]
+  description: "Cure character's STD"
+  parameters: []

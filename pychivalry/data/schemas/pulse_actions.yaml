@@ -1,0 +1,394 @@
+# Pulse Actions Schema
+# Declarative validation rules for CK3 activity pulse actions
+# CRITICAL: ROOT = Activity scope, NOT character!
+version: "1.0"
+file_type: pulse_action
+
+# File identification - when to apply this schema
+identification:
+  path_patterns:
+  - "*/common/activities/pulse_actions/*.txt"
+  - "common/activities/pulse_actions/*.txt"
+
+# ============ CONSTANTS ============
+constants:
+  common_icons:
+  - public
+  - courtly
+  - friend
+  - hook
+  - intrigue
+  - dread
+  - learning
+  - stewardship
+  - wound
+  - combat
+  - romance
+  - scheme
+  - diplomacy
+  - martial
+  - piety
+  - prestige
+
+# ============ VALIDATION ============
+fields:
+  icon:
+    type: string
+    required: false
+    description: "Icon identifier for UI display. Defaults to action key name."
+
+  is_valid:
+    required: true
+    type: trigger_block
+    diagnostic: PA001
+    message: "Pulse action missing required 'is_valid' trigger"
+    description: |
+      Conditions for this pulse action to be selectable.
+      CRITICAL: Root scope is ACTIVITY, not character!
+    scope_context:
+      root: activity
+      description: "The activity itself (NOT a character!)"
+      available_scopes:
+      - scope:activity
+      - scope:host
+      - scope:province
+
+  weight:
+    required: true
+    type: script_value_block
+    diagnostic: PA002
+    message: "Pulse action missing required 'weight' value"
+    description: |
+      Relative probability of this action being selected.
+      Higher weight = more likely to fire when valid.
+    scope_context:
+      root: activity
+      available_scopes:
+      - scope:host
+      - scope:province
+
+  effect:
+    required: true
+    type: effect_block
+    diagnostic: PA003
+    message: "Pulse action missing required 'effect' block"
+    description: |
+      Effects executed when this pulse action fires.
+      Should include add_activity_log_entry for UI display.
+      CRITICAL: Root scope is ACTIVITY, not character!
+    scope_context:
+      root: activity
+      description: "The activity itself (NOT a character!)"
+      available_scopes:
+      - scope:activity
+      - scope:host
+      - scope:province
+
+# ============ CROSS-FIELD VALIDATIONS ============
+validations:
+- name: should_check_phase_active
+  condition: "is_valid.exists AND NOT is_valid.contains('is_current_phase_active')"
+  diagnostic: PA004
+  severity: information
+  message: "Consider adding 'is_current_phase_active = yes' to is_valid for most pulse actions"
+
+- name: should_have_log_entry
+  condition: "effect.exists AND NOT effect.contains('add_activity_log_entry')"
+  diagnostic: PA005
+  severity: warning
+  message: "Pulse action effect should include add_activity_log_entry for UI visibility"
+
+# ============ COMPLETIONS & HOVER ============
+field_docs:
+  icon:
+    description: "Icon for pulse action in activity log"
+    detail: "Optional - defaults to action key name"
+    snippet: "icon = ${1|public,courtly,friend,hook,intrigue,dread|}"
+
+  is_valid:
+    description: "When this pulse action can fire"
+    detail: "CRITICAL: Root = activity scope, NOT character!"
+    snippet: |
+      is_valid = {
+        is_current_phase_active = yes
+        has_activity_type = ${1:activity_feast}
+        any_attending_character = {
+          ${2:is_adult = yes}
+        }
+      }
+
+  weight:
+    description: "Selection probability weight"
+    detail: "Higher = more likely when multiple actions valid"
+    snippet: |
+      weight = {
+        value = ${1:1}
+        if = {
+          limit = { scope:host = { has_trait = ${2:gregarious} } }
+          add = ${3:0.5}
+        }
+      }
+
+  effect:
+    description: "Effects when pulse action fires"
+    detail: "Must include add_activity_log_entry. Root = activity!"
+    snippet: |
+      effect = {
+        random_attending_character = {
+          limit = {
+            location = scope:province
+            ${1:is_adult = yes}
+          }
+          save_scope_as = first
+        }
+
+        add_activity_log_entry = {
+          key = ${2:action_key}
+          tags = { pulse_action }
+          character = scope:first
+
+          scope:first = {
+            ${3:add_stress = -5}
+          }
+        }
+      }
+
+# ============ NESTED SCHEMAS ============
+nested_schemas:
+  add_activity_log_entry:
+    description: "Activity log entry for pulse action display"
+    fields:
+      key:
+        required: true
+        type: string
+        description: "Localization key for log entry text"
+      tags:
+        required: true
+        type: clause
+        description: "Tags for categorization (usually includes 'pulse_action')"
+      character:
+        required: true
+        type: scope_reference
+        description: "Primary character displayed in log entry"
+      target:
+        type: scope_reference
+        description: "Secondary character (optional)"
+      artifact:
+        type: scope_reference
+        description: "Artifact to display (optional)"
+
+# ============ SYMBOLS ============
+symbols:
+  primary:
+    kind: Function
+    name_from: key
+    detail: "Pulse Action"
+  children:
+  - field: is_valid
+    kind: Object
+    name: "is_valid"
+  - field: weight
+    kind: Property
+    name: "weight"
+  - field: effect
+    kind: Function
+    name: "effect"
+
+# ============ CODE LENS ============
+code_lens:
+  enabled: true
+  reference_count:
+    enabled: true
+    label: "{count} references"
+    search_patterns:
+    - "entries\\s*=\\s*\\{[^}]*{id}"
+    - "pulse_action\\s*=\\s*{id}"
+  activity_link:
+    enabled: true
+    label: "🎭 Used by activities"
+
+# ============ DIAGNOSTICS ============
+diagnostics:
+  PA001:
+    severity: error
+    message: "Pulse action missing required 'is_valid' trigger"
+
+  PA002:
+    severity: error
+    message: "Pulse action missing required 'weight' value"
+
+  PA003:
+    severity: error
+    message: "Pulse action missing required 'effect' block"
+
+  PA004:
+    severity: information
+    message: "Most pulse actions should check is_current_phase_active = yes"
+
+  PA005:
+    severity: warning
+    message: "Pulse action effect should include add_activity_log_entry"
+
+# ============ ACTIVITY-SPECIFIC TRIGGERS ============
+# These triggers are valid ONLY in activity/pulse action context
+activity_triggers:
+  is_current_phase_active:
+    description: "Returns true if activity has an active phase"
+    scope: activity
+    returns: boolean
+
+  has_activity_type:
+    description: "Check if activity is of a specific type"
+    scope: activity
+    parameter: activity_type_key
+
+  has_current_phase:
+    description: "Check current phase of the activity"
+    scope: activity
+    parameter: phase_key
+
+  has_activity_option:
+    description: "Check if activity has a specific option selected"
+    scope: activity
+    parameters:
+      category: option_category_key
+      option: option_key
+
+  any_attending_character:
+    description: "Iterate over characters attending the activity"
+    scope: activity
+    inner_scope: character
+
+  any_guest_subset:
+    description: "Iterate over a named guest subset"
+    scope: activity
+    parameters:
+      name: subset_key
+    inner_scope: character
+
+# ============ ACTIVITY-SPECIFIC EFFECTS ============
+activity_effects:
+  add_activity_log_entry:
+    description: "Add an entry to the activity log"
+    scope: activity
+    parameters:
+      key: localization_key
+      tags: list
+      character: scope_reference
+      target: scope_reference (optional)
+      artifact: scope_reference (optional)
+
+  complete_activity:
+    description: "End the activity"
+    scope: activity
+
+  skip_activity_phase:
+    description: "Skip a specific phase"
+    scope: activity
+    parameter: phase_key
+
+  every_attending_character:
+    description: "Iterate with effects over attending characters"
+    scope: activity
+    inner_scope: character
+
+  random_attending_character:
+    description: "Select random attending character"
+    scope: activity
+    inner_scope: character
+
+  add_to_guest_subset:
+    description: "Add character to a guest subset"
+    scope: activity
+    parameters:
+      character: scope_reference
+      subset: subset_key
+
+# ============ COMMON PATTERNS ============
+patterns:
+  basic_pulse_action:
+    description: "Standard pulse action template"
+    example: |
+      my_pulse_action = {
+          icon = public
+
+          is_valid = {
+              is_current_phase_active = yes
+              has_activity_type = activity_feast
+              any_attending_character = {
+                  location = scope:province
+                  is_adult = yes
+              }
+          }
+
+          weight = 1
+
+          effect = {
+              random_attending_character = {
+                  limit = {
+                      location = scope:province
+                      is_adult = yes
+                  }
+                  save_scope_as = first
+              }
+
+              add_activity_log_entry = {
+                  key = my_pulse_action
+                  tags = { pulse_action }
+                  character = scope:first
+
+                  scope:first = {
+                      add_stress = -5
+                  }
+              }
+          }
+      }
+
+  two_character_interaction:
+    description: "Pulse action involving two characters"
+    example: |
+      characters_bond = {
+          is_valid = {
+              is_current_phase_active = yes
+              has_activity_type = activity_feast
+              any_attending_character = {
+                  save_temporary_scope_as = first_temp
+                  involved_activity = {
+                      any_attending_character = {
+                          this != scope:first_temp
+                          location = scope:province
+                      }
+                  }
+              }
+          }
+
+          weight = 1
+
+          effect = {
+              random_attending_character = {
+                  limit = { location = scope:province }
+                  save_scope_as = first
+              }
+              random_attending_character = {
+                  limit = {
+                      this != scope:first
+                      location = scope:province
+                  }
+                  save_scope_as = second
+              }
+
+              add_activity_log_entry = {
+                  key = characters_bond
+                  tags = { pulse_action }
+                  character = scope:first
+                  target = scope:second
+
+                  scope:first = {
+                      add_opinion = {
+                          target = scope:second
+                          modifier = activity_fun_time_opinion
+                      }
+                  }
+              }
+          }
+      }

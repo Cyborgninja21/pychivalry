@@ -1,0 +1,1044 @@
+# Activity Types Schema
+# Declarative validation rules for CK3 activity definitions
+# This is the most complex schema - activities have 80+ fields and deep nesting
+version: "1.0"
+file_type: activity_type
+
+# File identification - when to apply this schema
+identification:
+  path_patterns:
+  - "*/common/activities/activity_types/*.txt"
+  - "common/activities/activity_types/*.txt"
+
+# ============ CONSTANTS ============
+constants:
+  province_filters:
+  - capital
+  - domain
+  - realm
+  - top_realm
+  - holy_sites
+  - holy_sites_domain
+  - holy_sites_realm
+  - domicile
+  - domicile_domain
+  - domicile_realm
+  - top_liege_border_inner
+  - top_liege_border_outer
+  - landed_title
+  - geographical_region
+  - all
+
+  planner_types:
+  - province
+  - holder
+
+  location_sources:
+  - pickable
+  - first_picked_phase
+  - last_picked_phase
+  - scripted
+
+  tier_levels:
+  - barony
+  - county
+  - duchy
+  - kingdom
+  - empire
+  - hegemony
+
+# ============ VALIDATION ============
+fields:
+  # ===== VISIBILITY & ELIGIBILITY (REQUIRED) =====
+  is_shown:
+    required: true
+    type: trigger_block
+    diagnostic: ACT001
+    message: "Activity type missing required 'is_shown' trigger"
+    description: "When activity appears in the activity menu. Root = potential host character."
+    scope_context:
+      root: character
+      description: "Potential host of the activity"
+
+  # ===== VISIBILITY & ELIGIBILITY (OPTIONAL) =====
+  can_start:
+    type: trigger_block
+    description: "Full eligibility check showing pass/fail for each condition. Root = host."
+    scope_context:
+      root: character
+      available_scopes:
+      - scope:on_create_variables
+
+  can_start_showing_failures_only:
+    type: trigger_block
+    description: "Shows only failing triggers for feedback. Root = host."
+    scope_context:
+      root: character
+
+  can_plan:
+    type: trigger_block
+    description: "Whether activity can be planned (subset of can_start). Root = host."
+    scope_context:
+      root: character
+
+  can_always_plan:
+    type: boolean
+    default: true
+    description: "If yes, activity can be planned even when requirements not met."
+
+  # ===== VALIDITY & LIFECYCLE =====
+  is_valid:
+    type: trigger_block
+    description: "Ongoing validity check for the activity. Root = activity scope."
+    scope_context:
+      root: activity
+      available_scopes:
+      - scope:host
+
+  on_invalidated:
+    type: effect_block
+    description: "Runs when activity fails is_valid. Root = activity."
+    scope_context:
+      root: activity
+      available_scopes:
+      - scope:host
+
+  on_host_death:
+    type: effect_block
+    description: "Runs when activity host dies. Root = activity."
+    scope_context:
+      root: activity
+      available_scopes:
+      - scope:host
+
+  on_start:
+    type: effect_block
+    description: "Runs when activity is created. Root = activity."
+    scope_context:
+      root: activity
+      available_scopes:
+      - scope:host
+
+  on_complete:
+    type: effect_block
+    description: "Runs after all phases complete. Root = character in activity."
+    scope_context:
+      root: character
+      available_scopes:
+      - scope:activity
+      - scope:host
+
+  # ===== LOCATION CONFIGURATION =====
+  province_filter:
+    type: enum
+    values: $province_filters
+    diagnostic: ACT007
+    description: "Province search filter for activity location selection."
+
+  ai_province_filter:
+    type: enum
+    values: $province_filters
+    description: "AI-specific province filter (defaults to province_filter if not set)."
+
+  province_filter_target:
+    type: string
+    description: "Target for landed_title or geographical_region filters."
+
+  is_location_valid:
+    type: trigger_block
+    description: "Validates individual provinces. Root = province."
+    scope_context:
+      root: province
+
+  province_score:
+    type: script_value_block
+    description: "Score provinces for AI selection. Root = province."
+    scope_context:
+      root: province
+
+  max_province_icons:
+    type: integer
+    description: "Maximum provinces shown as map icons."
+
+  province_description:
+    type: localization_key_or_block
+    description: "Description shown in province selection."
+
+  is_single_location:
+    type: boolean
+    default: true
+    description: "If yes, all phases occur in the same province."
+
+  # ===== TIMING & DURATION =====
+  cooldown:
+    type: block
+    schema: duration
+    description: "Time before hosting this activity again."
+
+  wait_time_before_start:
+    type: block
+    schema: duration
+    description: "Delay after host arrives before activity starts."
+
+  max_guest_arrival_delay_time:
+    type: block
+    schema: duration
+    description: "Extra time allowed for guest travel."
+
+  max_route_deviation_mult:
+    type: number
+    description: "Player path deviation multiplier."
+
+  # ===== COST =====
+  cost:
+    type: block
+    schema: cost
+    description: "Resources required to start the activity."
+
+  ui_predicted_cost:
+    type: block
+    schema: cost
+    description: "Estimated cost shown in UI before planning."
+
+  # ===== AI BEHAVIOR =====
+  ai_will_do:
+    type: script_value_block
+    description: "AI likelihood to host this activity."
+
+  ai_check_interval:
+    type: integer
+    description: "Months between AI checks for this activity."
+
+  ai_check_interval_by_tier:
+    type: block
+    schema: tier_intervals
+    description: "Per-tier AI check intervals."
+
+  ai_will_select_province:
+    type: script_value_block
+    description: "Province selection weight for AI. Root = province."
+    scope_context:
+      root: province
+
+  ai_select_num_provinces:
+    type: script_value_block
+    description: "Number of provinces AI selects for multi-location."
+
+  # ===== GUEST HANDLING =====
+  max_guests:
+    type: script_value_block
+    description: "Maximum number of guests."
+
+  reserved_guest_slots:
+    type: integer
+    description: "Slots reserved for script-added guests."
+
+  allow_zero_guest_invites:
+    type: boolean
+    default: false
+    description: "Allow starting with no guests."
+
+  can_be_activity_guest:
+    type: trigger_block
+    description: "Whether a character can be invited. Root = potential guest."
+    scope_context:
+      root: character
+
+  guest_join_chance:
+    type: script_value_block
+    description: "Invitation acceptance chance. Root = invited guest."
+    scope_context:
+      root: character
+
+  open_invite:
+    type: boolean
+    default: false
+    description: "If yes, anyone meeting requirements can join."
+
+  guest_invite_rules:
+    type: block
+    schema: guest_invite_rules_block
+    description: "Configuration for guest invitation lists."
+
+  guest_subsets:
+    type: clause
+    description: "Named subsets of guests for tracking (e.g., winners, contestants)."
+
+  special_guests:
+    type: block
+    schema: special_guests_block
+    description: "Special guest slots with custom selection logic."
+
+  # ===== INTENTS =====
+  host_intents:
+    type: block
+    schema: intent_config
+    description: "Intent configuration for the host."
+
+  guest_intents:
+    type: block
+    schema: intent_config
+    description: "Intent configuration for guests."
+
+  # ===== PHASES =====
+  phases:
+    type: block
+    schema: phases_block
+    description: "Phase definitions for the activity."
+
+  num_pickable_phases:
+    type: script_value_block
+    description: "Total number of pickable phases allowed."
+
+  max_pickable_phases_per_province:
+    type: script_value_block
+    description: "Maximum pickable phases per province."
+
+  # ===== OPTIONS =====
+  options:
+    type: block
+    schema: options_block
+    description: "Option categories and choices for the activity."
+
+  special_option_category:
+    type: string
+    description: "Option category selected before location (creates scope:special_option)."
+
+  # ===== STATE TRANSITIONS =====
+  on_enter_travel_state:
+    type: effect_block
+    description: "Runs when character starts traveling. Root = character."
+    scope_context:
+      root: character
+      available_scopes:
+      - scope:activity
+      - scope:host
+
+  on_leave_travel_state:
+    type: effect_block
+    description: "Runs when character exits travel state. Root = character."
+    scope_context:
+      root: character
+      available_scopes:
+      - scope:activity
+      - scope:host
+
+  on_travel_state_pulse:
+    type: effect_block
+    description: "Periodic effect during travel. Root = character."
+    scope_context:
+      root: character
+      available_scopes:
+      - scope:activity
+      - scope:host
+
+  on_enter_passive_state:
+    type: effect_block
+    description: "Runs when character arrives, waiting for phase. Root = character."
+    scope_context:
+      root: character
+      available_scopes:
+      - scope:activity
+      - scope:host
+
+  on_leave_passive_state:
+    type: effect_block
+    description: "Runs when character exits passive state. Root = character."
+    scope_context:
+      root: character
+      available_scopes:
+      - scope:activity
+      - scope:host
+
+  on_passive_state_pulse:
+    type: effect_block
+    description: "Periodic effect during passive state. Root = character."
+    scope_context:
+      root: character
+      available_scopes:
+      - scope:activity
+      - scope:host
+
+  on_enter_active_state:
+    type: effect_block
+    description: "Runs when phase becomes active. Root = character."
+    scope_context:
+      root: character
+      available_scopes:
+      - scope:activity
+      - scope:host
+
+  on_leave_active_state:
+    type: effect_block
+    description: "Runs when character exits active state. Root = character."
+    scope_context:
+      root: character
+      available_scopes:
+      - scope:activity
+      - scope:host
+
+  on_active_state_pulse:
+    type: effect_block
+    description: "Periodic effect during active state. Root = character."
+    scope_context:
+      root: character
+      available_scopes:
+      - scope:activity
+      - scope:host
+
+  # ===== UI & DISPLAY =====
+  activity_group_type:
+    type: string
+    description: "Group categorization for activity menu (references activity_group_types)."
+
+  sort_order:
+    type: integer
+    description: "Display order within the activity group."
+
+  planner_type:
+    type: enum
+    values: $planner_types
+    description: "Planner display mode (province or holder)."
+
+  notify_player_can_join_open_activity:
+    type: boolean
+    default: false
+    description: "Show alert when player can join an open activity."
+
+  # ===== DESCRIPTIONS =====
+  host_description:
+    type: localization_key_or_block
+    description: "Description shown to the host."
+
+  conclusion_description:
+    type: localization_key_or_block
+    description: "Description shown at activity completion."
+
+  # ===== GRAPHICS =====
+  background:
+    type: block
+    schema: background
+    multiple: true
+    description: "Background visual configuration."
+
+  locale_background:
+    type: block
+    schema: background
+    multiple: true
+    description: "Background for locale window."
+
+  map_entity:
+    type: block_or_string
+    schema: map_entity
+    description: "Map entity display configuration."
+
+  window_characters:
+    type: block
+    schema: window_characters_block
+    description: "Character display in activity window."
+
+  activity_window_widgets:
+    type: block
+    description: "Custom widget configuration for activity window."
+
+  activity_planner_widgets:
+    type: block
+    description: "Custom widget configuration for planner."
+
+  # ===== LOCALES =====
+  locales:
+    type: block
+    schema: locales_block
+    description: "Interactive locale hotspots within the activity."
+
+  locale_cooldown:
+    type: block
+    schema: duration
+    description: "Cooldown between locale visits."
+
+  auto_select_locale_cooldown:
+    type: block
+    schema: duration
+    description: "Cooldown for automatic locale visits."
+
+  early_locale_opening_duration:
+    type: block
+    schema: duration
+    description: "How early locales open before activity starts."
+
+  # ===== PULSE ACTIONS =====
+  pulse_actions:
+    type: block
+    schema: pulse_actions_config
+    description: "Configuration for periodic pulse action events."
+
+  # ===== TRAVEL ENTOURAGE =====
+  travel_entourage_selection:
+    type: block
+    schema: entourage_selection
+    description: "Configuration for travel entourage selection."
+
+# ============ NESTED SCHEMAS ============
+nested_schemas:
+  duration:
+    description: "Time duration block"
+    fields:
+      days:
+        type: integer
+      weeks:
+        type: integer
+      months:
+        type: integer
+      years:
+        type: integer
+
+  cost:
+    description: "Resource cost block"
+    fields:
+      gold:
+        type: script_value_block
+      piety:
+        type: script_value_block
+      prestige:
+        type: script_value_block
+      renown:
+        type: script_value_block
+      treasury:
+        type: script_value_block
+      barter_goods:
+        type: script_value_block
+
+  tier_intervals:
+    description: "Per-tier check intervals"
+    fields:
+      barony:
+        type: integer
+      county:
+        type: integer
+      duchy:
+        type: integer
+      kingdom:
+        type: integer
+      empire:
+        type: integer
+      hegemony:
+        type: integer
+
+  guest_invite_rules_block:
+    description: "Guest invitation rule configuration"
+    fields:
+      rules:
+        type: block
+        description: "Priority-ordered invite rules (lower number = higher priority)"
+      defaults:
+        type: block
+        description: "Invite rules enabled by default for player"
+
+  special_guests_block:
+    description: "Special guest definitions - each key defines a special guest slot"
+    dynamic_children: true
+    child_schema: special_guest
+
+  special_guest:
+    description: "Individual special guest definition"
+    fields:
+      is_shown:
+        type: trigger_block
+        description: "When this special guest slot appears. Root = host."
+        scope_context:
+          root: character
+      is_required:
+        type: boolean
+        default: false
+        description: "If yes, activity invalid if this guest declines."
+      select_character:
+        type: effect_block
+        description: "Auto-select a character (use save_scope_as = character). Root = host."
+        scope_context:
+          root: character
+      can_pick:
+        type: trigger_block
+        description: "Filter for manual selection. Root = potential guest."
+        scope_context:
+          root: character
+          available_scopes:
+          - scope:host
+          - scope:special_option
+      on_invite:
+        type: effect_block
+        description: "Runs when invitation sent. Root = invited guest."
+        scope_context:
+          root: character
+          available_scopes:
+          - scope:host
+      ai_will_do:
+        type: script_value_block
+        description: "AI selection weight."
+
+  intent_config:
+    description: "Intent configuration for host or guests"
+    fields:
+      intents:
+        type: clause
+        description: "List of available intent keys"
+      default:
+        type: string
+        description: "Default intent key"
+      player_defaults:
+        type: clause
+        description: "Priority list of player default intents"
+
+  phases_block:
+    description: "Phase definitions - each key defines a phase"
+    dynamic_children: true
+    child_schema: phase
+
+  phase:
+    description: "Individual phase definition"
+    fields:
+      is_predefined:
+        type: boolean
+        default: false
+        description: "If yes, phase is always present; if no, phase is pickable."
+      order:
+        type: integer
+        description: "Execution order of this phase."
+      number_of_picks:
+        type: script_value_block
+        description: "How many times this phase can be picked."
+      location_source:
+        type: enum
+        values: $location_sources
+        description: "Where phase location comes from."
+      select_scripted_location:
+        type: effect_block
+        description: "Effect to select location when location_source = scripted."
+      is_shown:
+        type: trigger_block
+        description: "When phase appears in selection. Root = host."
+        scope_context:
+          root: character
+      can_pick:
+        type: trigger_block
+        description: "When phase can be picked. Root = host."
+        scope_context:
+          root: character
+          available_scopes:
+          - scope:province
+          - scope:special_option
+      is_valid:
+        type: trigger_block
+        description: "Ongoing phase validity. Root = activity."
+        scope_context:
+          root: activity
+          available_scopes:
+          - scope:host
+          - scope:province
+      on_enter_phase:
+        type: effect_block
+        description: "Runs when phase becomes current (not yet active). Root = character."
+        scope_context:
+          root: character
+          available_scopes:
+          - scope:activity
+          - scope:host
+      on_phase_active:
+        type: effect_block
+        description: "Runs when phase starts executing. Root = character."
+        scope_context:
+          root: character
+          available_scopes:
+          - scope:activity
+          - scope:host
+      on_end:
+        type: effect_block
+        description: "Runs when phase completes. Root = character."
+        scope_context:
+          root: character
+          available_scopes:
+          - scope:activity
+          - scope:host
+      on_monthly_pulse:
+        type: effect_block
+        description: "Monthly effect during active phase. Root = character."
+        scope_context:
+          root: character
+          available_scopes:
+          - scope:activity
+          - scope:host
+      on_weekly_pulse:
+        type: effect_block
+        description: "Weekly effect during active phase. Root = character."
+        scope_context:
+          root: character
+          available_scopes:
+          - scope:activity
+          - scope:host
+      on_invalidated:
+        type: effect_block
+        description: "Runs when phase fails validity. Root = character."
+        scope_context:
+          root: character
+          available_scopes:
+          - scope:activity
+          - scope:host
+      cost:
+        type: block
+        schema: cost
+        description: "Cost for this phase."
+      ai_will_do:
+        type: script_value_block
+        description: "AI phase selection weight."
+
+  options_block:
+    description: "Option category definitions - each key defines an option category"
+    dynamic_children: true
+    child_schema: option_category
+
+  option_category:
+    description: "Category containing multiple options - each key defines an option within the category"
+    dynamic_children: true
+    child_schema: activity_option
+
+  activity_option:
+    description: "Individual activity option"
+    fields:
+      is_shown:
+        type: trigger_block
+        description: "When option appears. Root = host."
+        scope_context:
+          root: character
+          available_scopes:
+          - scope:special_option
+      is_valid:
+        type: trigger_block
+        description: "When option can be selected. Root = host."
+        scope_context:
+          root: character
+          available_scopes:
+          - scope:special_option
+      default:
+        type: boolean_or_trigger
+        description: "Whether this is the default option."
+      cost:
+        type: block
+        schema: cost
+        description: "Cost for selecting this option."
+      on_start:
+        type: effect_block
+        description: "Runs when activity starts with this option. Root = activity."
+        scope_context:
+          root: activity
+          available_scopes:
+          - scope:host
+      blocked_intents:
+        type: clause
+        description: "Intent keys blocked by this option."
+      blocked_phases:
+        type: clause
+        description: "Phase keys blocked by this option."
+      ai_will_do:
+        type: script_value_block
+        description: "AI option selection weight."
+      travel_entourage_selection:
+        type: block
+        schema: entourage_selection
+        description: "Entourage configuration when this option selected."
+
+  background:
+    description: "Visual background configuration"
+    fields:
+      trigger:
+        type: trigger_block
+        description: "Conditions for this background to be used."
+      texture:
+        type: string
+        description: "Path to background texture."
+      environment:
+        type: string
+        description: "Environment preset name."
+      ambience:
+        type: string
+        description: "Ambient sound event path."
+      music:
+        type: string
+        description: "Music cue name."
+
+  map_entity:
+    description: "Map entity configuration"
+    fields:
+      trigger:
+        type: trigger_block
+        description: "Conditions for this entity to be used."
+      reference:
+        type: string
+        description: "Entity reference name."
+
+  window_characters_block:
+    description: "Window character display configuration - each key defines a character display slot"
+    dynamic_children: true
+    child_schema: window_character
+
+  window_character:
+    description: "Individual window character configuration"
+    fields:
+      camera:
+        type: string
+        description: "Camera preset for this character."
+      effect:
+        type: effect_block
+        description: "Effect to populate character list (use add_to_list = characters)."
+      scripted_animation:
+        type: block
+        schema: scripted_animation
+        description: "Animation configuration."
+      animation:
+        type: string
+        description: "Simple animation name."
+
+  scripted_animation:
+    description: "Scripted animation with conditional variants"
+    fields:
+      triggered_animation:
+        type: block
+        schema: triggered_animation
+        multiple: true
+        description: "Conditional animation."
+      animation:
+        type: string
+        description: "Default/fallback animation."
+
+  triggered_animation:
+    description: "Conditional animation"
+    fields:
+      trigger:
+        type: trigger_block
+        description: "Condition for this animation."
+      animation:
+        type: string_or_list
+        description: "Animation name(s) to play."
+      camera:
+        type: string
+        description: "Optional camera override."
+
+  locales_block:
+    description: "Locale slot definitions - each key defines a locale slot"
+    dynamic_children: true
+    child_schema: locale_slot
+
+  locale_slot:
+    description: "Locale slot configuration"
+    fields:
+      is_available:
+        type: trigger_block
+        description: "When this locale slot is available. Root = activity."
+        scope_context:
+          root: activity
+      locales:
+        type: clause
+        description: "List of locale keys available in this slot."
+
+  pulse_actions_config:
+    description: "Pulse action configuration"
+    fields:
+      entries:
+        type: clause
+        description: "List of pulse action keys."
+      chance_of_no_event:
+        type: integer
+        description: "Percentage chance of no pulse action firing (0-100)."
+
+  entourage_selection:
+    description: "Travel entourage selection configuration"
+    fields:
+      weight:
+        type: script_value_block
+        description: "Selection weight for characters. Root = court character."
+        scope_context:
+          root: character
+          available_scopes:
+          - scope:host
+          - scope:owner
+          - scope:special_option
+      max:
+        type: integer
+        description: "Maximum entourage size for player."
+      ai_max:
+        type: integer
+        description: "Maximum entourage size for AI."
+      invite_rule_order:
+        type: integer
+        description: "Priority relative to invite rules."
+
+# ============ CROSS-FIELD VALIDATIONS ============
+validations:
+- name: province_filter_target_required
+  condition: "province_filter.value IN ['landed_title', 'geographical_region'] AND NOT province_filter_target.exists"
+  diagnostic: ACT008
+  severity: warning
+  message: "province_filter_target required when province_filter is landed_title or geographical_region"
+
+- name: scripted_location_without_source
+  condition: "select_scripted_location.exists AND location_source.value != 'scripted'"
+  diagnostic: ACT010
+  severity: warning
+  message: "select_scripted_location has no effect without location_source = scripted"
+
+# ============ COMPLETIONS & HOVER ============
+field_docs:
+  is_shown:
+    description: "When activity appears in the activity menu"
+    detail: "Required trigger block - root = host character"
+    snippet: "is_shown = {\n\t${1:always = yes}\n}"
+
+  can_start:
+    description: "Full eligibility check with pass/fail feedback"
+    detail: "Optional trigger - shows each condition's status"
+    snippet: "can_start = {\n\t$0\n}"
+
+  is_valid:
+    description: "Ongoing validity check for the activity"
+    detail: "Root = activity scope, not character!"
+    snippet: "is_valid = {\n\t${1:exists = scope:host}\n}"
+
+  phases:
+    description: "Phase definitions for multi-phase activities"
+    detail: "Each key defines a phase with order, triggers, and effects"
+    snippet: "phases = {\n\t${1:phase_main} = {\n\t\tis_predefined = yes\n\t\torder = 1\n\t\ton_phase_active = {\n\t\t\t$0\n\t\t}\n\t}\n}"
+
+  options:
+    description: "Option categories for activity customization"
+    detail: "Categories contain options; creates scope:<category> flags"
+    snippet: "options = {\n\t${1:option_category} = {\n\t\t${2:option_default} = {\n\t\t\tdefault = yes\n\t\t}\n\t}\n}"
+
+  special_guests:
+    description: "Named special guest slots"
+    detail: "Define specific guest roles with custom selection"
+    snippet: "special_guests = {\n\t${1:guest_of_honor} = {\n\t\tselect_character = {\n\t\t\trandom_relation = {\n\t\t\t\ttype = friend\n\t\t\t\tsave_scope_as = character\n\t\t\t}\n\t\t}\n\t}\n}"
+
+  cost:
+    description: "Resources required to start the activity"
+    detail: "Cost block with gold, prestige, piety, renown"
+    snippet: "cost = {\n\tgold = { value = ${1:100} }\n}"
+
+  cooldown:
+    description: "Time before hosting this activity again"
+    detail: "Duration block with days, months, or years"
+    snippet: "cooldown = { ${1|days,months,years|} = ${2:365} }"
+
+  ai_will_do:
+    description: "AI likelihood to host this activity"
+    detail: "Script value - higher = more likely"
+    snippet: "ai_will_do = {\n\tvalue = ${1:100}\n\tif = {\n\t\tlimit = { ${2:has_trait = gregarious} }\n\t\tadd = ${3:50}\n\t}\n}"
+
+  province_filter:
+    description: "Filter for valid activity provinces"
+    detail: "Enum: capital, domain, realm, top_realm, holy_sites, etc."
+    snippet: "province_filter = ${1|capital,domain,realm,top_realm,holy_sites,all|}"
+
+  activity_group_type:
+    description: "Menu group for this activity"
+    detail: "References activity_group_types (grand, activities, etc.)"
+    snippet: "activity_group_type = ${1|activities,grand|}"
+
+  background:
+    description: "Visual background configuration"
+    detail: "Can have multiple with triggers for variants"
+    snippet: "background = {\n\ttrigger = { ${1:always = yes} }\n\ttexture = \"gfx/interface/illustrations/${2:activities/activity_feast.dds}\"\n}"
+
+  on_start:
+    description: "Effects when activity is created"
+    detail: "Root = activity, use scope:host for host character"
+    snippet: "on_start = {\n\tscope:host = {\n\t\t$0\n\t}\n}"
+
+  on_complete:
+    description: "Effects after all phases complete"
+    detail: "Root = character, use scope:activity for activity"
+    snippet: "on_complete = {\n\t$0\n}"
+
+  guest_invite_rules:
+    description: "Guest invitation configuration"
+    detail: "References guest_invite_rules definitions"
+    snippet: "guest_invite_rules = {\n\trules = {\n\t\t1 = activity_invite_rule_${1:friends}\n\t}\n\tdefaults = {\n\t\t1 = activity_invite_rule_${2:close_family}\n\t}\n}"
+
+  host_intents:
+    description: "Available intents for the host"
+    detail: "References intent definitions"
+    snippet: "host_intents = {\n\tintents = { ${1:intent_socialize} }\n\tdefault = ${2:intent_socialize}\n}"
+
+  guest_intents:
+    description: "Available intents for guests"
+    detail: "References intent definitions"
+    snippet: "guest_intents = {\n\tintents = { ${1:intent_socialize} }\n\tdefault = ${2:intent_socialize}\n}"
+
+# ============ SYMBOLS ============
+symbols:
+  primary:
+    kind: Class
+    name_from: key
+    detail: "Activity Type"
+  children:
+  - field: phases
+    kind: Module
+    name: "phases"
+    expand_children: true
+  - field: options
+    kind: Module
+    name: "options"
+    expand_children: true
+  - field: special_guests
+    kind: Module
+    name: "special_guests"
+    expand_children: true
+  - field: is_shown
+    kind: Object
+    name: "is_shown"
+  - field: is_valid
+    kind: Object
+    name: "is_valid"
+  - field: on_start
+    kind: Function
+    name: "on_start"
+  - field: on_complete
+    kind: Function
+    name: "on_complete"
+
+# ============ CODE LENS ============
+code_lens:
+  enabled: true
+  reference_count:
+    enabled: true
+    label: "{count} references"
+    search_patterns:
+    - "has_activity_type\\s*=\\s*{id}"
+    - "activity_type\\s*=\\s*{id}"
+  missing_localization:
+    enabled: true
+    fields: []
+    label: "⚠️ Missing localization"
+
+# ============ DIAGNOSTICS ============
+diagnostics:
+  ACT001:
+    severity: error
+    message: "Activity type missing required 'is_shown' trigger"
+
+  ACT004:
+    severity: error
+    message: "Phase missing required 'order' field"
+
+  ACT005:
+    severity: warning
+    message: "Duplicate phase order values may cause unpredictable ordering"
+
+  ACT007:
+    severity: error
+    message: "Invalid province_filter value"
+
+  ACT008:
+    severity: warning
+    message: "province_filter_target required when using landed_title or geographical_region filter"
+
+  ACT010:
+    severity: warning
+    message: "select_scripted_location has no effect without location_source = scripted"

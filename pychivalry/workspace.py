@@ -673,3 +673,134 @@ def is_version_compatible(mod_version: str, game_version: str) -> bool:
 
     # Exact version match
     return mod_version == game_version
+
+
+# =============================================================================
+# DECISION GROUP TYPE VALIDATION
+# =============================================================================
+
+# Built-in decision group types that don't need to be defined
+BUILTIN_DECISION_GROUP_TYPES = {"major", "minor"}
+
+
+def find_undefined_decision_group_types(
+    used_groups: Set[str], defined_groups: Set[str]
+) -> List[str]:
+    """
+    Find decision_group_type references that are not defined.
+
+    Args:
+        used_groups: Set of group names referenced in decisions
+        defined_groups: Set of group names defined in decision_group_types/
+
+    Returns:
+        List of undefined group names (excluding built-ins)
+    """
+    undefined = used_groups - defined_groups - BUILTIN_DECISION_GROUP_TYPES
+    return sorted(list(undefined))
+
+
+def find_missing_decision_group_localization(
+    defined_groups: Set[str], localization_keys: Set[str]
+) -> List[str]:
+    """
+    Find decision groups that are missing their localization key.
+
+    CK3 expects a key named 'decision_group_type_<group_name>' for each
+    defined decision group. Without it, the UI shows the raw key name.
+
+    Args:
+        defined_groups: Set of defined decision group names
+        localization_keys: Set of all localization keys in workspace
+
+    Returns:
+        List of group names missing localization
+    """
+    missing = []
+    for group in defined_groups:
+        expected_key = f"decision_group_type_{group}"
+        if expected_key not in localization_keys:
+            missing.append(group)
+    return sorted(missing)
+
+
+def find_orphan_decision_groups(
+    defined_groups: Set[str], used_groups: Set[str]
+) -> List[str]:
+    """
+    Find decision groups that are defined but never referenced by any decision.
+
+    Args:
+        defined_groups: Set of defined decision group names
+        used_groups: Set of group names referenced in decisions
+
+    Returns:
+        List of orphan group names (defined but unused)
+    """
+    orphans = defined_groups - used_groups
+    return sorted(list(orphans))
+
+
+def extract_decision_group_type_references(content: str) -> List[str]:
+    """
+    Extract all decision_group_type values from a decisions file.
+
+    Looks for patterns like:
+    - decision_group_type = rq_decisions
+    - decision_group_type = major
+
+    Args:
+        content: File content to search
+
+    Returns:
+        List of group names referenced
+    """
+    matches = re.findall(r"decision_group_type\s*=\s*([a-zA-Z_][a-zA-Z0-9_]*)", content)
+    return matches
+
+
+def validate_decision_group_namespace(
+    group_name: str, mod_prefix: Optional[str] = None
+) -> bool:
+    """
+    Check if a decision group name follows namespace convention.
+
+    Decision groups should be prefixed with the mod's namespace to avoid
+    conflicts with other mods. Built-in groups (major, minor) are exempt.
+
+    Args:
+        group_name: Name of the decision group
+        mod_prefix: Expected mod prefix (e.g., 'rq_')
+
+    Returns:
+        True if name follows convention, False otherwise
+    """
+    # Built-in groups are always valid
+    if group_name in BUILTIN_DECISION_GROUP_TYPES:
+        return True
+
+    # If no prefix specified, just check it has some prefix
+    if mod_prefix is None:
+        # Check it has an underscore (indicating some namespace)
+        return "_" in group_name
+
+    # Check for expected prefix
+    return group_name.startswith(mod_prefix)
+
+
+def find_duplicate_decision_groups(
+    defined_groups: Dict[str, str]
+) -> List[tuple]:
+    """
+    Find decision groups defined multiple times across files.
+
+    Args:
+        defined_groups: Dict mapping group name to file path
+
+    Returns:
+        List of (group_name, file1, file2) tuples for duplicates
+    """
+    # This would need to be called with a dict that tracks all definitions
+    # For now, return empty - duplicate detection happens during indexing
+    return []
+

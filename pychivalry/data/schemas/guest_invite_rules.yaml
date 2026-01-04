@@ -1,0 +1,148 @@
+# Guest Invite Rules Schema
+# Defines scriptable character lists for activity guest invitations
+version: "1.0"
+file_type: guest_invite_rule
+
+identification:
+  path_patterns:
+  - "*/common/activities/guest_invite_rules/*.txt"
+  - "common/activities/guest_invite_rules/*.txt"
+
+# Original meta block preserved for reference
+meta:
+  name: guest_invite_rules
+  display_name: "Guest Invite Rules"
+  file_pattern: "common/activities/guest_invite_rules/*.txt"
+  description: "Scriptable character lists for activity guest invitations"
+  game_version: "1.0+"
+  dlc_required: null
+
+root:
+  type: file
+  children:
+    invite_rule:
+      type: named_block
+      name_source: key
+      cardinality: "0..inf"
+      key_validation:
+        pattern: "^[a-z_][a-z0-9_]*$"
+        description: "Rule identifier (lowercase with underscores)"
+      description: |
+        Defines a guest invite rule that builds a list of potential activity guests.
+        Referenced by activity types in their guest_invite_rules block.
+
+      children:
+        effect:
+          type: effect_block
+          required: true
+          cardinality: "1..1"
+          description: |
+            Effect block that builds the character list for this invite rule.
+            Must populate the 'characters' list using 'add_to_list = characters'.
+
+          scope_context:
+            root:
+              type: character
+              description: "The character hosting the activity"
+            available_scopes:
+              special_option:
+                type: flag
+                optional: true
+                description: "Flag of the selected special option (if activity has special options)"
+              dynamic_option_scopes:
+                pattern: "scope:<option_category_key>"
+                type: flag
+                description: "For every option category defined, contains the selected option flag"
+
+          output:
+            list_name: characters
+            list_type: character
+            description: "Use 'add_to_list = characters' to add valid guests"
+
+# Localization keys
+localization:
+  patterns:
+  - key: "{rule_key}"
+    description: "Display name of the invite rule list"
+    example: "activity_invite_rule_friends"
+  - key: "{rule_key}_desc"
+    description: "Description of the invite rule list"
+    example: "activity_invite_rule_friends_desc"
+
+# Common patterns and best practices
+patterns:
+  simple_relation:
+    description: "Invite characters by relation type"
+    example: |
+      activity_invite_rule_friends = {
+        effect = {
+          every_relation = {
+            type = friend
+            limit = { bannable_serving_diarch_trigger = no }
+            add_to_list = characters
+          }
+        }
+      }
+
+  conditional:
+    description: "Conditional invite based on host traits/state"
+    example: |
+      activity_invite_rule_rivals_if_appropriate = {
+        effect = {
+          if = {
+            limit = { has_trait = forgiving }
+            every_relation = {
+              type = rival
+              add_to_list = characters
+            }
+          }
+        }
+      }
+
+  performance_guard:
+    description: "AI performance optimization for large lists"
+    example: |
+      every_vassal = {
+        limit = {
+          trigger_if = {
+            limit = { root = { is_ai = yes } }
+            highest_held_title_tier >= tier_county
+          }
+        }
+        add_to_list = characters
+      }
+
+# Validation diagnostics
+diagnostics:
+  RQ001:
+    severity: error
+    message: "Guest invite rule '{key}' must contain an 'effect' block"
+    check: effect_required
+
+  RQ002:
+    severity: warning
+    message: "Effect block in '{key}' should use 'add_to_list = characters'"
+    check: list_population
+
+  RQ003:
+    severity: info
+    message: "Consider adding 'bannable_serving_diarch_trigger = no' limit in '{key}'"
+    check: diarch_filter
+
+# Integration documentation
+integration:
+  activity_types:
+    field: guest_invite_rules
+    structure: |
+      guest_invite_rules = {
+        rules = {
+          # priority = rule_key
+          1 = activity_invite_rule_friends
+          2 = activity_invite_rule_lovers
+        }
+        defaults = {
+          # enabled by default
+          1 = activity_invite_rule_close_family
+        }
+      }
+    priority_note: "Lower number = higher priority (invited first)"

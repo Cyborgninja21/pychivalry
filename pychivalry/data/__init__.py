@@ -731,3 +731,113 @@ def clear_cache():
     _triggers_cache = None
     _traits_cache = None
     _animations_cache = None
+
+
+# =============================================================================
+# MOD-AUGMENTED DATA ACCESS
+# =============================================================================
+# These functions return core data merged with data from enabled mods.
+# This keeps mod content separate while providing a unified API.
+
+def get_all_traits(include_mods: bool = True, use_cache: bool = True) -> Dict[str, Dict[str, Any]]:
+    """
+    Get all trait definitions, optionally including enabled mods.
+
+    This function merges core CK3 traits with traits from any enabled mods
+    (like Carnalitas). Mod traits are loaded on top of core traits.
+
+    Args:
+        include_mods: Whether to include traits from enabled mods (default: True)
+        use_cache: Whether to use cached core data (default: True)
+
+    Returns:
+        Dictionary of all trait definitions (core + mods if enabled)
+
+    Examples:
+        >>> # Enable Carnalitas mod support
+        >>> from pychivalry.data.mods import enable_mod
+        >>> enable_mod("carnalitas")
+        
+        >>> # Get all traits including Carnalitas traits
+        >>> traits = get_all_traits()
+        >>> 'lifestyle_prostitute' in traits  # True (from Carnalitas)
+        >>> 'brave' in traits  # True (from core)
+        
+        >>> # Get only core traits
+        >>> core_traits = get_all_traits(include_mods=False)
+        >>> 'lifestyle_prostitute' in core_traits  # False
+    """
+    # Start with core traits
+    result = get_traits(use_cache=use_cache).copy()
+    
+    # Optionally merge mod traits
+    if include_mods:
+        try:
+            from pychivalry.data.mods import get_mod_loader
+            mod_traits = get_mod_loader().get_all_traits()
+            result.update(mod_traits)
+        except ImportError:
+            # Mods module not available
+            pass
+    
+    return result
+
+
+def get_all_triggers(include_mods: bool = True, use_cache: bool = True) -> Dict[str, Dict[str, Any]]:
+    """
+    Get all trigger definitions, optionally including enabled mods.
+
+    Args:
+        include_mods: Whether to include triggers from enabled mods (default: True)
+        use_cache: Whether to use cached core data (default: True)
+
+    Returns:
+        Dictionary of all trigger definitions (core + mods if enabled)
+
+    Examples:
+        >>> triggers = get_all_triggers()
+        >>> 'carn_is_slave_trigger' in triggers  # True if Carnalitas enabled
+    """
+    # Start with core triggers
+    result = get_triggers(use_cache=use_cache).copy()
+    
+    # Optionally merge mod triggers
+    if include_mods:
+        try:
+            from pychivalry.data.mods import get_mod_loader
+            mod_triggers = get_mod_loader().get_all_triggers()
+            result.update(mod_triggers)
+        except ImportError:
+            pass
+    
+    return result
+
+
+def get_all_effects(include_mods: bool = True, use_cache: bool = True) -> Dict[str, Dict[str, Any]]:
+    """
+    Get all effect definitions, optionally including enabled mods.
+
+    Args:
+        include_mods: Whether to include effects from enabled mods (default: True)
+        use_cache: Whether to use cached core data (default: True)
+
+    Returns:
+        Dictionary of all effect definitions (core + mods if enabled)
+
+    Examples:
+        >>> effects = get_all_effects()
+        >>> 'carn_sex_scene_effect_v2' in effects  # True if Carnalitas enabled
+    """
+    # Start with core effects
+    result = get_effects(use_cache=use_cache).copy()
+    
+    # Optionally merge mod effects
+    if include_mods:
+        try:
+            from pychivalry.data.mods import get_mod_loader
+            mod_effects = get_mod_loader().get_all_effects()
+            result.update(mod_effects)
+        except ImportError:
+            pass
+    
+    return result

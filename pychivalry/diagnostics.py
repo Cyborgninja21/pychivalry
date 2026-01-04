@@ -773,6 +773,54 @@ class DiagnosticConfig:
     schema_enabled: bool = True
 
 
+def _check_decision_group_localization(
+    ast: List[CK3Node],
+    uri: str,
+    index: DocumentIndex,
+) -> List[types.Diagnostic]:
+    """
+    Check that decision group types have required localization keys.
+
+    Each decision_group_type `foo` requires a localization key `decision_group_type_foo`.
+    Without this, the game UI shows the raw key name, which is a show-stopper bug.
+
+    Args:
+        ast: Parsed AST nodes (top-level = decision group definitions)
+        uri: Document URI
+        index: Document index for localization lookup
+
+    Returns:
+        List of error diagnostics for missing localization
+    """
+    diagnostics = []
+
+    for node in ast:
+        # Each top-level node is a decision group type definition: group_name = { ... }
+        if node.key and node.type == 'block':
+            group_name = node.key
+            loc_key = f"decision_group_type_{group_name}"
+
+            # Check if localization exists
+            loc_info = index.find_localization(loc_key)
+            if not loc_info:
+                # Create error diagnostic - this is a show-stopper!
+                diagnostics.append(
+                    create_diagnostic(
+                        message=(
+                            f"Missing required localization key '{loc_key}'. "
+                            f"The UI will display raw key name. "
+                            f"Add: {loc_key}:0 \"Your Label\""
+                        ),
+                        range_=node.range,
+                        severity=types.DiagnosticSeverity.Error,
+                        code="DECISION_GROUP-010",
+                        source="pychivalry",
+                    )
+                )
+
+    return diagnostics
+
+
 def collect_all_diagnostics(
     doc: TextDocument,
     ast: List[CK3Node],
@@ -877,6 +925,16 @@ def collect_all_diagnostics(
                 logger.warning("schema_loader/schema_validator modules not available")
             except Exception as e:
                 logger.error(f"Error in schema validation: {e}", exc_info=True)
+
+        # Decision group type localization validation (DECISION_GROUP-010)
+        # This is a show-stopper error - missing loc means broken UI
+        if index and "decision_group_types" in doc.uri:
+            try:
+                diagnostics.extend(
+                    _check_decision_group_localization(ast, doc.uri, index)
+                )
+            except Exception as e:
+                logger.error(f"Error in decision group localization check: {e}", exc_info=True)
 
         logger.debug(f"Found {len(diagnostics)} diagnostics for {doc.uri}")
     except Exception as e:
