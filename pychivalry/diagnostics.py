@@ -143,6 +143,8 @@ from dataclasses import dataclass
 from typing import List, Optional
 from lsprotocol import types
 from pygls.workspace import TextDocument
+import os
+import logging
 
 from .parser import CK3Node
 from .indexer import DocumentIndex
@@ -152,7 +154,6 @@ from .scopes import (
     parse_list_iterator,
 )
 from .ck3_language import CK3_EFFECTS, CK3_TRIGGERS, CK3_SCOPES
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -764,6 +765,7 @@ class DiagnosticConfig:
         scope_timing_enabled: Enable scope timing checks (CK3550-3555)
         story_cycles_enabled: Enable story cycle validation (STORY-001+)
         schema_enabled: Enable schema-driven validation (all codes)
+        graphics_enabled: Enable graphics file validation (GFX-xxx)
     """
 
     style_enabled: bool = True
@@ -771,6 +773,7 @@ class DiagnosticConfig:
     scope_timing_enabled: bool = True
     story_cycles_enabled: bool = True
     schema_enabled: bool = True
+    graphics_enabled: bool = True
 
 
 def collect_all_diagnostics(
@@ -778,6 +781,7 @@ def collect_all_diagnostics(
     ast: List[CK3Node],
     index: Optional[DocumentIndex] = None,
     config: Optional[DiagnosticConfig] = None,
+    workspace_folders: Optional[List[str]] = None,
 ) -> List[types.Diagnostic]:
     """
     Collect all diagnostics for a document.
@@ -790,6 +794,7 @@ def collect_all_diagnostics(
         ast: Parsed AST
         index: Document index for cross-file validation (optional)
         config: Diagnostic configuration (uses defaults if None)
+        workspace_folders: List of workspace folder paths (optional)
 
     Returns:
         Combined list of all diagnostics
@@ -877,6 +882,26 @@ def collect_all_diagnostics(
                 logger.warning("schema_loader/schema_validator modules not available")
             except Exception as e:
                 logger.error(f"Error in schema validation: {e}", exc_info=True)
+
+        # Graphics file validation (GFX001)
+        if config.graphics_enabled:
+            try:
+                from .gfx_validator import check_graphics_files
+                from .utils import uri_to_path
+                
+                # Get document directory for path resolution
+                doc_path = uri_to_path(doc.uri)
+                doc_dir = os.path.dirname(doc_path) if doc_path else None
+                
+                # Run graphics validation
+                gfx_diagnostics = check_graphics_files(ast, workspace_folders, doc_dir)
+                diagnostics.extend(gfx_diagnostics)
+                
+                logger.debug(f"Graphics validation found {len(gfx_diagnostics)} diagnostics")
+            except ImportError:
+                logger.warning("gfx_validator module not available")
+            except Exception as e:
+                logger.error(f"Error in graphics validation: {e}", exc_info=True)
 
         logger.debug(f"Found {len(diagnostics)} diagnostics for {doc.uri}")
     except Exception as e:
