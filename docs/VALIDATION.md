@@ -10,6 +10,7 @@ This document describes all validation checks performed by the CK3 Language Serv
 - [4. Style Validation](#4-style-validation-ck33xx)
 - [5. Paradox Convention Validation](#5-paradox-convention-validation-ck35xx-ck52xx)
 - [6. Scope Timing Validation](#6-scope-timing-validation-ck3550-ck3555)
+- [7. Graphics File Validation](#7-graphics-file-validation-gfx001)
 - [Configuration](#configuration)
 
 ---
@@ -305,6 +306,82 @@ trigger = {
 
 ---
 
+## 7. Graphics File Validation (GFX001)
+
+Validates that referenced graphics files (DDS, PNG, TGA) exist on disk. Prevents pink/black checkerboard patterns in-game by catching missing files during development.
+
+| Code | Severity | Check | Description |
+|------|----------|-------|-------------|
+| **GFX001** | Warning | Missing graphics file | Referenced graphics file does not exist on disk |
+
+### Validated Patterns
+
+The validator checks these keywords that reference graphics files:
+
+- `icon = "path/to/file.dds"`
+- `texture = "path/to/file.dds"`
+- `sprite = "path/to/file.dds"`
+- `background = "path/to/file.dds"`
+- `portrait_texture = "path/to/file.dds"`
+- `reference = "path/to/file.dds"`
+- `activity_window_background = "path/to/file.dds"`
+- `background_texture = "path/to/file.dds"`
+- `icon_texture = "path/to/file.dds"`
+
+### Supported File Types
+
+- `.dds` - DirectDraw Surface (primary CK3 format)
+- `.png` - Portable Network Graphics
+- `.tga` - Targa
+
+### Example Warnings
+
+```
+# GFX001: Missing graphics file
+my_trait = {
+    icon = "gfx/interface/icons/missing_icon.dds"  # WARNING: File not found
+}
+
+rq_grand_debauch = {
+    activity_window_background = "gfx/interface/backgrounds/missing_bg.dds"  # WARNING
+}
+
+my_event.0001 = {
+    background = "gfx/interface/illustrations/missing_scene.dds"  # WARNING
+}
+```
+
+### Integration with Document Links
+
+Graphics paths are also made clickable by `document_links.py`:
+- Existing files: Click to open
+- Missing files: Shows "File not found" tooltip + GFX001 diagnostic
+
+### Path Resolution
+
+The validator searches for files in:
+1. All workspace folders
+2. Mod root directory (detected by `descriptor.mod` or `common/` folder)
+3. Document's parent directories
+
+### Real-World Example
+
+```
+# Activity definition with placeholder graphics
+rq_grand_debauch = {
+    type = activity_type
+    
+    # This caused checkerboard in-game until GFX001 caught it:
+    activity_window_background = "gfx/interface/activities/placeholder.dds"
+    
+    phase_1 = {
+        icon = "gfx/interface/icons/activity_phase_1.dds"
+    }
+}
+```
+
+---
+
 ## Configuration
 
 All validation categories can be enabled/disabled programmatically:
@@ -315,7 +392,8 @@ from pychivalry.diagnostics import DiagnosticConfig, collect_all_diagnostics
 config = DiagnosticConfig(
     style_enabled=True,        # CK33xx checks
     paradox_enabled=True,      # CK35xx-CK52xx checks
-    scope_timing_enabled=True  # CK3550-CK3555 checks
+    scope_timing_enabled=True, # CK3550-CK3555 checks
+    graphics_enabled=True      # GFX001 checks
 )
 
 diagnostics = collect_all_diagnostics(doc, ast, index, config)
@@ -431,3 +509,4 @@ timing_config = ScopeTimingConfig(
 | CK3870-CK3875 | Effect/trigger context | `paradox_checks.py` |
 | CK3976-CK3977 | List iterators | `paradox_checks.py` |
 | CK5137-CK5142 | Common gotchas | `paradox_checks.py` |
+| GFX001 | Graphics file validation | `gfx_validator.py` |
