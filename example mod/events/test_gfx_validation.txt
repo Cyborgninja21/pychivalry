@@ -1,0 +1,34 @@
+# Test file for GFX001 validation
+# This file demonstrates the GFX001 diagnostic in action
+
+namespace = test_gfx
+
+# Event with missing graphics
+test_gfx.0001 = {
+    type = character_event
+    title = test_gfx.0001.t
+    desc = test_gfx.0001.desc
+    
+    # This background file does NOT exist - should generate GFX001
+    background = "gfx/interface/backgrounds/missing_background.dds"
+    
+    option = {
+        name = test_gfx.0001.a
+        # This icon file does NOT exist - should generate GFX001
+        icon = "gfx/interface/icons/missing_icon.dds"
+    }
+}
+
+# Event with existing placeholder (no warning)
+test_gfx.0002 = {
+    type = character_event
+    title = test_gfx.0002.t
+    desc = test_gfx.0002.desc
+    
+    # This references a non-path icon (no warning)
+    # icon = standard_character_event
+    
+    option = {
+        name = test_gfx.0002.a
+    }
+}
