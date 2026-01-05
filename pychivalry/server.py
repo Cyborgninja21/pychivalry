@@ -2546,16 +2546,34 @@ async def document_highlight(
         Click on a saved scope like `scope:target` and all occurrences of
         `scope:target` and `save_scope_as = target` will be highlighted.
     """
+
+    def _document_highlight_sync():
+        """Synchronous implementation for thread pool execution."""
+        try:
+            doc = ls.workspace.get_text_document(params.text_document.uri)
+
+            highlights = get_document_highlights(doc.source, params.position)
+
+            if highlights:
+                logger.debug(f"Found {len(highlights)} highlight(s) at position {params.position}")
+
+            return highlights
+
+        except Exception as e:
+            logger.error(f"Error in document_highlight handler: {e}", exc_info=True)
+            return None
+
+    # Submit to thread manager with HIGH priority (user is waiting)
+    from .threading import TaskPriority
+
     try:
-        doc = ls.workspace.get_text_document(params.text_document.uri)
-
-        highlights = get_document_highlights(doc.source, params.position)
-
-        if highlights:
-            logger.debug(f"Found {len(highlights)} highlight(s) at position {params.position}")
-
-        return highlights
-
+        future = ls.thread_manager.submit_cpu_bound(
+            _document_highlight_sync,
+            priority=TaskPriority.HIGH,
+            task_id=f"highlight:{params.text_document.uri}",
+            timeout=10.0,
+        )
+        return await asyncio.wrap_future(future)
     except Exception as e:
         logger.error(f"Error in document_highlight handler: {e}", exc_info=True)
         return None
@@ -3016,6 +3034,45 @@ def get_workspace_stats_command(ls: CK3LanguageServer, *args: Any):
             "opinion_modifiers": len(ls.index.opinion_modifiers),
             "scripted_guis": len(ls.index.scripted_guis),
         }
+
+
+@server.command("ck3.getThreadingMetrics")
+def get_threading_metrics_command(ls: CK3LanguageServer, *args: Any):
+    """
+    Command: Get threading metrics.
+
+    Returns current thread pool statistics for debugging and monitoring.
+    Useful for understanding performance and identifying bottlenecks.
+
+    Args:
+        ls: The language server instance
+        args: Command arguments (unused)
+
+    Returns:
+        Dictionary with threading metrics:
+        - completed_count: Successfully completed tasks
+        - cancelled_count: Tasks cancelled before completion
+        - timeout_count: Tasks that exceeded their timeout
+        - failed_count: Tasks that raised exceptions
+        - active_count: Currently running tasks
+        - cpu_workers: Number of CPU pool workers
+        - io_workers: Number of I/O pool workers
+    """
+    logger.info("Executing ck3.getThreadingMetrics command")
+    args = _normalize_command_args(args)
+
+    metrics = ls.thread_manager.get_metrics()
+    
+    # Log metrics for debugging
+    logger.info(
+        f"Threading metrics: {metrics['completed_count']} completed, "
+        f"{metrics['cancelled_count']} cancelled, "
+        f"{metrics['timeout_count']} timeout, "
+        f"{metrics['failed_count']} failed, "
+        f"{metrics['active_count']} active"
+    )
+    
+    return metrics
 
 
 @server.command("ck3.generateEventTemplate")
