@@ -185,11 +185,18 @@ class CK3ThreadManager:
     def __init__(self):
         """Initialize the thread manager with CPU and I/O pools."""
         # Separate pools for different operation types
+        # Use min(4, cpu_count) to avoid over-subscription on high-core systems
+        # Allow override via environment variable for testing/tuning
         cpu_count = os.cpu_count() or 2
+        max_cpu_workers = int(os.environ.get("CK3_MAX_CPU_WORKERS", min(4, cpu_count)))
+        max_io_workers = int(os.environ.get("CK3_MAX_IO_WORKERS", 4))
+        
         self._cpu_pool = ThreadPoolExecutor(
-            max_workers=max(2, cpu_count), thread_name_prefix="ck3-cpu"
+            max_workers=max(2, max_cpu_workers), thread_name_prefix="ck3-cpu"
         )
-        self._io_pool = ThreadPoolExecutor(max_workers=4, thread_name_prefix="ck3-io")
+        self._io_pool = ThreadPoolExecutor(
+            max_workers=max_io_workers, thread_name_prefix="ck3-io"
+        )
 
         # Priority queue for deferred work (not currently used but reserved for future)
         self._work_queue: PriorityQueue[PrioritizedTask] = PriorityQueue()
@@ -384,6 +391,40 @@ class CK3ThreadManager:
 
         return future
 
+    def _cancel_tasks(self, match_fn: Callable[[str], bool], description: str) -> int:
+        """
+        Internal helper to cancel tasks matching a predicate.
+        
+        Args:
+            match_fn: Function that returns True for task IDs to cancel
+            description: Description for logging
+        
+        Returns:
+            Number of tasks cancelled
+        """
+        cancelled = 0
+
+        with self._active_tasks_lock:
+            # Find tasks matching the predicate
+            tasks_to_cancel = [
+                (task_id, future)
+                for task_id, future in self._active_tasks.items()
+                if match_fn(task_id)
+            ]
+
+        # Cancel found tasks
+        for task_id, future in tasks_to_cancel:
+            if future.cancel():
+                cancelled += 1
+                logger.debug(f"Cancelled task {task_id} ({description})")
+
+        if cancelled > 0:
+            with self._metrics_lock:
+                self._cancelled_count += cancelled
+            logger.info(f"Cancelled {cancelled} tasks ({description})")
+
+        return cancelled
+
     def cancel_by_uri(self, uri: str) -> int:
         """
         Cancel all pending tasks for a document URI.
@@ -403,28 +444,7 @@ class CK3ThreadManager:
             mgr.cancel_by_uri("file:///path/to/document.txt")
             ```
         """
-        cancelled = 0
-
-        with self._active_tasks_lock:
-            # Find tasks with this URI in their task ID
-            tasks_to_cancel = [
-                (task_id, future)
-                for task_id, future in self._active_tasks.items()
-                if uri in task_id
-            ]
-
-        # Cancel found tasks
-        for task_id, future in tasks_to_cancel:
-            if future.cancel():
-                cancelled += 1
-                logger.debug(f"Cancelled task {task_id} for URI {uri}")
-
-        if cancelled > 0:
-            with self._metrics_lock:
-                self._cancelled_count += cancelled
-            logger.info(f"Cancelled {cancelled} tasks for URI {uri}")
-
-        return cancelled
+        return self._cancel_tasks(lambda task_id: uri in task_id, f"URI: {uri}")
 
     def cancel_by_prefix(self, prefix: str) -> int:
         """
@@ -445,28 +465,7 @@ class CK3ThreadManager:
             mgr.cancel_by_prefix("parse:")
             ```
         """
-        cancelled = 0
-
-        with self._active_tasks_lock:
-            # Find tasks with this prefix
-            tasks_to_cancel = [
-                (task_id, future)
-                for task_id, future in self._active_tasks.items()
-                if task_id.startswith(prefix)
-            ]
-
-        # Cancel found tasks
-        for task_id, future in tasks_to_cancel:
-            if future.cancel():
-                cancelled += 1
-                logger.debug(f"Cancelled task {task_id} with prefix {prefix}")
-
-        if cancelled > 0:
-            with self._metrics_lock:
-                self._cancelled_count += cancelled
-            logger.info(f"Cancelled {cancelled} tasks with prefix {prefix}")
-
-        return cancelled
+        return self._cancel_tasks(lambda task_id: task_id.startswith(prefix), f"prefix: {prefix}")
 
     def get_metrics(self) -> dict:
         """

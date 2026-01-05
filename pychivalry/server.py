@@ -192,7 +192,7 @@ import os
 import threading
 import uuid
 from collections import OrderedDict
-from typing import Dict, List, Optional, Any, Set, Tuple
+from typing import Dict, List, Optional, Any, Set, Tuple, Callable
 
 # Import the LanguageServer class from pygls
 # This is the core class that handles LSP protocol communication
@@ -203,6 +203,9 @@ from pygls.uris import to_fs_path
 # Import LSP types from lsprotocol
 # These define the structure of LSP messages (requests, responses, notifications)
 from lsprotocol import types
+
+# Import threading components at module level to avoid repeated imports
+from .threading import CK3ThreadManager, TaskPriority
 
 # Import CK3 language definitions
 # These lists contain all the CK3 scripting constructs we provide completions for:
@@ -880,7 +883,6 @@ class CK3LanguageServer(LanguageServer):
 
                 # Try to get AST from content hash cache first
                 # Use thread manager with HIGH priority for parsing
-                from .threading import TaskPriority
 
                 future = self.thread_manager.submit_cpu_bound(
                     self.get_or_parse_ast,
@@ -1117,7 +1119,6 @@ class CK3LanguageServer(LanguageServer):
 
                 # Perform the actual scan in thread pool with lock
                 # Pass the executor for parallel scanning (2-4x faster)
-                from .threading import TaskPriority
 
                 def scan_with_lock():
                     with self._index_lock:
@@ -1734,6 +1735,53 @@ def code_action(ls: CK3LanguageServer, params: types.CodeActionParams):
         return None
 
 
+# =============================================================================
+# Thread Manager Helper Functions
+# =============================================================================
+
+
+async def _execute_with_thread_manager(
+    ls: CK3LanguageServer,
+    func: Callable,
+    priority: TaskPriority,
+    task_id: str,
+    timeout: float,
+    handler_name: str,
+    default_return: Any = None,
+) -> Any:
+    """
+    Execute a function in the thread manager with consistent error handling.
+    
+    This helper reduces boilerplate in LSP handlers by providing a standard
+    pattern for thread manager execution with error handling.
+    
+    Args:
+        ls: Language server instance
+        func: Function to execute (should be synchronous)
+        priority: Task priority level
+        task_id: Unique identifier for the task
+        timeout: Maximum execution time in seconds
+        handler_name: Name of handler for logging
+        default_return: Value to return on error (default: None)
+    
+    Returns:
+        Result from func or default_return on error
+    """
+    try:
+        future = ls.thread_manager.submit_cpu_bound(
+            func, priority=priority, task_id=task_id, timeout=timeout
+        )
+        return await asyncio.wrap_future(future)
+    except Exception as e:
+        logger.error(f"Error in {handler_name} handler: {e}", exc_info=True)
+        return default_return
+
+
+# =============================================================================
+# LSP Feature Handlers - References
+# =============================================================================
+
+
 @server.feature(types.TEXT_DOCUMENT_REFERENCES)
 async def references(ls: CK3LanguageServer, params: types.ReferenceParams):
     """
@@ -1847,19 +1895,14 @@ async def references(ls: CK3LanguageServer, params: types.ReferenceParams):
             return None
 
     # Submit to thread manager with HIGH priority (user is waiting)
-    from .threading import TaskPriority
-
-    try:
-        future = ls.thread_manager.submit_cpu_bound(
-            _find_references_sync,
-            priority=TaskPriority.HIGH,
-            task_id=f"refs:{params.text_document.uri}",
-            timeout=30.0,
-        )
-        return await asyncio.wrap_future(future)
-    except Exception as e:
-        logger.error(f"Error in references handler: {e}", exc_info=True)
-        return None
+    return await _execute_with_thread_manager(
+        ls,
+        _find_references_sync,
+        TaskPriority.HIGH,
+        f"refs:{params.text_document.uri}",
+        30.0,
+        "references",
+    )
 
 
 def _find_word_references_in_ast(word: str, ast: List[CK3Node], uri: str) -> List[types.Location]:
@@ -2121,19 +2164,33 @@ async def workspace_symbol(ls: CK3LanguageServer, params: types.WorkspaceSymbolP
             return None
 
     # Submit to thread manager with NORMAL priority
-    from .threading import TaskPriority
 
-    try:
-        future = ls.thread_manager.submit_cpu_bound(
-            _workspace_symbol_sync,
-            priority=TaskPriority.NORMAL,
-            task_id=f"workspace_symbol:{params.query}",
-            timeout=30.0,
-        )
-        return await asyncio.wrap_future(future)
-    except Exception as e:
-        logger.error(f"Error in workspace_symbol handler: {e}", exc_info=True)
-        return None
+
+    return await _execute_with_thread_manager(
+
+
+        ls,
+
+
+        _workspace_symbol_sync,
+
+
+        TaskPriority.NORMAL,
+
+
+        f"workspace_symbol:{params.query}",
+
+
+        30.0,
+
+
+        "workspace_symbol",
+
+
+        None,
+
+
+    )
 
 
 @server.feature(
@@ -2208,20 +2265,34 @@ async def semantic_tokens_full(ls: CK3LanguageServer, params: types.SemanticToke
             logger.error(f"Error in semantic_tokens handler: {e}", exc_info=True)
             return types.SemanticTokens(data=[])
 
-    # Submit to thread manager with CRITICAL priority (user is viewing)
-    from .threading import TaskPriority
+    # Submit to thread manager with CRITICAL priority
 
-    try:
-        future = ls.thread_manager.submit_cpu_bound(
-            _semantic_tokens_sync,
-            priority=TaskPriority.CRITICAL,
-            task_id=f"semantic:{params.text_document.uri}",
-            timeout=30.0,
-        )
-        return await asyncio.wrap_future(future)
-    except Exception as e:
-        logger.error(f"Error in semantic_tokens handler: {e}", exc_info=True)
-        return types.SemanticTokens(data=[])
+
+    return await _execute_with_thread_manager(
+
+
+        ls,
+
+
+        _semantic_tokens_sync,
+
+
+        TaskPriority.CRITICAL,
+
+
+        f"semantic:{params.text_document.uri}",
+
+
+        30.0,
+
+
+        "semantic_tokens",
+
+
+        types,
+
+
+    ).SemanticTokens(data=[])
 
 
 # =============================================================================
@@ -2283,19 +2354,33 @@ async def document_formatting(ls: CK3LanguageServer, params: types.DocumentForma
             return None
 
     # Submit to thread manager with NORMAL priority
-    from .threading import TaskPriority
 
-    try:
-        future = ls.thread_manager.submit_cpu_bound(
-            _document_formatting_sync,
-            priority=TaskPriority.NORMAL,
-            task_id=f"format:{params.text_document.uri}",
-            timeout=10.0,
-        )
-        return await asyncio.wrap_future(future)
-    except Exception as e:
-        logger.error(f"Error in document_formatting handler: {e}", exc_info=True)
-        return None
+
+    return await _execute_with_thread_manager(
+
+
+        ls,
+
+
+        _document_formatting_sync,
+
+
+        TaskPriority.NORMAL,
+
+
+        f"format:{params.text_document.uri}",
+
+
+        10.0,
+
+
+        "document_formatting",
+
+
+        None,
+
+
+    )
 
 
 @server.feature(
@@ -2354,19 +2439,33 @@ async def range_formatting(ls: CK3LanguageServer, params: types.DocumentRangeFor
             return None
 
     # Submit to thread manager with NORMAL priority
-    from .threading import TaskPriority
 
-    try:
-        future = ls.thread_manager.submit_cpu_bound(
-            _range_formatting_sync,
-            priority=TaskPriority.NORMAL,
-            task_id=f"format_range:{params.text_document.uri}",
-            timeout=10.0,
-        )
-        return await asyncio.wrap_future(future)
-    except Exception as e:
-        logger.error(f"Error in range_formatting handler: {e}", exc_info=True)
-        return None
+
+    return await _execute_with_thread_manager(
+
+
+        ls,
+
+
+        _range_formatting_sync,
+
+
+        TaskPriority.NORMAL,
+
+
+        f"format_range:{params.text_document.uri}",
+
+
+        10.0,
+
+
+        "range_formatting",
+
+
+        None,
+
+
+    )
 
 
 # =============================================================================
@@ -2417,19 +2516,33 @@ async def code_lens(ls: CK3LanguageServer, params: types.CodeLensParams):
             return None
 
     # Submit to thread manager with NORMAL priority
-    from .threading import TaskPriority
 
-    try:
-        future = ls.thread_manager.submit_cpu_bound(
-            _code_lens_sync,
-            priority=TaskPriority.NORMAL,
-            task_id=f"code_lens:{params.text_document.uri}",
-            timeout=20.0,
-        )
-        return await asyncio.wrap_future(future)
-    except Exception as e:
-        logger.error(f"Error in code_lens handler: {e}", exc_info=True)
-        return None
+
+    return await _execute_with_thread_manager(
+
+
+        ls,
+
+
+        _code_lens_sync,
+
+
+        TaskPriority.NORMAL,
+
+
+        f"code_lens:{params.text_document.uri}",
+
+
+        20.0,
+
+
+        "code_lens",
+
+
+        None,
+
+
+    )
 
 
 @server.feature(types.CODE_LENS_RESOLVE)
@@ -2524,20 +2637,34 @@ async def inlay_hint(ls: CK3LanguageServer, params: types.InlayHintParams):
             logger.error(f"Error in inlay_hint handler: {e}", exc_info=True)
             return None
 
-    # Submit to thread manager with CRITICAL priority (user is viewing)
-    from .threading import TaskPriority
+    # Submit to thread manager with CRITICAL priority
 
-    try:
-        future = ls.thread_manager.submit_cpu_bound(
-            _inlay_hint_sync,
-            priority=TaskPriority.CRITICAL,
-            task_id=f"inlay:{params.text_document.uri}",
-            timeout=10.0,
-        )
-        return await asyncio.wrap_future(future)
-    except Exception as e:
-        logger.error(f"Error in inlay_hint handler: {e}", exc_info=True)
-        return None
+
+    return await _execute_with_thread_manager(
+
+
+        ls,
+
+
+        _inlay_hint_sync,
+
+
+        TaskPriority.CRITICAL,
+
+
+        f"inlay:{params.text_document.uri}",
+
+
+        10.0,
+
+
+        "inlay_hint",
+
+
+        None,
+
+
+    )
 
 
 @server.feature(types.INLAY_HINT_RESOLVE)
@@ -2681,20 +2808,34 @@ async def document_highlight(
             logger.error(f"Error in document_highlight handler: {e}", exc_info=True)
             return None
 
-    # Submit to thread manager with HIGH priority (user is waiting)
-    from .threading import TaskPriority
+    # Submit to thread manager with HIGH priority
 
-    try:
-        future = ls.thread_manager.submit_cpu_bound(
-            _document_highlight_sync,
-            priority=TaskPriority.HIGH,
-            task_id=f"highlight:{params.text_document.uri}",
-            timeout=10.0,
-        )
-        return await asyncio.wrap_future(future)
-    except Exception as e:
-        logger.error(f"Error in document_highlight handler: {e}", exc_info=True)
-        return None
+
+    return await _execute_with_thread_manager(
+
+
+        ls,
+
+
+        _document_highlight_sync,
+
+
+        TaskPriority.HIGH,
+
+
+        f"highlight:{params.text_document.uri}",
+
+
+        10.0,
+
+
+        "document_highlight",
+
+
+        None,
+
+
+    )
 
 
 # =============================================================================
@@ -2911,19 +3052,15 @@ async def rename(ls: CK3LanguageServer, params: types.RenameParams) -> Optional[
             return None
 
     # Submit to thread manager with NORMAL priority
-    from .threading import TaskPriority
-
-    try:
-        future = ls.thread_manager.submit_cpu_bound(
-            _rename_sync,
-            priority=TaskPriority.NORMAL,
-            task_id=f"rename:{params.text_document.uri}",
-            timeout=60.0,  # Longer timeout for workspace-wide operations
-        )
-        return await asyncio.wrap_future(future)
-    except Exception as e:
-        logger.error(f"Error in rename handler: {e}", exc_info=True)
-        return None
+    return await _execute_with_thread_manager(
+        ls,
+        _rename_sync,
+        TaskPriority.NORMAL,
+        f"rename:{params.text_document.uri}",
+        60.0,  # Longer timeout for workspace-wide operations
+        "rename",
+        None,
+    )
 
 
 # =============================================================================
@@ -2984,19 +3121,33 @@ async def folding_range(
             return None
 
     # Submit to thread manager with NORMAL priority
-    from .threading import TaskPriority
 
-    try:
-        future = ls.thread_manager.submit_cpu_bound(
-            _folding_range_sync,
-            priority=TaskPriority.NORMAL,
-            task_id=f"folding:{params.text_document.uri}",
-            timeout=10.0,
-        )
-        return await asyncio.wrap_future(future)
-    except Exception as e:
-        logger.error(f"Error in folding_range handler: {e}", exc_info=True)
-        return None
+
+    return await _execute_with_thread_manager(
+
+
+        ls,
+
+
+        _folding_range_sync,
+
+
+        TaskPriority.NORMAL,
+
+
+        f"folding:{params.text_document.uri}",
+
+
+        10.0,
+
+
+        "folding_range",
+
+
+        None,
+
+
+    )
 
 
 # =============================================================================
