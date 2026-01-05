@@ -13,7 +13,7 @@ MODULE OVERVIEW:
     all files, including related localization keys and comments.
     
     Supports renaming events, saved scopes, scripted effects/triggers, variables,
-    and character flags with full validation and conflict detection.
+    character flags, and decision group types with full validation and conflict detection.
 
 ARCHITECTURE:
     **Rename Pipeline**:
@@ -57,6 +57,11 @@ ARCHITECTURE:
        - Update add_character_flag calls
        - Update has_character_flag checks
        - Update remove_character_flag calls
+    
+    6. **Decision Group Types** (rq_decisions → rq_events):
+       - Update definition in decision_group_types folder
+       - Update all decision_group_type = refs in decisions
+       - Update implicit localization key (decision_group_type_name)
 
 RENAME VALIDATION:
     Before renaming, checks:
@@ -207,6 +212,14 @@ RENAME_PATTERNS = {
         "definition": re.compile(r"^(\s*)({name})\s*=\s*\{", re.MULTILINE),
         # Reference: modifier = my_modifier
         "reference": re.compile(r"\bmodifier\s*=\s*({name})\b"),
+    },
+    "decision_group_type": {
+        # Definition in decision_group_types folder
+        "definition": re.compile(r"^(\s*)({name})\s*=\s*\{", re.MULTILINE),
+        # Reference in decisions: decision_group_type = group_name
+        "reference": re.compile(r"\bdecision_group_type\s*=\s*({name})\b"),
+        # Implicit localization key: decision_group_type_<name>
+        "localization": re.compile(r"\bdecision_group_type_({name})\b"),
     },
 }
 
@@ -367,6 +380,22 @@ def get_symbol_at_position(
             ),
         )
 
+    # Check for decision_group_type reference
+    group_match = re.search(r"\bdecision_group_type\s*=\s*([a-zA-Z_][a-zA-Z0-9_]*)", line)
+    if group_match and group_match.start() <= char <= group_match.end():
+        name = group_match.group(1)
+        # Don't allow renaming built-in groups
+        if name not in {"major", "minor"}:
+            name_start = group_match.start(1)
+            return (
+                name,
+                "decision_group_type",
+                types.Range(
+                    start=types.Position(line=position.line, character=name_start),
+                    end=types.Position(line=position.line, character=name_start + len(name)),
+                ),
+            )
+
     return None
 
 
@@ -510,6 +539,9 @@ def _get_scan_patterns_for_type(symbol_type: str) -> List[str]:
         return ["common/scripted_triggers", "events"]
     elif symbol_type == "opinion_modifier":
         return ["common/opinion_modifiers", "events"]
+    elif symbol_type == "decision_group_type":
+        # Scan definition folder, decisions (references), and localization
+        return ["common/decision_group_types", "common/decisions", "localization"]
     elif symbol_type in ("saved_scope", "variable", "character_flag", "global_flag"):
         return [
             "events",

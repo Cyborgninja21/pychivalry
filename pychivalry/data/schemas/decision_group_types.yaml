@@ -1,0 +1,190 @@
+# Decision Group Types Validation Schema
+# Declarative validation rules for CK3 decision group types
+# These define collapsible categories in the decision panel UI
+version: "1.0"
+file_type: decision_group_type
+
+# File identification - when to apply this schema
+identification:
+  path_patterns:
+  - "*/common/decision_group_types/*.txt"
+  - "*/common/decision_group_types/**/*.txt"
+  - "common/decision_group_types/*.txt"
+
+# ============ VALIDATION ============
+# Field definitions with validation rules
+fields:
+  sort_order:
+    type: integer
+    required: false
+    min_value: 0
+    max_value: 1000
+    description: "Display order in decision list. Higher values appear higher in the list."
+    diagnostic: DECISION_GROUP-001
+    severity: information
+    message: "Decision group missing 'sort_order' - will use default ordering (0)"
+
+  important_decision_group:
+    type: boolean
+    required: false
+    valid_values: [yes, no]
+    description: "If yes, highlights this group in the decision panel UI"
+    diagnostic: DECISION_GROUP-007
+    severity: warning
+    message: "Invalid value for 'important_decision_group' - expected 'yes' or 'no'"
+
+# Built-in groups that don't need to be defined
+# These are valid values for decision_group_type in decisions
+builtin_groups:
+- major
+- minor
+
+# Cross-field validations
+validations:
+- name: empty_group
+  condition: "NOT sort_order.exists AND NOT important_decision_group.exists"
+  diagnostic: DECISION_GROUP-002
+  severity: information
+  message: "Decision group has no properties - only defines a category name"
+
+- name: important_low_sort
+  condition: "important_decision_group.value == yes AND sort_order.exists AND sort_order.value < 50"
+  diagnostic: DECISION_GROUP-003
+  severity: hint
+  message: "Important decision groups typically use sort_order >= 50 to appear near the top"
+
+# ============ IMPLICIT LOCALIZATION ============
+# CK3 expects localization keys with this pattern for each group
+implicit_localization:
+  enabled: true
+  pattern: "decision_group_type_{key}"
+  diagnostic: DECISION_GROUP-010
+  severity: warning
+  message: "Missing localization key 'decision_group_type_{key}' - UI will show raw key name"
+
+# ============ CROSS-FILE REFERENCES ============
+# Other files that reference this content type
+cross_references:
+  indexed_as: decision_group_types
+  referenced_by:
+  - file_pattern: "*/common/decisions/*.txt"
+    field: "decision_group_type"
+    diagnostic: DECISION-XREF-001
+    severity: error
+    message: "Decision references undefined group '{value}'. Did you mean one of: {suggestions}?"
+  orphan_detection:
+    enabled: true
+    diagnostic: DECISION_GROUP-004
+    severity: hint
+    message: "Decision group '{key}' is not referenced by any decision"
+
+# ============ NAMESPACE CONVENTION ============
+namespace_validation:
+  enabled: true
+  exclude_builtins: true
+  diagnostic: DECISION_GROUP-005
+  severity: hint
+  message: "Group name '{key}' doesn't follow mod namespace convention (expected prefix like 'rq_')"
+
+# ============ COMPLETIONS & HOVER ============
+field_docs:
+  sort_order:
+    description: "Display order in decision list (integer)"
+    detail: |
+      Controls where this decision group appears in the decision panel.
+
+      **Higher values = higher position in the list**
+
+      ### Recommended Ranges
+      | Range | Use Case |
+      |-------|----------|
+      | `100+` | Major/important story decisions |
+      | `50-99` | Standard gameplay decisions |
+      | `20-49` | Secondary/utility decisions |
+      | `1-19` | Debug/testing decisions |
+
+      ### Default Behavior
+      If not specified, defaults to `0` (appears at bottom).
+
+      ### Example
+      ```pdx
+      my_important_decisions = {
+          sort_order = 100
+          important_decision_group = yes
+      }
+      ```
+    snippet: "sort_order = ${1|100,50,25,1|}"
+    examples:
+    - "sort_order = 100  # Major decisions - top of list"
+    - "sort_order = 50   # Standard gameplay decisions"
+    - "sort_order = 25   # Secondary decisions"
+    - "sort_order = 1    # Debug - bottom of list"
+
+  important_decision_group:
+    description: "Highlight this group in the decision panel UI (yes/no)"
+    detail: |
+      When set to `yes`, this decision group receives visual emphasis in the UI.
+
+      ### Effects
+      - Group header is highlighted/bolded in the decision panel
+      - Draws player attention to important story or milestone decisions
+      - Typically paired with higher `sort_order` values
+
+      ### When to Use
+      - Major story arc decisions (e.g., "Rise of the Wolf Queen")
+      - One-time milestone decisions
+      - Critical gameplay choices
+
+      ### When NOT to Use
+      - Routine/repeatable decisions
+      - Debug or testing groups
+      - Minor utility decisions
+
+      ### Example
+      ```pdx
+      rq_wolf_queen_decisions = {
+          sort_order = 100
+          important_decision_group = yes
+      }
+      ```
+    snippet: "important_decision_group = ${1|yes,no|}"
+    examples:
+    - "important_decision_group = yes  # Highlight this group"
+    - "important_decision_group = no   # Standard appearance (default)"
+
+# ============ SYMBOLS ============
+# Symbol extraction rules for document outline
+symbols:
+  primary:
+    kind: Class
+    name_from: key
+    detail: "Decision Group"
+  children:
+  - field: sort_order
+    kind: Property
+    name: "sort_order"
+  - field: important_decision_group
+    kind: Property
+    name: "important_decision_group"
+
+# ============ CODE LENS ============
+code_lens:
+  enabled: true
+  reference_count:
+    enabled: true
+    label: "{count} decisions"
+    search_pattern: "decision_group_type\\s*=\\s*{key}"
+    search_paths:
+    - "common/decisions/**/*.txt"
+  missing_localization:
+    enabled: true
+    pattern: "decision_group_type_{key}"
+    label: "⚠️ Missing loc: decision_group_type_{key}"
+
+# ============ DUPLICATE DETECTION ============
+duplicate_detection:
+  enabled: true
+  scope: workspace
+  diagnostic: DECISION_GROUP-006
+  severity: error
+  message: "Duplicate decision group definition '{key}' - also defined in {other_file}"

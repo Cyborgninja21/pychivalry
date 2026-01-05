@@ -1,0 +1,456 @@
+# Intents Schema
+# Declarative validation rules for CK3 activity intents
+# Intents are goals characters pursue during activities
+version: "1.0"
+file_type: intent
+
+# File identification - when to apply this schema
+identification:
+  path_patterns:
+  - "*/common/activities/intents/*.txt"
+  - "common/activities/intents/*.txt"
+
+# ============ CONSTANTS ============
+constants:
+  ai_recipient_types:
+  - scheme_targets
+  - scripted_relations
+  - courtiers
+  - vassals
+  - liege
+  - head_of_faith
+  - family
+  - activity_guests
+  - activity_host
+  - court_members
+  - realm_characters
+
+  quick_trigger_options:
+  - adult
+  - attracted_to_owner
+  - owner_attracted
+  - prison
+
+# ============ VALIDATION ============
+fields:
+  # ===== DISPLAY =====
+  icon:
+    type: string
+    required: false
+    description: "Icon filename for the intent. Defaults to intent key."
+
+  scripted_animation:
+    required: true
+    type: block_or_string
+    schema: scripted_animation
+    diagnostic: INT001
+    message: "Intent missing required 'scripted_animation'"
+    description: "Animation played for character with this intent."
+
+  # ===== BEHAVIOR =====
+  auto_complete:
+    type: boolean
+    default: false
+    description: "If yes, intent completes automatically without player interaction."
+
+  # ===== VISIBILITY =====
+  is_shown:
+    type: trigger_block
+    description: "When this intent appears in selection list. Root = picker character."
+    scope_context:
+      root: character
+      description: "Character picking the intent"
+      available_scopes:
+      - scope:magnificence
+      - scope:special_option
+
+  is_valid:
+    type: trigger_block
+    description: "When this intent can be selected. Root = picker character."
+    scope_context:
+      root: character
+      available_scopes:
+      - scope:magnificence
+      - scope:special_option
+
+  # ===== INVALIDATION =====
+  on_invalidated:
+    type: effect_block
+    description: "Effect when intent becomes invalid. Root = intent holder."
+    scope_context:
+      root: character
+
+  # ===== TARGET SYSTEM =====
+  is_target_valid:
+    type: trigger_block
+    description: "Validates target character for targeted intents. Root = picker."
+    scope_context:
+      root: character
+      available_scopes:
+      - scope:target
+      - scope:special_option
+
+  on_target_invalidated:
+    type: effect_block
+    description: "Effect when target becomes invalid. Root = intent holder."
+    scope_context:
+      root: character
+      available_scopes:
+      - scope:target
+
+  # ===== AI CONFIGURATION =====
+  ai_will_do:
+    type: script_value_block
+    description: "AI weight for selecting this intent. 0 = never select."
+    scope_context:
+      root: character
+      available_scopes:
+      - scope:activity
+
+  ai_targets:
+    type: block
+    schema: ai_targets
+    multiple: true
+    description: "Character pools AI considers for targeting."
+
+  ai_target_quick_trigger:
+    type: block
+    schema: ai_target_quick_trigger
+    description: "Fast boolean filters for AI target selection."
+
+  ai_target_score:
+    type: script_value_block
+    description: "AI weight for preferring specific targets."
+    scope_context:
+      root: character
+      available_scopes:
+      - scope:target
+      - scope:special_option
+
+# ============ NESTED SCHEMAS ============
+nested_schemas:
+  scripted_animation:
+    description: "Animation configuration with optional conditional variants"
+    fields:
+      triggered_animation:
+        type: block
+        schema: triggered_animation
+        multiple: true
+        description: "Conditional animation variant"
+      animation:
+        type: string
+        description: "Default/fallback animation name"
+
+  triggered_animation:
+    description: "Conditional animation based on triggers"
+    fields:
+      trigger:
+        required: true
+        type: trigger_block
+        description: "Condition for this animation variant"
+      animation:
+        required: true
+        type: string_or_list
+        description: "Animation name(s) to play when trigger matches"
+
+  ai_targets:
+    description: "AI target pool configuration"
+    fields:
+      ai_recipients:
+        required: true
+        type: enum
+        values: $ai_recipient_types
+        multiple: true
+        description: "Character list type to consider"
+      max:
+        type: integer
+        description: "Maximum targets to evaluate (performance)"
+      chance:
+        type: number
+        description: "Random exclusion rate 0-1 (performance optimization)"
+
+  ai_target_quick_trigger:
+    description: "Fast boolean filters for AI target selection"
+    fields:
+      adult:
+        type: boolean
+        description: "Filter to adults only"
+      attracted_to_owner:
+        type: boolean
+        description: "Filter to characters attracted to intent owner"
+      owner_attracted:
+        type: boolean
+        description: "Filter to characters the owner is attracted to"
+      prison:
+        type: boolean
+        description: "Filter by imprisonment status"
+
+# ============ CROSS-FIELD VALIDATIONS ============
+validations:
+- name: target_invalidation_without_target_valid
+  condition: "is_target_valid.exists AND NOT on_target_invalidated.exists"
+  diagnostic: INT002
+  severity: warning
+  message: "Intent has is_target_valid but no on_target_invalidated handler"
+
+- name: ai_targets_without_score
+  condition: "ai_targets.exists AND NOT ai_target_score.exists"
+  diagnostic: INT003
+  severity: information
+  message: "Intent has ai_targets but no ai_target_score - AI will select randomly"
+
+# ============ COMPLETIONS & HOVER ============
+field_docs:
+  scripted_animation:
+    description: "Animation for character with this intent"
+    detail: "Required - can be simple string or block with variants"
+    snippet: |
+      scripted_animation = {
+        animation = ${1:happiness}
+      }
+
+  is_shown:
+    description: "When intent appears in selection"
+    detail: "Root = character picking intent"
+    snippet: |
+      is_shown = {
+        has_dlc_feature = advanced_activities
+        is_alive = yes
+        is_adult = yes
+      }
+
+  is_valid:
+    description: "When intent can be selected"
+    detail: "Root = character picking intent"
+    snippet: |
+      is_valid = {
+        ${1:is_adult = yes}
+      }
+
+  auto_complete:
+    description: "Intent completes automatically"
+    detail: "If yes, no player interaction needed"
+    snippet: "auto_complete = ${1|yes,no|}"
+
+  on_invalidated:
+    description: "Effect when intent becomes invalid"
+    detail: "Usually triggers activity_system.0090 event"
+    snippet: |
+      on_invalidated = {
+        trigger_event = activity_system.0090
+      }
+
+  is_target_valid:
+    description: "Validates target for targeted intents"
+    detail: "Root = picker, scope:target = target character"
+    snippet: |
+      is_target_valid = {
+        scope:target = { is_ai = yes }
+        can_start_scheme = {
+          type = ${1:murder}
+          target_character = scope:target
+        }
+      }
+
+  on_target_invalidated:
+    description: "Effect when target becomes invalid"
+    detail: "Usually triggers activity_system.0091 event"
+    snippet: |
+      on_target_invalidated = {
+        trigger_event = activity_system.0091
+      }
+
+  ai_will_do:
+    description: "AI likelihood to select this intent"
+    detail: "0 = never, higher = more likely"
+    snippet: |
+      ai_will_do = {
+        value = ${1:50}
+        if = {
+          limit = { has_trait = ${2:gregarious} }
+          add = ${3:25}
+        }
+      }
+
+  ai_targets:
+    description: "Character pools for AI targeting"
+    detail: "Defines who AI considers as targets"
+    snippet: |
+      ai_targets = {
+        ai_recipients = ${1|scheme_targets,scripted_relations,courtiers,vassals|}
+        max = ${2:10}
+      }
+
+  ai_target_quick_trigger:
+    description: "Fast filters for AI target selection"
+    detail: "Boolean filters for performance"
+    snippet: |
+      ai_target_quick_trigger = {
+        adult = yes
+        ${1:attracted_to_owner = yes}
+      }
+
+  ai_target_score:
+    description: "AI preference weight for targets"
+    detail: "Higher score = preferred target"
+    snippet: |
+      ai_target_score = {
+        value = 0
+        if = {
+          limit = { has_relation_rival = scope:target }
+          add = ${1:25}
+        }
+      }
+
+# ============ SYMBOLS ============
+symbols:
+  primary:
+    kind: Interface
+    name_from: key
+    detail: "Intent"
+  children:
+  - field: scripted_animation
+    kind: Property
+    name: "animation"
+  - field: is_shown
+    kind: Object
+    name: "is_shown"
+  - field: is_valid
+    kind: Object
+    name: "is_valid"
+  - field: ai_will_do
+    kind: Property
+    name: "ai_will_do"
+
+# ============ CODE LENS ============
+code_lens:
+  enabled: true
+  reference_count:
+    enabled: true
+    label: "{count} references"
+    search_patterns:
+    - "intents\\s*=\\s*\\{[^}]*{id}"
+    - "default\\s*=\\s*{id}"
+    - "blocked_intents\\s*=\\s*\\{[^}]*{id}"
+  missing_localization:
+    enabled: true
+    fields: []
+    implied_keys:
+    - "{key}"
+    - "{key}_desc"
+    label: "⚠️ Missing: {field}"
+
+# ============ DIAGNOSTICS ============
+diagnostics:
+  INT001:
+    severity: error
+    message: "Intent missing required 'scripted_animation'"
+
+  INT002:
+    severity: warning
+    message: "Intent has is_target_valid but no on_target_invalidated handler"
+
+  INT003:
+    severity: information
+    message: "Intent has ai_targets but no ai_target_score - AI will select randomly"
+
+# ============ LOCALIZATION ============
+localization:
+  patterns:
+  - key: "{intent_key}"
+    description: "Display name of the intent"
+    promoted_scopes:
+    - CHARACTER
+    - TARGET_CHARACTER
+  - key: "{intent_key}_desc"
+    description: "Description of the intent"
+    promoted_scopes:
+    - CHARACTER
+    - TARGET_CHARACTER
+
+# ============ COMMON PATTERNS ============
+patterns:
+  simple_auto_complete:
+    description: "Basic intent that completes automatically"
+    example: |
+      reduce_stress_intent = {
+          icon = reduce_stress_intent
+          auto_complete = yes
+          on_invalidated = { trigger_event = activity_system.0090 }
+          ai_will_do = { value = stress }
+          scripted_animation = { animation = happiness }
+      }
+
+  targeted_intent:
+    description: "Intent targeting another character"
+    example: |
+      befriend_attendee_intent = {
+          icon = befriend_intent
+
+          is_shown = {
+              has_dlc_feature = advanced_activities
+              is_alive = yes
+              is_adult = yes
+          }
+
+          on_invalidated = { trigger_event = activity_system.0090 }
+
+          ai_targets = {
+              ai_recipients = activity_guests
+              max = 10
+          }
+
+          is_target_valid = {
+              scope:target = { is_ai = yes }
+              NOT = { has_relation_friend = scope:target }
+          }
+
+          on_target_invalidated = { trigger_event = activity_system.0091 }
+
+          ai_will_do = {
+              value = 50
+              if = {
+                  limit = { has_trait = gregarious }
+                  add = 25
+              }
+          }
+
+          ai_target_score = {
+              value = 10
+              if = {
+                  limit = { has_good_opinion_of_target_trigger = yes }
+                  add = 15
+              }
+          }
+
+          scripted_animation = { animation = personality_compassionate }
+      }
+
+  dlc_gated_intent:
+    description: "Intent requiring specific DLC"
+    example: |
+      special_intent = {
+          icon = special_intent
+
+          is_shown = {
+              has_dlc_feature = tours_and_tournaments
+              is_alive = yes
+          }
+
+          is_valid = {
+              custom_tooltip = {
+                  text = special_intent_requirements_tt
+                  gold >= 100
+              }
+          }
+
+          ai_will_do = { value = 25 }
+
+          scripted_animation = {
+              triggered_animation = {
+                  trigger = { has_trait = ambitious }
+                  animation = personality_bold
+              }
+              animation = idle
+          }
+      }

@@ -66,9 +66,18 @@ For a comprehensive list of **all moddable content types** in CK3, see **[ck3_co
 | Story Cycles | `common/story_cycles/` | ✅ `effect_group` + timing | ✅ | ✅ | ✅ scripted |
 | Story triggered_effect | `common/story_cycles/` | ✅ `trigger`, `effect` | ✅ | ✅ | ✅ |
 | Decisions | `common/decisions/` | ✅ `ai_check_interval`, `effect` | ✅ | ✅ | ✅ indexed |
+| Decision Group Types | `common/decision_group_types/` | ✅ `sort_order` | N/A | N/A | ✅ implicit loc |
 | Character Interactions | `common/character_interactions/` | ✅ `category` | ✅ | ✅ | ✅ indexed |
 | Schemes | `common/schemes/` | ✅ `skill` | ✅ | ✅ | ✅ indexed |
 | On Actions | `common/on_actions/` | ✅ events or `effect` | ✅ | ✅ | ✅ indexed |
+| Activity Types | `common/activities/activity_types/` | ✅ `is_shown` | ✅ | ✅ | ✅ indexed |
+| Activity Phases | `common/activities/activity_types/` | ✅ `order` | ✅ | ✅ | ✅ |
+| Activity Options | `common/activities/activity_types/` | ⚠️ | ✅ | ✅ | ✅ |
+| Pulse Actions | `common/activities/pulse_actions/` | ✅ `is_valid`, `weight`, `effect` | ✅ | ✅ | ✅ indexed |
+| Intents | `common/activities/intents/` | ✅ `scripted_animation` | ✅ | ✅ | ✅ indexed |
+| Activity Locales | `common/activities/activity_locales/` | ✅ `on_enter_locale`, `visuals` | ✅ | ✅ | ✅ indexed |
+| Activity Group Types | `common/activities/activity_group_types/` | ⚠️ `sort_order` | N/A | N/A | ✅ implicit loc |
+| Guest Invite Rules | `common/activities/guest_invite_rules/` | ✅ `effect` | ✅ | ✅ | ✅ indexed |
 | Mod Descriptor | `descriptor.mod` | ✅ `name` | N/A | N/A | N/A |
 
 > **Table 1a** shows the structural validation capabilities for each file type. This includes whether required fields are enforced (like `type` and `title` for events), whether effects are correctly placed in effect blocks and triggers in trigger blocks, whether scope chain transitions are validated (e.g., `liege.primary_title`), and whether cross-file references to scripted effects/triggers are resolved.
@@ -85,9 +94,18 @@ For a comprehensive list of **all moddable content types** in CK3, see **[ck3_co
 | Story Cycles | ✅ code lens | ✅ | ✅ chance > 100 | ✅ short intervals | ❌ | ❌ | ❌ | ✅ `story_cycles.yaml` |
 | Story triggered_effect | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ `story_cycles.yaml` |
 | Decisions | ✅ code lens | ✅ | ✅ cost, cooldown | ✅ | ❌ | ❌ | ❌ | ✅ `decisions.yaml` |
+| Decision Group Types | ✅ implicit key | ✅ | ❌ | N/A | ❌ | ❌ | ❌ | ✅ `decision_group_types.yaml` |
 | Character Interactions | ✅ code lens | ✅ | ✅ cooldown | ✅ | ❌ | ❌ | ❌ | ✅ `character_interactions.yaml` |
 | Schemes | ✅ code lens | ✅ | ✅ power, cooldown | ✅ | ❌ | ❌ | ❌ | ✅ `schemes.yaml` |
 | On Actions | ✅ code lens | ✅ | ✅ event weights | ✅ | ❌ | ❌ | ❌ | ✅ `on_actions.yaml` |
+| Activity Types | ✅ code lens | ✅ | ✅ cost, cooldown | ✅ | ❌ | ❌ | ❌ | ✅ `activity_types.yaml` |
+| Activity Phases | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ `activity_types.yaml` |
+| Activity Options | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ `activity_types.yaml` |
+| Pulse Actions | ✅ code lens | ✅ | ✅ weight | ✅ | ❌ | ❌ | ❌ | ✅ `pulse_actions.yaml` |
+| Intents | ✅ code lens | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ `intents.yaml` |
+| Activity Locales | ✅ code lens | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ `activity_locales.yaml` |
+| Activity Group Types | ✅ implicit key | ✅ | ❌ | N/A | ❌ | ❌ | ❌ | ✅ `activity_group_types.yaml` |
+| Guest Invite Rules | ✅ code lens | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ `guest_invite_rules.yaml` |
 | Mod Descriptor | N/A | ❌ | ❌ | N/A | N/A | N/A | N/A | ❌ |
 
 > **Table 1b** covers value-level validation and the schema file that drives each file type. This includes localization key tracking (with code lens for missing keys), duplicate block detection, numeric value range checks (like `ai_chance` values), and performance warnings for expensive operations. The Schema column indicates which YAML schema file defines the validation rules.
@@ -103,9 +121,11 @@ For a comprehensive list of **all moddable content types** in CK3, see **[ck3_co
 | **events/** | ✅ | ✅ | ✅ Schema | ✅ | ✅ | ✅ |
 | **common/story_cycles/** | ✅ | ✅ | ✅ Schema | ✅ | ✅ | ✅ |
 | **common/decisions/** | ✅ | ✅ | ✅ Schema | ✅ | ✅ | ✅ |
+| **common/decision_group_types/** | ✅ | ✅ | ✅ Schema | ✅ | ✅ | ✅ |
 | **common/character_interactions/** | ✅ | ✅ | ✅ Schema | ✅ | ✅ | ✅ |
 | **common/schemes/** | ✅ | ✅ | ✅ Schema | ✅ | ✅ | ✅ |
 | **common/on_actions/** | ✅ | ✅ | ✅ Schema | ✅ | ✅ | ✅ |
+| **common/activities/** | ✅ | ✅ | ✅ Schema | ✅ | ✅ | ✅ |
 | **common/scripted_effects/** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | **common/scripted_triggers/** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | **common/traits/** | ⚠️ | ⚠️ | ✅ | ✅ | ✅ | ⚠️ |
@@ -123,9 +143,11 @@ For a comprehensive list of **all moddable content types** in CK3, see **[ck3_co
 | **events/** | ✅ Schema | ✅ Schema | ✅ | ✅ | ✅ Schema | ✅ | ✅ | ✅ |
 | **common/story_cycles/** | ✅ Schema | ✅ Schema | ✅ | ✅ | ✅ Schema | ✅ | ✅ | ✅ |
 | **common/decisions/** | ✅ Schema | ✅ Schema | ✅ | ✅ | ✅ Schema | ✅ | ✅ | ✅ |
+| **common/decision_group_types/** | ✅ Schema | ✅ Schema | N/A | N/A | ✅ Schema | ✅ | ✅ | ✅ |
 | **common/character_interactions/** | ✅ Schema | ✅ Schema | ✅ | ✅ | ✅ Schema | ✅ | ✅ | ✅ |
 | **common/schemes/** | ✅ Schema | ✅ Schema | ✅ | ✅ | ✅ Schema | ✅ | ✅ | ✅ |
 | **common/on_actions/** | ✅ Schema | ✅ Schema | ✅ | ✅ | ✅ Schema | ✅ | ✅ | ✅ |
+| **common/activities/** | ✅ Schema | ✅ Schema | ✅ | ✅ | ✅ Schema | ✅ | ✅ | ✅ |
 | **common/scripted_effects/** | ✅ YAML | ✅ YAML | ✅ | ✅ | ✅ | ✅ | ✅ | ⚠️ |
 | **common/scripted_triggers/** | ✅ YAML | ✅ YAML | ✅ | ✅ | ✅ | ✅ | ✅ | ⚠️ |
 | **common/traits/** | ✅ | ✅ | ❌ | ⚠️ | ❌ | ✅ | ✅ | ❌ |
@@ -150,7 +172,34 @@ For a comprehensive list of **all moddable content types** in CK3, see **[ck3_co
 - **Code Lens**: Reference counts and warnings configured in schema
 - **Validation**: All validation rules defined declaratively in YAML
 
+---
 
+## 2.5. KNOWN VALIDATION GAPS
+
+> ⚠️ **Important:** The following validation types are NOT yet implemented. These represent common error patterns that are only caught at runtime.
+
+### Missing Graphics File Validation (GFX Paths)
+
+**Status:** ❌ Not Implemented | **Priority:** Medium | **Issue:** Planned
+
+PyChivalry does NOT validate that referenced graphics files exist. Missing `.dds` files cause pink/black checkerboard patterns in-game but generate no editor warnings.
+
+| Pattern | Example | File Types Affected |
+|---------|---------|---------------------|
+| `texture = "..."` | `texture = "gfx/interface/icons/icon.dds"` | Events, Activities, GUI |
+| `reference = "..."` | `reference = "gfx/interface/illustrations/scene.dds"` | Activity backgrounds |
+| `icon = "..."` | `icon = "gfx/interface/icons/decision.dds"` | Decisions, Interactions |
+| `background = "..."` | `background = "gfx/interface/backgrounds/bg.dds"` | Events, Activities |
+
+**Current Behavior:**
+- `document_links.py` makes GFX paths clickable with "File not found" tooltip
+- No diagnostic/error is generated
+
+**Proposed Diagnostic:** `GFX001` - Missing graphics file reference
+
+**Real-World Impact:** Activity `rq_grand_debauch` showed checkerboard because `activity_window_background` referenced non-existent placeholder files. Only discovered at runtime.
+
+---
 
 ## 3. NOT YET VALIDATED FILE TYPES
 
@@ -194,7 +243,6 @@ For a comprehensive list of **all moddable content types** in CK3, see **[ck3_co
 | Script Values | `common/script_values/` | ❌ | ⚠️ generic only | ✅ | ❌ |
 | Modifiers | `common/modifiers/` | ❌ | ⚠️ generic only | ✅ | ✅ indexed |
 | Opinion Modifiers | `common/opinion_modifiers/` | ❌ `opinion` | ✅ generic rules | ✅ | ✅ indexed |
-| Activities | `common/activities/` | ❌ `phases` | ⚠️ generic only | ✅ | ❌ |
 | Artifacts | `common/artifacts/` | ❌ `slot`, `type` | ⚠️ generic only | ✅ | ❌ |
 | Governments | `common/governments/` | ❌ | ⚠️ generic only | ✅ | ❌ |
 | Men at Arms | `common/men_at_arms_types/` | ❌ `damage`, `toughness` | ⚠️ generic only | ✅ | ❌ |
@@ -239,7 +287,6 @@ For a comprehensive list of **all moddable content types** in CK3, see **[ck3_co
 | Script Values | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
 | Modifiers | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
 | Opinion Modifiers | ❌ | ❌ | ✅ inline values | ✅ | Low | ⚠️ Generic rules |
-| Activities | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
 | Artifacts | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
 | Governments | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |
 | Men at Arms | ❌ | ❌ | ❌ | ❌ | Low | 🔄 Planned |

@@ -117,6 +117,42 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+def _get_mod_source_badge(identifier: str, identifier_type: str = "any") -> str:
+    """
+    Get a mod source badge if identifier is from a mod.
+    
+    Args:
+        identifier: The identifier to look up
+        identifier_type: Type hint ("effect", "trigger", "trait", etc.)
+    
+    Returns:
+        Markdown badge like "📦 **Mod:** Carnalitas" or empty string.
+        Shows warning if multiple mods define the same identifier.
+    """
+    try:
+        from .data.mods import get_all_source_mods
+        sources = get_all_source_mods(identifier, identifier_type)
+        if not sources:
+            return ""
+        
+        if len(sources) == 1:
+            # Single source - normal case
+            mod_id, display_name = sources[0]
+            return f"\n\n📦 **Mod:** {display_name}"
+        else:
+            # Multiple sources - conflict!
+            mod_names = [name for _, name in sources]
+            return (
+                f"\n\n⚠️ **Conflict:** Defined in multiple mods: {', '.join(mod_names)}\n\n"
+                f"*Load order determines which version is used.*"
+            )
+    except ImportError:
+        pass
+    except Exception as e:
+        logger.debug(f"Error getting mod source for {identifier}: {e}")
+    return ""
+
+
 def get_word_at_position(doc: TextDocument, position: types.Position) -> Optional[str]:
     """
     Extract the word at a given cursor position.
@@ -202,6 +238,9 @@ def get_effect_documentation(effect: str) -> str:
     Returns:
         Markdown-formatted documentation
     """
+    # Check if from a mod
+    mod_badge = _get_mod_source_badge(effect, "effect")
+    
     # Try to load from YAML first
     try:
         doc = get_effect_doc_yaml(effect)
@@ -222,6 +261,10 @@ def get_effect_documentation(effect: str) -> str:
             if doc.get('example'):
                 example = doc['example']
                 markdown_parts.append(f"\n\n**Example:**\n```ck3\n{example}\n```")
+            
+            # Add mod badge if from a mod
+            if mod_badge:
+                markdown_parts.append(mod_badge)
             
             return "\n".join(markdown_parts)
     except Exception as e:
@@ -249,9 +292,10 @@ def get_effect_documentation(effect: str) -> str:
         "if": "🔀 Conditional execution block.\n\n---\n\n📝 **Usage:**\n```ck3\nif = {\n    limit = { is_adult = yes }\n    add_gold = 100\n}\n```",
     }
 
-    return effect_docs.get(
+    base_doc = effect_docs.get(
         effect, f"Modifies game state.\n\n---\n\n📝 **Usage:**\n```ck3\n{effect} = <value>\n```"
     )
+    return base_doc + mod_badge
 
 
 def get_trigger_documentation(trigger: str) -> str:
@@ -264,6 +308,9 @@ def get_trigger_documentation(trigger: str) -> str:
     Returns:
         Markdown-formatted documentation
     """
+    # Check if from a mod
+    mod_badge = _get_mod_source_badge(trigger, "trigger")
+    
     # Try to load from YAML first
     try:
         doc = get_trigger_doc_yaml(trigger)
@@ -286,6 +333,10 @@ def get_trigger_documentation(trigger: str) -> str:
                 markdown_parts.append(f"\n\n**Example:**\n```ck3\n{example}\n```")
             
             markdown_parts.append("\n\n↩️ **Returns:** `boolean`")
+            
+            # Add mod badge if from a mod
+            if mod_badge:
+                markdown_parts.append(mod_badge)
             
             return "\n".join(markdown_parts)
     except Exception as e:
@@ -313,10 +364,11 @@ def get_trigger_documentation(trigger: str) -> str:
         "trigger": "❓ Trigger block for conditions.\n\n---\n\n📝 **Usage:**\n```ck3\ntrigger = {\n    is_adult = yes\n    has_trait = brave\n}\n```",
     }
 
-    return trigger_docs.get(
+    base_doc = trigger_docs.get(
         trigger,
         f"Conditional check.\n\n---\n\n📝 **Usage:**\n```ck3\n{trigger} = <value>\n```\n\n↩️ **Returns:** `boolean`",
     )
+    return base_doc + mod_badge
 
 
 def get_context_field_documentation(field: str) -> Optional[str]:
@@ -554,6 +606,56 @@ def get_hover_content(
             action, file_uri, line_num = first_set
             filename = file_uri.split("/")[-1]
             doc += f"\n---\n\n📂 **First defined in:** `{filename}`\n\n📍 **Line:** {line_num + 1}"
+
+        return doc
+
+    # Check if it's a decision group type
+    if index and word in index.decision_group_types:
+        loc = index.decision_group_types[word]
+        filename = loc.uri.split("/")[-1]
+        line_num = loc.range.start.line + 1
+
+        # Find decisions that reference this group
+        refs = index.find_decision_group_type_references(word)
+
+        # Check localization first for the title
+        loc_key = f"decision_group_type_{word}"
+        loc_info = index.find_localization(loc_key)
+        
+        # Build header with localized title if available
+        if loc_info:
+            loc_text, loc_file, loc_line = loc_info
+            # Clean up loc text for display
+            display_title = loc_text.replace("\\n", " ").strip()
+            if len(display_title) > 80:
+                display_title = display_title[:77] + "..."
+            doc = f"## 📋 {display_title}\n\n"
+            doc += f"**🔷 Decision Group Type** `{word}`\n\n"
+            doc += f"🏷️ **Localization:** `{loc_key}` = \"{display_title}\" ✅\n\n---\n\n"
+        else:
+            doc = f"## 📋 `{word}`\n\n"
+            doc += f"**🔷 Decision Group Type** — *Collapsible category in decision panel*\n\n"
+            doc += f"⚠️ **Missing localization:** `{loc_key}`\n\n"
+            doc += f"*UI will display raw key name until localization is added*\n\n---\n\n"
+
+        # Show referencing decisions
+        if refs:
+            doc += f"### 📜 Decisions in this group ({len(refs)})\n\n"
+            doc += "| Decision | File |\n|----------|------|\n"
+
+            # Show up to 15 decisions
+            display_refs = refs[:15]
+            for ref in display_refs:
+                decision_name = ref.get("context", "unknown")
+                ref_file = ref.get("uri", "").split("/")[-1]
+                doc += f"| `{decision_name}` | {ref_file} |\n"
+
+            if len(refs) > 15:
+                doc += f"\n*... and {len(refs) - 15} more decisions*\n"
+        else:
+            doc += "📭 *No decisions currently use this group*\n"
+
+        doc += f"\n---\n\n📂 **Defined in:** `{filename}`\n\n📍 **Line:** {line_num}\n\n💡 *Ctrl+Click to go to definition*"
 
         return doc
 

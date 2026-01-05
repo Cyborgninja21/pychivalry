@@ -1,0 +1,272 @@
+# =============================================================================
+# PyChivalry Mod Registry
+# =============================================================================
+# This file defines how to dynamically discover and extract data from
+# installed CK3 mods. We do NOT ship mod content - we scan user's mods.
+#
+# The LSP will:
+#   1. Find mod folders using descriptor.mod files or user config
+#   2. Use these extraction rules to parse mod content
+#   3. Cache extracted data for performance
+#   4. Re-scan when mods are updated (checksum change)
+# =============================================================================
+
+# =============================================================================
+# MOD DEFINITIONS
+# =============================================================================
+# Each mod entry defines:
+#   - identifiers: How to recognize this mod (descriptor patterns, folder names)
+#   - extraction_rules: Where to find traits, triggers, effects in the mod
+#   - dependencies: Other mods this one requires
+# =============================================================================
+
+mods:
+  # ---------------------------------------------------------------------------
+  # CARNALITAS - Adult Content Framework
+  # ---------------------------------------------------------------------------
+  carnalitas:
+    display_name: "Carnalitas"
+    description: "Adult content framework mod"
+
+    # How to identify this mod is installed
+    identifiers:
+      # Match descriptor.mod or .mod file content
+      descriptor_patterns:
+      - "name=\"Carnalitas\""
+      - "name=\"Carnalitas Unified Sex Mod Framework\""
+      # Folder name patterns (case-insensitive)
+      folder_patterns:
+      - "carnalitas"
+      - "Carnalitas"
+      # Required files that confirm this is the right mod
+      required_files:
+      - "common/scripted_effects/carn_sex_scene_effects.txt"
+      - "common/scripted_triggers/carn_slave_triggers.txt"
+
+    # Where to extract game data from
+    extraction_rules:
+      traits:
+        # List of files/patterns to scan for trait definitions
+        sources:
+        - path: "common/traits/*.txt"
+          # Regex to extract trait names from file content
+          # CK3 trait format: trait_name = { ... }
+          pattern: "^([a-z_][a-z0-9_]*)\\s*=\\s*\\{"
+          # Filter to only include traits matching these prefixes
+          include_prefixes:
+          - "carn_"
+          - "slave"
+          - "lifestyle_prostitute"
+          - "futa"
+          - "body_"
+
+        # Hardcoded traits that are tricky to auto-detect
+        manual_additions:
+        - lifestyle_prostitute
+        - lifestyle_prostitute_famous
+        - slave
+        - slave_concubine
+        - slave_captain
+        - slave_eunuch
+        - deviant
+
+      triggers:
+        sources:
+        - path: "common/scripted_triggers/*.txt"
+          # Scripted trigger format: trigger_name = { ... }
+          pattern: "^([a-z_][a-z0-9_]*_trigger)\\s*=\\s*\\{"
+          include_prefixes:
+          - "carn_"
+          - "has_std"
+
+        # Known triggers with metadata
+        documented:
+          carn_is_slave_trigger:
+            scopes: [character]
+            description: "Check if character is a slave"
+          carn_can_be_enslaved_trigger:
+            scopes: [character]
+            description: "Check if character can be enslaved"
+          carn_is_prostitute_trigger:
+            scopes: [character]
+            description: "Check if character is a prostitute"
+          carn_can_have_sex_trigger:
+            scopes: [character]
+            description: "Check if character can have sex"
+          carn_has_sex_blocking_disease_trigger:
+            scopes: [character]
+            description: "Check if character has disease blocking sex"
+          has_std_trigger:
+            scopes: [character]
+            description: "Check if character has any STD"
+          carn_is_futanari_trigger:
+            scopes: [character]
+            description: "Check if character has futanari trait"
+
+      effects:
+        sources:
+        - path: "common/scripted_effects/*.txt"
+          pattern: "^([a-z_][a-z0-9_]*_effect)\\s*=\\s*\\{"
+          include_prefixes:
+          - "carn_"
+
+        # Known effects with metadata
+        documented:
+          carn_sex_scene_effect_v2:
+            scopes: [character]
+            description: "Trigger a sex scene with popup"
+            parameters:
+            - PARTNER
+          carn_had_sex_with_effect_v2:
+            scopes: [character]
+            description: "Silent sex - apply consequences without popup"
+            parameters:
+            - PARTNER
+          carn_sex_scene_is_vaginal_effect:
+            scopes: [character]
+            description: "Flag sex scene as vaginal"
+          carn_sex_scene_is_anal_effect:
+            scopes: [character]
+            description: "Flag sex scene as anal"
+          carn_sex_scene_is_consensual_effect:
+            scopes: [character]
+            description: "Flag sex scene as consensual"
+          carn_undress_character_effect:
+            scopes: [character]
+            description: "Remove character's clothing"
+          carn_dress_character_effect:
+            scopes: [character]
+            description: "Restore character's clothing"
+          carn_enslave_effect:
+            scopes: [character]
+            description: "Enslave this character to root"
+          carn_free_slave_effect:
+            scopes: [character]
+            description: "Free this slave"
+
+      opinion_modifiers:
+        sources:
+        - path: "common/opinion_modifiers/*.txt"
+          pattern: "^([a-z_][a-z0-9_]*)\\s*=\\s*\\{"
+          include_prefixes:
+          - "carn_"
+
+      # Custom scope links / relations
+      relations:
+        sources:
+        - path: "common/scripted_relations/*.txt"
+          pattern: "^([a-z_][a-z0-9_]*)\\s*=\\s*\\{"
+        documented:
+          owner:
+            description: "Slave owner relation"
+            reverse: "slave"
+
+    # Mods this depends on (optional)
+    dependencies: []
+
+  # ---------------------------------------------------------------------------
+  # CARNALITAS DEI - Religious Integration
+  # ---------------------------------------------------------------------------
+  carnalitas_dei:
+    display_name: "Carnalitas Dei"
+    description: "Religious integration for Carnalitas"
+
+    identifiers:
+      descriptor_patterns:
+      - "name=\"Carnalitas Dei\""
+      - "name=\"Cheri - Carnalitas Dei\""
+      folder_patterns:
+      - "carnalitas_dei"
+      - "Carnalitas Dei"
+      - "Cheri - Carnalitas Dei"
+      - "Cheri - Carnalitas Dei - Detenetized"
+      required_files:
+      - "common/religion/doctrines"
+
+    extraction_rules:
+      traits:
+        sources:
+        - path: "common/traits/*.txt"
+          pattern: "^([a-z_][a-z0-9_]*)\\s*=\\s*\\{"
+          include_prefixes:
+          - "cdei_"
+
+      triggers:
+        sources:
+        - path: "common/scripted_triggers/*.txt"
+          pattern: "^([a-z_][a-z0-9_]*_trigger)\\s*=\\s*\\{"
+          include_prefixes:
+          - "cdei_"
+
+      effects:
+        sources:
+        - path: "common/scripted_effects/*.txt"
+          pattern: "^([a-z_][a-z0-9_]*_effect)\\s*=\\s*\\{"
+          include_prefixes:
+          - "cdei_"
+
+    dependencies:
+    - carnalitas
+
+  # ---------------------------------------------------------------------------
+  # REGULA MAGISTRI (Example template for adding more mods)
+  # ---------------------------------------------------------------------------
+  # regula_magistri:
+  #   display_name: "Regula Magistri"
+  #   description: "Expanded religious gameplay"
+  #   identifiers:
+  #     descriptor_patterns:
+  #       - "name=\"Regula Magistri\""
+  #     folder_patterns:
+  #       - "regula_magistri"
+  #   extraction_rules:
+  #     traits:
+  #       sources:
+  #         - path: "common/traits/*.txt"
+  #           pattern: "^([a-z_][a-z0-9_]*)\\s*=\\s*\\{"
+  #           include_prefixes:
+  #             - "rm_"
+
+# =============================================================================
+# DISCOVERY SETTINGS
+# =============================================================================
+
+discovery:
+  # Where to look for installed mods
+  search_paths:
+  # These use environment variable expansion
+  - "${USERPROFILE}/Documents/Paradox Interactive/Crusader Kings III/mod"
+  - "${USERPROFILE}/.local/share/Paradox Interactive/Crusader Kings III/mod"
+  - "~/.paradoxlauncher/Crusader Kings III/mod"
+  # Steam workshop (Windows)
+  - "${PROGRAMFILES(X86)}/Steam/steamapps/workshop/content/1158310"
+  # Steam workshop (Linux)
+  - "~/.steam/steam/steamapps/workshop/content/1158310"
+
+  # File patterns for mod descriptors
+  descriptor_patterns:
+  - "*.mod"
+  - "descriptor.mod"
+
+  # Cache settings
+  cache:
+    # Where to store extracted mod data cache
+    location: "${PYCHIVALRY_CACHE}/mods"
+    # Re-scan mod if older than this (seconds), 0 = always check file hash
+    max_age: 3600
+    # Use file hash to detect changes
+    use_hash: true
+
+# =============================================================================
+# EXTRACTION PATTERNS (Shared)
+# =============================================================================
+
+patterns:
+  # Common regex patterns for CK3 script parsing
+  trait_definition: "^([a-z_][a-z0-9_]*)\\s*=\\s*\\{[^}]*\\}"
+  trigger_definition: "^([a-z_][a-z0-9_]*(?:_trigger)?)\\s*=\\s*\\{"
+  effect_definition: "^([a-z_][a-z0-9_]*(?:_effect)?)\\s*=\\s*\\{"
+  modifier_definition: "^([a-z_][a-z0-9_]*)\\s*=\\s*\\{[^}]*opinion\\s*="
+
+  # Block extraction (for getting full definitions)
+  block_content: "\\{([^{}]*(?:\\{[^{}]*\\}[^{}]*)*)\\}"

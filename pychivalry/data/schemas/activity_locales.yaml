@@ -1,0 +1,301 @@
+# Activity Locales Schema
+# Declarative validation rules for CK3 activity locale definitions
+# Locales are interactive hotspots within activities that trigger events
+version: "1.0"
+file_type: activity_locale
+
+# File identification - when to apply this schema
+identification:
+  path_patterns:
+  - "*/common/activities/activity_locales/*.txt"
+  - "common/activities/activity_locales/*.txt"
+
+# ============ VALIDATION ============
+fields:
+  # ===== REQUIRED =====
+  on_enter_locale:
+    required: true
+    type: effect_block
+    diagnostic: LOC001
+    message: "Activity locale missing required 'on_enter_locale' effect"
+    description: |
+      Effect that fires when a character enters this locale.
+      Usually triggers events via on_action.
+    scope_context:
+      root: character
+      description: "Character entering the locale"
+      available_scopes:
+      - scope:host
+      - scope:activity
+
+  visuals:
+    required: true
+    type: block_or_string
+    schema: visuals
+    multiple: true
+    diagnostic: LOC002
+    message: "Activity locale missing required 'visuals' configuration"
+    description: "Visual widget reference for the locale UI."
+
+  # ===== OPTIONAL =====
+  is_available:
+    type: trigger_block
+    description: "When this locale is available to visit. Root = character."
+    scope_context:
+      root: character
+      available_scopes:
+      - scope:host
+      - scope:activity
+
+  chance:
+    type: script_value_block
+    description: "Weight for random locale selection."
+    scope_context:
+      root: character
+      available_scopes:
+      - scope:host
+      - scope:activity
+
+  ai_will_do:
+    type: script_value_block
+    description: "AI weight for visiting this locale. 0 = AI never visits."
+    scope_context:
+      root: character
+      available_scopes:
+      - scope:host
+      - scope:activity
+
+  cooldown:
+    type: block
+    schema: duration
+    description: "Cooldown before this locale can be visited again."
+
+# ============ NESTED SCHEMAS ============
+nested_schemas:
+  visuals:
+    description: "Visual configuration with optional culture/quality variants"
+    fields:
+      trigger:
+        type: trigger_block
+        description: "Condition for this visual variant to be used"
+      reference:
+        required: true
+        type: string
+        description: "Widget reference name"
+
+  duration:
+    description: "Time duration"
+    fields:
+      days:
+        type: integer
+      weeks:
+        type: integer
+      months:
+        type: integer
+
+# ============ COMPLETIONS & HOVER ============
+field_docs:
+  on_enter_locale:
+    description: "Effect when character enters locale"
+    detail: "Required - usually triggers events via on_action"
+    snippet: |
+      on_enter_locale = {
+        trigger_event = {
+          on_action = ${1:tournament_locale_on_action}
+        }
+      }
+
+  visuals:
+    description: "Visual widget for locale display"
+    detail: "Can have multiple with triggers for culture/quality variants"
+    snippet: |
+      visuals = {
+        trigger = { ${1:always = yes} }
+        reference = "${2:widget_name}"
+      }
+
+  is_available:
+    description: "When locale can be visited"
+    detail: "Root = visiting character"
+    snippet: |
+      is_available = {
+        is_adult = yes
+        ${1:NOT = { has_trait = infirm }}
+      }
+
+  chance:
+    description: "Random selection weight"
+    detail: "Higher = more likely for random locale events"
+    snippet: |
+      chance = {
+        value = ${1:100}
+      }
+
+  ai_will_do:
+    description: "AI likelihood to visit"
+    detail: "0 = never, higher = more likely"
+    snippet: |
+      ai_will_do = {
+        value = 0
+        if = {
+          limit = { ${1:has_trait = gregarious} }
+          add = ${2:50}
+        }
+      }
+
+  cooldown:
+    description: "Time before locale can be revisited"
+    detail: "Duration in days, weeks, or months"
+    snippet: "cooldown = { days = ${1:7} }"
+
+# ============ SYMBOLS ============
+symbols:
+  primary:
+    kind: Struct
+    name_from: key
+    detail: "Activity Locale"
+  children:
+  - field: on_enter_locale
+    kind: Function
+    name: "on_enter_locale"
+  - field: is_available
+    kind: Object
+    name: "is_available"
+  - field: visuals
+    kind: Property
+    name: "visuals"
+
+# ============ CODE LENS ============
+code_lens:
+  enabled: true
+  reference_count:
+    enabled: true
+    label: "{count} references"
+    search_patterns:
+    - "locales\\s*=\\s*\\{[^}]*{id}"
+
+# ============ DIAGNOSTICS ============
+diagnostics:
+  LOC001:
+    severity: error
+    message: "Activity locale missing required 'on_enter_locale' effect"
+
+  LOC002:
+    severity: error
+    message: "Activity locale missing required 'visuals' configuration"
+
+# ============ COMMON PATTERNS ============
+patterns:
+  basic_locale:
+    description: "Simple locale with event trigger"
+    example: |
+      tournament_arena = {
+          on_enter_locale = {
+              trigger_event = {
+                  on_action = tournament_arena_on_action
+              }
+          }
+
+          visuals = {
+              reference = "tournament_arena_widget"
+          }
+
+          is_available = {
+              is_adult = yes
+          }
+
+          ai_will_do = {
+              value = 0
+              if = {
+                  limit = { has_trait = brave }
+                  add = 50
+              }
+          }
+      }
+
+  culture_variant_locale:
+    description: "Locale with culture-specific visuals"
+    example: |
+      religious_building = {
+          on_enter_locale = {
+              trigger_event = {
+                  on_action = religious_locale_on_action
+              }
+          }
+
+          # Culture-specific variants (checked in order, first match wins)
+          visuals = {
+              trigger = {
+                  activity_location.faith.religion = religion:christianity_religion
+              }
+              reference = "church_widget"
+          }
+          visuals = {
+              trigger = {
+                  activity_location.faith.religion = religion:islam_religion
+              }
+              reference = "mosque_widget"
+          }
+          # Fallback
+          visuals = {
+              reference = "temple_widget"
+          }
+
+          is_available = {
+              is_adult = yes
+          }
+      }
+
+  quality_variant_locale:
+    description: "Locale with quality-based visuals"
+    example: |
+      feast_hall = {
+          on_enter_locale = {
+              trigger_event = {
+                  on_action = feast_hall_on_action
+              }
+          }
+
+          # Premium visuals for multi-phase activities
+          visuals = {
+              trigger = {
+                  scope:activity = { num_phases > 4 }
+              }
+              reference = "grand_feast_hall_widget"
+          }
+          # Standard visuals
+          visuals = {
+              reference = "feast_hall_widget"
+          }
+
+          ai_will_do = {
+              value = 0
+              if = {
+                  limit = { scope:host = this }
+                  add = 25
+              }
+          }
+      }
+
+# ============ INTEGRATION ============
+integration:
+  activity_types:
+    description: "How locales link to activity types"
+    example: |
+      # In activity_types/*.txt:
+      activity_tournament = {
+          locales = {
+              main_locale_slot = {
+                  is_available = { always = yes }
+                  locales = { tournament_arena tournament_stands }
+              }
+              side_locale_slot = {
+                  is_available = { has_dlc_feature = tours_and_tournaments }
+                  locales = { blacksmith tavern }
+              }
+          }
+
+          locale_cooldown = { days = 7 }
+          auto_select_locale_cooldown = { days = 14 }
+          early_locale_opening_duration = { days = 14 }
+      }

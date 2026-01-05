@@ -97,6 +97,8 @@ const logChannels = {
     system: null as vscode.OutputChannel | null,
     setup: null as vscode.OutputChannel | null,
     patterns: null as vscode.OutputChannel | null,
+    traitExtraction: null as vscode.OutputChannel | null,
+    modDiscovery: null as vscode.OutputChannel | null,
 };
 
 function getLogChannel(type: keyof typeof logChannels, name: string): vscode.OutputChannel {
@@ -232,8 +234,14 @@ function getPythonPath(): string {
  * Command: Extract CK3 trait data from game installation
  */
 async function extractTraitData(context: vscode.ExtensionContext) {
-    const outputChannel = vscode.window.createOutputChannel('CK3 Trait Extraction');
+    const outputChannel = getLogChannel('traitExtraction', 'CK3: Trait Extraction');
+    outputChannel.clear();
     outputChannel.show();
+    outputChannel.appendLine('='.repeat(60));
+    outputChannel.appendLine('CK3 Trait Extraction');
+    outputChannel.appendLine(`Started: ${new Date().toLocaleString()}`);
+    outputChannel.appendLine('='.repeat(60));
+    outputChannel.appendLine('');
 
     try {
         // Ask user to confirm and provide CK3 installation path
@@ -328,6 +336,169 @@ async function extractTraitData(context: vscode.ExtensionContext) {
     }
 }
 
+/**
+ * Command: Discover and extract mod data (Carnalitas, etc.)
+ */
+async function discoverModData(context: vscode.ExtensionContext) {
+    const outputChannel = getLogChannel('modDiscovery', 'CK3: Mod Discovery');
+    
+    // Show quick pick FIRST, before showing output channel (to avoid focus issues)
+    const action = await vscode.window.showQuickPick(
+        [
+            {
+                label: '$(search) Discover All Mods',
+                description: 'Scan for all registered mods and extract data',
+                value: 'all',
+            },
+            {
+                label: '$(list-unordered) List Discovered Mods',
+                description: 'Show which mods are installed without extracting',
+                value: 'list',
+            },
+            {
+                label: '$(database) Show Cached Data',
+                description: 'Display summary of previously extracted mod data',
+                value: 'summary',
+            },
+            {
+                label: '$(refresh) Force Re-extract All',
+                description: 'Re-extract all mods, ignoring cache',
+                value: 'force',
+            },
+            {
+                label: '$(trash) Clean Removed Mods',
+                description: 'Remove cache entries for uninstalled mods',
+                value: 'clean',
+            },
+            {
+                label: '$(clear-all) Clear All Cache',
+                description: 'Delete all cached mod data',
+                value: 'clear',
+            },
+        ],
+        {
+            placeHolder: 'Select mod discovery action',
+            title: 'CK3 Mod Discovery',
+            ignoreFocusOut: true,
+        }
+    );
+
+    // If user cancelled, exit early without showing output
+    if (!action) {
+        return;
+    }
+
+    // Now show output channel after user has made selection
+    outputChannel.clear();
+    outputChannel.show();
+    outputChannel.appendLine('='.repeat(60));
+    outputChannel.appendLine('CK3 Mod Discovery');
+    outputChannel.appendLine(`Started: ${new Date().toLocaleString()}`);
+    outputChannel.appendLine('='.repeat(60));
+    outputChannel.appendLine('');
+
+    try {
+        outputChannel.appendLine(`Selected action: ${action.value}`);
+        outputChannel.appendLine('');
+
+        // Get Python executable
+        const pythonPath = getPythonPath();
+
+        // Get script path
+        const extensionPath = context.extensionPath;
+        const scriptPath = path.join(extensionPath, '..', 'tools', 'discover_mods.py');
+
+        // Check if script exists
+        if (!fs.existsSync(scriptPath)) {
+            vscode.window.showErrorMessage(
+                `Mod discovery script not found at: ${scriptPath}\n` +
+                    'Please ensure pychivalry is properly installed.'
+            );
+            return;
+        }
+
+        // Build command based on action
+        // Always use --all to scan all mods, not just registered ones
+        let cmdArgs = '--all';
+        switch (action.value) {
+            case 'list':
+                cmdArgs += ' --list';
+                break;
+            case 'summary':
+                cmdArgs = '--summary';  // Summary doesn't need --all
+                break;
+            case 'force':
+                cmdArgs += ' --force';
+                break;
+            case 'clean':
+                cmdArgs += ' --clean';
+                break;
+            case 'clear':
+                cmdArgs = '--clear-cache';  // Clear cache doesn't need --all
+                break;
+            case 'all':
+            default:
+                // --all is already set
+                break;
+        }
+
+        // Check for additional mod paths in workspace
+        // Also exclude workspace mods from extraction (they're being developed)
+        const workspaceFolders = vscode.workspace.workspaceFolders;
+        if (workspaceFolders) {
+            for (const folder of workspaceFolders) {
+                // Check if this looks like a mod folder
+                const descriptorPath = path.join(folder.uri.fsPath, 'descriptor.mod');
+                if (fs.existsSync(descriptorPath)) {
+                    // Add parent directory as a search path (mods are siblings)
+                    const parentDir = path.dirname(folder.uri.fsPath);
+                    cmdArgs += ` --mod-path "${parentDir}"`;
+                    // Exclude this workspace mod from extraction (it's being developed)
+                    cmdArgs += ` --exclude "${folder.uri.fsPath}"`;
+                }
+            }
+        }
+
+        const cmd = `"${pythonPath}" "${scriptPath}" ${cmdArgs}`;
+        outputChannel.appendLine(`Running: ${cmd}\n`);
+
+        const { stdout, stderr } = await execAsync(cmd);
+
+        outputChannel.appendLine(stdout);
+        if (stderr) {
+            outputChannel.appendLine('Warnings:\n' + stderr);
+        }
+
+        // Check results and prompt user
+        if (action.value === 'list' || action.value === 'summary') {
+            // No further action needed for info commands
+            vscode.window.showInformationMessage('Mod discovery results shown in output channel.');
+        } else if (action.value === 'clean') {
+            vscode.window.showInformationMessage('✅ Cache cleanup complete. Removed mods cleaned from cache.');
+        } else if (action.value === 'clear') {
+            vscode.window.showInformationMessage('✅ Cache cleared. Run "Discover All Mods" to re-extract.');
+        } else if (stdout.includes('Successfully extracted')) {
+            const result = await vscode.window.showInformationMessage(
+                '✅ Mod data extracted successfully! Restart language server for changes to take effect.',
+                'Restart Language Server',
+                'Later'
+            );
+
+            if (result === 'Restart Language Server') {
+                await vscode.commands.executeCommand('ck3LanguageServer.restart');
+            }
+        } else if (stdout.includes('No registered mods found') || stdout.includes('No mods were extracted')) {
+            vscode.window.showWarningMessage(
+                'No registered mods found. Ensure Carnalitas or other supported mods are installed.'
+            );
+        }
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        outputChannel.appendLine(`\nError: ${message}`);
+        vscode.window.showErrorMessage(`Failed to discover mods: ${message}`);
+    }
+}
+
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
     // Initialize multi-channel logger
     logger.initialize(context);
@@ -354,6 +525,10 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     getLogChannel('setup', 'CK3L: setup.log');
     getLogChannel('patterns', 'CK3L: Script Errors');
 
+    // Pre-create extraction/discovery channels so they appear in Output menu
+    getLogChannel('traitExtraction', 'CK3: Trait Extraction');
+    getLogChannel('modDiscovery', 'CK3: Mod Discovery');
+
     // Register restart command
     context.subscriptions.push(
         vscode.commands.registerCommand('ck3LanguageServer.restart', async () => {
@@ -367,6 +542,13 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     context.subscriptions.push(
         vscode.commands.registerCommand('ck3LanguageServer.extractTraitData', async () => {
             await extractTraitData(context);
+        })
+    );
+
+    // Register mod discovery command
+    context.subscriptions.push(
+        vscode.commands.registerCommand('ck3LanguageServer.discoverModData', async () => {
+            await discoverModData(context);
         })
     );
 
@@ -1488,6 +1670,10 @@ async function showMenuCommand(): Promise<void> {
             description: 'Extract trait data from CK3 installation',
         },
         {
+            label: '$(package) Discover Mod Data',
+            description: 'Scan for Carnalitas and other registered mods',
+        },
+        {
             label: '$(edit) Rename Event',
             description: 'Rename an event ID',
         },
@@ -1559,6 +1745,9 @@ async function showMenuCommand(): Promise<void> {
                 break;
             case '$(database) Extract Trait Data':
                 await vscode.commands.executeCommand('ck3LanguageServer.extractTraitData');
+                break;
+            case '$(package) Discover Mod Data':
+                await vscode.commands.executeCommand('ck3LanguageServer.discoverModData');
                 break;
             case '$(edit) Rename Event':
                 await vscode.commands.executeCommand('ck3LanguageServer.renameEvent');

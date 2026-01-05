@@ -47,6 +47,7 @@ NAVIGABLE SYMBOL TYPES:
     - **Script Values**: my_value → script value definition
     - **Localization Keys**: my_mod.0001.t → localization file entry
     - **On-Actions**: on_birth → on_action definition
+    - **Decision Group Types**: rq_decisions → decision_group_type definition
 
 NAVIGATION FEATURES:
     **Go to Definition** (Ctrl+Click or F12):
@@ -400,6 +401,50 @@ def find_script_value_definition(
     )
 
 
+def find_decision_group_type_definition(
+    group_name: str, document_index: Dict
+) -> Optional[DefinitionLocation]:
+    """
+    Find the definition location of a decision group type.
+
+    Decision group types are defined in common/decision_group_types/ and
+    referenced by decisions via `decision_group_type = group_name`.
+
+    Note: Built-in groups ('major', 'minor') don't have definitions.
+
+    Args:
+        group_name: The decision group type name to find
+        document_index: Index of all parsed documents
+
+    Returns:
+        DefinitionLocation if found, None otherwise
+    """
+    # Built-in groups have no definition to navigate to
+    BUILTIN_GROUPS = {"major", "minor"}
+    if group_name in BUILTIN_GROUPS:
+        return None
+
+    if "decision_group_types" not in document_index:
+        return None
+
+    decision_groups = document_index["decision_group_types"]
+    if group_name not in decision_groups:
+        return None
+
+    location = decision_groups[group_name]
+    return DefinitionLocation(
+        uri=location.get("uri", ""),
+        range=location.get(
+            "range",
+            types.Range(
+                start=types.Position(line=0, character=0), end=types.Position(line=0, character=0)
+            ),
+        ),
+        symbol_type="decision_group_type",
+        symbol_name=group_name,
+    )
+
+
 def find_all_references(
     symbol_name: str, symbol_type: str, document_index: Dict, include_declaration: bool = False
 ) -> List[Reference]:
@@ -535,6 +580,14 @@ def get_symbol_at_position(
         # Might be an event ID (namespace.number)
         return (symbol, "event")
     else:
+        # Check for decision_group_type context
+        # Pattern: decision_group_type = group_name
+        decision_group_match = re.match(
+            r"^\s*decision_group_type\s*=\s*(\w+)", current_line.strip()
+        )
+        if decision_group_match and decision_group_match.group(1) == symbol:
+            return (symbol, "decision_group_type")
+
         # Could be scripted effect, trigger, or script value
         # Would need context from AST to determine
         return (symbol, "unknown")
@@ -581,6 +634,8 @@ def find_definition(
         def_location = find_saved_scope_definition(symbol_name, index, current_uri)
     elif symbol_type == "script_value":
         def_location = find_script_value_definition(symbol_name, index)
+    elif symbol_type == "decision_group_type":
+        def_location = find_decision_group_type_definition(symbol_name, index)
 
     if def_location:
         return [convert_to_lsp_location(def_location)]

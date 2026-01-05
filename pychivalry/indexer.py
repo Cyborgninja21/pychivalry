@@ -199,6 +199,11 @@ class DocumentIndex:
         )  # name -> Location (actual definitions)
         self.opinion_modifiers: Dict[str, types.Location] = {}  # name -> Location
         self.scripted_guis: Dict[str, types.Location] = {}  # name -> Location
+        self.decision_group_types: Dict[str, types.Location] = {}  # name -> Location
+
+        # References index: symbol_type -> symbol_name -> list of references
+        # Each reference is a dict with uri, line, character, context
+        self.references: Dict[str, Dict[str, List[Dict]]] = {}
 
         # Track workspace roots for rescanning
         self._workspace_roots: List[str] = []
@@ -229,8 +234,8 @@ class DocumentIndex:
             f"Workspace scan complete: {len(self.scripted_effects)} effects, {len(self.scripted_triggers)} triggers, "
             f"{len(self.character_interactions)} interactions, {len(self.modifiers)} modifiers, "
             f"{len(self.on_action_definitions)} on_actions, {len(self.opinion_modifiers)} opinion_mods, "
-            f"{len(self.scripted_guis)} GUIs, {len(self.localization)} loc keys, "
-            f"{len(self.events)} events, {len(self.character_flags)} flags"
+            f"{len(self.scripted_guis)} GUIs, {len(self.decision_group_types)} decision_groups, "
+            f"{len(self.localization)} loc keys, {len(self.events)} events, {len(self.character_flags)} flags"
         )
 
     def _scan_workspace_parallel(self, workspace_roots: List[str], executor: ThreadPoolExecutor):
@@ -274,6 +279,11 @@ class DocumentIndex:
                     "opinion_modifiers",
                 ),
                 (root_path / "common" / "scripted_guis", self.scripted_guis, "scripted_guis"),
+                (
+                    root_path / "common" / "decision_group_types",
+                    self.decision_group_types,
+                    "decision_group_types",
+                ),
             ]
 
             # Submit file scanning tasks
@@ -413,6 +423,7 @@ class DocumentIndex:
             "on_actions",
             "opinion_modifiers",
             "scripted_guis",
+            "decision_group_types",
         ):
             target_dict = {
                 "scripted_effects": self.scripted_effects,
@@ -422,6 +433,7 @@ class DocumentIndex:
                 "on_actions": self.on_action_definitions,
                 "opinion_modifiers": self.opinion_modifiers,
                 "scripted_guis": self.scripted_guis,
+                "decision_group_types": self.decision_group_types,
             }.get(result_type)
 
             if target_dict is not None:
@@ -474,6 +486,18 @@ class DocumentIndex:
             guis_path = root_path / "common" / "scripted_guis"
             if guis_path.exists() and guis_path.is_dir():
                 self._scan_common_folder(guis_path, self.scripted_guis, "scripted GUI")
+
+            # Scan decision group types
+            decision_groups_path = root_path / "common" / "decision_group_types"
+            if decision_groups_path.exists() and decision_groups_path.is_dir():
+                self._scan_common_folder(
+                    decision_groups_path, self.decision_group_types, "decision group type"
+                )
+
+            # Scan decisions for decision_group_type references
+            decisions_path = root_path / "common" / "decisions"
+            if decisions_path.exists() and decisions_path.is_dir():
+                self._scan_decisions_for_group_refs(decisions_path)
 
             # Scan localization
             loc_path = root_path / "localization"
@@ -541,6 +565,76 @@ class DocumentIndex:
 
             except Exception as e:
                 logger.warning(f"Error scanning {file_path}: {e}")
+
+    def _scan_decisions_for_group_refs(self, folder_path: Path):
+        """
+        Scan decisions folder to find all decision_group_type references.
+
+        This enables Find References for decision group types by scanning
+        decision files for `decision_group_type = group_name` patterns.
+
+        References are stored in self.references["decision_group_type"][group_name].
+
+        Args:
+            folder_path: Path to common/decisions folder
+        """
+        # Pattern: decision_group_type = group_name (with optional whitespace)
+        group_pattern = re.compile(r"decision_group_type\s*=\s*(\w+)")
+        # Pattern for decision definition: decision_name = { at top level
+        decision_pattern = re.compile(r"^(\w+)\s*=\s*\{")
+
+        ref_count = 0
+        for file_path in folder_path.glob("**/*.txt"):
+            try:
+                content = file_path.read_text(encoding="utf-8-sig")
+                uri = file_path.as_uri()
+                lines = content.split("\n")
+
+                # Track which decision we're currently inside
+                current_decision = None
+                brace_depth = 0
+
+                for line_num, line in enumerate(lines):
+                    # Track brace depth to know when we exit a decision
+                    brace_depth += line.count("{") - line.count("}")
+
+                    # Check for decision definition at top level (brace_depth was 0 before this line's {)
+                    if brace_depth == 1 and "{" in line:
+                        decision_match = decision_pattern.match(line.strip())
+                        if decision_match:
+                            current_decision = decision_match.group(1)
+
+                    # Reset when exiting top-level block
+                    if brace_depth == 0:
+                        current_decision = None
+
+                    # Look for decision_group_type = xxx
+                    match = group_pattern.search(line)
+                    if match:
+                        group_name = match.group(1)
+                        # Character position is the start of the group name
+                        char_pos = match.start(1)
+
+                        # Initialize nested dicts if needed
+                        if "decision_group_type" not in self.references:
+                            self.references["decision_group_type"] = {}
+                        if group_name not in self.references["decision_group_type"]:
+                            self.references["decision_group_type"][group_name] = []
+
+                        # Store reference with decision name as context
+                        self.references["decision_group_type"][group_name].append({
+                            "uri": uri,
+                            "line": line_num,
+                            "character": char_pos,
+                            "context": current_decision or "unknown_decision",
+                        })
+                        ref_count += 1
+
+            except Exception as e:
+                logger.warning(f"Error scanning decisions {file_path}: {e}")
+
+        if ref_count > 0:
+            logger.debug(f"Found {ref_count} decision_group_type references")
 
     def _scan_scripted_triggers_folder(self, folder_path: Path):
         """
@@ -1132,6 +1226,40 @@ class DocumentIndex:
             Location of the scripted GUI definition, or None if not found
         """
         return self.scripted_guis.get(name)
+
+    def find_decision_group_type(self, name: str) -> Optional[types.Location]:
+        """
+        Find the location of a decision group type definition.
+
+        Note: Built-in groups ('major', 'minor') have no definition to navigate to.
+
+        Args:
+            name: Decision group type name
+
+        Returns:
+            Location of the decision group type definition, or None if not found
+        """
+        # Built-in groups have no navigable definition
+        if name in {"major", "minor"}:
+            return None
+        return self.decision_group_types.get(name)
+
+    def find_decision_group_type_references(self, name: str) -> List[Dict]:
+        """
+        Find all references to a decision group type.
+
+        References are locations in decision files where `decision_group_type = name`
+        is used.
+
+        Args:
+            name: Decision group type name
+
+        Returns:
+            List of reference dicts with uri, line, character, context
+        """
+        if "decision_group_type" not in self.references:
+            return []
+        return self.references.get("decision_group_type", {}).get(name, [])
 
     def update_from_ast(self, uri: str, ast: List[CK3Node]):
         """

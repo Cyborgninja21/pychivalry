@@ -319,6 +319,10 @@ class CK3LanguageServer(LanguageServer):
         # Cross-document index for navigation
         self.index = DocumentIndex()
 
+        # Schema loader for file-type-aware features
+        from .schema_loader import SchemaLoader
+        self.schema_loader = SchemaLoader()
+
         # Track whether workspace has been scanned
         self._workspace_scanned = False
 
@@ -1461,12 +1465,30 @@ def hover(ls: CK3LanguageServer, params: types.HoverParams):
         - Event definitions with file locations
         - Saved scope references with definition locations
         - List iterator explanations
+        - Schema-based field documentation for decision_group_types, events, etc.
     """
     try:
         logger.debug(f"Hover request at {params.text_document.uri}:{params.position.line}:{params.position.character}")
         doc = ls.workspace.get_text_document(params.text_document.uri)
         ast = ls.get_ast(doc.uri)
 
+        # First try schema-based hover for file-type-specific field documentation
+        from .schema_hover import get_schema_hover
+        from .hover import get_word_at_position as hover_get_word
+        
+        word = hover_get_word(doc, params.position)
+        if word:
+            # Convert URI to file path for schema matching
+            file_path = params.text_document.uri
+            if file_path.startswith("file:///"):
+                file_path = file_path[8:].replace("%20", " ")
+            
+            schema_result = get_schema_hover(file_path, word, ls.schema_loader)
+            if schema_result:
+                logger.debug(f"Schema hover result for '{word}'")
+                return schema_result
+
+        # Fall back to general hover (effects, triggers, scopes, etc.)
         result = create_hover_response(doc, params.position, ast, ls.index)
         logger.debug(f"Hover result: {'Found' if result else 'None'}")
         return result
@@ -1588,6 +1610,16 @@ def definition(ls: CK3LanguageServer, params: types.DefinitionParams):
             gui_loc = ls.index.find_scripted_gui(word)
             if gui_loc:
                 return gui_loc
+
+        # Check if it's a decision group type (context-aware)
+        # Only lookup if we're in a decision_group_type = X context
+        if ls.index:
+            # Get the line to check context
+            line_text = doc.lines[params.position.line] if params.position.line < len(doc.lines) else ""
+            if "decision_group_type" in line_text:
+                group_loc = ls.index.find_decision_group_type(word)
+                if group_loc:
+                    return group_loc
 
         return None
 
@@ -1756,6 +1788,26 @@ def references(ls: CK3LanguageServer, params: types.ReferenceParams):
                     if ref.uri != def_location.uri
                     or ref.range.start.line != def_location.range.start.line
                 ]
+
+        # Also check indexed references (e.g., decision_group_type references)
+        with ls._index_lock:
+            if ls.index:
+                # Check for decision_group_type references
+                group_refs = ls.index.find_decision_group_type_references(word)
+                for ref in group_refs:
+                    loc = types.Location(
+                        uri=ref["uri"],
+                        range=types.Range(
+                            start=types.Position(line=ref["line"], character=ref["character"]),
+                            end=types.Position(line=ref["line"], character=ref["character"] + len(word)),
+                        ),
+                    )
+                    # Avoid duplicates
+                    if not any(
+                        r.uri == loc.uri and r.range.start.line == loc.range.start.line
+                        for r in references_list
+                    ):
+                        references_list.append(loc)
 
         return references_list if references_list else None
 

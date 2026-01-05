@@ -1,0 +1,99 @@
+# =============================================================================
+# Carnalitas Opinion Modifiers
+# =============================================================================
+# Opinion modifiers defined by Carnalitas mod
+# =============================================================================
+
+metadata:
+  mod_name: Carnalitas
+  mod_version: "2.x"
+  description: "Carnalitas opinion modifiers"
+
+# =============================================================================
+# SLAVERY OPINION MODIFIERS
+# =============================================================================
+
+carn_enslaved_me_opinion:
+  opinion: -100
+  description: "Target enslaved this character"
+  decaying: no
+
+carn_freed_me_opinion:
+  opinion: 40
+  years: 20
+  description: "Target freed this character from slavery"
+  decaying: yes
+
+carn_slave_owner_opinion:
+  opinion: -50
+  description: "This character owns the target as a slave"
+  decaying: no
+
+carn_fellow_slave_opinion:
+  opinion: 10
+  description: "Both characters are slaves of the same owner"
+  decaying: no
+
+# =============================================================================
+# PROSTITUTION OPINION MODIFIERS
+# =============================================================================
+
+carn_prostitute_client_opinion:
+  opinion: 5
+  years: 1
+  description: "Character was a client of this prostitute"
+  decaying: yes
+
+carn_forced_prostitution_opinion:
+  opinion: -60
+  description: "Target forced this character into prostitution"
+  decaying: no
+
+# =============================================================================
+# SEX/RELATIONSHIP OPINION MODIFIERS
+# =============================================================================
+
+carn_had_sex_opinion:
+  opinion: 15
+  years: 2
+  description: "Characters had consensual sex"
+  decaying: yes
+
+carn_sexual_assault_opinion:
+  opinion: -100
+  description: "Target sexually assaulted this character"
+  decaying: no
+
+carn_shared_partner_opinion:
+  opinion: -20
+  years: 5
+  description: "Jealousy from sharing a sexual partner"
+  decaying: yes
+
+carn_gave_std_opinion:
+  opinion: -40
+  years: 10
+  description: "Target gave this character an STD"
+  decaying: yes
+
+# =============================================================================
+# PREGNANCY OPINION MODIFIERS
+# =============================================================================
+
+carn_pregnancy_scare_opinion:
+  opinion: -10
+  years: 1
+  description: "Had a pregnancy scare with this character"
+  decaying: yes
+
+carn_impregnated_opinion:
+  opinion: 10
+  years: 5
+  description: "Target impregnated this character (wanted)"
+  decaying: yes
+
+carn_unwanted_pregnancy_opinion:
+  opinion: -30
+  years: 10
+  description: "Target caused an unwanted pregnancy"
+  decaying: yes

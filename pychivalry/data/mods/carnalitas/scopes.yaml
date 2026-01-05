@@ -1,0 +1,54 @@
+# =============================================================================
+# Carnalitas Scope Links
+# =============================================================================
+# Custom scope links provided by Carnalitas mod
+# =============================================================================
+
+metadata:
+  mod_name: Carnalitas
+  mod_version: "2.x"
+  description: "Carnalitas custom scope links"
+
+# =============================================================================
+# SLAVE SYSTEM SCOPES
+# =============================================================================
+
+carn_slave_owner:
+  source_scope: character
+  target_scope: character
+  description: "Get the owner of this slave"
+  example: |
+    scope:slave = {
+      carn_slave_owner = { add_gold = 100 }
+    }
+
+# =============================================================================
+# RELATIONSHIP SCOPES
+# =============================================================================
+# Note: Carnalitas primarily uses relations (has_relation_*) rather than
+# custom scope links for most relationships
+
+# =============================================================================
+# CHARACTER LISTS (for every_*, any_*, random_*)
+# =============================================================================
+
+# These are list iterators, not scope links
+# Example usage:
+#   every_carn_slave = { ... }
+#   any_carn_slave = { ... }
+#   random_carn_slave = { ... }
+
+character_lists:
+  carn_slave:
+    description: "Slaves owned by this character"
+    source_scope: character
+    output_scope: character
+    example: |
+      every_carn_slave = {
+        carn_free_slave_effect = yes
+      }
+
+  carn_sex_partner:
+    description: "Sex partners of this character"
+    source_scope: character
+    output_scope: character

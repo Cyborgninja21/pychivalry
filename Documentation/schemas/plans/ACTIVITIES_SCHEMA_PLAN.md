@@ -1,24 +1,58 @@
-# Activities Schema Onboarding Plan
+# Activities Schema Implementation Plan
 
-**Status:** Planning  
+**Status:** ✅ IMPLEMENTED  
 **Priority:** Medium  
-**Estimated Effort:** ~6-8 hours  
-**Source:** Analysis of `_activity_type.info` and 21 base game activity files
+**Implemented:** January 2026  
+**Source:** Comprehensive analysis of `_activity_type.info`, all 21 base game activity files, pulse actions, intents, locales, and invite rules  
+**Last Updated:** January 2026
 
 ---
 
-## 1. Current State
+## Implementation Status
+
+All 6 activity-related schemas have been implemented:
+
+| Schema File | File Type | Status |
+|-------------|-----------|--------|
+| `activity_types.yaml` | Activity Type definitions | ✅ Complete |
+| `pulse_actions.yaml` | Pulse Action definitions | ✅ Complete |
+| `intents.yaml` | Intent definitions | ✅ Complete |
+| `activity_locales.yaml` | Activity Locale definitions | ✅ Complete |
+| `activity_group_types.yaml` | Group type definitions | ✅ Pre-existing |
+| `guest_invite_rules.yaml` | Invite rule definitions | ✅ Pre-existing |
+
+### Key Features Implemented
+
+- Full field validation for 80+ activity fields
+- Nested schema validation (phases, options, special_guests, etc.)
+- Activity-specific trigger recognition (`is_current_phase_active`, `has_activity_option`, etc.)
+- ROOT scope documentation (activity scope vs character scope)
+- Code lens for localization keys
+- Document symbols for activity navigation
+
+---
+
+## 1. Original State (Before Implementation)
 
 From `feature_matrix.md`:
 
-| Aspect | Current Status |
-|--------|----------------|
-| Location | `common/activities/` |
-| Required Fields | ❌ Not validated |
-| Effect/Trigger Context | ⚠️ Generic only |
-| Scope Chains | ✅ Working |
-| Cross-File Refs | ❌ Not indexed |
-| Schema Status | 🔄 Planned |
+| Aspect | Current Status | Target Status |
+|--------|----------------|---------------|
+| Location | `common/activities/` | ✅ |
+| Required Fields | ❌ Not validated | ✅ Full validation |
+| Effect/Trigger Context | ⚠️ Generic only | ✅ Activity-aware |
+| Scope Chains | ✅ Working | ✅ Enhanced |
+| Cross-File Refs | ❌ Not indexed | ✅ Indexed |
+| Schema Status | 🔄 Planned | ✅ Implemented |
+
+### Key Insight: ROOT Scopes Differ by File Type!
+
+| File Type | ROOT Scope | Critical for Validation |
+|-----------|------------|------------------------|
+| Activity Types | Character (host) in most blocks | Standard |
+| **Pulse Actions** | **Activity** (not character!) | Unique! |
+| Intents | Character (picker) | Standard |
+| Invite Rules | Character (host) | Standard |
 
 ---
 

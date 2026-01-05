@@ -1,0 +1,170 @@
+# =============================================================================
+# Carnalitas Scripted Triggers
+# =============================================================================
+# Scripted triggers provided by Carnalitas mod
+# Use these instead of raw trait checks where appropriate
+# =============================================================================
+
+metadata:
+  mod_name: Carnalitas
+  mod_version: "2.x"
+  description: "Carnalitas scripted triggers for validation"
+
+# =============================================================================
+# SLAVE SYSTEM TRIGGERS
+# =============================================================================
+
+carn_is_slave_trigger:
+  scopes: [character]
+  description: "Check if character is a slave"
+  returns: bool
+  example: |
+    trigger = { carn_is_slave_trigger = yes }
+
+carn_can_be_enslaved_trigger:
+  scopes: [character]
+  description: "Check if character can be enslaved"
+  returns: bool
+
+carn_can_enslave_trigger:
+  scopes: [character]
+  description: "Check if root character can enslave this character"
+  returns: bool
+
+carn_is_owner_trigger:
+  scopes: [character]
+  description: "Check if character owns slaves"
+  returns: bool
+
+# =============================================================================
+# PROSTITUTION TRIGGERS
+# =============================================================================
+
+carn_is_prostitute_trigger:
+  scopes: [character]
+  description: "Check if character is a prostitute"
+  returns: bool
+  example: |
+    trigger = { carn_is_prostitute_trigger = yes }
+
+carn_can_be_prostitute_trigger:
+  scopes: [character]
+  description: "Check if character can become a prostitute"
+  returns: bool
+
+carn_prostitution_is_accepted_trigger:
+  scopes: [character]
+  description: "Check if prostitution is accepted in character's faith/culture"
+  returns: bool
+
+# =============================================================================
+# SEX/RELATIONSHIP TRIGGERS
+# =============================================================================
+
+carn_can_have_sex_trigger:
+  scopes: [character]
+  description: "Check if character can have sex (not incapacitated, etc.)"
+  returns: bool
+
+carn_can_have_sex_with_trigger:
+  scopes: [character]
+  description: "Check if root can have sex with this character"
+  returns: bool
+  parameters:
+  - PARTNER: "Target character scope"
+
+carn_gender_can_impregnate_trigger:
+  scopes: [character]
+  description: "Check if character's gender allows impregnation"
+  returns: bool
+
+carn_gender_can_be_impregnated_trigger:
+  scopes: [character]
+  description: "Check if character's gender allows being impregnated"
+  returns: bool
+
+carn_is_visibly_fertile_trigger:
+  scopes: [character]
+  description: "Check if character is visibly fertile"
+  returns: bool
+
+carn_has_sex_blocking_disease_trigger:
+  scopes: [character]
+  description: "Check if character has disease blocking sex"
+  returns: bool
+  example: |
+    trigger = {
+      NOT = { carn_has_sex_blocking_disease_trigger = yes }
+    }
+
+has_std_trigger:
+  scopes: [character]
+  description: "Check if character has any STD"
+  returns: bool
+
+# =============================================================================
+# BODY TYPE TRIGGERS
+# =============================================================================
+
+carn_is_futanari_trigger:
+  scopes: [character]
+  description: "Check if character has futanari trait"
+  returns: bool
+  notes: "Requires Carnalitas Futanari submod"
+
+carn_has_penis_trigger:
+  scopes: [character]
+  description: "Check if character has male anatomy (includes futa)"
+  returns: bool
+
+carn_has_vagina_trigger:
+  scopes: [character]
+  description: "Check if character has female anatomy (includes futa)"
+  returns: bool
+
+# =============================================================================
+# FAITH/DOCTRINE TRIGGERS
+# =============================================================================
+
+carn_marriage_is_same_sex_trigger:
+  scopes: [character]
+  description: "Check if character's faith allows same-sex marriage"
+  returns: bool
+
+carn_concubinage_is_same_sex_trigger:
+  scopes: [character]
+  description: "Check if character's faith allows same-sex concubines"
+  returns: bool
+
+carn_slavery_is_accepted_trigger:
+  scopes: [character]
+  description: "Check if slavery is accepted in character's faith"
+  returns: bool
+
+# =============================================================================
+# INTERACTION TRIGGERS
+# =============================================================================
+
+carn_relationship_allows_sex_trigger:
+  scopes: [character]
+  description: "Check if relationship with target allows sex"
+  returns: bool
+
+carn_can_be_sex_partner_trigger:
+  scopes: [character]
+  description: "Check if character can be a sex partner"
+  returns: bool
+
+# =============================================================================
+# CLOTHING/STATE TRIGGERS
+# =============================================================================
+
+carn_is_naked_trigger:
+  scopes: [character]
+  description: "Check if character is currently naked"
+  returns: bool
+
+carn_is_dressed_trigger:
+  scopes: [character]
+  description: "Check if character is currently dressed"
+  returns: bool

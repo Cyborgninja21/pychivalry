@@ -164,6 +164,107 @@ from .effect_trigger_docs import get_effect_documentation, get_trigger_documenta
 
 
 # =============================================================================
+# Mod Data Integration
+# =============================================================================
+
+def _get_mod_completions() -> list[types.CompletionItem]:
+    """
+    Generate completion items for mod-provided triggers, effects, and traits.
+    
+    These are NOT cached because mod data can change (user runs discovery).
+    Each item shows which mod it comes from in the detail field.
+    """
+    items = []
+    
+    try:
+        from .data.mods import get_mod_loader
+        loader = get_mod_loader()
+        
+        # Get all enabled mods
+        enabled_mods = loader.get_enabled_mods()
+        
+        for mod_id in enabled_mods:
+            # Get mod display name
+            from .data.mods import AVAILABLE_MODS
+            mod_def = AVAILABLE_MODS.get(mod_id, {})
+            display_name = mod_def.get("name", mod_id)
+            
+            # Add triggers from this mod
+            mod_triggers = loader.get_mod_triggers(mod_id)
+            for trigger in mod_triggers:
+                items.append(
+                    types.CompletionItem(
+                        label=trigger,
+                        kind=types.CompletionItemKind.Function,
+                        detail=f"📦 {display_name} Trigger",
+                        documentation=types.MarkupContent(
+                            kind=types.MarkupKind.Markdown,
+                            value=f"**{trigger}**\n\n*From mod: {display_name}*\n\n↩️ Returns: `boolean`"
+                        ),
+                        insert_text=trigger,
+                        sort_text=f"z_{trigger}",  # Sort after vanilla items
+                    )
+                )
+            
+            # Add effects from this mod
+            mod_effects = loader.get_mod_effects(mod_id)
+            for effect in mod_effects:
+                items.append(
+                    types.CompletionItem(
+                        label=effect,
+                        kind=types.CompletionItemKind.Function,
+                        detail=f"📦 {display_name} Effect",
+                        documentation=types.MarkupContent(
+                            kind=types.MarkupKind.Markdown,
+                            value=f"**{effect}**\n\n*From mod: {display_name}*\n\nModifies game state."
+                        ),
+                        insert_text=effect,
+                        sort_text=f"z_{effect}",
+                    )
+                )
+            
+            # Add traits from this mod
+            mod_traits = loader.get_mod_traits(mod_id)
+            for trait in mod_traits:
+                items.append(
+                    types.CompletionItem(
+                        label=trait,
+                        kind=types.CompletionItemKind.EnumMember,
+                        detail=f"📦 {display_name} Trait",
+                        documentation=types.MarkupContent(
+                            kind=types.MarkupKind.Markdown,
+                            value=f"**{trait}**\n\n*Trait from mod: {display_name}*"
+                        ),
+                        insert_text=trait,
+                        sort_text=f"z_{trait}",
+                    )
+                )
+            
+            # Add opinion modifiers from this mod
+            mod_opinions = loader.get_mod_opinion_modifiers(mod_id)
+            for opinion_mod in mod_opinions:
+                items.append(
+                    types.CompletionItem(
+                        label=opinion_mod,
+                        kind=types.CompletionItemKind.Constant,
+                        detail=f"📦 {display_name} Opinion",
+                        documentation=types.MarkupContent(
+                            kind=types.MarkupKind.Markdown,
+                            value=f"**{opinion_mod}**\n\n*Opinion modifier from mod: {display_name}*"
+                        ),
+                        insert_text=opinion_mod,
+                        sort_text=f"z_{opinion_mod}",
+                    )
+                )
+    except ImportError:
+        pass  # Mods module not available
+    except Exception as e:
+        logger.debug(f"Failed to get mod completions: {e}")
+    
+    return items
+
+
+# =============================================================================
 # Cached Completion Item Generation
 # =============================================================================
 # These functions generate the same items repeatedly, so we cache the results.
@@ -652,6 +753,10 @@ def filter_by_context(context: CompletionContext) -> List[types.CompletionItem]:
     # Add snippets for top-level contexts
     if context.block_type == "unknown":
         items.extend(create_snippet_completions())
+    
+    # Add mod-specific completions (triggers, effects, traits from enabled mods)
+    # These are added dynamically and show their source mod
+    items.extend(_get_mod_completions())
 
     return items
 

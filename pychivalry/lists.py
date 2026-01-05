@@ -765,6 +765,10 @@ def get_list_result_scope(base_name: str, current_scope: str = "character") -> O
         "heir",  # Potential heirs (characters)
         "dynasty_member",  # Dynasty members (characters)
         "house_member",  # House members (characters)
+        # Activity-related character lists (activity scope)
+        "attending_character",  # Characters attending an activity
+        "activity_guest",  # Guests at an activity
+        "activity_entourage",  # Entourage members
     }
 
     # =============================================================================

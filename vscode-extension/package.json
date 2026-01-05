@@ -103,6 +103,11 @@
         "category": "CK3"
       },
       {
+        "command": "ck3LanguageServer.discoverModData",
+        "title": "Discover Mod Data (Carnalitas, etc.)",
+        "category": "CK3"
+      },
+      {
         "command": "ck3LanguageServer.showOutput",
         "title": "Show Output Channel",
         "category": "CK3"
