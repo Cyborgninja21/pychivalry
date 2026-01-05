@@ -6,142 +6,40 @@ Whether you're building events, decisions, story cycles, or any other CK3 mod co
 
 ---
 
-## 📑 Table of Contents
+## 📑 Documentation by Audience
 
-- [Feature Matrix](#feature-matrix)
-- [Test Suites](#test-suites)
-- [Diagnostic Reference](#diagnostic-reference)
-  - [Quick Reference Table](#diagnostic-categories-quick-reference)
-  - [Standard Diagnostics](#standard-diagnostics-ck3xxx)
-  - [Domain-Specific Diagnostics](#domain-specific-diagnostics)
-  - [Schema Validation](#schema-validation)
-  - [Internal Diagnostics](#internal-diagnostics)
+| Section | Who It's For | Description |
+|---------|--------------|-------------|
+| [📖 User Guide](#-user-guide) | CK3 Modders | Features, diagnostics, and how to use PyChivalry |
+| [🔧 Developer Guide](#-developer-guide) | Contributors | Testing, architecture, and development setup |
+| [📐 Schema Authoring](#-schema-authoring) | Schema Authors | Creating validation schemas for new file types |
+| [🎮 CK3 Reference](#-ck3-reference) | Modders | CK3-specific modding guides and templates |
 
 ---
 
-## 🎯 Feature Matrix
+## 📖 User Guide
+
+Documentation for CK3 modders using PyChivalry.
 
 | Document | Description |
 |----------|-------------|
-| [feature_matrix.md](feature_matrix.md) | Comprehensive overview of all LSP features implemented in PyChivalry |
+| [Feature Matrix](user-guide/feature_matrix.md) | Complete list of LSP features and their implementation status |
 
-**What you'll find:**
-- Complete list of supported LSP capabilities
-- Feature implementation status
-- Integration details with VS Code extension
+### ⚠️ Diagnostic Reference
 
----
+PyChivalry provides extensive diagnostics to help you catch errors. See the [Diagnostic Index](user-guide/diagnostics/Diagnostic%20codes%20-%20Index.md) for a complete list, or jump to a category:
 
-## 🧪 Test Suites
-
-| Document | Description |
-|----------|-------------|
-| [Test Suites.md](Test%20Suites.md) | Documentation of all test suites and testing methodology |
-
-**What you'll find:**
-- Test organization and structure
-- Coverage information
-- How to run and extend tests
-
----
-
-## ⚠️ Diagnostic Reference
-
-PyChivalry provides extensive diagnostics to help you catch errors and improve your mod code. The diagnostic documentation is organized into categories for easy reference.
-
-### Diagnostic Categories Quick Reference
-
-| Category | Code Prefix | Count | Description |
-|----------|-------------|-------|-------------|
-| [Standard](diagnostics/Diagnostic%20codes.md) | `CK3XXX` | ~74 | Core syntax, semantic, scope, and style validation |
-| [Story Cycles](diagnostics/Diagnostic%20codes%20-%20Story%20Cycles.md) | `STORY-XXX` | 15 | Story cycle structure and flow validation |
-| [Decisions](diagnostics/Diagnostic%20codes%20-%20Decisions.md) | `DECISION-XXX` | 4 | Decision configuration validation |
-| [Interactions](diagnostics/Diagnostic%20codes%20-%20Interactions.md) | `INTERACTION-XXX` | 3 | Character interaction validation |
-| [Schemes](diagnostics/Diagnostic%20codes%20-%20Schemes.md) | `SCHEME-XXX` | 3 | Scheme configuration validation |
-| [On Actions](diagnostics/Diagnostic%20codes%20-%20On%20Actions.md) | `ON_ACTION-XXX` | 2 | On-action hook validation |
-| [Events](diagnostics/Diagnostic%20codes%20-%20Events.md) | `EVENT-XXX` | 1 | Event-type-specific validation |
-| [Schema](diagnostics/Diagnostic%20codes%20-%20Schema%20Validation.md) | `SCHEMA-XXX` | 10 | Pattern and type validation |
-| [Internal](diagnostics/Diagnostic%20codes%20-%20Internal.md) | Various | ~35 | Debug and internal diagnostics |
-
----
-
-### 📋 Master Index
-
-| Document | Description |
-|----------|-------------|
-| [Diagnostic codes - Index.md](diagnostics/Diagnostic%20codes%20-%20Index.md) | Master index linking all diagnostic documentation |
-
-**Start here** if you're looking for a specific diagnostic code and aren't sure which category it belongs to.
-
----
-
-### Standard Diagnostics (CK3XXX)
-
-| Document | Description |
-|----------|-------------|
-| [Diagnostic codes.md](diagnostics/Diagnostic%20codes.md) | Main reference for ~74 standard diagnostic codes |
-
-**What you'll find:**
-- **Syntax errors** — Parsing and structural issues
-- **Semantic errors** — Logical and reference problems
-- **Scope validation** — Scope type mismatches and invalid transitions
-- **Style warnings** — Code style and best practice suggestions
-- **Event validation** — General event structure validation
-
----
-
-### Domain-Specific Diagnostics
-
-These documents cover validation rules for specific CK3 modding domains:
-
-| Document | Codes | Description |
-|----------|-------|-------------|
-| [Story Cycles](diagnostics/Diagnostic%20codes%20-%20Story%20Cycles.md) | `STORY-001` to `STORY-015` | Validates story cycle definitions, chapter flow, slot usage, and state transitions |
-| [Decisions](diagnostics/Diagnostic%20codes%20-%20Decisions.md) | `DECISION-001` to `DECISION-004` | Validates decision structure, conditions, and effects |
-| [Interactions](diagnostics/Diagnostic%20codes%20-%20Interactions.md) | `INTERACTION-001` to `INTERACTION-003` | Validates character interaction definitions |
-| [Schemes](diagnostics/Diagnostic%20codes%20-%20Schemes.md) | `SCHEME-001` to `SCHEME-003` | Validates scheme configuration and progress mechanics |
-| [On Actions](diagnostics/Diagnostic%20codes%20-%20On%20Actions.md) | `ON_ACTION-001` to `ON_ACTION-002` | Validates on-action hooks and event triggering |
-| [Events](diagnostics/Diagnostic%20codes%20-%20Events.md) | `EVENT-001` | Event-type-specific validation beyond standard checks |
-
----
-
-### Schema Validation
-
-| Document | Description |
-|----------|-------------|
-| [Diagnostic codes - Schema Validation.md](diagnostics/Diagnostic%20codes%20-%20Schema%20Validation.md) | SCHEMA-XXX codes for pattern and type validation |
-
-**What you'll find:**
-- Pattern matching validation
-- Type constraint enforcement
-- Required field validation
-- Value range checking
-
----
-
-### Internal Diagnostics
-
-| Document | Description |
-|----------|-------------|
-| [Diagnostic codes - Internal.md](diagnostics/Diagnostic%20codes%20-%20Internal.md) | Internal and debug diagnostic codes |
-
-**What you'll find:**
-- Indexer diagnostics
-- Parser internals
-- Workspace validation
-- Debug information
-
-> 💡 **Note:** Internal diagnostics are primarily useful for PyChivalry development and troubleshooting. Most modders won't encounter these in normal usage.
-
----
-
-## 🧭 Navigation Guide
-
-### Finding a Specific Diagnostic Code
-
-1. **Know the code prefix?** Jump directly to the relevant category document above
-2. **Not sure?** Start with the [Master Index](diagnostics/Diagnostic%20codes%20-%20Index.md)
-3. **Standard CK3XXX code?** Check [Diagnostic codes.md](diagnostics/Diagnostic%20codes.md)
+| Category | Code Prefix | Description |
+|----------|-------------|-------------|
+| [Standard](user-guide/diagnostics/Diagnostic%20codes.md) | `CK3XXX` | Core syntax, semantic, scope, and style validation |
+| [Story Cycles](user-guide/diagnostics/Diagnostic%20codes%20-%20Story%20Cycles.md) | `STORY-XXX` | Story cycle structure and flow validation |
+| [Decisions](user-guide/diagnostics/Diagnostic%20codes%20-%20Decisions.md) | `DECISION-XXX` | Decision configuration validation |
+| [Interactions](user-guide/diagnostics/Diagnostic%20codes%20-%20Interactions.md) | `INTERACTION-XXX` | Character interaction validation |
+| [Schemes](user-guide/diagnostics/Diagnostic%20codes%20-%20Schemes.md) | `SCHEME-XXX` | Scheme configuration validation |
+| [On Actions](user-guide/diagnostics/Diagnostic%20codes%20-%20On%20Actions.md) | `ON_ACTION-XXX` | On-action hook validation |
+| [Events](user-guide/diagnostics/Diagnostic%20codes%20-%20Events.md) | `EVENT-XXX` | Event-type-specific validation |
+| [Schema](user-guide/diagnostics/Diagnostic%20codes%20-%20Schema%20Validation.md) | `SCHEMA-XXX` | Pattern and type validation |
+| [Internal](user-guide/diagnostics/Diagnostic%20codes%20-%20Internal.md) | Various | Debug and internal diagnostics |
 
 ### Understanding Diagnostic Severity
 
@@ -152,11 +50,52 @@ These documents cover validation rules for specific CK3 modding domains:
 | 🔵 Information | Suggestions for improvement |
 | ⚪ Hint | Style and best practice recommendations |
 
-### Getting Help
+---
 
-- Each diagnostic code includes an explanation and suggested fix
-- Check the relevant category document for detailed examples
-- Domain-specific documents include context about CK3 modding conventions
+## 🔧 Developer Guide
+
+Documentation for PyChivalry contributors.
+
+| Document | Description |
+|----------|-------------|
+| [Test Suites](developer-guide/Test%20Suites.md) | Test organization, coverage, and how to run tests |
+| [Pre-commit Setup](developer-guide/PRE_COMMIT_SETUP.md) | Installing pre-commit hooks for code quality |
+| [Pre-commit Usage](developer-guide/PRE_COMMIT_USAGE_GUIDE.md) | Daily workflow with pre-commit hooks |
+
+### Architecture
+
+| Document | Description |
+|----------|-------------|
+| [Validation Architecture](developer-guide/architecture/VALIDATION.md) | How the validation system works internally |
+
+---
+
+## 📐 Schema Authoring
+
+Documentation for creating validation schemas for new CK3 file types.
+
+| Document | Description |
+|----------|-------------|
+| [Schema Authoring Guide](schemas/SCHEMA_AUTHORING_GUIDE.md) | Complete guide for writing YAML validation schemas |
+| [Onboarding Template](schemas/SCHEMA_ONBOARDING_TEMPLATE.md) | Template for planning new schema implementations |
+| [CK3 Content Types](schemas/ck3_content_types.md) | Reference of all moddable content types and their validation status |
+
+### Active Schema Plans
+
+| Document | Status | Description |
+|----------|--------|-------------|
+| [Activities Schema](schemas/plans/ACTIVITIES_SCHEMA_PLAN.md) | Planning | Schema for `common/activities/` validation |
+| [Story Cycles Schema](schemas/plans/STORY_CYCLES_SCHEMA_PLAN.md) | Planning | Schema improvements for story cycles |
+
+---
+
+## 🎮 CK3 Reference
+
+CK3-specific modding guides and templates (not PyChivalry-specific).
+
+| Document | Description |
+|----------|-------------|
+| [Activity Template](ck3-reference/Activity_Template.md) | Complete guide to building CK3 activities |
 
 ---
 
@@ -164,20 +103,25 @@ These documents cover validation rules for specific CK3 modding domains:
 
 ```
 Documentation/
-├── README.md                 ← You are here
-├── feature_matrix.md         ← LSP feature documentation
-├── Test Suites.md            ← Test suite documentation
-└── diagnostics/              ← Diagnostic code references
-    ├── Diagnostic codes - Index.md
-    ├── Diagnostic codes.md
-    ├── Diagnostic codes - Story Cycles.md
-    ├── Diagnostic codes - Decisions.md
-    ├── Diagnostic codes - Interactions.md
-    ├── Diagnostic codes - Schemes.md
-    ├── Diagnostic codes - On Actions.md
-    ├── Diagnostic codes - Events.md
-    ├── Diagnostic codes - Schema Validation.md
-    └── Diagnostic codes - Internal.md
+├── README.md                     ← You are here
+├── user-guide/                   ← For CK3 modders
+│   ├── feature_matrix.md
+│   └── diagnostics/              ← All diagnostic code references
+├── developer-guide/              ← For PyChivalry contributors
+│   ├── Test Suites.md
+│   ├── PRE_COMMIT_SETUP.md
+│   ├── PRE_COMMIT_USAGE_GUIDE.md
+│   └── architecture/
+│       └── VALIDATION.md
+├── schemas/                      ← For schema authors
+│   ├── SCHEMA_AUTHORING_GUIDE.md
+│   ├── SCHEMA_ONBOARDING_TEMPLATE.md
+│   ├── ck3_content_types.md
+│   └── plans/                    ← Active schema development
+│       ├── ACTIVITIES_SCHEMA_PLAN.md
+│       └── STORY_CYCLES_SCHEMA_PLAN.md
+└── ck3-reference/                ← CK3 modding guides
+    └── Activity_Template.md
 ```
 
 ---
