@@ -2266,33 +2266,15 @@ async def semantic_tokens_full(ls: CK3LanguageServer, params: types.SemanticToke
             return types.SemanticTokens(data=[])
 
     # Submit to thread manager with CRITICAL priority
-
-
     return await _execute_with_thread_manager(
-
-
         ls,
-
-
         _semantic_tokens_sync,
-
-
         TaskPriority.CRITICAL,
-
-
         f"semantic:{params.text_document.uri}",
-
-
         30.0,
-
-
         "semantic_tokens",
-
-
-        types,
-
-
-    ).SemanticTokens(data=[])
+        types.SemanticTokens(data=[]),
+    )
 
 
 # =============================================================================
