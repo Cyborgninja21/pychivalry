@@ -192,8 +192,7 @@ import os
 import threading
 import uuid
 from collections import OrderedDict
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Dict, List, Optional, Any, Set, Tuple
+from typing import Dict, List, Optional, Any, Set, Tuple, Callable
 
 # Import the LanguageServer class from pygls
 # This is the core class that handles LSP protocol communication
@@ -204,6 +203,9 @@ from pygls.uris import to_fs_path
 # Import LSP types from lsprotocol
 # These define the structure of LSP messages (requests, responses, notifications)
 from lsprotocol import types
+
+# Import threading components at module level to avoid repeated imports
+from .threading import CK3ThreadManager, TaskPriority
 
 # Import CK3 language definitions
 # These lists contain all the CK3 scripting constructs we provide completions for:
@@ -333,11 +335,10 @@ class CK3LanguageServer(LanguageServer):
         # Threading Infrastructure
         # =====================================================================
 
-        # Thread pool for CPU-bound operations (parsing, diagnostics, etc.)
-        # Use 2-4 workers to balance parallelism without overwhelming the system
-        self._thread_pool = ThreadPoolExecutor(
-            max_workers=min(4, (os.cpu_count() or 1) + 1), thread_name_prefix="ck3-worker"
-        )
+        # Custom thread manager for all background operations
+        # Replaces pygls @server.thread() decorator and old thread pool
+        from .threading import CK3ThreadManager
+        self.thread_manager = CK3ThreadManager()
 
         # Thread-safety locks for shared data structures
         self._ast_lock = threading.RLock()  # Protects document_asts
@@ -847,13 +848,19 @@ class CK3LanguageServer(LanguageServer):
         # Calculate adaptive debounce delay based on document size
         debounce_delay = self.get_adaptive_debounce_delay(doc_source)
 
-        # Cancel any pending update for this document
+        # Cancel any pending asyncio update for this document
         if uri in self._pending_updates:
             self._pending_updates[uri].cancel()
             try:
                 await self._pending_updates[uri]
             except asyncio.CancelledError:
                 pass
+
+        # Cancel any pending thread manager tasks for this document
+        # This cancels parsing, diagnostics, etc. for the old version
+        cancelled_count = self.thread_manager.cancel_by_uri(uri)
+        if cancelled_count > 0:
+            logger.debug(f"Cancelled {cancelled_count} pending tasks for {uri}")
 
         async def do_update():
             """Perform the actual update after debounce delay."""
@@ -875,10 +882,16 @@ class CK3LanguageServer(LanguageServer):
                     return
 
                 # Try to get AST from content hash cache first
-                loop = asyncio.get_event_loop()
-                ast = await loop.run_in_executor(
-                    self._thread_pool, self.get_or_parse_ast, current_source
+                # Use thread manager with HIGH priority for parsing
+
+                future = self.thread_manager.submit_cpu_bound(
+                    self.get_or_parse_ast,
+                    current_source,
+                    priority=TaskPriority.HIGH,
+                    task_id=f"parse:{uri}:{version}",
                 )
+                loop = asyncio.get_event_loop()
+                ast = await loop.wrap_future(future)
 
                 # Check again if still current before updating
                 if self.get_document_version(uri) != version:
@@ -896,13 +909,15 @@ class CK3LanguageServer(LanguageServer):
                 # Streaming Diagnostics (Tier 3 Optimization)
                 # =========================================================
                 # Phase 1: Publish syntax errors immediately for fast feedback
-                syntax_diags = await loop.run_in_executor(
-                    self._thread_pool,
+                future = self.thread_manager.submit_cpu_bound(
                     self._collect_syntax_diagnostics_sync,
                     uri,
                     current_source,
                     ast,
+                    priority=TaskPriority.HIGH,
+                    task_id=f"syntax:{uri}:{version}",
                 )
+                syntax_diags = await loop.wrap_future(future)
 
                 # Check if still current
                 if self.get_document_version(uri) != version:
@@ -918,9 +933,14 @@ class CK3LanguageServer(LanguageServer):
                 )
 
                 # Phase 2: Run semantic analysis in background
-                semantic_diags = await loop.run_in_executor(
-                    self._thread_pool, self._collect_semantic_diagnostics_sync, uri, ast
+                future = self.thread_manager.submit_cpu_bound(
+                    self._collect_semantic_diagnostics_sync,
+                    uri,
+                    ast,
+                    priority=TaskPriority.HIGH,
+                    task_id=f"semantic:{uri}:{version}",
                 )
+                semantic_diags = await loop.wrap_future(future)
 
                 # Check again before final publish
                 if self.get_document_version(uri) != version:
@@ -1054,9 +1074,9 @@ class CK3LanguageServer(LanguageServer):
 
         self._pending_updates.clear()
 
-        # Shutdown thread pool
-        self._thread_pool.shutdown(wait=True, cancel_futures=True)
-        logger.info("Thread pool shut down")
+        # Shutdown thread manager
+        self.thread_manager.shutdown(wait=True)
+        logger.info("Thread manager shut down")
 
     # =====================================================================
     # Workspace Scanning with Progress
@@ -1099,13 +1119,21 @@ class CK3LanguageServer(LanguageServer):
 
                 # Perform the actual scan in thread pool with lock
                 # Pass the executor for parallel scanning (2-4x faster)
-                loop = asyncio.get_event_loop()
 
                 def scan_with_lock():
                     with self._index_lock:
-                        self.index.scan_workspace(workspace_folders, executor=self._thread_pool)
+                        # Pass the CPU pool's executor for parallel file scanning
+                        self.index.scan_workspace(
+                            workspace_folders, executor=self.thread_manager._cpu_pool
+                        )
 
-                await loop.run_in_executor(self._thread_pool, scan_with_lock)
+                loop = asyncio.get_event_loop()
+                future = self.thread_manager.submit_cpu_bound(
+                    scan_with_lock,
+                    priority=TaskPriority.LOW,
+                    task_id="workspace:scan",
+                )
+                await loop.wrap_future(future)
 
                 # Notify user of scan results (thread-safe access)
                 with self._index_lock:
@@ -1707,9 +1735,55 @@ def code_action(ls: CK3LanguageServer, params: types.CodeActionParams):
         return None
 
 
+# =============================================================================
+# Thread Manager Helper Functions
+# =============================================================================
+
+
+async def _execute_with_thread_manager(
+    ls: CK3LanguageServer,
+    func: Callable,
+    priority: TaskPriority,
+    task_id: str,
+    timeout: float,
+    handler_name: str,
+    default_return: Any = None,
+) -> Any:
+    """
+    Execute a function in the thread manager with consistent error handling.
+    
+    This helper reduces boilerplate in LSP handlers by providing a standard
+    pattern for thread manager execution with error handling.
+    
+    Args:
+        ls: Language server instance
+        func: Function to execute (should be synchronous)
+        priority: Task priority level
+        task_id: Unique identifier for the task
+        timeout: Maximum execution time in seconds
+        handler_name: Name of handler for logging
+        default_return: Value to return on error (default: None)
+    
+    Returns:
+        Result from func or default_return on error
+    """
+    try:
+        future = ls.thread_manager.submit_cpu_bound(
+            func, priority=priority, task_id=task_id, timeout=timeout
+        )
+        return await asyncio.wrap_future(future)
+    except Exception as e:
+        logger.error(f"Error in {handler_name} handler: {e}", exc_info=True)
+        return default_return
+
+
+# =============================================================================
+# LSP Feature Handlers - References
+# =============================================================================
+
+
 @server.feature(types.TEXT_DOCUMENT_REFERENCES)
-@server.thread()  # Run in thread pool - iterates all ASTs
-def references(ls: CK3LanguageServer, params: types.ReferenceParams):
+async def references(ls: CK3LanguageServer, params: types.ReferenceParams):
     """
     Find all references to a symbol across the workspace.
 
@@ -1717,7 +1791,7 @@ def references(ls: CK3LanguageServer, params: types.ReferenceParams):
     trigger, saved scope, etc.) is referenced. This is useful for understanding
     how events are connected, where effects are used, and for refactoring.
 
-    Runs in thread pool as it iterates through all open document ASTs.
+    Runs in thread manager with HIGH priority as user is actively waiting.
 
     Args:
         ls: The CK3 language server instance
@@ -1734,86 +1808,101 @@ def references(ls: CK3LanguageServer, params: types.ReferenceParams):
         This is a request from client to server. The server should respond with
         a Location[], or null if no references found.
     """
-    try:
-        doc = ls.workspace.get_text_document(params.text_document.uri)
 
-        # Get word at cursor position
-        from .hover import get_word_at_position
+    def _find_references_sync():
+        """Synchronous implementation for thread pool execution."""
+        try:
+            doc = ls.workspace.get_text_document(params.text_document.uri)
 
-        word = get_word_at_position(doc, params.position)
+            # Get word at cursor position
+            from .hover import get_word_at_position
 
-        if not word:
+            word = get_word_at_position(doc, params.position)
+
+            if not word:
+                return None
+
+            logger.debug(f"Find references for: {word}")
+
+            references_list = []
+
+            # Thread-safe iteration over ASTs
+            with ls._ast_lock:
+                ast_items = list(ls.document_asts.items())
+
+            for uri, ast in ast_items:
+                try:
+                    # Find all occurrences of the word in this document
+                    refs = _find_word_references_in_ast(word, ast, uri)
+                    references_list.extend(refs)
+                except Exception as e:
+                    logger.warning(f"Error searching {uri}: {e}")
+                    continue
+
+            # If include_declaration is False, filter out the definition itself
+            if not params.context.include_declaration:
+                # Try to find the definition location
+                def_location = None
+
+                # Thread-safe index access
+                with ls._index_lock:
+                    # Check various symbol types
+                    if "." in word and ls.index:
+                        def_location = ls.index.find_event(word)
+                    if not def_location and ls.index:
+                        def_location = ls.index.find_scripted_effect(word)
+                    if not def_location and ls.index:
+                        def_location = ls.index.find_scripted_trigger(word)
+                    if not def_location and word.startswith("scope:") and ls.index:
+                        scope_name = word[6:]
+                        def_location = ls.index.find_saved_scope(scope_name)
+
+                # Filter out the definition
+                if def_location:
+                    references_list = [
+                        ref
+                        for ref in references_list
+                        if ref.uri != def_location.uri
+                        or ref.range.start.line != def_location.range.start.line
+                    ]
+
+            # Also check indexed references (e.g., decision_group_type references)
+            with ls._index_lock:
+                if ls.index:
+                    # Check for decision_group_type references
+                    group_refs = ls.index.find_decision_group_type_references(word)
+                    for ref in group_refs:
+                        loc = types.Location(
+                            uri=ref["uri"],
+                            range=types.Range(
+                                start=types.Position(line=ref["line"], character=ref["character"]),
+                                end=types.Position(
+                                    line=ref["line"], character=ref["character"] + len(word)
+                                ),
+                            ),
+                        )
+                        # Avoid duplicates
+                        if not any(
+                            r.uri == loc.uri and r.range.start.line == loc.range.start.line
+                            for r in references_list
+                        ):
+                            references_list.append(loc)
+
+            return references_list if references_list else None
+
+        except Exception as e:
+            logger.error(f"Error in references handler: {e}", exc_info=True)
             return None
 
-        logger.debug(f"Find references for: {word}")
-
-        references_list = []
-
-        # Thread-safe iteration over ASTs
-        with ls._ast_lock:
-            ast_items = list(ls.document_asts.items())
-
-        for uri, ast in ast_items:
-            try:
-                # Find all occurrences of the word in this document
-                refs = _find_word_references_in_ast(word, ast, uri)
-                references_list.extend(refs)
-            except Exception as e:
-                logger.warning(f"Error searching {uri}: {e}")
-                continue
-
-        # If include_declaration is False, filter out the definition itself
-        if not params.context.include_declaration:
-            # Try to find the definition location
-            def_location = None
-
-            # Thread-safe index access
-            with ls._index_lock:
-                # Check various symbol types
-                if "." in word and ls.index:
-                    def_location = ls.index.find_event(word)
-                if not def_location and ls.index:
-                    def_location = ls.index.find_scripted_effect(word)
-                if not def_location and ls.index:
-                    def_location = ls.index.find_scripted_trigger(word)
-                if not def_location and word.startswith("scope:") and ls.index:
-                    scope_name = word[6:]
-                    def_location = ls.index.find_saved_scope(scope_name)
-
-            # Filter out the definition
-            if def_location:
-                references_list = [
-                    ref
-                    for ref in references_list
-                    if ref.uri != def_location.uri
-                    or ref.range.start.line != def_location.range.start.line
-                ]
-
-        # Also check indexed references (e.g., decision_group_type references)
-        with ls._index_lock:
-            if ls.index:
-                # Check for decision_group_type references
-                group_refs = ls.index.find_decision_group_type_references(word)
-                for ref in group_refs:
-                    loc = types.Location(
-                        uri=ref["uri"],
-                        range=types.Range(
-                            start=types.Position(line=ref["line"], character=ref["character"]),
-                            end=types.Position(line=ref["line"], character=ref["character"] + len(word)),
-                        ),
-                    )
-                    # Avoid duplicates
-                    if not any(
-                        r.uri == loc.uri and r.range.start.line == loc.range.start.line
-                        for r in references_list
-                    ):
-                        references_list.append(loc)
-
-        return references_list if references_list else None
-
-    except Exception as e:
-        logger.error(f"Error in references handler: {e}", exc_info=True)
-        return None
+    # Submit to thread manager with HIGH priority (user is waiting)
+    return await _execute_with_thread_manager(
+        ls,
+        _find_references_sync,
+        TaskPriority.HIGH,
+        f"refs:{params.text_document.uri}",
+        30.0,
+        "references",
+    )
 
 
 def _find_word_references_in_ast(word: str, ast: List[CK3Node], uri: str) -> List[types.Location]:
@@ -1968,8 +2057,7 @@ def _extract_symbol_from_node(node: CK3Node) -> Optional[types.DocumentSymbol]:
 
 
 @server.feature(types.WORKSPACE_SYMBOL)
-@server.thread()  # Run in thread pool - searches entire index
-def workspace_symbol(ls: CK3LanguageServer, params: types.WorkspaceSymbolParams):
+async def workspace_symbol(ls: CK3LanguageServer, params: types.WorkspaceSymbolParams):
     """
     Search for symbols across the entire workspace.
 
@@ -1977,7 +2065,7 @@ def workspace_symbol(ls: CK3LanguageServer, params: types.WorkspaceSymbolParams)
     workspace by name. It supports fuzzy matching and is typically invoked with
     Ctrl+T in VS Code.
 
-    Runs in thread pool as it searches through the full index.
+    Runs in thread manager with NORMAL priority as it searches through the full index.
 
     Args:
         ls: The CK3 language server instance
@@ -1991,86 +2079,118 @@ def workspace_symbol(ls: CK3LanguageServer, params: types.WorkspaceSymbolParams)
         This is a request from client to server. The server should respond with
         SymbolInformation[] or WorkspaceSymbol[], or null.
     """
-    try:
-        query = params.query.lower()
 
-        if not query:
+    def _workspace_symbol_sync():
+        """Synchronous implementation for thread pool execution."""
+        try:
+            query = params.query.lower()
+
+            if not query:
+                return None
+
+            symbols = []
+
+            # Thread-safe index access - wrap all index reads in lock
+            with ls._index_lock:
+                # Search events
+                if ls.index:
+                    for event_id, location in ls.index.events.items():
+                        if query in event_id.lower():
+                            symbols.append(
+                                types.SymbolInformation(
+                                    name=event_id,
+                                    kind=types.SymbolKind.Event,
+                                    location=location,
+                                    container_name="Event",
+                                )
+                            )
+
+                # Search scripted effects
+                if ls.index:
+                    for effect_name, location in ls.index.scripted_effects.items():
+                        if query in effect_name.lower():
+                            symbols.append(
+                                types.SymbolInformation(
+                                    name=effect_name,
+                                    kind=types.SymbolKind.Function,
+                                    location=location,
+                                    container_name="Scripted Effect",
+                                )
+                            )
+
+                # Search scripted triggers
+                if ls.index:
+                    for trigger_name, location in ls.index.scripted_triggers.items():
+                        if query in trigger_name.lower():
+                            symbols.append(
+                                types.SymbolInformation(
+                                    name=trigger_name,
+                                    kind=types.SymbolKind.Function,
+                                    location=location,
+                                    container_name="Scripted Trigger",
+                                )
+                            )
+
+                # Search script values
+                if ls.index:
+                    for value_name, location in ls.index.script_values.items():
+                        if query in value_name.lower():
+                            symbols.append(
+                                types.SymbolInformation(
+                                    name=value_name,
+                                    kind=types.SymbolKind.Variable,
+                                    location=location,
+                                    container_name="Script Value",
+                                )
+                            )
+
+                # Search on_actions
+                if ls.index:
+                    for on_action_name, location in ls.index.on_action_definitions.items():
+                        if query in on_action_name.lower():
+                            symbols.append(
+                                types.SymbolInformation(
+                                    name=on_action_name,
+                                    kind=types.SymbolKind.Event,
+                                    location=location,
+                                    container_name="On-Action",
+                                )
+                            )
+
+            return symbols if symbols else None
+
+        except Exception as e:
+            logger.error(f"Error in workspace_symbol handler: {e}", exc_info=True)
             return None
 
-        symbols = []
+    # Submit to thread manager with NORMAL priority
 
-        # Thread-safe index access - wrap all index reads in lock
-        with ls._index_lock:
-            # Search events
-            if ls.index:
-                for event_id, location in ls.index.events.items():
-                    if query in event_id.lower():
-                        symbols.append(
-                            types.SymbolInformation(
-                                name=event_id,
-                                kind=types.SymbolKind.Event,
-                                location=location,
-                                container_name="Event",
-                            )
-                        )
 
-            # Search scripted effects
-            if ls.index:
-                for effect_name, location in ls.index.scripted_effects.items():
-                    if query in effect_name.lower():
-                        symbols.append(
-                            types.SymbolInformation(
-                                name=effect_name,
-                                kind=types.SymbolKind.Function,
-                                location=location,
-                                container_name="Scripted Effect",
-                            )
-                        )
+    return await _execute_with_thread_manager(
 
-            # Search scripted triggers
-            if ls.index:
-                for trigger_name, location in ls.index.scripted_triggers.items():
-                    if query in trigger_name.lower():
-                        symbols.append(
-                            types.SymbolInformation(
-                                name=trigger_name,
-                                kind=types.SymbolKind.Function,
-                                location=location,
-                                container_name="Scripted Trigger",
-                            )
-                        )
 
-            # Search script values
-            if ls.index:
-                for value_name, location in ls.index.script_values.items():
-                    if query in value_name.lower():
-                        symbols.append(
-                            types.SymbolInformation(
-                                name=value_name,
-                                kind=types.SymbolKind.Variable,
-                                location=location,
-                                container_name="Script Value",
-                            )
-                        )
+        ls,
 
-            # Search on_actions
-            if ls.index:
-                for on_action_name, location in ls.index.on_action_definitions.items():
-                    if query in on_action_name.lower():
-                        symbols.append(
-                            types.SymbolInformation(
-                                name=on_action_name,
-                                kind=types.SymbolKind.Event,
-                                location=location,
-                                container_name="On-Action",
-                            )
-                        )
 
-        return symbols if symbols else None
+        _workspace_symbol_sync,
 
-    except Exception as e:
-        logger.error(f"Error in workspace_symbol handler: {e}", exc_info=True)
-        return None
+
+        TaskPriority.NORMAL,
+
+
+        f"workspace_symbol:{params.query}",
+
+
+        30.0,
+
+
+        "workspace_symbol",
+
+
+        None,
+
+
+    )
 
 
 @server.feature(
@@ -2086,8 +2206,7 @@ def workspace_symbol(ls: CK3LanguageServer, params: types.WorkspaceSymbolParams)
         ],
     ),
 )
-@server.thread()  # Run in thread pool - CPU intensive tokenization
-def semantic_tokens_full(ls: CK3LanguageServer, params: types.SemanticTokensParams):
+async def semantic_tokens_full(ls: CK3LanguageServer, params: types.SemanticTokensParams):
     """
     Provide semantic tokens for rich syntax highlighting.
 
@@ -2096,6 +2215,8 @@ def semantic_tokens_full(ls: CK3LanguageServer, params: types.SemanticTokensPara
     - Scope types and their relationships
     - Custom mod definitions (scripted effects, triggers, etc.)
     - Event definitions vs references
+
+    Runs in thread manager with CRITICAL priority as user is actively viewing.
 
     Args:
         ls: The CK3 language server instance
@@ -2127,19 +2248,33 @@ def semantic_tokens_full(ls: CK3LanguageServer, params: types.SemanticTokensPara
         - readonly: Immutable values
         - defaultLibrary: Built-in game effects/triggers
     """
-    try:
-        doc = ls.workspace.get_text_document(params.text_document.uri)
 
-        # Thread-safe index access
-        with ls._index_lock:
-            index = ls.index
+    def _semantic_tokens_sync():
+        """Synchronous implementation for thread pool execution."""
+        try:
+            doc = ls.workspace.get_text_document(params.text_document.uri)
 
-        # Get semantic tokens using the module
-        return get_semantic_tokens(doc.source, index)
+            # Thread-safe index access
+            with ls._index_lock:
+                index = ls.index
 
-    except Exception as e:
-        logger.error(f"Error in semantic_tokens handler: {e}", exc_info=True)
-        return types.SemanticTokens(data=[])
+            # Get semantic tokens using the module
+            return get_semantic_tokens(doc.source, index)
+
+        except Exception as e:
+            logger.error(f"Error in semantic_tokens handler: {e}", exc_info=True)
+            return types.SemanticTokens(data=[])
+
+    # Submit to thread manager with CRITICAL priority
+    return await _execute_with_thread_manager(
+        ls,
+        _semantic_tokens_sync,
+        TaskPriority.CRITICAL,
+        f"semantic:{params.text_document.uri}",
+        30.0,
+        "semantic_tokens",
+        types.SemanticTokens(data=[]),
+    )
 
 
 # =============================================================================
@@ -2151,8 +2286,7 @@ def semantic_tokens_full(ls: CK3LanguageServer, params: types.SemanticTokensPara
     types.TEXT_DOCUMENT_FORMATTING,
     types.DocumentFormattingOptions(),
 )
-@server.thread()  # Run in thread pool - line-by-line processing
-def document_formatting(ls: CK3LanguageServer, params: types.DocumentFormattingParams):
+async def document_formatting(ls: CK3LanguageServer, params: types.DocumentFormattingParams):
     """
     Format an entire CK3 document.
 
@@ -2163,6 +2297,8 @@ def document_formatting(ls: CK3LanguageServer, params: types.DocumentFormattingP
     - Proper spacing around operators
     - Consistent blank lines between blocks
     - Trimmed trailing whitespace
+
+    Runs in thread manager with NORMAL priority.
 
     Args:
         ls: The CK3 language server instance
@@ -2181,28 +2317,59 @@ def document_formatting(ls: CK3LanguageServer, params: types.DocumentFormattingP
         - VS Code: Shift+Alt+F (Windows/Linux) or Shift+Option+F (Mac)
         - Or right-click -> Format Document
     """
-    try:
-        doc = ls.workspace.get_text_document(params.text_document.uri)
 
-        # Get formatting edits
-        edits = format_document(doc.source, params.options)
+    def _document_formatting_sync():
+        """Synchronous implementation for thread pool execution."""
+        try:
+            doc = ls.workspace.get_text_document(params.text_document.uri)
 
-        if edits:
-            logger.debug(f"Formatting document: {len(edits)} edit(s)")
+            # Get formatting edits
+            edits = format_document(doc.source, params.options)
 
-        return edits if edits else None
+            if edits:
+                logger.debug(f"Formatting document: {len(edits)} edit(s)")
 
-    except Exception as e:
-        logger.error(f"Error in document_formatting handler: {e}", exc_info=True)
-        return None
+            return edits if edits else None
+
+        except Exception as e:
+            logger.error(f"Error in document_formatting handler: {e}", exc_info=True)
+            return None
+
+    # Submit to thread manager with NORMAL priority
+
+
+    return await _execute_with_thread_manager(
+
+
+        ls,
+
+
+        _document_formatting_sync,
+
+
+        TaskPriority.NORMAL,
+
+
+        f"format:{params.text_document.uri}",
+
+
+        10.0,
+
+
+        "document_formatting",
+
+
+        None,
+
+
+    )
 
 
 @server.feature(
     types.TEXT_DOCUMENT_RANGE_FORMATTING,
     types.DocumentRangeFormattingOptions(),
 )
-@server.thread()  # Run in thread pool
-def range_formatting(ls: CK3LanguageServer, params: types.DocumentRangeFormattingParams):
+async def range_formatting(ls: CK3LanguageServer, params: types.DocumentRangeFormattingParams):
     """
     Format a selected range within a CK3 document.
 
@@ -2214,6 +2381,8 @@ def range_formatting(ls: CK3LanguageServer, params: types.DocumentRangeFormattin
 
     The formatter will automatically expand the range to include complete
     blocks to ensure the resulting code is syntactically valid.
+
+    Runs in thread manager with NORMAL priority.
 
     Args:
         ls: The CK3 language server instance
@@ -2233,20 +2402,52 @@ def range_formatting(ls: CK3LanguageServer, params: types.DocumentRangeFormattin
         - Select text, then use Format Selection command
         - VS Code: Ctrl+K Ctrl+F (Windows/Linux) or Cmd+K Cmd+F (Mac)
     """
-    try:
-        doc = ls.workspace.get_text_document(params.text_document.uri)
 
-        # Get formatting edits for the range
-        edits = format_range(doc.source, params.range, params.options)
+    def _range_formatting_sync():
+        """Synchronous implementation for thread pool execution."""
+        try:
+            doc = ls.workspace.get_text_document(params.text_document.uri)
 
-        if edits:
-            logger.debug(f"Formatting range: {len(edits)} edit(s)")
+            # Get formatting edits for the range
+            edits = format_range(doc.source, params.range, params.options)
 
-        return edits if edits else None
+            if edits:
+                logger.debug(f"Formatting range: {len(edits)} edit(s)")
 
-    except Exception as e:
-        logger.error(f"Error in range_formatting handler: {e}", exc_info=True)
-        return None
+            return edits if edits else None
+
+        except Exception as e:
+            logger.error(f"Error in range_formatting handler: {e}", exc_info=True)
+            return None
+
+    # Submit to thread manager with NORMAL priority
+
+
+    return await _execute_with_thread_manager(
+
+
+        ls,
+
+
+        _range_formatting_sync,
+
+
+        TaskPriority.NORMAL,
+
+
+        f"format_range:{params.text_document.uri}",
+
+
+        10.0,
+
+
+        "range_formatting",
+
+
+        None,
+
+
+    )
 
 
 # =============================================================================
@@ -2258,8 +2459,7 @@ def range_formatting(ls: CK3LanguageServer, params: types.DocumentRangeFormattin
     types.TEXT_DOCUMENT_CODE_LENS,
     types.CodeLensOptions(resolve_provider=True),
 )
-@server.thread()  # Run in thread pool - reference counting
-def code_lens(ls: CK3LanguageServer, params: types.CodeLensParams):
+async def code_lens(ls: CK3LanguageServer, params: types.CodeLensParams):
     """
     Provide code lenses for CK3 scripts.
 
@@ -2268,6 +2468,8 @@ def code_lens(ls: CK3LanguageServer, params: types.CodeLensParams):
     - Event reference counts and missing localization warnings
     - Scripted effect/trigger usage counts
     - Namespace event counts
+
+    Runs in thread manager with NORMAL priority.
 
     Args:
         ls: The CK3 language server instance
@@ -2282,15 +2484,47 @@ def code_lens(ls: CK3LanguageServer, params: types.CodeLensParams):
         CodeLens[] or null. Code lenses can have a command, or the command can
         be provided later via codeLens/resolve.
     """
-    try:
-        doc = ls.workspace.get_text_document(params.text_document.uri)
 
-        # Get code lenses using the module
-        return get_code_lenses(doc.source, doc.uri, ls.index)
+    def _code_lens_sync():
+        """Synchronous implementation for thread pool execution."""
+        try:
+            doc = ls.workspace.get_text_document(params.text_document.uri)
 
-    except Exception as e:
-        logger.error(f"Error in code_lens handler: {e}", exc_info=True)
-        return None
+            # Get code lenses using the module
+            return get_code_lenses(doc.source, doc.uri, ls.index)
+
+        except Exception as e:
+            logger.error(f"Error in code_lens handler: {e}", exc_info=True)
+            return None
+
+    # Submit to thread manager with NORMAL priority
+
+
+    return await _execute_with_thread_manager(
+
+
+        ls,
+
+
+        _code_lens_sync,
+
+
+        TaskPriority.NORMAL,
+
+
+        f"code_lens:{params.text_document.uri}",
+
+
+        20.0,
+
+
+        "code_lens",
+
+
+        None,
+
+
+    )
 
 
 @server.feature(types.CODE_LENS_RESOLVE)
@@ -2330,8 +2564,7 @@ def code_lens_resolve(ls: CK3LanguageServer, params: types.CodeLens):
     types.TEXT_DOCUMENT_INLAY_HINT,
     types.InlayHintOptions(resolve_provider=True),
 )
-@server.thread()  # Run in thread pool - pattern matching
-def inlay_hint(ls: CK3LanguageServer, params: types.InlayHintParams):
+async def inlay_hint(ls: CK3LanguageServer, params: types.InlayHintParams):
     """
     Provide inlay hints for CK3 scripts.
 
@@ -2340,6 +2573,8 @@ def inlay_hint(ls: CK3LanguageServer, params: types.InlayHintParams):
     - Scope types after saved scopes: `scope:friend` → `: character`
     - Scope types after scope chains: `root.primary_title` → `: landed_title`
     - Target scope type for list iterators: `every_vassal` → `→ character`
+
+    Runs in thread manager with CRITICAL priority (user is viewing).
 
     Args:
         ls: The CK3 language server instance
@@ -2358,28 +2593,60 @@ def inlay_hint(ls: CK3LanguageServer, params: types.InlayHintParams):
         Inlay hints appear automatically as you view code. They can be toggled
         via editor settings (e.g., Editor > Inlay Hints in VS Code).
     """
-    try:
-        doc = ls.workspace.get_text_document(params.text_document.uri)
 
-        # Get inlay hint configuration from initialization options
-        config = InlayHintConfig(
-            show_scope_types=True,
-            show_link_types=True,
-            show_iterator_types=True,
-            show_parameter_names=False,
-        )
+    def _inlay_hint_sync():
+        """Synchronous implementation for thread pool execution."""
+        try:
+            doc = ls.workspace.get_text_document(params.text_document.uri)
 
-        # Get inlay hints for the range
-        hints = get_inlay_hints(doc.source, params.range, ls.index, config)
+            # Get inlay hint configuration from initialization options
+            config = InlayHintConfig(
+                show_scope_types=True,
+                show_link_types=True,
+                show_iterator_types=True,
+                show_parameter_names=False,
+            )
 
-        if hints:
-            logger.debug(f"Providing {len(hints)} inlay hint(s)")
+            # Get inlay hints for the range
+            hints = get_inlay_hints(doc.source, params.range, ls.index, config)
 
-        return hints if hints else None
+            if hints:
+                logger.debug(f"Providing {len(hints)} inlay hint(s)")
 
-    except Exception as e:
-        logger.error(f"Error in inlay_hint handler: {e}", exc_info=True)
-        return None
+            return hints if hints else None
+
+        except Exception as e:
+            logger.error(f"Error in inlay_hint handler: {e}", exc_info=True)
+            return None
+
+    # Submit to thread manager with CRITICAL priority
+
+
+    return await _execute_with_thread_manager(
+
+
+        ls,
+
+
+        _inlay_hint_sync,
+
+
+        TaskPriority.CRITICAL,
+
+
+        f"inlay:{params.text_document.uri}",
+
+
+        10.0,
+
+
+        "inlay_hint",
+
+
+        None,
+
+
+    )
 
 
 @server.feature(types.INLAY_HINT_RESOLVE)
@@ -2475,8 +2742,7 @@ def signature_help(ls: CK3LanguageServer, params: types.SignatureHelpParams):
 
 
 @server.feature(types.TEXT_DOCUMENT_DOCUMENT_HIGHLIGHT)
-@server.thread()  # Run in thread pool - pattern matching
-def document_highlight(
+async def document_highlight(
     ls: CK3LanguageServer, params: types.DocumentHighlightParams
 ) -> Optional[List[types.DocumentHighlight]]:
     """
@@ -2507,19 +2773,51 @@ def document_highlight(
         Click on a saved scope like `scope:target` and all occurrences of
         `scope:target` and `save_scope_as = target` will be highlighted.
     """
-    try:
-        doc = ls.workspace.get_text_document(params.text_document.uri)
 
-        highlights = get_document_highlights(doc.source, params.position)
+    def _document_highlight_sync():
+        """Synchronous implementation for thread pool execution."""
+        try:
+            doc = ls.workspace.get_text_document(params.text_document.uri)
 
-        if highlights:
-            logger.debug(f"Found {len(highlights)} highlight(s) at position {params.position}")
+            highlights = get_document_highlights(doc.source, params.position)
 
-        return highlights
+            if highlights:
+                logger.debug(f"Found {len(highlights)} highlight(s) at position {params.position}")
 
-    except Exception as e:
-        logger.error(f"Error in document_highlight handler: {e}", exc_info=True)
-        return None
+            return highlights
+
+        except Exception as e:
+            logger.error(f"Error in document_highlight handler: {e}", exc_info=True)
+            return None
+
+    # Submit to thread manager with HIGH priority
+
+
+    return await _execute_with_thread_manager(
+
+
+        ls,
+
+
+        _document_highlight_sync,
+
+
+        TaskPriority.HIGH,
+
+
+        f"highlight:{params.text_document.uri}",
+
+
+        10.0,
+
+
+        "document_highlight",
+
+
+        None,
+
+
+    )
 
 
 # =============================================================================
@@ -2674,8 +2972,7 @@ def prepare_rename(
 
 
 @server.feature(types.TEXT_DOCUMENT_RENAME)
-@server.thread()  # Run in thread pool - scans workspace files
-def rename(ls: CK3LanguageServer, params: types.RenameParams) -> Optional[types.WorkspaceEdit]:
+async def rename(ls: CK3LanguageServer, params: types.RenameParams) -> Optional[types.WorkspaceEdit]:
     """
     Perform a rename operation.
 
@@ -2686,6 +2983,8 @@ def rename(ls: CK3LanguageServer, params: types.RenameParams) -> Optional[types.
     - Variable definitions and var: references
     - Character/global flag operations
     - Related localization keys (for events)
+
+    Runs in thread manager with NORMAL priority.
 
     Args:
         ls: The CK3 language server instance
@@ -2705,31 +3004,45 @@ def rename(ls: CK3LanguageServer, params: types.RenameParams) -> Optional[types.
         Place cursor on `scope:target`, press F2, type "new_target".
         All `scope:target` and `save_scope_as = target` are updated.
     """
-    try:
-        doc = ls.workspace.get_text_document(params.text_document.uri)
-        workspace_folders = _get_workspace_folder_paths(ls)
 
-        edit = perform_rename(
-            doc.source,
-            params.position,
-            params.new_name,
-            params.text_document.uri,
-            workspace_folders,
-        )
+    def _rename_sync():
+        """Synchronous implementation for thread pool execution."""
+        try:
+            doc = ls.workspace.get_text_document(params.text_document.uri)
+            workspace_folders = _get_workspace_folder_paths(ls)
 
-        if edit:
-            # Count total edits
-            total_edits = sum(len(edits) for edits in (edit.changes or {}).values())
-            total_files = len(edit.changes or {})
-            logger.info(f"Rename: {total_edits} edits across {total_files} files")
-        else:
-            logger.debug("Rename returned no edits")
+            edit = perform_rename(
+                doc.source,
+                params.position,
+                params.new_name,
+                params.text_document.uri,
+                workspace_folders,
+            )
 
-        return edit
+            if edit:
+                # Count total edits
+                total_edits = sum(len(edits) for edits in (edit.changes or {}).values())
+                total_files = len(edit.changes or {})
+                logger.info(f"Rename: {total_edits} edits across {total_files} files")
+            else:
+                logger.debug("Rename returned no edits")
 
-    except Exception as e:
-        logger.error(f"Error in rename handler: {e}", exc_info=True)
-        return None
+            return edit
+
+        except Exception as e:
+            logger.error(f"Error in rename handler: {e}", exc_info=True)
+            return None
+
+    # Submit to thread manager with NORMAL priority
+    return await _execute_with_thread_manager(
+        ls,
+        _rename_sync,
+        TaskPriority.NORMAL,
+        f"rename:{params.text_document.uri}",
+        60.0,  # Longer timeout for workspace-wide operations
+        "rename",
+        None,
+    )
 
 
 # =============================================================================
@@ -2741,8 +3054,7 @@ def rename(ls: CK3LanguageServer, params: types.RenameParams) -> Optional[types.
     types.TEXT_DOCUMENT_FOLDING_RANGE,
     types.FoldingRangeOptions(),
 )
-@server.thread()  # Run in thread pool - block detection
-def folding_range(
+async def folding_range(
     ls: CK3LanguageServer, params: types.FoldingRangeParams
 ) -> Optional[List[types.FoldingRange]]:
     """
@@ -2754,6 +3066,8 @@ def folding_range(
     - Nested blocks: Any `{ ... }` block spanning multiple lines
     - Comment blocks: Multiple consecutive comment lines
     - Region markers: `# region` / `# endregion` custom folding
+
+    Runs in thread manager with NORMAL priority.
 
     Args:
         ls: The CK3 language server instance
@@ -2772,18 +3086,50 @@ def folding_range(
         Use Ctrl+Shift+[ to fold at cursor.
         Use Ctrl+Shift+] to unfold at cursor.
     """
-    try:
-        doc = ls.workspace.get_text_document(params.text_document.uri)
 
-        ranges = get_folding_ranges(doc.source)
+    def _folding_range_sync():
+        """Synchronous implementation for thread pool execution."""
+        try:
+            doc = ls.workspace.get_text_document(params.text_document.uri)
 
-        logger.debug(f"Folding ranges: {len(ranges)} ranges for {params.text_document.uri}")
+            ranges = get_folding_ranges(doc.source)
 
-        return ranges if ranges else None
+            logger.debug(f"Folding ranges: {len(ranges)} ranges for {params.text_document.uri}")
 
-    except Exception as e:
-        logger.error(f"Error in folding_range handler: {e}", exc_info=True)
-        return None
+            return ranges if ranges else None
+
+        except Exception as e:
+            logger.error(f"Error in folding_range handler: {e}", exc_info=True)
+            return None
+
+    # Submit to thread manager with NORMAL priority
+
+
+    return await _execute_with_thread_manager(
+
+
+        ls,
+
+
+        _folding_range_sync,
+
+
+        TaskPriority.NORMAL,
+
+
+        f"folding:{params.text_document.uri}",
+
+
+        10.0,
+
+
+        "folding_range",
+
+
+        None,
+
+
+    )
 
 
 # =============================================================================
@@ -2856,11 +3202,17 @@ async def validate_workspace_command(ls: CK3LanguageServer, *args: Any):
             loop = asyncio.get_event_loop()
 
             # Run scan in thread pool with thread-safe index access
+            from pychivalry.threading import TaskPriority
+
             def scan_with_lock():
                 with ls._index_lock:
                     ls.index.scan_workspace(workspace_folders)
 
-            await loop.run_in_executor(ls._thread_pool, scan_with_lock)
+            loop = asyncio.get_event_loop()
+            future = ls.thread_manager.submit_cpu_bound(
+                scan_with_lock, priority=TaskPriority.LOW, task_id="validate:scan"
+            )
+            await loop.wrap_future(future)
 
         ls._workspace_scanned = True
 
@@ -2973,6 +3325,45 @@ def get_workspace_stats_command(ls: CK3LanguageServer, *args: Any):
             "opinion_modifiers": len(ls.index.opinion_modifiers),
             "scripted_guis": len(ls.index.scripted_guis),
         }
+
+
+@server.command("ck3.getThreadingMetrics")
+def get_threading_metrics_command(ls: CK3LanguageServer, *args: Any):
+    """
+    Command: Get threading metrics.
+
+    Returns current thread pool statistics for debugging and monitoring.
+    Useful for understanding performance and identifying bottlenecks.
+
+    Args:
+        ls: The language server instance
+        args: Command arguments (unused)
+
+    Returns:
+        Dictionary with threading metrics:
+        - completed_count: Successfully completed tasks
+        - cancelled_count: Tasks cancelled before completion
+        - timeout_count: Tasks that exceeded their timeout
+        - failed_count: Tasks that raised exceptions
+        - active_count: Currently running tasks
+        - cpu_workers: Number of CPU pool workers
+        - io_workers: Number of I/O pool workers
+    """
+    logger.info("Executing ck3.getThreadingMetrics command")
+    args = _normalize_command_args(args)
+
+    metrics = ls.thread_manager.get_metrics()
+    
+    # Log metrics for debugging
+    logger.info(
+        f"Threading metrics: {metrics['completed_count']} completed, "
+        f"{metrics['cancelled_count']} cancelled, "
+        f"{metrics['timeout_count']} timeout, "
+        f"{metrics['failed_count']} failed, "
+        f"{metrics['active_count']} active"
+    )
+    
+    return metrics
 
 
 @server.command("ck3.generateEventTemplate")
