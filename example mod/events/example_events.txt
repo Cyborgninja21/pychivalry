@@ -113,7 +113,7 @@ example_events.0001 = {
 				has_trait = shy
 				has_trait = paranoid
 			}
-		}
+		
 		
 		# Refund some cost
 		add_gold = 25

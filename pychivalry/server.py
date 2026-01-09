@@ -926,8 +926,13 @@ class CK3LanguageServer(LanguageServer):
                     logger.debug(f"Skipping stale AST update for {uri}")
                     return
 
-                # Update AST (thread-safe)
+                # Re-parse to get parse_errors (ast from cache doesn't have them)
+                # This is a small overhead but necessary for parser error diagnostics
+                _, parse_errors = parse_document(current_source)
+
+                # Update AST and parse errors (thread-safe)
                 self.set_ast(uri, ast)
+                self.set_parse_errors(uri, parse_errors)
 
                 # Update index (thread-safe)
                 with self._index_lock:
