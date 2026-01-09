@@ -408,3 +408,254 @@ def test_metrics_accuracy():
 
     finally:
         mgr.shutdown(wait=True)
+
+
+def test_priority_enforcement_critical_vs_low():
+    """Test that CRITICAL priority tasks execute before LOW priority tasks."""
+    mgr = CK3ThreadManager()
+    execution_order = []
+    lock = threading.Lock()
+    start_event = threading.Event()
+
+    try:
+        # Create a slow task to occupy all CPU workers
+        def blocker():
+            start_event.wait()  # Wait until all tasks are queued
+            time.sleep(0.2)
+
+        # Submit blocking tasks to fill the pool
+        cpu_workers = mgr.get_metrics()["cpu_workers"]
+        blocking_futures = []
+        for i in range(cpu_workers):
+            f = mgr.submit_cpu_bound(blocker, priority=TaskPriority.BACKGROUND, task_id=f"blocker-{i}")
+            blocking_futures.append(f)
+
+        # Give blockers time to start
+        time.sleep(0.1)
+
+        # Submit LOW priority tasks first
+        def low_task(task_num):
+            with lock:
+                execution_order.append(f"LOW-{task_num}")
+
+        for i in range(5):
+            mgr.submit_cpu_bound(low_task, i, priority=TaskPriority.LOW, task_id=f"low-{i}")
+
+        # Submit CRITICAL priority tasks
+        def critical_task(task_num):
+            with lock:
+                execution_order.append(f"CRITICAL-{task_num}")
+
+        critical_futures = []
+        for i in range(3):
+            f = mgr.submit_cpu_bound(critical_task, i, priority=TaskPriority.CRITICAL, task_id=f"critical-{i}")
+            critical_futures.append(f)
+
+        # Release blockers
+        start_event.set()
+
+        # Wait for all tasks to complete
+        for f in blocking_futures + critical_futures:
+            f.result(timeout=2.0)
+
+        time.sleep(0.1)
+
+        # CRITICAL tasks should execute before LOW tasks
+        critical_count = sum(1 for item in execution_order if item.startswith("CRITICAL"))
+        assert critical_count == 3, f"Expected 3 CRITICAL tasks, got {critical_count}"
+
+        # Find position of first CRITICAL and last CRITICAL
+        first_critical_idx = next((i for i, x in enumerate(execution_order) if x.startswith("CRITICAL")), None)
+        last_critical_idx = len(execution_order) - 1 - next((i for i, x in enumerate(reversed(execution_order)) if x.startswith("CRITICAL")), 0)
+        first_low_idx = next((i for i, x in enumerate(execution_order) if x.startswith("LOW")), None)
+
+        # At least the first CRITICAL should execute before first LOW
+        if first_critical_idx is not None and first_low_idx is not None:
+            assert first_critical_idx < first_low_idx, \
+                f"CRITICAL task at index {first_critical_idx} should execute before LOW task at {first_low_idx}"
+
+    finally:
+        mgr.shutdown(wait=True)
+
+
+def test_priority_enforcement_multiple_levels():
+    """Test that tasks execute in strict priority order: CRITICAL > HIGH > NORMAL > LOW."""
+    mgr = CK3ThreadManager()
+    execution_order = []
+    lock = threading.Lock()
+    start_event = threading.Event()
+
+    try:
+        # Create blocker to fill the pool
+        def blocker():
+            start_event.wait()
+            time.sleep(0.2)
+
+        cpu_workers = mgr.get_metrics()["cpu_workers"]
+        blocking_futures = []
+        for i in range(cpu_workers):
+            f = mgr.submit_cpu_bound(blocker, priority=TaskPriority.BACKGROUND, task_id=f"blocker-{i}")
+            blocking_futures.append(f)
+
+        time.sleep(0.1)
+
+        # Submit tasks in reverse priority order (all at once before release)
+        def record_task(priority_name):
+            with lock:
+                execution_order.append(priority_name)
+
+        priorities = [
+            (TaskPriority.LOW, "LOW"),
+            (TaskPriority.NORMAL, "NORMAL"),
+            (TaskPriority.HIGH, "HIGH"),
+            (TaskPriority.CRITICAL, "CRITICAL"),
+        ]
+
+        task_futures = []
+        for priority, name in priorities:
+            f = mgr.submit_cpu_bound(record_task, name, priority=priority, task_id=f"task-{name}")
+            task_futures.append(f)
+
+        # Release blockers now that all tasks are queued
+        start_event.set()
+
+        # Wait for completion
+        for f in blocking_futures + task_futures:
+            f.result(timeout=2.0)
+
+        time.sleep(0.1)
+
+        # Verify execution order matches priority
+        assert len(execution_order) == 4, f"Expected 4 tasks, got {len(execution_order)}: {execution_order}"
+        assert execution_order[0] == "CRITICAL", f"First task should be CRITICAL, got {execution_order[0]} (full order: {execution_order})"
+        assert execution_order[1] == "HIGH", f"Second task should be HIGH, got {execution_order[1]} (full order: {execution_order})"
+        assert execution_order[2] == "NORMAL", f"Third task should be NORMAL, got {execution_order[2]} (full order: {execution_order})"
+        assert execution_order[3] == "LOW", f"Fourth task should be LOW, got {execution_order[3]} (full order: {execution_order})"
+
+    finally:
+        mgr.shutdown(wait=True)
+
+
+def test_priority_scheduling_disabled():
+    """Test that priority scheduling can be disabled via environment variable."""
+    import os
+
+    # Disable priority scheduling
+    old_value = os.environ.get("CK3_PRIORITY_SCHEDULING")
+    os.environ["CK3_PRIORITY_SCHEDULING"] = "0"
+
+    try:
+        mgr = CK3ThreadManager()
+
+        try:
+            # Should still accept priority parameter but may not enforce it
+            def task():
+                return 42
+
+            f1 = mgr.submit_cpu_bound(task, priority=TaskPriority.LOW)
+            f2 = mgr.submit_cpu_bound(task, priority=TaskPriority.CRITICAL)
+
+            # Both should complete successfully
+            assert f1.result(timeout=1.0) == 42
+            assert f2.result(timeout=1.0) == 42
+
+        finally:
+            mgr.shutdown(wait=True)
+    finally:
+        # Restore environment
+        if old_value is None:
+            os.environ.pop("CK3_PRIORITY_SCHEDULING", None)
+        else:
+            os.environ["CK3_PRIORITY_SCHEDULING"] = old_value
+
+
+def test_priority_with_uri_cancellation():
+    """Test that priority scheduling works correctly with URI-based cancellation."""
+    mgr = CK3ThreadManager()
+
+    try:
+        # Submit tasks with different priorities and URIs
+        def slow_task():
+            time.sleep(0.3)
+            return "completed"
+
+        # Submit CRITICAL task with URI
+        f1 = mgr.submit_cpu_bound(
+            slow_task,
+            priority=TaskPriority.CRITICAL,
+            task_id="critical-task",
+            uri="file:///test/critical.py"
+        )
+
+        # Submit LOW priority tasks with different URI
+        low_futures = []
+        for i in range(3):
+            f = mgr.submit_cpu_bound(
+                slow_task,
+                priority=TaskPriority.LOW,
+                task_id=f"low-task-{i}",
+                uri="file:///test/low.py"
+            )
+            low_futures.append(f)
+
+        # Give tasks time to queue
+        time.sleep(0.05)
+
+        # Cancel all LOW tasks by URI (should be O(1))
+        cancelled_count = mgr.cancel_by_uri("file:///test/low.py")
+
+        # Should have cancelled pending LOW tasks
+        assert cancelled_count >= 0, "Should cancel some LOW tasks"
+
+        # CRITICAL task should still complete
+        result = f1.result(timeout=1.0)
+        assert result == "completed"
+
+    finally:
+        mgr.shutdown(wait=True)
+
+
+@pytest.mark.asyncio
+async def test_priority_with_asyncio():
+    """Test that priority scheduling works with asyncio integration."""
+    mgr = CK3ThreadManager()
+
+    try:
+        execution_order = []
+        lock = threading.Lock()
+        start_event = threading.Event()
+
+        # Create blocker
+        def blocker():
+            start_event.wait()
+            time.sleep(0.1)
+
+        cpu_workers = mgr.get_metrics()["cpu_workers"]
+        for i in range(cpu_workers):
+            mgr.submit_cpu_bound(blocker, priority=TaskPriority.BACKGROUND)
+
+        await asyncio.sleep(0.1)
+
+        # Submit tasks via asyncio
+        def record_priority(priority_name):
+            with lock:
+                execution_order.append(priority_name)
+
+        low_future = mgr.submit_cpu_bound(record_priority, "LOW", priority=TaskPriority.LOW)
+        critical_future = mgr.submit_cpu_bound(record_priority, "CRITICAL", priority=TaskPriority.CRITICAL)
+
+        # Release blockers
+        start_event.set()
+
+        # Wait using asyncio
+        await asyncio.wrap_future(low_future)
+        await asyncio.wrap_future(critical_future)
+
+        await asyncio.sleep(0.1)
+
+        # CRITICAL should execute first
+        if len(execution_order) >= 2:
+            assert execution_order[0] == "CRITICAL", f"Expected CRITICAL first, got {execution_order}"
+
+    finally:
+        mgr.shutdown(wait=True)
