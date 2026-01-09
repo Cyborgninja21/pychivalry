@@ -75,11 +75,11 @@ SEE ALSO:
 """
 
 import asyncio
+import itertools
 import logging
 import os
 import threading
 import time
-import uuid
 from concurrent.futures import Future, ThreadPoolExecutor
 from dataclasses import dataclass, field
 from enum import IntEnum
@@ -182,6 +182,9 @@ class CK3ThreadManager:
         ```
     """
 
+    # Class-level atomic counter for task ID generation
+    _task_counter = itertools.count()
+
     def __init__(self):
         """Initialize the thread manager with CPU and I/O pools."""
         # Separate pools for different operation types
@@ -190,7 +193,7 @@ class CK3ThreadManager:
         cpu_count = os.cpu_count() or 2
         max_cpu_workers = int(os.environ.get("CK3_MAX_CPU_WORKERS", min(4, cpu_count)))
         max_io_workers = int(os.environ.get("CK3_MAX_IO_WORKERS", 4))
-        
+
         self._cpu_pool = ThreadPoolExecutor(
             max_workers=max(2, max_cpu_workers), thread_name_prefix="ck3-cpu"
         )
@@ -203,9 +206,11 @@ class CK3ThreadManager:
 
         # Active tasks tracking
         self._active_tasks: Dict[str, Future] = {}
-        self._active_tasks_lock = threading.RLock()
+        self._active_tasks_lock = threading.Lock()  # Changed from RLock - no reentrancy needed
 
-        # Metrics
+        # Metrics - using simple integers with lock for thread safety
+        # Note: Could use atomic integers for better performance, but standard int + lock
+        # is simpler and adequate for current needs
         self._completed_count = 0
         self._cancelled_count = 0
         self._timeout_count = 0
@@ -216,8 +221,9 @@ class CK3ThreadManager:
         self._shutdown = False
 
         logger.info(
-            f"CK3ThreadManager initialized with {self._cpu_pool._max_workers} CPU workers "
-            f"and {self._io_pool._max_workers} I/O workers"
+            "CK3ThreadManager initialized with %d CPU workers and %d I/O workers",
+            self._cpu_pool._max_workers,
+            self._io_pool._max_workers
         )
 
     def submit_cpu_bound(
@@ -264,31 +270,35 @@ class CK3ThreadManager:
         if self._shutdown:
             raise RuntimeError("Thread manager is shut down")
 
-        # Generate task ID if not provided
+        # Generate task ID if not provided - using fast counter instead of UUID
         if task_id is None:
-            task_id = f"cpu-{uuid.uuid4().hex[:8]}"
+            task_id = f"cpu-{next(self._task_counter)}"
 
         # Create wrapper that handles timeout and cancellation
         def wrapped_func():
-            start_time = time.time()
+            # Only track time if timeout is specified
+            start_time = time.time() if timeout else None
 
             try:
                 # Check cancellation before starting
                 if cancellation_token and cancellation_token.is_set():
                     with self._metrics_lock:
                         self._cancelled_count += 1
-                    logger.debug(f"Task {task_id} cancelled before execution")
+                    if logger.isEnabledFor(logging.DEBUG):
+                        logger.debug("Task %s cancelled before execution", task_id)
                     raise asyncio.CancelledError("Task cancelled before execution")
 
                 # Execute the function
                 result = func(*args, **kwargs)
 
-                # Check timeout
-                elapsed = time.time() - start_time
-                if timeout and elapsed > timeout:
-                    with self._metrics_lock:
-                        self._timeout_count += 1
-                    logger.warning(f"Task {task_id} exceeded timeout: {elapsed:.2f}s > {timeout}s")
+                # Check timeout only if configured
+                if start_time is not None:
+                    elapsed = time.time() - start_time
+                    if elapsed > timeout:
+                        with self._metrics_lock:
+                            self._timeout_count += 1
+                        logger.warning("Task %s exceeded timeout: %.2fs > %ss",
+                                     task_id, elapsed, timeout)
 
                 # Update metrics
                 with self._metrics_lock:
@@ -301,7 +311,7 @@ class CK3ThreadManager:
             except Exception as e:
                 with self._metrics_lock:
                     self._failed_count += 1
-                logger.error(f"Task {task_id} failed: {e}", exc_info=True)
+                logger.error("Task %s failed: %s", task_id, e, exc_info=True)
                 raise
             finally:
                 # Remove from active tasks
@@ -315,10 +325,11 @@ class CK3ThreadManager:
         with self._active_tasks_lock:
             self._active_tasks[task_id] = future
 
-        logger.debug(
-            f"Submitted CPU task {task_id} with priority {priority.name} "
-            f"(timeout={timeout}, has_cancel_token={cancellation_token is not None})"
-        )
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug(
+                "Submitted CPU task %s with priority %s (timeout=%s, has_cancel_token=%s)",
+                task_id, priority.name, timeout, cancellation_token is not None
+            )
 
         return future
 
@@ -360,9 +371,9 @@ class CK3ThreadManager:
         if self._shutdown:
             raise RuntimeError("Thread manager is shut down")
 
-        # Generate task ID if not provided
+        # Generate task ID if not provided - using fast counter instead of UUID
         if task_id is None:
-            task_id = f"io-{uuid.uuid4().hex[:8]}"
+            task_id = f"io-{next(self._task_counter)}"
 
         # Create wrapper for metrics
         def wrapped_func():
@@ -374,7 +385,7 @@ class CK3ThreadManager:
             except Exception as e:
                 with self._metrics_lock:
                     self._failed_count += 1
-                logger.error(f"I/O task {task_id} failed: {e}", exc_info=True)
+                logger.error("I/O task %s failed: %s", task_id, e, exc_info=True)
                 raise
             finally:
                 with self._active_tasks_lock:
@@ -387,7 +398,8 @@ class CK3ThreadManager:
         with self._active_tasks_lock:
             self._active_tasks[task_id] = future
 
-        logger.debug(f"Submitted I/O task {task_id} with priority {priority.name}")
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug("Submitted I/O task %s with priority %s", task_id, priority.name)
 
         return future
 
@@ -416,12 +428,13 @@ class CK3ThreadManager:
         for task_id, future in tasks_to_cancel:
             if future.cancel():
                 cancelled += 1
-                logger.debug(f"Cancelled task {task_id} ({description})")
+                if logger.isEnabledFor(logging.DEBUG):
+                    logger.debug("Cancelled task %s (%s)", task_id, description)
 
         if cancelled > 0:
             with self._metrics_lock:
                 self._cancelled_count += cancelled
-            logger.info(f"Cancelled {cancelled} tasks ({description})")
+            logger.info("Cancelled %d tasks (%s)", cancelled, description)
 
         return cancelled
 
