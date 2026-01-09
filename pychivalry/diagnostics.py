@@ -152,6 +152,7 @@ from .scopes import (
     parse_list_iterator,
 )
 from .ck3_language import CK3_EFFECTS, CK3_TRIGGERS, CK3_SCOPES
+from .block_validator import validate_block_semantics
 import logging
 
 logger = logging.getLogger(__name__)
@@ -981,6 +982,9 @@ def collect_all_diagnostics(
         # Use both old character-level check (for backwards compat) and new AST validator
         diagnostics.extend(check_syntax(doc, ast))
         diagnostics.extend(validate_ast_structure(ast))
+
+        # Block semantic validation (context-aware)
+        diagnostics.extend(validate_block_semantics(ast))
 
         # Semantic checks (always enabled)
         diagnostics.extend(check_semantics(ast, index))
