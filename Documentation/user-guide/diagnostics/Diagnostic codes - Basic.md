@@ -6,8 +6,10 @@ This document provides a comprehensive reference of all diagnostic codes impleme
 
 ## Table of Contents
 
-1. [Syntax Checks (CK3001-CK3002)](#syntax-checks-ck3001-ck3002)
-2. [Semantic Checks (CK3101-CK3103)](#semantic-checks-ck3101-ck3103)
+1. [Parser-Level Errors (PARSE-001 to PARSE-007)](#parser-level-errors-parse-001-to-parse-007)
+2. [Syntax Checks (CK3001-CK3002)](#syntax-checks-ck3001-ck3002)
+3. [Structural Validation (CK3003-CK3007)](#structural-validation-ck3003-ck3007)
+4. [Semantic Checks (CK3101-CK3103)](#semantic-checks-ck3101-ck3103)
 3. [Scope Checks (CK3201-CK3203)](#scope-checks-ck3201-ck3203)
 4. [Style Checks (CK33xx)](#style-checks-ck33xx)
 5. [Portrait & Animation Validation (CK3420-CK3422)](#portrait--animation-validation-ck3420-ck3422)
@@ -28,16 +30,61 @@ This document provides a comprehensive reference of all diagnostic codes impleme
 
 ---
 
+## Parser-Level Errors (PARSE-001 to PARSE-007)
+
+**Module:** `parser.py`
+
+These errors are detected during the parsing phase, before any semantic analysis. They represent fundamental structural problems that prevent proper AST construction.
+
+| Code | Severity | Description |
+|------|----------|-------------|
+| **PARSE-001** | Error | **Unterminated string literal** - A string started with `"` but never closed |
+| **PARSE-002** | Error | **Invalid number format** - A number contains invalid characters |
+| **PARSE-003** | Error | **Unexpected token** - The parser encountered a token it didn't expect |
+| **PARSE-004** | Error | **Unclosed block** - A block opened with `{` but reached end-of-file without closing `}` |
+| **PARSE-005** | Error | **Invalid assignment syntax** - Assignment is malformed (e.g., missing `=`) |
+| **PARSE-006** | Error | **Unmatched closing brace** - A `}` was found with no corresponding opening `{` |
+| **PARSE-007** | Error | **Incomplete assignment** - Assignment has `key =` but no value |
+
+### Examples
+
+```pdx
+# PARSE-004: Unclosed block
+scripted_trigger my_trigger = {
+    is_adult = yes
+    NOT = { this = root }
+# ERROR: Missing closing brace for my_trigger
+
+# PARSE-006: Unmatched closing brace
+trigger = {
+    is_adult = yes
+}
+}  # ERROR: Extra closing bracket
+
+# PARSE-001: Unterminated string
+name = "Emperor
+# ERROR: Missing closing quote
+```
+
+### When These Trigger
+
+Parser errors are the **first line of defense** and catch issues during the initial parsing phase:
+- They are detected **before** any semantic validation
+- The parser will build a **partial AST** and continue (error-tolerant)
+- These errors typically indicate typos or incomplete editing
+
+---
+
 ## Syntax Checks (CK3001-CK3002)
 
 **Module:** `diagnostics.py`
 
-These checks validate basic syntax structure of CK3 scripts, catching bracket mismatches that would cause parse failures.
+These checks validate basic syntax structure using character-level analysis. They are legacy validators maintained for backward compatibility alongside the new parser-level error detection.
 
 | Code | Severity | Description |
 |------|----------|-------------|
-| **CK3001** | Error | **Unmatched closing bracket** - A `}` was found with no corresponding opening `{` |
-| **CK3002** | Error | **Unclosed bracket** - An opening `{` was found with no corresponding closing `}` |
+| **CK3001** | Error | **Unmatched closing bracket** (legacy) - A `}` was found with no corresponding opening `{` |
+| **CK3002** | Error | **Unclosed bracket** (legacy) - An opening `{` was found with no corresponding closing `}` |
 
 ### Examples
 
@@ -58,36 +105,98 @@ my_event.2 = {
 
 ---
 
-## Semantic Checks (CK3101-CK3103)
+## Structural Validation (CK3003-CK3007)
 
-**Module:** `diagnostics.py`
+**Module:** `diagnostics.py` (via `validate_ast_structure()`)
 
-These checks validate semantic correctness of effects, triggers, and their usage contexts.
+These checks validate the structural integrity of blocks using AST analysis, ensuring blocks are properly formed and semantically complete.
 
 | Code | Severity | Description |
 |------|----------|-------------|
-| **CK3101** | Warning | **Unknown trigger** - Trigger name not recognized in CK3 trigger list |
-| **CK3102** | Error | **Effect in trigger block** - An effect command was used where only triggers are allowed |
-| **CK3103** | Warning | **Unknown effect** - Effect name not recognized in CK3 effect list |
+| **CK3003** | Error | **Invalid node structure** - AST node has malformed structure |
+| **CK3004** | Error | **Required children missing** - A block that requires children has none |
+| **CK3005** | Error | **Logical operator requires block** - Operators like `NOT`, `AND`, `OR` must have block values |
+| **CK3007** | Warning | **Empty block** - A semantic block (trigger, effect, etc.) is empty |
 
 ### Examples
 
 ```pdx
-# CK3101: Unknown trigger (typo)
+# CK3005: Logical operator requires block
 trigger = {
-    is_adlut = yes  # WARNING: Unknown trigger - did you mean 'is_adult'?
+    NOT = yes  # ERROR: NOT requires a block value like NOT = { ... }
 }
 
-# CK3102: Effect in trigger block
+# Should be:
 trigger = {
-    add_gold = 100  # ERROR: Effects cannot be used in trigger blocks
+    NOT = {
+        has_trait = brave
+    }
 }
 
-# CK3103: Unknown effect (typo)
-immediate = {
-    add_goldd = 100  # WARNING: Unknown effect - did you mean 'add_gold'?
+# CK3007: Empty block
+trigger = {
+    # WARNING: Trigger block is empty - requires at least one condition
+}
+
+# CK3005: AND operator requires block
+trigger = {
+    AND = yes  # ERROR: Must be AND = { condition1 condition2 }
 }
 ```
+
+### When These Trigger
+
+Structural validation runs on the parsed AST and catches semantic structural issues:
+- Empty blocks that should contain logic
+- Incorrect usage of logical operators
+- Missing required nested content
+
+---
+
+## Semantic Checks (CK3101-CK3103)
+
+**Module:** `block_validator.py` and `diagnostics.py`
+
+These checks validate semantic correctness based on CK3 language context, ensuring effects and triggers are used in the correct contexts.
+
+| Code | Severity | Description |
+|------|----------|-------------|
+| **CK3101** | Error | **Effect in trigger context** - An effect command was used where only triggers are allowed |
+| **CK3102** | Error | **Trigger in effect context** - A trigger was used where only effects are allowed |
+| **CK3103** | Error | **Scope changer requires block** - Scope changers like `any_vassal` require a block value |
+
+### Examples
+
+```pdx
+# CK3101: Effect in trigger context
+trigger = {
+    add_gold = 100  # ERROR: add_gold is an effect, cannot be used in trigger blocks
+}
+
+# CK3102: Trigger in effect context
+effect = {
+    is_adult = yes  # ERROR: is_adult is a trigger, cannot be used in effect blocks
+}
+
+# CK3103: Scope changer requires block
+effect = {
+    any_vassal = yes  # ERROR: Must be any_vassal = { ... }
+}
+
+# Should be:
+effect = {
+    any_vassal = {
+        add_prestige = 50
+    }
+}
+```
+
+### Context Propagation
+
+The validator tracks context through nested blocks:
+- `trigger =`, `allow =`, `can_use_hook =` → trigger context
+- `effect =`, `immediate =`, `after =` → effect context
+- Context switches appropriately for nested blocks like `if = { limit = { ... } }`
 
 ---
 
