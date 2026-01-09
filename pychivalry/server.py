@@ -889,6 +889,7 @@ class CK3LanguageServer(LanguageServer):
                     current_source,
                     priority=TaskPriority.HIGH,
                     task_id=f"parse:{uri}:{version}",
+                    uri=uri,
                 )
                 loop = asyncio.get_event_loop()
                 ast = await loop.wrap_future(future)
@@ -916,6 +917,7 @@ class CK3LanguageServer(LanguageServer):
                     ast,
                     priority=TaskPriority.HIGH,
                     task_id=f"syntax:{uri}:{version}",
+                    uri=uri,
                 )
                 syntax_diags = await loop.wrap_future(future)
 
@@ -939,6 +941,7 @@ class CK3LanguageServer(LanguageServer):
                     ast,
                     priority=TaskPriority.HIGH,
                     task_id=f"semantic:{uri}:{version}",
+                    uri=uri,
                 )
                 semantic_diags = await loop.wrap_future(future)
 
