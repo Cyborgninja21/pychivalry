@@ -374,6 +374,7 @@ class CK3LanguageServer(LanguageServer):
         # Cache ASTs by content hash to avoid re-parsing unchanged content
         # Uses OrderedDict for LRU eviction
         self._ast_cache: OrderedDict[str, List[CK3Node]] = OrderedDict()
+        self._parse_errors_cache: OrderedDict[str, List[ParseError]] = OrderedDict()
         self._ast_cache_max = 50  # Maximum cached ASTs
         self._ast_cache_lock = threading.Lock()
 
@@ -412,6 +413,32 @@ class CK3LanguageServer(LanguageServer):
         """
         with self._ast_lock:
             self.document_asts[uri] = ast
+
+    def get_parse_errors(self, uri: str) -> List[ParseError]:
+        """
+        Thread-safe access to document parse errors.
+
+        Args:
+            uri: Document URI
+
+        Returns:
+            List of ParseError objects, or empty list if not found
+        """
+        with self._ast_lock:
+            return getattr(self, '_document_parse_errors', {}).get(uri, [])
+
+    def set_parse_errors(self, uri: str, parse_errors: List[ParseError]):
+        """
+        Thread-safe update of document parse errors.
+
+        Args:
+            uri: Document URI
+            parse_errors: Parse errors from parser
+        """
+        with self._ast_lock:
+            if not hasattr(self, '_document_parse_errors'):
+                self._document_parse_errors = {}
+            self._document_parse_errors[uri] = parse_errors
 
     def remove_ast(self, uri: str):
         """
@@ -1222,6 +1249,8 @@ class CK3LanguageServer(LanguageServer):
 
             # Thread-safe AST update
             self.set_ast(doc.uri, ast)
+            # Thread-safe parse errors update
+            self.set_parse_errors(doc.uri, parse_errors)
 
             # Thread-safe index update
             with self._index_lock:
@@ -1247,10 +1276,12 @@ class CK3LanguageServer(LanguageServer):
         try:
             # Thread-safe AST access
             ast = self.get_ast(doc.uri)
+            # Thread-safe parse errors access
+            parse_errors = self.get_parse_errors(doc.uri)
 
             # Thread-safe index access
             with self._index_lock:
-                diagnostics = collect_all_diagnostics(doc, ast, self.index)
+                diagnostics = collect_all_diagnostics(doc, ast, self.index, parse_errors=parse_errors)
 
             # Publish diagnostics to client
             self.text_document_publish_diagnostics(
