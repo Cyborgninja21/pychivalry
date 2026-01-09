@@ -97,7 +97,7 @@ test_mod.0002 = {
     type = character_event
 }
 """
-        ast = parse_document(doc)
+        ast, _parse_errors = parse_document(doc)
         refs = _find_word_references_in_ast("test_mod.0002", ast, "file:///test.txt")
 
         # Should find the event definition and the trigger_event reference
@@ -121,7 +121,7 @@ test_mod.0002 = {
     }
 }
 """
-        ast = parse_document(doc)
+        ast, _parse_errors = parse_document(doc)
         refs = _find_word_references_in_ast("add_gold", ast, "file:///test.txt")
 
         # Should find both occurrences
@@ -137,7 +137,7 @@ test_mod.0001 = {
     }
 }
 """
-        ast = parse_document(doc)
+        ast, _parse_errors = parse_document(doc)
         refs = _find_word_references_in_ast("nonexistent_symbol", ast, "file:///test.txt")
 
         assert len(refs) == 0
@@ -149,7 +149,7 @@ class TestExtractSymbolFromNode:
     def test_extract_namespace_symbol(self):
         """Test extracting namespace symbol."""
         doc = "namespace = test_mod"
-        ast = parse_document(doc)
+        ast, _parse_errors = parse_document(doc)
 
         assert len(ast) > 0
         symbol = _extract_symbol_from_node(ast[0])
@@ -170,7 +170,7 @@ class TestExtractSymbolFromNode:
     }
 }
 """
-        ast = parse_document(doc)
+        ast, _parse_errors = parse_document(doc)
 
         assert len(ast) > 0
         symbol = _extract_symbol_from_node(ast[0])
@@ -191,7 +191,7 @@ class TestExtractSymbolFromNode:
     }
 }
 """
-        ast = parse_document(doc)
+        ast, _parse_errors = parse_document(doc)
 
         assert len(ast) > 0
         event_symbol = _extract_symbol_from_node(ast[0])
@@ -215,7 +215,7 @@ class TestExtractSymbolFromNode:
     }
 }
 """
-        ast = parse_document(doc)
+        ast, _parse_errors = parse_document(doc)
 
         assert len(ast) > 0
         event_symbol = _extract_symbol_from_node(ast[0])
@@ -237,7 +237,7 @@ class TestDocumentSymbolExtraction:
 
     def test_extract_symbols_from_event_file(self, sample_event_document):
         """Test extracting all symbols from an event file."""
-        ast = parse_document(sample_event_document)
+        ast, _parse_errors = parse_document(sample_event_document)
 
         symbols = []
         for node in ast:
@@ -258,7 +258,7 @@ class TestDocumentSymbolExtraction:
 
     def test_hierarchical_structure(self, sample_event_document):
         """Test that symbols have proper hierarchy."""
-        ast = parse_document(sample_event_document)
+        ast, _parse_errors = parse_document(sample_event_document)
 
         symbols = []
         for node in ast:

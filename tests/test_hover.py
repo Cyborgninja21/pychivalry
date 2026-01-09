@@ -138,7 +138,7 @@ class TestHoverResponse:
         """Create hover response for an effect."""
         text = "add_gold = 100"
         doc = TextDocument(uri="file:///test.txt", source=text)
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         position = types.Position(line=0, character=5)
 
         hover = create_hover_response(doc, position, ast, None)
@@ -153,7 +153,7 @@ class TestHoverResponse:
         """Create hover response for a trigger."""
         text = "is_adult = yes"
         doc = TextDocument(uri="file:///test.txt", source=text)
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         position = types.Position(line=0, character=5)
 
         hover = create_hover_response(doc, position, ast, None)
@@ -165,7 +165,7 @@ class TestHoverResponse:
         """No hover for whitespace."""
         text = "add_gold = 100"
         doc = TextDocument(uri="file:///test.txt", source=text)
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         position = types.Position(line=0, character=10)  # Space after '='
 
         hover = create_hover_response(doc, position, ast, None)
@@ -178,7 +178,7 @@ class TestHoverResponse:
         """Hover response includes range."""
         text = "add_gold = 100"
         doc = TextDocument(uri="file:///test.txt", source=text)
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         position = types.Position(line=0, character=5)
 
         hover = create_hover_response(doc, position, ast, None)

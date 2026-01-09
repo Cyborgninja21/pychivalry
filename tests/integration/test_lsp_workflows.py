@@ -34,7 +34,7 @@ class TestEndToEndWorkflows:
         from pygls.workspace import TextDocument
 
         doc = TextDocument(uri="file:///test.txt", source=content)
-        ast = parse_document(content)
+        ast, _parse_errors = parse_document(content)
         diagnostics = collect_all_diagnostics(doc, ast)
 
         # 3. Verify diagnostic exists
@@ -73,7 +73,7 @@ class TestEndToEndWorkflows:
         from lsprotocol.types import Position
 
         doc = TextDocument(uri="file:///test.txt", source=content)
-        ast = parse_document(content)
+        ast, _parse_errors = parse_document(content)
         index = DocumentIndex()
         index.update_from_ast("file:///test.txt", ast)
 
@@ -272,7 +272,7 @@ class TestModDescriptorWorkflow:
         """
 
         # 5. Parse and validate script
-        ast = parse_document(script)
+        ast, _parse_errors = parse_document(script)
         doc = TextDocument(uri="file:///test.txt", source=script)
         diagnostics = collect_all_diagnostics(doc, ast)
 
@@ -304,7 +304,7 @@ class TestLocalizationWorkflow:
         """
 
         # 2. Parse event
-        ast = parse_document(event)
+        ast, _parse_errors = parse_document(event)
 
         # 3. Extract loc keys - parse_document returns a list, so get first node if available
         event_node = ast[0] if ast else None

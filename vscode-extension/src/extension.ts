@@ -1671,7 +1671,7 @@ async function showMenuCommand(): Promise<void> {
         },
         {
             label: '$(package) Discover Mod Data',
-            description: 'Scan for Carnalitas and other registered mods',
+            description: 'Scan for registered mods',
         },
         {
             label: '$(edit) Rename Event',

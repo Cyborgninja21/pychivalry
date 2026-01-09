@@ -41,7 +41,7 @@ class TestEffectInTriggerContext:
         add_gold = 100
     }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         diagnostics = check_effect_in_trigger_context(ast, None, config)
         codes = [d.code for d in diagnostics]
@@ -58,7 +58,7 @@ class TestEffectInTriggerContext:
         }
     }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         diagnostics = check_effect_in_trigger_context(ast, None, config)
         codes = [d.code for d in diagnostics]
@@ -72,7 +72,7 @@ class TestEffectInTriggerContext:
         has_trait = brave
     }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         diagnostics = check_effect_in_trigger_context(ast, None, config)
         assert len(diagnostics) == 0
@@ -85,7 +85,7 @@ class TestEffectInTriggerContext:
         add_prestige = 50
     }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         diagnostics = check_effect_in_trigger_context(ast, None, config)
         assert len(diagnostics) == 0
@@ -100,7 +100,7 @@ class TestEffectInTriggerContext:
         }
     }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         diagnostics = check_effect_in_trigger_context(ast, None, config)
         assert len(diagnostics) == 0
@@ -118,7 +118,7 @@ class TestListIteratorMisuse:
         }
     }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         diagnostics = check_list_iterator_misuse(ast, None, config)
         codes = [d.code for d in diagnostics]
@@ -133,7 +133,7 @@ class TestListIteratorMisuse:
         }
     }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         diagnostics = check_list_iterator_misuse(ast, None, config)
         # No CK3976 errors
@@ -149,7 +149,7 @@ class TestListIteratorMisuse:
         }
     }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         diagnostics = check_list_iterator_misuse(ast, None, config)
         codes = [d.code for d in diagnostics]
@@ -165,7 +165,7 @@ class TestListIteratorMisuse:
         }
     }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         diagnostics = check_list_iterator_misuse(ast, None, config)
         # No CK3977 info
@@ -181,7 +181,7 @@ class TestListIteratorMisuse:
         }
     }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         diagnostics = check_list_iterator_misuse(ast, None, config)
         codes = [d.code for d in diagnostics]
@@ -201,7 +201,7 @@ class TestOpinionModifiers:
         }
     }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         diagnostics = check_opinion_modifiers(ast, None, config)
         codes = [d.code for d in diagnostics]
@@ -217,7 +217,7 @@ class TestOpinionModifiers:
         }
     }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         diagnostics = check_opinion_modifiers(ast, None, config)
         assert len(diagnostics) == 0
@@ -233,7 +233,7 @@ class TestEventStructure:
     desc = test.0001.desc
     option = { name = test.0001.a }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         diagnostics = check_event_structure(ast, config)
         codes = [d.code for d in diagnostics]
@@ -246,7 +246,7 @@ class TestEventStructure:
     title = test.0001.t
     desc = test.0001.desc
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         diagnostics = check_event_structure(ast, config)
         codes = [d.code for d in diagnostics]
@@ -264,7 +264,7 @@ class TestEventStructure:
     }
     option = { name = test.0001.a }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         diagnostics = check_event_structure(ast, config)
         codes = [d.code for d in diagnostics]
@@ -281,7 +281,7 @@ class TestEventStructure:
     }
     option = { name = test.0001.a }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         diagnostics = check_event_structure(ast, config)
         assert len(diagnostics) == 0
@@ -297,7 +297,7 @@ class TestRedundantTriggers:
         always = yes
     }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         diagnostics = check_redundant_triggers(ast, config)
         codes = [d.code for d in diagnostics]
@@ -310,7 +310,7 @@ class TestRedundantTriggers:
         always = no
     }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         diagnostics = check_redundant_triggers(ast, config)
         codes = [d.code for d in diagnostics]
@@ -323,7 +323,7 @@ class TestRedundantTriggers:
         is_adult = yes
     }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         diagnostics = check_redundant_triggers(ast, config)
         assert len(diagnostics) == 0
@@ -339,7 +339,7 @@ class TestCommonGotchas:
         scope:target = scope:other
     }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         diagnostics = check_common_gotchas(ast, config)
         codes = [d.code for d in diagnostics]
@@ -354,7 +354,7 @@ class TestCommonGotchas:
         }
     }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         diagnostics = check_common_gotchas(ast, config)
         # Should NOT produce CK5142
@@ -377,7 +377,7 @@ class TestScopeTimingTrigger:
     }
     option = { name = test.0001.a }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         diagnostics = check_scope_timing(ast)
         codes = [d.code for d in diagnostics]
         assert "CK3550" in codes
@@ -395,7 +395,7 @@ class TestScopeTimingTrigger:
     }
     option = { name = test.0001.a }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         diagnostics = check_scope_timing(ast)
         # Should NOT produce CK3550 (scope might come from caller)
         errors = [d for d in diagnostics if d.code == "CK3550"]
@@ -420,7 +420,7 @@ class TestScopeTimingDesc:
     }
     option = { name = test.0001.a }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         diagnostics = check_scope_timing(ast)
         codes = [d.code for d in diagnostics]
         assert "CK3552" in codes
@@ -441,7 +441,7 @@ class TestVariableTiming:
     }
     option = { name = test.0001.a }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         diagnostics = check_scope_timing(ast)
         codes = [d.code for d in diagnostics]
         assert "CK3553" in codes
@@ -476,7 +476,7 @@ test.0001 = {
         scope:friend = { add_gold = 100 }
     }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         diagnostics = check_paradox_conventions(ast)
         # Should have very few errors
         errors = [d for d in diagnostics if d.severity == types.DiagnosticSeverity.Error]
@@ -498,7 +498,7 @@ test.0001 = {
         }
     }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         diagnostics = check_paradox_conventions(ast)
         codes = [d.code for d in diagnostics]
 
@@ -528,7 +528,7 @@ class TestEventTypeValidation:
         text = """mymod.0001 = {
     type = character_event
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         from pychivalry.paradox_checks import check_event_type_valid
         diagnostics = check_event_type_valid(ast, config)
@@ -540,7 +540,7 @@ class TestEventTypeValidation:
         text = """mymod.0001 = {
     type = invalid_event_type
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         from pychivalry.paradox_checks import check_event_type_valid
         diagnostics = check_event_type_valid(ast, config)
@@ -557,7 +557,7 @@ class TestEventDescValidation:
     type = character_event
     desc = mymod.0001.desc
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         from pychivalry.paradox_checks import check_event_has_desc
         diagnostics = check_event_has_desc(ast, config)
@@ -570,7 +570,7 @@ class TestEventDescValidation:
     type = character_event
     hidden = yes
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         from pychivalry.paradox_checks import check_event_has_desc
         diagnostics = check_event_has_desc(ast, config)
@@ -583,7 +583,7 @@ class TestEventDescValidation:
     type = character_event
     title = mymod.0001.t
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         from pychivalry.paradox_checks import check_event_has_desc
         diagnostics = check_event_has_desc(ast, config)
@@ -602,7 +602,7 @@ class TestOptionNameValidation:
         add_gold = 100
     }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         from pychivalry.paradox_checks import check_option_has_name
         diagnostics = check_option_has_name(ast, config)
@@ -616,7 +616,7 @@ class TestOptionNameValidation:
         add_gold = 100
     }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         from pychivalry.paradox_checks import check_option_has_name
         diagnostics = check_option_has_name(ast, config)
@@ -637,7 +637,7 @@ class TestTriggeredDescValidation:
         }
     }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         from pychivalry.paradox_checks import check_triggered_desc_structure
         diagnostics = check_triggered_desc_structure(ast, config)
@@ -654,7 +654,7 @@ class TestTriggeredDescValidation:
         }
     }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         from pychivalry.paradox_checks import check_triggered_desc_structure
         diagnostics = check_triggered_desc_structure(ast, config)
@@ -670,7 +670,7 @@ class TestTriggeredDescValidation:
         }
     }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         from pychivalry.paradox_checks import check_triggered_desc_structure
         diagnostics = check_triggered_desc_structure(ast, config)
@@ -687,7 +687,7 @@ class TestPortraitPositionValidation:
     left_portrait = root
     right_portrait = scope:other
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         from pychivalry.paradox_checks import check_portrait_position
         diagnostics = check_portrait_position(ast, config)
@@ -699,7 +699,7 @@ class TestPortraitPositionValidation:
         text = """mymod.0001 = {
     center_portrait = root
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         from pychivalry.paradox_checks import check_portrait_position
         diagnostics = check_portrait_position(ast, config)
@@ -718,7 +718,7 @@ class TestPortraitCharacterValidation:
         animation = happiness
     }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         from pychivalry.paradox_checks import check_portrait_has_character
         diagnostics = check_portrait_has_character(ast, config)
@@ -732,7 +732,7 @@ class TestPortraitCharacterValidation:
         animation = happiness
     }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         from pychivalry.paradox_checks import check_portrait_has_character
         diagnostics = check_portrait_has_character(ast, config)
@@ -751,7 +751,7 @@ class TestAnimationValidation:
         animation = happiness
     }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         from pychivalry.paradox_checks import check_animation_valid
         diagnostics = check_animation_valid(ast, config)
@@ -766,7 +766,7 @@ class TestAnimationValidation:
         animation = flying
     }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         from pychivalry.paradox_checks import check_animation_valid
         diagnostics = check_animation_valid(ast, config)
@@ -782,7 +782,7 @@ class TestThemeValidation:
         text = """mymod.0001 = {
     theme = diplomacy
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         from pychivalry.paradox_checks import check_theme_valid
         diagnostics = check_theme_valid(ast, config)
@@ -794,7 +794,7 @@ class TestThemeValidation:
         text = """mymod.0001 = {
     theme = invalid_theme
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         from pychivalry.paradox_checks import check_theme_valid
         diagnostics = check_theme_valid(ast, config)
@@ -814,7 +814,7 @@ class TestHiddenEventOptionsValidation:
         add_gold = 100
     }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         from pychivalry.paradox_checks import check_hidden_event_options
         diagnostics = check_hidden_event_options(ast, config)
@@ -829,7 +829,7 @@ class TestHiddenEventOptionsValidation:
         name = mymod.0001.a
     }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         from pychivalry.paradox_checks import check_hidden_event_options
         diagnostics = check_hidden_event_options(ast, config)
@@ -845,7 +845,7 @@ class TestHiddenEventOptionsValidation:
         name = mymod.0001.a
     }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         from pychivalry.paradox_checks import check_hidden_event_options
         diagnostics = check_hidden_event_options(ast, config)
@@ -864,7 +864,7 @@ class TestMultipleAfterBlocksValidation:
         add_gold = 100
     }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         from pychivalry.paradox_checks import check_multiple_after_blocks
         diagnostics = check_multiple_after_blocks(ast, config)
@@ -882,7 +882,7 @@ class TestMultipleAfterBlocksValidation:
         add_prestige = 100
     }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         from pychivalry.paradox_checks import check_multiple_after_blocks
         diagnostics = check_multiple_after_blocks(ast, config)
@@ -898,7 +898,7 @@ class TestEmptyEventValidation:
         text = """mymod.0001 = {
     type = character_event
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         from pychivalry.paradox_checks import check_empty_event
         diagnostics = check_empty_event(ast, config)
@@ -909,7 +909,7 @@ class TestEmptyEventValidation:
         """Empty event should produce CK3767."""
         text = """mymod.0001 = {
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         from pychivalry.paradox_checks import check_empty_event
         diagnostics = check_empty_event(ast, config)
@@ -926,7 +926,7 @@ class TestEventPortraitsValidation:
     type = character_event
     left_portrait = root
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         from pychivalry.paradox_checks import check_event_has_portraits
         diagnostics = check_event_has_portraits(ast, config)
@@ -939,7 +939,7 @@ class TestEventPortraitsValidation:
     type = character_event
     hidden = yes
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         from pychivalry.paradox_checks import check_event_has_portraits
         diagnostics = check_event_has_portraits(ast, config)
@@ -951,7 +951,7 @@ class TestEventPortraitsValidation:
         text = """mymod.0001 = {
     type = letter_event
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         from pychivalry.paradox_checks import check_event_has_portraits
         diagnostics = check_event_has_portraits(ast, config)
@@ -965,7 +965,7 @@ class TestEventPortraitsValidation:
     title = mymod.0001.t
     desc = mymod.0001.desc
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         from pychivalry.paradox_checks import check_event_has_portraits
         diagnostics = check_event_has_portraits(ast, config)
@@ -993,7 +993,7 @@ class TestTriggerExtensions:
         }
     }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         from pychivalry.paradox_checks import check_trigger_extensions
         diagnostics = check_trigger_extensions(ast, config)
@@ -1011,7 +1011,7 @@ class TestTriggerExtensions:
         }
     }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         from pychivalry.paradox_checks import check_trigger_extensions
         diagnostics = check_trigger_extensions(ast, config)
@@ -1030,7 +1030,7 @@ class TestTriggerExtensions:
         }
     }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         from pychivalry.paradox_checks import check_trigger_extensions
         diagnostics = check_trigger_extensions(ast, config)
@@ -1048,7 +1048,7 @@ class TestTriggerExtensions:
         }
     }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         from pychivalry.paradox_checks import check_trigger_extensions
         diagnostics = check_trigger_extensions(ast, config)
@@ -1070,7 +1070,7 @@ class TestTriggerExtensions:
         }
     }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         from pychivalry.paradox_checks import check_trigger_extensions
         diagnostics = check_trigger_extensions(ast, config)
@@ -1095,7 +1095,7 @@ class TestTriggerExtensions:
         }
     }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         from pychivalry.paradox_checks import check_trigger_extensions
         diagnostics = check_trigger_extensions(ast, config)
@@ -1122,7 +1122,7 @@ class TestAfterBlockValidation:
         add_gold = 100
     }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         from pychivalry.paradox_checks import check_after_block_issues
         diagnostics = check_after_block_issues(ast, config)
@@ -1139,7 +1139,7 @@ class TestAfterBlockValidation:
         add_gold = 100
     }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         from pychivalry.paradox_checks import check_after_block_issues
         diagnostics = check_after_block_issues(ast, config)
@@ -1155,7 +1155,7 @@ class TestAfterBlockValidation:
         add_gold = 100
     }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         from pychivalry.paradox_checks import check_after_block_issues
         diagnostics = check_after_block_issues(ast, config)
@@ -1182,7 +1182,7 @@ class TestAIChanceValidation:
         }
     }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         from pychivalry.paradox_checks import check_ai_chance_issues
         diagnostics = check_ai_chance_issues(ast, config)
@@ -1202,7 +1202,7 @@ class TestAIChanceValidation:
         }
     }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         from pychivalry.paradox_checks import check_ai_chance_issues
         diagnostics = check_ai_chance_issues(ast, config)
@@ -1220,7 +1220,7 @@ class TestAIChanceValidation:
         }
     }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         from pychivalry.paradox_checks import check_ai_chance_issues
         diagnostics = check_ai_chance_issues(ast, config)
@@ -1238,7 +1238,7 @@ class TestAIChanceValidation:
         }
     }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         from pychivalry.paradox_checks import check_ai_chance_issues
         diagnostics = check_ai_chance_issues(ast, config)
@@ -1260,7 +1260,7 @@ class TestAIChanceValidation:
         }
     }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         from pychivalry.paradox_checks import check_ai_chance_issues
         diagnostics = check_ai_chance_issues(ast, config)
@@ -1282,7 +1282,7 @@ class TestDescValidation:
     type = character_event
     desc = mymod.0001.desc
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         from pychivalry.paradox_checks import check_desc_issues
         diagnostics = check_desc_issues(ast, config)
@@ -1298,7 +1298,7 @@ class TestDescValidation:
         desc = mymod.0001.desc.ai
     }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         from pychivalry.paradox_checks import check_desc_issues
         diagnostics = check_desc_issues(ast, config)
@@ -1311,7 +1311,7 @@ class TestDescValidation:
     type = character_event
     desc = { }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         from pychivalry.paradox_checks import check_desc_issues
         diagnostics = check_desc_issues(ast, config)
@@ -1335,7 +1335,7 @@ class TestOptionValidation:
         name = mymod.0001.a
     }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         from pychivalry.paradox_checks import check_option_issues
         diagnostics = check_option_issues(ast, config)
@@ -1351,7 +1351,7 @@ class TestOptionValidation:
         name = mymod.0001.b
     }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         from pychivalry.paradox_checks import check_option_issues
         diagnostics = check_option_issues(ast, config)
@@ -1364,7 +1364,7 @@ class TestOptionValidation:
     type = character_event
     option = { }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
         from pychivalry.paradox_checks import check_option_issues
         diagnostics = check_option_issues(ast, config)

@@ -225,7 +225,7 @@ from .ck3_language import (
 )
 
 # Import parser and indexer
-from .parser import parse_document, CK3Node, get_node_at_position
+from .parser import parse_document, CK3Node, ParseError, get_node_at_position
 from .indexer import DocumentIndex
 
 # Import diagnostics
@@ -523,8 +523,8 @@ class CK3LanguageServer(LanguageServer):
         if cached is not None:
             return cached
 
-        # Parse and cache
-        ast = parse_document(source)
+        # Parse and cache (parse_document now returns tuple of (ast, errors))
+        ast, _parse_errors = parse_document(source)
         self.cache_ast(source, ast)
         return ast
 
@@ -1218,7 +1218,7 @@ class CK3LanguageServer(LanguageServer):
             The parsed AST
         """
         try:
-            ast = parse_document(doc.source)
+            ast, parse_errors = parse_document(doc.source)
 
             # Thread-safe AST update
             self.set_ast(doc.uri, ast)
@@ -1227,7 +1227,7 @@ class CK3LanguageServer(LanguageServer):
             with self._index_lock:
                 self.index.update_from_ast(doc.uri, ast)
 
-            logger.debug(f"Parsed and indexed document: {doc.uri}")
+            logger.debug(f"Parsed and indexed document: {doc.uri} ({len(parse_errors)} parse errors)")
             return ast
         except Exception as e:
             logger.error(f"Error parsing document {doc.uri}: {e}")

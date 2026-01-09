@@ -26,7 +26,7 @@ class TestDocumentIndex:
         """Index tracks namespace declarations."""
         index = DocumentIndex()
         text = "namespace = test_mod"
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
 
         index.update_from_ast("file:///test.txt", ast)
 
@@ -42,7 +42,7 @@ test_mod.0001 = {
     type = character_event
     title = test.t
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
 
         index.update_from_ast("file:///test.txt", ast)
 
@@ -59,7 +59,7 @@ test_mod.0001 = {
         save_scope_as = my_target
     }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
 
         index.update_from_ast("file:///test.txt", ast)
 
@@ -118,7 +118,7 @@ test_mod.0001 = {
         save_scope_as = my_scope
     }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         index.update_from_ast("file:///test.txt", ast)
 
         assert "test_mod" in index.namespaces
@@ -142,7 +142,7 @@ class TestIndexLookup:
         text = """test_mod.0001 = {
     type = character_event
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         index.update_from_ast("file:///test.txt", ast)
 
         location = index.find_event("test_mod.0001")
@@ -164,7 +164,7 @@ class TestIndexLookup:
         save_scope_as = target
     }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         index.update_from_ast("file:///test.txt", ast)
 
         location = index.find_saved_scope("target")
@@ -188,7 +188,7 @@ class TestIndexLookup:
 test_mod.0002 = {
     type = letter_event
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         index.update_from_ast("file:///test.txt", ast)
 
         events = index.get_all_events()
@@ -225,7 +225,7 @@ class TestIndexIntegration:
 
         index = DocumentIndex()
         text = file_path.read_text()
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
 
         index.update_from_ast("file:///test.txt", ast)
 

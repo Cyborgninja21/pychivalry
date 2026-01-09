@@ -14,6 +14,7 @@ from pychivalry.parser import (
     tokenize,
     CK3Node,
     CK3Token,
+    ParseError,
 )
 
 
@@ -91,26 +92,26 @@ class TestParser:
 
     def test_parse_empty_document(self):
         """Parser handles empty documents."""
-        ast = parse_document("")
+        ast, _parse_errors = parse_document("")
         assert ast == []
 
     def test_parse_namespace(self, sample_event_text):
         """Parser extracts namespace declarations."""
-        ast = parse_document(sample_event_text)
+        ast, _parse_errors = parse_document(sample_event_text)
         namespaces = [n for n in ast if n.type == "namespace"]
         assert len(namespaces) == 1
         assert namespaces[0].key == "namespace"
 
     def test_parse_event(self, sample_event_text):
         """Parser extracts event definitions."""
-        ast = parse_document(sample_event_text)
+        ast, _parse_errors = parse_document(sample_event_text)
         events = [n for n in ast if n.type == "event"]
         assert len(events) == 1
         assert events[0].key == "test_mod.0001"
 
     def test_parse_nested_blocks(self, sample_event_text):
         """Parser correctly nests blocks."""
-        ast = parse_document(sample_event_text)
+        ast, _parse_errors = parse_document(sample_event_text)
         event = [n for n in ast if n.type == "event"][0]
 
         # Find trigger block
@@ -121,7 +122,7 @@ class TestParser:
 
     def test_parse_assignments(self, sample_event_text):
         """Parser extracts assignments."""
-        ast = parse_document(sample_event_text)
+        ast, _parse_errors = parse_document(sample_event_text)
         event = [n for n in ast if n.type == "event"][0]
 
         # Find type assignment
@@ -134,13 +135,13 @@ class TestParser:
         text = """# This is a comment
 namespace = test  # inline comment
 """
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         # Comments should not prevent parsing
         assert len(ast) > 0
 
     def test_node_ranges(self, sample_event_text):
         """Parser assigns correct ranges to nodes."""
-        ast = parse_document(sample_event_text)
+        ast, _parse_errors = parse_document(sample_event_text)
         for node in ast:
             assert isinstance(node.range, types.Range)
             assert node.range.start.line >= 0
@@ -149,7 +150,7 @@ namespace = test  # inline comment
     def test_parse_simple_assignment(self):
         """Parser handles simple key = value assignments."""
         text = "namespace = test_mod"
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         assert len(ast) == 1
         assert ast[0].key == "namespace"
         # Value might be parsed differently depending on implementation
@@ -160,7 +161,7 @@ namespace = test  # inline comment
     is_adult = yes
     age >= 16
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         assert len(ast) == 1
         assert ast[0].key == "trigger"
         assert ast[0].type == "block"
@@ -174,7 +175,7 @@ namespace = test  # inline comment
         }
     }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         assert len(ast) == 1
 
         # Navigate down the tree
@@ -194,7 +195,7 @@ namespace = test  # inline comment
     gold < 100
     prestige <= 500
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         assert len(ast) > 0
 
 
@@ -207,7 +208,7 @@ class TestParserEdgeCases:
     is_adult = yes
 """
         # Should not crash
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         # Behavior with unclosed blocks is implementation-dependent
         # Just ensure it doesn't raise an exception
 
@@ -217,7 +218,7 @@ class TestParserEdgeCases:
 namespace = test
 """
         # Should not crash
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
 
     def test_missing_operator(self):
         """Parser handles missing operators."""
@@ -225,18 +226,18 @@ namespace = test
     is_adult yes
 }"""
         # Should not crash
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
 
     def test_malformed_assignment(self):
         """Parser handles malformed assignments."""
         text = "key = = value"
         # Should not crash
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
 
     def test_empty_block(self):
         """Parser handles empty blocks."""
         text = "trigger = { }"
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         assert len(ast) > 0
 
 
@@ -246,7 +247,7 @@ class TestGetNodeAtPosition:
     def test_get_node_simple(self):
         """Can find node at cursor position."""
         text = "namespace = test_mod"
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
 
         # Position at the 'namespace' keyword
         pos = types.Position(line=0, character=2)
@@ -255,7 +256,7 @@ class TestGetNodeAtPosition:
 
     def test_get_node_in_block(self, sample_event_text):
         """Can find node inside a block."""
-        ast = parse_document(sample_event_text)
+        ast, _parse_errors = parse_document(sample_event_text)
 
         # Position inside trigger block (around line 12)
         pos = types.Position(line=12, character=8)
@@ -266,7 +267,7 @@ class TestGetNodeAtPosition:
 
     def test_get_node_not_found(self, sample_event_text):
         """Returns None when position is outside all nodes."""
-        ast = parse_document(sample_event_text)
+        ast, _parse_errors = parse_document(sample_event_text)
 
         # Position way beyond the document
         pos = types.Position(line=1000, character=1000)
@@ -280,7 +281,7 @@ class TestGetNodeAtPosition:
         deep = yes
     }
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
 
         # Position at 'deep' keyword
         pos = types.Position(line=2, character=10)
@@ -299,7 +300,7 @@ class TestParserIntegration:
             pytest.skip("Fixture file not found")
 
         text = file_path.read_text()
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
 
         # Should parse without crashing
         assert len(ast) > 0
@@ -319,7 +320,7 @@ class TestParserIntegration:
             pytest.skip("Fixture file not found")
 
         text = file_path.read_text()
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
 
         # Should parse without crashing
         assert len(ast) > 0
@@ -333,7 +334,7 @@ class TestParserIntegration:
         text = file_path.read_text()
 
         # Should not crash even with syntax errors
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         # May or may not have nodes depending on error recovery
         # Just ensure it doesn't raise an exception
 
@@ -346,7 +347,7 @@ class TestParserParentReferences:
         text = """outer = {
     inner = yes
 }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
 
         outer = ast[0]
         assert outer.parent is None  # Top-level node
@@ -357,7 +358,7 @@ class TestParserParentReferences:
 
     def test_top_level_nodes_no_parent(self, sample_event_text):
         """Top-level nodes have no parent."""
-        ast = parse_document(sample_event_text)
+        ast, _parse_errors = parse_document(sample_event_text)
 
         for node in ast:
             assert node.parent is None
@@ -369,7 +370,141 @@ class TestParserScopeTypes:
     def test_default_scope_type(self):
         """New nodes have default scope type."""
         text = "namespace = test"
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
 
         if ast:
             assert ast[0].scope_type == "unknown"
+
+
+class TestParserErrors:
+    """Tests for parser error detection."""
+
+    def test_unclosed_block_detected(self):
+        """Parser detects unclosed blocks (PARSE-004)."""
+        text = """trigger = {
+    is_adult = yes"""  # Missing closing }
+
+        ast, errors = parse_document(text)
+
+        # Should have one PARSE-004 error
+        assert len(errors) == 1
+        assert errors[0].code == "PARSE-004"
+        assert "Unclosed block" in errors[0].message
+        assert "trigger" in errors[0].message
+        assert errors[0].severity == types.DiagnosticSeverity.Error
+
+        # AST should still be partial (error-tolerant parsing)
+        assert len(ast) == 1
+        assert ast[0].key == "trigger"
+
+    def test_nested_unclosed_blocks(self):
+        """Parser detects multiple unclosed blocks."""
+        text = """outer = {
+    inner = {
+        value = yes
+    # Missing two closing braces
+"""
+        ast, errors = parse_document(text)
+
+        # Should detect unclosed blocks
+        assert len(errors) >= 1
+        parse_004_errors = [e for e in errors if e.code == "PARSE-004"]
+        assert len(parse_004_errors) >= 1
+
+    def test_unmatched_closing_brace(self):
+        """Parser detects unmatched closing braces (PARSE-006)."""
+        text = """trigger = {
+    is_adult = yes
+}
+}"""  # Extra closing brace
+
+        ast, errors = parse_document(text)
+
+        # Should have one PARSE-006 error
+        assert len(errors) == 1
+        assert errors[0].code == "PARSE-006"
+        assert "Unmatched closing brace" in errors[0].message
+        assert errors[0].severity == types.DiagnosticSeverity.Error
+
+    def test_multiple_unmatched_closing_braces(self):
+        """Parser detects multiple unmatched closing braces."""
+        text = "} } }"  # Three unmatched braces
+
+        ast, errors = parse_document(text)
+
+        # Should detect all three
+        assert len(errors) == 3
+        for error in errors:
+            assert error.code == "PARSE-006"
+            assert "Unmatched closing brace" in error.message
+
+    def test_valid_code_no_errors(self):
+        """Parser returns no errors for valid code."""
+        text = """namespace = test_mod
+
+test_mod.0001 = {
+    type = character_event
+    trigger = {
+        is_adult = yes
+        NOT = {
+            has_trait = content
+        }
+    }
+}"""
+
+        ast, errors = parse_document(text)
+
+        # Should have no parse errors
+        assert len(errors) == 0
+
+        # Should successfully parse AST
+        assert len(ast) == 2  # namespace and event
+
+    def test_error_position_accuracy(self):
+        """Parser reports accurate positions for errors."""
+        text = """line1 = yes
+trigger = {
+    value = yes"""  # Unclosed at line 2 (0-indexed: line 1)
+
+        ast, errors = parse_document(text)
+
+        assert len(errors) == 1
+        error = errors[0]
+
+        # Error should point to 'trigger' keyword (line 1, 0-indexed)
+        assert error.range.start.line == 1
+        assert "trigger" in text.split("\n")[error.range.start.line]
+
+    def test_error_recovery_continues_parsing(self):
+        """Parser continues after errors (error recovery)."""
+        text = """first = {
+    unclosed = {
+        value = yes
+    # Missing closing for 'unclosed'
+}
+
+second = {
+    properly = closed
+}"""
+
+        ast, errors = parse_document(text)
+
+        # Should have parse errors for unclosed block
+        assert len(errors) >= 1
+
+        # But should still parse what it can
+        assert len(ast) >= 1
+
+    def test_regression_NOT_block_unclosed(self):
+        """Regression test for the reported bug - unclosed NOT blocks."""
+        text = """scripted_trigger rq_activity_feast_participant_trigger = {
+    is_alive = yes
+    is_imprisoned = no
+    NOT = { this = root }"""  # Missing closing brace for scripted_trigger
+
+        ast, errors = parse_document(text)
+
+        # Should detect the unclosed scripted_trigger block
+        assert len(errors) >= 1
+        assert any(e.code == "PARSE-004" for e in errors)
+        assert any("rq_activity_feast_participant_trigger" in e.message for e in errors)

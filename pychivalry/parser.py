@@ -49,7 +49,7 @@ AST STRUCTURE:
 
 USAGE EXAMPLES:
     >>> # Parse a document
-    >>> ast = parse_document("trigger = { is_adult = yes }")
+    >>> ast, _parse_errors = parse_document("trigger = { is_adult = yes }")
     >>> ast.type  # 'block'
     >>> len(ast.children)  # 1 (the trigger assignment)
     
@@ -172,6 +172,45 @@ class CK3Node:
     parent: Optional["CK3Node"] = None  # Parent node reference (None for root)
     scope_type: str = "unknown"  # Scope type for validation
     children: List["CK3Node"] = field(default_factory=list)  # Child nodes
+
+
+@dataclass(slots=True)
+class ParseError:
+    """
+    Error detected during parsing.
+
+    Parse errors represent structural problems found during the parsing phase,
+    such as unclosed blocks, unmatched braces, or malformed syntax. These
+    errors are detected by the parser itself, not by post-parse validation.
+
+    ERROR CODES:
+        PARSE-001: Unterminated string literal
+        PARSE-002: Invalid number format
+        PARSE-003: Unexpected token
+        PARSE-004: Unclosed block (missing closing brace)
+        PARSE-005: Invalid assignment syntax
+        PARSE-006: Unmatched closing brace
+        PARSE-007: Incomplete assignment (missing value)
+
+    Attributes:
+        code: Error code (PARSE-001, PARSE-002, etc.)
+        message: Human-readable error message
+        range: LSP Range indicating where the error occurred
+        severity: Diagnostic severity (default: Error)
+
+    Examples:
+        >>> error = ParseError(
+        ...     code="PARSE-004",
+        ...     message="Unclosed block 'trigger' - expected '}' before EOF",
+        ...     range=types.Range(...),
+        ...     severity=types.DiagnosticSeverity.Error
+        ... )
+    """
+
+    code: str  # Error code (PARSE-001, etc.)
+    message: str  # Human-readable error message
+    range: types.Range  # Position where error occurred
+    severity: types.DiagnosticSeverity = types.DiagnosticSeverity.Error
 
 
 # =============================================================================
@@ -349,7 +388,7 @@ def tokenize(text: str) -> List[CK3Token]:
     return tokens
 
 
-def parse_document(text: str) -> List[CK3Node]:
+def parse_document(text: str) -> tuple[List[CK3Node], List[ParseError]]:
     """
     Parse CK3 script text into an Abstract Syntax Tree (AST).
 
@@ -357,18 +396,38 @@ def parse_document(text: str) -> List[CK3Node]:
     hierarchical node structure. The resulting AST can be used for validation,
     completion, navigation, and other language server features.
 
+    The parser is error-tolerant and will continue parsing after encountering
+    errors, building a partial AST and collecting parse errors along the way.
+
     Args:
         text: The CK3 script text to parse
 
     Returns:
-        List of top-level CK3Node objects representing the script structure
+        Tuple of (ast_nodes, parse_errors):
+        - ast_nodes: List of top-level CK3Node objects (may be incomplete if errors)
+        - parse_errors: List of ParseError objects for structural issues found
+
+    Examples:
+        >>> ast, errors = parse_document("trigger = { is_adult = yes }")
+        >>> len(errors)
+        0  # No errors, valid syntax
+        >>> ast[0].key
+        'trigger'
+
+        >>> ast, errors = parse_document("trigger = { is_adult = yes")  # Missing }
+        >>> len(errors)
+        1  # One error: unclosed block
+        >>> errors[0].code
+        'PARSE-004'
     """
     tokens = tokenize(text)
     if not tokens:
-        return []
+        return [], []
 
     nodes = []
+    errors = []
     index = [0]  # Use list to make it mutable in nested function
+    lines = text.split("\n")  # For getting line content in error messages
 
     def peek() -> Optional[CK3Token]:
         """Look at current token without consuming it."""
@@ -453,9 +512,24 @@ def parse_document(text: str) -> List[CK3Node]:
         )
 
         # Parse children until closing brace
+        found_closing_brace = False
         while True:
             token = peek()
             if not token:
+                # Reached EOF without finding closing brace
+                # Emit PARSE-004 error for unclosed block
+                errors.append(ParseError(
+                    code="PARSE-004",
+                    message=f"Unclosed block '{key_token.value}' - expected '}}' before end of file",
+                    range=types.Range(
+                        start=types.Position(line=key_token.line, character=key_token.character),
+                        end=types.Position(
+                            line=key_token.line,
+                            character=key_token.character + len(key_token.value)
+                        ),
+                    ),
+                    severity=types.DiagnosticSeverity.Error
+                ))
                 break
 
             if token.type == "brace" and token.value == "}":
@@ -465,6 +539,7 @@ def parse_document(text: str) -> List[CK3Node]:
                     start=node.range.start,
                     end=types.Position(line=end_brace.line, character=end_brace.character + 1),
                 )
+                found_closing_brace = True
                 break
 
             if token.type == "comment":
@@ -513,10 +588,22 @@ def parse_document(text: str) -> List[CK3Node]:
             node = parse_statement()
             if node:
                 nodes.append(node)
+        elif token.type == "brace" and token.value == "}":
+            # Unmatched closing brace - emit PARSE-006 error
+            closing_brace = consume()
+            errors.append(ParseError(
+                code="PARSE-006",
+                message="Unmatched closing brace '}' - no corresponding opening brace found",
+                range=types.Range(
+                    start=types.Position(line=closing_brace.line, character=closing_brace.character),
+                    end=types.Position(line=closing_brace.line, character=closing_brace.character + 1),
+                ),
+                severity=types.DiagnosticSeverity.Error
+            ))
         else:
             consume()  # Skip unexpected token
 
-    return nodes
+    return nodes, errors
 
 
 def get_node_at_position(nodes: List[CK3Node], position: types.Position) -> Optional[CK3Node]:

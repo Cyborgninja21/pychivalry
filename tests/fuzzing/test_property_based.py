@@ -131,7 +131,7 @@ class TestDiagnosticsRobustness:
     def test_diagnostics_handles_arbitrary_input(self, text):
         """Diagnostics should not crash on arbitrary parsed input."""
         try:
-            ast = parse_document(text)
+            ast, _parse_errors = parse_document(text)
             diagnostics = get_diagnostics_for_text(text)
             # Should return list (possibly empty)
             assert isinstance(diagnostics, list)
@@ -143,7 +143,7 @@ class TestDiagnosticsRobustness:
     def test_diagnostics_on_valid_structure(self, namespace, assignments):
         """Diagnostics should handle valid CK3 structures."""
         content = namespace + "".join(assignments)
-        ast = parse_document(content)
+        ast, _parse_errors = parse_document(content)
         diagnostics = get_diagnostics_for_text(content)  # Fixed: use 'content' not undefined 'text'
         assert isinstance(diagnostics, list)
 
@@ -160,7 +160,7 @@ class TestCompletionsRobustness:
     def test_completions_handles_arbitrary_position(self, text, line, col):
         """Completions should handle arbitrary cursor positions without crashing."""
         try:
-            ast = parse_document(text)
+            ast, _parse_errors = parse_document(text)
             index = DocumentIndex()
             # Index expects AST (list of nodes), not a document object
             index.index_document("fuzz.txt", ast)
@@ -193,7 +193,7 @@ class TestPropertyInvariants:
     @settings(max_examples=30)
     def test_diagnostics_always_returns_list(self, text):
         """Property: Diagnostics must always return a list."""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         diagnostics = get_diagnostics_for_text(text)
         assert isinstance(diagnostics, list)
 
@@ -202,7 +202,7 @@ class TestPropertyInvariants:
     def test_valid_ck3_produces_parseable_ast(self, namespace, assignments):
         """Property: Valid CK3 syntax should produce parseable AST."""
         content = namespace + "".join(assignments)
-        ast = parse_document(content)
+        ast, _parse_errors = parse_document(content)
 
         # AST should be created as a list
         assert ast is not None

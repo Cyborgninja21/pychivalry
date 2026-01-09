@@ -35,7 +35,7 @@ test_mod.0001 = {
 }
 """
         doc = TextDocument(uri="file:///test.txt", source=text)
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         diagnostics = check_syntax(doc, ast)
 
         errors = [d for d in diagnostics if d.severity == types.DiagnosticSeverity.Error]
@@ -59,7 +59,7 @@ test_mod.0001 = {
 }
 """
         doc = TextDocument(uri="file:///test.txt", source=text)
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         diagnostics = check_syntax(doc, ast)
 
         errors = [d for d in diagnostics if d.severity == types.DiagnosticSeverity.Error]
@@ -72,7 +72,7 @@ test_mod.0001 = {
 namespace = test
 """
         doc = TextDocument(uri="file:///test.txt", source=text)
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         diagnostics = check_syntax(doc, ast)
 
         errors = [d for d in diagnostics if d.severity == types.DiagnosticSeverity.Error]
@@ -89,7 +89,7 @@ trigger = {
     add_gold = 100
 }
 """
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         diagnostics = check_semantics(ast, None)
 
         errors = [d for d in diagnostics if d.severity == types.DiagnosticSeverity.Error]
@@ -106,7 +106,7 @@ immediate = {
     add_gold = 100
 }
 """
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         diagnostics = check_semantics(ast, None)
 
         errors = [d for d in diagnostics if d.severity == types.DiagnosticSeverity.Error]
@@ -124,7 +124,7 @@ immediate = {
 }
 """
         index = DocumentIndex()
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         diagnostics = check_scopes(ast, index)
 
         warnings = [d for d in diagnostics if d.severity == types.DiagnosticSeverity.Warning]
@@ -165,7 +165,7 @@ trigger = {
 }
 """
         doc = TextDocument(uri="file:///test.txt", source=text)
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         index = DocumentIndex()
 
         diagnostics = collect_all_diagnostics(doc, ast, index)

@@ -960,7 +960,7 @@ def get_diagnostics_for_text(
     from .parser import parse_document
 
     # Parse the text
-    ast = parse_document(text)
+    ast, _parse_errors = parse_document(text)
 
     # Create a mock TextDocument
     doc = TextDocument(uri=uri, source=text)

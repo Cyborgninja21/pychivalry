@@ -43,7 +43,7 @@ class TestTimingParsing:
     def test_parse_timing_fixed_integer(self):
         """Test parsing fixed integer timing."""
         text = "days = 30"
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         
         unit, value = parse_timing_value(ast[0])
         assert unit == "days"
@@ -56,7 +56,7 @@ class TestTimingParsing:
         text = """effect_group = {
             months = { 6 12 }
         }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         
         # Parse the effect_group block
         effect_group = parse_effect_group(ast[0])
@@ -74,7 +74,7 @@ class TestTimingParsing:
                 add_gold = 100
             }
         }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         
         # Validation should not crash on range syntax
         diagnostics = collect_story_cycle_diagnostics(ast, "file:///test.txt")
@@ -84,7 +84,7 @@ class TestTimingParsing:
     def test_parse_timing_missing_unit(self):
         """Test that parse_timing_value only processes valid timing keywords."""
         text = "invalid = 30"
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         
         # parse_timing_value should return None for non-timing keywords
         unit, value = parse_timing_value(ast[0])
@@ -101,7 +101,7 @@ class TestEffectGroupParsing:
             days = 30
             add_gold = 100
         }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         
         effect_group = parse_effect_group(ast[0])
         assert effect_group is not None
@@ -116,7 +116,7 @@ class TestEffectGroupParsing:
             trigger = { always = yes }
             add_gold = 200
         }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         
         effect_group = parse_effect_group(ast[0])
         assert effect_group is not None
@@ -132,7 +132,7 @@ class TestEffectGroupParsing:
                 effect = { add_prestige = 100 }
             }
         }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         
         effect_group = parse_effect_group(ast[0])
         assert effect_group is not None
@@ -144,7 +144,7 @@ class TestEffectGroupParsing:
         text = """effect_group = {
             add_gold = 100
         }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         
         effect_group = parse_effect_group(ast[0])
         assert effect_group is not None
@@ -161,7 +161,7 @@ class TestTriggeredEffectParsing:
             trigger = { has_trait = brave }
             effect = { add_prestige = 100 }
         }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         
         triggered = parse_triggered_effect(ast[0])
         assert triggered is not None
@@ -180,7 +180,7 @@ class TestTriggeredEffectParsing:
                 effect = { add_gold = 500 }
             }
         }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         
         effect_group = parse_effect_group(ast[0])
         assert effect_group is not None
@@ -203,7 +203,7 @@ class TestTriggeredEffectParsing:
                 }
             }
         }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         
         effect_group = parse_effect_group(ast[0])
         assert effect_group is not None
@@ -231,7 +231,7 @@ class TestStoryCycleParsing:
                 add_gold = 100
             }
         }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         
         story_cycles = find_story_cycles(ast[0])
         assert len(story_cycles) == 1
@@ -254,7 +254,7 @@ class TestTimingValidation:
                 add_gold = 100
             }
         }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         
         diagnostics = collect_story_cycle_diagnostics(ast, "file:///test.txt")
         errors = [d for d in diagnostics if d.severity == DiagnosticSeverity.Error]
@@ -268,7 +268,7 @@ class TestTimingValidation:
                 add_gold = 100
             }
         }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         
         diagnostics = collect_story_cycle_diagnostics(ast, "file:///test.txt")
         errors = [d for d in diagnostics if d.severity == DiagnosticSeverity.Error]
@@ -282,7 +282,7 @@ class TestTimingValidation:
                 add_gold = 100
             }
         }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         
         diagnostics = collect_story_cycle_diagnostics(ast, "file:///test.txt")
         # Negative timing is treated as very short interval (STORY-043)
@@ -297,7 +297,7 @@ class TestTimingValidation:
                 add_gold = 100
             }
         }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         
         diagnostics = collect_story_cycle_diagnostics(ast, "file:///test.txt")
         # Zero timing is treated as very short interval (STORY-043)
@@ -312,7 +312,7 @@ class TestTimingValidation:
                 add_gold = 100
             }
         }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         
         diagnostics = collect_story_cycle_diagnostics(ast, "file:///test.txt")
         infos = [d for d in diagnostics if d.severity == DiagnosticSeverity.Information]
@@ -326,7 +326,7 @@ class TestTimingValidation:
                 add_gold = 100
             }
         }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         
         diagnostics = collect_story_cycle_diagnostics(ast, "file:///test.txt")
         infos = [d for d in diagnostics if d.severity == DiagnosticSeverity.Information]
@@ -346,7 +346,7 @@ class TestLifecycleValidation:
                 add_gold = 100
             }
         }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         
         diagnostics = collect_story_cycle_diagnostics(ast, "file:///test.txt")
         # Missing on_setup does not generate a specific diagnostic in current impl
@@ -362,7 +362,7 @@ class TestLifecycleValidation:
                 add_gold = 100
             }
         }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         
         diagnostics = collect_story_cycle_diagnostics(ast, "file:///test.txt")
         warnings = [d for d in diagnostics if d.severity == DiagnosticSeverity.Warning]
@@ -377,7 +377,7 @@ class TestLifecycleValidation:
                 add_gold = 100
             }
         }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         
         diagnostics = collect_story_cycle_diagnostics(ast, "file:///test.txt")
         infos = [d for d in diagnostics if d.severity == DiagnosticSeverity.Information]
@@ -394,7 +394,7 @@ class TestEffectGroupValidation:
                 days = 30
             }
         }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         
         diagnostics = collect_story_cycle_diagnostics(ast, "file:///test.txt")
         warnings = [d for d in diagnostics if d.severity == DiagnosticSeverity.Warning]
@@ -411,7 +411,7 @@ class TestEffectGroupValidation:
                 """ + "\n                ".join([f"add_gold = {i}" for i in range(20)]) + """
             }
         }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         
         diagnostics = collect_story_cycle_diagnostics(ast, "file:///test.txt")
         # Verify diagnostics are generated without crashes
@@ -434,7 +434,7 @@ class TestTriggeredEffectValidation:
                 }
             }
         }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         
         diagnostics = collect_story_cycle_diagnostics(ast, "file:///test.txt")
         errors = [d for d in diagnostics if d.severity == DiagnosticSeverity.Error]
@@ -450,7 +450,7 @@ class TestTriggeredEffectValidation:
                 }
             }
         }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         
         diagnostics = collect_story_cycle_diagnostics(ast, "file:///test.txt")
         errors = [d for d in diagnostics if d.severity == DiagnosticSeverity.Error]
@@ -468,7 +468,7 @@ class TestTriggeredEffectValidation:
                 }
             }
         }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         
         diagnostics = collect_story_cycle_diagnostics(ast, "file:///test.txt")
         warnings = [d for d in diagnostics if d.severity == DiagnosticSeverity.Warning]
@@ -488,7 +488,7 @@ class TestTriggeredEffectValidation:
                 }
             }
         }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         
         diagnostics = collect_story_cycle_diagnostics(ast, "file:///test.txt")
         # Verify diagnostics are generated without crashes
@@ -518,7 +518,7 @@ class TestCompleteValidation:
                 }
             }
         }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         
         # Use proper path to avoid STORY-008
         diagnostics = collect_story_cycle_diagnostics(ast, "file:///common/story_cycles/test.txt")
@@ -539,7 +539,7 @@ class TestCompleteValidation:
         with open(fixture_path, 'r', encoding='utf-8') as f:
             text = f.read()
         
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         # Use a path that looks like it's in common/story_cycles/ to avoid STORY-008
         diagnostics = collect_story_cycle_diagnostics(ast, "file:///common/story_cycles/destiny_child.txt")
         
@@ -571,7 +571,7 @@ class TestCompleteValidation:
             }
         }
         """
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         
         story_cycles = find_story_cycles(ast)
         assert len(story_cycles) == 2
@@ -582,7 +582,7 @@ class TestCompleteValidation:
             on_setup = { add_gold = 100 }
             on_end = { debug_log = "done" }
         }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         
         diagnostics = collect_story_cycle_diagnostics(ast, "file:///test.txt")
         errors = [d for d in diagnostics if d.severity == DiagnosticSeverity.Error]
@@ -595,7 +595,7 @@ class TestEdgeCases:
     def test_empty_file(self):
         """Test parsing empty file."""
         text = ""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         
         diagnostics = collect_story_cycle_diagnostics(ast, "file:///test.txt")
         assert len(diagnostics) == 0
@@ -608,7 +608,7 @@ class TestEdgeCases:
             title = "An Event"
         }
         """
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         
         story_cycles = find_story_cycles(ast[0])
         assert len(story_cycles) == 0
@@ -621,7 +621,7 @@ class TestEdgeCases:
                 add_gold = 100
             }
         }"""
-        ast = parse_document(text)
+        ast, _parse_errors = parse_document(text)
         
         # Should handle gracefully without crashing
         diagnostics = collect_story_cycle_diagnostics(ast, "file:///test.txt")

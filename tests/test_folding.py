@@ -691,7 +691,7 @@ class TestASTFolding:
         is_adult = yes
     }
 }"""
-        root = parse_document(text)
+        root, _ = parse_document(text)
 
         ranges = get_folding_ranges_from_ast(root, text)
 
@@ -705,7 +705,7 @@ class TestASTFolding:
 my_event = {
     content = yes
 }"""
-        root = parse_document(text)
+        root, _ = parse_document(text)
 
         ranges = get_folding_ranges_from_ast(root, text)
 

@@ -160,7 +160,7 @@ class TestCompletionsRegressions:
         """
         content = "."
 
-        ast = parse_document(content)
+        ast, _parse_errors = parse_document(content)
         index = DocumentIndex()
         index.update_from_ast("test.txt", ast)
 
@@ -184,7 +184,7 @@ class TestCompletionsRegressions:
         """
         content = "namespace = test\n"
 
-        ast = parse_document(content)
+        ast, _parse_errors = parse_document(content)
         index = DocumentIndex()
         index.update_from_ast("test.txt", ast)
 
@@ -217,7 +217,7 @@ class TestCompletionsRegressions:
         }
         """
 
-        ast = parse_document(content)
+        ast, _parse_errors = parse_document(content)
         index = DocumentIndex()
         index.update_from_ast("test.txt", ast)
 

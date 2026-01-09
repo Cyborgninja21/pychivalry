@@ -142,7 +142,7 @@ class TestDiagnosticsPerformance:
 
         from pygls.workspace import TextDocument
 
-        ast = parse_document(content)
+        ast, _parse_errors = parse_document(content)
         doc = TextDocument(uri="file:///test.txt", source=content)
         result = benchmark(collect_all_diagnostics, doc, ast)
         assert result is not None
@@ -165,7 +165,7 @@ class TestDiagnosticsPerformance:
                 desc = events_{i}.001.desc
             }}
             """
-            ast = parse_document(content)
+            ast, _parse_errors = parse_document(content)
             doc = TextDocument(uri=f"file:///events_{i}.txt", source=content)
             index.update_from_ast(f"events_{i}.txt", ast)
             collect_all_diagnostics(doc, ast, index)
@@ -202,7 +202,7 @@ class TestCompletionsPerformance:
 
         from lsprotocol.types import Position
 
-        ast = parse_document(content)
+        ast, _parse_errors = parse_document(content)
         index = DocumentIndex()
         index.update_from_ast("test.txt", ast)
 
@@ -239,7 +239,7 @@ class TestCompletionsPerformance:
 
         from lsprotocol.types import Position
 
-        ast = parse_document(content)
+        ast, _parse_errors = parse_document(content)
         index = DocumentIndex()
         index.update_from_ast("test.txt", ast)
 
@@ -273,7 +273,7 @@ class TestNavigationPerformance:
                 add_gold = {i * 10}
             }}
             """
-            ast = parse_document(content)
+            ast, _parse_errors = parse_document(content)
             index.update_from_ast(f"effects_{i}.txt", ast)
 
         # Create file that uses one of the effects
@@ -329,7 +329,7 @@ class TestNavigationPerformance:
                 }}
             }}
             """
-            ast = parse_document(content)
+            ast, _parse_errors = parse_document(content)
             index.update_from_ast(f"events_{i}.txt", ast)
 
         # Find all references
@@ -370,7 +370,7 @@ class TestMemoryPerformance:
                 }}
             }}
             """
-            ast = parse_document(content)
+            ast, _parse_errors = parse_document(content)
             index.update_from_ast(f"events_{i}.txt", ast)
 
         # Measure final memory
@@ -401,7 +401,7 @@ class TestConcurrencyPerformance:
         }
         """
 
-        ast = parse_document(content)
+        ast, _parse_errors = parse_document(content)
         index = DocumentIndex()
         index.update_from_ast("test.txt", ast)
 
