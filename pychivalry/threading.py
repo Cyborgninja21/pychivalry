@@ -201,17 +201,25 @@ class CK3ThreadManager:
             max_workers=max_io_workers, thread_name_prefix="ck3-io"
         )
 
-        # Priority queue for deferred work (not currently used but reserved for future)
-        self._work_queue: PriorityQueue[PrioritizedTask] = PriorityQueue()
+        # Priority queue for CPU-bound work
+        self._cpu_priority_queue: PriorityQueue[PrioritizedTask] = PriorityQueue()
+
+        # Enable/disable priority scheduling via environment variable
+        self._use_priority_scheduling = os.environ.get("CK3_PRIORITY_SCHEDULING", "1") == "1"
 
         # Active tasks tracking
         self._active_tasks: Dict[str, Future] = {}
-        self._active_tasks_lock = threading.Lock()  # Changed from RLock - no reentrancy needed
+        self._active_tasks_lock = threading.Lock()
 
         # URI-to-task index for O(1) cancellation by URI
         # Maps URI -> Set of task_ids for fast lookup
         self._uri_to_tasks: Dict[str, Set[str]] = {}
         self._uri_index_lock = threading.Lock()
+
+        # Pending futures for priority-queued tasks
+        # Maps task_id -> Future for tasks in priority queue
+        self._pending_futures: Dict[str, Future] = {}
+        self._pending_lock = threading.Lock()
 
         # Metrics - using simple integers with lock for thread safety
         # Note: Could use atomic integers for better performance, but standard int + lock
@@ -225,11 +233,100 @@ class CK3ThreadManager:
         # Shutdown flag
         self._shutdown = False
 
-        logger.info(
-            "CK3ThreadManager initialized with %d CPU workers and %d I/O workers",
-            self._cpu_pool._max_workers,
-            self._io_pool._max_workers
-        )
+        # Priority scheduler thread (if enabled)
+        self._scheduler_thread = None
+        if self._use_priority_scheduling:
+            self._scheduler_thread = threading.Thread(
+                target=self._priority_scheduler_loop,
+                name="ck3-priority-scheduler",
+                daemon=True
+            )
+            self._scheduler_thread.start()
+            logger.info(
+                "CK3ThreadManager initialized with %d CPU workers, %d I/O workers, and priority scheduling",
+                self._cpu_pool._max_workers,
+                self._io_pool._max_workers
+            )
+        else:
+            logger.info(
+                "CK3ThreadManager initialized with %d CPU workers and %d I/O workers (priority scheduling disabled)",
+                self._cpu_pool._max_workers,
+                self._io_pool._max_workers
+            )
+
+    def _priority_scheduler_loop(self):
+        """
+        Priority scheduler thread loop.
+
+        Continuously pulls tasks from the priority queue and submits them
+        to the CPU thread pool. This ensures higher priority tasks are
+        executed before lower priority ones.
+        """
+        logger.info("Priority scheduler thread started")
+
+        while not self._shutdown:
+            try:
+                # Block with timeout to allow shutdown checking
+                task = self._cpu_priority_queue.get(timeout=0.1)
+
+                # Check if task was cancelled while in queue
+                with self._pending_lock:
+                    if task.task_id not in self._pending_futures:
+                        # Task was cancelled, skip it
+                        continue
+
+                    # Get the future associated with this task
+                    future = self._pending_futures.pop(task.task_id)
+
+                # Check cancellation token before submitting
+                if task.cancellation_token and task.cancellation_token.is_set():
+                    # Mark as cancelled
+                    with self._metrics_lock:
+                        self._cancelled_count += 1
+                    future.set_exception(asyncio.CancelledError("Task cancelled in queue"))
+                    continue
+
+                # Check if we're shutting down
+                if self._shutdown:
+                    if not future.done():
+                        future.set_exception(RuntimeError("Thread manager shutting down"))
+                    continue
+
+                # Submit to thread pool
+                try:
+                    pool_future = self._cpu_pool.submit(
+                        self._execute_task_wrapper,
+                        task.func, task.args, task.kwargs, task.task_id,
+                        task.timeout, task.cancellation_token, None  # URI handled separately
+                    )
+
+                    # Chain the pool future to our future safely
+                    def _done_callback(pf, f=future):
+                        # Check if future is still in valid state
+                        if f.done():
+                            return
+                        try:
+                            result = pf.result()
+                            if not f.done():
+                                f.set_result(result)
+                        except Exception as e:
+                            if not f.done():
+                                f.set_exception(e)
+
+                    pool_future.add_done_callback(_done_callback)
+
+                except Exception as e:
+                    # Failed to submit, propagate error
+                    if not future.done():
+                        future.set_exception(e)
+
+            except Empty:
+                # Timeout waiting for task, loop to check shutdown
+                continue
+            except Exception as e:
+                logger.error("Error in priority scheduler loop: %s", e, exc_info=True)
+
+        logger.info("Priority scheduler thread stopped")
 
     def _execute_task_wrapper(
         self,
@@ -348,15 +445,44 @@ class CK3ThreadManager:
         if task_id is None:
             task_id = f"cpu-{next(self._task_counter)}"
 
-        # Submit to thread pool with reusable wrapper
-        future = self._cpu_pool.submit(
-            self._execute_task_wrapper,
-            func, args, kwargs, task_id, timeout, cancellation_token, uri
-        )
+        # Choose submission path based on priority scheduling setting
+        if self._use_priority_scheduling:
+            # Create a Future to return immediately
+            future = Future()
 
-        # Track active task
-        with self._active_tasks_lock:
-            self._active_tasks[task_id] = future
+            # Create prioritized task
+            task = PrioritizedTask(
+                priority=priority,
+                created_at=time.time(),
+                task_id=task_id,
+                func=func,
+                args=args,
+                kwargs=kwargs,
+                cancellation_token=cancellation_token,
+                timeout=timeout
+            )
+
+            # Store future for scheduler to complete
+            with self._pending_lock:
+                self._pending_futures[task_id] = future
+
+            # Add to priority queue
+            self._cpu_priority_queue.put(task)
+
+            # Track active task
+            with self._active_tasks_lock:
+                self._active_tasks[task_id] = future
+
+        else:
+            # Direct submission (legacy path for when priority scheduling disabled)
+            future = self._cpu_pool.submit(
+                self._execute_task_wrapper,
+                func, args, kwargs, task_id, timeout, cancellation_token, uri
+            )
+
+            # Track active task
+            with self._active_tasks_lock:
+                self._active_tasks[task_id] = future
 
         # Track URI association for fast cancellation
         if uri:
@@ -630,8 +756,22 @@ class CK3ThreadManager:
             logger.warning("Thread manager already shut down")
             return
 
-        self._shutdown = True
         logger.info("Shutting down CK3ThreadManager...")
+
+        # If using priority scheduling and graceful shutdown, wait for queue to drain
+        if self._use_priority_scheduling and wait:
+            # Wait for priority queue to empty (with timeout)
+            queue_drain_timeout = 5.0
+            start_time = time.time()
+            while not self._cpu_priority_queue.empty() and (time.time() - start_time) < queue_drain_timeout:
+                time.sleep(0.01)
+
+        # Set shutdown flag to stop scheduler
+        self._shutdown = True
+
+        # Wait for scheduler thread to stop (if exists)
+        if self._scheduler_thread and self._scheduler_thread.is_alive():
+            self._scheduler_thread.join(timeout=1.0)
 
         # Get final metrics
         metrics = self.get_metrics()
