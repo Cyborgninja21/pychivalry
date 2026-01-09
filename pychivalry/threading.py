@@ -239,6 +239,7 @@ class CK3ThreadManager:
         task_id: Optional[str] = None,
         timeout: Optional[float] = None,
         cancellation_token: Optional[threading.Event] = None,
+        uri: Optional[str] = None,
         **kwargs,
     ) -> Future:
         """
