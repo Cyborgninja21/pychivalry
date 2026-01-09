@@ -231,6 +231,73 @@ class CK3ThreadManager:
             self._io_pool._max_workers
         )
 
+    def _execute_task_wrapper(
+        self,
+        func: Callable,
+        args: tuple,
+        kwargs: dict,
+        task_id: str,
+        timeout: Optional[float],
+        cancellation_token: Optional[threading.Event],
+        uri: Optional[str],
+    ):
+        """
+        Reusable task execution wrapper.
+
+        Handles timeout tracking, cancellation checking, metrics updates,
+        and cleanup for both CPU and I/O tasks.
+        """
+        # Only track time if timeout is specified
+        start_time = time.time() if timeout else None
+
+        try:
+            # Check cancellation before starting
+            if cancellation_token and cancellation_token.is_set():
+                with self._metrics_lock:
+                    self._cancelled_count += 1
+                if logger.isEnabledFor(logging.DEBUG):
+                    logger.debug("Task %s cancelled before execution", task_id)
+                raise asyncio.CancelledError("Task cancelled before execution")
+
+            # Execute the function
+            result = func(*args, **kwargs)
+
+            # Check timeout only if configured
+            if start_time is not None:
+                elapsed = time.time() - start_time
+                if elapsed > timeout:
+                    with self._metrics_lock:
+                        self._timeout_count += 1
+                    logger.warning("Task %s exceeded timeout: %.2fs > %ss",
+                                 task_id, elapsed, timeout)
+
+            # Update metrics
+            with self._metrics_lock:
+                self._completed_count += 1
+
+            return result
+
+        except asyncio.CancelledError:
+            raise
+        except Exception as e:
+            with self._metrics_lock:
+                self._failed_count += 1
+            logger.error("Task %s failed: %s", task_id, e, exc_info=True)
+            raise
+        finally:
+            # Remove from active tasks
+            with self._active_tasks_lock:
+                self._active_tasks.pop(task_id, None)
+
+            # Remove from URI index if applicable
+            if uri:
+                with self._uri_index_lock:
+                    if uri in self._uri_to_tasks:
+                        self._uri_to_tasks[uri].discard(task_id)
+                        # Clean up empty sets to prevent memory leak
+                        if not self._uri_to_tasks[uri]:
+                            del self._uri_to_tasks[uri]
+
     def submit_cpu_bound(
         self,
         func: Callable,
@@ -256,6 +323,7 @@ class CK3ThreadManager:
             task_id: Unique identifier for tracking and cancellation
             timeout: Maximum execution time in seconds
             cancellation_token: Event to check for cancellation
+            uri: Optional document URI for fast cancellation lookup
             **kwargs: Keyword arguments for the function
         
         Returns:
@@ -280,56 +348,22 @@ class CK3ThreadManager:
         if task_id is None:
             task_id = f"cpu-{next(self._task_counter)}"
 
-        # Create wrapper that handles timeout and cancellation
-        def wrapped_func():
-            # Only track time if timeout is specified
-            start_time = time.time() if timeout else None
-
-            try:
-                # Check cancellation before starting
-                if cancellation_token and cancellation_token.is_set():
-                    with self._metrics_lock:
-                        self._cancelled_count += 1
-                    if logger.isEnabledFor(logging.DEBUG):
-                        logger.debug("Task %s cancelled before execution", task_id)
-                    raise asyncio.CancelledError("Task cancelled before execution")
-
-                # Execute the function
-                result = func(*args, **kwargs)
-
-                # Check timeout only if configured
-                if start_time is not None:
-                    elapsed = time.time() - start_time
-                    if elapsed > timeout:
-                        with self._metrics_lock:
-                            self._timeout_count += 1
-                        logger.warning("Task %s exceeded timeout: %.2fs > %ss",
-                                     task_id, elapsed, timeout)
-
-                # Update metrics
-                with self._metrics_lock:
-                    self._completed_count += 1
-
-                return result
-
-            except asyncio.CancelledError:
-                raise
-            except Exception as e:
-                with self._metrics_lock:
-                    self._failed_count += 1
-                logger.error("Task %s failed: %s", task_id, e, exc_info=True)
-                raise
-            finally:
-                # Remove from active tasks
-                with self._active_tasks_lock:
-                    self._active_tasks.pop(task_id, None)
-
-        # Submit to thread pool
-        future = self._cpu_pool.submit(wrapped_func)
+        # Submit to thread pool with reusable wrapper
+        future = self._cpu_pool.submit(
+            self._execute_task_wrapper,
+            func, args, kwargs, task_id, timeout, cancellation_token, uri
+        )
 
         # Track active task
         with self._active_tasks_lock:
             self._active_tasks[task_id] = future
+
+        # Track URI association for fast cancellation
+        if uri:
+            with self._uri_index_lock:
+                if uri not in self._uri_to_tasks:
+                    self._uri_to_tasks[uri] = set()
+                self._uri_to_tasks[uri].add(task_id)
 
         if logger.isEnabledFor(logging.DEBUG):
             logger.debug(
@@ -345,6 +379,7 @@ class CK3ThreadManager:
         *args,
         priority: TaskPriority = TaskPriority.NORMAL,
         task_id: Optional[str] = None,
+        uri: Optional[str] = None,
         **kwargs,
     ) -> Future:
         """
@@ -358,6 +393,7 @@ class CK3ThreadManager:
             *args: Positional arguments for the function
             priority: Task priority level (default: NORMAL)
             task_id: Unique identifier for tracking and cancellation
+            uri: Optional document URI for fast cancellation lookup
             **kwargs: Keyword arguments for the function
         
         Returns:
@@ -381,28 +417,23 @@ class CK3ThreadManager:
         if task_id is None:
             task_id = f"io-{next(self._task_counter)}"
 
-        # Create wrapper for metrics
-        def wrapped_func():
-            try:
-                result = func(*args, **kwargs)
-                with self._metrics_lock:
-                    self._completed_count += 1
-                return result
-            except Exception as e:
-                with self._metrics_lock:
-                    self._failed_count += 1
-                logger.error("I/O task %s failed: %s", task_id, e, exc_info=True)
-                raise
-            finally:
-                with self._active_tasks_lock:
-                    self._active_tasks.pop(task_id, None)
-
-        # Submit to I/O pool
-        future = self._io_pool.submit(wrapped_func)
+        # Submit to I/O pool with reusable wrapper
+        # Note: I/O tasks don't support timeout or cancellation_token currently
+        future = self._io_pool.submit(
+            self._execute_task_wrapper,
+            func, args, kwargs, task_id, None, None, uri
+        )
 
         # Track active task
         with self._active_tasks_lock:
             self._active_tasks[task_id] = future
+
+        # Track URI association for fast cancellation
+        if uri:
+            with self._uri_index_lock:
+                if uri not in self._uri_to_tasks:
+                    self._uri_to_tasks[uri] = set()
+                self._uri_to_tasks[uri].add(task_id)
 
         if logger.isEnabledFor(logging.DEBUG):
             logger.debug("Submitted I/O task %s with priority %s", task_id, priority.name)
@@ -447,23 +478,67 @@ class CK3ThreadManager:
     def cancel_by_uri(self, uri: str) -> int:
         """
         Cancel all pending tasks for a document URI.
-        
+
         This is useful when a document changes, making all pending
         operations for that document stale.
-        
+
+        Uses O(1) lookup via URI index when tasks are submitted with uri parameter.
+        Falls back to O(n) scan for tasks submitted with URI embedded in task_id.
+
         Args:
             uri: Document URI to cancel tasks for
-        
+
         Returns:
             Number of tasks cancelled
-        
+
         Example:
             ```python
             # User is rapidly typing, cancel old work
             mgr.cancel_by_uri("file:///path/to/document.txt")
             ```
         """
-        return self._cancel_tasks(lambda task_id: uri in task_id, f"URI: {uri}")
+        # Try O(1) lookup first using URI index
+        cancelled = 0
+        task_ids_to_cancel = set()
+
+        with self._uri_index_lock:
+            if uri in self._uri_to_tasks:
+                # Copy set to avoid modification during iteration
+                task_ids_to_cancel = self._uri_to_tasks[uri].copy()
+                # Clear the index entry
+                del self._uri_to_tasks[uri]
+
+        # Cancel tasks found in index
+        for task_id in task_ids_to_cancel:
+            with self._active_tasks_lock:
+                future = self._active_tasks.get(task_id)
+
+            if future and future.cancel():
+                cancelled += 1
+                if logger.isEnabledFor(logging.DEBUG):
+                    logger.debug("Cancelled task %s (URI: %s)", task_id, uri)
+
+        # Also check for tasks with URI embedded in task_id (fallback for old-style usage)
+        # This handles cases where tasks were submitted without explicit uri parameter
+        with self._active_tasks_lock:
+            fallback_tasks = [
+                (tid, future)
+                for tid, future in self._active_tasks.items()
+                if uri in tid and tid not in task_ids_to_cancel
+            ]
+
+        for task_id, future in fallback_tasks:
+            if future.cancel():
+                cancelled += 1
+                if logger.isEnabledFor(logging.DEBUG):
+                    logger.debug("Cancelled task %s (URI: %s, fallback)", task_id, uri)
+
+        if cancelled > 0:
+            with self._metrics_lock:
+                self._cancelled_count += cancelled
+            logger.info("Cancelled %d tasks (URI: %s)", cancelled, uri)
+
+        return cancelled
 
     def cancel_by_prefix(self, prefix: str) -> int:
         """
