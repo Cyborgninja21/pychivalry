@@ -208,6 +208,11 @@ class CK3ThreadManager:
         self._active_tasks: Dict[str, Future] = {}
         self._active_tasks_lock = threading.Lock()  # Changed from RLock - no reentrancy needed
 
+        # URI-to-task index for O(1) cancellation by URI
+        # Maps URI -> Set of task_ids for fast lookup
+        self._uri_to_tasks: Dict[str, Set[str]] = {}
+        self._uri_index_lock = threading.Lock()
+
         # Metrics - using simple integers with lock for thread safety
         # Note: Could use atomic integers for better performance, but standard int + lock
         # is simpler and adequate for current needs
