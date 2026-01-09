@@ -75,6 +75,7 @@ SEE ALSO:
 """
 
 import asyncio
+import ctypes
 import itertools
 import logging
 import os
@@ -83,6 +84,7 @@ import time
 from concurrent.futures import Future, ThreadPoolExecutor
 from dataclasses import dataclass, field
 from enum import IntEnum
+from multiprocessing import Value
 from queue import Empty, PriorityQueue
 from typing import Any, Callable, Dict, Optional, Set
 
@@ -221,17 +223,18 @@ class CK3ThreadManager:
         self._pending_futures: Dict[str, Future] = {}
         self._pending_lock = threading.Lock()
 
-        # Metrics - using simple integers with lock for thread safety
-        # Note: Could use atomic integers for better performance, but standard int + lock
-        # is simpler and adequate for current needs
-        self._completed_count = 0
-        self._cancelled_count = 0
-        self._timeout_count = 0
-        self._failed_count = 0
-        self._metrics_lock = threading.Lock()
+        # Metrics - using atomic integers for lock-free updates
+        # multiprocessing.Value provides atomic operations without lock contention
+        self._completed_count = Value(ctypes.c_longlong, 0, lock=False)
+        self._cancelled_count = Value(ctypes.c_longlong, 0, lock=False)
+        self._timeout_count = Value(ctypes.c_longlong, 0, lock=False)
+        self._failed_count = Value(ctypes.c_longlong, 0, lock=False)
 
         # Shutdown flag
         self._shutdown = False
+
+        # Pre-warm thread pools for faster first task execution
+        self._prewarm_thread_pools()
 
         # Priority scheduler thread (if enabled)
         self._scheduler_thread = None
@@ -253,6 +256,38 @@ class CK3ThreadManager:
                 self._cpu_pool._max_workers,
                 self._io_pool._max_workers
             )
+
+    def _prewarm_thread_pools(self):
+        """
+        Pre-warm thread pools by submitting dummy tasks.
+
+        This ensures threads are created and ready before first real task,
+        eliminating cold-start latency.
+        """
+        def _warmup_task():
+            """Dummy task to warm up thread."""
+            pass
+
+        # Warm up CPU pool
+        cpu_futures = []
+        for _ in range(self._cpu_pool._max_workers):
+            future = self._cpu_pool.submit(_warmup_task)
+            cpu_futures.append(future)
+
+        # Warm up I/O pool
+        io_futures = []
+        for _ in range(self._io_pool._max_workers):
+            future = self._io_pool.submit(_warmup_task)
+            io_futures.append(future)
+
+        # Wait for all warmup tasks to complete
+        for future in cpu_futures + io_futures:
+            try:
+                future.result(timeout=1.0)
+            except Exception:
+                pass  # Ignore warmup failures
+
+        logger.info("Thread pools pre-warmed")
 
     def _priority_scheduler_loop(self):
         """
@@ -280,9 +315,8 @@ class CK3ThreadManager:
 
                 # Check cancellation token before submitting
                 if task.cancellation_token and task.cancellation_token.is_set():
-                    # Mark as cancelled
-                    with self._metrics_lock:
-                        self._cancelled_count += 1
+                    # Mark as cancelled (atomic operation)
+                    self._cancelled_count.value += 1
                     future.set_exception(asyncio.CancelledError("Task cancelled in queue"))
                     continue
 
@@ -350,8 +384,7 @@ class CK3ThreadManager:
         try:
             # Check cancellation before starting
             if cancellation_token and cancellation_token.is_set():
-                with self._metrics_lock:
-                    self._cancelled_count += 1
+                self._cancelled_count.value += 1  # Atomic operation
                 if logger.isEnabledFor(logging.DEBUG):
                     logger.debug("Task %s cancelled before execution", task_id)
                 raise asyncio.CancelledError("Task cancelled before execution")
@@ -363,22 +396,19 @@ class CK3ThreadManager:
             if start_time is not None:
                 elapsed = time.time() - start_time
                 if elapsed > timeout:
-                    with self._metrics_lock:
-                        self._timeout_count += 1
+                    self._timeout_count.value += 1  # Atomic operation
                     logger.warning("Task %s exceeded timeout: %.2fs > %ss",
                                  task_id, elapsed, timeout)
 
-            # Update metrics
-            with self._metrics_lock:
-                self._completed_count += 1
+            # Update metrics (atomic operation)
+            self._completed_count.value += 1
 
             return result
 
         except asyncio.CancelledError:
             raise
         except Exception as e:
-            with self._metrics_lock:
-                self._failed_count += 1
+            self._failed_count.value += 1  # Atomic operation
             logger.error("Task %s failed: %s", task_id, e, exc_info=True)
             raise
         finally:
@@ -595,8 +625,7 @@ class CK3ThreadManager:
                     logger.debug("Cancelled task %s (%s)", task_id, description)
 
         if cancelled > 0:
-            with self._metrics_lock:
-                self._cancelled_count += cancelled
+            self._cancelled_count.value += cancelled  # Atomic operation
             logger.info("Cancelled %d tasks (%s)", cancelled, description)
 
         return cancelled
@@ -660,8 +689,7 @@ class CK3ThreadManager:
                     logger.debug("Cancelled task %s (URI: %s, fallback)", task_id, uri)
 
         if cancelled > 0:
-            with self._metrics_lock:
-                self._cancelled_count += cancelled
+            self._cancelled_count.value += cancelled  # Atomic operation
             logger.info("Cancelled %d tasks (URI: %s)", cancelled, uri)
 
         return cancelled
@@ -712,11 +740,11 @@ class CK3ThreadManager:
             print(f"Active: {metrics['active_count']}")
             ```
         """
-        with self._metrics_lock:
-            completed = self._completed_count
-            cancelled = self._cancelled_count
-            timeout = self._timeout_count
-            failed = self._failed_count
+        # Read atomic values (no lock needed)
+        completed = self._completed_count.value
+        cancelled = self._cancelled_count.value
+        timeout = self._timeout_count.value
+        failed = self._failed_count.value
 
         with self._active_tasks_lock:
             active = len(self._active_tasks)
