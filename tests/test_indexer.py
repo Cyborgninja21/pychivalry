@@ -73,12 +73,12 @@ test_mod.0001 = {
 
         # First document
         text1 = "namespace = mod1"
-        ast1 = parse_document(text1)
+        ast1, _ = parse_document(text1)
         index.update_from_ast("file:///doc1.txt", ast1)
 
         # Second document
         text2 = "namespace = mod2"
-        ast2 = parse_document(text2)
+        ast2, _ = parse_document(text2)
         index.update_from_ast("file:///doc2.txt", ast2)
 
         assert "mod1" in index.namespaces
@@ -92,14 +92,14 @@ test_mod.0001 = {
 
         # Initial content
         text1 = "namespace = old_namespace"
-        ast1 = parse_document(text1)
+        ast1, _ = parse_document(text1)
         index.update_from_ast("file:///test.txt", ast1)
 
         assert "old_namespace" in index.namespaces
 
         # Updated content
         text2 = "namespace = new_namespace"
-        ast2 = parse_document(text2)
+        ast2, _ = parse_document(text2)
         index.update_from_ast("file:///test.txt", ast2)
 
         # Old namespace should be gone
@@ -201,11 +201,11 @@ test_mod.0002 = {
         index = DocumentIndex()
 
         text1 = "namespace = mod1"
-        ast1 = parse_document(text1)
+        ast1, _ = parse_document(text1)
         index.update_from_ast("file:///doc1.txt", ast1)
 
         text2 = "namespace = mod2"
-        ast2 = parse_document(text2)
+        ast2, _ = parse_document(text2)
         index.update_from_ast("file:///doc2.txt", ast2)
 
         namespaces = index.get_all_namespaces()
