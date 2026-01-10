@@ -4,7 +4,8 @@
       "Bash(pytest:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(gh issue view:*)"
     ],
     "deny": [],
     "ask": []

@@ -1,0 +1,2 @@
+# This directory stores extracted CK3 game concept data
+# Run: python tools/extract_concepts.py --ck3-path "/path/to/ck3"

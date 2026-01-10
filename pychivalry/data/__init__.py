@@ -500,6 +500,71 @@ def load_animations() -> Dict[str, Dict[str, Any]]:
     return load_yaml_file(animations_file)
 
 
+def load_concepts() -> Dict[str, Dict[str, str]]:
+    """
+    Load game concept definitions from concepts/concepts.yaml.
+
+    Game concepts are special localization keys used for in-game tooltips
+    and contextual information. They are referenced in localization using
+    the pattern [concept|E].
+
+    Note:
+        Concept data must be extracted from a CK3 installation using
+        tools/extract_concepts.py. If the file doesn't exist, an empty
+        dictionary is returned.
+
+    Returns:
+        Dictionary mapping concept names to their data
+        Format: {concept_name: {'text': str, 'source': str}}
+
+    Examples:
+        >>> concepts = load_concepts()
+        >>> 'vassal' in concepts
+        True
+        >>> concepts['vassal']['text']
+        'A character who has sworn fealty to a liege...'
+    """
+    concepts_file = DATA_DIR / "concepts" / "concepts.yaml"
+
+    if not concepts_file.exists():
+        logger.info(f"Concepts file not found at {concepts_file} - concept validation disabled")
+        return {}
+
+    return load_yaml_file(concepts_file)
+
+
+def load_icons() -> Dict[str, Dict[str, str]]:
+    """
+    Load icon reference definitions from icons/icons.yaml.
+
+    Icon references are inline graphics used in CK3 localization,
+    referenced using the pattern @icon_name!.
+
+    Note:
+        Icon data must be extracted from a CK3 installation using
+        tools/extract_icons.py. If the file doesn't exist, an empty
+        dictionary is returned.
+
+    Returns:
+        Dictionary mapping icon names to their data
+        Format: {icon_name: {'category': str, 'description': str, 'reference': str}}
+
+    Examples:
+        >>> icons = load_icons()
+        >>> 'gold_icon' in icons
+        True
+        >>> icons['gold_icon']['category']
+        'resources'
+    """
+    icons_file = DATA_DIR / "icons" / "icons.yaml"
+
+    if not icons_file.exists():
+        logger.info(f"Icons file not found at {icons_file} - icon validation disabled")
+        return {}
+
+    return load_yaml_file(icons_file)
+
+
 # =============================================================================
 # CACHING SYSTEM
 # =============================================================================
@@ -522,6 +587,12 @@ _traits_cache: Optional[Dict[str, Dict[str, Any]]] = None
 
 # Cache for animation definitions (idle, happiness, thinking, etc.)
 _animations_cache: Optional[Dict[str, Dict[str, Any]]] = None
+
+# Cache for game concept definitions (vassal, opinion, de_jure, etc.)
+_concepts_cache: Optional[Dict[str, Dict[str, str]]] = None
+
+# Cache for icon reference definitions (gold_icon, prestige_icon, etc.)
+_icons_cache: Optional[Dict[str, Dict[str, str]]] = None
 
 
 # =============================================================================
@@ -691,6 +762,64 @@ def get_animations(use_cache: bool = True) -> Dict[str, Dict[str, Any]]:
     return _animations_cache
 
 
+def get_concepts(use_cache: bool = True) -> Dict[str, Dict[str, str]]:
+    """
+    Get game concept definitions with intelligent caching.
+
+    See get_scopes() for detailed documentation on caching behavior.
+    This function works identically but for game concept definitions.
+
+    Args:
+        use_cache: Whether to use cached data (default: True)
+
+    Returns:
+        Complete concept definitions dictionary
+
+    Examples:
+        >>> concepts = get_concepts()
+        >>> 'vassal' in concepts  # True if data extracted
+        >>> concepts['vassal']['text']  # Localized description
+    """
+    # Declare we're modifying the global cache variable
+    global _concepts_cache
+
+    # Load if cache is invalid or use_cache is False
+    if not use_cache or _concepts_cache is None:
+        _concepts_cache = load_concepts()
+
+    # Return cached data
+    return _concepts_cache
+
+
+def get_icons(use_cache: bool = True) -> Dict[str, Dict[str, str]]:
+    """
+    Get icon reference definitions with intelligent caching.
+
+    See get_scopes() for detailed documentation on caching behavior.
+    This function works identically but for icon reference definitions.
+
+    Args:
+        use_cache: Whether to use cached data (default: True)
+
+    Returns:
+        Complete icon definitions dictionary
+
+    Examples:
+        >>> icons = get_icons()
+        >>> 'gold_icon' in icons  # True if data extracted
+        >>> icons['gold_icon']['category']  # 'resources'
+    """
+    # Declare we're modifying the global cache variable
+    global _icons_cache
+
+    # Load if cache is invalid or use_cache is False
+    if not use_cache or _icons_cache is None:
+        _icons_cache = load_icons()
+
+    # Return cached data
+    return _icons_cache
+
+
 def clear_cache():
     """
     Clear all cached data to force reload on next access.
@@ -722,8 +851,8 @@ def clear_cache():
         Next call to get_scopes/effects/triggers/traits/animations will reload from disk
     """
     # Declare we're modifying all global cache variables
-    global _scopes_cache, _effects_cache, _triggers_cache, _traits_cache, _animations_cache
-    
+    global _scopes_cache, _effects_cache, _triggers_cache, _traits_cache, _animations_cache, _concepts_cache, _icons_cache
+
     # Reset all caches to None
     # This invalidates the cache and forces reload on next access
     _scopes_cache = None
@@ -731,6 +860,8 @@ def clear_cache():
     _triggers_cache = None
     _traits_cache = None
     _animations_cache = None
+    _concepts_cache = None
+    _icons_cache = None
 
 
 # =============================================================================

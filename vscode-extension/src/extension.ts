@@ -337,6 +337,137 @@ async function extractTraitData(context: vscode.ExtensionContext) {
 }
 
 /**
+ * Command: Extract localization data (game concepts and icons) from CK3 installation
+ */
+async function extractLocalizationData(context: vscode.ExtensionContext) {
+    const outputChannel = getLogChannel('localizationExtraction', 'CK3: Localization Extraction');
+    outputChannel.clear();
+    outputChannel.show();
+    outputChannel.appendLine('='.repeat(60));
+    outputChannel.appendLine('CK3 Localization Data Extraction');
+    outputChannel.appendLine(`Started: ${new Date().toLocaleString()}`);
+    outputChannel.appendLine('='.repeat(60));
+    outputChannel.appendLine('');
+
+    try {
+        // Ask user to confirm and provide CK3 installation path
+        const proceed = await vscode.window.showInformationMessage(
+            'This will extract game concepts and icon references from your Crusader Kings III installation. ' +
+                'The extracted data is for personal use only and not redistributed. Continue?',
+            'Yes',
+            'No'
+        );
+
+        if (proceed !== 'Yes') {
+            return;
+        }
+
+        // Try to detect CK3 installation path
+        let ck3Path = await detectCK3Path();
+
+        if (!ck3Path) {
+            // Ask user to manually specify path
+            const selectedPath = await vscode.window.showOpenDialog({
+                canSelectFiles: false,
+                canSelectFolders: true,
+                canSelectMany: false,
+                title: 'Select Crusader Kings III installation folder',
+                openLabel: 'Select CK3 Folder',
+            });
+
+            if (!selectedPath || selectedPath.length === 0) {
+                vscode.window.showWarningMessage(
+                    'CK3 installation path not provided. Extraction cancelled.'
+                );
+                return;
+            }
+
+            ck3Path = selectedPath[0].fsPath;
+        }
+
+        // Validate path
+        const localizationDir = path.join(ck3Path, 'game', 'localization', 'english');
+        if (!fs.existsSync(localizationDir)) {
+            vscode.window.showErrorMessage(
+                `Invalid CK3 installation path. Could not find: ${localizationDir}`
+            );
+            return;
+        }
+
+        outputChannel.appendLine(`Using CK3 installation: ${ck3Path}`);
+        outputChannel.appendLine('Starting extraction...\n');
+
+        // Get Python executable from language server config
+        const pythonPath = getPythonPath();
+
+        // Get extension path and construct script paths
+        const extensionPath = context.extensionPath;
+        const conceptsScriptPath = path.join(extensionPath, '..', 'tools', 'extract_concepts.py');
+        const iconsScriptPath = path.join(extensionPath, '..', 'tools', 'extract_icons.py');
+
+        // Extract game concepts
+        outputChannel.appendLine('━'.repeat(60));
+        outputChannel.appendLine('Extracting Game Concepts');
+        outputChannel.appendLine('━'.repeat(60));
+        const conceptsCmd = `"${pythonPath}" "${conceptsScriptPath}" --ck3-path "${ck3Path}"`;
+        outputChannel.appendLine(`Running: ${conceptsCmd}\n`);
+
+        const { stdout: conceptsOut, stderr: conceptsErr } = await execAsync(conceptsCmd);
+        outputChannel.appendLine(conceptsOut);
+        if (conceptsErr) {
+            outputChannel.appendLine('Errors:\n' + conceptsErr);
+        }
+
+        // Extract icons
+        outputChannel.appendLine('\n' + '━'.repeat(60));
+        outputChannel.appendLine('Extracting Icon References');
+        outputChannel.appendLine('━'.repeat(60));
+        const iconsCmd = `"${pythonPath}" "${iconsScriptPath}" --ck3-path "${ck3Path}"`;
+        outputChannel.appendLine(`Running: ${iconsCmd}\n`);
+
+        const { stdout: iconsOut, stderr: iconsErr } = await execAsync(iconsCmd);
+        outputChannel.appendLine(iconsOut);
+        if (iconsErr) {
+            outputChannel.appendLine('Errors:\n' + iconsErr);
+        }
+
+        // Check if successful
+        const conceptsFile = path.join(extensionPath, '..', 'pychivalry', 'data', 'concepts', 'concepts.yaml');
+        const iconsFile = path.join(extensionPath, '..', 'pychivalry', 'data', 'icons', 'icons.yaml');
+
+        const conceptsExists = fs.existsSync(conceptsFile);
+        const iconsExists = fs.existsSync(iconsFile);
+
+        if (conceptsExists && iconsExists) {
+            const result = await vscode.window.showInformationMessage(
+                `✅ Successfully extracted localization data! ` +
+                    `Game concepts and icon references are now available. ` +
+                    `Restart the language server for changes to take effect.`,
+                'Restart Language Server',
+                'Later'
+            );
+
+            if (result === 'Restart Language Server') {
+                await vscode.commands.executeCommand('ck3LanguageServer.restart');
+            }
+        } else if (conceptsExists || iconsExists) {
+            const partial = conceptsExists ? 'concepts' : 'icons';
+            vscode.window.showWarningMessage(
+                `⚠️ Partial extraction: Only ${partial} data was extracted. Check output for errors.`
+            );
+        } else {
+            vscode.window.showErrorMessage(
+                'Extraction completed but no data files were created. Check output for errors.'
+            );
+        }
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        outputChannel.appendLine(`\nError: ${message}`);
+        vscode.window.showErrorMessage(`Failed to extract localization data: ${message}`);
+    }
+}
+
+/**
  * Command: Discover and extract mod data (Carnalitas, etc.)
  */
 async function discoverModData(context: vscode.ExtensionContext) {
@@ -542,6 +673,13 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     context.subscriptions.push(
         vscode.commands.registerCommand('ck3LanguageServer.extractTraitData', async () => {
             await extractTraitData(context);
+        })
+    );
+
+    // Register localization data extraction command
+    context.subscriptions.push(
+        vscode.commands.registerCommand('ck3LanguageServer.extractLocalizationData', async () => {
+            await extractLocalizationData(context);
         })
     );
 
@@ -1670,6 +1808,10 @@ async function showMenuCommand(): Promise<void> {
             description: 'Extract trait data from CK3 installation',
         },
         {
+            label: '$(symbol-namespace) Extract Localization Data',
+            description: 'Extract game concepts and icons from CK3 installation',
+        },
+        {
             label: '$(package) Discover Mod Data',
             description: 'Scan for registered mods',
         },
@@ -1745,6 +1887,9 @@ async function showMenuCommand(): Promise<void> {
                 break;
             case '$(database) Extract Trait Data':
                 await vscode.commands.executeCommand('ck3LanguageServer.extractTraitData');
+                break;
+            case '$(symbol-namespace) Extract Localization Data':
+                await vscode.commands.executeCommand('ck3LanguageServer.extractLocalizationData');
                 break;
             case '$(package) Discover Mod Data':
                 await vscode.commands.executeCommand('ck3LanguageServer.discoverModData');

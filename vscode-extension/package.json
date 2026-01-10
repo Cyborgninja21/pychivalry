@@ -103,6 +103,11 @@
         "category": "CK3"
       },
       {
+        "command": "ck3LanguageServer.extractLocalizationData",
+        "title": "Extract Localization Data from CK3 Installation",
+        "category": "CK3"
+      },
+      {
         "command": "ck3LanguageServer.discoverModData",
         "title": "Discover Mod Data (Carnalitas, etc.)",
         "category": "CK3"
