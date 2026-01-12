@@ -947,6 +947,113 @@ def _check_decision_group_localization(
     return diagnostics
 
 
+def collect_missing_localization_diagnostics(
+    doc: TextDocument,
+    ast: List[CK3Node],
+    index: Optional[DocumentIndex] = None,
+) -> List[types.Diagnostic]:
+    """
+    Check for missing localization keys (CK3600).
+
+    Walks the AST to find localization field references (title, desc, name, etc.)
+    and validates that all referenced keys exist in the workspace's localization files.
+    Uses fuzzy matching to suggest similar keys when a key is not found.
+
+    Args:
+        doc: The text document being validated
+        ast: Parsed AST
+        index: Document index containing localization keys
+
+    Returns:
+        List of CK3600 diagnostics for missing keys
+
+    Example:
+        >>> # Event references "my_event.typo.t" but key doesn't exist
+        >>> # Suggests "my_event.0001.t" if similar
+        >>> diagnostics = collect_missing_localization_diagnostics(doc, ast, index)
+        >>> diagnostics[0].code
+        'CK3600'
+    """
+    from .localization import collect_localization_diagnostics
+
+    diagnostics = []
+
+    # Skip if no index (can't validate without knowing available keys)
+    if not index:
+        return diagnostics
+
+    # Get all available localization keys from workspace
+    available_keys = index.get_all_localization_keys()
+
+    # Collect all localization field references from this file
+    referenced_keys = []
+
+    def walk_ast(nodes: List[CK3Node]):
+        """Recursively walk AST to find localization references."""
+        for node in nodes:
+            # Check if this node is a localization field
+            if node.key and node.value:
+                field_name = node.key.lower()
+
+                # Fields that should reference localization keys
+                LOC_FIELDS = {"title", "desc", "name", "tooltip", "custom_tooltip", "text"}
+
+                if field_name in LOC_FIELDS:
+                    value = node.value.strip()
+
+                    # Skip literal strings
+                    is_literal = (value.startswith('"') and value.endswith('"')) or \
+                                (value.startswith("'") and value.endswith("'"))
+
+                    # Must have a dot (namespace.id pattern) and not be literal
+                    if not is_literal and "." in value:
+                        referenced_keys.append((
+                            value,
+                            node.range.start.line,
+                            node.range.start.character,
+                            node.range.end.character
+                        ))
+
+            # Recursively check children
+            if node.children:
+                walk_ast(node.children)
+
+    # Walk the AST
+    walk_ast(ast)
+
+    # Use the existing collect_localization_diagnostics from localization.py
+    # This handles CK3600 (missing keys) with fuzzy matching
+    loc_diags = collect_localization_diagnostics(
+        referenced_keys,
+        available_keys,
+        check_naming=False,  # CK3603 naming checks disabled for now
+        fuzzy_threshold=0.7
+    )
+
+    # Convert LocalizationDiagnostic to LSP Diagnostic
+    for loc_diag in loc_diags:
+        severity_map = {
+            "error": types.DiagnosticSeverity.Error,
+            "warning": types.DiagnosticSeverity.Warning,
+            "information": types.DiagnosticSeverity.Information,
+            "hint": types.DiagnosticSeverity.Hint,
+        }
+
+        lsp_diag = types.Diagnostic(
+            range=types.Range(
+                start=types.Position(line=loc_diag.line, character=loc_diag.start_char),
+                end=types.Position(line=loc_diag.line, character=loc_diag.end_char)
+            ),
+            severity=severity_map.get(loc_diag.severity, types.DiagnosticSeverity.Warning),
+            code=loc_diag.code,
+            message=loc_diag.message,
+            source="ck3-language-server"
+        )
+        diagnostics.append(lsp_diag)
+
+    return diagnostics
+
+
 def collect_all_diagnostics(
     doc: TextDocument,
     ast: List[CK3Node],
@@ -1072,6 +1179,16 @@ def collect_all_diagnostics(
                 )
             except Exception as e:
                 logger.error(f"Error in decision group localization check: {e}", exc_info=True)
+
+        # Localization validation (CK3600-CK3604) - Issue #33
+        # Check for missing localization keys in script files
+        if index and not doc.uri.endswith('.yml'):
+            try:
+                loc_diagnostics = collect_missing_localization_diagnostics(doc, ast, index)
+                diagnostics.extend(loc_diagnostics)
+                logger.debug(f"Localization validation found {len(loc_diagnostics)} diagnostics")
+            except Exception as e:
+                logger.error(f"Error in localization validation: {e}", exc_info=True)
 
         logger.debug(f"Found {len(diagnostics)} diagnostics for {doc.uri}")
     except Exception as e:

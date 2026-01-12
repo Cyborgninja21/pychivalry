@@ -388,3 +388,147 @@ class TestBlockSemanticValidation:
         # Should have no context errors in unknown context
         errors = [d for d in diagnostics if d.code in ("CK3101", "CK3102")]
         assert len(errors) == 0
+
+
+class TestLocalizationValidation:
+    """Tests for localization validation (Issue #33, CK3600-CK3604)."""
+
+    def test_missing_localization_key_diagnostic(self):
+        """Detects missing localization keys (CK3600)."""
+        from pychivalry.diagnostics import collect_missing_localization_diagnostics
+
+        text = """test_mod.0001 = {
+    type = character_event
+    title = test_mod.0001.t
+    desc = test_mod.missing.desc
+}"""
+        doc = TextDocument(uri="file:///test.txt", source=text)
+        ast, _parse_errors = parse_document(text)
+
+        # Create index with one key but not the other
+        index = DocumentIndex()
+        index.localization["test_mod.0001.t"] = ("Title text", "file:///loc.yml", 10)
+        # test_mod.missing.desc is NOT defined
+
+        diagnostics = collect_missing_localization_diagnostics(doc, ast, index)
+
+        # Should have one missing key diagnostic
+        missing_diags = [d for d in diagnostics if d.code == "CK3600"]
+        assert len(missing_diags) == 1
+        assert "test_mod.missing.desc" in missing_diags[0].message
+        assert missing_diags[0].severity == types.DiagnosticSeverity.Warning
+
+    def test_all_keys_present_no_diagnostic(self):
+        """No diagnostic when all keys are present."""
+        from pychivalry.diagnostics import collect_missing_localization_diagnostics
+
+        text = """test_mod.0001 = {
+    type = character_event
+    title = test_mod.0001.t
+    desc = test_mod.0001.desc
+}"""
+        doc = TextDocument(uri="file:///test.txt", source=text)
+        ast, _parse_errors = parse_document(text)
+
+        # Create index with both keys
+        index = DocumentIndex()
+        index.localization["test_mod.0001.t"] = ("Title", "file:///loc.yml", 10)
+        index.localization["test_mod.0001.desc"] = ("Desc", "file:///loc.yml", 11)
+
+        diagnostics = collect_missing_localization_diagnostics(doc, ast, index)
+
+        # Should have no missing key diagnostics
+        missing_diags = [d for d in diagnostics if d.code == "CK3600"]
+        assert len(missing_diags) == 0
+
+    def test_fuzzy_matching_suggests_similar_keys(self):
+        """Suggests similar keys using fuzzy matching."""
+        from pychivalry.diagnostics import collect_missing_localization_diagnostics
+
+        text = """test_mod.0001 = {
+    title = test_mod.0001.typo
+}"""
+        doc = TextDocument(uri="file:///test.txt", source=text)
+        ast, _parse_errors = parse_document(text)
+
+        # Create index with similar key
+        index = DocumentIndex()
+        index.localization["test_mod.0001.t"] = ("Title", "file:///loc.yml", 10)
+
+        diagnostics = collect_missing_localization_diagnostics(doc, ast, index)
+
+        # Should suggest the similar key
+        assert len(diagnostics) == 1
+        assert "Did you mean" in diagnostics[0].message or "test_mod.0001.t" in diagnostics[0].message
+
+    def test_ignores_literal_strings(self):
+        """Doesn't validate literal strings as localization keys."""
+        from pychivalry.diagnostics import collect_missing_localization_diagnostics
+
+        text = """test_mod.0001 = {
+    title = "Literal Title"
+    desc = test_mod.0001.desc
+}"""
+        doc = TextDocument(uri="file:///test.txt", source=text)
+        ast, _parse_errors = parse_document(text)
+
+        index = DocumentIndex()
+        index.localization["test_mod.0001.desc"] = ("Desc", "file:///loc.yml", 10)
+
+        diagnostics = collect_missing_localization_diagnostics(doc, ast, index)
+
+        # Should not complain about literal string
+        # Should have no diagnostics since desc key exists
+        assert len(diagnostics) == 0
+
+    def test_validates_all_loc_fields(self):
+        """Validates all localization field types."""
+        from pychivalry.diagnostics import collect_missing_localization_diagnostics
+
+        text = """test_mod.0001 = {
+    title = test.title
+    desc = test.desc
+    option = {
+        name = test.name
+        tooltip = test.tooltip
+        custom_tooltip = test.custom_tooltip
+    }
+    text = test.text
+}"""
+        doc = TextDocument(uri="file:///test.txt", source=text)
+        ast, _parse_errors = parse_document(text)
+
+        # Empty index - all keys missing
+        index = DocumentIndex()
+
+        diagnostics = collect_missing_localization_diagnostics(doc, ast, index)
+
+        # Should find all 6 missing keys
+        assert len(diagnostics) == 6
+        all_missing = [d.message for d in diagnostics]
+        assert any("test.title" in msg for msg in all_missing)
+        assert any("test.desc" in msg for msg in all_missing)
+        assert any("test.name" in msg for msg in all_missing)
+        assert any("test.tooltip" in msg for msg in all_missing)
+        assert any("test.custom_tooltip" in msg for msg in all_missing)
+        assert any("test.text" in msg for msg in all_missing)
+
+    def test_integration_with_collect_all_diagnostics(self):
+        """Localization validation integrates with main diagnostics pipeline."""
+        text = """test_mod.0001 = {
+    type = character_event
+    title = missing.key
+}"""
+        doc = TextDocument(uri="file:///test.txt", source=text)
+        ast, _parse_errors = parse_document(text)
+
+        # Create index (empty, so key will be missing)
+        index = DocumentIndex()
+
+        # Run full diagnostics
+        all_diagnostics = collect_all_diagnostics(doc, ast, index)
+
+        # Should include CK3600 diagnostic
+        ck3600_diags = [d for d in all_diagnostics if d.code == "CK3600"]
+        assert len(ck3600_diags) == 1
+        assert "missing.key" in ck3600_diags[0].message
