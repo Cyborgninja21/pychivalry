@@ -289,15 +289,15 @@ def main():
 
         print()
         print("=" * 60)
-        print("✅ Extraction Complete!")
+        print("[SUCCESS] Extraction Complete!")
         print("=" * 60)
         print(f"Extracted {len(concepts)} game concepts")
         print(f"Output: {args.output}")
         print()
         print("The language server will now be able to:")
-        print("  • Validate concept links in localization: [concept|E]")
-        print("  • Provide concept name completions")
-        print("  • Show concept descriptions on hover")
+        print("  - Validate concept links in localization: [concept|E]")
+        print("  - Provide concept name completions")
+        print("  - Show concept descriptions on hover")
         print()
 
         return 0

@@ -1,0 +1,105 @@
+namespace = test_mod
+
+# Basic character event for testing
+test_mod.0001 = {
+	type = character_event
+	title = test_mod.0001.t
+	desc = test_mod.0001.desc
+	theme = learning
+
+	trigger = {
+		is_adult = yes
+		is_imprisoned = no
+		NOT = { has_trait = incapable }
+	}
+
+	weight_multiplier = {
+		base = 100
+		modifier = {
+			factor = 2
+			has_trait = intelligent
+		}
+	}
+
+	immediate = {
+		save_scope_as = event_character
+	}
+
+	option = {
+		name = test_mod.0001.a
+
+		add_character_modifier = {
+			modifier = inspired_modifier
+			years = 5
+		}
+
+		add_prestige = 100
+	}
+
+	option = {
+		name = test_mod.0001.b
+
+		trigger = {
+			learning >= 12
+		}
+
+		add_learning_skill = 1
+	}
+}
+
+# Event with scope chains
+test_mod.0002 = {
+	type = character_event
+	title = test_mod.0002.t
+	desc = test_mod.0002.desc
+
+	trigger = {
+		is_ruler = yes
+		any_vassal = {
+			opinion = {
+				target = root
+				value < 0
+			}
+		}
+	}
+
+	immediate = {
+		random_vassal = {
+			limit = {
+				opinion = {
+					target = root
+					value < 0
+				}
+			}
+			save_scope_as = angry_vassal
+		}
+	}
+
+	option = {
+		name = test_mod.0002.a
+
+		scope:angry_vassal = {
+			add_opinion = {
+				target = root
+				modifier = gift_opinion
+				opinion = 20
+			}
+		}
+	}
+}
+
+# Event with syntax error for testing diagnostics
+test_mod.0003 = {
+	type = character_event
+	title = test_mod.0003.t
+	desc = test_mod.0003.desc
+
+	trigger = {
+		# Missing closing brace to test error detection
+		is_adult = yes
+
+
+	option = {
+		name = test_mod.0003.a
+	}
+}

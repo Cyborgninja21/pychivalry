@@ -197,3 +197,6 @@ pychivalry/data/traits/*.yaml
 # Keep the directory structure and README
 !pychivalry/data/traits/README.md
 !pychivalry/data/traits/.gitkeep
+
+# Claude Code
+.claude/

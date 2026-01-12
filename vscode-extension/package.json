@@ -484,7 +484,10 @@
     "watch-tests": "tsc -p . -w --outDir out",
     "pretest": "npm run compile-tests && npm run compile && npm run lint",
     "test": "node ./out/test/runTest.js",
+    "test:integration": "npm run pretest && node ./out/test/runTest.js",
+    "test:quick": "npm run compile-tests && node ./out/test/runTest.js",
     "test:unit": "mocha ./out/test/unit/**/*.test.js",
+    "test:watch": "npm run compile-tests && mocha ./out/test/suite/**/*.test.js --watch",
     "lint": "eslint src --ext ts",
     "format": "prettier --write \"src/**/*.ts\"",
     "format-check": "prettier --check \"src/**/*.ts\""

@@ -366,15 +366,15 @@ def main():
 
         print()
         print("=" * 60)
-        print("✅ Extraction Complete!")
+        print("[SUCCESS] Extraction Complete!")
         print("=" * 60)
         print(f"Extracted {len(icons)} unique icon references")
         print(f"Output: {args.output}")
         print()
         print("The language server will now be able to:")
-        print("  • Validate icon references in localization: @icon!")
-        print("  • Provide icon name completions")
-        print("  • Show icon descriptions on hover")
+        print("  - Validate icon references in localization: @icon!")
+        print("  - Provide icon name completions")
+        print("  - Show icon descriptions on hover")
         print()
 
         return 0

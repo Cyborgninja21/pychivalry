@@ -99,6 +99,7 @@ const logChannels = {
     patterns: null as vscode.OutputChannel | null,
     traitExtraction: null as vscode.OutputChannel | null,
     modDiscovery: null as vscode.OutputChannel | null,
+    localizationExtraction: null as vscode.OutputChannel | null,
 };
 
 function getLogChannel(type: keyof typeof logChannels, name: string): vscode.OutputChannel {

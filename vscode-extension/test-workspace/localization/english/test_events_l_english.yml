@@ -1,0 +1,29 @@
+l_english:
+ # Test event localization
+ test_mod.0001.t:0 "A Moment of Inspiration"
+ test_mod.0001.desc:0 "You feel a sudden surge of creative energy and insight."
+ test_mod.0001.a:0 "I shall put this inspiration to good use!"
+ test_mod.0001.b:0 "Let me study this feeling further..."
+
+ # Second event
+ test_mod.0002.t:0 "Discontent Vassal"
+ test_mod.0002.desc:0 "[angry_vassal.GetTitledFirstName] appears unhappy with your rule."
+ test_mod.0002.a:0 "Perhaps a gift will improve relations."
+
+ # Third event (incomplete for testing)
+ test_mod.0003.t:0 "Test Event"
+ test_mod.0003.desc:0 "This is a test event."
+ test_mod.0003.a:0 "Continue"
+
+ # Trait localization
+ trait_clever_desc:0 "This character is quick-witted and mentally sharp."
+ trait_clever_character_desc:0 "[GetTrait('clever').GetName( GetNullCharacter )] characters are known for their intelligence."
+ trait_brave_desc:0 "This character shows courage in the face of danger."
+
+ # Missing localization key test (referenced but not defined elsewhere)
+ inspired_modifier:0 "Inspired"
+ inspired_modifier_desc:0 "This character has been inspired and is more creative."
+
+ # Orphaned key (not referenced anywhere)
+ orphaned_key:0 "This key is not used anywhere in the mod"
+ another_orphaned:0 "Neither is this one"

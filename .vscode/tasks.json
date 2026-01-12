@@ -98,6 +98,59 @@
         "reveal": "always",
         "panel": "dedicated"
       }
+    },
+    {
+      "label": "Run Extension Tests",
+      "type": "npm",
+      "script": "test",
+      "path": "vscode-extension/",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      },
+      "group": {
+        "kind": "test",
+        "isDefault": false
+      }
+    },
+    {
+      "label": "Run Extension Tests (Quick)",
+      "type": "npm",
+      "script": "test:quick",
+      "path": "vscode-extension/",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "Watch Extension Tests",
+      "type": "npm",
+      "script": "test:watch",
+      "path": "vscode-extension/",
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "mocha",
+        "pattern": [
+          {
+            "regexp": ".",
+            "file": 1,
+            "location": 2,
+            "message": 3
+          }
+        ],
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^.*starting.*$",
+          "endsPattern": "^.*tests complete.*$"
+        }
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
     }
   ]
 }
