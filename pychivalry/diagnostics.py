@@ -1298,6 +1298,93 @@ def collect_yml_file_diagnostics(
     return diagnostics
 
 
+def collect_scope_type_diagnostics(
+    doc: TextDocument,
+    index: Optional[DocumentIndex] = None,
+) -> List[types.Diagnostic]:
+    """
+    Check for scope type mismatches in localization text (CK3605).
+
+    Validates that localization functions match the scope types defined in events.
+    For example, using character functions like [scope.GetFirstName] on a title
+    scope would be flagged as an error.
+
+    Args:
+        doc: The text document being validated (must be .yml file)
+        index: Document index with scope type information
+
+    Returns:
+        List of CK3605 diagnostics for scope type mismatches
+
+    Example:
+        Event defines: random_title { save_scope_as = my_title }
+        Localization: "[my_title.GetFirstName]" <- ERROR: GetFirstName is for characters
+    """
+    from .localization import get_function_scope_type
+    import re
+
+    diagnostics = []
+
+    # Only run on .yml localization files
+    if not doc.uri.endswith('.yml') or '/localization/' not in doc.uri:
+        return diagnostics
+
+    # Need index to check scope types
+    if not index:
+        return diagnostics
+
+    content = doc.source
+
+    # Pattern to match localization function calls: [scope_name.Function]
+    # Captures scope name and function name
+    func_pattern = re.compile(r'\[([a-z_][a-z0-9_]*)\.(Get\w+)\]', re.IGNORECASE)
+
+    for match in func_pattern.finditer(content):
+        scope_name = match.group(1)
+        func_name = match.group(2)
+
+        # Skip if scope is a common built-in (root, prev, this, etc.)
+        builtin_scopes = {'root', 'prev', 'this', 'from', 'scope'}
+        if scope_name.lower() in builtin_scopes:
+            continue
+
+        # Check if we have type information for this scope
+        if scope_name not in index.scope_types:
+            # No type information - can't validate
+            continue
+
+        actual_scope_type = index.scope_types[scope_name]
+        required_scope_type = get_function_scope_type(func_name)
+
+        # If function doesn't require a specific scope type, it's fine
+        if required_scope_type is None:
+            continue
+
+        # Check for mismatch
+        if actual_scope_type != required_scope_type:
+            line_num = content[:match.start()].count('\n')
+            line_start = content.rfind('\n', 0, match.start()) + 1
+            char_offset = match.start() - line_start
+
+            diagnostics.append(
+                types.Diagnostic(
+                    range=types.Range(
+                        start=types.Position(line=line_num, character=char_offset),
+                        end=types.Position(line=line_num, character=char_offset + len(match.group(0)))
+                    ),
+                    severity=types.DiagnosticSeverity.Error,
+                    code="CK3605",
+                    message=(
+                        f"Scope type mismatch: '{scope_name}' is a {actual_scope_type} scope, "
+                        f"but '{func_name}' requires a {required_scope_type} scope"
+                    ),
+                    source="ck3-language-server"
+                )
+            )
+
+    return diagnostics
+
+
 def collect_all_diagnostics(
     doc: TextDocument,
     ast: List[CK3Node],
@@ -1438,6 +1525,11 @@ def collect_all_diagnostics(
                     orphaned_diags = collect_orphaned_localization_diagnostics(doc, index)
                     diagnostics.extend(orphaned_diags)
                     logger.debug(f"Orphaned key check found {len(orphaned_diags)} diagnostics")
+
+                    # CK3605: Check for scope type mismatches in localization text
+                    scope_diags = collect_scope_type_diagnostics(doc, index)
+                    diagnostics.extend(scope_diags)
+                    logger.debug(f"Scope type validation found {len(scope_diags)} diagnostics")
                 else:
                     # CK3600: Check for missing keys in script files
                     missing_diags = collect_missing_localization_diagnostics(doc, ast, index)

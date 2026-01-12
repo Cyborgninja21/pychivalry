@@ -10,6 +10,7 @@ from pychivalry.diagnostics import (
     check_scopes,
     collect_all_diagnostics,
     collect_yml_file_diagnostics,
+    collect_scope_type_diagnostics,
     create_diagnostic,
     validate_ast_structure,
 )
@@ -818,3 +819,120 @@ class TestYmlFileValidation:
         loc002_diags = [d for d in all_diagnostics if d.code == "LOC-002"]
         assert len(loc002_diags) == 1
         assert "GetBadFunction" in loc002_diags[0].message
+
+
+class TestScopeTypeValidation:
+    """Test suite for CK3605 scope type validation."""
+
+    def test_character_function_on_title_scope(self):
+        """Test CK3605: Character function used on title scope."""
+        from pychivalry.diagnostics import collect_scope_type_diagnostics
+
+        index = DocumentIndex()
+        # Register a title scope
+        index.scope_types["my_title"] = "title"
+
+        content = """l_english:
+ test_key:0 "The title is [my_title.GetFirstName]"
+"""
+
+        doc = TextDocument(uri="file:///test/localization/english/test_l_english.yml", source=content)
+        diagnostics = collect_scope_type_diagnostics(doc, index)
+
+        # Should have CK3605 diagnostic
+        ck3605_diags = [d for d in diagnostics if d.code == "CK3605"]
+        assert len(ck3605_diags) == 1
+        assert "my_title" in ck3605_diags[0].message
+        assert "title" in ck3605_diags[0].message
+        assert "character" in ck3605_diags[0].message
+        assert ck3605_diags[0].severity == types.DiagnosticSeverity.Error
+
+    def test_valid_character_function_on_character_scope(self):
+        """Test that character functions on character scopes produce no errors."""
+        from pychivalry.diagnostics import collect_scope_type_diagnostics
+
+        index = DocumentIndex()
+        # Register a character scope
+        index.scope_types["my_character"] = "character"
+
+        content = """l_english:
+ test_key:0 "The character is [my_character.GetFirstName]"
+"""
+
+        doc = TextDocument(uri="file:///test/localization/english/test_l_english.yml", source=content)
+        diagnostics = collect_scope_type_diagnostics(doc, index)
+
+        # Should have no CK3605 diagnostics
+        ck3605_diags = [d for d in diagnostics if d.code == "CK3605"]
+        assert len(ck3605_diags) == 0
+
+    def test_builtin_scopes_not_validated(self):
+        """Test that built-in scopes (root, prev, etc.) are not validated."""
+        from pychivalry.diagnostics import collect_scope_type_diagnostics
+
+        index = DocumentIndex()
+
+        content = """l_english:
+ test_key:0 "Root is [root.GetName] and prev is [prev.GetTitle]"
+"""
+
+        doc = TextDocument(uri="file:///test/localization/english/test_l_english.yml", source=content)
+        diagnostics = collect_scope_type_diagnostics(doc, index)
+
+        # Should have no CK3605 diagnostics (root and prev are built-in)
+        ck3605_diags = [d for d in diagnostics if d.code == "CK3605"]
+        assert len(ck3605_diags) == 0
+
+    def test_unknown_scope_not_validated(self):
+        """Test that scopes without type information are not validated."""
+        from pychivalry.diagnostics import collect_scope_type_diagnostics
+
+        index = DocumentIndex()
+        # Don't register any scope types
+
+        content = """l_english:
+ test_key:0 "Unknown scope [unknown_scope.GetName]"
+"""
+
+        doc = TextDocument(uri="file:///test/localization/english/test_l_english.yml", source=content)
+        diagnostics = collect_scope_type_diagnostics(doc, index)
+
+        # Should have no diagnostics (unknown scope type = can't validate)
+        ck3605_diags = [d for d in diagnostics if d.code == "CK3605"]
+        assert len(ck3605_diags) == 0
+
+    def test_multiple_scope_mismatches(self):
+        """Test multiple scope type mismatches in single file."""
+        from pychivalry.diagnostics import collect_scope_type_diagnostics
+
+        index = DocumentIndex()
+        index.scope_types["my_title"] = "title"
+        index.scope_types["my_faith"] = "faith"
+
+        content = """l_english:
+ test_key:0 "Title [my_title.GetFirstName] and faith [my_faith.GetAge]"
+"""
+
+        doc = TextDocument(uri="file:///test/localization/english/test_l_english.yml", source=content)
+        diagnostics = collect_scope_type_diagnostics(doc, index)
+
+        # Should have 2 CK3605 diagnostics
+        ck3605_diags = [d for d in diagnostics if d.code == "CK3605"]
+        assert len(ck3605_diags) == 2
+
+    def test_integration_with_collect_all_diagnostics(self):
+        """Test that CK3605 integrates with main diagnostics pipeline."""
+        index = DocumentIndex()
+        index.scope_types["bad_scope"] = "title"
+
+        content = """l_english:
+ test_key:0 "Wrong [bad_scope.GetFirstName] here"
+"""
+
+        doc = TextDocument(uri="file:///test/localization/english/test_l_english.yml", source=content)
+        all_diagnostics = collect_all_diagnostics(doc, [], index)
+
+        # Should include CK3605 diagnostic
+        ck3605_diags = [d for d in all_diagnostics if d.code == "CK3605"]
+        assert len(ck3605_diags) == 1
+        assert "bad_scope" in ck3605_diags[0].message

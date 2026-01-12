@@ -203,6 +203,11 @@ class DocumentIndex:
         self.on_actions: Dict[str, List[str]] = {}  # on_action -> event list
         self.saved_scopes: Dict[str, types.Location] = {}  # scope_name -> save Location
 
+        # NEW: Scope types for CK3605 validation
+        # Maps: scope_name -> scope_type (e.g., "character", "title", "faith")
+        # This enables validation that localization functions match scope types
+        self.scope_types: Dict[str, str] = {}
+
         # Localization: key -> (text, file_uri, line_number)
         self.localization: Dict[str, tuple] = {}
 
@@ -922,6 +927,88 @@ class DocumentIndex:
         # Also track in reverse file index for O(1) removal
         self._track_symbol(file_uri, "localization_references", loc_key)
 
+    def _infer_scope_type(self, node: 'CK3Node') -> Optional[str]:
+        """
+        Infer the scope type from the parent context of a save_scope_as node.
+
+        Analyzes the parent node's key to determine what type of scope is being saved.
+        Uses CK3's scope accessor patterns to identify scope types.
+
+        Args:
+            node: The save_scope_as or save_temporary_scope_as node
+
+        Returns:
+            Scope type string ('character', 'title', 'faith', etc.) or None if unknown
+
+        Examples:
+            random_vassal { save_scope_as = X } -> 'character'
+            capital_province { save_scope_as = Y } -> 'province'
+            primary_title { save_scope_as = Z } -> 'title'
+        """
+        if not node.parent:
+            return None
+
+        parent_key = node.parent.key
+        if not parent_key:
+            return None
+
+        # Map of scope accessors to their resulting scope types
+        # Based on CK3 scope documentation
+        scope_type_map = {
+            # Character scopes
+            'root': 'character',  # In character_event
+            'random_vassal': 'character',
+            'any_vassal': 'character',
+            'random_courtier': 'character',
+            'any_courtier': 'character',
+            'liege': 'character',
+            'player': 'character',
+            'random_child': 'character',
+            'any_child': 'character',
+            'random_spouse': 'character',
+            'any_spouse': 'character',
+            'random_sibling': 'character',
+            'any_sibling': 'character',
+            'father': 'character',
+            'mother': 'character',
+            'random_councillor': 'character',
+            'any_councillor': 'character',
+            'random_prisoner': 'character',
+            'any_prisoner': 'character',
+            'random_scheme': 'character',
+            'random_secret_knower': 'character',
+
+            # Title scopes
+            'primary_title': 'title',
+            'capital_province': 'title',  # Actually landed_title
+            'random_held_title': 'title',
+            'any_held_title': 'title',
+            'random_de_jure_vassal': 'title',
+            'any_de_jure_vassal': 'title',
+            'dejure_liege_title': 'title',
+
+            # Faith scopes
+            'faith': 'faith',
+            'random_faith_character': 'faith',
+
+            # Culture scopes
+            'culture': 'culture',
+
+            # Province scopes
+            'location': 'province',
+            'capital_location': 'province',
+
+            # Dynasty scopes
+            'dynasty': 'dynasty',
+            'house': 'dynasty',  # House is similar to dynasty
+
+            # Other scopes
+            'religion': 'religion',
+            'government': 'government',
+        }
+
+        return scope_type_map.get(parent_key.lower())
+
     def get_localization_references(self, loc_key: str) -> List[Tuple[str, int, int, str]]:
         """
         Get all locations where a localization key is referenced.
@@ -1572,6 +1659,7 @@ class DocumentIndex:
             "scripted_lists": self.scripted_lists,
             "script_values": self.script_values,
             "saved_scopes": self.saved_scopes,
+            "scope_types": self.scope_types,  # NEW: CK3605 scope type tracking
             "character_interactions": self.character_interactions,
             "modifiers": self.modifiers,
             "on_actions": self.on_action_definitions,
@@ -1701,7 +1789,15 @@ class DocumentIndex:
                 self.saved_scopes[node.value] = location
                 # Track in reverse index for O(1) removal
                 self._track_symbol(uri, "saved_scopes", node.value)
-                logger.debug(f"Indexed saved scope: {node.value} in {uri}")
+
+                # NEW: Infer and store scope type for CK3605
+                scope_type = self._infer_scope_type(node)
+                if scope_type:
+                    self.scope_types[node.value] = scope_type
+                    self._track_symbol(uri, "scope_types", node.value)
+                    logger.debug(f"Indexed saved scope: {node.value} ({scope_type}) in {uri}")
+                else:
+                    logger.debug(f"Indexed saved scope: {node.value} (unknown type) in {uri}")
 
         # NEW: Index localization key references (Issue #33, CK3600/CK3604)
         # This tracks where localization keys are used (title, desc, name, etc.)

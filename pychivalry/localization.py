@@ -482,6 +482,59 @@ def is_character_function(func_name: str) -> bool:
     return func_name in CHARACTER_FUNCTIONS
 
 
+def get_function_scope_type(func_name: str) -> Optional[str]:
+    """
+    Get the required scope type for a localization function.
+
+    Args:
+        func_name: The function name (e.g., 'GetName', 'GetBaseName')
+
+    Returns:
+        Scope type string ('character', 'title', 'faith', etc.) or None if function
+        works with any scope or is unknown
+
+    Examples:
+        >>> get_function_scope_type('GetName')
+        'character'
+        >>> get_function_scope_type('GetBaseName')
+        'title'
+        >>> get_function_scope_type('Custom')
+        None  # Works with any scope
+    """
+    # Most Get* functions are for characters
+    if func_name in CHARACTER_FUNCTIONS:
+        # However, some can work with other scopes too
+        # These are accessor functions that return other scope types
+        universal_functions = {
+            'Custom', 'MakeScope', 'ScriptValue', 'GetDefine',
+            'GetScheme', 'GetVassalStance', 'GetReligionFamily',
+        }
+        if func_name in universal_functions:
+            return None  # Works with any scope
+
+        # Accessor functions that return other scopes (but still called on character)
+        # These are fine to use on character scopes
+        return 'character'
+
+    # Title-specific functions
+    title_functions = {
+        'GetBaseName', 'GetBaseNameNoTierNoTooltip', 'GetNameNoTier',
+        'GetAdjectiveNoTooltip', 'GetAdjective', 'GetNameNoTierNoTooltip',
+    }
+    if func_name in title_functions:
+        return 'title'
+
+    # Faith-specific functions
+    faith_functions = {
+        'GetName', 'GetAdherentName', 'GetAdherentNamePlural',
+        'GetReligiousHead', 'GetReligiousHeadTitle',
+    }
+    # Note: GetName works for multiple scope types, so we can't enforce this strictly
+
+    # Most other functions are unknown or work with any scope
+    return None
+
+
 def is_text_formatting_code(code: str) -> bool:
     """
     Check if a code is a valid text formatting code.

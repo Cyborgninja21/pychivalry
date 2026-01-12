@@ -376,3 +376,97 @@ test_mod.0002 = {
         assert "test.tooltip" in index.localization_references
         assert "test.custom_tooltip" in index.localization_references
         assert "test.text" in index.localization_references
+
+
+class TestScopeTypeInference:
+    """Test scope type inference for CK3605 validation."""
+
+    def test_infer_character_scope_from_vassal(self):
+        """Test inferring character scope type from random_vassal."""
+        text = """test_mod.0001 = {
+    immediate = {
+        random_vassal = {
+            limit = { is_adult = yes }
+            save_scope_as = my_vassal
+        }
+    }
+}"""
+        ast, _parse_errors = parse_document(text)
+        index = DocumentIndex()
+        index.update_from_ast("file:///test.txt", ast)
+
+        # Should infer character scope type
+        assert "my_vassal" in index.scope_types
+        assert index.scope_types["my_vassal"] == "character"
+
+    def test_infer_title_scope_from_primary_title(self):
+        """Test inferring title scope type from primary_title."""
+        text = """test_mod.0001 = {
+    immediate = {
+        primary_title = {
+            save_scope_as = main_title
+        }
+    }
+}"""
+        ast, _parse_errors = parse_document(text)
+        index = DocumentIndex()
+        index.update_from_ast("file:///test.txt", ast)
+
+        # Should infer title scope type
+        assert "main_title" in index.scope_types
+        assert index.scope_types["main_title"] == "title"
+
+    def test_infer_faith_scope(self):
+        """Test inferring faith scope type."""
+        text = """test_mod.0001 = {
+    immediate = {
+        faith = {
+            save_scope_as = my_faith
+        }
+    }
+}"""
+        ast, _parse_errors = parse_document(text)
+        index = DocumentIndex()
+        index.update_from_ast("file:///test.txt", ast)
+
+        # Should infer faith scope type
+        assert "my_faith" in index.scope_types
+        assert index.scope_types["my_faith"] == "faith"
+
+    def test_unknown_scope_no_type(self):
+        """Test that unknown scope accessors don't get a type."""
+        text = """test_mod.0001 = {
+    immediate = {
+        unknown_accessor = {
+            save_scope_as = unknown_scope
+        }
+    }
+}"""
+        ast, _parse_errors = parse_document(text)
+        index = DocumentIndex()
+        index.update_from_ast("file:///test.txt", ast)
+
+        # Should not have a type (unknown accessor)
+        assert "unknown_scope" in index.saved_scopes  # Scope is tracked
+        assert "unknown_scope" not in index.scope_types  # But type is unknown
+
+    def test_scope_removal_clears_type(self):
+        """Test that removing a document clears scope types."""
+        text = """test_mod.0001 = {
+    immediate = {
+        random_vassal = {
+            save_scope_as = my_vassal
+        }
+    }
+}"""
+        ast, _parse_errors = parse_document(text)
+        index = DocumentIndex()
+        index.update_from_ast("file:///test.txt", ast)
+
+        assert "my_vassal" in index.scope_types
+
+        # Remove document
+        index.remove_document("file:///test.txt")
+
+        # Scope type should be removed
+        assert "my_vassal" not in index.scope_types
