@@ -2,6 +2,46 @@
 
 Development and setup utilities for pychivalry.
 
+## Quick Reference
+
+| Script | Purpose |
+|--------|---------|
+| `Install-Prerequisites.ps1` | Install dev tools (Python, VS Code, Git, Node.js) |
+| `setup-dev-env.sh` | Unix/Linux development environment setup |
+| `extract_scope_accessors.py` | Extract scope accessors from CK3 game files |
+| `extract_traits.py` | Extract trait definitions from CK3 game files |
+| `extract_concepts.py` | Extract game concepts |
+| `extract_icons.py` | Extract icon definitions |
+| `discover_mods.py` | Discover installed CK3 mods |
+
+---
+
+## extract_scope_accessors.py
+
+Extracts all scope accessor patterns from CK3 game files for updating our scope type inference system.
+
+### Usage
+
+```powershell
+python tools/extract_scope_accessors.py "C:\Program Files (x86)\Steam\steamapps\common\Crusader Kings III\game"
+```
+
+### Output Files
+
+- `scope_accessors_extracted.csv` - Full extraction with file locations
+- `scope_accessors_summary.txt` - Organized summary report
+
+### When to Run
+
+Run this script after:
+- New CK3 game version releases
+- New DLC releases
+- When scope type validation seems incomplete
+
+See **[SCOPE_EXTRACTION_WORKFLOW.md](SCOPE_EXTRACTION_WORKFLOW.md)** for the complete workflow documentation.
+
+---
+
 ## Install-Prerequisites.ps1
 
 A PowerShell script that checks for and installs the required development tools on Windows using **winget** (Windows Package Manager).

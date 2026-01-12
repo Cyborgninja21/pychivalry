@@ -952,62 +952,934 @@ class DocumentIndex:
         if not parent_key:
             return None
 
-        # Map of scope accessors to their resulting scope types
-        # Based on CK3 scope documentation
+        # Comprehensive map of scope accessors to their resulting scope types
+        # Based on CK3 game files and documentation
+        # Organized by resulting scope type for maintainability
         scope_type_map = {
-            # Character scopes
-            'root': 'character',  # In character_event
-            'random_vassal': 'character',
-            'any_vassal': 'character',
-            'random_courtier': 'character',
-            'any_courtier': 'character',
+            # ================================================================
+            # CHARACTER SCOPE - People in the game
+            # ================================================================
+            # Global lists -> character
+            'any_living_character': 'character',
+            'random_living_character': 'character',
+            'every_living_character': 'character',
+            'ordered_living_character': 'character',
+            'any_ruler': 'character',
+            'random_ruler': 'character',
+            'every_ruler': 'character',
+            'any_pool_character': 'character',
+            'random_pool_character': 'character',
+            'any_independent_ruler': 'character',
+            'random_independent_ruler': 'character',
+            'every_independent_ruler': 'character',
+            'any_player': 'character',
+            'every_player': 'character',
+            'random_player': 'character',
+
+            # Character -> character links
             'liege': 'character',
-            'player': 'character',
-            'random_child': 'character',
-            'any_child': 'character',
-            'random_spouse': 'character',
-            'any_spouse': 'character',
-            'random_sibling': 'character',
-            'any_sibling': 'character',
+            'top_liege': 'character',
+            'host': 'character',
+            'employer': 'character',
             'father': 'character',
             'mother': 'character',
-            'random_councillor': 'character',
-            'any_councillor': 'character',
-            'random_prisoner': 'character',
-            'any_prisoner': 'character',
-            'random_scheme': 'character',
-            'random_secret_knower': 'character',
+            'real_father': 'character',
+            'betrothed': 'character',
+            'primary_spouse': 'character',
+            'primary_partner': 'character',
+            'killer': 'character',
+            'imprisoner': 'character',
+            'primary_heir': 'character',
+            'player_heir': 'character',
+            'heir': 'character',
+            'warden': 'character',
+            'designated_regent': 'character',
+            'designated_diarch': 'character',
+            'diarch': 'character',
+            'guardian': 'character',
+            'ward': 'character',
+            'liege_or_court_owner': 'character',
+            'court_owner': 'character',
+            'designated_heir': 'character',
+            'matchmaker': 'character',
+            'realm_priest': 'character',
+            'ghw_beneficiary': 'character',
+            'commander': 'character',
+            'attacker': 'character',
+            'defender': 'character',
 
-            # Title scopes
+            # Character -> character list iterators
+            'any_child': 'character',
+            'random_child': 'character',
+            'every_child': 'character',
+            'ordered_child': 'character',
+            'any_parent': 'character',
+            'random_parent': 'character',
+            'every_parent': 'character',
+            'any_sibling': 'character',
+            'random_sibling': 'character',
+            'every_sibling': 'character',
+            'any_spouse': 'character',
+            'random_spouse': 'character',
+            'every_spouse': 'character',
+            'any_concubine': 'character',
+            'random_concubine': 'character',
+            'every_concubine': 'character',
+            'any_consort': 'character',
+            'random_consort': 'character',
+            'every_consort': 'character',
+            'any_former_spouse': 'character',
+            'random_former_spouse': 'character',
+            'every_former_spouse': 'character',
+            'any_former_concubine': 'character',
+            'random_former_concubine': 'character',
+            'every_former_concubine': 'character',
+            'any_former_concubinist': 'character',
+            'random_former_concubinist': 'character',
+            'every_former_concubinist': 'character',
+            'any_close_family_member': 'character',
+            'random_close_family_member': 'character',
+            'every_close_family_member': 'character',
+            'any_extended_family_member': 'character',
+            'random_extended_family_member': 'character',
+            'every_extended_family_member': 'character',
+            'any_close_or_extended_family_member': 'character',
+            'random_close_or_extended_family_member': 'character',
+            'every_close_or_extended_family_member': 'character',
+            'any_ancestor': 'character',
+            'random_ancestor': 'character',
+            'every_ancestor': 'character',
+            'any_heir': 'character',
+            'random_heir': 'character',
+            'every_heir': 'character',
+            'any_heir_to_title': 'character',
+            'random_heir_to_title': 'character',
+            'every_heir_to_title': 'character',
+            'any_courtier': 'character',
+            'random_courtier': 'character',
+            'every_courtier': 'character',
+            'any_courtier_or_guest': 'character',
+            'random_courtier_or_guest': 'character',
+            'every_courtier_or_guest': 'character',
+            'any_foreign_court_guest': 'character',
+            'random_foreign_court_guest': 'character',
+            'every_foreign_court_guest': 'character',
+            'any_pool_guest': 'character',
+            'random_pool_guest': 'character',
+            'every_pool_guest': 'character',
+            'any_vassal': 'character',
+            'random_vassal': 'character',
+            'every_vassal': 'character',
+            'ordered_vassal': 'character',
+            'any_vassal_or_below': 'character',
+            'random_vassal_or_below': 'character',
+            'every_vassal_or_below': 'character',
+            'any_liege_or_above': 'character',
+            'random_liege_or_above': 'character',
+            'every_liege_or_above': 'character',
+            'any_relation': 'character',
+            'random_relation': 'character',
+            'every_relation': 'character',
+            'any_ally': 'character',
+            'random_ally': 'character',
+            'every_ally': 'character',
+            'any_war_enemy': 'character',
+            'random_war_enemy': 'character',
+            'every_war_enemy': 'character',
+            'any_war_ally': 'character',
+            'random_war_ally': 'character',
+            'every_war_ally': 'character',
+            'any_knight': 'character',
+            'random_knight': 'character',
+            'every_knight': 'character',
+            'any_councillor': 'character',
+            'random_councillor': 'character',
+            'every_councillor': 'character',
+            'any_court_position_holder': 'character',
+            'random_court_position_holder': 'character',
+            'every_court_position_holder': 'character',
+            'any_court_position_employer': 'character',
+            'any_hooked_character': 'character',
+            'random_hooked_character': 'character',
+            'every_hooked_character': 'character',
+            'any_prisoner': 'character',
+            'random_prisoner': 'character',
+            'every_prisoner': 'character',
+            'any_pretender': 'character',
+            'random_pretender': 'character',
+            'every_pretender': 'character',
+            'any_traveling_family_member': 'character',
+            'random_traveling_family_member': 'character',
+            'every_traveling_family_member': 'character',
+            'any_warden_hostage': 'character',
+            'random_warden_hostage': 'character',
+            'every_warden_hostage': 'character',
+            'any_home_court_hostage': 'character',
+            'random_home_court_hostage': 'character',
+            'every_home_court_hostage': 'character',
+            'any_tributary': 'character',
+            'random_tributary': 'character',
+            'every_tributary': 'character',
+            'any_suzerain': 'character',
+            'random_suzerain': 'character',
+            'every_suzerain': 'character',
+            'any_acclaim_knight': 'character',
+            'random_acclaim_knight': 'character',
+            'every_acclaim_knight': 'character',
+            'any_dynasty_member': 'character',
+            'random_dynasty_member': 'character',
+            'every_dynasty_member': 'character',
+            'any_house_member': 'character',
+            'random_house_member': 'character',
+            'every_house_member': 'character',
+
+            # Faith -> character
+            'any_faith_ruler': 'character',
+            'random_faith_ruler': 'character',
+            'every_faith_ruler': 'character',
+            'any_faith_character': 'character',
+            'random_faith_character': 'character',
+            'every_faith_character': 'character',
+            'religious_head': 'character',
+
+            # Dynasty/House -> character
+            'dynast': 'character',
+            'founder': 'character',
+            'house_head': 'character',
+            'house_founder': 'character',
+
+            # War -> character
+            'primary_attacker': 'character',
+            'primary_defender': 'character',
+            'claimant': 'character',
+            'any_war_attacker': 'character',
+            'random_war_attacker': 'character',
+            'every_war_attacker': 'character',
+            'any_war_defender': 'character',
+            'random_war_defender': 'character',
+            'every_war_defender': 'character',
+            'any_war_participant': 'character',
+            'random_war_participant': 'character',
+            'every_war_participant': 'character',
+
+            # Scheme -> character
+            'scheme_owner': 'character',
+            'scheme_target': 'character',
+            'any_scheme_agent': 'character',
+            'random_scheme_agent': 'character',
+            'every_scheme_agent': 'character',
+
+            # Secret -> character
+            'secret_owner': 'character',
+            'secret_target': 'character',
+            'any_secret_knower': 'character',
+            'random_secret_knower': 'character',
+            'every_secret_knower': 'character',
+            'any_secret_participant': 'character',
+            'random_secret_participant': 'character',
+            'every_secret_participant': 'character',
+
+            # Activity -> character
+            'activity_host': 'character',
+            'activity_owner': 'character',
+            'any_activity_participant': 'character',
+            'random_activity_participant': 'character',
+            'every_activity_participant': 'character',
+            'any_activity_guest': 'character',
+            'random_activity_guest': 'character',
+            'every_activity_guest': 'character',
+            'any_attending_character': 'character',
+            'random_attending_character': 'character',
+            'every_attending_character': 'character',
+            'any_interloper': 'character',
+            'random_interloper': 'character',
+            'every_interloper': 'character',
+
+            # Faction -> character
+            'faction_leader': 'character',
+            'faction_target': 'character',
+            'any_faction_member': 'character',
+            'random_faction_member': 'character',
+            'every_faction_member': 'character',
+
+            # Army -> character
+            'any_army_commander': 'character',
+            'random_army_commander': 'character',
+            'every_army_commander': 'character',
+            'any_army_knight': 'character',
+            'random_army_knight': 'character',
+            'every_army_knight': 'character',
+
+            # Struggle -> character
+            'any_struggle_involved': 'character',
+            'random_struggle_involved': 'character',
+            'every_struggle_involved': 'character',
+            'any_struggle_interloper': 'character',
+            'random_struggle_interloper': 'character',
+            'every_struggle_interloper': 'character',
+
+            # Title -> character
+            'holder': 'character',
+            'previous_holder': 'character',
+            'lessee': 'character',
+            'any_claimant': 'character',
+            'random_claimant': 'character',
+            'every_claimant': 'character',
+            'any_de_jure_county_holder': 'character',
+            'random_de_jure_county_holder': 'character',
+            'every_de_jure_county_holder': 'character',
+            'any_title_heir': 'character',
+            'random_title_heir': 'character',
+            'every_title_heir': 'character',
+            'any_elector': 'character',
+            'random_elector': 'character',
+            'every_elector': 'character',
+            'any_election_candidate': 'character',
+            'random_election_candidate': 'character',
+            'every_election_candidate': 'character',
+
+            # Province -> character
+            'county_holder': 'character',
+            'barony_holder': 'character',
+
+            # Accolade -> character
+            'any_accolade_holder': 'character',
+            'random_accolade_holder': 'character',
+            'every_accolade_holder': 'character',
+            'any_accolade_successor': 'character',
+            'random_accolade_successor': 'character',
+            'every_accolade_successor': 'character',
+
+            # Legend -> character
+            'any_legend_owner': 'character',
+            'random_legend_owner': 'character',
+            'every_legend_owner': 'character',
+            'any_legend_promoter': 'character',
+            'random_legend_promoter': 'character',
+            'every_legend_promoter': 'character',
+
+            # ================================================================
+            # LANDED_TITLE SCOPE - Titles (baronies, counties, duchies, etc.)
+            # ================================================================
+            # Global lists -> title
+            'any_county': 'title',
+            'random_county': 'title',
+            'every_county': 'title',
+
+            # Character -> title links
             'primary_title': 'title',
-            'capital_province': 'title',  # Actually landed_title
-            'random_held_title': 'title',
+            'capital_county': 'title',
+            'target_title': 'title',
+            'highest_held_title_tier': 'title',
+
+            # Character -> title iterators
             'any_held_title': 'title',
-            'random_de_jure_vassal': 'title',
+            'random_held_title': 'title',
+            'every_held_title': 'title',
+            'any_sub_realm_title': 'title',
+            'random_sub_realm_title': 'title',
+            'every_sub_realm_title': 'title',
+            'any_realm_title': 'title',
+            'random_realm_title': 'title',
+            'every_realm_title': 'title',
+            'any_realm_county': 'title',
+            'random_realm_county': 'title',
+            'every_realm_county': 'title',
+            'any_claim': 'title',
+            'random_claim': 'title',
+            'every_claim': 'title',
+            'any_heir_title': 'title',
+            'random_heir_title': 'title',
+            'every_heir_title': 'title',
+
+            # Title -> title links
+            'de_jure_liege': 'title',
+            'de_facto_liege': 'title',
+            'county': 'title',
+            'duchy': 'title',
+            'kingdom': 'title',
+            'empire': 'title',
+
+            # Title -> title iterators
+            'any_de_jure_county': 'title',
+            'random_de_jure_county': 'title',
+            'every_de_jure_county': 'title',
+            'any_in_de_jure_hierarchy': 'title',
+            'random_in_de_jure_hierarchy': 'title',
+            'every_in_de_jure_hierarchy': 'title',
+            'any_in_de_facto_hierarchy': 'title',
+            'random_in_de_facto_hierarchy': 'title',
+            'every_in_de_facto_hierarchy': 'title',
+            'any_this_title_or_de_jure_above': 'title',
+            'random_this_title_or_de_jure_above': 'title',
+            'every_this_title_or_de_jure_above': 'title',
+            'any_title_to_title_neighboring_county': 'title',
+            'random_title_to_title_neighboring_county': 'title',
+            'every_title_to_title_neighboring_county': 'title',
+            'any_title_to_title_neighboring_and_across_water_county': 'title',
+            'random_title_to_title_neighboring_and_across_water_county': 'title',
+            'every_title_to_title_neighboring_and_across_water_county': 'title',
+            'any_connected_county': 'title',
+            'random_connected_county': 'title',
+            'every_connected_county': 'title',
             'any_de_jure_vassal': 'title',
+            'random_de_jure_vassal': 'title',
+            'every_de_jure_vassal': 'title',
             'dejure_liege_title': 'title',
 
-            # Faith scopes
-            'faith': 'faith',
-            'random_faith_character': 'faith',
+            # Faith -> title
+            'religious_head_title': 'title',
+            'any_faith_holy_site': 'title',
+            'random_faith_holy_site': 'title',
+            'every_faith_holy_site': 'title',
+            'any_holy_site': 'title',
+            'random_holy_site': 'title',
+            'every_holy_site': 'title',
 
-            # Culture scopes
-            'culture': 'culture',
+            # War -> title
+            'targeted_title': 'title',
 
-            # Province scopes
+            # Culture -> title
+            'any_culture_county': 'title',
+            'random_culture_county': 'title',
+            'every_culture_county': 'title',
+
+            # Struggle -> title
+            'any_struggle_county': 'title',
+            'random_struggle_county': 'title',
+            'every_struggle_county': 'title',
+
+            # Province -> title
+            'barony': 'title',
+
+            # ================================================================
+            # PROVINCE SCOPE - Geographic locations
+            # ================================================================
+            # Global lists -> province
+            'any_province': 'province',
+            'random_province': 'province',
+            'every_province': 'province',
+
+            # Character -> province links
+            'capital_province': 'province',
             'location': 'province',
             'capital_location': 'province',
+            'capital': 'province',  # Alias for capital_province
+            'realm_capital': 'province',
 
-            # Dynasty scopes
-            'dynasty': 'dynasty',
-            'house': 'dynasty',  # House is similar to dynasty
+            # Character -> province iterators
+            'any_realm_province': 'province',
+            'random_realm_province': 'province',
+            'every_realm_province': 'province',
+            'any_directly_owned_province': 'province',
+            'random_directly_owned_province': 'province',
+            'every_directly_owned_province': 'province',
+            'any_domain_province': 'province',
+            'random_domain_province': 'province',
+            'every_domain_province': 'province',
 
-            # Other scopes
+            # Title -> province
+            'title_province': 'province',
+            'title_capital_county': 'province',
+            'any_county_province': 'province',
+            'random_county_province': 'province',
+            'every_county_province': 'province',
+
+            # Province -> province iterators
+            'any_neighboring_province': 'province',
+            'random_neighboring_province': 'province',
+            'every_neighboring_province': 'province',
+
+            # Activity -> province
+            'activity_location': 'province',
+
+            # Domicile -> province
+            'domicile_location': 'province',
+
+            # ================================================================
+            # TERRAIN SCOPE - Province terrain type
+            # ================================================================
+            'terrain': 'terrain',
+
+            # ================================================================
+            # FAITH SCOPE - Religious faiths
+            # ================================================================
+            # Character -> faith link
+            'faith': 'faith',
+
+            # Title -> faith
+            'state_faith': 'faith',
+
+            # Religion -> faith iterators
+            'any_faith': 'faith',
+            'random_faith': 'faith',
+            'every_faith': 'faith',
+
+            # ================================================================
+            # RELIGION SCOPE - Religion families
+            # ================================================================
+            # Character/Faith -> religion link
             'religion': 'religion',
-            'government': 'government',
+
+            # Global lists -> religion
+            'any_religion': 'religion',
+            'random_religion': 'religion',
+            'every_religion': 'religion',
+            'any_religion_global': 'religion',
+            'random_religion_global': 'religion',
+            'every_religion_global': 'religion',
+
+            # ================================================================
+            # CULTURE SCOPE - Cultural groups
+            # ================================================================
+            # Character -> culture link
+            'culture': 'culture',
+
+            # Culture -> culture iterators
+            'any_parent_culture': 'culture',
+            'random_parent_culture': 'culture',
+            'every_parent_culture': 'culture',
+            'any_child_culture': 'culture',
+            'random_child_culture': 'culture',
+            'every_child_culture': 'culture',
+
+            # Culture group -> culture
+            'any_culture_group_culture': 'culture',
+            'random_culture_group_culture': 'culture',
+            'every_culture_group_culture': 'culture',
+
+            # ================================================================
+            # CULTURE_GROUP SCOPE (Heritage) - Culture families
+            # ================================================================
+            # Culture -> culture_group
+            'culture_group': 'culture_group',
+            'any_culture_culture_group': 'culture_group',
+            'random_culture_culture_group': 'culture_group',
+            'every_culture_culture_group': 'culture_group',
+
+            # ================================================================
+            # DYNASTY SCOPE - Dynasties
+            # ================================================================
+            # Character -> dynasty link
+            'dynasty': 'dynasty',
+
+            # Global lists -> dynasty
+            'any_dynasty': 'dynasty',
+            'random_dynasty': 'dynasty',
+            'every_dynasty': 'dynasty',
+
+            # ================================================================
+            # HOUSE SCOPE - Dynasty houses
+            # ================================================================
+            # Character -> house link
+            'house': 'house',
+
+            # House -> house link (parent dynasty's houses)
+            'any_dynasty_house': 'house',
+            'random_dynasty_house': 'house',
+            'every_dynasty_house': 'house',
+
+            # ================================================================
+            # WAR SCOPE - Active wars
+            # ================================================================
+            # War links
+            'war': 'war',
+
+            # Character -> war iterators
+            'any_character_war': 'war',
+            'random_character_war': 'war',
+            'every_character_war': 'war',
+
+            # Faction -> war
+            'faction_war': 'war',
+
+            # ================================================================
+            # CASUS_BELLI SCOPE - War justifications
+            # ================================================================
+            'casus_belli': 'casus_belli',
+
+            # ================================================================
+            # SCHEME SCOPE - Plots
+            # ================================================================
+            # Scheme links
+            'scheme': 'scheme',
+
+            # Character -> scheme iterators
+            'any_scheme': 'scheme',
+            'random_scheme': 'scheme',
+            'every_scheme': 'scheme',
+            'any_targeting_scheme': 'scheme',
+            'random_targeting_scheme': 'scheme',
+            'every_targeting_scheme': 'scheme',
+            'owned_scheme': 'scheme',
+
+            # ================================================================
+            # SECRET SCOPE - Hidden secrets
+            # ================================================================
+            # Secret links
+            'secret': 'secret',
+
+            # Character -> secret iterators
+            'any_secret': 'secret',
+            'random_secret': 'secret',
+            'every_secret': 'secret',
+            'any_known_secret': 'secret',
+            'random_known_secret': 'secret',
+            'every_known_secret': 'secret',
+            'any_targeting_secret': 'secret',
+            'random_targeting_secret': 'secret',
+            'every_targeting_secret': 'secret',
+
+            # ================================================================
+            # ARTIFACT SCOPE - Artifact items
+            # ================================================================
+            # Artifact links
+            'artifact': 'artifact',
+            'artifact_owner': 'character',
+
+            # Character -> artifact iterators
+            'any_character_artifact': 'artifact',
+            'random_character_artifact': 'artifact',
+            'every_character_artifact': 'artifact',
+            'any_equipped_character_artifact': 'artifact',
+            'random_equipped_character_artifact': 'artifact',
+            'every_equipped_character_artifact': 'artifact',
+
+            # ================================================================
+            # ARMY SCOPE - Military units
+            # ================================================================
+            # Army links
+            'army': 'army',
+            'army_owner': 'character',
+
+            # Character -> army iterators
+            'any_army': 'army',
+            'random_army': 'army',
+            'every_army': 'army',
+            'knight_army': 'army',
+            'commanding_army': 'army',
+
+            # ================================================================
+            # FACTION SCOPE - Political factions
+            # ================================================================
+            # Character -> faction iterators
+            'any_character_faction': 'faction',
+            'random_character_faction': 'faction',
+            'every_character_faction': 'faction',
+            'any_targeting_faction': 'faction',
+            'random_targeting_faction': 'faction',
+            'every_targeting_faction': 'faction',
+
+            # ================================================================
+            # ACTIVITY SCOPE - Activities (feasts, hunts, etc.)
+            # ================================================================
+            # Activity links
+            'activity': 'activity',
+
+            # Character -> activity link
+            'involved_activity': 'activity',
+
+            # ================================================================
+            # TRAVEL_PLAN SCOPE - Character travel
+            # ================================================================
+            # Character -> travel_plan link
+            'current_travel_plan': 'travel_plan',
+
+            # ================================================================
+            # DOMICILE SCOPE - Camps/bases
+            # ================================================================
+            # Character -> domicile link
+            'domicile': 'domicile',
+
+            # ================================================================
+            # ACCOLADE SCOPE - Knight accolades
+            # ================================================================
+            # Accolade links
+            'accolade': 'accolade',
+
+            # Character -> accolade iterators
+            'any_accolade': 'accolade',
+            'random_accolade': 'accolade',
+            'every_accolade': 'accolade',
+            'any_active_accolade': 'accolade',
+            'random_active_accolade': 'accolade',
+            'every_active_accolade': 'accolade',
+
+            # ================================================================
+            # LEGEND SCOPE - Legendary deeds
+            # ================================================================
+            # Legend links
+            'legend': 'legend',
+
+            # Character -> legend link
+            'promoted_legend': 'legend',
+
+            # ================================================================
+            # MEMORY SCOPE - Character memories
+            # ================================================================
+            # Memory links
+            'memory': 'memory',
+
+            # Character -> memory iterators
+            'any_memory': 'memory',
+            'random_memory': 'memory',
+            'every_memory': 'memory',
+
+            # ================================================================
+            # STRUGGLE SCOPE - Regional struggles
+            # ================================================================
+            # Struggle links
+            'struggle': 'struggle',
+
+            # Title -> struggle
+            'any_county_struggle': 'struggle',
+            'random_county_struggle': 'struggle',
+            'every_county_struggle': 'struggle',
+            'any_character_struggle': 'struggle',
+            'random_character_struggle': 'struggle',
+            'every_character_struggle': 'struggle',
+
+            # ================================================================
+            # EPIDEMIC SCOPE - Disease outbreaks
+            # ================================================================
+            # Epidemic links
+            'epidemic': 'epidemic',
+
+            # Province -> epidemic
+            'any_province_epidemic': 'epidemic',
+            'random_province_epidemic': 'epidemic',
+            'every_province_epidemic': 'epidemic',
+
+            # ================================================================
+            # SITUATION SCOPE - Special situations
+            # ================================================================
+            # Situation link
+            'situation': 'situation',
+
+            # Global situation scopes
+            'any_situation_sub_region': 'situation',
+            'random_situation_sub_region': 'situation',
+            'every_situation_sub_region': 'situation',
+
+            # ================================================================
+            # GREAT_HOLY_WAR SCOPE - Crusades/Jihads
+            # ================================================================
+            # Great holy war links
+            'great_holy_war': 'great_holy_war',
+
+            # Global great holy war scopes
+            'any_great_holy_war': 'great_holy_war',
+            'random_great_holy_war': 'great_holy_war',
+            'every_great_holy_war': 'great_holy_war',
+
+            # ================================================================
+            # SPECIAL META SCOPES - Not real types, but useful for inference
+            # ================================================================
+            # In character_event, root is character
+            'root': 'character',
+            # Player scope
+            'player': 'character',
         }
 
-        return scope_type_map.get(parent_key.lower())
+        # First check direct map
+        result = scope_type_map.get(parent_key.lower())
+        if result:
+            return result
+
+        # Fallback: Pattern-based inference for iterator suffixes
+        # This handles any_X_suffix, every_X_suffix, random_X_suffix patterns
+        key_lower = parent_key.lower()
+
+        # Character-returning iterator suffix patterns
+        character_suffixes = [
+            '_character', '_knight', '_courtier', '_guest', '_vassal',
+            '_ruler', '_liege', '_heir', '_spouse', '_child', '_parent',
+            '_sibling', '_grandparent', '_grandchild', '_ancestor',
+            '_member', '_claimant', '_prisoner', '_agent', '_participant',
+            '_owner', '_target', '_holder', '_successor', '_promoter',
+            '_commander', '_attacker', '_defender', '_ally', '_enemy',
+            '_dynasty', '_house', '_relation', '_contact', '_hostage',
+            '_councillor', '_consort', '_pretender', '_raider',
+        ]
+
+        # Title-returning iterator suffix patterns
+        title_suffixes = [
+            '_title', '_county', '_duchy', '_kingdom', '_empire',
+            '_barony', '_claim', '_de_jure', '_held_title', '_realm_title',
+            '_realm', '_region',
+        ]
+
+        # Province-returning iterator suffix patterns
+        province_suffixes = [
+            '_province', '_location',
+        ]
+
+        # Artifact-returning iterator suffix patterns
+        artifact_suffixes = [
+            '_artifact',
+        ]
+
+        # Scheme-returning iterator suffix patterns
+        scheme_suffixes = [
+            '_scheme',
+        ]
+
+        # Secret-returning iterator suffix patterns
+        secret_suffixes = [
+            '_secret',
+        ]
+
+        # Memory-returning iterator suffix patterns
+        memory_suffixes = [
+            '_memory',
+        ]
+
+        # Faith-returning iterator suffix patterns
+        faith_suffixes = [
+            '_faith',
+        ]
+
+        # Culture-returning iterator suffix patterns
+        culture_suffixes = [
+            '_culture',
+        ]
+
+        # Army-returning iterator suffix patterns
+        army_suffixes = [
+            '_army',
+        ]
+
+        # Inspiration-returning iterator suffix patterns
+        inspiration_suffixes = [
+            '_inspiration',
+        ]
+
+        # Hook-returning iterator suffix patterns
+        hook_suffixes = [
+            '_hook',
+        ]
+
+        # Accolade-returning iterator suffix patterns
+        accolade_suffixes = [
+            '_accolade',
+        ]
+
+        # Legend-returning iterator suffix patterns
+        legend_suffixes = [
+            '_legend',
+        ]
+
+        # Activity-returning iterator suffix patterns
+        activity_suffixes = [
+            '_activity',
+        ]
+
+        # Faction-returning iterator suffix patterns
+        faction_suffixes = [
+            '_faction',
+        ]
+
+        # War-returning iterator suffix patterns
+        war_suffixes = [
+            '_war',
+        ]
+
+        # Epidemic-returning iterator suffix patterns
+        epidemic_suffixes = [
+            '_epidemic',
+        ]
+
+        # Check character suffixes
+        for suffix in character_suffixes:
+            if key_lower.endswith(suffix):
+                return 'character'
+
+        # Check title suffixes
+        for suffix in title_suffixes:
+            if key_lower.endswith(suffix):
+                return 'title'
+
+        # Check province suffixes
+        for suffix in province_suffixes:
+            if key_lower.endswith(suffix):
+                return 'province'
+
+        # Check faith suffixes
+        for suffix in faith_suffixes:
+            if key_lower.endswith(suffix):
+                return 'faith'
+
+        # Check culture suffixes
+        for suffix in culture_suffixes:
+            if key_lower.endswith(suffix):
+                return 'culture'
+
+        # Check artifact suffixes
+        for suffix in artifact_suffixes:
+            if key_lower.endswith(suffix):
+                return 'artifact'
+
+        # Check scheme suffixes
+        for suffix in scheme_suffixes:
+            if key_lower.endswith(suffix):
+                return 'scheme'
+
+        # Check secret suffixes
+        for suffix in secret_suffixes:
+            if key_lower.endswith(suffix):
+                return 'secret'
+
+        # Check memory suffixes
+        for suffix in memory_suffixes:
+            if key_lower.endswith(suffix):
+                return 'memory'
+
+        # Check army suffixes
+        for suffix in army_suffixes:
+            if key_lower.endswith(suffix):
+                return 'army'
+
+        # Check inspiration suffixes
+        for suffix in inspiration_suffixes:
+            if key_lower.endswith(suffix):
+                return 'inspiration'
+
+        # Check hook suffixes
+        for suffix in hook_suffixes:
+            if key_lower.endswith(suffix):
+                return 'hook'
+
+        # Check accolade suffixes
+        for suffix in accolade_suffixes:
+            if key_lower.endswith(suffix):
+                return 'accolade'
+
+        # Check legend suffixes
+        for suffix in legend_suffixes:
+            if key_lower.endswith(suffix):
+                return 'legend'
+
+        # Check activity suffixes
+        for suffix in activity_suffixes:
+            if key_lower.endswith(suffix):
+                return 'activity'
+
+        # Check faction suffixes
+        for suffix in faction_suffixes:
+            if key_lower.endswith(suffix):
+                return 'faction'
+
+        # Check war suffixes
+        for suffix in war_suffixes:
+            if key_lower.endswith(suffix):
+                return 'war'
+
+        # Check epidemic suffixes
+        for suffix in epidemic_suffixes:
+            if key_lower.endswith(suffix):
+                return 'epidemic'
+
+        return None
 
     def get_localization_references(self, loc_key: str) -> List[Tuple[str, int, int, str]]:
         """

@@ -1,0 +1,479 @@
+# CK3 Scope Accessors - Comprehensive mapping of scope transitions
+# Generated from CK3 game files analysis
+#
+# Structure:
+#   source_scope:
+#     links:  # Direct scope links (single value)
+#       link_name: target_scope
+#     lists:  # List iterators (any_*, every_*, random_*, ordered_*)
+#       - iterator_name: target_scope
+#
+# Scope types:
+#   character, landed_title (title), province, faith, religion,
+#   culture, culture_group, dynasty, house, war, casus_belli,
+#   scheme, secret, artifact, army, faction, activity, travel_plan,
+#   domicile, accolade, legend, memory, struggle, epidemic, situation
+
+# ================================================================
+# GLOBAL (no source scope required)
+# ================================================================
+global:
+  lists:
+    # Character lists
+    any_living_character: character
+    random_living_character: character
+    every_living_character: character
+    ordered_living_character: character
+    any_ruler: character
+    random_ruler: character
+    every_ruler: character
+    any_pool_character: character
+    random_pool_character: character
+    any_independent_ruler: character
+    random_independent_ruler: character
+    every_independent_ruler: character
+    any_player: character
+    every_player: character
+    # Province lists
+    any_province: province
+    random_province: province
+    every_province: province
+    # Title lists
+    any_county: title
+    random_county: title
+    every_county: title
+    # Religion lists
+    any_religion_global: religion
+    random_religion_global: religion
+    every_religion_global: religion
+    # Dynasty lists
+    any_dynasty: dynasty
+    random_dynasty: dynasty
+    every_dynasty: dynasty
+
+# ================================================================
+# CHARACTER SCOPE
+# ================================================================
+character:
+  links:
+    # Character -> Character
+    liege: character
+    top_liege: character
+    host: character
+    employer: character
+    father: character
+    mother: character
+    real_father: character
+    betrothed: character
+    primary_spouse: character
+    primary_partner: character
+    killer: character
+    imprisoner: character
+    primary_heir: character
+    player_heir: character
+    heir: character
+    warden: character
+    designated_regent: character
+    designated_diarch: character
+    diarch: character
+    guardian: character
+    ward: character
+    liege_or_court_owner: character
+    # Character -> Title
+    primary_title: title
+    capital_county: title
+    # Character -> Province
+    capital_province: province
+    location: province
+    capital_location: province
+    # Character -> Faith
+    faith: faith
+    # Character -> Religion
+    religion: religion
+    # Character -> Culture
+    culture: culture
+    # Character -> Culture Group
+    culture_group: culture_group
+    # Character -> Dynasty
+    dynasty: dynasty
+    # Character -> House
+    house: house
+    # Character -> Activity
+    involved_activity: activity
+    # Character -> Travel Plan
+    current_travel_plan: travel_plan
+    # Character -> Domicile
+    domicile: domicile
+    # Character -> Legend
+    promoted_legend: legend
+    # Character -> Scheme
+    owned_scheme: scheme
+    # Character -> Army
+    knight_army: army
+    commanding_army: army
+
+  lists:
+    # Character -> Character lists
+    any_child: character
+    any_parent: character
+    any_sibling: character
+    any_spouse: character
+    any_concubine: character
+    any_consort: character
+    any_former_spouse: character
+    any_former_concubine: character
+    any_former_concubinist: character
+    any_close_family_member: character
+    any_extended_family_member: character
+    any_close_or_extended_family_member: character
+    any_ancestor: character
+    any_heir: character
+    any_heir_to_title: character
+    any_courtier: character
+    any_courtier_or_guest: character
+    any_foreign_court_guest: character
+    any_pool_guest: character
+    any_vassal: character
+    any_vassal_or_below: character
+    any_liege_or_above: character
+    any_relation: character
+    any_ally: character
+    any_war_enemy: character
+    any_war_ally: character
+    any_knight: character
+    any_councillor: character
+    any_court_position_holder: character
+    any_court_position_employer: character
+    any_hooked_character: character
+    any_prisoner: character
+    any_pretender: character
+    any_traveling_family_member: character
+    any_warden_hostage: character
+    any_home_court_hostage: character
+    any_tributary: character
+    any_suzerain: character
+    any_acclaim_knight: character
+    any_dynasty_member: character
+    any_house_member: character
+    # Character -> Title lists
+    any_held_title: title
+    any_sub_realm_title: title
+    any_realm_title: title
+    any_realm_county: title
+    any_claim: title
+    any_heir_title: title
+    # Character -> Province lists
+    any_realm_province: province
+    any_directly_owned_province: province
+    any_domain_province: province
+    # Character -> War lists
+    any_character_war: war
+    # Character -> Scheme lists
+    any_scheme: scheme
+    any_targeting_scheme: scheme
+    # Character -> Secret lists
+    any_secret: secret
+    any_known_secret: secret
+    any_targeting_secret: secret
+    # Character -> Artifact lists
+    any_character_artifact: artifact
+    any_equipped_character_artifact: artifact
+    # Character -> Army lists
+    any_army: army
+    # Character -> Faction lists
+    any_character_faction: faction
+    any_targeting_faction: faction
+    # Character -> Accolade lists
+    any_accolade: accolade
+    # Character -> Memory lists
+    any_memory: memory
+
+# ================================================================
+# LANDED_TITLE (TITLE) SCOPE
+# ================================================================
+title:
+  links:
+    # Title -> Character
+    holder: character
+    previous_holder: character
+    lessee: character
+    # Title -> Title
+    de_jure_liege: title
+    de_facto_liege: title
+    county: title
+    duchy: title
+    kingdom: title
+    empire: title
+    # Title -> Province
+    title_province: province
+    title_capital_county: province
+    # Title -> Faith
+    faith: faith
+    state_faith: faith
+    # Title -> Culture
+    culture: culture
+
+  lists:
+    # Title -> Character lists
+    any_claimant: character
+    any_de_jure_county_holder: character
+    any_title_heir: character
+    any_elector: character
+    any_election_candidate: character
+    # Title -> Title lists
+    any_de_jure_county: title
+    any_in_de_jure_hierarchy: title
+    any_in_de_facto_hierarchy: title
+    any_this_title_or_de_jure_above: title
+    any_title_to_title_neighboring_county: title
+    any_title_to_title_neighboring_and_across_water_county: title
+    any_connected_county: title
+    # Title -> Province lists
+    any_county_province: province
+    # Title -> Struggle lists
+    any_county_struggle: struggle
+
+# ================================================================
+# PROVINCE SCOPE
+# ================================================================
+province:
+  links:
+    # Province -> Character
+    county_holder: character
+    barony_holder: character
+    # Province -> Title
+    barony: title
+    county: title
+    duchy: title
+    kingdom: title
+    empire: title
+    # Province -> Faith
+    faith: faith
+    # Province -> Culture
+    culture: culture
+
+  lists:
+    # Province -> Province lists
+    any_neighboring_province: province
+    # Province -> Epidemic lists
+    any_province_epidemic: epidemic
+
+# ================================================================
+# FAITH SCOPE
+# ================================================================
+faith:
+  links:
+    # Faith -> Religion
+    religion: religion
+    # Faith -> Character
+    religious_head: character
+    # Faith -> Title
+    religious_head_title: title
+
+  lists:
+    # Faith -> Character lists
+    any_faith_ruler: character
+    any_faith_character: character
+    # Faith -> Title lists
+    any_faith_holy_site: title
+    any_holy_site: title
+
+# ================================================================
+# RELIGION SCOPE
+# ================================================================
+religion:
+  lists:
+    # Religion -> Faith lists
+    any_faith: faith
+
+# ================================================================
+# CULTURE SCOPE
+# ================================================================
+culture:
+  links:
+    # Culture -> Culture Group
+    culture_group: culture_group
+
+  lists:
+    # Culture -> Title lists
+    any_culture_county: title
+    # Culture -> Culture Group lists
+    any_culture_culture_group: culture_group
+    # Culture -> Culture lists
+    any_parent_culture: culture
+    any_child_culture: culture
+
+# ================================================================
+# CULTURE_GROUP SCOPE
+# ================================================================
+culture_group:
+  lists:
+    # Culture Group -> Culture lists
+    any_culture_group_culture: culture
+
+# ================================================================
+# DYNASTY SCOPE
+# ================================================================
+dynasty:
+  links:
+    # Dynasty -> Character
+    dynast: character
+    founder: character
+
+  lists:
+    # Dynasty -> Character lists
+    any_dynasty_member: character
+    # Dynasty -> House lists
+    any_dynasty_house: house
+
+# ================================================================
+# HOUSE SCOPE
+# ================================================================
+house:
+  links:
+    # House -> Character
+    house_head: character
+    house_founder: character
+    # House -> Dynasty
+    dynasty: dynasty
+
+  lists:
+    # House -> Character lists
+    any_house_member: character
+
+# ================================================================
+# WAR SCOPE
+# ================================================================
+war:
+  links:
+    # War -> Character
+    primary_attacker: character
+    primary_defender: character
+    claimant: character
+    # War -> Casus Belli
+    casus_belli: casus_belli
+    # War -> Title
+    targeted_title: title
+
+  lists:
+    # War -> Character lists
+    any_war_attacker: character
+    any_war_defender: character
+    any_war_participant: character
+
+# ================================================================
+# SCHEME SCOPE
+# ================================================================
+scheme:
+  links:
+    # Scheme -> Character
+    scheme_owner: character
+    scheme_target: character
+
+  lists:
+    # Scheme -> Character lists
+    any_scheme_agent: character
+
+# ================================================================
+# SECRET SCOPE
+# ================================================================
+secret:
+  links:
+    # Secret -> Character
+    secret_owner: character
+    secret_target: character
+
+  lists:
+    # Secret -> Character lists
+    any_secret_knower: character
+    any_secret_participant: character
+
+# ================================================================
+# ACTIVITY SCOPE
+# ================================================================
+activity:
+  links:
+    # Activity -> Character
+    activity_host: character
+    activity_owner: character
+    # Activity -> Province
+    activity_location: province
+
+  lists:
+    # Activity -> Character lists
+    any_activity_participant: character
+    any_activity_guest: character
+    any_attending_character: character
+    any_interloper: character
+
+# ================================================================
+# FACTION SCOPE
+# ================================================================
+faction:
+  links:
+    # Faction -> Character
+    faction_leader: character
+    faction_target: character
+    # Faction -> War
+    faction_war: war
+
+  lists:
+    # Faction -> Character lists
+    any_faction_member: character
+
+# ================================================================
+# ARMY SCOPE
+# ================================================================
+army:
+  lists:
+    # Army -> Character lists
+    any_army_commander: character
+    any_army_knight: character
+
+# ================================================================
+# ACCOLADE SCOPE
+# ================================================================
+accolade:
+  lists:
+    # Accolade -> Character lists
+    any_accolade_holder: character
+    any_accolade_successor: character
+
+# ================================================================
+# LEGEND SCOPE
+# ================================================================
+legend:
+  lists:
+    # Legend -> Character lists
+    any_legend_owner: character
+    any_legend_promoter: character
+
+# ================================================================
+# DOMICILE SCOPE
+# ================================================================
+domicile:
+  links:
+    # Domicile -> Province
+    domicile_location: province
+
+# ================================================================
+# STRUGGLE SCOPE
+# ================================================================
+struggle:
+  lists:
+    # Struggle -> Character lists
+    any_struggle_involved: character
+    any_struggle_interloper: character
+    # Struggle -> Title lists
+    any_struggle_county: title
+
+# ================================================================
+# SITUATION SCOPE
+# ================================================================
+situation:
+  lists:
+    # Situation -> Situation lists
+    any_situation_sub_region: situation
+    # Situation -> Character lists (via participant groups)
+    every_participant_group: participant_group
+    any_situation_group_participant: character
