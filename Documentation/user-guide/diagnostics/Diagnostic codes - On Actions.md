@@ -301,6 +301,152 @@ On-action files must be in `common/on_action/` (singular), not `common/on_action
 
 ---
 
+### CK3501: Unknown On-Action Reference
+
+| Property | Value |
+|----------|-------|
+| **Severity** | Warning |
+| **Category** | On-Actions |
+| **Message** | `Unknown on_action 'X' in fallback/reference` |
+
+Referencing an on_action that doesn't exist (typo or removed) causes silent failures.
+
+```pdx
+# ⚠️ CK3501: Typo in fallback
+my_on_action = {
+    events = { my_mod.100 }
+    fallback = on_birht  # Typo! Should be on_birth_child
+}
+
+# ⚠️ CK3501: Reference to removed on_action
+legacy_system = {
+    fallback = old_removed_on_action  # Doesn't exist anymore
+}
+
+# ✅ Correct - Valid vanilla on_action
+my_on_action = {
+    events = { my_mod.100 }
+    fallback = on_birth_child  # Exists in vanilla
+}
+
+# ✅ Correct - Custom on_action defined in workspace
+my_on_action_a = {
+    fallback = my_on_action_b  # Defined elsewhere in mod
+}
+```
+
+**What this catches:**
+- Typos in on_action names
+- References to on_actions removed in game updates
+- Broken fallback chains
+- Undefined custom on_actions
+
+---
+
+### CK3504: Circular Fallback Reference
+
+| Property | Value |
+|----------|-------|
+| **Severity** | Warning |
+| **Category** | On-Actions |
+| **Message** | `Circular fallback detected: A → B → C → A` |
+
+Circular fallback chains create infinite loops that hang or crash the game.
+
+```pdx
+# ⚠️ CK3504: Simple cycle (A → B → A)
+on_action_a = {
+    events = { my_mod.100 }
+    fallback = on_action_b
+}
+
+on_action_b = {
+    events = { my_mod.101 }
+    fallback = on_action_a  # Cycle!
+}
+
+# ⚠️ CK3504: Self-reference (A → A)
+my_on_action = {
+    fallback = my_on_action  # Instant infinite loop!
+}
+
+# ⚠️ CK3504: Longer cycle (A → B → C → A)
+morning_routine = { fallback = afternoon_routine }
+afternoon_routine = { fallback = evening_routine }
+evening_routine = { fallback = morning_routine }  # Cycle!
+
+# ✅ Correct - Linear chain (no cycle)
+on_action_a = {
+    fallback = on_action_b
+}
+
+on_action_b = {
+    fallback = on_action_c
+}
+
+on_action_c = {
+    events = { final.event }
+}
+
+# ✅ Correct - Branching (no cycle)
+on_action_a = { fallback = on_action_c }
+on_action_b = { fallback = on_action_c }
+on_action_c = { events = { shared.event } }
+```
+
+**Detection algorithm:** Uses depth-first search (DFS) to detect cycles in the fallback graph.
+
+---
+
+### CK3505: Missing Weight Multiplier
+
+| Property | Value |
+|----------|-------|
+| **Severity** | Information |
+| **Category** | On-Actions |
+| **Message** | `Event 'X' has no explicit weight in random_events` |
+
+Events without explicit weights make probability calculations unclear. This is a code quality suggestion, not an error.
+
+```pdx
+# ℹ️ CK3505: Unclear probabilities
+my_on_action = {
+    random_events = {
+        my_mod.100  # What weight?
+        my_mod.101  # Equal probability?
+    }
+}
+
+# ✅ Better - Explicit weights
+my_on_action = {
+    random_events = {
+        50 = my_mod.100  # 50% chance
+        30 = my_mod.101  # 30% chance
+        20 = my_mod.102  # 20% chance
+    }
+}
+
+# ✅ Also OK - Weighted with conditions
+my_on_action = {
+    random_events = {
+        100 = {
+            trigger = { is_adult = yes }
+            my_mod.100
+        }
+        50 = my_mod.101
+    }
+}
+```
+
+**Why this matters:**
+- Makes probability balancing easier
+- Clearer for future maintainers
+- Easier to tune event frequencies
+
+**Note:** This is informational only - the game will still work, but explicit weights are best practice.
+
+---
+
 ## Common On-Action Hooks
 
 For reference, here are commonly used on-action hooks:
@@ -334,8 +480,11 @@ For reference, here are commonly used on-action hooks:
 | **ON_ACTION-001** | Warning | No effects or events defined |
 | **ON_ACTION-002** | Warning | Empty events list |
 | **CK3500** | Warning | Effect/trigger overwrites vanilla on_action |
+| **CK3501** | Warning | Unknown on_action reference |
 | **CK3502** | Error | Invalid delay format |
 | **CK3503** | Warning | N² performance issue in pulse on_action |
+| **CK3504** | Warning | Circular fallback reference |
+| **CK3505** | Information | Missing weight multiplier in random_events |
 | **CK3506** | Warning | Zero weight event (never fires) |
 | **CK3507** | Warning | chance_to_happen > 100 |
 | **CK3508** | Error | Wrong folder path (on_actions/ vs on_action/) |

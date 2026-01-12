@@ -13,15 +13,15 @@ DIAGNOSTIC CODES:
     CK3450: Option missing name
     CK3453: Option with multiple names
     CK3456: Empty option block
-    CK3500: Effect/trigger overwrite in vanilla on_action
-    CK3501: Unknown on_action reference
-    CK3502: Invalid delay format
-    CK3503: N² performance issue in pulse on_action
-    CK3504: Circular fallback reference
-    CK3505: Missing weight_multiplier in random selection
-    CK3506: Zero weight event (will never fire)
-    CK3507: chance_to_happen > 100
-    CK3508: Wrong folder path (on_actions/ instead of on_action/)
+    CK3500: Effect/trigger overwrite in vanilla on_action (implemented)
+    CK3501: Unknown on_action reference (implemented)
+    CK3502: Invalid delay format (implemented)
+    CK3503: N² performance issue in pulse on_action (implemented)
+    CK3504: Circular fallback reference (implemented)
+    CK3505: Missing weight_multiplier in random selection (implemented)
+    CK3506: Zero weight event (stub - parser limitation)
+    CK3507: chance_to_happen > 100 (implemented)
+    CK3508: Wrong folder path (implemented)
     CK3510: trigger_else without trigger_if
     CK3511: Multiple trigger_else blocks
     CK3512: trigger_if missing limit
@@ -1940,6 +1940,278 @@ def check_on_action_structure(
     return diagnostics
 
 
+def check_unknown_on_action_references(
+    ast: List[CK3Node],
+    index: Optional[DocumentIndex],
+    config: ParadoxConfig
+) -> List[types.Diagnostic]:
+    """
+    CK3501: Check for references to non-existent on_actions.
+
+    Detects:
+    - Unknown on_action in fallback references
+    - References to on_actions that don't exist in vanilla or workspace
+
+    This catches typos and references to removed/non-existent on_actions that
+    would fail silently at runtime.
+    """
+    from pychivalry.data import get_on_actions
+
+    diagnostics = []
+
+    if not config.on_action_validation:
+        return diagnostics
+
+    # Build set of known on_actions (vanilla + workspace)
+    known_on_actions = set()
+
+    # Add vanilla on_actions
+    try:
+        vanilla_on_actions = get_on_actions()
+        known_on_actions.update(vanilla_on_actions.keys())
+    except Exception as e:
+        logger.warning(f"Could not load vanilla on_actions for CK3501: {e}")
+
+    # Add workspace on_actions
+    if index:
+        known_on_actions.update(index.find_all_on_actions())
+
+    def scan_for_references(node: CK3Node):
+        """Scan AST for on_action references."""
+        # Pattern 1: fallback = some_on_action
+        if node.key == "fallback" and node.value:
+            referenced_name = node.value
+            if referenced_name not in known_on_actions:
+                diagnostics.append(
+                    create_paradox_diagnostic(
+                        message=f"Unknown on_action '{referenced_name}' in fallback. This on_action is not defined in vanilla CK3 or your workspace.",
+                        node_range=node.range,
+                        severity=types.DiagnosticSeverity.Warning,
+                        code="CK3501",
+                    )
+                )
+
+        # Pattern 2: on_action references in nested on_actions blocks
+        # Example: on_actions = { other_on_action }
+        if node.key == "on_actions" and node.children:
+            for child in node.children:
+                # Child keys that look like on_action names (snake_case identifiers)
+                if child.key and not "." in child.key and not child.children:
+                    referenced_name = child.key
+                    if referenced_name not in known_on_actions:
+                        diagnostics.append(
+                            create_paradox_diagnostic(
+                                message=f"Unknown on_action '{referenced_name}'. This on_action is not defined in vanilla CK3 or your workspace.",
+                                node_range=child.range,
+                                severity=types.DiagnosticSeverity.Warning,
+                                code="CK3501",
+                            )
+                        )
+
+        # Recurse through children
+        for child in node.children:
+            scan_for_references(child)
+
+    # Scan all nodes
+    for node in ast:
+        scan_for_references(node)
+
+    return diagnostics
+
+
+def check_missing_weight_multiplier(
+    ast: List[CK3Node],
+    config: ParadoxConfig
+) -> List[types.Diagnostic]:
+    """
+    CK3505: Info-level diagnostic for events without explicit weights in random_events.
+
+    This is a code quality check - events without weights make probability
+    calculations unclear and harder to balance. This is informational only,
+    not an error.
+    """
+    diagnostics = []
+
+    if not config.on_action_validation:
+        return diagnostics
+
+    def scan_random_events(node: CK3Node):
+        """Scan for random_events blocks and check event weights."""
+        if node.key == "random_events":
+            # Track if we found any weighted entries
+            for child in node.children:
+                # Skip special keys that aren't events
+                if child.key in ("chance_to_happen", "trigger", "modifier"):
+                    continue
+
+                # Check if this looks like an unweighted event reference
+                # Weighted format: key is number, value is event_id
+                # Unweighted format: key is event_id, no value
+
+                # If the key looks like an event ID (has dot) and no value
+                if "." in child.key and not child.value:
+                    diagnostics.append(
+                        create_paradox_diagnostic(
+                            message=f"Event '{child.key}' has no explicit weight in random_events. Consider specifying weight for clarity (e.g., '50 = {child.key}').",
+                            node_range=child.range,
+                            severity=types.DiagnosticSeverity.Information,
+                            code="CK3505",
+                        )
+                    )
+
+        # Recurse
+        for child in node.children:
+            scan_random_events(child)
+
+    for node in ast:
+        scan_random_events(node)
+
+    return diagnostics
+
+
+def check_circular_fallback(
+    ast: List[CK3Node],
+    index: Optional[DocumentIndex],
+    config: ParadoxConfig
+) -> List[types.Diagnostic]:
+    """
+    CK3504: Detect circular fallback chains in on_actions.
+
+    Circular fallbacks create infinite loops at runtime, causing the game to
+    hang or crash. This uses cycle detection (DFS) to find loops in the
+    fallback graph.
+
+    Examples:
+    - A → B → A (simple cycle)
+    - A → B → C → A (3-node cycle)
+    - A → A (self-reference)
+    """
+    diagnostics = []
+
+    if not config.on_action_validation:
+        return diagnostics
+
+    # Build fallback graph from current file
+    fallback_graph: Dict[str, tuple[str, CK3Node]] = {}  # on_action -> (fallback_target, node)
+
+    def extract_fallback_from_node(node: CK3Node):
+        """Extract fallback relationships from an on_action definition."""
+        # Check if this is an on_action definition
+        if not node.children:
+            return
+
+        # Check if node looks like on_action (heuristic)
+        has_on_action_content = False
+        fallback_target = None
+        fallback_node = None
+
+        for child in node.children:
+            if child.key in ("events", "random_events", "effect", "on_actions", "fallback"):
+                has_on_action_content = True
+            if child.key == "fallback" and child.value:
+                fallback_target = child.value
+                fallback_node = child
+
+        # If this looks like an on_action with a fallback
+        if has_on_action_content and fallback_target:
+            fallback_graph[node.key] = (fallback_target, fallback_node)
+
+    # Build graph from AST
+    for node in ast:
+        extract_fallback_from_node(node)
+
+    # Add workspace fallbacks if available
+    # (For now, get_fallback_graph() returns empty - future enhancement)
+    if index:
+        workspace_fallbacks = index.get_fallback_graph()
+        # Merge workspace fallbacks (but prioritize local file definitions)
+        for on_action, target in workspace_fallbacks.items():
+            if on_action not in fallback_graph:
+                # Create a synthetic node for workspace fallbacks
+                # (we won't report diagnostics for these, just use for cycle detection)
+                fallback_graph[on_action] = (target, None)
+
+    # Cycle detection using DFS
+    def detect_cycles() -> List[List[str]]:
+        """Detect all cycles in the fallback graph."""
+        visited = set()
+        rec_stack = set()
+        cycles = []
+
+        def dfs(node: str, path: List[str]):
+            """DFS traversal with cycle detection."""
+            if node in rec_stack:
+                # Found cycle - extract cycle portion
+                try:
+                    cycle_start = path.index(node)
+                    cycle = path[cycle_start:] + [node]
+                    cycles.append(cycle)
+                except ValueError:
+                    # Node not in path (shouldn't happen, but be safe)
+                    pass
+                return
+
+            if node in visited:
+                return
+
+            visited.add(node)
+            rec_stack.add(node)
+            path.append(node)
+
+            # Follow fallback edge
+            if node in fallback_graph:
+                next_node, _ = fallback_graph[node]
+                dfs(next_node, path.copy())
+
+            path.pop()
+            rec_stack.remove(node)
+
+        # Start DFS from each node
+        for node in fallback_graph:
+            if node not in visited:
+                dfs(node, [])
+
+        return cycles
+
+    # Find and report cycles
+    cycles = detect_cycles()
+
+    # Report each unique cycle
+    reported_cycles = set()
+    for cycle in cycles:
+        # Normalize cycle to canonical form (start from smallest element)
+        # This prevents duplicate reporting of the same cycle
+        if not cycle:
+            continue
+
+        min_idx = cycle.index(min(cycle[:-1]))  # Exclude last element (duplicate of first)
+        normalized = tuple(cycle[min_idx:-1] + cycle[:min_idx])
+
+        if normalized in reported_cycles:
+            continue
+        reported_cycles.add(normalized)
+
+        # Build cycle path string
+        cycle_str = " → ".join(cycle)
+
+        # Find the node to report the diagnostic on (first one in current file)
+        for on_action_name in cycle[:-1]:  # Exclude last (duplicate)
+            if on_action_name in fallback_graph:
+                _, node = fallback_graph[on_action_name]
+                if node:  # Only report if we have a node in current file
+                    diagnostics.append(
+                        create_paradox_diagnostic(
+                            message=f"Circular fallback detected: {cycle_str}. This creates an infinite loop that will hang or crash the game.",
+                            node_range=node.range,
+                            severity=types.DiagnosticSeverity.Warning,
+                            code="CK3504",
+                        )
+                    )
+                    break  # Only report once per cycle
+
+    return diagnostics
+
+
 def check_paradox_conventions(
     ast: List[CK3Node],
     index: Optional[DocumentIndex] = None,
@@ -2021,6 +2293,9 @@ def check_paradox_conventions(
 
         # Phase 9 - On-action validation (CK3500-CK3508)
         diagnostics.extend(check_on_action_structure(ast, index, config))
+        diagnostics.extend(check_unknown_on_action_references(ast, index, config))
+        diagnostics.extend(check_missing_weight_multiplier(ast, config))
+        diagnostics.extend(check_circular_fallback(ast, index, config))
 
         logger.debug(f"Paradox convention checks found {len(diagnostics)} issues")
 
