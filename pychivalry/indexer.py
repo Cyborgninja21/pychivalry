@@ -167,7 +167,7 @@ SEE ALSO:
     - hover.py: Custom symbol documentation from index
 """
 
-from typing import Dict, List, Optional, Set, Callable
+from typing import Dict, List, Optional, Set, Callable, Tuple
 from lsprotocol import types
 from pychivalry.parser import CK3Node, parse_document
 from pathlib import Path
@@ -205,6 +205,14 @@ class DocumentIndex:
 
         # Localization: key -> (text, file_uri, line_number)
         self.localization: Dict[str, tuple] = {}
+
+        # NEW: Localization references - reverse index for orphan detection (Issue #33)
+        # Maps: loc_key -> [(file_uri, line, char_pos, field_type)]
+        # Enables bidirectional validation:
+        # - CK3600: Find missing keys (referenced but not defined)
+        # - CK3604: Find orphaned keys (defined but not referenced)
+        # Example: {"my_mod.0001.t": [("file:///events/my.txt", 42, 10, "title")]}
+        self.localization_references: Dict[str, List[Tuple[str, int, int, str]]] = {}
 
         # Character flags: flag_name -> list of (action, file_uri, line_number)
         # action is 'set' (add_character_flag) or 'check' (has_character_flag)
@@ -876,6 +884,93 @@ class DocumentIndex:
         """
         return set(self.localization.keys())
 
+    def _track_localization_reference(
+        self,
+        loc_key: str,
+        file_uri: str,
+        line: int,
+        char_pos: int,
+        field_type: str
+    ):
+        """
+        Track where a localization key is referenced.
+
+        This builds the reverse index for orphan detection (Issue #33, CK3604).
+        For each localization key, we track all locations where it's used.
+
+        Args:
+            loc_key: The localization key (e.g., "my_mod.0001.t")
+            file_uri: URI of file containing the reference
+            line: Line number (0-indexed)
+            char_pos: Character position in line
+            field_type: Field name ("title", "desc", "name", "tooltip", etc.)
+
+        Example:
+            >>> index._track_localization_reference(
+            ...     "my_mod.0001.t", "file:///events/my.txt", 42, 10, "title"
+            ... )
+            >>> index.localization_references["my_mod.0001.t"]
+            [("file:///events/my.txt", 42, 10, "title")]
+        """
+        if loc_key not in self.localization_references:
+            self.localization_references[loc_key] = []
+
+        self.localization_references[loc_key].append(
+            (file_uri, line, char_pos, field_type)
+        )
+
+        # Also track in reverse file index for O(1) removal
+        self._track_symbol(file_uri, "localization_references", loc_key)
+
+    def get_localization_references(self, loc_key: str) -> List[Tuple[str, int, int, str]]:
+        """
+        Get all locations where a localization key is referenced.
+
+        Args:
+            loc_key: The localization key
+
+        Returns:
+            List of (file_uri, line, char_pos, field_type) tuples,
+            or empty list if key is not referenced anywhere
+
+        Example:
+            >>> refs = index.get_localization_references("my_mod.0001.t")
+            >>> for uri, line, char, field in refs:
+            ...     print(f"{field} at {uri}:{line}")
+            title at file:///events/my.txt:42
+        """
+        return self.localization_references.get(loc_key, [])
+
+    def find_orphaned_localization_keys(self) -> List[Tuple[str, str, int]]:
+        """
+        Find localization keys that are defined but never referenced.
+
+        This implements the orphan detection for CK3604. A key is orphaned if:
+        - It exists in self.localization (defined in a .yml file)
+        - It has zero references in self.localization_references
+
+        Returns:
+            List of (key, file_uri, line_number) for orphaned keys
+
+        Performance:
+            O(n) where n = number of defined localization keys
+
+        Example:
+            >>> orphaned = index.find_orphaned_localization_keys()
+            >>> for key, uri, line in orphaned:
+            ...     print(f"Unused key '{key}' in {uri}:{line}")
+            Unused key 'old_event.001.t' in file:///loc/events_l_english.yml:150
+        """
+        orphaned = []
+
+        for loc_key, (text, file_uri, line_num) in self.localization.items():
+            # Check if this key has any references
+            references = self.localization_references.get(loc_key, [])
+            if len(references) == 0:
+                orphaned.append((loc_key, file_uri, line_num))
+
+        return orphaned
+
     def _scan_events_folder(self, folder_path: Path):
         """
         Scan an events folder for event definitions and saved scopes.
@@ -1491,18 +1586,87 @@ class DocumentIndex:
         # instead of O(n) where n = TOTAL symbols in workspace
         removed_count = 0
         for symbol_type, symbol_names in file_symbols.items():
-            symbol_table = symbol_tables.get(symbol_type)
-            if symbol_table is not None:
-                for symbol_name in symbol_names:
-                    # Direct dictionary deletion: O(1)
-                    if symbol_name in symbol_table:
-                        del symbol_table[symbol_name]
+            # Special handling for localization_references (list of tuples)
+            if symbol_type == "localization_references":
+                for loc_key in symbol_names:
+                    if loc_key in self.localization_references:
+                        # Remove references from this file only
+                        self.localization_references[loc_key] = [
+                            ref for ref in self.localization_references[loc_key]
+                            if ref[0] != uri  # ref[0] is file_uri
+                        ]
+                        # If no references left, remove the key entirely
+                        if not self.localization_references[loc_key]:
+                            del self.localization_references[loc_key]
                         removed_count += 1
+            else:
+                # Standard symbol table handling
+                symbol_table = symbol_tables.get(symbol_type)
+                if symbol_table is not None:
+                    for symbol_name in symbol_names:
+                        # Direct dictionary deletion: O(1)
+                        if symbol_name in symbol_table:
+                            del symbol_table[symbol_name]
+                            removed_count += 1
 
         # Remove the file from the reverse index
         del self._file_symbols[uri]
 
         logger.debug(f"Removed {removed_count} symbols from {uri} using reverse index")
+
+    def _index_localization_field(self, uri: str, node: CK3Node):
+        """
+        Index localization key references during file parsing (Issue #33).
+
+        This is called for nodes that might contain localization key references.
+        Tracks references for bidirectional validation:
+        - CK3600: Detect missing keys (referenced but not defined)
+        - CK3604: Detect orphaned keys (defined but not referenced)
+
+        Args:
+            uri: Document URI
+            node: AST node to check for localization references
+
+        Localization fields checked:
+            - title: Event/decision title
+            - desc: Event/decision description
+            - name: Option name
+            - tooltip: Tooltip text
+            - custom_tooltip: Custom tooltip
+            - text: Generic text field
+
+        Example node:
+            title = my_mod.0001.t
+            ^^^^   ^^^^^^^^^^^^^^
+            key    value (loc key to track)
+        """
+        # Only process nodes with keys (field = value pairs)
+        if not node.key:
+            return
+
+        field_name = node.key.lower()
+
+        # Fields that should reference localization keys
+        LOC_FIELDS = {"title", "desc", "name", "tooltip", "custom_tooltip", "text"}
+
+        if field_name in LOC_FIELDS and node.value:
+            value = node.value.strip()
+
+            # Check if value looks like a localization key (not a literal string)
+            # Literal strings are quoted: "text" or 'text'
+            is_literal = (value.startswith('"') and value.endswith('"')) or \
+                        (value.startswith("'") and value.endswith("'"))
+
+            # Must contain at least one dot (namespace.id pattern) and not be literal
+            if not is_literal and "." in value:
+                # Track this localization reference
+                self._track_localization_reference(
+                    loc_key=value,
+                    file_uri=uri,
+                    line=node.range.start.line,
+                    char_pos=node.range.start.character,
+                    field_type=field_name
+                )
 
     def _index_node(self, uri: str, node: CK3Node):
         """
@@ -1538,6 +1702,10 @@ class DocumentIndex:
                 # Track in reverse index for O(1) removal
                 self._track_symbol(uri, "saved_scopes", node.value)
                 logger.debug(f"Indexed saved scope: {node.value} in {uri}")
+
+        # NEW: Index localization key references (Issue #33, CK3600/CK3604)
+        # This tracks where localization keys are used (title, desc, name, etc.)
+        self._index_localization_field(uri, node)
 
         # Recursively index children
         for child in node.children:
