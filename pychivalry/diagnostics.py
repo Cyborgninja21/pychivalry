@@ -890,6 +890,7 @@ class DiagnosticConfig:
         scope_timing_enabled: Enable scope timing checks (CK3550-3555)
         story_cycles_enabled: Enable story cycle validation (STORY-001+)
         schema_enabled: Enable schema-driven validation (all codes)
+        asset_enabled: Enable asset validation checks (GFX001, SND001, SND002)
     """
 
     style_enabled: bool = True
@@ -897,6 +898,7 @@ class DiagnosticConfig:
     scope_timing_enabled: bool = True
     story_cycles_enabled: bool = True
     schema_enabled: bool = True
+    asset_enabled: bool = True
 
 
 def _check_decision_group_localization(
@@ -1473,6 +1475,22 @@ def collect_all_diagnostics(
                 logger.warning("story_cycles module not available")
             except Exception as e:
                 logger.error(f"Error in story cycle checks: {e}", exc_info=True)
+
+        # Asset validation (GFX001, SND001, SND002) - Issue #55
+        if config.asset_enabled:
+            try:
+                from .asset_validation import validate_asset_references
+
+                # Get workspace folders from index if available
+                workspace_folders = None
+                if index and hasattr(index, '_workspace_roots'):
+                    workspace_folders = index._workspace_roots
+
+                diagnostics.extend(validate_asset_references(ast, workspace_folders))
+            except ImportError:
+                logger.warning("asset_validation module not available")
+            except Exception as e:
+                logger.error(f"Error in asset validation: {e}", exc_info=True)
 
         # Schema-driven validation (CK37xx, EVENT-xxx, etc.)
         if config.schema_enabled:

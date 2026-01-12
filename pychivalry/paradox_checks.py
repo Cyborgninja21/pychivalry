@@ -34,6 +34,8 @@ DIAGNOSTIC CODES:
     CK3511: Multiple trigger_else blocks
     CK3512: trigger_if missing limit
     CK3513: Empty trigger_if limit
+    CK3514: on_trigger_fail defined (informational)
+    CK3515: Duplicate trigger conditions
     CK3520: after block in hidden event
     CK3521: after block without options
     CK3610: Negative base ai_chance
@@ -1194,6 +1196,154 @@ def check_trigger_extensions(ast: List[CK3Node], config: ParadoxConfig) -> List[
 
     for node in ast:
         check_trigger_if_else(node)
+
+    return diagnostics
+
+
+def check_on_trigger_fail(ast: List[CK3Node], config: ParadoxConfig) -> List[types.Diagnostic]:
+    """
+    Informational check for on_trigger_fail presence in events.
+
+    Detects:
+    - CK3514: Event has on_trigger_fail handler defined
+
+    This is an informational diagnostic to help modders understand that
+    an event has a fallback handler when its trigger fails. It's not an
+    error - just awareness that custom behavior is defined.
+
+    Example:
+        my_event.1 = {
+            trigger = { is_adult = yes }
+            on_trigger_fail = {  # INFO: Handler defined
+                trigger_event = { id = fallback_event.1 }
+            }
+        }
+
+    Args:
+        ast: Parsed AST nodes
+        config: Paradox configuration
+
+    Returns:
+        List of informational diagnostics for on_trigger_fail presence
+    """
+    diagnostics = []
+
+    if not config.event_structure:
+        return diagnostics
+
+    for node in ast:
+        # Check if this looks like an event (namespace.XXXX = { ... })
+        if "." in node.key and node.children:
+            parts = node.key.split(".")
+            if len(parts) == 2:
+                try:
+                    int(parts[1])  # Event ID should be numeric
+                    # This is an event - check for on_trigger_fail
+                    for child in node.children:
+                        if child.key == "on_trigger_fail":
+                            diagnostics.append(
+                                create_paradox_diagnostic(
+                                    message=f"Event '{node.key}' has 'on_trigger_fail' handler defined. This block executes when the event's trigger fails.",
+                                    node_range=child.range,
+                                    severity=types.DiagnosticSeverity.Information,
+                                    code="CK3514",
+                                )
+                            )
+                            break  # Only report once per event
+
+                except ValueError:
+                    pass  # Not an event ID
+
+    return diagnostics
+
+
+def check_duplicate_triggers(ast: List[CK3Node], config: ParadoxConfig) -> List[types.Diagnostic]:
+    """
+    Check for duplicate trigger conditions in trigger blocks.
+
+    Detects:
+    - CK3515: Same trigger condition repeated in the same block
+
+    Duplicate triggers are usually copy-paste errors or redundant code.
+    The second occurrence has no effect since the condition is already
+    checked by the first.
+
+    Example of problematic code:
+        trigger = {
+            is_adult = yes
+            is_ruler = yes
+            is_adult = yes  # WARNING: Duplicate condition
+        }
+
+    Args:
+        ast: Parsed AST nodes
+        config: Paradox configuration
+
+    Returns:
+        List of diagnostics for duplicate trigger conditions
+    """
+    diagnostics = []
+
+    if not config.event_structure:
+        return diagnostics
+
+    # Simple triggers that should not be duplicated
+    # These are boolean triggers that check a single state
+    simple_triggers = {
+        "is_adult", "is_ai", "is_alive", "is_ruler", "is_landed",
+        "is_imprisoned", "is_at_war", "is_married", "is_betrothed",
+        "is_pregnant", "is_male", "is_female", "is_lowborn",
+        "is_independent_ruler", "is_councillor", "is_knight",
+        "is_commanding_army", "is_incapable", "is_ill", "is_wounded",
+        "exists", "always", "can_start_scheme", "has_realm_law",
+        "has_government", "has_culture", "has_religion", "has_faith",
+        "has_dynasty", "has_house", "has_claim_on", "has_hook",
+        "has_strong_hook", "has_weak_hook", "has_lifestyle",
+        "has_perk", "has_nickname", "has_character_flag",
+        "has_title", "has_primary_title", "has_realm_law_flag",
+    }
+
+    def check_trigger_block(node: CK3Node):
+        """Check a trigger or limit block for duplicates."""
+        if node.key not in ("trigger", "limit"):
+            return
+
+        seen_triggers: Dict[str, CK3Node] = {}
+
+        for child in node.children:
+            # Skip comments and nested blocks
+            if child.type == "comment":
+                continue
+
+            # Only check simple triggers (key = value pattern)
+            trigger_key = child.key
+
+            # Check if this is a simple trigger we track
+            if trigger_key in simple_triggers:
+                if trigger_key in seen_triggers:
+                    # Duplicate found
+                    first_occurrence = seen_triggers[trigger_key]
+                    diagnostics.append(
+                        create_paradox_diagnostic(
+                            message=f"Duplicate trigger condition '{trigger_key}' (first at line {first_occurrence.range.start.line + 1}). Remove the duplicate or use different conditions.",
+                            node_range=child.range,
+                            severity=types.DiagnosticSeverity.Warning,
+                            code="CK3515",
+                        )
+                    )
+                else:
+                    seen_triggers[trigger_key] = child
+
+    def walk_ast(node: CK3Node):
+        """Walk AST looking for trigger/limit blocks."""
+        check_trigger_block(node)
+
+        # Recurse into children
+        for child in node.children:
+            walk_ast(child)
+
+    for node in ast:
+        walk_ast(node)
 
     return diagnostics
 
@@ -2995,7 +3145,10 @@ def check_paradox_conventions(
         diagnostics.extend(check_event_has_portraits(ast, config))
 
         # New validation checks - Trigger extensions, After blocks, AI chance
+        # Issue #32 - Trigger Block Validation (CK3510-CK3515)
         diagnostics.extend(check_trigger_extensions(ast, config))
+        diagnostics.extend(check_on_trigger_fail(ast, config))
+        diagnostics.extend(check_duplicate_triggers(ast, config))
         diagnostics.extend(check_after_block_issues(ast, config))
         diagnostics.extend(check_ai_chance_issues(ast, config))
         diagnostics.extend(check_desc_issues(ast, config))

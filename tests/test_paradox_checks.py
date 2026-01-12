@@ -1104,6 +1104,142 @@ class TestTriggerExtensions:
 
 
 # =============================================================================
+# ON_TRIGGER_FAIL AND DUPLICATE TRIGGER TESTS (CK3514-CK3515)
+# =============================================================================
+
+
+class TestOnTriggerFail:
+    """Tests for on_trigger_fail informational diagnostic (CK3514)."""
+
+    def test_on_trigger_fail_present_info(self):
+        """Event with on_trigger_fail should produce CK3514 info diagnostic."""
+        text = """mymod.0001 = {
+    type = character_event
+    trigger = { is_adult = yes }
+    on_trigger_fail = {
+        trigger_event = { id = fallback_event.1 }
+    }
+    option = {
+        name = mymod.0001.a
+    }
+}"""
+        ast, _parse_errors = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_on_trigger_fail
+        diagnostics = check_on_trigger_fail(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3514" in codes
+        # Verify it's informational
+        assert diagnostics[0].severity == types.DiagnosticSeverity.Information
+
+    def test_no_on_trigger_fail_no_diagnostic(self):
+        """Event without on_trigger_fail should not produce CK3514."""
+        text = """mymod.0001 = {
+    type = character_event
+    trigger = { is_adult = yes }
+    option = {
+        name = mymod.0001.a
+    }
+}"""
+        ast, _parse_errors = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_on_trigger_fail
+        diagnostics = check_on_trigger_fail(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3514" not in codes
+
+
+class TestDuplicateTriggers:
+    """Tests for duplicate trigger condition detection (CK3515)."""
+
+    def test_duplicate_trigger_warning(self):
+        """Duplicate trigger condition should produce CK3515."""
+        text = """mymod.0001 = {
+    type = character_event
+    trigger = {
+        is_adult = yes
+        is_ruler = yes
+        is_adult = yes
+    }
+    option = {
+        name = mymod.0001.a
+    }
+}"""
+        ast, _parse_errors = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_duplicate_triggers
+        diagnostics = check_duplicate_triggers(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3515" in codes
+        # Verify it's a warning
+        assert diagnostics[0].severity == types.DiagnosticSeverity.Warning
+
+    def test_no_duplicate_triggers_no_warning(self):
+        """Unique trigger conditions should not produce CK3515."""
+        text = """mymod.0001 = {
+    type = character_event
+    trigger = {
+        is_adult = yes
+        is_ruler = yes
+        is_ai = no
+    }
+    option = {
+        name = mymod.0001.a
+    }
+}"""
+        ast, _parse_errors = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_duplicate_triggers
+        diagnostics = check_duplicate_triggers(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3515" not in codes
+
+    def test_duplicate_in_limit_block(self):
+        """Duplicate trigger in limit block should produce CK3515."""
+        text = """mymod.0001 = {
+    type = character_event
+    option = {
+        name = mymod.0001.a
+        trigger_if = {
+            limit = {
+                is_ruler = yes
+                is_married = yes
+                is_ruler = yes
+            }
+            add_gold = 100
+        }
+    }
+}"""
+        ast, _parse_errors = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_duplicate_triggers
+        diagnostics = check_duplicate_triggers(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3515" in codes
+
+    def test_same_trigger_different_blocks_ok(self):
+        """Same trigger in different blocks should not produce CK3515."""
+        text = """mymod.0001 = {
+    type = character_event
+    trigger = {
+        is_adult = yes
+    }
+    option = {
+        name = mymod.0001.a
+        trigger = {
+            is_adult = yes
+        }
+    }
+}"""
+        ast, _parse_errors = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_duplicate_triggers
+        diagnostics = check_duplicate_triggers(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3515" not in codes
+
+
+# =============================================================================
 # AFTER BLOCK VALIDATION TESTS (CK3520-CK3521)
 # =============================================================================
 
