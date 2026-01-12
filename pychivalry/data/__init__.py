@@ -565,6 +565,128 @@ def load_icons() -> Dict[str, Dict[str, str]]:
     return load_yaml_file(icons_file)
 
 
+def load_themes() -> Dict[str, Dict[str, Any]]:
+    """
+    Load event theme definitions from themes.yaml.
+
+    Event themes control the visual and audio presentation of events.
+    Each theme definition includes metadata for validation.
+
+    Note:
+        Theme data must be extracted from a CK3 installation using
+        tools/extract_themes.py. If the file doesn't exist, an empty
+        dictionary is returned.
+
+    Returns:
+        Dictionary mapping theme names to their definition objects.
+
+        Structure:
+        {
+            'diplomacy': {
+                'description': 'Diplomacy',
+                'icon': 'diplomacy_icon',
+                'sound': 'event_theme_diplomacy'
+            },
+            ...
+        }
+
+    Examples:
+        >>> themes = load_themes()
+        >>> 'diplomacy' in themes  # True if data extracted
+        >>> themes['diplomacy']['description']  # 'Diplomacy'
+    """
+    themes_file = DATA_DIR / "themes.yaml"
+
+    if not themes_file.exists():
+        logger.info(f"Themes file not found at {themes_file} - theme validation disabled")
+        return {}
+
+    return load_yaml_file(themes_file)
+
+
+def load_backgrounds() -> Dict[str, Dict[str, Any]]:
+    """
+    Load event background definitions from backgrounds.yaml.
+
+    Event backgrounds control the visual backdrop of events.
+
+    Note:
+        Background data must be extracted from a CK3 installation using
+        tools/extract_backgrounds.py. If the file doesn't exist, an empty
+        dictionary is returned.
+
+    Returns:
+        Dictionary mapping background names to their definition objects.
+
+    Examples:
+        >>> backgrounds = load_backgrounds()
+        >>> 'throne_room' in backgrounds  # True if data extracted
+    """
+    backgrounds_file = DATA_DIR / "backgrounds.yaml"
+
+    if not backgrounds_file.exists():
+        logger.info(f"Backgrounds file not found at {backgrounds_file} - background validation disabled")
+        return {}
+
+    return load_yaml_file(backgrounds_file)
+
+
+def load_environments() -> Dict[str, Dict[str, Any]]:
+    """
+    Load event environment definitions from environments.yaml.
+
+    Event environments control lighting and atmospheric effects.
+
+    Note:
+        Environment data must be extracted from a CK3 installation using
+        tools/extract_environments.py. If the file doesn't exist, an empty
+        dictionary is returned.
+
+    Returns:
+        Dictionary mapping environment names to their definition objects.
+
+    Examples:
+        >>> environments = load_environments()
+        >>> 'interior' in environments  # True if data extracted
+    """
+    environments_file = DATA_DIR / "environments.yaml"
+
+    if not environments_file.exists():
+        logger.info(f"Environments file not found at {environments_file} - environment validation disabled")
+        return {}
+
+    return load_yaml_file(environments_file)
+
+
+def load_on_actions() -> Dict[str, Dict[str, Any]]:
+    """
+    Load on_action definitions from on_actions.yaml.
+
+    On-actions are triggered when specific game events occur.
+    Each on_action includes scope information for validation.
+
+    Note:
+        On-action data must be extracted from a CK3 installation using
+        tools/extract_on_actions.py. If the file doesn't exist, an empty
+        dictionary is returned.
+
+    Returns:
+        Dictionary mapping on_action names to their definition objects.
+
+    Examples:
+        >>> on_actions = load_on_actions()
+        >>> 'on_birth' in on_actions  # True if data extracted
+        >>> on_actions['on_birth']['scopes']  # Scope information
+    """
+    on_actions_file = DATA_DIR / "on_actions.yaml"
+
+    if not on_actions_file.exists():
+        logger.info(f"On-actions file not found at {on_actions_file} - on_action validation disabled")
+        return {}
+
+    return load_yaml_file(on_actions_file)
+
+
 # =============================================================================
 # CACHING SYSTEM
 # =============================================================================
@@ -593,6 +715,18 @@ _concepts_cache: Optional[Dict[str, Dict[str, str]]] = None
 
 # Cache for icon reference definitions (gold_icon, prestige_icon, etc.)
 _icons_cache: Optional[Dict[str, Dict[str, str]]] = None
+
+# Cache for event theme definitions (diplomacy, intrigue, etc.)
+_themes_cache: Optional[Dict[str, Dict[str, Any]]] = None
+
+# Cache for event background definitions (throne_room, bedroom, etc.)
+_backgrounds_cache: Optional[Dict[str, Dict[str, Any]]] = None
+
+# Cache for event environment definitions (interior, exterior, etc.)
+_environments_cache: Optional[Dict[str, Dict[str, Any]]] = None
+
+# Cache for on_action definitions (on_birth, on_death, etc.)
+_on_actions_cache: Optional[Dict[str, Dict[str, Any]]] = None
 
 
 # =============================================================================
@@ -820,6 +954,107 @@ def get_icons(use_cache: bool = True) -> Dict[str, Dict[str, str]]:
     return _icons_cache
 
 
+def get_themes(use_cache: bool = True) -> Dict[str, Dict[str, Any]]:
+    """
+    Get event theme definitions with intelligent caching.
+
+    See get_scopes() for detailed documentation on caching behavior.
+    This function works identically but for theme definitions.
+
+    Args:
+        use_cache: Whether to use cached data (default: True)
+
+    Returns:
+        Complete theme definitions dictionary
+
+    Examples:
+        >>> themes = get_themes()
+        >>> 'diplomacy' in themes  # True if data extracted
+    """
+    global _themes_cache
+
+    if not use_cache or _themes_cache is None:
+        _themes_cache = load_themes()
+
+    return _themes_cache
+
+
+def get_backgrounds(use_cache: bool = True) -> Dict[str, Dict[str, Any]]:
+    """
+    Get event background definitions with intelligent caching.
+
+    See get_scopes() for detailed documentation on caching behavior.
+    This function works identically but for background definitions.
+
+    Args:
+        use_cache: Whether to use cached data (default: True)
+
+    Returns:
+        Complete background definitions dictionary
+
+    Examples:
+        >>> backgrounds = get_backgrounds()
+        >>> 'throne_room' in backgrounds  # True if data extracted
+    """
+    global _backgrounds_cache
+
+    if not use_cache or _backgrounds_cache is None:
+        _backgrounds_cache = load_backgrounds()
+
+    return _backgrounds_cache
+
+
+def get_environments(use_cache: bool = True) -> Dict[str, Dict[str, Any]]:
+    """
+    Get event environment definitions with intelligent caching.
+
+    See get_scopes() for detailed documentation on caching behavior.
+    This function works identically but for environment definitions.
+
+    Args:
+        use_cache: Whether to use cached data (default: True)
+
+    Returns:
+        Complete environment definitions dictionary
+
+    Examples:
+        >>> environments = get_environments()
+        >>> 'interior' in environments  # True if data extracted
+    """
+    global _environments_cache
+
+    if not use_cache or _environments_cache is None:
+        _environments_cache = load_environments()
+
+    return _environments_cache
+
+
+def get_on_actions(use_cache: bool = True) -> Dict[str, Dict[str, Any]]:
+    """
+    Get on_action definitions with intelligent caching.
+
+    See get_scopes() for detailed documentation on caching behavior.
+    This function works identically but for on_action definitions.
+
+    Args:
+        use_cache: Whether to use cached data (default: True)
+
+    Returns:
+        Complete on_action definitions dictionary
+
+    Examples:
+        >>> on_actions = get_on_actions()
+        >>> 'on_birth' in on_actions  # True if data extracted
+        >>> on_actions['on_birth']['scopes']  # Scope information
+    """
+    global _on_actions_cache
+
+    if not use_cache or _on_actions_cache is None:
+        _on_actions_cache = load_on_actions()
+
+    return _on_actions_cache
+
+
 def clear_cache():
     """
     Clear all cached data to force reload on next access.
@@ -836,22 +1071,23 @@ def clear_cache():
     Examples:
         >>> # Initial load
         >>> scopes = get_scopes()
-        
+
         >>> # Modify YAML file externally
         >>> # ...
-        
+
         >>> # Clear cache and reload
         >>> clear_cache()
         >>> fresh_scopes = get_scopes()  # Reloads from files
 
     Performance:
-        O(1) - just sets four variables to None
+        O(1) - just sets variables to None
 
     Side Effects:
-        Next call to get_scopes/effects/triggers/traits/animations will reload from disk
+        Next call to any get_*() function will reload from disk
     """
     # Declare we're modifying all global cache variables
-    global _scopes_cache, _effects_cache, _triggers_cache, _traits_cache, _animations_cache, _concepts_cache, _icons_cache
+    global _scopes_cache, _effects_cache, _triggers_cache, _traits_cache, _animations_cache
+    global _concepts_cache, _icons_cache, _themes_cache, _backgrounds_cache, _environments_cache, _on_actions_cache
 
     # Reset all caches to None
     # This invalidates the cache and forces reload on next access
@@ -862,6 +1098,10 @@ def clear_cache():
     _animations_cache = None
     _concepts_cache = None
     _icons_cache = None
+    _themes_cache = None
+    _backgrounds_cache = None
+    _environments_cache = None
+    _on_actions_cache = None
 
 
 # =============================================================================

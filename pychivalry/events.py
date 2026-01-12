@@ -154,42 +154,26 @@ EVENT_TYPES = {
     "story_cycle",
 }
 
-# Valid event themes
-EVENT_THEMES = {
-    "default",
-    "diplomacy",
-    "intrigue",
-    "martial",
-    "stewardship",
-    "learning",
-    "seduction",
-    "temptation",
-    "romance",
-    "faith",
-    "culture",
-    "war",
-    "death",
-    "dread",
-    "dungeon",
-    "feast",
-    "hunt",
-    "travel",
-    "pet",
-    "friendly",
-    "unfriendly",
-    "healthcare",
-    "physical_health",
-    "mental_health",
-    "childhood",
-    "pregnancy",
-    "family",
-    "realm",
-    "vassal",
-    "courtier",
-    "realm_",
-    "liege",
-    "tax",
-}
+def _load_event_themes() -> Set[str]:
+    """
+    Load valid event themes from YAML data file.
+
+    Returns a set of theme names for fast membership testing.
+    The themes are loaded from data/themes.yaml.
+
+    Returns:
+        Set of valid theme names
+    """
+    from .data import get_themes
+    themes = get_themes()
+    # If no themes data file exists, return empty set (validation will be disabled)
+    return set(themes.keys()) if themes else set()
+
+
+# Event themes - loaded from data/themes.yaml
+# This allows easy updates when new themes are added to the game
+# If themes.yaml doesn't exist, this will be an empty set and validation will be disabled
+EVENT_THEMES = _load_event_themes()
 
 # Portrait positions
 PORTRAIT_POSITIONS = {
@@ -253,7 +237,11 @@ def is_valid_theme(theme: str) -> bool:
 
     Returns:
         True if valid theme, False otherwise
+        If themes.yaml doesn't exist, returns True (validation disabled)
     """
+    # If no themes loaded, validation is disabled (return True for all)
+    if not EVENT_THEMES:
+        return True
     return theme in EVENT_THEMES
 
 
