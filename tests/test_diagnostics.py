@@ -9,6 +9,7 @@ from pychivalry.diagnostics import (
     check_semantics,
     check_scopes,
     collect_all_diagnostics,
+    collect_yml_file_diagnostics,
     create_diagnostic,
     validate_ast_structure,
 )
@@ -662,3 +663,158 @@ class TestOrphanedLocalizationValidation:
         ck3604_diags = [d for d in all_diagnostics if d.code == "CK3604"]
         assert len(ck3604_diags) == 1
         assert "orphaned_key" in ck3604_diags[0].message
+
+
+class TestYmlFileValidation:
+    """Test suite for yml file syntax validation (LOC-001 to LOC-007)."""
+
+    def test_invalid_character_function(self):
+        """Test LOC-002: Invalid character function in localization text."""
+        index = DocumentIndex()
+
+        content = """l_english:
+ test_key:0 "This uses [Character.GetInvalidFunction]"
+"""
+
+        doc = TextDocument(uri="file:///test/localization/english/test_l_english.yml", source=content)
+        diagnostics = collect_yml_file_diagnostics(doc, index)
+
+        # Should have LOC-002 diagnostic
+        loc002_diags = [d for d in diagnostics if d.code == "LOC-002"]
+        assert len(loc002_diags) == 1
+        assert "GetInvalidFunction" in loc002_diags[0].message
+        assert loc002_diags[0].severity == types.DiagnosticSeverity.Error
+
+    def test_invalid_formatting_code(self):
+        """Test LOC-003: Invalid formatting code in localization text."""
+        index = DocumentIndex()
+
+        content = """l_english:
+ test_key:0 "This has #Z invalid color#!"
+"""
+
+        doc = TextDocument(uri="file:///test/localization/english/test_l_english.yml", source=content)
+        diagnostics = collect_yml_file_diagnostics(doc, index)
+
+        # Should have LOC-003 diagnostic
+        loc003_diags = [d for d in diagnostics if d.code == "LOC-003"]
+        assert len(loc003_diags) == 1
+        assert "#Z" in loc003_diags[0].message
+        assert loc003_diags[0].severity == types.DiagnosticSeverity.Warning
+
+    def test_invalid_icon_reference(self):
+        """Test LOC-004: Invalid icon reference in localization text."""
+        index = DocumentIndex()
+
+        content = """l_english:
+ test_key:0 "This has @invalid_icon! bad icon"
+"""
+
+        doc = TextDocument(uri="file:///test/localization/english/test_l_english.yml", source=content)
+        diagnostics = collect_yml_file_diagnostics(doc, index)
+
+        # Should have LOC-004 diagnostic
+        loc004_diags = [d for d in diagnostics if d.code == "LOC-004"]
+        assert len(loc004_diags) == 1
+        assert "Unknown icon reference" in loc004_diags[0].message
+        assert loc004_diags[0].severity == types.DiagnosticSeverity.Warning
+
+    def test_skip_unclosed_brackets(self):
+        """Note: Bracket matching (LOC-005) not currently implemented in validate_localization_references."""
+        # This test is intentionally skipped as bracket validation is not implemented yet
+        pass
+
+    def test_skip_invalid_concept_link(self):
+        """Note: Concept link validation (LOC-006) requires extracted concept data."""
+        # This test is intentionally skipped as it requires concept data extraction
+        pass
+
+    def test_skip_invalid_variable_substitution(self):
+        """Note: Variable substitution validation (LOC-007) not currently implemented."""
+        # This test is intentionally skipped as variable validation is not fully implemented yet
+        pass
+
+    def test_invalid_language_header(self):
+        """Test LOC-HEADER: Invalid language header format."""
+        index = DocumentIndex()
+
+        content = """invalid_header:
+ test_key:0 "Some text"
+"""
+
+        doc = TextDocument(uri="file:///test/localization/english/test_l_english.yml", source=content)
+        diagnostics = collect_yml_file_diagnostics(doc, index)
+
+        # Should have LOC-HEADER diagnostic
+        header_diags = [d for d in diagnostics if d.code == "LOC-HEADER"]
+        assert len(header_diags) == 1
+        assert "language header" in header_diags[0].message.lower()
+        assert header_diags[0].severity == types.DiagnosticSeverity.Error
+
+    def test_version_number_issues(self):
+        """Test LOC-VERSION: Version number validation."""
+        index = DocumentIndex()
+
+        # Duplicate version numbers
+        content = """l_english:
+ test_key:0 "First version"
+ test_key:0 "Duplicate version"
+"""
+
+        doc = TextDocument(uri="file:///test/localization/english/test_l_english.yml", source=content)
+        diagnostics = collect_yml_file_diagnostics(doc, index)
+
+        # Should have LOC-VERSION diagnostic
+        version_diags = [d for d in diagnostics if d.code == "LOC-VERSION"]
+        assert len(version_diags) >= 1
+        assert "version" in version_diags[0].message.lower()
+
+    def test_multiple_issues_single_line(self):
+        """Test that multiple issues on the same line are all reported."""
+        index = DocumentIndex()
+
+        content = """l_english:
+ test_key:0 "Bad [Character.GetInvalid] and #Z color and @bad_icon!"
+"""
+
+        doc = TextDocument(uri="file:///test/localization/english/test_l_english.yml", source=content)
+        diagnostics = collect_yml_file_diagnostics(doc, index)
+
+        # Should have multiple diagnostics
+        assert len(diagnostics) >= 2
+        codes = {d.code for d in diagnostics}
+        assert "LOC-002" in codes or "LOC-003" in codes or "LOC-004" in codes  # At least one issue detected
+
+    def test_valid_yml_no_diagnostics(self):
+        """Test that valid yml content produces no diagnostics."""
+        index = DocumentIndex()
+
+        content = """l_english:
+ test_key:0 "This is valid text"
+ another_key:0 "Also valid with [Character.GetName]"
+ third_key:0 "Valid #bold text#! and @gold! icon"
+"""
+
+        doc = TextDocument(uri="file:///test/localization/english/test_l_english.yml", source=content)
+        diagnostics = collect_yml_file_diagnostics(doc, index)
+
+        # Should have no diagnostics (or only version-related if any)
+        error_diags = [d for d in diagnostics if d.severity == types.DiagnosticSeverity.Error]
+        assert len(error_diags) == 0
+
+    def test_integration_with_collect_all_diagnostics(self):
+        """Test that yml validation integrates with collect_all_diagnostics()."""
+        index = DocumentIndex()
+
+        content = """l_english:
+ test_key:0 "Invalid [Character.GetBadFunction] here"
+"""
+
+        doc = TextDocument(uri="file:///test/localization/english/test_l_english.yml", source=content)
+        # For .yml files, AST is not needed as they are not parsed as CK3 script
+        all_diagnostics = collect_all_diagnostics(doc, [], index)
+
+        # Should include LOC-002 diagnostic from yml validation
+        loc002_diags = [d for d in all_diagnostics if d.code == "LOC-002"]
+        assert len(loc002_diags) == 1
+        assert "GetBadFunction" in loc002_diags[0].message

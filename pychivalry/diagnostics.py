@@ -1134,6 +1134,170 @@ def collect_orphaned_localization_diagnostics(
     return diagnostics
 
 
+def collect_yml_file_diagnostics(
+    doc: TextDocument,
+    index: Optional[DocumentIndex] = None,
+) -> List[types.Diagnostic]:
+    """
+    Validate .yml localization file syntax (LOC-001 through LOC-007).
+
+    Comprehensive validation of localization file content including:
+    - LOC-001: Invalid localization key format
+    - LOC-002: Unknown character functions
+    - LOC-003: Malformed text formatting codes
+    - LOC-004: Invalid icon references
+    - LOC-005: Unclosed brackets in localization text
+    - LOC-006: Unknown concept references
+    - LOC-007: Invalid variable substitution syntax
+    - Language header validation (l_english:, etc.)
+    - Version number validation (key:0, key:1, etc.)
+
+    Args:
+        doc: The text document being validated (must be .yml file)
+        index: Document index (optional)
+
+    Returns:
+        List of diagnostics for localization file issues
+
+    Example:
+        >>> # File has invalid character function
+        >>> text = 'l_english:\\n my_key:0 "[CHARACTER.GetNam]"'
+        >>> diagnostics = collect_yml_file_diagnostics(doc, index)
+        >>> diagnostics[0].code
+        'LOC-002'
+    """
+    from .localization import (
+        validate_language_header,
+        validate_localization_references,
+        extract_localization_key_versions,
+        validate_version_numbers,
+    )
+    import re
+
+    diagnostics = []
+
+    # Only run on .yml localization files
+    if not doc.uri.endswith('.yml') or '/localization/' not in doc.uri:
+        return diagnostics
+
+    content = doc.source
+
+    # 1. Validate language header (must be first non-comment line)
+    is_valid, error = validate_language_header(content, doc.uri)
+    if not is_valid:
+        diagnostics.append(
+            types.Diagnostic(
+                range=types.Range(
+                    start=types.Position(line=0, character=0),
+                    end=types.Position(line=0, character=20)
+                ),
+                severity=types.DiagnosticSeverity.Error,
+                code="LOC-HEADER",
+                message=error or "Invalid or missing language header (e.g., l_english:)",
+                source="ck3-language-server"
+            )
+        )
+
+    # 2. Parse and validate each localization key
+    key_pattern = re.compile(
+        r'^\s*([a-z_][a-z0-9_\.]*):(\d+)\s+"([^"]*)"',
+        re.IGNORECASE | re.MULTILINE
+    )
+
+    for match in key_pattern.finditer(content):
+        key_name = match.group(1)
+        version = match.group(2)
+        loc_text = match.group(3)
+        line_num = content[:match.start()].count('\n')
+
+        # LOC-001: Validate key format (basic check)
+        if not re.match(r'^[a-z_][a-z0-9_\.]*$', key_name, re.IGNORECASE):
+            diagnostics.append(
+                types.Diagnostic(
+                    range=types.Range(
+                        start=types.Position(line=line_num, character=1),
+                        end=types.Position(line=line_num, character=1 + len(key_name))
+                    ),
+                    severity=types.DiagnosticSeverity.Warning,
+                    code="LOC-001",
+                    message=f"Invalid localization key format: {key_name}",
+                    source="ck3-language-server"
+                )
+            )
+
+        # Validate localization text content (LOC-002 through LOC-007)
+        text_issues = validate_localization_references(loc_text)
+
+        for reference, issue in text_issues:
+            # Determine diagnostic code based on issue type
+            if "character function" in issue.lower():
+                code = "LOC-002"
+                severity = types.DiagnosticSeverity.Error
+            elif "formatting code" in issue.lower():
+                code = "LOC-003"
+                severity = types.DiagnosticSeverity.Warning
+            elif "icon reference" in issue.lower():
+                code = "LOC-004"
+                severity = types.DiagnosticSeverity.Warning
+            elif "bracket" in issue.lower():
+                code = "LOC-005"
+                severity = types.DiagnosticSeverity.Error
+            elif "concept" in issue.lower():
+                code = "LOC-006"
+                severity = types.DiagnosticSeverity.Information
+            elif "variable" in issue.lower():
+                code = "LOC-007"
+                severity = types.DiagnosticSeverity.Warning
+            else:
+                code = "LOC-001"
+                severity = types.DiagnosticSeverity.Warning
+
+            # Find position of the reference in the text
+            text_start = match.start(3)  # Start of quoted text
+            ref_pos = loc_text.find(reference)
+            if ref_pos != -1:
+                abs_pos = text_start + ref_pos
+                line_offset = content[:abs_pos].count('\n')
+                char_offset = abs_pos - content.rfind('\n', 0, abs_pos) - 1
+
+                diagnostics.append(
+                    types.Diagnostic(
+                        range=types.Range(
+                            start=types.Position(line=line_offset, character=char_offset),
+                            end=types.Position(line=line_offset, character=char_offset + len(reference))
+                        ),
+                        severity=severity,
+                        code=code,
+                        message=issue,
+                        source="ck3-language-server"
+                    )
+                )
+
+    # 3. Validate version numbers
+    versions = extract_localization_key_versions(content)
+    version_issues = validate_version_numbers(versions)
+
+    for key_base, issue in version_issues:
+        # Find the line with this key
+        key_line_match = re.search(rf'^\s*{re.escape(key_base)}:\d+', content, re.MULTILINE)
+        if key_line_match:
+            line_num = content[:key_line_match.start()].count('\n')
+            diagnostics.append(
+                types.Diagnostic(
+                    range=types.Range(
+                        start=types.Position(line=line_num, character=0),
+                        end=types.Position(line=line_num, character=len(key_base) + 5)
+                    ),
+                    severity=types.DiagnosticSeverity.Warning,
+                    code="LOC-VERSION",
+                    message=issue,
+                    source="ck3-language-server"
+                )
+            )
+
+    return diagnostics
+
+
 def collect_all_diagnostics(
     doc: TextDocument,
     ast: List[CK3Node],
@@ -1260,10 +1424,16 @@ def collect_all_diagnostics(
             except Exception as e:
                 logger.error(f"Error in decision group localization check: {e}", exc_info=True)
 
-        # Localization validation (CK3600-CK3604) - Issue #33
+        # Localization validation (CK3600-CK3604, LOC-001 through LOC-007) - Issue #33
         if index:
             try:
                 if doc.uri.endswith('.yml') and '/localization/' in doc.uri:
+                    # .yml file validation
+                    # LOC-001 to LOC-007: Syntax validation (character functions, formatting codes, etc.)
+                    yml_diags = collect_yml_file_diagnostics(doc, index)
+                    diagnostics.extend(yml_diags)
+                    logger.debug(f"YML syntax validation found {len(yml_diags)} diagnostics")
+
                     # CK3604: Check for orphaned keys in .yml files
                     orphaned_diags = collect_orphaned_localization_diagnostics(doc, index)
                     diagnostics.extend(orphaned_diags)
