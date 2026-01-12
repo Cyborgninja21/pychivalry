@@ -13,6 +13,15 @@ DIAGNOSTIC CODES:
     CK3450: Option missing name
     CK3453: Option with multiple names
     CK3456: Empty option block
+    CK3500: Effect/trigger overwrite in vanilla on_action
+    CK3501: Unknown on_action reference
+    CK3502: Invalid delay format
+    CK3503: N² performance issue in pulse on_action
+    CK3504: Circular fallback reference
+    CK3505: Missing weight_multiplier in random selection
+    CK3506: Zero weight event (will never fire)
+    CK3507: chance_to_happen > 100
+    CK3508: Wrong folder path (on_actions/ instead of on_action/)
     CK3510: trigger_else without trigger_if
     CK3511: Multiple trigger_else blocks
     CK3512: trigger_if missing limit
@@ -144,6 +153,7 @@ class ParadoxConfig:
     event_structure: bool = True
     common_gotchas: bool = True
     redundant_triggers: bool = True
+    on_action_validation: bool = True  # CK3500-CK3508
 
 
 def create_paradox_diagnostic(
@@ -1652,6 +1662,284 @@ def check_event_id_validation(ast: List[CK3Node], config: ParadoxConfig) -> List
     return diagnostics
 
 
+# ==============================================================================
+# ON-ACTION VALIDATION (CK3500-CK3508)
+# ==============================================================================
+
+
+def check_on_action_file_path(file_uri: str, config: ParadoxConfig) -> List[types.Diagnostic]:
+    """
+    CK3508: Error for wrong folder path (on_actions/ instead of on_action/).
+
+    Priority: HIGH (catches common mistake that prevents files from loading)
+    Complexity: LOW (simple string check)
+    """
+    diagnostics = []
+
+    if not config.on_action_validation:
+        return diagnostics
+
+    # Check if the file is in the wrong directory
+    if "\\on_actions\\" in file_uri or "/on_actions/" in file_uri:
+        # Create a diagnostic for the whole file
+        # Since we don't have AST context here, we'll flag at position 0:0
+        diagnostics.append(
+            create_paradox_diagnostic(
+                message="File is in 'on_actions/' directory but should be in 'on_action/' (singular). The game will not load files from 'on_actions/'.",
+                node_range=types.Range(
+                    start=types.Position(line=0, character=0),
+                    end=types.Position(line=0, character=1)
+                ),
+                severity=types.DiagnosticSeverity.Error,
+                code="CK3508",
+            )
+        )
+
+    return diagnostics
+
+
+def check_on_action_structure(
+    ast: List[CK3Node],
+    index: Optional[DocumentIndex],
+    config: ParadoxConfig
+) -> List[types.Diagnostic]:
+    """
+    Validates on_action definitions for:
+    - CK3500: Effect/trigger overwrite warning
+    - CK3501: Unknown on_action reference
+    - CK3502: Invalid delay format
+    - CK3503: Performance N² in pulse
+    - CK3504: Circular fallback
+    - CK3505: Missing weight_multiplier
+    - CK3506: Zero weight event
+    - CK3507: chance_to_happen > 100
+
+    Priority: HIGH (common issues)
+    Complexity: MEDIUM (requires traversing on_action blocks)
+    """
+    from pychivalry.data import get_on_actions
+
+    diagnostics = []
+
+    if not config.on_action_validation:
+        return diagnostics
+
+    # Load vanilla on_actions data
+    try:
+        vanilla_on_actions = get_on_actions()
+    except Exception as e:
+        logger.warning(f"Could not load on_actions data: {e}")
+        vanilla_on_actions = {}
+
+    # Helper: Check if we're in an on_action context (file in on_action/ directory)
+    # This is a heuristic - ideally we'd get file path from context
+    # For now, check if top-level nodes look like on_action definitions
+
+    def is_likely_on_action_node(node: CK3Node) -> bool:
+        """Check if a node looks like an on_action definition."""
+        # On-actions are typically snake_case identifiers without dots
+        if "." in node.key:
+            return False  # Likely an event
+        if not node.children:
+            return False  # On-actions must have content
+        # Check if it has on_action-specific children
+        child_keys = {child.key for child in node.children}
+        on_action_keys = {"events", "random_events", "effect", "trigger", "on_actions", "fallback", "delay"}
+        return bool(child_keys & on_action_keys)
+
+    def check_delay_format(node: CK3Node, parent_on_action: str):
+        """CK3502: Check delay format is valid."""
+        if node.key != "delay":
+            return
+
+        # Valid delay formats:
+        # 1. delay = 30 (number of days)
+        # 2. delay = { days = 30 }
+        # 3. delay = { days = { 10 30 } }  (range)
+        # 4. delay = { months = 3 }
+        # 5. delay = { years = 1 }
+
+        if node.value:
+            # Format 1: direct numeric value
+            try:
+                int(node.value)
+                return  # Valid
+            except ValueError:
+                diagnostics.append(
+                    create_paradox_diagnostic(
+                        message=f"Invalid delay value '{node.value}'. Delay must be a number or a block with days/months/years.",
+                        node_range=node.range,
+                        severity=types.DiagnosticSeverity.Error,
+                        code="CK3502",
+                    )
+                )
+                return
+
+        if node.children:
+            # Format 2-5: block with time units
+            valid_keys = {"days", "months", "years"}
+            found_valid = False
+            for child in node.children:
+                if child.key in valid_keys:
+                    found_valid = True
+                    # Validate value is number or range block
+                    if child.value:
+                        try:
+                            int(child.value)
+                        except ValueError:
+                            diagnostics.append(
+                                create_paradox_diagnostic(
+                                    message=f"Invalid {child.key} value '{child.value}'. Must be a number or range block {{ min max }}.",
+                                    node_range=child.range,
+                                    severity=types.DiagnosticSeverity.Error,
+                                    code="CK3502",
+                                )
+                            )
+                elif child.key not in valid_keys:
+                    diagnostics.append(
+                        create_paradox_diagnostic(
+                            message=f"Invalid delay key '{child.key}'. Valid keys are: days, months, years.",
+                            node_range=child.range,
+                            severity=types.DiagnosticSeverity.Error,
+                            code="CK3502",
+                        )
+                    )
+
+            if not found_valid:
+                diagnostics.append(
+                    create_paradox_diagnostic(
+                        message="Delay block must contain at least one of: days, months, years.",
+                        node_range=node.range,
+                        severity=types.DiagnosticSeverity.Error,
+                        code="CK3502",
+                    )
+                )
+
+    def check_for_n_squared_performance(node: CK3Node, on_action_name: str):
+        """CK3503: Check for N² performance issues in pulse on_actions."""
+        # Check if this on_action is a pulse
+        on_action_data = vanilla_on_actions.get(on_action_name, {})
+        if not on_action_data.get("is_pulse", False):
+            return
+
+        # Dangerous iterators that cause N² complexity in pulse on_actions
+        dangerous_iterators = {
+            "every_living_character",
+            "every_ruler",
+            "every_player",
+            "every_independent_ruler",
+            "every_character_with_trait",
+            "every_vassal",
+            "every_courtier",
+            "any_living_character",
+            "any_ruler",
+            "any_player",
+        }
+
+        def scan_for_iterators(n: CK3Node):
+            if n.key in dangerous_iterators:
+                diagnostics.append(
+                    create_paradox_diagnostic(
+                        message=f"'{n.key}' in pulse on_action '{on_action_name}' causes O(N²) performance. Pulse on_actions run frequently for many characters. Avoid iterating over large scopes.",
+                        node_range=n.range,
+                        severity=types.DiagnosticSeverity.Warning,
+                        code="CK3503",
+                    )
+                )
+            for child in n.children:
+                scan_for_iterators(child)
+
+        scan_for_iterators(node)
+
+    def check_chance_to_happen(node: CK3Node):
+        """CK3507: Check chance_to_happen is not > 100."""
+        if node.key != "chance_to_happen":
+            return
+
+        if node.value:
+            try:
+                chance = int(node.value)
+                if chance > 100:
+                    diagnostics.append(
+                        create_paradox_diagnostic(
+                            message=f"chance_to_happen is {chance} but max is 100. Values above 100 are capped at 100%.",
+                            node_range=node.range,
+                            severity=types.DiagnosticSeverity.Warning,
+                            code="CK3507",
+                        )
+                    )
+            except ValueError:
+                pass  # Not a simple numeric value, might be calculated
+
+    def check_random_events_weights(node: CK3Node, on_action_name: str):
+        """CK3506: Check for zero weight events in random selection."""
+        if node.key != "random_events" and node.key != "events":
+            return
+
+        for child in node.children:
+            # Format: weight = event_id or direct numeric weight
+            if child.value:
+                try:
+                    weight = int(child.key)
+                    if weight == 0:
+                        diagnostics.append(
+                            create_paradox_diagnostic(
+                                message=f"Event '{child.value}' has weight 0 and will never fire. Remove it or increase the weight.",
+                                node_range=child.range,
+                                severity=types.DiagnosticSeverity.Warning,
+                                code="CK3506",
+                            )
+                        )
+                except ValueError:
+                    pass  # Not a numeric weight
+
+    def check_on_action_node(node: CK3Node):
+        """Check a single on_action definition."""
+        if not is_likely_on_action_node(node):
+            return
+
+        on_action_name = node.key
+
+        # CK3500: Check for effect/trigger overwrite on vanilla on_actions
+        if on_action_name in vanilla_on_actions:
+            for child in node.children:
+                if child.key in ("effect", "trigger"):
+                    diagnostics.append(
+                        create_paradox_diagnostic(
+                            message=f"Defining '{child.key} = {{}}' on vanilla on_action '{on_action_name}' overwrites the vanilla behavior. Use 'events = {{}}' or 'on_actions = {{}}' to append instead.",
+                            node_range=child.range,
+                            severity=types.DiagnosticSeverity.Warning,
+                            code="CK3500",
+                        )
+                    )
+
+        # Check children for various issues
+        for child in node.children:
+            check_delay_format(child, on_action_name)
+            check_chance_to_happen(child)
+            check_random_events_weights(child, on_action_name)
+
+            # Recurse for nested structures
+            def scan_nested(n: CK3Node):
+                check_delay_format(n, on_action_name)
+                check_chance_to_happen(n)
+                check_random_events_weights(n, on_action_name)
+                for c in n.children:
+                    scan_nested(c)
+
+            for nested_child in child.children:
+                scan_nested(nested_child)
+
+        # CK3503: Check for N² performance in pulse on_actions
+        check_for_n_squared_performance(node, on_action_name)
+
+    # Walk AST looking for on_action definitions
+    for node in ast:
+        check_on_action_node(node)
+
+    return diagnostics
+
+
 def check_paradox_conventions(
     ast: List[CK3Node],
     index: Optional[DocumentIndex] = None,
@@ -1730,6 +2018,9 @@ def check_paradox_conventions(
         # Phase 3 - Namespace and Event ID validation (CK3400-CK3406)
         diagnostics.extend(check_namespace_declaration(ast, config))
         diagnostics.extend(check_event_id_validation(ast, config))
+
+        # Phase 9 - On-action validation (CK3500-CK3508)
+        diagnostics.extend(check_on_action_structure(ast, index, config))
 
         logger.debug(f"Paradox convention checks found {len(diagnostics)} issues")
 

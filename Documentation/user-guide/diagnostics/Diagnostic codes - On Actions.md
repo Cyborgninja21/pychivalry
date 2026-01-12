@@ -89,6 +89,218 @@ on_war_started = {
 
 ---
 
+### CK3500: Effect/Trigger Overwrite in Vanilla On-Action
+
+| Property | Value |
+|----------|-------|
+| **Severity** | Warning |
+| **Category** | On-Actions |
+| **Message** | `Defining 'effect/trigger = {}' on vanilla on_action overwrites vanilla behavior` |
+
+Defining `effect` or `trigger` directly on a vanilla on_action **overwrites** the game's behavior instead of appending to it. Use `events = {}` or `on_actions = {}` to append instead.
+
+```pdx
+# ⚠️ CK3500: Overwrites vanilla behavior
+on_birth = {
+    effect = {
+        add_gold = 100
+    }
+}
+
+# ✅ Correct - Appends via events
+on_birth = {
+    events = {
+        my_mod.100
+    }
+}
+
+# ✅ Correct - Appends via on_actions
+on_birth = {
+    on_actions = {
+        my_custom_on_birth
+    }
+}
+```
+
+---
+
+### CK3502: Invalid Delay Format
+
+| Property | Value |
+|----------|-------|
+| **Severity** | Error |
+| **Category** | On-Actions |
+| **Message** | `Invalid delay format - must be number or { days/months/years = X }` |
+
+The `delay` field must be either a number (days) or a block with `days`, `months`, or `years`.
+
+```pdx
+# ❌ CK3502: Invalid delay
+my_on_action = {
+    events = { my_mod.100 }
+    delay = invalid_value
+}
+
+# ❌ CK3502: Wrong time unit
+my_on_action = {
+    events = { my_mod.100 }
+    delay = {
+        weeks = 2  # 'weeks' is not valid
+    }
+}
+
+# ✅ Correct - Numeric days
+my_on_action = {
+    events = { my_mod.100 }
+    delay = 30
+}
+
+# ✅ Correct - Days block
+my_on_action = {
+    events = { my_mod.100 }
+    delay = { days = 30 }
+}
+
+# ✅ Correct - Range
+my_on_action = {
+    events = { my_mod.100 }
+    delay = { days = { 10 30 } }
+}
+
+# ✅ Correct - Months/Years
+my_on_action = {
+    events = { my_mod.100 }
+    delay = { months = 3 }
+}
+```
+
+---
+
+### CK3503: N² Performance in Pulse On-Action
+
+| Property | Value |
+|----------|-------|
+| **Severity** | Warning |
+| **Category** | On-Actions |
+| **Message** | `'every_living_character' in pulse on_action causes O(N²) performance` |
+
+Pulse on_actions run frequently for many characters. Using iterators like `every_living_character` causes **quadratic complexity** which severely impacts performance.
+
+```pdx
+# ⚠️ CK3503: N² performance issue
+yearly_playable_pulse = {
+    effect = {
+        every_living_character = {  # Runs for EVERY character, EVERY year
+            add_prestige = 1
+        }
+    }
+}
+
+# ✅ Better - Limit scope
+yearly_playable_pulse = {
+    effect = {
+        every_courtier = {  # Only your courtiers
+            add_prestige = 1
+        }
+    }
+}
+
+# ✅ Best - Process only root
+yearly_playable_pulse = {
+    effect = {
+        add_prestige = 1  # Only for the triggering character
+    }
+}
+```
+
+**Dangerous iterators in pulse on_actions:**
+- `every_living_character`
+- `every_ruler`
+- `every_player`
+- `every_independent_ruler`
+- Any global scope iterator
+
+---
+
+### CK3506: Zero Weight Event
+
+| Property | Value |
+|----------|-------|
+| **Severity** | Warning |
+| **Category** | On-Actions |
+| **Message** | `Event has weight 0 and will never fire` |
+
+Events with weight 0 in `random_events` will never be selected.
+
+```pdx
+# ⚠️ CK3506: Will never fire
+my_on_action = {
+    random_events = {
+        0 = my_mod.100     # Weight 0 = never fires
+        50 = my_mod.101
+    }
+}
+
+# ✅ Correct
+my_on_action = {
+    random_events = {
+        25 = my_mod.100
+        50 = my_mod.101
+    }
+}
+```
+
+---
+
+### CK3507: chance_to_happen > 100
+
+| Property | Value |
+|----------|-------|
+| **Severity** | Warning |
+| **Category** | On-Actions |
+| **Message** | `chance_to_happen is X but max is 100` |
+
+`chance_to_happen` values above 100 are capped at 100%. Higher values are misleading.
+
+```pdx
+# ⚠️ CK3507: Misleading value
+my_on_action = {
+    events = { my_mod.100 }
+    chance_to_happen = 150  # Capped at 100%
+}
+
+# ✅ Correct
+my_on_action = {
+    events = { my_mod.100 }
+    chance_to_happen = 100
+}
+
+# ✅ Correct - Partial chance
+my_on_action = {
+    events = { my_mod.100 }
+    chance_to_happen = 50  # 50% chance
+}
+```
+
+---
+
+### CK3508: Wrong Folder Path
+
+| Property | Value |
+|----------|-------|
+| **Severity** | Error |
+| **Category** | On-Actions |
+| **Message** | `File is in 'on_actions/' directory but should be in 'on_action/' (singular)` |
+
+On-action files must be in `common/on_action/` (singular), not `common/on_actions/` (plural). Files in the wrong directory will not load.
+
+```
+❌ mod/common/on_actions/my_events.txt  # Wrong - plural
+✅ mod/common/on_action/my_events.txt   # Correct - singular
+```
+
+---
+
 ## Common On-Action Hooks
 
 For reference, here are commonly used on-action hooks:
@@ -121,6 +333,12 @@ For reference, here are commonly used on-action hooks:
 |------|----------|-------------|
 | **ON_ACTION-001** | Warning | No effects or events defined |
 | **ON_ACTION-002** | Warning | Empty events list |
+| **CK3500** | Warning | Effect/trigger overwrites vanilla on_action |
+| **CK3502** | Error | Invalid delay format |
+| **CK3503** | Warning | N² performance issue in pulse on_action |
+| **CK3506** | Warning | Zero weight event (never fires) |
+| **CK3507** | Warning | chance_to_happen > 100 |
+| **CK3508** | Error | Wrong folder path (on_actions/ vs on_action/) |
 
 ---
 
