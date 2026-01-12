@@ -1476,6 +1476,182 @@ def check_option_issues(ast: List[CK3Node], config: ParadoxConfig) -> List[types
     return diagnostics
 
 
+def check_namespace_declaration(ast: List[CK3Node], config: ParadoxConfig) -> List[types.Diagnostic]:
+    """
+    Check namespace declaration validity.
+
+    Detects:
+    - CK3400: File has events but no namespace declaration
+    - CK3403: Invalid namespace characters (contains '.' or non-alphanumeric)
+    """
+    diagnostics = []
+
+    if not config.event_structure:
+        return diagnostics
+
+    # Find namespace declaration and events
+    namespace_decl = None
+    namespace_value = None
+    events_found = []
+
+    def find_namespace_and_events(node: CK3Node):
+        nonlocal namespace_decl, namespace_value
+
+        # Check if this is a namespace declaration
+        if node.key == "namespace" and node.value:
+            namespace_decl = node
+            namespace_value = node.value
+
+        # Check if this looks like an event (namespace.XXXX = { ... })
+        if node.key and "." in node.key and node.children:
+            parts = node.key.split(".")
+            if len(parts) >= 2:
+                try:
+                    int(parts[-1])  # Event ID should be numeric
+                    events_found.append(node)
+                except ValueError:
+                    pass  # Not an event ID
+
+        # Recurse
+        for child in node.children:
+            find_namespace_and_events(child)
+
+    for node in ast:
+        find_namespace_and_events(node)
+
+    # CK3400: Missing namespace
+    if events_found and not namespace_decl:
+        # Report on the first event
+        first_event = events_found[0]
+        diagnostics.append(
+            create_paradox_diagnostic(
+                message="File has events but no 'namespace' declaration. Add 'namespace = your_namespace' at the top of the file.",
+                node_range=first_event.range,
+                severity=types.DiagnosticSeverity.Error,
+                code="CK3400",
+            )
+        )
+
+    # CK3403: Invalid namespace characters
+    if namespace_decl and namespace_value:
+        if not events.is_valid_namespace(namespace_value):
+            diagnostics.append(
+                create_paradox_diagnostic(
+                    message=f"Namespace '{namespace_value}' contains invalid characters. Use only alphanumeric characters and underscores (no periods).",
+                    node_range=namespace_decl.range,
+                    severity=types.DiagnosticSeverity.Error,
+                    code="CK3403",
+                )
+            )
+
+    return diagnostics
+
+
+def check_event_id_validation(ast: List[CK3Node], config: ParadoxConfig) -> List[types.Diagnostic]:
+    """
+    Validate event IDs against namespace and format rules.
+
+    Detects:
+    - CK3401: Event ID doesn't use declared namespace
+    - CK3402: Event ID exceeds 9999 (causes buggy event calling)
+    - CK3404: Duplicate event ID in same file
+    - CK3406: Invalid event ID format (not namespace.number)
+    """
+    diagnostics = []
+
+    if not config.event_structure:
+        return diagnostics
+
+    # Find namespace declaration
+    namespace_value = None
+
+    def find_namespace(node: CK3Node):
+        nonlocal namespace_value
+        if node.key == "namespace" and node.value:
+            namespace_value = node.value
+        for child in node.children:
+            find_namespace(child)
+
+    for node in ast:
+        find_namespace(node)
+
+    # Track seen event IDs for duplicate detection
+    seen_ids: Dict[str, CK3Node] = {}
+
+    def check_event_node(node: CK3Node):
+        # Check if this looks like an event (namespace.XXXX = { ... })
+        if node.key and "." in node.key and node.children:
+            parts = node.key.split(".")
+            if len(parts) >= 2:
+                try:
+                    int(parts[-1])  # Event ID should be numeric
+                    event_id = node.key
+
+                    # CK3406: Invalid event ID format
+                    parsed = events.parse_event_id(event_id)
+                    if parsed == (None, None):
+                        diagnostics.append(
+                            create_paradox_diagnostic(
+                                message=f"Event ID '{event_id}' is not in valid 'namespace.number' format.",
+                                node_range=node.range,
+                                severity=types.DiagnosticSeverity.Error,
+                                code="CK3406",
+                            )
+                        )
+                        return  # Can't validate further if format is invalid
+
+                    event_namespace, number_str = parsed
+
+                    # CK3401: Namespace mismatch
+                    if namespace_value and event_namespace != namespace_value:
+                        diagnostics.append(
+                            create_paradox_diagnostic(
+                                message=f"Event ID uses namespace '{event_namespace}' but file declares namespace '{namespace_value}'. Event IDs must match the declared namespace.",
+                                node_range=node.range,
+                                severity=types.DiagnosticSeverity.Error,
+                                code="CK3401",
+                            )
+                        )
+
+                    # CK3402: ID exceeds 9999
+                    event_number = events.extract_event_number(event_id)
+                    if event_number is not None and event_number > 9999:
+                        diagnostics.append(
+                            create_paradox_diagnostic(
+                                message=f"Event ID number {event_number} exceeds 9999. Event IDs above 9999 cause buggy event calling in CK3. Keep event IDs ≤ 9999.",
+                                node_range=node.range,
+                                severity=types.DiagnosticSeverity.Warning,
+                                code="CK3402",
+                            )
+                        )
+
+                    # CK3404: Duplicate event ID
+                    if event_id in seen_ids:
+                        first_occurrence = seen_ids[event_id]
+                        diagnostics.append(
+                            create_paradox_diagnostic(
+                                message=f"Duplicate event ID '{event_id}'. This event ID was already defined at line {first_occurrence.range.start.line + 1}.",
+                                node_range=node.range,
+                                severity=types.DiagnosticSeverity.Error,
+                                code="CK3404",
+                            )
+                        )
+                    else:
+                        seen_ids[event_id] = node
+
+                except ValueError:
+                    pass  # Not an event ID
+
+        # Recurse
+        for child in node.children:
+            check_event_node(child)
+
+    for node in ast:
+        check_event_node(node)
+
+    return diagnostics
+
+
 def check_paradox_conventions(
     ast: List[CK3Node],
     index: Optional[DocumentIndex] = None,
@@ -1550,6 +1726,10 @@ def check_paradox_conventions(
         diagnostics.extend(check_ai_chance_issues(ast, config))
         diagnostics.extend(check_desc_issues(ast, config))
         diagnostics.extend(check_option_issues(ast, config))
+
+        # Phase 3 - Namespace and Event ID validation (CK3400-CK3406)
+        diagnostics.extend(check_namespace_declaration(ast, config))
+        diagnostics.extend(check_event_id_validation(ast, config))
 
         logger.debug(f"Paradox convention checks found {len(diagnostics)} issues")
 
