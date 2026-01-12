@@ -2398,6 +2398,37 @@ class DocumentIndex:
         """
         return self.on_action_definitions.get(name)
 
+    def find_all_on_actions(self) -> Set[str]:
+        """
+        Get all on_action names defined in the workspace.
+
+        This is used for validation (CK3501) to check if referenced on_actions exist.
+
+        Returns:
+            Set of all on_action names defined in workspace files
+        """
+        return set(self.on_action_definitions.keys())
+
+    def get_fallback_graph(self) -> Dict[str, str]:
+        """
+        Build a graph of on_action fallback chains from indexed documents.
+
+        This is used for cycle detection (CK3504). The graph maps each on_action
+        to its fallback target.
+
+        Returns:
+            Dictionary mapping on_action names to their fallback targets
+            Example: {"my_on_action": "vanilla_on_action", ...}
+
+        Note:
+            This only includes on_actions with explicit fallback declarations.
+            On_actions without fallbacks are not included in the graph.
+        """
+        # This will be populated during document indexing
+        # For now, return empty dict - the fallback tracking will be added
+        # to the indexing logic separately
+        return {}
+
     def find_opinion_modifier(self, name: str) -> Optional[types.Location]:
         """
         Find the location of an opinion modifier definition.
