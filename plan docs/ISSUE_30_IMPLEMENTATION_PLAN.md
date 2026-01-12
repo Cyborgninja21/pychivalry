@@ -647,12 +647,16 @@ Update `Documentation/user-guide/diagnostics/Diagnostic codes.md`:
 ## Acceptance Criteria (from Issue #30)
 
 - [x] CK3451: Warning for unknown trait (integrate with traits.py) ✅ Already done
-- [ ] CK3452: Warning for invalid skill
-- [ ] CK3453: Warning for invalid add_internal_flag
-- [ ] CK3454: Warning for redundant fallback
-- [ ] CK3455: Warning for multiple exclusive options
-- [ ] CK3456: Warning for show_as_unavailable without trigger
-- [ ] CK3457: Error for invalid highlight_portrait scope
-- [ ] CK3458: Info for literal option name
-- [ ] CK3459: Warning when all options have triggers
-- [ ] Unit tests for each check
+- [x] CK3452: Warning for invalid skill ✅ Implemented
+- [x] CK3453: Warning for invalid add_internal_flag ✅ Implemented
+- [x] CK3454: Warning for redundant fallback ✅ Implemented
+- [x] CK3455: Warning for multiple exclusive options ✅ Implemented
+- [x] CK3456: Warning for show_as_unavailable without trigger ✅ Implemented
+- [x] CK3457: Error for invalid highlight_portrait scope ✅ Implemented
+- [x] CK3458: Info for literal option name ✅ Implemented
+- [x] CK3459: Warning when all options have triggers ✅ Implemented
+- [x] Unit tests for each check ✅ Added 20+ tests
+
+## Implementation Complete ✅
+
+All Issue #30 Option Block Validation features have been implemented and tested.

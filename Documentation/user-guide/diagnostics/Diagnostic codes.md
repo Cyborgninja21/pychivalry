@@ -13,7 +13,7 @@ This document provides a comprehensive reference of all diagnostic codes impleme
 5. [Portrait & Animation Validation (CK3420-CK3422)](#portrait--animation-validation-ck3420-ck3422)
 6. [Theme Validation (CK3430)](#theme-validation-ck3430)
 7. [Description Validation (CK3440-CK3443)](#description-validation-ck3440-ck3443)
-8. [Option Validation (CK3450-CK3456)](#option-validation-ck3450-ck3456)
+8. [Option Validation (CK3450-CK3461)](#option-validation-ck3450-ck3461)
 9. [Trigger Extension Validation (CK3510-CK3513)](#trigger-extension-validation-ck3510-ck3513)
 10. [After Block Validation (CK3520-CK3521)](#after-block-validation-ck3520-ck3521)
 11. [Scope Timing Checks (CK3550-CK3555)](#scope-timing-checks-ck3550-ck3555)
@@ -344,50 +344,157 @@ my_event.6 = {
 
 ---
 
-## Option Validation (CK3450-CK3456)
+## Option Validation (CK3450-CK3461)
 
 **Module:** `paradox_checks.py` and `diagnostics.py`
 
-Validates event option structures and trait references.
+Validates event option structures, field values, and configurations.
+
+### Option Structure Checks
 
 | Code | Severity | Description |
 |------|----------|-------------|
 | **CK3450** | Error | **Option missing name** - Option block lacks required `name` field for localization |
-| **CK3451** | Warning | **Unknown trait referenced** - Trait name not recognized in valid traits list (requires extracted trait data) |
-| **CK3453** | Warning | **Option with multiple names** - Option has multiple name parameters |
-| **CK3456** | Warning | **Empty option block** - Option block has no content |
+| **CK3451** | Warning | **Unknown trait referenced** - Trait name not recognized in valid traits list |
+| **CK3460** | Warning | **Option with multiple names** - Option has multiple name parameters; only first is used |
+| **CK3461** | Warning | **Empty option block** - Option block has no content |
+
+### Option Field Validation
+
+| Code | Severity | Description |
+|------|----------|-------------|
+| **CK3452** | Warning | **Invalid skill reference** - `skill` field references unknown skill (valid: diplomacy, martial, stewardship, intrigue, learning, prowess) |
+| **CK3453** | Warning | **Invalid add_internal_flag** - `add_internal_flag` value not recognized (valid: special, dangerous) |
+| **CK3458** | Information | **Literal option name** - Option uses literal string instead of localization key |
+
+### Option Configuration Checks
+
+| Code | Severity | Description |
+|------|----------|-------------|
+| **CK3454** | Warning | **Redundant fallback** - `fallback = yes` is redundant when trigger has `always = yes` |
+| **CK3455** | Warning | **Multiple exclusive options** - Multiple options have `exclusive = yes`; may conflict |
+| **CK3456** | Warning | **show_as_unavailable without trigger** - `show_as_unavailable` has no effect without a trigger block |
+| **CK3457** | Warning | **Invalid highlight_portrait** - `highlight_portrait` references non-existent portrait position or undefined scope |
+| **CK3459** | Warning | **All options have triggers** - All options have trigger conditions with no fallback; player may have no available options |
 
 ### Examples
 
 ```pdx
 # CK3450: Option missing name
-my_event.6 = {
+my_event.1 = {
     option = {
         add_gold = 100  # ERROR: Missing 'name' field
     }
 }
 
 # CK3451: Invalid trait reference
-my_event.6b = {
+my_event.2 = {
     option = {
-        name = my_event.6b.a
+        name = my_event.2.a
         trigger = {
             has_trait = super_speed  # WARNING: Unknown trait
         }
-        add_trait = awesomeness  # WARNING: Unknown trait
     }
 }
 
-# CK3453: Multiple names
+# CK3452: Invalid skill reference
+my_event.3 = {
+    option = {
+        name = my_event.3.a
+        skill = charisma  # WARNING: Not a valid skill
+    }
+}
+
+# Valid skills: diplomacy, martial, stewardship, intrigue, learning, prowess
+
+# CK3453: Invalid add_internal_flag
+my_event.4 = {
+    option = {
+        name = my_event.4.a
+        add_internal_flag = important  # WARNING: Must be 'special' or 'dangerous'
+    }
+}
+
+# CK3454: Redundant fallback
+my_event.5 = {
+    option = {
+        name = my_event.5.a
+        trigger = { always = yes }
+        fallback = yes  # WARNING: Redundant - trigger always passes
+    }
+}
+
+# CK3455: Multiple exclusive options
+my_event.6 = {
+    option = {
+        name = my_event.6.a
+        exclusive = yes
+    }
+    option = {
+        name = my_event.6.b
+        exclusive = yes  # WARNING: Multiple exclusive options may conflict
+    }
+}
+
+# CK3456: show_as_unavailable without trigger
 my_event.7 = {
     option = {
         name = my_event.7.a
-        name = my_event.7.b  # WARNING: Multiple names
+        show_as_unavailable = yes  # WARNING: No trigger - always unavailable
     }
 }
 
-# CK3456: Empty option
+# CK3457: Invalid highlight_portrait reference
 my_event.8 = {
+    left_portrait = { character = root }
+    option = {
+        name = my_event.8.a
+        highlight_portrait = right_portrait  # WARNING: right_portrait not defined
+    }
+}
+
+# CK3458: Literal option name
+my_event.9 = {
+    option = {
+        name = "Click Here"  # INFO: Use localization key instead
+    }
+}
+
+# CK3459: All options have triggers
+my_event.10 = {
+    option = {
+        name = my_event.10.a
+        trigger = { has_trait = brave }
+    }
+    option = {
+        name = my_event.10.b
+        trigger = { has_trait = craven }  # WARNING: No fallback option
+    }
+}
+
+# Fix CK3459 by adding a fallback:
+my_event.10_fixed = {
+    option = {
+        name = my_event.10.a
+        trigger = { has_trait = brave }
+    }
+    option = {
+        name = my_event.10.b
+        trigger = { has_trait = craven }
+        fallback = yes  # This option always available if others fail
+    }
+}
+
+# CK3460: Multiple names
+my_event.11 = {
+    option = {
+        name = my_event.11.a
+        name = my_event.11.b  # WARNING: Only first name is used
+    }
+}
+
+# CK3461: Empty option
+my_event.12 = {
     option = { }  # WARNING: Empty option block
 }
 ```
@@ -903,7 +1010,7 @@ trigger = {
 | Portrait Validation | CK3420-CK3422 | 3 | ✅ Implemented |
 | Theme Validation | CK3430 | 1 | ✅ Implemented |
 | Description Validation | CK3440-CK3443 | 4 | ✅ Implemented |
-| Option Validation | CK3450-CK3456 | 4 | ✅ Implemented |
+| Option Validation | CK3450-CK3461 | 12 | ✅ Implemented |
 | Trigger Extensions | CK3510-CK3513 | 4 | ✅ Implemented |
 | After Block Validation | CK3520-CK3521 | 2 | ✅ Implemented |
 | Scope Timing | CK3550-CK3555 | 6 | ✅ Implemented |
