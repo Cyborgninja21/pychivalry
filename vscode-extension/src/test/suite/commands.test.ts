@@ -21,6 +21,7 @@ suite('Command Tests', () => {
             'ck3LanguageServer.restart',
             'ck3LanguageServer.extractTraitData',
             'ck3LanguageServer.extractLocalizationData',
+            'ck3LanguageServer.extractAllGameData',
             'ck3LanguageServer.discoverModData',
             'ck3LanguageServer.showOutput',
             'ck3LanguageServer.showMenu',

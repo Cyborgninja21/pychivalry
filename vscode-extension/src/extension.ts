@@ -337,6 +337,113 @@ async function extractTraitData(context: vscode.ExtensionContext) {
 }
 
 /**
+ * Command: Extract ALL game data (themes, backgrounds, environments, on_actions, traits)
+ */
+async function extractAllGameData(context: vscode.ExtensionContext) {
+    const outputChannel = getLogChannel('allDataExtraction', 'CK3: All Game Data Extraction');
+    outputChannel.clear();
+    outputChannel.show();
+    outputChannel.appendLine('='.repeat(60));
+    outputChannel.appendLine('CK3 All Game Data Extraction');
+    outputChannel.appendLine(`Started: ${new Date().toLocaleString()}`);
+    outputChannel.appendLine('='.repeat(60));
+    outputChannel.appendLine('');
+
+    try {
+        // Ask user to confirm and provide CK3 installation path
+        const proceed = await vscode.window.showInformationMessage(
+            'This will extract all game data (themes, backgrounds, environments, on_actions, traits) from your CK3 installation. ' +
+                'The extracted data is for personal use only. Continue?',
+            'Yes',
+            'No'
+        );
+
+        if (proceed !== 'Yes') {
+            return;
+        }
+
+        // Try to detect CK3 installation path
+        let ck3Path = await detectCK3Path();
+
+        if (!ck3Path) {
+            // Ask user to manually specify path
+            const selectedPath = await vscode.window.showOpenDialog({
+                canSelectFiles: false,
+                canSelectFolders: true,
+                canSelectMany: false,
+                title: 'Select Crusader Kings III installation folder',
+                openLabel: 'Select CK3 Folder',
+            });
+
+            if (!selectedPath || selectedPath.length === 0) {
+                vscode.window.showWarningMessage(
+                    'CK3 installation path not provided. Extraction cancelled.'
+                );
+                return;
+            }
+
+            ck3Path = selectedPath[0].fsPath;
+        }
+
+        // Validate path
+        const gameDir = path.join(ck3Path, 'game');
+        if (!fs.existsSync(gameDir)) {
+            vscode.window.showErrorMessage(
+                `Invalid CK3 installation path. Could not find: ${gameDir}`
+            );
+            return;
+        }
+
+        outputChannel.appendLine(`Using CK3 installation: ${ck3Path}`);
+        outputChannel.appendLine('Starting data extraction...\n');
+
+        // Get Python executable from language server config
+        const pythonPath = getPythonPath();
+
+        // Get extension path and construct script path
+        const extensionPath = context.extensionPath;
+        const scriptPath = path.join(extensionPath, '..', 'tools', 'extract_all.py');
+
+        // Run extraction script
+        const cmd = `"${pythonPath}" "${scriptPath}" --ck3-path "${ck3Path}"`;
+        outputChannel.appendLine(`Running: ${cmd}\n`);
+
+        const { stdout, stderr } = await execAsync(cmd, { maxBuffer: 1024 * 1024 * 10 }); // 10MB buffer
+
+        outputChannel.appendLine(stdout);
+        if (stderr) {
+            outputChannel.appendLine('Errors:\n' + stderr);
+        }
+
+        // Check if successful
+        const dataDir = path.join(extensionPath, '..', 'pychivalry', 'data');
+        const expectedFiles = ['themes.yaml', 'backgrounds.yaml', 'environments.yaml', 'on_actions.yaml'];
+        const existingFiles = expectedFiles.filter((f: string) => fs.existsSync(path.join(dataDir, f)));
+
+        if (existingFiles.length > 0) {
+            const result = await vscode.window.showInformationMessage(
+                `✅ Successfully extracted ${existingFiles.length} data file(s)! ` +
+                    `(${existingFiles.join(', ')}). Restart the language server for changes to take effect.`,
+                'Restart Language Server',
+                'Later'
+            );
+
+            if (result === 'Restart Language Server') {
+                await vscode.commands.executeCommand('ck3LanguageServer.restart');
+            }
+        } else {
+            vscode.window.showErrorMessage(
+                'Extraction completed but no data files were created. Check output for errors.'
+            );
+        }
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        outputChannel.appendLine(`\nError: ${message}`);
+        vscode.window.showErrorMessage(`Failed to extract game data: ${message}`);
+    }
+}
+
+/**
  * Command: Discover and extract mod data (Carnalitas, etc.)
  */
 async function discoverModData(context: vscode.ExtensionContext) {
@@ -542,6 +649,13 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     context.subscriptions.push(
         vscode.commands.registerCommand('ck3LanguageServer.extractTraitData', async () => {
             await extractTraitData(context);
+        })
+    );
+
+    // Register all game data extraction command
+    context.subscriptions.push(
+        vscode.commands.registerCommand('ck3LanguageServer.extractAllGameData', async () => {
+            await extractAllGameData(context);
         })
     );
 
