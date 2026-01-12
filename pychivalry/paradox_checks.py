@@ -11,8 +11,16 @@ DIAGNOSTIC CODES:
     CK3442: desc missing localization key
     CK3443: Empty desc block
     CK3450: Option missing name
-    CK3453: Option with multiple names
-    CK3456: Empty option block
+    CK3452: Invalid skill reference in option (Issue #30)
+    CK3453: Invalid add_internal_flag value (Issue #30)
+    CK3454: Redundant fallback with always=yes trigger (Issue #30)
+    CK3455: Multiple exclusive options may conflict (Issue #30)
+    CK3456: show_as_unavailable without trigger (Issue #30)
+    CK3457: highlight_portrait references undefined scope (Issue #30)
+    CK3458: Option name is literal string (Issue #30)
+    CK3459: All options have triggers with no fallback (Issue #30)
+    CK3460: Option with multiple names
+    CK3461: Empty option block
     CK3500: Effect/trigger overwrite in vanilla on_action (implemented)
     CK3501: Unknown on_action reference (implemented)
     CK3502: Invalid delay format (implemented)
@@ -1370,7 +1378,7 @@ def check_ai_chance_issues(ast: List[CK3Node], config: ParadoxConfig) -> List[ty
 
 
 # =============================================================================
-# ADDITIONAL DESC/OPTION VALIDATION (CK3442-CK3443, CK3453, CK3456)
+# ADDITIONAL DESC/OPTION VALIDATION (CK3442-CK3443, CK3460, CK3461)
 # =============================================================================
 
 
@@ -1440,8 +1448,8 @@ def check_option_issues(ast: List[CK3Node], config: ParadoxConfig) -> List[types
     Check for option block issues beyond missing name.
 
     Detects:
-    - CK3453: Option with multiple names
-    - CK3456: Empty option block
+    - CK3460: Option with multiple names
+    - CK3461: Empty option block
     """
     diagnostics = []
 
@@ -1454,25 +1462,25 @@ def check_option_issues(ast: List[CK3Node], config: ParadoxConfig) -> List[types
             name_count = sum(1 for child in node.children if child.key == "name")
             non_comment_children = [c for c in node.children if c.type != "comment"]
 
-            # CK3453: Multiple names
+            # CK3460: Multiple names
             if name_count > 1:
                 diagnostics.append(
                     create_paradox_diagnostic(
                         message=f"Option has {name_count} 'name' fields - only the first will be used. Remove duplicate names.",
                         node_range=node.range,
                         severity=types.DiagnosticSeverity.Warning,
-                        code="CK3453",
+                        code="CK3460",
                     )
                 )
 
-            # CK3456: Empty option
+            # CK3461: Empty option
             if len(non_comment_children) == 0:
                 diagnostics.append(
                     create_paradox_diagnostic(
                         message="Empty option block - options need at least a 'name' field for localization.",
                         node_range=node.range,
                         severity=types.DiagnosticSeverity.Warning,
-                        code="CK3456",
+                        code="CK3461",
                     )
                 )
 
@@ -1483,6 +1491,712 @@ def check_option_issues(ast: List[CK3Node], config: ParadoxConfig) -> List[types
     for node in ast:
         check_option_node(node)
 
+    return diagnostics
+
+
+# =============================================================================
+# OPTION BLOCK VALIDATION - Issue #30 (CK3452-CK3459)
+# =============================================================================
+# These checks validate option block fields to ensure:
+# - Skill and trait references are valid
+# - Internal flags use correct values
+# - Options are properly configured for player interaction
+# - AI behavior is correctly specified
+# =============================================================================
+
+
+# Valid CK3 skills - used for option highlighting
+# These are the six skills in the game that affect character capabilities
+VALID_SKILLS = {"diplomacy", "martial", "stewardship", "intrigue", "learning", "prowess"}
+
+# Valid internal flag values for option blocks
+# 'special' = highlights the option, 'dangerous' = shows warning icon
+VALID_INTERNAL_FLAGS = {"special", "dangerous"}
+
+
+def check_option_skill_reference(
+    ast: List[CK3Node], config: ParadoxConfig
+) -> List[types.Diagnostic]:
+    """
+    Check for invalid skill references in option blocks.
+    
+    In CK3 events, options can specify a skill to highlight the option with
+    that skill's color and icon. This helps players understand which skill
+    is relevant to the choice.
+    
+    Detects:
+    - CK3452: Invalid skill reference (skill = xxx not a valid skill)
+    
+    Valid skills: diplomacy, martial, stewardship, intrigue, learning, prowess
+    
+    Example of invalid usage:
+        option = {
+            name = my_event.1.a
+            skill = charisma  # ERROR: 'charisma' is not a CK3 skill
+        }
+    
+    Correct usage:
+        option = {
+            name = my_event.1.a
+            skill = diplomacy  # OK: diplomacy is a valid skill
+        }
+    
+    Args:
+        ast: Parsed AST nodes
+        config: Paradox configuration
+        
+    Returns:
+        List of diagnostics for invalid skill references
+    """
+    diagnostics = []
+    
+    if not config.event_structure:
+        return diagnostics
+    
+    def check_node(node: CK3Node):
+        """Recursively check option blocks for skill references."""
+        if node.key == "option":
+            # Look for skill = xxx in option children
+            for child in node.children:
+                if child.key == "skill" and child.value:
+                    skill_name = str(child.value).lower()
+                    if skill_name not in VALID_SKILLS:
+                        # Build helpful error message with valid options
+                        valid_list = ", ".join(sorted(VALID_SKILLS))
+                        diagnostics.append(
+                            create_paradox_diagnostic(
+                                message=f"Invalid skill '{child.value}'. Valid skills: {valid_list}",
+                                node_range=child.range,
+                                severity=types.DiagnosticSeverity.Warning,
+                                code="CK3452",
+                            )
+                        )
+        
+        # Recurse into children to find nested options
+        for child in node.children:
+            check_node(child)
+    
+    for node in ast:
+        check_node(node)
+    
+    return diagnostics
+
+
+def check_option_internal_flag(
+    ast: List[CK3Node], config: ParadoxConfig
+) -> List[types.Diagnostic]:
+    """
+    Check for invalid add_internal_flag values in option blocks.
+    
+    The add_internal_flag field marks options with special visual indicators:
+    - 'special': Highlights the option to draw player attention
+    - 'dangerous': Shows a warning icon indicating risky choice
+    
+    Detects:
+    - CK3453: Invalid add_internal_flag (value not 'special' or 'dangerous')
+    
+    Example of invalid usage:
+        option = {
+            name = my_event.1.a
+            add_internal_flag = highlighted  # ERROR: invalid value
+        }
+    
+    Correct usage:
+        option = {
+            name = my_event.1.a
+            add_internal_flag = dangerous  # OK: shows warning icon
+        }
+    
+    Args:
+        ast: Parsed AST nodes
+        config: Paradox configuration
+        
+    Returns:
+        List of diagnostics for invalid internal flag values
+    """
+    diagnostics = []
+    
+    if not config.event_structure:
+        return diagnostics
+    
+    def check_node(node: CK3Node):
+        """Recursively check option blocks for internal flag values."""
+        if node.key == "option":
+            for child in node.children:
+                if child.key == "add_internal_flag" and child.value:
+                    flag_value = str(child.value).lower()
+                    if flag_value not in VALID_INTERNAL_FLAGS:
+                        diagnostics.append(
+                            create_paradox_diagnostic(
+                                message=f"Invalid add_internal_flag '{child.value}'. Must be 'special' or 'dangerous'.",
+                                node_range=child.range,
+                                severity=types.DiagnosticSeverity.Warning,
+                                code="CK3453",
+                            )
+                        )
+        
+        # Recurse into children
+        for child in node.children:
+            check_node(child)
+    
+    for node in ast:
+        check_node(node)
+    
+    return diagnostics
+
+
+def check_redundant_option_fallback(
+    ast: List[CK3Node], config: ParadoxConfig
+) -> List[types.Diagnostic]:
+    """
+    Check for redundant fallback usage in option blocks.
+    
+    The 'fallback = yes' flag ensures an option is always available even if
+    other options' triggers fail. However, if the option also has a trigger
+    with 'always = yes', the fallback is redundant because the option will
+    always be available anyway.
+    
+    Detects:
+    - CK3454: Redundant fallback - fallback = yes with always = yes trigger
+    
+    Example of redundant usage:
+        option = {
+            name = my_event.1.a
+            trigger = { always = yes }
+            fallback = yes  # WARNING: redundant, trigger always passes
+        }
+    
+    Args:
+        ast: Parsed AST nodes
+        config: Paradox configuration
+        
+    Returns:
+        List of diagnostics for redundant fallback declarations
+    """
+    diagnostics = []
+    
+    if not config.event_structure:
+        return diagnostics
+    
+    def check_node(node: CK3Node):
+        """Recursively check option blocks for redundant fallback."""
+        if node.key == "option":
+            has_fallback = False
+            fallback_node = None
+            has_always_yes = False
+            
+            # Scan option children for fallback and trigger
+            for child in node.children:
+                if child.key == "fallback" and child.value in ("yes", True):
+                    has_fallback = True
+                    fallback_node = child
+                elif child.key == "trigger":
+                    # Check if trigger contains always = yes
+                    for trigger_child in child.children:
+                        if trigger_child.key == "always" and trigger_child.value in ("yes", True):
+                            has_always_yes = True
+                            break
+            
+            # Warn if both fallback and always=yes are present
+            if has_fallback and has_always_yes and fallback_node:
+                diagnostics.append(
+                    create_paradox_diagnostic(
+                        message="'fallback = yes' is redundant when trigger has 'always = yes' - the option is already always available.",
+                        node_range=fallback_node.range,
+                        severity=types.DiagnosticSeverity.Warning,
+                        code="CK3454",
+                    )
+                )
+        
+        # Recurse into children
+        for child in node.children:
+            check_node(child)
+    
+    for node in ast:
+        check_node(node)
+    
+    return diagnostics
+
+
+def check_multiple_exclusive_options(
+    ast: List[CK3Node], config: ParadoxConfig
+) -> List[types.Diagnostic]:
+    """
+    Check for events with multiple exclusive options.
+    
+    The 'exclusive = yes' flag means only one of the exclusive options will
+    be shown if multiple would be valid. Having multiple exclusive options
+    can lead to unpredictable behavior where the "wrong" option might be
+    displayed to players.
+    
+    Detects:
+    - CK3455: Multiple exclusive options may conflict
+    
+    Example of problematic usage:
+        my_event.1 = {
+            option = {
+                name = opt_a
+                exclusive = yes
+            }
+            option = {
+                name = opt_b
+                exclusive = yes  # WARNING: conflicts with first exclusive
+            }
+        }
+    
+    Args:
+        ast: Parsed AST nodes
+        config: Paradox configuration
+        
+    Returns:
+        List of diagnostics for multiple exclusive options
+    """
+    diagnostics = []
+    
+    if not config.event_structure:
+        return diagnostics
+    
+    for node in ast:
+        # Check if this looks like an event (namespace.XXXX = { ... })
+        if "." in node.key and node.children:
+            parts = node.key.split(".")
+            if len(parts) == 2:
+                try:
+                    int(parts[1])  # Event ID should be numeric
+                    
+                    # Find all options with exclusive = yes
+                    exclusive_options = []
+                    for child in node.children:
+                        if child.key == "option":
+                            for opt_child in child.children:
+                                if opt_child.key == "exclusive" and opt_child.value in ("yes", True):
+                                    exclusive_options.append(child)
+                                    break
+                    
+                    # Warn on second and subsequent exclusive options
+                    if len(exclusive_options) > 1:
+                        for opt in exclusive_options[1:]:
+                            diagnostics.append(
+                                create_paradox_diagnostic(
+                                    message=f"Multiple 'exclusive = yes' options ({len(exclusive_options)} found) may conflict - only one exclusive option can be shown at a time.",
+                                    node_range=opt.range,
+                                    severity=types.DiagnosticSeverity.Warning,
+                                    code="CK3455",
+                                )
+                            )
+                
+                except ValueError:
+                    pass  # Not an event ID
+    
+    return diagnostics
+
+
+def check_show_as_unavailable_without_trigger(
+    ast: List[CK3Node], config: ParadoxConfig
+) -> List[types.Diagnostic]:
+    """
+    Check for show_as_unavailable without a trigger block.
+    
+    The 'show_as_unavailable' field is used to gray out an option when its
+    trigger fails, instead of hiding it completely. However, if there's no
+    trigger block, the option is always available, so show_as_unavailable
+    has no effect.
+    
+    Detects:
+    - CK3456: show_as_unavailable without trigger has no effect
+    
+    Example of ineffective usage:
+        option = {
+            name = my_event.1.a
+            show_as_unavailable = yes  # WARNING: no trigger to make unavailable
+        }
+    
+    Correct usage:
+        option = {
+            name = my_event.1.a
+            trigger = { gold >= 100 }
+            show_as_unavailable = yes  # OK: shows grayed out if gold < 100
+        }
+    
+    Args:
+        ast: Parsed AST nodes
+        config: Paradox configuration
+        
+    Returns:
+        List of diagnostics for show_as_unavailable without trigger
+    """
+    diagnostics = []
+    
+    if not config.event_structure:
+        return diagnostics
+    
+    def check_node(node: CK3Node):
+        """Recursively check option blocks for show_as_unavailable issues."""
+        if node.key == "option":
+            has_trigger = False
+            show_unavail_node = None
+            
+            # Scan option children
+            for child in node.children:
+                if child.key == "trigger":
+                    has_trigger = True
+                elif child.key == "show_as_unavailable":
+                    show_unavail_node = child
+            
+            # Warn if show_as_unavailable without trigger
+            if show_unavail_node and not has_trigger:
+                diagnostics.append(
+                    create_paradox_diagnostic(
+                        message="'show_as_unavailable' has no effect without a 'trigger' block. Add a trigger or remove show_as_unavailable.",
+                        node_range=show_unavail_node.range,
+                        severity=types.DiagnosticSeverity.Warning,
+                        code="CK3456",
+                    )
+                )
+        
+        # Recurse into children
+        for child in node.children:
+            check_node(child)
+    
+    for node in ast:
+        check_node(node)
+    
+    return diagnostics
+
+
+def check_highlight_portrait_scope(
+    ast: List[CK3Node], config: ParadoxConfig
+) -> List[types.Diagnostic]:
+    """
+    Check for invalid scope references in highlight_portrait.
+    
+    The 'highlight_portrait' field can reference either:
+    1. A portrait position defined in the event (left_portrait, right_portrait, etc.)
+    2. A saved scope reference like 'scope:target'
+    
+    Detects:
+    - CK3457: highlight_portrait references non-existent portrait position or undefined scope
+    
+    Example of valid usage:
+        left_portrait = { character = root }
+        option = {
+            name = my_event.1.a
+            highlight_portrait = left_portrait  # OK: references defined position
+        }
+        
+    Example of invalid usage:
+        option = {
+            name = my_event.1.a
+            highlight_portrait = right_portrait  # ERROR: no right_portrait defined
+        }
+    
+    Args:
+        ast: Parsed AST nodes
+        config: Paradox configuration
+        
+    Returns:
+        List of diagnostics for potentially invalid portrait references
+    """
+    diagnostics = []
+    
+    if not config.event_structure:
+        return diagnostics
+    
+    # Valid portrait position names
+    PORTRAIT_POSITIONS = {
+        "left_portrait", "right_portrait",
+        "lower_left_portrait", "lower_center_portrait", "lower_right_portrait",
+    }
+    
+    # Built-in scopes that are always valid
+    BUILTIN_SCOPES = {"root", "this", "prev", "from", "yes", "no"}
+    
+    def extract_saved_scopes(event_node: CK3Node) -> Set[str]:
+        """
+        Extract scope names saved in the event's immediate block.
+        
+        Looks for patterns like:
+            save_scope_as = target
+            save_temporary_scope_as = temp_char
+        """
+        saved = set()
+        
+        def scan_for_saves(node: CK3Node):
+            if node.key in ("save_scope_as", "save_temporary_scope_as") and node.value:
+                saved.add(str(node.value))
+            for child in node.children:
+                scan_for_saves(child)
+        
+        # Scan immediate and trigger blocks
+        for child in event_node.children:
+            if child.key in ("immediate", "trigger"):
+                scan_for_saves(child)
+        
+        return saved
+    
+    def extract_defined_portraits(event_node: CK3Node) -> Set[str]:
+        """
+        Extract portrait positions defined in the event.
+        
+        Looks for patterns like:
+            left_portrait = { character = root }
+            right_portrait = { ... }
+        """
+        defined = set()
+        for child in event_node.children:
+            if child.key in PORTRAIT_POSITIONS and child.children:
+                defined.add(child.key)
+        return defined
+    
+    def check_event(event_node: CK3Node):
+        """Check an event's options for invalid highlight_portrait references."""
+        # Extract scopes saved in this event
+        saved_scopes = extract_saved_scopes(event_node)
+        # Extract portrait positions defined in this event
+        defined_portraits = extract_defined_portraits(event_node)
+        
+        # Check each option
+        for child in event_node.children:
+            if child.key == "option":
+                for opt_child in child.children:
+                    if opt_child.key == "highlight_portrait" and opt_child.value:
+                        portrait_ref = str(opt_child.value)
+                        
+                        # Check if it's a scope: reference
+                        if portrait_ref.startswith("scope:"):
+                            scope_name = portrait_ref[6:]  # Remove "scope:" prefix
+                            
+                            # Validate against known scopes
+                            if (scope_name not in saved_scopes and 
+                                scope_name not in BUILTIN_SCOPES):
+                                diagnostics.append(
+                                    create_paradox_diagnostic(
+                                        message=f"highlight_portrait references scope '{portrait_ref}' which may not be defined. Ensure this scope is saved in the event's immediate or trigger blocks.",
+                                        node_range=opt_child.range,
+                                        severity=types.DiagnosticSeverity.Warning,
+                                        code="CK3457",
+                                    )
+                                )
+                        # Check if it's a portrait position reference
+                        elif portrait_ref in PORTRAIT_POSITIONS:
+                            if portrait_ref not in defined_portraits:
+                                diagnostics.append(
+                                    create_paradox_diagnostic(
+                                        message=f"highlight_portrait references '{portrait_ref}' which is not defined in this event. Define it with '{portrait_ref} = {{ character = scope_reference }}'.",
+                                        node_range=opt_child.range,
+                                        severity=types.DiagnosticSeverity.Warning,
+                                        code="CK3457",
+                                    )
+                                )
+    
+    # Find and check all events
+    for node in ast:
+        if "." in node.key and node.children:
+            parts = node.key.split(".")
+            if len(parts) == 2:
+                try:
+                    int(parts[1])  # Event ID should be numeric
+                    check_event(node)
+                except ValueError:
+                    pass
+    
+    return diagnostics
+
+
+def check_option_literal_name(
+    ast: List[CK3Node], config: ParadoxConfig
+) -> List[types.Diagnostic]:
+    """
+    Check for literal string names in options.
+    
+    CK3 options should use localization keys (like 'my_event.001.a') rather
+    than literal strings (like "Click here"). Using localization keys allows
+    the text to be translated and maintains consistency with CK3's
+    localization system.
+    
+    Detects:
+    - CK3458: Option name is literal string instead of localization key
+    
+    This is an informational check to encourage best practices.
+    
+    Example of discouraged usage:
+        option = {
+            name = "Click here to continue"  # INFO: use loc key instead
+        }
+    
+    Preferred usage:
+        option = {
+            name = my_event.001.a  # OK: references localization key
+        }
+    
+    Args:
+        ast: Parsed AST nodes
+        config: Paradox configuration
+        
+    Returns:
+        List of informational diagnostics for literal string names
+    """
+    diagnostics = []
+    
+    if not config.event_structure:
+        return diagnostics
+    
+    def check_node(node: CK3Node):
+        """Recursively check option blocks for literal string names."""
+        if node.key == "option":
+            for child in node.children:
+                if child.key == "name" and child.value:
+                    name_value = str(child.value)
+                    
+                    # Heuristics for detecting literal strings:
+                    # 1. Contains spaces (localization keys typically don't)
+                    # 2. Starts with quote character (parsed string literal)
+                    # 3. Contains special characters like ! or ?
+                    is_literal = (
+                        " " in name_value or
+                        name_value.startswith('"') or
+                        name_value.startswith("'") or
+                        "!" in name_value or
+                        "?" in name_value
+                    )
+                    
+                    if is_literal:
+                        diagnostics.append(
+                            create_paradox_diagnostic(
+                                message=f"Option uses literal string '{name_value[:50]}{'...' if len(name_value) > 50 else ''}' instead of localization key. Consider using a localization key for translation support.",
+                                node_range=child.range,
+                                severity=types.DiagnosticSeverity.Information,
+                                code="CK3458",
+                            )
+                        )
+        
+        # Recurse into children
+        for child in node.children:
+            check_node(child)
+    
+    for node in ast:
+        check_node(node)
+    
+    return diagnostics
+
+
+def check_all_options_have_triggers(
+    ast: List[CK3Node], config: ParadoxConfig
+) -> List[types.Diagnostic]:
+    """
+    Check for events where all options have triggers with no fallback.
+    
+    If every option in an event has a trigger condition, and none of the
+    triggers match for a particular game state, the player will have NO
+    available options. This can cause the event to hang or behave
+    unexpectedly. At least one option should either:
+    - Have no trigger (always available)
+    - Have 'fallback = yes' (shown when no other options available)
+    - Have 'trigger = { always = yes }' (effectively always available)
+    
+    Detects:
+    - CK3459: All options have triggers - player may have no available options
+    
+    Example of problematic usage:
+        my_event.1 = {
+            option = {
+                name = opt_a
+                trigger = { gold >= 100 }
+            }
+            option = {
+                name = opt_b
+                trigger = { gold >= 50 }
+            }
+            # WARNING: Player with < 50 gold has no options!
+        }
+    
+    Fixed version:
+        my_event.1 = {
+            option = {
+                name = opt_a
+                trigger = { gold >= 100 }
+            }
+            option = {
+                name = opt_b
+                trigger = { gold >= 50 }
+            }
+            option = {
+                name = opt_c  # Fallback option
+                fallback = yes
+            }
+        }
+    
+    Args:
+        ast: Parsed AST nodes
+        config: Paradox configuration
+        
+    Returns:
+        List of diagnostics for events with all triggered options
+    """
+    diagnostics = []
+    
+    if not config.event_structure:
+        return diagnostics
+    
+    for node in ast:
+        # Check if this looks like an event (namespace.XXXX = { ... })
+        if "." in node.key and node.children:
+            parts = node.key.split(".")
+            if len(parts) == 2:
+                try:
+                    int(parts[1])  # Event ID should be numeric
+                    
+                    # Collect all option blocks
+                    options = [child for child in node.children if child.key == "option"]
+                    
+                    if not options:
+                        continue  # No options to check
+                    
+                    # Analyze each option
+                    all_have_triggers = True
+                    any_has_fallback = False
+                    any_has_always_yes = False
+                    
+                    for opt in options:
+                        has_trigger = False
+                        has_fallback = False
+                        
+                        for child in opt.children:
+                            if child.key == "trigger":
+                                has_trigger = True
+                                # Check for always = yes in trigger
+                                for trigger_child in child.children:
+                                    if trigger_child.key == "always" and trigger_child.value in ("yes", True):
+                                        any_has_always_yes = True
+                            elif child.key == "fallback" and child.value in ("yes", True):
+                                has_fallback = True
+                        
+                        if not has_trigger:
+                            all_have_triggers = False
+                        if has_fallback:
+                            any_has_fallback = True
+                    
+                    # Warn if ALL options have triggers but NONE have fallback
+                    # and NONE have always = yes (which effectively has no trigger)
+                    if (all_have_triggers and 
+                        not any_has_fallback and 
+                        not any_has_always_yes and 
+                        len(options) > 0):
+                        
+                        # Report on the last option to suggest adding fallback there
+                        last_option = options[-1]
+                        diagnostics.append(
+                            create_paradox_diagnostic(
+                                message=f"All {len(options)} options have trigger conditions with no fallback - player may have no available options if no triggers match. Consider adding 'fallback = yes' to one option or removing a trigger.",
+                                node_range=last_option.range,
+                                severity=types.DiagnosticSeverity.Warning,
+                                code="CK3459",
+                            )
+                        )
+                
+                except ValueError:
+                    pass  # Not an event ID
+    
     return diagnostics
 
 
@@ -2286,6 +3000,17 @@ def check_paradox_conventions(
         diagnostics.extend(check_ai_chance_issues(ast, config))
         diagnostics.extend(check_desc_issues(ast, config))
         diagnostics.extend(check_option_issues(ast, config))
+
+        # Issue #30 - Option Block Validation (CK3452-CK3459)
+        # These checks validate option field values and configurations
+        diagnostics.extend(check_option_skill_reference(ast, config))
+        diagnostics.extend(check_option_internal_flag(ast, config))
+        diagnostics.extend(check_redundant_option_fallback(ast, config))
+        diagnostics.extend(check_multiple_exclusive_options(ast, config))
+        diagnostics.extend(check_show_as_unavailable_without_trigger(ast, config))
+        diagnostics.extend(check_highlight_portrait_scope(ast, config))
+        diagnostics.extend(check_option_literal_name(ast, config))
+        diagnostics.extend(check_all_options_have_triggers(ast, config))
 
         # Phase 3 - Namespace and Event ID validation (CK3400-CK3406)
         diagnostics.extend(check_namespace_declaration(ast, config))

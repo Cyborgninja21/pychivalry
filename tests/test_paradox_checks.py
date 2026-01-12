@@ -1320,7 +1320,7 @@ class TestDescValidation:
 
 
 # =============================================================================
-# OPTION VALIDATION TESTS (CK3453, CK3456)
+# OPTION VALIDATION TESTS (CK3460, CK3461)
 # =============================================================================
 
 
@@ -1340,10 +1340,10 @@ class TestOptionValidation:
         from pychivalry.paradox_checks import check_option_issues
         diagnostics = check_option_issues(ast, config)
         codes = [d.code for d in diagnostics]
-        assert "CK3453" not in codes
+        assert "CK3460" not in codes
 
     def test_option_multiple_names_warning(self):
-        """Option with multiple names should produce CK3453."""
+        """Option with multiple names should produce CK3460."""
         text = """mymod.0001 = {
     type = character_event
     option = {
@@ -1356,10 +1356,10 @@ class TestOptionValidation:
         from pychivalry.paradox_checks import check_option_issues
         diagnostics = check_option_issues(ast, config)
         codes = [d.code for d in diagnostics]
-        assert "CK3453" in codes
+        assert "CK3460" in codes
 
     def test_empty_option_warning(self):
-        """Empty option should produce CK3456."""
+        """Empty option should produce CK3461."""
         text = """mymod.0001 = {
     type = character_event
     option = { }
@@ -1369,7 +1369,7 @@ class TestOptionValidation:
         from pychivalry.paradox_checks import check_option_issues
         diagnostics = check_option_issues(ast, config)
         codes = [d.code for d in diagnostics]
-        assert "CK3456" in codes
+        assert "CK3461" in codes
 
 
 class TestOnActionValidation:
@@ -1906,3 +1906,383 @@ on_action_b = {
         diagnostics = check_circular_fallback(ast, None, config)
         codes = [d.code for d in diagnostics]
         assert "CK3504" not in codes
+
+
+# =============================================================================
+# Issue #30 - Option Block Validation Tests (CK3452-CK3459)
+# =============================================================================
+
+
+class TestOptionSkillReference:
+    """Tests for CK3452 - Invalid skill reference in option."""
+
+    def test_valid_skill_ok(self):
+        """Valid skill reference should not produce diagnostic."""
+        text = """mymod.0001 = {
+    type = character_event
+    option = {
+        name = mymod.0001.a
+        skill = diplomacy
+    }
+}"""
+        ast, _parse_errors = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_option_skill_reference
+        diagnostics = check_option_skill_reference(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3452" not in codes
+
+    def test_all_valid_skills_ok(self):
+        """All valid skills should be accepted."""
+        for skill in ["diplomacy", "martial", "stewardship", "intrigue", "learning", "prowess"]:
+            text = f"""mymod.0001 = {{
+    type = character_event
+    option = {{
+        name = mymod.0001.a
+        skill = {skill}
+    }}
+}}"""
+            ast, _parse_errors = parse_document(text)
+            config = ParadoxConfig()
+            from pychivalry.paradox_checks import check_option_skill_reference
+            diagnostics = check_option_skill_reference(ast, config)
+            codes = [d.code for d in diagnostics]
+            assert "CK3452" not in codes, f"Valid skill '{skill}' should not produce CK3452"
+
+    def test_invalid_skill_error(self):
+        """Invalid skill reference should produce CK3452."""
+        text = """mymod.0001 = {
+    type = character_event
+    option = {
+        name = mymod.0001.a
+        skill = invalid_skill
+    }
+}"""
+        ast, _parse_errors = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_option_skill_reference
+        diagnostics = check_option_skill_reference(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3452" in codes
+
+
+class TestOptionInternalFlag:
+    """Tests for CK3453 - Invalid add_internal_flag value."""
+
+    def test_valid_internal_flag_ok(self):
+        """Valid internal flags should not produce diagnostic."""
+        for flag in ["special", "dangerous"]:
+            text = f"""mymod.0001 = {{
+    type = character_event
+    option = {{
+        name = mymod.0001.a
+        add_internal_flag = {flag}
+    }}
+}}"""
+            ast, _parse_errors = parse_document(text)
+            config = ParadoxConfig()
+            from pychivalry.paradox_checks import check_option_internal_flag
+            diagnostics = check_option_internal_flag(ast, config)
+            codes = [d.code for d in diagnostics]
+            assert "CK3453" not in codes, f"Valid flag '{flag}' should not produce CK3453"
+
+    def test_invalid_internal_flag_error(self):
+        """Invalid internal flag should produce CK3453."""
+        text = """mymod.0001 = {
+    type = character_event
+    option = {
+        name = mymod.0001.a
+        add_internal_flag = invalid_flag
+    }
+}"""
+        ast, _parse_errors = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_option_internal_flag
+        diagnostics = check_option_internal_flag(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3453" in codes
+
+
+class TestRedundantOptionFallback:
+    """Tests for CK3454 - Redundant fallback option pattern."""
+
+    def test_redundant_fallback_warning(self):
+        """Fallback option with always = yes trigger should produce CK3454."""
+        text = """mymod.0001 = {
+    type = character_event
+    option = {
+        name = mymod.0001.a
+        trigger = { always = yes }
+        fallback = yes
+    }
+}"""
+        ast, _parse_errors = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_redundant_option_fallback
+        diagnostics = check_redundant_option_fallback(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3454" in codes
+
+    def test_fallback_without_always_yes_no_warning(self):
+        """Fallback without always = yes trigger should not produce CK3454."""
+        text = """mymod.0001 = {
+    type = character_event
+    option = {
+        name = mymod.0001.a
+        trigger = { has_trait = brave }
+        fallback = yes
+    }
+}"""
+        ast, _parse_errors = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_redundant_option_fallback
+        diagnostics = check_redundant_option_fallback(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3454" not in codes
+
+    def test_no_fallback_no_warning(self):
+        """Options without fallback should not produce CK3454."""
+        text = """mymod.0001 = {
+    type = character_event
+    option = {
+        name = mymod.0001.a
+        trigger = { always = yes }
+    }
+}"""
+        ast, _parse_errors = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_redundant_option_fallback
+        diagnostics = check_redundant_option_fallback(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3454" not in codes
+
+
+class TestMultipleExclusiveOptions:
+    """Tests for CK3455 - Multiple options with exclusive = yes."""
+
+    def test_single_exclusive_ok(self):
+        """Single exclusive option should not produce diagnostic."""
+        text = """mymod.0001 = {
+    type = character_event
+    option = {
+        name = mymod.0001.a
+        exclusive = yes
+    }
+    option = {
+        name = mymod.0001.b
+    }
+}"""
+        ast, _parse_errors = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_multiple_exclusive_options
+        diagnostics = check_multiple_exclusive_options(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3455" not in codes
+
+    def test_multiple_exclusive_error(self):
+        """Multiple options with exclusive = yes should produce CK3455."""
+        text = """mymod.0001 = {
+    type = character_event
+    option = {
+        name = mymod.0001.a
+        exclusive = yes
+    }
+    option = {
+        name = mymod.0001.b
+        exclusive = yes
+    }
+}"""
+        ast, _parse_errors = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_multiple_exclusive_options
+        diagnostics = check_multiple_exclusive_options(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3455" in codes
+
+
+class TestShowAsUnavailableWithoutTrigger:
+    """Tests for CK3456 - show_as_unavailable without trigger."""
+
+    def test_show_as_unavailable_with_trigger_ok(self):
+        """show_as_unavailable with trigger should not produce diagnostic."""
+        text = """mymod.0001 = {
+    type = character_event
+    option = {
+        name = mymod.0001.a
+        show_as_unavailable = yes
+        trigger = { has_trait = brave }
+    }
+}"""
+        ast, _parse_errors = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_show_as_unavailable_without_trigger
+        diagnostics = check_show_as_unavailable_without_trigger(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3456" not in codes
+
+    def test_show_as_unavailable_without_trigger_warning(self):
+        """show_as_unavailable without trigger should produce CK3456."""
+        text = """mymod.0001 = {
+    type = character_event
+    option = {
+        name = mymod.0001.a
+        show_as_unavailable = yes
+    }
+}"""
+        ast, _parse_errors = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_show_as_unavailable_without_trigger
+        diagnostics = check_show_as_unavailable_without_trigger(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3456" in codes
+
+
+class TestHighlightPortraitScope:
+    """Tests for CK3457 - highlight_portrait references non-existent position."""
+
+    def test_valid_highlight_portrait_ok(self):
+        """highlight_portrait referencing existing portrait should not produce diagnostic."""
+        text = """mymod.0001 = {
+    type = character_event
+    left_portrait = { character = root }
+    option = {
+        name = mymod.0001.a
+        highlight_portrait = left_portrait
+    }
+}"""
+        ast, _parse_errors = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_highlight_portrait_scope
+        diagnostics = check_highlight_portrait_scope(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3457" not in codes
+
+    def test_invalid_highlight_portrait_warning(self):
+        """highlight_portrait referencing non-existent portrait should produce CK3457."""
+        text = """mymod.0001 = {
+    type = character_event
+    option = {
+        name = mymod.0001.a
+        highlight_portrait = right_portrait
+    }
+}"""
+        ast, _parse_errors = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_highlight_portrait_scope
+        diagnostics = check_highlight_portrait_scope(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3457" in codes
+
+
+class TestOptionLiteralName:
+    """Tests for CK3458 - Option uses literal string instead of loc key."""
+
+    def test_localization_key_ok(self):
+        """Localization key should not produce diagnostic."""
+        text = """mymod.0001 = {
+    type = character_event
+    option = {
+        name = mymod.0001.option_a
+    }
+}"""
+        ast, _parse_errors = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_option_literal_name
+        diagnostics = check_option_literal_name(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3458" not in codes
+
+    def test_literal_string_info(self):
+        """Literal string name should produce CK3458 info."""
+        text = '''mymod.0001 = {
+    type = character_event
+    option = {
+        name = "This is literal text"
+    }
+}'''
+        ast, _parse_errors = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_option_literal_name
+        diagnostics = check_option_literal_name(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3458" in codes
+
+
+class TestAllOptionsHaveTriggers:
+    """Tests for CK3459 - All options have triggers without fallback."""
+
+    def test_option_without_trigger_ok(self):
+        """Having at least one option without trigger should not produce diagnostic."""
+        text = """mymod.0001 = {
+    type = character_event
+    option = {
+        name = mymod.0001.a
+        trigger = { has_trait = brave }
+    }
+    option = {
+        name = mymod.0001.b
+    }
+}"""
+        ast, _parse_errors = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_all_options_have_triggers
+        diagnostics = check_all_options_have_triggers(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3459" not in codes
+
+    def test_option_with_fallback_ok(self):
+        """Option with fallback = yes should count as unconditional."""
+        text = """mymod.0001 = {
+    type = character_event
+    option = {
+        name = mymod.0001.a
+        trigger = { has_trait = brave }
+    }
+    option = {
+        name = mymod.0001.b
+        trigger = { has_trait = craven }
+        fallback = yes
+    }
+}"""
+        ast, _parse_errors = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_all_options_have_triggers
+        diagnostics = check_all_options_have_triggers(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3459" not in codes
+
+    def test_all_options_have_triggers_warning(self):
+        """All options with triggers and no fallback should produce CK3459."""
+        text = """mymod.0001 = {
+    type = character_event
+    option = {
+        name = mymod.0001.a
+        trigger = { has_trait = brave }
+    }
+    option = {
+        name = mymod.0001.b
+        trigger = { has_trait = craven }
+    }
+}"""
+        ast, _parse_errors = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_all_options_have_triggers
+        diagnostics = check_all_options_have_triggers(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3459" in codes
+
+    def test_single_option_with_trigger_warning(self):
+        """Single option with trigger and no fallback should produce CK3459."""
+        text = """mymod.0001 = {
+    type = character_event
+    option = {
+        name = mymod.0001.a
+        trigger = { has_trait = brave }
+    }
+}"""
+        ast, _parse_errors = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_all_options_have_triggers
+        diagnostics = check_all_options_have_triggers(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3459" in codes

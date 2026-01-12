@@ -138,12 +138,60 @@ diagnostics:
     message: "Option block is missing required 'name' field for localization"
     fix: "Add 'name = your_event.option_a'"
     
+  CK3452:
+    severity: error
+    category: event_structure
+    message: "Invalid skill '{value}' for option. Valid skills: diplomacy, martial, stewardship, intrigue, learning, prowess"
+    fix: "Use one of: diplomacy, martial, stewardship, intrigue, learning, prowess"
+    
   CK3453:
+    severity: error
+    category: event_structure
+    message: "Invalid internal flag '{value}' for add_internal_flag. Valid flags: special, dangerous"
+    fix: "Use one of: special, dangerous"
+    
+  CK3454:
+    severity: warning
+    category: event_structure
+    message: "Redundant fallback option - use 'exclusive = yes' instead of duplicate trigger logic"
+    fix: "Remove fallback trigger and add 'exclusive = yes' to the exclusive option"
+    
+  CK3455:
+    severity: error
+    category: event_structure
+    message: "Multiple options have 'exclusive = yes' - only one option can be exclusive per event"
+    fix: "Remove 'exclusive = yes' from all but one option"
+    
+  CK3456:
+    severity: warning
+    category: event_structure
+    message: "'show_as_unavailable = yes' without trigger block - option will always show but never be selectable"
+    fix: "Add a trigger block or remove show_as_unavailable"
+    
+  CK3457:
+    severity: warning
+    category: event_structure
+    message: "highlight_portrait references non-existent portrait position '{value}'"
+    fix: "Use a portrait position defined in the event (left_portrait, right_portrait, etc.)"
+    
+  CK3458:
+    severity: information
+    category: event_structure
+    message: "Option uses literal 'name = \"text\"' instead of localization key"
+    fix: "Use a localization key: name = my_event.option_a"
+    
+  CK3459:
+    severity: warning
+    category: event_structure
+    message: "All options have triggers - event may be impossible to select an option if all triggers fail. Consider a fallback option."
+    fix: "Add an option without a trigger, or use 'fallback = yes' on one option"
+    
+  CK3460:
     severity: warning
     category: event_structure
     message: "Option has {count} 'name' fields - only the first will be used"
     
-  CK3456:
+  CK3461:
     severity: warning
     category: event_structure
     message: "Empty option block - options need at least a 'name' field"
