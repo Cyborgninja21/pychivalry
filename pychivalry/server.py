@@ -4065,6 +4065,48 @@ def resume_log_watcher_command(ls: CK3LanguageServer, *args: Any):
         }
 
 
+@server.command("ck3.forceRefreshLogs")
+def force_refresh_logs_command(ls: CK3LanguageServer, *args: Any):
+    """
+    Command: Force refresh all watched log files.
+    
+    Immediately reads all watched log files for new content without waiting
+    for file system events. Useful when CK3 buffers log writes.
+    
+    Args:
+        ls: The language server instance
+    
+    Returns:
+        Dictionary with refresh results
+    """
+    logger.info("Executing ck3.forceRefreshLogs command")
+    args = _normalize_command_args(args)
+    
+    try:
+        if ls.log_watcher and ls.log_watcher.is_running():
+            result = ls.log_watcher.force_refresh()
+            
+            if result["success"]:
+                if result["total_lines"] > 0:
+                    ls.notify_info(f"Refreshed: {result['total_lines']} new lines from {result['files_read']} files")
+                else:
+                    ls.notify_info("No new log content found")
+            
+            return result
+        else:
+            return {
+                "success": False,
+                "error": "Log watcher is not running. Start it first with 'CK3: Start Game Log Watcher'"
+            }
+            
+    except Exception as e:
+        logger.error(f"Error force refreshing logs: {e}", exc_info=True)
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+
 @server.command("ck3.clearGameLogs")
 def clear_game_logs_command(ls: CK3LanguageServer, *args: Any):
     """

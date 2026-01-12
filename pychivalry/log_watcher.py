@@ -622,6 +622,96 @@ class CK3LogWatcher:
             # Notify client
             self._send_notification("ck3/logWatcherResumed", {})
     
+    def force_refresh(self) -> dict:
+        """
+        Force an immediate read of all watched log files.
+        
+        Useful when log file updates aren't being detected quickly enough,
+        or to manually check for new content without waiting for file system events.
+        
+        Returns:
+            Dictionary with refresh results:
+            - success: True if refresh completed
+            - files_read: Number of files that had new content
+            - total_lines: Total new lines read across all files
+            - error: Error message if failed
+            
+        Example:
+            ```python
+            result = watcher.force_refresh()
+            print(f"Read {result['total_lines']} new lines from {result['files_read']} files")
+            ```
+            
+        Notes:
+            - Can be called even when watcher is paused
+            - Updates file positions so content isn't re-read on next event
+            - Thread-safe
+        """
+        if not self.watched_path:
+            return {
+                "success": False,
+                "error": "Log watcher is not running"
+            }
+        
+        logger.info("Force refreshing all watched log files")
+        
+        files_read = 0
+        total_lines = 0
+        
+        for file_pattern in self.watched_files:
+            file_path = os.path.join(self.watched_path, file_pattern)
+            
+            if not os.path.exists(file_path):
+                continue
+            
+            try:
+                # Get current file size
+                file_size = os.path.getsize(file_path)
+                
+                # Get last read position
+                if self.handler:
+                    with self.handler.lock:
+                        last_pos = self.handler.last_positions.get(file_path, 0)
+                else:
+                    last_pos = 0
+                
+                # Only read if there's new content
+                if file_size > last_pos:
+                    with open(file_path, 'r', encoding='utf-8', errors='replace') as f:
+                        f.seek(last_pos)
+                        new_lines = f.readlines()
+                        new_pos = f.tell()
+                    
+                    if new_lines:
+                        files_read += 1
+                        total_lines += len(new_lines)
+                        
+                        # Update position
+                        if self.handler:
+                            with self.handler.lock:
+                                self.handler.last_positions[file_path] = new_pos
+                        
+                        # Process the lines
+                        self._handle_new_log_lines(file_path, new_lines)
+                        logger.info(f"Force refresh: {len(new_lines)} lines from {file_pattern}")
+                        
+            except Exception as e:
+                logger.error(f"Error force refreshing {file_pattern}: {e}")
+        
+        # Notify client
+        self._send_notification("ck3/logWatcherRefreshed", {
+            "files_read": files_read,
+            "total_lines": total_lines
+        })
+        
+        logger.info(f"Force refresh complete: {total_lines} lines from {files_read} files")
+        
+        return {
+            "success": True,
+            "files_read": files_read,
+            "total_lines": total_lines
+        }
+    
     def is_running(self) -> bool:
         """
         Check if watcher is currently active.

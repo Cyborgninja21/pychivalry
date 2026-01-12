@@ -1130,6 +1130,37 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     );
 
     context.subscriptions.push(
+        vscode.commands.registerCommand('ck3LanguageServer.forceRefreshLogs', async () => {
+            if (!client) {
+                vscode.window.showErrorMessage('CK3 Language Server is not running');
+                return;
+            }
+
+            try {
+                const result = (await client.sendRequest('workspace/executeCommand', {
+                    command: 'ck3.forceRefreshLogs',
+                    arguments: [],
+                })) as { success: boolean; files_read?: number; total_lines?: number; error?: string };
+
+                if (result.success) {
+                    if (result.total_lines && result.total_lines > 0) {
+                        vscode.window.showInformationMessage(
+                            `Refreshed: ${result.total_lines} new lines from ${result.files_read} files`
+                        );
+                    } else {
+                        vscode.window.showInformationMessage('No new log content found');
+                    }
+                } else {
+                    vscode.window.showWarningMessage(result.error || 'Failed to refresh logs');
+                }
+            } catch (error) {
+                const message = error instanceof Error ? error.message : String(error);
+                vscode.window.showErrorMessage(`Failed to refresh logs: ${message}`);
+            }
+        })
+    );
+
+    context.subscriptions.push(
         vscode.commands.registerCommand('ck3LanguageServer.clearGameLogs', async () => {
             if (!client) {
                 vscode.window.showErrorMessage('CK3 Language Server is not running');
@@ -1698,6 +1729,10 @@ async function showMenuCommand(): Promise<void> {
             description: 'Stop monitoring game logs',
         },
         {
+            label: '$(sync) Force Refresh Logs',
+            description: 'Manually read log files for new content',
+        },
+        {
             label: '$(graph-line) Show Log Statistics',
             description: 'Display log analysis stats',
         },
@@ -1766,6 +1801,9 @@ async function showMenuCommand(): Promise<void> {
                 break;
             case '$(debug-stop) Stop Log Watcher':
                 await vscode.commands.executeCommand('ck3LanguageServer.stopLogWatcher');
+                break;
+            case '$(sync) Force Refresh Logs':
+                await vscode.commands.executeCommand('ck3LanguageServer.forceRefreshLogs');
                 break;
             case '$(graph-line) Show Log Statistics':
                 await vscode.commands.executeCommand('ck3LanguageServer.getLogStatistics');

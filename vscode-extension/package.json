@@ -193,6 +193,11 @@
         "category": "CK3"
       },
       {
+        "command": "ck3LanguageServer.forceRefreshLogs",
+        "title": "Force Refresh Game Logs",
+        "category": "CK3"
+      },
+      {
         "command": "ck3LanguageServer.clearGameLogs",
         "title": "Clear Game Log Diagnostics",
         "category": "CK3"
@@ -271,6 +276,10 @@
         },
         {
           "command": "ck3LanguageServer.resumeLogWatcher",
+          "when": "true"
+        },
+        {
+          "command": "ck3LanguageServer.forceRefreshLogs",
           "when": "true"
         },
         {
