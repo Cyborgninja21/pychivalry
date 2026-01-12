@@ -1456,6 +1456,229 @@ class TestDescValidation:
 
 
 # =============================================================================
+# DESC BLOCK VALIDATION TESTS - Issue #29 (CK3442, CK3444-CK3446)
+# =============================================================================
+
+
+class TestDescBlockValidation:
+    """Tests for description block validation (Issue #29)."""
+
+    # -------------------------------------------------------------------------
+    # CK3442: first_valid no fallback
+    # -------------------------------------------------------------------------
+
+    def test_first_valid_with_fallback_no_warning(self):
+        """first_valid with fallback desc should not warn."""
+        text = """mymod.0001 = {
+    type = character_event
+    desc = {
+        first_valid = {
+            triggered_desc = {
+                trigger = { has_trait = brave }
+                desc = mymod.0001.desc.brave
+            }
+            desc = mymod.0001.desc.default
+        }
+    }
+}"""
+        ast, _parse_errors = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_first_valid_fallback
+        diagnostics = check_first_valid_fallback(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3442" not in codes
+
+    def test_first_valid_with_always_yes_fallback_no_warning(self):
+        """first_valid with always=yes in last triggered_desc should not warn."""
+        text = """mymod.0001 = {
+    type = character_event
+    desc = {
+        first_valid = {
+            triggered_desc = {
+                trigger = { has_trait = brave }
+                desc = mymod.0001.desc.brave
+            }
+            triggered_desc = {
+                trigger = { always = yes }
+                desc = mymod.0001.desc.default
+            }
+        }
+    }
+}"""
+        ast, _parse_errors = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_first_valid_fallback
+        diagnostics = check_first_valid_fallback(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3442" not in codes
+
+    def test_first_valid_no_fallback_warning(self):
+        """first_valid without fallback should produce CK3442."""
+        text = """mymod.0001 = {
+    type = character_event
+    desc = {
+        first_valid = {
+            triggered_desc = {
+                trigger = { has_trait = brave }
+                desc = mymod.0001.desc.brave
+            }
+            triggered_desc = {
+                trigger = { has_trait = craven }
+                desc = mymod.0001.desc.craven
+            }
+        }
+    }
+}"""
+        ast, _parse_errors = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_first_valid_fallback
+        diagnostics = check_first_valid_fallback(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3442" in codes
+
+    # -------------------------------------------------------------------------
+    # CK3444: Literal string in desc
+    # -------------------------------------------------------------------------
+
+    def test_desc_localization_key_no_info(self):
+        """desc with localization key should not produce info."""
+        text = """mymod.0001 = {
+    type = character_event
+    desc = mymod.0001.desc
+}"""
+        ast, _parse_errors = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_desc_literal_string
+        diagnostics = check_desc_literal_string(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3444" not in codes
+
+    def test_desc_literal_string_info(self):
+        """Literal string in desc should produce CK3444."""
+        text = """mymod.0001 = {
+    type = character_event
+    desc = "This is literal text with spaces"
+}"""
+        ast, _parse_errors = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_desc_literal_string
+        diagnostics = check_desc_literal_string(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3444" in codes
+
+    # -------------------------------------------------------------------------
+    # CK3445: Invalid desc structure (mixed first_valid/random_valid)
+    # -------------------------------------------------------------------------
+
+    def test_desc_first_valid_only_no_error(self):
+        """desc with only first_valid should not produce error."""
+        text = """mymod.0001 = {
+    type = character_event
+    desc = {
+        first_valid = {
+            desc = mymod.0001.desc.default
+        }
+    }
+}"""
+        ast, _parse_errors = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_desc_structure
+        diagnostics = check_desc_structure(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3445" not in codes
+
+    def test_desc_random_valid_only_no_error(self):
+        """desc with only random_valid should not produce error."""
+        text = """mymod.0001 = {
+    type = character_event
+    desc = {
+        random_valid = {
+            desc = mymod.0001.desc.a
+            desc = mymod.0001.desc.b
+        }
+    }
+}"""
+        ast, _parse_errors = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_desc_structure
+        diagnostics = check_desc_structure(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3445" not in codes
+
+    def test_desc_mixed_first_random_valid_error(self):
+        """Mixing first_valid and random_valid at same level should produce CK3445."""
+        text = """mymod.0001 = {
+    type = character_event
+    desc = {
+        first_valid = {
+            desc = mymod.0001.desc.a
+        }
+        random_valid = {
+            desc = mymod.0001.desc.b
+        }
+    }
+}"""
+        ast, _parse_errors = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_desc_structure
+        diagnostics = check_desc_structure(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3445" in codes
+
+    # -------------------------------------------------------------------------
+    # CK3446: Excessive nesting (>3 levels)
+    # -------------------------------------------------------------------------
+
+    def test_desc_normal_nesting_no_warning(self):
+        """desc with 3 levels of nesting should not warn."""
+        text = """mymod.0001 = {
+    type = character_event
+    desc = {
+        first_valid = {
+            triggered_desc = {
+                trigger = { has_trait = brave }
+                desc = mymod.0001.desc.brave
+            }
+            desc = mymod.0001.desc.default
+        }
+    }
+}"""
+        ast, _parse_errors = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_desc_structure
+        diagnostics = check_desc_structure(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3446" not in codes
+
+    def test_desc_excessive_nesting_warning(self):
+        """desc with >3 levels of nesting should produce CK3446."""
+        text = """mymod.0001 = {
+    type = character_event
+    desc = {
+        first_valid = {
+            triggered_desc = {
+                trigger = { has_trait = brave }
+                desc = {
+                    first_valid = {
+                        triggered_desc = {
+                            trigger = { is_ai = yes }
+                            desc = mymod.0001.desc.deep
+                        }
+                    }
+                }
+            }
+        }
+    }
+}"""
+        ast, _parse_errors = parse_document(text)
+        config = ParadoxConfig()
+        from pychivalry.paradox_checks import check_desc_structure
+        diagnostics = check_desc_structure(ast, config)
+        codes = [d.code for d in diagnostics]
+        assert "CK3446" in codes
+
+
+# =============================================================================
 # OPTION VALIDATION TESTS (CK3460, CK3461)
 # =============================================================================
 

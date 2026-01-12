@@ -228,10 +228,30 @@ diagnostics:
     category: event_structure
     message: "triggered_desc block is missing required 'desc' field"
     
+  CK3442:
+    severity: warning
+    category: event_structure
+    message: "'first_valid' has no fallback - may show nothing if no triggers match"
+    
   CK3443:
     severity: warning
     category: event_structure
     message: "Empty desc block - event needs a description"
+    
+  CK3444:
+    severity: information
+    category: event_structure
+    message: "Consider using a localization key instead of a literal string in 'desc'"
+    
+  CK3445:
+    severity: error
+    category: event_structure
+    message: "Invalid desc structure: mixing 'first_valid' and 'random_valid' at the same level"
+    
+  CK3446:
+    severity: warning
+    category: event_structure
+    message: "Description has excessive nesting (>3 levels) - consider simplifying"
     
   # ============== trigger_if/else (CK351x) ==============
   CK3510:

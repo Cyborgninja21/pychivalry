@@ -8,8 +8,11 @@ DIAGNOSTIC CODES:
     CK3430: Invalid theme
     CK3440: triggered_desc missing trigger
     CK3441: triggered_desc missing desc
-    CK3442: desc missing localization key
+    CK3442: first_valid has no unconditional fallback (Issue #29)
     CK3443: Empty desc block
+    CK3444: Literal string in desc (Issue #29)
+    CK3445: Invalid desc structure - mixed first_valid/random_valid (Issue #29)
+    CK3446: Excessive desc nesting >3 levels (Issue #29)
     CK3450: Option missing name
     CK3452: Invalid skill reference in option (Issue #30)
     CK3453: Invalid add_internal_flag value (Issue #30)
@@ -1528,8 +1531,77 @@ def check_ai_chance_issues(ast: List[CK3Node], config: ParadoxConfig) -> List[ty
 
 
 # =============================================================================
-# ADDITIONAL DESC/OPTION VALIDATION (CK3442-CK3443, CK3460, CK3461)
+# ADDITIONAL DESC/OPTION VALIDATION (CK3442-CK3446, CK3460, CK3461)
+# Issue #29: Description Block Validation
 # =============================================================================
+
+
+def _has_unconditional_fallback(first_valid_node: CK3Node) -> bool:
+    """
+    Check if first_valid has an unconditional fallback.
+
+    Returns True if:
+    - Has a plain 'desc' child (not inside triggered_desc)
+    - Last triggered_desc has always=yes in trigger
+
+    Args:
+        first_valid_node: The first_valid node to check
+
+    Returns:
+        True if fallback exists, False otherwise
+    """
+    children = first_valid_node.children
+
+    # Check for plain desc child (not triggered_desc)
+    for child in children:
+        if child.key == "desc":
+            # Plain desc = localization_key (no children, just value)
+            if not child.children:
+                return True
+            # desc = { ... } block - check if it's NOT a triggered_desc wrapper
+            has_trigger = any(c.key == "trigger" for c in child.children)
+            has_triggered_desc = any(c.key == "triggered_desc" for c in child.children)
+            if not has_trigger and not has_triggered_desc:
+                # It's a desc block without trigger requirements
+                return True
+
+    # Check if last triggered_desc has always=yes
+    triggered_descs = [c for c in children if c.key == "triggered_desc"]
+    if triggered_descs:
+        last = triggered_descs[-1]
+        trigger = next((c for c in last.children if c.key == "trigger"), None)
+        if trigger:
+            always = next((c for c in trigger.children if c.key == "always"), None)
+            if always and str(always.value).lower() == "yes":
+                return True
+
+    return False
+
+
+def _calculate_desc_nesting_depth(node: CK3Node, current_depth: int = 0) -> int:
+    """
+    Calculate maximum nesting depth of desc structures.
+
+    Counts nesting of first_valid, random_valid, and triggered_desc blocks.
+
+    Args:
+        node: The node to check
+        current_depth: Current nesting depth
+
+    Returns:
+        Maximum nesting depth found
+    """
+    max_depth = current_depth
+
+    for child in node.children:
+        if child.key in ("first_valid", "random_valid", "triggered_desc"):
+            child_depth = _calculate_desc_nesting_depth(child, current_depth + 1)
+            max_depth = max(max_depth, child_depth)
+        elif child.children:
+            child_depth = _calculate_desc_nesting_depth(child, current_depth)
+            max_depth = max(max_depth, child_depth)
+
+    return max_depth
 
 
 def check_desc_issues(ast: List[CK3Node], config: ParadoxConfig) -> List[types.Diagnostic]:
@@ -1537,7 +1609,6 @@ def check_desc_issues(ast: List[CK3Node], config: ParadoxConfig) -> List[types.D
     Check for desc block issues.
 
     Detects:
-    - CK3442: desc without localization key reference
     - CK3443: Empty desc block
     """
     diagnostics = []
@@ -1640,6 +1711,207 @@ def check_option_issues(ast: List[CK3Node], config: ParadoxConfig) -> List[types
 
     for node in ast:
         check_option_node(node)
+
+    return diagnostics
+
+
+# =============================================================================
+# DESC BLOCK VALIDATION - Issue #29 (CK3442, CK3444-CK3446)
+# =============================================================================
+# These checks validate description block structures including:
+# - first_valid fallback requirements
+# - literal string usage
+# - invalid structure mixing
+# - excessive nesting depth
+# =============================================================================
+
+
+def check_first_valid_fallback(
+    ast: List[CK3Node], config: ParadoxConfig
+) -> List[types.Diagnostic]:
+    """
+    Check that first_valid blocks have an unconditional fallback.
+
+    Detects CK3442: first_valid in desc without a fallback desc that always displays.
+    Without a fallback, the event may show no description if no triggers match.
+
+    Args:
+        ast: Parsed AST
+        config: Paradox configuration
+
+    Returns:
+        List of diagnostics for first_valid without fallback
+    """
+    diagnostics = []
+
+    if not config.event_structure:
+        return diagnostics
+
+    def check_node(node: CK3Node, in_desc: bool = False, in_event: bool = False):
+        """Check first_valid blocks for fallback."""
+        # Check if this is a first_valid inside a desc context within an event
+        if node.key == "first_valid" and in_desc and in_event:
+            if not _has_unconditional_fallback(node):
+                diagnostics.append(
+                    create_paradox_diagnostic(
+                        message="'first_valid' has no fallback - may show nothing if no triggers match. Add an unconditional 'desc' as the last entry.",
+                        node_range=node.range,
+                        severity=types.DiagnosticSeverity.Warning,
+                        code="CK3442",
+                    )
+                )
+
+        # Track if we're in an event context
+        is_event = in_event
+        if not is_event and "." in node.key:
+            parts = node.key.split(".")
+            if len(parts) == 2:
+                try:
+                    int(parts[1])
+                    is_event = True
+                except ValueError:
+                    pass
+
+        # Track if we're in a desc context
+        new_in_desc = in_desc or node.key == "desc"
+
+        for child in node.children:
+            check_node(child, new_in_desc, is_event)
+
+    for node in ast:
+        check_node(node)
+
+    return diagnostics
+
+
+def check_desc_literal_string(
+    ast: List[CK3Node], config: ParadoxConfig
+) -> List[types.Diagnostic]:
+    """
+    Check for literal strings in desc fields.
+
+    Detects CK3444: Using desc = "text" instead of a localization key.
+    Literal strings work but bypass the localization system.
+
+    Args:
+        ast: Parsed AST
+        config: Paradox configuration
+
+    Returns:
+        List of diagnostics for literal strings in desc
+    """
+    diagnostics = []
+
+    if not config.event_structure:
+        return diagnostics
+
+    def check_node(node: CK3Node, in_event: bool = False):
+        """Check desc fields for literal strings."""
+        if node.key == "desc" and in_event:
+            # Check if value is a quoted literal string
+            if isinstance(node.value, str) and not node.children:
+                value = node.value.strip()
+                # Literal strings typically contain spaces or are quoted
+                # Localization keys are typically identifiers like namespace.event.desc
+                # Check for spaces (indicates literal text) or starts/ends with quotes
+                if " " in value:
+                    diagnostics.append(
+                        create_paradox_diagnostic(
+                            message="Consider using a localization key instead of a literal string in 'desc'. Localization keys support translations and text formatting.",
+                            node_range=node.range,
+                            severity=types.DiagnosticSeverity.Information,
+                            code="CK3444",
+                        )
+                    )
+
+        # Detect event context
+        is_event = in_event
+        if not is_event and "." in node.key:
+            parts = node.key.split(".")
+            if len(parts) == 2:
+                try:
+                    int(parts[1])
+                    is_event = True
+                except ValueError:
+                    pass
+
+        for child in node.children:
+            check_node(child, is_event)
+
+    for node in ast:
+        check_node(node)
+
+    return diagnostics
+
+
+def check_desc_structure(
+    ast: List[CK3Node], config: ParadoxConfig
+) -> List[types.Diagnostic]:
+    """
+    Check for invalid desc block structures.
+
+    Detects:
+    - CK3445: Invalid mixing of first_valid and random_valid at same level
+    - CK3446: Excessive nesting depth (>3 levels)
+
+    Args:
+        ast: Parsed AST
+        config: Paradox configuration
+
+    Returns:
+        List of diagnostics for invalid desc structures
+    """
+    diagnostics = []
+
+    if not config.event_structure:
+        return diagnostics
+
+    def check_node(node: CK3Node, in_event: bool = False):
+        """Check desc structures for issues."""
+        # Only check desc nodes within events
+        if node.key == "desc" and in_event and node.children:
+            # CK3445: Check for invalid mixing at same level
+            has_first_valid = any(c.key == "first_valid" for c in node.children)
+            has_random_valid = any(c.key == "random_valid" for c in node.children)
+
+            if has_first_valid and has_random_valid:
+                diagnostics.append(
+                    create_paradox_diagnostic(
+                        message="Invalid desc structure: mixing 'first_valid' and 'random_valid' at the same level. Use one or the other, or nest them properly.",
+                        node_range=node.range,
+                        severity=types.DiagnosticSeverity.Error,
+                        code="CK3445",
+                    )
+                )
+
+            # CK3446: Check nesting depth
+            depth = _calculate_desc_nesting_depth(node)
+            if depth > 3:
+                diagnostics.append(
+                    create_paradox_diagnostic(
+                        message=f"Description has excessive nesting ({depth} levels > 3) - consider simplifying for maintainability.",
+                        node_range=node.range,
+                        severity=types.DiagnosticSeverity.Warning,
+                        code="CK3446",
+                    )
+                )
+
+        # Detect event context
+        is_event = in_event
+        if not is_event and "." in node.key:
+            parts = node.key.split(".")
+            if len(parts) == 2:
+                try:
+                    int(parts[1])
+                    is_event = True
+                except ValueError:
+                    pass
+
+        for child in node.children:
+            check_node(child, is_event)
+
+    for node in ast:
+        check_node(node)
 
     return diagnostics
 
@@ -3153,6 +3425,12 @@ def check_paradox_conventions(
         diagnostics.extend(check_ai_chance_issues(ast, config))
         diagnostics.extend(check_desc_issues(ast, config))
         diagnostics.extend(check_option_issues(ast, config))
+
+        # Issue #29 - Desc Block Validation (CK3442, CK3444-CK3446)
+        # These checks validate description block structures
+        diagnostics.extend(check_first_valid_fallback(ast, config))
+        diagnostics.extend(check_desc_literal_string(ast, config))
+        diagnostics.extend(check_desc_structure(ast, config))
 
         # Issue #30 - Option Block Validation (CK3452-CK3459)
         # These checks validate option field values and configurations
