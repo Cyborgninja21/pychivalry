@@ -1054,6 +1054,86 @@ def collect_missing_localization_diagnostics(
     return diagnostics
 
 
+def collect_orphaned_localization_diagnostics(
+    doc: TextDocument,
+    index: Optional[DocumentIndex] = None,
+) -> List[types.Diagnostic]:
+    """
+    Check for orphaned/unused localization keys (CK3604).
+
+    Parses localization .yml files to find keys that are defined but never
+    referenced anywhere in the workspace. This helps clean up unused localization
+    and reduce file size.
+
+    Args:
+        doc: The text document being validated (must be .yml file)
+        index: Document index containing localization references
+
+    Returns:
+        List of CK3604 diagnostics for orphaned keys
+
+    Example:
+        >>> # localization file defines "old_event.001.t" but it's never used
+        >>> diagnostics = collect_orphaned_localization_diagnostics(doc, index)
+        >>> diagnostics[0].code
+        'CK3604'
+    """
+    from .localization import create_unused_key_diagnostic
+    import re
+
+    diagnostics = []
+
+    # Only run on .yml localization files
+    if not doc.uri.endswith('.yml') or '/localization/' not in doc.uri:
+        return diagnostics
+
+    # Skip if no index (can't validate without knowing references)
+    if not index:
+        return diagnostics
+
+    # Parse the localization file to find all keys defined in THIS file
+    content = doc.source
+    key_pattern = re.compile(r'^\s*([a-z_][a-z0-9_\.]*):(\d+)\s+"', re.IGNORECASE | re.MULTILINE)
+
+    for match in key_pattern.finditer(content):
+        key_name = match.group(1)
+        line_num = content[:match.start()].count('\n')
+
+        # Check if this key is referenced anywhere in workspace
+        references = index.get_localization_references(key_name)
+
+        if not references or len(references) == 0:
+            # Key is defined but never used - CK3604
+            loc_diag = create_unused_key_diagnostic(
+                key=key_name,
+                line=line_num,
+                start_char=match.start() - content.rfind('\n', 0, match.start()) - 1,
+                end_char=match.start() - content.rfind('\n', 0, match.start()) - 1 + len(key_name)
+            )
+
+            # Convert to LSP diagnostic
+            severity_map = {
+                "error": types.DiagnosticSeverity.Error,
+                "warning": types.DiagnosticSeverity.Warning,
+                "information": types.DiagnosticSeverity.Information,
+                "hint": types.DiagnosticSeverity.Hint,
+            }
+
+            lsp_diag = types.Diagnostic(
+                range=types.Range(
+                    start=types.Position(line=loc_diag.line, character=loc_diag.start_char),
+                    end=types.Position(line=loc_diag.line, character=loc_diag.end_char)
+                ),
+                severity=severity_map.get(loc_diag.severity, types.DiagnosticSeverity.Information),
+                code=loc_diag.code,
+                message=loc_diag.message,
+                source="ck3-language-server"
+            )
+            diagnostics.append(lsp_diag)
+
+    return diagnostics
+
+
 def collect_all_diagnostics(
     doc: TextDocument,
     ast: List[CK3Node],
@@ -1181,12 +1261,18 @@ def collect_all_diagnostics(
                 logger.error(f"Error in decision group localization check: {e}", exc_info=True)
 
         # Localization validation (CK3600-CK3604) - Issue #33
-        # Check for missing localization keys in script files
-        if index and not doc.uri.endswith('.yml'):
+        if index:
             try:
-                loc_diagnostics = collect_missing_localization_diagnostics(doc, ast, index)
-                diagnostics.extend(loc_diagnostics)
-                logger.debug(f"Localization validation found {len(loc_diagnostics)} diagnostics")
+                if doc.uri.endswith('.yml') and '/localization/' in doc.uri:
+                    # CK3604: Check for orphaned keys in .yml files
+                    orphaned_diags = collect_orphaned_localization_diagnostics(doc, index)
+                    diagnostics.extend(orphaned_diags)
+                    logger.debug(f"Orphaned key check found {len(orphaned_diags)} diagnostics")
+                else:
+                    # CK3600: Check for missing keys in script files
+                    missing_diags = collect_missing_localization_diagnostics(doc, ast, index)
+                    diagnostics.extend(missing_diags)
+                    logger.debug(f"Missing key check found {len(missing_diags)} diagnostics")
             except Exception as e:
                 logger.error(f"Error in localization validation: {e}", exc_info=True)
 

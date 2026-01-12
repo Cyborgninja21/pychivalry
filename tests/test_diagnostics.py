@@ -532,3 +532,133 @@ class TestLocalizationValidation:
         ck3600_diags = [d for d in all_diagnostics if d.code == "CK3600"]
         assert len(ck3600_diags) == 1
         assert "missing.key" in ck3600_diags[0].message
+
+
+class TestOrphanedLocalizationValidation:
+    """Tests for orphaned localization key validation (Issue #33, CK3604)."""
+
+    def test_orphaned_key_diagnostic(self):
+        """Detects orphaned (unused) localization keys (CK3604)."""
+        from pychivalry.diagnostics import collect_orphaned_localization_diagnostics
+
+        # Localization file with unused key
+        text = """l_english:
+ used_key:0 "This is used"
+ orphaned_key:0 "This is never used"
+ another_used_key:0 "Also used"
+"""
+        doc = TextDocument(uri="file:///localization/english/test_l_english.yml", source=text)
+
+        # Create index with references for only some keys
+        index = DocumentIndex()
+        index.localization["used_key"] = ("This is used", doc.uri, 1)
+        index.localization["orphaned_key"] = ("This is never used", doc.uri, 2)
+        index.localization["another_used_key"] = ("Also used", doc.uri, 3)
+
+        # Add references for used keys
+        index._track_localization_reference("used_key", "file:///test.txt", 10, 5, "title")
+        index._track_localization_reference("another_used_key", "file:///test.txt", 11, 5, "desc")
+
+        diagnostics = collect_orphaned_localization_diagnostics(doc, index)
+
+        # Should have one orphaned key diagnostic
+        orphaned_diags = [d for d in diagnostics if d.code == "CK3604"]
+        assert len(orphaned_diags) == 1
+        assert "orphaned_key" in orphaned_diags[0].message
+
+    def test_all_keys_used_no_diagnostic(self):
+        """No diagnostic when all keys are used."""
+        from pychivalry.diagnostics import collect_orphaned_localization_diagnostics
+
+        text = """l_english:
+ used_key:0 "This is used"
+"""
+        doc = TextDocument(uri="file:///localization/english/test_l_english.yml", source=text)
+
+        index = DocumentIndex()
+        index.localization["used_key"] = ("This is used", doc.uri, 1)
+        index._track_localization_reference("used_key", "file:///test.txt", 10, 5, "title")
+
+        diagnostics = collect_orphaned_localization_diagnostics(doc, index)
+
+        # Should have no orphaned diagnostics
+        assert len(diagnostics) == 0
+
+    def test_only_runs_on_yml_files(self):
+        """Orphaned key check only runs on .yml files."""
+        from pychivalry.diagnostics import collect_orphaned_localization_diagnostics
+
+        text = """test_mod.0001 = {
+    title = test.key
+}"""
+        doc = TextDocument(uri="file:///events/test.txt", source=text)
+        index = DocumentIndex()
+
+        diagnostics = collect_orphaned_localization_diagnostics(doc, index)
+
+        # Should not run on .txt files
+        assert len(diagnostics) == 0
+
+    def test_only_runs_in_localization_folder(self):
+        """Orphaned key check only runs in localization/ folder."""
+        from pychivalry.diagnostics import collect_orphaned_localization_diagnostics
+
+        text = """l_english:
+ some_key:0 "Text"
+"""
+        # Not in localization folder
+        doc = TextDocument(uri="file:///other/test.yml", source=text)
+        index = DocumentIndex()
+
+        diagnostics = collect_orphaned_localization_diagnostics(doc, index)
+
+        # Should not run outside localization folder
+        assert len(diagnostics) == 0
+
+    def test_multiple_orphaned_keys(self):
+        """Detects multiple orphaned keys."""
+        from pychivalry.diagnostics import collect_orphaned_localization_diagnostics
+
+        text = """l_english:
+ orphan1:0 "Unused 1"
+ orphan2:0 "Unused 2"
+ orphan3:0 "Unused 3"
+"""
+        doc = TextDocument(uri="file:///localization/english/test_l_english.yml", source=text)
+
+        index = DocumentIndex()
+        index.localization["orphan1"] = ("Unused 1", doc.uri, 1)
+        index.localization["orphan2"] = ("Unused 2", doc.uri, 2)
+        index.localization["orphan3"] = ("Unused 3", doc.uri, 3)
+        # No references added
+
+        diagnostics = collect_orphaned_localization_diagnostics(doc, index)
+
+        # Should find all 3 orphaned keys
+        assert len(diagnostics) == 3
+        all_messages = [d.message for d in diagnostics]
+        assert any("orphan1" in msg for msg in all_messages)
+        assert any("orphan2" in msg for msg in all_messages)
+        assert any("orphan3" in msg for msg in all_messages)
+
+    def test_integration_with_collect_all_diagnostics_yml(self):
+        """Orphaned key validation integrates with main diagnostics for .yml files."""
+        text = """l_english:
+ orphaned_key:0 "Never used"
+"""
+        doc = TextDocument(uri="file:///localization/english/test_l_english.yml", source=text)
+
+        # Create index (with key defined but no references)
+        index = DocumentIndex()
+        index.localization["orphaned_key"] = ("Never used", doc.uri, 1)
+
+        # For .yml files, we pass empty AST since they don't have CK3 syntax
+        ast = []
+
+        # Run full diagnostics
+        all_diagnostics = collect_all_diagnostics(doc, ast, index)
+
+        # Should include CK3604 diagnostic
+        ck3604_diags = [d for d in all_diagnostics if d.code == "CK3604"]
+        assert len(ck3604_diags) == 1
+        assert "orphaned_key" in ck3604_diags[0].message
