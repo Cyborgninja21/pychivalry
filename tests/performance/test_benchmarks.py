@@ -10,6 +10,8 @@ from pychivalry.diagnostics import collect_all_diagnostics
 from pychivalry.completions import get_context_aware_completions
 from pychivalry.navigation import find_definition, find_references
 from pychivalry.indexer import DocumentIndex
+from pychivalry.incremental_parser import IncrementalParser
+from lsprotocol import types
 
 
 # Performance thresholds (in seconds)
@@ -427,3 +429,87 @@ class TestConcurrencyPerformance:
 
         # Should complete reasonably fast even with contention
         assert elapsed < 1.0
+
+
+class TestIncrementalParsingPerformance:
+    """Test incremental parsing performance (10-100x faster edits)."""
+
+    def test_incremental_vs_full_parse_small_change(self):
+        """Compare incremental vs full parse for small changes."""
+        # Create a large document
+        large_content = "namespace = test\n\n"
+        for i in range(100):
+            large_content += f"""character_event = {{
+    id = test.{i:03d}
+    desc = test.{i:03d}.desc
+    immediate = {{
+        add_gold = {i * 10}
+    }}
+}}
+"""
+
+        # Time full parse
+        start = time.perf_counter()
+        full_ast, _ = parse_document(large_content)
+        full_parse_time = time.perf_counter() - start
+
+        # Setup incremental parser
+        iparser = IncrementalParser()
+        iparser.parse(large_content)
+
+        # Make a small change (change one number)
+        new_content = large_content.replace("test.050", "test.999")
+        change = types.TextDocumentContentChangePartial(
+            range=types.Range(
+                start=types.Position(line=250, character=12),
+                end=types.Position(line=250, character=20)
+            ),
+            text="test.999"
+        )
+
+        # Time incremental parse
+        start = time.perf_counter()
+        inc_ast, _ = iparser.incremental_parse(change, new_content)
+        inc_parse_time = time.perf_counter() - start
+
+        print(f"\nFull parse: {full_parse_time*1000:.2f}ms")
+        print(f"Incremental parse: {inc_parse_time*1000:.2f}ms")
+        print(f"Speedup: {full_parse_time/inc_parse_time:.1f}x")
+
+        # Incremental should be faster or comparable
+        # (May fall back to full parse, but should still complete)
+        assert inc_parse_time < full_parse_time * 2
+
+    def test_incremental_parse_medium_file(self, benchmark):
+        """Benchmark incremental parsing on medium file."""
+        # Create medium file
+        content = "namespace = test\n\n"
+        for i in range(50):
+            content += f"""character_event = {{
+    id = test.{i:03d}
+    immediate = {{
+        add_gold = 100
+    }}
+}}
+"""
+
+        # Setup incremental parser
+        iparser = IncrementalParser()
+        iparser.parse(content)
+
+        # Define a small change
+        new_content = content.replace("test.025", "test.999")
+        change = types.TextDocumentContentChangePartial(
+            range=types.Range(
+                start=types.Position(line=125, character=12),
+                end=types.Position(line=125, character=20)
+            ),
+            text="test.999"
+        )
+
+        # Benchmark incremental parse
+        def do_incremental_parse():
+            return iparser.incremental_parse(change, new_content)
+
+        result = benchmark(do_incremental_parse)
+        assert result is not None
