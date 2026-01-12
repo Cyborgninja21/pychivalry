@@ -198,6 +198,17 @@ Validates CK3 scripts against Paradox modding conventions and common pitfalls.
 | **CK3976** | Error | Effect in any_ | Effects in `any_*` iterators (trigger-only) |
 | **CK3977** | Information | every_ without limit | `every_*` affecting all entries without filter |
 
+### Namespace & Event ID Validation (CK34xx)
+
+| Code | Severity | Check | Description |
+|------|----------|-------|-------------|
+| **CK3400** | Error | Missing namespace | File has events but no `namespace` declaration |
+| **CK3401** | Error | Event ID mismatch | Event ID doesn't use declared namespace |
+| **CK3402** | Warning | Event ID exceeds 9999 | ID `>9999` causes buggy event calling in CK3 |
+| **CK3403** | Error | Invalid namespace characters | Namespace contains `.` or non-alphanumeric |
+| **CK3404** | Error | Duplicate event ID | Same event ID defined multiple times in file |
+| **CK3406** | Error | Invalid event ID format | Not in `namespace.number` format |
+
 ### Opinion Modifier Issues (CK36xx)
 
 | Code | Severity | Check | Description |
@@ -222,6 +233,31 @@ Validates CK3 scripts against Paradox modding conventions and common pitfalls.
 ### Example Errors
 
 ```
+# CK3400: Missing namespace
+my_mod.0001 = {
+    type = character_event  # ERROR: File has events but no namespace declaration
+}
+
+# CK3401: Namespace mismatch
+namespace = my_events
+other_namespace.0001 = {  # ERROR: Uses 'other_namespace' but declared 'my_events'
+    type = character_event
+}
+
+# CK3402: Event ID exceeds 9999
+namespace = my_events
+my_events.10001 = {  # WARNING: IDs > 9999 cause buggy event calling
+    type = character_event
+}
+
+# CK3403: Invalid namespace
+namespace = my.events  # ERROR: Contains invalid character '.'
+
+# CK3404: Duplicate event ID
+namespace = my_events
+my_events.0001 = { type = character_event }
+my_events.0001 = { type = letter_event }  # ERROR: Duplicate ID
+
 # CK3976: Effect in any_ iterator
 any_vassal = {
     add_gold = 100  # ERROR: any_* is trigger-only; use every_* or random_*
@@ -321,26 +357,26 @@ config = DiagnosticConfig(
 diagnostics = collect_all_diagnostics(doc, ast, index, config)
 ```
 
-### Phase 1 & 2 Implementation Status
+### Phase 1-3 Implementation Status
 
-**✅ Completed (55 diagnostic codes implemented):**
+**✅ Completed (61 diagnostic codes implemented):**
 
 - **Event Structure Validation**: All CK3760-CK3769 checks active
 - **Portrait Validation**: CK3420-CK3422 implemented (animation list needs expansion)
 - **Theme Validation**: CK3430 implemented (theme list needs expansion)
 - **Description Validation**: CK3440-CK3441 implemented
 - **Option Validation**: CK3450 implemented
+- **Namespace & ID Validation**: CK3400-CK3406 implemented ✅ (Phase 3 complete)
 - **All base checks**: Syntax, semantic, scope, style, timing, etc.
 
-**🔴 Not Yet Implemented (33+ planned checks):**
+**🔴 Not Yet Implemented (27+ planned checks):**
 
-- Namespace & ID validation (CK3400-CK3406) - Phase 3
 - Trigger extensions (CK3510-CK3515) - Phase 4
 - On action validation (CK3500-CK3508) - Phase 9
-- After block validation (CK3520-CK3521) - Phase 11
+- After block validation (CK3520-CK3521) - Phase 11 (partially done)
 - Advanced desc/option checks - Phases 7-8
 - Localization validation (CK3600-CK3603) - Phase 10
-- AI chance validation (CK3610-CK3614) - Phase 12
+- AI chance validation (CK3610-CK3614) - Phase 12 (partially done)
 
 See [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) for detailed roadmap.
 
@@ -425,6 +461,7 @@ timing_config = ScopeTimingConfig(
 | CK3101-CK3103 | Semantic (effects/triggers) | `diagnostics.py` |
 | CK3201-CK3203 | Scope validation | `diagnostics.py` |
 | CK3301-CK3345 | Style/formatting | `style_checks.py` |
+| CK3400-CK3406 | Namespace & event ID validation | `paradox_checks.py` |
 | CK3550-CK3555 | Scope timing | `scope_timing.py` |
 | CK3656 | Opinion modifiers | `paradox_checks.py` |
 | CK3760-CK3768 | Event structure | `paradox_checks.py` |

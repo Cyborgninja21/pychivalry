@@ -519,3 +519,72 @@ def suggest_event_id_format(namespace: str) -> List[str]:
         f"{namespace}.0100",
         f"{namespace}.1000",
     ]
+
+
+def is_valid_namespace(namespace: str) -> bool:
+    """
+    Check if a namespace contains only valid characters.
+
+    Valid namespaces must:
+    - Contain only alphanumeric characters and underscores
+    - NOT contain periods (.) which would conflict with event ID format
+
+    Args:
+        namespace: The namespace string to validate
+
+    Returns:
+        True if namespace is valid, False otherwise
+
+    Examples:
+        >>> is_valid_namespace('my_mod')
+        True
+
+        >>> is_valid_namespace('my.mod')
+        False
+
+        >>> is_valid_namespace('my-mod')
+        False
+    """
+    if not namespace:
+        return False
+
+    # Check each character - must be alphanumeric or underscore
+    for char in namespace:
+        if not (char.isalnum() or char == '_'):
+            return False
+
+    return True
+
+
+def extract_event_number(event_id: str) -> Optional[int]:
+    """
+    Extract the numeric portion from an event ID.
+
+    Args:
+        event_id: The event ID (e.g., 'my_mod.0001')
+
+    Returns:
+        The numeric portion as an integer, or None if invalid
+
+    Examples:
+        >>> extract_event_number('my_mod.0001')
+        1
+
+        >>> extract_event_number('my_mod.9999')
+        9999
+
+        >>> extract_event_number('my_mod.10001')
+        10001
+
+        >>> extract_event_number('invalid')
+        None
+    """
+    namespace, number_str = parse_event_id(event_id)
+
+    if namespace is None or number_str is None:
+        return None
+
+    try:
+        return int(number_str)
+    except ValueError:
+        return None
