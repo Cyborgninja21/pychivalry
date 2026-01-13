@@ -1,0 +1,54 @@
+---
+task_ref: "Task 1.1 - Fix Index Channel Notification Bug"
+agent_assignment: "Agent_Infrastructure"
+memory_log_path: ".apm/Memory/Phase_01_Foundation_Blockers/Task_1_1_Fix_Index_Channel_Notification_Bug.md"
+execution_type: "single-step"
+dependency_context: false
+ad_hoc_delegation: false
+---
+
+# APM Task Assignment: Fix Index Channel Notification Bug
+
+## Task Reference
+Implementation Plan: **Task 1.1 - Fix Index Channel Notification Bug** assigned to **Agent_Infrastructure**
+
+## Objective
+Resolve GitHub #59 where `CK3: Index` output channel doesn't receive notifications from Python server.
+
+## Detailed Instructions
+Complete all items in one response:
+
+1. **Review server-side notification code:**
+   - Examine `pychivalry/server.py` functions `log_index()` and `_scan_workspace_folders_async()` 
+   - Understand when and how index notifications are sent to the client
+
+2. **Review client-side notification handling:**
+   - Examine `vscode-extension/src/extension.ts` notification handler registration
+   - Identify timing of handler registration relative to `did_open` and server initialization
+   - Compare with the working log watcher notification pattern for reference
+
+3. **Identify root cause:**
+   - Likely race condition: notifications sent before client connection fully established
+   - Document the specific timing issue discovered
+
+4. **Implement fix:**
+   - Options: buffer notifications until client connection confirmed, delay index logging, or adjust registration timing
+   - Apply the most appropriate solution based on findings
+
+5. **Verify fix:**
+   - Test that `CK3: Index` channel now receives workspace scanning output
+   - Confirm no regression in other notification channels
+
+## Expected Output
+- **Deliverables:** Working index channel notifications; updated `server.py` and/or `extension.ts`
+- **Success criteria:** `CK3: Index` output channel displays workspace scanning notifications when extension activates
+- **File locations:** `pychivalry/server.py`, `vscode-extension/src/extension.ts` (one or both modified)
+
+## Memory Logging
+Upon completion, you **MUST** log work in: `.apm/Memory/Phase_01_Foundation_Blockers/Task_1_1_Fix_Index_Channel_Notification_Bug.md`
+Follow `.apm/guides/Memory_Log_Guide.md` instructions.
+
+## Reporting Protocol
+After logging, you **MUST** output a **Final Task Report** code block.
+- **Format:** Use the exact template provided in your `.github/prompts/apm-3-initiate-implementation.prompt.md` instructions.
+- **Perspective:** Write it from the User's perspective so they can copy-paste it back to the Manager.

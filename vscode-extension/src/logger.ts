@@ -5,11 +5,11 @@ import * as vscode from 'vscode';
  */
 export enum LogCategory {
     Server = 'Server',
+    Index = 'Index',
     Debug = 'Debug',
     Commands = 'Commands',
     Trace = 'Trace',
     Performance = 'Performance',
-    GameLogs = 'GameLogs',
 }
 
 /**
@@ -20,7 +20,7 @@ export class CK3Logger {
     private channels: Map<LogCategory, vscode.OutputChannel> = new Map();
     private context: vscode.ExtensionContext | undefined;
 
-    constructor() {}
+    constructor() { }
 
     /**
      * Initialize the logger with the extension context.
@@ -31,8 +31,8 @@ export class CK3Logger {
 
         // Create primary channels (always created)
         this.createChannel(LogCategory.Server, 'CK3: Server');
+        this.createChannel(LogCategory.Index, 'CK3: Index');
         this.createChannel(LogCategory.Commands, 'CK3: Commands');
-        this.createChannel(LogCategory.GameLogs, 'CK3: Game Logs');
 
         // Create trace channel (will be used when tracing enabled)
         this.createChannel(LogCategory.Trace, 'CK3: Trace');
@@ -140,6 +140,24 @@ export class CK3Logger {
     logPerformance(message: string): void {
         if (this.channels.has(LogCategory.Performance)) {
             this.log(LogCategory.Performance, message);
+        }
+    }
+
+    /**
+     * Log a message to the Index channel.
+     * Use for workspace scanning and indexing output.
+     */
+    logIndex(message: string): void {
+        this.log(LogCategory.Index, message);
+    }
+
+    /**
+     * Append multiple lines to Index channel (for scan results).
+     */
+    appendIndexLines(lines: string[]): void {
+        const channel = this.channels.get(LogCategory.Index);
+        if (channel) {
+            lines.forEach((line) => channel.appendLine(line));
         }
     }
 

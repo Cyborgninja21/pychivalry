@@ -99,6 +99,7 @@ const logChannels = {
     patterns: null as vscode.OutputChannel | null,
     traitExtraction: null as vscode.OutputChannel | null,
     modDiscovery: null as vscode.OutputChannel | null,
+    allDataExtraction: null as vscode.OutputChannel | null,
 };
 
 function getLogChannel(type: keyof typeof logChannels, name: string): vscode.OutputChannel {
@@ -247,7 +248,7 @@ async function extractTraitData(context: vscode.ExtensionContext) {
         // Ask user to confirm and provide CK3 installation path
         const proceed = await vscode.window.showInformationMessage(
             'This will extract trait data from your Crusader Kings III installation. ' +
-                'The extracted data is for personal use only and not redistributed. Continue?',
+            'The extracted data is for personal use only and not redistributed. Continue?',
             'Yes',
             'No'
         );
@@ -316,7 +317,7 @@ async function extractTraitData(context: vscode.ExtensionContext) {
         if (yamlFiles.length > 0) {
             const result = await vscode.window.showInformationMessage(
                 `✅ Successfully extracted ${yamlFiles.length} trait data files! ` +
-                    `Trait validation is now enabled. Restart the language server for changes to take effect.`,
+                `Trait validation is now enabled. Restart the language server for changes to take effect.`,
                 'Restart Language Server',
                 'Later'
             );
@@ -353,7 +354,7 @@ async function extractAllGameData(context: vscode.ExtensionContext) {
         // Ask user to confirm and provide CK3 installation path
         const proceed = await vscode.window.showInformationMessage(
             'This will extract all game data (themes, backgrounds, environments, on_actions, traits) from your CK3 installation. ' +
-                'The extracted data is for personal use only. Continue?',
+            'The extracted data is for personal use only. Continue?',
             'Yes',
             'No'
         );
@@ -423,7 +424,7 @@ async function extractAllGameData(context: vscode.ExtensionContext) {
         if (existingFiles.length > 0) {
             const result = await vscode.window.showInformationMessage(
                 `✅ Successfully extracted ${existingFiles.length} data file(s)! ` +
-                    `(${existingFiles.join(', ')}). Restart the language server for changes to take effect.`,
+                `(${existingFiles.join(', ')}). Restart the language server for changes to take effect.`,
                 'Restart Language Server',
                 'Later'
             );
@@ -448,7 +449,7 @@ async function extractAllGameData(context: vscode.ExtensionContext) {
  */
 async function discoverModData(context: vscode.ExtensionContext) {
     const outputChannel = getLogChannel('modDiscovery', 'CK3: Mod Discovery');
-    
+
     // Show quick pick FIRST, before showing output channel (to avoid focus issues)
     const action = await vscode.window.showQuickPick(
         [
@@ -519,7 +520,7 @@ async function discoverModData(context: vscode.ExtensionContext) {
         if (!fs.existsSync(scriptPath)) {
             vscode.window.showErrorMessage(
                 `Mod discovery script not found at: ${scriptPath}\n` +
-                    'Please ensure pychivalry is properly installed.'
+                'Please ensure pychivalry is properly installed.'
             );
             return;
         }
@@ -683,14 +684,14 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
                     category: LogCategory.Server,
                 },
                 {
+                    label: '$(list-tree) Index Log',
+                    description: 'Workspace scanning and indexing',
+                    category: LogCategory.Index,
+                },
+                {
                     label: '$(terminal) Command Results',
                     description: 'Output from CK3 commands',
                     category: LogCategory.Commands,
-                },
-                {
-                    label: '$(file-text) Game Logs',
-                    description: 'Real-time game.log monitoring',
-                    category: LogCategory.GameLogs,
                 },
                 {
                     label: '$(debug) LSP Trace',
@@ -1146,16 +1147,14 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
                     logger.logServer(`Log watcher started: ${result.path}`);
                     logger.logServer(`Monitoring files: ${result.watching?.join(', ')}`);
 
-                    // Show welcome message in GameLogs channel
-                    const gameLogsChannel = logger.getChannel(LogCategory.GameLogs);
-                    if (gameLogsChannel) {
-                        gameLogsChannel.appendLine('='.repeat(80));
-                        gameLogsChannel.appendLine('CK3 Game Log Watcher Started');
-                        gameLogsChannel.appendLine(`Monitoring: ${result.watching?.join(', ')}`);
-                        gameLogsChannel.appendLine(`Log path: ${result.path}`);
-                        gameLogsChannel.appendLine('='.repeat(80));
-                        gameLogsChannel.appendLine('');
-                    }
+                    // Show welcome message in combined log channel (CK3L: Live Monitor)
+                    const combinedChannel = getLogChannel('combined', 'CK3L: Live Monitor');
+                    combinedChannel.appendLine('='.repeat(80));
+                    combinedChannel.appendLine('CK3 Game Log Watcher Started');
+                    combinedChannel.appendLine(`Monitoring: ${result.watching?.join(', ')}`);
+                    combinedChannel.appendLine(`Log path: ${result.path}`);
+                    combinedChannel.appendLine('='.repeat(80));
+                    combinedChannel.appendLine('');
 
                     vscode.window.showInformationMessage(
                         `Now monitoring CK3 logs: ${result.watching?.length} files`
@@ -1286,11 +1285,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
                     command: 'ck3.clearGameLogs',
                 });
 
-                // Also clear the output channel
-                const channel = logger.getChannel(LogCategory.GameLogs);
-                if (channel) {
-                    channel.clear();
-                }
+                // Also clear the combined log output channel (CK3L: Live Monitor)
+                const combinedChannel = getLogChannel('combined', 'CK3L: Live Monitor');
+                combinedChannel.clear();
 
                 vscode.window.showInformationMessage('Game log diagnostics cleared');
             } catch (error) {
@@ -1556,8 +1553,8 @@ async function startServer(context: vscode.ExtensionContext): Promise<void> {
                         const fileColor = result.log_file.includes('error')
                             ? COLORS.brightRed
                             : result.log_file.includes('exception')
-                              ? COLORS.brightMagenta
-                              : COLORS.brightCyan;
+                                ? COLORS.brightMagenta
+                                : COLORS.brightCyan;
                         lines.push(
                             `  ${COLORS.dim}📁 From:${COLORS.reset} ${fileColor}${result.log_file}${COLORS.reset}`
                         );
@@ -1628,8 +1625,8 @@ async function startServer(context: vscode.ExtensionContext): Promise<void> {
                 const fileColor = params.log_file.includes('error')
                     ? COLORS.brightRed
                     : params.log_file.includes('exception')
-                      ? COLORS.brightMagenta
-                      : COLORS.brightCyan;
+                        ? COLORS.brightMagenta
+                        : COLORS.brightCyan;
                 channel.appendLine(
                     `  ${COLORS.dim}📁 From:${COLORS.reset} ${fileColor}${params.log_file}${COLORS.reset}`
                 );
@@ -1651,6 +1648,17 @@ async function startServer(context: vscode.ExtensionContext): Promise<void> {
 
         client.onNotification('ck3/logWatcherResumed', () => {
             logger.logServer('Log watcher resumed');
+        });
+
+        // Index log notification handlers (workspace scanning & indexing output)
+        client.onNotification('ck3/indexLog', (params: { message: string }) => {
+            logger.logServer(`[Index notification received] ${params.message}`);
+            logger.logIndex(params.message);
+        });
+
+        client.onNotification('ck3/indexLog/bulk', (params: { lines: string[] }) => {
+            logger.logServer(`[Index bulk notification received] ${params.lines.length} lines`);
+            logger.appendIndexLines(params.lines);
         });
 
         // Register for disposal

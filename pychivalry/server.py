@@ -277,6 +277,58 @@ from .folding import get_folding_ranges
 logger = logging.getLogger(__name__)
 
 
+class CK3LogFormatter(logging.Formatter):
+    """
+    Custom log formatter for cleaner, more readable output.
+    
+    Format: [HH:MM:SS] LEVEL module: message
+    
+    Examples:
+        [10:30:45] INFO  server: Starting workspace scan...
+        [10:30:46] DEBUG indexer: Found 50 files
+    """
+    
+    # Map module names to short versions
+    MODULE_ALIASES = {
+        "pychivalry.server": "server",
+        "pychivalry.indexer": "index",
+        "pychivalry.parser": "parser",
+        "pychivalry.diagnostics": "diag",
+        "pychivalry.completions": "complete",
+        "pychivalry.hover": "hover",
+        "pychivalry.schema_loader": "schema",
+        "pychivalry.paradox_checks": "paradox",
+        "pychivalry.log_watcher": "logwatch",
+        "pychivalry.log_analyzer": "logwatch",
+        "pychivalry.log_diagnostics": "logdiag",
+        "pychivalry.threading": "thread",
+        "pychivalry.incremental_parser": "incparse",
+        "pychivalry.generic_rules_validator": "rules",
+        "pychivalry.icons": "icons",
+    }
+    
+    def format(self, record: logging.LogRecord) -> str:
+        # Short timestamp (HH:MM:SS)
+        timestamp = self.formatTime(record, "%H:%M:%S")
+        
+        # Short level name, padded
+        level = record.levelname[:5].ljust(5)
+        
+        # Short module name
+        module = self.MODULE_ALIASES.get(record.name, record.name.split(".")[-1])
+        
+        # Format the message
+        message = record.getMessage()
+        
+        # Include exception info if present
+        if record.exc_info:
+            if not record.exc_text:
+                record.exc_text = self.formatException(record.exc_info)
+            message = f"{message}\n{record.exc_text}"
+        
+        return f"[{timestamp}] {level} {module}: {message}"
+
+
 def configure_logging(level: str = "info") -> None:
     """
     Configure logging for the language server.
@@ -292,10 +344,19 @@ def configure_logging(level: str = "info") -> None:
     }
     log_level = level_map.get(level.lower(), logging.INFO)
 
+    # Create handler with custom formatter
+    handler = logging.StreamHandler()
+    handler.setFormatter(CK3LogFormatter())
+    
+    # Configure root logger
     logging.basicConfig(
         level=log_level,
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        handlers=[handler],
     )
+    
+    # Reduce noise from third-party libraries
+    logging.getLogger("pygls").setLevel(logging.WARNING)
+    logging.getLogger("asyncio").setLevel(logging.WARNING)
 
 
 class CK3LanguageServer(LanguageServer):
@@ -395,6 +456,19 @@ class CK3LanguageServer(LanguageServer):
         # Each document gets its own parser to maintain state across edits
         self._incremental_parsers: Dict[str, IncrementalParser] = {}
         self._incremental_parsers_lock = threading.Lock()
+
+        # =====================================================================
+        # Client Initialization Tracking (Fix for Index Channel Race Condition)
+        # =====================================================================
+
+        # Track whether the client has sent 'initialized' notification
+        # Custom notifications sent before this may be dropped by the client
+        self._client_initialized = False
+
+        # Buffer for index log messages sent before client is initialized
+        # These are flushed when 'initialized' notification is received
+        self._pending_index_logs: List[str] = []
+        self._pending_index_logs_lock = threading.Lock()
 
     # =====================================================================
     # Thread-Safe Document Access
@@ -705,6 +779,83 @@ class CK3LanguageServer(LanguageServer):
         except Exception:
             pass  # Ignore if not connected
 
+    def log_index(self, message: str):
+        """
+        Send an index log message to the client.
+
+        This sends a custom notification that the extension routes to
+        the Index output channel. Use for workspace scanning and
+        indexing progress messages.
+
+        Note: Messages are buffered until the client sends the 'initialized'
+        notification, to avoid a race condition where notifications are
+        sent before the client has registered its handlers.
+
+        Args:
+            message: The index log message
+        """
+        # Always log to server debug output for diagnostics
+        logger.debug(f"[Index] {message}")
+
+        # Buffer or send immediately based on client initialization state
+        if not self._client_initialized:
+            with self._pending_index_logs_lock:
+                self._pending_index_logs.append(message)
+            logger.debug(f"[Index] Buffered (client not initialized): {message}")
+            return
+
+        try:
+            self.protocol.notify("ck3/indexLog", {"message": message})
+        except Exception as e:
+            logger.warning(f"Failed to send index log notification: {e}")
+
+    def log_index_lines(self, lines: list):
+        """
+        Send multiple index log lines to the client.
+
+        Note: Messages are buffered until the client sends the 'initialized'
+        notification.
+
+        Args:
+            lines: List of log messages
+        """
+        # Buffer or send immediately based on client initialization state
+        if not self._client_initialized:
+            with self._pending_index_logs_lock:
+                self._pending_index_logs.extend(lines)
+            logger.debug(f"[Index] Buffered {len(lines)} lines (client not initialized)")
+            return
+
+        try:
+            self.protocol.notify("ck3/indexLog/bulk", {"lines": lines})
+        except Exception:
+            pass  # Ignore if not connected
+
+    def _flush_pending_index_logs(self):
+        """
+        Flush all buffered index log messages to the client.
+
+        Called when the client sends the 'initialized' notification,
+        indicating that it's ready to receive custom notifications.
+        """
+        with self._pending_index_logs_lock:
+            if not self._pending_index_logs:
+                return
+
+            pending = self._pending_index_logs.copy()
+            self._pending_index_logs.clear()
+
+        logger.debug(f"[Index] Flushing {len(pending)} buffered messages")
+
+        try:
+            # Send as bulk for efficiency
+            if len(pending) > 1:
+                self.protocol.notify("ck3/indexLog/bulk", {"lines": pending})
+            elif len(pending) == 1:
+                self.protocol.notify("ck3/indexLog", {"message": pending[0]})
+        except Exception as e:
+            logger.warning(f"Failed to flush index logs: {e}")
+
     # =====================================================================
     # Server Communication: Progress Reporting
     # =====================================================================
@@ -1001,8 +1152,7 @@ class CK3LanguageServer(LanguageServer):
                     task_id=f"parse:{uri}:{version}",
                     uri=uri,
                 )
-                loop = asyncio.get_event_loop()
-                ast, parse_errors = await loop.wrap_future(future)
+                ast, parse_errors = await asyncio.wrap_future(future)
 
                 # Check again if still current before updating
                 if self.get_document_version(uri) != version:
@@ -1030,7 +1180,7 @@ class CK3LanguageServer(LanguageServer):
                     task_id=f"syntax:{uri}:{version}",
                     uri=uri,
                 )
-                syntax_diags = await loop.wrap_future(future)
+                syntax_diags = await asyncio.wrap_future(future)
 
                 # Check if still current
                 if self.get_document_version(uri) != version:
@@ -1054,7 +1204,7 @@ class CK3LanguageServer(LanguageServer):
                     task_id=f"semantic:{uri}:{version}",
                     uri=uri,
                 )
-                semantic_diags = await loop.wrap_future(future)
+                semantic_diags = await asyncio.wrap_future(future)
 
                 # Check again before final publish
                 if self.get_document_version(uri) != version:
@@ -1208,6 +1358,10 @@ class CK3LanguageServer(LanguageServer):
             return
 
         logger.info("Starting workspace scan...")
+        self.log_index("═" * 60)
+        self.log_index("WORKSPACE SCAN")
+        self.log_index("═" * 60)
+        
         try:
             # Get workspace folders
             workspace_folders = []
@@ -1229,7 +1383,9 @@ class CK3LanguageServer(LanguageServer):
 
             if workspace_folders:
                 folder_count = len(workspace_folders)
-                logger.info(f"Scanning {folder_count} workspace folder(s): {workspace_folders}")
+                self.log_index(f"Scanning {folder_count} workspace folder(s):")
+                for folder in workspace_folders:
+                    self.log_index(f"  → {folder}")
 
                 # Perform the actual scan in thread pool with lock
                 # Pass the executor for parallel scanning (2-4x faster)
@@ -1241,16 +1397,35 @@ class CK3LanguageServer(LanguageServer):
                             workspace_folders, executor=self.thread_manager._cpu_pool
                         )
 
-                loop = asyncio.get_event_loop()
                 future = self.thread_manager.submit_cpu_bound(
                     scan_with_lock,
                     priority=TaskPriority.LOW,
                     task_id="workspace:scan",
                 )
-                await loop.wrap_future(future)
+                await asyncio.wrap_future(future)
 
                 # Notify user of scan results (thread-safe access)
                 with self._index_lock:
+                    # Detailed stats for Index channel
+                    self.log_index("")
+                    self.log_index("Scan Results:")
+                    self.log_index(f"  Events:              {len(self.index.events)}")
+                    self.log_index(f"  Namespaces:          {len(self.index.namespaces)}")
+                    self.log_index(f"  Scripted Effects:    {len(self.index.scripted_effects)}")
+                    self.log_index(f"  Scripted Triggers:   {len(self.index.scripted_triggers)}")
+                    self.log_index(f"  Script Values:       {len(self.index.script_values)}")
+                    self.log_index(f"  Localization Keys:   {len(self.index.localization)}")
+                    self.log_index(f"  Character Flags:     {len(self.index.character_flags)}")
+                    self.log_index(f"  Saved Scopes:        {len(self.index.saved_scopes)}")
+                    self.log_index(f"  Interactions:        {len(self.index.character_interactions)}")
+                    self.log_index(f"  Modifiers:           {len(self.index.modifiers)}")
+                    self.log_index(f"  On-Actions:          {len(self.index.on_actions)}")
+                    self.log_index(f"  Opinion Modifiers:   {len(self.index.opinion_modifiers)}")
+                    self.log_index(f"  Scripted GUIs:       {len(self.index.scripted_guis)}")
+                    self.log_index("")
+                    self.log_index("═" * 60)
+                    
+                    # Summary for Server channel
                     stats = (
                         f"Indexed {len(self.index.events)} events, "
                         f"{len(self.index.scripted_effects)} effects, "
@@ -1258,14 +1433,15 @@ class CK3LanguageServer(LanguageServer):
                         f"{len(self.index.localization)} localization keys"
                     )
                 logger.info(stats)
-                self.log_message(stats, types.MessageType.Info)
             else:
+                self.log_index("⚠ No workspace folders found for scanning")
                 logger.warning("No workspace folders found for scanning")
 
             self._workspace_scanned = True
 
         except Exception as e:
             logger.error(f"Error scanning workspace folders: {e}", exc_info=True)
+            self.log_index(f"✗ Error: {str(e)}")
             self.notify_error(f"Failed to scan workspace: {str(e)}")
             self._workspace_scanned = True  # Don't retry on error
 
@@ -1388,6 +1564,33 @@ class CK3LanguageServer(LanguageServer):
 #   - name: Identifier for this language server
 #   - version: Server version (should match package version)
 server = CK3LanguageServer("ck3-language-server", "v0.1.0")
+
+
+@server.feature(types.INITIALIZED)
+def on_initialized(ls: CK3LanguageServer, params: types.InitializedParams):
+    """
+    Handle the 'initialized' notification from the client.
+
+    This notification is sent by the client after it has received the
+    InitializeResult from the server and has finished its own initialization.
+    At this point, the client is ready to receive custom notifications.
+
+    This handler:
+    1. Sets the _client_initialized flag to True
+    2. Flushes any buffered index log messages
+
+    This fixes the race condition where index notifications were sent
+    before the client had registered its notification handlers.
+
+    LSP Specification:
+        This is a notification from client to server, no response is expected.
+        The client sends this after processing the initialize result.
+    """
+    logger.info("Client initialized - ready for custom notifications")
+    ls._client_initialized = True
+
+    # Flush any index logs that were buffered during startup
+    ls._flush_pending_index_logs()
 
 
 @server.feature(types.TEXT_DOCUMENT_DID_OPEN)
@@ -3340,11 +3543,10 @@ async def validate_workspace_command(ls: CK3LanguageServer, *args: Any):
                 with ls._index_lock:
                     ls.index.scan_workspace(workspace_folders)
 
-            loop = asyncio.get_event_loop()
             future = ls.thread_manager.submit_cpu_bound(
                 scan_with_lock, priority=TaskPriority.LOW, task_id="validate:scan"
             )
-            await loop.wrap_future(future)
+            await asyncio.wrap_future(future)
 
         ls._workspace_scanned = True
 
