@@ -9,6 +9,11 @@ DIAGNOSTIC CODES:
     CK3554: Temporary scope used across events (lost between events)
     CK3555: Scope needed in triggered event but not passed
 
+    Enhanced Localization-Aware Checks (Issue #60):
+    CK3560: Scope used in desc localization but defined in immediate
+    CK3561: Scope used in title localization but defined in immediate
+    CK3562: Scope may be used in desc block but defined in immediate
+
 MODULE OVERVIEW:
     Validates the "Golden Rule" of CK3 event scripting: scopes created in
     `immediate` are NOT available in `trigger` or `desc` blocks because those
@@ -285,6 +290,264 @@ def _find_scope_reference_nodes(node: CK3Node, scope_name: str) -> List[CK3Node]
     return results
 
 
+# =============================================================================
+# LOCALIZATION SCOPE EXTRACTION (Issue #60 - Golden Rule Enhancement)
+# =============================================================================
+# These functions extract scope references from localization text to detect
+# when scopes created in immediate blocks are incorrectly referenced in desc/title
+# localization keys, which evaluate BEFORE immediate runs.
+
+
+def _extract_scopes_from_localization(
+    loc_key: str, index: Optional[DocumentIndex]
+) -> Set[str]:
+    """
+    Extract scope references from localization text.
+
+    Parses localization text to find scope references like:
+    - [scope:target.GetName] → "target"
+    - [scope:enemy.GetTitle] → "enemy"
+    - [actor.GetFirstName] → (skipped, built-in scope)
+
+    This is used to detect CK3560/CK3561 violations where a scope is created
+    in immediate but referenced in desc/title localization, which evaluates
+    before immediate runs.
+
+    Args:
+        loc_key: Localization key to look up (e.g., "my_event.001.desc")
+        index: DocumentIndex containing localization data
+
+    Returns:
+        Set of custom scope names (excludes built-in scopes like root, actor)
+
+    Examples:
+        >>> # Localization: my_event.001.desc:0 "[scope:target.GetName] approaches"
+        >>> scopes = _extract_scopes_from_localization("my_event.001.desc", index)
+        >>> scopes
+        {'target'}
+
+        >>> # Localization: my_event.002.t:0 "Meeting with [scope:vassal.GetTitle]"
+        >>> scopes = _extract_scopes_from_localization("my_event.002.t", index)
+        >>> scopes
+        {'vassal'}
+    """
+    if not index or not hasattr(index, "localization"):
+        return set()
+
+    # Look up the localization key in the index
+    if loc_key not in index.localization:
+        return set()
+
+    # Get the localization text (format: (text, file_uri, line_number))
+    loc_text, _, _ = index.localization[loc_key]
+
+    scopes = set()
+
+    # Pattern 1: [scope:name.Function] - Custom named scopes
+    # This is the format used for scopes saved via save_scope_as
+    pattern_named = r"\[scope:(\w+)\."
+    matches = re.findall(pattern_named, loc_text)
+    scopes.update(matches)
+
+    # Pattern 2: [name.Function] where name is NOT a built-in scope
+    # We need to filter out built-in scopes like ROOT, actor, etc.
+    pattern_bare = r"\[(\w+)\."
+    bare_matches = re.findall(pattern_bare, loc_text)
+
+    # Built-in scopes that don't require save_scope_as
+    # These are always available and should NOT trigger timing violations
+    BUILTIN_SCOPES = {
+        "root",
+        "this",
+        "prev",
+        "from",
+        "actor",
+        "recipient",
+        "liege",
+        "spouse",
+        "father",
+        "mother",
+        "killer",
+        "imprisoner",
+        "guardian",
+        "player",
+        "character",
+        "title",
+        "faith",
+        "culture",
+    }
+
+    # Only include scopes that are NOT built-in
+    for match in bare_matches:
+        if match.lower() not in BUILTIN_SCOPES:
+            # This might be a custom scope, but we can't be 100% sure
+            # For now, we'll be conservative and not include bare references
+            # Only explicit scope:name references are flagged
+            pass
+
+    return scopes
+
+
+def _get_localization_key_from_node(node: CK3Node) -> Optional[str]:
+    """
+    Extract the localization key from a desc/title node.
+
+    Handles various formats:
+    - desc = my_event.001.desc (simple assignment)
+    - desc = { first_valid = { ... } } (complex block - returns None)
+    - desc = { triggered_desc = { desc = key } } (finds nested key)
+
+    Args:
+        node: The desc or title node to extract from
+
+    Returns:
+        Localization key string, or None if not a simple key reference
+
+    Examples:
+        >>> node = CK3Node(key="desc", value="my_event.001.desc", ...)
+        >>> _get_localization_key_from_node(node)
+        'my_event.001.desc'
+
+        >>> node = CK3Node(key="desc", children=[...], ...)  # Complex block
+        >>> _get_localization_key_from_node(node)
+        None
+    """
+    # Simple case: desc = my_event.001.desc
+    if isinstance(node.value, str) and node.value:
+        # It's a direct string assignment
+        return node.value
+
+    # Complex case: desc = { ... }
+    # We need to look for triggered_desc blocks with desc fields
+    if node.children:
+        # Look for triggered_desc children
+        for child in node.children:
+            if child.key == "triggered_desc":
+                # Find desc field inside triggered_desc
+                for subchild in child.children:
+                    if subchild.key == "desc" and isinstance(subchild.value, str):
+                        return subchild.value
+
+    return None
+
+
+def check_desc_title_localization_timing(
+    event_node: CK3Node, index: Optional[DocumentIndex]
+) -> List[types.Diagnostic]:
+    """
+    Check for scope timing issues in desc/title localization (Issue #60).
+
+    This function implements the enhanced "Golden Rule" checks that parse
+    localization text to detect scopes created in immediate but referenced
+    in desc/title localization keys, which evaluate BEFORE immediate runs.
+
+    Detects:
+    - CK3560: Scope used in desc localization but defined in immediate
+    - CK3561: Scope used in title localization but defined in immediate
+
+    Why this matters:
+    Event evaluation order:
+        1. trigger = { }       <- Evaluated FIRST
+        2. desc/title          <- Evaluated SECOND (localization text parsed here)
+        3. immediate = { }     <- Runs THIRD (scopes created here)
+        4. options             <- Rendered FOURTH (scopes available)
+
+    Common bug pattern:
+        my_event.001 = {
+            desc = my_event.001.desc    # References scope:target in loc text
+            immediate = {
+                random_courtier = { save_scope_as = target }  # Too late!
+            }
+        }
+
+    Args:
+        event_node: The event AST node to check
+        index: DocumentIndex with localization data (required for this check)
+
+    Returns:
+        List of CK3560/CK3561 diagnostics for violations found
+
+    Examples:
+        >>> # Event with scope in desc localization
+        >>> diagnostics = check_desc_title_localization_timing(event, index)
+        >>> diagnostics[0].code
+        'CK3560'
+    """
+    diagnostics = []
+
+    # If no index provided, we can't check localization - skip silently
+    if not index:
+        return diagnostics
+
+    # Find immediate blocks to extract scopes defined there
+    immediate_blocks = [c for c in event_node.children if c.key == "immediate"]
+
+    # Extract all scopes defined in immediate via save_scope_as
+    scopes_in_immediate: Set[str] = set()
+    for imm_block in immediate_blocks:
+        scopes_in_immediate |= _extract_scope_definitions(imm_block)
+
+    # If no scopes defined in immediate, nothing to check
+    if not scopes_in_immediate:
+        return diagnostics
+
+    # ==========================================================================
+    # CK3560: Check desc blocks for scope references in localization
+    # ==========================================================================
+    desc_blocks = [c for c in event_node.children if c.key == "desc"]
+
+    for desc_block in desc_blocks:
+        # Extract localization key(s) from desc block
+        loc_key = _get_localization_key_from_node(desc_block)
+
+        if loc_key:
+            # Parse the localization text to find scope references
+            scopes_in_loc = _extract_scopes_from_localization(loc_key, index)
+
+            # Find scopes that are BOTH in localization AND defined in immediate
+            problematic = scopes_in_loc & scopes_in_immediate
+
+            for scope_name in problematic:
+                # Report CK3560 for each violation
+                diagnostics.append(
+                    create_timing_diagnostic(
+                        message=f"Scope 'scope:{scope_name}' created in immediate but used in desc localization '{loc_key}'. Desc evaluates BEFORE immediate runs. Pass scope from calling event or use variable check (var:).",
+                        node_range=desc_block.range,
+                        severity=types.DiagnosticSeverity.Error,
+                        code="CK3560",
+                    )
+                )
+
+    # ==========================================================================
+    # CK3561: Check title blocks for scope references in localization
+    # ==========================================================================
+    title_blocks = [c for c in event_node.children if c.key == "title"]
+
+    for title_block in title_blocks:
+        # Extract localization key from title block
+        loc_key = _get_localization_key_from_node(title_block)
+
+        if loc_key:
+            # Parse the localization text to find scope references
+            scopes_in_loc = _extract_scopes_from_localization(loc_key, index)
+
+            # Find scopes that are BOTH in localization AND defined in immediate
+            problematic = scopes_in_loc & scopes_in_immediate
+
+            for scope_name in problematic:
+                # Report CK3561 for each violation
+                diagnostics.append(
+                    create_timing_diagnostic(
+                        message=f"Scope 'scope:{scope_name}' created in immediate but used in title localization '{loc_key}'. Title evaluates BEFORE immediate runs. Pass scope from calling event or use variable check (var:).",
+                        node_range=title_block.range,
+                        severity=types.DiagnosticSeverity.Error,
+                        code="CK3561",
+                    )
+                )
+
+    return diagnostics
+
+
 def check_event_scope_timing(event_node: CK3Node) -> List[types.Diagnostic]:
     """
     Check a single event for scope timing issues.
@@ -513,6 +776,16 @@ def check_scope_timing(
                             or config.check_triggered_desc
                         ):
                             diagnostics.extend(check_event_scope_timing(node))
+
+                        # =======================================================
+                        # NEW: Issue #60 - Enhanced localization-aware checks
+                        # =======================================================
+                        # Check for scopes in desc/title localization that were
+                        # created in immediate (CK3560/CK3561)
+                        if config.check_desc_block:
+                            diagnostics.extend(
+                                check_desc_title_localization_timing(node, index)
+                            )
 
                         if config.check_variables:
                             diagnostics.extend(check_variable_timing(node))

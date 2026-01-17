@@ -359,7 +359,33 @@ diagnostics:
     severity: error
     category: gotchas
     message: "Character comparison '{expr}' may not work. Use '{scope} = {{ this = {target} }}'"
-    
+
+  # ============== Scope Timing - Golden Rule (CK355x-356x) ==============
+  # These diagnostics enforce CK3's "Golden Rule": scopes created in immediate
+  # are NOT available in trigger, desc, or title blocks because those blocks
+  # evaluate BEFORE immediate runs. This is the #1 source of bugs for new modders.
+
+  # CK3550-3555 are already defined in scope_timing.py module header
+  # Adding new codes for enhanced localization-aware scope timing checks
+
+  CK3560:
+    severity: error
+    category: scope
+    message: "Scope 'scope:{scope_name}' created in immediate but used in desc localization. Desc evaluates BEFORE immediate runs."
+    fix: "Pass scope from calling event, use variable check (var:), or move scope creation to parent event"
+
+  CK3561:
+    severity: error
+    category: scope
+    message: "Scope 'scope:{scope_name}' created in immediate but used in title localization. Title evaluates BEFORE immediate runs."
+    fix: "Pass scope from calling event, use variable check (var:), or move scope creation to parent event"
+
+  CK3562:
+    severity: warning
+    category: scope
+    message: "Scope 'scope:{scope_name}' created in immediate but may be used in desc block. Consider using triggered_desc with variable checks."
+    fix: "Use triggered_desc with var: checks, or pass scope from calling event"
+
   # ============== Story Cycles (STORY-xxx) ==============
   STORY-001:
     severity: error
