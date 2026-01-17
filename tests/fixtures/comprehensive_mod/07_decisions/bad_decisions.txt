@@ -1,0 +1,265 @@
+# Bad Decisions Examples
+# Demonstrates DECISION-001 to DECISION-004
+
+# ERROR DECISION-001: Missing ai_check_interval
+bad_decision_001 = {
+	picture = "gfx/interface/illustrations/decisions/decision_misc.dds"
+
+	desc = bad_decision_001_desc
+
+	is_shown = {
+		is_ruler = yes
+	}
+
+	is_valid = {
+		gold >= 100
+	}
+
+	effect = {
+		add_gold = 100
+		add_prestige = 50
+	}
+
+	# ERROR DECISION-001: Missing ai_check_interval
+	# Should have: ai_check_interval = 60
+
+	ai_potential = {
+		always = yes
+	}
+
+	ai_will_do = {
+		base = 100
+	}
+}
+
+# ERROR DECISION-002: Missing effect block
+bad_decision_002 = {
+	picture = "gfx/interface/illustrations/decisions/decision_misc.dds"
+
+	desc = bad_decision_002_desc
+
+	is_shown = {
+		is_ruler = yes
+	}
+
+	is_valid = {
+		gold >= 100
+	}
+
+	cost = {
+		gold = 100
+	}
+
+	# ERROR DECISION-002: Missing effect block
+	# Decision has no actual effect when taken
+
+	ai_check_interval = 60
+
+	ai_potential = {
+		always = yes
+	}
+
+	ai_will_do = {
+		base = 100
+	}
+}
+
+# ERROR DECISION-003: No is_shown or is_valid
+bad_decision_003 = {
+	picture = "gfx/interface/illustrations/decisions/decision_misc.dds"
+
+	desc = bad_decision_003_desc
+
+	# ERROR DECISION-003: Missing is_shown
+	# ERROR DECISION-003: Missing is_valid
+	# Decision will always be available to everyone
+
+	effect = {
+		add_gold = 100
+	}
+
+	ai_check_interval = 60
+
+	ai_potential = {
+		always = yes
+	}
+
+	ai_will_do = {
+		base = 100
+	}
+}
+
+# ERROR DECISION-004: Effects but no cost/validity check
+bad_decision_004 = {
+	picture = "gfx/interface/illustrations/decisions/decision_misc.dds"
+
+	desc = bad_decision_004_desc
+
+	is_shown = {
+		is_ruler = yes
+	}
+
+	# ERROR DECISION-004: is_valid exists but has no actual checks
+	is_valid = {
+		always = yes
+	}
+
+	# No cost field
+
+	# ERROR DECISION-004: Gives benefits with no cost or real requirements
+	effect = {
+		add_gold = 1000
+		add_prestige = 500
+		add_piety = 250
+	}
+
+	ai_check_interval = 60
+
+	ai_potential = {
+		always = yes
+	}
+
+	ai_will_do = {
+		base = 100
+	}
+}
+
+# Multiple errors combined
+bad_decision_all_errors = {
+	picture = "gfx/interface/illustrations/decisions/decision_misc.dds"
+
+	desc = bad_decision_all_errors_desc
+
+	# ERROR DECISION-003: No is_shown
+	# ERROR DECISION-003: No is_valid
+
+	# ERROR DECISION-002: No effect block
+
+	# ERROR DECISION-001: No ai_check_interval
+
+	# Has AI logic but nothing to check
+	ai_potential = {
+		always = yes
+	}
+
+	ai_will_do = {
+		base = 100
+	}
+}
+
+# ERROR DECISION-001: Missing ai_check_interval (but has AI logic)
+bad_decision_no_interval = {
+	picture = "gfx/interface/illustrations/decisions/decision_misc.dds"
+
+	desc = bad_decision_no_interval_desc
+
+	is_shown = {
+		is_ruler = yes
+	}
+
+	is_valid = {
+		gold >= 100
+	}
+
+	effect = {
+		add_prestige = 50
+	}
+
+	# ERROR DECISION-001: Has ai_potential and ai_will_do but no ai_check_interval
+	ai_potential = {
+		is_at_war = no
+	}
+
+	ai_will_do = {
+		base = 100
+
+		modifier = {
+			factor = 2
+			has_trait = ambitious
+		}
+	}
+}
+
+# ERROR DECISION-002: Effect block is empty
+bad_decision_empty_effect = {
+	picture = "gfx/interface/illustrations/decisions/decision_misc.dds"
+
+	desc = bad_decision_empty_effect_desc
+
+	is_shown = {
+		is_ruler = yes
+	}
+
+	is_valid = {
+		gold >= 100
+	}
+
+	cost = {
+		gold = 100
+	}
+
+	# ERROR DECISION-002: Empty effect block
+	effect = {
+	}
+
+	ai_check_interval = 60
+
+	ai_potential = {
+		always = yes
+	}
+
+	ai_will_do = {
+		base = 100
+	}
+}
+
+# ERROR DECISION-004: Free lunch decision
+bad_decision_free_lunch = {
+	picture = "gfx/interface/illustrations/decisions/decision_misc.dds"
+
+	desc = bad_decision_free_lunch_desc
+
+	is_shown = {
+		is_ruler = yes
+	}
+
+	# ERROR DECISION-004: No meaningful validation
+	is_valid = {
+		is_adult = yes # Always true if shown
+	}
+
+	# No cost
+
+	# ERROR DECISION-004: Huge benefits with no cost
+	effect = {
+		add_gold = 5000
+		add_prestige = 2000
+		add_piety = 1000
+		add_character_modifier = {
+			modifier = super_blessed
+			years = 100
+		}
+	}
+
+	ai_check_interval = 1 # AI checks every month!
+
+	ai_potential = {
+		always = yes
+	}
+
+	ai_will_do = {
+		base = 10000 # AI always takes this
+	}
+}
+
+# ERROR DECISION-003: Only has effect and picture
+bad_decision_minimal = {
+	picture = "gfx/interface/illustrations/decisions/decision_misc.dds"
+
+	# ERROR DECISION-003: No is_shown - available to everyone
+	# ERROR DECISION-003: No is_valid - no requirements
+	# ERROR DECISION-002: No effect block (only AI logic)
+	# ERROR DECISION-001: No ai_check_interval
+
+	desc = bad_decision_minimal_desc
+}

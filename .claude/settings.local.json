@@ -12,7 +12,8 @@
       "Bash(dir:*)",
       "Bash(git checkout:*)",
       "Bash(powershell -Command \"(Get-Content ''c:\\git\\pychivalry\\tests\\test_paradox_checks.py'' | Measure-Object -Line).Lines\")",
-      "Bash(gh issue edit:*)"
+      "Bash(gh issue edit:*)",
+      "Bash(mkdir:*)"
     ],
     "deny": [],
     "ask": []

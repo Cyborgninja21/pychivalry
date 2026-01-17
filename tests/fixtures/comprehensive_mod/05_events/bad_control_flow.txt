@@ -1,0 +1,344 @@
+# Bad Control Flow Examples
+# Demonstrates CK3510-CK3521 - Control flow validation errors
+
+namespace = events_bad_control
+
+# ERROR CK3510: trigger_else without trigger_if
+events_bad_control.0001 = {
+	type = character_event
+	title = events_bad_control.0001.t
+	desc = events_bad_control.0001.desc
+
+	left_portrait = root
+
+	trigger = {
+		is_adult = yes
+	}
+
+	immediate = {
+		# ERROR CK3510: trigger_else without preceding trigger_if
+		trigger_else = {
+			add_prestige = 50
+		}
+	}
+
+	option = {
+		name = events_bad_control.0001.a
+		add_gold = 100
+	}
+}
+
+# ERROR CK3511: Multiple trigger_else blocks
+events_bad_control.0002 = {
+	type = character_event
+	title = events_bad_control.0002.t
+	desc = events_bad_control.0002.desc
+
+	left_portrait = root
+
+	trigger = {
+		is_adult = yes
+	}
+
+	immediate = {
+		trigger_if = {
+			limit = {
+				gold >= 100
+			}
+			add_prestige = 100
+		}
+
+		trigger_else = {
+			add_prestige = 50
+		}
+
+		# ERROR CK3511: Only one trigger_else allowed per trigger_if
+		trigger_else = {
+			add_piety = 25
+		}
+	}
+
+	option = {
+		name = events_bad_control.0002.a
+		add_gold = 100
+	}
+}
+
+# ERROR CK3512: trigger_if missing limit
+events_bad_control.0003 = {
+	type = character_event
+	title = events_bad_control.0003.t
+	desc = events_bad_control.0003.desc
+
+	left_portrait = root
+
+	trigger = {
+		is_adult = yes
+	}
+
+	immediate = {
+		# ERROR CK3512: trigger_if requires limit block
+		trigger_if = {
+			add_gold = 100
+		}
+	}
+
+	option = {
+		name = events_bad_control.0003.a
+		add_prestige = 50
+	}
+}
+
+# ERROR CK3513: Empty trigger_if limit
+events_bad_control.0004 = {
+	type = character_event
+	title = events_bad_control.0004.t
+	desc = events_bad_control.0004.desc
+
+	left_portrait = root
+
+	trigger = {
+		is_adult = yes
+	}
+
+	immediate = {
+		trigger_if = {
+			# ERROR CK3513: Empty limit block
+			limit = {
+			}
+			add_gold = 100
+		}
+	}
+
+	option = {
+		name = events_bad_control.0004.a
+		add_prestige = 50
+	}
+}
+
+# CK3514: on_trigger_fail defined (INFO - not an error, just informational)
+events_bad_control.0005 = {
+	type = character_event
+	title = events_bad_control.0005.t
+	desc = events_bad_control.0005.desc
+
+	left_portrait = root
+
+	trigger = {
+		is_adult = yes
+	}
+
+	immediate = {
+		# CK3514: Custom failure handler present (informational)
+		on_trigger_fail = {
+			add_piety = 25
+		}
+
+		trigger_if = {
+			limit = {
+				gold >= 100
+			}
+			add_gold = -100
+			add_prestige = 100
+		}
+	}
+
+	option = {
+		name = events_bad_control.0005.a
+		add_gold = 100
+	}
+}
+
+# ERROR CK3515: Duplicate trigger conditions
+events_bad_control.0006 = {
+	type = character_event
+	title = events_bad_control.0006.t
+	desc = events_bad_control.0006.desc
+
+	left_portrait = root
+
+	trigger = {
+		# ERROR CK3515: Same condition checked twice
+		is_adult = yes
+		is_ruler = yes
+		is_adult = yes # Duplicate!
+	}
+
+	option = {
+		name = events_bad_control.0006.a
+		add_gold = 100
+	}
+}
+
+# ERROR CK3520: after block in hidden event
+events_bad_control.0007 = {
+	type = character_event
+	hidden = yes
+
+	trigger = {
+		is_adult = yes
+	}
+
+	immediate = {
+		add_gold = 100
+	}
+
+	# ERROR CK3520: after block ignored in hidden events
+	after = {
+		add_prestige = 50
+	}
+}
+
+# ERROR CK3521: after block without options
+events_bad_control.0008 = {
+	type = character_event
+	hidden = yes
+
+	trigger = {
+		is_adult = yes
+	}
+
+	immediate = {
+		add_gold = 100
+	}
+
+	# ERROR CK3521: after runs after player choice, but there are no options
+	after = {
+		add_prestige = 50
+	}
+}
+
+# Multiple control flow errors
+events_bad_control.0009 = {
+	type = character_event
+	title = events_bad_control.0009.t
+	desc = events_bad_control.0009.desc
+
+	left_portrait = root
+
+	trigger = {
+		is_adult = yes
+		# ERROR CK3515: Duplicate
+		is_adult = yes
+	}
+
+	immediate = {
+		# ERROR CK3510: trigger_else without trigger_if
+		trigger_else = {
+			add_gold = 50
+		}
+
+		trigger_if = {
+			# ERROR CK3512: Missing limit
+			add_prestige = 100
+		}
+
+		trigger_if = {
+			limit = {
+				gold >= 100
+			}
+			add_gold = -100
+		}
+
+		# ERROR CK3511: Multiple trigger_else blocks
+		trigger_else = {
+			add_piety = 25
+		}
+
+		trigger_else = {
+			add_piety = 10
+		}
+	}
+
+	option = {
+		name = events_bad_control.0009.a
+		add_gold = 100
+	}
+}
+
+# ERROR CK3512 + CK3513: trigger_if variations
+events_bad_control.0010 = {
+	type = character_event
+	title = events_bad_control.0010.t
+	desc = events_bad_control.0010.desc
+
+	left_portrait = root
+
+	trigger = {
+		is_adult = yes
+	}
+
+	immediate = {
+		# ERROR CK3512: No limit block at all
+		trigger_if = {
+			add_gold = 100
+		}
+
+		# ERROR CK3513: Empty limit
+		trigger_if = {
+			limit = {
+			}
+			add_prestige = 50
+		}
+	}
+
+	option = {
+		name = events_bad_control.0010.a
+		add_piety = 25
+	}
+}
+
+# ERROR CK3520 + CK3521: after block issues
+events_bad_control.0011 = {
+	type = character_event
+	hidden = yes # ERROR CK3520: Hidden event with after
+
+	trigger = {
+		is_adult = yes
+	}
+
+	immediate = {
+		add_gold = 100
+	}
+
+	# ERROR CK3520: Ignored in hidden event
+	# ERROR CK3521: No options to trigger after
+	after = {
+		add_prestige = 50
+	}
+}
+
+# ERROR CK3510: Standalone trigger_else
+events_bad_control.0012 = {
+	type = character_event
+	title = events_bad_control.0012.t
+	desc = events_bad_control.0012.desc
+
+	left_portrait = root
+
+	trigger = {
+		is_adult = yes
+	}
+
+	immediate = {
+		add_gold = 100
+
+		# ERROR CK3510: trigger_else with no matching trigger_if
+		trigger_else = {
+			add_prestige = 50
+		}
+
+		# This trigger_if comes AFTER trigger_else, so it doesn't match
+		trigger_if = {
+			limit = {
+				gold >= 200
+			}
+			add_piety = 25
+		}
+	}
+
+	option = {
+		name = events_bad_control.0012.a
+		add_gold = 50
+	}
+}

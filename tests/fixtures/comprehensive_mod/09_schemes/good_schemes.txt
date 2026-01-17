@@ -1,0 +1,87 @@
+# Good Schemes Examples
+# Demonstrates proper scheme structure
+
+# Example 1: Complete scheme with all fields
+murder_scheme = {
+	skill = intrigue
+	desc = murder_scheme_desc
+	icon = "gfx/interface/icons/schemes/murder.dds"
+	category = hostile
+	cooldown = { years = 5 }
+
+	is_secret = yes
+	base_secrecy = 30
+
+	target_type = character
+	is_valid_target = {
+		is_alive = yes
+	}
+
+	valid_agent = {
+		age >= 16
+		intrigue >= 8
+		NOT = { has_relation_rival = scope:target }
+	}
+
+	agent_join_chance = {
+		base = 0
+
+		modifier = {
+			add = 25
+			has_relation_friend = scope:owner
+		}
+
+		modifier = {
+			add = 50
+			has_trait = ambitious
+		}
+	}
+
+	base_progress_goal = 180
+
+	on_ready = {
+		scope:owner = {
+			trigger_event = murder.0001
+		}
+	}
+
+	on_invalidated = {
+		scope:owner = {
+			trigger_event = murder.invalidated
+		}
+	}
+
+	on_monthly = {
+		scope:owner = {
+			add_intrigue_lifestyle_xp = 10
+		}
+	}
+}
+
+# Example 2: Simple scheme
+seduce_scheme = {
+	skill = intrigue
+	desc = seduce_scheme_desc
+	category = personal
+
+	target_type = character
+	is_valid_target = {
+		is_adult = yes
+		is_attracted_to_gender_of = scope:owner
+	}
+
+	base_progress_goal = 120
+
+	on_ready = {
+		scope:owner = {
+			trigger_event = seduction.success
+		}
+
+		scope:target = {
+			add_opinion = {
+				target = scope:owner
+				modifier = seduced_opinion
+			}
+		}
+	}
+}
