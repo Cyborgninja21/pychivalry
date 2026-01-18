@@ -1,0 +1,369 @@
+# ===================================================================
+# BAD STYLE EXAMPLES
+# ===================================================================
+# This file demonstrates INCORRECT CK3 scripting style that SHOULD FAIL validation.
+# All examples in this file contain style violations.
+#
+# Error Codes Demonstrated (all CK33xx):
+# - CK3301: Inconsistent indentation
+# - CK3302: Multiple statements on one line
+# - CK3303: Spaces instead of tabs
+# - CK3304: Trailing whitespace
+# - CK3305: Block content not indented
+# - CK3306: Inconsistent operator spacing
+# - CK3307: Closing brace misalignment
+# - CK3308: Missing blank line
+# - CK3314: Empty block
+# - CK3316: Line exceeds length
+# - CK3317: Deeply nested blocks
+# - CK3325: Namespace not at top
+# - CK3340: Suspicious scope reference
+# - CK3341: Truncated scope reference
+# - CK3345: Merged identifier
+#
+# Expected validation result: WARNINGS/INFO (style issues)
+# ===================================================================
+
+# -------------------------------------------------------------------
+# ERROR CK3325: Namespace not at top of file (should be first)
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Detection of namespace placement
+# SHOULD FAIL: Yes - CK3325 warning
+# WHY IT'S BAD: Namespace should always be first for readability
+# HOW TO FIX: Move namespace = style_bad to top of file
+# -------------------------------------------------------------------
+style_bad.0001 = {
+	type = character_event
+	title = style_bad.0001.t
+	desc = style_bad.0001.desc
+}
+
+namespace = style_bad # ERROR CK3325: Should be at the top!
+
+# ERROR CK3301: Inconsistent indentation
+style_bad.0002 = {
+	type = character_event
+		title = style_bad.0002.t # Wrong indentation
+	desc = style_bad.0002.desc
+  trigger = { # Wrong indentation
+		is_adult = yes
+	}
+ option = { # Wrong indentation
+		name = style_bad.0002.a
+		add_gold = 100
+}
+}
+
+# ERROR CK3303: Spaces instead of tabs
+style_bad.0003 = {
+    type = character_event # ERROR: Indented with spaces
+    title = style_bad.0003.t # ERROR: Indented with spaces
+    desc = style_bad.0003.desc # ERROR: Indented with spaces
+
+    trigger = { # ERROR: Indented with spaces
+        is_adult = yes # ERROR: Indented with spaces
+    } # ERROR: Indented with spaces
+
+    option = { # ERROR: Indented with spaces
+        name = style_bad.0003.a # ERROR: Indented with spaces
+        add_gold = 100 # ERROR: Indented with spaces
+    } # ERROR: Indented with spaces
+} # ERROR: Indented with spaces
+
+# ERROR CK3304: Trailing whitespace (spaces at end of lines)
+style_bad.0004 = {
+	type = character_event
+	title = style_bad.0004.t
+	desc = style_bad.0004.desc
+
+	trigger = {
+		is_adult = yes
+	}
+
+	option = {
+		name = style_bad.0004.a
+		add_gold = 100
+	}
+}
+
+# ERROR CK3305: Block content not indented
+style_bad.0005 = {
+type = character_event # ERROR: Should be indented
+title = style_bad.0005.t # ERROR: Should be indented
+desc = style_bad.0005.desc # ERROR: Should be indented
+
+trigger = { # ERROR: Should be indented
+is_adult = yes # ERROR: Should be indented
+} # ERROR: Should be indented
+
+option = { # ERROR: Should be indented
+name = style_bad.0005.a # ERROR: Should be indented
+add_gold = 100 # ERROR: Should be indented
+} # ERROR: Should be indented
+}
+
+# ERROR CK3306: Inconsistent operator spacing
+style_bad.0006 = {
+	type= character_event # ERROR: No space before =
+	title =style_bad.0006.t # ERROR: No space after =
+	desc=style_bad.0006.desc # ERROR: No spaces around =
+
+	trigger = {
+		is_adult= yes # ERROR: No space before =
+		age>=16 # ERROR: No spaces around >=
+		gold >=100 # ERROR: No space after >=
+	}
+
+	option = {
+		name = style_bad.0006.a
+		add_gold=100 # ERROR: No spaces around =
+	}
+}
+
+# ERROR CK3307: Closing brace misalignment
+style_bad.0007 = {
+	type = character_event
+	title = style_bad.0007.t
+	desc = style_bad.0007.desc
+
+	trigger = {
+		is_adult = yes
+		} # ERROR: Misaligned closing brace
+
+	option = {
+		name = style_bad.0007.a
+		add_gold = 100
+			} # ERROR: Misaligned closing brace
+	} # ERROR: Misaligned closing brace
+
+# ERROR CK3302: Multiple statements on one line
+style_bad.0008 = {
+	type = character_event title = style_bad.0008.t desc = style_bad.0008.desc # ERROR: Multiple statements
+
+	trigger = { is_adult = yes is_ruler = yes gold >= 100 } # ERROR: Multiple statements
+
+	option = { name = style_bad.0008.a add_gold = 100 add_prestige = 50 } # ERROR: Multiple statements
+}
+
+# ERROR CK3314: Empty block detected
+style_bad.0009 = {
+	type = character_event
+	title = style_bad.0009.t
+	desc = style_bad.0009.desc
+
+	trigger = {
+		# ERROR CK3314: Empty trigger block
+	}
+
+	immediate = {
+		# ERROR CK3314: Empty immediate block
+	}
+
+	option = {
+		name = style_bad.0009.a
+		# ERROR CK3314: Only has name, no effects
+	}
+}
+
+# ERROR CK3316: Line exceeds length (>120 characters typically)
+style_bad.0010 = {
+	type = character_event
+	title = style_bad.0010.t
+	desc = style_bad.0010.desc
+
+	trigger = {
+		# ERROR CK3316: Line way too long
+		is_adult = yes is_ruler = yes is_landed = yes has_trait = brave has_trait = ambitious has_trait = greedy gold >= 100 prestige >= 200 piety >= 150 age >= 25 diplomacy >= 10 martial >= 10
+	}
+
+	option = {
+		name = style_bad.0010.a
+		add_gold = 100
+	}
+}
+
+# ERROR CK3317: Deeply nested blocks (>5 levels)
+style_bad.0011 = {
+	type = character_event
+	title = style_bad.0011.t
+	desc = style_bad.0011.desc
+
+	trigger = {
+		is_adult = yes
+	}
+
+	immediate = {
+		if = {
+			limit = {
+				gold >= 100
+			}
+			if = {
+				limit = {
+					prestige >= 50
+				}
+				if = {
+					limit = {
+						piety >= 25
+					}
+					if = {
+						limit = {
+							age >= 30
+						}
+						if = {
+							limit = {
+								is_ruler = yes
+							}
+							# ERROR CK3317: Too deeply nested (6+ levels)
+							add_gold = 1000
+						}
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = style_bad.0011.a
+		add_prestige = 50
+	}
+}
+
+# ERROR CK3308: Missing blank line between sections
+style_bad.0012 = {
+	type = character_event
+	title = style_bad.0012.t
+	desc = style_bad.0012.desc
+	trigger = { # ERROR: No blank line before trigger
+		is_adult = yes
+	}
+	immediate = { # ERROR: No blank line before immediate
+		save_scope_as = actor
+	}
+	option = { # ERROR: No blank line before option
+		name = style_bad.0012.a
+		add_gold = 100
+	}
+	option = { # ERROR: No blank line before option
+		name = style_bad.0012.b
+		add_prestige = 50
+	}
+}
+
+# ERROR CK3340: Suspicious scope reference
+style_bad.0013 = {
+	type = character_event
+	title = style_bad.0013.t
+	desc = style_bad.0013.desc
+
+	trigger = {
+		is_adult = yes
+	}
+
+	immediate = {
+		save_scope_as = actor
+		# ERROR CK3340: Suspicious - looks like incomplete scope reference
+		scop:actor = {
+			add_gold = 100
+		}
+	}
+
+	option = {
+		name = style_bad.0013.a
+		add_prestige = 50
+	}
+}
+
+# ERROR CK3341: Truncated scope reference
+style_bad.0014 = {
+	type = character_event
+	title = style_bad.0014.t
+	desc = style_bad.0014.desc
+
+	trigger = {
+		is_adult = yes
+	}
+
+	immediate = {
+		save_scope_as = my_liege_character
+		# ERROR CK3341: Scope name looks truncated
+		scope:my_lie = {
+			add_gold = 100
+		}
+	}
+
+	option = {
+		name = style_bad.0014.a
+		add_prestige = 50
+	}
+}
+
+# ERROR CK3345: Merged identifier (no space before {)
+style_bad.0015 = {
+	type = character_event
+	title = style_bad.0015.t
+	desc = style_bad.0015.desc
+
+	trigger ={ # ERROR CK3345: No space before {
+		is_adult = yes
+	}
+
+	immediate={ # ERROR CK3345: No space before {
+		save_scope_as = actor
+	}
+
+	option={ # ERROR CK3345: No space before {
+		name = style_bad.0015.a
+		add_gold = 100
+	}
+}
+
+# Multiple style errors combined
+style_bad.0016 = {
+type= character_event # ERROR CK3305, CK3306: Not indented, no space before =
+    title = style_bad.0016.t # ERROR CK3303: Spaces instead of tabs
+desc=style_bad.0016.desc # ERROR CK3305, CK3306: Not indented, no spaces around =
+trigger={ is_adult= yes is_ruler =yes } # ERROR CK3302, CK3306, CK3345: Multiple statements, bad spacing, merged identifier
+	option = { name = style_bad.0016.a add_gold = 100 add_prestige = 50 } # ERROR CK3302: Multiple statements
+		} # ERROR CK3307: Misaligned closing brace
+
+# ERROR CK3314: Multiple empty blocks
+style_bad.0017 = {
+	type = character_event
+	title = style_bad.0017.t
+	desc = style_bad.0017.desc
+
+	trigger = {
+		# Empty
+	}
+
+	immediate = {
+		# Empty
+	}
+
+	option = {
+		name = style_bad.0017.a
+		# Empty (only name)
+	}
+
+	option = {
+		name = style_bad.0017.b
+		# Empty (only name)
+	}
+}
+
+# ERROR: Inconsistent indentation throughout
+style_bad.0018 = {
+	type = character_event
+			title = style_bad.0018.t # Too much indentation
+ desc = style_bad.0018.desc # Too little indentation
+
+	trigger = {
+  is_adult = yes # Wrong indentation
+				is_ruler = yes # Way too much indentation
+	}
+
+		option = { # Too much indentation
+	name = style_bad.0018.a # Too little indentation
+			add_gold = 100 # Too much indentation
+	}
+}

@@ -1,0 +1,242 @@
+# ===================================================================
+# BAD SYNTAX EXAMPLES
+# ===================================================================
+# This file demonstrates INCORRECT bracket matching that SHOULD FAIL validation.
+# All examples in this file contain syntax errors.
+#
+# Error Codes Demonstrated:
+# - CK3001: Unmatched closing bracket (extra closing brace with no matching opening)
+# - CK3002: Unclosed bracket (missing closing brace)
+#
+# Expected validation result: ERRORS DETECTED
+# ===================================================================
+
+namespace = syntax_bad
+
+# -------------------------------------------------------------------
+# ERROR CK3001: Unmatched closing bracket - extra closing brace
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Detection of extra closing braces
+# SHOULD FAIL: Yes - CK3001 error
+# WHY IT'S BAD: Extra closing brace has no matching opening brace
+# HOW TO FIX: Remove the extra closing brace on line 21
+# -------------------------------------------------------------------
+syntax_bad.0001 = {
+	type = character_event
+	title = syntax_bad.0001.t
+	desc = syntax_bad.0001.desc
+
+	trigger = {
+		is_adult = yes
+	}
+
+	option = {
+		name = syntax_bad.0001.a
+		add_gold = 100
+	}
+} # EXTRA CLOSING BRACE - no matching opening brace above this
+}
+
+# -------------------------------------------------------------------
+# ERROR CK3002: Unclosed bracket - missing closing brace
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Detection of missing closing braces
+# SHOULD FAIL: Yes - CK3002 error
+# WHY IT'S BAD: Option block never closes, breaks parsing
+# HOW TO FIX: Add closing brace after add_gold line
+# -------------------------------------------------------------------
+syntax_bad.0002 = {
+	type = character_event
+	title = syntax_bad.0002.t
+	desc = syntax_bad.0002.desc
+
+	trigger = {
+		is_adult = yes
+	}
+
+	option = {
+		name = syntax_bad.0002.a
+		add_gold = 100
+	# MISSING CLOSING BRACE for option block
+
+# -------------------------------------------------------------------
+# ERROR CK3002: Unclosed bracket in nested structure
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Detection of missing braces in nested logic blocks
+# SHOULD FAIL: Yes - CK3002 error
+# WHY IT'S BAD: AND block is never closed, breaks OR block
+# HOW TO FIX: Add closing brace for AND block before OR closes
+# -------------------------------------------------------------------
+syntax_bad.0003 = {
+	type = character_event
+	title = syntax_bad.0003.t
+	desc = syntax_bad.0003.desc
+
+	trigger = {
+		age >= 16
+		OR = {
+			is_ruler = yes
+			AND = {
+				is_landed = yes
+				is_adult = yes
+			# MISSING CLOSING BRACE for AND block
+		}
+	}
+
+	option = {
+		name = syntax_bad.0003.a
+		add_prestige = 50
+	}
+}
+
+# -------------------------------------------------------------------
+# ERROR CK3001: Unmatched closing bracket in if/else chain
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Detection of extra braces after valid structures
+# SHOULD FAIL: Yes - CK3001 error
+# WHY IT'S BAD: Extra closing brace after event definition
+# HOW TO FIX: Remove the duplicate closing brace on line 81
+# -------------------------------------------------------------------
+syntax_bad.0004 = {
+	type = character_event
+	title = syntax_bad.0004.t
+	desc = syntax_bad.0004.desc
+
+	trigger = {
+		is_adult = yes
+	}
+
+	immediate = {
+		if = {
+			limit = { gold >= 100 }
+			add_prestige = 50
+		}
+		else = {
+			add_piety = 25
+		}
+	}
+} # Extra closing brace
+}
+
+# -------------------------------------------------------------------
+# ERROR CK3002: Missing closing brace for event
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Detection of incomplete event definitions
+# SHOULD FAIL: Yes - CK3002 error
+# WHY IT'S BAD: Entire event is never closed
+# HOW TO FIX: Add closing brace at the end of the event
+# -------------------------------------------------------------------
+syntax_bad.0005 = {
+	type = character_event
+	title = syntax_bad.0005.t
+	desc = syntax_bad.0005.desc
+
+	trigger = {
+		is_adult = yes
+	}
+
+	option = {
+		name = syntax_bad.0005.a
+		add_gold = 100
+	}
+# MISSING CLOSING BRACE for entire event
+
+# -------------------------------------------------------------------
+# ERROR CK3002: Unclosed limit block
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Detection of unclosed blocks in scripted effects
+# SHOULD FAIL: Yes - CK3002 error
+# WHY IT'S BAD: NOT block in limit is never closed
+# HOW TO FIX: Add closing brace for NOT block before limit closes
+# -------------------------------------------------------------------
+syntax_bad_effect = {
+	every_vassal = {
+		limit = {
+			is_adult = yes
+			NOT = {
+				has_trait = lazy
+			# MISSING CLOSING BRACE for NOT block
+		}
+		add_opinion = {
+			target = root
+			modifier = grateful_opinion
+		}
+	}
+}
+
+# -------------------------------------------------------------------
+# ERROR CK3001: Too many closing braces in decision
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Detection of multiple extra closing braces
+# SHOULD FAIL: Yes - CK3001 error (reported twice)
+# WHY IT'S BAD: Two extra closing braces after valid decision
+# HOW TO FIX: Remove both extra closing braces on lines 126-127
+# -------------------------------------------------------------------
+syntax_bad_decision = {
+	picture = "gfx/interface/illustrations/decisions/decision_misc.dds"
+
+	is_shown = {
+		is_ruler = yes
+	}
+
+	effect = {
+		add_prestige = 100
+	}
+	}
+} # Two extra closing braces
+
+# -------------------------------------------------------------------
+# ERROR CK3002: Missing closing for triggered_desc
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Detection of unclosed trigger blocks in descriptions
+# SHOULD FAIL: Yes - CK3002 error
+# WHY IT'S BAD: Trigger block in triggered_desc is never closed
+# HOW TO FIX: Add closing brace for trigger block before desc line
+# -------------------------------------------------------------------
+syntax_bad.0006 = {
+	type = character_event
+	title = syntax_bad.0006.t
+	desc = {
+		triggered_desc = {
+			trigger = {
+				has_trait = brave
+			# MISSING CLOSING BRACE for trigger
+			desc = syntax_bad.0006.desc_brave
+		}
+	}
+
+	trigger = {
+		is_adult = yes
+	}
+
+	option = {
+		name = syntax_bad.0006.a
+		add_gold = 50
+	}
+}
+
+# -------------------------------------------------------------------
+# ERROR CK3001: Unmatched closing in complex nesting
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Detection of extra braces in OR blocks
+# SHOULD FAIL: Yes - CK3001 error
+# WHY IT'S BAD: Extra closing brace after is_ruler in OR block
+# HOW TO FIX: Remove the extra closing brace on line 161
+# -------------------------------------------------------------------
+syntax_bad.0007 = {
+	type = character_event
+	title = syntax_bad.0007.t
+	desc = syntax_bad.0007.desc
+
+	trigger = {
+		OR = {
+			is_ruler = yes
+			}
+		} # Extra closing brace
+	}
+
+	option = {
+		name = syntax_bad.0007.a
+		add_prestige = 50
+	}
+}

@@ -1,0 +1,247 @@
+# Good Decisions Examples
+# Demonstrates proper decision structure
+
+# Example 1: Complete decision with all required fields
+hold_grand_feast = {
+	picture = "gfx/interface/illustrations/decisions/decision_feast.dds"
+
+	desc = hold_grand_feast_desc
+	selection_tooltip = hold_grand_feast_tooltip
+
+	is_shown = {
+		is_ruler = yes
+		is_adult = yes
+	}
+
+	is_valid = {
+		gold >= 100
+		prestige >= 50
+		is_at_war = no
+	}
+
+	is_valid_showing_failures_only = {
+		gold >= 100
+	}
+
+	cost = {
+		gold = 100
+	}
+
+	effect = {
+		remove_short_term_gold = 100
+		add_prestige = 200
+
+		every_vassal = {
+			limit = {
+				is_adult = yes
+			}
+			add_opinion = {
+				target = root
+				modifier = grateful_opinion
+				opinion = 10
+			}
+		}
+	}
+
+	ai_check_interval = 60
+
+	ai_potential = {
+		always = yes
+	}
+
+	ai_will_do = {
+		base = 100
+
+		modifier = {
+			factor = 2
+			has_trait = gregarious
+		}
+
+		modifier = {
+			factor = 0.5
+			gold < 200
+		}
+	}
+}
+
+# Example 2: Simple decision with minimal fields
+grant_title_decision = {
+	picture = "gfx/interface/illustrations/decisions/decision_misc.dds"
+
+	desc = grant_title_decision_desc
+
+	is_shown = {
+		is_ruler = yes
+	}
+
+	is_valid = {
+		any_held_title = {
+			tier = tier_county
+		}
+	}
+
+	effect = {
+		add_prestige = 50
+	}
+
+	ai_check_interval = 120
+
+	ai_potential = {
+		always = yes
+	}
+
+	ai_will_do = {
+		base = 50
+	}
+}
+
+# Example 3: Decision with cooldown
+reform_laws = {
+	picture = "gfx/interface/illustrations/decisions/decision_realm.dds"
+
+	desc = reform_laws_desc
+
+	is_shown = {
+		is_ruler = yes
+		highest_held_title_tier >= tier_duchy
+	}
+
+	is_valid = {
+		prestige >= 100
+		NOT = {
+			has_character_modifier = recently_reformed_laws
+		}
+	}
+
+	cost = {
+		prestige = 100
+	}
+
+	effect = {
+		add_prestige = -100
+		add_character_modifier = {
+			modifier = recently_reformed_laws
+			years = 10
+		}
+	}
+
+	ai_check_interval = 120
+
+	ai_potential = {
+		always = yes
+	}
+
+	ai_will_do = {
+		base = 75
+	}
+}
+
+# Example 4: Decision with complex AI logic
+expand_realm = {
+	picture = "gfx/interface/illustrations/decisions/decision_war.dds"
+
+	desc = expand_realm_desc
+
+	is_shown = {
+		is_ruler = yes
+		is_landed = yes
+	}
+
+	is_valid = {
+		gold >= 200
+		any_neighboring_realm_same_rank_owner = {
+			NOT = { has_truce = root }
+		}
+	}
+
+	cost = {
+		gold = 200
+		prestige = 50
+	}
+
+	effect = {
+		remove_short_term_gold = 200
+		add_prestige = -50
+		add_character_modifier = {
+			modifier = expanding_realm
+			months = 6
+		}
+	}
+
+	ai_check_interval = 36
+
+	ai_potential = {
+		is_at_war = no
+		gold >= 300
+	}
+
+	ai_will_do = {
+		base = 100
+
+		modifier = {
+			factor = 3
+			has_trait = ambitious
+		}
+
+		modifier = {
+			factor = 0.5
+			has_trait = content
+		}
+
+		modifier = {
+			factor = 0
+			is_at_war = yes
+		}
+
+		modifier = {
+			factor = 0
+			gold < 250
+		}
+	}
+}
+
+# Example 5: Decision with scope transitions
+improve_capital = {
+	picture = "gfx/interface/illustrations/decisions/decision_realm.dds"
+
+	desc = improve_capital_desc
+
+	is_shown = {
+		is_ruler = yes
+		exists = capital_province
+	}
+
+	is_valid = {
+		gold >= 150
+		capital_province = {
+			development_level < 20
+		}
+	}
+
+	cost = {
+		gold = 150
+	}
+
+	effect = {
+		remove_short_term_gold = 150
+		capital_province = {
+			change_development_level = 1
+		}
+		add_prestige = 25
+	}
+
+	ai_check_interval = 60
+
+	ai_potential = {
+		gold >= 200
+	}
+
+	ai_will_do = {
+		base = 80
+
+		modifier = {
+			factor = 2
+			has_trait = administrator
+		}
+	}
+}

@@ -1,0 +1,30 @@
+l_english:
+ # Missing Keys Examples - CK3600
+ # This file demonstrates missing localization key warnings
+
+ # These keys are defined and can be referenced
+ defined_key.t:0 "This Key Exists"
+ defined_key.desc:0 "This description exists"
+ defined_key.a:0 "Option A exists"
+
+ # Common pattern - event has keys but some are missing
+ partial_event.t:0 "Title Exists"
+ partial_event.a:0 "Option A Exists"
+ # ERROR CK3600: partial_event.desc is missing
+ # ERROR CK3600: partial_event.b is missing
+
+ # Keys that would trigger fuzzy matching suggestions
+ my_event_title:0 "Correct Spelling"
+ # If code references: my_evnt_title (typo), CK3600 will suggest this key
+
+ character_choice:0 "A Choice"
+ # If code references: charac ter_choice (typo), CK3600 will suggest this key
+
+ important_decision:0 "Important Decision"
+ # If code references: important_decisionn (extra n), CK3600 will suggest this key
+
+ # Suffix variations for fuzzy matching
+ event_001.t:0 "Event Title"
+ event_001.desc:0 "Event Description"
+ # If code references: event_001.title or event_001.description,
+ # CK3600 will suggest .t or .desc suffix

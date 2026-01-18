@@ -1,0 +1,224 @@
+# Good Story Cycle Examples
+# Demonstrates proper story cycle structure with all lifecycle hooks
+
+# Example 1: Complete story cycle with all lifecycle hooks
+training_regimen = {
+	on_setup = {
+		set_variable = {
+			name = training_start_date
+			value = current_date
+		}
+		add_character_modifier = {
+			modifier = in_training
+			years = 5
+		}
+	}
+
+	on_end = {
+		if = {
+			limit = { exists = scope:story.story_owner }
+			scope:story.story_owner = {
+				trigger_event = training.completion
+			}
+		}
+		remove_variable = training_start_date
+	}
+
+	on_owner_death = {
+		if = {
+			limit = { exists = primary_heir }
+			primary_heir = {
+				scope:story = {
+					make_story_owner = prev
+				}
+			}
+		}
+		else = {
+			scope:story = {
+				end_story = yes
+			}
+		}
+	}
+
+	effect_group = {
+		months = 1
+
+		triggered_effect = {
+			trigger = {
+				age >= 10
+				age < 16
+			}
+			effect = {
+				add_martial_skill = 100
+			}
+		}
+	}
+
+	effect_group = {
+		years = 1
+
+		first_valid = {
+			triggered_effect = {
+				trigger = {
+					exists = var:trainer
+				}
+				effect = {
+					add_martial_skill = 300
+				}
+			}
+
+			triggered_effect = {
+				trigger = {
+					always = yes
+				}
+				effect = {
+					add_martial_skill = 100
+				}
+			}
+		}
+	}
+}
+
+# Example 2: Story cycle with timing range
+quest_for_glory = {
+	on_setup = {
+		set_variable = {
+			name = quest_stage
+			value = 1
+		}
+	}
+
+	on_end = {
+		remove_variable = quest_stage
+	}
+
+	on_owner_death = {
+		scope:story = {
+			end_story = yes
+		}
+	}
+
+	effect_group = {
+		days = { 30 60 }
+
+		triggered_effect = {
+			trigger = {
+				var:quest_stage = 1
+			}
+			effect = {
+				change_variable = {
+					name = quest_stage
+					add = 1
+				}
+			}
+		}
+	}
+}
+
+# Example 3: Story cycle with conditional effect_group
+rivalry_story = {
+	on_setup = {
+		save_scope_as = rivalry_cycle
+		set_variable = {
+			name = intensity
+			value = 0
+		}
+	}
+
+	on_end = {
+		remove_variable = intensity
+	}
+
+	on_owner_death = {
+		scope:story = {
+			end_story = yes
+		}
+	}
+
+	effect_group = {
+		months = 1
+
+		trigger = {
+			var:intensity < 100
+		}
+
+		triggered_effect = {
+			trigger = {
+				always = yes
+			}
+			effect = {
+				change_variable = {
+					name = intensity
+					add = 5
+				}
+			}
+		}
+	}
+
+	effect_group = {
+		months = 6
+
+		chance = 50
+
+		triggered_effect = {
+			trigger = {
+				var:intensity >= 50
+			}
+			effect = {
+				trigger_event = rivalry.escalation
+			}
+		}
+	}
+}
+
+# Example 4: Minimal valid story cycle
+simple_blessing = {
+	on_owner_death = {
+		scope:story = {
+			end_story = yes
+		}
+	}
+
+	effect_group = {
+		years = 1
+
+		add_piety = 50
+	}
+}
+
+# Example 5: Story cycle with debug logging (best practice)
+investigation_story = {
+	on_setup = {
+		set_variable = {
+			name = investigation_started
+			value = yes
+		}
+		debug_log = "Investigation story started"
+	}
+
+	on_end = {
+		remove_variable = investigation_started
+		debug_log = "Investigation story ended"
+	}
+
+	on_owner_death = {
+		debug_log = "Investigation story owner died"
+		scope:story = {
+			end_story = yes
+		}
+	}
+
+	effect_group = {
+		months = 3
+
+		triggered_effect = {
+			trigger = {
+				always = yes
+			}
+			effect = {
+				trigger_event = investigation.update
+				debug_log = "Investigation update triggered"
+			}
+		}
+	}
+}

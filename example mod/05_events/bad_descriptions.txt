@@ -1,0 +1,313 @@
+# Bad Descriptions Examples
+# Demonstrates CK3440-CK3446 - Description block validation errors
+
+namespace = events_bad_desc
+
+# ERROR CK3440: triggered_desc missing trigger
+events_bad_desc.0001 = {
+	type = character_event
+	title = events_bad_desc.0001.t
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				# ERROR CK3440: Missing trigger block
+				desc = events_bad_desc.0001.desc_brave
+			}
+			triggered_desc = {
+				trigger = {
+					always = yes
+				}
+				desc = events_bad_desc.0001.desc_default
+			}
+		}
+	}
+
+	left_portrait = root
+
+	trigger = {
+		is_adult = yes
+	}
+
+	option = {
+		name = events_bad_desc.0001.a
+		add_gold = 100
+	}
+}
+
+# ERROR CK3441: triggered_desc missing desc
+events_bad_desc.0002 = {
+	type = character_event
+	title = events_bad_desc.0002.t
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					has_trait = brave
+				}
+				# ERROR CK3441: Missing desc field
+			}
+			triggered_desc = {
+				trigger = {
+					always = yes
+				}
+				desc = events_bad_desc.0002.desc_default
+			}
+		}
+	}
+
+	left_portrait = root
+
+	trigger = {
+		is_adult = yes
+	}
+
+	option = {
+		name = events_bad_desc.0002.a
+		add_gold = 100
+	}
+}
+
+# ERROR CK3442: first_valid has no fallback
+events_bad_desc.0003 = {
+	type = character_event
+	title = events_bad_desc.0003.t
+	desc = {
+		# ERROR CK3442: No unconditional fallback (no always = yes at end)
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					has_trait = brave
+				}
+				desc = events_bad_desc.0003.desc_brave
+			}
+			triggered_desc = {
+				trigger = {
+					has_trait = craven
+				}
+				desc = events_bad_desc.0003.desc_craven
+			}
+			# Missing fallback - what if character has neither trait?
+		}
+	}
+
+	left_portrait = root
+
+	trigger = {
+		is_adult = yes
+	}
+
+	option = {
+		name = events_bad_desc.0003.a
+		add_gold = 100
+	}
+}
+
+# ERROR CK3443: Empty desc block
+events_bad_desc.0004 = {
+	type = character_event
+	title = events_bad_desc.0004.t
+	desc = {
+		# ERROR CK3443: Empty desc block
+	}
+
+	left_portrait = root
+
+	trigger = {
+		is_adult = yes
+	}
+
+	option = {
+		name = events_bad_desc.0004.a
+		add_gold = 100
+	}
+}
+
+# ERROR CK3444: Literal string in desc
+events_bad_desc.0005 = {
+	type = character_event
+	title = events_bad_desc.0005.t
+	desc = "This is a literal string description" # ERROR CK3444: Should be localization key
+
+	left_portrait = root
+
+	trigger = {
+		is_adult = yes
+	}
+
+	option = {
+		name = events_bad_desc.0005.a
+		add_gold = 100
+	}
+}
+
+# ERROR CK3445: Invalid desc structure (mixing first_valid/random_valid)
+events_bad_desc.0006 = {
+	type = character_event
+	title = events_bad_desc.0006.t
+	desc = {
+		# ERROR CK3445: Mixing first_valid and random_valid is confusing
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					has_trait = brave
+				}
+				desc = events_bad_desc.0006.desc_brave
+			}
+		}
+		random_valid = {
+			triggered_desc = {
+				trigger = {
+					always = yes
+				}
+				desc = events_bad_desc.0006.desc_random
+			}
+		}
+	}
+
+	left_portrait = root
+
+	trigger = {
+		is_adult = yes
+	}
+
+	option = {
+		name = events_bad_desc.0006.a
+		add_gold = 100
+	}
+}
+
+# ERROR CK3446: Excessive desc nesting (>3 levels)
+events_bad_desc.0007 = {
+	type = character_event
+	title = events_bad_desc.0007.t
+	desc = {
+		# ERROR CK3446: Too deeply nested (4+ levels)
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					has_trait = brave
+				}
+				desc = {
+					first_valid = {
+						triggered_desc = {
+							trigger = {
+								has_trait = ambitious
+							}
+							desc = {
+								first_valid = {
+									triggered_desc = {
+										trigger = {
+											has_trait = greedy
+										}
+										desc = events_bad_desc.0007.desc_deep
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			triggered_desc = {
+				trigger = {
+					always = yes
+				}
+				desc = events_bad_desc.0007.desc_default
+			}
+		}
+	}
+
+	left_portrait = root
+
+	trigger = {
+		is_adult = yes
+	}
+
+	option = {
+		name = events_bad_desc.0007.a
+		add_gold = 100
+	}
+}
+
+# Multiple desc errors combined
+events_bad_desc.0008 = {
+	type = character_event
+	title = events_bad_desc.0008.t
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				# ERROR CK3440: Missing trigger
+				# ERROR CK3441: Missing desc
+			}
+			triggered_desc = {
+				trigger = {
+					has_trait = brave
+				}
+				desc = "Literal string" # ERROR CK3444: Literal string
+			}
+			# ERROR CK3442: No fallback
+		}
+	}
+
+	left_portrait = root
+
+	trigger = {
+		is_adult = yes
+	}
+
+	option = {
+		name = events_bad_desc.0008.a
+		add_gold = 100
+	}
+}
+
+# ERROR CK3443: Completely empty desc
+events_bad_desc.0009 = {
+	type = character_event
+	title = events_bad_desc.0009.t
+	desc = # ERROR CK3443: No desc value at all
+
+	left_portrait = root
+
+	trigger = {
+		is_adult = yes
+	}
+
+	option = {
+		name = events_bad_desc.0009.a
+		add_gold = 100
+	}
+}
+
+# ERROR CK3442: random_valid without fallback
+events_bad_desc.0010 = {
+	type = character_event
+	title = events_bad_desc.0010.t
+	desc = {
+		# ERROR CK3442: All triggered_desc have conditions, no guaranteed fallback
+		random_valid = {
+			triggered_desc = {
+				trigger = {
+					has_trait = brave
+				}
+				desc = events_bad_desc.0010.desc_brave
+			}
+			triggered_desc = {
+				trigger = {
+					has_trait = craven
+				}
+				desc = events_bad_desc.0010.desc_craven
+			}
+		}
+	}
+
+	left_portrait = root
+
+	trigger = {
+		is_adult = yes
+	}
+
+	option = {
+		name = events_bad_desc.0010.a
+		add_gold = 100
+	}
+}

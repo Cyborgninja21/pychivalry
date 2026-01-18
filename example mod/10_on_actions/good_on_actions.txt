@@ -1,0 +1,214 @@
+# Good On-Actions Examples
+# Demonstrates proper on_action structure and usage
+
+namespace = on_actions_good
+
+# Example 1: Simple on_action with events list
+on_birth = {
+	events = {
+		on_actions_good.0001
+		on_actions_good.0002
+	}
+}
+
+on_actions_good.0001 = {
+	type = character_event
+	title = on_actions_good.0001.t
+	desc = on_actions_good.0001.desc
+
+	left_portrait = root
+
+	immediate = {
+		add_gold = 100
+	}
+
+	option = {
+		name = on_actions_good.0001.a
+		add_prestige = 50
+	}
+}
+
+on_actions_good.0002 = {
+	type = character_event
+	title = on_actions_good.0002.t
+	desc = on_actions_good.0002.desc
+
+	left_portrait = root
+
+	immediate = {
+		add_piety = 25
+	}
+
+	option = {
+		name = on_actions_good.0002.a
+		add_gold = 50
+	}
+}
+
+# Example 2: On_action with delayed events
+on_adult = {
+	events = {
+		delay = { days = 30 }
+		on_actions_good.0003
+	}
+}
+
+on_actions_good.0003 = {
+	type = character_event
+	title = on_actions_good.0003.t
+	desc = on_actions_good.0003.desc
+
+	left_portrait = root
+
+	immediate = {
+		add_gold = 200
+	}
+
+	option = {
+		name = on_actions_good.0003.a
+		add_prestige = 100
+	}
+}
+
+# Example 3: On_action with effects
+on_yearly_pulse = {
+	effect = {
+		every_living_character = {
+			limit = {
+				is_adult = yes
+				is_ruler = yes
+			}
+			add_gold = 10
+		}
+	}
+}
+
+# Example 4: On_action with random events
+on_marriage = {
+	random_events = {
+		100 = on_actions_good.0004
+		50 = on_actions_good.0005
+		25 = on_actions_good.0006
+	}
+}
+
+on_actions_good.0004 = {
+	type = character_event
+	title = on_actions_good.0004.t
+	desc = on_actions_good.0004.desc
+
+	left_portrait = root
+
+	immediate = {
+		add_gold = 300
+	}
+
+	option = {
+		name = on_actions_good.0004.a
+		add_prestige = 150
+	}
+}
+
+on_actions_good.0005 = {
+	type = character_event
+	title = on_actions_good.0005.t
+	desc = on_actions_good.0005.desc
+
+	left_portrait = root
+
+	immediate = {
+		add_prestige = 200
+	}
+
+	option = {
+		name = on_actions_good.0005.a
+		add_gold = 100
+	}
+}
+
+on_actions_good.0006 = {
+	type = character_event
+	title = on_actions_good.0006.t
+	desc = on_actions_good.0006.desc
+
+	left_portrait = root
+
+	immediate = {
+		add_piety = 100
+	}
+
+	option = {
+		name = on_actions_good.0006.a
+		add_gold = 50
+	}
+}
+
+# Example 5: On_action with chance_to_happen
+on_five_year_pulse = {
+	events = {
+		on_actions_good.0007
+	}
+}
+
+on_actions_good.0007 = {
+	type = character_event
+	title = on_actions_good.0007.t
+	desc = on_actions_good.0007.desc
+
+	left_portrait = root
+
+	trigger = {
+		is_adult = yes
+	}
+
+	weight_multiplier = {
+		base = 1
+
+		modifier = {
+			factor = 2
+			has_trait = ambitious
+		}
+	}
+
+	immediate = {
+		add_gold = 500
+	}
+
+	option = {
+		name = on_actions_good.0007.a
+		add_prestige = 250
+	}
+}
+
+# Example 6: On_action with proper delay format
+on_quarterly_pulse = {
+	events = {
+		delay = { months = 3 }
+		on_actions_good.0008
+	}
+}
+
+on_actions_good.0008 = {
+	type = character_event
+	title = on_actions_good.0008.t
+	desc = on_actions_good.0008.desc
+
+	left_portrait = root
+
+	immediate = {
+		add_gold = 100
+	}
+
+	option = {
+		name = on_actions_good.0008.a
+		add_prestige = 50
+	}
+}
+
+# Example 7: On_action with fallback to another on_action
+on_custom_pulse = {
+	on_action = on_quarterly_pulse
+}
+
+# Example 8: On_action in correct folder structure
+# This file should be in: common/on_action/
