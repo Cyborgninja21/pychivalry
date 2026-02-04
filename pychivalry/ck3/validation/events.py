@@ -104,7 +104,7 @@ from typing import Dict, List, Optional, Set, Tuple
 from dataclasses import dataclass, field
 
 # Import data loader for YAML-based animation definitions
-from pychivalry.core.data import get_animations
+from pychivalry.data import get_animations
 
 
 # =============================================================================
@@ -164,7 +164,7 @@ def _load_event_themes() -> Set[str]:
     Returns:
         Set of valid theme names
     """
-    from pychivalry.core.data import get_themes
+    from pychivalry.data import get_themes
     themes = get_themes()
     # If no themes data file exists, return empty set (validation will be disabled)
     return set(themes.keys()) if themes else set()

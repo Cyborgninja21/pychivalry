@@ -384,7 +384,7 @@ class CK3LanguageServer(LanguageServer):
         self.index = DocumentIndex()
 
         # Schema loader for file-type-aware features
-        from .schema_loader import SchemaLoader
+        from .schema.loader import SchemaLoader
         self.schema_loader = SchemaLoader()
 
         # Track whether workspace has been scanned
@@ -399,7 +399,7 @@ class CK3LanguageServer(LanguageServer):
 
         # Custom thread manager for all background operations
         # Replaces pygls @server.thread() decorator and old thread pool
-        from .threading import CK3ThreadManager
+        from .core.threading import CK3ThreadManager
         self.thread_manager = CK3ThreadManager()
 
         # Thread-safety locks for shared data structures
@@ -1836,8 +1836,8 @@ def hover(ls: CK3LanguageServer, params: types.HoverParams):
         ast = ls.get_ast(doc.uri)
 
         # First try schema-based hover for file-type-specific field documentation
-        from .schema_hover import get_schema_hover
-        from .hover import get_word_at_position as hover_get_word
+        from .schema.hover import get_schema_hover
+        from .lsp.hover import get_word_at_position as hover_get_word
         
         word = hover_get_word(doc, params.position)
         if word:
@@ -1891,7 +1891,7 @@ def definition(ls: CK3LanguageServer, params: types.DefinitionParams):
         doc = ls.workspace.get_text_document(params.text_document.uri)
 
         # Get word at cursor position
-        from .hover import get_word_at_position
+        from .lsp.hover import get_word_at_position
 
         word = get_word_at_position(doc, params.position)
 
@@ -2150,7 +2150,7 @@ async def references(ls: CK3LanguageServer, params: types.ReferenceParams):
             doc = ls.workspace.get_text_document(params.text_document.uri)
 
             # Get word at cursor position
-            from .hover import get_word_at_position
+            from .lsp.hover import get_word_at_position
 
             word = get_word_at_position(doc, params.position)
 

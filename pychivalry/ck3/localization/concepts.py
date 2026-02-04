@@ -58,7 +58,7 @@ SEE ALSO:
 
 from typing import Dict, List, Optional, Set, Tuple
 from pathlib import Path
-from pychivalry.core.data import DATA_DIR
+from pychivalry.data import DATA_DIR
 import logging
 
 logger = logging.getLogger(__name__)

@@ -147,7 +147,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from pychivalry.ck3.ck3_language import (
+from pychivalry.ck3.language import (
     CK3_KEYWORDS,
     CK3_EFFECTS,
     CK3_TRIGGERS,
@@ -177,7 +177,7 @@ def _get_mod_completions() -> list[types.CompletionItem]:
     items = []
     
     try:
-        from pychivalry.core.data.mods import get_mod_loader
+        from pychivalry.data.mods import get_mod_loader
         loader = get_mod_loader()
         
         # Get all enabled mods
@@ -185,7 +185,7 @@ def _get_mod_completions() -> list[types.CompletionItem]:
         
         for mod_id in enabled_mods:
             # Get mod display name
-            from pychivalry.core.data.mods import AVAILABLE_MODS
+            from pychivalry.data.mods import AVAILABLE_MODS
             mod_def = AVAILABLE_MODS.get(mod_id, {})
             display_name = mod_def.get("name", mod_id)
             

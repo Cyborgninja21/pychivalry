@@ -106,7 +106,7 @@ from pygls.workspace import TextDocument
 
 from pychivalry.core.parser import CK3Node, get_node_at_position
 from pychivalry.core.indexer import DocumentIndex
-from pychivalry.ck3.ck3_language import CK3_EFFECTS, CK3_TRIGGERS, CK3_SCOPES, CK3_KEYWORDS, CK3_CONTEXT_FIELDS, CK3_STORY_CYCLE_FIELDS
+from pychivalry.ck3.language import CK3_EFFECTS, CK3_TRIGGERS, CK3_SCOPES, CK3_KEYWORDS, CK3_CONTEXT_FIELDS, CK3_STORY_CYCLE_FIELDS
 from pychivalry.ck3.validation.scopes import get_scope_links
 from pychivalry.ck3.effect_trigger_docs import (
     get_effect_documentation as get_effect_doc_yaml,
@@ -130,7 +130,7 @@ def _get_mod_source_badge(identifier: str, identifier_type: str = "any") -> str:
         Shows warning if multiple mods define the same identifier.
     """
     try:
-        from pychivalry.core.data.mods import get_all_source_mods
+        from pychivalry.data.mods import get_all_source_mods
         sources = get_all_source_mods(identifier, identifier_type)
         if not sources:
             return ""
@@ -664,7 +664,7 @@ def get_hover_content(
     context_doc = get_context_field_documentation(word)
     if context_doc:
         # Determine the category for display with emoji
-        from pychivalry.ck3.ck3_language import CK3_OPTION_FIELDS, CK3_EVENT_FIELDS, CK3_PORTRAIT_FIELDS
+        from pychivalry.ck3.language import CK3_OPTION_FIELDS, CK3_EVENT_FIELDS, CK3_PORTRAIT_FIELDS
 
         if word in CK3_OPTION_FIELDS:
             category = "🎮 Option Field"

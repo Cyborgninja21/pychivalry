@@ -151,7 +151,7 @@ from pychivalry.ck3.validation.scopes import (
     is_valid_list_base,
     parse_list_iterator,
 )
-from pychivalry.ck3.ck3_language import CK3_EFFECTS, CK3_TRIGGERS, CK3_SCOPES
+from pychivalry.ck3.language import CK3_EFFECTS, CK3_TRIGGERS, CK3_SCOPES
 from pychivalry.ck3.validation.block_validator import validate_block_semantics
 import logging
 

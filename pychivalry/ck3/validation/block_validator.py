@@ -23,7 +23,7 @@ from typing import List, Optional
 from lsprotocol import types
 
 from pychivalry.core.parser import CK3Node
-from pychivalry.ck3.ck3_language import CK3_EFFECTS, CK3_TRIGGERS, CK3_SCOPES
+from pychivalry.ck3.language import CK3_EFFECTS, CK3_TRIGGERS, CK3_SCOPES
 
 
 def validate_block_semantics(

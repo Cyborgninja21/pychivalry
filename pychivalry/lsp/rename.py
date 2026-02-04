@@ -116,7 +116,7 @@ from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple, Set
 from lsprotocol import types
 
-from .utils import path_to_uri
+from pychivalry.core.utils import path_to_uri
 
 logger = logging.getLogger(__name__)
 

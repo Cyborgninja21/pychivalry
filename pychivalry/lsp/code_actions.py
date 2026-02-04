@@ -107,7 +107,7 @@ from typing import List, Optional, Dict, Any
 from lsprotocol import types
 import re
 
-from pychivalry.ck3.ck3_language import CK3_EFFECTS, CK3_TRIGGERS
+from pychivalry.ck3.language import CK3_EFFECTS, CK3_TRIGGERS
 
 
 @dataclass

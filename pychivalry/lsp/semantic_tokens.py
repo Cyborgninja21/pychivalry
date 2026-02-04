@@ -145,7 +145,7 @@ from lsprotocol import types
 
 from pychivalry.core.parser import CK3Node, parse_document
 from pychivalry.core.indexer import DocumentIndex
-from pychivalry.ck3.ck3_language import (
+from pychivalry.ck3.language import (
     CK3_KEYWORDS,
     CK3_EFFECTS,
     CK3_TRIGGERS,

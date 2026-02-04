@@ -101,7 +101,7 @@ from dataclasses import dataclass
 from typing import List, Optional
 from lsprotocol import types
 
-from .utils import path_to_uri, uri_to_path, position_in_range
+from pychivalry.core.utils import path_to_uri, uri_to_path, position_in_range
 from urllib.parse import quote
 
 logger = logging.getLogger(__name__)

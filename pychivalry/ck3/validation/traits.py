@@ -99,7 +99,7 @@ SEE ALSO:
 
 from typing import Any, Dict, List, Optional, Tuple, Set
 from pathlib import Path
-from pychivalry.core.data import get_traits, DATA_DIR
+from pychivalry.data import get_traits, DATA_DIR
 import logging
 
 logger = logging.getLogger(__name__)
