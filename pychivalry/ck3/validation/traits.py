@@ -99,7 +99,7 @@ SEE ALSO:
 
 from typing import Any, Dict, List, Optional, Tuple, Set
 from pathlib import Path
-from pychivalry.data import get_traits, DATA_DIR
+from pychivalry.core.data import get_traits, DATA_DIR
 import logging
 
 logger = logging.getLogger(__name__)
@@ -505,7 +505,7 @@ def suggest_similar_traits(invalid_trait: str, max_suggestions: int = 3) -> List
     Diagnostic Codes:
         Used by check_trait_references() for CK3451 quick fixes
     """
-    from pychivalry.code_actions import calculate_levenshtein_distance
+    from pychivalry.lsp.code_actions import calculate_levenshtein_distance
     
     trait_names = get_all_trait_names()
     

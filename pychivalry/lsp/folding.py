@@ -98,7 +98,7 @@ import re
 from typing import List, Optional, Tuple
 from lsprotocol import types
 
-from .parser import CK3Node
+from pychivalry.core.parser import CK3Node
 
 
 # =============================================================================

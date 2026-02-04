@@ -45,9 +45,9 @@ from functools import lru_cache
 
 from lsprotocol import types
 
-from .parser import CK3Node
-from .indexer import DocumentIndex
-from .ck3_language import CK3_EFFECTS, CK3_TRIGGERS
+from pychivalry.core.parser import CK3Node
+from pychivalry.core.indexer import DocumentIndex
+from pychivalry.ck3.ck3_language import CK3_EFFECTS, CK3_TRIGGERS
 
 logger = logging.getLogger(__name__)
 

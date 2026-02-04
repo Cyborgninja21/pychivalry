@@ -103,10 +103,10 @@ from dataclasses import dataclass
 from typing import List, Optional, Dict, Tuple
 from lsprotocol import types
 
-from .parser import parse_document, CK3Node, get_node_at_position
-from .indexer import DocumentIndex
-from .scopes import get_resulting_scope, get_scope_links, validate_scope_chain
-from .lists import parse_list_iterator, LIST_PREFIXES
+from pychivalry.core.parser import parse_document, CK3Node, get_node_at_position
+from pychivalry.core.indexer import DocumentIndex
+from pychivalry.ck3.validation.scopes import get_resulting_scope, get_scope_links, validate_scope_chain
+from pychivalry.ck3.validation.lists import parse_list_iterator, LIST_PREFIXES
 
 logger = logging.getLogger(__name__)
 

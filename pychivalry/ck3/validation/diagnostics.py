@@ -144,15 +144,15 @@ from typing import List, Optional
 from lsprotocol import types
 from pygls.workspace import TextDocument
 
-from .parser import CK3Node, ParseError
-from .indexer import DocumentIndex
-from .scopes import (
+from pychivalry.core.parser import CK3Node, ParseError
+from pychivalry.core.indexer import DocumentIndex
+from pychivalry.ck3.validation.scopes import (
     validate_scope_chain,
     is_valid_list_base,
     parse_list_iterator,
 )
-from .ck3_language import CK3_EFFECTS, CK3_TRIGGERS, CK3_SCOPES
-from .block_validator import validate_block_semantics
+from pychivalry.ck3.ck3_language import CK3_EFFECTS, CK3_TRIGGERS, CK3_SCOPES
+from pychivalry.ck3.validation.block_validator import validate_block_semantics
 import logging
 
 logger = logging.getLogger(__name__)
@@ -454,7 +454,7 @@ def check_trait_references(ast: List[CK3Node]) -> List[types.Diagnostic]:
         using the VS Code command "PyChivalry: Extract Trait Data from CK3 Installation"
         due to copyright restrictions.
     """
-    from pychivalry.traits import is_trait_data_available, is_valid_trait, suggest_similar_traits
+    from .traits import is_trait_data_available, is_valid_trait, suggest_similar_traits
     
     # Skip trait validation if data not available (user hasn't extracted it)
     if not is_trait_data_available():
@@ -976,7 +976,7 @@ def collect_missing_localization_diagnostics(
         >>> diagnostics[0].code
         'CK3600'
     """
-    from .localization import collect_localization_diagnostics
+    from pychivalry.ck3.localization.validator import collect_localization_diagnostics
 
     diagnostics = []
 
@@ -1080,7 +1080,7 @@ def collect_orphaned_localization_diagnostics(
         >>> diagnostics[0].code
         'CK3604'
     """
-    from .localization import create_unused_key_diagnostic
+    from pychivalry.ck3.localization.validator import create_unused_key_diagnostic
     import re
 
     diagnostics = []
@@ -1168,7 +1168,7 @@ def collect_yml_file_diagnostics(
         >>> diagnostics[0].code
         'LOC-002'
     """
-    from .localization import (
+    from pychivalry.ck3.localization.validator import (
         validate_language_header,
         validate_localization_references,
         extract_localization_key_versions,
@@ -1322,7 +1322,7 @@ def collect_scope_type_diagnostics(
         Event defines: random_title { save_scope_as = my_title }
         Localization: "[my_title.GetFirstName]" <- ERROR: GetFirstName is for characters
     """
-    from .localization import get_function_scope_type
+    from pychivalry.ck3.localization.validator import get_function_scope_type
     import re
 
     diagnostics = []
@@ -1495,8 +1495,8 @@ def collect_all_diagnostics(
         # Schema-driven validation (CK37xx, EVENT-xxx, etc.)
         if config.schema_enabled:
             try:
-                from .schema_loader import SchemaLoader
-                from .schema_validator import SchemaValidator
+                from pychivalry.schema.loader import SchemaLoader
+                from pychivalry.schema.validator import SchemaValidator
                 
                 # Get file path from URI for schema matching
                 file_path = doc.uri.replace('file://', '')

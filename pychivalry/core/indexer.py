@@ -169,7 +169,7 @@ SEE ALSO:
 
 from typing import Dict, List, Optional, Set, Callable, Tuple
 from lsprotocol import types
-from pychivalry.parser import CK3Node, parse_document
+from .parser import CK3Node, parse_document
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import logging

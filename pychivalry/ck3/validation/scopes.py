@@ -67,7 +67,7 @@ SEE ALSO:
 from typing import List, Tuple, Optional, Dict
 
 # Internal imports - data loading utilities
-from pychivalry.data import get_scopes
+from pychivalry.core.data import get_scopes
 
 # Logging for diagnostic output
 import logging

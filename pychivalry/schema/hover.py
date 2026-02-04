@@ -15,7 +15,7 @@ from typing import Optional, Dict, Any
 from lsprotocol.types import Hover, MarkupContent, MarkupKind
 import logging
 
-from .schema_loader import SchemaLoader
+from .loader import SchemaLoader
 
 logger = logging.getLogger(__name__)
 

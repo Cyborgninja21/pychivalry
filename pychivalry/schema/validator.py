@@ -19,8 +19,8 @@ from lsprotocol.types import Diagnostic, DiagnosticSeverity, Range
 import re
 import logging
 
-from .parser import CK3Node
-from .schema_loader import SchemaLoader
+from pychivalry.core.parser import CK3Node
+from .loader import SchemaLoader
 
 logger = logging.getLogger(__name__)
 

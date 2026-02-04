@@ -61,7 +61,7 @@ from typing import List, Optional, Set, Dict, Any
 
 from lsprotocol import types
 
-from .parser import CK3Node
+from pychivalry.core.parser import CK3Node
 
 logger = logging.getLogger(__name__)
 

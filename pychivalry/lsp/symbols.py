@@ -503,7 +503,7 @@ def extract_document_symbols(parsed_document: Dict, file_path: str = None, schem
     # Try schema-driven extraction first
     if file_path and schema_loader:
         try:
-            from .schema_symbols import get_schema_symbols
+            from pychivalry.schema.symbols import get_schema_symbols
             
             # If parsed_document is a list (AST), use it directly
             if isinstance(parsed_document, list):

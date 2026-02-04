@@ -140,14 +140,14 @@ from typing import List, Optional, Set, Dict, Any
 
 from lsprotocol import types
 
-from .parser import CK3Node
-from .indexer import DocumentIndex
-from .ck3_language import CK3_EFFECTS, CK3_TRIGGERS
-from . import events
+from pychivalry.core.parser import CK3Node
+from pychivalry.core.indexer import DocumentIndex
+from pychivalry.ck3.ck3_language import CK3_EFFECTS, CK3_TRIGGERS
+from pychivalry.ck3.validation import events
 
 # NEW: Import generic rules validator for schema-driven validation
 try:
-    from .generic_rules_validator import validate_generic_rules
+    from pychivalry.ck3.validation.generic_rules_validator import validate_generic_rules
     GENERIC_RULES_AVAILABLE = True
 except ImportError:
     logger.warning("generic_rules_validator not available, using legacy validation")

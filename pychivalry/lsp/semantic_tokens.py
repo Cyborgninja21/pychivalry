@@ -143,9 +143,9 @@ from functools import lru_cache
 from typing import List, Optional, Set, Tuple, FrozenSet
 from lsprotocol import types
 
-from .parser import CK3Node, parse_document
-from .indexer import DocumentIndex
-from .ck3_language import (
+from pychivalry.core.parser import CK3Node, parse_document
+from pychivalry.core.indexer import DocumentIndex
+from pychivalry.ck3.ck3_language import (
     CK3_KEYWORDS,
     CK3_EFFECTS,
     CK3_TRIGGERS,
@@ -153,7 +153,7 @@ from .ck3_language import (
     CK3_EVENT_TYPES,
     CK3_BOOLEAN_VALUES,
 )
-from .scopes import get_scope_links
+from pychivalry.ck3.validation.scopes import get_scope_links
 
 import logging
 import re

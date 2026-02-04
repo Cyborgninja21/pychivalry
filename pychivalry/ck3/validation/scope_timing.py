@@ -120,8 +120,8 @@ from typing import List, Optional, Set, Dict, Tuple
 
 from lsprotocol import types
 
-from .parser import CK3Node
-from .indexer import DocumentIndex
+from pychivalry.core.parser import CK3Node
+from pychivalry.core.indexer import DocumentIndex
 
 logger = logging.getLogger(__name__)
 
