@@ -11,7 +11,7 @@ Tests the inlay hint provider for CK3 scripts, including:
 import pytest
 from lsprotocol import types
 
-from pychivalry.inlay_hints import (
+from pychivalry.lsp.inlay_hints import (
     get_inlay_hints,
     get_scope_type_for_link,
     get_scope_type_for_chain,

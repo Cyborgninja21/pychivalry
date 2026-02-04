@@ -7,9 +7,9 @@ cross-field validations, and condition evaluation.
 
 import pytest
 from lsprotocol.types import Range, Position, DiagnosticSeverity
-from pychivalry.schema_validator import SchemaValidator
-from pychivalry.schema_loader import SchemaLoader
-from pychivalry.parser import CK3Node
+from pychivalry.schema.validator import SchemaValidator
+from pychivalry.schema.loader import SchemaLoader
+from pychivalry.core.parser import CK3Node
 
 
 @pytest.fixture

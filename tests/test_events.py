@@ -5,7 +5,7 @@ Tests event validation, types, themes, portraits, and dynamic descriptions.
 """
 
 import pytest
-from pychivalry.events import (
+from pychivalry.ck3.validation.events import (
     is_valid_event_type,
     is_valid_theme,
     is_valid_portrait_position,

@@ -5,7 +5,7 @@ Tests script value parsing, formula validation, and conditional logic.
 """
 
 import pytest
-from pychivalry.script_values import (
+from pychivalry.ck3.validation.script_values import (
     is_formula_operation,
     is_conditional_keyword,
     parse_script_value,

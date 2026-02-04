@@ -6,7 +6,7 @@ This module tests scope type validation, navigation, and link checking.
 
 import pytest
 
-from pychivalry.scopes import (
+from pychivalry.ck3.validation.scopes import (
     get_scope_links,
     get_scope_lists,
     get_scope_triggers,

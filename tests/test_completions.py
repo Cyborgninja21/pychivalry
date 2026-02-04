@@ -11,7 +11,7 @@ This test suite validates that the completion system correctly:
 import pytest
 from lsprotocol import types
 
-from pychivalry.completions import (
+from pychivalry.lsp.completions import (
     CompletionContext,
     detect_context,
     filter_by_context,
@@ -23,8 +23,8 @@ from pychivalry.completions import (
     create_snippet_completions,
     get_context_aware_completions,
 )
-from pychivalry.parser import CK3Node
-from pychivalry.indexer import DocumentIndex
+from pychivalry.core.parser import CK3Node
+from pychivalry.core.indexer import DocumentIndex
 
 
 class TestCompletionContext:

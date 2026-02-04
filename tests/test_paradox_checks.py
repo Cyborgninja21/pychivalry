@@ -12,8 +12,8 @@ Tests Paradox-specific convention validation including:
 import pytest
 from lsprotocol import types
 
-from pychivalry.parser import parse_document
-from pychivalry.paradox_checks import (
+from pychivalry.core.parser import parse_document
+from pychivalry.ck3.validation.paradox_checks import (
     check_paradox_conventions,
     check_effect_in_trigger_context,
     check_list_iterator_misuse,
@@ -23,7 +23,7 @@ from pychivalry.paradox_checks import (
     check_common_gotchas,
     ParadoxConfig,
 )
-from pychivalry.scope_timing import (
+from pychivalry.ck3.validation.scope_timing import (
     check_scope_timing,
     check_event_scope_timing,
     check_variable_timing,
@@ -530,7 +530,7 @@ class TestEventTypeValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_event_type_valid
+        from pychivalry.ck3.validation.paradox_checks import check_event_type_valid
         diagnostics = check_event_type_valid(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3761" not in codes
@@ -542,7 +542,7 @@ class TestEventTypeValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_event_type_valid
+        from pychivalry.ck3.validation.paradox_checks import check_event_type_valid
         diagnostics = check_event_type_valid(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3761" in codes
@@ -559,7 +559,7 @@ class TestEventDescValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_event_has_desc
+        from pychivalry.ck3.validation.paradox_checks import check_event_has_desc
         diagnostics = check_event_has_desc(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3764" not in codes
@@ -572,7 +572,7 @@ class TestEventDescValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_event_has_desc
+        from pychivalry.ck3.validation.paradox_checks import check_event_has_desc
         diagnostics = check_event_has_desc(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3764" not in codes
@@ -585,7 +585,7 @@ class TestEventDescValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_event_has_desc
+        from pychivalry.ck3.validation.paradox_checks import check_event_has_desc
         diagnostics = check_event_has_desc(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3764" in codes
@@ -604,7 +604,7 @@ class TestOptionNameValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_option_has_name
+        from pychivalry.ck3.validation.paradox_checks import check_option_has_name
         diagnostics = check_option_has_name(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3450" not in codes
@@ -618,7 +618,7 @@ class TestOptionNameValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_option_has_name
+        from pychivalry.ck3.validation.paradox_checks import check_option_has_name
         diagnostics = check_option_has_name(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3450" in codes
@@ -639,7 +639,7 @@ class TestTriggeredDescValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_triggered_desc_structure
+        from pychivalry.ck3.validation.paradox_checks import check_triggered_desc_structure
         diagnostics = check_triggered_desc_structure(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3440" not in codes
@@ -656,7 +656,7 @@ class TestTriggeredDescValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_triggered_desc_structure
+        from pychivalry.ck3.validation.paradox_checks import check_triggered_desc_structure
         diagnostics = check_triggered_desc_structure(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3440" in codes
@@ -672,7 +672,7 @@ class TestTriggeredDescValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_triggered_desc_structure
+        from pychivalry.ck3.validation.paradox_checks import check_triggered_desc_structure
         diagnostics = check_triggered_desc_structure(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3441" in codes
@@ -689,7 +689,7 @@ class TestPortraitPositionValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_portrait_position
+        from pychivalry.ck3.validation.paradox_checks import check_portrait_position
         diagnostics = check_portrait_position(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3420" not in codes
@@ -701,7 +701,7 @@ class TestPortraitPositionValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_portrait_position
+        from pychivalry.ck3.validation.paradox_checks import check_portrait_position
         diagnostics = check_portrait_position(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3420" in codes
@@ -720,7 +720,7 @@ class TestPortraitCharacterValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_portrait_has_character
+        from pychivalry.ck3.validation.paradox_checks import check_portrait_has_character
         diagnostics = check_portrait_has_character(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3421" not in codes
@@ -734,7 +734,7 @@ class TestPortraitCharacterValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_portrait_has_character
+        from pychivalry.ck3.validation.paradox_checks import check_portrait_has_character
         diagnostics = check_portrait_has_character(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3421" in codes
@@ -753,7 +753,7 @@ class TestAnimationValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_animation_valid
+        from pychivalry.ck3.validation.paradox_checks import check_animation_valid
         diagnostics = check_animation_valid(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3422" not in codes
@@ -768,7 +768,7 @@ class TestAnimationValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_animation_valid
+        from pychivalry.ck3.validation.paradox_checks import check_animation_valid
         diagnostics = check_animation_valid(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3422" in codes
@@ -784,7 +784,7 @@ class TestThemeValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_theme_valid
+        from pychivalry.ck3.validation.paradox_checks import check_theme_valid
         diagnostics = check_theme_valid(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3430" not in codes
@@ -796,7 +796,7 @@ class TestThemeValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_theme_valid
+        from pychivalry.ck3.validation.paradox_checks import check_theme_valid
         diagnostics = check_theme_valid(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3430" in codes
@@ -816,7 +816,7 @@ class TestHiddenEventOptionsValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_hidden_event_options
+        from pychivalry.ck3.validation.paradox_checks import check_hidden_event_options
         diagnostics = check_hidden_event_options(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3762" not in codes
@@ -831,7 +831,7 @@ class TestHiddenEventOptionsValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_hidden_event_options
+        from pychivalry.ck3.validation.paradox_checks import check_hidden_event_options
         diagnostics = check_hidden_event_options(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3762" not in codes
@@ -847,7 +847,7 @@ class TestHiddenEventOptionsValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_hidden_event_options
+        from pychivalry.ck3.validation.paradox_checks import check_hidden_event_options
         diagnostics = check_hidden_event_options(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3762" in codes
@@ -866,7 +866,7 @@ class TestMultipleAfterBlocksValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_multiple_after_blocks
+        from pychivalry.ck3.validation.paradox_checks import check_multiple_after_blocks
         diagnostics = check_multiple_after_blocks(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3766" not in codes
@@ -884,7 +884,7 @@ class TestMultipleAfterBlocksValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_multiple_after_blocks
+        from pychivalry.ck3.validation.paradox_checks import check_multiple_after_blocks
         diagnostics = check_multiple_after_blocks(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3766" in codes
@@ -900,7 +900,7 @@ class TestEmptyEventValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_empty_event
+        from pychivalry.ck3.validation.paradox_checks import check_empty_event
         diagnostics = check_empty_event(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3767" not in codes
@@ -911,7 +911,7 @@ class TestEmptyEventValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_empty_event
+        from pychivalry.ck3.validation.paradox_checks import check_empty_event
         diagnostics = check_empty_event(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3767" in codes
@@ -928,7 +928,7 @@ class TestEventPortraitsValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_event_has_portraits
+        from pychivalry.ck3.validation.paradox_checks import check_event_has_portraits
         diagnostics = check_event_has_portraits(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3769" not in codes
@@ -941,7 +941,7 @@ class TestEventPortraitsValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_event_has_portraits
+        from pychivalry.ck3.validation.paradox_checks import check_event_has_portraits
         diagnostics = check_event_has_portraits(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3769" not in codes
@@ -953,7 +953,7 @@ class TestEventPortraitsValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_event_has_portraits
+        from pychivalry.ck3.validation.paradox_checks import check_event_has_portraits
         diagnostics = check_event_has_portraits(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3769" not in codes
@@ -967,7 +967,7 @@ class TestEventPortraitsValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_event_has_portraits
+        from pychivalry.ck3.validation.paradox_checks import check_event_has_portraits
         diagnostics = check_event_has_portraits(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3769" in codes
@@ -995,7 +995,7 @@ class TestTriggerExtensions:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_trigger_extensions
+        from pychivalry.ck3.validation.paradox_checks import check_trigger_extensions
         diagnostics = check_trigger_extensions(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3512" not in codes
@@ -1013,7 +1013,7 @@ class TestTriggerExtensions:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_trigger_extensions
+        from pychivalry.ck3.validation.paradox_checks import check_trigger_extensions
         diagnostics = check_trigger_extensions(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3512" in codes
@@ -1032,7 +1032,7 @@ class TestTriggerExtensions:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_trigger_extensions
+        from pychivalry.ck3.validation.paradox_checks import check_trigger_extensions
         diagnostics = check_trigger_extensions(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3513" in codes
@@ -1050,7 +1050,7 @@ class TestTriggerExtensions:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_trigger_extensions
+        from pychivalry.ck3.validation.paradox_checks import check_trigger_extensions
         diagnostics = check_trigger_extensions(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3510" in codes
@@ -1072,7 +1072,7 @@ class TestTriggerExtensions:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_trigger_extensions
+        from pychivalry.ck3.validation.paradox_checks import check_trigger_extensions
         diagnostics = check_trigger_extensions(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3510" not in codes
@@ -1097,7 +1097,7 @@ class TestTriggerExtensions:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_trigger_extensions
+        from pychivalry.ck3.validation.paradox_checks import check_trigger_extensions
         diagnostics = check_trigger_extensions(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3511" in codes
@@ -1125,7 +1125,7 @@ class TestOnTriggerFail:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_on_trigger_fail
+        from pychivalry.ck3.validation.paradox_checks import check_on_trigger_fail
         diagnostics = check_on_trigger_fail(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3514" in codes
@@ -1143,7 +1143,7 @@ class TestOnTriggerFail:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_on_trigger_fail
+        from pychivalry.ck3.validation.paradox_checks import check_on_trigger_fail
         diagnostics = check_on_trigger_fail(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3514" not in codes
@@ -1167,7 +1167,7 @@ class TestDuplicateTriggers:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_duplicate_triggers
+        from pychivalry.ck3.validation.paradox_checks import check_duplicate_triggers
         diagnostics = check_duplicate_triggers(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3515" in codes
@@ -1189,7 +1189,7 @@ class TestDuplicateTriggers:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_duplicate_triggers
+        from pychivalry.ck3.validation.paradox_checks import check_duplicate_triggers
         diagnostics = check_duplicate_triggers(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3515" not in codes
@@ -1212,7 +1212,7 @@ class TestDuplicateTriggers:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_duplicate_triggers
+        from pychivalry.ck3.validation.paradox_checks import check_duplicate_triggers
         diagnostics = check_duplicate_triggers(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3515" in codes
@@ -1233,7 +1233,7 @@ class TestDuplicateTriggers:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_duplicate_triggers
+        from pychivalry.ck3.validation.paradox_checks import check_duplicate_triggers
         diagnostics = check_duplicate_triggers(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3515" not in codes
@@ -1260,7 +1260,7 @@ class TestAfterBlockValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_after_block_issues
+        from pychivalry.ck3.validation.paradox_checks import check_after_block_issues
         diagnostics = check_after_block_issues(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3520" not in codes
@@ -1277,7 +1277,7 @@ class TestAfterBlockValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_after_block_issues
+        from pychivalry.ck3.validation.paradox_checks import check_after_block_issues
         diagnostics = check_after_block_issues(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3520" in codes
@@ -1293,7 +1293,7 @@ class TestAfterBlockValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_after_block_issues
+        from pychivalry.ck3.validation.paradox_checks import check_after_block_issues
         diagnostics = check_after_block_issues(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3521" in codes
@@ -1320,7 +1320,7 @@ class TestAIChanceValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_ai_chance_issues
+        from pychivalry.ck3.validation.paradox_checks import check_ai_chance_issues
         diagnostics = check_ai_chance_issues(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3610" not in codes
@@ -1340,7 +1340,7 @@ class TestAIChanceValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_ai_chance_issues
+        from pychivalry.ck3.validation.paradox_checks import check_ai_chance_issues
         diagnostics = check_ai_chance_issues(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3610" in codes
@@ -1358,7 +1358,7 @@ class TestAIChanceValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_ai_chance_issues
+        from pychivalry.ck3.validation.paradox_checks import check_ai_chance_issues
         diagnostics = check_ai_chance_issues(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3611" in codes
@@ -1376,7 +1376,7 @@ class TestAIChanceValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_ai_chance_issues
+        from pychivalry.ck3.validation.paradox_checks import check_ai_chance_issues
         diagnostics = check_ai_chance_issues(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3612" in codes
@@ -1398,7 +1398,7 @@ class TestAIChanceValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_ai_chance_issues
+        from pychivalry.ck3.validation.paradox_checks import check_ai_chance_issues
         diagnostics = check_ai_chance_issues(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3612" not in codes
@@ -1420,7 +1420,7 @@ class TestDescValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_desc_issues
+        from pychivalry.ck3.validation.paradox_checks import check_desc_issues
         diagnostics = check_desc_issues(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3443" not in codes
@@ -1436,7 +1436,7 @@ class TestDescValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_desc_issues
+        from pychivalry.ck3.validation.paradox_checks import check_desc_issues
         diagnostics = check_desc_issues(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3443" not in codes
@@ -1449,7 +1449,7 @@ class TestDescValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_desc_issues
+        from pychivalry.ck3.validation.paradox_checks import check_desc_issues
         diagnostics = check_desc_issues(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3443" in codes
@@ -1483,7 +1483,7 @@ class TestDescBlockValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_first_valid_fallback
+        from pychivalry.ck3.validation.paradox_checks import check_first_valid_fallback
         diagnostics = check_first_valid_fallback(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3442" not in codes
@@ -1507,7 +1507,7 @@ class TestDescBlockValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_first_valid_fallback
+        from pychivalry.ck3.validation.paradox_checks import check_first_valid_fallback
         diagnostics = check_first_valid_fallback(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3442" not in codes
@@ -1531,7 +1531,7 @@ class TestDescBlockValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_first_valid_fallback
+        from pychivalry.ck3.validation.paradox_checks import check_first_valid_fallback
         diagnostics = check_first_valid_fallback(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3442" in codes
@@ -1548,7 +1548,7 @@ class TestDescBlockValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_desc_literal_string
+        from pychivalry.ck3.validation.paradox_checks import check_desc_literal_string
         diagnostics = check_desc_literal_string(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3444" not in codes
@@ -1561,7 +1561,7 @@ class TestDescBlockValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_desc_literal_string
+        from pychivalry.ck3.validation.paradox_checks import check_desc_literal_string
         diagnostics = check_desc_literal_string(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3444" in codes
@@ -1582,7 +1582,7 @@ class TestDescBlockValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_desc_structure
+        from pychivalry.ck3.validation.paradox_checks import check_desc_structure
         diagnostics = check_desc_structure(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3445" not in codes
@@ -1600,7 +1600,7 @@ class TestDescBlockValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_desc_structure
+        from pychivalry.ck3.validation.paradox_checks import check_desc_structure
         diagnostics = check_desc_structure(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3445" not in codes
@@ -1620,7 +1620,7 @@ class TestDescBlockValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_desc_structure
+        from pychivalry.ck3.validation.paradox_checks import check_desc_structure
         diagnostics = check_desc_structure(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3445" in codes
@@ -1645,7 +1645,7 @@ class TestDescBlockValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_desc_structure
+        from pychivalry.ck3.validation.paradox_checks import check_desc_structure
         diagnostics = check_desc_structure(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3446" not in codes
@@ -1672,7 +1672,7 @@ class TestDescBlockValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_desc_structure
+        from pychivalry.ck3.validation.paradox_checks import check_desc_structure
         diagnostics = check_desc_structure(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3446" in codes
@@ -1696,7 +1696,7 @@ class TestOptionValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_option_issues
+        from pychivalry.ck3.validation.paradox_checks import check_option_issues
         diagnostics = check_option_issues(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3460" not in codes
@@ -1712,7 +1712,7 @@ class TestOptionValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_option_issues
+        from pychivalry.ck3.validation.paradox_checks import check_option_issues
         diagnostics = check_option_issues(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3460" in codes
@@ -1725,7 +1725,7 @@ class TestOptionValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_option_issues
+        from pychivalry.ck3.validation.paradox_checks import check_option_issues
         diagnostics = check_option_issues(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3461" in codes
@@ -1743,7 +1743,7 @@ class TestOnActionValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_on_action_structure
+        from pychivalry.ck3.validation.paradox_checks import check_on_action_structure
         diagnostics = check_on_action_structure(ast, None, config)
         codes = [d.code for d in diagnostics]
         # on_birth is a vanilla on_action, so overwriting with effect should warn
@@ -1761,7 +1761,7 @@ class TestOnActionValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_on_action_structure
+        from pychivalry.ck3.validation.paradox_checks import check_on_action_structure
         diagnostics = check_on_action_structure(ast, None, config)
         codes = [d.code for d in diagnostics]
         # on_death is a vanilla on_action, so overwriting with trigger should warn
@@ -1778,7 +1778,7 @@ class TestOnActionValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_on_action_structure
+        from pychivalry.ck3.validation.paradox_checks import check_on_action_structure
         diagnostics = check_on_action_structure(ast, None, config)
         codes = [d.code for d in diagnostics]
         assert "CK3500" not in codes  # events is OK
@@ -1793,7 +1793,7 @@ class TestOnActionValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_on_action_structure
+        from pychivalry.ck3.validation.paradox_checks import check_on_action_structure
         diagnostics = check_on_action_structure(ast, None, config)
         codes = [d.code for d in diagnostics]
         assert "CK3502" in codes
@@ -1810,7 +1810,7 @@ class TestOnActionValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_on_action_structure
+        from pychivalry.ck3.validation.paradox_checks import check_on_action_structure
         diagnostics = check_on_action_structure(ast, None, config)
         codes = [d.code for d in diagnostics]
         assert "CK3502" in codes
@@ -1825,7 +1825,7 @@ class TestOnActionValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_on_action_structure
+        from pychivalry.ck3.validation.paradox_checks import check_on_action_structure
         diagnostics = check_on_action_structure(ast, None, config)
         codes = [d.code for d in diagnostics]
         assert "CK3502" not in codes
@@ -1842,7 +1842,7 @@ class TestOnActionValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_on_action_structure
+        from pychivalry.ck3.validation.paradox_checks import check_on_action_structure
         diagnostics = check_on_action_structure(ast, None, config)
         codes = [d.code for d in diagnostics]
         assert "CK3502" not in codes
@@ -1859,7 +1859,7 @@ class TestOnActionValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_on_action_structure
+        from pychivalry.ck3.validation.paradox_checks import check_on_action_structure
         diagnostics = check_on_action_structure(ast, None, config)
         codes = [d.code for d in diagnostics]
         assert "CK3502" not in codes
@@ -1875,7 +1875,7 @@ class TestOnActionValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_on_action_structure
+        from pychivalry.ck3.validation.paradox_checks import check_on_action_structure
         diagnostics = check_on_action_structure(ast, None, config)
         codes = [d.code for d in diagnostics]
         # yearly_playable_pulse is a pulse on_action, so every_living_character should warn
@@ -1893,7 +1893,7 @@ class TestOnActionValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_on_action_structure
+        from pychivalry.ck3.validation.paradox_checks import check_on_action_structure
         diagnostics = check_on_action_structure(ast, None, config)
         codes = [d.code for d in diagnostics]
         if "CK3503" in codes:
@@ -1910,7 +1910,7 @@ class TestOnActionValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_on_action_structure
+        from pychivalry.ck3.validation.paradox_checks import check_on_action_structure
         diagnostics = check_on_action_structure(ast, None, config)
         codes = [d.code for d in diagnostics]
         # on_birth is not a pulse, so no warning
@@ -1928,7 +1928,7 @@ class TestOnActionValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_on_action_structure
+        from pychivalry.ck3.validation.paradox_checks import check_on_action_structure
         diagnostics = check_on_action_structure(ast, None, config)
         # Just verify no crash - weight validation needs parser improvements
         assert isinstance(diagnostics, list)
@@ -1944,7 +1944,7 @@ class TestOnActionValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_on_action_structure
+        from pychivalry.ck3.validation.paradox_checks import check_on_action_structure
         diagnostics = check_on_action_structure(ast, None, config)
         codes = [d.code for d in diagnostics]
         assert "CK3506" not in codes
@@ -1959,7 +1959,7 @@ class TestOnActionValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_on_action_structure
+        from pychivalry.ck3.validation.paradox_checks import check_on_action_structure
         diagnostics = check_on_action_structure(ast, None, config)
         codes = [d.code for d in diagnostics]
         assert "CK3507" in codes
@@ -1974,7 +1974,7 @@ class TestOnActionValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_on_action_structure
+        from pychivalry.ck3.validation.paradox_checks import check_on_action_structure
         diagnostics = check_on_action_structure(ast, None, config)
         codes = [d.code for d in diagnostics]
         assert "CK3507" not in codes
@@ -1989,14 +1989,14 @@ class TestOnActionValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_on_action_structure
+        from pychivalry.ck3.validation.paradox_checks import check_on_action_structure
         diagnostics = check_on_action_structure(ast, None, config)
         codes = [d.code for d in diagnostics]
         assert "CK3507" not in codes
 
     def test_wrong_folder_path(self):
         """CK3508: Error for on_actions/ instead of on_action/."""
-        from pychivalry.paradox_checks import check_on_action_file_path
+        from pychivalry.ck3.validation.paradox_checks import check_on_action_file_path
         config = ParadoxConfig()
 
         # Test Windows path
@@ -2011,7 +2011,7 @@ class TestOnActionValidation:
 
     def test_correct_folder_path_ok(self):
         """CK3508: Correct path on_action/ should be OK."""
-        from pychivalry.paradox_checks import check_on_action_file_path
+        from pychivalry.ck3.validation.paradox_checks import check_on_action_file_path
         config = ParadoxConfig()
 
         # Test Windows path
@@ -2035,7 +2035,7 @@ class TestOnActionValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig(on_action_validation=False)
-        from pychivalry.paradox_checks import check_on_action_structure
+        from pychivalry.ck3.validation.paradox_checks import check_on_action_structure
         diagnostics = check_on_action_structure(ast, None, config)
         assert len(diagnostics) == 0
 
@@ -2049,7 +2049,7 @@ class TestOnActionValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_unknown_on_action_references
+        from pychivalry.ck3.validation.paradox_checks import check_unknown_on_action_references
         diagnostics = check_unknown_on_action_references(ast, None, config)
         codes = [d.code for d in diagnostics]
         assert "CK3501" in codes
@@ -2062,7 +2062,7 @@ class TestOnActionValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_unknown_on_action_references
+        from pychivalry.ck3.validation.paradox_checks import check_unknown_on_action_references
         diagnostics = check_unknown_on_action_references(ast, None, config)
         codes = [d.code for d in diagnostics]
         # on_birth_child is a vanilla on_action, so should not warn
@@ -2080,7 +2080,7 @@ class TestOnActionValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_unknown_on_action_references
+        from pychivalry.ck3.validation.paradox_checks import check_unknown_on_action_references
         diagnostics = check_unknown_on_action_references(ast, None, config)
         codes = [d.code for d in diagnostics]
         # Parser limitation - can't detect this pattern yet
@@ -2094,7 +2094,7 @@ class TestOnActionValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_unknown_on_action_references
+        from pychivalry.ck3.validation.paradox_checks import check_unknown_on_action_references
         diagnostics = check_unknown_on_action_references(ast, None, config)
         codes = [d.code for d in diagnostics]
         assert "CK3501" not in codes
@@ -2113,7 +2113,7 @@ class TestOnActionValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_missing_weight_multiplier
+        from pychivalry.ck3.validation.paradox_checks import check_missing_weight_multiplier
         diagnostics = check_missing_weight_multiplier(ast, config)
         codes = [d.code for d in diagnostics]
         # Parser limitation - can't detect unweighted format yet
@@ -2130,7 +2130,7 @@ class TestOnActionValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_missing_weight_multiplier
+        from pychivalry.ck3.validation.paradox_checks import check_missing_weight_multiplier
         diagnostics = check_missing_weight_multiplier(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3505" not in codes
@@ -2145,7 +2145,7 @@ class TestOnActionValidation:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_missing_weight_multiplier
+        from pychivalry.ck3.validation.paradox_checks import check_missing_weight_multiplier
         diagnostics = check_missing_weight_multiplier(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3505" not in codes
@@ -2165,7 +2165,7 @@ on_action_b = {
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_circular_fallback
+        from pychivalry.ck3.validation.paradox_checks import check_circular_fallback
         diagnostics = check_circular_fallback(ast, None, config)
         codes = [d.code for d in diagnostics]
         assert "CK3504" in codes
@@ -2188,7 +2188,7 @@ on_action_c = {
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_circular_fallback
+        from pychivalry.ck3.validation.paradox_checks import check_circular_fallback
         diagnostics = check_circular_fallback(ast, None, config)
         codes = [d.code for d in diagnostics]
         assert "CK3504" in codes
@@ -2201,7 +2201,7 @@ on_action_c = {
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_circular_fallback
+        from pychivalry.ck3.validation.paradox_checks import check_circular_fallback
         diagnostics = check_circular_fallback(ast, None, config)
         codes = [d.code for d in diagnostics]
         assert "CK3504" in codes
@@ -2223,7 +2223,7 @@ on_action_c = {
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_circular_fallback
+        from pychivalry.ck3.validation.paradox_checks import check_circular_fallback
         diagnostics = check_circular_fallback(ast, None, config)
         codes = [d.code for d in diagnostics]
         assert "CK3504" not in codes
@@ -2245,7 +2245,7 @@ on_action_c = {
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_circular_fallback
+        from pychivalry.ck3.validation.paradox_checks import check_circular_fallback
         diagnostics = check_circular_fallback(ast, None, config)
         codes = [d.code for d in diagnostics]
         assert "CK3504" not in codes
@@ -2261,7 +2261,7 @@ on_action_b = {
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_circular_fallback
+        from pychivalry.ck3.validation.paradox_checks import check_circular_fallback
         diagnostics = check_circular_fallback(ast, None, config)
         codes = [d.code for d in diagnostics]
         assert "CK3504" not in codes
@@ -2286,7 +2286,7 @@ class TestOptionSkillReference:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_option_skill_reference
+        from pychivalry.ck3.validation.paradox_checks import check_option_skill_reference
         diagnostics = check_option_skill_reference(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3452" not in codes
@@ -2303,7 +2303,7 @@ class TestOptionSkillReference:
 }}"""
             ast, _parse_errors = parse_document(text)
             config = ParadoxConfig()
-            from pychivalry.paradox_checks import check_option_skill_reference
+            from pychivalry.ck3.validation.paradox_checks import check_option_skill_reference
             diagnostics = check_option_skill_reference(ast, config)
             codes = [d.code for d in diagnostics]
             assert "CK3452" not in codes, f"Valid skill '{skill}' should not produce CK3452"
@@ -2319,7 +2319,7 @@ class TestOptionSkillReference:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_option_skill_reference
+        from pychivalry.ck3.validation.paradox_checks import check_option_skill_reference
         diagnostics = check_option_skill_reference(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3452" in codes
@@ -2340,7 +2340,7 @@ class TestOptionInternalFlag:
 }}"""
             ast, _parse_errors = parse_document(text)
             config = ParadoxConfig()
-            from pychivalry.paradox_checks import check_option_internal_flag
+            from pychivalry.ck3.validation.paradox_checks import check_option_internal_flag
             diagnostics = check_option_internal_flag(ast, config)
             codes = [d.code for d in diagnostics]
             assert "CK3453" not in codes, f"Valid flag '{flag}' should not produce CK3453"
@@ -2356,7 +2356,7 @@ class TestOptionInternalFlag:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_option_internal_flag
+        from pychivalry.ck3.validation.paradox_checks import check_option_internal_flag
         diagnostics = check_option_internal_flag(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3453" in codes
@@ -2377,7 +2377,7 @@ class TestRedundantOptionFallback:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_redundant_option_fallback
+        from pychivalry.ck3.validation.paradox_checks import check_redundant_option_fallback
         diagnostics = check_redundant_option_fallback(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3454" in codes
@@ -2394,7 +2394,7 @@ class TestRedundantOptionFallback:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_redundant_option_fallback
+        from pychivalry.ck3.validation.paradox_checks import check_redundant_option_fallback
         diagnostics = check_redundant_option_fallback(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3454" not in codes
@@ -2410,7 +2410,7 @@ class TestRedundantOptionFallback:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_redundant_option_fallback
+        from pychivalry.ck3.validation.paradox_checks import check_redundant_option_fallback
         diagnostics = check_redundant_option_fallback(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3454" not in codes
@@ -2433,7 +2433,7 @@ class TestMultipleExclusiveOptions:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_multiple_exclusive_options
+        from pychivalry.ck3.validation.paradox_checks import check_multiple_exclusive_options
         diagnostics = check_multiple_exclusive_options(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3455" not in codes
@@ -2453,7 +2453,7 @@ class TestMultipleExclusiveOptions:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_multiple_exclusive_options
+        from pychivalry.ck3.validation.paradox_checks import check_multiple_exclusive_options
         diagnostics = check_multiple_exclusive_options(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3455" in codes
@@ -2474,7 +2474,7 @@ class TestShowAsUnavailableWithoutTrigger:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_show_as_unavailable_without_trigger
+        from pychivalry.ck3.validation.paradox_checks import check_show_as_unavailable_without_trigger
         diagnostics = check_show_as_unavailable_without_trigger(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3456" not in codes
@@ -2490,7 +2490,7 @@ class TestShowAsUnavailableWithoutTrigger:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_show_as_unavailable_without_trigger
+        from pychivalry.ck3.validation.paradox_checks import check_show_as_unavailable_without_trigger
         diagnostics = check_show_as_unavailable_without_trigger(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3456" in codes
@@ -2511,7 +2511,7 @@ class TestHighlightPortraitScope:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_highlight_portrait_scope
+        from pychivalry.ck3.validation.paradox_checks import check_highlight_portrait_scope
         diagnostics = check_highlight_portrait_scope(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3457" not in codes
@@ -2527,7 +2527,7 @@ class TestHighlightPortraitScope:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_highlight_portrait_scope
+        from pychivalry.ck3.validation.paradox_checks import check_highlight_portrait_scope
         diagnostics = check_highlight_portrait_scope(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3457" in codes
@@ -2546,7 +2546,7 @@ class TestOptionLiteralName:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_option_literal_name
+        from pychivalry.ck3.validation.paradox_checks import check_option_literal_name
         diagnostics = check_option_literal_name(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3458" not in codes
@@ -2561,7 +2561,7 @@ class TestOptionLiteralName:
 }'''
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_option_literal_name
+        from pychivalry.ck3.validation.paradox_checks import check_option_literal_name
         diagnostics = check_option_literal_name(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3458" in codes
@@ -2584,7 +2584,7 @@ class TestAllOptionsHaveTriggers:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_all_options_have_triggers
+        from pychivalry.ck3.validation.paradox_checks import check_all_options_have_triggers
         diagnostics = check_all_options_have_triggers(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3459" not in codes
@@ -2605,7 +2605,7 @@ class TestAllOptionsHaveTriggers:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_all_options_have_triggers
+        from pychivalry.ck3.validation.paradox_checks import check_all_options_have_triggers
         diagnostics = check_all_options_have_triggers(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3459" not in codes
@@ -2625,7 +2625,7 @@ class TestAllOptionsHaveTriggers:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_all_options_have_triggers
+        from pychivalry.ck3.validation.paradox_checks import check_all_options_have_triggers
         diagnostics = check_all_options_have_triggers(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3459" in codes
@@ -2641,7 +2641,7 @@ class TestAllOptionsHaveTriggers:
 }"""
         ast, _parse_errors = parse_document(text)
         config = ParadoxConfig()
-        from pychivalry.paradox_checks import check_all_options_have_triggers
+        from pychivalry.ck3.validation.paradox_checks import check_all_options_have_triggers
         diagnostics = check_all_options_have_triggers(ast, config)
         codes = [d.code for d in diagnostics]
         assert "CK3459" in codes

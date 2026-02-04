@@ -8,7 +8,7 @@ for events, scripted effects, scripted triggers, and namespaces.
 import pytest
 from lsprotocol import types
 
-from pychivalry.code_lens import (
+from pychivalry.lsp.code_lens import (
     get_code_lenses,
     resolve_code_lens,
     _find_namespace_lenses,
@@ -17,7 +17,7 @@ from pychivalry.code_lens import (
     _find_scripted_trigger_lenses,
     _analyze_event,
 )
-from pychivalry.indexer import DocumentIndex
+from pychivalry.core.indexer import DocumentIndex
 
 
 class TestGetCodeLenses:

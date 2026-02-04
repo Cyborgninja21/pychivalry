@@ -5,12 +5,12 @@ Tests response times and memory usage to ensure performance requirements are met
 
 import pytest
 import time
-from pychivalry.parser import parse_document
-from pychivalry.diagnostics import collect_all_diagnostics
-from pychivalry.completions import get_context_aware_completions
-from pychivalry.navigation import find_definition, find_references
-from pychivalry.indexer import DocumentIndex
-from pychivalry.incremental_parser import IncrementalParser
+from pychivalry.core.parser import parse_document
+from pychivalry.ck3.validation.diagnostics import collect_all_diagnostics
+from pychivalry.lsp.completions import get_context_aware_completions
+from pychivalry.lsp.navigation import find_definition, find_references
+from pychivalry.core.indexer import DocumentIndex
+from pychivalry.core.incremental_parser import IncrementalParser
 from lsprotocol import types
 
 

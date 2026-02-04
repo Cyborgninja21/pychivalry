@@ -6,9 +6,9 @@ LSP completions and hover documentation.
 """
 
 import pytest
-from pychivalry.schema_loader import SchemaLoader
-from pychivalry.schema_completions import SchemaCompletionProvider, get_schema_completions
-from pychivalry.schema_hover import SchemaHoverProvider, get_schema_hover
+from pychivalry.schema.loader import SchemaLoader
+from pychivalry.schema.completions import SchemaCompletionProvider, get_schema_completions
+from pychivalry.schema.hover import SchemaHoverProvider, get_schema_hover
 from lsprotocol.types import CompletionItemKind, InsertTextFormat, MarkupKind
 
 

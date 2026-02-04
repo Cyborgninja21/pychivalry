@@ -6,7 +6,7 @@ Tests Phase 14: Code Actions (v0.14.0)
 
 import pytest
 from lsprotocol import types
-from pychivalry.code_actions import (
+from pychivalry.lsp.code_actions import (
     calculate_levenshtein_distance,
     find_similar_keywords,
     create_did_you_mean_action,

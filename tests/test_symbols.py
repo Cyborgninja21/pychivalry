@@ -6,7 +6,7 @@ Tests outline view and symbol extraction for CK3 scripts.
 
 import pytest
 from lsprotocol import types
-from pychivalry.symbols import (
+from pychivalry.lsp.symbols import (
     get_symbol_kind,
     create_document_symbol,
     extract_event_symbols,
