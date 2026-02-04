@@ -15,7 +15,8 @@
       "Bash(gh issue edit:*)",
       "Bash(mkdir:*)",
       "Bash(xcopy:*)",
-      "Bash(powershell -Command:*)"
+      "Bash(powershell -Command:*)",
+      "WebFetch(domain:code.visualstudio.com)"
     ],
     "deny": [],
     "ask": []
