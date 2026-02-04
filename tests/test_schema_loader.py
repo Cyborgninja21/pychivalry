@@ -6,7 +6,7 @@ Tests schema loading, caching, variable resolution, and diagnostic lookup.
 
 import pytest
 from pathlib import Path
-from pychivalry.schema_loader import SchemaLoader
+from pychivalry.schema.loader import SchemaLoader
 
 
 class TestSchemaLoader:

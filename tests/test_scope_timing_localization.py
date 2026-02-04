@@ -11,9 +11,9 @@ This is the #1 source of runtime errors for CK3 modders.
 import pytest
 from lsprotocol import types
 
-from pychivalry.parser import parse_document
-from pychivalry.scope_timing import check_scope_timing
-from pychivalry.indexer import DocumentIndex
+from pychivalry.core.parser import parse_document
+from pychivalry.ck3.validation.scope_timing import check_scope_timing
+from pychivalry.core.indexer import DocumentIndex
 
 
 class TestScopeTimingLocalization:

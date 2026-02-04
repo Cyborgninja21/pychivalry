@@ -7,8 +7,8 @@ This module tests indexing of symbols across documents for navigation features.
 import pytest
 from lsprotocol import types
 
-from pychivalry.indexer import DocumentIndex
-from pychivalry.parser import parse_document
+from pychivalry.core.indexer import DocumentIndex
+from pychivalry.core.parser import parse_document
 
 
 class TestDocumentIndex:

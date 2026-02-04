@@ -2,7 +2,7 @@
 Tests for workspace features module.
 """
 
-from pychivalry.workspace import (
+from pychivalry.core.workspace import (
     ModDescriptor,
     EventChainLink,
     LocalizationCoverage,

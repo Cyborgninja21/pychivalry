@@ -7,7 +7,7 @@ Tests semantic tokenization functionality for CK3 scripts.
 import pytest
 from lsprotocol import types
 
-from pychivalry.semantic_tokens import (
+from pychivalry.lsp.semantic_tokens import (
     SemanticToken,
     TOKEN_TYPES,
     TOKEN_MODIFIERS,

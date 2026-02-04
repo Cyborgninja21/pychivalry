@@ -5,7 +5,7 @@ Tests character functions, text formatting, icon references, and concept links.
 """
 
 import pytest
-from pychivalry.localization import (
+from pychivalry.ck3.localization.validator import (
     is_character_function,
     is_text_formatting_code,
     is_icon_reference,
@@ -408,32 +408,32 @@ class TestLevenshteinDistance:
 
     def test_identical_strings(self):
         """Test identical strings have distance 0."""
-        from pychivalry.localization import levenshtein_distance
+        from pychivalry.ck3.localization.validator import levenshtein_distance
 
         assert levenshtein_distance("my_event.t", "my_event.t") == 0
         assert levenshtein_distance("", "") == 0
 
     def test_single_insertion(self):
         """Test single character insertion."""
-        from pychivalry.localization import levenshtein_distance
+        from pychivalry.ck3.localization.validator import levenshtein_distance
 
         assert levenshtein_distance("my_event.t", "my_eventt.t") == 1
 
     def test_single_deletion(self):
         """Test single character deletion."""
-        from pychivalry.localization import levenshtein_distance
+        from pychivalry.ck3.localization.validator import levenshtein_distance
 
         assert levenshtein_distance("my_event.t", "my_evnt.t") == 1
 
     def test_single_substitution(self):
         """Test single character substitution."""
-        from pychivalry.localization import levenshtein_distance
+        from pychivalry.ck3.localization.validator import levenshtein_distance
 
         assert levenshtein_distance("my_event.t", "my_event.x") == 1
 
     def test_multiple_edits(self):
         """Test multiple edits."""
-        from pychivalry.localization import levenshtein_distance
+        from pychivalry.ck3.localization.validator import levenshtein_distance
 
         # 't' -> 'desc' needs 4 edits (substitute t->d, insert e, insert s, insert c)
         dist = levenshtein_distance("my_event.t", "my_event.desc")
@@ -441,14 +441,14 @@ class TestLevenshteinDistance:
 
     def test_empty_string(self):
         """Test with empty string."""
-        from pychivalry.localization import levenshtein_distance
+        from pychivalry.ck3.localization.validator import levenshtein_distance
 
         assert levenshtein_distance("abc", "") == 3
         assert levenshtein_distance("", "abc") == 3
 
     def test_completely_different(self):
         """Test completely different strings."""
-        from pychivalry.localization import levenshtein_distance
+        from pychivalry.ck3.localization.validator import levenshtein_distance
 
         assert levenshtein_distance("abc", "xyz") == 3
 
@@ -458,20 +458,20 @@ class TestSimilarityRatio:
 
     def test_identical_strings(self):
         """Test identical strings have ratio 1.0."""
-        from pychivalry.localization import similarity_ratio
+        from pychivalry.ck3.localization.validator import similarity_ratio
 
         assert similarity_ratio("my_event.t", "my_event.t") == 1.0
 
     def test_empty_strings(self):
         """Test empty strings."""
-        from pychivalry.localization import similarity_ratio
+        from pychivalry.ck3.localization.validator import similarity_ratio
 
         assert similarity_ratio("", "") == 1.0
         assert similarity_ratio("abc", "") == 0.0
 
     def test_similar_strings(self):
         """Test similar strings have high ratio."""
-        from pychivalry.localization import similarity_ratio
+        from pychivalry.ck3.localization.validator import similarity_ratio
 
         # One character difference in 10-char string = 0.9 similarity
         ratio = similarity_ratio("my_event.t", "my_evnt.t")  # Missing 'e'
@@ -479,7 +479,7 @@ class TestSimilarityRatio:
 
     def test_different_strings(self):
         """Test different strings have low ratio."""
-        from pychivalry.localization import similarity_ratio
+        from pychivalry.ck3.localization.validator import similarity_ratio
 
         ratio = similarity_ratio("abc", "xyz")
         assert ratio == 0.0
@@ -490,7 +490,7 @@ class TestFindSimilarKeys:
 
     def test_find_typo_match(self):
         """Test finding match for typo."""
-        from pychivalry.localization import find_similar_keys
+        from pychivalry.ck3.localization.validator import find_similar_keys
 
         keys = {"my_event.0001.t", "my_event.0001.desc", "my_event.0002.t"}
         matches = find_similar_keys("my_evnt.0001.t", keys, threshold=0.7)
@@ -501,7 +501,7 @@ class TestFindSimilarKeys:
 
     def test_find_multiple_matches(self):
         """Test finding multiple similar keys."""
-        from pychivalry.localization import find_similar_keys
+        from pychivalry.ck3.localization.validator import find_similar_keys
 
         keys = {"my_event.0001.t", "my_event.0001.desc", "other.t"}
         matches = find_similar_keys("my_event.0001.x", keys, threshold=0.7)
@@ -511,7 +511,7 @@ class TestFindSimilarKeys:
 
     def test_no_matches_above_threshold(self):
         """Test no matches when strings too different."""
-        from pychivalry.localization import find_similar_keys
+        from pychivalry.ck3.localization.validator import find_similar_keys
 
         keys = {"completely_different.key"}
         matches = find_similar_keys("my_event.0001.t", keys, threshold=0.7)
@@ -520,14 +520,14 @@ class TestFindSimilarKeys:
 
     def test_empty_inputs(self):
         """Test with empty inputs."""
-        from pychivalry.localization import find_similar_keys
+        from pychivalry.ck3.localization.validator import find_similar_keys
 
         assert find_similar_keys("", {"a", "b"}) == []
         assert find_similar_keys("test", set()) == []
 
     def test_max_results_limit(self):
         """Test max_results parameter."""
-        from pychivalry.localization import find_similar_keys
+        from pychivalry.ck3.localization.validator import find_similar_keys
 
         keys = {"test.a", "test.b", "test.c", "test.d", "test.e"}
         matches = find_similar_keys("test.x", keys, threshold=0.5, max_results=2)
@@ -540,7 +540,7 @@ class TestFindKeysByPrefix:
 
     def test_find_by_prefix(self):
         """Test finding keys by prefix."""
-        from pychivalry.localization import find_keys_by_prefix
+        from pychivalry.ck3.localization.validator import find_keys_by_prefix
 
         keys = {"my_event.0001.t", "my_event.0001.desc", "other.t"}
         matches = find_keys_by_prefix("my_event.0001", keys)
@@ -551,7 +551,7 @@ class TestFindKeysByPrefix:
 
     def test_case_insensitive(self):
         """Test prefix matching is case-insensitive."""
-        from pychivalry.localization import find_keys_by_prefix
+        from pychivalry.ck3.localization.validator import find_keys_by_prefix
 
         keys = {"My_Event.0001.t", "MY_EVENT.0001.desc"}
         matches = find_keys_by_prefix("my_event.0001", keys)
@@ -560,7 +560,7 @@ class TestFindKeysByPrefix:
 
     def test_no_matches(self):
         """Test when no keys match prefix."""
-        from pychivalry.localization import find_keys_by_prefix
+        from pychivalry.ck3.localization.validator import find_keys_by_prefix
 
         keys = {"other.0001.t"}
         matches = find_keys_by_prefix("my_event", keys)
@@ -569,7 +569,7 @@ class TestFindKeysByPrefix:
 
     def test_empty_inputs(self):
         """Test with empty inputs."""
-        from pychivalry.localization import find_keys_by_prefix
+        from pychivalry.ck3.localization.validator import find_keys_by_prefix
 
         assert find_keys_by_prefix("", {"a"}) == []
         assert find_keys_by_prefix("test", set()) == []
@@ -580,7 +580,7 @@ class TestFindKeysByNamespace:
 
     def test_find_by_namespace(self):
         """Test finding keys by namespace."""
-        from pychivalry.localization import find_keys_by_namespace
+        from pychivalry.ck3.localization.validator import find_keys_by_namespace
 
         keys = {"my_mod.0001.t", "my_mod.0002.t", "other_mod.0001.t"}
         matches = find_keys_by_namespace("my_mod", keys)
@@ -591,7 +591,7 @@ class TestFindKeysByNamespace:
 
     def test_sorted_results(self):
         """Test results are sorted alphabetically."""
-        from pychivalry.localization import find_keys_by_namespace
+        from pychivalry.ck3.localization.validator import find_keys_by_namespace
 
         keys = {"my_mod.0002.t", "my_mod.0001.t", "my_mod.0001.desc"}
         matches = find_keys_by_namespace("my_mod", keys)
@@ -600,7 +600,7 @@ class TestFindKeysByNamespace:
 
     def test_empty_inputs(self):
         """Test with empty inputs."""
-        from pychivalry.localization import find_keys_by_namespace
+        from pychivalry.ck3.localization.validator import find_keys_by_namespace
 
         assert find_keys_by_namespace("", {"a.b"}) == []
         assert find_keys_by_namespace("test", set()) == []
@@ -611,7 +611,7 @@ class TestFindBestLocalizationMatch:
 
     def test_exact_match(self):
         """Test exact match is found."""
-        from pychivalry.localization import find_best_localization_match
+        from pychivalry.ck3.localization.validator import find_best_localization_match
 
         keys = {"my_event.0001.t", "my_event.0001.desc"}
         match = find_best_localization_match("my_event.0001.t", keys)
@@ -623,7 +623,7 @@ class TestFindBestLocalizationMatch:
 
     def test_case_insensitive_exact_match(self):
         """Test case-insensitive exact match."""
-        from pychivalry.localization import find_best_localization_match
+        from pychivalry.ck3.localization.validator import find_best_localization_match
 
         keys = {"My_Event.0001.t"}
         match = find_best_localization_match("my_event.0001.t", keys)
@@ -633,7 +633,7 @@ class TestFindBestLocalizationMatch:
 
     def test_fuzzy_match_typo(self):
         """Test fuzzy match for typo."""
-        from pychivalry.localization import find_best_localization_match
+        from pychivalry.ck3.localization.validator import find_best_localization_match
 
         keys = {"my_event.0001.t", "my_event.0001.desc"}
         match = find_best_localization_match("my_evnt.0001.t", keys)  # Typo
@@ -644,7 +644,7 @@ class TestFindBestLocalizationMatch:
 
     def test_prefix_match(self):
         """Test prefix match when fuzzy fails."""
-        from pychivalry.localization import find_best_localization_match
+        from pychivalry.ck3.localization.validator import find_best_localization_match
 
         keys = {"my_event.0001.t"}
         match = find_best_localization_match(
@@ -657,7 +657,7 @@ class TestFindBestLocalizationMatch:
 
     def test_no_match(self):
         """Test when no match is found."""
-        from pychivalry.localization import find_best_localization_match
+        from pychivalry.ck3.localization.validator import find_best_localization_match
 
         keys = {"completely.different.key"}
         match = find_best_localization_match(
@@ -670,7 +670,7 @@ class TestFindBestLocalizationMatch:
 
     def test_empty_inputs(self):
         """Test with empty inputs."""
-        from pychivalry.localization import find_best_localization_match
+        from pychivalry.ck3.localization.validator import find_best_localization_match
 
         assert find_best_localization_match("", {"a"}) is None
         assert find_best_localization_match("test", set()) is None
@@ -681,7 +681,7 @@ class TestSuggestLocalizationFix:
 
     def test_suggest_for_typo(self):
         """Test suggestion for typo."""
-        from pychivalry.localization import suggest_localization_fix
+        from pychivalry.ck3.localization.validator import suggest_localization_fix
 
         keys = {"my_event.0001.t", "my_event.0001.desc"}
         suggestion = suggest_localization_fix("my_evnt.0001.t", keys)
@@ -692,7 +692,7 @@ class TestSuggestLocalizationFix:
 
     def test_suggest_title_suffix(self):
         """Test suggestion for .title -> .t suffix mistake."""
-        from pychivalry.localization import suggest_localization_fix
+        from pychivalry.ck3.localization.validator import suggest_localization_fix
 
         keys = {"my_event.0001.t"}
         suggestion = suggest_localization_fix("my_event.0001.title", keys)
@@ -702,7 +702,7 @@ class TestSuggestLocalizationFix:
 
     def test_suggest_desc_suffix(self):
         """Test suggestion for .description -> .desc suffix mistake."""
-        from pychivalry.localization import suggest_localization_fix
+        from pychivalry.ck3.localization.validator import suggest_localization_fix
 
         keys = {"my_event.0001.desc"}
         suggestion = suggest_localization_fix("my_event.0001.description", keys)
@@ -711,7 +711,7 @@ class TestSuggestLocalizationFix:
 
     def test_no_suggestion_for_existing_key(self):
         """Test no suggestion when key exists."""
-        from pychivalry.localization import suggest_localization_fix
+        from pychivalry.ck3.localization.validator import suggest_localization_fix
 
         keys = {"my_event.0001.t"}
         suggestion = suggest_localization_fix("my_event.0001.t", keys)
@@ -720,7 +720,7 @@ class TestSuggestLocalizationFix:
 
     def test_no_suggestion_for_completely_different(self):
         """Test no suggestion for completely different key."""
-        from pychivalry.localization import suggest_localization_fix
+        from pychivalry.ck3.localization.validator import suggest_localization_fix
 
         keys = {"x.y.z"}
         suggestion = suggest_localization_fix("a.b.c", keys, fuzzy_threshold=0.9)
@@ -735,7 +735,7 @@ class TestValidateLocalizationKeyWithSuggestions:
 
     def test_valid_key(self):
         """Test valid key passes validation."""
-        from pychivalry.localization import validate_localization_key_with_suggestions
+        from pychivalry.ck3.localization.validator import validate_localization_key_with_suggestions
 
         keys = {"my_event.0001.t"}
         valid, msg, match = validate_localization_key_with_suggestions(
@@ -748,7 +748,7 @@ class TestValidateLocalizationKeyWithSuggestions:
 
     def test_invalid_key_with_suggestion(self):
         """Test invalid key returns suggestion."""
-        from pychivalry.localization import validate_localization_key_with_suggestions
+        from pychivalry.ck3.localization.validator import validate_localization_key_with_suggestions
 
         keys = {"my_event.0001.t", "my_event.0001.desc"}
         valid, msg, match = validate_localization_key_with_suggestions(
@@ -762,7 +762,7 @@ class TestValidateLocalizationKeyWithSuggestions:
 
     def test_invalid_key_no_suggestion(self):
         """Test invalid key with no close match."""
-        from pychivalry.localization import validate_localization_key_with_suggestions
+        from pychivalry.ck3.localization.validator import validate_localization_key_with_suggestions
 
         keys = {"completely.different.key"}
         valid, msg, match = validate_localization_key_with_suggestions(
@@ -779,7 +779,7 @@ class TestFuzzyMatchingIntegration:
 
     def test_complete_workflow(self):
         """Test complete validation workflow with fuzzy matching."""
-        from pychivalry.localization import (
+        from pychivalry.ck3.localization.validator import (
             validate_localization_key_with_suggestions,
             find_similar_keys,
             find_keys_by_namespace,
@@ -819,7 +819,7 @@ class TestFuzzyMatchingIntegration:
 
     def test_common_modder_mistakes(self):
         """Test detection of common modder mistakes."""
-        from pychivalry.localization import suggest_localization_fix
+        from pychivalry.ck3.localization.validator import suggest_localization_fix
 
         keys = {"my_event.0001.t", "my_event.0001.desc", "my_event.0001.a"}
 
@@ -846,7 +846,7 @@ class TestDiagnosticCodes:
 
     def test_diagnostic_codes_defined(self):
         """Test that all diagnostic codes are defined."""
-        from pychivalry.localization import (
+        from pychivalry.ck3.localization.validator import (
             DIAG_MISSING_LOC_KEY,
             DIAG_LITERAL_TEXT,
             DIAG_ENCODING_ISSUE,
@@ -866,7 +866,7 @@ class TestCreateMissingKeyDiagnostic:
 
     def test_create_basic_diagnostic(self):
         """Test creating basic missing key diagnostic."""
-        from pychivalry.localization import create_missing_key_diagnostic
+        from pychivalry.ck3.localization.validator import create_missing_key_diagnostic
 
         diag = create_missing_key_diagnostic("my_event.0001.t", 5, 10, 25)
 
@@ -880,7 +880,7 @@ class TestCreateMissingKeyDiagnostic:
 
     def test_create_diagnostic_with_suggestion(self):
         """Test diagnostic includes fuzzy match suggestion."""
-        from pychivalry.localization import create_missing_key_diagnostic
+        from pychivalry.ck3.localization.validator import create_missing_key_diagnostic
 
         keys = {"my_event.0001.t", "my_event.0001.desc"}
         diag = create_missing_key_diagnostic(
@@ -893,7 +893,7 @@ class TestCreateMissingKeyDiagnostic:
 
     def test_create_diagnostic_no_matches(self):
         """Test diagnostic when no similar keys exist."""
-        from pychivalry.localization import create_missing_key_diagnostic
+        from pychivalry.ck3.localization.validator import create_missing_key_diagnostic
 
         keys = {"completely.different.key"}
         diag = create_missing_key_diagnostic(
@@ -909,7 +909,7 @@ class TestCreateLiteralTextDiagnostic:
 
     def test_create_diagnostic(self):
         """Test creating literal text diagnostic."""
-        from pychivalry.localization import create_literal_text_diagnostic
+        from pychivalry.ck3.localization.validator import create_literal_text_diagnostic
 
         diag = create_literal_text_diagnostic("title", '"My Event"', 3, 12, 24)
 
@@ -921,7 +921,7 @@ class TestCreateLiteralTextDiagnostic:
 
     def test_truncates_long_literals(self):
         """Test that long literal values are truncated."""
-        from pychivalry.localization import create_literal_text_diagnostic
+        from pychivalry.ck3.localization.validator import create_literal_text_diagnostic
 
         long_literal = '"' + "x" * 100 + '"'
         diag = create_literal_text_diagnostic("desc", long_literal, 5, 0, 100)
@@ -935,7 +935,7 @@ class TestCreateEncodingDiagnostic:
 
     def test_create_diagnostic(self):
         """Test creating encoding diagnostic."""
-        from pychivalry.localization import create_encoding_diagnostic
+        from pychivalry.ck3.localization.validator import create_encoding_diagnostic
 
         diag = create_encoding_diagnostic("localization/english/events.yml")
 
@@ -951,7 +951,7 @@ class TestCreateInconsistentNamingDiagnostic:
 
     def test_create_diagnostic(self):
         """Test creating inconsistent naming diagnostic."""
-        from pychivalry.localization import create_inconsistent_naming_diagnostic
+        from pychivalry.ck3.localization.validator import create_inconsistent_naming_diagnostic
 
         diag = create_inconsistent_naming_diagnostic(
             "random_key", "my_mod.0001.t", 10, 5, 15
@@ -969,7 +969,7 @@ class TestCreateUnusedKeyDiagnostic:
 
     def test_create_diagnostic(self):
         """Test creating unused key diagnostic."""
-        from pychivalry.localization import create_unused_key_diagnostic
+        from pychivalry.ck3.localization.validator import create_unused_key_diagnostic
 
         diag = create_unused_key_diagnostic("old_event.unused.t", 50, 0, 20)
 
@@ -985,7 +985,7 @@ class TestLocalizationFieldHelpers:
 
     def test_is_localization_field(self):
         """Test identifying localization fields."""
-        from pychivalry.localization import is_localization_field
+        from pychivalry.ck3.localization.validator import is_localization_field
 
         # These should use loc keys
         assert is_localization_field("title") is True
@@ -1001,14 +1001,14 @@ class TestLocalizationFieldHelpers:
 
     def test_is_localization_field_case_insensitive(self):
         """Test case insensitivity."""
-        from pychivalry.localization import is_localization_field
+        from pychivalry.ck3.localization.validator import is_localization_field
 
         assert is_localization_field("Title") is True
         assert is_localization_field("DESC") is True
 
     def test_is_literal_string(self):
         """Test literal string detection."""
-        from pychivalry.localization import is_literal_string
+        from pychivalry.ck3.localization.validator import is_literal_string
 
         assert is_literal_string('"Hello World"') is True
         assert is_literal_string("'Hello World'") is True
@@ -1021,21 +1021,21 @@ class TestEncodingCheck:
 
     def test_valid_bom(self):
         """Test detecting valid UTF-8-BOM."""
-        from pychivalry.localization import check_localization_file_encoding
+        from pychivalry.ck3.localization.validator import check_localization_file_encoding
 
         content_with_bom = b"\xef\xbb\xbfl_english:\n  key: value"
         assert check_localization_file_encoding(content_with_bom) is True
 
     def test_missing_bom(self):
         """Test detecting missing BOM."""
-        from pychivalry.localization import check_localization_file_encoding
+        from pychivalry.ck3.localization.validator import check_localization_file_encoding
 
         content_without_bom = b"l_english:\n  key: value"
         assert check_localization_file_encoding(content_without_bom) is False
 
     def test_empty_content(self):
         """Test empty file."""
-        from pychivalry.localization import check_localization_file_encoding
+        from pychivalry.ck3.localization.validator import check_localization_file_encoding
 
         assert check_localization_file_encoding(b"") is False
 
@@ -1045,7 +1045,7 @@ class TestValidateKeyNaming:
 
     def test_valid_key_formats(self):
         """Test valid key formats."""
-        from pychivalry.localization import validate_localization_key_naming
+        from pychivalry.ck3.localization.validator import validate_localization_key_naming
 
         valid, _ = validate_localization_key_naming("my_mod.0001.t")
         assert valid is True
@@ -1058,7 +1058,7 @@ class TestValidateKeyNaming:
 
     def test_invalid_key_formats(self):
         """Test invalid key formats."""
-        from pychivalry.localization import validate_localization_key_naming
+        from pychivalry.ck3.localization.validator import validate_localization_key_naming
 
         valid, pattern = validate_localization_key_naming("single_word")
         assert valid is False
@@ -1066,7 +1066,7 @@ class TestValidateKeyNaming:
 
     def test_event_id_mismatch(self):
         """Test key doesn't match event ID."""
-        from pychivalry.localization import validate_localization_key_naming
+        from pychivalry.ck3.localization.validator import validate_localization_key_naming
 
         valid, pattern = validate_localization_key_naming(
             "wrong_mod.0001.t", event_id="my_mod.0001"
@@ -1079,7 +1079,7 @@ class TestCollectLocalizationDiagnostics:
 
     def test_collect_missing_key_diagnostics(self):
         """Test collecting CK3600 diagnostics."""
-        from pychivalry.localization import collect_localization_diagnostics
+        from pychivalry.ck3.localization.validator import collect_localization_diagnostics
 
         refs = [
             ("my_event.0001.t", 5, 10, 25),
@@ -1096,7 +1096,7 @@ class TestCollectLocalizationDiagnostics:
 
     def test_collect_naming_diagnostics(self):
         """Test collecting CK3603 diagnostics."""
-        from pychivalry.localization import collect_localization_diagnostics
+        from pychivalry.ck3.localization.validator import collect_localization_diagnostics
 
         refs = [
             ("my_event.0001.t", 5, 10, 25),  # Valid
@@ -1113,7 +1113,7 @@ class TestCollectLocalizationDiagnostics:
 
     def test_disable_naming_check(self):
         """Test disabling naming convention check."""
-        from pychivalry.localization import collect_localization_diagnostics
+        from pychivalry.ck3.localization.validator import collect_localization_diagnostics
 
         refs = [("random", 6, 10, 16)]  # Invalid naming
         keys = {"random"}
@@ -1126,14 +1126,14 @@ class TestCollectLocalizationDiagnostics:
 
     def test_empty_inputs(self):
         """Test with empty inputs."""
-        from pychivalry.localization import collect_localization_diagnostics
+        from pychivalry.ck3.localization.validator import collect_localization_diagnostics
 
         diags = collect_localization_diagnostics([], set())
         assert len(diags) == 0
 
     def test_all_keys_valid(self):
         """Test when all keys exist and are valid."""
-        from pychivalry.localization import collect_localization_diagnostics
+        from pychivalry.ck3.localization.validator import collect_localization_diagnostics
 
         refs = [
             ("my_event.0001.t", 5, 10, 25),

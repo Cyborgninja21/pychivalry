@@ -5,12 +5,12 @@ Validates schema-driven generic validation rules.
 """
 
 import pytest
-from pychivalry.generic_rules_validator import (
+from pychivalry.ck3.validation.generic_rules_validator import (
     _load_generic_rules,
     validate_generic_rules,
     check_generic_rules,
 )
-from pychivalry.parser import CK3Node
+from pychivalry.core.parser import CK3Node
 from lsprotocol import types
 
 

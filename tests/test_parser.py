@@ -8,7 +8,7 @@ Abstract Syntax Tree (AST) with correct structure and position information.
 import pytest
 from lsprotocol import types
 
-from pychivalry.parser import (
+from pychivalry.core.parser import (
     parse_document,
     get_node_at_position,
     tokenize,

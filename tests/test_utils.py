@@ -8,7 +8,7 @@ that are shared across multiple LSP feature implementations.
 import pytest
 from lsprotocol import types
 
-from pychivalry.utils import path_to_uri, uri_to_path, position_in_range
+from pychivalry.core.utils import path_to_uri, uri_to_path, position_in_range
 
 
 class TestPathToUri:

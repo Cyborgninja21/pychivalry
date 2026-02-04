@@ -8,7 +8,7 @@ This helps visualize where a variable, scope, or event is used and defined.
 import pytest
 from lsprotocol import types
 
-from pychivalry.document_highlight import (
+from pychivalry.lsp.document_highlight import (
     get_document_highlights,
     get_symbol_at_position,
     find_all_occurrences,

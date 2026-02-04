@@ -12,9 +12,9 @@ system, including:
 import pytest
 from pathlib import Path
 from lsprotocol.types import Diagnostic, Range, Position
-from pychivalry.schema_loader import SchemaLoader
-from pychivalry.schema_validator import SchemaValidator
-from pychivalry.parser import CK3Node
+from pychivalry.schema.loader import SchemaLoader
+from pychivalry.schema.validator import SchemaValidator
+from pychivalry.core.parser import CK3Node
 
 
 @pytest.fixture

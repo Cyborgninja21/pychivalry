@@ -11,7 +11,7 @@ from pychivalry.server import (
     _find_word_references_in_ast,
     _extract_symbol_from_node,
 )
-from pychivalry.parser import parse_document
+from pychivalry.core.parser import parse_document
 
 
 @pytest.fixture

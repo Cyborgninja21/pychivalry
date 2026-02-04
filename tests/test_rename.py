@@ -15,7 +15,7 @@ import tempfile
 import pytest
 from lsprotocol import types
 
-from pychivalry.rename import (
+from pychivalry.lsp.rename import (
     get_symbol_at_position,
     prepare_rename,
     find_all_occurrences_in_file,

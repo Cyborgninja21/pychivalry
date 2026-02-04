@@ -4,8 +4,8 @@ Unit tests for schema-driven symbol extraction.
 
 import pytest
 from lsprotocol import types
-from pychivalry.schema_symbols import SchemaSymbolExtractor, get_schema_symbols
-from pychivalry.schema_loader import SchemaLoader
+from pychivalry.schema.symbols import SchemaSymbolExtractor, get_schema_symbols
+from pychivalry.schema.loader import SchemaLoader
 
 
 class MockNode:

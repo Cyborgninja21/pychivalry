@@ -7,7 +7,7 @@ Tests formatting functionality for CK3 scripts.
 import pytest
 from lsprotocol import types
 
-from pychivalry.formatting import (
+from pychivalry.lsp.formatting import (
     FormattingOptions,
     CK3Formatter,
     format_document,

@@ -11,7 +11,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from pychivalry.log_analyzer import CK3LogAnalyzer
+from pychivalry.log.analyzer import CK3LogAnalyzer
 
 
 class TestLogWatcherIntegration:
@@ -19,7 +19,7 @@ class TestLogWatcherIntegration:
 
     def test_path_detection_returns_string_or_none(self) -> None:
         """Test path detection returns valid result."""
-        from pychivalry.log_watcher import detect_ck3_log_path
+        from pychivalry.log.watcher import detect_ck3_log_path
 
         # Should return string or None, shouldn't crash
         result = detect_ck3_log_path()
@@ -62,7 +62,7 @@ class TestLogWatcherIntegration:
 
     def test_watcher_lifecycle(self) -> None:
         """Test watcher start/stop lifecycle."""
-        from pychivalry.log_watcher import CK3LogWatcher
+        from pychivalry.log.watcher import CK3LogWatcher
 
         analyzer = CK3LogAnalyzer(None)
 
@@ -100,7 +100,7 @@ class TestLogWatcherIntegration:
 
     def test_diagnostic_converter_with_server(self) -> None:
         """Test diagnostic converter creates valid diagnostics."""
-        from pychivalry.log_diagnostics import LogDiagnosticConverter
+        from pychivalry.log.diagnostics import LogDiagnosticConverter
         from lsprotocol.types import DiagnosticSeverity
         from datetime import datetime
 
@@ -154,7 +154,7 @@ class TestLogWatcherIntegration:
 
     def test_watcher_processes_new_log_entries(self) -> None:
         """Test that watcher detects and processes new log entries."""
-        from pychivalry.log_watcher import CK3LogWatcher
+        from pychivalry.log.watcher import CK3LogWatcher
 
         analyzer = CK3LogAnalyzer(None)
         processed_results = []

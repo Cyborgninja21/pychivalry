@@ -14,7 +14,7 @@ Tests style and formatting validation including:
 import pytest
 from lsprotocol import types
 
-from pychivalry.style_checks import (
+from pychivalry.ck3.validation.style_checks import (
     check_style_from_text,
     check_indentation,
     check_multiple_statements,

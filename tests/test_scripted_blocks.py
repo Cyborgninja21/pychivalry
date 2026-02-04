@@ -5,7 +5,7 @@ Tests scripted triggers, effects, parameter extraction, and inline scripts.
 """
 
 import pytest
-from pychivalry.scripted_blocks import (
+from pychivalry.ck3.validation.scripted_blocks import (
     extract_parameters,
     validate_parameter_name,
     create_scripted_trigger,
