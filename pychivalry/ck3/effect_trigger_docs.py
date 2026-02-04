@@ -19,7 +19,8 @@ class EffectTriggerLoader:
 
     def __init__(self) -> None:
         """Initialize the loader."""
-        self.data_dir = Path(__file__).parent / "data"
+        # Data directory is at pychivalry/data, not pychivalry/ck3/data
+        self.data_dir = Path(__file__).parent.parent / "data"
         self._effects: Optional[Dict[str, Any]] = None
         self._triggers: Optional[Dict[str, Any]] = None
 

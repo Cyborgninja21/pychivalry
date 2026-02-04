@@ -23,8 +23,9 @@ import fnmatch
 logger = logging.getLogger(__name__)
 
 # Schema and diagnostics file locations
-SCHEMAS_DIR = Path(__file__).parent / "data" / "schemas"
-DIAGNOSTICS_FILE = Path(__file__).parent / "data" / "diagnostics.yaml"
+# Data directory is at pychivalry/data, not pychivalry/schema/data
+SCHEMAS_DIR = Path(__file__).parent.parent / "data" / "schemas"
+DIAGNOSTICS_FILE = Path(__file__).parent.parent / "data" / "diagnostics.yaml"
 TYPES_FILE = SCHEMAS_DIR / "_types.yaml"
 
 
