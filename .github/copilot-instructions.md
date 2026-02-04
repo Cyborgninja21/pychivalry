@@ -274,9 +274,6 @@ pychivalry/                   # Project root
 │   ├── log_analyzer.py       # Game log parsing and analysis
 │   ├── log_diagnostics.py    # Diagnostics from game log errors
 │   │
-│   ├── documents/            # Architecture documentation
-│   │   └── ARCHITECTURE_FLOW.md  # System flow documentation
-│   │
 │   └── data/                 # Static data files for CK3 game definitions
 │       ├── __init__.py       # Data loader for YAML game definitions
 │       ├── game_structure.yaml   # CK3 folder/file structure mapping
@@ -338,16 +335,20 @@ pychivalry/                   # Project root
 │   ├── localization/         # Localization files
 │   └── ...                   # Other mod directories
 │
-├── docs/                     # User documentation
-│   ├── SCHEMA_AUTHORING_GUIDE.md  # How to write schemas
-│   ├── VALIDATION.md         # Validation system docs
-│   └── PRE_COMMIT_*.md       # Pre-commit hook guides
-│
-├── Documentation/            # Developer documentation
-│   ├── feature_matrix.md     # Feature implementation status
-│   └── diagnostics/          # Diagnostic documentation
-│
-├── plan docs/                # Project planning documents
+├── Documentation/            # All project documentation (consolidated)
+│   ├── README.md             # Documentation index
+│   ├── PRD.md                # Product requirements document
+│   ├── archive/              # Historical planning docs
+│   ├── ck3-reference/        # CK3 game reference materials
+│   ├── developer-guide/      # Developer documentation
+│   │   ├── architecture/     # Architecture docs (VALIDATION.md, ARCHITECTURE_FLOW.md)
+│   │   └── ...               # Pre-commit guides, test suites
+│   ├── schemas/              # Schema authoring guides
+│   ├── user-guide/           # User-facing documentation
+│   │   ├── feature_matrix.md # Feature implementation status
+│   │   └── diagnostics/      # Diagnostic code documentation
+│   └── examples/             # Documentation examples
+
 ├── tools/                    # Development and setup scripts
 │   ├── extract_traits.py     # Trait extraction utility
 │   ├── Install-Prerequisites.ps1  # Windows setup script
@@ -363,11 +364,31 @@ pychivalry/                   # Project root
 
 ## Documentation Requirements
 
+### Code Documentation
 - Include docstrings for all Python modules, classes, and functions.
 - Include JSDoc/TSDoc comments for TypeScript code.
 - Document complex functions with clear examples.
-- Maintain concise Markdown documentation.
 - Minimum docblock info: `param`, `return`, `raises`/`throws`
+
+### Folder Documentation Rule
+**ONE README.md per folder hierarchy.** Each major folder should have exactly one `README.md` that documents:
+- The folder's purpose and contents
+- How the files within relate to each other
+- Any conventions specific to that folder
+
+Do NOT create additional markdown files to summarize changes or document individual features within a folder. Keep documentation consolidated:
+- Use `Documentation/` for all project documentation
+- Use `Documentation/archive/` for historical planning docs
+- Do NOT create docs in `pychivalry/`, `tests/`, or code folders (except folder-specific README.md files for data directories)
+
+### New Documentation Rule
+**ALL new documentation MUST be placed in the `Documentation/` folder.** When creating any new markdown documentation:
+- Place feature docs in `Documentation/developer-guide/` or `Documentation/user-guide/`
+- Place schema docs in `Documentation/schemas/`
+- Place planning/historical docs in `Documentation/archive/`
+- Place CK3 reference materials in `Documentation/ck3-reference/`
+- NEVER create documentation files in the project root, `pychivalry/`, `tests/`, or `vscode-extension/` folders
+- Exception: README.md files for folder navigation and standard root files (CHANGELOG.md, CONTRIBUTING.md, SECURITY.md)
 
 ## Security Considerations
 
