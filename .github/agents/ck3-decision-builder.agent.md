@@ -2,7 +2,7 @@
 name: ck3-decision-builder
 description: Creates CK3 decisions with proper conditions, effects, and AI logic
 user-invokable: true
-tools: ['agent', 'search', 'edit/editFiles', 'web/fetch']
+tools: ['agent', 'edit/createDirectory', 'edit/createFile', 'edit/editFiles', 'edit/editNotebook', 'search/codebase', 'search/fileSearch', 'search/textSearch', 'search/usages', 'search/listDirectory', 'search/changes', 'read/readFile', 'read/problems', 'web/fetch', 'web/githubRepo', 'execute/runInTerminal', 'execute/runTests']
 agents: ['ck3-localization-manager', 'ck3-validator', 'ck3-event-builder']
 handoffs:
   - label: Generate Localization

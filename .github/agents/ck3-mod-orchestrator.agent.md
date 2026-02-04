@@ -2,7 +2,7 @@
 name: ck3-mod-orchestrator
 description: Coordinates specialized agents to build CK3 mods - routes tasks to event, decision, trait, and other builders
 user-invokable: true
-tools: ['agent', 'web/fetch', 'search', 'search/usages']
+tools: ['agent', 'edit/createDirectory', 'edit/createFile', 'edit/editFiles', 'edit/editNotebook', 'search/codebase', 'search/fileSearch', 'search/textSearch', 'search/usages', 'search/listDirectory', 'search/changes', 'read/readFile', 'read/problems', 'web/fetch', 'web/githubRepo', 'execute/runInTerminal', 'execute/runTests']
 agents: ['ck3-event-builder', 'ck3-decision-builder', 'ck3-interaction-builder', 'ck3-activity-builder', 'ck3-variable-designer', 'ck3-onaction-builder', 'ck3-trait-designer', 'ck3-story-cycle-builder', 'ck3-localization-manager', 'ck3-scope-timing', 'ck3-validator']
 handoffs:
   - label: Create Event

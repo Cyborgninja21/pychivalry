@@ -2,7 +2,7 @@
 name: ck3-localization-manager
 description: Manages CK3 localization keys, text formatting, and multi-language support
 user-invokable: true
-tools: ['search', 'edit/editFiles']
+tools: ['agent', 'edit/createDirectory', 'edit/createFile', 'edit/editFiles', 'edit/editNotebook', 'search/codebase', 'search/fileSearch', 'search/textSearch', 'search/usages', 'search/listDirectory', 'search/changes', 'read/readFile', 'read/problems', 'web/fetch', 'web/githubRepo', 'execute/runInTerminal', 'execute/runTests']
 handoffs:
   - label: Validate Localization
     agent: ck3-validator

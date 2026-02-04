@@ -2,7 +2,7 @@
 name: ck3-trait-designer
 description: Designs character traits with modifiers, opposites, and compatibility rules
 user-invokable: true
-tools: ['search', 'edit/editFiles']
+tools: ['agent', 'edit/createDirectory', 'edit/createFile', 'edit/editFiles', 'edit/editNotebook', 'search/codebase', 'search/fileSearch', 'search/textSearch', 'search/usages', 'search/listDirectory', 'search/changes', 'read/readFile', 'read/problems', 'web/fetch', 'web/githubRepo', 'execute/runInTerminal', 'execute/runTests']
 agents: ['ck3-localization-manager', 'ck3-validator']
 handoffs:
   - label: Generate Localization

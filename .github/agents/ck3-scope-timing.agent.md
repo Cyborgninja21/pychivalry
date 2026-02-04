@@ -2,7 +2,7 @@
 name: ck3-scope-timing
 description: Validates scope chains, scope types, and the Golden Rule timing constraints
 user-invokable: true
-tools: ['search']
+tools: ['agent', 'edit/createDirectory', 'edit/createFile', 'edit/editFiles', 'edit/editNotebook', 'search/codebase', 'search/fileSearch', 'search/textSearch', 'search/usages', 'search/listDirectory', 'search/changes', 'read/readFile', 'read/problems', 'web/fetch', 'web/githubRepo', 'execute/runInTerminal', 'execute/runTests']
 handoffs:
   - label: Full Validation
     agent: ck3-validator

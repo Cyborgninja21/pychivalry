@@ -2,7 +2,7 @@
 name: ck3-onaction-builder
 description: Creates and manages CK3 on-actions (game event hooks) for triggering events
 user-invokable: true
-tools: ['agent', 'search', 'edit/editFiles', 'web/fetch']
+tools: ['agent', 'edit/createDirectory', 'edit/createFile', 'edit/editFiles', 'edit/editNotebook', 'search/codebase', 'search/fileSearch', 'search/textSearch', 'search/usages', 'search/listDirectory', 'search/changes', 'read/readFile', 'read/problems', 'web/fetch', 'web/githubRepo', 'execute/runInTerminal', 'execute/runTests']
 agents: ['ck3-event-builder', 'ck3-validator']
 handoffs:
   - label: Create Triggered Events

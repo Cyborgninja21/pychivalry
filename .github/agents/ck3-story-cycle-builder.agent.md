@@ -2,7 +2,7 @@
 name: ck3-story-cycle-builder
 description: Creates story cycles (multi-event narrative chains) for CK3 mods
 user-invokable: true
-tools: ['agent', 'search', 'edit/editFiles', 'web/fetch']
+tools: ['agent', 'edit/createDirectory', 'edit/createFile', 'edit/editFiles', 'edit/editNotebook', 'search/codebase', 'search/fileSearch', 'search/textSearch', 'search/usages', 'search/listDirectory', 'search/changes', 'read/readFile', 'read/problems', 'web/fetch', 'web/githubRepo', 'execute/runInTerminal', 'execute/runTests']
 agents: ['ck3-event-builder', 'ck3-localization-manager', 'ck3-validator']
 handoffs:
   - label: Create Story Events

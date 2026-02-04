@@ -2,7 +2,7 @@
 name: ck3-validator
 description: Runs comprehensive validation on CK3 mod files using pychivalry's 6-phase pipeline
 user-invokable: true
-tools: ['search', 'web/fetch']
+tools: ['agent', 'edit/createDirectory', 'edit/createFile', 'edit/editFiles', 'edit/editNotebook', 'search/codebase', 'search/fileSearch', 'search/textSearch', 'search/usages', 'search/listDirectory', 'search/changes', 'read/readFile', 'read/problems', 'web/fetch', 'web/githubRepo', 'execute/runInTerminal', 'execute/runTests']
 agents: ['ck3-scope-timing']
 handoffs:
   - label: Check Scope Timing

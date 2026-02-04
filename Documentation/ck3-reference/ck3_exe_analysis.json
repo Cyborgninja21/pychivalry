@@ -1,0 +1,3984 @@
+[
+    {
+        "characteristic": [
+            "Executable",
+            "Large address aware",
+            "High entropy VA",
+            "Dynamic base",
+            "NX compatible",
+            "Terminal server aware"
+        ],
+        "depends": {
+            "ADVAPI32.dll": [
+                {
+                    "index": 193,
+                    "name": "CryptAcquireContextA",
+                    "ordinal": 0
+                },
+                {
+                    "index": 196,
+                    "name": "CryptCreateHash",
+                    "ordinal": 0
+                },
+                {
+                    "index": 199,
+                    "name": "CryptDestroyHash",
+                    "ordinal": 0
+                },
+                {
+                    "index": 213,
+                    "name": "CryptGetHashParam",
+                    "ordinal": 0
+                },
+                {
+                    "index": 217,
+                    "name": "CryptHashData",
+                    "ordinal": 0
+                },
+                {
+                    "index": 220,
+                    "name": "CryptReleaseContext",
+                    "ordinal": 0
+                },
+                {
+                    "index": 378,
+                    "name": "GetUserNameA",
+                    "ordinal": 0
+                },
+                {
+                    "index": 533,
+                    "name": "OpenProcessToken",
+                    "ordinal": 0
+                },
+                {
+                    "index": 603,
+                    "name": "RegCloseKey",
+                    "ordinal": 0
+                },
+                {
+                    "index": 640,
+                    "name": "RegGetValueA",
+                    "ordinal": 0
+                },
+                {
+                    "index": 651,
+                    "name": "RegOpenKeyExA",
+                    "ordinal": 0
+                },
+                {
+                    "index": 652,
+                    "name": "RegOpenKeyExW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 664,
+                    "name": "RegQueryValueExA",
+                    "ordinal": 0
+                },
+                {
+                    "index": 665,
+                    "name": "RegQueryValueExW",
+                    "ordinal": 0
+                }
+            ],
+            "D3DCOMPILER_47.dll": [
+                {
+                    "index": 1,
+                    "name": "D3DCompile",
+                    "ordinal": 0
+                },
+                {
+                    "index": 22,
+                    "name": "D3DReflect",
+                    "ordinal": 0
+                }
+            ],
+            "GDI32.dll": [
+                {
+                    "index": 19,
+                    "name": "BitBlt",
+                    "ordinal": 0
+                },
+                {
+                    "index": 25,
+                    "name": "ChoosePixelFormat",
+                    "ordinal": 0
+                },
+                {
+                    "index": 34,
+                    "name": "CombineRgn",
+                    "ordinal": 0
+                },
+                {
+                    "index": 41,
+                    "name": "CreateBitmap",
+                    "ordinal": 0
+                },
+                {
+                    "index": 48,
+                    "name": "CreateCompatibleBitmap",
+                    "ordinal": 0
+                },
+                {
+                    "index": 49,
+                    "name": "CreateCompatibleDC",
+                    "ordinal": 0
+                },
+                {
+                    "index": 52,
+                    "name": "CreateDCW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 55,
+                    "name": "CreateDIBSection",
+                    "ordinal": 0
+                },
+                {
+                    "index": 67,
+                    "name": "CreateFontIndirectW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 83,
+                    "name": "CreateRectRgn",
+                    "ordinal": 0
+                },
+                {
+                    "index": 90,
+                    "name": "CreateSolidBrush",
+                    "ordinal": 0
+                },
+                {
+                    "index": 384,
+                    "name": "DeleteDC",
+                    "ordinal": 0
+                },
+                {
+                    "index": 387,
+                    "name": "DeleteObject",
+                    "ordinal": 0
+                },
+                {
+                    "index": 388,
+                    "name": "DescribePixelFormat",
+                    "ordinal": 0
+                },
+                {
+                    "index": 634,
+                    "name": "GetDIBits",
+                    "ordinal": 0
+                },
+                {
+                    "index": 635,
+                    "name": "GetDeviceCaps",
+                    "ordinal": 0
+                },
+                {
+                    "index": 636,
+                    "name": "GetDeviceGammaRamp",
+                    "ordinal": 0
+                },
+                {
+                    "index": 665,
+                    "name": "GetICMProfileW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 683,
+                    "name": "GetObjectA",
+                    "ordinal": 0
+                },
+                {
+                    "index": 692,
+                    "name": "GetPixel",
+                    "ordinal": 0
+                },
+                {
+                    "index": 693,
+                    "name": "GetPixelFormat",
+                    "ordinal": 0
+                },
+                {
+                    "index": 718,
+                    "name": "GetTextExtentPoint32A",
+                    "ordinal": 0
+                },
+                {
+                    "index": 727,
+                    "name": "GetTextMetricsW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 868,
+                    "name": "SelectObject",
+                    "ordinal": 0
+                },
+                {
+                    "index": 887,
+                    "name": "SetDeviceGammaRamp",
+                    "ordinal": 0
+                },
+                {
+                    "index": 904,
+                    "name": "SetPixel",
+                    "ordinal": 0
+                },
+                {
+                    "index": 905,
+                    "name": "SetPixelFormat",
+                    "ordinal": 0
+                },
+                {
+                    "index": 932,
+                    "name": "SwapBuffers",
+                    "ordinal": 0
+                }
+            ],
+            "IMM32.dll": [
+                {
+                    "index": 26,
+                    "name": "ImmAssociateContext",
+                    "ordinal": 0
+                },
+                {
+                    "index": 52,
+                    "name": "ImmGetCandidateListW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 57,
+                    "name": "ImmGetCompositionStringW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 59,
+                    "name": "ImmGetContext",
+                    "ordinal": 0
+                },
+                {
+                    "index": 72,
+                    "name": "ImmGetIMEFileNameA",
+                    "ordinal": 0
+                },
+                {
+                    "index": 100,
+                    "name": "ImmNotifyIME",
+                    "ordinal": 0
+                },
+                {
+                    "index": 107,
+                    "name": "ImmReleaseContext",
+                    "ordinal": 0
+                },
+                {
+                    "index": 114,
+                    "name": "ImmSetCandidateWindow",
+                    "ordinal": 0
+                },
+                {
+                    "index": 118,
+                    "name": "ImmSetCompositionStringW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 119,
+                    "name": "ImmSetCompositionWindow",
+                    "ordinal": 0
+                }
+            ],
+            "KERNEL32.dll": [
+                {
+                    "index": 0,
+                    "name": "AcquireSRWLockExclusive",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1,
+                    "name": "AcquireSRWLockShared",
+                    "ordinal": 0
+                },
+                {
+                    "index": 21,
+                    "name": "AllocConsole",
+                    "ordinal": 0
+                },
+                {
+                    "index": 37,
+                    "name": "AttachConsole",
+                    "ordinal": 0
+                },
+                {
+                    "index": 115,
+                    "name": "CancelIo",
+                    "ordinal": 0
+                },
+                {
+                    "index": 137,
+                    "name": "CloseHandle",
+                    "ordinal": 0
+                },
+                {
+                    "index": 149,
+                    "name": "CloseThreadpoolWork",
+                    "ordinal": 0
+                },
+                {
+                    "index": 155,
+                    "name": "CompareStringA",
+                    "ordinal": 0
+                },
+                {
+                    "index": 156,
+                    "name": "CompareStringEx",
+                    "ordinal": 0
+                },
+                {
+                    "index": 158,
+                    "name": "CompareStringW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 184,
+                    "name": "CreateDirectoryA",
+                    "ordinal": 0
+                },
+                {
+                    "index": 189,
+                    "name": "CreateDirectoryW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 194,
+                    "name": "CreateEventW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 198,
+                    "name": "CreateFileA",
+                    "ordinal": 0
+                },
+                {
+                    "index": 206,
+                    "name": "CreateFileW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 227,
+                    "name": "CreateProcessA",
+                    "ordinal": 0
+                },
+                {
+                    "index": 232,
+                    "name": "CreateProcessW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 239,
+                    "name": "CreateSemaphoreW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 245,
+                    "name": "CreateThread",
+                    "ordinal": 0
+                },
+                {
+                    "index": 251,
+                    "name": "CreateThreadpoolWork",
+                    "ordinal": 0
+                },
+                {
+                    "index": 269,
+                    "name": "DecodePointer",
+                    "ordinal": 0
+                },
+                {
+                    "index": 276,
+                    "name": "DeleteCriticalSection",
+                    "ordinal": 0
+                },
+                {
+                    "index": 281,
+                    "name": "DeleteFileW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 292,
+                    "name": "DeviceIoControl",
+                    "ordinal": 0
+                },
+                {
+                    "index": 308,
+                    "name": "EncodePointer",
+                    "ordinal": 0
+                },
+                {
+                    "index": 312,
+                    "name": "EnterCriticalSection",
+                    "ordinal": 0
+                },
+                {
+                    "index": 348,
+                    "name": "EnumSystemLocalesW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 359,
+                    "name": "ExitProcess",
+                    "ordinal": 0
+                },
+                {
+                    "index": 360,
+                    "name": "ExitThread",
+                    "ordinal": 0
+                },
+                {
+                    "index": 368,
+                    "name": "FatalExit",
+                    "ordinal": 0
+                },
+                {
+                    "index": 371,
+                    "name": "FileTimeToSystemTime",
+                    "ordinal": 0
+                },
+                {
+                    "index": 382,
+                    "name": "FindClose",
+                    "ordinal": 0
+                },
+                {
+                    "index": 388,
+                    "name": "FindFirstFileExW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 393,
+                    "name": "FindFirstFileW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 405,
+                    "name": "FindNextFileW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 424,
+                    "name": "FlushFileBuffers",
+                    "ordinal": 0
+                },
+                {
+                    "index": 431,
+                    "name": "FormatMessageA",
+                    "ordinal": 0
+                },
+                {
+                    "index": 432,
+                    "name": "FormatMessageW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 433,
+                    "name": "FreeConsole",
+                    "ordinal": 0
+                },
+                {
+                    "index": 435,
+                    "name": "FreeEnvironmentStringsW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 436,
+                    "name": "FreeLibrary",
+                    "ordinal": 0
+                },
+                {
+                    "index": 437,
+                    "name": "FreeLibraryAndExitThread",
+                    "ordinal": 0
+                },
+                {
+                    "index": 443,
+                    "name": "GetACP",
+                    "ordinal": 0
+                },
+                {
+                    "index": 458,
+                    "name": "GetCPInfo",
+                    "ordinal": 0
+                },
+                {
+                    "index": 479,
+                    "name": "GetCommandLineA",
+                    "ordinal": 0
+                },
+                {
+                    "index": 480,
+                    "name": "GetCommandLineW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 499,
+                    "name": "GetConsoleCP",
+                    "ordinal": 0
+                },
+                {
+                    "index": 517,
+                    "name": "GetConsoleMode",
+                    "ordinal": 0
+                },
+                {
+                    "index": 521,
+                    "name": "GetConsoleOutputCP",
+                    "ordinal": 0
+                },
+                {
+                    "index": 523,
+                    "name": "GetConsoleScreenBufferInfo",
+                    "ordinal": 0
+                },
+                {
+                    "index": 528,
+                    "name": "GetConsoleWindow",
+                    "ordinal": 0
+                },
+                {
+                    "index": 537,
+                    "name": "GetCurrentDirectoryA",
+                    "ordinal": 0
+                },
+                {
+                    "index": 538,
+                    "name": "GetCurrentDirectoryW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 544,
+                    "name": "GetCurrentProcess",
+                    "ordinal": 0
+                },
+                {
+                    "index": 545,
+                    "name": "GetCurrentProcessId",
+                    "ordinal": 0
+                },
+                {
+                    "index": 548,
+                    "name": "GetCurrentThread",
+                    "ordinal": 0
+                },
+                {
+                    "index": 549,
+                    "name": "GetCurrentThreadId",
+                    "ordinal": 0
+                },
+                {
+                    "index": 555,
+                    "name": "GetDateFormatW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 569,
+                    "name": "GetDriveTypeW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 572,
+                    "name": "GetDynamicTimeZoneInformation",
+                    "ordinal": 0
+                },
+                {
+                    "index": 577,
+                    "name": "GetEnvironmentStringsW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 578,
+                    "name": "GetEnvironmentVariableA",
+                    "ordinal": 0
+                },
+                {
+                    "index": 583,
+                    "name": "GetExitCodeThread",
+                    "ordinal": 0
+                },
+                {
+                    "index": 586,
+                    "name": "GetFileAttributesA",
+                    "ordinal": 0
+                },
+                {
+                    "index": 588,
+                    "name": "GetFileAttributesExW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 591,
+                    "name": "GetFileAttributesW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 593,
+                    "name": "GetFileInformationByHandle",
+                    "ordinal": 0
+                },
+                {
+                    "index": 597,
+                    "name": "GetFileSize",
+                    "ordinal": 0
+                },
+                {
+                    "index": 598,
+                    "name": "GetFileSizeEx",
+                    "ordinal": 0
+                },
+                {
+                    "index": 600,
+                    "name": "GetFileType",
+                    "ordinal": 0
+                },
+                {
+                    "index": 601,
+                    "name": "GetFinalPathNameByHandleA",
+                    "ordinal": 0
+                },
+                {
+                    "index": 611,
+                    "name": "GetFullPathNameW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 618,
+                    "name": "GetLastError",
+                    "ordinal": 0
+                },
+                {
+                    "index": 620,
+                    "name": "GetLocaleInfoA",
+                    "ordinal": 0
+                },
+                {
+                    "index": 622,
+                    "name": "GetLocaleInfoW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 636,
+                    "name": "GetModuleFileNameA",
+                    "ordinal": 0
+                },
+                {
+                    "index": 637,
+                    "name": "GetModuleFileNameW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 638,
+                    "name": "GetModuleHandleA",
+                    "ordinal": 0
+                },
+                {
+                    "index": 640,
+                    "name": "GetModuleHandleExW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 641,
+                    "name": "GetModuleHandleW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 654,
+                    "name": "GetNativeSystemInfo",
+                    "ordinal": 0
+                },
+                {
+                    "index": 673,
+                    "name": "GetOEMCP",
+                    "ordinal": 0
+                },
+                {
+                    "index": 674,
+                    "name": "GetOverlappedResult",
+                    "ordinal": 0
+                },
+                {
+                    "index": 696,
+                    "name": "GetProcAddress",
+                    "ordinal": 0
+                },
+                {
+                    "index": 702,
+                    "name": "GetProcessHeap",
+                    "ordinal": 0
+                },
+                {
+                    "index": 730,
+                    "name": "GetStartupInfoW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 732,
+                    "name": "GetStdHandle",
+                    "ordinal": 0
+                },
+                {
+                    "index": 737,
+                    "name": "GetStringTypeW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 744,
+                    "name": "GetSystemDefaultUILanguage",
+                    "ordinal": 0
+                },
+                {
+                    "index": 749,
+                    "name": "GetSystemInfo",
+                    "ordinal": 0
+                },
+                {
+                    "index": 750,
+                    "name": "GetSystemPowerStatus",
+                    "ordinal": 0
+                },
+                {
+                    "index": 755,
+                    "name": "GetSystemTimeAsFileTime",
+                    "ordinal": 0
+                },
+                {
+                    "index": 769,
+                    "name": "GetThreadContext",
+                    "ordinal": 0
+                },
+                {
+                    "index": 774,
+                    "name": "GetThreadId",
+                    "ordinal": 0
+                },
+                {
+                    "index": 785,
+                    "name": "GetTickCount",
+                    "ordinal": 0
+                },
+                {
+                    "index": 790,
+                    "name": "GetTimeFormatW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 792,
+                    "name": "GetTimeZoneInformation",
+                    "ordinal": 0
+                },
+                {
+                    "index": 798,
+                    "name": "GetUserDefaultLCID",
+                    "ordinal": 0
+                },
+                {
+                    "index": 806,
+                    "name": "GetVersionExA",
+                    "ordinal": 0
+                },
+                {
+                    "index": 825,
+                    "name": "GlobalAlloc",
+                    "ordinal": 0
+                },
+                {
+                    "index": 836,
+                    "name": "GlobalLock",
+                    "ordinal": 0
+                },
+                {
+                    "index": 838,
+                    "name": "GlobalMemoryStatusEx",
+                    "ordinal": 0
+                },
+                {
+                    "index": 843,
+                    "name": "GlobalUnlock",
+                    "ordinal": 0
+                },
+                {
+                    "index": 849,
+                    "name": "HeapAlloc",
+                    "ordinal": 0
+                },
+                {
+                    "index": 853,
+                    "name": "HeapFree",
+                    "ordinal": 0
+                },
+                {
+                    "index": 856,
+                    "name": "HeapReAlloc",
+                    "ordinal": 0
+                },
+                {
+                    "index": 858,
+                    "name": "HeapSize",
+                    "ordinal": 0
+                },
+                {
+                    "index": 867,
+                    "name": "InitOnceBeginInitialize",
+                    "ordinal": 0
+                },
+                {
+                    "index": 868,
+                    "name": "InitOnceComplete",
+                    "ordinal": 0
+                },
+                {
+                    "index": 871,
+                    "name": "InitializeConditionVariable",
+                    "ordinal": 0
+                },
+                {
+                    "index": 875,
+                    "name": "InitializeCriticalSectionAndSpinCount",
+                    "ordinal": 0
+                },
+                {
+                    "index": 876,
+                    "name": "InitializeCriticalSectionEx",
+                    "ordinal": 0
+                },
+                {
+                    "index": 879,
+                    "name": "InitializeSListHead",
+                    "ordinal": 0
+                },
+                {
+                    "index": 880,
+                    "name": "InitializeSRWLock",
+                    "ordinal": 0
+                },
+                {
+                    "index": 885,
+                    "name": "InterlockedPushEntrySList",
+                    "ordinal": 0
+                },
+                {
+                    "index": 901,
+                    "name": "IsDebuggerPresent",
+                    "ordinal": 0
+                },
+                {
+                    "index": 908,
+                    "name": "IsProcessorFeaturePresent",
+                    "ordinal": 0
+                },
+                {
+                    "index": 914,
+                    "name": "IsValidCodePage",
+                    "ordinal": 0
+                },
+                {
+                    "index": 916,
+                    "name": "IsValidLocale",
+                    "ordinal": 0
+                },
+                {
+                    "index": 943,
+                    "name": "K32GetProcessMemoryInfo",
+                    "ordinal": 0
+                },
+                {
+                    "index": 951,
+                    "name": "LCMapStringEx",
+                    "ordinal": 0
+                },
+                {
+                    "index": 952,
+                    "name": "LCMapStringW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 964,
+                    "name": "LeaveCriticalSection",
+                    "ordinal": 0
+                },
+                {
+                    "index": 968,
+                    "name": "LoadLibraryA",
+                    "ordinal": 0
+                },
+                {
+                    "index": 970,
+                    "name": "LoadLibraryExW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 971,
+                    "name": "LoadLibraryW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 982,
+                    "name": "LocalFree",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1007,
+                    "name": "MoveFileExW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1013,
+                    "name": "MulDiv",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1014,
+                    "name": "MultiByteToWideChar",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1053,
+                    "name": "OutputDebugStringA",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1054,
+                    "name": "OutputDebugStringW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1063,
+                    "name": "PeekNamedPipe",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1106,
+                    "name": "QueryPerformanceCounter",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1107,
+                    "name": "QueryPerformanceFrequency",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1128,
+                    "name": "RaiseException",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1136,
+                    "name": "ReadConsoleInputW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1142,
+                    "name": "ReadConsoleW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1144,
+                    "name": "ReadDirectoryChangesW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1145,
+                    "name": "ReadFile",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1148,
+                    "name": "ReadProcessMemory",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1208,
+                    "name": "ReleaseSRWLockExclusive",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1209,
+                    "name": "ReleaseSRWLockShared",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1210,
+                    "name": "ReleaseSemaphore",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1215,
+                    "name": "RemoveDirectoryW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1228,
+                    "name": "ResetEvent",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1235,
+                    "name": "ResumeThread",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1237,
+                    "name": "RtlCaptureContext",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1244,
+                    "name": "RtlLookupFunctionEntry",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1246,
+                    "name": "RtlPcToFileHeader",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1249,
+                    "name": "RtlUnwind",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1250,
+                    "name": "RtlUnwindEx",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1251,
+                    "name": "RtlVirtualUnwind",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1273,
+                    "name": "SetConsoleCtrlHandler",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1289,
+                    "name": "SetConsoleMode",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1297,
+                    "name": "SetConsoleScreenBufferSize",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1305,
+                    "name": "SetCurrentDirectoryW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1312,
+                    "name": "SetEndOfFile",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1315,
+                    "name": "SetEnvironmentVariableA",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1316,
+                    "name": "SetEnvironmentVariableW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1317,
+                    "name": "SetErrorMode",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1318,
+                    "name": "SetEvent",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1322,
+                    "name": "SetFileAttributesA",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1330,
+                    "name": "SetFilePointer",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1331,
+                    "name": "SetFilePointerEx",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1345,
+                    "name": "SetLastError",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1371,
+                    "name": "SetStdHandle",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1382,
+                    "name": "SetThreadDescription",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1384,
+                    "name": "SetThreadExecutionState",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1391,
+                    "name": "SetThreadPriority",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1407,
+                    "name": "SetUnhandledExceptionFilter",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1423,
+                    "name": "Sleep",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1424,
+                    "name": "SleepConditionVariableCS",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1425,
+                    "name": "SleepConditionVariableSRW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1426,
+                    "name": "SleepEx",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1430,
+                    "name": "SubmitThreadpoolWork",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1431,
+                    "name": "SuspendThread",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1433,
+                    "name": "SwitchToThread",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1435,
+                    "name": "SystemTimeToTzSpecificLocalTime",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1438,
+                    "name": "TerminateProcess",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1456,
+                    "name": "TlsAlloc",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1457,
+                    "name": "TlsFree",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1458,
+                    "name": "TlsGetValue",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1459,
+                    "name": "TlsSetValue",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1463,
+                    "name": "TryAcquireSRWLockExclusive",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1465,
+                    "name": "TryEnterCriticalSection",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1472,
+                    "name": "UnhandledExceptionFilter",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1492,
+                    "name": "VerSetConditionMask",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1496,
+                    "name": "VerifyVersionInfoW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1497,
+                    "name": "VirtualAlloc",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1500,
+                    "name": "VirtualFree",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1503,
+                    "name": "VirtualProtect",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1514,
+                    "name": "WaitForSingleObject",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1515,
+                    "name": "WaitForSingleObjectEx",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1519,
+                    "name": "WaitForThreadpoolWorkCallbacks",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1522,
+                    "name": "WakeAllConditionVariable",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1523,
+                    "name": "WakeConditionVariable",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1553,
+                    "name": "WideCharToMultiByte",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1572,
+                    "name": "WriteConsoleW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1573,
+                    "name": "WriteFile",
+                    "ordinal": 0
+                }
+            ],
+            "OLEAUT32.dll": [
+                {
+                    "index": 0,
+                    "name": "SysFreeString",
+                    "ordinal": 6
+                }
+            ],
+            "SETUPAPI.dll": [
+                {
+                    "index": 84,
+                    "name": "CM_Get_Device_IDA",
+                    "ordinal": 0
+                },
+                {
+                    "index": 128,
+                    "name": "CM_Get_Parent",
+                    "ordinal": 0
+                },
+                {
+                    "index": 150,
+                    "name": "CM_Locate_DevNodeA",
+                    "ordinal": 0
+                },
+                {
+                    "index": 317,
+                    "name": "SetupDiDestroyDeviceInfoList",
+                    "ordinal": 0
+                },
+                {
+                    "index": 320,
+                    "name": "SetupDiEnumDeviceInfo",
+                    "ordinal": 0
+                },
+                {
+                    "index": 321,
+                    "name": "SetupDiEnumDeviceInterfaces",
+                    "ordinal": 0
+                },
+                {
+                    "index": 337,
+                    "name": "SetupDiGetClassDevsA",
+                    "ordinal": 0
+                },
+                {
+                    "index": 363,
+                    "name": "SetupDiGetDeviceInterfaceDetailA",
+                    "ordinal": 0
+                },
+                {
+                    "index": 369,
+                    "name": "SetupDiGetDeviceRegistryPropertyA",
+                    "ordinal": 0
+                }
+            ],
+            "SHELL32.dll": [
+                {
+                    "index": 8,
+                    "name": "CommandLineToArgvW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 36,
+                    "name": "DragAcceptFiles",
+                    "ordinal": 0
+                },
+                {
+                    "index": 37,
+                    "name": "DragFinish",
+                    "ordinal": 0
+                },
+                {
+                    "index": 41,
+                    "name": "DragQueryFileW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 52,
+                    "name": "ExtractIconExW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 156,
+                    "name": "SHCreateDirectoryExW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 335,
+                    "name": "SHGetFolderPathW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 426,
+                    "name": "ShellExecuteA",
+                    "ordinal": 0
+                },
+                {
+                    "index": 430,
+                    "name": "ShellExecuteW",
+                    "ordinal": 0
+                }
+            ],
+            "SHLWAPI.dll": [
+                {
+                    "index": 55,
+                    "name": "PathAppendW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 73,
+                    "name": "PathFileExistsW",
+                    "ordinal": 0
+                }
+            ],
+            "USER32.dll": [
+                {
+                    "index": 4,
+                    "name": "AdjustWindowRectEx",
+                    "ordinal": 0
+                },
+                {
+                    "index": 15,
+                    "name": "AttachThreadInput",
+                    "ordinal": 0
+                },
+                {
+                    "index": 31,
+                    "name": "CallNextHookEx",
+                    "ordinal": 0
+                },
+                {
+                    "index": 33,
+                    "name": "CallWindowProcW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 40,
+                    "name": "ChangeDisplaySettingsExW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 77,
+                    "name": "ClientToScreen",
+                    "ordinal": 0
+                },
+                {
+                    "index": 78,
+                    "name": "ClipCursor",
+                    "ordinal": 0
+                },
+                {
+                    "index": 79,
+                    "name": "CloseClipboard",
+                    "ordinal": 0
+                },
+                {
+                    "index": 90,
+                    "name": "CopyImage",
+                    "ordinal": 0
+                },
+                {
+                    "index": 108,
+                    "name": "CreateIconFromResource",
+                    "ordinal": 0
+                },
+                {
+                    "index": 110,
+                    "name": "CreateIconIndirect",
+                    "ordinal": 0
+                },
+                {
+                    "index": 117,
+                    "name": "CreateWindowExA",
+                    "ordinal": 0
+                },
+                {
+                    "index": 118,
+                    "name": "CreateWindowExW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 167,
+                    "name": "DefWindowProcW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 177,
+                    "name": "DestroyIcon",
+                    "ordinal": 0
+                },
+                {
+                    "index": 181,
+                    "name": "DestroyWindow",
+                    "ordinal": 0
+                },
+                {
+                    "index": 184,
+                    "name": "DialogBoxIndirectParamW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 189,
+                    "name": "DispatchMessageW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 222,
+                    "name": "DrawTextW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 232,
+                    "name": "EmptyClipboard",
+                    "ordinal": 0
+                },
+                {
+                    "index": 242,
+                    "name": "EndDialog",
+                    "ordinal": 0
+                },
+                {
+                    "index": 253,
+                    "name": "EnumDisplayDevicesW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 254,
+                    "name": "EnumDisplayMonitors",
+                    "ordinal": 0
+                },
+                {
+                    "index": 258,
+                    "name": "EnumDisplaySettingsW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 272,
+                    "name": "FillRect",
+                    "ordinal": 0
+                },
+                {
+                    "index": 278,
+                    "name": "FlashWindowEx",
+                    "ordinal": 0
+                },
+                {
+                    "index": 289,
+                    "name": "GetAsyncKeyState",
+                    "ordinal": 0
+                },
+                {
+                    "index": 298,
+                    "name": "GetClassInfoExW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 307,
+                    "name": "GetClientRect",
+                    "ordinal": 0
+                },
+                {
+                    "index": 308,
+                    "name": "GetClipCursor",
+                    "ordinal": 0
+                },
+                {
+                    "index": 310,
+                    "name": "GetClipboardData",
+                    "ordinal": 0
+                },
+                {
+                    "index": 314,
+                    "name": "GetClipboardSequenceNumber",
+                    "ordinal": 0
+                },
+                {
+                    "index": 321,
+                    "name": "GetCursorPos",
+                    "ordinal": 0
+                },
+                {
+                    "index": 322,
+                    "name": "GetDC",
+                    "ordinal": 0
+                },
+                {
+                    "index": 325,
+                    "name": "GetDesktopWindow",
+                    "ordinal": 0
+                },
+                {
+                    "index": 332,
+                    "name": "GetDlgItem",
+                    "ordinal": 0
+                },
+                {
+                    "index": 336,
+                    "name": "GetDoubleClickTime",
+                    "ordinal": 0
+                },
+                {
+                    "index": 343,
+                    "name": "GetFocus",
+                    "ordinal": 0
+                },
+                {
+                    "index": 344,
+                    "name": "GetForegroundWindow",
+                    "ordinal": 0
+                },
+                {
+                    "index": 360,
+                    "name": "GetKeyState",
+                    "ordinal": 0
+                },
+                {
+                    "index": 361,
+                    "name": "GetKeyboardLayout",
+                    "ordinal": 0
+                },
+                {
+                    "index": 365,
+                    "name": "GetKeyboardState",
+                    "ordinal": 0
+                },
+                {
+                    "index": 375,
+                    "name": "GetMenu",
+                    "ordinal": 0
+                },
+                {
+                    "index": 390,
+                    "name": "GetMessageExtraInfo",
+                    "ordinal": 0
+                },
+                {
+                    "index": 393,
+                    "name": "GetMessageW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 395,
+                    "name": "GetMonitorInfoW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 400,
+                    "name": "GetParent",
+                    "ordinal": 0
+                },
+                {
+                    "index": 433,
+                    "name": "GetPropW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 436,
+                    "name": "GetRawInputData",
+                    "ordinal": 0
+                },
+                {
+                    "index": 437,
+                    "name": "GetRawInputDeviceInfoA",
+                    "ordinal": 0
+                },
+                {
+                    "index": 439,
+                    "name": "GetRawInputDeviceList",
+                    "ordinal": 0
+                },
+                {
+                    "index": 455,
+                    "name": "GetSystemMetrics",
+                    "ordinal": 0
+                },
+                {
+                    "index": 468,
+                    "name": "GetUpdateRect",
+                    "ordinal": 0
+                },
+                {
+                    "index": 488,
+                    "name": "GetWindowLongPtrW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 489,
+                    "name": "GetWindowLongW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 496,
+                    "name": "GetWindowRect",
+                    "ordinal": 0
+                },
+                {
+                    "index": 502,
+                    "name": "GetWindowTextLengthW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 503,
+                    "name": "GetWindowTextW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 504,
+                    "name": "GetWindowThreadProcessId",
+                    "ordinal": 0
+                },
+                {
+                    "index": 545,
+                    "name": "IntersectRect",
+                    "ordinal": 0
+                },
+                {
+                    "index": 546,
+                    "name": "InvalidateRect",
+                    "ordinal": 0
+                },
+                {
+                    "index": 558,
+                    "name": "IsClipboardFormatAvailable",
+                    "ordinal": 0
+                },
+                {
+                    "index": 565,
+                    "name": "IsIconic",
+                    "ordinal": 0
+                },
+                {
+                    "index": 573,
+                    "name": "IsRectEmpty",
+                    "ordinal": 0
+                },
+                {
+                    "index": 589,
+                    "name": "IsWindowVisible",
+                    "ordinal": 0
+                },
+                {
+                    "index": 592,
+                    "name": "KillTimer",
+                    "ordinal": 0
+                },
+                {
+                    "index": 597,
+                    "name": "LoadCursorA",
+                    "ordinal": 0
+                },
+                {
+                    "index": 599,
+                    "name": "LoadCursorFromFileW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 600,
+                    "name": "LoadCursorW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 602,
+                    "name": "LoadIconW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 638,
+                    "name": "MapVirtualKeyW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 645,
+                    "name": "MessageBoxA",
+                    "ordinal": 0
+                },
+                {
+                    "index": 655,
+                    "name": "MonitorFromPoint",
+                    "ordinal": 0
+                },
+                {
+                    "index": 656,
+                    "name": "MonitorFromRect",
+                    "ordinal": 0
+                },
+                {
+                    "index": 657,
+                    "name": "MonitorFromWindow",
+                    "ordinal": 0
+                },
+                {
+                    "index": 669,
+                    "name": "OpenClipboard",
+                    "ordinal": 0
+                },
+                {
+                    "index": 683,
+                    "name": "PeekMessageW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 687,
+                    "name": "PostMessageW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 690,
+                    "name": "PostThreadMessageW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 697,
+                    "name": "PtInRect",
+                    "ordinal": 0
+                },
+                {
+                    "index": 733,
+                    "name": "RegisterClassExA",
+                    "ordinal": 0
+                },
+                {
+                    "index": 734,
+                    "name": "RegisterClassExW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 735,
+                    "name": "RegisterClassW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 740,
+                    "name": "RegisterDeviceNotificationW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 751,
+                    "name": "RegisterRawInputDevices",
+                    "ordinal": 0
+                },
+                {
+                    "index": 761,
+                    "name": "RegisterWindowMessageA",
+                    "ordinal": 0
+                },
+                {
+                    "index": 763,
+                    "name": "ReleaseCapture",
+                    "ordinal": 0
+                },
+                {
+                    "index": 764,
+                    "name": "ReleaseDC",
+                    "ordinal": 0
+                },
+                {
+                    "index": 770,
+                    "name": "RemovePropW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 777,
+                    "name": "ScreenToClient",
+                    "ordinal": 0
+                },
+                {
+                    "index": 792,
+                    "name": "SendMessageW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 795,
+                    "name": "SetActiveWindow",
+                    "ordinal": 0
+                },
+                {
+                    "index": 796,
+                    "name": "SetCapture",
+                    "ordinal": 0
+                },
+                {
+                    "index": 804,
+                    "name": "SetClipboardData",
+                    "ordinal": 0
+                },
+                {
+                    "index": 808,
+                    "name": "SetCursor",
+                    "ordinal": 0
+                },
+                {
+                    "index": 810,
+                    "name": "SetCursorPos",
+                    "ordinal": 0
+                },
+                {
+                    "index": 823,
+                    "name": "SetFocus",
+                    "ordinal": 0
+                },
+                {
+                    "index": 824,
+                    "name": "SetForegroundWindow",
+                    "ordinal": 0
+                },
+                {
+                    "index": 830,
+                    "name": "SetLayeredWindowAttributes",
+                    "ordinal": 0
+                },
+                {
+                    "index": 849,
+                    "name": "SetProcessDPIAware",
+                    "ordinal": 0
+                },
+                {
+                    "index": 857,
+                    "name": "SetPropW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 875,
+                    "name": "SetTimer",
+                    "ordinal": 0
+                },
+                {
+                    "index": 888,
+                    "name": "SetWindowLongPtrW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 889,
+                    "name": "SetWindowLongW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 891,
+                    "name": "SetWindowPos",
+                    "ordinal": 0
+                },
+                {
+                    "index": 892,
+                    "name": "SetWindowRgn",
+                    "ordinal": 0
+                },
+                {
+                    "index": 896,
+                    "name": "SetWindowTextW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 901,
+                    "name": "SetWindowsHookExW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 904,
+                    "name": "ShowCursor",
+                    "ordinal": 0
+                },
+                {
+                    "index": 909,
+                    "name": "ShowWindow",
+                    "ordinal": 0
+                },
+                {
+                    "index": 923,
+                    "name": "SystemParametersInfoA",
+                    "ordinal": 0
+                },
+                {
+                    "index": 925,
+                    "name": "SystemParametersInfoW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 932,
+                    "name": "ToUnicode",
+                    "ordinal": 0
+                },
+                {
+                    "index": 934,
+                    "name": "TrackMouseEvent",
+                    "ordinal": 0
+                },
+                {
+                    "index": 941,
+                    "name": "TranslateMessage",
+                    "ordinal": 0
+                },
+                {
+                    "index": 946,
+                    "name": "UnhookWindowsHookEx",
+                    "ordinal": 0
+                },
+                {
+                    "index": 951,
+                    "name": "UnregisterClassA",
+                    "ordinal": 0
+                },
+                {
+                    "index": 952,
+                    "name": "UnregisterClassW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 953,
+                    "name": "UnregisterDeviceNotification",
+                    "ordinal": 0
+                },
+                {
+                    "index": 978,
+                    "name": "ValidateRect",
+                    "ordinal": 0
+                }
+            ],
+            "VERSION.dll": [
+                {
+                    "index": 0,
+                    "name": "GetFileVersionInfoA",
+                    "ordinal": 0
+                },
+                {
+                    "index": 4,
+                    "name": "GetFileVersionInfoSizeA",
+                    "ordinal": 0
+                },
+                {
+                    "index": 15,
+                    "name": "VerQueryValueA",
+                    "ordinal": 0
+                }
+            ],
+            "WINMM.dll": [
+                {
+                    "index": 134,
+                    "name": "timeBeginPeriod",
+                    "ordinal": 0
+                },
+                {
+                    "index": 135,
+                    "name": "timeEndPeriod",
+                    "ordinal": 0
+                },
+                {
+                    "index": 138,
+                    "name": "timeGetTime",
+                    "ordinal": 0
+                },
+                {
+                    "index": 141,
+                    "name": "waveInAddBuffer",
+                    "ordinal": 0
+                },
+                {
+                    "index": 142,
+                    "name": "waveInClose",
+                    "ordinal": 0
+                },
+                {
+                    "index": 144,
+                    "name": "waveInGetDevCapsW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 148,
+                    "name": "waveInGetNumDevs",
+                    "ordinal": 0
+                },
+                {
+                    "index": 151,
+                    "name": "waveInOpen",
+                    "ordinal": 0
+                },
+                {
+                    "index": 152,
+                    "name": "waveInPrepareHeader",
+                    "ordinal": 0
+                },
+                {
+                    "index": 153,
+                    "name": "waveInReset",
+                    "ordinal": 0
+                },
+                {
+                    "index": 154,
+                    "name": "waveInStart",
+                    "ordinal": 0
+                },
+                {
+                    "index": 156,
+                    "name": "waveInUnprepareHeader",
+                    "ordinal": 0
+                },
+                {
+                    "index": 158,
+                    "name": "waveOutClose",
+                    "ordinal": 0
+                },
+                {
+                    "index": 160,
+                    "name": "waveOutGetDevCapsW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 162,
+                    "name": "waveOutGetErrorTextW",
+                    "ordinal": 0
+                },
+                {
+                    "index": 164,
+                    "name": "waveOutGetNumDevs",
+                    "ordinal": 0
+                },
+                {
+                    "index": 170,
+                    "name": "waveOutOpen",
+                    "ordinal": 0
+                },
+                {
+                    "index": 172,
+                    "name": "waveOutPrepareHeader",
+                    "ordinal": 0
+                },
+                {
+                    "index": 173,
+                    "name": "waveOutReset",
+                    "ordinal": 0
+                },
+                {
+                    "index": 178,
+                    "name": "waveOutUnprepareHeader",
+                    "ordinal": 0
+                },
+                {
+                    "index": 179,
+                    "name": "waveOutWrite",
+                    "ordinal": 0
+                }
+            ],
+            "WS2_32.dll": [
+                {
+                    "index": 0,
+                    "name": "closesocket",
+                    "ordinal": 3
+                },
+                {
+                    "index": 0,
+                    "name": "ntohl",
+                    "ordinal": 14
+                },
+                {
+                    "index": 0,
+                    "name": "select",
+                    "ordinal": 18
+                },
+                {
+                    "index": 0,
+                    "name": "gethostname",
+                    "ordinal": 57
+                },
+                {
+                    "index": 0,
+                    "name": "WSAGetLastError",
+                    "ordinal": 111
+                },
+                {
+                    "index": 0,
+                    "name": "WSASetLastError",
+                    "ordinal": 112
+                },
+                {
+                    "index": 0,
+                    "name": "WSAStartup",
+                    "ordinal": 115
+                },
+                {
+                    "index": 0,
+                    "name": "__WSAFDIsSet",
+                    "ordinal": 151
+                },
+                {
+                    "index": 164,
+                    "name": "freeaddrinfo",
+                    "ordinal": 0
+                },
+                {
+                    "index": 165,
+                    "name": "getaddrinfo",
+                    "ordinal": 0
+                },
+                {
+                    "index": 182,
+                    "name": "inet_pton",
+                    "ordinal": 0
+                }
+            ],
+            "bink2w64.dll": [
+                {
+                    "index": 0,
+                    "name": "BinkAllocateFrameBuffers",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1,
+                    "name": "BinkClose",
+                    "ordinal": 0
+                },
+                {
+                    "index": 7,
+                    "name": "BinkDoFrameAsync",
+                    "ordinal": 0
+                },
+                {
+                    "index": 9,
+                    "name": "BinkDoFrameAsyncWait",
+                    "ordinal": 0
+                },
+                {
+                    "index": 12,
+                    "name": "BinkFreeGlobals",
+                    "ordinal": 0
+                },
+                {
+                    "index": 13,
+                    "name": "BinkGetError",
+                    "ordinal": 0
+                },
+                {
+                    "index": 14,
+                    "name": "BinkGetFrameBuffersInfo",
+                    "ordinal": 0
+                },
+                {
+                    "index": 25,
+                    "name": "BinkGoto",
+                    "ordinal": 0
+                },
+                {
+                    "index": 27,
+                    "name": "BinkNextFrame",
+                    "ordinal": 0
+                },
+                {
+                    "index": 28,
+                    "name": "BinkOpen",
+                    "ordinal": 0
+                },
+                {
+                    "index": 38,
+                    "name": "BinkRegisterFrameBuffers",
+                    "ordinal": 0
+                },
+                {
+                    "index": 40,
+                    "name": "BinkRequestStopAsyncThread",
+                    "ordinal": 0
+                },
+                {
+                    "index": 49,
+                    "name": "BinkSetOSFileCallbacks",
+                    "ordinal": 0
+                },
+                {
+                    "index": 52,
+                    "name": "BinkSetSoundOnOff",
+                    "ordinal": 0
+                },
+                {
+                    "index": 60,
+                    "name": "BinkShouldSkip",
+                    "ordinal": 0
+                },
+                {
+                    "index": 61,
+                    "name": "BinkStartAsyncThread",
+                    "ordinal": 0
+                },
+                {
+                    "index": 72,
+                    "name": "BinkWait",
+                    "ordinal": 0
+                },
+                {
+                    "index": 73,
+                    "name": "BinkWaitStopAsyncThread",
+                    "ordinal": 0
+                }
+            ],
+            "d3d11.dll": [
+                {
+                    "index": 6,
+                    "name": "D3D11CreateDevice",
+                    "ordinal": 0
+                }
+            ],
+            "dxcompiler.dll": [
+                {
+                    "index": 0,
+                    "name": "DxcCreateInstance",
+                    "ordinal": 0
+                }
+            ],
+            "dxgi.dll": [
+                {
+                    "index": 4,
+                    "name": "CreateDXGIFactory1",
+                    "ordinal": 0
+                }
+            ],
+            "fmod.dll": [
+                {
+                    "index": 20,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::System::createStream(char const *, unsigned int, struct FMOD_CREATESOUNDEXINFO *, class FMOD::Sound **)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 45,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::System::getAdvancedSettings(struct FMOD_ADVANCEDSETTINGS *)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 49,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::System::getCPUUsage(struct FMOD_CPU_USAGE *)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 54,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::System::getChannelsPlaying(int *, int *)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 69,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::System::getFileUsage(__int64 *, __int64 *, __int64 *)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 81,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Sound::getLength(unsigned int *, unsigned int)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 105,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Sound::getName(char *, int)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 145,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Channel::getPosition(unsigned int *, unsigned int)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 156,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::System::getSoftwareChannels(int *)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 157,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::System::getSoftwareFormat(int *, enum FMOD_SPEAKERMODE *, int *)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 174,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::ChannelControl::getUserData(void **)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 180,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Sound::getUserData(void **)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 190,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::ChannelControl::isPlaying(bool *)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 200,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::System::playSound(class FMOD::Sound *, class FMOD::ChannelGroup *, bool, class FMOD::Channel **)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 211,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Sound::release(void)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 240,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::System::setAdvancedSettings(struct FMOD_ADVANCEDSETTINGS *)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 242,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::ChannelControl::setCallback(enum FMOD_RESULT (__cdecl *)(struct FMOD_CHANNELCONTROL *, enum FMOD_CHANNELCONTROL_TYPE, enum FMOD_CHANNELCONTROL_CALLBACK_TYPE, void *, void *))",
+                    "ordinal": 0
+                },
+                {
+                    "index": 285,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::ChannelControl::setPaused(bool)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 290,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Channel::setPosition(unsigned int, unsigned int)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 299,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::System::setSoftwareFormat(int, enum FMOD_SPEAKERMODE, int)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 303,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::ChannelControl::setUserData(void *)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 309,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Sound::setUserData(void *)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 318,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::ChannelControl::stop(void)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 905,
+                    "name": "FMOD_Debug_Initialize",
+                    "ordinal": 0
+                },
+                {
+                    "index": 928,
+                    "name": "FMOD_Memory_GetStats",
+                    "ordinal": 0
+                }
+            ],
+            "fmodstudio.dll": [
+                {
+                    "index": 0,
+                    "name": "public: static enum FMOD_RESULT __cdecl FMOD::Studio::System::create(class FMOD::Studio::System **, unsigned int)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::EventDescription::createInstance(class FMOD::Studio::EventInstance **) const",
+                    "ordinal": 0
+                },
+                {
+                    "index": 4,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::EventInstance::get3DAttributes(struct FMOD_3D_ATTRIBUTES *) const",
+                    "ordinal": 0
+                },
+                {
+                    "index": 6,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::System::getBank(char const *, class FMOD::Studio::Bank **) const",
+                    "ordinal": 0
+                },
+                {
+                    "index": 8,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::System::getBankCount(int *) const",
+                    "ordinal": 0
+                },
+                {
+                    "index": 9,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::System::getBankList(class FMOD::Studio::Bank **, int, int *) const",
+                    "ordinal": 0
+                },
+                {
+                    "index": 11,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::System::getBus(char const *, class FMOD::Studio::Bus **) const",
+                    "ordinal": 0
+                },
+                {
+                    "index": 13,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::Bank::getBusCount(int *) const",
+                    "ordinal": 0
+                },
+                {
+                    "index": 14,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::Bank::getBusList(class FMOD::Studio::Bus **, int, int *) const",
+                    "ordinal": 0
+                },
+                {
+                    "index": 18,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::Bus::getChannelGroup(class FMOD::ChannelGroup **) const",
+                    "ordinal": 0
+                },
+                {
+                    "index": 24,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::System::getCoreSystem(class FMOD::System **) const",
+                    "ordinal": 0
+                },
+                {
+                    "index": 26,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::EventInstance::getDescription(class FMOD::Studio::EventDescription **) const",
+                    "ordinal": 0
+                },
+                {
+                    "index": 27,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::System::getEvent(char const *, class FMOD::Studio::EventDescription **) const",
+                    "ordinal": 0
+                },
+                {
+                    "index": 29,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::Bank::getEventCount(int *) const",
+                    "ordinal": 0
+                },
+                {
+                    "index": 30,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::Bank::getEventList(class FMOD::Studio::EventDescription **, int, int *) const",
+                    "ordinal": 0
+                },
+                {
+                    "index": 35,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::EventDescription::getInstanceCount(int *) const",
+                    "ordinal": 0
+                },
+                {
+                    "index": 36,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::EventDescription::getInstanceList(class FMOD::Studio::EventInstance **, int, int *) const",
+                    "ordinal": 0
+                },
+                {
+                    "index": 38,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::EventDescription::getLength(int *) const",
+                    "ordinal": 0
+                },
+                {
+                    "index": 39,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::System::getListenerAttributes(int, struct FMOD_3D_ATTRIBUTES *, struct FMOD_VECTOR *) const",
+                    "ordinal": 0
+                },
+                {
+                    "index": 40,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::EventInstance::getListenerMask(unsigned int *) const",
+                    "ordinal": 0
+                },
+                {
+                    "index": 41,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::System::getListenerWeight(int, float *)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 46,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::EventDescription::getMinMaxDistance(float *, float *) const",
+                    "ordinal": 0
+                },
+                {
+                    "index": 48,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::Bus::getMute(bool *) const",
+                    "ordinal": 0
+                },
+                {
+                    "index": 49,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::System::getNumListeners(int *)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 50,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::EventInstance::getParameterByID(struct FMOD_STUDIO_PARAMETER_ID, float *, float *) const",
+                    "ordinal": 0
+                },
+                {
+                    "index": 51,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::System::getParameterByID(struct FMOD_STUDIO_PARAMETER_ID, float *, float *) const",
+                    "ordinal": 0
+                },
+                {
+                    "index": 52,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::EventInstance::getParameterByName(char const *, float *, float *) const",
+                    "ordinal": 0
+                },
+                {
+                    "index": 54,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::EventDescription::getParameterDescriptionByID(struct FMOD_STUDIO_PARAMETER_ID, struct FMOD_STUDIO_PARAMETER_DESCRIPTION *) const",
+                    "ordinal": 0
+                },
+                {
+                    "index": 55,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::System::getParameterDescriptionByID(struct FMOD_STUDIO_PARAMETER_ID, struct FMOD_STUDIO_PARAMETER_DESCRIPTION *) const",
+                    "ordinal": 0
+                },
+                {
+                    "index": 56,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::EventDescription::getParameterDescriptionByIndex(int, struct FMOD_STUDIO_PARAMETER_DESCRIPTION *) const",
+                    "ordinal": 0
+                },
+                {
+                    "index": 57,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::EventDescription::getParameterDescriptionByName(char const *, struct FMOD_STUDIO_PARAMETER_DESCRIPTION *) const",
+                    "ordinal": 0
+                },
+                {
+                    "index": 58,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::System::getParameterDescriptionByName(char const *, struct FMOD_STUDIO_PARAMETER_DESCRIPTION *) const",
+                    "ordinal": 0
+                },
+                {
+                    "index": 59,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::EventDescription::getParameterDescriptionCount(int *) const",
+                    "ordinal": 0
+                },
+                {
+                    "index": 60,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::System::getParameterDescriptionCount(int *) const",
+                    "ordinal": 0
+                },
+                {
+                    "index": 61,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::System::getParameterDescriptionList(struct FMOD_STUDIO_PARAMETER_DESCRIPTION *, int, int *) const",
+                    "ordinal": 0
+                },
+                {
+                    "index": 67,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::Bank::getPath(char *, int, int *) const",
+                    "ordinal": 0
+                },
+                {
+                    "index": 68,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::Bus::getPath(char *, int, int *) const",
+                    "ordinal": 0
+                },
+                {
+                    "index": 69,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::EventDescription::getPath(char *, int, int *) const",
+                    "ordinal": 0
+                },
+                {
+                    "index": 70,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::VCA::getPath(char *, int, int *) const",
+                    "ordinal": 0
+                },
+                {
+                    "index": 71,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::Bus::getPaused(bool *) const",
+                    "ordinal": 0
+                },
+                {
+                    "index": 73,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::EventInstance::getPaused(bool *) const",
+                    "ordinal": 0
+                },
+                {
+                    "index": 76,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::EventInstance::getPlaybackState(enum FMOD_STUDIO_PLAYBACK_STATE *) const",
+                    "ordinal": 0
+                },
+                {
+                    "index": 87,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::EventInstance::getTimelinePosition(int *) const",
+                    "ordinal": 0
+                },
+                {
+                    "index": 88,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::Bank::getUserData(void **) const",
+                    "ordinal": 0
+                },
+                {
+                    "index": 90,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::EventDescription::getUserData(void **) const",
+                    "ordinal": 0
+                },
+                {
+                    "index": 91,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::EventInstance::getUserData(void **) const",
+                    "ordinal": 0
+                },
+                {
+                    "index": 96,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::System::getVCA(char const *, class FMOD::Studio::VCA **) const",
+                    "ordinal": 0
+                },
+                {
+                    "index": 98,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::Bank::getVCACount(int *) const",
+                    "ordinal": 0
+                },
+                {
+                    "index": 99,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::Bank::getVCAList(class FMOD::Studio::VCA **, int, int *) const",
+                    "ordinal": 0
+                },
+                {
+                    "index": 100,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::Bus::getVolume(float *, float *) const",
+                    "ordinal": 0
+                },
+                {
+                    "index": 101,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::EventInstance::getVolume(float *, float *) const",
+                    "ordinal": 0
+                },
+                {
+                    "index": 102,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::VCA::getVolume(float *, float *) const",
+                    "ordinal": 0
+                },
+                {
+                    "index": 104,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::System::initialize(int, unsigned int, unsigned int, void *)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 105,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::EventDescription::is3D(bool *) const",
+                    "ordinal": 0
+                },
+                {
+                    "index": 114,
+                    "name": "public: bool __cdecl FMOD::Studio::EventInstance::isValid(void) const",
+                    "ordinal": 0
+                },
+                {
+                    "index": 117,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::EventInstance::isVirtual(bool *) const",
+                    "ordinal": 0
+                },
+                {
+                    "index": 120,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::System::loadBankFile(char const *, unsigned int, class FMOD::Studio::Bank **)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 123,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::Bank::loadSampleData(void)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 124,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::EventDescription::loadSampleData(void)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 125,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::Bus::lockChannelGroup(void)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 130,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::EventInstance::release(void)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 131,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::System::release(void)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 136,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::EventInstance::set3DAttributes(struct FMOD_3D_ATTRIBUTES const *)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 140,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::EventInstance::setCallback(enum FMOD_RESULT (__cdecl *)(unsigned int, struct FMOD_STUDIO_EVENTINSTANCE *, void *), unsigned int)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 144,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::System::setListenerAttributes(int, struct FMOD_3D_ATTRIBUTES const *, struct FMOD_VECTOR const *)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 145,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::EventInstance::setListenerMask(unsigned int)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 146,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::System::setListenerWeight(int, float)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 148,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::Bus::setMute(bool)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 149,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::System::setNumListeners(int)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 150,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::EventInstance::setParameterByID(struct FMOD_STUDIO_PARAMETER_ID, float, bool)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 151,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::System::setParameterByID(struct FMOD_STUDIO_PARAMETER_ID, float, bool)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 152,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::EventInstance::setParameterByIDWithLabel(struct FMOD_STUDIO_PARAMETER_ID, char const *, bool)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 153,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::System::setParameterByIDWithLabel(struct FMOD_STUDIO_PARAMETER_ID, char const *, bool)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 154,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::EventInstance::setParameterByName(char const *, float, bool)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 155,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::System::setParameterByName(char const *, float, bool)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 156,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::EventInstance::setParameterByNameWithLabel(char const *, char const *, bool)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 157,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::System::setParameterByNameWithLabel(char const *, char const *, bool)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 160,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::Bus::setPaused(bool)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 162,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::EventInstance::setPaused(bool)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 167,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::EventInstance::setTimelinePosition(int)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 168,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::Bank::setUserData(void *)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 170,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::EventDescription::setUserData(void *)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 171,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::EventInstance::setUserData(void *)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 173,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::Bus::setVolume(float)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 174,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::EventInstance::setVolume(float)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 175,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::VCA::setVolume(float)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 177,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::EventInstance::start(void)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 180,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::EventInstance::stop(enum FMOD_STUDIO_STOP_MODE)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 181,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::Bus::stopAllEvents(enum FMOD_STUDIO_STOP_MODE)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 183,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::Bank::unload(void)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 185,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::Bank::unloadSampleData(void)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 186,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::EventDescription::unloadSampleData(void)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 187,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::Bus::unlockChannelGroup(void)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 189,
+                    "name": "public: enum FMOD_RESULT __cdecl FMOD::Studio::System::update(void)",
+                    "ordinal": 0
+                }
+            ],
+            "nakama-cpp.dll": [
+                {
+                    "index": 563,
+                    "name": "NClient_addFriends",
+                    "ordinal": 0
+                },
+                {
+                    "index": 564,
+                    "name": "NClient_addGroupUsers",
+                    "ordinal": 0
+                },
+                {
+                    "index": 565,
+                    "name": "NClient_authenticateApple",
+                    "ordinal": 0
+                },
+                {
+                    "index": 566,
+                    "name": "NClient_authenticateCustom",
+                    "ordinal": 0
+                },
+                {
+                    "index": 567,
+                    "name": "NClient_authenticateDevice",
+                    "ordinal": 0
+                },
+                {
+                    "index": 568,
+                    "name": "NClient_authenticateEmail",
+                    "ordinal": 0
+                },
+                {
+                    "index": 569,
+                    "name": "NClient_authenticateFacebook",
+                    "ordinal": 0
+                },
+                {
+                    "index": 570,
+                    "name": "NClient_authenticateGameCenter",
+                    "ordinal": 0
+                },
+                {
+                    "index": 571,
+                    "name": "NClient_authenticateGoogle",
+                    "ordinal": 0
+                },
+                {
+                    "index": 572,
+                    "name": "NClient_authenticateSteam",
+                    "ordinal": 0
+                },
+                {
+                    "index": 573,
+                    "name": "NClient_blockFriends",
+                    "ordinal": 0
+                },
+                {
+                    "index": 574,
+                    "name": "NClient_createGroup",
+                    "ordinal": 0
+                },
+                {
+                    "index": 576,
+                    "name": "NClient_createRtClientEx",
+                    "ordinal": 0
+                },
+                {
+                    "index": 577,
+                    "name": "NClient_deleteFriends",
+                    "ordinal": 0
+                },
+                {
+                    "index": 578,
+                    "name": "NClient_deleteGroup",
+                    "ordinal": 0
+                },
+                {
+                    "index": 579,
+                    "name": "NClient_deleteLeaderboardRecord",
+                    "ordinal": 0
+                },
+                {
+                    "index": 580,
+                    "name": "NClient_deleteNotifications",
+                    "ordinal": 0
+                },
+                {
+                    "index": 581,
+                    "name": "NClient_deleteStorageObjects",
+                    "ordinal": 0
+                },
+                {
+                    "index": 582,
+                    "name": "NClient_demoteGroupUsers",
+                    "ordinal": 0
+                },
+                {
+                    "index": 583,
+                    "name": "NClient_disconnect",
+                    "ordinal": 0
+                },
+                {
+                    "index": 584,
+                    "name": "NClient_getAccount",
+                    "ordinal": 0
+                },
+                {
+                    "index": 585,
+                    "name": "NClient_getUserData",
+                    "ordinal": 0
+                },
+                {
+                    "index": 586,
+                    "name": "NClient_getUsers",
+                    "ordinal": 0
+                },
+                {
+                    "index": 587,
+                    "name": "NClient_importFacebookFriends",
+                    "ordinal": 0
+                },
+                {
+                    "index": 588,
+                    "name": "NClient_joinGroup",
+                    "ordinal": 0
+                },
+                {
+                    "index": 589,
+                    "name": "NClient_joinTournament",
+                    "ordinal": 0
+                },
+                {
+                    "index": 590,
+                    "name": "NClient_kickGroupUsers",
+                    "ordinal": 0
+                },
+                {
+                    "index": 591,
+                    "name": "NClient_leaveGroup",
+                    "ordinal": 0
+                },
+                {
+                    "index": 592,
+                    "name": "NClient_linkApple",
+                    "ordinal": 0
+                },
+                {
+                    "index": 593,
+                    "name": "NClient_linkCustom",
+                    "ordinal": 0
+                },
+                {
+                    "index": 594,
+                    "name": "NClient_linkDevice",
+                    "ordinal": 0
+                },
+                {
+                    "index": 595,
+                    "name": "NClient_linkEmail",
+                    "ordinal": 0
+                },
+                {
+                    "index": 596,
+                    "name": "NClient_linkFacebook",
+                    "ordinal": 0
+                },
+                {
+                    "index": 597,
+                    "name": "NClient_linkGameCenter",
+                    "ordinal": 0
+                },
+                {
+                    "index": 598,
+                    "name": "NClient_linkGoogle",
+                    "ordinal": 0
+                },
+                {
+                    "index": 599,
+                    "name": "NClient_linkSteam",
+                    "ordinal": 0
+                },
+                {
+                    "index": 600,
+                    "name": "NClient_listChannelMessages",
+                    "ordinal": 0
+                },
+                {
+                    "index": 601,
+                    "name": "NClient_listFriends",
+                    "ordinal": 0
+                },
+                {
+                    "index": 602,
+                    "name": "NClient_listGroupUsers",
+                    "ordinal": 0
+                },
+                {
+                    "index": 603,
+                    "name": "NClient_listGroups",
+                    "ordinal": 0
+                },
+                {
+                    "index": 604,
+                    "name": "NClient_listLeaderboardRecords",
+                    "ordinal": 0
+                },
+                {
+                    "index": 605,
+                    "name": "NClient_listLeaderboardRecordsAroundOwner",
+                    "ordinal": 0
+                },
+                {
+                    "index": 606,
+                    "name": "NClient_listMatches",
+                    "ordinal": 0
+                },
+                {
+                    "index": 607,
+                    "name": "NClient_listNotifications",
+                    "ordinal": 0
+                },
+                {
+                    "index": 609,
+                    "name": "NClient_listStorageObjects",
+                    "ordinal": 0
+                },
+                {
+                    "index": 610,
+                    "name": "NClient_listTournamentRecords",
+                    "ordinal": 0
+                },
+                {
+                    "index": 611,
+                    "name": "NClient_listTournamentRecordsAroundOwner",
+                    "ordinal": 0
+                },
+                {
+                    "index": 612,
+                    "name": "NClient_listTournaments",
+                    "ordinal": 0
+                },
+                {
+                    "index": 613,
+                    "name": "NClient_listUserGroups",
+                    "ordinal": 0
+                },
+                {
+                    "index": 614,
+                    "name": "NClient_listUsersStorageObjects",
+                    "ordinal": 0
+                },
+                {
+                    "index": 615,
+                    "name": "NClient_promoteGroupUsers",
+                    "ordinal": 0
+                },
+                {
+                    "index": 616,
+                    "name": "NClient_readStorageObjects",
+                    "ordinal": 0
+                },
+                {
+                    "index": 617,
+                    "name": "NClient_rpc",
+                    "ordinal": 0
+                },
+                {
+                    "index": 618,
+                    "name": "NClient_rpc_with_http_key",
+                    "ordinal": 0
+                },
+                {
+                    "index": 619,
+                    "name": "NClient_setErrorCallback",
+                    "ordinal": 0
+                },
+                {
+                    "index": 620,
+                    "name": "NClient_setUserData",
+                    "ordinal": 0
+                },
+                {
+                    "index": 621,
+                    "name": "NClient_tick",
+                    "ordinal": 0
+                },
+                {
+                    "index": 622,
+                    "name": "NClient_unlinkApple",
+                    "ordinal": 0
+                },
+                {
+                    "index": 623,
+                    "name": "NClient_unlinkCustom",
+                    "ordinal": 0
+                },
+                {
+                    "index": 624,
+                    "name": "NClient_unlinkDevice",
+                    "ordinal": 0
+                },
+                {
+                    "index": 625,
+                    "name": "NClient_unlinkEmail",
+                    "ordinal": 0
+                },
+                {
+                    "index": 626,
+                    "name": "NClient_unlinkFacebook",
+                    "ordinal": 0
+                },
+                {
+                    "index": 627,
+                    "name": "NClient_unlinkGameCenter",
+                    "ordinal": 0
+                },
+                {
+                    "index": 628,
+                    "name": "NClient_unlinkGoogle",
+                    "ordinal": 0
+                },
+                {
+                    "index": 629,
+                    "name": "NClient_unlinkSteam",
+                    "ordinal": 0
+                },
+                {
+                    "index": 630,
+                    "name": "NClient_updateAccount",
+                    "ordinal": 0
+                },
+                {
+                    "index": 631,
+                    "name": "NClient_updateGroup",
+                    "ordinal": 0
+                },
+                {
+                    "index": 632,
+                    "name": "NClient_writeLeaderboardRecord",
+                    "ordinal": 0
+                },
+                {
+                    "index": 633,
+                    "name": "NClient_writeStorageObjects",
+                    "ordinal": 0
+                },
+                {
+                    "index": 634,
+                    "name": "NClient_writeTournamentRecord",
+                    "ordinal": 0
+                },
+                {
+                    "index": 641,
+                    "name": "NRtClient_addMatchmaker",
+                    "ordinal": 0
+                },
+                {
+                    "index": 642,
+                    "name": "NRtClient_connect",
+                    "ordinal": 0
+                },
+                {
+                    "index": 643,
+                    "name": "NRtClient_createMatch",
+                    "ordinal": 0
+                },
+                {
+                    "index": 644,
+                    "name": "NRtClient_destroy",
+                    "ordinal": 0
+                },
+                {
+                    "index": 645,
+                    "name": "NRtClient_disconnect",
+                    "ordinal": 0
+                },
+                {
+                    "index": 646,
+                    "name": "NRtClient_followUsers",
+                    "ordinal": 0
+                },
+                {
+                    "index": 647,
+                    "name": "NRtClient_getUserData",
+                    "ordinal": 0
+                },
+                {
+                    "index": 648,
+                    "name": "NRtClient_isConnected",
+                    "ordinal": 0
+                },
+                {
+                    "index": 649,
+                    "name": "NRtClient_joinChat",
+                    "ordinal": 0
+                },
+                {
+                    "index": 650,
+                    "name": "NRtClient_joinMatch",
+                    "ordinal": 0
+                },
+                {
+                    "index": 651,
+                    "name": "NRtClient_joinMatchByToken",
+                    "ordinal": 0
+                },
+                {
+                    "index": 652,
+                    "name": "NRtClient_leaveChat",
+                    "ordinal": 0
+                },
+                {
+                    "index": 653,
+                    "name": "NRtClient_leaveMatch",
+                    "ordinal": 0
+                },
+                {
+                    "index": 654,
+                    "name": "NRtClient_removeChatMessage",
+                    "ordinal": 0
+                },
+                {
+                    "index": 655,
+                    "name": "NRtClient_removeMatchmaker",
+                    "ordinal": 0
+                },
+                {
+                    "index": 656,
+                    "name": "NRtClient_rpc",
+                    "ordinal": 0
+                },
+                {
+                    "index": 657,
+                    "name": "NRtClient_sendMatchData",
+                    "ordinal": 0
+                },
+                {
+                    "index": 658,
+                    "name": "NRtClient_setChannelMessageCallback",
+                    "ordinal": 0
+                },
+                {
+                    "index": 659,
+                    "name": "NRtClient_setChannelPresenceCallback",
+                    "ordinal": 0
+                },
+                {
+                    "index": 660,
+                    "name": "NRtClient_setConnectCallback",
+                    "ordinal": 0
+                },
+                {
+                    "index": 661,
+                    "name": "NRtClient_setDisconnectCallback",
+                    "ordinal": 0
+                },
+                {
+                    "index": 662,
+                    "name": "NRtClient_setErrorCallback",
+                    "ordinal": 0
+                },
+                {
+                    "index": 663,
+                    "name": "NRtClient_setMatchDataCallback",
+                    "ordinal": 0
+                },
+                {
+                    "index": 664,
+                    "name": "NRtClient_setMatchPresenceCallback",
+                    "ordinal": 0
+                },
+                {
+                    "index": 665,
+                    "name": "NRtClient_setMatchmakerMatchedCallback",
+                    "ordinal": 0
+                },
+                {
+                    "index": 666,
+                    "name": "NRtClient_setNotificationsCallback",
+                    "ordinal": 0
+                },
+                {
+                    "index": 667,
+                    "name": "NRtClient_setStatusPresenceCallback",
+                    "ordinal": 0
+                },
+                {
+                    "index": 668,
+                    "name": "NRtClient_setStreamDataCallback",
+                    "ordinal": 0
+                },
+                {
+                    "index": 669,
+                    "name": "NRtClient_setStreamPresenceCallback",
+                    "ordinal": 0
+                },
+                {
+                    "index": 670,
+                    "name": "NRtClient_setUserData",
+                    "ordinal": 0
+                },
+                {
+                    "index": 671,
+                    "name": "NRtClient_tick",
+                    "ordinal": 0
+                },
+                {
+                    "index": 672,
+                    "name": "NRtClient_unfollowUsers",
+                    "ordinal": 0
+                },
+                {
+                    "index": 673,
+                    "name": "NRtClient_updateChatMessage",
+                    "ordinal": 0
+                },
+                {
+                    "index": 675,
+                    "name": "NRtClient_writeChatMessage",
+                    "ordinal": 0
+                },
+                {
+                    "index": 676,
+                    "name": "NSession_destroy",
+                    "ordinal": 0
+                },
+                {
+                    "index": 677,
+                    "name": "NSession_getAuthToken",
+                    "ordinal": 0
+                },
+                {
+                    "index": 678,
+                    "name": "NSession_getCreateTime",
+                    "ordinal": 0
+                },
+                {
+                    "index": 679,
+                    "name": "NSession_getExpireTime",
+                    "ordinal": 0
+                },
+                {
+                    "index": 680,
+                    "name": "NSession_getUserId",
+                    "ordinal": 0
+                },
+                {
+                    "index": 681,
+                    "name": "NSession_getUsername",
+                    "ordinal": 0
+                },
+                {
+                    "index": 683,
+                    "name": "NSession_getVariables",
+                    "ordinal": 0
+                },
+                {
+                    "index": 684,
+                    "name": "NSession_isCreated",
+                    "ordinal": 0
+                },
+                {
+                    "index": 685,
+                    "name": "NSession_isExpired",
+                    "ordinal": 0
+                },
+                {
+                    "index": 686,
+                    "name": "NSession_isExpiredByTime",
+                    "ordinal": 0
+                },
+                {
+                    "index": 687,
+                    "name": "NStringDoubleMap_create",
+                    "ordinal": 0
+                },
+                {
+                    "index": 688,
+                    "name": "NStringDoubleMap_destroy",
+                    "ordinal": 0
+                },
+                {
+                    "index": 689,
+                    "name": "NStringDoubleMap_getKeys",
+                    "ordinal": 0
+                },
+                {
+                    "index": 690,
+                    "name": "NStringDoubleMap_getSize",
+                    "ordinal": 0
+                },
+                {
+                    "index": 691,
+                    "name": "NStringDoubleMap_getValue",
+                    "ordinal": 0
+                },
+                {
+                    "index": 692,
+                    "name": "NStringDoubleMap_setValue",
+                    "ordinal": 0
+                },
+                {
+                    "index": 693,
+                    "name": "NStringMap_create",
+                    "ordinal": 0
+                },
+                {
+                    "index": 694,
+                    "name": "NStringMap_destroy",
+                    "ordinal": 0
+                },
+                {
+                    "index": 695,
+                    "name": "NStringMap_getKeys",
+                    "ordinal": 0
+                },
+                {
+                    "index": 696,
+                    "name": "NStringMap_getSize",
+                    "ordinal": 0
+                },
+                {
+                    "index": 697,
+                    "name": "NStringMap_getValue",
+                    "ordinal": 0
+                },
+                {
+                    "index": 698,
+                    "name": "NStringMap_setValue",
+                    "ordinal": 0
+                },
+                {
+                    "index": 699,
+                    "name": "createDefaultNakamaClient",
+                    "ordinal": 0
+                },
+                {
+                    "index": 702,
+                    "name": "destroyNakamaClient",
+                    "ordinal": 0
+                }
+            ],
+            "nvtt.dll": [
+                {
+                    "index": 0,
+                    "name": "public: __cdecl nvtt::CompressionOptions::CompressionOptions(void)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1,
+                    "name": "public: __cdecl nvtt::Compressor::Compressor(void)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 2,
+                    "name": "public: __cdecl nvtt::InputOptions::InputOptions(void)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 3,
+                    "name": "public: __cdecl nvtt::OutputOptions::OutputOptions(void)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 4,
+                    "name": "public: __cdecl nvtt::CompressionOptions::~CompressionOptions(void)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 5,
+                    "name": "public: __cdecl nvtt::Compressor::~Compressor(void)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 6,
+                    "name": "public: __cdecl nvtt::InputOptions::~InputOptions(void)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 7,
+                    "name": "public: __cdecl nvtt::OutputOptions::~OutputOptions(void)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 8,
+                    "name": "public: void __cdecl nvtt::Compressor::enableCudaAcceleration(bool)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 9,
+                    "name": "char const * __cdecl nvtt::errorString(enum nvtt::Error)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 10,
+                    "name": "public: int __cdecl nvtt::Compressor::estimateSize(struct nvtt::InputOptions const &, struct nvtt::CompressionOptions const &) const",
+                    "ordinal": 0
+                },
+                {
+                    "index": 12,
+                    "name": "public: bool __cdecl nvtt::Compressor::process(struct nvtt::InputOptions const &, struct nvtt::CompressionOptions const &, struct nvtt::OutputOptions const &) const",
+                    "ordinal": 0
+                },
+                {
+                    "index": 21,
+                    "name": "public: void __cdecl nvtt::OutputOptions::setErrorHandler(struct nvtt::ErrorHandler *)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 24,
+                    "name": "public: void __cdecl nvtt::CompressionOptions::setFormat(enum nvtt::Format)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 31,
+                    "name": "public: bool __cdecl nvtt::InputOptions::setMipmapData(void const *, int, int, int, int, int)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 33,
+                    "name": "public: void __cdecl nvtt::InputOptions::setMipmapGeneration(bool, int)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 37,
+                    "name": "public: void __cdecl nvtt::OutputOptions::setOutputHandler(struct nvtt::OutputHandler *)",
+                    "ordinal": 0
+                },
+                {
+                    "index": 43,
+                    "name": "public: void __cdecl nvtt::InputOptions::setTextureLayout(enum nvtt::TextureType, int, int, int)",
+                    "ordinal": 0
+                }
+            ],
+            "ole32.dll": [
+                {
+                    "index": 16,
+                    "name": "CLSIDFromString",
+                    "ordinal": 0
+                },
+                {
+                    "index": 43,
+                    "name": "CoCreateInstance",
+                    "ordinal": 0
+                },
+                {
+                    "index": 97,
+                    "name": "CoInitializeEx",
+                    "ordinal": 0
+                },
+                {
+                    "index": 140,
+                    "name": "CoTaskMemFree",
+                    "ordinal": 0
+                },
+                {
+                    "index": 144,
+                    "name": "CoUninitialize",
+                    "ordinal": 0
+                },
+                {
+                    "index": 463,
+                    "name": "PropVariantClear",
+                    "ordinal": 0
+                }
+            ],
+            "pops_api.dll": [
+                {
+                    "index": 2,
+                    "name": "POPS_AccountConnectAccountSteam",
+                    "ordinal": 0
+                },
+                {
+                    "index": 4,
+                    "name": "POPS_AccountConnections",
+                    "ordinal": 0
+                },
+                {
+                    "index": 5,
+                    "name": "POPS_AccountCreate",
+                    "ordinal": 0
+                },
+                {
+                    "index": 7,
+                    "name": "POPS_AccountDisconnectAccountSteam",
+                    "ordinal": 0
+                },
+                {
+                    "index": 11,
+                    "name": "POPS_AccountGetCountries",
+                    "ordinal": 0
+                },
+                {
+                    "index": 12,
+                    "name": "POPS_AccountGetDetails",
+                    "ordinal": 0
+                },
+                {
+                    "index": 13,
+                    "name": "POPS_AccountGetGuid",
+                    "ordinal": 0
+                },
+                {
+                    "index": 14,
+                    "name": "POPS_AccountGetLanguages",
+                    "ordinal": 0
+                },
+                {
+                    "index": 18,
+                    "name": "POPS_AccountLogIn",
+                    "ordinal": 0
+                },
+                {
+                    "index": 21,
+                    "name": "POPS_AccountLogInSteamTicket",
+                    "ordinal": 0
+                },
+                {
+                    "index": 23,
+                    "name": "POPS_AccountLogInWithAuthToken",
+                    "ordinal": 0
+                },
+                {
+                    "index": 25,
+                    "name": "POPS_AccountResetPassword",
+                    "ordinal": 0
+                },
+                {
+                    "index": 37,
+                    "name": "POPS_AutoStandardTelemetryEnable",
+                    "ordinal": 0
+                },
+                {
+                    "index": 56,
+                    "name": "POPS_Initialize",
+                    "ordinal": 0
+                },
+                {
+                    "index": 60,
+                    "name": "POPS_InventoryList",
+                    "ordinal": 0
+                },
+                {
+                    "index": 99,
+                    "name": "POPS_RunCallbacks",
+                    "ordinal": 0
+                },
+                {
+                    "index": 102,
+                    "name": "POPS_SetFileIO",
+                    "ordinal": 0
+                },
+                {
+                    "index": 104,
+                    "name": "POPS_SetRootPath",
+                    "ordinal": 0
+                },
+                {
+                    "index": 106,
+                    "name": "POPS_Shutdown",
+                    "ordinal": 0
+                },
+                {
+                    "index": 121,
+                    "name": "POPS_SocialProfileCreate",
+                    "ordinal": 0
+                },
+                {
+                    "index": 123,
+                    "name": "POPS_SocialProfileRetrieve",
+                    "ordinal": 0
+                },
+                {
+                    "index": 124,
+                    "name": "POPS_SocialProfileUpdate",
+                    "ordinal": 0
+                },
+                {
+                    "index": 144,
+                    "name": "POPS_TelemetrySendMulti",
+                    "ordinal": 0
+                },
+                {
+                    "index": 147,
+                    "name": "POPS_TokenRetrieveCurrent",
+                    "ordinal": 0
+                }
+            ],
+            "steam_api64.dll": [
+                {
+                    "index": 3,
+                    "name": "SteamAPI_GetHSteamUser",
+                    "ordinal": 0
+                },
+                {
+                    "index": 926,
+                    "name": "SteamAPI_Init",
+                    "ordinal": 0
+                },
+                {
+                    "index": 929,
+                    "name": "SteamAPI_IsSteamRunning",
+                    "ordinal": 0
+                },
+                {
+                    "index": 936,
+                    "name": "SteamAPI_RegisterCallResult",
+                    "ordinal": 0
+                },
+                {
+                    "index": 937,
+                    "name": "SteamAPI_RegisterCallback",
+                    "ordinal": 0
+                },
+                {
+                    "index": 940,
+                    "name": "SteamAPI_RunCallbacks",
+                    "ordinal": 0
+                },
+                {
+                    "index": 944,
+                    "name": "SteamAPI_Shutdown",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1031,
+                    "name": "SteamAPI_UnregisterCallResult",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1032,
+                    "name": "SteamAPI_UnregisterCallback",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1053,
+                    "name": "SteamGameServer_GetHSteamUser",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1057,
+                    "name": "SteamGameServer_RunCallbacks",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1058,
+                    "name": "SteamGameServer_Shutdown",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1059,
+                    "name": "SteamInternal_ContextInit",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1061,
+                    "name": "SteamInternal_FindOrCreateGameServerInterface",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1062,
+                    "name": "SteamInternal_FindOrCreateUserInterface",
+                    "ordinal": 0
+                },
+                {
+                    "index": 1063,
+                    "name": "SteamInternal_GameServer_Init",
+                    "ordinal": 0
+                }
+            ]
+        },
+        "description": "PE executable file",
+        "export": [
+            {
+                "address": 81490876,
+                "hint": 0,
+                "name": "AmdPowerXpressRequestHighPerformance",
+                "ordinal": 1,
+                "undecoratedname": "AmdPowerXpressRequestHighPerformance"
+            },
+            {
+                "address": 81490872,
+                "hint": 1,
+                "name": "NvOptimusEnablement",
+                "ordinal": 2,
+                "undecoratedname": "NvOptimusEnablement"
+            }
+        ],
+        "is64bit": true,
+        "machine": "AMD64",
+        "mime": "application/vnd.microsoft.portable-executable",
+        "overlay": "Binary data",
+        "overlaylen": 10360,
+        "path": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Crusader Kings III\\binaries\\ck3.exe",
+        "section": [
+            {
+                "Characteristics": 1610612768,
+                "Name": ".text",
+                "NumberOfLineNumbers": 0,
+                "NumberOfRelocations": 0,
+                "Offset": 1024,
+                "PointerToLineNumbers": 0,
+                "PointerToRelocations": 0,
+                "Size": 65620992,
+                "VirtualAddress": 4096,
+                "VirtualSize": 65620980
+            },
+            {
+                "Characteristics": 1073741888,
+                "Name": ".rdata",
+                "NumberOfLineNumbers": 0,
+                "NumberOfRelocations": 0,
+                "Offset": 65622016,
+                "PointerToLineNumbers": 0,
+                "PointerToRelocations": 0,
+                "Size": 15859712,
+                "VirtualAddress": 65626112,
+                "VirtualSize": 15859538
+            },
+            {
+                "Characteristics": 3221225536,
+                "Name": ".data",
+                "NumberOfLineNumbers": 0,
+                "NumberOfRelocations": 0,
+                "Offset": 81481728,
+                "PointerToLineNumbers": 0,
+                "PointerToRelocations": 0,
+                "Size": 8023040,
+                "VirtualAddress": 81485824,
+                "VirtualSize": 9436865
+            },
+            {
+                "Characteristics": 1073741888,
+                "Name": ".pdata",
+                "NumberOfLineNumbers": 0,
+                "NumberOfRelocations": 0,
+                "Offset": 89504768,
+                "PointerToLineNumbers": 0,
+                "PointerToRelocations": 0,
+                "Size": 2717696,
+                "VirtualAddress": 90923008,
+                "VirtualSize": 2717376
+            },
+            {
+                "Characteristics": 1073741888,
+                "Name": "_RDATA",
+                "NumberOfLineNumbers": 0,
+                "NumberOfRelocations": 0,
+                "Offset": 92222464,
+                "PointerToLineNumbers": 0,
+                "PointerToRelocations": 0,
+                "Size": 1536,
+                "VirtualAddress": 93642752,
+                "VirtualSize": 1040
+            },
+            {
+                "Characteristics": 1073741888,
+                "Name": ".rsrc",
+                "NumberOfLineNumbers": 0,
+                "NumberOfRelocations": 0,
+                "Offset": 92224000,
+                "PointerToLineNumbers": 0,
+                "PointerToRelocations": 0,
+                "Size": 79872,
+                "VirtualAddress": 93646848,
+                "VirtualSize": 79496
+            },
+            {
+                "Characteristics": 1107296320,
+                "Name": ".reloc",
+                "NumberOfLineNumbers": 0,
+                "NumberOfRelocations": 0,
+                "Offset": 92303872,
+                "PointerToLineNumbers": 0,
+                "PointerToRelocations": 0,
+                "Size": 1074176,
+                "VirtualAddress": 93728768,
+                "VirtualSize": 1073744
+            }
+        ],
+        "size": 93388408,
+        "subsystem": "Windows GUI",
+        "symbol": []
+    }
+]
