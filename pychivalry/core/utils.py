@@ -12,7 +12,7 @@ UTILITY CATEGORIES:
     3. **Text Utilities**: Extract words at positions
 
 USAGE EXAMPLES:
-    >>> from pychivalry.utils import path_to_uri, uri_to_path
+    >>> from pychivalry.core.utils import path_to_uri, uri_to_path
     >>> path_to_uri('/path/to/file.txt')
     'file:///path/to/file.txt'
     >>> uri_to_path('file:///path/to/file.txt')
