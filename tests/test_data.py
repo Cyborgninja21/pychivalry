@@ -7,7 +7,7 @@ This module tests loading of CK3 game definitions from YAML files.
 import pytest
 from pathlib import Path
 
-from pychivalry.ck3.validation.data import (
+from pychivalry.data import (
     load_yaml_file,
     load_all_files_in_directory,
     load_scopes,

@@ -14,7 +14,7 @@ from pychivalry.ck3.validation.paradox_checks import (
     check_event_id_validation,
     ParadoxConfig,
 )
-from pychivalry import events
+from pychivalry.ck3.validation import events
 
 
 def parse_ck3_script(script: str):
