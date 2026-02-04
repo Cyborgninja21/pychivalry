@@ -3537,7 +3537,7 @@ async def validate_workspace_command(ls: CK3LanguageServer, *args: Any):
             loop = asyncio.get_event_loop()
 
             # Run scan in thread pool with thread-safe index access
-            from pychivalry.threading import TaskPriority
+            from pychivalry.core.threading import TaskPriority
 
             def scan_with_lock():
                 with ls._index_lock:

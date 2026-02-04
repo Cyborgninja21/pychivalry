@@ -566,7 +566,7 @@ def is_icon_reference(icon: str) -> bool:
 
     # Check extracted icon data if available
     try:
-        from pychivalry.icons import is_icon_data_available, is_valid_icon
+        from .icons import is_icon_data_available, is_valid_icon
 
         if is_icon_data_available():
             # Strip @ and ! for validation
@@ -918,7 +918,7 @@ def validate_localization_references(text: str) -> List[Tuple[str, str]]:
         if not is_icon_reference(icon):
             # Try to suggest similar icons
             try:
-                from pychivalry.icons import suggest_similar_icons
+                from .icons import suggest_similar_icons
                 icon_name = icon.strip('@!')
                 suggestions = suggest_similar_icons(icon_name, max_suggestions=3)
                 if suggestions:
@@ -943,7 +943,7 @@ def validate_localization_references(text: str) -> List[Tuple[str, str]]:
 
         # Try to validate against extracted concept data
         try:
-            from pychivalry.concepts import is_concept_data_available, is_valid_concept, suggest_similar_concepts
+            from .concepts import is_concept_data_available, is_valid_concept, suggest_similar_concepts
 
             if is_concept_data_available():
                 if not is_valid_concept(concept_name):

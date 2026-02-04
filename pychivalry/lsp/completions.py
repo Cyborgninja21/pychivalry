@@ -573,7 +573,7 @@ def get_trait_completions(line_text: str, position: types.Position) -> Optional[
         Trait data must be extracted using VS Code command
         "PyChivalry: Extract Trait Data from CK3 Installation"
     """
-    from pychivalry.traits import is_trait_data_available, get_all_trait_names, get_trait_info
+    from pychivalry.ck3.validation.traits import is_trait_data_available, get_all_trait_names, get_trait_info
     
     # Check if we're after a trait keyword with equals
     # Look for pattern: (has_trait|add_trait|remove_trait)\s*=\s*\S*$
