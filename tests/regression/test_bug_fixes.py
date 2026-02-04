@@ -5,11 +5,11 @@ Each test represents a bug that was found and fixed. These tests ensure the bugs
 
 import pytest
 from lsprotocol import types
-from pychivalry.parser import parse_document
-from pychivalry.diagnostics import collect_all_diagnostics, get_diagnostics_for_text
-from pychivalry.completions import get_context_aware_completions
-from pychivalry.navigation import find_definition
-from pychivalry.indexer import DocumentIndex
+from pychivalry.core.parser import parse_document
+from pychivalry.ck3.validation.diagnostics import collect_all_diagnostics, get_diagnostics_for_text
+from pychivalry.lsp.completions import get_context_aware_completions
+from pychivalry.lsp.navigation import find_definition
+from pychivalry.core.indexer import DocumentIndex
 
 
 class TestParserRegressions:
@@ -325,7 +325,7 @@ class TestScopesRegressions:
         Bug: Universal scopes like "root" were rejected in some contexts.
         Fixed: Added universal scope handling to all validation paths.
         """
-        from pychivalry.scopes import validate_scope_chain
+        from pychivalry.ck3.validation.scopes import validate_scope_chain
 
         # root is a universal scope
         result = validate_scope_chain("root", "character")
@@ -337,7 +337,7 @@ class TestScopesRegressions:
         Bug: Scope changed by list iterator wasn't tracked correctly.
         Fixed: Updated scope resolution to track list iterator scope changes.
         """
-        from pychivalry.scopes import validate_scope_chain
+        from pychivalry.ck3.validation.scopes import validate_scope_chain
 
         # any_vassal changes scope from character to character
         result = validate_scope_chain("any_vassal", "character")

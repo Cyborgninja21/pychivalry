@@ -15,7 +15,7 @@ import threading
 import time
 from concurrent.futures import CancelledError
 
-from pychivalry.threading import CK3ThreadManager, TaskPriority, PrioritizedTask
+from pychivalry.core.threading import CK3ThreadManager, TaskPriority, PrioritizedTask
 
 
 def test_task_priority_ordering():

@@ -6,7 +6,7 @@ diagnostics pipeline.
 """
 
 import pytest
-from pychivalry.diagnostics import get_diagnostics_for_text
+from pychivalry.ck3.validation.diagnostics import get_diagnostics_for_text
 
 
 class TestEventSchemaIntegration:

@@ -4,13 +4,13 @@ import pytest
 from lsprotocol import types
 from pygls.workspace import TextDocument
 
-from pychivalry.hover import (
+from pychivalry.lsp.hover import (
     get_word_at_position,
     get_hover_content,
     create_hover_response,
 )
-from pychivalry.parser import parse_document
-from pychivalry.indexer import DocumentIndex
+from pychivalry.core.parser import parse_document
+from pychivalry.core.indexer import DocumentIndex
 
 
 class TestWordExtraction:

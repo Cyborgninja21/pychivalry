@@ -6,7 +6,7 @@ Tests "Go to Definition" and "Find References" functionality.
 
 import pytest
 from lsprotocol import types
-from pychivalry.navigation import (
+from pychivalry.lsp.navigation import (
     is_navigable_symbol,
     create_definition_location,
     create_reference,

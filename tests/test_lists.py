@@ -5,7 +5,7 @@ Tests list iterator parsing, validation, and parameter checking.
 """
 
 import pytest
-from pychivalry.lists import (
+from pychivalry.ck3.validation.lists import (
     parse_list_iterator,
     is_list_iterator,
     get_supported_parameters,

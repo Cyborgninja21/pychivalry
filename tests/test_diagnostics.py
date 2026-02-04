@@ -4,7 +4,7 @@ import pytest
 from lsprotocol import types
 from pygls.workspace import TextDocument
 
-from pychivalry.diagnostics import (
+from pychivalry.ck3.validation.diagnostics import (
     check_syntax,
     check_semantics,
     check_scopes,
@@ -14,9 +14,9 @@ from pychivalry.diagnostics import (
     create_diagnostic,
     validate_ast_structure,
 )
-from pychivalry.block_validator import validate_block_semantics
-from pychivalry.parser import parse_document
-from pychivalry.indexer import DocumentIndex
+from pychivalry.ck3.validation.block_validator import validate_block_semantics
+from pychivalry.core.parser import parse_document
+from pychivalry.core.indexer import DocumentIndex
 
 
 class TestSyntaxDiagnostics:
@@ -397,7 +397,7 @@ class TestLocalizationValidation:
 
     def test_missing_localization_key_diagnostic(self):
         """Detects missing localization keys (CK3600)."""
-        from pychivalry.diagnostics import collect_missing_localization_diagnostics
+        from pychivalry.ck3.validation.diagnostics import collect_missing_localization_diagnostics
 
         text = """test_mod.0001 = {
     type = character_event
@@ -422,7 +422,7 @@ class TestLocalizationValidation:
 
     def test_all_keys_present_no_diagnostic(self):
         """No diagnostic when all keys are present."""
-        from pychivalry.diagnostics import collect_missing_localization_diagnostics
+        from pychivalry.ck3.validation.diagnostics import collect_missing_localization_diagnostics
 
         text = """test_mod.0001 = {
     type = character_event
@@ -445,7 +445,7 @@ class TestLocalizationValidation:
 
     def test_fuzzy_matching_suggests_similar_keys(self):
         """Suggests similar keys using fuzzy matching."""
-        from pychivalry.diagnostics import collect_missing_localization_diagnostics
+        from pychivalry.ck3.validation.diagnostics import collect_missing_localization_diagnostics
 
         text = """test_mod.0001 = {
     title = test_mod.0001.typo
@@ -465,7 +465,7 @@ class TestLocalizationValidation:
 
     def test_ignores_literal_strings(self):
         """Doesn't validate literal strings as localization keys."""
-        from pychivalry.diagnostics import collect_missing_localization_diagnostics
+        from pychivalry.ck3.validation.diagnostics import collect_missing_localization_diagnostics
 
         text = """test_mod.0001 = {
     title = "Literal Title"
@@ -485,7 +485,7 @@ class TestLocalizationValidation:
 
     def test_validates_all_loc_fields(self):
         """Validates all localization field types."""
-        from pychivalry.diagnostics import collect_missing_localization_diagnostics
+        from pychivalry.ck3.validation.diagnostics import collect_missing_localization_diagnostics
 
         text = """test_mod.0001 = {
     title = test.title
@@ -541,7 +541,7 @@ class TestOrphanedLocalizationValidation:
 
     def test_orphaned_key_diagnostic(self):
         """Detects orphaned (unused) localization keys (CK3604)."""
-        from pychivalry.diagnostics import collect_orphaned_localization_diagnostics
+        from pychivalry.ck3.validation.diagnostics import collect_orphaned_localization_diagnostics
 
         # Localization file with unused key
         text = """l_english:
@@ -570,7 +570,7 @@ class TestOrphanedLocalizationValidation:
 
     def test_all_keys_used_no_diagnostic(self):
         """No diagnostic when all keys are used."""
-        from pychivalry.diagnostics import collect_orphaned_localization_diagnostics
+        from pychivalry.ck3.validation.diagnostics import collect_orphaned_localization_diagnostics
 
         text = """l_english:
  used_key:0 "This is used"
@@ -588,7 +588,7 @@ class TestOrphanedLocalizationValidation:
 
     def test_only_runs_on_yml_files(self):
         """Orphaned key check only runs on .yml files."""
-        from pychivalry.diagnostics import collect_orphaned_localization_diagnostics
+        from pychivalry.ck3.validation.diagnostics import collect_orphaned_localization_diagnostics
 
         text = """test_mod.0001 = {
     title = test.key
@@ -603,7 +603,7 @@ class TestOrphanedLocalizationValidation:
 
     def test_only_runs_in_localization_folder(self):
         """Orphaned key check only runs in localization/ folder."""
-        from pychivalry.diagnostics import collect_orphaned_localization_diagnostics
+        from pychivalry.ck3.validation.diagnostics import collect_orphaned_localization_diagnostics
 
         text = """l_english:
  some_key:0 "Text"
@@ -619,7 +619,7 @@ class TestOrphanedLocalizationValidation:
 
     def test_multiple_orphaned_keys(self):
         """Detects multiple orphaned keys."""
-        from pychivalry.diagnostics import collect_orphaned_localization_diagnostics
+        from pychivalry.ck3.validation.diagnostics import collect_orphaned_localization_diagnostics
 
         text = """l_english:
  orphan1:0 "Unused 1"
@@ -826,7 +826,7 @@ class TestScopeTypeValidation:
 
     def test_character_function_on_title_scope(self):
         """Test CK3605: Character function used on title scope."""
-        from pychivalry.diagnostics import collect_scope_type_diagnostics
+        from pychivalry.ck3.validation.diagnostics import collect_scope_type_diagnostics
 
         index = DocumentIndex()
         # Register a title scope
@@ -849,7 +849,7 @@ class TestScopeTypeValidation:
 
     def test_valid_character_function_on_character_scope(self):
         """Test that character functions on character scopes produce no errors."""
-        from pychivalry.diagnostics import collect_scope_type_diagnostics
+        from pychivalry.ck3.validation.diagnostics import collect_scope_type_diagnostics
 
         index = DocumentIndex()
         # Register a character scope
@@ -868,7 +868,7 @@ class TestScopeTypeValidation:
 
     def test_builtin_scopes_not_validated(self):
         """Test that built-in scopes (root, prev, etc.) are not validated."""
-        from pychivalry.diagnostics import collect_scope_type_diagnostics
+        from pychivalry.ck3.validation.diagnostics import collect_scope_type_diagnostics
 
         index = DocumentIndex()
 
@@ -885,7 +885,7 @@ class TestScopeTypeValidation:
 
     def test_unknown_scope_not_validated(self):
         """Test that scopes without type information are not validated."""
-        from pychivalry.diagnostics import collect_scope_type_diagnostics
+        from pychivalry.ck3.validation.diagnostics import collect_scope_type_diagnostics
 
         index = DocumentIndex()
         # Don't register any scope types
@@ -903,7 +903,7 @@ class TestScopeTypeValidation:
 
     def test_multiple_scope_mismatches(self):
         """Test multiple scope type mismatches in single file."""
-        from pychivalry.diagnostics import collect_scope_type_diagnostics
+        from pychivalry.ck3.validation.diagnostics import collect_scope_type_diagnostics
 
         index = DocumentIndex()
         index.scope_types["my_title"] = "title"

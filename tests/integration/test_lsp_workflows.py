@@ -4,12 +4,12 @@ Tests end-to-end user workflows combining multiple LSP features.
 """
 
 import pytest
-from pychivalry.parser import parse_document
-from pychivalry.diagnostics import collect_all_diagnostics
-from pychivalry.completions import get_context_aware_completions
-from pychivalry.navigation import find_definition, find_references
-from pychivalry.code_actions import get_all_code_actions
-from pychivalry.indexer import DocumentIndex
+from pychivalry.core.parser import parse_document
+from pychivalry.ck3.validation.diagnostics import collect_all_diagnostics
+from pychivalry.lsp.completions import get_context_aware_completions
+from pychivalry.lsp.navigation import find_definition, find_references
+from pychivalry.lsp.code_actions import get_all_code_actions
+from pychivalry.core.indexer import DocumentIndex
 
 
 class TestEndToEndWorkflows:
@@ -243,7 +243,7 @@ class TestModDescriptorWorkflow:
 
     def test_load_mod_with_descriptor(self):
         """Test: Load mod descriptor → Parse script files → Validate."""
-        from pychivalry.workspace import parse_mod_descriptor
+        from pychivalry.core.workspace import parse_mod_descriptor
         from pygls.workspace import TextDocument
 
         # 1. Create mod descriptor
@@ -288,7 +288,7 @@ class TestLocalizationWorkflow:
     )
     def test_event_localization_coverage(self):
         """Test: Event references localization keys → Validate coverage."""
-        from pychivalry.workspace import extract_localization_keys_from_event
+        from pychivalry.core.workspace import extract_localization_keys_from_event
 
         # 1. Create event with loc keys
         event = """

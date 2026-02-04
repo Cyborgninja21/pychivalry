@@ -8,13 +8,13 @@ and event ID format/consistency validation.
 import pytest
 from lsprotocol import types
 
-from pychivalry.parser import parse_document
-from pychivalry.paradox_checks import (
+from pychivalry.core.parser import parse_document
+from pychivalry.ck3.validation.paradox_checks import (
     check_namespace_declaration,
     check_event_id_validation,
     ParadoxConfig,
 )
-from pychivalry import events
+from pychivalry.ck3.validation import events
 
 
 def parse_ck3_script(script: str):

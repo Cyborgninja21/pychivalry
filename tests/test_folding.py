@@ -8,7 +8,7 @@ to collapse and expand blocks of code in CK3 script files.
 import pytest
 from lsprotocol import types
 
-from pychivalry.folding import (
+from pychivalry.lsp.folding import (
     get_folding_ranges,
     get_folding_ranges_from_ast,
     count_folding_ranges_by_kind,
@@ -20,7 +20,7 @@ from pychivalry.folding import (
     _get_block_name,
     _get_folding_kind,
 )
-from pychivalry.parser import parse_document
+from pychivalry.core.parser import parse_document
 
 
 # =============================================================================

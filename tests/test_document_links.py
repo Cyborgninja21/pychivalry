@@ -8,7 +8,7 @@ import os
 import pytest
 from lsprotocol import types
 
-from pychivalry.document_links import (
+from pychivalry.lsp.document_links import (
     get_document_links,
     resolve_document_link,
     get_link_at_position,
@@ -16,7 +16,7 @@ from pychivalry.document_links import (
     LinkInfo,
     _find_mod_root,
 )
-from pychivalry.utils import path_to_uri, uri_to_path
+from pychivalry.core.utils import path_to_uri, uri_to_path
 
 
 # =============================================================================

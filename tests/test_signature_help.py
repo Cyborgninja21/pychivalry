@@ -11,7 +11,7 @@ Tests the signature help provider for CK3 scripts, including:
 import pytest
 from lsprotocol import types
 
-from pychivalry.signature_help import (
+from pychivalry.lsp.signature_help import (
     get_signature_help,
     get_trigger_characters,
     get_retrigger_characters,

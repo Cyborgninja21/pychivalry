@@ -219,62 +219,77 @@ pychivalry/                   # Project root
 ├── pychivalry/               # Main Python package (LSP server source code)
 │   ├── __init__.py           # Package init with feature overview
 │   ├── server.py             # LSP server entry point and protocol handlers
-│   ├── parser.py             # CK3 script parser, converts text to AST
-│   ├── utils.py              # Shared utility functions
 │   │
-│   │   # Core LSP Features
-│   ├── diagnostics.py        # Error detection and validation coordination
-│   ├── completions.py        # Context-aware auto-completion provider
-│   ├── hover.py              # Hover documentation for effects/triggers/scopes
-│   ├── navigation.py         # Go-to definition and find references
-│   ├── symbols.py            # Document outline and breadcrumb navigation
-│   ├── formatting.py         # Document formatting to Paradox conventions
-│   ├── code_actions.py       # Quick fixes and refactoring actions
-│   ├── code_lens.py          # Inline actionable info (reference counts, etc.)
-│   ├── document_highlight.py # Highlight all occurrences of a symbol
-│   ├── document_links.py     # Clickable links for file paths, URLs, event IDs
-│   ├── folding.py            # Code folding for blocks and events
-│   ├── inlay_hints.py        # Inline type annotations for scopes
-│   ├── rename.py             # Workspace-wide symbol renaming
-│   ├── semantic_tokens.py    # Context-aware syntax highlighting tokens
-│   ├── signature_help.py     # Parameter hints for effects/triggers
+│   ├── core/                 # Infrastructure (7 files)
+│   │   ├── __init__.py
+│   │   ├── parser.py         # CK3 script parser, converts text to AST
+│   │   ├── incremental_parser.py  # Optimized incremental parsing
+│   │   ├── indexer.py        # Cross-file symbol indexing
+│   │   ├── threading.py      # Thread pool management, task prioritization
+│   │   ├── utils.py          # URI/path utilities, position checks
+│   │   └── workspace.py      # Workspace management, mod descriptor parsing
 │   │
-│   │   # Schema-Driven Validation System
-│   ├── schema_loader.py      # YAML schema loading and inheritance resolution
-│   ├── schema_validator.py   # Schema-based validation engine
-│   ├── schema_completions.py # Schema-aware auto-completions
-│   ├── schema_hover.py       # Schema-based hover documentation
-│   ├── schema_symbols.py     # Schema-driven document symbols
-│   ├── generic_rules_validator.py  # Generic validation rules engine
+│   ├── lsp/                  # LSP features (14 files)
+│   │   ├── __init__.py
+│   │   ├── completions.py    # Context-aware auto-completion
+│   │   ├── hover.py          # Hover documentation provider
+│   │   ├── navigation.py     # Go-to-definition, find references
+│   │   ├── symbols.py        # Document outline/breadcrumbs
+│   │   ├── semantic_tokens.py  # Semantic syntax highlighting
+│   │   ├── code_actions.py   # Quick fixes, refactoring
+│   │   ├── code_lens.py      # Inline actionable info
+│   │   ├── formatting.py     # Document/range formatting
+│   │   ├── folding.py        # Code folding ranges
+│   │   ├── rename.py         # Workspace-wide renaming
+│   │   ├── inlay_hints.py    # Inline type annotations
+│   │   ├── signature_help.py # Parameter hints
+│   │   ├── document_highlight.py  # Highlight occurrences
+│   │   └── document_links.py      # Clickable file/URL links
 │   │
-│   │   # CK3 Game Logic Validation
-│   ├── ck3_language.py       # CK3 language definitions (keywords, effects, triggers)
-│   ├── effect_trigger_docs.py # Effect and trigger documentation
-│   ├── events.py             # Event validation and processing
-│   ├── scopes.py             # Scope type tracking and validation
-│   ├── scope_timing.py       # "Golden Rule" validation (immediate vs trigger timing)
-│   ├── script_values.py      # Script value and formula validation
-│   ├── scripted_blocks.py    # Scripted triggers/effects validation
-│   ├── lists.py              # List iterator validation (any_*, every_*, etc.)
-│   ├── variables.py          # Variable system validation (var:, local_var:, global_var:)
-│   ├── traits.py             # Trait validation and lookups
-│   ├── story_cycles.py       # Story cycle validation
+│   ├── schema/               # Schema system (5 files)
+│   │   ├── __init__.py
+│   │   ├── loader.py         # Load YAML schemas, resolve inheritance
+│   │   ├── validator.py      # Schema-based validation engine
+│   │   ├── completions.py    # Schema-aware completions
+│   │   ├── hover.py          # Schema-based hover docs
+│   │   └── symbols.py        # Schema-driven symbol extraction
 │   │
-│   │   # Code Quality & Style
-│   ├── paradox_checks.py     # Paradox convention and common pitfall validation
-│   ├── style_checks.py       # Code style validation (indentation, whitespace)
-│   ├── localization.py       # Localization syntax and reference validation
+│   ├── ck3/                  # CK3 game logic (17 files)
+│   │   ├── __init__.py
+│   │   ├── language.py       # Keywords, effects, triggers, scopes
+│   │   ├── effect_trigger_docs.py  # Effect/trigger YAML documentation loader
+│   │   │
+│   │   ├── validation/       # Game validators (15 files)
+│   │   │   ├── __init__.py
+│   │   │   ├── diagnostics.py     # Coordinator
+│   │   │   ├── scopes.py
+│   │   │   ├── scope_timing.py
+│   │   │   ├── events.py
+│   │   │   ├── story_cycles.py
+│   │   │   ├── lists.py
+│   │   │   ├── variables.py
+│   │   │   ├── scripted_blocks.py
+│   │   │   ├── script_values.py
+│   │   │   ├── traits.py
+│   │   │   ├── paradox_checks.py
+│   │   │   ├── style_checks.py
+│   │   │   ├── block_validator.py
+│   │   │   ├── generic_rules_validator.py
+│   │   │   └── asset_validation.py
+│   │   │
+│   │   └── localization/     # Localization subsystem (3 files)
+│   │       ├── __init__.py
+│   │       ├── validator.py  # Localization syntax validation
+│   │       ├── concepts.py   # Game concept validation
+│   │       └── icons.py      # Icon reference validation
 │   │
-│   │   # Workspace & Indexing
-│   ├── workspace.py          # Cross-file validation and mod descriptor parsing
-│   ├── indexer.py            # Cross-file symbol indexing
+│   ├── log/                  # Game log integration (3 files)
+│   │   ├── __init__.py
+│   │   ├── watcher.py        # Real-time log monitoring
+│   │   ├── analyzer.py       # Log pattern matching
+│   │   └── diagnostics.py    # Convert log to LSP diagnostics
 │   │
-│   │   # Game Log Integration
-│   ├── log_watcher.py        # Real-time game log monitoring
-│   ├── log_analyzer.py       # Game log parsing and analysis
-│   ├── log_diagnostics.py    # Diagnostics from game log errors
-│   │
-│   └── data/                 # Static data files for CK3 game definitions
+│   └── data/                 # Static data files (YAML definitions)
 │       ├── __init__.py       # Data loader for YAML game definitions
 │       ├── game_structure.yaml   # CK3 folder/file structure mapping
 │       ├── diagnostics.yaml      # Diagnostic message definitions

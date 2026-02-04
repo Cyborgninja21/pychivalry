@@ -17,7 +17,7 @@ TODO: Refactor unit tests to use complete block structures that parser handles c
 import pytest
 from lsprotocol.types import DiagnosticSeverity, Position, Range
 
-from pychivalry.story_cycles import (
+from pychivalry.ck3.validation.story_cycles import (
     StoryCycleDefinition,
     EffectGroup,
     TriggeredEffect,
@@ -34,7 +34,7 @@ from pychivalry.story_cycles import (
     validate_story_cycle,
     collect_story_cycle_diagnostics,
 )
-from pychivalry.parser import parse_document
+from pychivalry.core.parser import parse_document
 
 
 class TestTimingParsing:
@@ -548,7 +548,7 @@ class TestCompleteValidation:
         # Test just verifies no crashes and finds the story cycle
         assert diagnostics is not None
         
-        from pychivalry.story_cycles import find_story_cycles
+        from pychivalry.ck3.validation.story_cycles import find_story_cycles
         story_cycles = find_story_cycles(ast)
         assert len(story_cycles) == 1  # Should find destiny_child story
 

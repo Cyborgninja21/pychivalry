@@ -205,7 +205,7 @@ from pygls.uris import to_fs_path
 from lsprotocol import types
 
 # Import threading components at module level to avoid repeated imports
-from .threading import CK3ThreadManager, TaskPriority
+from .core.threading import CK3ThreadManager, TaskPriority
 
 # Import CK3 language definitions
 # These lists contain all the CK3 scripting constructs we provide completions for:
@@ -215,7 +215,7 @@ from .threading import CK3ThreadManager, TaskPriority
 # - CK3_SCOPES: Context switches for accessing game objects
 # - CK3_EVENT_TYPES: Different event presentation styles
 # - CK3_BOOLEAN_VALUES: Boolean true/false values
-from .ck3_language import (
+from .ck3.language import (
     CK3_KEYWORDS,
     CK3_EFFECTS,
     CK3_TRIGGERS,
@@ -225,53 +225,53 @@ from .ck3_language import (
 )
 
 # Import parser and indexer
-from .parser import parse_document, CK3Node, ParseError, get_node_at_position
-from .indexer import DocumentIndex
-from .incremental_parser import IncrementalParser
+from .core.parser import parse_document, CK3Node, ParseError, get_node_at_position
+from .core.indexer import DocumentIndex
+from .core.incremental_parser import IncrementalParser
 
 # Import diagnostics
-from .diagnostics import collect_all_diagnostics, check_syntax, check_semantics, check_scopes
+from .ck3.validation.diagnostics import collect_all_diagnostics, check_syntax, check_semantics, check_scopes
 
 # Import hover
-from .hover import create_hover_response, get_word_at_position
+from .lsp.hover import create_hover_response, get_word_at_position
 
 # Import context-aware completions
-from .completions import get_context_aware_completions, detect_context
+from .lsp.completions import get_context_aware_completions, detect_context
 
 # Import code actions
-from .code_actions import get_all_code_actions, convert_to_lsp_code_action
+from .lsp.code_actions import get_all_code_actions, convert_to_lsp_code_action
 
 # Import semantic tokens
-from .semantic_tokens import get_semantic_tokens, TOKEN_TYPES, TOKEN_MODIFIERS
+from .lsp.semantic_tokens import get_semantic_tokens, TOKEN_TYPES, TOKEN_MODIFIERS
 
 # Import code lens
-from .code_lens import get_code_lenses, resolve_code_lens
+from .lsp.code_lens import get_code_lenses, resolve_code_lens
 
 # Import formatting
-from .formatting import format_document, format_range
+from .lsp.formatting import format_document, format_range
 
 # Import inlay hints
-from .inlay_hints import get_inlay_hints, resolve_inlay_hint, InlayHintConfig
+from .lsp.inlay_hints import get_inlay_hints, resolve_inlay_hint, InlayHintConfig
 
 # Import log watcher components
-from .log_watcher import CK3LogWatcher, detect_ck3_log_path
-from .log_analyzer import CK3LogAnalyzer
-from .log_diagnostics import LogDiagnosticConverter
+from .log.watcher import CK3LogWatcher, detect_ck3_log_path
+from .log.analyzer import CK3LogAnalyzer
+from .log.diagnostics import LogDiagnosticConverter
 
 # Import signature help
-from .signature_help import get_signature_help, get_trigger_characters, get_retrigger_characters
+from .lsp.signature_help import get_signature_help, get_trigger_characters, get_retrigger_characters
 
 # Import document highlight
-from .document_highlight import get_document_highlights
+from .lsp.document_highlight import get_document_highlights
 
 # Import document links
-from .document_links import get_document_links, resolve_document_link
+from .lsp.document_links import get_document_links, resolve_document_link
 
 # Import rename
-from .rename import prepare_rename as do_prepare_rename, perform_rename
+from .lsp.rename import prepare_rename as do_prepare_rename, perform_rename
 
 # Import folding
-from .folding import get_folding_ranges
+from .lsp.folding import get_folding_ranges
 
 # Logger will be configured in main() after parsing arguments
 logger = logging.getLogger(__name__)
@@ -384,7 +384,7 @@ class CK3LanguageServer(LanguageServer):
         self.index = DocumentIndex()
 
         # Schema loader for file-type-aware features
-        from .schema_loader import SchemaLoader
+        from .schema.loader import SchemaLoader
         self.schema_loader = SchemaLoader()
 
         # Track whether workspace has been scanned
@@ -399,7 +399,7 @@ class CK3LanguageServer(LanguageServer):
 
         # Custom thread manager for all background operations
         # Replaces pygls @server.thread() decorator and old thread pool
-        from .threading import CK3ThreadManager
+        from .core.threading import CK3ThreadManager
         self.thread_manager = CK3ThreadManager()
 
         # Thread-safety locks for shared data structures
@@ -1836,8 +1836,8 @@ def hover(ls: CK3LanguageServer, params: types.HoverParams):
         ast = ls.get_ast(doc.uri)
 
         # First try schema-based hover for file-type-specific field documentation
-        from .schema_hover import get_schema_hover
-        from .hover import get_word_at_position as hover_get_word
+        from .schema.hover import get_schema_hover
+        from .lsp.hover import get_word_at_position as hover_get_word
         
         word = hover_get_word(doc, params.position)
         if word:
@@ -1891,7 +1891,7 @@ def definition(ls: CK3LanguageServer, params: types.DefinitionParams):
         doc = ls.workspace.get_text_document(params.text_document.uri)
 
         # Get word at cursor position
-        from .hover import get_word_at_position
+        from .lsp.hover import get_word_at_position
 
         word = get_word_at_position(doc, params.position)
 
@@ -2150,7 +2150,7 @@ async def references(ls: CK3LanguageServer, params: types.ReferenceParams):
             doc = ls.workspace.get_text_document(params.text_document.uri)
 
             # Get word at cursor position
-            from .hover import get_word_at_position
+            from .lsp.hover import get_word_at_position
 
             word = get_word_at_position(doc, params.position)
 
@@ -3537,7 +3537,7 @@ async def validate_workspace_command(ls: CK3LanguageServer, *args: Any):
             loop = asyncio.get_event_loop()
 
             # Run scan in thread pool with thread-safe index access
-            from pychivalry.threading import TaskPriority
+            from pychivalry.core.threading import TaskPriority
 
             def scan_with_lock():
                 with ls._index_lock:

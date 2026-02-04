@@ -7,7 +7,7 @@ for small edits by only reparsing changed regions.
 
 import pytest
 from lsprotocol import types
-from pychivalry.incremental_parser import IncrementalParser, TextRange
+from pychivalry.core.incremental_parser import IncrementalParser, TextRange
 
 
 class TestTextRange:
@@ -363,7 +363,7 @@ class TestIncrementalParserPerformance:
     def test_small_change_faster_than_full_parse(self):
         """Test that incremental parse is faster for small changes."""
         import time
-        from pychivalry.parser import parse_document
+        from pychivalry.core.parser import parse_document
 
         # Create a large document
         large_text = "namespace = test\n\n"

@@ -12,8 +12,8 @@ import tempfile
 import pytest
 from lsprotocol import types
 
-from pychivalry.parser import parse_document
-from pychivalry.asset_validation import (
+from pychivalry.core.parser import parse_document
+from pychivalry.ck3.validation.asset_validation import (
     AssetConfig,
     validate_asset_references,
     check_graphics_references,
