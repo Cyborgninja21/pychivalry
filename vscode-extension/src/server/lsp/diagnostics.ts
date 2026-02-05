@@ -7,44 +7,40 @@ import { TextDocument } from 'vscode-languageserver-textdocument';
 import { CK3Parser, ParseError } from '../core/parser';
 import { SchemaLoader } from '../schema/loader';
 import { DocumentIndexer } from '../core/indexer';
+import { DiagnosticsEngine } from '../ck3/validation/diagnostics';
 
 /**
  * Diagnostics Provider
  */
 export class DiagnosticsProvider {
+    private diagnosticsEngine: DiagnosticsEngine;
+    
     constructor(
         private parser: CK3Parser,
         private schemaLoader: SchemaLoader,
         private indexer: DocumentIndexer
-    ) {}
+    ) {
+        this.diagnosticsEngine = new DiagnosticsEngine({
+            enableScopeValidation: true,
+            enableSchemaValidation: true,
+            enableConventionChecks: true,
+            enableLocalizationChecks: false, // Not yet implemented
+        });
+    }
 
     /**
      * Provide diagnostics for a document
      */
     public async provideDiagnostics(document: TextDocument): Promise<Diagnostic[]> {
-        const diagnostics: Diagnostic[] = [];
-        
         // Parse document
         const parsed = this.parser.parse(document.getText());
         
-        // Add parse errors
-        for (const error of parsed.errors) {
-            diagnostics.push({
-                severity: error.severity === 'error' ? DiagnosticSeverity.Error : DiagnosticSeverity.Warning,
-                range: error.range,
-                message: error.message,
-                source: 'ck3-parser',
-            });
-        }
-        
-        // Schema validation
-        const schemaErrors = await this.validateSchema(document, parsed.ast);
-        diagnostics.push(...schemaErrors);
-        
-        // CK3-specific validation would go here
-        // - Scope validation
-        // - Reference validation
-        // - etc.
+        // Use the comprehensive diagnostics engine
+        const diagnostics = await this.diagnosticsEngine.collectDiagnostics(
+            document,
+            [parsed.ast],
+            parsed.errors
+        );
         
         return diagnostics;
     }
