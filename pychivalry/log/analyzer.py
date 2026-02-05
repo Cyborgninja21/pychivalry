@@ -756,7 +756,7 @@ class CK3LogAnalyzer:
         Returns:
             List of suggested fixes
         """
-        suggestions = []
+        suggestions: List[str] = []
         
         if not groups:
             return suggestions
