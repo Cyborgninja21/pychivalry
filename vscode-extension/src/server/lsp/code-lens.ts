@@ -28,6 +28,15 @@ export class CodeLensProvider {
     }
 
     /**
+     * Resolve code lens (add command details)
+     */
+    public resolveCodeLens(lens: CodeLens): CodeLens {
+        // Code lens is already resolved in provideCodeLens
+        // This method is called if we want to defer command creation
+        return lens;
+    }
+
+    /**
      * Collect code lenses from AST
      */
     private collectCodeLenses(

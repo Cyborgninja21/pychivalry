@@ -522,6 +522,7 @@
     "format-check": "prettier --check \"src/**/*.ts\""
   },
   "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
     "@types/mocha": "^10.0.0",
     "@types/node": "^18.0.0",
     "@types/vscode": "^1.75.0",

@@ -25,6 +25,15 @@ export class DocumentLinksProvider {
     }
 
     /**
+     * Resolve document link (add target)
+     */
+    public resolveDocumentLink(link: DocumentLink): DocumentLink {
+        // Link target is already set in provideDocumentLinks
+        // This method is called if we want to defer target resolution
+        return link;
+    }
+
+    /**
      * Collect document links from AST
      */
     private collectDocumentLinks(node: ASTNode, links: DocumentLink[]): void {

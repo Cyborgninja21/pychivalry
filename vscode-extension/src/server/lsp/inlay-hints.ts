@@ -29,6 +29,15 @@ export class InlayHintsProvider {
     }
 
     /**
+     * Resolve inlay hint (add additional details)
+     */
+    public resolveInlayHint(hint: InlayHint): InlayHint {
+        // Hint is already complete in provideInlayHints
+        // This method is called if we want to defer tooltip/details
+        return hint;
+    }
+
+    /**
      * Collect inlay hints from AST
      */
     private collectInlayHints(
