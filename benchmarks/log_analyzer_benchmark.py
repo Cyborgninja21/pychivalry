@@ -141,7 +141,7 @@ def print_comparison(batch_size: int, serial_stats: dict, parallel_stats: dict):
     print(f"  Parallel: {parallel_throughput:,.0f} lines/sec")
 
 
-def run_benchmarks(batch_sizes: List[int], iterations: int = 3):
+def run_benchmarks(batch_sizes: List[int], num_iterations: int = 3):
     """Run benchmarks for different batch sizes."""
     print("=" * 70)
     print("Log Analyzer - Serial vs Parallel Performance Benchmark")
@@ -152,7 +152,7 @@ def run_benchmarks(batch_sizes: List[int], iterations: int = 3):
     print(f"\nConfiguration:")
     print(f"  Parallel: {analyzer._use_parallel}")
     print(f"  Chunk Size: {analyzer._chunk_size:,}")
-    print(f"  Iterations per batch: {iterations}")
+    print(f"  Iterations per batch: {num_iterations}")
     
     results = []
     
@@ -161,10 +161,10 @@ def run_benchmarks(batch_sizes: List[int], iterations: int = 3):
         lines = generate_test_logs(batch_size)
         
         print(f"Running serial benchmark...")
-        serial_stats = benchmark_serial(analyzer, lines, iterations)
+        serial_stats = benchmark_serial(analyzer, lines, num_iterations)
         
         print(f"Running parallel benchmark...")
-        parallel_stats = benchmark_parallel(analyzer, lines, iterations)
+        parallel_stats = benchmark_parallel(analyzer, lines, num_iterations)
         
         print_comparison(batch_size, serial_stats, parallel_stats)
         
@@ -232,16 +232,16 @@ def main():
     
     if args.quick:
         batch_sizes = [100, 500, 1000, 2000]
-        iterations = 2
+        quick_iterations = 2
     elif args.full:
         batch_sizes = [100, 500, 1000, 2000, 5000, 10000, 20000]
-        iterations = 5
+        quick_iterations = 5
     else:
         # Default
         batch_sizes = [500, 1000, 2000, 5000, 10000]
-        iterations = args.iterations
+        quick_iterations = args.iterations
     
-    run_benchmarks(batch_sizes, iterations)
+    run_benchmarks(batch_sizes, quick_iterations)
 
 
 if __name__ == "__main__":

@@ -24,7 +24,7 @@ ARCHITECTURE:
     ```
     
     **Parallel Processing**:
-    - Automatic parallel processing for large batches (>= 1000 lines)
+    - Automatic parallel processing for large batches (>= 5000 lines by default)
     - Configurable chunk size and worker count
     - Thread-safe statistics tracking
     - Preserves line order in results
@@ -756,7 +756,7 @@ class CK3LogAnalyzer:
         Returns:
             List of suggested fixes
         """
-        suggestions: List[str] = []
+        suggestions = []
         
         if not groups:
             return suggestions
