@@ -79,14 +79,9 @@ export class SemanticTokensProvider {
                     0
                 );
                 
-                // Encode the value if it's a simple value
-                if (child.type === NodeType.ASSIGNMENT && typeof child.value === 'string') {
-                    const valueTokenType = TokenType.STRING;
-                    // Note: We'd need to track the position of the value more precisely
-                    // For now, this is a simplified implementation
-                } else if (child.type === NodeType.ASSIGNMENT && typeof child.value === 'number') {
-                    // Number value
-                }
+                // TODO: Encode values with proper position tracking
+                // Currently we don't track value positions precisely in the AST
+                // This would require enhancing the parser to store value ranges
             }
 
             // Recurse into children

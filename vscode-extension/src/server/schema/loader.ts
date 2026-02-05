@@ -53,8 +53,9 @@ export class SchemaLoader {
         const currentDir = __dirname;
         
         // Try to find pychivalry/data directory
+        const MAX_SCHEMA_SEARCH_DEPTH = 10;
         let searchPath = currentDir;
-        for (let i = 0; i < 10; i++) {
+        for (let i = 0; i < MAX_SCHEMA_SEARCH_DEPTH; i++) {
             const dataPath = path.join(searchPath, 'pychivalry', 'data');
             if (fs.existsSync(dataPath)) {
                 this.schemaPath = path.join(dataPath, 'schemas');

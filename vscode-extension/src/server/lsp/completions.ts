@@ -190,7 +190,9 @@ export class CompletionProvider {
                 break;
         }
         
-        // Boolean values
+        // Boolean values (heuristic-based pattern matching)
+        // Note: This is a best-effort approach and may produce false positives
+        // for custom keys. Consider refining based on schema information.
         if (key.startsWith('is_') || key.startsWith('can_') || key.startsWith('has_')) {
             completions.push(
                 { label: 'yes', kind: CompletionItemKind.Value },

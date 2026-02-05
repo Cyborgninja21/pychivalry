@@ -193,7 +193,7 @@ export class CK3Parser {
             }
             
             // Number
-            if (this.isDigit(char) || (char === '-' && this.isDigit(this.peek()))) {
+            if (this.isDigit(char) || (char === '-' && this.isDigit(this.peek()) && (this.column === 0 || /\s/.test(this.text[this.position - 1])))) {
                 tokens.push(this.readNumber());
                 continue;
             }

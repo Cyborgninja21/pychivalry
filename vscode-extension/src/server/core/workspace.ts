@@ -220,11 +220,9 @@ export class WorkspaceManager {
         }
         
         // Localization files
-        if (basename.includes('_l_english') || basename.includes('_l_german') ||
-            basename.includes('_l_french') || basename.includes('_l_spanish') ||
-            basename.includes('_l_russian') || basename.includes('_l_korean') ||
-            basename.includes('_l_simp_chinese') || basename.includes('_l_braz_por') ||
-            basename.includes('_l_polish') || basename.includes('_l_japanese')) {
+        // Pattern: _l_(language)
+        const locPattern = /_l_(english|german|french|spanish|russian|korean|simp_chinese|braz_por|polish|japanese)/;
+        if (locPattern.test(basename)) {
             return true;
         }
         

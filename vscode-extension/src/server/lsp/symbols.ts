@@ -59,8 +59,8 @@ export class DocumentSymbolProvider {
     private getSymbolKind(node: ASTNode): SymbolKind {
         if (!node.key) return SymbolKind.Object;
         
-        // Event
-        if (node.key.includes('.') || node.key.match(/^\w+\.\d+$/)) {
+        // Event - matches patterns like namespace.id or namespace.123
+        if (/^\w+\.\w+$/.test(node.key)) {
             return SymbolKind.Event;
         }
         
