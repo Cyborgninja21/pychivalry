@@ -540,78 +540,93 @@ class DocumentIndex:
 
         Uses true async I/O for file operations instead of thread pool,
         providing better scalability and responsiveness under high I/O load.
+        
+        Supports cancellation via asyncio.CancelledError propagation.
 
         Args:
             workspace_roots: List of workspace folder paths
+            
+        Raises:
+            asyncio.CancelledError: If task is cancelled during execution
         """
-        # Collect all scan coroutines
-        scan_tasks = []
+        try:
+            # Collect all scan coroutines
+            scan_tasks = []
 
-        for root in workspace_roots:
-            root_path = Path(root)
+            for root in workspace_roots:
+                root_path = Path(root)
 
-            # Collect all folders to scan with their types
-            folder_configs = [
-                (
-                    root_path / "common" / "scripted_effects",
-                    "scripted_effects",
-                ),
-                (
-                    root_path / "common" / "scripted_triggers",
-                    "scripted_triggers",
-                ),
-                (
-                    root_path / "common" / "character_interactions",
-                    "character_interactions",
-                ),
-                (root_path / "common" / "modifiers", "modifiers"),
-                (root_path / "common" / "on_action", "on_actions"),
-                (
-                    root_path / "common" / "opinion_modifiers",
-                    "opinion_modifiers",
-                ),
-                (root_path / "common" / "scripted_guis", "scripted_guis"),
-                (
-                    root_path / "common" / "decision_group_types",
-                    "decision_group_types",
-                ),
-            ]
+                # Collect all folders to scan with their types
+                folder_configs = [
+                    (
+                        root_path / "common" / "scripted_effects",
+                        "scripted_effects",
+                    ),
+                    (
+                        root_path / "common" / "scripted_triggers",
+                        "scripted_triggers",
+                    ),
+                    (
+                        root_path / "common" / "character_interactions",
+                        "character_interactions",
+                    ),
+                    (root_path / "common" / "modifiers", "modifiers"),
+                    (root_path / "common" / "on_action", "on_actions"),
+                    (
+                        root_path / "common" / "opinion_modifiers",
+                        "opinion_modifiers",
+                    ),
+                    (root_path / "common" / "scripted_guis", "scripted_guis"),
+                    (
+                        root_path / "common" / "decision_group_types",
+                        "decision_group_types",
+                    ),
+                ]
 
-            # Collect file scanning coroutines
-            for folder_path, folder_type in folder_configs:
-                if folder_path.exists() and folder_path.is_dir():
-                    for file_path in folder_path.glob("**/*.txt"):
-                        scan_tasks.append(self._scan_single_file_async(file_path, folder_type))
+                # Collect file scanning coroutines
+                for folder_path, folder_type in folder_configs:
+                    if folder_path.exists() and folder_path.is_dir():
+                        for file_path in folder_path.glob("**/*.txt"):
+                            scan_tasks.append(self._scan_single_file_async(file_path, folder_type))
 
-            # Localization (different format)
-            loc_path = root_path / "localization"
-            if loc_path.exists() and loc_path.is_dir():
-                loc_files = list(loc_path.glob("**/*.yml"))
-                logger.info(f"Found {len(loc_files)} localization files in {loc_path}")
-                for file_path in loc_files:
-                    scan_tasks.append(self._scan_localization_file_async(file_path))
-            else:
-                logger.debug(f"No localization folder at {loc_path} (not a CK3 mod)")
+                # Localization (different format)
+                loc_path = root_path / "localization"
+                if loc_path.exists() and loc_path.is_dir():
+                    loc_files = list(loc_path.glob("**/*.yml"))
+                    logger.info(f"Found {len(loc_files)} localization files in {loc_path}")
+                    for file_path in loc_files:
+                        scan_tasks.append(self._scan_localization_file_async(file_path))
+                else:
+                    logger.debug(f"No localization folder at {loc_path} (not a CK3 mod)")
 
-            # Events
-            events_path = root_path / "events"
-            if events_path.exists() and events_path.is_dir():
-                for file_path in events_path.glob("**/*.txt"):
-                    scan_tasks.append(self._scan_events_file_async(file_path))
+                # Events
+                events_path = root_path / "events"
+                if events_path.exists() and events_path.is_dir():
+                    for file_path in events_path.glob("**/*.txt"):
+                        scan_tasks.append(self._scan_events_file_async(file_path))
 
-        # Execute all scans concurrently and collect results
-        results = await asyncio.gather(*scan_tasks, return_exceptions=True)
+            # Execute all scans concurrently and collect results
+            # return_exceptions=True ensures individual task failures don't cancel others
+            results = await asyncio.gather(*scan_tasks, return_exceptions=True)
 
-        # Process results
-        for result in results:
-            if isinstance(result, Exception):
-                logger.warning(f"Error in async scan task: {result}")
-            elif result:
-                self._merge_scan_result(result)
+            # Process results
+            for result in results:
+                if isinstance(result, asyncio.CancelledError):
+                    # Re-raise cancellation to propagate upward
+                    raise result
+                elif isinstance(result, Exception):
+                    # Log other exceptions but continue processing
+                    logger.warning(f"Error in async scan task: {result}")
+                elif result:
+                    self._merge_scan_result(result)
 
-        # Scan character flags (depends on having events/effects indexed)
-        for root in workspace_roots:
-            self._scan_character_flags(Path(root))
+            # Scan character flags (depends on having events/effects indexed)
+            for root in workspace_roots:
+                self._scan_character_flags(Path(root))
+                
+        except asyncio.CancelledError:
+            logger.info("Workspace scan cancelled")
+            raise
 
     async def _scan_single_file_async(self, file_path: Path, folder_type: str) -> Optional[Dict]:
         """
@@ -623,6 +638,9 @@ class DocumentIndex:
 
         Returns:
             Dictionary with scan results or None on error
+            
+        Raises:
+            asyncio.CancelledError: If task is cancelled during execution
         """
         try:
             content = await read_file_async(file_path)
@@ -637,12 +655,26 @@ class DocumentIndex:
                 "definitions": definitions,
                 "file": str(file_path),
             }
+        except asyncio.CancelledError:
+            # Propagate cancellation
+            raise
         except Exception as e:
             logger.warning(f"Error scanning {file_path}: {e}")
             return None
 
     async def _scan_localization_file_async(self, file_path: Path) -> Optional[Dict]:
-        """Asynchronously scan a localization file."""
+        """
+        Asynchronously scan a localization file.
+        
+        Args:
+            file_path: Path to the localization file
+            
+        Returns:
+            Dictionary with scan results or None on error
+            
+        Raises:
+            asyncio.CancelledError: If task is cancelled during execution
+        """
         try:
             content = await read_file_async(file_path)
             if content is None:
@@ -656,12 +688,26 @@ class DocumentIndex:
                 "entries": entries,
                 "uri": uri,
             }
+        except asyncio.CancelledError:
+            # Propagate cancellation
+            raise
         except Exception as e:
             logger.warning(f"Error scanning localization {file_path}: {e}")
             return None
 
     async def _scan_events_file_async(self, file_path: Path) -> Optional[Dict]:
-        """Asynchronously scan an events file."""
+        """
+        Asynchronously scan an events file.
+        
+        Args:
+            file_path: Path to the events file
+            
+        Returns:
+            Dictionary with scan results or None on error
+            
+        Raises:
+            asyncio.CancelledError: If task is cancelled during execution
+        """
         try:
             content = await read_file_async(file_path)
             if content is None:
@@ -675,6 +721,9 @@ class DocumentIndex:
                 "events": self._extract_event_definitions(content, uri),
                 "scopes": self._extract_saved_scopes(content, uri),
             }
+        except asyncio.CancelledError:
+            # Propagate cancellation
+            raise
         except Exception as e:
             logger.warning(f"Error scanning events {file_path}: {e}")
             return None
