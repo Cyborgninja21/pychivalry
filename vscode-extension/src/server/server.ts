@@ -41,6 +41,16 @@ import { HoverProvider } from './lsp/hover';
 import { DefinitionProvider } from './lsp/navigation';
 import { DocumentSymbolProvider } from './lsp/symbols';
 import { DiagnosticsProvider } from './lsp/diagnostics';
+import { FormattingProvider } from './lsp/formatting';
+import { FoldingRangeProvider } from './lsp/folding';
+import { RenameProvider } from './lsp/rename';
+import { SemanticTokensProvider } from './lsp/semantic-tokens';
+import { CodeActionsProvider } from './lsp/code-actions';
+import { CodeLensProvider } from './lsp/code-lens';
+import { DocumentLinksProvider } from './lsp/document-links';
+import { DocumentHighlightProvider } from './lsp/document-highlight';
+import { InlayHintsProvider } from './lsp/inlay-hints';
+import { SignatureHelpProvider } from './lsp/signature-help';
 
 /**
  * Server configuration interface
@@ -92,6 +102,16 @@ export class CK3LanguageServer {
     private definitionProvider: DefinitionProvider;
     private symbolProvider: DocumentSymbolProvider;
     private diagnosticsProvider: DiagnosticsProvider;
+    private formattingProvider: FormattingProvider;
+    private foldingProvider: FoldingRangeProvider;
+    private renameProvider: RenameProvider;
+    private semanticTokensProvider: SemanticTokensProvider;
+    private codeActionsProvider: CodeActionsProvider;
+    private codeLensProvider: CodeLensProvider;
+    private documentLinksProvider: DocumentLinksProvider;
+    private documentHighlightProvider: DocumentHighlightProvider;
+    private inlayHintsProvider: InlayHintsProvider;
+    private signatureHelpProvider: SignatureHelpProvider;
     
     // Server configuration
     private config: ServerConfig = {
@@ -137,6 +157,16 @@ export class CK3LanguageServer {
         this.definitionProvider = new DefinitionProvider(this.parser, this.indexer);
         this.symbolProvider = new DocumentSymbolProvider(this.parser);
         this.diagnosticsProvider = new DiagnosticsProvider(this.parser, this.schemaLoader, this.indexer);
+        this.formattingProvider = new FormattingProvider(this.parser);
+        this.foldingProvider = new FoldingRangeProvider(this.parser);
+        this.renameProvider = new RenameProvider(this.parser, this.indexer);
+        this.semanticTokensProvider = new SemanticTokensProvider(this.parser);
+        this.codeActionsProvider = new CodeActionsProvider(this.parser);
+        this.codeLensProvider = new CodeLensProvider(this.parser);
+        this.documentLinksProvider = new DocumentLinksProvider(this.parser);
+        this.documentHighlightProvider = new DocumentHighlightProvider(this.parser);
+        this.inlayHintsProvider = new InlayHintsProvider(this.parser);
+        this.signatureHelpProvider = new SignatureHelpProvider(this.parser);
         
         // Register handlers
         this.registerHandlers();
@@ -167,6 +197,18 @@ export class CK3LanguageServer {
         this.connection.onDefinition(this.onDefinition.bind(this));
         this.connection.onReferences(this.onReferences.bind(this));
         this.connection.onDocumentSymbol(this.onDocumentSymbol.bind(this));
+        this.connection.onDocumentFormatting(this.onDocumentFormatting.bind(this));
+        this.connection.onDocumentRangeFormatting(this.onDocumentRangeFormatting.bind(this));
+        this.connection.onFoldingRanges(this.onFoldingRanges.bind(this));
+        this.connection.onPrepareRename(this.onPrepareRename.bind(this));
+        this.connection.onRenameRequest(this.onRenameRequest.bind(this));
+        this.connection.onDocumentHighlight(this.onDocumentHighlight.bind(this));
+        this.connection.languages.semanticTokens.on(this.onSemanticTokens.bind(this));
+        this.connection.onCodeAction(this.onCodeAction.bind(this));
+        this.connection.onCodeLens(this.onCodeLens.bind(this));
+        this.connection.onDocumentLinks(this.onDocumentLinks.bind(this));
+        this.connection.languages.inlayHint.on(this.onInlayHint.bind(this));
+        this.connection.onSignatureHelp(this.onSignatureHelp.bind(this));
         
         // Make the text document manager listen on the connection
         this.documents.listen(this.connection);
@@ -445,6 +487,154 @@ export class CK3LanguageServer {
         }
         
         return this.symbolProvider.provideDocumentSymbols(document);
+    }
+
+    /**
+     * Document formatting handler
+     */
+    private async onDocumentFormatting(params: any): Promise<any> {
+        const document = this.documents.get(params.textDocument.uri);
+        if (!document) {
+            return null;
+        }
+        
+        return this.formattingProvider.formatDocument(document, params.options);
+    }
+
+    /**
+     * Document range formatting handler
+     */
+    private async onDocumentRangeFormatting(params: any): Promise<any> {
+        const document = this.documents.get(params.textDocument.uri);
+        if (!document) {
+            return null;
+        }
+        
+        return this.formattingProvider.formatRange(document, params.range, params.options);
+    }
+
+    /**
+     * Folding ranges handler
+     */
+    private async onFoldingRanges(params: any): Promise<any> {
+        const document = this.documents.get(params.textDocument.uri);
+        if (!document) {
+            return null;
+        }
+        
+        return this.foldingProvider.provideFoldingRanges(document);
+    }
+
+    /**
+     * Prepare rename handler
+     */
+    private async onPrepareRename(params: any): Promise<any> {
+        const document = this.documents.get(params.textDocument.uri);
+        if (!document) {
+            return null;
+        }
+        
+        return this.renameProvider.prepareRename(document, params.position);
+    }
+
+    /**
+     * Rename request handler
+     */
+    private async onRenameRequest(params: any): Promise<any> {
+        const document = this.documents.get(params.textDocument.uri);
+        if (!document) {
+            return null;
+        }
+        
+        return this.renameProvider.provideRename(document, params.position, params.newName);
+    }
+
+    /**
+     * Document highlight handler
+     */
+    private async onDocumentHighlight(params: any): Promise<any> {
+        const document = this.documents.get(params.textDocument.uri);
+        if (!document) {
+            return null;
+        }
+        
+        return this.documentHighlightProvider.provideDocumentHighlights(document, params.position);
+    }
+
+    /**
+     * Semantic tokens handler
+     */
+    private async onSemanticTokens(params: any): Promise<any> {
+        const document = this.documents.get(params.textDocument.uri);
+        if (!document) {
+            return null;
+        }
+        
+        return this.semanticTokensProvider.provideSemanticTokens(document);
+    }
+
+    /**
+     * Code action handler
+     */
+    private async onCodeAction(params: any): Promise<any> {
+        const document = this.documents.get(params.textDocument.uri);
+        if (!document) {
+            return null;
+        }
+        
+        return this.codeActionsProvider.provideCodeActions(
+            document,
+            params.range,
+            params.context.diagnostics
+        );
+    }
+
+    /**
+     * Code lens handler
+     */
+    private async onCodeLens(params: any): Promise<any> {
+        const document = this.documents.get(params.textDocument.uri);
+        if (!document) {
+            return null;
+        }
+        
+        return this.codeLensProvider.provideCodeLens(document);
+    }
+
+    /**
+     * Document links handler
+     */
+    private async onDocumentLinks(params: any): Promise<any> {
+        const document = this.documents.get(params.textDocument.uri);
+        if (!document) {
+            return null;
+        }
+        
+        return this.documentLinksProvider.provideDocumentLinks(document);
+    }
+
+    /**
+     * Inlay hint handler
+     */
+    private async onInlayHint(params: any): Promise<any> {
+        const document = this.documents.get(params.textDocument.uri);
+        if (!document) {
+            return null;
+        }
+        
+        return this.inlayHintsProvider.provideInlayHints(document, params.range);
+    }
+
+    /**
+     * Signature help handler
+     */
+    private async onSignatureHelp(params: any): Promise<any> {
+        const document = this.documents.get(params.textDocument.uri);
+        if (!document) {
+            return null;
+        }
+        
+        return this.signatureHelpProvider.provideSignatureHelp(document, params.position);
     }
 
     /**
