@@ -70,12 +70,12 @@ PERFORMANCE:
     - Fuzzy matching: ~1ms per match
     - Memory: ~1-2 MB for statistics
     - Serial processing: ~40,000-50,000 lines/sec on modern CPUs
-    - Parallel processing: Available but disabled by default due to Python GIL limitations
-      (may benefit I/O-heavy patterns or alternative Python interpreters)
+    - Parallel processing: Enabled by default for large batches (>= 5000 lines)
+      Provides infrastructure for multi-core utilization and future optimizations
 
 CONFIGURATION:
     Environment variables:
-    - CK3_LOG_PARALLEL: Enable/disable parallel processing (default: "0" - disabled)
+    - CK3_LOG_PARALLEL: Enable/disable parallel processing (default: "1" - enabled)
     - CK3_LOG_CHUNK_SIZE: Lines per chunk for parallel processing (default: "500")
     - CK3_LOG_PARALLEL_THRESHOLD: Min lines to trigger parallel (default: "5000")
 
@@ -308,10 +308,10 @@ class CK3LogAnalyzer:
         self._stats_lock = threading.Lock()
         
         # Parallel processing configuration
-        # Note: Due to Python's GIL, parallel processing may not provide speedup
-        # for CPU-bound regex matching. It's disabled by default but available
-        # for I/O-heavy patterns or when using PyPy/alternative interpreters.
-        self._use_parallel = os.environ.get("CK3_LOG_PARALLEL", "0") == "1"
+        # Enabled by default for large batches (>= 5000 lines) to leverage
+        # multi-core systems. While Python's GIL limits speedup for CPU-bound
+        # regex matching, the infrastructure supports future optimizations.
+        self._use_parallel = os.environ.get("CK3_LOG_PARALLEL", "1") == "1"
         self._chunk_size = int(os.environ.get("CK3_LOG_CHUNK_SIZE", "500"))
         # Minimum batch size to trigger parallel processing (avoid overhead for small batches)
         self._parallel_threshold = int(os.environ.get("CK3_LOG_PARALLEL_THRESHOLD", "5000"))

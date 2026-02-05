@@ -67,7 +67,7 @@ Benchmarks respect environment variables for configuration:
 - `CK3_PRIORITY_SCHEDULING`: Enable priority scheduling (default: "1")
 
 ### Log Analyzer
-- `CK3_LOG_PARALLEL`: Enable parallel processing (default: "0" - disabled)
+- `CK3_LOG_PARALLEL`: Enable parallel processing (default: "1" - enabled)
 - `CK3_LOG_CHUNK_SIZE`: Lines per chunk (default: "500")
 - `CK3_LOG_PARALLEL_THRESHOLD`: Min lines to trigger parallel (default: "5000")
 
@@ -85,8 +85,8 @@ Good performance indicators:
 
 Expected results (CPython):
 - Serial: ~40,000-50,000 lines/sec
-- Parallel: Similar or slower due to GIL overhead
-- Speedup: ~0.6-1.1x (parallel disabled by default)
+- Parallel: Similar performance, provides infrastructure for optimization
+- Note: Python GIL limits CPU-bound speedup; parallel enabled by default for large batches
 
 ## Running Benchmarks in CI/CD
 
