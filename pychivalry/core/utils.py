@@ -10,6 +10,7 @@ UTILITY CATEGORIES:
     1. **URI/Path Conversion**: Convert between file paths and URIs
     2. **Position Utilities**: Check positions within ranges
     3. **Text Utilities**: Extract words at positions
+    4. **Async File I/O**: Async file reading utilities
 
 USAGE EXAMPLES:
     >>> from pychivalry.core.utils import path_to_uri, uri_to_path
@@ -17,6 +18,9 @@ USAGE EXAMPLES:
     'file:///path/to/file.txt'
     >>> uri_to_path('file:///path/to/file.txt')
     '/path/to/file.txt'
+    
+    >>> # Async file reading
+    >>> content = await read_file_async(Path('file.txt'))
 
 SEE ALSO:
     - document_links.py: Uses URI conversion for file links
@@ -24,10 +28,15 @@ SEE ALSO:
     - hover.py: Uses text utilities for word extraction
 """
 
+import logging
 import os
-from typing import Optional
+from pathlib import Path
+from typing import Optional, List
 from urllib.parse import quote, unquote
 from lsprotocol import types
+import aiofiles
+
+logger = logging.getLogger(__name__)
 
 
 # =============================================================================
@@ -143,3 +152,79 @@ def position_in_range(position: types.Position, range_: types.Range) -> bool:
         return False
 
     return True
+
+
+# =============================================================================
+# Async File I/O Utilities
+# =============================================================================
+
+
+async def read_file_async(
+    file_path: Path, encodings: Optional[List[str]] = None
+) -> Optional[str]:
+    """
+    Asynchronously read a file with automatic encoding detection.
+
+    This function attempts to read a file using multiple encodings, which is
+    important for CK3 mod files that may use various encodings. It uses
+    aiofiles for true async I/O without blocking the event loop.
+
+    Args:
+        file_path: Path to the file to read
+        encodings: List of encodings to try. Defaults to common CK3 encodings.
+
+    Returns:
+        File contents as string, or None if file couldn't be read
+
+    Examples:
+        >>> content = await read_file_async(Path('events.txt'))
+        >>> if content:
+        ...     print(f"Read {len(content)} characters")
+
+    Note:
+        - Uses UTF-8-BOM as first choice (most common for CK3 files)
+        - Falls back to other encodings if UTF-8-BOM fails
+        - Returns None on all encoding failures (logs warning)
+    """
+    if encodings is None:
+        encodings = ["utf-8-sig", "utf-8", "latin-1", "cp1252"]
+
+    for encoding in encodings:
+        try:
+            async with aiofiles.open(file_path, mode="r", encoding=encoding) as f:
+                return await f.read()
+        except UnicodeDecodeError:
+            continue
+        except Exception as e:
+            logger.warning(f"Error reading {file_path}: {e}")
+            return None
+
+    logger.warning(f"Could not decode {file_path} with any encoding")
+    return None
+
+
+async def read_file_async_single(file_path: Path, encoding: str = "utf-8-sig") -> str:
+    """
+    Asynchronously read a file with a single encoding.
+
+    Simpler version for when encoding is known. Raises exceptions on error
+    for proper error propagation.
+
+    Args:
+        file_path: Path to the file to read
+        encoding: Encoding to use (default: utf-8-sig for UTF-8 with BOM)
+
+    Returns:
+        File contents as string
+
+    Raises:
+        UnicodeDecodeError: If file cannot be decoded with specified encoding
+        FileNotFoundError: If file doesn't exist
+        IOError: On other I/O errors
+
+    Examples:
+        >>> content = await read_file_async_single(Path('descriptor.mod'))
+    """
+    async with aiofiles.open(file_path, mode="r", encoding=encoding) as f:
+        return await f.read()
+
