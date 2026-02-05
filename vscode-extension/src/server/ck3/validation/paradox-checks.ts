@@ -36,6 +36,12 @@ export interface ParadoxConfig {
     opinionModifiers: boolean;
     eventStructure: boolean;
     commonGotchas: boolean;
+    portraitValidation: boolean;
+    descValidation: boolean;
+    optionValidation: boolean;
+    aiChanceValidation: boolean;
+    triggerValidation: boolean;
+    afterBlockValidation: boolean;
 }
 
 /**
@@ -47,6 +53,12 @@ export const DEFAULT_PARADOX_CONFIG: ParadoxConfig = {
     opinionModifiers: true,
     eventStructure: true,
     commonGotchas: true,
+    portraitValidation: true,
+    descValidation: true,
+    optionValidation: true,
+    aiChanceValidation: true,
+    triggerValidation: true,
+    afterBlockValidation: true,
 };
 
 /**
@@ -375,6 +387,10 @@ export function validateParadoxConventions(node: ASTNode, config: ParadoxConfig 
     if (config.commonGotchas) {
         diagnostics.push(...checkCommonGotchas(node));
     }
+    
+    // Import and apply extended checks
+    const extendedChecks = require('./paradox-checks-extended');
+    diagnostics.push(...extendedChecks.validateExtendedParadoxConventions(node, config));
 
     return diagnostics;
 }
@@ -390,3 +406,6 @@ export const ParadoxChecks = {
     checkCommonGotchas,
     validateParadoxConventions,
 };
+
+// Re-export extended checks for convenience
+export * from './paradox-checks-extended';
