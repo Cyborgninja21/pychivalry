@@ -1352,6 +1352,8 @@ class CK3LanguageServer(LanguageServer):
 
         This is called on first document open to index all custom effects
         and triggers in the mod's common/ folder. Shows progress to the user.
+        
+        Uses async I/O for better scalability and responsiveness.
         """
         if self._workspace_scanned:
             logger.debug("Workspace already scanned, skipping")
@@ -1387,22 +1389,10 @@ class CK3LanguageServer(LanguageServer):
                 for folder in workspace_folders:
                     self.log_index(f"  → {folder}")
 
-                # Perform the actual scan in thread pool with lock
-                # Pass the executor for parallel scanning (2-4x faster)
-
-                def scan_with_lock():
-                    with self._index_lock:
-                        # Pass the CPU pool's executor for parallel file scanning
-                        self.index.scan_workspace(
-                            workspace_folders, executor=self.thread_manager._cpu_pool
-                        )
-
-                future = self.thread_manager.submit_cpu_bound(
-                    scan_with_lock,
-                    priority=TaskPriority.LOW,
-                    task_id="workspace:scan",
-                )
-                await asyncio.wrap_future(future)
+                # Perform the actual scan using async I/O with lock
+                # This provides better scalability than thread pool-based scanning
+                with self._index_lock:
+                    await self.index.scan_workspace_async(workspace_folders)
 
                 # Notify user of scan results (thread-safe access)
                 with self._index_lock:
