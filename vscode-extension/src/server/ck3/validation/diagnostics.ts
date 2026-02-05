@@ -29,6 +29,7 @@ import {
     parseListIterator,
     isValidListBase,
 } from './scopes';
+import { validateDocumentScopeTiming, DEFAULT_SCOPE_TIMING_CONFIG } from './scope-timing';
 
 /**
  * Diagnostic configuration
@@ -158,7 +159,14 @@ export class DiagnosticsEngine {
     private async checkScopes(ast: ASTNode[], document: TextDocument): Promise<Diagnostic[]> {
         const diagnostics: Diagnostic[] = [];
         
-        // Walk the AST and validate scope usage
+        // Phase 1: Scope timing validation (Golden Rule checking)
+        // This catches the most common CK3 modding error
+        for (const node of ast) {
+            const timingDiags = validateDocumentScopeTiming(node, DEFAULT_SCOPE_TIMING_CONFIG);
+            diagnostics.push(...timingDiags);
+        }
+        
+        // Phase 2: Walk the AST and validate scope usage
         const walk = (nodes: ASTNode[], currentScope: string = 'character') => {
             for (const node of nodes) {
                 // Check scope chains (e.g., root.liege.primary_title)

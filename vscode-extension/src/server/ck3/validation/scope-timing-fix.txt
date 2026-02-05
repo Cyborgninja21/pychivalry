@@ -1,0 +1,4 @@
+# Fix patterns needed:
+# 1. node.key -> node.key?.
+# 2. node.children -> node.children || []
+# 3. for (const child of node.children) -> for (const child of (node.children || []))
