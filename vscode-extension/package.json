@@ -98,6 +98,11 @@
         "category": "CK3"
       },
       {
+        "command": "ck3LanguageServer.switchServerImplementation",
+        "title": "Switch Server Implementation (Python/TypeScript)",
+        "category": "CK3"
+      },
+      {
         "command": "ck3LanguageServer.extractTraitData",
         "title": "Extract Trait Data from CK3 Installation",
         "category": "CK3"
@@ -301,6 +306,16 @@
       {
         "title": "General",
         "properties": {
+          "ck3LanguageServer.serverImplementation": {
+            "type": "string",
+            "enum": [
+              "python",
+              "typescript"
+            ],
+            "default": "typescript",
+            "description": "Choose which language server implementation to use",
+            "scope": "resource"
+          },
           "ck3LanguageServer.pythonPath": {
             "type": "string",
             "default": "python",
