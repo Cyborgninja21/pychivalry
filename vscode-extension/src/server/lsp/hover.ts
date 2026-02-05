@@ -7,6 +7,7 @@ import { TextDocument } from 'vscode-languageserver-textdocument';
 import { CK3Parser } from '../core/parser';
 import { SchemaLoader } from '../schema/loader';
 import { CK3Language } from '../ck3/language';
+import { getDataLoader } from '../data/loader';
 
 /**
  * Hover Provider
@@ -24,36 +25,82 @@ export class HoverProvider {
         const word = this.getWordAtPosition(document, position);
         if (!word) return null;
         
+        const dataLoader = getDataLoader();
+        
         // Check if it's an effect
-        const effects = CK3Language.getEffects();
-        if (effects[word]) {
-            const effect = effects[word];
+        const effects = dataLoader.getEffects();
+        if (effects.has(word)) {
+            const effect = effects.get(word)!;
+            let content = `**Effect:** \`${word}\`\n\n${effect.description || 'No description available'}`;
+            
+            if (effect.scope) {
+                content += `\n\n**Scope:** ${effect.scope}`;
+            }
+            
+            if (effect.target_scope) {
+                content += `\n**Returns:** ${effect.target_scope}`;
+            }
+            
+            if (effect.examples && effect.examples.length > 0) {
+                content += `\n\n**Example:**\n\`\`\`ck3\n${effect.examples[0]}\n\`\`\``;
+            }
+            
             return {
                 contents: {
                     kind: MarkupKind.Markdown,
-                    value: `**Effect:** ${word}\n\n${effect.description || 'No description available'}`,
+                    value: content,
                 },
             };
         }
         
         // Check if it's a trigger
-        const triggers = CK3Language.getTriggers();
-        if (triggers[word]) {
-            const trigger = triggers[word];
+        const triggers = dataLoader.getTriggers();
+        if (triggers.has(word)) {
+            const trigger = triggers.get(word)!;
+            let content = `**Trigger:** \`${word}\`\n\n${trigger.description || 'No description available'}`;
+            
+            if (trigger.scope) {
+                content += `\n\n**Scope:** ${trigger.scope}`;
+            }
+            
+            if (trigger.return_type) {
+                content += `\n**Returns:** ${trigger.return_type}`;
+            }
+            
+            if (trigger.examples && trigger.examples.length > 0) {
+                content += `\n\n**Example:**\n\`\`\`ck3\n${trigger.examples[0]}\n\`\`\``;
+            }
+            
             return {
                 contents: {
                     kind: MarkupKind.Markdown,
-                    value: `**Trigger:** ${word}\n\n${trigger.description || 'No description available'}`,
+                    value: content,
                 },
             };
         }
         
         // Check if it's a trait
-        if (CK3Language.isTrait(word)) {
+        const traits = dataLoader.getTraits();
+        if (traits.has(word)) {
+            const trait = traits.get(word)!;
+            let content = `**Trait:** \`${word}\``;
+            
+            if (trait.name) {
+                content += `\n\n**Name:** ${trait.name}`;
+            }
+            
+            if (trait.category) {
+                content += `\n**Category:** ${trait.category}`;
+            }
+            
+            if (trait.opposites && trait.opposites.length > 0) {
+                content += `\n**Opposites:** ${trait.opposites.join(', ')}`;
+            }
+            
             return {
                 contents: {
                     kind: MarkupKind.Markdown,
-                    value: `**Trait:** ${word}`,
+                    value: content,
                 },
             };
         }

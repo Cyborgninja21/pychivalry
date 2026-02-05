@@ -13,6 +13,7 @@ import { CK3Parser, ASTNode } from '../core/parser';
 import { DocumentIndexer, SymbolType } from '../core/indexer';
 import { SchemaLoader } from '../schema/loader';
 import { CK3Language } from '../ck3/language';
+import { getDataLoader } from '../data/loader';
 
 /**
  * Completion Provider
@@ -178,13 +179,15 @@ export class CompletionProvider {
                 );
                 break;
             case 'trait':
-                // Provide traits from CK3 language definitions
-                const traits = CK3Language.getTraits();
-                for (const trait of traits) {
+                // Provide traits from YAML data files
+                const dataLoader = getDataLoader();
+                const traits = dataLoader.getTraits();
+                for (const [traitId, trait] of traits.entries()) {
                     completions.push({
-                        label: trait,
+                        label: traitId,
                         kind: CompletionItemKind.Value,
-                        detail: 'Trait',
+                        detail: trait.name || 'Trait',
+                        documentation: trait.category ? `Category: ${trait.category}` : undefined,
                     });
                 }
                 break;
@@ -234,16 +237,18 @@ export class CompletionProvider {
     private provideEffectCompletions(context: any): CompletionItem[] {
         const completions: CompletionItem[] = [];
         
-        const effects = CK3Language.getEffects();
+        // Load effects from YAML data files
+        const dataLoader = getDataLoader();
+        const effects = dataLoader.getEffects();
         
-        for (const [name, effect] of Object.entries(effects)) {
+        for (const [name, effect] of effects.entries()) {
             completions.push({
                 label: name,
                 kind: CompletionItemKind.Function,
                 detail: effect.description || 'Effect',
-                documentation: effect.documentation,
-                insertText: effect.hasBlock ? `${name} = {\n\t$0\n}` : `${name} = `,
-                insertTextFormat: effect.hasBlock ? InsertTextFormat.Snippet : InsertTextFormat.PlainText,
+                documentation: effect.description + (effect.scope ? `\n\nScope: ${effect.scope}` : ''),
+                insertText: name + ' = ',
+                insertTextFormat: InsertTextFormat.PlainText,
             });
         }
         
@@ -256,16 +261,18 @@ export class CompletionProvider {
     private provideTriggerCompletions(context: any): CompletionItem[] {
         const completions: CompletionItem[] = [];
         
-        const triggers = CK3Language.getTriggers();
+        // Load triggers from YAML data files
+        const dataLoader = getDataLoader();
+        const triggers = dataLoader.getTriggers();
         
-        for (const [name, trigger] of Object.entries(triggers)) {
+        for (const [name, trigger] of triggers.entries()) {
             completions.push({
                 label: name,
                 kind: CompletionItemKind.Function,
                 detail: trigger.description || 'Trigger',
-                documentation: trigger.documentation,
-                insertText: trigger.hasBlock ? `${name} = {\n\t$0\n}` : `${name} = `,
-                insertTextFormat: trigger.hasBlock ? InsertTextFormat.Snippet : InsertTextFormat.PlainText,
+                documentation: trigger.description + (trigger.scope ? `\n\nScope: ${trigger.scope}` : ''),
+                insertText: name + ' = ',
+                insertTextFormat: InsertTextFormat.PlainText,
             });
         }
         
