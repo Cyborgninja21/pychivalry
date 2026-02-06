@@ -15,11 +15,10 @@ import {
     CodeLens,
     Command,
     Location,
-    Range,
 } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { CK3Parser, ASTNode, NodeType } from '../core/parser';
-import { DocumentIndexer, Symbol, SymbolType } from '../core/indexer';
+import { DocumentIndexer, SymbolType } from '../core/indexer';
 
 /**
  * Code lens configuration
@@ -115,7 +114,7 @@ export class CodeLensProvider {
     private referenceCache: Map<string, ReferenceInfo> = new Map();
     private namespaceCache: Map<string, NamespaceStats> = new Map();
     private cacheTimestamp: number = 0;
-    private readonly CACHE_TTL = 5000; // 5 seconds
+    private readonly cacheTTL = 5000; // 5 seconds
 
     constructor(
         private parser: CK3Parser,
@@ -148,7 +147,7 @@ export class CodeLensProvider {
         const lenses: CodeLens[] = [];
 
         // Clear cache if stale
-        if (Date.now() - this.cacheTimestamp > this.CACHE_TTL) {
+        if (Date.now() - this.cacheTimestamp > this.cacheTTL) {
             this.clearCache();
         }
 
@@ -189,7 +188,9 @@ export class CodeLensProvider {
         lenses: CodeLens[],
         context: LensContext
     ): void {
-        if (!node.children) return;
+        if (!node.children) {
+            return;
+        }
 
         for (const child of node.children) {
             // Try each generator
@@ -349,33 +350,16 @@ export class CodeLensProvider {
     /**
      * Analyze event chain
      */
-    private analyzeEventChain(eventId: string, context: LensContext): EventChain {
+    private analyzeEventChain(eventId: string): EventChain {
         const targets: string[] = [];
         const callers: string[] = [];
-        let hasCircularRef = false;
+        const hasCircularRef = false;
 
+        // TODO: Implement event chain analysis
         // Find all event symbols
-        const eventSymbols = context.indexer.findSymbolsByType(SymbolType.EVENT);
-
         // Find targets (events this event triggers)
-        const symbols = context.indexer.findSymbolsByName(eventId);
-        for (const symbol of symbols) {
-            // Parse AST to find trigger_event calls
-            // (Simplified - full implementation would parse the symbol's AST)
-            // targets.push(...this.findTriggeredEvents(symbol));
-        }
-
         // Find callers (events that trigger this event)
-        for (const eventSymbol of eventSymbols) {
-            // Check if this event triggers our event
-            // (Simplified - full implementation would parse each event's AST)
-            // if (this.triggersEvent(eventSymbol, eventId)) {
-            //     callers.push(eventSymbol.name);
-            // }
-        }
-
         // Check for circular references
-        hasCircularRef = this.detectCircularReference(eventId, targets, new Set());
 
         return { source: eventId, targets, callers, hasCircularRef };
     }
@@ -442,7 +426,7 @@ export class CodeLensProvider {
  * Event lens generator
  */
 class EventLensGenerator implements LensGenerator {
-    canApply(node: ASTNode, context: LensContext): boolean {
+    canApply(node: ASTNode): boolean {
         // Match event definitions (namespace.number pattern)
         return !!(node.key && /^[a-z_]+\.\d+$/.test(node.key) && node.type === NodeType.ASSIGNMENT);
     }
@@ -483,7 +467,7 @@ class EventLensGenerator implements LensGenerator {
 
         // Event chain lens
         if (context.config.showEventChains) {
-            const chain = this.analyzeEventChain(eventId, context);
+            const chain = this.analyzeEventChain(eventId);
             if (chain.targets.length > 0) {
                 lenses.push({
                     range: node.range,
@@ -561,7 +545,9 @@ class EventLensGenerator implements LensGenerator {
     }
 
     private calculateMaxDepth(node: ASTNode, depth: number): number {
-        if (!node.children) return depth;
+        if (!node.children) {
+            return depth;
+        }
         let max = depth;
         for (const child of node.children) {
             if (child.type === NodeType.BLOCK) {
@@ -572,7 +558,9 @@ class EventLensGenerator implements LensGenerator {
     }
 
     private countStatements(node: ASTNode): number {
-        if (!node.children) return 0;
+        if (!node.children) {
+            return 0;
+        }
         return node.children.reduce((sum, child) => {
             const count = child.type === NodeType.ASSIGNMENT ? 1 : 0;
             return sum + count + this.countStatements(child);
@@ -580,14 +568,16 @@ class EventLensGenerator implements LensGenerator {
     }
 
     private countOptions(node: ASTNode): number {
-        if (!node.children) return 0;
+        if (!node.children) {
+            return 0;
+        }
         return node.children.reduce((sum, child) => {
             const count = child.key === 'option' ? 1 : 0;
             return sum + count + this.countOptions(child);
         }, 0);
     }
 
-    private analyzeEventChain(eventId: string, context: LensContext): EventChain {
+    private analyzeEventChain(eventId: string): EventChain {
         return {
             source: eventId,
             targets: [],
@@ -601,10 +591,10 @@ class EventLensGenerator implements LensGenerator {
  * Decision lens generator
  */
 class DecisionLensGenerator implements LensGenerator {
-    canApply(node: ASTNode, context: LensContext): boolean {
+    canApply(node: ASTNode): boolean {
         // Match decision definitions
         return !!(node.key && node.type === NodeType.ASSIGNMENT && 
-                 this.isDecisionContext(node));
+                 this.isDecisionContext());
     }
 
     generate(node: ASTNode, context: LensContext): CodeLens[] {
@@ -639,7 +629,7 @@ class DecisionLensGenerator implements LensGenerator {
         return lenses;
     }
 
-    private isDecisionContext(node: ASTNode): boolean {
+    private isDecisionContext(): boolean {
         // Simplified check - would need parent context
         return true;
     }
@@ -654,7 +644,9 @@ class DecisionLensGenerator implements LensGenerator {
     }
 
     private countConditions(node: ASTNode): number {
-        if (!node.children) return 0;
+        if (!node.children) {
+            return 0;
+        }
         return node.children.reduce((sum, child) => {
             const isCondition = child.key === 'is_shown' || child.key === 'is_valid' ||
                                child.key === 'is_valid_showing_failures_only';
@@ -663,7 +655,9 @@ class DecisionLensGenerator implements LensGenerator {
     }
 
     private countEffects(node: ASTNode): number {
-        if (!node.children) return 0;
+        if (!node.children) {
+            return 0;
+        }
         return node.children.reduce((sum, child) => {
             const isEffect = child.key === 'effect';
             return sum + (isEffect ? 1 : 0) + this.countEffects(child);
@@ -675,12 +669,12 @@ class DecisionLensGenerator implements LensGenerator {
  * Scripted effect lens generator
  */
 class ScriptedEffectLensGenerator implements LensGenerator {
-    canApply(node: ASTNode, context: LensContext): boolean {
+    canApply(): boolean {
         // Would check if in scripted_effects context
         return false; // Simplified
     }
 
-    generate(node: ASTNode, context: LensContext): CodeLens[] {
+    generate(): CodeLens[] {
         return [];
     }
 }
@@ -689,12 +683,12 @@ class ScriptedEffectLensGenerator implements LensGenerator {
  * Scripted trigger lens generator
  */
 class ScriptedTriggerLensGenerator implements LensGenerator {
-    canApply(node: ASTNode, context: LensContext): boolean {
+    canApply(): boolean {
         // Would check if in scripted_triggers context
         return false; // Simplified
     }
 
-    generate(node: ASTNode, context: LensContext): CodeLens[] {
+    generate(): CodeLens[] {
         return [];
     }
 }
@@ -704,12 +698,14 @@ class ScriptedTriggerLensGenerator implements LensGenerator {
  */
 class ComplexityLensGenerator implements LensGenerator {
     canApply(node: ASTNode, context: LensContext): boolean {
-        if (!context.config.showComplexity) return false;
+        if (!context.config.showComplexity) {
+            return false;
+        }
         const lines = node.range.end.line - node.range.start.line + 1;
         return node.type === NodeType.BLOCK && lines >= context.config.minLinesForLens;
     }
 
-    generate(node: ASTNode, context: LensContext): CodeLens[] {
+    generate(node: ASTNode): CodeLens[] {
         const lines = node.range.end.line - node.range.start.line + 1;
         return [{
             range: node.range,
@@ -725,12 +721,12 @@ class ComplexityLensGenerator implements LensGenerator {
  * Namespace lens generator
  */
 class NamespaceLensGenerator implements LensGenerator {
-    canApply(node: ASTNode, context: LensContext): boolean {
+    canApply(): boolean {
         // Check if this is a namespace declaration
         return false; // Simplified
     }
 
-    generate(node: ASTNode, context: LensContext): CodeLens[] {
+    generate(): CodeLens[] {
         return [];
     }
 }
@@ -739,12 +735,12 @@ class NamespaceLensGenerator implements LensGenerator {
  * Localization lens generator
  */
 class LocalizationLensGenerator implements LensGenerator {
-    canApply(node: ASTNode, context: LensContext): boolean {
+    canApply(): boolean {
         // Check if node references localization keys
         return false; // Simplified
     }
 
-    generate(node: ASTNode, context: LensContext): CodeLens[] {
+    generate(): CodeLens[] {
         return [];
     }
 }
