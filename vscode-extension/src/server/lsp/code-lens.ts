@@ -119,7 +119,7 @@ export class CodeLensProvider {
 
     constructor(
         private parser: CK3Parser,
-        private indexer?: DocumentIndexer
+        private indexer: DocumentIndexer
     ) {
         // Initialize lens generators
         this.generators = [
@@ -155,7 +155,7 @@ export class CodeLensProvider {
         // Create context
         const context: LensContext = {
             document,
-            indexer: this.indexer!,
+            indexer: this.indexer,
             config: this.config,
             namespaceCache: this.namespaceCache,
             referenceCache: this.referenceCache,
@@ -247,6 +247,19 @@ export class CodeLensProvider {
      * Calculate complexity metrics
      */
     private calculateComplexity(node: ASTNode): ComplexityMetrics {
+        // Guard against missing range
+        if (!node.range) {
+            return {
+                lines: 0,
+                depth: 0,
+                statements: 0,
+                branches: 0,
+                score: 0,
+                level: 'simple',
+                icon: '🟢',
+            };
+        }
+
         const lines = node.range.end.line - node.range.start.line + 1;
         const depth = this.calculateMaxDepth(node);
         const statements = this.countStatements(node);
@@ -255,14 +268,14 @@ export class CodeLensProvider {
         // Calculate complexity score
         const score = lines * 0.1 + depth * 2 + statements * 0.5 + branches * 3;
 
-        // Determine level
+        // Determine level - use AND logic for clear categorization
         let level: 'simple' | 'moderate' | 'complex';
         let icon: string;
 
-        if (score < 20 || lines < 50) {
+        if (lines < 50 && score < 20) {
             level = 'simple';
             icon = '🟢';
-        } else if (score < 50 || lines < 150) {
+        } else if (lines < 150 && score < 50) {
             level = 'moderate';
             icon = '🟡';
         } else {
