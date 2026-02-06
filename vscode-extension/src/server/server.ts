@@ -155,7 +155,7 @@ export class CK3LanguageServer {
         this.completionProvider = new CompletionProvider(this.parser, this.indexer, this.schemaLoader);
         this.hoverProvider = new HoverProvider(this.parser, this.schemaLoader);
         this.definitionProvider = new DefinitionProvider(this.parser, this.indexer);
-        this.symbolProvider = new DocumentSymbolProvider(this.parser);
+        this.symbolProvider = new DocumentSymbolProvider(this.parser, this.indexer);
         this.diagnosticsProvider = new DiagnosticsProvider(this.parser, this.schemaLoader, this.indexer);
         this.formattingProvider = new FormattingProvider(this.parser);
         this.foldingProvider = new FoldingRangeProvider(this.parser);
@@ -195,6 +195,9 @@ export class CK3LanguageServer {
         this.connection.onCompletionResolve(this.onCompletionResolve.bind(this));
         this.connection.onHover(this.onHover.bind(this));
         this.connection.onDefinition(this.onDefinition.bind(this));
+        this.connection.onTypeDefinition(this.onTypeDefinition.bind(this));
+        this.connection.onImplementation(this.onImplementation.bind(this));
+        this.connection.onDeclaration(this.onDeclaration.bind(this));
         this.connection.onReferences(this.onReferences.bind(this));
         this.connection.onDocumentSymbol(this.onDocumentSymbol.bind(this));
         this.connection.onDocumentFormatting(this.onDocumentFormatting.bind(this));
@@ -204,6 +207,7 @@ export class CK3LanguageServer {
         this.connection.onRenameRequest(this.onRenameRequest.bind(this));
         this.connection.onDocumentHighlight(this.onDocumentHighlight.bind(this));
         this.connection.languages.semanticTokens.on(this.onSemanticTokens.bind(this));
+        this.connection.languages.semanticTokens.onRange(this.onSemanticTokensRange.bind(this));
         this.connection.onCodeAction(this.onCodeAction.bind(this));
         this.connection.onCodeLens(this.onCodeLens.bind(this));
         this.connection.onCodeLensResolve(this.onCodeLensResolve.bind(this));
@@ -256,6 +260,9 @@ export class CK3LanguageServer {
             },
             hoverProvider: true,
             definitionProvider: true,
+            typeDefinitionProvider: true,
+            implementationProvider: true,
+            declarationProvider: true,
             referencesProvider: true,
             documentSymbolProvider: true,
             documentFormattingProvider: true,
@@ -263,15 +270,9 @@ export class CK3LanguageServer {
             renameProvider: { prepareProvider: true },
             foldingRangeProvider: true,
             semanticTokensProvider: {
-                legend: {
-                    tokenTypes: [
-                        'keyword', 'operator', 'string', 'number', 'variable',
-                        'function', 'namespace', 'class', 'property', 'comment'
-                    ],
-                    tokenModifiers: ['declaration', 'readonly', 'static']
-                },
+                legend: SemanticTokensProvider.getTokenLegend(),
                 full: true,
-                range: false
+                range: true
             },
             codeActionProvider: true,
             codeLensProvider: { resolveProvider: true },
@@ -495,7 +496,7 @@ export class CK3LanguageServer {
             return null;
         }
         
-        return this.definitionProvider.provideDefinition(document, params.position);
+        return this.definitionProvider.navigateToDefinition(document, params.position);
     }
 
     /**
@@ -507,7 +508,43 @@ export class CK3LanguageServer {
             return null;
         }
         
-        return this.definitionProvider.provideReferences(document, params.position, params.context);
+        return this.definitionProvider.findAllReferences(document, params.position, params.context.includeDeclaration);
+    }
+
+    /**
+     * Type definition handler
+     */
+    private async onTypeDefinition(params: TextDocumentPositionParams): Promise<any> {
+        const document = this.documents.get(params.textDocument.uri);
+        if (!document) {
+            return null;
+        }
+        
+        return this.definitionProvider.navigateToTypeDefinition(document, params.position);
+    }
+
+    /**
+     * Implementation handler
+     */
+    private async onImplementation(params: TextDocumentPositionParams): Promise<any> {
+        const document = this.documents.get(params.textDocument.uri);
+        if (!document) {
+            return null;
+        }
+        
+        return this.definitionProvider.findImplementation(document, params.position);
+    }
+
+    /**
+     * Declaration handler
+     */
+    private async onDeclaration(params: TextDocumentPositionParams): Promise<any> {
+        const document = this.documents.get(params.textDocument.uri);
+        if (!document) {
+            return null;
+        }
+        
+        return this.definitionProvider.navigateToDeclaration(document, params.position);
     }
 
     /**
@@ -519,7 +556,7 @@ export class CK3LanguageServer {
             return null;
         }
         
-        return this.symbolProvider.provideDocumentSymbols(document);
+        return this.symbolProvider.buildDocumentOutline(document);
     }
 
     /**
@@ -603,7 +640,19 @@ export class CK3LanguageServer {
             return null;
         }
         
-        return this.semanticTokensProvider.provideSemanticTokens(document);
+        return this.semanticTokensProvider.generateSemanticTokens(document);
+    }
+
+    /**
+     * Semantic tokens range handler
+     */
+    private async onSemanticTokensRange(params: any): Promise<any> {
+        const document = this.documents.get(params.textDocument.uri);
+        if (!document) {
+            return null;
+        }
+        
+        return this.semanticTokensProvider.generateRangeSemanticTokens(document, params.range);
     }
 
     /**
@@ -697,15 +746,8 @@ export class CK3LanguageServer {
     private async onWorkspaceSymbol(params: any): Promise<any> {
         const query = params.query;
         
-        // Search across all indexed symbols
-        return this.indexer.searchSymbols(query).map(symbol => ({
-            name: symbol.name,
-            kind: this.mapSymbolTypeToKind(symbol.type),
-            location: {
-                uri: symbol.uri,
-                range: symbol.range,
-            },
-        }));
+        // Use symbol provider for fuzzy matching
+        return this.symbolProvider.searchWorkspaceSymbols(query);
     }
 
     /**
