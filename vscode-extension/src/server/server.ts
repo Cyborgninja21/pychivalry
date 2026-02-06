@@ -470,8 +470,8 @@ export class CK3LanguageServer {
     /**
      * Completion resolve handler
      */
-    private onCompletionResolve(item: CompletionItem): CompletionItem {
-        return this.completionProvider.resolveCompletion(item);
+    private async onCompletionResolve(item: CompletionItem): Promise<CompletionItem> {
+        return await this.completionProvider.resolveCompletion(item);
     }
 
     /**
