@@ -13,6 +13,7 @@
   ],
   // CK3 language server settings
   "ck3LanguageServer.enable": true,
+  "ck3LanguageServer.serverImplementation": "typescript",
   "ck3LanguageServer.pythonPath": "python",
   "ck3LanguageServer.logLevel": "debug",
   "ck3LanguageServer.trace.server": "verbose",

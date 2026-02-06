@@ -1,8 +1,12 @@
 {
   "version": "0.2.0",
   "configurations": [
+    // TypeScript server runs in-process with the extension, no separate launch needed
+    // Use "🎯 Extension" configs below to debug the full stack
+
+    // Legacy Python server configs (only use if serverImplementation is "python")
     {
-      "name": "🐍 LSP Server - Full Reinstall",
+      "name": "🐍 Python Server (Legacy) - Full Reinstall",
       "type": "debugpy",
       "request": "launch",
       "module": "pychivalry.server",
@@ -11,12 +15,12 @@
       "justMyCode": false,
       "preLaunchTask": "Install Python Dependencies",
       "presentation": {
-        "group": "1-server-only",
+        "group": "3-legacy-python",
         "order": 1
       }
     },
     {
-      "name": "🐍 LSP Server - Quick Launch",
+      "name": "🐍 Python Server (Legacy) - Quick Launch",
       "type": "debugpy",
       "request": "launch",
       "module": "pychivalry.server",
@@ -24,21 +28,8 @@
       "console": "integratedTerminal",
       "justMyCode": false,
       "presentation": {
-        "group": "1-server-only",
+        "group": "3-legacy-python",
         "order": 2
-      }
-    },
-    {
-      "name": "🐍 LSP Server - Watch Mode (Manual Restart)",
-      "type": "debugpy",
-      "request": "launch",
-      "module": "pychivalry.server",
-      "cwd": "${workspaceFolder}",
-      "console": "integratedTerminal",
-      "justMyCode": false,
-      "presentation": {
-        "group": "1-server-only",
-        "order": 3
       }
     },
     {
@@ -54,7 +45,7 @@
       ],
       "preLaunchTask": "Build Extension (Install + Compile)",
       "presentation": {
-        "group": "2-extension-only",
+        "group": "1-extension",
         "order": 1
       }
     },
@@ -71,7 +62,7 @@
       ],
       "preLaunchTask": "npm: compile",
       "presentation": {
-        "group": "2-extension-only",
+        "group": "1-extension",
         "order": 2
       }
     },
@@ -88,46 +79,24 @@
       ],
       "preLaunchTask": "npm: watch",
       "presentation": {
-        "group": "2-extension-only",
+        "group": "1-extension",
         "order": 3
       }
     }
   ],
   "compounds": [
+    // Legacy compound: Only use if you need to debug the Python server
+    // alongside an extension that explicitly uses serverImplementation: "python"
     {
-      "name": "🔥 Full Stack - Complete Reinstall",
+      "name": "🐍 Python + Extension (Legacy)",
       "configurations": [
-        "🐍 LSP Server - Full Reinstall",
-        "🎯 Extension - Full Rebuild"
-      ],
-      "stopAll": true,
-      "presentation": {
-        "group": "3-full-stack",
-        "order": 1
-      }
-    },
-    {
-      "name": "🔥 Full Stack - Quick Recompile",
-      "configurations": [
-        "🐍 LSP Server - Quick Launch",
+        "🐍 Python Server (Legacy) - Quick Launch",
         "🎯 Extension - Quick Compile"
       ],
       "stopAll": true,
       "presentation": {
-        "group": "3-full-stack",
-        "order": 2
-      }
-    },
-    {
-      "name": "🔥 Full Stack - Watch Mode",
-      "configurations": [
-        "🐍 LSP Server - Watch Mode (Manual Restart)",
-        "🎯 Extension - Watch Mode"
-      ],
-      "stopAll": true,
-      "presentation": {
-        "group": "3-full-stack",
-        "order": 3
+        "group": "4-legacy-compounds",
+        "order": 1
       }
     }
   ]

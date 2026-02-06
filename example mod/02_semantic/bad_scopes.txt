@@ -92,7 +92,7 @@ semantic_bad_scopes.0003 = {
 	}
 }
 
-# ERROR CK3202: Undefined saved scope
+#= ERROR CK3202: Undefined saved scope
 semantic_bad_scopes.0004 = {
 	type = character_event
 	title = semantic_bad_scopes.0004.t

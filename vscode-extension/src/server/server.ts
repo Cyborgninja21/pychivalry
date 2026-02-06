@@ -227,6 +227,10 @@ export class CK3LanguageServer {
      * Initialize handler - negotiate capabilities with client
      */
     private onInitialize(params: InitializeParams): InitializeResult {
+        this.connection.console.log('[CK3 Server] Initialize request received');
+        this.connection.console.log(`[CK3 Server] Client info: ${params.clientInfo?.name || 'unknown'} v${params.clientInfo?.version || 'unknown'}`);
+        this.connection.console.log(`[CK3 Server] Workspace folders: ${params.workspaceFolders?.length || 0}`);
+        
         const capabilities = params.capabilities;
         
         // Check client capabilities
@@ -972,5 +976,14 @@ export class CK3LanguageServer {
 }
 
 // Create and start server
-const server = new CK3LanguageServer();
-server.listen();
+console.error('[CK3 Server] Starting TypeScript language server...');
+
+try {
+    const server = new CK3LanguageServer();
+    console.error('[CK3 Server] Server instance created, starting listener...');
+    server.listen();
+    console.error('[CK3 Server] Server is now listening for connections');
+} catch (error) {
+    console.error('[CK3 Server] Failed to start server:', error);
+    process.exit(1);
+}
