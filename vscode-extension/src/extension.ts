@@ -8,6 +8,7 @@ import {
     LanguageClient,
     LanguageClientOptions,
     ServerOptions,
+    TransportKind,
     Trace,
 } from 'vscode-languageclient/node';
 import { CK3StatusBar } from './statusBar';
@@ -1429,11 +1430,32 @@ async function startServer(context: vscode.ExtensionContext): Promise<void> {
         
         logger.logServer(`Using TypeScript server at: ${serverModule}`);
         
+        // Check if server module exists
+        if (!fs.existsSync(serverModule)) {
+            const error = new Error(`TypeScript server not found at: ${serverModule}`);
+            logger.logServer(`ERROR: ${error.message}`);
+            await handleServerError(error);
+            statusBar.updateState('error', 'Server not found');
+            return;
+        }
+        
+        logger.logServer('TypeScript server module found, configuring...');
+        
         serverOptions = {
-            module: serverModule,
-            transport: 0, // TransportKind.stdio
-            options: {
-                env: { ...process.env, LOG_LEVEL: logLevel },
+            run: {
+                module: serverModule,
+                transport: TransportKind.stdio,
+                options: {
+                    env: { ...process.env, LOG_LEVEL: logLevel },
+                },
+            },
+            debug: {
+                module: serverModule,
+                transport: TransportKind.stdio,
+                options: {
+                    env: { ...process.env, LOG_LEVEL: logLevel },
+                    execArgv: ['--nolazy', '--inspect=6009'],
+                },
             },
         };
     } else {
