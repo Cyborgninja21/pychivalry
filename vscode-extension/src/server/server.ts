@@ -162,7 +162,7 @@ export class CK3LanguageServer {
         this.renameProvider = new RenameProvider(this.parser, this.indexer);
         this.semanticTokensProvider = new SemanticTokensProvider(this.parser);
         this.codeActionsProvider = new CodeActionsProvider(this.parser);
-        this.codeLensProvider = new CodeLensProvider(this.parser);
+        this.codeLensProvider = new CodeLensProvider(this.parser, this.indexer);
         this.documentLinksProvider = new DocumentLinksProvider(this.parser);
         this.documentHighlightProvider = new DocumentHighlightProvider(this.parser);
         this.inlayHintsProvider = new InlayHintsProvider(this.parser);
