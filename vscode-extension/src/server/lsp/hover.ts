@@ -10,6 +10,11 @@ import { CK3Language } from '../ck3/language';
 import { getDataLoader, EffectDefinition, TriggerDefinition, TraitDefinition, ScopeDefinition } from '../data/loader';
 
 /**
+ * Default scope used when scope chain analysis cannot determine starting point
+ */
+const DEFAULT_ROOT_SCOPE = 'character';
+
+/**
  * Represents different documentation contexts
  */
 enum DocContext {
@@ -297,7 +302,7 @@ export class HoverProvider {
 
         // Explain each step
         const scopes = loader.getScopes();
-        let currentScope = 'character'; // Default starting scope
+        let currentScope = DEFAULT_ROOT_SCOPE;
         
         doc.paragraph('**Navigation Steps**');
         const steps: string[] = [];
@@ -387,25 +392,42 @@ export class HoverProvider {
     }
 
     /**
-     * Infer parameter type from key/value patterns
+     * Infer parameter type from key/value patterns using heuristic matching
+     * 
+     * Note: This uses string-based heuristics which may produce false positives.
+     * Patterns are matched in priority order with explicit fallback to 'value'.
      */
     private inferParamType(key: string, description: string): string {
         const lowerKey = key.toLowerCase();
         const lowerDesc = description.toLowerCase();
         
-        if (lowerKey.includes('days') || lowerKey.includes('years') || lowerKey.includes('months')) {
-            return 'number';
-        }
-        if (lowerKey === 'target' || lowerKey.includes('who')) {
-            return 'scope';
-        }
-        if (lowerDesc.includes('yes') && lowerDesc.includes('no')) {
-            return 'bool';
-        }
-        if (lowerDesc.includes('number') || lowerDesc.includes('amount')) {
-            return 'number';
+        // Pattern configuration for type inference (priority order)
+        const typePatterns = {
+            number: {
+                keyPatterns: ['days', 'years', 'months', 'amount', 'count'],
+                descPatterns: ['number', 'amount', 'value']
+            },
+            scope: {
+                keyPatterns: ['target', 'who', 'character', 'title'],
+                descPatterns: ['scope', 'character', 'target']
+            },
+            bool: {
+                keyPatterns: [],
+                descPatterns: ['yes', 'no', 'true', 'false']
+            }
+        };
+        
+        // Check each type pattern
+        for (const [type, patterns] of Object.entries(typePatterns)) {
+            const keyMatch = patterns.keyPatterns.some(p => lowerKey.includes(p));
+            const descMatch = patterns.descPatterns.every(p => lowerDesc.includes(p)) && patterns.descPatterns.length > 0;
+            
+            if (keyMatch || descMatch) {
+                return type;
+            }
         }
         
+        // Explicit fallback
         return 'value';
     }
 
