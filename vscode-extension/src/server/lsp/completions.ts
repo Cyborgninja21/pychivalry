@@ -19,6 +19,12 @@ import { SchemaLoader, SchemaField } from '../schema/loader';
 import { getDataLoader, EffectDefinition, TriggerDefinition, ScopeDefinition } from '../data/loader';
 
 /**
+ * Constants for completion behavior
+ */
+const EMPTY_DOCUMENT_THRESHOLD = 50; // Characters threshold for template suggestions
+const DEFAULT_ROOT_SCOPE = 'character'; // Default scope when unable to infer
+
+/**
  * Represents the analysis result of cursor position in document
  */
 class CursorAnalysis {
@@ -128,7 +134,7 @@ interface CompletionStrategy {
 class TemplateCompletionStrategy implements CompletionStrategy {
     canHandle(analysis: CursorAnalysis): boolean {
         // Handle when document is mostly empty or at root level
-        return analysis.fullDocumentText.trim().length < 50 || 
+        return analysis.fullDocumentText.trim().length < EMPTY_DOCUMENT_THRESHOLD || 
                (!analysis.withinBlock && analysis.ancestorNodes.length <= 1);
     }
     
@@ -358,6 +364,8 @@ class SchemaFieldStrategy implements CompletionStrategy {
  * Value assignment completion strategy
  */
 class ValueAssignmentStrategy implements CompletionStrategy {
+    constructor(private schemaLoader: SchemaLoader) {}
+    
     canHandle(analysis: CursorAnalysis): boolean {
         return analysis.afterAssignmentOp && analysis.assignmentKey !== null;
     }
@@ -366,10 +374,8 @@ class ValueAssignmentStrategy implements CompletionStrategy {
         const suggestions: CompletionItem[] = [];
         const keyName = analysis.assignmentKey!;
         
-        // Check schema for enum values
-        const schemaLoader = new SchemaLoader();
-        await schemaLoader.initialize();
-        const schemaData = await schemaLoader.getSchemaForFile(document.uri);
+        // Check schema for enum values using injected schemaLoader
+        const schemaData = await this.schemaLoader.getSchemaForFile(document.uri);
         
         if (schemaData?.properties?.[keyName]) {
             const fieldDef = schemaData.properties[keyName] as SchemaField;
@@ -618,7 +624,15 @@ class EffectCommandStrategy implements CompletionStrategy {
     }
     
     private inferCurrentScope(analysis: CursorAnalysis): string | null {
-        // Simple heuristic - could be enhanced with actual scope tracking
+        // Try to infer from document type first
+        if (analysis.documentCategory === 'character_interactions') {
+            return 'character';
+        }
+        if (analysis.documentCategory === 'on_actions') {
+            return 'character'; // Most on_actions are character scope
+        }
+        
+        // Check ancestor nodes for scope hints
         for (const ancestor of analysis.ancestorNodes) {
             if (ancestor.key && ancestor.key.includes('character')) {
                 return 'character';
@@ -627,7 +641,9 @@ class EffectCommandStrategy implements CompletionStrategy {
                 return 'title';
             }
         }
-        return 'character'; // Default assumption
+        
+        // Fallback to default
+        return DEFAULT_ROOT_SCOPE;
     }
     
     private areScopesCompatible(current: string, required: string): boolean {
@@ -750,11 +766,11 @@ export class CompletionProvider {
         private indexer: DocumentIndexer,
         private schemaLoader: SchemaLoader
     ) {
-        // Initialize strategy pipeline
+        // Initialize strategy pipeline with dependencies
         this.strategies = [
             new TemplateCompletionStrategy(),
             new SchemaFieldStrategy(schemaLoader),
-            new ValueAssignmentStrategy(),
+            new ValueAssignmentStrategy(schemaLoader),
             new ScopeNavigationStrategy(),
             new EffectCommandStrategy(),
             new TriggerConditionStrategy(),
@@ -937,7 +953,18 @@ export class CompletionProvider {
     }
     
     private isOffsetInRange(offset: number, start: Position, end: Position): boolean {
-        // Simplified - would need proper implementation
+        // Convert positions to offsets for comparison
+        // Note: This is a simplified implementation
+        // In production, would need document reference to calculate actual offsets
+        
+        // Basic line/character comparison
+        const startLine = start.line;
+        const endLine = end.line;
+        const startChar = start.character;
+        const endChar = end.character;
+        
+        // For now, return true to maintain functionality
+        // TODO: Implement proper offset calculation with document reference
         return true;
     }
     
