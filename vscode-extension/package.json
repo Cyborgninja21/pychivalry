@@ -98,6 +98,11 @@
         "category": "CK3"
       },
       {
+        "command": "ck3LanguageServer.switchServerImplementation",
+        "title": "Switch Server Implementation (Python/TypeScript)",
+        "category": "CK3"
+      },
+      {
         "command": "ck3LanguageServer.extractTraitData",
         "title": "Extract Trait Data from CK3 Installation",
         "category": "CK3"
@@ -301,6 +306,16 @@
       {
         "title": "General",
         "properties": {
+          "ck3LanguageServer.serverImplementation": {
+            "type": "string",
+            "enum": [
+              "python",
+              "typescript"
+            ],
+            "default": "typescript",
+            "description": "Choose which language server implementation to use",
+            "scope": "resource"
+          },
           "ck3LanguageServer.pythonPath": {
             "type": "string",
             "default": "python",
@@ -507,6 +522,7 @@
     "format-check": "prettier --check \"src/**/*.ts\""
   },
   "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
     "@types/mocha": "^10.0.0",
     "@types/node": "^18.0.0",
     "@types/vscode": "^1.75.0",
@@ -523,6 +539,10 @@
     "webpack-cli": "^5.1.0"
   },
   "dependencies": {
-    "vscode-languageclient": "^9.0.0"
+    "fast-glob": "^3.3.3",
+    "js-yaml": "^4.1.1",
+    "vscode-languageclient": "^9.0.0",
+    "vscode-languageserver": "^9.0.1",
+    "vscode-languageserver-textdocument": "^1.0.12"
   }
 }

@@ -224,6 +224,14 @@ async function detectCK3Path(): Promise<string | null> {
 }
 
 /**
+ * Get server implementation from configuration
+ */
+function getServerImplementation(): 'python' | 'typescript' {
+    const config = vscode.workspace.getConfiguration('ck3LanguageServer');
+    return config.get('serverImplementation') || 'typescript';
+}
+
+/**
  * Get Python executable path from configuration
  */
 function getPythonPath(): string {
@@ -1399,25 +1407,8 @@ async function startServer(context: vscode.ExtensionContext): Promise<void> {
 
     statusBar.updateState('starting');
 
-    // Find Python installation
-    const pythonPath = await findPython();
-    if (!pythonPath) {
-        const error = new Error('Python not found');
-        await handleServerError(error);
-        statusBar.updateState('error', 'Python not found');
-        return;
-    }
-
-    logger.logServer(`Using Python: ${pythonPath}`);
-
-    // Check if pychivalry server is installed
-    const serverInstalled = await checkServerInstalled(pythonPath);
-    if (!serverInstalled) {
-        const error = new Error('pychivalry module not installed');
-        await handleServerError(error);
-        statusBar.updateState('error', 'pychivalry not installed');
-        return;
-    }
+    const serverImplementation = getServerImplementation();
+    logger.logServer(`Server implementation: ${serverImplementation}`);
 
     const args = config.get<string[]>('args', []);
     const traceLevel = config.get<string>('trace.server', 'off');
@@ -1425,17 +1416,55 @@ async function startServer(context: vscode.ExtensionContext): Promise<void> {
 
     logger.logServer(`Server args: ${args.join(' ') || '(none)'}`);
     logger.logServer(`Log level: ${logLevel}`);
-    logger.logDebug(`Python path: ${pythonPath}`);
     logger.logDebug(`Trace level: ${traceLevel}`);
 
-    // Server options
-    const serverOptions: ServerOptions = {
-        command: pythonPath,
-        args: ['-m', 'pychivalry.server', '--log-level', logLevel, ...args],
-        options: {
-            env: { ...process.env },
-        },
-    };
+    // Server options - different based on implementation
+    let serverOptions: ServerOptions;
+
+    if (serverImplementation === 'typescript') {
+        // TypeScript server runs as Node.js process
+        const serverModule = context.asAbsolutePath(
+            path.join('dist', 'server-main.js')
+        );
+        
+        logger.logServer(`Using TypeScript server at: ${serverModule}`);
+        
+        serverOptions = {
+            module: serverModule,
+            transport: 0, // TransportKind.stdio
+            options: {
+                env: { ...process.env, LOG_LEVEL: logLevel },
+            },
+        };
+    } else {
+        // Python server - find Python installation
+        const pythonPath = await findPython();
+        if (!pythonPath) {
+            const error = new Error('Python not found');
+            await handleServerError(error);
+            statusBar.updateState('error', 'Python not found');
+            return;
+        }
+
+        logger.logServer(`Using Python: ${pythonPath}`);
+
+        // Check if pychivalry server is installed
+        const serverInstalled = await checkServerInstalled(pythonPath);
+        if (!serverInstalled) {
+            const error = new Error('pychivalry module not installed');
+            await handleServerError(error);
+            statusBar.updateState('error', 'pychivalry not installed');
+            return;
+        }
+        
+        serverOptions = {
+            command: pythonPath,
+            args: ['-m', 'pychivalry.server', '--log-level', logLevel, ...args],
+            options: {
+                env: { ...process.env },
+            },
+        };
+    }
 
     // Client options - use separate channels for output and trace
     const clientOptions: LanguageClientOptions = {
