@@ -27,7 +27,7 @@ import { WorkspaceFolder, Diagnostic, DiagnosticSeverity, Range } from 'vscode-l
 import * as fs from 'fs';
 import * as path from 'path';
 import { promisify } from 'util';
-import { CK3Node } from './parser';
+import { ASTNode, NodeType } from './parser';
 
 const readFile = promisify(fs.readFile);
 const readdir = promisify(fs.readdir);
@@ -270,13 +270,13 @@ export class EnhancedWorkspaceManager {
     /**
      * Validate decision groups
      */
-    public validateDecisionGroups(ast: CK3Node): DecisionGroupValidation[] {
+    public validateDecisionGroups(ast: ASTNode): DecisionGroupValidation[] {
         const validations: DecisionGroupValidation[] = [];
         
         // Find all decision groups in AST
-        if (ast.type === 'document' && ast.children) {
+        if (ast.type === NodeType.ROOT && ast.children) {
             for (const child of ast.children) {
-                if (child.type === 'assignment' && child.key) {
+                if (child.type === NodeType.ASSIGNMENT && child.key) {
                     const validation: DecisionGroupValidation = {
                         groupName: child.key,
                         decisions: [],
@@ -285,17 +285,17 @@ export class EnhancedWorkspaceManager {
                         issues: [],
                     };
                     
-                    // Check for icon and picture
-                    if (child.value && child.value.type === 'block' && child.value.children) {
-                        for (const field of child.value.children) {
+                    // Check for icon and picture in children
+                    if (child.children) {
+                        for (const field of child.children) {
                             if (field.key === 'icon' && field.value) {
                                 validation.hasIcon = true;
                             }
                             if (field.key === 'picture' && field.value) {
                                 validation.hasPicture = true;
                             }
-                            if (field.key === 'sort_order' && field.value?.type === 'number') {
-                                validation.sortOrder = parseInt(field.value.value || '0');
+                            if (field.key === 'sort_order' && typeof field.value === 'number') {
+                                validation.sortOrder = field.value;
                             }
                         }
                     }
@@ -511,27 +511,27 @@ export class EnhancedWorkspaceManager {
     /**
      * Extract localization keys from event node
      */
-    public extractLocalizationKeysFromEvent(eventNode: CK3Node): string[] {
+    public extractLocalizationKeysFromEvent(eventNode: ASTNode): string[] {
         const keys: string[] = [];
         
-        if (eventNode.type !== 'assignment' || !eventNode.value) {
+        if (eventNode.type !== NodeType.ASSIGNMENT) {
             return keys;
         }
         
-        // Look for title, desc, and option names
-        const eventBlock = eventNode.value;
-        if (eventBlock.type === 'block' && eventBlock.children) {
-            for (const child of eventBlock.children) {
-                if (child.key === 'title' && child.value?.type === 'identifier') {
-                    keys.push(child.value.value || '');
+        // Look for title, desc, and option names in children
+        if (eventNode.children) {
+            for (const child of eventNode.children) {
+                if (child.key === 'title' && typeof child.value === 'string') {
+                    keys.push(child.value);
                 }
-                if (child.key === 'desc' && child.value?.type === 'identifier') {
-                    keys.push(child.value.value || '');
+                if (child.key === 'desc' && typeof child.value === 'string') {
+                    keys.push(child.value);
                 }
-                if (child.key === 'option' && child.value?.type === 'block' && child.value.children) {
-                    for (const optChild of child.value.children) {
-                        if (optChild.key === 'name' && optChild.value?.type === 'identifier') {
-                            keys.push(optChild.value.value || '');
+                // Options would be in children as separate nodes
+                if (child.key === 'option' && child.children) {
+                    for (const optChild of child.children) {
+                        if (optChild.key === 'name' && typeof optChild.value === 'string') {
+                            keys.push(optChild.value);
                         }
                     }
                 }
