@@ -13,7 +13,7 @@
  */
 
 import { DocumentSymbol, SymbolKind, Range } from 'vscode-languageserver';
-import { CK3Node } from '../core/parser';
+import { ASTNode } from '../core/parser';
 import { SchemaLoader, SchemaDefinition } from './loader';
 
 /**
@@ -29,7 +29,7 @@ export class SchemaSymbolExtractor {
     /**
      * Extract symbols from AST based on schema
      */
-    public async extractSymbols(filePath: string, ast: CK3Node[]): Promise<DocumentSymbol[]> {
+    public async extractSymbols(filePath: string, ast: ASTNode[]): Promise<DocumentSymbol[]> {
         const schema = await this.getSchemaForFile(filePath);
         if (!schema) {
             return [];
@@ -42,7 +42,7 @@ export class SchemaSymbolExtractor {
         const blockPattern = schema.identification?.block_pattern;
 
         for (const node of ast) {
-            if (this.matchesBlockPattern(node.key, blockPattern)) {
+            if (node.key && this.matchesBlockPattern(node.key, blockPattern)) {
                 const symbol = this.createSymbol(node, schema, symbolConfig);
                 if (symbol) {
                     symbols.push(symbol);
@@ -57,10 +57,12 @@ export class SchemaSymbolExtractor {
      * Create a symbol from a node
      */
     private createSymbol(
-        node: CK3Node,
+        node: ASTNode,
         schema: SchemaDefinition,
         symbolConfig: any
     ): DocumentSymbol | null {
+        if (!node.key) return null;
+        
         // Determine symbol kind based on schema config
         const kind = this.getSymbolKind(node, symbolConfig);
 
@@ -86,15 +88,17 @@ export class SchemaSymbolExtractor {
      * Extract nested symbols from a node
      */
     private extractNestedSymbols(
-        node: CK3Node,
+        node: ASTNode,
         schema: SchemaDefinition,
         nestedConfig: any
     ): DocumentSymbol[] {
         const symbols: DocumentSymbol[] = [];
 
+        if (!node.children) return symbols;
+
         for (const child of node.children) {
             // Check if this child should be a symbol
-            if (nestedConfig.fields && nestedConfig.fields.includes(child.key)) {
+            if (nestedConfig.fields && child.key && nestedConfig.fields.includes(child.key)) {
                 const symbol = this.createNestedSymbol(child, nestedConfig);
                 if (symbol) {
                     symbols.push(symbol);
@@ -102,7 +106,7 @@ export class SchemaSymbolExtractor {
             }
 
             // Check for pattern-based symbols
-            if (nestedConfig.pattern) {
+            if (nestedConfig.pattern && child.key) {
                 try {
                     const regex = new RegExp(nestedConfig.pattern);
                     if (regex.test(child.key)) {
@@ -123,7 +127,9 @@ export class SchemaSymbolExtractor {
     /**
      * Create a nested symbol
      */
-    private createNestedSymbol(node: CK3Node, config: any): DocumentSymbol | null {
+    private createNestedSymbol(node: ASTNode, config: any): DocumentSymbol | null {
+        if (!node.key) return null;
+        
         const kind = this.getNestedSymbolKind(node, config);
 
         return {
@@ -139,13 +145,13 @@ export class SchemaSymbolExtractor {
     /**
      * Get symbol kind based on node and configuration
      */
-    private getSymbolKind(node: CK3Node, config: any): SymbolKind {
+    private getSymbolKind(node: ASTNode, config: any): SymbolKind {
         if (config.kind) {
             return this.mapSymbolKind(config.kind);
         }
 
         // Default kinds based on file type
-        const fileName = node.key.toLowerCase();
+        const fileName = node.key?.toLowerCase() || '';
         if (fileName.includes('event')) {
             return SymbolKind.Event;
         } else if (fileName.includes('decision')) {
@@ -162,7 +168,7 @@ export class SchemaSymbolExtractor {
     /**
      * Get nested symbol kind
      */
-    private getNestedSymbolKind(node: CK3Node, config: any): SymbolKind {
+    private getNestedSymbolKind(node: ASTNode, config: any): SymbolKind {
         // Map common field names to symbol kinds
         const kindMap: Record<string, SymbolKind> = {
             'option': SymbolKind.Method,
@@ -175,7 +181,7 @@ export class SchemaSymbolExtractor {
             'name': SymbolKind.String,
         };
 
-        return kindMap[node.key] || SymbolKind.Field;
+        return node.key && node.key in kindMap ? kindMap[node.key] : SymbolKind.Field;
     }
 
     /**
@@ -213,7 +219,7 @@ export class SchemaSymbolExtractor {
     /**
      * Get symbol detail text
      */
-    private getSymbolDetail(node: CK3Node, schema: SchemaDefinition): string {
+    private getSymbolDetail(node: ASTNode, schema: SchemaDefinition): string {
         const details: string[] = [];
 
         // Add file type

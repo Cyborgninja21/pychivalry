@@ -14,7 +14,7 @@
  */
 
 import { Diagnostic, DiagnosticSeverity, Range } from 'vscode-languageserver';
-import { CK3Node } from '../core/parser';
+import { ASTNode } from '../core/parser';
 import { SchemaLoader, SchemaDefinition } from './loader';
 
 // Map severity strings to LSP DiagnosticSeverity enum
@@ -46,7 +46,7 @@ export class SchemaValidator {
     /**
      * Validate AST against the appropriate schema for the file
      */
-    public async validate(filePath: string, ast: CK3Node[]): Promise<Diagnostic[]> {
+    public async validate(filePath: string, ast: ASTNode[]): Promise<Diagnostic[]> {
         if (!this.config.enabled) {
             return [];
         }
@@ -64,7 +64,7 @@ export class SchemaValidator {
 
         // Validate each top-level node
         for (const node of ast) {
-            if (this.matchesBlockPattern(node.key, blockPattern)) {
+            if (node.key && this.matchesBlockPattern(node.key, blockPattern)) {
                 // Validate this block against the schema
                 diagnostics.push(...this.validateBlock(node, schema, schema.fields || {}));
 
@@ -139,19 +139,23 @@ export class SchemaValidator {
      * Validate a block node against field definitions
      */
     private validateBlock(
-        node: CK3Node,
+        node: ASTNode,
         schema: SchemaDefinition,
         fields: Record<string, any>
     ): Diagnostic[] {
         const diagnostics: Diagnostic[] = [];
-        const presentFields: Record<string, CK3Node[]> = {};
+        const presentFields: Record<string, ASTNode[]> = {};
 
         // Group children by field name
-        for (const child of node.children) {
-            if (!presentFields[child.key]) {
-                presentFields[child.key] = [];
+        if (node.children) {
+            for (const child of node.children) {
+                if (child.key) {
+                    if (!presentFields[child.key]) {
+                        presentFields[child.key] = [];
+                    }
+                    presentFields[child.key].push(child);
+                }
             }
-            presentFields[child.key].push(child);
         }
 
         // Validate each field definition
@@ -195,10 +199,12 @@ export class SchemaValidator {
                 for (const unlessField of unlessFields) {
                     if (presentFields[unlessField]) {
                         const unlessNodes = presentFields[unlessField];
-                        if (unlessNodes.length > 0 && 
-                            ['yes', 'true', true].includes(unlessNodes[0].value)) {
-                            skipCheck = true;
-                            break;
+                        if (unlessNodes.length > 0 && unlessNodes[0].value !== undefined) {
+                            const val = unlessNodes[0].value;
+                            if (val === 'yes' || val === 'true' || val === true) {
+                                skipCheck = true;
+                                break;
+                            }
                         }
                     }
                 }
@@ -239,9 +245,9 @@ export class SchemaValidator {
             // Pattern validation
             if (fieldNodes.length > 0 && fieldDef.type) {
                 for (const fieldNode of fieldNodes) {
-                    if (fieldNode.value) {
+                    if (fieldNode.value !== undefined) {
                         const patternDiag = this.validatePattern(
-                            fieldNode.value,
+                            String(fieldNode.value),
                             fieldDef.type,
                             fieldName
                         );
@@ -322,10 +328,10 @@ export class SchemaValidator {
      * Check if a required field is present
      */
     private checkRequired(
-        node: CK3Node,
+        node: ASTNode,
         fieldName: string,
         fieldDef: any,
-        presentFields: Record<string, CK3Node[]>
+        presentFields: Record<string, ASTNode[]>
     ): boolean {
         // Simple required check
         if (fieldDef.required) {
@@ -346,7 +352,7 @@ export class SchemaValidator {
     /**
      * Evaluate a condition expression
      */
-    private evaluateCondition(node: CK3Node, condition: string): boolean {
+    private evaluateCondition(node: ASTNode, condition: string): boolean {
         if (!condition) {
             return true;
         }
@@ -357,20 +363,20 @@ export class SchemaValidator {
         // Check for "exists" condition
         if (condition.endsWith(' exists')) {
             const fieldName = condition.replace(' exists', '').trim();
-            return node.children.some(child => child.key === fieldName);
+            return node.children ? node.children.some((child: ASTNode) => child.key === fieldName) : false;
         }
 
         // Check for "= value" condition
         if (condition.includes(' = ')) {
             const [fieldName, value] = condition.split(' = ').map(s => s.trim());
-            const field = node.children.find(child => child.key === fieldName);
+            const field = node.children ? node.children.find((child: ASTNode) => child.key === fieldName) : undefined;
             return field ? field.value === value : false;
         }
 
         // Check for "!= value" condition
         if (condition.includes(' != ')) {
             const [fieldName, value] = condition.split(' != ').map(s => s.trim());
-            const field = node.children.find(child => child.key === fieldName);
+            const field = node.children ? node.children.find((child: ASTNode) => child.key === fieldName) : undefined;
             return field ? field.value !== value : true;
         }
 
@@ -378,8 +384,8 @@ export class SchemaValidator {
         if (condition.includes(' in ')) {
             const [fieldName, valuesStr] = condition.split(' in ').map(s => s.trim());
             const values = valuesStr.replace(/[\[\]]/g, '').split(',').map(s => s.trim());
-            const field = node.children.find(child => child.key === fieldName);
-            return field ? values.includes(field.value) : false;
+            const field = node.children ? node.children.find((child: ASTNode) => child.key === fieldName) : undefined;
+            return field ? values.includes(String(field.value)) : false;
         }
 
         return true; // Default to true if we can't evaluate
@@ -481,7 +487,7 @@ export class SchemaValidator {
     /**
      * Get template variables from a node
      */
-    private getTemplateVars(node: CK3Node): Record<string, any> {
+    private getTemplateVars(node: ASTNode): Record<string, any> {
         return {
             key: node.key,
             value: node.value || '',

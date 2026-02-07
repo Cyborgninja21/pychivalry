@@ -215,15 +215,15 @@ export class EnhancedIndexer extends DocumentIndexer {
                         metadata.type = child.value as any;
                         break;
                     case 'theme':
-                        metadata.theme = child.value;
+                        metadata.theme = typeof child.value === 'string' ? child.value : undefined;
                         break;
                     case 'title':
-                        metadata.title = child.value;
-                        if (child.value) metadata.localizationKeys.push(child.value);
+                        metadata.title = typeof child.value === 'string' ? child.value : undefined;
+                        if (typeof child.value === 'string') metadata.localizationKeys.push(child.value);
                         break;
                     case 'desc':
-                        metadata.desc = child.value;
-                        if (child.value) metadata.localizationKeys.push(child.value);
+                        metadata.desc = typeof child.value === 'string' ? child.value : undefined;
+                        if (typeof child.value === 'string') metadata.localizationKeys.push(child.value);
                         break;
                     case 'trigger':
                         metadata.triggers.push(...this.extractTriggers(child));
@@ -266,8 +266,8 @@ export class EnhancedIndexer extends DocumentIndexer {
             for (const child of node.children) {
                 switch (child.key) {
                     case 'name':
-                        option.name = child.value || '';
-                        if (child.value) eventMetadata.localizationKeys.push(child.value);
+                        option.name = typeof child.value === 'string' ? child.value : '';
+                        if (typeof child.value === 'string') eventMetadata.localizationKeys.push(child.value);
                         break;
                     case 'trigger':
                         option.triggers.push(...this.extractTriggers(child));
@@ -298,7 +298,7 @@ export class EnhancedIndexer extends DocumentIndexer {
     ): void {
         this.traverse(node, (n) => {
             if (n.key === 'trigger_event') {
-                const eventId = n.value || this.findChildValue(n, 'id');
+                const eventId = typeof n.value === 'string' ? n.value : this.findChildValue(n, 'id');
                 if (eventId) {
                     const ref: EventReference = {
                         fromEvent: metadata.id,
@@ -340,6 +340,7 @@ export class EnhancedIndexer extends DocumentIndexer {
             is_valid_showing_failures_only: [],
             effect: [],
             ai_potential: [],
+            ai_will_do: [],
             localizationKeys: []
         };
         
@@ -347,16 +348,16 @@ export class EnhancedIndexer extends DocumentIndexer {
             for (const child of node.children) {
                 switch (child.key) {
                     case 'title':
-                        metadata.title = child.value;
-                        if (child.value) metadata.localizationKeys.push(child.value);
+                        metadata.title = typeof child.value === 'string' ? child.value : undefined;
+                        if (typeof child.value === 'string') metadata.localizationKeys.push(child.value);
                         break;
                     case 'desc':
-                        metadata.desc = child.value;
-                        if (child.value) metadata.localizationKeys.push(child.value);
+                        metadata.desc = typeof child.value === 'string' ? child.value : undefined;
+                        if (typeof child.value === 'string') metadata.localizationKeys.push(child.value);
                         break;
                     case 'selection_tooltip':
-                        metadata.selection_tooltip = child.value;
-                        if (child.value) metadata.localizationKeys.push(child.value);
+                        metadata.selection_tooltip = typeof child.value === 'string' ? child.value : undefined;
+                        if (typeof child.value === 'string') metadata.localizationKeys.push(child.value);
                         break;
                     case 'major':
                         metadata.major = child.value === 'yes';
@@ -391,7 +392,7 @@ export class EnhancedIndexer extends DocumentIndexer {
         this.traverse(ast, (node) => {
             // Check for event references
             if (node.key === 'trigger_event' || node.key === 'add_to_list') {
-                const symbolName = node.value || this.findChildValue(node, 'id');
+                const symbolName = typeof node.value === 'string' ? node.value : this.findChildValue(node, 'id');
                 if (symbolName) {
                     this.addReference(symbolName, uri, node, 'call');
                 }
@@ -400,7 +401,7 @@ export class EnhancedIndexer extends DocumentIndexer {
             // Check for decision references
             if (node.key === 'has_character_flag' || node.key === 'has_global_variable') {
                 const symbolName = node.value;
-                if (symbolName) {
+                if (typeof symbolName === 'string') {
                     this.addReference(symbolName, uri, node, 'trigger');
                 }
             }
@@ -559,18 +560,20 @@ export class EnhancedIndexer extends DocumentIndexer {
      * Get statistics
      */
     public getStatistics(): {
-        events: number;
-        decisions: number;
-        references: number;
-        undefinedReferences: number;
-        localizationKeys: number;
+        totalDocuments: number;
+        totalSymbols: number;
+        symbolsByType: Record<string, number>;
     } {
         return {
-            events: this.events.size,
-            decisions: this.decisions.size,
-            references: this.references.size,
-            undefinedReferences: this.undefinedReferences.size,
-            localizationKeys: this.localizationKeys.size
+            totalDocuments: this.events.size + this.decisions.size,
+            totalSymbols: this.events.size + this.decisions.size + this.references.size + this.localizationKeys.size,
+            symbolsByType: {
+                events: this.events.size,
+                decisions: this.decisions.size,
+                references: this.references.size,
+                undefinedReferences: this.undefinedReferences.size,
+                localizationKeys: this.localizationKeys.size
+            }
         };
     }
     
@@ -585,7 +588,7 @@ export class EnhancedIndexer extends DocumentIndexer {
         if (node.children) {
             for (const child of node.children) {
                 if (child.key === 'id') {
-                    return child.value || null;
+                    return typeof child.value === 'string' ? child.value : null;
                 }
             }
         }
@@ -622,10 +625,10 @@ export class EnhancedIndexer extends DocumentIndexer {
             for (const child of node.children) {
                 switch (child.key) {
                     case 'character':
-                        portrait.character = child.value;
+                        portrait.character = typeof child.value === 'string' ? child.value : undefined;
                         break;
                     case 'animation':
-                        portrait.animation = child.value;
+                        portrait.animation = typeof child.value === 'string' ? child.value : undefined;
                         break;
                 }
             }
@@ -637,7 +640,7 @@ export class EnhancedIndexer extends DocumentIndexer {
         if (node.children) {
             for (const child of node.children) {
                 if (child.key === key) {
-                    return child.value || null;
+                    return typeof child.value === 'string' ? child.value : null;
                 }
             }
         }
@@ -685,7 +688,7 @@ export class EnhancedIndexer extends DocumentIndexer {
     
     private traverseForDecisions(node: ASTNode, callback: (node: ASTNode) => void): void {
         // Decisions are typically at top level in decision files
-        if (node.type === 'block' && node.key && !this.isEventType(node.key)) {
+        if (node.type === NodeType.BLOCK && node.key && !this.isEventType(node.key)) {
             callback(node);
         }
         if (node.children) {
