@@ -67,6 +67,7 @@ import { DocumentLinksProvider } from './lsp/document-links';
 import { DocumentHighlightProvider } from './lsp/document-highlight';
 import { InlayHintsProvider } from './lsp/inlay-hints';
 import { SignatureHelpProvider } from './lsp/signature-help';
+import { CallHierarchyProvider } from './lsp/call-hierarchy';
 
 /**
  * Server configuration interface
@@ -132,6 +133,7 @@ export class CK3LanguageServer {
     private documentHighlightProvider: DocumentHighlightProvider;
     private inlayHintsProvider: InlayHintsProvider;
     private signatureHelpProvider: SignatureHelpProvider;
+    private callHierarchyProvider: CallHierarchyProvider;
 
     // Log watcher + analyzer
     private logWatcher: CK3LogWatcher | null = null;
@@ -217,6 +219,7 @@ export class CK3LanguageServer {
         this.documentHighlightProvider = new DocumentHighlightProvider(this.parser);
         this.inlayHintsProvider = new InlayHintsProvider(this.parser);
         this.signatureHelpProvider = new SignatureHelpProvider(this.parser);
+        this.callHierarchyProvider = new CallHierarchyProvider(this.parser, this.indexer);
 
         // Register handlers
         this.registerHandlers();
@@ -266,6 +269,9 @@ export class CK3LanguageServer {
         this.connection.languages.inlayHint.on(this.onInlayHint.bind(this));
         this.connection.languages.inlayHint.resolve(this.onInlayHintResolve.bind(this));
         this.connection.onSignatureHelp(this.onSignatureHelp.bind(this));
+        this.connection.languages.callHierarchy.onPrepare(this.onPrepareCallHierarchy.bind(this));
+        this.connection.languages.callHierarchy.onIncomingCalls(this.onCallHierarchyIncomingCalls.bind(this));
+        this.connection.languages.callHierarchy.onOutgoingCalls(this.onCallHierarchyOutgoingCalls.bind(this));
 
         // Workspace features
         this.connection.onWorkspaceSymbol(this.onWorkspaceSymbol.bind(this));
@@ -332,6 +338,7 @@ export class CK3LanguageServer {
                 triggerCharacters: ['{', '=', ' '],
             },
             inlayHintProvider: { resolveProvider: true },
+            callHierarchyProvider: true,
             workspaceSymbolProvider: true,
             executeCommandProvider: {
                 commands: [
@@ -1045,6 +1052,44 @@ export class CK3LanguageServer {
         } catch (error) {
             this.connection.console.error(`Signature help error: ${error}`);
             return null;
+        }
+    }
+
+    /**
+     * Call hierarchy prepare handler
+     */
+    private onPrepareCallHierarchy(params: any): any {
+        const document = this.documents.get(params.textDocument.uri);
+        if (!document) return null;
+        try {
+            return this.callHierarchyProvider.prepareCallHierarchy(document, params);
+        } catch (error) {
+            this.connection.console.error(`Call hierarchy prepare error: ${error}`);
+            return null;
+        }
+    }
+
+    /**
+     * Call hierarchy incoming calls handler
+     */
+    private onCallHierarchyIncomingCalls(params: any): any {
+        try {
+            return this.callHierarchyProvider.incomingCalls(params);
+        } catch (error) {
+            this.connection.console.error(`Call hierarchy incoming calls error: ${error}`);
+            return [];
+        }
+    }
+
+    /**
+     * Call hierarchy outgoing calls handler
+     */
+    private onCallHierarchyOutgoingCalls(params: any): any {
+        try {
+            return this.callHierarchyProvider.outgoingCalls(params);
+        } catch (error) {
+            this.connection.console.error(`Call hierarchy outgoing calls error: ${error}`);
+            return [];
         }
     }
 

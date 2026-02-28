@@ -574,38 +574,28 @@ class EventLensGenerator implements LensGenerator {
         const callers: string[] = [];
         let hasCircularRef = false;
 
-        // Use EnhancedIndexer if available for event chain data
+        // Use the shared CallGraph via EnhancedIndexer when available
         const indexer = context.indexer;
         if (indexer instanceof EnhancedIndexer) {
-            // Get events triggered by this event
-            const triggered = indexer.getEventChain(eventId);
-            targets.push(...triggered);
+            const callGraph = indexer.getCallGraph();
 
-            // Check if any of the triggered events chain back to this one (circular)
-            const visited = new Set<string>([eventId]);
-            const queue = [...triggered];
-            while (queue.length > 0) {
-                const next = queue.shift()!;
-                if (next === eventId) {
-                    hasCircularRef = true;
-                    break;
-                }
-                if (visited.has(next)) continue;
-                visited.add(next);
-                const nextTargets = indexer.getEventChain(next);
-                queue.push(...nextTargets);
-            }
-
-            // Find callers: events that trigger this event
-            // Search all event symbols for chains that include this eventId
-            const allEvents = indexer.findSymbolsByType(SymbolType.EVENT);
-            for (const eventSymbol of allEvents) {
-                if (eventSymbol.name === eventId) continue;
-                const chain = indexer.getEventChain(eventSymbol.name);
-                if (chain.includes(eventId)) {
-                    callers.push(eventSymbol.name);
+            // Get outgoing calls (events triggered by this event)
+            const outgoing = callGraph.getOutgoingCalls(eventId);
+            for (const edge of outgoing) {
+                if (edge.toType === SymbolType.EVENT) {
+                    targets.push(edge.toName);
                 }
             }
+
+            // Get incoming calls (symbols that trigger this event)
+            const incoming = callGraph.getIncomingCalls(eventId);
+            for (const edge of incoming) {
+                callers.push(edge.fromName);
+            }
+
+            // Circular reference detection
+            const circularInfo = callGraph.detectCircularReferences(eventId);
+            hasCircularRef = circularInfo.hasCircular;
         }
 
         return { source: eventId, targets, callers, hasCircularRef };

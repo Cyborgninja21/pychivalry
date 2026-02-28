@@ -7,6 +7,7 @@
  * - Reference counting and cross-file resolution
  * - Dependency graph construction
  * - Event chain tracking
+ * - Call graph construction
  * - Namespace inference
  * - Localization key extraction
  * - Undefined reference detection
@@ -14,6 +15,7 @@
 
 import { ASTNode, NodeType } from './parser';
 import { Symbol, SymbolType, DocumentIndexer } from './indexer';
+import { CallGraph } from './call-graph';
 
 /**
  * Event metadata with full details
@@ -154,7 +156,10 @@ export class EnhancedIndexer extends DocumentIndexer {
     // Saved scope tracking: definitions (save_scope_as) and references (scope:name)
     private savedScopeDefinitions: Map<string, SavedScopeEntry[]> = new Map(); // scope_name -> entries
     private savedScopeReferences: Map<string, SavedScopeEntry[]> = new Map(); // scope_name -> entries
-    
+
+    // Call graph for tracking call relationships
+    private callGraph: CallGraph = new CallGraph(this);
+
     /**
      * Index a document with enhanced tracking
      */
@@ -172,6 +177,8 @@ export class EnhancedIndexer extends DocumentIndexer {
         this.extractLocalizationKeys(uri, ast);
         this.extractSavedScopes(uri, ast);
         this.buildDependencyGraph(uri);
+        this.callGraph.clearDocument(uri);
+        this.callGraph.buildFromAST(uri, ast);
     }
 
     /**
@@ -225,6 +232,9 @@ export class EnhancedIndexer extends DocumentIndexer {
                 this.undefinedReferences.delete(name);
             }
         }
+
+        // Clear call graph edges from this URI
+        this.callGraph.clearDocument(uri);
     }
     
     /**
@@ -683,6 +693,27 @@ export class EnhancedIndexer extends DocumentIndexer {
      */
     public getEventChain(eventId: string): string[] {
         return this.eventChains.get(eventId) || [];
+    }
+
+    /**
+     * Get the call graph instance for call hierarchy and code lens
+     */
+    public getCallGraph(): CallGraph {
+        return this.callGraph;
+    }
+
+    /**
+     * Get all tracked event metadata
+     */
+    public getAllEvents(): Map<string, EventMetadata> {
+        return this.events;
+    }
+
+    /**
+     * Get all tracked decision metadata
+     */
+    public getAllDecisions(): Map<string, DecisionMetadata> {
+        return this.decisions;
     }
     
     /**
