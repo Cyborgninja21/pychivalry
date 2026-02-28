@@ -13,10 +13,10 @@ dynasty_house:
     house_member: character
 
   triggers:
-    - has_house_modifier
-    - exists
+  - has_house_modifier
+  - exists
 
   effects:
-    - add_house_modifier
-    - remove_house_modifier
-    - save_scope_as
+  - add_house_modifier
+  - remove_house_modifier
+  - save_scope_as

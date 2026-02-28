@@ -11,15 +11,15 @@ dynasty:
     dynasty_member: character
 
   triggers:
-    - has_dynasty_modifier
-    - has_dynasty_perk
-    - dynasty_prestige
-    - num_dynasty_members
-    - exists
+  - has_dynasty_modifier
+  - has_dynasty_perk
+  - dynasty_prestige
+  - num_dynasty_members
+  - exists
 
   effects:
-    - add_dynasty_modifier
-    - remove_dynasty_modifier
-    - add_dynasty_prestige
-    - add_dynasty_perk
-    - save_scope_as
+  - add_dynasty_modifier
+  - remove_dynasty_modifier
+  - add_dynasty_prestige
+  - add_dynasty_perk
+  - save_scope_as

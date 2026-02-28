@@ -11,10 +11,10 @@ culture:
     culture_character: character
 
   triggers:
-    - has_cultural_tradition
-    - has_cultural_pillar
-    - has_innovation
-    - exists
+  - has_cultural_tradition
+  - has_cultural_pillar
+  - has_innovation
+  - exists
 
   effects:
-    - save_scope_as
+  - save_scope_as

@@ -13,12 +13,12 @@ faith:
     faith_character: character
 
   triggers:
-    - has_doctrine
-    - religion
-    - fervor
-    - exists
+  - has_doctrine
+  - religion
+  - fervor
+  - exists
 
   effects:
-    - change_fervor
-    - add_doctrine
-    - save_scope_as
+  - change_fervor
+  - add_doctrine
+  - save_scope_as

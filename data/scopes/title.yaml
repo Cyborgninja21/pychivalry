@@ -32,21 +32,21 @@ title:
     title_heir: character
 
   triggers:
-    - tier
-    - is_holy_site
-    - is_titular
-    - title_capital
-    - completely_controls
-    - exists
-    - holder
-    - has_holder
-    - is_title_created
+  - tier
+  - is_holy_site
+  - is_titular
+  - title_capital
+  - completely_controls
+  - exists
+  - holder
+  - has_holder
+  - is_title_created
 
   effects:
-    - set_capital_county
-    - destroy_title
-    - create_title
-    - add_title_law
-    - remove_title_law
-    - change_title_holder
-    - save_scope_as
+  - set_capital_county
+  - destroy_title
+  - create_title
+  - add_title_law
+  - remove_title_law
+  - change_title_holder
+  - save_scope_as
