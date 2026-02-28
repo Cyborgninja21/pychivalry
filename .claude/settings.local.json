@@ -27,7 +27,9 @@
       "Bash(npm test -- --testNamePattern=\"CallGraph\")",
       "Bash(npm run test:unit -- --grep \"CallHierarchy\")",
       "Bash(npx tsc -p . --outDir out)",
-      "Bash(node -e \":*)"
+      "Bash(node -e \":*)",
+      "Bash(gh auth status)",
+      "Bash(git -C c:/git/pychivalry remote -v)"
     ],
     "deny": [],
     "ask": []
