@@ -16,7 +16,7 @@ import { TextDocument } from 'vscode-languageserver-textdocument';
 import { CK3Parser, ASTNode, NodeType } from '../core/parser';
 import { DocumentIndexer, SymbolType } from '../core/indexer';
 import { SchemaLoader, SchemaField } from '../schema/loader';
-import { getDataLoader, EffectDefinition, TriggerDefinition, ScopeDefinition } from '../data/loader';
+import { getDataLoader, EffectDefinition, TriggerDefinition, ScopeDefinition, OnActionDefinition, InteractionHookDefinition } from '../data/loader';
 import { getTargetScopeType, getListResultScope, parseListIterator } from '../ck3/validation/scopes';
 import { DirectoryRegistry } from '../data/directory-registry';
 import { classifyContext } from '../ck3/validation/context-engine';
@@ -700,9 +700,15 @@ class EffectCommandStrategy implements CompletionStrategy {
             const builder = new CompletionBuilder(effectName)
                 .withKind(CompletionItemKind.Function)
                 .withDetails(effectData.scope ? `[${effectData.scope}] Effect` : 'Effect')
-                .withPlainInsertion(effectName + ' = ')
                 .withRanking(ranking)
                 .withMetadata('effectName', effectName);
+
+            // Use YAML snippet if available, otherwise plain insertion
+            if (effectData.snippet) {
+                builder.withSnippet(effectData.snippet);
+            } else {
+                builder.withPlainInsertion(effectName + ' = ');
+            }
 
             if (effectData.description) {
                 let docs = effectData.description;
@@ -798,9 +804,15 @@ class TriggerConditionStrategy implements CompletionStrategy {
             const builder = new CompletionBuilder(triggerName)
                 .withKind(CompletionItemKind.Function)
                 .withDetails(triggerData.scope ? `[${triggerData.scope}] Trigger` : 'Trigger')
-                .withPlainInsertion(triggerName + ' = ')
                 .withRanking(ranking)
                 .withMetadata('triggerName', triggerName);
+
+            // Use YAML snippet if available, otherwise plain insertion
+            if (triggerData.snippet) {
+                builder.withSnippet(triggerData.snippet);
+            } else {
+                builder.withPlainInsertion(triggerName + ' = ');
+            }
 
             if (triggerData.description) {
                 let docs = triggerData.description;
@@ -888,6 +900,109 @@ class SavedScopeStrategy implements CompletionStrategy {
 }
 
 /**
+ * On-action completion strategy
+ * Provides on-action names when editing on_actions/ files or on_actions blocks
+ */
+class OnActionCompletionStrategy implements CompletionStrategy {
+    canHandle(analysis: CursorAnalysis): boolean {
+        // At root level or shallow nesting in on_actions/ files
+        if (analysis.documentCategory === 'on_actions') {
+            return !analysis.withinBlock || analysis.ancestorNodes.length <= 2;
+        }
+
+        return false;
+    }
+
+    async generateSuggestions(analysis: CursorAnalysis, _document: TextDocument): Promise<CompletionItem[]> {
+        const suggestions: CompletionItem[] = [];
+        const loader = getDataLoader();
+        const onActionMap = loader.getOnActions();
+
+        for (const [actionName, actionData] of onActionMap.entries()) {
+            let docs = actionData.description || 'On-action';
+            const metaParts: string[] = [];
+
+            if (actionData.scopes) {
+                const scopeEntries = Object.entries(actionData.scopes);
+                if (scopeEntries.length > 0) {
+                    metaParts.push(`**Scopes:** ${scopeEntries.map(([k, v]) => `\`${k}\` = \`${v}\``).join(', ')}`);
+                }
+            }
+            if (actionData.has_trigger) metaParts.push('**Has trigger:** yes');
+            if (actionData.has_effect) metaParts.push('**Has effect:** yes');
+            if (actionData.is_pulse) metaParts.push('**Pulse action:** yes');
+
+            if (metaParts.length > 0) {
+                docs += '\n\n' + metaParts.join('  \n');
+            }
+
+            const builder = new CompletionBuilder(actionName)
+                .withKind(CompletionItemKind.Event)
+                .withDetails('On-action')
+                .withSnippet(`${actionName} = {\n\t$0\n}`)
+                .withMarkdownDocs(docs)
+                .withRanking('2_' + actionName)
+                .withMetadata('onAction', actionName);
+
+            suggestions.push(builder.build());
+        }
+
+        return suggestions;
+    }
+}
+
+/**
+ * Interaction hook completion strategy
+ * Provides hook names inside character_interaction, activity_type, scheme_type blocks
+ */
+class InteractionHookCompletionStrategy implements CompletionStrategy {
+    private static readonly HOOK_PARENTS = new Set([
+        'character_interaction', 'activity_type', 'scheme_type',
+    ]);
+
+    canHandle(analysis: CursorAnalysis): boolean {
+        // In character_interactions/ files when inside a block (the interaction definition)
+        if (analysis.documentCategory === 'character_interactions' && analysis.withinBlock) {
+            return true;
+        }
+
+        // Check if any ancestor is a hook-containing block type
+        for (const ancestor of analysis.ancestorNodes) {
+            if (!ancestor.key) continue;
+            for (const parent of InteractionHookCompletionStrategy.HOOK_PARENTS) {
+                if (ancestor.key === parent || ancestor.key.endsWith('_' + parent)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    async generateSuggestions(analysis: CursorAnalysis, _document: TextDocument): Promise<CompletionItem[]> {
+        const suggestions: CompletionItem[] = [];
+        const loader = getDataLoader();
+        const hookMap = loader.getInteractionHooks();
+
+        for (const [hookName, hookData] of hookMap.entries()) {
+            const docs = hookData.description || 'Interaction hook';
+
+            const builder = new CompletionBuilder(hookName)
+                .withKind(CompletionItemKind.Event)
+                .withDetails('Interaction hook')
+                .withSnippet(`${hookName} = {\n\t$0\n}`)
+                .withMarkdownDocs(docs)
+                .withRanking('2_' + hookName)
+                .withMetadata('hook', hookName);
+
+            suggestions.push(builder.build());
+        }
+
+        return suggestions;
+    }
+}
+
+/**
  * Main enhanced completion provider
  */
 export class CompletionProvider {
@@ -910,6 +1025,8 @@ export class CompletionProvider {
             new SavedScopeStrategy(indexer),
             new EffectCommandStrategy(),
             new TriggerConditionStrategy(),
+            new OnActionCompletionStrategy(),
+            new InteractionHookCompletionStrategy(),
         ];
     }
 

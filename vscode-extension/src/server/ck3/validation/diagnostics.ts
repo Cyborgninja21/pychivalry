@@ -42,7 +42,7 @@ import { serverLogger } from '../../utils/logger';
 import { validateGenericRules, GenericRulesConfig } from './generic-rules';
 import { validateAssets, AssetConfig } from './assets';
 import { validateStoryCycles, StoryCycleConfig } from './story-cycles';
-import { validateEventFromNode } from './events';
+import { validateEventFromNode, validateEventFileLocation, validateNamespaceDeclaration } from './events';
 import { validateScriptValues, ScriptValuesConfig, DEFAULT_SCRIPT_VALUES_CONFIG } from './script-values';
 import { SchemaValidator } from '../../schema/validator';
 import { SchemaLoader } from '../../schema/loader';
@@ -424,8 +424,10 @@ export class DiagnosticsEngine {
         for (const node of ast) {
             // Event structure validation (type, portraits, themes, etc.)
             if (this.config.enableConventionChecks && node.children) {
+                let hasEventBlocks = false;
                 for (const child of node.children) {
                     if (child.key && /^[a-z_]+\.\d+$/.test(child.key) && child.children) {
+                        hasEventBlocks = true;
                         const result = validateEventFromNode(child);
                         for (const err of result.errors) {
                             diagnostics.push({
@@ -436,6 +438,33 @@ export class DiagnosticsEngine {
                                 source: 'ck3-event',
                             });
                         }
+                    }
+                }
+
+                // File-level event validations
+                if (hasEventBlocks) {
+                    // EVENT-008: Check file is in events/ directory
+                    const locationErrors = validateEventFileLocation(document.uri, hasEventBlocks);
+                    for (const err of locationErrors) {
+                        diagnostics.push({
+                            severity: DiagnosticSeverity.Warning,
+                            range: node.children[0]?.range || { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } },
+                            message: err.message,
+                            code: err.code,
+                            source: 'ck3-event',
+                        });
+                    }
+
+                    // EVENT-009/EVENT-010: Namespace declaration checks
+                    const nsErrors = validateNamespaceDeclaration(node, document.uri);
+                    for (const err of nsErrors) {
+                        diagnostics.push({
+                            severity: DiagnosticSeverity.Warning,
+                            range: err.range || { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } },
+                            message: err.message,
+                            code: err.code,
+                            source: 'ck3-event',
+                        });
                     }
                 }
             }

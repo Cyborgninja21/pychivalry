@@ -257,6 +257,11 @@ export class SemanticTokensProvider {
             return { type: TokenTypeIndex.EVENT, description: 'Event identifier' };
         }
 
+        // Logical operators (AND, OR, NOT, NOR, NAND) — keyword highlighting
+        if (CK3Language.isLogicalOperator(keyName)) {
+            return { type: TokenTypeIndex.KEYWORD, description: 'Logical operator' };
+        }
+
         // CK3 Effects
         if (CK3Language.isEffect(keyName)) {
             return { type: TokenTypeIndex.FUNCTION, description: 'CK3 effect' };

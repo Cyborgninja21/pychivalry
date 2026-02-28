@@ -43,6 +43,7 @@ import { LocalizationIndex } from './core/localization-index';
 import { SchemaLoader } from './schema/loader';
 import { DataLoader } from './data/loader';
 import { ModScanner } from './data/mod-scanner';
+import { CK3Language } from './ck3/language';
 import { serverLogger } from './utils/logger';
 
 // Log watcher + analyzer
@@ -189,6 +190,12 @@ export class CK3LanguageServer {
         this.modScanner = new ModScanner();
         this.schemaLoader = new SchemaLoader();
         this.dataLoader = DataLoader.getInstance();
+
+        // Populate CK3Language keyword sets from YAML data
+        CK3Language.initialize(
+            this.dataLoader.getEffects().keys(),
+            this.dataLoader.getTriggers().keys(),
+        );
 
         // Initialize LSP providers
         this.completionProvider = new CompletionProvider(this.parser, this.indexer, this.schemaLoader, this.modScanner);
