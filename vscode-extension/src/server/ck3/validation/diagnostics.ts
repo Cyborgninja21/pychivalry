@@ -22,6 +22,7 @@ import { TextDocument } from 'vscode-languageserver-textdocument';
 import { ParseError as ParserError, ASTNode, NodeType } from '../../core/parser';
 import {
     validateScopeChain,
+    isScopeLink,
     isValidEffect,
     isValidTrigger,
     getScopeLinks,
@@ -270,7 +271,9 @@ export class DiagnosticsEngine {
         const walk = (nodes: ASTNode[], currentScope: string = 'character', context: 'none' | 'effect' | 'trigger' = 'none') => {
             for (const node of nodes) {
                 // Check scope chains (e.g., root.liege.primary_title)
-                if (node.key && node.key.includes('.')) {
+                // Only validate if the first segment is a known scope link;
+                // dotted identifiers like event IDs (my_namespace.0001) are not scope chains.
+                if (node.key && node.key.includes('.') && isScopeLink(node.key.split('.')[0], currentScope)) {
                     const [isValid, resultType, error] = validateScopeChain(node.key, currentScope);
                     if (!isValid && error) {
                         diagnostics.push({

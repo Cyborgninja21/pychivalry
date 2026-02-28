@@ -27,10 +27,37 @@ import { serverLogger } from '../../utils/logger';
 const UNIVERSAL_LINKS = ['root', 'this', 'prev', 'from', 'fromfrom'];
 
 /**
+ * Check if a name is a recognized scope link (universal or scope-specific).
+ *
+ * Use this to distinguish scope chains (root.liege.primary_title) from
+ * dotted identifiers (my_namespace.0001) before attempting scope chain validation.
+ *
+ * @param name The name to check
+ * @param scopeType The current scope type for scope-specific link lookup
+ * @returns True if the name is a valid scope link
+ */
+export function isScopeLink(name: string, scopeType: string): boolean {
+    if (UNIVERSAL_LINKS.includes(name)) {
+        return true;
+    }
+
+    const dataLoader = getDataLoader();
+    const scopes = dataLoader.getScopes();
+
+    if (!scopes.has(scopeType)) {
+        return false;
+    }
+
+    const scopeData = scopes.get(scopeType)!;
+    const links = scopeData.links || {};
+    return name in links;
+}
+
+/**
  * Get valid scope links for a given scope type
- * 
+ *
  * Scope links are single-step navigations to related objects (e.g., 'liege', 'spouse').
- * 
+ *
  * @param scopeType The scope type to query ('character', 'title', 'province')
  * @returns List of valid link names, always including universal links
  */
