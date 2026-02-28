@@ -1,0 +1,944 @@
+# CK3 Fame Traits
+# Auto-generated from CK3 game files
+# Total traits: 84
+
+adulterer:
+  category: fame
+  opposites: []
+  description: Adulterer
+  opinions:
+    same_opinion: 10
+  ruler_designer_cost: -5
+adventurer:
+  category: fame
+  opposites:
+  - adventurer_follower
+  level: 1
+  description: Adventurer
+  opinions:
+    general_opinion: -10
+    same_opinion: 20
+    opposite_opinion: 20
+  ruler_designer_cost: 50
+adventurer_follower:
+  category: fame
+  opposites:
+  - adventurer
+  description: Adventurer Follower
+  skills:
+    diplomacy: 1
+  opinions:
+    same_opinion: 20
+    opposite_opinion: 20
+  ruler_designer_cost: 10
+athletic:
+  category: fame
+  opposites: []
+  description: Athletic
+  skills:
+    prowess: 1
+  opinions:
+    ai_boldness: 5
+    ai_energy: 25
+  ruler_designer_cost: 40
+  health_modifiers:
+    health: 0.25
+  stress:
+    stress_loss_mult: 0.2
+augustus:
+  category: fame
+  opposites: []
+  description: Augustus
+  opinions:
+    same_opinion: 25
+    vassal_opinion: 10
+  modifiers:
+    monthly_prestige: 0.5
+bastard:
+  category: fame
+  opposites:
+  - legitimized_bastard
+  - child_of_concubine
+  - wild_oat
+  - disputed_heritage
+  description: Bastard
+  skills:
+    diplomacy: -1
+  opinions:
+    same_opinion: 5
+    dynasty_opinion: -15
+    ai_honor: -10
+    ai_energy: 15
+  ruler_designer_cost: 0
+bastard_founder:
+  category: fame
+  opposites:
+  - bastard
+  - legitimized_bastard
+  - child_of_concubine
+  - wild_oat
+  description: Bastard Founder
+  skills:
+    diplomacy: -1
+  opinions:
+    ai_energy: 15
+berserker:
+  category: fame
+  opposites: []
+  description: Berserker
+  skills:
+    diplomacy: -2
+    martial: 2
+    prowess: 5
+  opinions:
+    same_opinion: 10
+    ai_energy: 20
+  ruler_designer_cost: 40
+  modifiers:
+    dread_baseline_add: 15
+blood_of_prophet:
+  category: fame
+  opposites: []
+  description: Blood Of Prophet
+  opinions:
+    same_faith_opinion: 5
+born_in_the_purple:
+  category: fame
+  opposites: []
+  description: Born In The Purple
+  ruler_designer_cost: 40
+  flags:
+  - initial_legitimacy_boost
+  modifiers:
+    monthly_prestige: 0.1
+    short_reign_duration_mult: -0.25
+burdened:
+  category: fame
+  opposites: []
+  description: Burdened
+  skills:
+    learning: -2
+  ruler_designer_cost: -10
+  flags:
+  - can_offer_strong_hook_to_agents
+  stress:
+    stress_loss_mult: 0.2
+campeador:
+  category: fame
+  opposites: []
+  description: Campeador
+  skills:
+    martial: 2
+    prowess: 4
+  opinions:
+    ai_honor: 20
+  modifiers:
+    monthly_prestige: 0.2
+cannibal:
+  category: fame
+  opposites: []
+  description: Cannibal
+  skills:
+    prowess: 2
+  opinions:
+    same_opinion: 35
+    ai_honor: -10
+    ai_compassion: -10
+    ai_rationality: -20
+  ruler_designer_cost: 40
+  stress:
+    stress_loss_mult: 0.15
+  modifiers:
+    dread_baseline_add: 20
+celibate:
+  category: fame
+  opposites:
+  - seducer
+  description: Celibate
+  opinions:
+    opposite_opinion: -10
+    ai_zeal: 30
+  modifiers:
+    monthly_piety: 1
+chakravarti:
+  category: fame
+  opposites: []
+  description: Chakravarti
+  skills:
+    diplomacy: 2
+    martial: 1
+    learning: 2
+  opinions:
+    ai_honor: 40
+    ai_boldness: 20
+    ai_energy: 20
+    ai_zeal: 50
+child_of_concubine_female:
+  category: fame
+  opposites:
+  - bastard
+  - legitimized_bastard
+  - wild_oat
+  group: child_of_concubine
+  level: 1
+  description: Child Of Concubine Female
+  skills:
+    diplomacy: -1
+  opinions:
+    ai_energy: 15
+child_of_concubine_male:
+  category: fame
+  opposites:
+  - bastard
+  - legitimized_bastard
+  - wild_oat
+  group: child_of_concubine
+  level: 2
+  description: Child Of Concubine Male
+  skills:
+    diplomacy: -1
+  opinions:
+    ai_energy: 15
+comfort_eater:
+  category: fame
+  opposites:
+  - inappetetic
+  description: Comfort Eater
+  skills:
+    stewardship: -1
+  opinions:
+    ai_greed: 5
+    ai_energy: -5
+  ruler_designer_cost: -5
+  stress:
+    stress_loss_mult: 0.2
+confucian_education:
+  category: fame
+  opposites: []
+  description: Confucian Education
+  skills:
+    stewardship: 1
+    learning: 1
+  opinions:
+    same_opinion: 10
+    ai_sociability: 5
+    ai_compassion: 5
+    ai_zeal: 10
+  ruler_designer_cost: 15
+  minimum_age: 16
+conqueror:
+  category: fame
+  opposites: []
+  description: Conqueror
+  opinions:
+    ai_honor: -1000
+    ai_greed: 1000
+    ai_boldness: 1000
+  flags:
+  - conqueror_bonuses_modifier
+consecrated_blood:
+  category: fame
+  opposites: []
+  description: Consecrated Blood
+  opinions:
+    ai_zeal: 10
+contrite:
+  category: fame
+  opposites: []
+  description: Contrite
+  skills:
+    intrigue: -2
+  opinions:
+    ai_honor: 10
+    ai_vengefulness: -10
+    ai_compassion: 10
+    ai_zeal: 10
+  ruler_designer_cost: -5
+  stress:
+    stress_loss_mult: 0.2
+crusader_king:
+  category: fame
+  opposites: []
+  description: Crusader King
+  skills:
+    martial: 3
+    prowess: 2
+  opinions:
+    same_faith_opinion: 15
+    ai_zeal: 25
+  ruler_designer_cost: 120
+decadent:
+  category: fame
+  opposites:
+  - extolled
+  description: Decadent
+  opinions:
+    same_opinion: 25
+  stress:
+    stress_gain_mult: 0.25
+  modifiers:
+    monthly_piety: -1
+denounced:
+  category: fame
+  opposites: []
+  description: Denounced
+  skills:
+    diplomacy: -1
+  modifiers:
+    monthly_prestige: -1
+despoiler_of_byzantium:
+  category: fame
+  opposites: []
+  description: Despoiler Of Byzantium
+  skills:
+    martial: 1
+    prowess: 2
+  opinions:
+    ai_honor: -10
+    ai_greed: 10
+    ai_compassion: -10
+  modifiers:
+    monthly_prestige: 1
+    dread_baseline_add: 10
+deviant:
+  category: fame
+  opposites: []
+  description: Deviant
+  opinions:
+    same_opinion: 35
+    ai_zeal: -25
+  ruler_designer_cost: -5
+  stress:
+    stress_loss_mult: 0.25
+devoted:
+  category: fame
+  opposites: []
+  description: Devoted
+  skills:
+    learning: 3
+    prowess: 3
+  opinions:
+    same_faith_opinion: 5
+  flags:
+  - can_not_marry
+  modifiers:
+    monthly_piety: 0.3
+disinherited:
+  category: fame
+  opposites: []
+  description: Disinherited
+  opinions:
+    dynasty_opinion: -5
+disloyal:
+  category: fame
+  opposites:
+  - loyal
+  description: Disloyal
+  skills:
+    diplomacy: -1
+    intrigue: 1
+  opinions:
+    same_opinion: 10
+    opposite_opinion: -10
+    liege_opinion: -15
+    ai_honor: -20
+  ruler_designer_cost: -20
+  flags:
+  - join_factions_more
+disputed_heritage:
+  category: fame
+  opposites:
+  - bastard
+  - wild_oat
+  - legitimized_bastard
+  description: Disputed Heritage
+  skills:
+    diplomacy: -1
+  opinions:
+    ai_energy: 10
+divine_blood:
+  category: fame
+  opposites:
+  - savior
+  description: Divine Blood
+  opinions:
+    same_faith_opinion: 5
+drunkard:
+  category: fame
+  opposites: []
+  description: Drunkard
+  skills:
+    stewardship: -2
+    prowess: -2
+  opinions:
+    same_opinion: 10
+    ai_energy: -15
+    ai_rationality: -10
+  ruler_designer_cost: -10
+  health_modifiers:
+    health: -0.15
+  stress:
+    stress_loss_mult: 0.2
+excommunicated:
+  category: fame
+  opposites: []
+  description: Excommunicated
+  modifiers:
+    monthly_piety_gain_mult: -0.5
+extolled:
+  category: fame
+  opposites:
+  - decadent
+  description: Extolled
+  modifiers:
+    monthly_piety: 1
+faith_warrior:
+  category: fame
+  opposites: []
+  description: Faith Warrior
+  skills:
+    martial: 2
+    prowess: 3
+  opinions:
+    same_faith_opinion: 5
+    ai_zeal: 10
+  ruler_designer_cost: 50
+  modifiers:
+    monthly_prestige: 1
+flagellant:
+  category: fame
+  opposites: []
+  description: Flagellant
+  skills:
+    prowess: -2
+  opinions:
+    ai_honor: 10
+    ai_boldness: 5
+    ai_zeal: 25
+  ruler_designer_cost: -10
+  health_modifiers:
+    health: -0.15
+  stress:
+    stress_loss_mult: 0.2
+former_emperor:
+  category: fame
+  opposites: []
+  description: Former Emperor
+  opinions:
+    ai_boldness: 25
+    ai_energy: -25
+  modifiers:
+    monthly_prestige: 0.25
+fornicator:
+  category: fame
+  opposites: []
+  description: Fornicator
+  opinions:
+    same_opinion: 10
+  ruler_designer_cost: -5
+gallivanter:
+  category: fame
+  opposites: []
+  description: Gallivanter
+  opinions:
+    dynasty_opinion: -10
+  flags:
+  - cannot_inherit_titles
+  stress:
+    stress_gain_mult: -0.1
+    stress_loss_mult: 0.1
+gallowsbait:
+  category: fame
+  opposites: []
+  level: 1
+  description: Gallowsbait
+  skills:
+    diplomacy: 1
+    martial: 1
+    stewardship: 1
+    intrigue: 1
+    prowess: 1
+  opinions:
+    general_opinion: -2
+    same_opinion: 50
+    glory_hound_opinion: -5
+    ai_honor: -20
+    ai_energy: 20
+golden_lineage:
+  category: fame
+  opposites: []
+  description: Golden Lineage
+  flags:
+  - initial_legitimacy_boost
+  inherit_chance: 100.0
+  modifiers:
+    vassal_limit: 200
+governor:
+  category: fame
+  opposites: []
+  description: Governor
+  skills:
+    diplomacy: 1
+    martial: 1
+    stewardship: 1
+    intrigue: 1
+  opinions:
+    ai_rationality: 10
+  ruler_designer_cost: 40
+greatest_of_khans:
+  category: fame
+  opposites: []
+  description: Greatest Of Khans
+  skills:
+    diplomacy: 2
+    martial: 2
+    stewardship: 1
+    prowess: 2
+  opinions:
+    ai_honor: 20
+    ai_boldness: 20
+    ai_energy: 40
+  flags:
+  - gok_obedience_flag
+  modifiers:
+    vassal_limit: 75
+    dread_baseline_add: 50
+    dread_decay_mult: -0.5
+hajjaj:
+  category: fame
+  opposites: []
+  description: Hajjaj
+  skills:
+    prowess: 2
+  opinions:
+    same_faith_opinion: 5
+    ai_zeal: 10
+  ruler_designer_cost: 30
+  modifiers:
+    monthly_piety_gain_mult: 0.35
+hashishiyah:
+  category: fame
+  opposites: []
+  description: Hashishiyah
+  skills:
+    stewardship: -2
+    learning: -2
+  opinions:
+    same_opinion: 10
+    ai_vengefulness: -10
+    ai_energy: -15
+  ruler_designer_cost: 5
+  stress:
+    stress_loss_mult: 0.2
+heresiarch:
+  category: fame
+  opposites: []
+  description: Heresiarch
+  skills:
+    martial: 2
+    learning: 2
+    prowess: 2
+  opinions:
+    same_faith_opinion: 10
+    ai_zeal: 20
+  ruler_designer_cost: 50
+historical_character:
+  category: fame
+  opposites: []
+  description: Historical Character
+  skills:
+    diplomacy: 2
+    learning: 2
+  health_modifiers:
+    health: 0.25
+improvident:
+  category: fame
+  opposites:
+  - profligate
+  description: Improvident
+  skills:
+    diplomacy: 1
+  opinions:
+    ai_greed: -10
+    ai_compassion: 10
+  ruler_designer_cost: -5
+  stress:
+    stress_loss_mult: 0.2
+  modifiers:
+    monthly_piety: 0.5
+inappetetic:
+  category: fame
+  opposites:
+  - comfort_eater
+  description: Inappetetic
+  skills:
+    diplomacy: -1
+    prowess: -3
+  opinions:
+    ai_greed: -5
+    ai_energy: -10
+  ruler_designer_cost: -5
+  stress:
+    stress_loss_mult: 0.2
+incestuous:
+  category: fame
+  opposites: []
+  description: Incestuous
+  opinions:
+    same_opinion: 20
+  ruler_designer_cost: 0
+irritable:
+  category: fame
+  opposites: []
+  description: Irritable
+  skills:
+    diplomacy: -2
+    martial: -1
+    prowess: 2
+  opinions:
+    attraction_opinion: -5
+    ai_vengefulness: 10
+    ai_compassion: -10
+    ai_boldness: 10
+    ai_energy: 10
+    ai_rationality: -20
+  ruler_designer_cost: 0
+  flags:
+  - can_duel_anyone_interaction
+  stress:
+    stress_loss_mult: 0.2
+journaller:
+  category: fame
+  opposites: []
+  description: Journaller
+  skills:
+    learning: 1
+  opinions:
+    ai_rationality: 10
+  ruler_designer_cost: 15
+  stress:
+    stress_loss_mult: 0.2
+kinslayer_1:
+  category: fame
+  opposites: []
+  group: kinslayer
+  level: 1
+  description: Kinslayer 1
+  opinions:
+    dynasty_opinion: -5
+kinslayer_2:
+  category: fame
+  opposites: []
+  group: kinslayer
+  level: 2
+  description: Kinslayer 2
+  opinions:
+    dynasty_opinion: -5
+kinslayer_3:
+  category: fame
+  opposites: []
+  group: kinslayer
+  level: 3
+  description: Kinslayer 3
+  opinions:
+    dynasty_opinion: -5
+knight_errant:
+  category: fame
+  opposites: []
+  level: 1
+  description: Knight Errant
+  skills:
+    prowess: 0
+  opinions:
+    glory_hound_opinion: 15
+    ai_sociability: 10
+    ai_energy: 10
+  ruler_designer_cost: 75
+  modifiers:
+    monthly_prestige_gain_mult: 0.02
+legend:
+  category: fame
+  opposites: []
+  description: Legend
+  opinions:
+    ai_zeal: 50
+  modifiers:
+    monthly_prestige: 2
+legitimized_bastard:
+  category: fame
+  opposites:
+  - bastard
+  - child_of_concubine
+  - wild_oat
+  - disputed_heritage
+  description: Legitimized Bastard
+  skills:
+    diplomacy: -1
+  opinions:
+    dynasty_opinion: -10
+    ai_honor: -5
+    ai_energy: 15
+  ruler_designer_cost: 0
+lifestyle_poet:
+  category: fame
+  opposites: []
+  level: 1
+  description: 'Lifestyle trait: Poet'
+  skills:
+    diplomacy: 1
+  opinions:
+    attraction_opinion: 15
+  ruler_designer_cost: 40
+  stress:
+    stress_loss_mult: 0.1
+  modifiers:
+    monthly_prestige_gain_mult: 0.05
+loyal:
+  category: fame
+  opposites:
+  - disloyal
+  description: Loyal
+  skills:
+    diplomacy: 1
+    intrigue: -1
+  opinions:
+    same_opinion: 10
+    opposite_opinion: -10
+    liege_opinion: 15
+  ruler_designer_cost: 20
+  flags:
+  - join_factions_less
+  modifiers:
+    monthly_prestige: 0.1
+murderer:
+  category: fame
+  opposites: []
+  description: Murderer
+  opinions:
+    general_opinion: -15
+  ruler_designer_cost: -10
+order_member:
+  category: fame
+  opposites: []
+  description: Order Member
+  skills:
+    martial: 1
+    prowess: 4
+  opinions:
+    ai_honor: 5
+    ai_greed: -10
+    ai_zeal: 10
+  flags:
+  - can_not_marry
+  modifiers:
+    monthly_prestige: 1
+paragon:
+  category: fame
+  opposites: []
+  description: Paragon
+  opinions:
+    ai_zeal: 20
+peasant_leader:
+  category: fame
+  opposites: []
+  description: Peasant Leader
+  opinions:
+    general_opinion: -10
+    same_opinion: 25
+  ruler_designer_cost: 100
+  modifiers:
+    advantage: -0.25
+pilgrim:
+  category: fame
+  opposites: []
+  description: Pilgrim
+  skills:
+    learning: 1
+    prowess: 2
+  opinions:
+    same_faith_opinion: 5
+    ai_zeal: 10
+  ruler_designer_cost: 30
+  modifiers:
+    monthly_piety_gain_mult: 0.05
+populist_leader:
+  category: fame
+  opposites: []
+  description: Populist Leader
+  opinions:
+    same_faith_opinion: 10
+  ruler_designer_cost: 150
+profligate:
+  category: fame
+  opposites:
+  - improvident
+  description: Profligate
+  opinions:
+    ai_greed: 10
+    ai_compassion: -10
+  ruler_designer_cost: 10
+  stress:
+    stress_loss_mult: 0.2
+  modifiers:
+    monthly_prestige: 0.5
+rakish:
+  category: fame
+  opposites: []
+  description: Rakish
+  skills:
+    diplomacy: -1
+    intrigue: 1
+  opinions:
+    attraction_opinion: -5
+    same_opinion: 5
+    ai_honor: -10
+    ai_greed: 10
+    ai_energy: -10
+    ai_zeal: -10
+  ruler_designer_cost: 0
+  stress:
+    stress_loss_mult: 0.2
+reclusive:
+  category: fame
+  opposites: []
+  description: Reclusive
+  skills:
+    diplomacy: -2
+    stewardship: -1
+  opinions:
+    ai_boldness: -10
+    ai_energy: -10
+  ruler_designer_cost: -5
+  flags:
+  - trait_unlocks_t3_withdraw_from_view
+  stress:
+    stress_loss_mult: 0.2
+reincarnation:
+  category: fame
+  opposites: []
+  description: Reincarnation
+  opinions:
+    same_faith_opinion: 5
+  modifiers:
+    monthly_piety: 1
+saint:
+  category: fame
+  opposites: []
+  description: Saint
+  opinions:
+    ai_zeal: 50
+  modifiers:
+    monthly_piety: 2
+saoshyant:
+  category: fame
+  opposites:
+  - saoshyant_descendant
+  description: Saoshyant
+  skills:
+    diplomacy: 1
+    learning: 2
+    prowess: 2
+  opinions:
+    ai_zeal: 100
+saoshyant_descendant:
+  category: fame
+  opposites:
+  - saoshyant
+  description: Saoshyant Descendant
+  skills:
+    learning: 1
+savior:
+  category: fame
+  opposites:
+  - divine_blood
+  description: Savior
+  opinions:
+    same_faith_opinion: 10
+    ai_zeal: 100
+sayyid:
+  category: fame
+  opposites: []
+  description: Sayyid
+  ruler_designer_cost: 25
+  flags:
+  - initial_legitimacy_boost
+  inherit_chance: 100.0
+shieldmaiden:
+  category: fame
+  opposites: []
+  description: Shieldmaiden
+  skills:
+    martial: 3
+    prowess: 3
+  opinions:
+    same_opinion: 10
+  ruler_designer_cost: 40
+sodomite:
+  category: fame
+  opposites: []
+  description: Sodomite
+  opinions:
+    same_opinion: 10
+twin:
+  category: fame
+  opposites: []
+  description: Twin
+varangian:
+  category: fame
+  opposites: []
+  description: Varangian
+  skills:
+    diplomacy: 1
+    martial: 2
+    prowess: 2
+  opinions:
+    same_opinion: 10
+    ai_boldness: 10
+    ai_energy: 10
+  ruler_designer_cost: 40
+viking:
+  category: fame
+  opposites: []
+  description: Viking
+  skills:
+    martial: 2
+    prowess: 3
+  opinions:
+    same_opinion: 5
+    ai_boldness: 10
+    ai_energy: 10
+  ruler_designer_cost: 25
+  modifiers:
+    monthly_prestige: 0.3
+violet_poet:
+  category: fame
+  opposites: []
+  level: 1
+  description: Violet Poet
+  opinions:
+    attraction_opinion: 10
+    ai_sociability: 10
+    ai_energy: 10
+  modifiers:
+    monthly_prestige_gain_mult: 0.05
+wild_oat:
+  category: fame
+  opposites:
+  - bastard
+  - legitimized_bastard
+  - child_of_concubine
+  description: Wild Oat
+  skills:
+    diplomacy: -1
+  ruler_designer_cost: 0
+witch:
+  category: fame
+  opposites: []
+  description: Witch
+  skills:
+    diplomacy: -1
+    intrigue: 1
+    learning: 1
+  opinions:
+    same_opinion: 20
+  ruler_designer_cost: 10

@@ -208,13 +208,9 @@ export class CodeActionsProvider {
      */
     private buildQuickFixRegistry(): Map<string, QuickFixGenerator> {
         return new Map([
-            ['PARSE-001', this.fixMissingEquals.bind(this)],
-            ['PARSE-002', this.fixMissingBrace.bind(this)],
             ['SCOPE-003', this.fixInvalidScope.bind(this)],
             ['SCOPE-004', this.fixUndefinedReference.bind(this)],
             ['SCOPE-005', this.fixTypeMismatch.bind(this)],
-            ['SCHEMA-001', this.fixMissingRequiredField.bind(this)],
-            ['SCHEMA-002', this.fixCardinalityViolation.bind(this)],
             ['LOC-001', this.fixMissingLocalization.bind(this)],
             ['CONV-001', this.fixIndentation.bind(this)],
             ['CONV-002', this.fixSpacing.bind(this)],
@@ -395,38 +391,6 @@ export class CodeActionsProvider {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     // ============================================================================
 
-    private fixMissingEquals(doc: TextDocument, diag: Diagnostic, _ctx: CodeActionContext): CodeAction[] {
-        return [
-            new CodeActionBuilder('Add equals sign')
-                .withKind(CodeActionKind.QuickFix)
-                .withDiagnostic(diag)
-                .withEdit({ changes: { [doc.uri]: [{ range: diag.range, newText: ' = ' }] } })
-                .isPreferred()
-                .build(),
-        ];
-    }
-
-    private fixMissingBrace(doc: TextDocument, diag: Diagnostic, _ctx: CodeActionContext): CodeAction[] {
-        const text = doc.getText(diag.range);
-        const missing = text.includes('{') ? '}' : '{';
-        
-        return [
-            new CodeActionBuilder(`Add missing '${missing}'`)
-                .withKind(CodeActionKind.QuickFix)
-                .withDiagnostic(diag)
-                .withEdit({ 
-                    changes: { 
-                        [doc.uri]: [{ 
-                            range: { start: diag.range.end, end: diag.range.end }, 
-                            newText: missing 
-                        }] 
-                    } 
-                })
-                .isPreferred()
-                .build(),
-        ];
-    }
-
     private fixInvalidScope(doc: TextDocument, diag: Diagnostic, _ctx: CodeActionContext): CodeAction[] {
         const actions: CodeAction[] = [];
         const validScopes = ['character', 'province', 'title', 'faith', 'culture'];
@@ -476,45 +440,6 @@ export class CodeActionsProvider {
         }
         
         return actions;
-    }
-
-    private fixMissingRequiredField(doc: TextDocument, diag: Diagnostic, _ctx: CodeActionContext): CodeAction[] {
-        const match = diag.message.match(/Missing required field: (\w+)/);
-        if (!match) {
-            return [];
-        }
-        
-        const fieldName = match[1];
-        const defaultValue = this.getDefaultValueForField(fieldName);
-        
-        return [
-            new CodeActionBuilder(`Add required field '${fieldName}'`)
-                .withKind(CodeActionKind.QuickFix)
-                .withDiagnostic(diag)
-                .withEdit({
-                    changes: {
-                        [doc.uri]: [{
-                            range: { start: diag.range.end, end: diag.range.end },
-                            newText: `\n\t${fieldName} = ${defaultValue}`,
-                        }],
-                    },
-                })
-                .isPreferred()
-                .build(),
-        ];
-    }
-
-    private fixCardinalityViolation(doc: TextDocument, diag: Diagnostic, _ctx: CodeActionContext): CodeAction[] {
-        if (diag.message.includes('duplicate')) {
-            return [
-                new CodeActionBuilder('Remove duplicate')
-                    .withKind(CodeActionKind.QuickFix)
-                    .withDiagnostic(diag)
-                    .withEdit({ changes: { [doc.uri]: [{ range: diag.range, newText: '' }] } })
-                    .build(),
-            ];
-        }
-        return [];
     }
 
     private fixMissingLocalization(doc: TextDocument, diag: Diagnostic, _ctx: CodeActionContext): CodeAction[] {
@@ -604,18 +529,6 @@ export class CodeActionsProvider {
         }
         
         return [...new Set(keys)];
-    }
-
-    private getDefaultValueForField(fieldName: string): string {
-        const defaults: Record<string, string> = {
-            type: 'character_event',
-            title: 'event.title',
-            desc: 'event.desc',
-            isShown: '{ always = yes }',
-            isValid: '{ always = yes }',
-            effect: '{ }',
-        };
-        return defaults[fieldName] || 'yes';
     }
 
     private createExtractScriptedEffectAction(document: TextDocument, range: Range): CodeAction {

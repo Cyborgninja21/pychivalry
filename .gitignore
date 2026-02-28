@@ -1,129 +1,4 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*$py.class
-
-# C extensions
-*.so
-
-# Distribution / packaging
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-pip-wheel-metadata/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-
-# PyInstaller
-*.manifest
-*.spec
-
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
-
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.nox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.py,cover
-.hypothesis/
-.pytest_cache/
-
-# Translations
-*.mo
-*.pot
-
-# Django stuff:
-*.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
-
-# Flask stuff:
-instance/
-.webassets-cache
-
-# Scrapy stuff:
-.scrapy
-
-# Sphinx documentation
-docs/_build/
-
-# PyBuilder
-target/
-
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# IPython
-profile_default/
-ipython_config.py
-
-# pyenv
-.python-version
-
-# pipenv
-Pipfile.lock
-
-# PEP 582
-__pypackages__/
-
-# Celery stuff
-celerybeat-schedule
-celerybeat.pid
-
-# SageMath parsed files
-*.sage.py
-
-# Environments
-.env
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
-
-# Spyder project settings
-.spyderproject
-.spyproject
-
-# Rope project settings
-.ropeproject
-
-# mkdocs documentation
-/site
-
-# mypy
-.mypy_cache/
-.dmypy.json
-dmypy.json
-
-# Pyre type checker
-.pyre/
-
 # VS Code (allow workspace configuration for development)
-# .vscode/ is now tracked for development setup
 *.code-workspace
 
 # IDEs
@@ -140,16 +15,10 @@ Thumbs.db
 pygls-workspace/
 vscode-python-tools-template/
 
-# Virtual environment files accidentally in pychivalry/ folder
-pychivalry/Include/
-pychivalry/Lib/
-pychivalry/Scripts/
-pychivalry/pyvenv.cfg
-
 # Node.js
 node_modules/
 
-# VS Code Extension outputs (also in vscode-extension/.gitignore)
+# VS Code Extension outputs
 vscode-extension/dist/
 vscode-extension/out/
 vscode-extension/node_modules/
@@ -175,7 +44,7 @@ pids
 *.seed
 *.pid.lock
 
-# Coverage directory used by tools like nyc
+# Coverage
 coverage/
 .nyc_output/
 
@@ -190,13 +59,6 @@ coverage/
 
 # Optional REPL history
 .node_repl_history
-
-# User-generated game data (copyright Paradox Interactive)
-# Users must extract this from their own CK3 installation
-pychivalry/data/traits/*.yaml
-# Keep the directory structure and README
-!pychivalry/data/traits/README.md
-!pychivalry/data/traits/.gitkeep
 
 # Claude Code
 .claude/

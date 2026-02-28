@@ -2,25 +2,6 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Install All Dependencies",
-      "dependsOn": [
-        "Install Python Dependencies",
-        "Install Extension Dependencies"
-      ],
-      "problemMatcher": []
-    },
-    {
-      "label": "Install Python Dependencies",
-      "type": "shell",
-      "command": "${command:python.interpreterPath} -m pip install -e '.[dev]'",
-      "problemMatcher": [],
-      "presentation": {
-        "reveal": "always",
-        "panel": "shared",
-        "showReuseMessage": false
-      }
-    },
-    {
       "label": "Install Extension Dependencies",
       "type": "npm",
       "script": "install",
@@ -76,30 +57,6 @@
       }
     },
     {
-      "label": "Run Tests",
-      "type": "shell",
-      "command": "python -m pytest tests/ -v",
-      "problemMatcher": [],
-      "presentation": {
-        "reveal": "always",
-        "panel": "dedicated"
-      },
-      "group": {
-        "kind": "test",
-        "isDefault": true
-      }
-    },
-    {
-      "label": "Run Log Watcher Tests",
-      "type": "shell",
-      "command": "python -m pytest tests/test_log_watcher_integration.py -v",
-      "problemMatcher": [],
-      "presentation": {
-        "reveal": "always",
-        "panel": "dedicated"
-      }
-    },
-    {
       "label": "Run Extension Tests",
       "type": "npm",
       "script": "test",
@@ -111,7 +68,7 @@
       },
       "group": {
         "kind": "test",
-        "isDefault": false
+        "isDefault": true
       }
     },
     {

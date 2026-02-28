@@ -1,0 +1,84 @@
+# CK3 Childhood Traits
+# Auto-generated from CK3 game files
+# Total traits: 5
+
+bossy:
+  category: childhood
+  opposites: []
+  description: Bossy
+  skills:
+    martial: 1
+    stewardship: 1
+  opinions:
+    ai_honor: 15
+    ai_greed: 25
+    ai_vengefulness: 15
+    ai_boldness: 25
+    ai_rationality: 15
+  ruler_designer_cost: 5
+  minimum_age: 3
+charming:
+  category: childhood
+  opposites: []
+  description: Charming
+  skills:
+    diplomacy: 1
+    intrigue: 1
+  opinions:
+    ai_honor: -15
+    ai_greed: 25
+    ai_sociability: 25
+    ai_vengefulness: 15
+    ai_compassion: 15
+    ai_rationality: 15
+  ruler_designer_cost: 5
+  minimum_age: 3
+curious:
+  category: childhood
+  opposites: []
+  description: Curious
+  skills:
+    diplomacy: 1
+    learning: 1
+  opinions:
+    ai_honor: 15
+    ai_sociability: 15
+    ai_vengefulness: -15
+    ai_compassion: 25
+    ai_boldness: 25
+    ai_energy: 15
+  ruler_designer_cost: 5
+  minimum_age: 3
+pensive:
+  category: childhood
+  opposites: []
+  description: Pensive
+  skills:
+    stewardship: 1
+    learning: 1
+  opinions:
+    ai_honor: 15
+    ai_greed: -15
+    ai_sociability: -25
+    ai_boldness: -15
+    ai_energy: 15
+    ai_rationality: 25
+  ruler_designer_cost: 5
+  minimum_age: 3
+rowdy:
+  category: childhood
+  opposites: []
+  description: Rowdy
+  skills:
+    martial: 1
+    intrigue: 1
+  opinions:
+    ai_honor: -15
+    ai_sociability: 15
+    ai_vengefulness: 15
+    ai_compassion: -15
+    ai_boldness: 25
+    ai_energy: 25
+    ai_rationality: -15
+  ruler_designer_cost: 5
+  minimum_age: 3

@@ -18,7 +18,7 @@ import {
 } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { CK3Parser, ASTNode, NodeType } from '../core/parser';
-import { CK3Language, EffectDefinition, TriggerDefinition } from '../ck3/language';
+import { EffectDefinition, TriggerDefinition, getDataLoader } from '../data/loader';
 
 /**
  * Context information for signature help
@@ -156,15 +156,16 @@ export class SignatureHelpProvider {
         const command = context.command;
 
         // Check if it's an effect
-        const effects = CK3Language.getEffects();
-        if (effects[command]) {
-            signatures.push(...this.createEffectSignatures(command, effects[command]));
+        const dataLoader = getDataLoader();
+        const effect = dataLoader.getEffects().get(command);
+        if (effect) {
+            signatures.push(...this.createEffectSignatures(command, effect));
         }
 
         // Check if it's a trigger
-        const triggers = CK3Language.getTriggers();
-        if (triggers[command]) {
-            signatures.push(...this.createTriggerSignatures(command, triggers[command]));
+        const trigger = dataLoader.getTriggers().get(command);
+        if (trigger) {
+            signatures.push(...this.createTriggerSignatures(command, trigger));
         }
 
         // Special signatures for complex commands
@@ -178,47 +179,40 @@ export class SignatureHelpProvider {
      */
     private createEffectSignatures(name: string, effect: EffectDefinition): SignatureInformation[] {
         const signatures: SignatureInformation[] = [];
+        const params = effect.parameters ? Object.keys(effect.parameters) : [];
+        const paramDescs = effect.parameters || {};
+        const hasBlock = params.length > 0 || (effect.snippet && effect.snippet.includes('{'));
 
-        if (effect.hasBlock) {
-            // Block-based effect
-            const params = effect.parameters || [];
+        if (hasBlock) {
             const label = params.length > 0
                 ? `${name} = { ${params.join(', ')} }`
                 : `${name} = { ... }`;
 
             const documentation = this.createMarkupDocumentation(
                 effect.description || `Effect: ${name}`,
-                effect.documentation,
+                effect.detail,
                 effect.scopes,
-                this.getEffectExample(name)
+                effect.example || this.getEffectExample(name)
             );
 
-            const parameterInfo = params.map(param => 
-                ParameterInformation.create(param, `Parameter: ${param}`)
+            const parameterInfo = params.map(param =>
+                ParameterInformation.create(param, paramDescs[param] || `Parameter: ${param}`)
             );
 
-            signatures.push({
-                label,
-                documentation,
-                parameters: parameterInfo,
-            });
+            signatures.push({ label, documentation, parameters: parameterInfo });
         } else {
-            // Simple value effect
             const label = `${name} = <value>`;
-            
             const documentation = this.createMarkupDocumentation(
                 effect.description || `Effect: ${name}`,
-                effect.documentation,
+                effect.detail,
                 effect.scopes,
-                this.getEffectExample(name)
+                effect.example || this.getEffectExample(name)
             );
 
             signatures.push({
                 label,
                 documentation,
-                parameters: [
-                    ParameterInformation.create('<value>', 'Value to set')
-                ],
+                parameters: [ParameterInformation.create('<value>', 'Value to set')],
             });
         }
 
@@ -230,47 +224,40 @@ export class SignatureHelpProvider {
      */
     private createTriggerSignatures(name: string, trigger: TriggerDefinition): SignatureInformation[] {
         const signatures: SignatureInformation[] = [];
+        const params = trigger.parameters ? Object.keys(trigger.parameters) : [];
+        const paramDescs = trigger.parameters || {};
+        const hasBlock = params.length > 0 || (trigger.snippet && trigger.snippet.includes('{'));
 
-        if (trigger.hasBlock) {
-            // Block-based trigger
-            const params = trigger.parameters || [];
+        if (hasBlock) {
             const label = params.length > 0
                 ? `${name} = { ${params.join(', ')} }`
                 : `${name} = { ... }`;
 
             const documentation = this.createMarkupDocumentation(
                 trigger.description || `Trigger: ${name}`,
-                trigger.documentation,
+                trigger.detail,
                 trigger.scopes,
-                this.getTriggerExample(name)
+                trigger.example || this.getTriggerExample(name)
             );
 
-            const parameterInfo = params.map(param => 
-                ParameterInformation.create(param, `Parameter: ${param}`)
+            const parameterInfo = params.map(param =>
+                ParameterInformation.create(param, paramDescs[param] || `Parameter: ${param}`)
             );
 
-            signatures.push({
-                label,
-                documentation,
-                parameters: parameterInfo,
-            });
+            signatures.push({ label, documentation, parameters: parameterInfo });
         } else {
-            // Simple comparison trigger
             const label = `${name} = <value>`;
-            
             const documentation = this.createMarkupDocumentation(
                 trigger.description || `Trigger: ${name}`,
-                trigger.documentation,
+                trigger.detail,
                 trigger.scopes,
-                this.getTriggerExample(name)
+                trigger.example || this.getTriggerExample(name)
             );
 
             signatures.push({
                 label,
                 documentation,
-                parameters: [
-                    ParameterInformation.create('<value>', 'Value to compare')
-                ],
+                parameters: [ParameterInformation.create('<value>', 'Value to compare')],
             });
         }
 

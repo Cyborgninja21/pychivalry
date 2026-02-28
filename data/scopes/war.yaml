@@ -1,0 +1,23 @@
+# War scope definition for CK3
+
+war:
+  description: "An active war"
+
+  links:
+    primary_attacker: character
+    primary_defender: character
+    casus_belli: none
+    claimant: character
+
+  lists:
+    attacker: character
+    defender: character
+
+  triggers:
+    - is_war_leader
+    - war_score
+    - exists
+
+  effects:
+    - end_war
+    - save_scope_as

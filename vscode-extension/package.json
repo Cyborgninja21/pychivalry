@@ -29,7 +29,7 @@
   "activationEvents": [
     "onLanguage:ck3",
     "onLanguage:ck3-localization",
-    "workspaceContains:**/*.{txt,gui,gfx,asset}"
+    "workspaceContains:**/descriptor.mod"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -95,11 +95,6 @@
       {
         "command": "ck3LanguageServer.restart",
         "title": "Restart Language Server",
-        "category": "CK3"
-      },
-      {
-        "command": "ck3LanguageServer.switchServerImplementation",
-        "title": "Switch Server Implementation (Python/TypeScript)",
         "category": "CK3"
       },
       {
@@ -306,22 +301,6 @@
       {
         "title": "General",
         "properties": {
-          "ck3LanguageServer.serverImplementation": {
-            "type": "string",
-            "enum": [
-              "python",
-              "typescript"
-            ],
-            "default": "typescript",
-            "description": "Choose which language server implementation to use",
-            "scope": "resource"
-          },
-          "ck3LanguageServer.pythonPath": {
-            "type": "string",
-            "default": "python",
-            "description": "Path to Python executable to use for the language server",
-            "scope": "resource"
-          },
           "ck3LanguageServer.args": {
             "type": "array",
             "default": [],
@@ -529,6 +508,7 @@
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
     "@vscode/test-electron": "^2.3.0",
+    "copy-webpack-plugin": "^13.0.1",
     "eslint": "^8.0.0",
     "glob": "^10.0.0",
     "mocha": "^10.0.0",

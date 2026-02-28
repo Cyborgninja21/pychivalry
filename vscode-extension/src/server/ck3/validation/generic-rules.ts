@@ -16,7 +16,7 @@
 
 import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver';
 import { ASTNode } from '../../core/parser';
-import { DocumentIndexer } from '../../core/indexer';
+import { DocumentIndexer, SymbolType } from '../../core/indexer';
 
 /**
  * Rule types supported by generic validator
@@ -142,9 +142,13 @@ function getAllEffects(indexer?: DocumentIndexer): Set<string> {
         'set_faith', 'set_sexuality', 'set_gender_equality'
     ]);
 
-    // Add scripted effects from indexer if available (when method exists)
-    // TODO: Implement getScriptedEffects() in DocumentIndexer
-    
+    // Add scripted effects from indexer
+    if (indexer) {
+        for (const sym of indexer.findSymbolsByType(SymbolType.SCRIPTED_EFFECT)) {
+            effects.add(sym.name);
+        }
+    }
+
     return effects;
 }
 
@@ -159,8 +163,12 @@ function getAllTriggers(indexer?: DocumentIndexer): Set<string> {
         'culture', 'faith', 'religion', 'has_perk'
     ]);
 
-    // Add scripted triggers from indexer if available (when method exists)
-    // TODO: Implement getScriptedTriggers() in DocumentIndexer
+    // Add scripted triggers from indexer
+    if (indexer) {
+        for (const sym of indexer.findSymbolsByType(SymbolType.SCRIPTED_TRIGGER)) {
+            triggers.add(sym.name);
+        }
+    }
 
     return triggers;
 }
@@ -238,7 +246,7 @@ function validateRule(rule: GenericRule, node: ASTNode, nodePath: string[]): Dia
                      DiagnosticSeverity.Information,
             code: rule.diagnosticCode,
             message: message,
-            source: 'pychivalry'
+            source: 'ck3-generic'
         };
     }
 
@@ -324,7 +332,7 @@ export function validatePositiveValue(node: ASTNode, fieldName: string): Diagnos
             severity: DiagnosticSeverity.Error,
             code: 'CK3885',
             message: `${fieldName} cannot be negative`,
-            source: 'pychivalry'
+            source: 'ck3-generic'
         };
     }
 

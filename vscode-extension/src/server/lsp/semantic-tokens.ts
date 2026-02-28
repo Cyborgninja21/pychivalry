@@ -11,6 +11,7 @@ import {
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { CK3Parser, ASTNode, NodeType } from '../core/parser';
 import { CK3Language } from '../ck3/language';
+import { classifyContext } from '../ck3/validation/context-engine';
 
 /**
  * Token type indices (must match legend registration order)
@@ -119,8 +120,10 @@ export class SemanticTokensProvider {
             parentKey: null,
         };
 
-        this.processASTForTokens(parseResult.ast, tokenBuilder, initialContext, doc.getText());
-        
+        const documentText = doc.getText();
+        const documentLines = documentText.split('\n');
+        this.processASTForTokens(parseResult.ast, tokenBuilder, initialContext, documentLines);
+
         return tokenBuilder.build();
     }
 
@@ -131,7 +134,7 @@ export class SemanticTokensProvider {
         astNode: ASTNode,
         tokenBuilder: SemanticTokensBuilder,
         context: SemanticContext,
-        documentText: string
+        documentLines: string[]
     ): void {
         if (!astNode.children || astNode.children.length === 0) {
             return;
@@ -157,17 +160,17 @@ export class SemanticTokensProvider {
 
             // Emit token for the value if present
             if (childNode.value !== undefined) {
-                this.emitValueToken(childNode, tokenBuilder, documentText);
+                this.emitValueToken(childNode, tokenBuilder, documentLines);
             }
 
             // Emit token for operator if present
             if (childNode.operator) {
-                this.emitOperatorToken(childNode, tokenBuilder, documentText);
+                this.emitOperatorToken(childNode, tokenBuilder, documentLines);
             }
 
             // Recursively process children
             if (childNode.children) {
-                this.processASTForTokens(childNode, tokenBuilder, nodeContext, documentText);
+                this.processASTForTokens(childNode, tokenBuilder, nodeContext, documentLines);
             }
         }
     }
@@ -193,6 +196,18 @@ export class SemanticTokensProvider {
         } else if (CK3Language.isTrigger(node.key)) {
             newContext.isTriggerBlock = true;
             newContext.isEffectBlock = false;
+        } else {
+            // Fallback: use context engine for keys not in effect/trigger lists
+            const ctx = classifyContext([], node.key, '');
+            if (ctx.confidence !== 'low') {
+                if (ctx.context === 'effect') {
+                    newContext.isEffectBlock = true;
+                    newContext.isTriggerBlock = false;
+                } else if (ctx.context === 'trigger') {
+                    newContext.isTriggerBlock = true;
+                    newContext.isEffectBlock = false;
+                }
+            }
         }
 
         // Track parent key for context
@@ -343,29 +358,31 @@ export class SemanticTokensProvider {
     private emitValueToken(
         node: ASTNode,
         builder: SemanticTokensBuilder,
-        documentText: string
+        documentLines: string[]
     ): void {
         if (node.value === undefined || node.value === null) return;
 
         // Calculate value position (approximate - after key and operator)
         const valueStr = String(node.value);
         const keyEndOffset = node.range.start.character + (node.key?.length || 0);
-        
+
         // Find value position in text (search after '=')
-        const lineText = this.getLineText(documentText, node.range.start.line);
+        const lineText = this.getLineText(documentLines, node.range.start.line);
         const valueStart = lineText.indexOf(valueStr, keyEndOffset);
         
         if (valueStart === -1) return;
 
         let tokenType: TokenTypeIndex;
-        
+
         if (typeof node.value === 'number') {
             tokenType = TokenTypeIndex.NUMBER;
         } else if (typeof node.value === 'boolean') {
             tokenType = TokenTypeIndex.ENUM_MEMBER; // yes/no as enum
         } else if (typeof node.value === 'string') {
-            // Check if it's a quoted string or identifier
-            if (lineText[valueStart - 1] === '"') {
+            if (valueStr.startsWith('@[') || valueStr.startsWith('@')) {
+                // Variable reference (@var) or interpolation (@[expr])
+                tokenType = TokenTypeIndex.VARIABLE;
+            } else if (lineText[valueStart - 1] === '"') {
                 tokenType = TokenTypeIndex.STRING;
             } else {
                 tokenType = TokenTypeIndex.ENUM_MEMBER;
@@ -389,12 +406,12 @@ export class SemanticTokensProvider {
     private emitOperatorToken(
         node: ASTNode,
         builder: SemanticTokensBuilder,
-        documentText: string
+        documentLines: string[]
     ): void {
         if (!node.operator) return;
 
         // Find operator position (between key and value)
-        const lineText = this.getLineText(documentText, node.range.start.line);
+        const lineText = this.getLineText(documentLines, node.range.start.line);
         const keyEndPos = node.range.start.character + (node.key?.length || 0);
         const operatorPos = lineText.indexOf(node.operator, keyEndPos);
 
@@ -427,9 +444,8 @@ export class SemanticTokensProvider {
     /**
      * Get text of a specific line
      */
-    private getLineText(documentText: string, lineNumber: number): string {
-        const lines = documentText.split('\n');
-        return lines[lineNumber] || '';
+    private getLineText(documentLines: string[], lineNumber: number): string {
+        return documentLines[lineNumber] || '';
     }
 
     /**
@@ -439,8 +455,79 @@ export class SemanticTokensProvider {
         doc: TextDocument,
         range: { start: { line: number; character: number }; end: { line: number; character: number } }
     ): Promise<SemanticTokens> {
-        // For simplicity, regenerate full document tokens
-        // A more optimized implementation would parse only the range
-        return this.generateSemanticTokens(doc);
+        const parseResult = this.ck3Parser.parse(doc.getText());
+        const tokenBuilder = new SemanticTokensBuilder();
+
+        const initialContext: SemanticContext = {
+            isEffectBlock: false,
+            isTriggerBlock: false,
+            isEventBlock: false,
+            isDecisionBlock: false,
+            scopeType: null,
+            parentKey: null,
+        };
+
+        const documentText = doc.getText();
+        const documentLines = documentText.split('\n');
+        this.processASTForTokensInRange(parseResult.ast, tokenBuilder, initialContext, documentLines, range);
+
+        return tokenBuilder.build();
+    }
+
+    /**
+     * Process AST nodes but only emit tokens within the given range
+     */
+    private processASTForTokensInRange(
+        astNode: ASTNode,
+        tokenBuilder: SemanticTokensBuilder,
+        context: SemanticContext,
+        documentLines: string[],
+        range: { start: { line: number; character: number }; end: { line: number; character: number } }
+    ): void {
+        if (!astNode.children || astNode.children.length === 0) {
+            return;
+        }
+
+        for (const childNode of astNode.children) {
+            // Skip nodes entirely below the range
+            if (childNode.range.end.line < range.start.line) {
+                continue;
+            }
+            // Stop processing if past the range
+            if (childNode.range.start.line > range.end.line) {
+                break;
+            }
+
+            if (childNode.type === NodeType.COMMENT) {
+                if (childNode.range.start.line >= range.start.line && childNode.range.start.line <= range.end.line) {
+                    this.emitCommentToken(childNode, tokenBuilder);
+                }
+                continue;
+            }
+
+            if (!childNode.key) {
+                continue;
+            }
+
+            const nodeContext = this.createNodeContext(childNode, context);
+
+            // Only emit tokens for nodes whose start line falls within the range
+            if (childNode.range.start.line >= range.start.line && childNode.range.start.line <= range.end.line) {
+                this.emitKeyToken(childNode, tokenBuilder, nodeContext);
+
+                if (childNode.value !== undefined) {
+                    this.emitValueToken(childNode, tokenBuilder, documentLines);
+                }
+
+                if (childNode.operator) {
+                    this.emitOperatorToken(childNode, tokenBuilder, documentLines);
+                }
+            }
+
+            // Recurse into children that may overlap with the range
+            if (childNode.children) {
+                this.processASTForTokensInRange(childNode, tokenBuilder, nodeContext, documentLines, range);
+            }
+        }
     }
 }

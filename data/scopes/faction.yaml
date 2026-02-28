@@ -1,0 +1,22 @@
+# Faction scope definition for CK3
+
+faction:
+  description: "A faction targeting a ruler"
+
+  links:
+    faction_target: character
+    faction_leader: character
+    special_character: character
+
+  lists:
+    faction_member: character
+
+  triggers:
+    - faction_type
+    - faction_power
+    - faction_is_at_war
+    - exists
+
+  effects:
+    - destroy_faction
+    - save_scope_as

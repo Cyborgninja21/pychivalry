@@ -3,31 +3,6 @@
 # Run `pre-commit install` to set up the git hook scripts
 
 repos:
-  # Python formatting with black
-  - repo: https://github.com/psf/black
-    rev: 24.1.1
-    hooks:
-      - id: black
-        language_version: python3
-        args: [--line-length=100]
-        files: ^(pychivalry/|tests/|tools/).*\.py$
-
-  # Python linting with flake8
-  - repo: https://github.com/PyCQA/flake8
-    rev: 7.0.0
-    hooks:
-      - id: flake8
-        files: ^(pychivalry/|tests/|tools/).*\.py$
-        args: [--max-line-length=100, --extend-ignore=E203,W503]
-
-  # Python import sorting
-  - repo: https://github.com/PyCQA/isort
-    rev: 5.13.2
-    hooks:
-      - id: isort
-        files: ^(pychivalry/|tests/|tools/).*\.py$
-        args: [--profile=black, --line-length=100]
-
   # General file fixes
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
@@ -43,7 +18,6 @@ repos:
       - id: check-json
         exclude: ^(vscode-extension/syntaxes/|examples/|plan docs/)
       - id: check-merge-conflict
-      - id: check-toml
       - id: mixed-line-ending
         args: [--fix=lf]
         exclude: ^(examples/|plan docs/)

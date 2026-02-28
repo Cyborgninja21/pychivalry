@@ -25,14 +25,15 @@
 
 import { WorkspaceFolder, Diagnostic, DiagnosticSeverity, Range } from 'vscode-languageserver/node';
 import * as fs from 'fs';
+import * as fsp from 'fs/promises';
 import * as path from 'path';
 import { promisify } from 'util';
 import { ASTNode, NodeType } from './parser';
+import { serverLogger } from '../utils/logger';
 
 const readFile = promisify(fs.readFile);
 const readdir = promisify(fs.readdir);
 const stat = promisify(fs.stat);
-const exists = promisify(fs.exists);
 
 // =============================================================================
 // DATA STRUCTURES
@@ -118,6 +119,9 @@ export class EnhancedWorkspaceManager {
     // Localization tracking
     private requiredLocKeys: Set<string> = new Set();
     private definedLocKeys: Set<string> = new Set();
+
+    // Asset tracking
+    private assetPaths: Set<string> = new Set();
     
     /**
      * Add workspace folder and perform initial scan
@@ -146,6 +150,13 @@ export class EnhancedWorkspaceManager {
      */
     public getWorkspaceFolders(): WorkspaceFolder[] {
         return Array.from(this.workspaceFolders.values());
+    }
+
+    /**
+     * Get known asset paths collected during workspace scan
+     */
+    public getKnownAssets(): Set<string> {
+        return this.assetPaths;
     }
 
     /**
@@ -328,7 +339,9 @@ export class EnhancedWorkspaceManager {
             const folderPath = this.uriToPath(folder.uri);
             const descriptorPath = path.join(folderPath, 'descriptor.mod');
             
-            if (fs.existsSync(descriptorPath)) {
+            let descriptorExists = false;
+            try { await fsp.access(descriptorPath); descriptorExists = true; } catch {}
+            if (descriptorExists) {
                 const content = await readFile(descriptorPath, 'utf-8');
                 const descriptor = this.parseModDescriptor(content);
                 
@@ -337,7 +350,7 @@ export class EnhancedWorkspaceManager {
                 }
             }
         } catch (error) {
-            console.error(`Failed to discover mod descriptor: ${error}`);
+            serverLogger.error(`Failed to discover mod descriptor: ${error}`);
         }
     }
 
@@ -403,9 +416,147 @@ export class EnhancedWorkspaceManager {
      * Scan workspace for symbols and references
      */
     private async scanWorkspace(folder: WorkspaceFolder): Promise<void> {
-        // This would recursively scan all files in the workspace
-        // For now, this is a placeholder
-        // In practice, this would be called incrementally as files are opened/changed
+        const folderPath = this.uriToPath(folder.uri);
+        const ck3Files = await this.findCK3FilesRecursive(folderPath);
+
+        for (const filePath of ck3Files) {
+            try {
+                const content = await readFile(filePath, 'utf-8');
+                this.extractSymbolsFromContent(content, filePath);
+            } catch {
+                // Skip unreadable files
+            }
+        }
+
+        // Scan for asset files (graphics, sound, animations, GUI)
+        await this.scanAssetFiles(folderPath);
+    }
+
+    /**
+     * Scan workspace for asset files and register their relative paths
+     */
+    private async scanAssetFiles(rootPath: string): Promise<void> {
+        const ASSET_EXTENSIONS = new Set(['.dds', '.tga', '.png', '.wav', '.ogg', '.mp3', '.anim', '.gui', '.gfx', '.asset']);
+        const scanDir = async (dirPath: string): Promise<void> => {
+            try {
+                const entries = await readdir(dirPath);
+                for (const entry of entries) {
+                    const fullPath = path.join(dirPath, entry);
+                    try {
+                        const info = await stat(fullPath);
+                        if (info.isDirectory()) {
+                            if (entry === 'node_modules' || entry === '.git' || entry === '.vscode') continue;
+                            await scanDir(fullPath);
+                        } else if (info.isFile()) {
+                            const ext = path.extname(entry).toLowerCase();
+                            if (ASSET_EXTENSIONS.has(ext)) {
+                                // Store relative path from workspace root (forward slashes)
+                                const relPath = path.relative(rootPath, fullPath).replace(/\\/g, '/');
+                                this.assetPaths.add(relPath);
+                            }
+                        }
+                    } catch {
+                        // Skip inaccessible entries
+                    }
+                }
+            } catch {
+                // Skip inaccessible directories
+            }
+        };
+        await scanDir(rootPath);
+    }
+
+    /**
+     * Recursively find CK3 script files
+     */
+    private async findCK3FilesRecursive(dirPath: string): Promise<string[]> {
+        const files: string[] = [];
+        try {
+            const entries = await readdir(dirPath);
+            for (const entry of entries) {
+                const fullPath = path.join(dirPath, entry);
+                try {
+                    const info = await stat(fullPath);
+                    if (info.isDirectory()) {
+                        if (entry === 'node_modules' || entry === '.git' || entry === '.vscode') {
+                            continue;
+                        }
+                        const subFiles = await this.findCK3FilesRecursive(fullPath);
+                        files.push(...subFiles);
+                    } else if (info.isFile()) {
+                        const ext = path.extname(entry).toLowerCase();
+                        if (ext === '.txt' || ext === '.gui' || ext === '.gfx' || ext === '.asset') {
+                            files.push(fullPath);
+                        }
+                    }
+                } catch {
+                    // Skip inaccessible entries
+                }
+            }
+        } catch {
+            // Skip inaccessible directories
+        }
+        return files;
+    }
+
+    /**
+     * Extract symbol definitions from file content using regex patterns
+     */
+    private extractSymbolsFromContent(content: string, filePath: string): void {
+        // Extract event definitions: namespace.number = {
+        const eventPattern = /^(\w+\.\d+)\s*=\s*\{/gm;
+        let match;
+        while ((match = eventPattern.exec(content)) !== null) {
+            this.definedEvents.set(match[1], filePath);
+        }
+
+        // Extract namespace declarations
+        const nsPattern = /^namespace\s*=\s*(\w+)/gm;
+        while ((match = nsPattern.exec(content)) !== null) {
+            // Track namespace for reference
+        }
+
+        // Extract trigger_event references for event chains
+        const triggerPattern = /trigger_event\s*=\s*(?:\{\s*id\s*=\s*)?(\w+\.\d+)/g;
+        while ((match = triggerPattern.exec(content)) !== null) {
+            // Could build event chain tracking here
+        }
+
+        // Check parent directory name for context
+        const parentDir = path.basename(path.dirname(filePath)).toLowerCase();
+
+        if (parentDir === 'scripted_effects' || parentDir === 'common') {
+            const effectPattern = /^(\w+)\s*=\s*\{/gm;
+            while ((match = effectPattern.exec(content)) !== null) {
+                if (!match[1].includes('.')) {
+                    this.definedScriptedEffects.set(match[1], filePath);
+                }
+            }
+        }
+
+        if (parentDir === 'scripted_triggers') {
+            const trigPattern = /^(\w+)\s*=\s*\{/gm;
+            while ((match = trigPattern.exec(content)) !== null) {
+                if (!match[1].includes('.')) {
+                    this.definedScriptedTriggers.set(match[1], filePath);
+                }
+            }
+        }
+
+        if (parentDir === 'decisions') {
+            const decPattern = /^(\w+)\s*=\s*\{/gm;
+            while ((match = decPattern.exec(content)) !== null) {
+                if (!match[1].includes('.')) {
+                    this.definedDecisions.set(match[1], filePath);
+                }
+            }
+        }
+
+        // Extract localization key references (title, desc, name fields)
+        const locRefPattern = /(?:title|desc|name)\s*=\s*(\w[\w.]*)/g;
+        while ((match = locRefPattern.exec(content)) !== null) {
+            this.requiredLocKeys.add(match[1]);
+        }
     }
 
     /**
@@ -572,11 +723,127 @@ export class EnhancedWorkspaceManager {
     }
 
     /**
+     * Get dependency-ordered file list for validation.
+     * Level 5 (infrastructure: on_actions, scripted_triggers/effects) validated first,
+     * down to Level 1 (events) validated last.
+     * Returns files grouped by level for ordered processing.
+     */
+    public getDependencyOrderedFiles(): Map<number, string[]> {
+        const { DirectoryRegistry } = require('../data/directory-registry');
+        const registry = DirectoryRegistry.getInstance();
+        const orderedFiles = new Map<number, string[]>();
+
+        // Collect all indexed files and sort by dependency level
+        for (const [uri, folder] of this.workspaceFolders) {
+            const folderPath = this.uriToPath(folder.uri);
+            this.collectFilesForOrdering(folderPath, registry, orderedFiles);
+        }
+
+        return orderedFiles;
+    }
+
+    private collectFilesForOrdering(
+        dirPath: string,
+        registry: any,
+        result: Map<number, string[]>
+    ): void {
+        try {
+            const entries = fs.readdirSync(dirPath, { withFileTypes: true });
+            for (const entry of entries) {
+                const fullPath = path.join(dirPath, entry.name);
+                if (entry.isDirectory()) {
+                    this.collectFilesForOrdering(fullPath, registry, result);
+                } else if (entry.name.endsWith('.txt')) {
+                    const level = registry.isLoaded() ? registry.getLevel(fullPath) : 0;
+                    const effectiveLevel = level >= 0 ? level : 0;
+                    if (!result.has(effectiveLevel)) {
+                        result.set(effectiveLevel, []);
+                    }
+                    result.get(effectiveLevel)!.push(fullPath);
+                }
+            }
+        } catch {
+            // Directory not readable
+        }
+    }
+
+    /**
+     * Detect circular dependencies between files.
+     * Returns CK4500 diagnostics for any cycles found.
+     */
+    public detectCircularDependencies(
+        dependencyGraph: Map<string, Set<string>>
+    ): Array<{ file: string; cycle: string[] }> {
+        const cycles: Array<{ file: string; cycle: string[] }> = [];
+        const visited = new Set<string>();
+        const inStack = new Set<string>();
+
+        const dfs = (node: string, path: string[]): void => {
+            if (inStack.has(node)) {
+                // Found a cycle
+                const cycleStart = path.indexOf(node);
+                cycles.push({
+                    file: node,
+                    cycle: path.slice(cycleStart),
+                });
+                return;
+            }
+            if (visited.has(node)) return;
+
+            visited.add(node);
+            inStack.add(node);
+            path.push(node);
+
+            const deps = dependencyGraph.get(node);
+            if (deps) {
+                for (const dep of deps) {
+                    dfs(dep, [...path]);
+                }
+            }
+
+            inStack.delete(node);
+        };
+
+        for (const node of dependencyGraph.keys()) {
+            if (!visited.has(node)) {
+                dfs(node, []);
+            }
+        }
+
+        return cycles;
+    }
+
+    /**
+     * Validate saved scope references across the workspace.
+     * Returns diagnostics for undefined scope references and unused definitions.
+     *
+     * SCOPE-011: Undefined saved scope (referenced but never defined)
+     * SCOPE-012: Unused saved scope (defined but never referenced)
+     */
+    public validateSavedScopes(indexer: import('./indexer-enhanced').EnhancedIndexer): {
+        undefinedScopes: string[];
+        unusedScopes: import('./indexer-enhanced').SavedScopeEntry[];
+    } {
+        return {
+            undefinedScopes: indexer.getUndefinedSavedScopes(),
+            unusedScopes: indexer.getUnusedSavedScopes(),
+        };
+    }
+
+    /**
      * Convert URI to file path
      */
     private uriToPath(uri: string): string {
+        if (uri.startsWith('file:///')) {
+            let p = decodeURIComponent(uri.substring(8));
+            // On Windows, paths start with drive letter after file:///
+            if (/^[a-zA-Z]:/.test(p)) {
+                return p;
+            }
+            return '/' + p;
+        }
         if (uri.startsWith('file://')) {
-            return uri.substring(7);
+            return decodeURIComponent(uri.substring(7));
         }
         return uri;
     }

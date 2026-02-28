@@ -1,0 +1,20 @@
+# Faith scope definition for CK3
+
+faith:
+  description: "A religious faith"
+
+  links:
+    religion_head: character
+    religious_head_title: title
+
+  lists:
+    holy_site: title
+    faith_county: title
+
+  triggers:
+    - has_doctrine
+    - religion
+    - exists
+
+  effects:
+    - save_scope_as

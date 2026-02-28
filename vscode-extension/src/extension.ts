@@ -1,6 +1,4 @@
 import * as vscode from 'vscode';
-import { exec } from 'child_process';
-import { promisify } from 'util';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
@@ -8,15 +6,20 @@ import {
     LanguageClient,
     LanguageClientOptions,
     ServerOptions,
+    State,
     Trace,
 } from 'vscode-languageclient/node';
 import { CK3StatusBar } from './statusBar';
 import { logger, LogCategory } from './logger';
 
-const execAsync = promisify(exec);
-
 let client: LanguageClient | undefined;
 let statusBar: CK3StatusBar;
+let restartDebounceTimer: NodeJS.Timeout | undefined;
+let restartInProgress = false;
+let crashCount = 0;
+let lastStableTimestamp = Date.now();
+const MAX_CRASH_RESTARTS = 3;
+const CRASH_STABLE_WINDOW_MS = 60000;
 
 // Type definitions for log notification parameters
 interface LogBulkParams {
@@ -223,397 +226,6 @@ async function detectCK3Path(): Promise<string | null> {
     return null;
 }
 
-/**
- * Get server implementation from configuration
- */
-function getServerImplementation(): 'python' | 'typescript' {
-    const config = vscode.workspace.getConfiguration('ck3LanguageServer');
-    return config.get('serverImplementation') || 'typescript';
-}
-
-/**
- * Get Python executable path from configuration
- */
-function getPythonPath(): string {
-    const config = vscode.workspace.getConfiguration('ck3LanguageServer');
-    return config.get('pythonPath') || 'python';
-}
-
-/**
- * Command: Extract CK3 trait data from game installation
- */
-async function extractTraitData(context: vscode.ExtensionContext) {
-    const outputChannel = getLogChannel('traitExtraction', 'CK3: Trait Extraction');
-    outputChannel.clear();
-    outputChannel.show();
-    outputChannel.appendLine('='.repeat(60));
-    outputChannel.appendLine('CK3 Trait Extraction');
-    outputChannel.appendLine(`Started: ${new Date().toLocaleString()}`);
-    outputChannel.appendLine('='.repeat(60));
-    outputChannel.appendLine('');
-
-    try {
-        // Ask user to confirm and provide CK3 installation path
-        const proceed = await vscode.window.showInformationMessage(
-            'This will extract trait data from your Crusader Kings III installation. ' +
-            'The extracted data is for personal use only and not redistributed. Continue?',
-            'Yes',
-            'No'
-        );
-
-        if (proceed !== 'Yes') {
-            return;
-        }
-
-        // Try to detect CK3 installation path
-        let ck3Path = await detectCK3Path();
-
-        if (!ck3Path) {
-            // Ask user to manually specify path
-            const selectedPath = await vscode.window.showOpenDialog({
-                canSelectFiles: false,
-                canSelectFolders: true,
-                canSelectMany: false,
-                title: 'Select Crusader Kings III installation folder',
-                openLabel: 'Select CK3 Folder',
-            });
-
-            if (!selectedPath || selectedPath.length === 0) {
-                vscode.window.showWarningMessage(
-                    'CK3 installation path not provided. Extraction cancelled.'
-                );
-                return;
-            }
-
-            ck3Path = selectedPath[0].fsPath;
-        }
-
-        // Validate path
-        const traitsFile = path.join(ck3Path, 'game', 'common', 'traits', '00_traits.txt');
-        if (!fs.existsSync(traitsFile)) {
-            vscode.window.showErrorMessage(
-                `Invalid CK3 installation path. Could not find: ${traitsFile}`
-            );
-            return;
-        }
-
-        outputChannel.appendLine(`Using CK3 installation: ${ck3Path}`);
-        outputChannel.appendLine('Starting trait extraction...\n');
-
-        // Get Python executable from language server config
-        const pythonPath = getPythonPath();
-
-        // Get extension path and construct script path
-        const extensionPath = context.extensionPath;
-        const scriptPath = path.join(extensionPath, '..', 'tools', 'extract_traits.py');
-
-        // Run extraction script
-        const cmd = `"${pythonPath}" "${scriptPath}" --ck3-path "${ck3Path}"`;
-        outputChannel.appendLine(`Running: ${cmd}\n`);
-
-        const { stdout, stderr } = await execAsync(cmd);
-
-        outputChannel.appendLine(stdout);
-        if (stderr) {
-            outputChannel.appendLine('Errors:\n' + stderr);
-        }
-
-        // Check if successful
-        const outputDir = path.join(extensionPath, '..', 'pychivalry', 'data', 'traits');
-        const yamlFiles = fs.readdirSync(outputDir).filter((f: string) => f.endsWith('.yaml'));
-
-        if (yamlFiles.length > 0) {
-            const result = await vscode.window.showInformationMessage(
-                `✅ Successfully extracted ${yamlFiles.length} trait data files! ` +
-                `Trait validation is now enabled. Restart the language server for changes to take effect.`,
-                'Restart Language Server',
-                'Later'
-            );
-
-            if (result === 'Restart Language Server') {
-                await vscode.commands.executeCommand('ck3LanguageServer.restart');
-            }
-        } else {
-            vscode.window.showErrorMessage(
-                'Extraction completed but no data files were created. Check output for errors.'
-            );
-        }
-    } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        outputChannel.appendLine(`\nError: ${message}`);
-        vscode.window.showErrorMessage(`Failed to extract trait data: ${message}`);
-    }
-}
-
-/**
- * Command: Extract ALL game data (themes, backgrounds, environments, on_actions, traits)
- */
-async function extractAllGameData(context: vscode.ExtensionContext) {
-    const outputChannel = getLogChannel('allDataExtraction', 'CK3: All Game Data Extraction');
-    outputChannel.clear();
-    outputChannel.show();
-    outputChannel.appendLine('='.repeat(60));
-    outputChannel.appendLine('CK3 All Game Data Extraction');
-    outputChannel.appendLine(`Started: ${new Date().toLocaleString()}`);
-    outputChannel.appendLine('='.repeat(60));
-    outputChannel.appendLine('');
-
-    try {
-        // Ask user to confirm and provide CK3 installation path
-        const proceed = await vscode.window.showInformationMessage(
-            'This will extract all game data (themes, backgrounds, environments, on_actions, traits) from your CK3 installation. ' +
-            'The extracted data is for personal use only. Continue?',
-            'Yes',
-            'No'
-        );
-
-        if (proceed !== 'Yes') {
-            return;
-        }
-
-        // Try to detect CK3 installation path
-        let ck3Path = await detectCK3Path();
-
-        if (!ck3Path) {
-            // Ask user to manually specify path
-            const selectedPath = await vscode.window.showOpenDialog({
-                canSelectFiles: false,
-                canSelectFolders: true,
-                canSelectMany: false,
-                title: 'Select Crusader Kings III installation folder',
-                openLabel: 'Select CK3 Folder',
-            });
-
-            if (!selectedPath || selectedPath.length === 0) {
-                vscode.window.showWarningMessage(
-                    'CK3 installation path not provided. Extraction cancelled.'
-                );
-                return;
-            }
-
-            ck3Path = selectedPath[0].fsPath;
-        }
-
-        // Validate path
-        const gameDir = path.join(ck3Path, 'game');
-        if (!fs.existsSync(gameDir)) {
-            vscode.window.showErrorMessage(
-                `Invalid CK3 installation path. Could not find: ${gameDir}`
-            );
-            return;
-        }
-
-        outputChannel.appendLine(`Using CK3 installation: ${ck3Path}`);
-        outputChannel.appendLine('Starting data extraction...\n');
-
-        // Get Python executable from language server config
-        const pythonPath = getPythonPath();
-
-        // Get extension path and construct script path
-        const extensionPath = context.extensionPath;
-        const scriptPath = path.join(extensionPath, '..', 'tools', 'extract_all.py');
-
-        // Run extraction script
-        const cmd = `"${pythonPath}" "${scriptPath}" --ck3-path "${ck3Path}"`;
-        outputChannel.appendLine(`Running: ${cmd}\n`);
-
-        const { stdout, stderr } = await execAsync(cmd, { maxBuffer: 1024 * 1024 * 10 }); // 10MB buffer
-
-        outputChannel.appendLine(stdout);
-        if (stderr) {
-            outputChannel.appendLine('Errors:\n' + stderr);
-        }
-
-        // Check if successful
-        const dataDir = path.join(extensionPath, '..', 'pychivalry', 'data');
-        const expectedFiles = ['themes.yaml', 'backgrounds.yaml', 'environments.yaml', 'on_actions.yaml'];
-        const existingFiles = expectedFiles.filter((f: string) => fs.existsSync(path.join(dataDir, f)));
-
-        if (existingFiles.length > 0) {
-            const result = await vscode.window.showInformationMessage(
-                `✅ Successfully extracted ${existingFiles.length} data file(s)! ` +
-                `(${existingFiles.join(', ')}). Restart the language server for changes to take effect.`,
-                'Restart Language Server',
-                'Later'
-            );
-
-            if (result === 'Restart Language Server') {
-                await vscode.commands.executeCommand('ck3LanguageServer.restart');
-            }
-        } else {
-            vscode.window.showErrorMessage(
-                'Extraction completed but no data files were created. Check output for errors.'
-            );
-        }
-    } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        outputChannel.appendLine(`\nError: ${message}`);
-        vscode.window.showErrorMessage(`Failed to extract game data: ${message}`);
-    }
-}
-
-/**
- * Command: Discover and extract mod data (Carnalitas, etc.)
- */
-async function discoverModData(context: vscode.ExtensionContext) {
-    const outputChannel = getLogChannel('modDiscovery', 'CK3: Mod Discovery');
-
-    // Show quick pick FIRST, before showing output channel (to avoid focus issues)
-    const action = await vscode.window.showQuickPick(
-        [
-            {
-                label: '$(search) Discover All Mods',
-                description: 'Scan for all registered mods and extract data',
-                value: 'all',
-            },
-            {
-                label: '$(list-unordered) List Discovered Mods',
-                description: 'Show which mods are installed without extracting',
-                value: 'list',
-            },
-            {
-                label: '$(database) Show Cached Data',
-                description: 'Display summary of previously extracted mod data',
-                value: 'summary',
-            },
-            {
-                label: '$(refresh) Force Re-extract All',
-                description: 'Re-extract all mods, ignoring cache',
-                value: 'force',
-            },
-            {
-                label: '$(trash) Clean Removed Mods',
-                description: 'Remove cache entries for uninstalled mods',
-                value: 'clean',
-            },
-            {
-                label: '$(clear-all) Clear All Cache',
-                description: 'Delete all cached mod data',
-                value: 'clear',
-            },
-        ],
-        {
-            placeHolder: 'Select mod discovery action',
-            title: 'CK3 Mod Discovery',
-            ignoreFocusOut: true,
-        }
-    );
-
-    // If user cancelled, exit early without showing output
-    if (!action) {
-        return;
-    }
-
-    // Now show output channel after user has made selection
-    outputChannel.clear();
-    outputChannel.show();
-    outputChannel.appendLine('='.repeat(60));
-    outputChannel.appendLine('CK3 Mod Discovery');
-    outputChannel.appendLine(`Started: ${new Date().toLocaleString()}`);
-    outputChannel.appendLine('='.repeat(60));
-    outputChannel.appendLine('');
-
-    try {
-        outputChannel.appendLine(`Selected action: ${action.value}`);
-        outputChannel.appendLine('');
-
-        // Get Python executable
-        const pythonPath = getPythonPath();
-
-        // Get script path
-        const extensionPath = context.extensionPath;
-        const scriptPath = path.join(extensionPath, '..', 'tools', 'discover_mods.py');
-
-        // Check if script exists
-        if (!fs.existsSync(scriptPath)) {
-            vscode.window.showErrorMessage(
-                `Mod discovery script not found at: ${scriptPath}\n` +
-                'Please ensure pychivalry is properly installed.'
-            );
-            return;
-        }
-
-        // Build command based on action
-        // Always use --all to scan all mods, not just registered ones
-        let cmdArgs = '--all';
-        switch (action.value) {
-            case 'list':
-                cmdArgs += ' --list';
-                break;
-            case 'summary':
-                cmdArgs = '--summary';  // Summary doesn't need --all
-                break;
-            case 'force':
-                cmdArgs += ' --force';
-                break;
-            case 'clean':
-                cmdArgs += ' --clean';
-                break;
-            case 'clear':
-                cmdArgs = '--clear-cache';  // Clear cache doesn't need --all
-                break;
-            case 'all':
-            default:
-                // --all is already set
-                break;
-        }
-
-        // Check for additional mod paths in workspace
-        // Also exclude workspace mods from extraction (they're being developed)
-        const workspaceFolders = vscode.workspace.workspaceFolders;
-        if (workspaceFolders) {
-            for (const folder of workspaceFolders) {
-                // Check if this looks like a mod folder
-                const descriptorPath = path.join(folder.uri.fsPath, 'descriptor.mod');
-                if (fs.existsSync(descriptorPath)) {
-                    // Add parent directory as a search path (mods are siblings)
-                    const parentDir = path.dirname(folder.uri.fsPath);
-                    cmdArgs += ` --mod-path "${parentDir}"`;
-                    // Exclude this workspace mod from extraction (it's being developed)
-                    cmdArgs += ` --exclude "${folder.uri.fsPath}"`;
-                }
-            }
-        }
-
-        const cmd = `"${pythonPath}" "${scriptPath}" ${cmdArgs}`;
-        outputChannel.appendLine(`Running: ${cmd}\n`);
-
-        const { stdout, stderr } = await execAsync(cmd);
-
-        outputChannel.appendLine(stdout);
-        if (stderr) {
-            outputChannel.appendLine('Warnings:\n' + stderr);
-        }
-
-        // Check results and prompt user
-        if (action.value === 'list' || action.value === 'summary') {
-            // No further action needed for info commands
-            vscode.window.showInformationMessage('Mod discovery results shown in output channel.');
-        } else if (action.value === 'clean') {
-            vscode.window.showInformationMessage('✅ Cache cleanup complete. Removed mods cleaned from cache.');
-        } else if (action.value === 'clear') {
-            vscode.window.showInformationMessage('✅ Cache cleared. Run "Discover All Mods" to re-extract.');
-        } else if (stdout.includes('Successfully extracted')) {
-            const result = await vscode.window.showInformationMessage(
-                '✅ Mod data extracted successfully! Restart language server for changes to take effect.',
-                'Restart Language Server',
-                'Later'
-            );
-
-            if (result === 'Restart Language Server') {
-                await vscode.commands.executeCommand('ck3LanguageServer.restart');
-            }
-        } else if (stdout.includes('No registered mods found') || stdout.includes('No mods were extracted')) {
-            vscode.window.showWarningMessage(
-                'No registered mods found. Ensure Carnalitas or other supported mods are installed.'
-            );
-        }
-    } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        outputChannel.appendLine(`\nError: ${message}`);
-        vscode.window.showErrorMessage(`Failed to discover mods: ${message}`);
-    }
-}
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
     // Initialize multi-channel logger
@@ -641,38 +253,35 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     getLogChannel('setup', 'CK3L: setup.log');
     getLogChannel('patterns', 'CK3L: Script Errors');
 
-    // Pre-create extraction/discovery channels so they appear in Output menu
-    getLogChannel('traitExtraction', 'CK3: Trait Extraction');
-    getLogChannel('modDiscovery', 'CK3: Mod Discovery');
 
     // Register restart command
     context.subscriptions.push(
         vscode.commands.registerCommand('ck3LanguageServer.restart', async () => {
+            if (restartDebounceTimer) {
+                clearTimeout(restartDebounceTimer);
+                restartDebounceTimer = undefined;
+            }
             logger.logServer('Restarting CK3 Language Server...');
             await deactivate();
             await startServer(context);
         })
     );
 
-    // Register trait extraction command
+    // Data extraction commands — now handled by the built-in TypeScript language server
+    const deprecatedMsg = 'This command has been replaced by the built-in TypeScript language server. Game data is bundled with the extension.';
     context.subscriptions.push(
-        vscode.commands.registerCommand('ck3LanguageServer.extractTraitData', async () => {
-            await extractTraitData(context);
-        })
-    );
-
-    // Register all game data extraction command
-    context.subscriptions.push(
-        vscode.commands.registerCommand('ck3LanguageServer.extractAllGameData', async () => {
-            await extractAllGameData(context);
-        })
-    );
-
-    // Register mod discovery command
-    context.subscriptions.push(
-        vscode.commands.registerCommand('ck3LanguageServer.discoverModData', async () => {
-            await discoverModData(context);
-        })
+        vscode.commands.registerCommand('ck3LanguageServer.extractTraitData', () => {
+            vscode.window.showInformationMessage(deprecatedMsg);
+        }),
+        vscode.commands.registerCommand('ck3LanguageServer.extractAllGameData', () => {
+            vscode.window.showInformationMessage(deprecatedMsg);
+        }),
+        vscode.commands.registerCommand('ck3LanguageServer.extractLocalizationData', () => {
+            vscode.window.showInformationMessage(deprecatedMsg);
+        }),
+        vscode.commands.registerCommand('ck3LanguageServer.discoverModData', () => {
+            vscode.window.showInformationMessage(deprecatedMsg);
+        }),
     );
 
     // Register show menu command
@@ -1121,6 +730,13 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
                 return;
             }
 
+            // Check if log watcher is enabled
+            const lwConfig = vscode.workspace.getConfiguration('ck3LanguageServer');
+            if (!lwConfig.get<boolean>('logWatcher.enabled', true)) {
+                vscode.window.showWarningMessage('Log watcher is disabled. Enable it in settings: ck3LanguageServer.logWatcher.enabled');
+                return;
+            }
+
             try {
                 // Get custom log path from settings
                 const config = vscode.workspace.getConfiguration('ck3LanguageServer');
@@ -1361,25 +977,31 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     // Start the server
     await startServer(context);
 
-    // Watch for configuration changes
+    // Watch for configuration changes (debounced to avoid rapid restarts)
     context.subscriptions.push(
         vscode.workspace.onDidChangeConfiguration(async (e) => {
             if (
-                e.affectsConfiguration('ck3LanguageServer.pythonPath') ||
                 e.affectsConfiguration('ck3LanguageServer.enable') ||
                 e.affectsConfiguration('ck3LanguageServer.logLevel')
             ) {
-                logger.logServer('Configuration changed, restarting server...');
-
-                // Enable debug channels if switching to debug mode
-                const cfg = vscode.workspace.getConfiguration('ck3LanguageServer');
-                if (cfg.get<string>('logLevel', 'info') === 'debug') {
-                    logger.enableDebugMode();
-                    logger.logServer('Debug mode enabled - Debug and Performance channels active');
+                // Debounce restart to avoid rapid-fire restarts
+                if (restartDebounceTimer) {
+                    clearTimeout(restartDebounceTimer);
                 }
+                restartDebounceTimer = setTimeout(async () => {
+                    restartDebounceTimer = undefined;
+                    logger.logServer('Configuration changed, restarting server...');
 
-                await deactivate();
-                await startServer(context);
+                    // Enable debug channels if switching to debug mode
+                    const cfg = vscode.workspace.getConfiguration('ck3LanguageServer');
+                    if (cfg.get<string>('logLevel', 'info') === 'debug') {
+                        logger.enableDebugMode();
+                        logger.logServer('Debug mode enabled - Debug and Performance channels active');
+                    }
+
+                    await deactivate();
+                    await startServer(context);
+                }, 500);
             }
         })
     );
@@ -1388,6 +1010,20 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 }
 
 async function startServer(context: vscode.ExtensionContext): Promise<void> {
+    if (restartInProgress) {
+        logger.logServer('Server restart already in progress, skipping');
+        return;
+    }
+
+    restartInProgress = true;
+    try {
+        await startServerInternal(context);
+    } finally {
+        restartInProgress = false;
+    }
+}
+
+async function startServerInternal(context: vscode.ExtensionContext): Promise<void> {
     const config = vscode.workspace.getConfiguration('ck3LanguageServer');
 
     // Check if server is enabled
@@ -1407,9 +1043,6 @@ async function startServer(context: vscode.ExtensionContext): Promise<void> {
 
     statusBar.updateState('starting');
 
-    const serverImplementation = getServerImplementation();
-    logger.logServer(`Server implementation: ${serverImplementation}`);
-
     const args = config.get<string[]>('args', []);
     const traceLevel = config.get<string>('trace.server', 'off');
     const logLevel = config.get<string>('logLevel', 'info');
@@ -1418,53 +1051,20 @@ async function startServer(context: vscode.ExtensionContext): Promise<void> {
     logger.logServer(`Log level: ${logLevel}`);
     logger.logDebug(`Trace level: ${traceLevel}`);
 
-    // Server options - different based on implementation
-    let serverOptions: ServerOptions;
+    // TypeScript server runs as Node.js process
+    const serverModule = context.asAbsolutePath(
+        path.join('dist', 'server-main.js')
+    );
 
-    if (serverImplementation === 'typescript') {
-        // TypeScript server runs as Node.js process
-        const serverModule = context.asAbsolutePath(
-            path.join('dist', 'server-main.js')
-        );
-        
-        logger.logServer(`Using TypeScript server at: ${serverModule}`);
-        
-        serverOptions = {
-            module: serverModule,
-            transport: 0, // TransportKind.stdio
-            options: {
-                env: { ...process.env, LOG_LEVEL: logLevel },
-            },
-        };
-    } else {
-        // Python server - find Python installation
-        const pythonPath = await findPython();
-        if (!pythonPath) {
-            const error = new Error('Python not found');
-            await handleServerError(error);
-            statusBar.updateState('error', 'Python not found');
-            return;
-        }
+    logger.logServer(`Using TypeScript server at: ${serverModule}`);
 
-        logger.logServer(`Using Python: ${pythonPath}`);
-
-        // Check if pychivalry server is installed
-        const serverInstalled = await checkServerInstalled(pythonPath);
-        if (!serverInstalled) {
-            const error = new Error('pychivalry module not installed');
-            await handleServerError(error);
-            statusBar.updateState('error', 'pychivalry not installed');
-            return;
-        }
-        
-        serverOptions = {
-            command: pythonPath,
-            args: ['-m', 'pychivalry.server', '--log-level', logLevel, ...args],
-            options: {
-                env: { ...process.env },
-            },
-        };
-    }
+    const serverOptions: ServerOptions = {
+        module: serverModule,
+        transport: 0, // TransportKind.stdio
+        options: {
+            env: { ...process.env, LOG_LEVEL: logLevel },
+        },
+    };
 
     // Client options - use separate channels for output and trace
     const clientOptions: LanguageClientOptions = {
@@ -1690,6 +1290,63 @@ async function startServer(context: vscode.ExtensionContext): Promise<void> {
             logger.appendIndexLines(params.lines);
         });
 
+        // 8c: Forward logWatcher settings to server
+        const lwCfg = vscode.workspace.getConfiguration('ck3LanguageServer');
+        const logWatcherSettings = {
+            maxLogSize: lwCfg.get<number>('logWatcher.maxLogSize', 100),
+            debounceDelay: lwCfg.get<number>('logWatcher.debounceDelay', 500),
+            patterns: lwCfg.get<any[]>('logWatcher.patterns', []),
+        };
+        client.sendNotification('ck3/logWatcherSettings', logWatcherSettings);
+
+        // 8a: Auto-start log watcher if configured
+        if (lwCfg.get<boolean>('logWatcher.enabled', true) && lwCfg.get<boolean>('logWatcher.autoStart', false)) {
+            logger.logServer('Auto-starting log watcher (logWatcher.autoStart is true)');
+            vscode.commands.executeCommand('ck3LanguageServer.startLogWatcher');
+        }
+
+        // Reset crash counter after stable running period
+        lastStableTimestamp = Date.now();
+        crashCount = 0;
+
+        // 8d: Server crash recovery - auto-restart after unexpected stop (with limit)
+        client.onDidChangeState((event) => {
+            if (event.oldState === State.Running && event.newState === State.Stopped) {
+                // Reset crash counter if server was stable for long enough
+                if (Date.now() - lastStableTimestamp > CRASH_STABLE_WINDOW_MS) {
+                    crashCount = 0;
+                }
+
+                crashCount++;
+
+                if (crashCount > MAX_CRASH_RESTARTS) {
+                    logger.logServer(`Server crashed ${crashCount} times, not restarting. Check Output for errors.`);
+                    statusBar.updateState('error', 'Server crashed repeatedly - restart manually');
+                    vscode.window.showErrorMessage(
+                        `CK3 Language Server crashed ${crashCount} times. Please check the output panel for errors and restart manually.`,
+                        'Restart Server'
+                    ).then(choice => {
+                        if (choice === 'Restart Server') {
+                            crashCount = 0;
+                            startServer(context);
+                        }
+                    });
+                    return;
+                }
+
+                logger.logServer(`Language server stopped unexpectedly (crash ${crashCount}/${MAX_CRASH_RESTARTS}), restarting in 3s...`);
+                statusBar.updateState('error', 'Server crashed - restarting...');
+                setTimeout(async () => {
+                    try {
+                        await startServer(context);
+                    } catch (err) {
+                        const msg = err instanceof Error ? err.message : String(err);
+                        logger.logServer(`Failed to restart server: ${msg}`);
+                    }
+                }, 3000);
+            }
+        });
+
         // Register for disposal
         context.subscriptions.push(client);
     } catch (error) {
@@ -1698,33 +1355,6 @@ async function startServer(context: vscode.ExtensionContext): Promise<void> {
         await handleServerError(error as Error);
         statusBar.updateState('error', message);
     }
-}
-
-async function findPython(): Promise<string | undefined> {
-    const config = vscode.workspace.getConfiguration('ck3LanguageServer');
-    const configuredPath = config.get<string>('pythonPath');
-
-    // Try configured path first
-    if (configuredPath && configuredPath !== 'python') {
-        if (await checkPythonPath(configuredPath)) {
-            return configuredPath;
-        }
-    }
-
-    // Try common paths
-    const candidates = [
-        'python3',
-        'python',
-        process.platform === 'win32' ? 'py' : undefined,
-    ].filter((p): p is string => p !== undefined);
-
-    for (const candidate of candidates) {
-        if (await checkPythonPath(candidate)) {
-            return candidate;
-        }
-    }
-
-    return undefined;
 }
 
 function shellEscape(arg: string): string {
@@ -1740,84 +1370,13 @@ function shellEscape(arg: string): string {
     }
 }
 
-async function checkPythonPath(pythonPath: string): Promise<boolean> {
-    try {
-        const escapedPath = shellEscape(pythonPath);
-        const { stdout } = await execAsync(`${escapedPath} --version`);
-        const version = stdout.match(/Python (\d+)\.(\d+)/);
-        if (version) {
-            const major = parseInt(version[1]);
-            const minor = parseInt(version[2]);
-            return major >= 3 && minor >= 9;
-        }
-    } catch {
-        return false;
-    }
-    return false;
-}
-
-async function checkServerInstalled(pythonPath: string): Promise<boolean> {
-    try {
-        const escapedPath = shellEscape(pythonPath);
-        await execAsync(`${escapedPath} -c "import pychivalry"`);
-        return true;
-    } catch {
-        return false;
-    }
-}
-
 async function handleServerError(error: Error): Promise<void> {
-    const pythonMissing = error.message.includes('not found');
-    const moduleMissing = error.message.includes('not installed');
-
-    if (pythonMissing) {
-        const action = await vscode.window.showErrorMessage(
-            'Python not found. The CK3 Language Server requires Python 3.9+.',
-            'Configure Python Path',
-            'Install Python'
-        );
-
-        if (action === 'Configure Python Path') {
-            vscode.commands.executeCommand(
-                'workbench.action.openSettings',
-                'ck3LanguageServer.pythonPath'
-            );
-        } else if (action === 'Install Python') {
-            vscode.env.openExternal(vscode.Uri.parse('https://www.python.org/downloads/'));
-        }
-    } else if (moduleMissing) {
-        const action = await vscode.window.showErrorMessage(
-            'pychivalry language server not installed.',
-            'Install Server',
-            'View Documentation'
-        );
-
-        if (action === 'Install Server') {
-            const confirm = await vscode.window.showWarningMessage(
-                'This will run "pip install pychivalry" in a terminal. Continue?',
-                'Yes',
-                'No'
-            );
-
-            if (confirm === 'Yes') {
-                const terminal = vscode.window.createTerminal('Install CK3 Server');
-                terminal.show();
-                // Hardcoded safe command - no user input
-                terminal.sendText('pip install pychivalry');
-            }
-        } else if (action === 'View Documentation') {
-            vscode.env.openExternal(
-                vscode.Uri.parse('https://github.com/Cyborgninja21/pychivalry#readme')
-            );
-        }
-    } else {
-        const action = await vscode.window.showErrorMessage(
-            `CK3 Language Server error: ${error.message}`,
-            'Show Output'
-        );
-        if (action === 'Show Output') {
-            logger.showChannel(LogCategory.Server);
-        }
+    const action = await vscode.window.showErrorMessage(
+        `CK3 Language Server error: ${error.message}`,
+        'Show Output'
+    );
+    if (action === 'Show Output') {
+        logger.showChannel(LogCategory.Server);
     }
 }
 
@@ -1957,7 +1516,7 @@ async function showMenuCommand(): Promise<void> {
                 await vscode.commands.executeCommand('ck3LanguageServer.forceRefreshLogs');
                 break;
             case '$(graph-line) Show Log Statistics':
-                await vscode.commands.executeCommand('ck3LanguageServer.getLogStatistics');
+                await vscode.commands.executeCommand('ck3LanguageServer.showLogStatistics');
                 break;
             case '$(clear-all) Clear Log Diagnostics':
                 await vscode.commands.executeCommand('ck3LanguageServer.clearGameLogs');
@@ -1995,6 +1554,12 @@ function getSeverityIcon(severity: number): string {
 }
 
 export async function deactivate(): Promise<void> {
+    // Clear restart debounce timer
+    if (restartDebounceTimer) {
+        clearTimeout(restartDebounceTimer);
+        restartDebounceTimer = undefined;
+    }
+
     if (!client) {
         return;
     }
@@ -2008,5 +1573,13 @@ export async function deactivate(): Promise<void> {
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         logger.logServer(`Error stopping client: ${message}`);
+    }
+
+    // Dispose all log output channels
+    for (const key of Object.keys(logChannels) as Array<keyof typeof logChannels>) {
+        if (logChannels[key]) {
+            logChannels[key]!.dispose();
+            logChannels[key] = null;
+        }
     }
 }

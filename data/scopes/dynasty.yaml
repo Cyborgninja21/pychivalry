@@ -1,0 +1,23 @@
+# Dynasty scope definition for CK3
+
+dynasty:
+  description: "A dynasty (noble family lineage)"
+
+  links:
+    dynasty_founder: character
+    dynast: character
+
+  lists:
+    dynasty_member: character
+
+  triggers:
+    - has_dynasty_modifier
+    - dynasty_prestige
+    - num_dynasty_members
+    - exists
+
+  effects:
+    - add_dynasty_modifier
+    - remove_dynasty_modifier
+    - add_dynasty_prestige
+    - save_scope_as

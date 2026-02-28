@@ -1,0 +1,18 @@
+# Culture scope definition for CK3
+
+culture:
+  description: "A cultural group"
+
+  links:
+    culture_head: character
+
+  lists:
+    culture_county: title
+
+  triggers:
+    - has_cultural_tradition
+    - has_cultural_pillar
+    - exists
+
+  effects:
+    - save_scope_as

@@ -34,6 +34,7 @@ export interface EventMetadata {
     animation?: string;
     references: EventReference[];
     localizationKeys: string[];
+    sourceUri: string;
 }
 
 export interface EventOption {
@@ -75,6 +76,7 @@ export interface DecisionMetadata {
     ai_will_do: any;
     cost?: any;
     localizationKeys: string[];
+    sourceUri: string;
 }
 
 /**
@@ -101,6 +103,16 @@ export interface Dependency {
     from: Symbol;
     to: Symbol;
     type: 'requires' | 'optional' | 'triggers' | 'calls';
+}
+
+/**
+ * Saved scope entry for cross-file tracking
+ */
+export interface SavedScopeEntry {
+    name: string;
+    uri: string;
+    range: { start: { line: number; character: number }; end: { line: number; character: number } };
+    isTemporary: boolean;
 }
 
 /**
@@ -138,20 +150,81 @@ export class EnhancedIndexer extends DocumentIndexer {
     
     // Event chains
     private eventChains: Map<string, string[]> = new Map(); // event_id -> triggered_events
+
+    // Saved scope tracking: definitions (save_scope_as) and references (scope:name)
+    private savedScopeDefinitions: Map<string, SavedScopeEntry[]> = new Map(); // scope_name -> entries
+    private savedScopeReferences: Map<string, SavedScopeEntry[]> = new Map(); // scope_name -> entries
     
     /**
      * Index a document with enhanced tracking
      */
     public async indexDocumentEnhanced(uri: string, ast: ASTNode): Promise<void> {
+        // Clear stale data from previous indexing of this document
+        this.clearDocumentEnhancedData(uri);
+
         // First do basic indexing
         await this.indexDocument(uri, ast);
-        
+
         // Then do enhanced tracking
         this.extractEventMetadata(uri, ast);
         this.extractDecisionMetadata(uri, ast);
         this.extractReferences(uri, ast);
         this.extractLocalizationKeys(uri, ast);
+        this.extractSavedScopes(uri, ast);
         this.buildDependencyGraph(uri);
+    }
+
+    /**
+     * Clear all enhanced data associated with a specific document URI
+     */
+    private clearDocumentEnhancedData(uri: string): void {
+        // Remove events from this URI
+        for (const [eventId, metadata] of this.events) {
+            if (metadata.sourceUri === uri) {
+                this.events.delete(eventId);
+            }
+        }
+
+        // Rebuild namespace index without events from this URI
+        for (const [ns, events] of this.eventsByNamespace) {
+            const filtered = events.filter(e => e.sourceUri !== uri);
+            if (filtered.length === 0) {
+                this.eventsByNamespace.delete(ns);
+            } else {
+                this.eventsByNamespace.set(ns, filtered);
+            }
+        }
+
+        // Remove decisions from this URI
+        for (const [decId, metadata] of this.decisions) {
+            if (metadata.sourceUri === uri) {
+                this.decisions.delete(decId);
+            }
+        }
+
+        // Remove event chains originating from events in this URI
+        for (const [eventId] of this.eventChains) {
+            // Only clear if the source event was from this URI (already removed from events map)
+            if (!this.events.has(eventId)) {
+                this.eventChains.delete(eventId);
+            }
+        }
+
+        // Clean reference locations from this URI
+        for (const [name, ref] of this.references) {
+            ref.locations = ref.locations.filter(loc => loc.uri !== uri);
+            if (ref.locations.length === 0) {
+                this.references.delete(name);
+            }
+        }
+
+        // Clean undefined reference locations from this URI
+        for (const [name, uref] of this.undefinedReferences) {
+            uref.locations = uref.locations.filter(loc => loc.uri !== uri);
+            if (uref.locations.length === 0) {
+                this.undefinedReferences.delete(name);
+            }
+        }
     }
     
     /**
@@ -204,7 +277,8 @@ export class EnhancedIndexer extends DocumentIndexer {
             immediate: [],
             after: [],
             references: [],
-            localizationKeys: []
+            localizationKeys: [],
+            sourceUri: uri,
         };
         
         // Extract event details
@@ -341,7 +415,8 @@ export class EnhancedIndexer extends DocumentIndexer {
             effect: [],
             ai_potential: [],
             ai_will_do: [],
-            localizationKeys: []
+            localizationKeys: [],
+            sourceUri: uri,
         };
         
         if (node.children) {
@@ -467,6 +542,81 @@ export class EnhancedIndexer extends DocumentIndexer {
     /**
      * Build dependency graph
      */
+    /**
+     * Extract saved scope definitions (save_scope_as/save_temporary_scope_as)
+     * and references (scope:name patterns in keys and values)
+     */
+    private extractSavedScopes(uri: string, ast: ASTNode): void {
+        // Clear previous data for this URI
+        for (const [name, entries] of this.savedScopeDefinitions) {
+            const filtered = entries.filter(e => e.uri !== uri);
+            if (filtered.length === 0) this.savedScopeDefinitions.delete(name);
+            else this.savedScopeDefinitions.set(name, filtered);
+        }
+        for (const [name, entries] of this.savedScopeReferences) {
+            const filtered = entries.filter(e => e.uri !== uri);
+            if (filtered.length === 0) this.savedScopeReferences.delete(name);
+            else this.savedScopeReferences.set(name, filtered);
+        }
+
+        this.walkSavedScopes(uri, ast);
+    }
+
+    private walkSavedScopes(uri: string, node: ASTNode): void {
+        // Check for definitions
+        if ((node.key === 'save_scope_as' || node.key === 'save_temporary_scope_as') && node.value) {
+            const name = String(node.value);
+            const entry: SavedScopeEntry = {
+                name,
+                uri,
+                range: node.range,
+                isTemporary: node.key === 'save_temporary_scope_as',
+            };
+            const existing = this.savedScopeDefinitions.get(name) || [];
+            existing.push(entry);
+            this.savedScopeDefinitions.set(name, existing);
+        }
+
+        // Check for references in keys (e.g., scope:my_target = { ... })
+        if (node.key && node.key.startsWith('scope:')) {
+            const scopeName = node.key.substring('scope:'.length);
+            if (scopeName) {
+                const entry: SavedScopeEntry = {
+                    name: scopeName,
+                    uri,
+                    range: node.range,
+                    isTemporary: false,
+                };
+                const existing = this.savedScopeReferences.get(scopeName) || [];
+                existing.push(entry);
+                this.savedScopeReferences.set(scopeName, existing);
+            }
+        }
+
+        // Check for references in values (e.g., target = scope:my_target)
+        if (node.value && typeof node.value === 'string' && node.value.startsWith('scope:')) {
+            const scopeName = node.value.substring('scope:'.length);
+            if (scopeName) {
+                const entry: SavedScopeEntry = {
+                    name: scopeName,
+                    uri,
+                    range: node.range,
+                    isTemporary: false,
+                };
+                const existing = this.savedScopeReferences.get(scopeName) || [];
+                existing.push(entry);
+                this.savedScopeReferences.set(scopeName, existing);
+            }
+        }
+
+        // Recurse
+        if (node.children) {
+            for (const child of node.children) {
+                this.walkSavedScopes(uri, child);
+            }
+        }
+    }
+
     private buildDependencyGraph(uri: string): void {
         // Build dependencies between symbols
         for (const [symbolName, reference] of this.references) {
@@ -555,7 +705,54 @@ export class EnhancedIndexer extends DocumentIndexer {
     public hasLocalizationKey(key: string): boolean {
         return this.localizationKeys.has(key);
     }
-    
+
+    /**
+     * Get all saved scope definitions
+     */
+    public getSavedScopeDefinitions(): Map<string, SavedScopeEntry[]> {
+        return this.savedScopeDefinitions;
+    }
+
+    /**
+     * Get all saved scope references
+     */
+    public getSavedScopeReferences(): Map<string, SavedScopeEntry[]> {
+        return this.savedScopeReferences;
+    }
+
+    /**
+     * Get definition locations for a saved scope name
+     */
+    public getSavedScopeDefinition(name: string): SavedScopeEntry[] {
+        return this.savedScopeDefinitions.get(name) || [];
+    }
+
+    /**
+     * Get all undefined saved scope references (referenced but never defined)
+     */
+    public getUndefinedSavedScopes(): string[] {
+        const undefined_scopes: string[] = [];
+        for (const [name] of this.savedScopeReferences) {
+            if (!this.savedScopeDefinitions.has(name)) {
+                undefined_scopes.push(name);
+            }
+        }
+        return undefined_scopes;
+    }
+
+    /**
+     * Get all unused saved scopes (defined but never referenced)
+     */
+    public getUnusedSavedScopes(): SavedScopeEntry[] {
+        const unused: SavedScopeEntry[] = [];
+        for (const [name, entries] of this.savedScopeDefinitions) {
+            if (!this.savedScopeReferences.has(name)) {
+                unused.push(...entries);
+            }
+        }
+        return unused;
+    }
+
     /**
      * Get statistics
      */
@@ -699,8 +896,15 @@ export class EnhancedIndexer extends DocumentIndexer {
     }
     
     private findSymbolAtPosition(uri: string, line: number, character: number): Symbol | null {
-        // Find symbol at specific position
-        // This would use the basic indexer's functionality
-        return null; // Placeholder
+        const docSymbols = this.getDocumentSymbols(uri);
+        for (const symbol of docSymbols) {
+            const { start, end } = symbol.range;
+            // Check if position falls within symbol range
+            if (line < start.line || line > end.line) continue;
+            if (line === start.line && character < start.character) continue;
+            if (line === end.line && character > end.character) continue;
+            return symbol;
+        }
+        return null;
     }
 }

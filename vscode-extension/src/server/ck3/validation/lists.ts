@@ -396,22 +396,3 @@ export function getListIteratorDocumentation(identifier: string): string | null 
 
     return `**${identifier}**\n\n${typeDesc}\n\n**Supported parameters:**\n${paramDocs}`;
 }
-
-/**
- * Export all list validation functions
- */
-export const ListValidation = {
-    parseListIterator,
-    isListIterator,
-    getSupportedParameters,
-    isValidParameter,
-    getIteratorType,
-    isTriggerIterator,
-    isEffectIterator,
-    isValidListBase,
-    getValidListBases,
-    getListResultScope,
-    validateListBlockContent,
-    suggestListIterators,
-    getListIteratorDocumentation,
-};

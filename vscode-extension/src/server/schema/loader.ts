@@ -8,12 +8,11 @@
  */
 
 import * as yaml from 'js-yaml';
-import * as fs from 'fs';
+import * as fsp from 'fs/promises';
 import * as path from 'path';
-import { promisify } from 'util';
 
-const readFile = promisify(fs.readFile);
-const readdir = promisify(fs.readdir);
+import { serverLogger } from '../utils/logger';
+import { DirectoryRegistry } from '../data/directory-registry';
 
 export interface SchemaDefinition {
     [key: string]: any;
@@ -47,25 +46,31 @@ export class SchemaLoader {
     public async initialize(): Promise<void> {
         if (this.initialized) return;
         
-        // Find schema directory relative to this file
-        // In production: vscode-extension/dist/server/schema/loader.js
-        // In development: vscode-extension/src/server/schema/loader.ts
-        const currentDir = __dirname;
-        
-        // Try to find pychivalry/data directory
-        const MAX_SCHEMA_SEARCH_DEPTH = 10;
-        let searchPath = currentDir;
-        for (let i = 0; i < MAX_SCHEMA_SEARCH_DEPTH; i++) {
-            const dataPath = path.join(searchPath, 'pychivalry', 'data');
-            if (fs.existsSync(dataPath)) {
-                this.schemaPath = path.join(dataPath, 'schemas');
+        // Find schema directory
+        // Priority: bundled data (dist/data/schemas/) > source tree (pychivalry/data/schemas/)
+        const possibleSchemaPaths = [
+            // Bundled data directory (next to server-main.js in dist/)
+            path.join(__dirname, 'data', 'schemas'),
+            // Development paths (source tree)
+            path.join(__dirname, '..', '..', '..', '..', '..', 'pychivalry', 'data', 'schemas'),
+            path.join(__dirname, '..', '..', '..', '..', 'pychivalry', 'data', 'schemas'),
+            path.join(__dirname, '..', '..', '..', 'pychivalry', 'data', 'schemas'),
+            path.join(process.cwd(), 'pychivalry', 'data', 'schemas'),
+        ];
+
+        for (const p of possibleSchemaPaths) {
+            try {
+                await fsp.access(p);
+                this.schemaPath = p;
+                serverLogger.log(`Found schema directory at: ${p}`);
                 break;
+            } catch {
+                // Not found, try next
             }
-            searchPath = path.join(searchPath, '..');
         }
-        
-        if (!this.schemaPath || !fs.existsSync(this.schemaPath)) {
-            console.warn('Schema directory not found, schemas will not be available');
+
+        if (!this.schemaPath) {
+            serverLogger.warn('Schema directory not found, schemas will not be available');
             this.schemaPath = '';
         }
         
@@ -97,7 +102,7 @@ export class SchemaLoader {
             return schema;
         } catch (error) {
             this.loading.delete(schemaName);
-            console.error(`Failed to load schema ${schemaName}: ${error}`);
+            serverLogger.error(`Failed to load schema ${schemaName}: ${error}`);
             return null;
         }
     }
@@ -111,12 +116,14 @@ export class SchemaLoader {
         }
         
         const filePath = path.join(this.schemaPath, `${schemaName}.yaml`);
-        
-        if (!fs.existsSync(filePath)) {
+
+        try {
+            await fsp.access(filePath);
+        } catch {
             throw new Error(`Schema file not found: ${filePath}`);
         }
-        
-        const content = await readFile(filePath, 'utf-8');
+
+        const content = await fsp.readFile(filePath, 'utf-8');
         const schema = yaml.load(content) as SchemaDefinition;
         
         // Process inheritance
@@ -186,7 +193,20 @@ export class SchemaLoader {
      * Get schema for a specific file type
      */
     public async getSchemaForFile(uri: string): Promise<SchemaDefinition | null> {
-        // Determine schema based on file path
+        // Try DirectoryRegistry first for data-driven schema resolution
+        const registry = DirectoryRegistry.getInstance();
+        if (registry.isLoaded()) {
+            const contentType = registry.getContentType(uri);
+            if (contentType) {
+                const schemaName = this.contentTypeToSchemaName(contentType);
+                if (schemaName) {
+                    const schema = await this.loadSchema(schemaName);
+                    if (schema) return schema;
+                }
+            }
+        }
+
+        // Fallback: determine schema based on file path patterns
         if (/\/events\//.test(uri)) {
             return this.loadSchema('events');
         } else if (/\/decisions\//.test(uri)) {
@@ -230,12 +250,12 @@ export class SchemaLoader {
         }
         
         try {
-            const files = await readdir(this.schemaPath);
+            const files = await fsp.readdir(this.schemaPath);
             return files
                 .filter(f => f.endsWith('.yaml'))
                 .map(f => f.replace('.yaml', ''));
         } catch (error) {
-            console.error(`Failed to list schemas: ${error}`);
+            serverLogger.error(`Failed to list schemas: ${error}`);
             return [];
         }
     }
@@ -313,5 +333,24 @@ export class SchemaLoader {
     public clearCache(): void {
         this.schemas.clear();
         this.loading.clear();
+    }
+
+    /**
+     * Map content type from DirectoryRegistry to schema file name.
+     */
+    private contentTypeToSchemaName(contentType: string): string | null {
+        const mapping: Record<string, string> = {
+            event: 'events',
+            decision: 'decisions',
+            character_interaction: 'character_interactions',
+            on_action: 'on_actions',
+            story_cycle: 'story_cycles',
+            activity_type: 'activity_types',
+            scheme_type: 'schemes',
+            scripted_trigger: 'generic_rules',
+            scripted_effect: 'generic_rules',
+            script_value: 'generic_rules',
+        };
+        return mapping[contentType] || null;
     }
 }

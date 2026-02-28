@@ -378,7 +378,7 @@ export class RenameProvider {
      */
     private isValidName(name: string): boolean {
         // Check if name is valid identifier
-        if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) {
+        if (!/^[a-zA-Z_][a-zA-Z0-9_.]*$/.test(name)) {
             return false;
         }
 

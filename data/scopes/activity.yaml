@@ -1,0 +1,26 @@
+# Activity scope definition for CK3
+
+activity:
+  description: "An activity (feast, hunt, tournament, etc.)"
+
+  links:
+    activity_owner: character
+    activity_host: character
+    activity_province: province
+
+  lists:
+    participant: character
+    guest: character
+    special_guest: character
+    interloper: character
+
+  triggers:
+    - activity_type
+    - is_activity_type
+    - has_activity_option
+    - exists
+
+  effects:
+    - complete_activity
+    - cancel_activity
+    - save_scope_as

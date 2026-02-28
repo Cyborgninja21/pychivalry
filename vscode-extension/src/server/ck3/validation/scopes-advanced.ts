@@ -55,8 +55,8 @@ export function transitionScope(
         current: newScope,
         root: context.root,
         prev: context.current,
-        from: context.from,
-        fromfrom: context.from === null ? null : context.from,
+        from: context.current,
+        fromfrom: context.from,
         history: [...context.history, newScope]
     };
 }
@@ -255,7 +255,7 @@ export function suggestAlternativeChains(
         const links = getAllLinks(scope);
         for (const link of links) {
             if (!path.includes(link)) {  // Avoid immediate loops
-                searchPaths(target, target, [...path, link], depth + 1);
+                searchPaths(link, target, [...path, link], depth + 1);
             }
         }
     }
@@ -372,6 +372,7 @@ export function getScopeInfo(scopeType: string): ScopeInfo {
 /**
  * Performance: Cache scope chain validations
  */
+const MAX_SCOPE_CACHE_SIZE = 1000;
 const scopeChainCache = new Map<string, { valid: boolean; result: string | null }>();
 
 export function cachedValidateScopeChain(
@@ -380,14 +381,20 @@ export function cachedValidateScopeChain(
     validator: (chain: string, start: string) => { valid: boolean; result: string | null }
 ): { valid: boolean; result: string | null } {
     const cacheKey = `${startScope}::${chain}`;
-    
+
     if (scopeChainCache.has(cacheKey)) {
         return scopeChainCache.get(cacheKey)!;
     }
-    
+
     const result = validator(chain, startScope);
+
+    // Evict oldest entry if cache is full
+    if (scopeChainCache.size >= MAX_SCOPE_CACHE_SIZE) {
+        const firstKey = scopeChainCache.keys().next().value;
+        if (firstKey !== undefined) scopeChainCache.delete(firstKey);
+    }
     scopeChainCache.set(cacheKey, result);
-    
+
     return result;
 }
 

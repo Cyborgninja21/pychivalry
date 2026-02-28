@@ -1,0 +1,4515 @@
+version: "1.0"
+triggers:
+  AND:
+    description: Logical AND - all conditions must be true
+    detail: Combines multiple conditions with AND logic
+    snippet: "AND = {\n\t$1\n\t$2\n}"
+    scopes:
+      - any
+    example: |
+      AND = {
+        is_adult = yes
+        has_trait = brave
+      }
+  OR:
+    description: Logical OR - at least one condition must be true
+    detail: Combines multiple conditions with OR logic
+    snippet: "OR = {\n\t$1\n\t$2\n}"
+    scopes:
+      - any
+    example: |
+      OR = {
+        is_ruler = yes
+        is_heir = yes
+      }
+  NOT:
+    description: Logical NOT - inverts condition
+    detail: Negates the result of inner conditions
+    snippet: NOT = { $1 }
+    scopes:
+      - any
+    example: |
+      NOT = {
+        has_trait = craven
+      }
+  NAND:
+    description: Logical NAND - NOT (all conditions true)
+    detail: True if any condition is false
+    snippet: "NAND = {\n\t$1\n\t$2\n}"
+    scopes:
+      - any
+    example: |
+      NAND = {
+        is_adult = yes
+        is_married = yes
+      }
+  NOR:
+    description: Logical NOR - NOT (any condition true)
+    detail: True only if all conditions are false
+    snippet: "NOR = {\n\t$1\n\t$2\n}"
+    scopes:
+      - any
+    example: |
+      NOR = {
+        is_imprisoned = yes
+        is_at_war = yes
+      }
+  age:
+    description: Character's age in years
+    detail: Numeric comparison - age >= X
+    snippet: age >= ${1:16}
+    scopes:
+      - character
+    example: age >= 20
+  is_adult:
+    description: Character is adult (age >= 16)
+    detail: Boolean check
+    snippet: is_adult = ${1|yes,no|}
+    scopes:
+      - character
+    example: is_adult = yes
+  is_child:
+    description: Character is child (age < 16)
+    detail: Boolean check
+    snippet: is_child = ${1|yes,no|}
+    scopes:
+      - character
+    example: is_child = yes
+  is_alive:
+    description: Character is alive
+    detail: Boolean check
+    snippet: is_alive = ${1|yes,no|}
+    scopes:
+      - character
+    example: is_alive = yes
+  is_female:
+    description: Character is female
+    detail: Boolean check
+    snippet: is_female = ${1|yes,no|}
+    scopes:
+      - character
+    example: is_female = yes
+  is_male:
+    description: Character is male
+    detail: Boolean check
+    snippet: is_male = ${1|yes,no|}
+    scopes:
+      - character
+    example: is_male = yes
+  is_ruler:
+    description: Character is a ruler (holds at least one title)
+    detail: Boolean check
+    snippet: is_ruler = ${1|yes,no|}
+    scopes:
+      - character
+    example: is_ruler = yes
+  is_ai:
+    description: Character is controlled by AI
+    detail: Boolean check
+    snippet: is_ai = ${1|yes,no|}
+    scopes:
+      - character
+    example: is_ai = yes
+  is_player:
+    description: Character is controlled by human player
+    detail: Boolean check
+    snippet: is_player = ${1|yes,no|}
+    scopes:
+      - character
+    example: is_player = yes
+  is_married:
+    description: Character is married
+    detail: Boolean check
+    snippet: is_married = ${1|yes,no|}
+    scopes:
+      - character
+    example: is_married = yes
+  has_trait:
+    description: Character has specified trait
+    detail: Checks for trait presence
+    snippet: has_trait = ${1:trait_name}
+    scopes:
+      - character
+    example: has_trait = brave
+  gold:
+    description: Character's gold amount
+    detail: Numeric comparison
+    snippet: gold >= ${1:100}
+    scopes:
+      - character
+    example: gold >= 500
+  prestige:
+    description: Character's prestige amount
+    detail: Numeric comparison
+    snippet: prestige >= ${1:100}
+    scopes:
+      - character
+    example: prestige >= 1000
+  piety:
+    description: Character's piety amount
+    detail: Numeric comparison
+    snippet: piety >= ${1:100}
+    scopes:
+      - character
+    example: piety >= 500
+  short_term_gold:
+    description: Character's short-term gold amount
+    detail: Numeric comparison
+    snippet: short_term_gold >= ${1:100}
+    scopes:
+      - character
+    example: short_term_gold >= 50
+  has_relation:
+    description: Has specific relation with another character
+    detail: Checks for relation type
+    snippet: "has_relation = {\n\ttype = ${1:friend}\n\ttarget = ${2:scope:target}\n}"
+    scopes:
+      - character
+    example: |
+      has_relation = {
+        type = lover
+        target = scope:spouse
+      }
+  has_relation_friend:
+    description: Has friend relation with character
+    detail: Checks for friendship
+    snippet: has_relation_friend = ${1:scope:target}
+    scopes:
+      - character
+    example: has_relation_friend = scope:ally
+  has_relation_lover:
+    description: Has lover relation with character
+    detail: Checks for romantic relationship
+    snippet: has_relation_lover = ${1:scope:target}
+    scopes:
+      - character
+    example: has_relation_lover = scope:spouse
+  has_relation_rival:
+    description: Has rival relation with character
+    detail: Checks for rivalry
+    snippet: has_relation_rival = ${1:scope:target}
+    scopes:
+      - character
+    example: has_relation_rival = scope:enemy
+  opinion:
+    description: Opinion value between characters
+    detail: Numeric comparison of opinion
+    snippet: "opinion = {\n\ttarget = ${1:scope:target}\n\tvalue >= ${2:0}\n}"
+    scopes:
+      - character
+    example: |
+      opinion = {
+        target = scope:liege
+        value >= 50
+      }
+  has_opinion_modifier:
+    description: Has specific opinion modifier towards another character
+    detail: Checks for opinion modifier presence
+    snippet: "has_opinion_modifier = {\n\tmodifier = ${1:modifier_name}\n\ttarget = ${2:scope:target}\n}"
+    scopes:
+      - character
+    example: |
+      has_opinion_modifier = {
+        modifier = grateful
+        target = scope:benefactor
+      }
+  reverse_has_opinion_modifier:
+    description: Another character has opinion modifier towards this character
+    detail: Reverse opinion check
+    snippet: "reverse_has_opinion_modifier = {\n\tmodifier = ${1:modifier_name}\n\ttarget = ${2:scope:target}\n}"
+    scopes:
+      - character
+    example: |
+      reverse_has_opinion_modifier = {
+        modifier = angry
+        target = scope:enemy
+      }
+  has_title:
+    description: Character holds specified title
+    detail: Checks title ownership
+    snippet: has_title = ${1:title:k_france}
+    scopes:
+      - character
+    example: has_title = title:k_england
+  has_claim_on:
+    description: Character has claim on title
+    detail: Checks for claim presence
+    snippet: has_claim_on = ${1:title:k_france}
+    scopes:
+      - character
+    example: has_claim_on = title:d_normandy
+  primary_title:
+    description: Character's primary title
+    detail: Scopes to primary title
+    snippet: primary_title = { $1 }
+    scopes:
+      - character
+    example: |
+      primary_title = {
+        tier = tier_kingdom
+      }
+  highest_held_title_tier:
+    description: Tier of highest title held
+    detail: Numeric tier comparison
+    snippet: highest_held_title_tier >= ${1|tier_barony,tier_county,tier_duchy,tier_kingdom,tier_empire|}
+    scopes:
+      - character
+    example: highest_held_title_tier >= tier_duchy
+  tier:
+    description: Title tier level
+    detail: Checks title tier
+    snippet: tier = ${1|tier_barony,tier_county,tier_duchy,tier_kingdom,tier_empire|}
+    scopes:
+      - landed_title
+    example: tier = tier_kingdom
+  completely_controls:
+    description: Completely controls title (all de jure land)
+    detail: Checks for complete control
+    snippet: completely_controls = ${1:title:k_france}
+    scopes:
+      - character
+    example: completely_controls = title:k_england
+  culture:
+    description: Character's culture
+    detail: Checks culture match
+    snippet: culture = ${1:culture:anglo_saxon}
+    scopes:
+      - character
+    example: culture = culture:french
+  has_culture:
+    description: Has specific culture
+    detail: Checks culture type
+    snippet: has_culture = ${1:culture:norse}
+    scopes:
+      - character
+    example: has_culture = culture:irish
+  faith:
+    description: Character's faith
+    detail: Checks faith match
+    snippet: faith = ${1:faith:catholic}
+    scopes:
+      - character
+    example: faith = faith:orthodox
+  has_faith:
+    description: Has specific faith
+    detail: Checks faith type
+    snippet: has_faith = ${1:faith:sunni}
+    scopes:
+      - character
+    example: has_faith = faith:shiite
+  has_religion:
+    description: Has specific religion
+    detail: Checks religion type
+    snippet: has_religion = ${1:religion:islam}
+    scopes:
+      - character
+    example: has_religion = religion:christianity
+  dynasty:
+    description: Character's dynasty
+    detail: Checks dynasty match
+    snippet: dynasty = ${1:dynasty:dynn_karling}
+    scopes:
+      - character
+    example: dynasty = dynasty:dynn_bourbon
+  has_dynasty:
+    description: Has specific dynasty
+    detail: Checks dynasty type
+    snippet: has_dynasty = ${1:dynasty:dynn_jimena}
+    scopes:
+      - character
+    example: has_dynasty = dynasty:dynn_capet
+  has_government:
+    description: Has specific government type
+    detail: Checks government form
+    snippet: has_government = ${1|feudal_government,clan_government,tribal_government|}
+    scopes:
+      - character
+    example: has_government = feudal_government
+  is_at_war:
+    description: Character is at war
+    detail: Boolean check
+    snippet: is_at_war = ${1|yes,no|}
+    scopes:
+      - character
+    example: is_at_war = yes
+  is_at_war_with:
+    description: At war with specific character
+    detail: Checks for war between characters
+    snippet: is_at_war_with = ${1:scope:target}
+    scopes:
+      - character
+    example: is_at_war_with = scope:enemy
+  is_at_war_with_target_on_side:
+    description: At war with target on specific side
+    detail: Complex war check
+    snippet: is_at_war_with_target_on_side = ${1:scope:target}
+    scopes:
+      - character
+    example: is_at_war_with_target_on_side = scope:liege
+  is_attacker_in_war:
+    description: Is attacker in a war
+    detail: Checks war aggressor status
+    snippet: is_attacker_in_war = ${1:scope:war}
+    scopes:
+      - character
+    example: is_attacker_in_war = scope:current_war
+  is_defender_in_war:
+    description: Is defender in a war
+    detail: Checks war defender status
+    snippet: is_defender_in_war = ${1:scope:war}
+    scopes:
+      - character
+    example: is_defender_in_war = scope:current_war
+  has_truce:
+    description: Has truce with another character
+    detail: Checks for active truce
+    snippet: has_truce = ${1:scope:target}
+    scopes:
+      - character
+    example: has_truce = scope:former_enemy
+  is_attracted_to_gender_of:
+    description: Is attracted to gender of target character
+    detail: Checks attraction compatibility
+    snippet: is_attracted_to_gender_of = ${1:scope:target}
+    scopes:
+      - character
+    example: is_attracted_to_gender_of = scope:spouse
+  is_attracted_to_men:
+    description: Character is attracted to men
+    detail: Boolean check
+    snippet: is_attracted_to_men = ${1|yes,no|}
+    scopes:
+      - character
+    example: is_attracted_to_men = yes
+  is_attracted_to_women:
+    description: Character is attracted to women
+    detail: Boolean check
+    snippet: is_attracted_to_women = ${1|yes,no|}
+    scopes:
+      - character
+    example: is_attracted_to_women = yes
+  is_close_family_of:
+    description: Is close family member of character
+    detail: Checks family relationship
+    snippet: is_close_family_of = ${1:scope:target}
+    scopes:
+      - character
+    example: is_close_family_of = scope:parent
+  has_character_modifier:
+    description: Has specific character modifier
+    detail: Checks for modifier presence
+    snippet: has_character_modifier = ${1:modifier_name}
+    scopes:
+      - character
+    example: has_character_modifier = stressed
+  has_modifier:
+    description: Has specific modifier (any scope)
+    detail: Generic modifier check
+    snippet: has_modifier = ${1:modifier_name}
+    scopes:
+      - any
+    example: has_modifier = recently_conquered
+  has_law:
+    description: Realm has specific law
+    detail: Checks for law presence
+    snippet: has_law = ${1:law_name}
+    scopes:
+      - character
+    example: has_law = high_partition_succession_law
+  has_character_flag:
+    description: Has specific character flag
+    detail: Checks for flag presence
+    snippet: has_character_flag = ${1:flag_name}
+    scopes:
+      - character
+    example: has_character_flag = has_seen_event
+  has_flag:
+    description: Has specific flag (any scope)
+    detail: Generic flag check
+    snippet: has_flag = ${1:flag_name}
+    scopes:
+      - any
+    example: has_flag = recently_conquered
+  has_global_flag:
+    description: Global flag is set
+    detail: Checks game-wide flag
+    snippet: has_global_flag = ${1:global_flag_name}
+    scopes:
+      - any
+    example: has_global_flag = black_death_started
+  has_title_flag:
+    description: Title has specific flag
+    detail: Checks title flag
+    snippet: has_title_flag = ${1:flag_name}
+    scopes:
+      - landed_title
+    example: has_title_flag = recently_conquered
+  has_province_flag:
+    description: Province has specific flag
+    detail: Checks province flag
+    snippet: has_province_flag = ${1:flag_name}
+    scopes:
+      - province
+    example: has_province_flag = raided_recently
+  has_variable:
+    description: Has variable defined
+    detail: Checks variable existence
+    snippet: has_variable = ${1:var_name}
+    scopes:
+      - any
+    example: has_variable = my_counter
+  has_variable_list:
+    description: Has variable list defined
+    detail: Checks list existence
+    snippet: has_variable_list = ${1:list_name}
+    scopes:
+      - any
+    example: has_variable_list = my_list
+  variable_list_size:
+    description: Size of variable list
+    detail: Numeric comparison of list size
+    snippet: "variable_list_size = {\n\tname = ${1:list_name}\n\tvalue >= ${2:1}\n}"
+    scopes:
+      - any
+    example: |
+      variable_list_size = {
+        name = my_list
+        value >= 5
+      }
+  has_active_story:
+    description: Has active story cycle
+    detail: Checks for story presence
+    snippet: has_active_story = ${1:story_cycle_name}
+    scopes:
+      - character
+    example: has_active_story = my_story_cycle
+  has_activity:
+    description: Is in an activity
+    detail: Checks for activity participation
+    snippet: has_activity = ${1|yes,no|}
+    scopes:
+      - character
+    example: has_activity = yes
+  is_in_activity:
+    description: Is in specific activity type
+    detail: Checks activity type
+    snippet: is_in_activity = ${1:activity_type}
+    scopes:
+      - character
+    example: is_in_activity = activity_feast
+  has_activity_type:
+    description: Activity is of specific type
+    detail: Checks the activity type
+    snippet: has_activity_type = ${1:activity_type}
+    scopes:
+      - activity
+    example: has_activity_type = activity_feast
+  has_activity_option:
+    description: Activity has specific option selected
+    detail: Checks if option in category is selected. Uses category= and option= parameters.
+    snippet: has_activity_option = { category = ${1:category_key} option = ${2:option_key} }
+    scopes:
+      - activity
+    parameters:
+      category: The option category key
+      option: The specific option key within the category
+    example: |
+      has_activity_option = {
+        category = special_type
+        option = feast_type_murder
+      }
+  is_current_phase_active:
+    description: Is the current phase active (not waiting)
+    detail: Returns yes if activity is in active state for current phase
+    snippet: is_current_phase_active = ${1|yes,no|}
+    scopes:
+      - activity
+    example: is_current_phase_active = yes
+  has_current_phase:
+    description: Activity is currently in specified phase
+    detail: Checks which phase the activity is currently executing
+    snippet: has_current_phase = ${1:phase_key}
+    scopes:
+      - activity
+    example: has_current_phase = feast_phase_main
+  has_attending_activity_guests:
+    description: Activity has at least one attending guest
+    detail: Returns yes if any guests are currently attending
+    snippet: has_attending_activity_guests = ${1|yes,no|}
+    scopes:
+      - activity
+    example: has_attending_activity_guests = yes
+  is_activity_type_on_cooldown:
+    description: Activity type is on cooldown for character
+    detail: Checks if the specified activity type is currently on cooldown
+    snippet: is_activity_type_on_cooldown = ${1:activity_type}
+    scopes:
+      - character
+    example: NOT = { is_activity_type_on_cooldown = activity_feast }
+  has_scheme:
+    description: Has active scheme
+    detail: Checks for scheme presence
+    snippet: has_scheme = ${1|yes,no|}
+    scopes:
+      - character
+    example: has_scheme = yes
+  is_scheme_target_of:
+    description: Is target of another character's scheme
+    detail: Checks if being schemed against
+    snippet: is_scheme_target_of = ${1:scope:schemer}
+    scopes:
+      - character
+    example: is_scheme_target_of = scope:rival
+  has_game_rule:
+    description: Game rule is set to value
+    detail: Checks game rule setting
+    snippet: has_game_rule = ${1:rule_name}
+    scopes:
+      - any
+    example: has_game_rule = ironman
+  always:
+    description: Always true
+    detail: Constant true value
+    snippet: always = ${1|yes,no|}
+    scopes:
+      - any
+    example: always = yes
+  exists:
+    description: Scope exists
+    detail: Checks if scope is valid
+    snippet: exists = ${1:scope:target}
+    scopes:
+      - any
+    example: exists = scope:spouse
+  this:
+    description: Reference to current scope
+    detail: Scope reference
+    snippet: this = ${1:scope:target}
+    scopes:
+      - any
+    example: this = scope:attacker
+  location:
+    description: Character's location
+    detail: Scopes to location province
+    snippet: location = { $1 }
+    scopes:
+      - character
+    example: |
+      location = {
+        has_province_flag = holy_site
+      }
+  capital_county:
+    description: Character's capital county
+    detail: Scopes to capital
+    snippet: capital_county = { $1 }
+    scopes:
+      - character
+    example: |
+      capital_county = {
+        development_level >= 20
+      }
+  custom:
+    description: Custom trigger with localization
+    detail: Shows custom text in tooltip
+    snippet: custom = ${1:localization_key}
+    scopes:
+      - any
+    example: custom = my_mod_custom_trigger
+  custom_description:
+    description: Custom description for trigger
+    detail: Shows custom text in failed tooltip
+    snippet: "custom_description = {\n\ttext = ${1:localization_key}\n\t$2\n}"
+    scopes:
+      - any
+    example: |
+      custom_description = {
+        text = must_be_adult_and_ruler
+        is_adult = yes
+        is_ruler = yes
+      }
+  limit:
+    description: Limits iteration to matching items
+    detail: Filter condition for iterations
+    snippet: limit = { $1 }
+    scopes:
+      - any
+    example: |
+      limit = {
+        is_adult = yes
+        is_ai = no
+      }
+  trigger:
+    description: Trigger block container
+    detail: Groups trigger conditions
+    snippet: trigger = { $1 }
+    scopes:
+      - any
+    example: |
+      trigger = {
+        is_adult = yes
+        gold >= 100
+      }
+  calc_true_if:
+    description: Counts how many conditions are true
+    detail: Numeric count of true conditions
+    snippet: "calc_true_if = {\n\tamount >= ${1:2}\n\t$2\n}"
+    scopes:
+      - any
+    example: |
+      calc_true_if = {
+        amount >= 3
+        has_trait = brave
+        has_trait = strong
+        has_trait = giant
+        has_trait = wrathful
+      }
+  game_start:
+    description: Current game start date
+    detail: Checks game start date
+    snippet: game_start = ${1:867.1.1}
+    scopes:
+      - any
+    example: game_start = 1066.9.15
+  debug_only:
+    description: Only true in debug mode
+    detail: For debugging triggers
+    snippet: debug_only = ${1|yes,no|}
+    scopes:
+      - any
+    example: debug_only = yes
+  all_but_last:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  all_county_modifier:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  all_county_modifier_description:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  all_court_artifact_slots:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  all_debug:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  all_false:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  all_inventory_artifact_slots:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  all_pages:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  all_performance:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  all_simulation:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  all_under_heaven:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  any_claim_filter:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  any_dynasty_filter:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  any_dynasty_house_filter:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  any_false:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  any_filter_option:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  any_house_member_modifier:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  any_member_house_head:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  any_member_house_member:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  any_member_house_member_not_head:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_accept:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_accept_task_contract:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_add_hook:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_add_tradition:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_adopt_court:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_adopt_court_language:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_afford_current_level:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_afford_enact_treasury_budget_costs:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_afford_personal_maa:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_always_plan:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_appoint_for_title:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_arrive_in_time_to_activity_minimum:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_assign_to_tax_slot:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_attack_in_hierarchy:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_be_acclaimed:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_be_acclaimed_knight:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_be_activity_guest:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_be_auto_selected:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_be_blocked:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_be_changed:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_be_child_of:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_be_claimed_by:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_be_employed_as:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_be_exposed_by:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_be_inherited:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_be_interrupted:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_be_knight:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_be_leased_out:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_be_lowres:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_be_named_after_dynasty:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_be_parent_of:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_be_picked:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_be_picked_artifact:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_be_picked_regiment:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_be_picked_title:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_be_travel_leader:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_be_tributary_of:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_become_owner_of_legend:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_benefit:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_benefit_from_artifact:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_build_in_liege_tributaries:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_build_in_same_realm:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_build_in_tributaries:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_cancel:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_cancel_planning:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_change_house_aspiration:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_change_law_group:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_change_once:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_character_become_leader:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_character_create:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_character_create_ui:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_character_join:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_command_troops:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_command_troops_now:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_construct:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_construct_potential:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_construct_showing_failures_only:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_counter_invade:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_county_create:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_county_join:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_create:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_create_faction:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_create_legend:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_create_maa:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_create_on_partition:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_create_task_contract:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_create_title_maa:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_declare_war:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_defensively_join_holy_war:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_designate_heir:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_destroy:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_disband_army:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_diverge:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_diverge_culture:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_diverge_excluding_cost:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_embrace_tradition:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_employ_court_position_type:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_equip:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_equip_artifact:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_execute:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_execute_decision:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_fire:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_fire_councillor:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_fire_position:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_fund_project_contribution:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_get_achievements:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_get_government:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_get_innovation_from:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_have:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_have_children:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_have_portrait_extremity_shift:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_have_royal_court:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_have_travel_leader:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_hire_hireable_ruler_trigger:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_host_activity:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_hybridize:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_hybridize_culture:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_hybridize_excluding_cost:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_infect_character:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_inherit:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_inherit_from_dynasty:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_invalidate_interaction:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_join_activity:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_join_faction:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_join_or_create_faction_against:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_join_vassal_wars:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_keep:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_leave:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_marry:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_move_domicile:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_move_manually:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_move_realm_capital:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_name_after_birth:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_nomad_raze_holding:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_only_start_via_script:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_pass:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_pick:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_pick_for_hybridization:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_plan:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_plan_great_project:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_plan_great_project_in_province:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_potentially_call_ally:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_progress:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_promote_legend:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_raid:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_raid_across_water:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_ransom:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_raze:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_raze_own_holding:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_realm_have:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_reassign:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_rebuild:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_recruit:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_reforge:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_refund_perks:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_release:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_remove_from_title:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_repair:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_replace_pillar:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_request_great_project_contributions_from_allies:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_send:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_send_despite_rejection:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_sponsor:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_sponsor_inspiration:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_sponsor_inspiration_already_sponsor:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_sponsor_own_inspiration:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_start:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_start_bartering:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_start_planning:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_start_raid:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_start_scheme:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_start_showing_failures_only:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_start_tutorial_lesson:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_swap:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_target_character_with_scheme:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_title_create_faction:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_title_have:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_title_join_faction:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_traverse_river:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_upgrade:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_upgrade_maa:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_use_nomadic_naming:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  can_vassals_be_attacked:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  count_legitimacy:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  count_titles_hidden:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  count_tributaries_for_title_requirements:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  count_unique_emblem_colors:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  exists_eq:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_access_to_maa:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_accolade_category:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_accolade_parameter:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_accolade_type:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_active_diarchy:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_active_locale:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_active_mandate:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_activity_intent:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_activity_state:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_activity_window:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_all_innovations:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_all_variables:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_allowed_gender_for_clergy:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_any_artifact:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_any_artifact_claim:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_any_artifact_filter_option:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_any_cb_on:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_any_court_artifact_filter_option:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_any_court_position:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_any_display_cb_on:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_any_focus:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_any_inventory_artifact_filter_option:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_any_nickname:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_any_opinion_with_reason:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_any_scripted_relation:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_any_secret_relation:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_any_secrets:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_any_unequipped_artifact:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_appointment_influence_level_for_title_tier:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_appointment_invested_character:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_appointment_invested_title:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_appointment_level_for_title:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_appointment_merit_level_for_title_tier:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_appointment_piety_level_for_title_tier:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_appointment_prestige_level_for_title_tier:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_arrived:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_artifact_claim:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_artifact_feature:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_artifact_feature_group:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_artifact_modifier:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_away_hostages:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_bad_nickname:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_banish_reason:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_base_name:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_building:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_building_gfx:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_building_or_higher:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_building_with_flag:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_cb_on:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_character_modifier_duration_remaining:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_character_nominiated:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_clothing_gfx:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_coa_gfx:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_coastal_province:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_cohesion:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_cohesion_level_parameter:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_completed_activity_intent:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_completed_inspiration:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_construction_with_flag:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_contact:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_council:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_council_position:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_councillor_for_skill:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_county_modifier:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_county_modifier_duration_remaining:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_court_language:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_court_language_of_culture:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_court_position:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_court_type:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_cultural_era_or_later:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_cultural_parameter:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_cultural_pillar:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_cultural_tradition:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_custom_title_name:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_de_jure_claim_on:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_dead_character_flag:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_dead_character_variable:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_default_house_aspiration:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_diarchy_active_parameter:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_diarchy_parameter:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_diarchy_type:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_disabled_building:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_divorce_reason:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_dlc:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_dlc_feature:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_doctrine:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_doctrine_parameter:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_domicile:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_domicile_building:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_domicile_building_or_higher:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_domicile_construction:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_domicile_parameter:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_domicile_temperament_high:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_domicile_temperament_low:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_domicile_temperament_neutral:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_dominant_ruling_gender:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_dread_level_towards:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_dynasty_modifier:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_dynasty_modifier_duration_remaining:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_dynasty_perk:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_election_vote_of:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_employed_any_court_position:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_execute_reason:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_father:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_favorite_child:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_focus:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_forced_defender:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_free_building_slot:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_free_council_slot:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_gene:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_global_variable:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_global_variable_list:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_graphical_culture:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_graphical_faith:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_great_building:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_great_building_slot:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_had_focus_for_days:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_holding:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_holding_parameter:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_holding_type:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_holy_site_flag:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_hook:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_hook_filter:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_hook_from_secret:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_hook_of_type:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_hostages:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_house_artifact_claim:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_house_head_parameter:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_house_modifier:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_house_modifier_duration_remaining:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_house_power_parameter:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_house_relation_level:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_house_relation_parameter:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_house_relation_with:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_house_unity:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_house_unity_modifier:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_house_unity_modifier_duration_remaining:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_house_unity_parameter:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_house_unity_stage:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_icon:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_imprisonment_reason:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_inactive_trait:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_innovation:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_innovation_flag:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_innovation_parameter:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_inspiration_filter:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_inspiration_type:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_leading_house:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_legend_chapter:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_legend_chronicle:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_legend_county_modifier:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_legend_county_modifier_duration_remaining:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_legend_owner_modifier:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_legend_owner_modifier_duration_remaining:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_legend_province_modifier:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_legend_province_modifier_duration_remaining:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_legitimacy:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_legitimacy_flag:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_lifestyle:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_local_player_open_court_event:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_local_player_seen_unopened_court_event:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_local_player_unopened_court_event:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_local_variable:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_local_variable_list:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_maa_of_type:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_map_mode:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_memory_category:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_memory_participant:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_memory_type:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_mother:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_multiple_players:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_name_list:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_natural_death_second_chance:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_nickname:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_no_artifact_filter_option:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_none_of_variables:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_obedience_reason:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_ongoing_construction:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_ongoing_domicile_construction:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_open_court_event:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_open_succession:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_opposite_relation:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_order_of_succession:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_outstanding_artifact_claims:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_owned_scheme:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_participant_group_parameter:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_password:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_pending_court_events:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_pending_interaction_of_type:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_perk:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_personal_artifact_claim:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_personal_legend_seed:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_personal_maa_space:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_phase:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_phase_future:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_phase_past:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_player_court_position_automation_assign_best:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_player_court_position_automation_assign_best_or_event:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_player_court_position_automation_event:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_player_court_position_automation_none:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_pledged_attacker:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_pledged_defender:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_potential_acclaimed_knights:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_potential_accolade_successors:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_preferred_gender_for_clergy:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_primary_name_list:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_primary_title:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_prisoners:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_province_modifier:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_province_modifier_duration_remaining:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_province_with_epidemic:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_raid_immunity_against:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_raised_armies:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_realm_law:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_realm_law_flag:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_realm_law_in_group:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_relation_:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_relation_flag:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_relation_to:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_required_heir_governments:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_revokable_lease:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_revoke_title_reason:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_reward_item:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_royal_court:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_ruined_great_building:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_ruler_objective:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_same_court_language:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_same_court_type_as:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_same_culture_as:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_same_culture_ethos:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_same_culture_head_determination:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_same_culture_heritage:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_same_culture_language:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_same_culture_martial_tradition:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_same_focus_as:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_same_government:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_same_house_power_as:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_same_sinful_trait:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_same_virtue_trait:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_scheme_countermeasure_parameter:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_scheme_modifier:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_secret_relation_:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_selected_mandate:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_set_language:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_sexuality:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_situation_top_phase_parameter:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_slot_with_obligation:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_spawned_court_events:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_special_building:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_special_building_slot:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_special_character:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_special_title:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_stationed_regiment:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_stationed_regiment_of_base_type:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_strong_claim_on:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_strong_hook:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_strong_implicit_claim_on:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_strong_usable_hook:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_struggle_phase_parameter:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_sub_region_phase_parameter:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_subject_contract_group:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_succession_appointment_investors:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_targeting_faction:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_task_contract_group:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_task_contract_type:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_tax_collector:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_title_law:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_title_law_flag:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_tradition_category:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_trait_category:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_trait_flag:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_trait_group:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_trait_rank:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_trait_with_flag:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_trait_xp:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_trait_xp_single:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_travel_option:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_travel_plan_modifier:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_travel_plan_modifier_duration_remaining:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_travel_point_of_interest:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_treasury:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_triggered_legend_seed:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_tutor_filter_option:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_unit_gfx:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_usable_hook:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_user_set_coa:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_valid_casus_belli:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_valid_path:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_valid_target:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_valid_target_showing_failures_only:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_vassal_stance:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_war_result_message_with_outcome:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_weak_claim_on:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_weak_hook:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_weak_implicit_claim_on:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  has_wrong_holding_type:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_a_faction_leader:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_a_faction_member:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_aborted:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_acclaimed:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_accolade_active:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_accolade_successor:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_active:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_active_obligation:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_activity_complete:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_agent_exposed_in_scheme:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_agent_slot_type:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_ahead_of_time_for_culture:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_alive_filter:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_alliance_valid:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_allied_in_war:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_allied_to:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_allowed_claim_title:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_army_in_combat:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_army_in_raid:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_army_in_siege:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_army_in_siege_relevant_for:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_at_home:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_at_location:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_at_same_location:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_at_war_as_attacker:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_at_war_as_defender:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_at_war_with_liege:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_attacker:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_autosaving:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_available:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_available_on_create:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_available_quick:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_available_quick_:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_away_from_court:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_bad:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_bad_for:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_bad_nickname:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_barter_army:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_basic:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_bastard:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_betrothed:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_bloc_leader_or_bloc_leader_heir_of:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_camera_used_for_screenshots:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_cancel_option:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_cancelled:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_capital_barony:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_causing_raid_hostility_towards:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_character_allowed_to_be_player:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_character_interaction_potentially_accepted:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_character_interaction_shown:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_character_interaction_valid:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_character_valid:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_character_window_main_character:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_chasing:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_chasing_carelessly:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_child_of:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_child_of_concubine:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_civil_war:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_claimant:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_clamped:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_clergy:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_clergy_position:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_close_or_extended_family_of:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_coastal:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_coastal_county:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_combat_scenario:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_combat_side_attacker:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_combat_side_pursuing:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_combat_side_retreating:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_commanding_army:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_completed:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_concubine:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_concubine_of:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_confederation_member:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_connected_to:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_consort_of:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_contact_of:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_contested:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_council_task_valid:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_council_task_valid_county:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_council_task_valid_court:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_councillor:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_councillor_of:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_county_capital:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_county_valid:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_court_position_employer:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_courtier:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_courtier_of:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_cousin_of:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_criminal:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_criminal_for:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_culture_involved_in_struggle:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_current_obligation:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_dangerous:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_dangerous_faction:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_de_facto_liege_or_above_target:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_de_jure_liege_or_above_target:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_decision_on_cooldown:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_default:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_defender:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_designated_diarch:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_desperate:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_diarch:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_diarch_able:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_diarch_of_target:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_diarch_valid:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_diarch_visibly_disloyal:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_diarch_visibly_loyal:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_diarchy_successor:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_directed_ghw:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_divergent_culture:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_doing:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_domicile_type:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_dominant_family:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_employer_of:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_enabled:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_equipped:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_event_maa_regiment:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_extended_family_of:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_extra:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_faith_involved_in_struggle:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_favorite_child:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_figurehead_title:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_filled:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_first_playsession:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_forbidden_from_scheme:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_forced_into_faction:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_forced_into_scheme:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_forced_winner:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_foreign_court_guest:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_foreign_court_guest_of:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_foreign_court_or_pool_guest:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_foreign_court_or_pool_guest_of:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_from_ruler_designer:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_frontend_character_selected:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_game_view_open:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_gamestate_tutorial_active:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_good_for:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_grandchild_of:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_grandparent_of:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_graphical_background:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_great_grandchild_of:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_great_grandparent_of:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_great_holy_war:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_hard_blocked_from_schemes:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_head_of_faith:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_healthy_filter:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_heir_of:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_helping:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_hidden:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_highlighted:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_hireable_ruler_trigger:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_hired_maa_regiment:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_holy_order:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_holy_site:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_holy_site_controlled_by:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_holy_site_of:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_holy_war:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_host:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_hostage:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_hostage_from:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_hostage_of:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_hostage_valid:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_hostage_warden:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_hostile:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_house_based:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_hybrid_culture:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_immortal:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_important:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_important_decision:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_important_location:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_imprisoned:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_imprisoned_by:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_imprisoned_filter:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_in_army:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_in_civil_war:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_in_debt:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_in_family:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_in_guest_subset:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_in_list:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_in_ongoing_great_holy_war:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_in_pool_at:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_in_prison_type:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_in_the_same_court_as:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_in_the_same_court_as_or_guest:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_in_transition_period:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_in_war_resolution:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_incapable:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_independent_ruler:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_invisible:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_knight:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_knight_of:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_known_by:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_known_by_culture:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_kurultai_succession_chaotic:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_lake_province:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_lakeside_county:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_lakeside_province:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_landed:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_landless_ruler:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_landless_type_title:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_leader_in_war:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_leading_faction_type:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_leased_out:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_legend_completed:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_liege_or_above_of:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_local_player:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_location_valid:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_lopsided_war:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_low_priority:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_lowborn:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_maa_in_combat:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_maa_type:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_mandala_capital:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_manual_participant:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_married_filter:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_mass_action_locked:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_mechanic_type_default:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_member_of_confederation:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_memory_of_travel:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_mercenary_company:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_mercenary_in_hire_range:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_merging:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_migrating:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_migration_target:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_neighbor_to_realm:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_nibling_of:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_no_men_enabled:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_noble_family_title:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_nomad_title:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_normal_councillor:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_notification:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_obedient:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_obedient_to:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_occupied:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_open_invite_activity:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_opposite_of_trait:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_organizing:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_overriding_designated_winner:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_pagan:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_parent_of:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_participant:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_participant_in_activity:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_participant_in_war:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_paused:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_performing_council_task:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_performing_council_task_or_clone:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_personal_maa_regiment:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_picking_initial_character:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_picking_tutorial_character:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_planning_great_project:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_playable:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_player_heir_of:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_player_selected:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_player_tutorial_character:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_player_war:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_pledged_ghw_attacker:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_pool_character:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_pool_guest:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_pool_guest_of:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_potential_knight:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_powerful:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_powerful_agent:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_powerful_family:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_powerful_vassal:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_powerful_vassal_of:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_predefined:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_prefix:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_pregnant:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_primary:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_primary_heir_of:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_prioritized_mood:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_raid_army:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_raided:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_raised:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_raising:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_regular_maa_regiment:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_required:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_required_special_guest:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_resupplying:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_retreating:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_rightful_liege_of:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_river_province:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_riverside:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_riverside_county:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_riverside_province:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_ruined_building_being_reconstructed:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_ruler_de_jure_liege_or_above:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_scheme_agent_exposed:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_scheme_category:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_scheme_exposed:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_scheme_target_type:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_scheming_against:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_sea_province:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_secret:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_secret_available_for_blackmail:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_set:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_shown:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_shown_character:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_shunned:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_shunned_for:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_shunned_or_criminal_for:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_sibling_of:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_single_location:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_situation_unique:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_source:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_special_guest:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_spent_by:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_sponsor_valid:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_spouse_of:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_spouse_of_even_if_dead:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_struggle_phase:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_struggle_type:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_successor_of_accolade:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_target_in_global_variable_list:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_target_in_local_variable_list:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_target_in_variable_list:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_target_of_council_task:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_target_of_council_task_or_clone:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_target_valid:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_tax_collector:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_tax_collector_of:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_theocratic_lessee:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_title_created:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_title_localization_key_used:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_title_maa_regiment:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_titular:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_tooltip_with_name_open:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_travel_entourage_character:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_travel_leader:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_travel_related:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_travel_with_domicile:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_travelling:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_treasury_budget_group:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_tributary:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_tributary_of:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_tributary_of_suzerain_or_above:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_tutorial_active:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_tutorial_lesson_active:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_tutorial_lesson_chain_completed:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_tutorial_lesson_completed:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_tutorial_lesson_step_completed:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_twin_of:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_type_basic:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_type_secret:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_unborn_child_of_concubine:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_unborn_known_bastard:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_uncle_or_aunt_of:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_under_holy_order_lease:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_unique:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_unit_type:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_user_defined:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_valid:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_valid_advice:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_valid_agent_standard_trigger:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_valid_as_agent_in_any_slot:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_valid_as_agent_in_slot:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_valid_confederation:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_valid_custom:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_valid_designated_heir:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_valid_for_event_debug:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_valid_for_event_debug_cooldown:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_valid_for_title:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_valid_member_character:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_valid_member_house:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_valid_protagonist:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_valid_showing_failures_only:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_valid_successor_for_accolade:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_valid_tax_collector:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_valid_to_hire_court_position_type:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_valid_to_keep:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_valid_tributary_contract:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_vassal_of:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_vassal_or_below_of:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_vassal_valid:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_visibly_fertile:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_war_leader:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_war_overview_tab_open:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_white_peace_possible:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_widgetid_open:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_winter_effect:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  is_yes_men_enabled:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  not_administrative:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  not_alive_filter:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  not_available:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  not_equal:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  not_has_inspiration_filter:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  not_healthy_filter:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  not_imprisoned_filter:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  not_in_range_filter:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  not_is_available_quick_:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  not_married_filter:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  not_op:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  not_player_dynasty_filter:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  not_player_dynasty_house_filter:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  not_ruler_filter_option:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  not_same_culture_filter_option:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  not_same_faith_filter_option:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  not_same_heritage_filter_option:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  not_same_religion_filter_option:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  num_active_accolades:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  num_artifact_kills:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  num_buildings:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  num_character_deaths:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  num_character_followers:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  num_county_followers:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  num_county_holdings:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  num_discovered_innovations:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  num_discovered_innovations_in_era:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  num_domicile_buildings:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  num_enemies_killed:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  num_entourage_characters:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  num_future_phases:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  num_inactive_accolades:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  num_indices:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  num_infected_characters:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  num_infected_provinces:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  num_leased_titles:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  num_legends:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  num_of_bad_genetic_traits:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  num_of_good_genetic_traits:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  num_of_known_languages:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  num_of_relation_:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  num_offered_task_contracts:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  num_options:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  num_past_phases:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  num_perk_points:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  num_personal_legend_seeds:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  num_phases:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  num_pickable_phases:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  num_relations:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  num_scripted_legend_seeds:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  num_sinful_traits:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  num_slots_with_obligation:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  num_taken_task_contracts:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  num_task_contracts:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  num_total_troops:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  num_triggered_legend_seeds:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  num_vassal_slots:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  num_vertices:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  num_virtuous_traits:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  percent_enemies_killed:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  percent_of_monthly_gold_income:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  percent_of_monthly_gold_income_all_positions:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  percent_of_positive_monthly_piety_balance:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  percent_of_positive_monthly_piety_balance_all_positions:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  percent_of_positive_monthly_prestige_balance:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  percent_of_positive_monthly_prestige_balance_all_positions:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  percent_vec:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  trigger_else:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  trigger_else_if:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  trigger_event:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  trigger_gui_animation:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  trigger_if:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  trigger_interval:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  trigger_on_create:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  trigger_on_next_date:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  trigger_once:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  trigger_prio_override:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  trigger_scheme_hud_click:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  trigger_situation_catalyst:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  trigger_sub_region_catalyst:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  trigger_time_absolute:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  trigger_time_relative:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  trigger_transition:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  trigger_when:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  was_activity_completed:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  was_activity_invalidated:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  was_called:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  was_changed:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  was_hostage_child:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  was_kurultai:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  was_playable:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  was_player:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any
+  was_preferred_heir:
+    description: CK3 trigger (from binary analysis)
+    scopes:
+      - any

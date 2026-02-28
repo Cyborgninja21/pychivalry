@@ -1,6 +1,6 @@
 /**
  * Diagnostics Engine - Multi-phase validation pipeline
- * 
+ *
  * This module orchestrates the complete validation process for CK3 scripts,
  * collecting diagnostics from multiple sources:
  * - Parse errors (syntax)
@@ -8,7 +8,7 @@
  * - Schema validation (structure)
  * - Convention checking (best practices)
  * - Localization checking (missing keys)
- * 
+ *
  * DIAGNOSTIC CODES:
  *     PARSE-XXX: Parser-level errors
  *     SCOPE-XXX: Scope validation errors
@@ -19,17 +19,43 @@
 
 import { Diagnostic, DiagnosticSeverity, Range } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { CK3Parser, ParseError as ParserError, ASTNode } from '../../core/parser';
+import { ParseError as ParserError, ASTNode, NodeType } from '../../core/parser';
 import {
     validateScopeChain,
     isValidEffect,
     isValidTrigger,
     getScopeLinks,
+    getTargetScopeType,
+    getListResultScope,
     isListIterator,
     parseListIterator,
     isValidListBase,
 } from './scopes';
 import { validateDocumentScopeTiming, DEFAULT_SCOPE_TIMING_CONFIG } from './scope-timing';
+import { validateStyle, DEFAULT_STYLE_CONFIG } from './style-checks';
+import { validateParadoxConventions, DEFAULT_PARADOX_CONFIG } from './paradox-checks';
+import { validateVariables, VariablesConfig } from './variables';
+import { validateTraits, TraitsConfig } from './traits';
+import { validateScriptedBlocks, ScriptedBlockConfig } from './scripted-blocks';
+import { serverLogger } from '../../utils/logger';
+import { validateGenericRules, GenericRulesConfig } from './generic-rules';
+import { validateAssets, AssetConfig } from './assets';
+import { validateStoryCycles, StoryCycleConfig } from './story-cycles';
+import { validateEventFromNode } from './events';
+import { validateScriptValues, ScriptValuesConfig, DEFAULT_SCRIPT_VALUES_CONFIG } from './script-values';
+import { SchemaValidator } from '../../schema/validator';
+import { SchemaLoader } from '../../schema/loader';
+import { DataLoader } from '../../data/loader';
+import { DocumentIndexer, SymbolType } from '../../core/indexer';
+import { LocalizationIndex } from '../../core/localization-index';
+import { validateLocalizationContent, DEFAULT_LOC_VALIDATION_CONFIG, LocalizationValidationConfig } from '../localization/validator';
+import { validateInteractionHooks, DEFAULT_INTERACTION_HOOK_CONFIG } from './interaction-hooks';
+import { validateIterators, DEFAULT_ITERATOR_CONFIG } from './iterators';
+import { validateSwitch, DEFAULT_SWITCH_CONFIG } from './switch-validation';
+import { validateDecisions, DEFAULT_DECISION_CONFIG } from './decisions';
+import { validateInteractions, DEFAULT_INTERACTION_VALIDATION_CONFIG } from './interactions';
+import { validateActivities, DEFAULT_ACTIVITY_CONFIG } from './activities';
+import { classifyContext } from './context-engine';
 
 /**
  * Diagnostic configuration
@@ -39,7 +65,26 @@ export interface DiagnosticConfig {
     enableSchemaValidation: boolean;
     enableConventionChecks: boolean;
     enableLocalizationChecks: boolean;
+    enableParadoxChecks: boolean;
+    enableVariableChecks: boolean;
+    enableTraitChecks: boolean;
+    enableScriptedBlockChecks: boolean;
+    enableGenericRules: boolean;
+    enableAssetChecks: boolean;
+    enableStoryCycleChecks: boolean;
+    enableScriptValueChecks: boolean;
+    enableLocalizationValidation: boolean;
+    enableInteractionHookChecks: boolean;
+    enableIteratorChecks: boolean;
+    enableSwitchChecks: boolean;
+    enableDecisionChecks: boolean;
+    enableInteractionValidation: boolean;
+    enableActivityChecks: boolean;
     maxDiagnostics: number;
+    /** Workspace root paths for asset validation */
+    workspaceRoots: string[];
+    /** Known asset paths for asset existence validation */
+    knownAssets?: Set<string>;
 }
 
 /**
@@ -50,19 +95,75 @@ const DEFAULT_CONFIG: DiagnosticConfig = {
     enableSchemaValidation: true,
     enableConventionChecks: true,
     enableLocalizationChecks: true,
+    enableParadoxChecks: true,
+    enableVariableChecks: true,
+    enableTraitChecks: true,
+    enableScriptedBlockChecks: true,
+    enableGenericRules: true,
+    enableAssetChecks: true,
+    enableStoryCycleChecks: true,
+    enableScriptValueChecks: true,
+    enableLocalizationValidation: true,
+    enableInteractionHookChecks: true,
+    enableIteratorChecks: true,
+    enableSwitchChecks: true,
+    enableDecisionChecks: true,
+    enableInteractionValidation: true,
+    enableActivityChecks: true,
     maxDiagnostics: 1000,
+    workspaceRoots: [],
 };
+
+/**
+ * Effect block context names - blocks where children are effects
+ */
+const EFFECT_CONTEXT_KEYS = new Set([
+    'effect', 'immediate', 'after', 'on_completion',
+    'on_success', 'on_failure', 'on_start',
+    'on_invalidated', 'on_monthly',
+    'if', 'else_if', 'else',
+]);
+
+/**
+ * Trigger block context names - blocks where children are triggers
+ */
+const TRIGGER_CONTEXT_KEYS = new Set([
+    'trigger', 'is_shown', 'is_valid',
+    'is_valid_showing_failures_only',
+    'potential', 'allow', 'ai_potential',
+    'can_be_shown', 'can_start',
+    'trigger_if', 'trigger_else_if', 'trigger_else',
+]);
 
 /**
  * Diagnostics Engine
  */
 export class DiagnosticsEngine {
     private config: DiagnosticConfig;
-    
-    constructor(config: Partial<DiagnosticConfig> = {}) {
+    private schemaValidator: SchemaValidator | null = null;
+    private indexer: DocumentIndexer | null = null;
+    private localizationIndex: LocalizationIndex | null = null;
+
+    constructor(config: Partial<DiagnosticConfig> = {}, schemaLoader?: SchemaLoader, indexer?: DocumentIndexer, localizationIndex?: LocalizationIndex) {
         this.config = { ...DEFAULT_CONFIG, ...config };
+        if (schemaLoader) {
+            this.schemaValidator = new SchemaValidator(schemaLoader);
+        }
+        if (indexer) {
+            this.indexer = indexer;
+        }
+        if (localizationIndex) {
+            this.localizationIndex = localizationIndex;
+        }
     }
-    
+
+    /**
+     * Set schema loader (can be set after construction)
+     */
+    public setSchemaLoader(loader: SchemaLoader): void {
+        this.schemaValidator = new SchemaValidator(loader);
+    }
+
     /**
      * Collect all diagnostics for a document
      */
@@ -72,43 +173,46 @@ export class DiagnosticsEngine {
         parseErrors: ParserError[]
     ): Promise<Diagnostic[]> {
         const diagnostics: Diagnostic[] = [];
-        
+
         // Phase 1: Parse errors
         diagnostics.push(...this.parseErrorsToDiagnostics(parseErrors));
-        
+
         // Phase 2: Syntax validation
         if (this.config.enableScopeValidation) {
             diagnostics.push(...await this.checkSyntax(ast, document));
         }
-        
+
         // Phase 3: Scope validation
         if (this.config.enableScopeValidation) {
             diagnostics.push(...await this.checkScopes(ast, document));
         }
-        
+
         // Phase 4: Schema validation
         if (this.config.enableSchemaValidation) {
             diagnostics.push(...await this.checkSchema(ast, document));
         }
-        
+
         // Phase 5: Convention checks
         if (this.config.enableConventionChecks) {
             diagnostics.push(...await this.checkConventions(ast, document));
         }
-        
+
         // Phase 6: Localization checks
         if (this.config.enableLocalizationChecks) {
             diagnostics.push(...await this.checkLocalization(ast, document));
         }
-        
-        // Limit total diagnostics to prevent overwhelming the user
+
+        // Phase 7: Extended validation modules
+        diagnostics.push(...this.checkExtendedValidation(ast, document));
+
+        // Limit total diagnostics
         if (diagnostics.length > this.config.maxDiagnostics) {
             diagnostics.length = this.config.maxDiagnostics;
         }
-        
+
         return diagnostics;
     }
-    
+
     /**
      * Convert parse errors to LSP diagnostics
      */
@@ -121,18 +225,16 @@ export class DiagnosticsEngine {
             source: 'ck3-parser',
         }));
     }
-    
+
     /**
      * Check syntax (basic structural validation)
      */
     private async checkSyntax(ast: ASTNode[], document: TextDocument): Promise<Diagnostic[]> {
         const diagnostics: Diagnostic[] = [];
-        
-        // Walk the AST and check for basic syntax issues
+
         const walk = (nodes: ASTNode[]) => {
             for (const node of nodes) {
-                // Check for empty keys
-                if (node.key === '' && node.type !== 'ROOT') {
+                if (node.key === '' && node.type !== NodeType.ROOT) {
                     diagnostics.push({
                         severity: DiagnosticSeverity.Error,
                         range: node.range,
@@ -141,38 +243,35 @@ export class DiagnosticsEngine {
                         source: 'ck3-syntax',
                     });
                 }
-                
-                // Recursively check children
+
                 if (node.children) {
                     walk(node.children);
                 }
             }
         };
-        
+
         walk(ast);
         return diagnostics;
     }
-    
+
     /**
-     * Check scopes (validate scope chains and scope-sensitive operations)
+     * Check scopes with proper context tracking for effect/trigger blocks
      */
     private async checkScopes(ast: ASTNode[], document: TextDocument): Promise<Diagnostic[]> {
         const diagnostics: Diagnostic[] = [];
-        
+
         // Phase 1: Scope timing validation (Golden Rule checking)
-        // This catches the most common CK3 modding error
         for (const node of ast) {
             const timingDiags = validateDocumentScopeTiming(node, DEFAULT_SCOPE_TIMING_CONFIG);
             diagnostics.push(...timingDiags);
         }
-        
-        // Phase 2: Walk the AST and validate scope usage
-        const walk = (nodes: ASTNode[], currentScope: string = 'character') => {
+
+        // Phase 2: Walk the AST with context tracking
+        const walk = (nodes: ASTNode[], currentScope: string = 'character', context: 'none' | 'effect' | 'trigger' = 'none') => {
             for (const node of nodes) {
                 // Check scope chains (e.g., root.liege.primary_title)
                 if (node.key && node.key.includes('.')) {
                     const [isValid, resultType, error] = validateScopeChain(node.key, currentScope);
-                    
                     if (!isValid && error) {
                         diagnostics.push({
                             severity: DiagnosticSeverity.Error,
@@ -183,11 +282,30 @@ export class DiagnosticsEngine {
                         });
                     }
                 }
-                
-                // Check effects (in effect blocks)
-                if (this.isInEffectContext(node)) {
-                    if (node.key && !isValidEffect(node.key, currentScope)) {
-                        // Check if it's a known effect but wrong scope
+
+                // Determine context for this node's children
+                let childContext = context;
+                if (node.key) {
+                    if (EFFECT_CONTEXT_KEYS.has(node.key)) {
+                        childContext = 'effect';
+                    } else if (TRIGGER_CONTEXT_KEYS.has(node.key)) {
+                        childContext = 'trigger';
+                    } else if (childContext === 'none') {
+                        // Fallback: use context engine for keys not in either set
+                        const classification = classifyContext([], node.key, document.uri);
+                        if (classification.confidence !== 'low') {
+                            if (classification.context === 'effect') {
+                                childContext = 'effect';
+                            } else if (classification.context === 'trigger') {
+                                childContext = 'trigger';
+                            }
+                        }
+                    }
+                }
+
+                // Check effects in effect context
+                if (context === 'effect' && node.key && !node.key.includes('.')) {
+                    if (!isValidEffect(node.key, currentScope)) {
                         diagnostics.push({
                             severity: DiagnosticSeverity.Warning,
                             range: node.range,
@@ -197,10 +315,10 @@ export class DiagnosticsEngine {
                         });
                     }
                 }
-                
-                // Check triggers (in trigger blocks)
-                if (this.isInTriggerContext(node)) {
-                    if (node.key && !isValidTrigger(node.key, currentScope)) {
+
+                // Check triggers in trigger context
+                if (context === 'trigger' && node.key && !node.key.includes('.')) {
+                    if (!isValidTrigger(node.key, currentScope)) {
                         diagnostics.push({
                             severity: DiagnosticSeverity.Warning,
                             range: node.range,
@@ -210,7 +328,7 @@ export class DiagnosticsEngine {
                         });
                     }
                 }
-                
+
                 // Check list iterators
                 if (node.key && isListIterator(node.key)) {
                     const parsed = parseListIterator(node.key);
@@ -227,83 +345,476 @@ export class DiagnosticsEngine {
                         }
                     }
                 }
-                
-                // Recursively check children
+
+                // Recurse with context — transition scope for links and iterators
                 if (node.children) {
-                    // Determine scope for children (scope transitions)
                     let childScope = currentScope;
-                    
-                    // If this is a scope link, update the scope for children
                     if (node.key) {
                         const scopeLinks = getScopeLinks(currentScope);
                         if (scopeLinks.includes(node.key)) {
-                            // Scope transition - children are in new scope
-                            // (Would need full scope tracking to determine exact type)
-                            childScope = currentScope; // Simplified for now
+                            // Scope link: transition to the target scope type
+                            const targetScope = getTargetScopeType(currentScope, node.key);
+                            if (targetScope) {
+                                childScope = targetScope;
+                            }
+                        } else if (isListIterator(node.key)) {
+                            // List iterator: transition to the result scope type
+                            const resultScope = getListResultScope(node.key, currentScope);
+                            if (resultScope) {
+                                childScope = resultScope;
+                            }
                         }
                     }
-                    
-                    walk(node.children, childScope);
+                    walk(node.children, childScope, childContext);
                 }
             }
         };
-        
+
         walk(ast);
         return diagnostics;
     }
-    
+
     /**
      * Check schema (validate against schema definitions)
      */
     private async checkSchema(ast: ASTNode[], document: TextDocument): Promise<Diagnostic[]> {
-        const diagnostics: Diagnostic[] = [];
-        
-        // Schema validation would go here
-        // For now, this is a placeholder
-        
-        return diagnostics;
+        if (!this.schemaValidator) {
+            return [];
+        }
+
+        try {
+            return await this.schemaValidator.validate(document.uri, ast);
+        } catch (error) {
+            serverLogger.error(`Schema validation error: ${error}`);
+            return [];
+        }
     }
-    
+
     /**
      * Check conventions (best practices and common patterns)
      */
     private async checkConventions(ast: ASTNode[], document: TextDocument): Promise<Diagnostic[]> {
         const diagnostics: Diagnostic[] = [];
-        
-        // Convention checking would go here
-        // For now, this is a placeholder
-        
+
+        // Run style checks (validateStyle expects: ast, text, config)
+        const text = document.getText();
+        if (ast.length > 0) {
+            const styleDiagnostics = validateStyle(ast[0], text, DEFAULT_STYLE_CONFIG);
+            diagnostics.push(...styleDiagnostics);
+        }
+
+        // CK3-specific convention checks
+        for (const node of ast) {
+            this.checkCK3Conventions(node, diagnostics);
+        }
+
         return diagnostics;
     }
-    
+
     /**
-     * Check localization (missing keys, orphaned keys)
+     * Extended validation - Paradox checks, variables, traits, scripted blocks,
+     * generic rules, assets, and story cycles
+     */
+    private checkExtendedValidation(ast: ASTNode[], document: TextDocument): Diagnostic[] {
+        const diagnostics: Diagnostic[] = [];
+
+        for (const node of ast) {
+            // Event structure validation (type, portraits, themes, etc.)
+            if (this.config.enableConventionChecks && node.children) {
+                for (const child of node.children) {
+                    if (child.key && /^[a-z_]+\.\d+$/.test(child.key) && child.children) {
+                        const result = validateEventFromNode(child);
+                        for (const err of result.errors) {
+                            diagnostics.push({
+                                severity: DiagnosticSeverity.Warning,
+                                range: child.range,
+                                message: err.message,
+                                code: err.code,
+                                source: 'ck3-event',
+                            });
+                        }
+                    }
+                }
+            }
+
+            // Paradox convention checks (effects in trigger context, event structure, etc.)
+            if (this.config.enableParadoxChecks) {
+                diagnostics.push(...validateParadoxConventions(node, DEFAULT_PARADOX_CONFIG));
+            }
+
+            // Variable usage validation
+            if (this.config.enableVariableChecks) {
+                const variablesConfig: VariablesConfig = {
+                    enabled: true,
+                    checkUnused: true,
+                    checkUndeclared: true,
+                    checkScope: true,
+                    checkTypes: true,
+                };
+                diagnostics.push(...validateVariables(node, variablesConfig));
+            }
+
+            // Trait validation (with known traits from DataLoader)
+            if (this.config.enableTraitChecks) {
+                const dataLoader = DataLoader.getInstance();
+                const knownTraits = new Set(dataLoader.getTraits().keys());
+                const traitsConfig: TraitsConfig = {
+                    enabled: true,
+                    checkExistence: true,
+                    checkCompatibility: true,
+                    checkOpposites: true,
+                    knownTraits,
+                };
+                diagnostics.push(...validateTraits(node, traitsConfig));
+            }
+
+            // Scripted blocks validation (with known sets from indexer)
+            if (this.config.enableScriptedBlockChecks) {
+                let knownScriptedEffects: Set<string> | undefined;
+                let knownScriptedTriggers: Set<string> | undefined;
+                if (this.indexer) {
+                    knownScriptedEffects = new Set(
+                        this.indexer.findSymbolsByType(SymbolType.SCRIPTED_EFFECT).map(s => s.name)
+                    );
+                    knownScriptedTriggers = new Set(
+                        this.indexer.findSymbolsByType(SymbolType.SCRIPTED_TRIGGER).map(s => s.name)
+                    );
+                }
+                const scriptedBlockConfig: ScriptedBlockConfig = {
+                    enabled: true,
+                    checkEffects: true,
+                    checkTriggers: true,
+                    knownScriptedEffects,
+                    knownScriptedTriggers,
+                };
+                diagnostics.push(...validateScriptedBlocks(node, scriptedBlockConfig));
+            }
+
+            // Generic rules validation
+            if (this.config.enableGenericRules) {
+                const genericConfig: GenericRulesConfig = { enabled: true };
+                diagnostics.push(...validateGenericRules(node, undefined, genericConfig));
+            }
+
+            // Asset validation
+            if (this.config.enableAssetChecks) {
+                const assetConfig: AssetConfig = {
+                    enabled: true,
+                    checkGraphics: true,
+                    checkSound: true,
+                    checkAnimations: true,
+                    checkGUI: true,
+                    workspaceRoots: this.config.workspaceRoots,
+                    knownAssets: this.config.knownAssets,
+                };
+                diagnostics.push(...validateAssets(node, assetConfig));
+            }
+
+            // Story cycle validation
+            if (this.config.enableStoryCycleChecks) {
+                const storyCycleConfig: StoryCycleConfig = {
+                    enabled: true,
+                    checkStructure: true,
+                    checkPhases: true,
+                    checkTransitions: true,
+                };
+                diagnostics.push(...validateStoryCycles(node, storyCycleConfig));
+            }
+
+            // Script value validation
+            if (this.config.enableScriptValueChecks) {
+                diagnostics.push(...validateScriptValues(node, DEFAULT_SCRIPT_VALUES_CONFIG));
+            }
+
+            // Interaction hook validation
+            if (this.config.enableInteractionHookChecks) {
+                diagnostics.push(...validateInteractionHooks(node, DEFAULT_INTERACTION_HOOK_CONFIG));
+            }
+
+            // Iterator requirement validation
+            if (this.config.enableIteratorChecks) {
+                diagnostics.push(...validateIterators(node, DEFAULT_ITERATOR_CONFIG));
+            }
+
+            // Switch statement validation
+            if (this.config.enableSwitchChecks) {
+                diagnostics.push(...validateSwitch(node, DEFAULT_SWITCH_CONFIG));
+            }
+
+            // Conditional block validation (trigger_if/trigger_else, if/else)
+            diagnostics.push(...this.validateConditionalBlocks(node));
+
+            // Decision validation (only for decision files)
+            if (this.config.enableDecisionChecks) {
+                diagnostics.push(...validateDecisions(node, DEFAULT_DECISION_CONFIG, document.uri));
+            }
+
+            // Character interaction validation
+            if (this.config.enableInteractionValidation) {
+                diagnostics.push(...validateInteractions(node, DEFAULT_INTERACTION_VALIDATION_CONFIG, document.uri));
+            }
+
+            // Activity lifecycle validation
+            if (this.config.enableActivityChecks) {
+                diagnostics.push(...validateActivities(node, DEFAULT_ACTIVITY_CONFIG, document.uri));
+            }
+        }
+
+        // Localization content validation (operates on loc entries, not AST)
+        if (this.config.enableLocalizationValidation && this.localizationIndex) {
+            const uri = document.uri;
+            // Only validate localization YAML files
+            if (uri.endsWith('.yml')) {
+                const entries = this.getLocalizationEntriesForFile(uri);
+                for (const entry of entries) {
+                    diagnostics.push(...validateLocalizationContent(entry, DEFAULT_LOC_VALIDATION_CONFIG));
+                }
+            }
+        }
+
+        return diagnostics;
+    }
+
+    /**
+     * CK3-specific convention checks on AST nodes
+     */
+    private checkCK3Conventions(node: ASTNode, diagnostics: Diagnostic[]): void {
+        if (!node.children) return;
+
+        for (const child of node.children) {
+            // Events should have a type field
+            if (child.key && child.key.includes('.') && child.children) {
+                const hasOption = child.children.some(c => c.key === 'option');
+
+                if (hasOption) {
+                    const hasType = child.children.some(c => c.key === 'type');
+                    if (!hasType) {
+                        diagnostics.push({
+                            severity: DiagnosticSeverity.Warning,
+                            range: child.range,
+                            message: `Event '${child.key}' is missing 'type' field`,
+                            code: 'CONV-001',
+                            source: 'ck3-convention',
+                        });
+                    }
+
+                    const hasTitle = child.children.some(c => c.key === 'title');
+                    if (!hasTitle) {
+                        diagnostics.push({
+                            severity: DiagnosticSeverity.Warning,
+                            range: child.range,
+                            message: `Event '${child.key}' is missing 'title' localization key`,
+                            code: 'CONV-002',
+                            source: 'ck3-convention',
+                        });
+                    }
+
+                    const hasDesc = child.children.some(c => c.key === 'desc');
+                    if (!hasDesc) {
+                        diagnostics.push({
+                            severity: DiagnosticSeverity.Information,
+                            range: child.range,
+                            message: `Event '${child.key}' is missing 'desc' localization key`,
+                            code: 'CONV-003',
+                            source: 'ck3-convention',
+                        });
+                    }
+                }
+            }
+
+            // Option blocks should have a name
+            if (child.key === 'option' && child.children) {
+                const hasName = child.children.some(c => c.key === 'name');
+                if (!hasName) {
+                    diagnostics.push({
+                        severity: DiagnosticSeverity.Warning,
+                        range: child.range,
+                        message: 'Option block is missing a \'name\' field for localization',
+                        code: 'CONV-004',
+                        source: 'ck3-convention',
+                    });
+                }
+            }
+
+            this.checkCK3Conventions(child, diagnostics);
+        }
+    }
+
+    /**
+     * Validate conditional blocks (trigger_if/trigger_else, if/else)
+     *
+     * COND-001: trigger_if/trigger_else_if missing 'limit' child
+     * COND-002: trigger_else should NOT have 'limit' child
+     * COND-003: orphaned trigger_else/else without preceding if
+     */
+    private validateConditionalBlocks(node: ASTNode): Diagnostic[] {
+        const diagnostics: Diagnostic[] = [];
+        this.walkConditionalBlocks(node, diagnostics);
+        return diagnostics;
+    }
+
+    private walkConditionalBlocks(node: ASTNode, diagnostics: Diagnostic[]): void {
+        if (!node.children) return;
+
+        let lastConditionalKey: string | null = null;
+
+        for (const child of node.children) {
+            if (!child.key) continue;
+
+            // trigger_if / trigger_else_if must have 'limit'
+            if ((child.key === 'trigger_if' || child.key === 'trigger_else_if') && child.children) {
+                const hasLimit = child.children.some(c => c.key === 'limit');
+                if (!hasLimit) {
+                    diagnostics.push({
+                        severity: DiagnosticSeverity.Warning,
+                        range: child.range,
+                        message: `'${child.key}' is missing required 'limit' block`,
+                        code: 'COND-001',
+                        source: 'ck3-conditional',
+                    });
+                }
+                lastConditionalKey = child.key;
+            }
+            // trigger_else should NOT have 'limit'
+            else if (child.key === 'trigger_else' && child.children) {
+                const hasLimit = child.children.some(c => c.key === 'limit');
+                if (hasLimit) {
+                    diagnostics.push({
+                        severity: DiagnosticSeverity.Warning,
+                        range: child.range,
+                        message: "'trigger_else' should not have a 'limit' block - use 'trigger_else_if' instead",
+                        code: 'COND-002',
+                        source: 'ck3-conditional',
+                    });
+                }
+                // Check for orphaned trigger_else
+                if (lastConditionalKey !== 'trigger_if' && lastConditionalKey !== 'trigger_else_if') {
+                    diagnostics.push({
+                        severity: DiagnosticSeverity.Warning,
+                        range: child.range,
+                        message: "'trigger_else' without preceding 'trigger_if'",
+                        code: 'COND-003',
+                        source: 'ck3-conditional',
+                    });
+                }
+                lastConditionalKey = child.key;
+            }
+            // Effect-side: if/else_if must have 'limit', else should not
+            else if ((child.key === 'if' || child.key === 'else_if') && child.children) {
+                const hasLimit = child.children.some(c => c.key === 'limit');
+                if (!hasLimit) {
+                    diagnostics.push({
+                        severity: DiagnosticSeverity.Warning,
+                        range: child.range,
+                        message: `'${child.key}' is missing required 'limit' block`,
+                        code: 'COND-001',
+                        source: 'ck3-conditional',
+                    });
+                }
+                lastConditionalKey = child.key;
+            }
+            else if (child.key === 'else' && child.children) {
+                const hasLimit = child.children.some(c => c.key === 'limit');
+                if (hasLimit) {
+                    diagnostics.push({
+                        severity: DiagnosticSeverity.Warning,
+                        range: child.range,
+                        message: "'else' should not have a 'limit' block - use 'else_if' instead",
+                        code: 'COND-002',
+                        source: 'ck3-conditional',
+                    });
+                }
+                if (lastConditionalKey !== 'if' && lastConditionalKey !== 'else_if') {
+                    diagnostics.push({
+                        severity: DiagnosticSeverity.Warning,
+                        range: child.range,
+                        message: "'else' without preceding 'if'",
+                        code: 'COND-003',
+                        source: 'ck3-conditional',
+                    });
+                }
+                lastConditionalKey = child.key;
+            }
+            else {
+                // Non-conditional node resets the chain
+                lastConditionalKey = null;
+            }
+
+            // Recurse into children
+            this.walkConditionalBlocks(child, diagnostics);
+        }
+    }
+
+    /**
+     * Check localization (missing keys, format issues)
      */
     private async checkLocalization(ast: ASTNode[], document: TextDocument): Promise<Diagnostic[]> {
         const diagnostics: Diagnostic[] = [];
-        
-        // Localization checking would go here
-        // For now, this is a placeholder
-        
+
+        for (const node of ast) {
+            this.checkLocalizationKeys(node, diagnostics);
+        }
+
         return diagnostics;
     }
-    
+
     /**
-     * Check if a node is in an effect context
+     * Check localization key references in the AST
      */
-    private isInEffectContext(node: ASTNode): boolean {
-        // Simplified heuristic - check if parent is named 'effect' or similar
-        // A full implementation would track context through the AST walk
-        return false; // Placeholder
+    private checkLocalizationKeys(node: ASTNode, diagnostics: Diagnostic[]): void {
+        if (!node.children) return;
+
+        for (const child of node.children) {
+            // Check title, desc, name fields for localization key format
+            if ((child.key === 'title' || child.key === 'desc' || child.key === 'name') &&
+                child.value && typeof child.value === 'string') {
+                const locKey = child.value;
+                if (locKey.includes(' ') && !locKey.startsWith('"')) {
+                    diagnostics.push({
+                        severity: DiagnosticSeverity.Warning,
+                        range: child.range,
+                        message: `'${locKey}' contains spaces - this should be a localization key, not literal text`,
+                        code: 'LOC-001',
+                        source: 'ck3-localization',
+                    });
+                }
+            }
+
+            // Check tooltip fields
+            if ((child.key === 'custom_tooltip' || child.key === 'selection_tooltip') &&
+                child.value && typeof child.value === 'string') {
+                const locKey = child.value;
+                if (locKey.includes(' ')) {
+                    diagnostics.push({
+                        severity: DiagnosticSeverity.Warning,
+                        range: child.range,
+                        message: `Tooltip value '${locKey}' contains spaces - this should be a localization key`,
+                        code: 'LOC-002',
+                        source: 'ck3-localization',
+                    });
+                }
+            }
+
+            this.checkLocalizationKeys(child, diagnostics);
+        }
     }
-    
+
     /**
-     * Check if a node is in a trigger context
+     * Get localization entries for a given file URI from the LocalizationIndex.
      */
-    private isInTriggerContext(node: ASTNode): boolean {
-        // Simplified heuristic - check if parent is named 'trigger' or similar
-        // A full implementation would track context through the AST walk
-        return false; // Placeholder
+    private getLocalizationEntriesForFile(uri: string): import('../../core/localization-index').LocalizationEntry[] {
+        if (!this.localizationIndex) return [];
+        // The LocalizationIndex stores entries keyed by localization key.
+        // We need to filter entries whose fileUri matches.
+        const allKeys = this.localizationIndex.getKeys();
+        const entries: import('../../core/localization-index').LocalizationEntry[] = [];
+        for (const key of allKeys) {
+            const entry = this.localizationIndex.findLocalization(key);
+            if (entry && entry.fileUri === uri) {
+                entries.push(entry);
+            }
+        }
+        return entries;
     }
 }
 

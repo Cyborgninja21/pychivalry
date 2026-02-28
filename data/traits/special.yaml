@@ -1,0 +1,996 @@
+# CK3 Special Traits
+# Auto-generated from CK3 game files
+# Total traits: 71
+
+administrative_court_1:
+  category: court_type
+  opposites: []
+  group: administrative_court
+  level: 1
+  description: Administrative Court 1
+  skills:
+    stewardship: 1
+administrative_court_2:
+  category: court_type
+  opposites: []
+  group: administrative_court
+  level: 2
+  description: Administrative Court 2
+  skills:
+    stewardship: 2
+  lifestyle_xp_gains:
+    stewardship: 0.15
+aggressive_attacker:
+  category: commander
+  opposites: []
+  description: Aggressive Attacker
+  skills:
+    martial: 1
+  ruler_designer_cost: 25
+  flags:
+  - commander_trait_flag
+  modifiers:
+    advantage: 10
+albino:
+  opposites: []
+  description: Albino
+  opinions:
+    general_opinion: -10
+    same_opinion: 10
+  ruler_designer_cost: 0
+  inherit_chance: 100.0
+  birth_chance: 0.5
+  random_creation: 0.5
+  modifiers:
+    dread_baseline_add: 15
+beauty_bad_1:
+  opposites:
+  - beauty_good
+  - beauty_bad_2
+  - beauty_bad_3
+  group: beauty_bad
+  level: 1
+  description: Beauty Bad 1
+  skills:
+    diplomacy: -1
+  opinions:
+    attraction_opinion: -10
+  ruler_designer_cost: -10
+  birth_chance: 0.5
+  random_creation: 0.5
+  health_modifiers:
+    fertility: -0.1
+beauty_bad_2:
+  opposites:
+  - beauty_good
+  - beauty_bad_3
+  - beauty_bad_1
+  group: beauty_bad
+  level: 2
+  description: Beauty Bad 2
+  skills:
+    diplomacy: -2
+  opinions:
+    attraction_opinion: -20
+  ruler_designer_cost: -20
+  birth_chance: 0.25
+  random_creation: 0.25
+  health_modifiers:
+    fertility: -0.2
+beauty_bad_3:
+  opposites:
+  - beauty_good
+  - beauty_bad_2
+  - beauty_bad_1
+  group: beauty_bad
+  level: 3
+  description: Beauty Bad 3
+  skills:
+    diplomacy: -3
+  opinions:
+    attraction_opinion: -30
+  ruler_designer_cost: -30
+  birth_chance: 0.15
+  random_creation: 0.15
+  health_modifiers:
+    fertility: -0.3
+beauty_good_1:
+  opposites:
+  - beauty_bad
+  - beauty_good_2
+  - beauty_good_3
+  group: beauty_good
+  level: 1
+  description: Beauty Good 1
+  skills:
+    diplomacy: 1
+  opinions:
+    attraction_opinion: 10
+  ruler_designer_cost: 40
+  birth_chance: 0.5
+  random_creation: 0.5
+  health_modifiers:
+    fertility: 0.1
+beauty_good_2:
+  opposites:
+  - beauty_bad
+  - beauty_good_1
+  - beauty_good_3
+  group: beauty_good
+  level: 2
+  description: Beauty Good 2
+  skills:
+    diplomacy: 2
+  opinions:
+    attraction_opinion: 20
+  ruler_designer_cost: 80
+  birth_chance: 0.25
+  random_creation: 0.25
+  health_modifiers:
+    fertility: 0.2
+beauty_good_3:
+  opposites:
+  - beauty_bad
+  - beauty_good_2
+  - beauty_good_1
+  group: beauty_good
+  level: 3
+  description: Beauty Good 3
+  skills:
+    diplomacy: 3
+  opinions:
+    attraction_opinion: 30
+  ruler_designer_cost: 120
+  birth_chance: 0.15
+  random_creation: 0.15
+  health_modifiers:
+    fertility: 0.3
+bleeder:
+  opposites: []
+  description: Bleeder
+  opinions:
+    vassal_opinion: -10
+    ai_energy: -15
+  ruler_designer_cost: -20
+  inherit_chance: 50.0
+  birth_chance: 0.5
+  random_creation: 0.5
+  health_modifiers:
+    health: -1.5
+cautious_leader:
+  category: commander
+  opposites:
+  - reckless
+  description: Cautious Leader
+  skills:
+    martial: 1
+  ruler_designer_cost: 25
+  flags:
+  - commander_trait_flag
+  modifiers:
+    advantage: 1
+clubfooted:
+  opposites: []
+  description: Clubfooted
+  skills:
+    prowess: -2
+  opinions:
+    attraction_opinion: -10
+    same_opinion: 10
+  ruler_designer_cost: 0
+  inherit_chance: 15.0
+  birth_chance: 0.5
+  random_creation: 0.5
+confider:
+  opposites: []
+  description: Confider
+  skills:
+    diplomacy: 1
+  opinions:
+    ai_compassion: 10
+  ruler_designer_cost: 15
+  stress:
+    stress_loss_mult: 0.2
+desert_warrior:
+  category: commander
+  opposites: []
+  description: Desert Warrior
+  skills:
+    martial: 1
+  ruler_designer_cost: 25
+  flags:
+  - commander_trait_flag
+  modifiers:
+    advantage: 2
+diplomatic_court_1:
+  category: court_type
+  opposites: []
+  group: diplomatic_court
+  level: 1
+  description: Diplomatic Court 1
+  skills:
+    diplomacy: 1
+diplomatic_court_2:
+  category: court_type
+  opposites: []
+  group: diplomatic_court
+  level: 2
+  description: Diplomatic Court 2
+  skills:
+    diplomacy: 2
+  lifestyle_xp_gains:
+    diplomacy: 0.15
+  modifiers:
+    monthly_prestige: 0.3
+dull:
+  opposites:
+  - intellect_good
+  - shrewd
+  description: Dull
+  skills:
+    diplomacy: -2
+    martial: -2
+    stewardship: -2
+    intrigue: -2
+    learning: -2
+  ruler_designer_cost: -20
+dwarf:
+  opposites:
+  - giant
+  description: Dwarf
+  skills:
+    prowess: -4
+  opinions:
+    attraction_opinion: -20
+    same_opinion: 20
+  ruler_designer_cost: 0
+  inherit_chance: 25.0
+  birth_chance: 0.5
+  random_creation: 0.5
+fecund:
+  opposites:
+  - infertile
+  description: Fecund
+  ruler_designer_cost: 50
+  inherit_chance: 15.0
+  health_modifiers:
+    fertility: 0.5
+    life_expectancy: 5.0
+flexible_leader:
+  category: commander
+  opposites: []
+  description: Flexible Leader
+  skills:
+    martial: 1
+  ruler_designer_cost: 25
+  flags:
+  - commander_trait_flag
+  modifiers:
+    advantage: -0.2
+forder:
+  category: commander
+  opposites: []
+  description: Forder
+  skills:
+    martial: 1
+  ruler_designer_cost: 25
+  flags:
+  - commander_trait_flag
+  modifiers:
+    advantage: 1
+forest_fighter:
+  category: commander
+  opposites: []
+  description: Forest Fighter
+  skills:
+    martial: 1
+  ruler_designer_cost: 25
+  flags:
+  - commander_trait_flag
+  modifiers:
+    advantage: 2
+fp3_struggle_detractor:
+  opposites:
+  - fp3_struggle_supporter
+  description: Fp3 Struggle Detractor
+  opinions:
+    same_opinion: 10
+    opposite_opinion: -30
+  flags:
+  - can_foment_revolt_interaction
+  - can_request_incursion_interaction
+  - can_change_to_iranian_faith_decision
+fp3_struggle_supporter:
+  opposites:
+  - fp3_struggle_detractor
+  description: Fp3 Struggle Supporter
+  opinions:
+    same_opinion: 10
+    opposite_opinion: -30
+  flags:
+  - can_use_install_loyalist_cb
+giant:
+  opposites:
+  - dwarf
+  description: Giant
+  skills:
+    prowess: 6
+  opinions:
+    attraction_opinion: -5
+    same_opinion: 20
+    glory_hound_opinion: 10
+  ruler_designer_cost: 20
+  inherit_chance: 25.0
+  birth_chance: 0.5
+  random_creation: 0.5
+  health_modifiers:
+    health: -0.25
+  modifiers:
+    monthly_prestige: 0.5
+holy_warrior:
+  category: commander
+  opposites: []
+  description: Holy Warrior
+  skills:
+    martial: 1
+  ruler_designer_cost: 25
+  flags:
+  - commander_trait_flag
+  modifiers:
+    advantage: 1
+hunchbacked:
+  opposites: []
+  description: Hunchbacked
+  skills:
+    prowess: -2
+  opinions:
+    attraction_opinion: -30
+    same_opinion: 10
+    vassal_opinion: -10
+  ruler_designer_cost: -10
+  inherit_chance: 15.0
+  birth_chance: 0.5
+  random_creation: 0.5
+immortal:
+  opposites:
+  - incapable
+  description: Immortal
+  ruler_designer_cost: 10000
+  flags:
+  - is_immortal
+  - immortal_visuals
+  - immortal_fertility
+  - immortal_incapability
+impotent:
+  opposites: []
+  description: Impotent
+  opinions:
+    ai_energy: -10
+  health_modifiers:
+    fertility: -0.5
+inbred:
+  opposites: []
+  description: Inbred
+  skills:
+    diplomacy: -5
+    martial: -5
+    stewardship: -5
+    intrigue: -5
+    learning: -5
+    prowess: -2
+  opinions:
+    attraction_opinion: -30
+    vassal_opinion: -10
+    ai_energy: -75
+    ai_rationality: -50
+  ruler_designer_cost: -30
+  flags:
+  - initial_legitimacy_nerf
+  inherit_chance: 15.0
+  health_modifiers:
+    health: -1.5
+    fertility: -0.5
+infertile:
+  opposites:
+  - fecund
+  description: Infertile
+  ruler_designer_cost: 0
+  inherit_chance: 50.0
+  birth_chance: 0.5
+  random_creation: 0.5
+  health_modifiers:
+    fertility: -0.5
+intellect_bad_1:
+  opposites:
+  - shrewd
+  - intellect_good
+  - intellect_bad_2
+  - o
+  - prevent
+  - multiple
+  - tiers
+  - of
+  - the
+  - same
+  - congenital
+  - trait
+  - intellect_bad_3
+  group: intellect_bad
+  level: 1
+  description: Intellect Bad 1
+  skills:
+    diplomacy: -2
+    martial: -2
+    stewardship: -2
+    intrigue: -2
+    learning: -2
+  ruler_designer_cost: -15
+  birth_chance: 0.5
+  random_creation: 0.5
+intellect_bad_2:
+  opposites:
+  - shrewd
+  - intellect_good
+  - intellect_bad_3
+  - o
+  - prevent
+  - multiple
+  - tiers
+  - of
+  - the
+  - same
+  - congenital
+  - trait
+  - intellect_bad_1
+  group: intellect_bad
+  level: 2
+  description: Intellect Bad 2
+  skills:
+    diplomacy: -4
+    martial: -4
+    stewardship: -4
+    intrigue: -4
+    learning: -4
+  ruler_designer_cost: -30
+  birth_chance: 0.25
+  random_creation: 0.25
+intellect_bad_3:
+  opposites:
+  - shrewd
+  - intellect_good
+  - intellect_bad_2
+  - o
+  - prevent
+  - multiple
+  - tiers
+  - of
+  - the
+  - same
+  - congenital
+  - trait
+  - intellect_bad_1
+  group: intellect_bad
+  level: 3
+  description: Intellect Bad 3
+  skills:
+    diplomacy: -8
+    martial: -8
+    stewardship: -8
+    intrigue: -8
+    learning: -8
+  ruler_designer_cost: -45
+  birth_chance: 0.05
+  random_creation: 0.05
+intellect_good_1:
+  opposites:
+  - dull
+  - intellect_bad
+  - intellect_good_2
+  - o
+  - prevent
+  - multiple
+  - tiers
+  - of
+  - the
+  - same
+  - congenital
+  - trait
+  - intellect_good_3
+  group: intellect_good
+  level: 1
+  description: Intellect Good 1
+  skills:
+    diplomacy: 1
+    martial: 1
+    stewardship: 1
+    intrigue: 1
+    learning: 1
+  ruler_designer_cost: 80
+  birth_chance: 0.5
+  random_creation: 0.5
+intellect_good_2:
+  opposites:
+  - dull
+  - intellect_bad
+  - intellect_good_3
+  - o
+  - prevent
+  - multiple
+  - tiers
+  - of
+  - the
+  - same
+  - congenital
+  - trait
+  - intellect_good_1
+  group: intellect_good
+  level: 2
+  description: Intellect Good 2
+  skills:
+    diplomacy: 3
+    martial: 3
+    stewardship: 3
+    intrigue: 3
+    learning: 3
+  ruler_designer_cost: 160
+  birth_chance: 0.25
+  random_creation: 0.25
+intellect_good_3:
+  opposites:
+  - dull
+  - intellect_bad
+  - intellect_good_2
+  - o
+  - prevent
+  - multiple
+  - tiers
+  - of
+  - the
+  - same
+  - congenital
+  - trait
+  - intellect_good_1
+  group: intellect_good
+  level: 3
+  description: Intellect Good 3
+  skills:
+    diplomacy: 5
+    martial: 5
+    stewardship: 5
+    intrigue: 5
+    learning: 5
+  ruler_designer_cost: 240
+  birth_chance: 0.05
+  random_creation: 0.05
+intrigue_court_1:
+  category: court_type
+  opposites: []
+  group: intrigue_court
+  level: 1
+  description: Intrigue Court 1
+  skills:
+    intrigue: 1
+intrigue_court_2:
+  category: court_type
+  opposites: []
+  group: intrigue_court
+  level: 2
+  description: Intrigue Court 2
+  skills:
+    intrigue: 2
+  lifestyle_xp_gains:
+    intrigue: 0.15
+  modifiers:
+    dread_baseline_add: 10
+jungle_stalker:
+  category: commander
+  opposites: []
+  description: Jungle Stalker
+  skills:
+    martial: 1
+  ruler_designer_cost: 25
+  flags:
+  - commander_trait_flag
+  modifiers:
+    advantage: 2
+lifestyle_traveler:
+  opposites: []
+  description: 'Lifestyle trait: Traveler'
+  skills:
+    diplomacy: 1
+    stewardship: 1
+    learning: 1
+    prowess: 1
+  opinions:
+    same_opinion: 5
+  ruler_designer_cost: 20
+  health_modifiers:
+    health: 0.05
+lisping:
+  opposites: []
+  description: Lisping
+  skills:
+    diplomacy: -2
+  opinions:
+    same_opinion: 10
+  ruler_designer_cost: -5
+  inherit_chance: 15.0
+  birth_chance: 0.5
+  random_creation: 0.5
+logistician:
+  category: commander
+  opposites: []
+  description: Logistician
+  skills:
+    martial: 1
+  ruler_designer_cost: 25
+  flags:
+  - commander_trait_flag
+  modifiers:
+    advantage: 1
+military_engineer:
+  category: commander
+  opposites: []
+  description: Military Engineer
+  skills:
+    martial: 1
+  ruler_designer_cost: 25
+  flags:
+  - commander_trait_flag
+  modifiers:
+    advantage: 1
+open_terrain_expert:
+  category: commander
+  opposites: []
+  description: Open Terrain Expert
+  skills:
+    martial: 1
+  ruler_designer_cost: 25
+  flags:
+  - commander_trait_flag
+  modifiers:
+    advantage: 2
+organizer:
+  category: commander
+  opposites: []
+  description: Organizer
+  skills:
+    martial: 1
+  ruler_designer_cost: 25
+  flags:
+  - commander_trait_flag
+  modifiers:
+    advantage: 1
+physique_bad_1:
+  opposites:
+  - strong
+  - physique_good
+  - physique_bad_2
+  - physique_bad_3
+  group: physique_bad
+  level: 1
+  description: Physique Bad 1
+  skills:
+    prowess: -2
+  opinions:
+    ai_energy: -10
+  ruler_designer_cost: -15
+  birth_chance: 0.5
+  random_creation: 0.5
+  health_modifiers:
+    health: -0.25
+physique_bad_2:
+  opposites:
+  - strong
+  - physique_good
+  - physique_bad_3
+  - physique_bad_1
+  group: physique_bad
+  level: 2
+  description: Physique Bad 2
+  skills:
+    prowess: -4
+  opinions:
+    attraction_opinion: -5
+    ai_energy: -20
+  ruler_designer_cost: -30
+  birth_chance: 0.25
+  random_creation: 0.25
+  health_modifiers:
+    health: -0.5
+physique_bad_3:
+  opposites:
+  - strong
+  - physique_good
+  - physique_bad_2
+  - physique_bad_1
+  group: physique_bad
+  level: 3
+  description: Physique Bad 3
+  skills:
+    prowess: -6
+  opinions:
+    attraction_opinion: -10
+    ai_energy: -30
+  ruler_designer_cost: -45
+  birth_chance: 0.15
+  random_creation: 0.15
+  health_modifiers:
+    health: -1.0
+physique_good_1:
+  opposites:
+  - weak
+  - spindly
+  - physique_bad
+  - physique_good_2
+  - physique_good_3
+  group: physique_good
+  level: 1
+  description: Physique Good 1
+  skills:
+    prowess: 2
+  opinions:
+    attraction_opinion: 5
+    ai_energy: 10
+  ruler_designer_cost: 60
+  birth_chance: 0.5
+  random_creation: 0.5
+  health_modifiers:
+    health: 0.25
+  modifiers:
+    monthly_prestige: 0.25
+physique_good_2:
+  opposites:
+  - weak
+  - spindly
+  - physique_bad
+  - physique_good_1
+  - physique_good_3
+  group: physique_good
+  level: 2
+  description: Physique Good 2
+  skills:
+    prowess: 4
+  opinions:
+    attraction_opinion: 10
+    ai_energy: 20
+  ruler_designer_cost: 120
+  birth_chance: 0.25
+  random_creation: 0.25
+  health_modifiers:
+    health: 0.5
+  modifiers:
+    monthly_prestige: 0.5
+physique_good_3:
+  opposites:
+  - weak
+  - spindly
+  - physique_bad
+  - physique_good_1
+  - physique_good_2
+  group: physique_good
+  level: 3
+  description: Physique Good 3
+  skills:
+    prowess: 8
+  opinions:
+    attraction_opinion: 15
+    ai_energy: 20
+  ruler_designer_cost: 180
+  birth_chance: 0.15
+  random_creation: 0.15
+  health_modifiers:
+    health: 1.0
+  modifiers:
+    monthly_prestige: 1
+pure_blooded:
+  opposites: []
+  description: Pure Blooded
+  ruler_designer_cost: 50
+  inherit_chance: 15.0
+  health_modifiers:
+    health: 0.25
+    fertility: 0.1
+reaver:
+  category: commander
+  opposites: []
+  description: Reaver
+  skills:
+    martial: 1
+  ruler_designer_cost: 25
+  flags:
+  - commander_trait_flag
+  modifiers:
+    advantage: 2
+reckless:
+  category: commander
+  opposites:
+  - cautious_leader
+  description: Reckless
+  skills:
+    martial: 1
+  ruler_designer_cost: 25
+  flags:
+  - commander_trait_flag
+  modifiers:
+    advantage: 1
+rough_terrain_expert:
+  category: commander
+  opposites: []
+  description: Rough Terrain Expert
+  skills:
+    martial: 1
+  ruler_designer_cost: 25
+  flags:
+  - commander_trait_flag
+  modifiers:
+    advantage: 2
+scaly:
+  opposites: []
+  description: Scaly
+  opinions:
+    attraction_opinion: -30
+    same_opinion: 10
+    vassal_opinion: -10
+  ruler_designer_cost: 0
+  inherit_chance: 100.0
+  birth_chance: 0.5
+  random_creation: 0.5
+  health_modifiers:
+    fertility: -0.2
+  modifiers:
+    dread_baseline_add: 10
+scholarly_court_1:
+  category: court_type
+  opposites: []
+  group: scholarly_court
+  level: 1
+  description: Scholarly Court 1
+  skills:
+    learning: 1
+scholarly_court_2:
+  category: court_type
+  opposites: []
+  group: scholarly_court
+  level: 2
+  description: Scholarly Court 2
+  skills:
+    learning: 2
+  lifestyle_xp_gains:
+    learning: 0.15
+shrewd:
+  opposites:
+  - intellect_bad
+  - dull
+  description: Shrewd
+  skills:
+    diplomacy: 2
+    martial: 2
+    stewardship: 2
+    intrigue: 2
+    learning: 2
+  ruler_designer_cost: 50
+spindly:
+  opposites:
+  - physique_good
+  description: Spindly
+  skills:
+    prowess: -1
+  opinions:
+    attraction_opinion: -10
+    ai_energy: -20
+  ruler_designer_cost: -10
+  inherit_chance: 100.0
+  birth_chance: 0.5
+  random_creation: 0.5
+  health_modifiers:
+    health: -0.25
+strong:
+  opposites:
+  - weak
+  - physique_bad
+  description: Strong
+  skills:
+    prowess: 4
+  opinions:
+    ai_energy: 20
+  ruler_designer_cost: 50
+  health_modifiers:
+    health: 0.5
+  modifiers:
+    monthly_prestige: 1
+stuttering:
+  opposites: []
+  description: Stuttering
+  skills:
+    diplomacy: -2
+  opinions:
+    same_opinion: 10
+  ruler_designer_cost: -5
+  inherit_chance: 15.0
+  birth_chance: 0.5
+  random_creation: 0.5
+tourney_participant:
+  opposites: []
+  level: 4
+  description: Tourney Participant
+  skills:
+    diplomacy: 1
+    martial: 1
+  opinions:
+    same_opinion: 10
+    glory_hound_opinion: 20
+  ruler_designer_cost: 5
+  health_modifiers:
+    health: 0.05
+  modifiers:
+    monthly_prestige_gain_mult: 0.05
+    monthly_dynasty_prestige_mult: 0.05
+unyielding_defender:
+  category: commander
+  opposites: []
+  description: Unyielding Defender
+  skills:
+    martial: 1
+  ruler_designer_cost: 25
+  flags:
+  - commander_trait_flag
+  modifiers:
+    advantage: 10
+warlike_court_1:
+  category: court_type
+  opposites: []
+  group: warlike_court
+  level: 1
+  description: Warlike Court 1
+  skills:
+    martial: 1
+    prowess: 1
+warlike_court_2:
+  category: court_type
+  opposites: []
+  group: warlike_court
+  level: 2
+  description: Warlike Court 2
+  skills:
+    martial: 2
+    prowess: 2
+  lifestyle_xp_gains:
+    martial: 0.15
+weak:
+  opposites:
+  - strong
+  - physique_good
+  description: Weak
+  skills:
+    prowess: -2
+  opinions:
+    attraction_opinion: -10
+    vassal_opinion: -10
+    ai_energy: -20
+  ruler_designer_cost: -10
+  health_modifiers:
+    health: -0.5
+wheezing:
+  opposites: []
+  description: Wheezing
+  opinions:
+    vassal_opinion: -10
+    ai_energy: -15
+  ruler_designer_cost: -10
+  inherit_chance: 100.0
+  birth_chance: 0.5
+  random_creation: 0.5
+  health_modifiers:
+    health: -0.15
+winter_soldier:
+  category: winter_commander
+  opposites: []
+  description: Winter Soldier
+  skills:
+    martial: 1
+  ruler_designer_cost: 25
+  flags:
+  - commander_trait_flag
+  modifiers:
+    advantage: 3

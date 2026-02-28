@@ -1,0 +1,21 @@
+# Great Holy War scope definition for CK3
+
+great_holy_war:
+  description: "A Great Holy War (Crusade/Jihad)"
+
+  links:
+    ghw_war_leader: character
+    ghw_target_character: character
+    ghw_target_title: title
+    faith: faith
+
+  lists:
+    pledged_attacker: character
+    pledged_defender: character
+
+  triggers:
+    - is_directed_ghw
+    - exists
+
+  effects:
+    - save_scope_as

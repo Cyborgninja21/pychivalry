@@ -1,0 +1,16 @@
+# Story cycle scope definition for CK3
+
+story_cycle:
+  description: "A story event chain"
+
+  links:
+    story_owner: character
+
+  lists: {}
+
+  triggers:
+    - exists
+
+  effects:
+    - end_story
+    - save_scope_as

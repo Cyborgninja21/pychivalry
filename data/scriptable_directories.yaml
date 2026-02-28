@@ -1,0 +1,206 @@
+# CK3 Scriptable Directory Registry
+# Maps directory paths to content types, schemas, and default scopes
+# Extracted from binary analysis of CK3 scriptable systems
+
+directories:
+  # Level 5: Core Infrastructure
+  common/on_actions:
+    content_type: on_action
+    default_scope: none
+    level: 5
+  common/scripted_triggers:
+    content_type: scripted_trigger
+    default_scope: any
+    level: 5
+  common/scripted_effects:
+    content_type: scripted_effect
+    default_scope: any
+    level: 5
+  common/script_values:
+    content_type: script_value
+    default_scope: any
+    level: 5
+  common/scripted_modifiers:
+    content_type: scripted_modifier
+    default_scope: character
+    level: 5
+  common/scripted_lists:
+    content_type: scripted_list
+    default_scope: any
+    level: 5
+
+  # Level 4: Game Systems
+  common/traits:
+    content_type: trait
+    default_scope: character
+    level: 4
+  common/religions:
+    content_type: religion
+    default_scope: faith
+    level: 4
+  common/culture:
+    content_type: culture
+    default_scope: culture
+    level: 4
+  common/dynasties:
+    content_type: dynasty
+    default_scope: dynasty
+    level: 4
+  common/dynasty_houses:
+    content_type: dynasty_house
+    default_scope: dynasty_house
+    level: 4
+  common/governments:
+    content_type: government
+    default_scope: character
+    level: 4
+  common/laws:
+    content_type: law
+    default_scope: title
+    level: 4
+  common/succession:
+    content_type: succession
+    default_scope: title
+    level: 4
+  common/casus_belli_types:
+    content_type: casus_belli
+    default_scope: character
+    level: 4
+  common/artifacts:
+    content_type: artifact
+    default_scope: artifact
+    level: 4
+  common/buildings:
+    content_type: building
+    default_scope: province
+    level: 4
+  common/terrain_types:
+    content_type: terrain
+    default_scope: province
+    level: 4
+  common/modifiers:
+    content_type: modifier
+    default_scope: none
+    level: 4
+  common/lifestyle_perks:
+    content_type: perk
+    default_scope: character
+    level: 4
+  common/lifestyles:
+    content_type: lifestyle
+    default_scope: character
+    level: 4
+
+  # Level 3: Content Definitions
+  common/character_interactions:
+    content_type: character_interaction
+    default_scope: character
+    level: 3
+  common/decisions:
+    content_type: decision
+    default_scope: character
+    level: 3
+  common/activities:
+    content_type: activity_type
+    default_scope: character
+    level: 3
+  common/schemes:
+    content_type: scheme_type
+    default_scope: scheme
+    level: 3
+  common/story_cycles:
+    content_type: story_cycle
+    default_scope: character
+    level: 3
+  common/factions:
+    content_type: faction
+    default_scope: faction
+    level: 3
+  common/wars:
+    content_type: war
+    default_scope: war
+    level: 3
+  common/council_tasks:
+    content_type: council_task
+    default_scope: character
+    level: 3
+  common/court_positions:
+    content_type: court_position
+    default_scope: character
+    level: 3
+  common/men_at_arms_types:
+    content_type: men_at_arms
+    default_scope: character
+    level: 3
+  common/bookmark_portraits:
+    content_type: bookmark_portrait
+    default_scope: character
+    level: 3
+
+  # Level 2: UI and Presentation
+  common/customizable_localization:
+    content_type: custom_loc
+    default_scope: any
+    level: 2
+  common/defines:
+    content_type: define
+    default_scope: none
+    level: 2
+  common/coat_of_arms:
+    content_type: coat_of_arms
+    default_scope: none
+    level: 2
+  common/nicknames:
+    content_type: nickname
+    default_scope: character
+    level: 2
+  common/deathreasons:
+    content_type: death_reason
+    default_scope: character
+    level: 2
+  common/opinion_modifiers:
+    content_type: opinion_modifier
+    default_scope: character
+    level: 2
+  common/important_actions:
+    content_type: important_action
+    default_scope: character
+    level: 2
+
+  # Level 1: Event Content
+  events:
+    content_type: event
+    default_scope: character
+    level: 1
+
+  # GUI
+  gui:
+    content_type: gui
+    default_scope: none
+    level: 0
+
+  # Map
+  map_data:
+    content_type: map
+    default_scope: none
+    level: 0
+
+  # History
+  history/characters:
+    content_type: character_history
+    default_scope: character
+    level: 0
+  history/provinces:
+    content_type: province_history
+    default_scope: province
+    level: 0
+  history/titles:
+    content_type: title_history
+    default_scope: title
+    level: 0
+
+  # Localization
+  localization:
+    content_type: localization
+    default_scope: none
+    level: 0

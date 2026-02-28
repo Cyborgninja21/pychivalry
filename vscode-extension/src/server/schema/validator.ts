@@ -16,6 +16,7 @@
 import { Diagnostic, DiagnosticSeverity, Range } from 'vscode-languageserver';
 import { ASTNode } from '../core/parser';
 import { SchemaLoader, SchemaDefinition } from './loader';
+import { serverLogger } from '../utils/logger';
 
 // Map severity strings to LSP DiagnosticSeverity enum
 const SEVERITY_MAP: Record<string, DiagnosticSeverity> = {
@@ -130,7 +131,7 @@ export class SchemaValidator {
             const regex = new RegExp(pattern);
             return regex.test(key);
         } catch (error) {
-            console.warn(`Invalid regex pattern: ${pattern}`);
+            serverLogger.warn(`Invalid regex pattern: ${pattern}`);
             return false;
         }
     }

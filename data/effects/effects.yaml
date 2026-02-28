@@ -1,0 +1,3811 @@
+version: "1.0"
+effects:
+  add_character_modifier:
+    description: Adds a temporary or permanent modifier to a character
+    detail: Character modifier with duration
+    snippet: "add_character_modifier = {\n\tmodifier = ${1:modifier_name}\n\t${2|days,months,years|} = ${3:30}\n}"
+    scopes:
+      - character
+    example: |
+      add_character_modifier = {
+        modifier = stress_level_1
+        years = 5
+      }
+  remove_character_modifier:
+    description: Removes a modifier from a character
+    detail: Removes specified character modifier
+    snippet: remove_character_modifier = ${1:modifier_name}
+    scopes:
+      - character
+    example: remove_character_modifier = stress_level_1
+  add_trait:
+    description: Adds a trait to a character
+    detail: Grants specified trait
+    snippet: add_trait = ${1:trait_name}
+    scopes:
+      - character
+    example: add_trait = brave
+  remove_trait:
+    description: Removes a trait from a character
+    detail: Removes specified trait if present
+    snippet: remove_trait = ${1:trait_name}
+    scopes:
+      - character
+    example: remove_trait = craven
+  add_gold:
+    description: Adds gold to character's treasury
+    detail: Can be simple value or script_value block
+    snippet: add_gold = ${1:100}
+    scopes:
+      - character
+    example: |
+      add_gold = 500
+      add_gold = {
+        value = monthly_character_income
+        multiply = 2
+      }
+  remove_gold:
+    description: Removes gold from character's treasury
+    detail: Can be simple value or script_value block
+    snippet: remove_gold = ${1:100}
+    scopes:
+      - character
+    example: remove_gold = 200
+  add_short_term_gold:
+    description: Adds short-term gold that doesn't accumulate savings
+    detail: Used for temporary gold gains
+    snippet: add_short_term_gold = ${1:100}
+    scopes:
+      - character
+    example: add_short_term_gold = 50
+  remove_short_term_gold:
+    description: Removes short-term gold
+    detail: Deducts from temporary gold pool
+    snippet: remove_short_term_gold = ${1:100}
+    scopes:
+      - character
+    example: remove_short_term_gold = 30
+  add_prestige:
+    description: Adds prestige to character
+    detail: Can be simple value or script_value block
+    snippet: add_prestige = ${1:100}
+    scopes:
+      - character
+    example: add_prestige = 200
+  remove_prestige:
+    description: Removes prestige from character
+    detail: Deducts prestige points
+    snippet: remove_prestige = ${1:100}
+    scopes:
+      - character
+    example: remove_prestige = 50
+  add_piety:
+    description: Adds piety to character
+    detail: Can be simple value or script_value block
+    snippet: add_piety = ${1:100}
+    scopes:
+      - character
+    example: add_piety = 150
+  remove_piety:
+    description: Removes piety from character
+    detail: Deducts piety points
+    snippet: remove_piety = ${1:100}
+    scopes:
+      - character
+    example: remove_piety = 75
+  add_stress:
+    description: Adds stress to character
+    detail: Increases stress level
+    snippet: add_stress = ${1:minor_stress_gain}
+    scopes:
+      - character
+    example: add_stress = medium_stress_gain
+  stress_impact:
+    description: Adds stress based on personality traits
+    detail: Conditional stress gain based on character traits
+    snippet: "stress_impact = {\n\t${1:trait_name} = ${2:minor_stress_impact_gain}\n}"
+    scopes:
+      - character
+    example: |
+      stress_impact = {
+        brave = minor_stress_impact_loss
+        craven = major_stress_impact_gain
+      }
+  add_diplomacy_lifestyle_xp:
+    description: Adds experience to diplomacy lifestyle
+    detail: Grants diplomacy skill XP
+    snippet: add_diplomacy_lifestyle_xp = ${1:100}
+    scopes:
+      - character
+    example: add_diplomacy_lifestyle_xp = 50
+  add_martial_lifestyle_xp:
+    description: Adds experience to martial lifestyle
+    detail: Grants martial skill XP
+    snippet: add_martial_lifestyle_xp = ${1:100}
+    scopes:
+      - character
+    example: add_martial_lifestyle_xp = 75
+  add_stewardship_lifestyle_xp:
+    description: Adds experience to stewardship lifestyle
+    detail: Grants stewardship skill XP
+    snippet: add_stewardship_lifestyle_xp = ${1:100}
+    scopes:
+      - character
+    example: add_stewardship_lifestyle_xp = 60
+  add_intrigue_lifestyle_xp:
+    description: Adds experience to intrigue lifestyle
+    detail: Grants intrigue skill XP
+    snippet: add_intrigue_lifestyle_xp = ${1:100}
+    scopes:
+      - character
+    example: add_intrigue_lifestyle_xp = 80
+  add_learning_lifestyle_xp:
+    description: Adds experience to learning lifestyle
+    detail: Grants learning skill XP
+    snippet: add_learning_lifestyle_xp = ${1:100}
+    scopes:
+      - character
+    example: add_learning_lifestyle_xp = 90
+  add_wanderer_lifestyle_xp:
+    description: Adds experience to wanderer lifestyle
+    detail: Grants wanderer skill XP (special lifestyle)
+    snippet: add_wanderer_lifestyle_xp = ${1:100}
+    scopes:
+      - character
+    example: add_wanderer_lifestyle_xp = 40
+  add_opinion:
+    description: Adds opinion modifier between two characters
+    detail: Creates opinion relationship
+    snippet: "add_opinion = {\n\tmodifier = ${1:modifier_name}\n\ttarget = ${2:scope:target}\n}"
+    scopes:
+      - character
+    example: |
+      add_opinion = {
+        modifier = grateful
+        target = scope:friend
+        years = 10
+      }
+  remove_opinion:
+    description: Removes opinion modifier between characters
+    detail: Removes specific opinion modifier
+    snippet: "remove_opinion = {\n\tmodifier = ${1:modifier_name}\n\ttarget = ${2:scope:target}\n}"
+    scopes:
+      - character
+    example: |
+      remove_opinion = {
+        modifier = angry
+        target = scope:enemy
+      }
+  reverse_add_opinion:
+    description: Adds opinion from target to this character
+    detail: Target character gains opinion of this character
+    snippet: "reverse_add_opinion = {\n\tmodifier = ${1:modifier_name}\n\ttarget = ${2:scope:target}\n}"
+    scopes:
+      - character
+    example: |
+      reverse_add_opinion = {
+        modifier = grateful
+        target = scope:benefactor
+      }
+  set_relation_friend:
+    description: Sets friend relation between characters
+    detail: Creates or reinforces friendship
+    snippet: set_relation_friend = ${1:scope:target}
+    scopes:
+      - character
+    example: set_relation_friend = scope:ally
+  remove_relation_friend:
+    description: Removes friend relation
+    detail: Breaks friendship between characters
+    snippet: remove_relation_friend = ${1:scope:target}
+    scopes:
+      - character
+    example: remove_relation_friend = scope:former_friend
+  set_relation_lover:
+    description: Sets lover relation between characters
+    detail: Creates romantic relationship
+    snippet: set_relation_lover = ${1:scope:target}
+    scopes:
+      - character
+    example: set_relation_lover = scope:romantic_interest
+  remove_relation_lover:
+    description: Removes lover relation
+    detail: Ends romantic relationship
+    snippet: remove_relation_lover = ${1:scope:target}
+    scopes:
+      - character
+    example: remove_relation_lover = scope:ex_lover
+  set_relation_rival:
+    description: Sets rival relation between characters
+    detail: Creates rivalry
+    snippet: set_relation_rival = ${1:scope:target}
+    scopes:
+      - character
+    example: set_relation_rival = scope:enemy
+  remove_relation_rival:
+    description: Removes rival relation
+    detail: Ends rivalry between characters
+    snippet: remove_relation_rival = ${1:scope:target}
+    scopes:
+      - character
+    example: remove_relation_rival = scope:former_rival
+  marry:
+    description: Marries two characters together
+    detail: Creates marriage between characters
+    snippet: marry = ${1:scope:target}
+    scopes:
+      - character
+    example: marry = scope:betrothed
+  divorce:
+    description: Divorces character from spouse
+    detail: Ends marriage with specified character
+    snippet: divorce = ${1:scope:spouse}
+    scopes:
+      - character
+    example: divorce = scope:spouse
+  death:
+    description: Kills the character
+    detail: Can specify death reason and killer
+    snippet: "death = {\n\tdeath_reason = ${1:death_vanished}\n}"
+    scopes:
+      - character
+    example: |
+      death = {
+        death_reason = death_execution
+        killer = scope:executioner
+      }
+  add_claim:
+    description: Adds a claim to a title
+    detail: Can be pressed or unpressed claim
+    snippet: add_claim = ${1:title:k_france}
+    scopes:
+      - character
+    example: add_claim = title:k_england
+  remove_claim:
+    description: Removes a claim on a title
+    detail: Removes existing claim
+    snippet: remove_claim = ${1:title:k_france}
+    scopes:
+      - character
+    example: remove_claim = title:d_normandy
+  create_title:
+    description: Creates a new title
+    detail: Creates landed title with specified holder
+    snippet: "create_title = {\n\ttitle = ${1:title_key}\n\tholder = ${2:root}\n}"
+    scopes:
+      - character
+      - landed_title
+    example: |
+      create_title = {
+        title = k_custom_kingdom
+        holder = root
+      }
+  destroy_title:
+    description: Destroys a title
+    detail: Removes title from game
+    snippet: destroy_title = ${1:this}
+    scopes:
+      - landed_title
+    example: destroy_title = this
+  change_title_holder:
+    description: Changes who holds a title
+    detail: Transfers title to new holder
+    snippet: "change_title_holder = {\n\tholder = ${1:scope:new_holder}\n\tchange = ${2:scope:change}\n}"
+    scopes:
+      - landed_title
+    example: |
+      change_title_holder = {
+        holder = scope:heir
+        change = scope:title_change
+      }
+  create_title_and_vassal_change:
+    description: Creates a title change transaction
+    detail: For complex title transfers with vassals
+    snippet: "create_title_and_vassal_change = {\n\ttype = ${1|conquest,inheritance,usurped|}\n\tsave_scope_as = ${2:change}\n}"
+    scopes:
+      - character
+    example: |
+      create_title_and_vassal_change = {
+        type = conquest
+        save_scope_as = title_change
+      }
+  set_capital_county:
+    description: Sets character's capital county
+    detail: Changes primary county holding
+    snippet: set_capital_county = ${1:scope:county}
+    scopes:
+      - character
+    example: set_capital_county = scope:new_capital
+  change_government:
+    description: Changes character's government type
+    detail: Switches to different government form
+    snippet: change_government = ${1:feudal_government}
+    scopes:
+      - character
+    example: change_government = clan_government
+  add_tyranny:
+    description: Adds tyranny to character
+    detail: Increases tyranny level
+    snippet: add_tyranny = ${1:minor_tyranny_gain}
+    scopes:
+      - character
+    example: add_tyranny = medium_tyranny_gain
+  add_character_flag:
+    description: Adds a flag to character
+    detail: Temporary or permanent flag marker
+    snippet: add_character_flag = ${1:flag_name}
+    scopes:
+      - character
+    example: |
+      add_character_flag = {
+        flag = has_seen_event
+        days = 30
+      }
+  remove_character_flag:
+    description: Removes a flag from character
+    detail: Clears specified flag
+    snippet: remove_character_flag = ${1:flag_name}
+    scopes:
+      - character
+    example: remove_character_flag = has_seen_event
+  add_flag:
+    description: Adds a flag to current scope
+    detail: Generic flag for any scope type
+    snippet: add_flag = ${1:flag_name}
+    scopes:
+      - character
+      - landed_title
+      - province
+    example: add_flag = recently_conquered
+  remove_flag:
+    description: Removes a flag from current scope
+    detail: Clears specified flag from scope
+    snippet: remove_flag = ${1:flag_name}
+    scopes:
+      - character
+      - landed_title
+      - province
+    example: remove_flag = recently_conquered
+  set_global_flag:
+    description: Sets a global flag visible to all scopes
+    detail: Game-wide flag marker
+    snippet: set_global_flag = ${1:global_flag_name}
+    scopes:
+      - any
+    example: set_global_flag = black_death_started
+  remove_global_flag:
+    description: Removes a global flag
+    detail: Clears game-wide flag
+    snippet: remove_global_flag = ${1:global_flag_name}
+    scopes:
+      - any
+    example: remove_global_flag = black_death_started
+  set_variable:
+    description: Sets a variable on current scope
+    detail: Stores value for later retrieval
+    snippet: "set_variable = {\n\tname = ${1:var_name}\n\tvalue = ${2:value}\n}"
+    scopes:
+      - any
+    example: |
+      set_variable = {
+        name = my_counter
+        value = 5
+      }
+  change_variable:
+    description: Changes value of existing variable
+    detail: Adds or subtracts from variable
+    snippet: "change_variable = {\n\tname = ${1:var_name}\n\t${2|add,subtract,multiply,divide|} = ${3:value}\n}"
+    scopes:
+      - any
+    example: |
+      change_variable = {
+        name = my_counter
+        add = 1
+      }
+  remove_variable:
+    description: Removes a variable from scope
+    detail: Deletes stored variable
+    snippet: remove_variable = ${1:var_name}
+    scopes:
+      - any
+    example: remove_variable = my_counter
+  save_scope_as:
+    description: Saves current scope for later reference
+    detail: Creates named scope alias
+    snippet: save_scope_as = ${1:scope_name}
+    scopes:
+      - any
+    example: save_scope_as = my_character
+  save_temporary_scope_as:
+    description: Saves current scope temporarily
+    detail: Scope alias valid only within current event/effect
+    snippet: save_temporary_scope_as = ${1:temp_scope}
+    scopes:
+      - any
+    example: save_temporary_scope_as = temp_target
+  every_courtier:
+    description: Iterates over all courtiers
+    detail: Executes effects for each courtier
+    snippet: "every_courtier = {\n\tlimit = { $1 }\n\t$0\n}"
+    scopes:
+      - character
+    example: |
+      every_courtier = {
+        limit = { is_adult = yes }
+        add_gold = 10
+      }
+  random_courtier:
+    description: Selects a random courtier
+    detail: Executes effects on one random courtier matching limit
+    snippet: "random_courtier = {\n\tlimit = { $1 }\n\t$0\n}"
+    scopes:
+      - character
+    example: |
+      random_courtier = {
+        limit = { NOT = { has_trait = content } }
+        add_trait = content
+      }
+  every_vassal:
+    description: Iterates over all vassals
+    detail: Executes effects for each direct vassal
+    snippet: "every_vassal = {\n\tlimit = { $1 }\n\t$0\n}"
+    scopes:
+      - character
+    example: |
+      every_vassal = {
+        limit = { primary_title = { tier = tier_duchy } }
+        add_opinion = {
+          modifier = grateful
+          target = root
+        }
+      }
+  random_vassal:
+    description: Selects a random vassal
+    detail: Executes effects on one random vassal matching limit
+    snippet: "random_vassal = {\n\tlimit = { $1 }\n\t$0\n}"
+    scopes:
+      - character
+    example: |
+      random_vassal = {
+        limit = { is_powerful_vassal = yes }
+        add_prestige = 100
+      }
+  trigger_event:
+    description: Triggers an event
+    detail: Fires specified event with optional delay
+    snippet: "trigger_event = {\n\tid = ${1:namespace.0001}\n}"
+    scopes:
+      - character
+    example: |
+      trigger_event = {
+        id = my_mod.0001
+        days = 7
+      }
+  create_story:
+    description: Creates a story cycle
+    detail: Starts persistent story with periodic effects
+    snippet: create_story = ${1:story_cycle_name}
+    scopes:
+      - character
+    example: |
+      create_story = {
+        type = my_story_cycle
+        save_scope_as = my_story
+      }
+  end_story:
+    description: Ends a story cycle
+    detail: Terminates active story
+    snippet: end_story = yes
+    scopes:
+      - story
+    example: end_story = yes
+  make_story_owner:
+    description: Transfers story ownership to another character
+    detail: Changes who owns the story cycle
+    snippet: make_story_owner = ${1:scope:new_owner}
+    scopes:
+      - story
+    example: make_story_owner = scope:heir
+  start_activity:
+    description: Starts an activity
+    detail: Begins activity like feast, hunt, etc.
+    snippet: "start_activity = {\n\tactivity = ${1:activity_type}\n}"
+    scopes:
+      - character
+    example: |
+      start_activity = {
+        activity = activity_feast
+      }
+  complete_activity:
+    description: Completes current activity
+    detail: Finishes ongoing activity
+    snippet: complete_activity = yes
+    scopes:
+      - character
+    example: complete_activity = yes
+  leave_activity:
+    description: Character leaves current activity
+    detail: Removes character from activity
+    snippet: leave_activity = yes
+    scopes:
+      - character
+    example: leave_activity = yes
+  if:
+    description: Conditional execution
+    detail: Executes effects only if trigger is true
+    snippet: "if = {\n\tlimit = { $1 }\n\t$0\n}"
+    scopes:
+      - any
+    example: |
+      if = {
+        limit = { is_adult = yes }
+        add_gold = 100
+      }
+  else_if:
+    description: Alternative condition after if
+    detail: Checked if previous if/else_if was false
+    snippet: "else_if = {\n\tlimit = { $1 }\n\t$0\n}"
+    scopes:
+      - any
+    example: |
+      else_if = {
+        limit = { age >= 12 }
+        add_gold = 50
+      }
+  else:
+    description: Default case after if/else_if
+    detail: Executes if no previous conditions were true
+    snippet: "else = {\n\t$0\n}"
+    scopes:
+      - any
+    example: |
+      else = {
+        add_gold = 10
+      }
+  switch:
+    description: Multi-way conditional branching
+    detail: Evaluates trigger and executes matching case
+    snippet: "switch = {\n\ttrigger = ${1:variable}\n\t${2:value} = { $0 }\n}"
+    scopes:
+      - any
+    example: |
+      switch = {
+        trigger = var:my_state
+        1 = { add_gold = 100 }
+        2 = { add_prestige = 100 }
+      }
+  random:
+    description: Executes with probability
+    detail: Chance-based execution
+    snippet: "random = {\n\tchance = ${1:50}\n\t$0\n}"
+    scopes:
+      - any
+    example: |
+      random = {
+        chance = 25
+        add_trait = lucky
+      }
+  random_list:
+    description: Executes one random option from list
+    detail: Weighted random selection
+    snippet: "random_list = {\n\t${1:50} = { $0 }\n}"
+    scopes:
+      - any
+    example: |
+      random_list = {
+        50 = { add_gold = 100 }
+        30 = { add_prestige = 100 }
+        20 = { add_piety = 100 }
+      }
+  custom_tooltip:
+    description: Shows custom text in effect tooltip
+    detail: Display localized message to player
+    snippet: custom_tooltip = ${1:localization_key}
+    scopes:
+      - any
+    example: custom_tooltip = my_mod_custom_message
+  hidden_effect:
+    description: Executes effects without showing in tooltip
+    detail: Effects not visible to player
+    snippet: "hidden_effect = {\n\t$0\n}"
+    scopes:
+      - any
+    example: |
+      hidden_effect = {
+        add_gold = -100
+      }
+  show_as_tooltip:
+    description: Shows effects in tooltip without executing
+    detail: Display only, doesn't actually execute
+    snippet: "show_as_tooltip = {\n\t$0\n}"
+    scopes:
+      - any
+    example: |
+      show_as_tooltip = {
+        add_gold = 500
+      }
+  play_sound_effect:
+    description: Plays a sound effect
+    detail: Triggers audio feedback
+    snippet: play_sound_effect = ${1:sound_name}
+    scopes:
+      - any
+    example: play_sound_effect = event:/SFX/Events/Positive/generic_positive
+  play_music_cue:
+    description: Plays a music cue
+    detail: Triggers music track
+    snippet: play_music_cue = ${1:music_cue_name}
+    scopes:
+      - any
+    example: play_music_cue = mx_cue_combat
+  animate_custom:
+    description: Triggers custom animation
+    detail: Plays character animation
+    snippet: animate_custom = ${1:animation_name}
+    scopes:
+      - character
+    example: animate_custom = personality_rational
+  debug_log:
+    description: Logs message to debug console
+    detail: For debugging scripts
+    snippet: debug_log = ${1:message}
+    scopes:
+      - any
+    example: debug_log = "Event fired for character"
+  debug_log_scopes:
+    description: Logs all current scopes to console
+    detail: Shows scope chain for debugging
+    snippet: debug_log_scopes = yes
+    scopes:
+      - any
+    example: debug_log_scopes = yes
+  assert_if:
+    description: Asserts condition must be true
+    detail: Errors in debug if condition false
+    snippet: "assert_if = {\n\tlimit = { $1 }\n\ttext = ${2:error_message}\n}"
+    scopes:
+      - any
+    example: |
+      assert_if = {
+        limit = { NOT = { exists = root } }
+        text = "Root scope does not exist!"
+      }
+  assert_read:
+    description: Marks variable as read for error checking
+    detail: Suppresses unused variable warnings
+    snippet: assert_read = ${1:variable_name}
+    scopes:
+      - any
+    example: assert_read = var:my_counter
+  add_accessory_modifiers:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_activity_event:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_activity_log_entry:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_activity_province:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_agent_slot:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_all_artifact_types:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_all_artifact_visual_types:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_amenity_level:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_animate_domicile_building:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_artifact_history:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_artifact_modifier:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_artifact_title_history:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_attacker:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_barter_goods:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_barter_goods_from_contribution:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_building:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_character_realm_to_sub_region:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_claim_on_loss:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_color:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_commander_trait:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_companion:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_concubine:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_confederation_member:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_confederation_member_house:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_construction:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_contact:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_county_modifier:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_court_event:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_courtier:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_culture_tradition:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_dead_character_flag:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_defender:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_dejure_title_to_sub_region:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_destination_progress:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_diplomacy_skill:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_doctrine:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_domicile_building:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_domicile_province:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_dread:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_durability:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_dynasty_modifier:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_dynasty_perk:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_dynasty_prestige:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_dynasty_prestige_level:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_entity_event:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_epidemic_province:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_faction_discontent:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_fascination:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_fascination_progress:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_fascination_progress_time:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_focus_progress:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_from_contribution_attackers:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_from_contribution_defenders:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_geographical_region:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_glory:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_gold_from_contribution:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_great_building:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_great_building_slot:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_herd_from_contribution:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_hook:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_hook_no_toast:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_hook_perpetual:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_hook_strong:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_hook_theocracy_approve:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_horizontal:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_house_artifact_claim:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_house_modifier:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_house_unity_modifier:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_house_unity_value:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_influence:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_influence_from_contribution:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_innovation:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_innovation_progress:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_innovation_progress_time:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_internal_flag:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_intrigue_skill:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_joined_faction_discontent:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_knows_of_killer:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_law:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_learning_skill:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_legend_county_modifier:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_legend_owner_modifier:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_legend_province_modifier:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_legend_spread:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_legitimacy:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_legitimacy_increase_level:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_lifestyle_xp:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_lifestyle_xp_all:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_list_target_as:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_long_term_gold:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_loot:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_maa:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_maa_to_regiment:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_manual_participant:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_martial_skill:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_matrilineal_spouse:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_merit:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_merit_from_contribution:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_name_list:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_new_artifact:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_obedient_reason:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_opinion_decaying:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_opinion_for_duration:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_opinion_from_contribution:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_opinion_growing:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_opinion_imprison_reason:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_opinion_imprison_reason_unusable:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_opinion_theocracy_approve:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_or_remove_trait:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_pending_court_event:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_perk:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_personal_artifact_claim:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_phase_max_duration:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_piety_and_experience:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_piety_experience:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_piety_from_contribution:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_piety_level:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_piety_no_experience:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_player:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_pressed_claim:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_prestige_and_experience:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_prestige_experience:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_prestige_from_contribution:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_prestige_level:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_prestige_no_experience:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_property_context_menu:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_province_modifier:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_provisions_from_contribution:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_prowess_skill:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_rally_point:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_random_innovation:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_random_valid_tradition:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_random_valid_tradition_replace_if_necessary:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_realm_law:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_realm_law_skip_effects:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_relation:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_relation_flag:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_renown:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_renown_from_contribution:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_reserved_gold:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_same_sex_spouse:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_scheme_breach:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_scheme_cooldown:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_scheme_modifier:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_scheme_modifier_duration:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_scheme_progress:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_secret:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_secret_participant:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_special_building:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_special_building_slot:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_spouse:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_spread_progress:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_spread_progress_time:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_stewardship_skill:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_stress_critical:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_subject_standing:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_supply:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_takeover_phase_duration:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_takeover_phase_points:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_targeting_factions_discontent:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_temporary_list_target_as:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_title_law:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_title_law_effects:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_to_activity:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_to_activity_without_travel:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_to_agent_slot:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_to_current_phase_guest_subset:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_to_global_variable_list:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_to_guest_subset:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_to_guest_subset_command:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_to_legend_library_command:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_to_list:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_to_local_variable_list:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_to_temporary_list:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_to_variable_list:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_tradition_window:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_trait_force_tooltip:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_trait_xp:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_trait_xp_single:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_travel_option:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_travel_plan_modifier:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_travel_point_of_interest:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_travel_waypoint:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_treasury:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_treasury_from_contribution:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_treasury_or_gold:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_truce_both_ways:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_truce_one_way:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_unity_value:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_unpressed_claim:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_visiting_courtier:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_war_chest_gold:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  add_war_results:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_age:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_appointment_investment:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_appointment_investment_for_anyone:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_appointment_investment_with_investor:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_barter_goods:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_cohesion:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_council_task:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_county_control:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_county_fertility:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_court_type_window:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_cultural_acceptance:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_culture:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_current_court_grandeur:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_current_weight:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_de_jure_drift_progress:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_development_level:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_development_progress:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_development_progress_with_overflow:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_diarchy_swing:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_diplomacy:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_fervor:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_first_name:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_ghw_target:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_ghw_target_window:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_global_variable:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_herd:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_house_relation:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_house_relation_fraction:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_house_relation_level:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_house_unity_stage:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_influence:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_influence_and_experience:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_influence_experience:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_influence_level:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_influence_no_experience:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_inspiration_progress:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_intrigue:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_learning:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_liege:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_local_variable:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_maa_regiment_size:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_maa_troops_count:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_martial:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_merit:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_merit_experience:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_merit_level:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_merit_no_experience:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_opportunities:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_phase:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_prison_type:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_provisions:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_prowess:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_realm_law_level:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_realm_law_level_skip_effects:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_reason:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_stewardship:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_strife_opinion:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_struggle_phase:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_struggle_phase_duration:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_target_cost:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_target_weight:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_title_holder_include_vassals:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_title_law_level:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_title_law_level_effects:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_top_phase:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_trait_rank:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_travel_plan_waypoints_command:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_treasury:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_username:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_war_chest_gold:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_war_chest_piety:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  change_war_chest_prestige:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  close_all_views:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  close_family_member:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  close_or_extended_family_member:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  close_relative_opinion:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  close_relatives:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  close_succession:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  close_support:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  close_view:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  close_window:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  create_accolade:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  create_accolade_view:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  create_adventurer_title:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  create_alliance:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  create_artifact:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  create_betrothal:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  create_betrothal_matrilineal:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  create_cadet_branch:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  create_cadet_branches:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  create_ceremonial_claimant_faction_against_interaction:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  create_character:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  create_character_for_grant_title:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  create_character_for_title:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  create_character_memory:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  create_claimant_faction_against:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  create_claimant_faction_against_interaction:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  create_claimant_faction_against_interaction_window:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  create_confederation:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  create_contract:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  create_destroy_title:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  create_divergent_culture:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  create_divergent_culture_with_side_effects:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  create_divergent_culture_with_side_effects_excluding_cost:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  create_dynamic_title:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  create_dynasty:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  create_epidemic_outbreak:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  create_faction:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  create_faction_type_chance:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  create_herder_for_title:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  create_holy_order:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  create_hybrid_culture:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  create_hybrid_culture_with_side_effects:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  create_important_action:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  create_inspiration:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  create_jomini_match:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  create_legend:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  create_legend_command:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  create_legend_seed:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  create_legend_triggered_seed_command:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  create_maa_regiment:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  create_maa_regiment_title:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  create_named_character:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  create_nomad_title:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  create_primary_tier_titles:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  create_random_accolade:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  create_social_profile_window:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  create_task_contract:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  create_test_artifact:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  create_title_counties_percentage:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  create_travel_plan_command:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  destroy_accolade:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  destroy_all_event_troops:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  destroy_artifact:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  destroy_character_memory:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  destroy_faction:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  destroy_if_invalid_heir:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  destroy_inspiration:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  destroy_maa_regiment:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  destroy_on_succession:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  destroy_owned_artifact:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  destroy_views:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  effect_:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  effect_desc:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  effect_flags:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  effect_group:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  effect_history:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  effect_index:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  effect_textbox:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  end_after_test:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  end_date:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  end_diarchy:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  end_fadeout_distance:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  end_game_date:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  end_inspiration_sponsorship:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  end_interaction:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  end_of_combat:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  end_of_command_check:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  end_pregnancy:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  end_scheme:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  end_schemes:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  end_situation:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  end_sound:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  end_struggle:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  end_time:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  end_tributary:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  end_war:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  end_war_attacker_defeat_interaction:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  end_war_attacker_victory:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  end_war_attacker_victory_interaction:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  end_war_defender_victory:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  end_war_invalidated:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  end_war_white_peace:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  end_war_white_peace_interaction:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  gain_all_dynasty_perks:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  gain_all_perks:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  gain_legitimacy_becoming_tributary:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  give_all_legacies:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  give_council_position:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  give_court_position:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  give_domain_to_herders:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  give_domain_to_herders_first:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  give_nickname:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  give_noble_family_title:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  give_title:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  kill_list:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  kill_queue:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  open_activity_window:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  open_appoint_court_position_window:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  open_categories:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  open_interaction_window:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  open_invite:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  open_invite_activity:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  open_position:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  open_royal_court:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  open_travel_planner_window:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  open_view:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  open_view_data:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_acclaimed_knight:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_activity_event:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_agent_character:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_agent_slot:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_all_character_modifier_instances:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_all_county_modifier_instances:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_all_dynasty_modifier_instances:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_all_house_modifier_instances:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_all_house_unity_modifier_instances:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_all_legend_county_modifier_instances:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_all_legend_owner_modifier_instances:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_all_legend_province_modifier_instances:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_all_province_modifier_instances:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_all_realm_laws:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_all_travel_plan_modifier_instances:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_artifact_feature_group:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_artifact_modifier:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_attachment:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_barter_goods:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_bonus_fascination_innovation:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_building:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_character:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_character_realm_from_sub_region:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_character_secret_faith:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_combat_result:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_commander:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_concubine:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_confederation_member:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_confederation_member_house:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_county_modifier:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_court_event:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_courtier_or_guest:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_culture_tradition:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_dead_character_variable:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_decision_cooldown:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_default_outfit:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_dejure_title_from_sub_region:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_doctrine:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_domicile_building:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_domicile_building_no_refund:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_dynasty_modifier:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_dynasty_perk:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_entity:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_event_command:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_existing_councillor:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_from_activity:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_from_current_phase_guest_subset:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_from_guest_subset:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_from_guest_subset_command:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_from_legend_library_command:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_from_list:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_from_list_target:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_geographical_region:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_global_variable:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_holding:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_hook:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_house_artifact_claim:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_house_modifier:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_house_unity_modifier:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_important_action:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_important_location:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_innovation:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_interaction_cooldown:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_interaction_cooldown_against:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_legend_county_modifier:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_legend_owner_modifier:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_legend_province_modifier:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_legend_spread:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_list_global_variable:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_list_local_variable:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_list_variable:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_local_variable:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_localized_text:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_long_term_gold:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_long_term_treasury:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_maa_origin_province:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_manual_participant:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_new_artifact:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_nick:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_nickname:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_participant:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_perk:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_personal_artifact_claim:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_player_command:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_province_modifier:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_rally_point:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_random_culture_tradition:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_realm_law:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_relation:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_relation_:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_relation_flag:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_religious_head_title:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_reserved_gold:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_reserved_treasury:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_scheme_cooldown_against:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_scheme_interaction:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_scheme_modifier:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_secret:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_short_term_treasury:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_special_character:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_special_title:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_spouse:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_succession_laws:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_title_from_important_location:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_title_law:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_title_law_effects:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_trait_force_tooltip:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_travel_option:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_travel_plan_modifier:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_travel_point_of_interest:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_treasury:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_treasury_or_gold:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_war_chest_gold:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_war_chest_treasury:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  remove_when_particle_killed:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  send_character_interaction:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  send_china_tutorial_finished_telemetry:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  send_china_tutorial_started_telemetry:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  send_interface_message:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  send_interface_message_as_popup:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  send_interface_message_as_toast:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  send_interface_popup:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  send_interface_toast:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  send_long_tutorial_finished_telemetry:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  send_long_tutorial_started_telemetry:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  send_name:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  send_option:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  send_options_exclusive:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  send_short_tutorial_finished_telemetry:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  send_short_tutorial_started_telemetry:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  send_threshold:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_absolute_country_control:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_acclaimed_knight:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_activity_host:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_activity_intent:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_activity_intent_command:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_age:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_ai_allowed_to_marry:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_allow_early_retreat:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_always_follows_primary_heir:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_amenity_level:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_appointment_timeout:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_army_location:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_artifact_description:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_artifact_feature:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_artifact_feature_group:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_artifact_name:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_artifact_rarity:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_beneficiary:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_bonus_fascination_innovation:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_called_to:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_can_be_named_after_dynasty:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_can_use_nomadic_naming:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_capital_barony:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_casus_belli:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_character_controller:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_character_faith:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_character_faith_history:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_character_faith_no_effect:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_character_faith_with_conversion:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_character_focus:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_character_pinned:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_character_secret_faith:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_child_of_concubine_on_pregnancy:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_coa:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_cohesion:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_color_from_title:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_confederation_color:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_confederation_name:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_council_task:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_countermeasure:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_county_capital:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_county_council_task:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_county_culture:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_county_faith:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_court_amenities_setting:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_court_council_task:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_court_language:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_court_position_automation:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_court_type:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_court_type_setting:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_cultural_acceptance:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_culture:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_culture_as_involved:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_culture_as_uninvolved:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_culture_name:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_culture_pillar:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_culture_same_as:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_current_court_grandeur:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_de_jure_liege_title:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_dead_character_variable:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_death_reason:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_decision_important:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_default_education:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_default_raid_intent:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_definitive_form:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_delete_on_destroy:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_designated_heir:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_designated_heir_unsafe:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_designated_winner:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_destroy_if_invalid_heir:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_destroy_on_gain_same_tier:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_destroy_on_succession:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_diarch:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_diarchy_mandate:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_diarchy_swing:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_diarchy_type:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_diplomacy:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_disallowed_retreat:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_dlcs:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_domicile_culture:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_domicile_faith:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_done_replaying_commands_command:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_dread:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_dynasty_name:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_employer:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_epidemic_outbreak_intensity:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_ethnicity:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_ethos_from:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_faith:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_faith_as_involved:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_faith_as_uninvolved:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_father:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_figurehead_title:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_focus:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_focus_no:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_focus_progress:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_generated_asexuality_chance:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_generated_bisexuality_chance:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_generated_homosexuality_chance:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_global_variable:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_great_building:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_great_building_slot:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_great_holy_war_target:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_has_ever_opened_royal_court:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_heritage_from:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_holding_type:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_house:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_house_aspiration:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_house_aspiration_with_level:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_house_head:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_house_name:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_house_name_from_dynasty:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_house_name_from_house:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_house_relation:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_immortal_age:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_important_location:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_intrigue:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_ironman:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_ironman_save:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_is_ai:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_is_player:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_killer_public:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_knight_status:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_known_bastard_on_pregnancy:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_landless_title:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_language_from:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_leading_house:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_learning:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_legend_chapter:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_legend_property:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_legend_quality:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_local_player:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_local_variable:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_location:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_location_to_default:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_maa_reinforce:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_martial:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_martial_custom_from:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_max_durability:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_mother:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_name_list:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_new_court_owner_and_rebuild_view:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_nick:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_nickname:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_no_automatic_claims:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_noble_family_title:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_notify_can_host_activity_command:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_notify_can_join_open_activity_command:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_num_pregnancy_children:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_observed_playable:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_observer_command:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_opened_task_contract:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_override_designated_winner:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_owned_legend:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_owner:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_parent_size_to_minimum:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_player_character:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_player_here_command:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_portrait_override:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_position:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_pregnancy_assumed_father:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_pregnancy_gender:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_preparation_lobby:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_preparation_lobby_command:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_primary_spouse:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_primary_title:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_primary_title_to:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_promoted_legend:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_provisions:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_prowess:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_raid_intent:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_random:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_ready_command:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_real_father:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_real_mother:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_realm_capital:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_relation_:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_religious_head_title:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_reserved_gold_maximum:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_ruler_objective_decision:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_secret_owner:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_sexuality:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_should_decay:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_situation_center_province:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_skip_pursuit:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_special_character:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_special_guest:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_special_title:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_speed:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_state_faith:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_stewardship:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_stress:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_subject_contract_modification_blocked:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_successor:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_tags:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_task_contract_target:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_title_color:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_title_name:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_title_name_dynamic:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_title_prefix:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_to_lowborn:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_trait_rank:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_travel_leader:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_travel_plan_owner:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_treasury_budget_base_rate_military:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_treasury_budget_base_rate_ministries:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_treasury_budget_base_rate_salaries:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_tutorial_character_played:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_variable_command:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_vassal_contract_modification_blocked:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_war_declarer:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  set_winner:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  spawn_army:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  spawn_date:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  spawn_entity:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  spawn_epidemic:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  start_activity_command:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  start_assault:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  start_automatically:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  start_constraction_great_project:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  start_court_position_task:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  start_date:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  start_default_task:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  start_diarchy:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  start_disembarked:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  start_event:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  start_game:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  start_game_date:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  start_game_from_lobby:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  start_ghw_war:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  start_great_holy_war:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  start_immediately:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  start_murder_schemes:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  start_new_game_message:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  start_oos_resync:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  start_oos_resync_reply:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  start_phase:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  start_planning_great_project:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  start_promoting_legend_command:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  start_province:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  start_ruler_designer_command:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  start_scheme:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  start_scheme_against_character:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  start_scheme_against_culture:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  start_scheme_against_faith:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  start_scheme_against_nothing:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  start_scheme_against_title:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  start_situation:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  start_sound:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  start_struggle:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  start_time:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  start_travel_plan:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  start_tributary:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  start_tutorial_lesson:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  start_war:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  start_year_:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  take_baronies:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  take_hostage:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  take_occupied:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  take_unowned:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any
+  take_unowned_legend_command:
+    description: CK3 effect (from binary analysis)
+    scopes:
+      - any

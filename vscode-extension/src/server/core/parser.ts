@@ -58,6 +58,7 @@ export interface ParseError {
 enum TokenType {
     IDENTIFIER = 'IDENTIFIER',
     EQUALS = 'EQUALS',
+    NULL_SAFE_EQUALS = 'NULL_SAFE_EQUALS',
     GREATER = 'GREATER',
     LESS = 'LESS',
     GREATER_EQUAL = 'GREATER_EQUAL',
@@ -98,14 +99,14 @@ export class CK3Parser {
         this.line = 0;
         this.column = 0;
         this.errors = [];
-        
+
         // Tokenize
         this.tokens = this.tokenize();
         this.tokenIndex = 0;
-        
+
         // Parse
         const ast = this.parseRoot();
-        
+
         return {
             ast,
             errors: this.errors,
@@ -117,97 +118,110 @@ export class CK3Parser {
      */
     private tokenize(): Token[] {
         const tokens: Token[] = [];
-        
+
         while (this.position < this.text.length) {
             const char = this.text[this.position];
-            
+
             // Skip whitespace (except newlines)
             if (char === ' ' || char === '\t' || char === '\r') {
-                this.advance();
+                this.advanceChar();
                 continue;
             }
-            
+
             // Newline
             if (char === '\n') {
                 tokens.push(this.createToken(TokenType.NEWLINE, '\n'));
-                this.advance();
+                this.advanceChar();
                 this.line++;
                 this.column = 0;
                 continue;
             }
-            
+
             // Comment
             if (char === '#') {
                 tokens.push(this.readComment());
                 continue;
             }
-            
+
             // String (quoted)
             if (char === '"') {
                 tokens.push(this.readString());
                 continue;
             }
-            
+
             // Operators
-            if (char === '=') {
-                tokens.push(this.createToken(TokenType.EQUALS, '='));
-                this.advance();
+            if (char === '?' && this.peek() === '=') {
+                tokens.push(this.createToken(TokenType.NULL_SAFE_EQUALS, '?='));
+                this.advanceChar();
+                this.advanceChar();
                 continue;
             }
-            
+
+            if (char === '=') {
+                tokens.push(this.createToken(TokenType.EQUALS, '='));
+                this.advanceChar();
+                continue;
+            }
+
             if (char === '>') {
                 if (this.peek() === '=') {
                     tokens.push(this.createToken(TokenType.GREATER_EQUAL, '>='));
-                    this.advance();
-                    this.advance();
+                    this.advanceChar();
+                    this.advanceChar();
                 } else {
                     tokens.push(this.createToken(TokenType.GREATER, '>'));
-                    this.advance();
+                    this.advanceChar();
                 }
                 continue;
             }
-            
+
             if (char === '<') {
                 if (this.peek() === '=') {
                     tokens.push(this.createToken(TokenType.LESS_EQUAL, '<='));
-                    this.advance();
-                    this.advance();
+                    this.advanceChar();
+                    this.advanceChar();
                 } else {
                     tokens.push(this.createToken(TokenType.LESS, '<'));
-                    this.advance();
+                    this.advanceChar();
                 }
                 continue;
             }
-            
+
             // Braces
             if (char === '{') {
                 tokens.push(this.createToken(TokenType.LEFT_BRACE, '{'));
-                this.advance();
+                this.advanceChar();
                 continue;
             }
-            
+
             if (char === '}') {
                 tokens.push(this.createToken(TokenType.RIGHT_BRACE, '}'));
-                this.advance();
+                this.advanceChar();
                 continue;
             }
-            
+
             // Number
             if (this.isDigit(char) || (char === '-' && this.isDigit(this.peek()) && (this.column === 0 || /\s/.test(this.text[this.position - 1])))) {
                 tokens.push(this.readNumber());
                 continue;
             }
-            
+
+            // Variable interpolation @[expr]
+            if (char === '@' && this.peek() === '[') {
+                tokens.push(this.readVariableInterpolation());
+                continue;
+            }
+
             // Identifier
             if (this.isIdentifierStart(char)) {
                 tokens.push(this.readIdentifier());
                 continue;
             }
-            
+
             // Unknown character - skip it
-            this.advance();
+            this.advanceChar();
         }
-        
+
         tokens.push(this.createToken(TokenType.EOF, ''));
         return tokens;
     }
@@ -218,25 +232,25 @@ export class CK3Parser {
     private parseRoot(): ASTNode {
         const children: ASTNode[] = [];
         const startPos = this.getCurrentPosition();
-        
+
         while (!this.isAtEnd()) {
             // Skip newlines and comments at root level
             if (this.match(TokenType.NEWLINE)) {
                 continue;
             }
-            
+
             if (this.check(TokenType.COMMENT)) {
                 children.push(this.parseComment());
                 continue;
             }
-            
+
             // Parse assignment or block
             const node = this.parseStatement();
             if (node) {
                 children.push(node);
             }
         }
-        
+
         return {
             type: NodeType.ROOT,
             range: {
@@ -256,18 +270,24 @@ export class CK3Parser {
             this.skipToNextStatement();
             return null;
         }
-        
+
         const key = this.advance().value;
         const startPos = this.tokens[this.tokenIndex - 1].range.start;
-        
+
         // Check operator
         if (this.match(TokenType.EQUALS)) {
             return this.parseAssignment(key, startPos);
+        } else if (this.match(TokenType.NULL_SAFE_EQUALS)) {
+            const node = this.parseAssignment(key, startPos);
+            if (node) {
+                node.operator = '?=';
+            }
+            return node;
         } else if (this.check(TokenType.GREATER) || this.check(TokenType.LESS) ||
-                   this.check(TokenType.GREATER_EQUAL) || this.check(TokenType.LESS_EQUAL)) {
+            this.check(TokenType.GREATER_EQUAL) || this.check(TokenType.LESS_EQUAL)) {
             return this.parseComparison(key, startPos);
         } else {
-            this.addError('Expected operator (=, >, <, >=, <=) after key', startPos);
+            this.addError('Expected operator (=, >, <, >=, <=, ?=) after key', startPos);
             this.skipToNextStatement();
             return null;
         }
@@ -290,16 +310,16 @@ export class CK3Parser {
      */
     private parseSimpleAssignment(key: string, startPos: Position): ASTNode {
         const valueToken = this.advance();
-        
+
         let value: string | number | boolean = valueToken.value;
-        
+
         // Convert to appropriate type
         if (valueToken.type === TokenType.NUMBER) {
             value = parseFloat(valueToken.value);
         } else if (valueToken.value === 'yes' || valueToken.value === 'no') {
             value = valueToken.value === 'yes';
         }
-        
+
         return {
             type: NodeType.ASSIGNMENT,
             key,
@@ -316,23 +336,24 @@ export class CK3Parser {
      */
     private parseBlock(key: string, startPos: Position): ASTNode {
         this.advance(); // consume {
-        
+
         const children: ASTNode[] = [];
-        
+
         while (!this.check(TokenType.RIGHT_BRACE) && !this.isAtEnd()) {
             // Skip newlines
             if (this.match(TokenType.NEWLINE)) {
                 continue;
             }
-            
+
             // Handle comments
             if (this.check(TokenType.COMMENT)) {
                 children.push(this.parseComment());
                 continue;
             }
-            
+
             // Check if it's a list (no key, just values)
-            if (!this.checkNext(TokenType.EQUALS) && 
+            if (!this.checkNext(TokenType.EQUALS) &&
+                !this.checkNext(TokenType.NULL_SAFE_EQUALS) &&
                 !this.checkNext(TokenType.GREATER) &&
                 !this.checkNext(TokenType.LESS) &&
                 !this.checkNext(TokenType.GREATER_EQUAL) &&
@@ -349,25 +370,25 @@ export class CK3Parser {
                 });
                 continue;
             }
-            
+
             // Parse statement
             const stmt = this.parseStatement();
             if (stmt) {
                 children.push(stmt);
             }
         }
-        
+
         const endPos = this.getCurrentPosition();
-        
+
         if (this.match(TokenType.RIGHT_BRACE)) {
             // Success
         } else {
             this.addError('Expected }', endPos);
         }
-        
+
         // Determine if it's a list (all children are values) or a block
         const isListNodes = children.length > 0 && children.every(c => c.type === NodeType.VALUE);
-        
+
         return {
             type: isListNodes ? NodeType.LIST : NodeType.BLOCK,
             key,
@@ -385,14 +406,14 @@ export class CK3Parser {
     private parseComparison(key: string, startPos: Position): ASTNode {
         const opToken = this.advance();
         const operator = opToken.value;
-        
+
         const valueToken = this.advance();
         let value: string | number = valueToken.value;
-        
+
         if (valueToken.type === TokenType.NUMBER) {
             value = parseFloat(valueToken.value);
         }
-        
+
         return {
             type: NodeType.COMPARISON,
             key,
@@ -420,94 +441,125 @@ export class CK3Parser {
     // Token reading helpers
 
     private readComment(): Token {
-        const start = this.getCurrentPosition();
+        const start = { line: this.line, character: this.column };
         let value = '';
-        
+
         while (this.position < this.text.length && this.text[this.position] !== '\n') {
             value += this.text[this.position];
-            this.advance();
+            this.advanceChar();
         }
-        
+
         return {
             type: TokenType.COMMENT,
             value,
             range: {
                 start,
-                end: this.getCurrentPosition(),
+                end: { line: this.line, character: this.column },
             },
         };
     }
 
     private readString(): Token {
-        const start = this.getCurrentPosition();
-        this.advance(); // skip opening "
-        
+        const start = { line: this.line, character: this.column };
+        this.advanceChar(); // skip opening "
+
         let value = '';
-        
+
         while (this.position < this.text.length && this.text[this.position] !== '"') {
             if (this.text[this.position] === '\\' && this.peek() === '"') {
-                this.advance(); // skip \
+                this.advanceChar(); // skip \
                 value += '"';
-                this.advance();
+                this.advanceChar();
             } else {
                 value += this.text[this.position];
-                this.advance();
+                this.advanceChar();
             }
         }
-        
+
         if (this.position < this.text.length) {
-            this.advance(); // skip closing "
+            this.advanceChar(); // skip closing "
         }
-        
+
         return {
             type: TokenType.STRING,
             value,
             range: {
                 start,
-                end: this.getCurrentPosition(),
+                end: { line: this.line, character: this.column },
             },
         };
     }
 
     private readNumber(): Token {
-        const start = this.getCurrentPosition();
+        const start = { line: this.line, character: this.column };
         let value = '';
-        
+
         if (this.text[this.position] === '-') {
             value += '-';
-            this.advance();
+            this.advanceChar();
         }
-        
+
         while (this.position < this.text.length && (this.isDigit(this.text[this.position]) || this.text[this.position] === '.')) {
             value += this.text[this.position];
-            this.advance();
+            this.advanceChar();
         }
-        
+
         return {
             type: TokenType.NUMBER,
             value,
             range: {
                 start,
-                end: this.getCurrentPosition(),
+                end: { line: this.line, character: this.column },
             },
         };
     }
 
     private readIdentifier(): Token {
-        const start = this.getCurrentPosition();
+        const start = { line: this.line, character: this.column };
         let value = '';
-        
+
         while (this.position < this.text.length && this.isIdentifierChar(this.text[this.position])) {
             value += this.text[this.position];
-            this.advance();
+            this.advanceChar();
         }
-        
+
         return {
             type: TokenType.IDENTIFIER,
             value,
             range: {
                 start,
-                end: this.getCurrentPosition(),
+                end: { line: this.line, character: this.column },
+            },
+        };
+    }
+
+    private readVariableInterpolation(): Token {
+        const start = { line: this.line, character: this.column };
+        let value = '@[';
+
+        this.advanceChar(); // consume @
+        this.advanceChar(); // consume [
+
+        let depth = 1;
+        while (this.position < this.text.length && depth > 0) {
+            const ch = this.text[this.position];
+            if (ch === '[') depth++;
+            else if (ch === ']') depth--;
+
+            if (depth > 0) {
+                value += ch;
+            }
+            this.advanceChar();
+        }
+
+        value += ']';
+
+        return {
+            type: TokenType.IDENTIFIER,
+            value,
+            range: {
+                start,
+                end: { line: this.line, character: this.column },
             },
         };
     }
@@ -519,9 +571,9 @@ export class CK3Parser {
     }
 
     private isIdentifierStart(char: string): boolean {
-        return (char >= 'a' && char <= 'z') || 
-               (char >= 'A' && char <= 'Z') || 
-               char === '_' || char === '@' || char === '$';
+        return (char >= 'a' && char <= 'z') ||
+            (char >= 'A' && char <= 'Z') ||
+            char === '_' || char === '@' || char === '$';
     }
 
     private isIdentifierChar(char: string): boolean {
@@ -574,6 +626,17 @@ export class CK3Parser {
 
     // Character position helpers (for lexer)
 
+    /**
+     * Advance the character position during tokenization.
+     * This is separate from advance() which navigates tokens during parsing.
+     */
+    private advanceChar(): void {
+        if (this.position < this.text.length) {
+            this.position++;
+            this.column++;
+        }
+    }
+
     private peek(): string {
         if (this.position + 1 < this.text.length) {
             return this.text[this.position + 1];
@@ -602,5 +665,53 @@ export class CK3Parser {
             },
             severity: 'error',
         });
+    }
+}
+
+/**
+ * Caching wrapper around CK3Parser.
+ *
+ * Keeps a small content-based LRU cache so that repeated calls to
+ * `parse(text)` with the same text content (e.g. provider re-parsing
+ * a document the server already parsed) return the cached result
+ * instead of re-tokenizing and re-parsing.
+ */
+export class CachingParser extends CK3Parser {
+    private contentCache = new Map<string, { result: ParsedDocument; timestamp: number }>();
+    private readonly maxCacheSize: number;
+
+    constructor(maxCacheSize = 5) {
+        super();
+        this.maxCacheSize = maxCacheSize;
+    }
+
+    public override parse(text: string): ParsedDocument {
+        const cached = this.contentCache.get(text);
+        if (cached) {
+            return cached.result;
+        }
+
+        const result = super.parse(text);
+
+        // Evict oldest entry if cache is full
+        if (this.contentCache.size >= this.maxCacheSize) {
+            let oldestKey: string | undefined;
+            let oldestTime = Infinity;
+            for (const [key, entry] of this.contentCache) {
+                if (entry.timestamp < oldestTime) {
+                    oldestTime = entry.timestamp;
+                    oldestKey = key;
+                }
+            }
+            if (oldestKey) this.contentCache.delete(oldestKey);
+        }
+
+        this.contentCache.set(text, { result, timestamp: Date.now() });
+        return result;
+    }
+
+    /** Remove all cached parse results. */
+    public clearContentCache(): void {
+        this.contentCache.clear();
     }
 }

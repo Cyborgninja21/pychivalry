@@ -14,7 +14,8 @@
 import { InlayHint, InlayHintKind, Range, Position, MarkupContent, MarkupKind } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { CK3Parser, ASTNode, NodeType } from '../core/parser';
-import { CK3Language, EffectDefinition, TriggerDefinition } from '../ck3/language';
+import { getDataLoader } from '../data/loader';
+import { getTargetScopeType, getListResultScope, parseListIterator } from '../ck3/validation/scopes';
 
 /**
  * Configuration for inlay hints
@@ -300,15 +301,14 @@ export class InlayHintsProvider {
     private addParameterHints(node: ASTNode, hints: InlayHint[]): void {
         if (!node.key) return;
 
-        const effects = CK3Language.getEffects();
-        const triggers = CK3Language.getTriggers();
+        const dataLoader = getDataLoader();
+        const effect = dataLoader.getEffects().get(node.key);
+        const trigger = dataLoader.getTriggers().get(node.key);
 
-        const effect = effects[node.key];
-        const trigger = triggers[node.key];
+        const paramRecord = effect?.parameters || trigger?.parameters;
+        if (paramRecord) {
+            const params = Object.keys(paramRecord);
 
-        if (effect?.parameters || trigger?.parameters) {
-            const params = effect?.parameters || trigger?.parameters || [];
-            
             // Add parameter name hints for block parameters
             if (node.children && params.length > 0) {
                 let paramIndex = 0;
@@ -321,9 +321,9 @@ export class InlayHintsProvider {
                                 label: `${params[paramIndex]}:`,
                                 kind: InlayHintKind.Parameter,
                                 paddingRight: true,
-                                data: { 
-                                    type: 'parameter', 
-                                    detail: `Parameter: ${params[paramIndex]}` 
+                                data: {
+                                    type: 'parameter',
+                                    detail: paramRecord[params[paramIndex]] || `Parameter: ${params[paramIndex]}`
                                 }
                             };
                             hints.push(hint);
@@ -435,175 +435,32 @@ export class InlayHintsProvider {
      * Infer scope type from accessor with context
      */
     private inferScopeType(accessor: string, fromScope?: string | null): string | null {
-        // Character scope accessors
-        const characterAccessors: Record<string, string> = {
-            'primary_title': 'title',
-            'capital_county': 'title',
-            'capital_province': 'province',
-            'top_liege': 'character',
-            'liege': 'character',
-            'father': 'character',
-            'mother': 'character',
-            'real_father': 'character',
-            'spouse': 'character',
-            'primary_spouse': 'character',
-            'primary_heir': 'character',
-            'player_heir': 'character',
-            'faith': 'faith',
-            'culture': 'culture',
-            'house': 'dynasty_house',
-            'dynasty': 'dynasty',
-            'location': 'province',
-            'court_owner': 'character',
-            'employer': 'character',
-            'host': 'character',
-            'guardian': 'character',
-            'councillor_liege': 'character',
-            'commanding_army': 'army',
-        };
-
-        // Title scope accessors
-        const titleAccessors: Record<string, string> = {
-            'holder': 'character',
-            'de_jure_liege': 'title',
-            'de_facto_liege': 'title',
-            'empire': 'title',
-            'kingdom': 'title',
-            'duchy': 'title',
-            'county': 'title',
-            'barony': 'title',
-            'capital_province': 'province',
-            'title_province': 'province',
-        };
-
-        // Province scope accessors
-        const provinceAccessors: Record<string, string> = {
-            'county': 'title',
-            'duchy': 'title',
-            'kingdom': 'title',
-            'empire': 'title',
-            'barony': 'title',
-            'holder': 'character',
-        };
-
-        // Faith scope accessors
-        const faithAccessors: Record<string, string> = {
-            'religious_head': 'character',
-            'religion': 'religion',
-        };
-
-        // Dynasty scope accessors
-        const dynastyAccessors: Record<string, string> = {
-            'dynast': 'character',
-            'house': 'dynasty_house',
-        };
-
-        // Select appropriate map based on source scope
-        let accessorMap: Record<string, string> | null = null;
-        
-        if (!fromScope || fromScope === 'character') {
-            accessorMap = characterAccessors;
-        } else if (fromScope === 'title') {
-            accessorMap = titleAccessors;
-        } else if (fromScope === 'province') {
-            accessorMap = provinceAccessors;
-        } else if (fromScope === 'faith') {
-            accessorMap = faithAccessors;
-        } else if (fromScope === 'dynasty' || fromScope === 'dynasty_house') {
-            accessorMap = dynastyAccessors;
-        }
-
-        if (accessorMap && accessorMap[accessor]) {
-            return accessorMap[accessor];
-        }
-
-        // Fallback: try character accessors (most common)
-        return characterAccessors[accessor] || null;
+        // Use data-driven scope system instead of hardcoded maps
+        const scopeType = fromScope || 'character';
+        return getTargetScopeType(scopeType, accessor);
     }
 
     /**
      * Infer scope type from iterator
      */
     private inferIteratorType(iterator: string): string | null {
-        // Character iterators
-        if (iterator.includes('_vassal')) return 'character';
-        if (iterator.includes('_courtier')) return 'character';
-        if (iterator.includes('_prisoner')) return 'character';
-        if (iterator.includes('_ally')) return 'character';
-        if (iterator.includes('_enemy')) return 'character';
-        if (iterator.includes('_truce_holder')) return 'character';
-        if (iterator.includes('_truce_target')) return 'character';
-        if (iterator.includes('_child')) return 'character';
-        if (iterator.includes('_sibling')) return 'character';
-        if (iterator.includes('_spouse')) return 'character';
-        if (iterator.includes('_relation')) return 'character';
-        if (iterator.includes('_councillor')) return 'character';
-        if (iterator.includes('_knight')) return 'character';
-        if (iterator.includes('_heir')) return 'character';
-        if (iterator.includes('_claimant')) return 'character';
-        if (iterator.includes('_pretender')) return 'character';
-        if (iterator.includes('_pool_')) return 'character';
-        if (iterator.includes('_dynasty_member')) return 'character';
-        if (iterator.includes('_house_member')) return 'character';
-        if (iterator.includes('_ruler')) return 'character';
-        if (iterator.includes('_player')) return 'character';
-        if (iterator.includes('_living_character')) return 'character';
-        if (iterator.includes('_known_character')) return 'character';
-        if (iterator.includes('_diplomatic_character')) return 'character';
-        
-        // Title iterators
-        if (iterator.includes('_held_title')) return 'title';
-        if (iterator.includes('_claim')) return 'title';
-        if (iterator.includes('_realm_county')) return 'title';
-        if (iterator.includes('_realm_province')) return 'province';
-        if (iterator.includes('_county')) return 'title';
-        if (iterator.includes('_de_jure_')) return 'title';
-        if (iterator.includes('_title')) return 'title';
-        if (iterator.includes('_barony')) return 'title';
-        if (iterator.includes('_duchy')) return 'title';
-        if (iterator.includes('_kingdom')) return 'title';
-        if (iterator.includes('_empire')) return 'title';
-        if (iterator.includes('_in_de_jure_')) return 'title';
-        
-        // Province iterators
-        if (iterator.includes('_province')) return 'province';
-        if (iterator.includes('_neighboring_province')) return 'province';
-        
-        // War iterators
-        if (iterator.includes('_war')) return 'war';
-        if (iterator.includes('_war_ally')) return 'character';
-        if (iterator.includes('_war_enemy')) return 'character';
-        
-        // Combat iterators
-        if (iterator.includes('_army')) return 'army';
-        if (iterator.includes('_character_war')) return 'war';
-        
-        // Religion/Culture iterators
-        if (iterator.includes('_faith')) return 'faith';
-        if (iterator.includes('_religion')) return 'religion';
-        if (iterator.includes('_culture')) return 'culture';
-        if (iterator.includes('_culture_pillar')) return 'culture_pillar';
-        
-        // Dynasty iterators
-        if (iterator.includes('_dynasty')) return 'dynasty';
-        if (iterator.includes('_house')) return 'dynasty_house';
-        
-        // Scheme iterators
-        if (iterator.includes('_scheme')) return 'scheme';
-        if (iterator.includes('_secret')) return 'secret';
-        
-        // Activity iterators
-        if (iterator.includes('_activity')) return 'activity';
-        if (iterator.includes('_participant')) return 'character';
-        
-        // Story cycle iterators
-        if (iterator.includes('_story')) return 'story_cycle';
-        
-        // Artifact iterators
-        if (iterator.includes('_artifact')) return 'artifact';
-        
-        // Memory iterators
-        if (iterator.includes('_memory')) return 'memory';
+        // Use data-driven scope system instead of hardcoded heuristics
+        // Try resolving from character scope (most common starting point)
+        const result = getListResultScope(iterator, 'character');
+        if (result && result !== 'character') return result;
+
+        // Try from other common scope types
+        for (const scopeType of ['title', 'province', 'faith', 'culture', 'dynasty']) {
+            const r = getListResultScope(iterator, scopeType);
+            if (r && r !== scopeType) return r;
+        }
+
+        // Fallback: use the parsed list base for heuristic matching
+        const parsed = parseListIterator(iterator);
+        if (parsed) {
+            const result2 = getListResultScope(iterator, 'character');
+            if (result2) return result2;
+        }
 
         return null;
     }

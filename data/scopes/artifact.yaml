@@ -1,0 +1,25 @@
+# Artifact scope definition for CK3
+
+artifact:
+  description: "An artifact item"
+
+  links:
+    owner: character
+    creator: character
+    previous_owner: character
+
+  lists: {}
+
+  triggers:
+    - is_equipped
+    - artifact_type
+    - artifact_rarity
+    - durability
+    - exists
+
+  effects:
+    - set_owner
+    - equip_artifact_to_owner
+    - destroy_artifact
+    - repair_artifact
+    - save_scope_as

@@ -1,0 +1,24 @@
+# Scheme scope definition for CK3
+
+scheme:
+  description: "An active scheme (murder, seduce, etc.)"
+
+  links:
+    scheme_owner: character
+    scheme_target: character
+
+  lists:
+    scheme_agent: character
+
+  triggers:
+    - scheme_type
+    - scheme_power
+    - scheme_resistance
+    - scheme_progress
+    - is_scheme_exposed
+    - exists
+
+  effects:
+    - end_scheme
+    - expose_scheme
+    - save_scope_as

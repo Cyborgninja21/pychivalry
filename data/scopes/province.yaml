@@ -1,0 +1,34 @@
+# Province scope definition for CK3
+# Represents individual provinces (holdings/baronies)
+
+province:
+  description: "A map province (holding location)"
+
+  links:
+    county: title
+    barony: title
+    holder: character
+    faith: faith
+    culture: culture
+
+  lists:
+    county_province: province
+    neighboring_province: province
+
+  triggers:
+    - terrain
+    - has_holding
+    - has_building
+    - has_building_type
+    - holding_type
+    - has_province_modifier
+    - is_coastal
+    - is_sea_province
+
+  effects:
+    - add_province_modifier
+    - remove_province_modifier
+    - set_holding_type
+    - add_building
+    - remove_building
+    - save_scope_as

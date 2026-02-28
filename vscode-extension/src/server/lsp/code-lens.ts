@@ -19,6 +19,8 @@ import {
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { CK3Parser, ASTNode, NodeType } from '../core/parser';
 import { DocumentIndexer, SymbolType } from '../core/indexer';
+import { EnhancedIndexer } from '../core/indexer-enhanced';
+import { LocalizationIndex } from '../core/localization-index';
 
 /**
  * Code lens configuration
@@ -115,10 +117,13 @@ export class CodeLensProvider {
     private namespaceCache: Map<string, NamespaceStats> = new Map();
     private cacheTimestamp: number = 0;
     private readonly cacheTTL = 5000; // 5 seconds
+    private static readonly MAX_REFERENCE_CACHE = 1000;
+    private static readonly MAX_NAMESPACE_CACHE = 1000;
 
     constructor(
         private parser: CK3Parser,
-        private indexer: DocumentIndexer
+        private indexer: DocumentIndexer,
+        private localizationIndex?: LocalizationIndex
     ) {
         // Initialize lens generators
         this.generators = [
@@ -175,8 +180,17 @@ export class CodeLensProvider {
      * Resolve code lens (compute expensive data on demand)
      */
     public async resolveCodeLens(lens: CodeLens): Promise<CodeLens> {
-        // Most lenses are resolved immediately, but this allows for
-        // deferred computation of expensive operations
+        // If the lens has a data payload with a symbol name, refresh its reference count
+        if (lens.data && typeof lens.data === 'object' && lens.data.symbolName) {
+            const symbolName = lens.data.symbolName;
+            const symbols = this.indexer.findSymbolsByName(symbolName);
+            const refCount = Math.max(0, symbols.length - 1);
+            lens.command = Command.create(
+                `${refCount} reference${refCount !== 1 ? 's' : ''}`,
+                lens.command?.command || 'ck3.showReferences',
+                ...(lens.command?.arguments || [])
+            );
+        }
         return lens;
     }
 
@@ -239,7 +253,11 @@ export class CodeLensProvider {
             isUnused: locations.length <= 1,
         };
 
-        // Cache result
+        // Cache result (with size cap)
+        if (context.referenceCache.size >= CodeLensProvider.MAX_REFERENCE_CACHE) {
+            const firstKey = context.referenceCache.keys().next().value;
+            if (firstKey !== undefined) context.referenceCache.delete(firstKey);
+        }
         context.referenceCache.set(symbolName, info);
         return info;
     }
@@ -348,47 +366,6 @@ export class CodeLensProvider {
     }
 
     /**
-     * Analyze event chain
-     */
-    private analyzeEventChain(eventId: string): EventChain {
-        const targets: string[] = [];
-        const callers: string[] = [];
-        const hasCircularRef = false;
-
-        // TODO: Implement event chain analysis
-        // Find all event symbols
-        // Find targets (events this event triggers)
-        // Find callers (events that trigger this event)
-        // Check for circular references
-
-        return { source: eventId, targets, callers, hasCircularRef };
-    }
-
-    /**
-     * Detect circular reference in event chain
-     */
-    private detectCircularReference(
-        eventId: string,
-        targets: string[],
-        visited: Set<string>
-    ): boolean {
-        if (visited.has(eventId)) {
-            return true;
-        }
-
-        visited.add(eventId);
-
-        for (const target of targets) {
-            // Recursively check targets (simplified)
-            if (target === eventId || visited.has(target)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
      * Get namespace statistics
      */
     private getNamespaceStats(namespace: string, context: LensContext): NamespaceStats {
@@ -403,9 +380,19 @@ export class CodeLensProvider {
         const decisions = context.indexer.findSymbolsByType(SymbolType.DECISION)
             .filter(s => s.name.startsWith(namespace + '_'));
 
-        // Calculate localization coverage (simplified)
-        const locKeys = events.length * 3; // Approximate: title, desc, tooltip per event
-        const locFound = locKeys; // Would check actual localization files
+        // Localization coverage — check actual keys via LocalizationIndex
+        const locSuffixes = ['.t', '.desc', '.tooltip']; // CK3 loc key suffixes
+        const locKeys = events.length * locSuffixes.length;
+        let locFound = 0;
+        if (this.localizationIndex) {
+            for (const ev of events) {
+                for (const suffix of locSuffixes) {
+                    if (this.localizationIndex.hasKey(ev.name + suffix)) {
+                        locFound++;
+                    }
+                }
+            }
+        }
 
         const stats: NamespaceStats = {
             name: namespace,
@@ -416,7 +403,11 @@ export class CodeLensProvider {
             fileCount: new Set(events.map(e => e.uri)).size,
         };
 
-        // Cache result
+        // Cache result (with size cap)
+        if (context.namespaceCache.size >= CodeLensProvider.MAX_NAMESPACE_CACHE) {
+            const firstKey = context.namespaceCache.keys().next().value;
+            if (firstKey !== undefined) context.namespaceCache.delete(firstKey);
+        }
         context.namespaceCache.set(namespace, stats);
         return stats;
     }
@@ -450,6 +441,7 @@ class EventLensGenerator implements LensGenerator {
                     context.document.uri,
                     node.range.start
                 ),
+                data: { symbolName: eventId },
             });
         }
 
@@ -467,7 +459,7 @@ class EventLensGenerator implements LensGenerator {
 
         // Event chain lens
         if (context.config.showEventChains) {
-            const chain = this.analyzeEventChain(eventId);
+            const chain = this.analyzeEventChain(eventId, context);
             if (chain.targets.length > 0) {
                 lenses.push({
                     range: node.range,
@@ -577,13 +569,46 @@ class EventLensGenerator implements LensGenerator {
         }, 0);
     }
 
-    private analyzeEventChain(eventId: string): EventChain {
-        return {
-            source: eventId,
-            targets: [],
-            callers: [],
-            hasCircularRef: false,
-        };
+    private analyzeEventChain(eventId: string, context: LensContext): EventChain {
+        const targets: string[] = [];
+        const callers: string[] = [];
+        let hasCircularRef = false;
+
+        // Use EnhancedIndexer if available for event chain data
+        const indexer = context.indexer;
+        if (indexer instanceof EnhancedIndexer) {
+            // Get events triggered by this event
+            const triggered = indexer.getEventChain(eventId);
+            targets.push(...triggered);
+
+            // Check if any of the triggered events chain back to this one (circular)
+            const visited = new Set<string>([eventId]);
+            const queue = [...triggered];
+            while (queue.length > 0) {
+                const next = queue.shift()!;
+                if (next === eventId) {
+                    hasCircularRef = true;
+                    break;
+                }
+                if (visited.has(next)) continue;
+                visited.add(next);
+                const nextTargets = indexer.getEventChain(next);
+                queue.push(...nextTargets);
+            }
+
+            // Find callers: events that trigger this event
+            // Search all event symbols for chains that include this eventId
+            const allEvents = indexer.findSymbolsByType(SymbolType.EVENT);
+            for (const eventSymbol of allEvents) {
+                if (eventSymbol.name === eventId) continue;
+                const chain = indexer.getEventChain(eventSymbol.name);
+                if (chain.includes(eventId)) {
+                    callers.push(eventSymbol.name);
+                }
+            }
+        }
+
+        return { source: eventId, targets, callers, hasCircularRef };
     }
 }
 
@@ -591,10 +616,11 @@ class EventLensGenerator implements LensGenerator {
  * Decision lens generator
  */
 class DecisionLensGenerator implements LensGenerator {
-    canApply(node: ASTNode): boolean {
-        // Match decision definitions
-        return !!(node.key && node.type === NodeType.ASSIGNMENT && 
-                 this.isDecisionContext());
+    canApply(node: ASTNode, context: LensContext): boolean {
+        // Match decision definitions: named blocks in decision files
+        if (!node.key || node.type !== NodeType.ASSIGNMENT || !node.children) return false;
+        if (node.key.includes('.') || /^\d+$/.test(node.key)) return false;
+        return this.isDecisionContext(context);
     }
 
     generate(node: ASTNode, context: LensContext): CodeLens[] {
@@ -611,6 +637,7 @@ class DecisionLensGenerator implements LensGenerator {
                     context.document.uri,
                     node.range.start
                 ),
+                data: { symbolName: decisionId },
             });
         }
 
@@ -629,9 +656,10 @@ class DecisionLensGenerator implements LensGenerator {
         return lenses;
     }
 
-    private isDecisionContext(): boolean {
-        // Simplified check - would need parent context
-        return true;
+    private isDecisionContext(context: LensContext): boolean {
+        // Check if the document is in a decisions directory
+        const uri = context.document.uri.toLowerCase();
+        return uri.includes('decision');
     }
 
     private findReferences(symbolName: string, context: LensContext): ReferenceInfo {
@@ -666,30 +694,72 @@ class DecisionLensGenerator implements LensGenerator {
 }
 
 /**
- * Scripted effect lens generator
+ * Scripted effect lens generator - only applies in scripted_effects files/contexts
  */
 class ScriptedEffectLensGenerator implements LensGenerator {
-    canApply(): boolean {
-        // Would check if in scripted_effects context
-        return false; // Simplified
+    canApply(node: ASTNode, context: LensContext): boolean {
+        if (!node.key || node.type !== NodeType.ASSIGNMENT || !node.children) return false;
+        if (node.key.includes('.') || /^\d+$/.test(node.key)) return false;
+        // Only match if the document URI suggests scripted_effects context
+        const uri = context.document.uri.toLowerCase();
+        return uri.includes('scripted_effect');
     }
 
-    generate(): CodeLens[] {
-        return [];
+    generate(node: ASTNode, context: LensContext): CodeLens[] {
+        const lenses: CodeLens[] = [];
+        const effectName = node.key!;
+
+        if (context.config.showReferenceCounts) {
+            const symbols = context.indexer.findSymbolsByName(effectName);
+            const refCount = Math.max(0, symbols.length - 1);
+            lenses.push({
+                range: node.range,
+                command: Command.create(
+                    `scripted_effect: ${refCount} reference${refCount !== 1 ? 's' : ''}`,
+                    'ck3.showReferences',
+                    context.document.uri,
+                    node.range.start
+                ),
+                data: { symbolName: effectName },
+            });
+        }
+
+        return lenses;
     }
 }
 
 /**
- * Scripted trigger lens generator
+ * Scripted trigger lens generator - only applies in scripted_triggers files/contexts
  */
 class ScriptedTriggerLensGenerator implements LensGenerator {
-    canApply(): boolean {
-        // Would check if in scripted_triggers context
-        return false; // Simplified
+    canApply(node: ASTNode, context: LensContext): boolean {
+        if (!node.key || node.type !== NodeType.ASSIGNMENT || !node.children) return false;
+        if (node.key.includes('.') || /^\d+$/.test(node.key)) return false;
+        // Only match if the document URI suggests scripted_triggers context
+        const uri = context.document.uri.toLowerCase();
+        return uri.includes('scripted_trigger');
     }
 
-    generate(): CodeLens[] {
-        return [];
+    generate(node: ASTNode, context: LensContext): CodeLens[] {
+        const lenses: CodeLens[] = [];
+        const triggerName = node.key!;
+
+        if (context.config.showReferenceCounts) {
+            const symbols = context.indexer.findSymbolsByName(triggerName);
+            const refCount = Math.max(0, symbols.length - 1);
+            lenses.push({
+                range: node.range,
+                command: Command.create(
+                    `scripted_trigger: ${refCount} reference${refCount !== 1 ? 's' : ''}`,
+                    'ck3.showReferences',
+                    context.document.uri,
+                    node.range.start
+                ),
+                data: { symbolName: triggerName },
+            });
+        }
+
+        return lenses;
     }
 }
 
@@ -721,13 +791,41 @@ class ComplexityLensGenerator implements LensGenerator {
  * Namespace lens generator
  */
 class NamespaceLensGenerator implements LensGenerator {
-    canApply(): boolean {
-        // Check if this is a namespace declaration
-        return false; // Simplified
+    canApply(node: ASTNode, context: LensContext): boolean {
+        if (!context.config.showNamespaceStats) {
+            return false;
+        }
+        // Match namespace declarations: namespace = my_namespace
+        return !!(node.key === 'namespace' && node.type === NodeType.ASSIGNMENT && node.value);
     }
 
-    generate(): CodeLens[] {
-        return [];
+    generate(node: ASTNode, context: LensContext): CodeLens[] {
+        const lenses: CodeLens[] = [];
+        const namespace = String(node.value);
+
+        // Count events in this namespace via the indexer
+        const symbols = context.indexer.findSymbolsByName(namespace);
+        const eventPattern = new RegExp(`^${namespace}\\.\\d+$`);
+
+        // Count events matching namespace.NNN pattern
+        let eventCount = 0;
+        const allSymbols = context.indexer.getDocumentSymbols(context.document.uri);
+        for (const sym of allSymbols) {
+            if (eventPattern.test(sym.name)) {
+                eventCount++;
+            }
+        }
+
+        lenses.push({
+            range: node.range,
+            command: Command.create(
+                `namespace "${namespace}" - ${eventCount} event${eventCount !== 1 ? 's' : ''} in file`,
+                'ck3.showNamespaceEvents',
+                namespace
+            ),
+        });
+
+        return lenses;
     }
 }
 
@@ -735,12 +833,30 @@ class NamespaceLensGenerator implements LensGenerator {
  * Localization lens generator
  */
 class LocalizationLensGenerator implements LensGenerator {
-    canApply(): boolean {
-        // Check if node references localization keys
-        return false; // Simplified
+    private static readonly LOC_FIELDS = new Set(['title', 'desc', 'name', 'custom_tooltip', 'selection_tooltip']);
+
+    canApply(node: ASTNode, context: LensContext): boolean {
+        if (!context.config.showLocalization) {
+            return false;
+        }
+        // Match fields that reference localization keys
+        return !!(node.key && LocalizationLensGenerator.LOC_FIELDS.has(node.key) &&
+                 node.type === NodeType.ASSIGNMENT && node.value && typeof node.value === 'string');
     }
 
-    generate(): CodeLens[] {
-        return [];
+    generate(node: ASTNode, context: LensContext): CodeLens[] {
+        const lenses: CodeLens[] = [];
+        const locKey = String(node.value);
+
+        lenses.push({
+            range: node.range,
+            command: Command.create(
+                `loc: "${locKey}"`,
+                'ck3.findLocalization',
+                locKey
+            ),
+        });
+
+        return lenses;
     }
 }

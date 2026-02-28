@@ -1,0 +1,535 @@
+# CK3 Personality Traits
+# Auto-generated from CK3 game files
+# Total traits: 36
+
+ambitious:
+  category: personality
+  opposites:
+  - content
+  description: Ambitious
+  skills:
+    diplomacy: 1
+    martial: 1
+    stewardship: 1
+    intrigue: 1
+    learning: 1
+    prowess: 1
+  opinions:
+    same_opinion: -15
+    glory_hound_opinion: 10
+  ruler_designer_cost: 40
+  stress:
+    stress_gain_mult: 0.25
+  modifiers:
+    advantage: 2
+arbitrary:
+  category: personality
+  opposites:
+  - just
+  description: Arbitrary
+  skills:
+    stewardship: -2
+    intrigue: 3
+    learning: -1
+  opinions:
+    vassal_opinion: -5
+  ruler_designer_cost: 30
+  flags:
+  - can_dismiss_hooks_interaction
+  - trait_unlocks_t2_arbitrary_arrests
+  stress:
+    stress_gain_mult: -0.5
+  modifiers:
+    dread_baseline_add: 15
+arrogant:
+  category: personality
+  opposites:
+  - humble
+  description: Arrogant
+  opinions:
+    opposite_opinion: -15
+  ruler_designer_cost: 20
+  modifiers:
+    advantage: 2
+    monthly_prestige: 1
+brave:
+  category: personality
+  opposites:
+  - craven
+  description: Brave
+  skills:
+    martial: 2
+    prowess: 3
+  opinions:
+    attraction_opinion: 10
+    same_opinion: 10
+    opposite_opinion: -10
+    glory_hound_opinion: 10
+  ruler_designer_cost: 40
+  flags:
+  - higher_chance_of_dying_in_battle
+  modifiers:
+    advantage: 4
+    monthly_prestige_gain_mult: 0.05
+callous:
+  category: personality
+  opposites:
+  - compassionate
+  - sadistic
+  description: Callous
+  skills:
+    diplomacy: -2
+    intrigue: 2
+  opinions:
+    attraction_opinion: -5
+  ruler_designer_cost: 40
+  modifiers:
+    tyranny_gain_mult: -0.2
+    dread_decay_mult: -0.25
+calm:
+  category: personality
+  opposites:
+  - wrathful
+  description: Calm
+  skills:
+    diplomacy: 1
+    intrigue: 1
+  opinions:
+    same_opinion: 10
+    opposite_opinion: -10
+  ruler_designer_cost: 25
+  stress:
+    stress_loss_mult: 0.1
+  modifiers:
+    advantage: 3
+    dread_decay_mult: 0.5
+chaste:
+  category: personality
+  opposites:
+  - lustful
+  description: Chaste
+  skills:
+    learning: 2
+  opinions:
+    same_opinion: 10
+    opposite_opinion: -10
+  ruler_designer_cost: 20
+  health_modifiers:
+    fertility: -0.25
+  modifiers:
+    monthly_piety_gain_mult: 0.1
+compassionate:
+  category: personality
+  opposites:
+  - callous
+  - sadistic
+  description: Compassionate
+  skills:
+    diplomacy: 2
+    intrigue: -2
+  opinions:
+    attraction_opinion: 5
+    opposite_opinion: -15
+  ruler_designer_cost: 10
+  stress:
+    stress_loss_mult: 0.15
+  modifiers:
+    dread_baseline_add: -15
+    dread_decay_mult: 1
+content:
+  category: personality
+  opposites:
+  - ambitious
+  description: Content
+  skills:
+    intrigue: -1
+    learning: 2
+  opinions:
+    same_opinion: 20
+  ruler_designer_cost: 20
+  stress:
+    stress_loss_mult: 0.1
+  modifiers:
+    advantage: 2
+    monthly_piety_gain_mult: 0.1
+craven:
+  category: personality
+  opposites:
+  - brave
+  description: Craven
+  skills:
+    martial: -2
+    intrigue: 2
+    prowess: -3
+  opinions:
+    attraction_opinion: -10
+    same_opinion: 20
+    glory_hound_opinion: -15
+  ruler_designer_cost: -10
+  flags:
+  - lower_chance_of_dying_in_combat
+  modifiers:
+    monthly_prestige: -0.5
+cynical:
+  category: personality
+  opposites:
+  - zealous
+  description: Cynical
+  skills:
+    intrigue: 2
+    learning: 2
+  opinions:
+    same_opinion: 10
+    opposite_opinion: -10
+  ruler_designer_cost: 30
+  modifiers:
+    monthly_piety_gain_mult: -0.2
+deceitful:
+  category: personality
+  opposites:
+  - honest
+  description: Deceitful
+  skills:
+    diplomacy: -2
+    intrigue: 4
+  opinions:
+    opposite_opinion: -10
+  ruler_designer_cost: 30
+  flags:
+  - can_improve_hostile_schemes_decision
+  modifiers:
+    advantage: 2
+diligent:
+  category: personality
+  opposites:
+  - lazy
+  description: Diligent
+  skills:
+    diplomacy: 2
+    stewardship: 3
+    learning: 3
+  opinions:
+    same_opinion: 10
+    opposite_opinion: -10
+  ruler_designer_cost: 40
+  flags:
+  - can_improve_capital_decision
+  stress:
+    stress_loss_mult: -0.5
+  modifiers:
+    monthly_prestige_gain_mult: 0.05
+eccentric:
+  category: personality
+  opposites:
+  - fickle
+  - stubborn
+  description: Eccentric
+  skills:
+    diplomacy: -2
+    learning: 2
+  opinions:
+    same_opinion: 10
+  ruler_designer_cost: 15
+  flags:
+  - trait_unlocks_t2_withdraw_from_view
+  stress:
+    stress_gain_mult: 0.5
+    stress_loss_mult: 0.5
+fickle:
+  category: personality
+  opposites:
+  - stubborn
+  - eccentric
+  description: Fickle
+  skills:
+    diplomacy: 2
+    stewardship: -2
+    intrigue: 1
+  ruler_designer_cost: 25
+forgiving:
+  category: personality
+  opposites:
+  - vengeful
+  description: Forgiving
+  skills:
+    diplomacy: 2
+    intrigue: -2
+    learning: 1
+  opinions:
+    same_opinion: 10
+    opposite_opinion: -10
+  ruler_designer_cost: 25
+  flags:
+  - can_abandon_hooks_interaction
+generous:
+  category: personality
+  opposites:
+  - greedy
+  description: Generous
+  skills:
+    diplomacy: 3
+  opinions:
+    opposite_opinion: -15
+  ruler_designer_cost: 20
+gluttonous:
+  category: personality
+  opposites:
+  - temperate
+  description: Gluttonous
+  skills:
+    stewardship: -2
+  opinions:
+    attraction_opinion: -5
+    same_opinion: 10
+    opposite_opinion: -10
+  ruler_designer_cost: 20
+  stress:
+    stress_loss_mult: 0.1
+greedy:
+  category: personality
+  opposites:
+  - generous
+  description: Greedy
+  skills:
+    diplomacy: -2
+  ruler_designer_cost: 30
+gregarious:
+  category: personality
+  opposites:
+  - shy
+  description: Gregarious
+  skills:
+    diplomacy: 2
+  opinions:
+    attraction_opinion: 5
+    same_opinion: 10
+  lifestyle_xp_gains:
+    diplomacy: 0.1
+  ruler_designer_cost: 30
+honest:
+  category: personality
+  opposites:
+  - deceitful
+  description: Honest
+  skills:
+    diplomacy: 2
+    intrigue: -4
+  opinions:
+    same_opinion: 10
+    opposite_opinion: -10
+  ruler_designer_cost: 20
+humble:
+  category: personality
+  opposites:
+  - arrogant
+  description: Humble
+  opinions:
+    opposite_opinion: -15
+  ruler_designer_cost: 20
+  modifiers:
+    monthly_prestige_gain_mult: 0.05
+    monthly_piety: 0.5
+    monthly_piety_gain_mult: 0.1
+impatient:
+  category: personality
+  opposites:
+  - patient
+  description: Impatient
+  skills:
+    learning: -2
+  opinions:
+    opposite_opinion: -15
+  ruler_designer_cost: 25
+  flags:
+  - can_accelerate_schemes_decision
+  modifiers:
+    monthly_prestige_gain_mult: 0.2
+just:
+  category: personality
+  opposites:
+  - arbitrary
+  level: 1
+  description: Just
+  skills:
+    stewardship: 2
+    intrigue: -3
+    learning: 1
+  opinions:
+    same_opinion: 10
+    opposite_opinion: -10
+  ruler_designer_cost: 40
+  flags:
+  - initial_legitimacy_boost
+  modifiers:
+    monthly_prestige_gain_mult: 0.05
+lazy:
+  category: personality
+  opposites:
+  - diligent
+  description: Lazy
+  skills:
+    diplomacy: -1
+    martial: -1
+    stewardship: -1
+    intrigue: -1
+    learning: -1
+  ruler_designer_cost: -10
+  stress:
+    stress_loss_mult: 0.5
+lustful:
+  category: personality
+  opposites:
+  - chaste
+  description: Lustful
+  skills:
+    intrigue: 2
+  opinions:
+    same_opinion: 10
+    opposite_opinion: -10
+  ruler_designer_cost: 25
+  health_modifiers:
+    fertility: 0.25
+paranoid:
+  category: personality
+  opposites:
+  - trusting
+  description: Paranoid
+  skills:
+    diplomacy: -1
+    intrigue: 3
+  ruler_designer_cost: -10
+  flags:
+  - trait_unlocks_t2_countermeasures
+  stress:
+    stress_gain_mult: 1.0
+patient:
+  category: personality
+  opposites:
+  - impatient
+  description: Patient
+  skills:
+    learning: 2
+  opinions:
+    opposite_opinion: -15
+    liege_opinion: 5
+  ruler_designer_cost: 30
+  stress:
+    stress_loss_mult: 0.15
+  modifiers:
+    advantage: 3
+sadistic:
+  category: personality
+  opposites:
+  - compassionate
+  - callous
+  description: Sadistic
+  skills:
+    intrigue: 2
+    prowess: 4
+  opinions:
+    general_opinion: -10
+  ruler_designer_cost: 40
+  flags:
+  - can_murder_own_children
+  modifiers:
+    dread_baseline_add: 35
+shy:
+  category: personality
+  opposites:
+  - gregarious
+  description: Shy
+  skills:
+    diplomacy: -2
+    learning: 1
+  opinions:
+    attraction_opinion: -5
+    same_opinion: 10
+  ruler_designer_cost: -10
+  flags:
+  - trait_unlocks_t4_withdraw_from_view
+  modifiers:
+    monthly_piety_gain_mult: 0.1
+stubborn:
+  category: personality
+  opposites:
+  - fickle
+  - eccentric
+  description: Stubborn
+  skills:
+    stewardship: 3
+  opinions:
+    liege_opinion: -5
+  ruler_designer_cost: 30
+temperate:
+  category: personality
+  opposites:
+  - gluttonous
+  description: Temperate
+  skills:
+    stewardship: 2
+  opinions:
+    same_opinion: 10
+    opposite_opinion: -10
+  ruler_designer_cost: 40
+  health_modifiers:
+    health: 0.25
+  stress:
+    stress_loss_mult: 0.15
+  modifiers:
+    monthly_piety: 0.5
+    monthly_piety_gain_mult: 0.1
+trusting:
+  category: personality
+  opposites:
+  - paranoid
+  description: Trusting
+  skills:
+    diplomacy: 2
+    intrigue: -2
+  ruler_designer_cost: 10
+  flags:
+  - can_offer_strong_hook_to_agents
+vengeful:
+  category: personality
+  opposites:
+  - forgiving
+  description: Vengeful
+  skills:
+    diplomacy: -2
+    intrigue: 2
+    prowess: 2
+  ruler_designer_cost: 30
+  flags:
+  - extra_scheme_success_chance_vs_rivals
+  - can_fabricate_hooks_on_rivals
+  modifiers:
+    advantage: 3
+wrathful:
+  category: personality
+  opposites:
+  - calm
+  description: Wrathful
+  skills:
+    diplomacy: -1
+    martial: 3
+    intrigue: -1
+  opinions:
+    glory_hound_opinion: 5
+  ruler_designer_cost: 30
+  flags:
+  - can_duel_criminals_interaction
+  modifiers:
+    dread_baseline_add: 20
+zealous:
+  category: personality
+  opposites:
+  - cynical
+  description: Zealous
+  skills:
+    martial: 2
+  opinions:
+    opposite_opinion: -10
+  ruler_designer_cost: 30
+  modifiers:
+    advantage: 2
+    monthly_piety_gain_mult: 0.2

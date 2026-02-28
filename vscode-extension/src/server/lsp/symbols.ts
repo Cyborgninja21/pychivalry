@@ -414,6 +414,10 @@ export class DocumentSymbolProvider {
             [SymbolType.STORY_CYCLE]: SymbolKind.Namespace,
             [SymbolType.ACTIVITY]: SymbolKind.Class,
             [SymbolType.SCHEME]: SymbolKind.Class,
+            [SymbolType.CHARACTER_FLAG]: SymbolKind.Boolean,
+            [SymbolType.OPINION_MODIFIER]: SymbolKind.Field,
+            [SymbolType.SCRIPTED_GUI]: SymbolKind.Object,
+            [SymbolType.DECISION_GROUP_TYPE]: SymbolKind.Enum,
             [SymbolType.GENERIC]: SymbolKind.Object,
         };
 

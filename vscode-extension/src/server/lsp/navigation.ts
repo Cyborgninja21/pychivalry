@@ -8,6 +8,7 @@ import { TextDocument } from 'vscode-languageserver-textdocument';
 import { CK3Parser, ASTNode, NodeType } from '../core/parser';
 import { DocumentIndexer, Symbol, SymbolType } from '../core/indexer';
 import { CK3Language } from '../ck3/language';
+import { LocalizationIndex } from '../core/localization-index';
 
 interface TokenInfo {
     text: string;
@@ -25,6 +26,14 @@ enum NavigationContext {
     SCOPE_NAME,
     LOCALIZATION_KEY,
     SCRIPTED_BLOCK,
+    CHARACTER_FLAG,
+    CHARACTER_INTERACTION,
+    MODIFIER,
+    ON_ACTION,
+    OPINION_MODIFIER,
+    SCRIPTED_GUI,
+    DECISION_GROUP_TYPE,
+    TRAIT,
     UNKNOWN
 }
 
@@ -34,8 +43,9 @@ enum NavigationContext {
 export class DefinitionProvider {
     constructor(
         private ck3Parser: CK3Parser,
-        private symbolIndexer: DocumentIndexer
-    ) {}
+        private symbolIndexer: DocumentIndexer,
+        private localizationIndex?: LocalizationIndex
+    ) { }
 
     /**
      * Navigate to definition (supports LocationLink for preview)
@@ -48,14 +58,14 @@ export class DefinitionProvider {
         if (!tokenInfo) return null;
 
         const targetLocations = await this.resolveDefinitionTargets(tokenInfo, doc.uri);
-        
+
         if (targetLocations.length === 0) return null;
-        
+
         // Return as LocationLink for better UX with preview
-        return targetLocations.map(target => 
+        return targetLocations.map(target =>
             LocationLink.create(target.uri, target.range, target.range, {
-                start: { line: pos.line, character: tokenInfo.startOffset },
-                end: { line: pos.line, character: tokenInfo.endOffset }
+                start: doc.positionAt(tokenInfo.startOffset),
+                end: doc.positionAt(tokenInfo.endOffset)
             })
         );
     }
@@ -72,7 +82,7 @@ export class DefinitionProvider {
         if (!tokenInfo) return [];
 
         const matchingSymbols = this.symbolIndexer.findSymbolsByName(tokenInfo.text);
-        
+
         if (matchingSymbols.length === 0) return [];
 
         // Filter by context type for accuracy
@@ -88,7 +98,7 @@ export class DefinitionProvider {
         // Optionally exclude declaration
         if (!includeDecl && contextFilteredSymbols.length > 0) {
             const primaryDef = this.selectPrimaryDefinition(contextFilteredSymbols);
-            return referenceLocations.filter(loc => 
+            return referenceLocations.filter(loc =>
                 !(loc.uri === primaryDef.uri && this.rangesEqual(loc.range, primaryDef.range))
             );
         }
@@ -110,7 +120,7 @@ export class DefinitionProvider {
         if (tokenInfo.context === NavigationContext.VARIABLE_NAME) {
             const varSymbols = this.symbolIndexer.findSymbolsByType(SymbolType.VARIABLE)
                 .filter(s => s.name === tokenInfo.text);
-            
+
             if (varSymbols.length > 0) {
                 return varSymbols.map(s => Location.create(s.uri, s.range));
             }
@@ -120,7 +130,7 @@ export class DefinitionProvider {
         if (tokenInfo.context === NavigationContext.SCOPE_NAME) {
             const scopeSymbols = this.symbolIndexer.findSymbolsByType(SymbolType.SCOPE)
                 .filter(s => s.name === tokenInfo.text);
-            
+
             if (scopeSymbols.length > 0) {
                 return scopeSymbols.map(s => Location.create(s.uri, s.range));
             }
@@ -165,17 +175,23 @@ export class DefinitionProvider {
         doc: TextDocument,
         pos: Position
     ): Promise<Location[] | null> {
-        // For CK3, declaration and definition are typically the same
-        // But we can prioritize on_action declarations over event definitions
         const tokenInfo = this.extractTokenAtCursor(doc, pos);
         if (!tokenInfo) return null;
 
         if (tokenInfo.context === NavigationContext.EVENT_ID) {
-            // Check if there's an on_action that declares this event
+            // For events, prioritize on_action declarations that reference this event
             const onActionSymbols = this.symbolIndexer.findSymbolsByType(SymbolType.ON_ACTION);
-            
-            // This would require deeper AST parsing to find event references in on_actions
-            // For now, fall back to regular definition
+
+            // Search on_action symbols for those that contain this event ID in their name/detail
+            const matchingOnActions = onActionSymbols.filter(s =>
+                s.detail?.includes(tokenInfo.text) || s.name.includes(tokenInfo.text)
+            );
+
+            if (matchingOnActions.length > 0) {
+                return matchingOnActions.map(s => Location.create(s.uri, s.range));
+            }
+
+            // Fall back to event definition
             const defResult = await this.navigateToDefinition(doc, pos);
             return this.convertToLocationArray(defResult);
         }
@@ -189,18 +205,18 @@ export class DefinitionProvider {
      */
     private convertToLocationArray(result: Location[] | LocationLink[] | null): Location[] | null {
         if (!result) return null;
-        
+
         if (result.length === 0) return [];
-        
+
         // Check if first item is LocationLink
         const firstItem = result[0] as any;
         if ('targetUri' in firstItem) {
             // It's LocationLink[], convert to Location[]
-            return (result as LocationLink[]).map(link => 
+            return (result as LocationLink[]).map(link =>
                 Location.create(link.targetUri, link.targetRange)
             );
         }
-        
+
         return result as Location[];
     }
 
@@ -261,22 +277,86 @@ export class DefinitionProvider {
             return NavigationContext.TRIGGER_NAME;
         }
 
+        // Detect character flags
+        if (tokenText.endsWith('_flag') || tokenText.startsWith('flag_')) {
+            return NavigationContext.CHARACTER_FLAG;
+        }
+
+        // Detect character interactions
+        if (tokenText.endsWith('_interaction')) {
+            return NavigationContext.CHARACTER_INTERACTION;
+        }
+
+        // Detect on-actions
+        if (tokenText.startsWith('on_')) {
+            return NavigationContext.ON_ACTION;
+        }
+
+        // Detect opinion modifiers
+        if (tokenText.endsWith('_opinion') || tokenText.startsWith('opinion_')) {
+            return NavigationContext.OPINION_MODIFIER;
+        }
+
+        // Detect decisions
+        if (tokenText.endsWith('_decision')) {
+            return NavigationContext.DECISION_ID;
+        }
+
         // Check surrounding context by parsing
         const parseResult = this.ck3Parser.parse(doc.getText());
         const enclosingNode = this.findNodeAtPosition(parseResult.ast, pos);
-        
+
         if (enclosingNode) {
             // Check parent key to determine context
             if (enclosingNode.key === 'trigger_event' || enclosingNode.key === 'id') {
                 return NavigationContext.EVENT_ID;
             }
-            
+
             if (enclosingNode.key === 'save_scope_as' || enclosingNode.key === 'save_temporary_scope_as') {
                 return NavigationContext.SCOPE_NAME;
             }
 
             if (enclosingNode.key === 'name' && enclosingNode.value === tokenText) {
                 return NavigationContext.VARIABLE_NAME;
+            }
+
+            // Detect flag-related keys
+            if (enclosingNode.key === 'set_character_flag' || enclosingNode.key === 'has_character_flag' ||
+                enclosingNode.key === 'remove_character_flag') {
+                return NavigationContext.CHARACTER_FLAG;
+            }
+
+            // Detect modifier references
+            if (enclosingNode.key === 'add_modifier' || enclosingNode.key === 'remove_modifier' ||
+                enclosingNode.key === 'has_modifier') {
+                return NavigationContext.MODIFIER;
+            }
+
+            // Detect trait references
+            if (enclosingNode.key === 'has_trait' || enclosingNode.key === 'add_trait' ||
+                enclosingNode.key === 'remove_trait') {
+                return NavigationContext.TRAIT;
+            }
+
+            // Detect localization keys
+            if (enclosingNode.key === 'title' || enclosingNode.key === 'desc' ||
+                enclosingNode.key === 'text' || enclosingNode.key === 'tooltip') {
+                return NavigationContext.LOCALIZATION_KEY;
+            }
+
+            // Detect on-action references
+            if (enclosingNode.key === 'on_action') {
+                return NavigationContext.ON_ACTION;
+            }
+
+            // Detect scripted GUI references
+            if (enclosingNode.key === 'scripted_gui') {
+                return NavigationContext.SCRIPTED_GUI;
+            }
+
+            // Detect decision group type references
+            if (enclosingNode.key === 'group_type' || enclosingNode.key === 'decision_group_type') {
+                return NavigationContext.DECISION_GROUP_TYPE;
             }
         }
 
@@ -324,8 +404,24 @@ export class DefinitionProvider {
         tokenInfo: TokenInfo,
         sourceUri: string
     ): Promise<Symbol[]> {
+        // Handle localization key navigation
+        if (tokenInfo.context === NavigationContext.LOCALIZATION_KEY && this.localizationIndex) {
+            const entry = this.localizationIndex.findLocalization(tokenInfo.text);
+            if (entry) {
+                return [{
+                    name: entry.key,
+                    type: SymbolType.GENERIC,
+                    uri: entry.fileUri,
+                    range: {
+                        start: { line: entry.line, character: 0 },
+                        end: { line: entry.line, character: entry.key.length }
+                    }
+                }];
+            }
+        }
+
         const candidates = this.symbolIndexer.findSymbolsByName(tokenInfo.text);
-        
+
         if (candidates.length === 0) return [];
 
         // Filter and rank by context
@@ -348,11 +444,19 @@ export class DefinitionProvider {
             [NavigationContext.SCOPE_NAME]: [SymbolType.SCOPE],
             [NavigationContext.LOCALIZATION_KEY]: [],
             [NavigationContext.SCRIPTED_BLOCK]: [SymbolType.SCRIPTED_EFFECT, SymbolType.SCRIPTED_TRIGGER],
+            [NavigationContext.CHARACTER_FLAG]: [SymbolType.CHARACTER_FLAG],
+            [NavigationContext.CHARACTER_INTERACTION]: [SymbolType.CHARACTER_INTERACTION],
+            [NavigationContext.MODIFIER]: [SymbolType.MODIFIER],
+            [NavigationContext.ON_ACTION]: [SymbolType.ON_ACTION],
+            [NavigationContext.OPINION_MODIFIER]: [SymbolType.OPINION_MODIFIER],
+            [NavigationContext.SCRIPTED_GUI]: [SymbolType.SCRIPTED_GUI],
+            [NavigationContext.DECISION_GROUP_TYPE]: [SymbolType.DECISION_GROUP_TYPE],
+            [NavigationContext.TRAIT]: [SymbolType.TRAIT],
             [NavigationContext.UNKNOWN]: []
         };
 
         const targetTypes = contextTypeMap[context];
-        
+
         if (targetTypes.length === 0) return symbols;
 
         return symbols.filter(sym => targetTypes.includes(sym.type));
@@ -363,7 +467,7 @@ export class DefinitionProvider {
      */
     private selectPrimaryDefinition(symbols: Symbol[]): Symbol {
         if (symbols.length === 1) return symbols[0];
-        
+
         // Sort by URI and take first
         const sorted = [...symbols].sort((a, b) => a.uri.localeCompare(b.uri));
         return sorted[0];
@@ -381,8 +485,8 @@ export class DefinitionProvider {
      */
     private rangesEqual(r1: any, r2: any): boolean {
         return r1.start.line === r2.start.line &&
-               r1.start.character === r2.start.character &&
-               r1.end.line === r2.end.line &&
-               r1.end.character === r2.end.character;
+            r1.start.character === r2.start.character &&
+            r1.end.line === r2.end.line &&
+            r1.end.character === r2.end.character;
     }
 }

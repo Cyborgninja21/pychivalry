@@ -14,7 +14,7 @@ import { TextDocument } from 'vscode-languageserver-textdocument';
 import { CK3Parser, ASTNode, NodeType } from '../core/parser';
 import { DocumentIndexer, SymbolType } from '../core/indexer';
 import * as path from 'path';
-import * as fs from 'fs';
+import { promises as fsp } from 'fs';
 
 /**
  * Link type for categorization
@@ -55,7 +55,7 @@ export class DocumentLinksProvider {
         const parsed = this.parser.parse(document.getText());
         const links: DocumentLink[] = [];
 
-        this.collectDocumentLinks(parsed.ast, links, document);
+        await this.collectDocumentLinks(parsed.ast, links, document);
 
         return links;
     }
@@ -85,36 +85,36 @@ export class DocumentLinksProvider {
     /**
      * Collect document links from AST
      */
-    private collectDocumentLinks(node: ASTNode, links: DocumentLink[], document: TextDocument): void {
+    private async collectDocumentLinks(node: ASTNode, links: DocumentLink[], document: TextDocument): Promise<void> {
         if (!node.children) return;
 
         for (const child of node.children) {
             // File references (textures, icons, GUI files)
-            if (child.key === 'file' || child.key === 'icon' || child.key === 'texture' || 
+            if (child.key === 'file' || child.key === 'icon' || child.key === 'texture' ||
                 child.key === 'gfx' || child.key === 'animation') {
-                this.addFileLink(child, links, document);
+                await this.addFileLink(child, links, document);
             }
 
             // Localization keys
             if (child.key === 'name' || child.key === 'desc' || child.key === 'text' ||
                 child.key === 'title' || child.key === 'tooltip') {
-                this.addLocalizationLink(child, links, document);
+                await this.addLocalizationLink(child, links, document);
             }
 
             // Event references
-            if (child.key === 'id' || child.key === 'on_bi_yearly_pulse' || 
+            if (child.key === 'id' || child.key === 'on_bi_yearly_pulse' ||
                 child.key === 'on_action' || child.key === 'trigger_event') {
-                this.addEventLink(child, links, document);
+                await this.addEventLink(child, links, document);
             }
 
             // Scripted effect references
             if (child.key && child.key.endsWith('_effect')) {
-                this.addScriptedEffectLink(child, links, document);
+                await this.addScriptedEffectLink(child, links, document);
             }
 
-            // Scripted trigger references  
+            // Scripted trigger references
             if (child.key && child.key.endsWith('_trigger')) {
-                this.addScriptedTriggerLink(child, links, document);
+                await this.addScriptedTriggerLink(child, links, document);
             }
 
             // Decision references
@@ -129,7 +129,7 @@ export class DocumentLinksProvider {
 
             // Recurse
             if (child.children) {
-                this.collectDocumentLinks(child, links, document);
+                await this.collectDocumentLinks(child, links, document);
             }
         }
     }
@@ -137,7 +137,7 @@ export class DocumentLinksProvider {
     /**
      * Add file path link
      */
-    private addFileLink(node: ASTNode, links: DocumentLink[], document: TextDocument): void {
+    private async addFileLink(node: ASTNode, links: DocumentLink[], document: TextDocument): Promise<void> {
         if (typeof node.value !== 'string') return;
 
         const filePath = node.value;
@@ -145,7 +145,6 @@ export class DocumentLinksProvider {
 
         // Convert game path to file URI
         if (this.workspaceRoot) {
-            // Try to resolve relative to workspace
             const possiblePaths = [
                 path.join(this.workspaceRoot, filePath),
                 path.join(this.workspaceRoot, 'gfx', filePath),
@@ -153,15 +152,17 @@ export class DocumentLinksProvider {
             ];
 
             for (const testPath of possiblePaths) {
-                if (fs.existsSync(testPath)) {
+                try {
+                    await fsp.access(testPath);
                     target = `file://${testPath}`;
                     break;
+                } catch {
+                    // File doesn't exist, try next
                 }
             }
         }
 
         if (!target) {
-            // Fallback: use the raw path
             target = filePath;
         }
 
@@ -176,32 +177,34 @@ export class DocumentLinksProvider {
     /**
      * Add localization key link
      */
-    private addLocalizationLink(node: ASTNode, links: DocumentLink[], document: TextDocument): void {
+    private async addLocalizationLink(node: ASTNode, links: DocumentLink[], document: TextDocument): Promise<void> {
         if (typeof node.value !== 'string') return;
 
         const key = node.value;
 
         // Check if it looks like a localization key (not a plain string)
         if (!key.includes(' ') && key.length > 0) {
-            // Try to find localization file
             let target: string | undefined;
 
             if (this.workspaceRoot) {
                 const locPath = path.join(this.workspaceRoot, 'localization', 'english');
-                
-                // Search for key in localization files
-                if (fs.existsSync(locPath)) {
-                    const files = fs.readdirSync(locPath).filter(f => f.endsWith('.yml'));
-                    
+
+                try {
+                    await fsp.access(locPath);
+                    const allFiles = await fsp.readdir(locPath);
+                    const files = allFiles.filter(f => f.endsWith('.yml'));
+
                     for (const file of files) {
                         const fullPath = path.join(locPath, file);
-                        const content = fs.readFileSync(fullPath, 'utf-8');
-                        
+                        const content = await fsp.readFile(fullPath, 'utf-8');
+
                         if (content.includes(`${key}:`)) {
                             target = `file://${fullPath}`;
                             break;
                         }
                     }
+                } catch {
+                    // Localization path doesn't exist
                 }
             }
 
@@ -217,7 +220,7 @@ export class DocumentLinksProvider {
     /**
      * Add event ID link
      */
-    private addEventLink(node: ASTNode, links: DocumentLink[], document: TextDocument): void {
+    private async addEventLink(node: ASTNode, links: DocumentLink[], document: TextDocument): Promise<void> {
         if (typeof node.value !== 'string') return;
 
         const eventId = node.value;
@@ -230,7 +233,7 @@ export class DocumentLinksProvider {
             if (this.indexer) {
                 const symbols = this.indexer.findSymbolsByName(eventId);
                 const eventSymbol = symbols.find(s => s.type === SymbolType.EVENT);
-                
+
                 if (eventSymbol) {
                     target = eventSymbol.uri;
                 }
@@ -240,16 +243,19 @@ export class DocumentLinksProvider {
             if (!target && this.workspaceRoot) {
                 const namespace = eventId.split('.')[0];
                 const eventsPath = path.join(this.workspaceRoot, 'events');
-                
-                if (fs.existsSync(eventsPath)) {
-                    const files = fs.readdirSync(eventsPath);
-                    const eventFile = files.find(f => 
+
+                try {
+                    await fsp.access(eventsPath);
+                    const files = await fsp.readdir(eventsPath);
+                    const eventFile = files.find(f =>
                         f.startsWith(namespace) && f.endsWith('.txt')
                     );
-                    
+
                     if (eventFile) {
                         target = `file://${path.join(eventsPath, eventFile)}`;
                     }
+                } catch {
+                    // Events directory not found
                 }
             }
 
@@ -265,7 +271,7 @@ export class DocumentLinksProvider {
     /**
      * Add scripted effect link
      */
-    private addScriptedEffectLink(node: ASTNode, links: DocumentLink[], document: TextDocument): void {
+    private async addScriptedEffectLink(node: ASTNode, links: DocumentLink[], document: TextDocument): Promise<void> {
         if (!node.key) return;
 
         const effectName = node.key;
@@ -275,7 +281,7 @@ export class DocumentLinksProvider {
         if (this.indexer) {
             const symbols = this.indexer.findSymbolsByName(effectName);
             const effectSymbol = symbols.find(s => s.type === SymbolType.SCRIPTED_EFFECT);
-            
+
             if (effectSymbol) {
                 target = effectSymbol.uri;
             }
@@ -284,19 +290,23 @@ export class DocumentLinksProvider {
         // Fallback: try to find in common/scripted_effects
         if (!target && this.workspaceRoot) {
             const effectsPath = path.join(this.workspaceRoot, 'common', 'scripted_effects');
-            
-            if (fs.existsSync(effectsPath)) {
-                const files = fs.readdirSync(effectsPath).filter(f => f.endsWith('.txt'));
-                
+
+            try {
+                await fsp.access(effectsPath);
+                const allFiles = await fsp.readdir(effectsPath);
+                const files = allFiles.filter(f => f.endsWith('.txt'));
+
                 for (const file of files) {
                     const fullPath = path.join(effectsPath, file);
-                    const content = fs.readFileSync(fullPath, 'utf-8');
-                    
+                    const content = await fsp.readFile(fullPath, 'utf-8');
+
                     if (content.includes(`${effectName} =`)) {
                         target = `file://${fullPath}`;
                         break;
                     }
                 }
+            } catch {
+                // Directory doesn't exist
             }
         }
 
@@ -313,7 +323,7 @@ export class DocumentLinksProvider {
     /**
      * Add scripted trigger link
      */
-    private addScriptedTriggerLink(node: ASTNode, links: DocumentLink[], document: TextDocument): void {
+    private async addScriptedTriggerLink(node: ASTNode, links: DocumentLink[], document: TextDocument): Promise<void> {
         if (!node.key) return;
 
         const triggerName = node.key;
@@ -323,7 +333,7 @@ export class DocumentLinksProvider {
         if (this.indexer) {
             const symbols = this.indexer.findSymbolsByName(triggerName);
             const triggerSymbol = symbols.find(s => s.type === SymbolType.SCRIPTED_TRIGGER);
-            
+
             if (triggerSymbol) {
                 target = triggerSymbol.uri;
             }
@@ -332,19 +342,23 @@ export class DocumentLinksProvider {
         // Fallback: try to find in common/scripted_triggers
         if (!target && this.workspaceRoot) {
             const triggersPath = path.join(this.workspaceRoot, 'common', 'scripted_triggers');
-            
-            if (fs.existsSync(triggersPath)) {
-                const files = fs.readdirSync(triggersPath).filter(f => f.endsWith('.txt'));
-                
+
+            try {
+                await fsp.access(triggersPath);
+                const allFiles = await fsp.readdir(triggersPath);
+                const files = allFiles.filter(f => f.endsWith('.txt'));
+
                 for (const file of files) {
                     const fullPath = path.join(triggersPath, file);
-                    const content = fs.readFileSync(fullPath, 'utf-8');
-                    
+                    const content = await fsp.readFile(fullPath, 'utf-8');
+
                     if (content.includes(`${triggerName} =`)) {
                         target = `file://${fullPath}`;
                         break;
                     }
                 }
+            } catch {
+                // Directory doesn't exist
             }
         }
 
@@ -424,21 +438,19 @@ export class DocumentLinksProvider {
      * Validate link target
      */
     private validateLinkTarget(target: string, type: LinkType): boolean {
-        // File links
-        if (target.startsWith('file://')) {
-            const filePath = target.substring(7);
-            return fs.existsSync(filePath);
-        }
-
         // Internal links (already resolved through indexer)
         if (target.startsWith('#')) {
-            // These are unresolved - consider invalid
             return false;
         }
 
         // External links (wiki, documentation)
         if (target.startsWith('http://') || target.startsWith('https://')) {
-            return true; // Assume external links are valid
+            return true;
+        }
+
+        // File links - skip sync validation, assume valid if resolved
+        if (target.startsWith('file://')) {
+            return true;
         }
 
         return false;

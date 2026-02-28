@@ -1,0 +1,20 @@
+# Combat side scope definition for CK3
+
+combat_side:
+  description: "A side in combat (attacker or defender)"
+
+  links:
+    side_commander: character
+    side_primary_participant: character
+    enemy_side: combat_side
+
+  lists:
+    side_knight: character
+
+  triggers:
+    - is_attacker
+    - is_defender
+    - exists
+
+  effects:
+    - save_scope_as

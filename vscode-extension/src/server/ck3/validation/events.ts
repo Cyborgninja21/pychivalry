@@ -329,9 +329,8 @@ export function validateEventFromNode(node: ASTNode): {
 } {
     const errors: Array<{ code: string; message: string; field?: string }> = [];
 
-    // Try to extract event ID from parent assignment
-    let eventId = 'unknown';
-    // EventID would come from the key of the assignment node containing this block
+    // Extract event ID from the key of the assignment node containing this block
+    let eventId = node.key || 'unknown';
 
     // Extract event type
     let eventType: string | undefined;
@@ -405,6 +404,19 @@ export function validateEventFromNode(node: ASTNode): {
         });
     }
 
+    // Validate dynamic descriptions (first_valid, triggered_desc, random_valid)
+    const descNode = children.find((c: ASTNode) => c.key === 'desc' && c.type === NodeType.BLOCK);
+    if (descNode) {
+        const dynResult = validateDynamicDescription(descNode);
+        if (!dynResult.isValid) {
+            errors.push({
+                code: 'EVENT-006',
+                message: dynResult.error || 'Invalid dynamic description configuration',
+                field: 'desc',
+            });
+        }
+    }
+
     // Validate portraits
     children
         .filter((c: ASTNode) => PORTRAIT_POSITIONS.has(c.key || ''))
@@ -436,23 +448,3 @@ export function validateEventFromNode(node: ASTNode): {
     return { event, errors };
 }
 
-/**
- * Get all event validation functions for export
- */
-export const EventValidation = {
-    isValidEventType,
-    isValidTheme,
-    isValidPortraitPosition,
-    isValidPortraitAnimation,
-    validateEventFields,
-    validatePortraitConfiguration,
-    parseEventId,
-    validateDynamicDescription,
-    getEventTypeDescription,
-    getThemeDescription,
-    createEvent,
-    validateOption,
-    suggestEventIdFormat,
-    isValidNamespace,
-    validateEventFromNode,
-};

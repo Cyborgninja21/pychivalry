@@ -15,7 +15,22 @@
  */
 
 import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver';
-import { ASTNode } from '../../core/parser';
+import { ASTNode, NodeType } from '../../core/parser';
+
+/** Known CK3 builtin keys that should not be flagged as scripted effects/triggers */
+const KNOWN_BUILTIN_KEYS = new Set([
+    'type', 'title', 'desc', 'option', 'trigger', 'effect', 'immediate',
+    'after', 'weight_multiplier', 'ai_chance', 'ai_will_do',
+    'if', 'else', 'else_if', 'switch', 'while', 'limit', 'alternative_limit',
+    'name', 'value', 'flag', 'target', 'modifier', 'icon', 'text',
+    'tooltip', 'theme', 'override_background', 'cooldown',
+    'left_portrait', 'right_portrait', 'lower_left_portrait',
+    'lower_right_portrait', 'lower_center_portrait',
+    'root', 'from', 'prev', 'this', 'yes', 'no',
+    'is_shown', 'is_valid', 'cost', 'minimum_cost',
+    'on_completion', 'on_monthly', 'on_yearly', 'on_start',
+    'skill', 'trait', 'culture', 'faith', 'dynasty', 'religion',
+]);
 
 export interface ScriptedBlockConfig {
     enabled: boolean;
@@ -116,8 +131,10 @@ function collectScriptedEffectReferences(node: ASTNode): ASTNode[] {
     // Look for keys that might be scripted effects
     // They typically start with a lowercase letter and contain underscores
     function traverse(n: ASTNode): void {
-        if (n.key && /^[a-z][a-z0-9_]*$/.test(n.key)) {
-            // Could be a scripted effect
+        if (n.key && /^[a-z][a-z0-9_]*$/.test(n.key) &&
+            !KNOWN_BUILTIN_KEYS.has(n.key) &&
+            n.children && n.children.length > 0) {
+            // Likely a scripted effect call (has block body and is not a builtin)
             refs.push(n);
         }
         

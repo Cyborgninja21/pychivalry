@@ -14,9 +14,14 @@ import {
 } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { CK3Parser, ASTNode, NodeType } from '../core/parser';
-import { DocumentIndexer } from '../core/indexer';
+import { DocumentIndexer, SymbolType } from '../core/indexer';
 import { SchemaLoader, SchemaField } from '../schema/loader';
 import { getDataLoader, EffectDefinition, TriggerDefinition, ScopeDefinition } from '../data/loader';
+import { getTargetScopeType, getListResultScope, parseListIterator } from '../ck3/validation/scopes';
+import { DirectoryRegistry } from '../data/directory-registry';
+import { classifyContext } from '../ck3/validation/context-engine';
+import { serverLogger } from '../utils/logger';
+import { ModScanner, ModDataItem } from '../data/mod-scanner';
 
 /**
  * Constants for completion behavior
@@ -33,12 +38,12 @@ class CursorAnalysis {
     textAfterCursor: string = '';
     fullDocumentText: string = '';
     cursorOffset: number = 0;
-    
+
     // AST information
     astTree: ASTNode | null = null;
     nearestNode: ASTNode | null = null;
     ancestorNodes: ASTNode[] = [];
-    
+
     // Semantic context
     withinBlock: boolean = false;
     blockIdentifier: string | null = null;
@@ -46,10 +51,13 @@ class CursorAnalysis {
     assignmentKey: string | null = null;
     chainedScopeAccess: boolean = false;
     scopeChainParts: string[] = [];
-    
+
+    // Scope context
+    currentScopeType: string = DEFAULT_ROOT_SCOPE;
+
     // Document metadata
     documentCategory: string | null = null;
-    
+
     // Already used identifiers in current block
     usedIdentifiers: Set<string> = new Set();
 }
@@ -59,24 +67,24 @@ class CursorAnalysis {
  */
 class CompletionBuilder {
     private item: CompletionItem;
-    
+
     constructor(labelText: string) {
         this.item = {
             label: labelText,
             kind: CompletionItemKind.Text,
         };
     }
-    
+
     withKind(itemKind: CompletionItemKind): CompletionBuilder {
         this.item.kind = itemKind;
         return this;
     }
-    
+
     withDetails(detailText: string): CompletionBuilder {
         this.item.detail = detailText;
         return this;
     }
-    
+
     withMarkdownDocs(markdown: string): CompletionBuilder {
         this.item.documentation = {
             kind: MarkupKind.Markdown,
@@ -84,29 +92,29 @@ class CompletionBuilder {
         };
         return this;
     }
-    
+
     withPlainDocs(text: string): CompletionBuilder {
         this.item.documentation = text;
         return this;
     }
-    
+
     withSnippet(snippetText: string): CompletionBuilder {
         this.item.insertText = snippetText;
         this.item.insertTextFormat = InsertTextFormat.Snippet;
         return this;
     }
-    
+
     withPlainInsertion(text: string): CompletionBuilder {
         this.item.insertText = text;
         this.item.insertTextFormat = InsertTextFormat.PlainText;
         return this;
     }
-    
+
     withRanking(rankingKey: string): CompletionBuilder {
         this.item.sortText = rankingKey;
         return this;
     }
-    
+
     withMetadata(metaKey: string, metaValue: any): CompletionBuilder {
         if (!this.item.data) {
             this.item.data = {};
@@ -114,7 +122,7 @@ class CompletionBuilder {
         this.item.data[metaKey] = metaValue;
         return this;
     }
-    
+
     build(): CompletionItem {
         return this.item;
     }
@@ -134,30 +142,36 @@ interface CompletionStrategy {
 class TemplateCompletionStrategy implements CompletionStrategy {
     canHandle(analysis: CursorAnalysis): boolean {
         // Handle when document is mostly empty or at root level
-        return analysis.fullDocumentText.trim().length < EMPTY_DOCUMENT_THRESHOLD || 
-               (!analysis.withinBlock && analysis.ancestorNodes.length <= 1);
+        return analysis.fullDocumentText.trim().length < EMPTY_DOCUMENT_THRESHOLD ||
+            (!analysis.withinBlock && analysis.ancestorNodes.length <= 1);
     }
-    
+
     async generateSuggestions(analysis: CursorAnalysis, document: TextDocument): Promise<CompletionItem[]> {
         const suggestions: CompletionItem[] = [];
         const docPath = document.uri.toLowerCase();
-        
+
         if (docPath.includes('/events/') || docPath.includes('\\events\\')) {
             suggestions.push(this.buildEventTemplate());
             suggestions.push(this.buildEventOptionTemplate());
         }
-        
+
         if (docPath.includes('/decisions/') || docPath.includes('\\decisions\\')) {
             suggestions.push(this.buildDecisionTemplate());
         }
-        
+
+        if (docPath.includes('/story_cycles/') || docPath.includes('\\story_cycles\\')) {
+            suggestions.push(this.buildStoryCycleTemplate());
+            suggestions.push(this.buildEffectGroupTemplate());
+            suggestions.push(this.buildTriggeredEffectTemplate());
+        }
+
         // Universal templates
         suggestions.push(this.buildTriggerBlockTemplate());
         suggestions.push(this.buildEffectBlockTemplate());
-        
+
         return suggestions;
     }
-    
+
     private buildEventTemplate(): CompletionItem {
         return new CompletionBuilder('event_template')
             .withKind(CompletionItemKind.Snippet)
@@ -187,7 +201,7 @@ class TemplateCompletionStrategy implements CompletionStrategy {
             .withRanking('0_event_template')
             .build();
     }
-    
+
     private buildEventOptionTemplate(): CompletionItem {
         return new CompletionBuilder('option')
             .withKind(CompletionItemKind.Snippet)
@@ -206,7 +220,7 @@ class TemplateCompletionStrategy implements CompletionStrategy {
             .withRanking('1_option')
             .build();
     }
-    
+
     private buildDecisionTemplate(): CompletionItem {
         return new CompletionBuilder('decision_template')
             .withKind(CompletionItemKind.Snippet)
@@ -239,7 +253,7 @@ class TemplateCompletionStrategy implements CompletionStrategy {
             .withRanking('0_decision_template')
             .build();
     }
-    
+
     private buildTriggerBlockTemplate(): CompletionItem {
         return new CompletionBuilder('trigger')
             .withKind(CompletionItemKind.Snippet)
@@ -248,7 +262,7 @@ class TemplateCompletionStrategy implements CompletionStrategy {
             .withRanking('2_trigger_block')
             .build();
     }
-    
+
     private buildEffectBlockTemplate(): CompletionItem {
         return new CompletionBuilder('effect')
             .withKind(CompletionItemKind.Snippet)
@@ -257,29 +271,103 @@ class TemplateCompletionStrategy implements CompletionStrategy {
             .withRanking('2_effect_block')
             .build();
     }
+
+    private buildStoryCycleTemplate(): CompletionItem {
+        return new CompletionBuilder('story_cycle_template')
+            .withKind(CompletionItemKind.Snippet)
+            .withDetails('Complete story cycle structure')
+            .withSnippet(
+                '${1:my_story_cycle} = {\n' +
+                '\ton_setup = {\n' +
+                '\t\t${2:# Setup effects when story starts}\n' +
+                '\t}\n' +
+                '\t\n' +
+                '\ton_end = {\n' +
+                '\t\t${3:# Cleanup effects when story ends}\n' +
+                '\t}\n' +
+                '\t\n' +
+                '\ton_owner_death = {\n' +
+                '\t\tend_story = yes\n' +
+                '\t}\n' +
+                '\t\n' +
+                '\teffect_group = {\n' +
+                '\t\tdays = { ${4:30} ${5:60} }\n' +
+                '\t\ttriggered_effect = {\n' +
+                '\t\t\ttrigger = {\n' +
+                '\t\t\t\t${6:# Conditions}\n' +
+                '\t\t\t}\n' +
+                '\t\t\teffect = {\n' +
+                '\t\t\t\t${7:# Effects}\n' +
+                '\t\t\t}\n' +
+                '\t\t}\n' +
+                '\t}\n' +
+                '}'
+            )
+            .withRanking('0_story_cycle')
+            .build();
+    }
+
+    private buildEffectGroupTemplate(): CompletionItem {
+        return new CompletionBuilder('effect_group')
+            .withKind(CompletionItemKind.Snippet)
+            .withDetails('Timed effect group for story cycles')
+            .withSnippet(
+                'effect_group = {\n' +
+                '\tdays = { ${1:30} ${2:90} }\n' +
+                '\ttriggered_effect = {\n' +
+                '\t\ttrigger = {\n' +
+                '\t\t\t${3:# Conditions}\n' +
+                '\t\t}\n' +
+                '\t\teffect = {\n' +
+                '\t\t\t${4:# Effects}\n' +
+                '\t\t}\n' +
+                '\t}\n' +
+                '}'
+            )
+            .withRanking('1_effect_group')
+            .build();
+    }
+
+    private buildTriggeredEffectTemplate(): CompletionItem {
+        return new CompletionBuilder('triggered_effect')
+            .withKind(CompletionItemKind.Snippet)
+            .withDetails('Conditional effect in effect group')
+            .withSnippet(
+                'triggered_effect = {\n' +
+                '\ttrigger = {\n' +
+                '\t\t${1:# Conditions}\n' +
+                '\t}\n' +
+                '\teffect = {\n' +
+                '\t\t${2:# Effects}\n' +
+                '\t}\n' +
+                '}'
+            )
+            .withRanking('1_triggered_effect')
+            .build();
+    }
 }
 
 /**
  * Schema-based field completion strategy
  */
 class SchemaFieldStrategy implements CompletionStrategy {
-    constructor(private schemaLoader: SchemaLoader) {}
-    
+    constructor(private schemaLoader: SchemaLoader) { }
+
     canHandle(analysis: CursorAnalysis): boolean {
         return !analysis.afterAssignmentOp && !analysis.chainedScopeAccess;
     }
-    
+
     async generateSuggestions(analysis: CursorAnalysis, document: TextDocument): Promise<CompletionItem[]> {
         const suggestions: CompletionItem[] = [];
-        
+
         const schemaData = await this.schemaLoader.getSchemaForFile(document.uri);
         if (!schemaData || !schemaData.properties) {
             return suggestions;
         }
-        
+
         const blockKey = analysis.blockIdentifier;
         let relevantFields = schemaData.properties;
-        
+
         // Navigate to nested schema if in specific block
         if (blockKey && schemaData.nested_schemas && schemaData.nested_schemas[blockKey]) {
             const nestedSchema = schemaData.nested_schemas[blockKey];
@@ -287,44 +375,44 @@ class SchemaFieldStrategy implements CompletionStrategy {
                 relevantFields = nestedSchema.field_docs;
             }
         }
-        
+
         for (const [fieldName, fieldInfo] of Object.entries(relevantFields)) {
             const typedField = fieldInfo as SchemaField;
-            
+
             // Skip if already used and not repeatable
             if (analysis.usedIdentifiers.has(fieldName) && typedField.cardinality === '1') {
                 continue;
             }
-            
+
             const builder = new CompletionBuilder(fieldName)
                 .withKind(this.mapFieldTypeToKind(typedField))
                 .withDetails(this.extractFieldType(typedField));
-            
+
             if (typedField.description) {
                 builder.withPlainDocs(typedField.description);
             }
-            
+
             // Add ranking based on required/optional
             const rankPrefix = typedField.required ? '0_' : '1_';
             builder.withRanking(rankPrefix + fieldName);
-            
+
             // Generate appropriate insertion text
             builder.withSnippet(this.generateFieldInsertion(fieldName, typedField));
-            
+
             builder.withMetadata('fieldSchema', {
                 schemaName: analysis.documentCategory,
                 fieldName: fieldName,
             });
-            
+
             suggestions.push(builder.build());
         }
-        
+
         return suggestions;
     }
-    
+
     private mapFieldTypeToKind(field: SchemaField): CompletionItemKind {
         const typeStr = Array.isArray(field.type) ? field.type[0] : field.type;
-        
+
         const typeMapping: Record<string, CompletionItemKind> = {
             'boolean': CompletionItemKind.Value,
             'number': CompletionItemKind.Value,
@@ -333,20 +421,20 @@ class SchemaFieldStrategy implements CompletionStrategy {
             'object': CompletionItemKind.Class,
             'array': CompletionItemKind.Class,
         };
-        
+
         return typeMapping[typeStr || ''] || CompletionItemKind.Property;
     }
-    
+
     private extractFieldType(field: SchemaField): string {
         if (Array.isArray(field.type)) {
             return field.type.join(' | ');
         }
         return field.type || 'field';
     }
-    
+
     private generateFieldInsertion(fieldName: string, field: SchemaField): string {
         const typeStr = Array.isArray(field.type) ? field.type[0] : field.type;
-        
+
         if (typeStr === 'object' || typeStr === 'array') {
             return `${fieldName} = {\n\t$0\n}`;
         } else if (typeStr === 'boolean') {
@@ -364,22 +452,22 @@ class SchemaFieldStrategy implements CompletionStrategy {
  * Value assignment completion strategy
  */
 class ValueAssignmentStrategy implements CompletionStrategy {
-    constructor(private schemaLoader: SchemaLoader) {}
-    
+    constructor(private schemaLoader: SchemaLoader) { }
+
     canHandle(analysis: CursorAnalysis): boolean {
         return analysis.afterAssignmentOp && analysis.assignmentKey !== null;
     }
-    
+
     async generateSuggestions(analysis: CursorAnalysis, document: TextDocument): Promise<CompletionItem[]> {
         const suggestions: CompletionItem[] = [];
         const keyName = analysis.assignmentKey!;
-        
+
         // Check schema for enum values using injected schemaLoader
         const schemaData = await this.schemaLoader.getSchemaForFile(document.uri);
-        
+
         if (schemaData?.properties?.[keyName]) {
             const fieldDef = schemaData.properties[keyName] as SchemaField;
-            
+
             if (fieldDef.enum && Array.isArray(fieldDef.enum)) {
                 for (const enumVal of fieldDef.enum) {
                     suggestions.push(
@@ -392,7 +480,7 @@ class ValueAssignmentStrategy implements CompletionStrategy {
                 }
                 return suggestions;
             }
-            
+
             if (fieldDef.type === 'boolean') {
                 suggestions.push(
                     new CompletionBuilder('yes').withKind(CompletionItemKind.Constant).withRanking('0_yes').build(),
@@ -401,29 +489,29 @@ class ValueAssignmentStrategy implements CompletionStrategy {
                 return suggestions;
             }
         }
-        
+
         // Contextual value suggestions
         suggestions.push(...this.getContextualValues(keyName, document));
-        
+
         return suggestions;
     }
-    
+
     private getContextualValues(keyName: string, document: TextDocument): CompletionItem[] {
         const results: CompletionItem[] = [];
         const loader = getDataLoader();
-        
+
         const keyHandlers: Record<string, () => CompletionItem[]> = {
             'type': () => this.getEventTypeValues(document),
             'theme': () => this.getThemeValues(),
             'trait': () => this.getTraitValues(loader),
             'animation': () => this.getAnimationValues(),
         };
-        
+
         const handler = keyHandlers[keyName];
         if (handler) {
             return handler();
         }
-        
+
         // Pattern-based heuristics
         if (keyName.match(/^(is|has|can|allow)_/)) {
             results.push(
@@ -431,23 +519,23 @@ class ValueAssignmentStrategy implements CompletionStrategy {
                 new CompletionBuilder('no').withKind(CompletionItemKind.Constant).withRanking('0_no').build()
             );
         }
-        
+
         return results;
     }
-    
+
     private getEventTypeValues(document: TextDocument): CompletionItem[] {
         if (!document.uri.toLowerCase().includes('/events/')) {
             return [];
         }
-        
+
         const types = [
             { val: 'character_event', desc: 'Standard character event' },
             { val: 'letter_event', desc: 'Letter format event' },
             { val: 'fullscreen_event', desc: 'Fullscreen display' },
             { val: 'duel_event', desc: 'Duel interface' },
         ];
-        
-        return types.map(t => 
+
+        return types.map(t =>
             new CompletionBuilder(t.val)
                 .withKind(CompletionItemKind.EnumMember)
                 .withDetails(t.desc)
@@ -455,10 +543,10 @@ class ValueAssignmentStrategy implements CompletionStrategy {
                 .build()
         );
     }
-    
+
     private getThemeValues(): CompletionItem[] {
         const themes = ['court', 'family', 'realm', 'war', 'faith', 'culture', 'diplomacy', 'intrigue', 'learning'];
-        return themes.map(theme => 
+        return themes.map(theme =>
             new CompletionBuilder(theme)
                 .withKind(CompletionItemKind.EnumMember)
                 .withDetails('Event theme: ' + theme)
@@ -466,11 +554,11 @@ class ValueAssignmentStrategy implements CompletionStrategy {
                 .build()
         );
     }
-    
+
     private getTraitValues(loader: ReturnType<typeof getDataLoader>): CompletionItem[] {
         const traitMap = loader.getTraits();
         const items: CompletionItem[] = [];
-        
+
         for (const [traitId, traitData] of traitMap.entries()) {
             items.push(
                 new CompletionBuilder(traitId)
@@ -481,17 +569,17 @@ class ValueAssignmentStrategy implements CompletionStrategy {
                     .build()
             );
         }
-        
+
         return items;
     }
-    
+
     private getAnimationValues(): CompletionItem[] {
         const animations = [
             'personality_rational', 'personality_honorable', 'personality_bold',
             'worry', 'happiness', 'schadenfreude', 'shock', 'personality_compassionate'
         ];
-        
-        return animations.map(anim => 
+
+        return animations.map(anim =>
             new CompletionBuilder(anim)
                 .withKind(CompletionItemKind.EnumMember)
                 .withDetails('Animation type')
@@ -508,24 +596,24 @@ class ScopeNavigationStrategy implements CompletionStrategy {
     canHandle(analysis: CursorAnalysis): boolean {
         return analysis.chainedScopeAccess && analysis.scopeChainParts.length > 0;
     }
-    
+
     async generateSuggestions(analysis: CursorAnalysis, document: TextDocument): Promise<CompletionItem[]> {
         const suggestions: CompletionItem[] = [];
         const loader = getDataLoader();
         const scopeDefinitions = loader.getScopes();
-        
-        // Determine target scope type from chain
-        const targetScopeType = this.resolveScopeChainType(analysis.scopeChainParts, scopeDefinitions);
-        
+
+        // Determine target scope type from chain, starting from the inferred scope
+        const targetScopeType = this.resolveScopeChainType(analysis.scopeChainParts, scopeDefinitions, analysis.currentScopeType);
+
         if (!targetScopeType) {
             return suggestions;
         }
-        
+
         const scopeDef = scopeDefinitions.get(targetScopeType);
         if (!scopeDef || !scopeDef.links) {
             return suggestions;
         }
-        
+
         // Add available scope links
         for (const [linkName, destinationType] of Object.entries(scopeDef.links)) {
             suggestions.push(
@@ -537,21 +625,22 @@ class ScopeNavigationStrategy implements CompletionStrategy {
                     .build()
             );
         }
-        
+
         return suggestions;
     }
-    
+
     private resolveScopeChainType(
         chainParts: string[],
-        scopeDefs: Map<string, ScopeDefinition>
+        scopeDefs: Map<string, ScopeDefinition>,
+        startScope: string = DEFAULT_ROOT_SCOPE
     ): string | null {
-        let currentType: string | null = 'character'; // Default starting scope
-        
+        let currentType: string | null = startScope;
+
         for (const part of chainParts) {
             if (part === 'root' || part === 'this' || part === 'prev') {
                 continue; // These don't change type predictably
             }
-            
+
             let found = false;
             for (const [scopeType, scopeInfo] of scopeDefs.entries()) {
                 if (scopeInfo.links && scopeInfo.links[part]) {
@@ -560,12 +649,12 @@ class ScopeNavigationStrategy implements CompletionStrategy {
                     break;
                 }
             }
-            
+
             if (!found) {
                 return null; // Can't resolve further
             }
         }
-        
+
         return currentType;
     }
 }
@@ -576,36 +665,45 @@ class ScopeNavigationStrategy implements CompletionStrategy {
 class EffectCommandStrategy implements CompletionStrategy {
     canHandle(analysis: CursorAnalysis): boolean {
         // Trigger in effect blocks or immediate blocks
-        return analysis.blockIdentifier === 'effect' ||
-               analysis.blockIdentifier === 'immediate' ||
-               analysis.blockIdentifier?.includes('effect') ||
-               false;
+        if (analysis.blockIdentifier === 'effect' ||
+            analysis.blockIdentifier === 'immediate' ||
+            analysis.blockIdentifier?.includes('effect')) {
+            return true;
+        }
+
+        // Fallback: use context engine for ancestor chain and iterator-based classification
+        if (analysis.ancestorNodes.length > 0) {
+            const ctx = classifyContext(analysis.ancestorNodes, analysis.blockIdentifier, '');
+            if (ctx.context === 'effect' && ctx.confidence !== 'low') {
+                return true;
+            }
+        }
+
+        return false;
     }
-    
+
     async generateSuggestions(analysis: CursorAnalysis, document: TextDocument): Promise<CompletionItem[]> {
         const suggestions: CompletionItem[] = [];
         const loader = getDataLoader();
         const effectMap = loader.getEffects();
-        
-        const inferredScope = this.inferCurrentScope(analysis);
-        
+
+        const inferredScope = analysis.currentScopeType;
+
         for (const [effectName, effectData] of effectMap.entries()) {
-            // Filter by scope compatibility
-            if (effectData.scope && inferredScope && effectData.scope !== 'any') {
-                if (!this.areScopesCompatible(inferredScope, effectData.scope)) {
-                    continue;
-                }
+            // Filter by scope compatibility using both scope (single) and scopes (array) fields
+            if (!this.isScopeCompatible(inferredScope, effectData)) {
+                continue;
             }
-            
+
             const ranking = this.calculateEffectRanking(effectName, effectData);
-            
+
             const builder = new CompletionBuilder(effectName)
                 .withKind(CompletionItemKind.Function)
                 .withDetails(effectData.scope ? `[${effectData.scope}] Effect` : 'Effect')
                 .withPlainInsertion(effectName + ' = ')
                 .withRanking(ranking)
                 .withMetadata('effectName', effectName);
-            
+
             if (effectData.description) {
                 let docs = effectData.description;
                 if (effectData.scope) {
@@ -616,61 +714,45 @@ class EffectCommandStrategy implements CompletionStrategy {
                 }
                 builder.withMarkdownDocs(docs);
             }
-            
+
             suggestions.push(builder.build());
         }
-        
+
         return suggestions;
     }
-    
-    private inferCurrentScope(analysis: CursorAnalysis): string | null {
-        // Try to infer from document type first
-        if (analysis.documentCategory === 'character_interactions') {
-            return 'character';
+
+    private isScopeCompatible(currentScope: string, effectData: EffectDefinition): boolean {
+        // If no scope constraints, it's valid everywhere
+        if (!effectData.scope && (!effectData.scopes || effectData.scopes.length === 0)) {
+            return true;
         }
-        if (analysis.documentCategory === 'on_actions') {
-            return 'character'; // Most on_actions are character scope
+
+        // Check scopes array (new format from merged data)
+        if (effectData.scopes && effectData.scopes.length > 0) {
+            if (effectData.scopes.includes('any')) return true;
+            return effectData.scopes.includes(currentScope);
         }
-        
-        // Check ancestor nodes for scope hints
-        for (const ancestor of analysis.ancestorNodes) {
-            if (ancestor.key && ancestor.key.includes('character')) {
-                return 'character';
-            }
-            if (ancestor.key && ancestor.key.includes('title')) {
-                return 'title';
-            }
+
+        // Check scope string (legacy format)
+        if (effectData.scope) {
+            if (effectData.scope === 'any') return true;
+            return effectData.scope === currentScope;
         }
-        
-        // Fallback to default
-        return DEFAULT_ROOT_SCOPE;
+
+        return true;
     }
-    
-    private areScopesCompatible(current: string, required: string): boolean {
-        if (required === 'any') return true;
-        if (current === required) return true;
-        
-        // Add specific compatibility rules here
-        const compatibilityMap: Record<string, string[]> = {
-            'character': ['character', 'any'],
-            'title': ['title', 'any'],
-            'province': ['province', 'any'],
-        };
-        
-        return compatibilityMap[current]?.includes(required) || false;
-    }
-    
+
     private calculateEffectRanking(effectName: string, effectData: EffectDefinition): string {
         // Common effects get better ranking
         const commonEffects = new Set([
             'add_gold', 'add_prestige', 'add_piety', 'add_trait', 'remove_trait',
             'trigger_event', 'save_scope_as', 'set_variable'
         ]);
-        
+
         if (commonEffects.has(effectName)) {
             return '1_' + effectName;
         }
-        
+
         return '2_' + effectName;
     }
 }
@@ -680,36 +762,46 @@ class EffectCommandStrategy implements CompletionStrategy {
  */
 class TriggerConditionStrategy implements CompletionStrategy {
     canHandle(analysis: CursorAnalysis): boolean {
-        return analysis.blockIdentifier === 'trigger' ||
-               analysis.blockIdentifier === 'is_shown' ||
-               analysis.blockIdentifier === 'is_valid' ||
-               analysis.blockIdentifier?.includes('trigger') ||
-               false;
+        if (analysis.blockIdentifier === 'trigger' ||
+            analysis.blockIdentifier === 'is_shown' ||
+            analysis.blockIdentifier === 'is_valid' ||
+            analysis.blockIdentifier?.includes('trigger')) {
+            return true;
+        }
+
+        // Fallback: use context engine for ancestor chain and iterator-based classification
+        if (analysis.ancestorNodes.length > 0) {
+            const ctx = classifyContext(analysis.ancestorNodes, analysis.blockIdentifier, '');
+            if (ctx.context === 'trigger' && ctx.confidence !== 'low') {
+                return true;
+            }
+        }
+
+        return false;
     }
-    
+
     async generateSuggestions(analysis: CursorAnalysis, document: TextDocument): Promise<CompletionItem[]> {
         const suggestions: CompletionItem[] = [];
         const loader = getDataLoader();
         const triggerMap = loader.getTriggers();
-        
-        const inferredScope = this.inferCurrentScope(analysis);
-        
+
+        const inferredScope = analysis.currentScopeType;
+
         for (const [triggerName, triggerData] of triggerMap.entries()) {
-            if (triggerData.scope && inferredScope && triggerData.scope !== 'any') {
-                if (!this.areScopesCompatible(inferredScope, triggerData.scope)) {
-                    continue;
-                }
+            // Filter by scope compatibility using both scope (single) and scopes (array) fields
+            if (!this.isScopeCompatible(inferredScope, triggerData)) {
+                continue;
             }
-            
+
             const ranking = this.calculateTriggerRanking(triggerName);
-            
+
             const builder = new CompletionBuilder(triggerName)
                 .withKind(CompletionItemKind.Function)
                 .withDetails(triggerData.scope ? `[${triggerData.scope}] Trigger` : 'Trigger')
                 .withPlainInsertion(triggerName + ' = ')
                 .withRanking(ranking)
                 .withMetadata('triggerName', triggerName);
-            
+
             if (triggerData.description) {
                 let docs = triggerData.description;
                 if (triggerData.scope) {
@@ -720,37 +812,78 @@ class TriggerConditionStrategy implements CompletionStrategy {
                 }
                 builder.withMarkdownDocs(docs);
             }
-            
+
             suggestions.push(builder.build());
         }
-        
+
         return suggestions;
     }
-    
-    private inferCurrentScope(analysis: CursorAnalysis): string | null {
-        for (const ancestor of analysis.ancestorNodes) {
-            if (ancestor.key && ancestor.key.includes('character')) {
-                return 'character';
-            }
+
+    private isScopeCompatible(currentScope: string, triggerData: TriggerDefinition): boolean {
+        // If no scope constraints, it's valid everywhere
+        if (!triggerData.scope && (!triggerData.scopes || triggerData.scopes.length === 0)) {
+            return true;
         }
-        return 'character';
+
+        // Check scopes array (new format from merged data)
+        if (triggerData.scopes && triggerData.scopes.length > 0) {
+            if (triggerData.scopes.includes('any')) return true;
+            return triggerData.scopes.includes(currentScope);
+        }
+
+        // Check scope string (legacy format)
+        if (triggerData.scope) {
+            if (triggerData.scope === 'any') return true;
+            return triggerData.scope === currentScope;
+        }
+
+        return true;
     }
-    
-    private areScopesCompatible(current: string, required: string): boolean {
-        if (required === 'any') return true;
-        return current === required;
-    }
-    
+
     private calculateTriggerRanking(triggerName: string): string {
         const commonTriggers = new Set([
             'has_trait', 'is_alive', 'age', 'has_title', 'gold', 'prestige', 'piety'
         ]);
-        
+
         if (commonTriggers.has(triggerName)) {
             return '1_' + triggerName;
         }
-        
+
         return '2_' + triggerName;
+    }
+}
+
+/**
+ * Saved scope completion strategy (scope:xxx)
+ */
+class SavedScopeStrategy implements CompletionStrategy {
+    constructor(private indexer: DocumentIndexer) { }
+
+    canHandle(analysis: CursorAnalysis): boolean {
+        return analysis.textBeforeCursor.trimEnd().endsWith('scope:');
+    }
+
+    async generateSuggestions(analysis: CursorAnalysis, document: TextDocument): Promise<CompletionItem[]> {
+        const suggestions: CompletionItem[] = [];
+        const scopeSymbols = this.indexer.findSymbolsByType(SymbolType.SCOPE);
+
+        const seen = new Set<string>();
+        for (const sym of scopeSymbols) {
+            if (seen.has(sym.name)) continue;
+            seen.add(sym.name);
+
+            const fileName = sym.uri.split('/').pop() || sym.uri;
+            suggestions.push(
+                new CompletionBuilder(sym.name)
+                    .withKind(CompletionItemKind.Variable)
+                    .withDetails(`Saved scope from ${fileName}`)
+                    .withPlainDocs(`Saved scope defined at line ${sym.range.start.line + 1}`)
+                    .withRanking('0_' + sym.name)
+                    .build()
+            );
+        }
+
+        return suggestions;
     }
 }
 
@@ -760,11 +893,13 @@ class TriggerConditionStrategy implements CompletionStrategy {
 export class CompletionProvider {
     private strategies: CompletionStrategy[];
     private documentAnalysisCache: WeakMap<TextDocument, Map<number, CursorAnalysis>> = new WeakMap();
-    
+    private cursorDocument: TextDocument | null = null;
+
     constructor(
         private parser: CK3Parser,
         private indexer: DocumentIndexer,
-        private schemaLoader: SchemaLoader
+        private schemaLoader: SchemaLoader,
+        private modScanner?: ModScanner
     ) {
         // Initialize strategy pipeline with dependencies
         this.strategies = [
@@ -772,11 +907,12 @@ export class CompletionProvider {
             new SchemaFieldStrategy(schemaLoader),
             new ValueAssignmentStrategy(schemaLoader),
             new ScopeNavigationStrategy(),
+            new SavedScopeStrategy(indexer),
             new EffectCommandStrategy(),
             new TriggerConditionStrategy(),
         ];
     }
-    
+
     /**
      * Main entry point for completion requests
      */
@@ -784,32 +920,35 @@ export class CompletionProvider {
         try {
             // Analyze cursor position
             const analysis = await this.analyzeCursorPosition(document, position);
-            
+
             // Collect completions from all applicable strategies
             const allCompletions: CompletionItem[] = [];
-            
+
             for (const strategy of this.strategies) {
                 if (strategy.canHandle(analysis)) {
                     const strategyResults = await strategy.generateSuggestions(analysis, document);
                     allCompletions.push(...strategyResults);
                 }
             }
-            
+
+            // Add mod-aware completions
+            allCompletions.push(...this.getModCompletions(analysis));
+
             // Sort by ranking
             allCompletions.sort((a, b) => {
                 const rankA = a.sortText || a.label;
                 const rankB = b.sortText || b.label;
                 return rankA.localeCompare(rankB);
             });
-            
+
             return allCompletions;
-            
+
         } catch (error) {
-            console.error('Completion generation error:', error);
+            serverLogger.error('Completion generation error:', error);
             return [];
         }
     }
-    
+
     /**
      * Resolve completion item with additional details (lazy loading)
      */
@@ -817,75 +956,76 @@ export class CompletionProvider {
         if (!item.data) {
             return item;
         }
-        
+
         try {
             const loader = getDataLoader();
-            
+
             // Handle effect documentation
             if (item.data.effectName) {
                 const effectMap = loader.getEffects();
                 const effectInfo = effectMap.get(item.data.effectName);
-                
+
                 if (effectInfo && effectInfo.examples && effectInfo.examples.length > 0) {
-                    const currentDocs = typeof item.documentation === 'string' 
-                        ? item.documentation 
+                    const currentDocs = typeof item.documentation === 'string'
+                        ? item.documentation
                         : item.documentation?.value || '';
-                    
+
                     const exampleText = `\n\n**Example:**\n\`\`\`ck3\n${effectInfo.examples[0]}\n\`\`\``;
-                    
+
                     item.documentation = {
                         kind: MarkupKind.Markdown,
                         value: currentDocs + exampleText,
                     };
                 }
             }
-            
+
             // Handle trigger documentation
             if (item.data.triggerName) {
                 const triggerMap = loader.getTriggers();
                 const triggerInfo = triggerMap.get(item.data.triggerName);
-                
+
                 if (triggerInfo && triggerInfo.examples && triggerInfo.examples.length > 0) {
                     const currentDocs = typeof item.documentation === 'string'
                         ? item.documentation
                         : item.documentation?.value || '';
-                    
+
                     const exampleText = `\n\n**Example:**\n\`\`\`ck3\n${triggerInfo.examples[0]}\n\`\`\``;
-                    
+
                     item.documentation = {
                         kind: MarkupKind.Markdown,
                         value: currentDocs + exampleText,
                     };
                 }
             }
-            
+
             // Handle schema field documentation
             if (item.data.fieldSchema) {
                 const { schemaName, fieldName } = item.data.fieldSchema;
                 const schema = await this.schemaLoader.loadSchema(schemaName);
-                
+
                 if (schema?.properties?.[fieldName]) {
                     const field = schema.properties[fieldName] as SchemaField;
-                    
+
                     if (field.description && !item.documentation) {
                         item.documentation = field.description;
                     }
                 }
             }
-            
+
         } catch (error) {
-            console.error('Error resolving completion:', error);
+            serverLogger.error('Error resolving completion:', error);
         }
-        
+
         return item;
     }
-    
+
     /**
      * Analyze cursor position and build comprehensive context
      */
     private async analyzeCursorPosition(document: TextDocument, position: Position): Promise<CursorAnalysis> {
         const analysis = new CursorAnalysis();
-        
+        this.cursorDocument = document;
+
         // Extract text segments
         analysis.fullDocumentText = document.getText();
         analysis.lineText = document.getText({
@@ -895,50 +1035,49 @@ export class CompletionProvider {
         analysis.textBeforeCursor = analysis.lineText.substring(0, position.character);
         analysis.textAfterCursor = analysis.lineText.substring(position.character);
         analysis.cursorOffset = document.offsetAt(position);
-        
+
         // Parse AST
         const parseResult = this.parser.parse(analysis.fullDocumentText);
         analysis.astTree = parseResult.ast;
-        
+
         // Find node at cursor
         analysis.nearestNode = this.locateNodeAtOffset(parseResult.ast, analysis.cursorOffset);
-        
+
         // Build ancestor chain
         analysis.ancestorNodes = this.buildAncestorChain(parseResult.ast, analysis.nearestNode);
-        
+
         // Analyze semantic context
         this.analyzeSemanticContext(analysis);
-        
+
         // Determine document category
         analysis.documentCategory = this.categorizeDocument(document.uri);
-        
+
+        // Infer current scope type from ancestor chain
+        analysis.currentScopeType = this.inferScopeFromAncestors(analysis, document.uri);
+
         // Extract used identifiers in current block
         if (analysis.nearestNode && analysis.nearestNode.type === NodeType.BLOCK) {
             analysis.usedIdentifiers = this.extractUsedKeys(analysis.nearestNode);
         }
-        
+
         return analysis;
     }
-    
+
     /**
-     * Locate AST node at specific offset
+     * Locate AST node at specific offset using Position-based comparison
      */
     private locateNodeAtOffset(root: ASTNode, offset: number): ASTNode | null {
         if (!root.range) {
             return null;
         }
-        
-        // Simple offset comparison (would need proper offset calculation in production)
-        const nodeStart = root.range.start;
-        const nodeEnd = root.range.end;
-        
-        // Check if offset is within this node
-        const withinNode = this.isOffsetInRange(offset, nodeStart, nodeEnd);
-        
+
+        // Check if offset is within this node's range
+        const withinNode = this.isOffsetInRange(offset, root.range.start, root.range.end);
+
         if (!withinNode) {
             return null;
         }
-        
+
         // Check children for more specific match
         if (root.children) {
             for (const child of root.children) {
@@ -948,26 +1087,34 @@ export class CompletionProvider {
                 }
             }
         }
-        
+
         return root;
     }
-    
+
+    /**
+     * Check if offset falls within a Position range.
+     * Since we don't have the document here to convert offset to Position,
+     * we store the document in cursorDocument during analyzeCursorPosition
+     * and use it for offset-to-position conversion.
+     */
     private isOffsetInRange(offset: number, start: Position, end: Position): boolean {
-        // Convert positions to offsets for comparison
-        // Note: This is a simplified implementation
-        // In production, would need document reference to calculate actual offsets
-        
-        // Basic line/character comparison
-        const startLine = start.line;
-        const endLine = end.line;
-        const startChar = start.character;
-        const endChar = end.character;
-        
-        // For now, return true to maintain functionality
-        // TODO: Implement proper offset calculation with document reference
+        if (!this.cursorDocument) {
+            return true; // Fallback: match everything if no document reference
+        }
+
+        const pos = this.cursorDocument.positionAt(offset);
+
+        // Check pos >= start
+        if (pos.line < start.line || (pos.line === start.line && pos.character < start.character)) {
+            return false;
+        }
+        // Check pos <= end
+        if (pos.line > end.line || (pos.line === end.line && pos.character > end.character)) {
+            return false;
+        }
         return true;
     }
-    
+
     /**
      * Build chain of ancestor nodes
      */
@@ -975,18 +1122,18 @@ export class CompletionProvider {
         if (!target) {
             return [];
         }
-        
+
         const chain: ASTNode[] = [];
         this.collectAncestors(root, target, chain);
         return chain;
     }
-    
+
     private collectAncestors(node: ASTNode, target: ASTNode, accumulator: ASTNode[]): boolean {
         if (node === target) {
             accumulator.unshift(node);
             return true;
         }
-        
+
         if (node.children) {
             for (const child of node.children) {
                 if (this.collectAncestors(child, target, accumulator)) {
@@ -995,30 +1142,30 @@ export class CompletionProvider {
                 }
             }
         }
-        
+
         return false;
     }
-    
+
     /**
      * Analyze semantic context from text and AST
      */
     private analyzeSemanticContext(analysis: CursorAnalysis): void {
         const beforeText = analysis.textBeforeCursor;
-        
+
         // Check for assignment operators
         const assignmentMatch = beforeText.match(/(\w+)\s*=\s*$/);
         if (assignmentMatch) {
             analysis.afterAssignmentOp = true;
             analysis.assignmentKey = assignmentMatch[1];
         }
-        
+
         // Check for scope chain
         const scopeChainMatch = beforeText.match(/([\w:]+(?:\.[\w:]*)+)$/);
         if (scopeChainMatch) {
             analysis.chainedScopeAccess = true;
             analysis.scopeChainParts = scopeChainMatch[1].split('.');
         }
-        
+
         // Determine block context
         for (let i = analysis.ancestorNodes.length - 1; i >= 0; i--) {
             const ancestor = analysis.ancestorNodes[i];
@@ -1029,13 +1176,54 @@ export class CompletionProvider {
             }
         }
     }
-    
+
+    /**
+     * Infer the current scope type by walking the ancestor chain.
+     * Uses data-driven scope transitions from scope YAML files.
+     */
+    private inferScopeFromAncestors(analysis: CursorAnalysis, fileUri?: string): string {
+        // Use DirectoryRegistry default scope as the initial scope if available
+        let scopeType = DEFAULT_ROOT_SCOPE;
+        if (fileUri) {
+            const registry = DirectoryRegistry.getInstance();
+            if (registry.isLoaded()) {
+                const defaultScope = registry.getDefaultScope(fileUri);
+                if (defaultScope && defaultScope !== 'none') {
+                    scopeType = defaultScope;
+                }
+            }
+        }
+
+        // Walk ancestors from root to leaf, transitioning scope at each step
+        for (const ancestor of analysis.ancestorNodes) {
+            if (!ancestor.key) continue;
+
+            // Check if this ancestor is a scope link (e.g., "liege", "primary_title")
+            const linkTarget = getTargetScopeType(scopeType, ancestor.key);
+            if (linkTarget) {
+                scopeType = linkTarget;
+                continue;
+            }
+
+            // Check if this ancestor is a list iterator (e.g., "every_vassal", "any_held_title")
+            const parsed = parseListIterator(ancestor.key);
+            if (parsed) {
+                const resultScope = getListResultScope(ancestor.key, scopeType);
+                if (resultScope) {
+                    scopeType = resultScope;
+                }
+            }
+        }
+
+        return scopeType;
+    }
+
     /**
      * Categorize document by file path
      */
     private categorizeDocument(uri: string): string | null {
         const lowerUri = uri.toLowerCase();
-        
+
         if (lowerUri.includes('/events/') || lowerUri.includes('\\events\\')) {
             return 'events';
         }
@@ -1048,16 +1236,16 @@ export class CompletionProvider {
         if (lowerUri.includes('/on_actions/')) {
             return 'on_actions';
         }
-        
+
         return null;
     }
-    
+
     /**
      * Extract already-used keys in a block
      */
     private extractUsedKeys(blockNode: ASTNode): Set<string> {
         const keys = new Set<string>();
-        
+
         if (blockNode.children) {
             for (const child of blockNode.children) {
                 if (child.key) {
@@ -1065,7 +1253,54 @@ export class CompletionProvider {
                 }
             }
         }
-        
+
         return keys;
+    }
+
+    /**
+     * Generate completion items from mod data
+     */
+    private getModCompletions(analysis: CursorAnalysis): CompletionItem[] {
+        if (!this.modScanner || !this.modScanner.hasDiscoveredMods()) return [];
+
+        const items: CompletionItem[] = [];
+
+        // Add mod triggers
+        for (const [name, item] of this.modScanner.getAllTriggers()) {
+            if (analysis.usedIdentifiers?.has(name)) continue;
+            items.push({
+                label: name,
+                kind: CompletionItemKind.Function,
+                detail: `\uD83D\uDCE6 ${item.source} Trigger`,
+                documentation: item.description || `Scripted trigger from ${item.source}`,
+                sortText: `z_${name}`,
+            });
+        }
+
+        // Add mod effects
+        for (const [name, item] of this.modScanner.getAllEffects()) {
+            if (analysis.usedIdentifiers?.has(name)) continue;
+            items.push({
+                label: name,
+                kind: CompletionItemKind.Function,
+                detail: `\uD83D\uDCE6 ${item.source} Effect`,
+                documentation: item.description || `Scripted effect from ${item.source}`,
+                sortText: `z_${name}`,
+            });
+        }
+
+        // Add mod traits
+        for (const [name, item] of this.modScanner.getAllTraits()) {
+            if (analysis.usedIdentifiers?.has(name)) continue;
+            items.push({
+                label: name,
+                kind: CompletionItemKind.EnumMember,
+                detail: `\uD83D\uDCE6 ${item.source} Trait`,
+                documentation: item.description || `Trait from ${item.source}`,
+                sortText: `z_${name}`,
+            });
+        }
+
+        return items;
     }
 }

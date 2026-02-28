@@ -1,0 +1,500 @@
+# CK3 Education Traits
+# Auto-generated from CK3 game files
+# Total traits: 33
+
+education_diplomacy_1:
+  category: education
+  opposites: []
+  group: education_diplomacy
+  level: 1
+  description: Diplomacy education level 1
+  skills:
+    diplomacy: 2
+  lifestyle_xp_gains:
+    diplomacy: 0.1
+  ruler_designer_cost: 0
+  flags:
+  - level_1_education
+  - civilian_province
+  minimum_age: 16
+education_diplomacy_2:
+  category: education
+  opposites: []
+  group: education_diplomacy
+  level: 2
+  description: Diplomacy education level 2
+  skills:
+    diplomacy: 4
+  lifestyle_xp_gains:
+    diplomacy: 0.2
+  ruler_designer_cost: 20
+  flags:
+  - level_2_education
+  - civilian_province
+  minimum_age: 16
+education_diplomacy_3:
+  category: education
+  opposites: []
+  group: education_diplomacy
+  level: 3
+  description: Diplomacy education level 3
+  skills:
+    diplomacy: 6
+  lifestyle_xp_gains:
+    diplomacy: 0.3
+  ruler_designer_cost: 40
+  flags:
+  - level_3_education
+  - civilian_province
+  minimum_age: 16
+education_diplomacy_4:
+  category: education
+  opposites: []
+  group: education_diplomacy
+  level: 4
+  description: Diplomacy education level 4
+  skills:
+    diplomacy: 8
+  lifestyle_xp_gains:
+    diplomacy: 0.4
+  ruler_designer_cost: 80
+  flags:
+  - level_4_education
+  - civilian_province
+  minimum_age: 16
+education_diplomacy_5:
+  category: education
+  opposites: []
+  group: education_diplomacy
+  level: 5
+  description: Diplomacy education level 5
+  skills:
+    diplomacy: 10
+    martial: 3
+  lifestyle_xp_gains:
+    diplomacy: 0.5
+    martial: 0.25
+  ruler_designer_cost: 150
+  flags:
+  - offer_vassalisation_25
+  - better_war_hostages
+  - level_5_education
+  - civilian_province
+  minimum_age: 16
+education_intrigue_1:
+  category: education
+  opposites: []
+  group: education_intrigue
+  level: 1
+  description: Intrigue education level 1
+  skills:
+    intrigue: 2
+  lifestyle_xp_gains:
+    intrigue: 0.1
+  ruler_designer_cost: 0
+  flags:
+  - level_1_education
+  - civilian_province
+  minimum_age: 16
+education_intrigue_2:
+  category: education
+  opposites: []
+  group: education_intrigue
+  level: 2
+  description: Intrigue education level 2
+  skills:
+    intrigue: 4
+  lifestyle_xp_gains:
+    intrigue: 0.2
+  ruler_designer_cost: 20
+  flags:
+  - level_2_education
+  - civilian_province
+  minimum_age: 16
+education_intrigue_3:
+  category: education
+  opposites: []
+  group: education_intrigue
+  level: 3
+  description: Intrigue education level 3
+  skills:
+    intrigue: 6
+  lifestyle_xp_gains:
+    intrigue: 0.3
+  ruler_designer_cost: 40
+  flags:
+  - level_3_education
+  - civilian_province
+  minimum_age: 16
+education_intrigue_4:
+  category: education
+  opposites: []
+  group: education_intrigue
+  level: 4
+  description: Intrigue education level 4
+  skills:
+    intrigue: 8
+  lifestyle_xp_gains:
+    intrigue: 0.4
+  ruler_designer_cost: 80
+  flags:
+  - level_4_education
+  - civilian_province
+  minimum_age: 16
+education_intrigue_5:
+  category: education
+  opposites: []
+  group: education_intrigue
+  level: 5
+  description: Intrigue education level 5
+  skills:
+    diplomacy: 3
+    intrigue: 10
+  lifestyle_xp_gains:
+    diplomacy: 0.25
+    intrigue: 0.5
+  ruler_designer_cost: 150
+  flags:
+  - agent_acceptance_25
+  - level_5_education
+  - civilian_province
+  minimum_age: 16
+education_learning_1:
+  category: education
+  opposites: []
+  group: education_learning
+  level: 1
+  description: Learning education level 1
+  skills:
+    learning: 2
+    prowess: 1
+  lifestyle_xp_gains:
+    learning: 0.1
+  ruler_designer_cost: 0
+  flags:
+  - level_1_education
+  - civilian_province
+  minimum_age: 16
+education_learning_2:
+  category: education
+  opposites: []
+  group: education_learning
+  level: 2
+  description: Learning education level 2
+  skills:
+    learning: 4
+    prowess: 2
+  lifestyle_xp_gains:
+    learning: 0.2
+  ruler_designer_cost: 20
+  flags:
+  - level_2_education
+  - civilian_province
+  minimum_age: 16
+education_learning_3:
+  category: education
+  opposites: []
+  group: education_learning
+  level: 3
+  description: Learning education level 3
+  skills:
+    learning: 6
+    prowess: 3
+  lifestyle_xp_gains:
+    learning: 0.3
+  ruler_designer_cost: 40
+  flags:
+  - level_3_education
+  - civilian_province
+  minimum_age: 16
+education_learning_4:
+  category: education
+  opposites: []
+  group: education_learning
+  level: 4
+  description: Learning education level 4
+  skills:
+    learning: 8
+    prowess: 4
+  lifestyle_xp_gains:
+    learning: 0.4
+  ruler_designer_cost: 80
+  flags:
+  - level_4_education
+  - civilian_province
+  minimum_age: 16
+education_learning_5:
+  category: education
+  opposites: []
+  group: education_learning
+  level: 5
+  description: Learning education level 5
+  skills:
+    intrigue: 3
+    learning: 10
+    prowess: 4
+  lifestyle_xp_gains:
+    intrigue: 0.25
+    learning: 0.5
+  ruler_designer_cost: 150
+  flags:
+  - level_5_education
+  - civilian_province
+  minimum_age: 16
+education_martial_1:
+  category: education
+  opposites: []
+  group: education_martial
+  level: 1
+  description: Martial education level 1
+  skills:
+    martial: 2
+    prowess: 1
+  opinions:
+    attraction_opinion: 4
+  lifestyle_xp_gains:
+    martial: 0.1
+  ruler_designer_cost: 0
+  flags:
+  - level_1_education
+  - military_province
+  minimum_age: 16
+education_martial_2:
+  category: education
+  opposites: []
+  group: education_martial
+  level: 2
+  description: Martial education level 2
+  skills:
+    martial: 4
+    prowess: 2
+  opinions:
+    attraction_opinion: 6
+  lifestyle_xp_gains:
+    martial: 0.2
+  ruler_designer_cost: 20
+  flags:
+  - level_2_education
+  - military_province
+  minimum_age: 16
+education_martial_3:
+  category: education
+  opposites: []
+  group: education_martial
+  level: 3
+  description: Martial education level 3
+  skills:
+    martial: 6
+    prowess: 3
+  opinions:
+    attraction_opinion: 8
+  lifestyle_xp_gains:
+    martial: 0.3
+  ruler_designer_cost: 40
+  flags:
+  - level_3_education
+  - military_province
+  minimum_age: 16
+education_martial_4:
+  category: education
+  opposites: []
+  group: education_martial
+  level: 4
+  description: Martial education level 4
+  skills:
+    martial: 8
+    prowess: 4
+  opinions:
+    attraction_opinion: 10
+  lifestyle_xp_gains:
+    martial: 0.4
+  ruler_designer_cost: 80
+  flags:
+  - level_4_education
+  - military_province
+  minimum_age: 16
+  modifiers:
+    advantage: 5
+education_martial_5:
+  category: education
+  opposites: []
+  group: education_martial
+  level: 5
+  description: Martial education level 5
+  skills:
+    martial: 10
+    stewardship: 3
+    prowess: 5
+  opinions:
+    attraction_opinion: 10
+  lifestyle_xp_gains:
+    martial: 0.5
+    stewardship: 0.25
+  ruler_designer_cost: 150
+  flags:
+  - level_5_education
+  - military_province
+  minimum_age: 16
+  modifiers:
+    advantage: 5
+education_martial_prowess_1:
+  category: education
+  opposites: []
+  group: education_martial_prowess
+  level: 1
+  description: Martial education level prowess
+  skills:
+    prowess: 1
+  minimum_age: 16
+  modifiers:
+    monthly_prestige: 0.1
+education_martial_prowess_2:
+  category: education
+  opposites: []
+  group: education_martial_prowess
+  level: 2
+  description: Martial education level prowess
+  skills:
+    prowess: 2
+  minimum_age: 16
+  modifiers:
+    monthly_prestige: 0.2
+education_martial_prowess_3:
+  category: education
+  opposites: []
+  group: education_martial_prowess
+  level: 3
+  description: Martial education level prowess
+  skills:
+    prowess: 3
+  minimum_age: 16
+  modifiers:
+    monthly_prestige: 0.3
+education_martial_prowess_4:
+  category: education
+  opposites: []
+  group: education_martial_prowess
+  level: 4
+  description: Martial education level prowess
+  skills:
+    prowess: 4
+  minimum_age: 16
+  modifiers:
+    monthly_prestige: 0.4
+education_republican_knowledge_1:
+  category: education
+  opposites: []
+  group: education_republican_knowledge
+  level: 1
+  description: Republican education level knowledge
+  skills:
+    stewardship: 1
+    learning: 1
+  minimum_age: 16
+education_republican_knowledge_2:
+  category: education
+  opposites: []
+  group: education_republican_knowledge
+  level: 2
+  description: Republican education level knowledge
+  skills:
+    stewardship: 2
+    learning: 2
+  minimum_age: 16
+education_republican_knowledge_3:
+  category: education
+  opposites: []
+  group: education_republican_knowledge
+  level: 3
+  description: Republican education level knowledge
+  skills:
+    stewardship: 3
+    learning: 3
+  minimum_age: 16
+education_republican_knowledge_4:
+  category: education
+  opposites: []
+  group: education_republican_knowledge
+  level: 4
+  description: Republican education level knowledge
+  skills:
+    stewardship: 4
+    learning: 4
+  minimum_age: 16
+education_stewardship_1:
+  category: education
+  opposites: []
+  group: education_stewardship
+  level: 1
+  description: Stewardship education level 1
+  skills:
+    stewardship: 2
+  lifestyle_xp_gains:
+    stewardship: 0.1
+  ruler_designer_cost: 0
+  flags:
+  - level_1_education
+  - civilian_province
+  minimum_age: 16
+education_stewardship_2:
+  category: education
+  opposites: []
+  group: education_stewardship
+  level: 2
+  description: Stewardship education level 2
+  skills:
+    stewardship: 4
+  lifestyle_xp_gains:
+    stewardship: 0.2
+  ruler_designer_cost: 20
+  flags:
+  - level_2_education
+  - civilian_province
+  minimum_age: 16
+education_stewardship_3:
+  category: education
+  opposites: []
+  group: education_stewardship
+  level: 3
+  description: Stewardship education level 3
+  skills:
+    stewardship: 6
+  lifestyle_xp_gains:
+    stewardship: 0.3
+  ruler_designer_cost: 40
+  flags:
+  - level_3_education
+  - civilian_province
+  minimum_age: 16
+education_stewardship_4:
+  category: education
+  opposites: []
+  group: education_stewardship
+  level: 4
+  description: Stewardship education level 4
+  skills:
+    stewardship: 8
+  lifestyle_xp_gains:
+    stewardship: 0.4
+  ruler_designer_cost: 80
+  flags:
+  - level_4_education
+  - civilian_province
+  minimum_age: 16
+education_stewardship_5:
+  category: education
+  opposites: []
+  group: education_stewardship
+  level: 5
+  description: Stewardship education level 5
+  skills:
+    stewardship: 10
+    learning: 3
+  lifestyle_xp_gains:
+    stewardship: 0.5
+    learning: 0.25
+  ruler_designer_cost: 150
+  flags:
+  - level_5_education
+  - civilian_province
+  minimum_age: 16

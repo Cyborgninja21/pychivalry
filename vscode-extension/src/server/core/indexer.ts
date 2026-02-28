@@ -44,6 +44,10 @@ export enum SymbolType {
     STORY_CYCLE = 'story_cycle',
     ACTIVITY = 'activity',
     SCHEME = 'scheme',
+    CHARACTER_FLAG = 'character_flag',
+    OPINION_MODIFIER = 'opinion_modifier',
+    SCRIPTED_GUI = 'scripted_gui',
+    DECISION_GROUP_TYPE = 'decision_group_type',
     GENERIC = 'generic',
 }
 
@@ -61,20 +65,20 @@ export class DocumentIndexer {
     public async indexDocument(uri: string, ast: ASTNode): Promise<void> {
         // Clear existing symbols for this document
         this.removeDocument(uri);
-        
+
         // Extract symbols from AST
         const symbols = this.extractSymbols(uri, ast);
-        
+
         // Store symbols
         this.symbols.set(uri, symbols);
-        
+
         // Update name index
         for (const symbol of symbols) {
             if (!this.nameIndex.has(symbol.name)) {
                 this.nameIndex.set(symbol.name, []);
             }
             this.nameIndex.get(symbol.name)!.push(symbol);
-            
+
             // Update type index
             if (!this.typeIndex.has(symbol.type)) {
                 this.typeIndex.set(symbol.type, []);
@@ -89,33 +93,31 @@ export class DocumentIndexer {
     public removeDocument(uri: string): void {
         const symbols = this.symbols.get(uri);
         if (!symbols) return;
-        
-        // Remove from name index
+
+        // Remove from name index — use filter() to remove ALL symbols from this URI
         for (const symbol of symbols) {
             const nameSymbols = this.nameIndex.get(symbol.name);
             if (nameSymbols) {
-                const index = nameSymbols.findIndex(s => s.uri === uri);
-                if (index !== -1) {
-                    nameSymbols.splice(index, 1);
-                }
-                if (nameSymbols.length === 0) {
+                const filtered = nameSymbols.filter(s => s.uri !== uri);
+                if (filtered.length === 0) {
                     this.nameIndex.delete(symbol.name);
+                } else {
+                    this.nameIndex.set(symbol.name, filtered);
                 }
             }
-            
+
             // Remove from type index
             const typeSymbols = this.typeIndex.get(symbol.type);
             if (typeSymbols) {
-                const index = typeSymbols.findIndex(s => s.uri === uri);
-                if (index !== -1) {
-                    typeSymbols.splice(index, 1);
-                }
-                if (typeSymbols.length === 0) {
+                const filtered = typeSymbols.filter(s => s.uri !== uri);
+                if (filtered.length === 0) {
                     this.typeIndex.delete(symbol.type);
+                } else {
+                    this.typeIndex.set(symbol.type, filtered);
                 }
             }
         }
-        
+
         this.symbols.delete(uri);
     }
 
@@ -146,7 +148,7 @@ export class DocumentIndexer {
     public searchSymbols(pattern: string): Symbol[] {
         const results: Symbol[] = [];
         const lowerPattern = pattern.toLowerCase();
-        
+
         for (const symbols of this.nameIndex.values()) {
             for (const symbol of symbols) {
                 if (symbol.name.toLowerCase().includes(lowerPattern)) {
@@ -154,7 +156,7 @@ export class DocumentIndexer {
                 }
             }
         }
-        
+
         return results;
     }
 
@@ -163,9 +165,9 @@ export class DocumentIndexer {
      */
     private extractSymbols(uri: string, ast: ASTNode): Symbol[] {
         const symbols: Symbol[] = [];
-        
+
         if (!ast.children) return symbols;
-        
+
         // Detect document type by URI pattern
         const isEventFile = /events?\//.test(uri);
         const isDecisionFile = /decisions?\//.test(uri);
@@ -175,16 +177,22 @@ export class DocumentIndexer {
         const isStoryCycleFile = /story_cycles?\//.test(uri);
         const isActivityFile = /activities\//.test(uri);
         const isSchemeFile = /schemes\//.test(uri);
-        
+        const isScriptedGUIFile = /scripted_guis?\//.test(uri);
+        const isDecisionGroupTypeFile = /decision_group_types?\//.test(uri);
+        const isScriptValueFile = /script_values?\//.test(uri);
+        const isTraitFile = /common\/traits?\//.test(uri);
+        const isModifierFile = /common\/modifiers?\//.test(uri);
+        const isOpinionModifierFile = /opinion_modifiers?\//.test(uri);
+
         // Extract symbols based on file type
         for (const node of ast.children) {
             if (node.type === NodeType.BLOCK || node.type === NodeType.ASSIGNMENT) {
                 const name = node.key;
                 if (!name) continue;
-                
+
                 let type: SymbolType = SymbolType.GENERIC;
                 let detail: string | undefined;
-                
+
                 // Determine symbol type based on context
                 if (isEventFile) {
                     type = SymbolType.EVENT;
@@ -208,8 +216,20 @@ export class DocumentIndexer {
                     } else {
                         type = SymbolType.SCRIPTED_TRIGGER;
                     }
+                } else if (isScriptedGUIFile) {
+                    type = SymbolType.SCRIPTED_GUI;
+                } else if (isDecisionGroupTypeFile) {
+                    type = SymbolType.DECISION_GROUP_TYPE;
+                } else if (isScriptValueFile) {
+                    type = SymbolType.SCRIPT_VALUE;
+                } else if (isTraitFile) {
+                    type = SymbolType.TRAIT;
+                } else if (isModifierFile) {
+                    type = SymbolType.MODIFIER;
+                } else if (isOpinionModifierFile) {
+                    type = SymbolType.OPINION_MODIFIER;
                 }
-                
+
                 // Check for namespace (events have namespace.id format)
                 if (type === SymbolType.EVENT && name.includes('.')) {
                     const [namespace] = name.split('.');
@@ -221,7 +241,7 @@ export class DocumentIndexer {
                         range: node.range,
                     });
                 }
-                
+
                 symbols.push({
                     name,
                     type,
@@ -229,14 +249,14 @@ export class DocumentIndexer {
                     range: node.range,
                     detail,
                 });
-                
+
                 // Recursively extract nested symbols
                 if (node.children) {
                     symbols.push(...this.extractNestedSymbols(uri, node.children));
                 }
             }
         }
-        
+
         return symbols;
     }
 
@@ -245,7 +265,7 @@ export class DocumentIndexer {
      */
     private extractNestedSymbols(uri: string, nodes: ASTNode[]): Symbol[] {
         const symbols: Symbol[] = [];
-        
+
         for (const node of nodes) {
             // Look for save_scope_as or save_temporary_scope_as
             if ((node.key === 'save_scope_as' || node.key === 'save_temporary_scope_as') && node.value) {
@@ -256,7 +276,7 @@ export class DocumentIndexer {
                     range: node.range,
                 });
             }
-            
+
             // Look for set_variable
             if (node.key === 'set_variable' && node.children) {
                 const nameNode = node.children.find(c => c.key === 'name');
@@ -269,13 +289,13 @@ export class DocumentIndexer {
                     });
                 }
             }
-            
+
             // Recurse into blocks
             if (node.children) {
                 symbols.push(...this.extractNestedSymbols(uri, node.children));
             }
         }
-        
+
         return symbols;
     }
 
@@ -284,17 +304,17 @@ export class DocumentIndexer {
      */
     private extractEventDetail(node: ASTNode): string | undefined {
         if (!node.children) return undefined;
-        
+
         const titleNode = node.children.find(c => c.key === 'title');
         if (titleNode && titleNode.value) {
             return String(titleNode.value);
         }
-        
+
         const descNode = node.children.find(c => c.key === 'desc');
         if (descNode && descNode.value) {
             return String(descNode.value);
         }
-        
+
         return undefined;
     }
 
@@ -303,12 +323,12 @@ export class DocumentIndexer {
      */
     private extractDecisionDetail(node: ASTNode): string | undefined {
         if (!node.children) return undefined;
-        
+
         const titleNode = node.children.find(c => c.key === 'title');
         if (titleNode && titleNode.value) {
             return String(titleNode.value);
         }
-        
+
         return undefined;
     }
 
@@ -321,16 +341,16 @@ export class DocumentIndexer {
         symbolsByType: Record<string, number>;
     } {
         const symbolsByType: Record<string, number> = {};
-        
+
         for (const [type, symbols] of this.typeIndex.entries()) {
             symbolsByType[type] = symbols.length;
         }
-        
+
         let totalSymbols = 0;
         for (const symbols of this.symbols.values()) {
             totalSymbols += symbols.length;
         }
-        
+
         return {
             totalDocuments: this.symbols.size,
             totalSymbols,

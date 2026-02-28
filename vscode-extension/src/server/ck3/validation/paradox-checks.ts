@@ -65,16 +65,14 @@ export const DEFAULT_PARADOX_CONFIG: ParadoxConfig = {
  * Check if an identifier is an effect
  */
 function isEffect(identifier: string): boolean {
-    const effects = CK3Language.getEffects();
-    return identifier in effects;
+    return CK3Language.isEffect(identifier);
 }
 
 /**
  * Check if an identifier is a trigger
  */
 function isTrigger(identifier: string): boolean {
-    const triggers = CK3Language.getTriggers();
-    return identifier in triggers;
+    return CK3Language.isTrigger(identifier);
 }
 
 /**
@@ -394,18 +392,6 @@ export function validateParadoxConventions(node: ASTNode, config: ParadoxConfig 
 
     return diagnostics;
 }
-
-/**
- * Export all Paradox convention checking functions
- */
-export const ParadoxChecks = {
-    checkEffectInTriggerContext,
-    checkRedundantTriggers,
-    checkListIteratorMisuse,
-    checkEventStructure,
-    checkCommonGotchas,
-    validateParadoxConventions,
-};
 
 // Re-export extended checks for convenience
 export * from './paradox-checks-extended';

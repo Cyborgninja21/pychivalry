@@ -4,8 +4,11 @@
 
 import { WorkspaceFolder } from 'vscode-languageserver/node';
 import * as fs from 'fs';
+import * as fsp from 'fs/promises';
 import * as path from 'path';
 import { promisify } from 'util';
+
+import { serverLogger } from '../utils/logger';
 
 const readFile = promisify(fs.readFile);
 const readdir = promisify(fs.readdir);
@@ -69,14 +72,16 @@ export class WorkspaceManager {
             // Look for descriptor.mod file
             const descriptorPath = path.join(folderPath, 'descriptor.mod');
             
-            if (fs.existsSync(descriptorPath)) {
+            let descriptorExists = false;
+            try { await fsp.access(descriptorPath); descriptorExists = true; } catch {}
+            if (descriptorExists) {
                 const descriptor = await this.parseModDescriptor(descriptorPath);
                 if (descriptor) {
                     this.modDescriptors.set(folder.uri, descriptor);
                 }
             }
         } catch (error) {
-            console.error(`Failed to discover mod descriptor: ${error}`);
+            serverLogger.error(`Failed to discover mod descriptor: ${error}`);
         }
     }
 
@@ -111,7 +116,7 @@ export class WorkspaceManager {
             
             return descriptor;
         } catch (error) {
-            console.error(`Failed to parse mod descriptor: ${error}`);
+            serverLogger.error(`Failed to parse mod descriptor: ${error}`);
             return null;
         }
     }
@@ -172,7 +177,7 @@ export class WorkspaceManager {
         try {
             await this.findCK3FilesRecursive(folderPath, files);
         } catch (error) {
-            console.error(`Failed to find CK3 files: ${error}`);
+            serverLogger.error(`Failed to find CK3 files: ${error}`);
         }
         
         return files;

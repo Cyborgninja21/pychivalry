@@ -1,0 +1,21 @@
+# Dynasty house scope definition for CK3
+
+dynasty_house:
+  description: "A cadet branch of a dynasty"
+
+  links:
+    house_head: character
+    founder: character
+    dynasty: dynasty
+
+  lists:
+    house_member: character
+
+  triggers:
+    - has_house_modifier
+    - exists
+
+  effects:
+    - add_house_modifier
+    - remove_house_modifier
+    - save_scope_as

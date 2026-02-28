@@ -1,0 +1,302 @@
+version: "1.0"
+hooks:
+  on_accept:
+    description: "Interaction hook: on accept"
+  on_accepted:
+    description: "Interaction hook: on accepted"
+  on_action:
+    description: "Interaction hook: on action"
+  on_action_namespace:
+    description: "Interaction hook: on action namespace"
+  on_actions:
+    description: "Interaction hook: on actions"
+  on_activate:
+    description: "Interaction hook: on activate"
+  on_active_state_pulse:
+    description: "Interaction hook: on active state pulse"
+  on_added:
+    description: "Interaction hook: on added"
+  on_after_pass:
+    description: "Interaction hook: on after pass"
+  on_agent_join:
+    description: "Interaction hook: on agent join"
+  on_agent_leave:
+    description: "Interaction hook: on agent leave"
+  on_applied_effect:
+    description: "Interaction hook: on applied effect"
+  on_arrival:
+    description: "Interaction hook: on arrival"
+  on_arrival_destinations:
+    description: "Interaction hook: on arrival destinations"
+  on_arrival_event:
+    description: "Interaction hook: on arrival event"
+  on_arrival_id:
+    description: "Interaction hook: on arrival id"
+  on_arrival_on_action:
+    description: "Interaction hook: on arrival on action"
+  on_arrival_type:
+    description: "Interaction hook: on arrival type"
+  on_auto_accept:
+    description: "Interaction hook: on auto accept"
+  on_blocked_effect:
+    description: "Interaction hook: on blocked effect"
+  on_cancel:
+    description: "Interaction hook: on cancel"
+  on_cancel_task:
+    description: "Interaction hook: on cancel task"
+  on_cancel_task_county:
+    description: "Interaction hook: on cancel task county"
+  on_cancel_task_court:
+    description: "Interaction hook: on cancel task court"
+  on_cancelled:
+    description: "Interaction hook: on cancelled"
+  on_change_from:
+    description: "Interaction hook: on change from"
+  on_change_phase:
+    description: "Interaction hook: on change phase"
+  on_change_to:
+    description: "Interaction hook: on change to"
+  on_changed:
+    description: "Interaction hook: on changed"
+  on_character_infected:
+    description: "Interaction hook: on character infected"
+  on_complete:
+    description: "Interaction hook: on complete"
+  on_completed:
+    description: "Interaction hook: on completed"
+  on_confederation_destroyed:
+    description: "Interaction hook: on confederation destroyed"
+  on_contribution_funded:
+    description: "Interaction hook: on contribution funded"
+  on_court_position_invalidated:
+    description: "Interaction hook: on court position invalidated"
+  on_court_position_received:
+    description: "Interaction hook: on court position received"
+  on_court_position_revoked:
+    description: "Interaction hook: on court position revoked"
+  on_court_position_vacated:
+    description: "Interaction hook: on court position vacated"
+  on_create:
+    description: "Interaction hook: on create"
+  on_creation:
+    description: "Interaction hook: on creation"
+  on_death_relation_:
+    description: "Interaction hook: on death relation "
+  on_declaration:
+    description: "Interaction hook: on declaration"
+  on_decline:
+    description: "Interaction hook: on decline"
+  on_decline_summary:
+    description: "Interaction hook: on decline summary"
+  on_defeat:
+    description: "Interaction hook: on defeat"
+  on_defeat_desc:
+    description: "Interaction hook: on defeat desc"
+  on_destroy:
+    description: "Interaction hook: on destroy"
+  on_discover:
+    description: "Interaction hook: on discover"
+  on_end:
+    description: "Interaction hook: on end"
+  on_enter_active_state:
+    description: "Interaction hook: on enter active state"
+  on_enter_locale:
+    description: "Interaction hook: on enter locale"
+  on_enter_locale_command:
+    description: "Interaction hook: on enter locale command"
+  on_enter_passive_state:
+    description: "Interaction hook: on enter passive state"
+  on_enter_phase:
+    description: "Interaction hook: on enter phase"
+  on_enter_travel_state:
+    description: "Interaction hook: on enter travel state"
+  on_escape_pressed:
+    description: "Interaction hook: on escape pressed"
+  on_expire:
+    description: "Interaction hook: on expire"
+  on_expose:
+    description: "Interaction hook: on expose"
+  on_failure:
+    description: "Interaction hook: on failure"
+  on_finish:
+    description: "Interaction hook: on finish"
+  on_finish_task:
+    description: "Interaction hook: on finish task"
+  on_finish_task_county:
+    description: "Interaction hook: on finish task county"
+  on_finish_task_court:
+    description: "Interaction hook: on finish task court"
+  on_fired_from_position:
+    description: "Interaction hook: on fired from position"
+  on_get_position:
+    description: "Interaction hook: on get position"
+  on_host_death:
+    description: "Interaction hook: on host death"
+  on_hud_click:
+    description: "Interaction hook: on hud click"
+  on_input_action_shortcut:
+    description: "Interaction hook: on input action shortcut"
+  on_intermediary_accept:
+    description: "Interaction hook: on intermediary accept"
+  on_intermediary_decline:
+    description: "Interaction hook: on intermediary decline"
+  on_invalidated:
+    description: "Interaction hook: on invalidated"
+  on_invalidated_desc:
+    description: "Interaction hook: on invalidated desc"
+  on_invite:
+    description: "Interaction hook: on invite"
+  on_keyframe_move:
+    description: "Interaction hook: on keyframe move"
+  on_leave:
+    description: "Interaction hook: on leave"
+  on_leave_active_state:
+    description: "Interaction hook: on leave active state"
+  on_leave_passive_state:
+    description: "Interaction hook: on leave passive state"
+  on_leave_travel_state:
+    description: "Interaction hook: on leave travel state"
+  on_legend_start_promote:
+    description: "Interaction hook: on legend start promote"
+  on_legend_stop_promote:
+    description: "Interaction hook: on legend stop promote"
+  on_level_entered:
+    description: "Interaction hook: on level entered"
+  on_level_entered_desc:
+    description: "Interaction hook: on level entered desc"
+  on_lose_position:
+    description: "Interaction hook: on lose position"
+  on_member_character_joined:
+    description: "Interaction hook: on member character joined"
+  on_member_character_left:
+    description: "Interaction hook: on member character left"
+  on_member_house_joined:
+    description: "Interaction hook: on member house joined"
+  on_member_house_left:
+    description: "Interaction hook: on member house left"
+  on_monthly:
+    description: "Interaction hook: on monthly"
+  on_monthly_county:
+    description: "Interaction hook: on monthly county"
+  on_monthly_court:
+    description: "Interaction hook: on monthly court"
+  on_monthly_pulse:
+    description: "Interaction hook: on monthly pulse"
+  on_obligations_changed:
+    description: "Interaction hook: on obligations changed"
+  on_owner_death:
+    description: "Interaction hook: on owner death"
+  on_participant_death:
+    description: "Interaction hook: on participant death"
+  on_pass:
+    description: "Interaction hook: on pass"
+  on_passive_state_pulse:
+    description: "Interaction hook: on passive state pulse"
+  on_phase_active:
+    description: "Interaction hook: on phase active"
+  on_phase_completed:
+    description: "Interaction hook: on phase completed"
+  on_plan_build:
+    description: "Interaction hook: on plan build"
+  on_player_election_nomination:
+    description: "Interaction hook: on player election nomination"
+  on_primary_attacker_death:
+    description: "Interaction hook: on primary attacker death"
+  on_primary_defender_death:
+    description: "Interaction hook: on primary defender death"
+  on_progress_increased:
+    description: "Interaction hook: on progress increased"
+  on_province_infected:
+    description: "Interaction hook: on province infected"
+  on_province_recovered:
+    description: "Interaction hook: on province recovered"
+  on_province_removed:
+    description: "Interaction hook: on province removed"
+  on_province_spread:
+    description: "Interaction hook: on province spread"
+  on_pulse:
+    description: "Interaction hook: on pulse"
+  on_ready:
+    description: "Interaction hook: on ready"
+  on_remove_relation_:
+    description: "Interaction hook: on remove relation "
+  on_removed:
+    description: "Interaction hook: on removed"
+  on_return_raid_loot:
+    description: "Interaction hook: on return raid loot"
+  on_revoke:
+    description: "Interaction hook: on revoke"
+  on_semiyearly:
+    description: "Interaction hook: on semiyearly"
+  on_send:
+    description: "Interaction hook: on send"
+  on_set_relation_:
+    description: "Interaction hook: on set relation "
+  on_setup:
+    description: "Interaction hook: on setup"
+  on_spawn:
+    description: "Interaction hook: on spawn"
+  on_sponsor:
+    description: "Interaction hook: on sponsor"
+  on_sponsor_invalidated:
+    description: "Interaction hook: on sponsor invalidated"
+  on_start:
+    description: "Interaction hook: on start"
+  on_start_build:
+    description: "Interaction hook: on start build"
+  on_start_event:
+    description: "Interaction hook: on start event"
+  on_start_on_action:
+    description: "Interaction hook: on start on action"
+  on_start_task:
+    description: "Interaction hook: on start task"
+  on_start_task_county:
+    description: "Interaction hook: on start task county"
+  on_start_task_court:
+    description: "Interaction hook: on start task court"
+  on_stress_level_:
+    description: "Interaction hook: on stress level "
+  on_success:
+    description: "Interaction hook: on success"
+  on_target_invalidated:
+    description: "Interaction hook: on target invalidated"
+  on_tax_collector_fired:
+    description: "Interaction hook: on tax collector fired"
+  on_tax_collector_hired:
+    description: "Interaction hook: on tax collector hired"
+  on_travel_end_effect:
+    description: "Interaction hook: on travel end effect"
+  on_travel_planner_cancel:
+    description: "Interaction hook: on travel planner cancel"
+  on_travel_planner_cancel_event:
+    description: "Interaction hook: on travel planner cancel event"
+  on_travel_planner_cancel_on_action:
+    description: "Interaction hook: on travel planner cancel on action"
+  on_travel_state_pulse:
+    description: "Interaction hook: on travel state pulse"
+  on_trigger_fail:
+    description: "Interaction hook: on trigger fail"
+  on_upgraded:
+    description: "Interaction hook: on upgraded"
+  on_used:
+    description: "Interaction hook: on used"
+  on_vassal_assigned:
+    description: "Interaction hook: on vassal assigned"
+  on_vassal_removed:
+    description: "Interaction hook: on vassal removed"
+  on_victory:
+    description: "Interaction hook: on victory"
+  on_victory_desc:
+    description: "Interaction hook: on victory desc"
+  on_visit:
+    description: "Interaction hook: on visit"
+  on_war_start:
+    description: "Interaction hook: on war start"
+  on_weekly_pulse:
+    description: "Interaction hook: on weekly pulse"
+  on_white_peace:
+    description: "Interaction hook: on white peace"
+  on_white_peace_desc:
+    description: "Interaction hook: on white peace desc"
+  on_yearly:
+    description: "Interaction hook: on yearly"

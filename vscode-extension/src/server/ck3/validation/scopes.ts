@@ -6,16 +6,19 @@
  * different game entities (characters, titles, provinces, etc.) and defining
  * what operations are valid in each context.
  * 
- * DIAGNOSTIC CODES:
- *     SCOPE-001: Unknown scope type
- *     SCOPE-002: Invalid scope link
+ * DIAGNOSTIC CODES (emitted by diagnostics.ts, not this module):
  *     SCOPE-003: Invalid scope chain
  *     SCOPE-004: Trigger not valid in scope
  *     SCOPE-005: Effect not valid in scope
  *     SCOPE-006: Invalid list base for scope
+ *
+ * INTERNAL LOGGING CODES (serverLogger only, not user-facing):
+ *     SCOPE-001: Unknown scope type (debug aid)
+ *     SCOPE-002: Invalid scope link (debug aid)
  */
 
 import { getDataLoader } from '../../data/loader';
+import { serverLogger } from '../../utils/logger';
 
 /**
  * Universal scope links that work in ALL scope types
@@ -36,7 +39,7 @@ export function getScopeLinks(scopeType: string): string[] {
     const scopes = dataLoader.getScopes();
     
     if (!scopes.has(scopeType)) {
-        console.warn(`SCOPE-001: Unknown scope type: ${scopeType}`);
+        serverLogger.warn(`SCOPE-001: Unknown scope type: ${scopeType}`);
         return [...UNIVERSAL_LINKS];
     }
     
@@ -63,12 +66,15 @@ export function getScopeLists(scopeType: string): string[] {
     const scopes = dataLoader.getScopes();
     
     if (!scopes.has(scopeType)) {
-        console.warn(`SCOPE-001: Unknown scope type: ${scopeType}`);
+        serverLogger.warn(`SCOPE-001: Unknown scope type: ${scopeType}`);
         return [];
     }
     
     const scopeData = scopes.get(scopeType)!;
-    return scopeData.lists || [];
+    const lists = scopeData.lists;
+    if (Array.isArray(lists)) return lists;
+    if (lists && typeof lists === 'object') return Object.keys(lists);
+    return [];
 }
 
 /**
@@ -88,7 +94,7 @@ export function getTargetScopeType(scopeType: string, link: string): string | nu
     const scopes = dataLoader.getScopes();
     
     if (!scopes.has(scopeType)) {
-        console.warn(`SCOPE-001: Unknown scope type: ${scopeType}`);
+        serverLogger.warn(`SCOPE-001: Unknown scope type: ${scopeType}`);
         return null;
     }
     
@@ -99,7 +105,7 @@ export function getTargetScopeType(scopeType: string, link: string): string | nu
         return links[link];
     }
     
-    console.warn(`SCOPE-002: Invalid scope link '${link}' for scope type '${scopeType}'`);
+    serverLogger.warn(`SCOPE-002: Invalid scope link '${link}' for scope type '${scopeType}'`);
     return null;
 }
 
@@ -283,52 +289,48 @@ export function isListIterator(name: string): boolean {
  */
 export function getListResultScope(iterator: string, scopeType: string): string | null {
     const parsed = parseListIterator(iterator);
-    
+
     if (!parsed) {
         return null;
     }
-    
+
     const [prefix, baseName] = parsed;
-    
+
     // Validate the list base is valid for this scope
     if (!isValidListBase(baseName, scopeType)) {
-        console.warn(`SCOPE-006: Invalid list base '${baseName}' for scope type '${scopeType}'`);
+        serverLogger.warn(`SCOPE-006: Invalid list base '${baseName}' for scope type '${scopeType}'`);
         return null;
     }
-    
-    // Most list iterators maintain the same scope type
-    // Special cases could be handled here if needed
-    
-    // For now, check if there's explicit information in the scope data
+
+    // Look up the result scope type from the data-driven scope definitions
     const dataLoader = getDataLoader();
     const scopes = dataLoader.getScopes();
-    
+
     if (scopes.has(scopeType)) {
         const scopeData = scopes.get(scopeType)!;
-        
-        // Some scope data might include result types for lists
-        // For now, we'll use a heuristic: most lists return the same type
-        
-        // Common pattern: iterating over characters returns character scope
-        if (baseName.includes('vassal') || baseName.includes('courtier') || 
-            baseName.includes('child') || baseName.includes('heir') ||
-            baseName.includes('spouse') || baseName.includes('prisoner')) {
-            return 'character';
-        }
-        
-        // Iterating over titles returns title scope
-        if (baseName.includes('title') || baseName.includes('county') ||
-            baseName.includes('barony') || baseName.includes('duchy') ||
-            baseName.includes('kingdom') || baseName.includes('empire')) {
-            return 'title';
-        }
-        
-        // Iterating over provinces returns province scope
-        if (baseName.includes('province')) {
-            return 'province';
+        const lists = scopeData.lists;
+
+        // If lists is a map (Record<string, string>), look up the result type directly
+        if (lists && !Array.isArray(lists) && typeof lists === 'object') {
+            const resultType = (lists as Record<string, string>)[baseName];
+            if (resultType) {
+                return resultType;
+            }
         }
     }
-    
+
+    // Also check all scope types for global lists (e.g., "living_character" works from any scope)
+    for (const [otherScopeType, scopeData] of scopes.entries()) {
+        if (otherScopeType === scopeType) continue;
+        const lists = scopeData.lists;
+        if (lists && !Array.isArray(lists) && typeof lists === 'object') {
+            const resultType = (lists as Record<string, string>)[baseName];
+            if (resultType) {
+                return resultType;
+            }
+        }
+    }
+
     // Default: maintain the same scope type
     return scopeType;
 }

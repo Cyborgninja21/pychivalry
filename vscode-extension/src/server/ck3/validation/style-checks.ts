@@ -89,7 +89,7 @@ export function checkIndentation(text: string, config: StyleConfig): Diagnostic[
                 severity: DiagnosticSeverity.Warning,
                 code: 'CK3303',
                 message: 'Indentation uses spaces instead of tabs (Paradox convention)',
-                source: 'pychivalry'
+                source: 'ck3-style'
             });
         }
 
@@ -103,7 +103,7 @@ export function checkIndentation(text: string, config: StyleConfig): Diagnostic[
                 severity: DiagnosticSeverity.Warning,
                 code: 'CK3301',
                 message: 'Inconsistent indentation (mixing tabs and spaces)',
-                source: 'pychivalry'
+                source: 'ck3-style'
             });
         }
     }
@@ -136,7 +136,7 @@ export function checkTrailingWhitespace(text: string, config: StyleConfig): Diag
                 severity: DiagnosticSeverity.Information,
                 code: 'CK3304',
                 message: 'Trailing whitespace detected',
-                source: 'pychivalry'
+                source: 'ck3-style'
             });
         }
     }
@@ -162,7 +162,7 @@ export function checkLineLength(text: string, config: StyleConfig): Diagnostic[]
                 severity: DiagnosticSeverity.Information,
                 code: 'CK3316',
                 message: `Line exceeds recommended length (${line.length} > ${config.maxLineLength} chars)`,
-                source: 'pychivalry'
+                source: 'ck3-style'
             });
         }
     }
@@ -196,7 +196,7 @@ export function checkOperatorSpacing(text: string, config: StyleConfig): Diagnos
                     severity: DiagnosticSeverity.Information,
                     code: 'CK3306',
                     message: 'Operator should have spaces around it (Paradox convention)',
-                    source: 'pychivalry'
+                    source: 'ck3-style'
                 });
             }
         }
@@ -223,7 +223,7 @@ export function checkEmptyBlocks(ast: ASTNode, config: StyleConfig): Diagnostic[
                 severity: DiagnosticSeverity.Warning,
                 code: 'CK3314',
                 message: 'Empty block detected (potential logic error)',
-                source: 'pychivalry'
+                source: 'ck3-style'
             });
         }
 
@@ -252,7 +252,7 @@ export function checkNestingDepth(ast: ASTNode, config: StyleConfig): Diagnostic
                 severity: DiagnosticSeverity.Information,
                 code: 'CK3317',
                 message: `Deeply nested blocks (depth ${depth} > ${config.maxNestingDepth})`,
-                source: 'pychivalry'
+                source: 'ck3-style'
             });
         }
 
@@ -296,7 +296,7 @@ export function checkBraceMatching(text: string, config: StyleConfig): Diagnosti
                         severity: DiagnosticSeverity.Error,
                         code: 'CK3331',
                         message: 'Extra closing brace (no matching "{")',
-                        source: 'pychivalry'
+                        source: 'ck3-style'
                     });
                 } else {
                     stack.pop();
@@ -315,7 +315,7 @@ export function checkBraceMatching(text: string, config: StyleConfig): Diagnosti
             severity: DiagnosticSeverity.Error,
             code: 'CK3330',
             message: 'Unclosed brace (missing "}")',
-            source: 'pychivalry'
+            source: 'ck3-style'
         });
     }
 
@@ -351,7 +351,7 @@ export function checkScopeReferences(ast: ASTNode, config: StyleConfig): Diagnos
                     severity: DiagnosticSeverity.Warning,
                     code: 'CK3340',
                     message: `Unknown/suspicious scope reference "${firstPart}" (possible typo)`,
-                    source: 'pychivalry'
+                    source: 'ck3-style'
                 });
             }
 
@@ -362,7 +362,7 @@ export function checkScopeReferences(ast: ASTNode, config: StyleConfig): Diagnos
                     severity: DiagnosticSeverity.Warning,
                     code: 'CK3341',
                     message: 'Scope reference appears truncated (ends with ".")',
-                    source: 'pychivalry'
+                    source: 'ck3-style'
                 });
             }
         }

@@ -1,0 +1,180 @@
+# Character scope definition for CK3
+# A living or dead person in the game
+
+character:
+  description: "A character (person) in the game"
+
+  # Scope links - navigate to related scopes (link_name: target_scope_type)
+  links:
+    liege: character
+    top_liege: character
+    spouse: character
+    primary_spouse: character
+    father: character
+    mother: character
+    real_father: character
+    betrothed: character
+    guardian: character
+    player_heir: character
+    primary_heir: character
+    killer: character
+    employer: character
+    host: character
+    court_owner: character
+    realm_priest: character
+    warden: character
+    liege_or_court_owner: character
+    primary_title: title
+    capital_county: title
+    location: province
+    dynasty: dynasty
+    house: dynasty_house
+    faith: faith
+    culture: culture
+    council_task: none
+
+  # List iterations (list_base: result_scope_type)
+  lists:
+    vassal: character
+    courtier: character
+    prisoner: character
+    child: character
+    sibling: character
+    spouse: character
+    ally: character
+    enemy: character
+    knight: character
+    councillor: character
+    hooked_character: character
+    close_family_member: character
+    vassal_or_below: character
+    relation: character
+    traveling_family_member: character
+    memory: none
+    owned_story: story_cycle
+    targeting_faction: faction
+    claim: title
+    realm_county: title
+    realm_province: province
+    held_title: title
+    heir_title: title
+    heir_to_title: title
+    directly_owned_province: province
+    character_to_title_neighboring_county: title
+    character_to_title_neighboring_duke: title
+    character_to_title_neighboring_king: title
+    character_to_title_neighboring_emperor: title
+    scheme: scheme
+    secret: none
+    artifact: artifact
+
+  # Valid triggers in character scope
+  triggers:
+    - is_adult
+    - is_child
+    - is_ruler
+    - is_alive
+    - is_ai
+    - is_player
+    - is_imprisoned
+    - is_married
+    - is_pregnant
+    - is_incapable
+    - is_female
+    - is_male
+    - has_trait
+    - age
+    - gold
+    - prestige
+    - prestige_level
+    - piety
+    - piety_level
+    - stress
+    - dread
+    - diplomacy
+    - martial
+    - stewardship
+    - intrigue
+    - learning
+    - prowess
+    - health
+    - has_title
+    - has_claim_on
+    - opinion
+    - has_relation
+    - completely_controls
+    - has_government
+    - has_law
+    - culture
+    - faith
+    - dynasty
+    - house
+    - num_of_traits
+    - fertility
+    - can_have_children
+    - is_imprisoned_by
+    - is_at_war
+    - is_at_war_with
+    - primary_title
+    - capital_county
+    - location
+    - has_character_flag
+    - has_variable
+    - exists
+
+  # Valid effects in character scope
+  effects:
+    - add_trait
+    - remove_trait
+    - add_gold
+    - remove_gold
+    - add_prestige
+    - add_piety
+    - add_stress
+    - add_dread
+    - add_diplomacy
+    - add_martial
+    - add_stewardship
+    - add_intrigue
+    - add_learning
+    - add_prowess
+    - add_opinion
+    - remove_opinion
+    - add_character_modifier
+    - remove_character_modifier
+    - add_claim
+    - remove_claim
+    - create_title
+    - destroy_title
+    - marry
+    - divorce
+    - imprison
+    - release_from_prison
+    - death
+    - add_character_flag
+    - remove_character_flag
+    - set_variable
+    - change_variable
+    - remove_variable
+    - save_scope_as
+    - save_temporary_scope_as
+    - trigger_event
+    - random
+    - random_list
+    - if
+    - else_if
+    - else
+    - hidden_effect
+    - change_government
+    - set_capital_county
+    - add_hook
+    - remove_hook
+    - consume_hook
+    - add_secret
+    - expose_secret
+    - start_scheme
+    - end_scheme
+    - add_artifact
+    - remove_artifact
+    - equip_artifact
+    - unequip_artifact
