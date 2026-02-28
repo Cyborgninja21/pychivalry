@@ -390,14 +390,17 @@ export function validateStyle(
         return [];
     }
 
+    // Normalize CRLF to LF so text-based checks work identically on all platforms
+    const normalizedText = text.replace(/\r\n/g, '\n');
+
     const diagnostics: Diagnostic[] = [];
 
     // Text-based checks
-    diagnostics.push(...checkIndentation(text, config));
-    diagnostics.push(...checkTrailingWhitespace(text, config));
-    diagnostics.push(...checkLineLength(text, config));
-    diagnostics.push(...checkOperatorSpacing(text, config));
-    diagnostics.push(...checkBraceMatching(text, config));
+    diagnostics.push(...checkIndentation(normalizedText, config));
+    diagnostics.push(...checkTrailingWhitespace(normalizedText, config));
+    diagnostics.push(...checkLineLength(normalizedText, config));
+    diagnostics.push(...checkOperatorSpacing(normalizedText, config));
+    diagnostics.push(...checkBraceMatching(normalizedText, config));
 
     // AST-based checks
     diagnostics.push(...checkEmptyBlocks(ast, config));
@@ -411,7 +414,8 @@ export function validateStyle(
  * Auto-fix style issues (for formatting)
  */
 export function autoFixStyle(text: string, config: StyleConfig): string {
-    let fixed = text;
+    // Normalize CRLF to LF so replacements work identically on all platforms
+    let fixed = text.replace(/\r\n/g, '\n');
 
     // Remove trailing whitespace
     if (config.trailingWhitespace) {
