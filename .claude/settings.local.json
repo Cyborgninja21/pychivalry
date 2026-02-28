@@ -16,7 +16,18 @@
       "Bash(mkdir:*)",
       "Bash(xcopy:*)",
       "Bash(powershell -Command:*)",
-      "WebFetch(domain:code.visualstudio.com)"
+      "WebFetch(domain:code.visualstudio.com)",
+      "WebFetch(domain:github.com)",
+      "Bash(npm install)",
+      "Bash(npx tsc --noEmit)",
+      "Bash(npm run compile-tests)",
+      "Bash(npm run test:unit)",
+      "Bash(npm test -- --testPathPattern=\"call-\\(graph|hierarchy\\)\")",
+      "Bash(npm test -- --testPathPattern=\"call-graph\")",
+      "Bash(npm test -- --testNamePattern=\"CallGraph\")",
+      "Bash(npm run test:unit -- --grep \"CallHierarchy\")",
+      "Bash(npx tsc -p . --outDir out)",
+      "Bash(node -e \":*)"
     ],
     "deny": [],
     "ask": []
