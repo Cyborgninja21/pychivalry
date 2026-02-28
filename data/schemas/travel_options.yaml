@@ -1,0 +1,43 @@
+# Travel Option Validation Schema
+version: "1.0"
+file_type: travel_option
+
+identification:
+  path_patterns:
+    - "*/common/travel/travel_options/*.txt"
+    - "common/travel/travel_options/*.txt"
+
+fields:
+  is_shown:
+    type: trigger_block
+    description: "When this option is visible"
+
+  is_valid:
+    type: trigger_block
+    description: "When this option can be selected"
+
+  travel_modifier:
+    type: block
+    description: "Modifier applied during travel"
+
+  cost:
+    type: block
+    description: "Cost to select this option"
+
+  owner_modifier:
+    type: block
+    description: "Modifier on the traveller"
+
+  ai_will_do:
+    type: block
+    description: "AI selection weight"
+
+field_docs:
+  is_shown:
+    description: "Visibility trigger"
+    snippet: "is_shown = {\n\t$0\n}"
+
+symbols:
+  primary:
+    kind: EnumMember
+    name_from: key

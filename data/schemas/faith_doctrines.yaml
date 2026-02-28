@@ -1,0 +1,62 @@
+# Faith Doctrine Validation Schema
+version: "1.0"
+file_type: faith_doctrine
+
+identification:
+  path_patterns:
+    - "*/common/religion/doctrines/*.txt"
+    - "common/religion/doctrines/*.txt"
+
+fields:
+  group:
+    required: true
+    type: string
+    diagnostic: FAITH-001
+    message: "Doctrine missing required 'group' field"
+    description: "Doctrine group identifier"
+
+  icon:
+    type: string
+    description: "Doctrine icon"
+
+  piety_cost:
+    type: block
+    description: "Piety cost to adopt this doctrine"
+
+  is_shown:
+    type: trigger_block
+    description: "When this doctrine is visible"
+
+  can_pick:
+    type: trigger_block
+    description: "Conditions to adopt this doctrine"
+
+  character_modifier:
+    type: block
+    description: "Character modifier from doctrine"
+
+  doctrine_character_modifier:
+    type: block
+    description: "Doctrine-specific character modifier"
+
+  clergy_modifier:
+    type: block
+    description: "Modifier applied to clergy"
+
+  traits:
+    type: block
+    description: "Trait configuration (virtues/sins)"
+
+field_docs:
+  group:
+    description: "Doctrine group"
+    snippet: "group = \"${1:group_name}\""
+  piety_cost:
+    description: "Piety cost to adopt"
+    snippet: "piety_cost = {\n\tadd = ${1:500}\n}"
+
+symbols:
+  primary:
+    kind: EnumMember
+    name_from: key
+    detail_from: group

@@ -1,0 +1,66 @@
+# Faction Validation Schema
+version: "1.0"
+file_type: faction
+
+identification:
+  path_patterns:
+    - "*/common/factions/*.txt"
+    - "common/factions/*.txt"
+
+fields:
+  demand:
+    type: block
+    description: "Faction demand configuration"
+
+  can_create:
+    type: trigger_block
+    description: "Conditions for creating this faction"
+
+  can_join:
+    type: trigger_block
+    description: "Conditions for joining this faction"
+
+  power_threshold:
+    type: number
+    description: "Military power threshold for action"
+
+  leader_can_create:
+    type: trigger_block
+    description: "Leader eligibility"
+
+  special_character_title:
+    type: string
+    description: "Special title for faction leader"
+
+  on_creation:
+    type: effect_block
+    description: "Effects when faction is created"
+
+  on_destroy:
+    type: effect_block
+    description: "Effects when faction is destroyed"
+
+  on_war_start:
+    type: effect_block
+    description: "Effects when faction war starts"
+
+  ai_create_score:
+    type: block
+    description: "AI score for creating faction"
+
+  ai_join_score:
+    type: block
+    description: "AI score for joining faction"
+
+field_docs:
+  can_create:
+    description: "Creation conditions"
+    snippet: "can_create = {\n\t$0\n}"
+  demand:
+    description: "Faction demand"
+    snippet: "demand = {\n\t$0\n}"
+
+symbols:
+  primary:
+    kind: Class
+    name_from: key

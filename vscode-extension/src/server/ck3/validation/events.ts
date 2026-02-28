@@ -15,6 +15,11 @@
  *     EVENT-011: Hidden event should not have options
  *     EVENT-012: Hidden event should not have after block
  *     EVENT-013: Non-hidden event missing options
+ *     EVENT-014: Event file should use .txt extension
+ *     EVENT-015: Event file inside common/ instead of top-level events/
+ *     EVENT-016: Namespace not defined in file (game engine warning)
+ *     EVENT-017: Non-event content detected in events/ directory
+ *     EVENT-018: Event content detected in non-event directory
  *
  * Event types determine presentation style (character portrait, letter, court scene),
  * required fields, and available features. Each type has specific validation rules.
@@ -504,7 +509,8 @@ export function validateEventFromNode(node: ASTNode): {
 }
 
 /**
- * Check if a document URI points to a file inside an events/ directory
+ * Check if a document URI points to a file inside an events/ directory.
+ * CK3 loads events from a top-level `events/` directory (not `common/events/`).
  */
 export function isEventFilePath(documentUri: string): boolean {
     const normalized = documentUri.replace(/\\/g, '/').toLowerCase();
@@ -512,27 +518,91 @@ export function isEventFilePath(documentUri: string): boolean {
 }
 
 /**
- * Validate that a file containing events is in the events/ directory.
- * Returns diagnostics if the file has event-shaped blocks but is not in events/.
+ * CK3 event file location rules (from binary analysis + schema):
+ *
+ * 1. Events must be in a top-level `events/` directory (not `common/events/`)
+ *    - The `scriptable_directories.yaml` registers `events` at level 1 (top-level)
+ *    - Game engine: "Loaded [{}] events from '{}'"
+ *
+ * 2. Subdirectories within `events/` ARE supported:
+ *    - `events/lifestyle/*.txt`, `events/war/*.txt`, etc.
+ *    - Schema pattern: events subdirectories with .txt files
+ *
+ * 3. File extension MUST be `.txt`:
+ *    - Schema pattern: events directory with .txt files
+ *    - CK3 engine only loads `.txt` files for script content
+ *
+ * 4. Events in `common/` subdirectories are NOT event files:
+ *    - `common/event_themes/` → theme definitions, not events
+ *    - `common/event_backgrounds/` → background art paths
+ *    - `common/event_pictures/` → event artwork
+ *    - `common/event_2d_effects/` → visual effects
+ *    - `common/event_transitions/` → transition animations
+ *    - `common/combat_phase_events/` → battle event effects (not event type)
+ *
+ * 5. Namespace must be declared and must match event IDs:
+ *    - Game engine: "Namespace '{}' used in event '{}' (file: {})
+ *      is not defined in this file - it might not load properly."
+ */
+
+/**
+ * Comprehensive file location validation for event files.
+ * Checks all CK3 engine requirements for event file placement.
  */
 export function validateEventFileLocation(
     documentUri: string,
     hasEventBlocks: boolean,
 ): Array<{ code: string; message: string }> {
     if (!hasEventBlocks) return [];
-    if (isEventFilePath(documentUri)) return [];
 
-    return [{
-        code: 'EVENT-008',
-        message: "Event definitions not in 'events/' directory — CK3 will not load events from this location",
-    }];
+    const normalized = documentUri.replace(/\\/g, '/').toLowerCase();
+    const errors: Array<{ code: string; message: string }> = [];
+
+    // Check 1: Is the file in ANY events/ directory?
+    const inEventsDir = normalized.includes('/events/');
+
+    if (!inEventsDir) {
+        errors.push({
+            code: 'EVENT-008',
+            message: "Event definitions not in 'events/' directory — CK3 will not load events from this location",
+        });
+        // If not in events/ at all, no point checking further location rules
+        return errors;
+    }
+
+    // Check 2: Is it in common/events/ instead of top-level events/?
+    // CK3 registers `events` at level 1 (top-level), NOT under common/
+    if (normalized.includes('/common/events/')) {
+        errors.push({
+            code: 'EVENT-015',
+            message: "Event file is in 'common/events/' — CK3 loads events from top-level 'events/' directory, not 'common/events/'",
+        });
+    }
+
+    // Check 3: File extension must be .txt
+    // Extract the actual file path from URI (strip file:// prefix and query/fragment)
+    const pathPart = normalized.replace(/^file:\/\/\/?/, '').split(/[?#]/)[0];
+    if (!pathPart.endsWith('.txt')) {
+        errors.push({
+            code: 'EVENT-014',
+            message: "Event file should use '.txt' extension — CK3 only loads '.txt' files for script content",
+        });
+    }
+
+    return errors;
 }
 
 /**
  * Validate namespace declarations in an event file.
+ *
+ * CK3 game engine warning (from binary):
+ *   "Namespace '{}' used in event '{}' (file: {}) is not defined
+ *    in this file - it might not load properly."
+ *
  * Checks that:
- * - A `namespace = X` declaration exists at the root level
- * - Event IDs match the declared namespace
+ * - A `namespace = X` declaration exists at the root level (EVENT-010)
+ * - Event IDs match the declared namespace (EVENT-009)
+ * - All namespaces used in events are declared in the file (EVENT-016)
  */
 export function validateNamespaceDeclaration(
     rootNode: ASTNode,
@@ -547,14 +617,15 @@ export function validateNamespaceDeclaration(
     const eventNodes = children.filter(c => c.key && eventPattern.test(c.key) && c.children);
     if (eventNodes.length === 0) return [];
 
-    // Find namespace declaration
-    const namespaceDecl = children.find(
+    // Find ALL namespace declarations (a file can have multiple)
+    const namespaceDecls = children.filter(
         c => c.type === NodeType.ASSIGNMENT && c.key === 'namespace' && c.value
     );
+    const declaredNamespaces = new Set(namespaceDecls.map(d => String(d.value)));
 
     const errors: Array<{ code: string; message: string; range?: any }> = [];
 
-    if (!namespaceDecl) {
+    if (declaredNamespaces.size === 0) {
         errors.push({
             code: 'EVENT-010',
             message: "Missing 'namespace' declaration — event files should declare 'namespace = X'",
@@ -563,20 +634,179 @@ export function validateNamespaceDeclaration(
         return errors;
     }
 
-    const declaredNamespace = String(namespaceDecl.value);
+    // Check each event's namespace is declared in this file.
+    // When there's exactly one declared namespace, use EVENT-009 (specific mismatch message).
+    // When there are multiple, use EVENT-016 (game engine wording: "not defined in this file").
+    const singleNamespace = declaredNamespaces.size === 1 ? [...declaredNamespaces][0] : null;
 
-    // Check each event's namespace matches the declaration
     for (const eventNode of eventNodes) {
         const parsed = parseEventId(eventNode.key!);
-        if (parsed.namespace && parsed.namespace !== declaredNamespace) {
-            errors.push({
-                code: 'EVENT-009',
-                message: `Event namespace '${parsed.namespace}' does not match declared namespace '${declaredNamespace}'`,
-                range: eventNode.range,
-            });
+        if (parsed.namespace && !declaredNamespaces.has(parsed.namespace)) {
+            if (singleNamespace) {
+                // Single declared namespace — specific mismatch message
+                errors.push({
+                    code: 'EVENT-009',
+                    message: `Event namespace '${parsed.namespace}' does not match declared namespace '${singleNamespace}'`,
+                    range: eventNode.range,
+                });
+            } else {
+                // Multiple declared namespaces — use game engine wording
+                errors.push({
+                    code: 'EVENT-016',
+                    message: `Namespace '${parsed.namespace}' used in event '${eventNode.key}' is not defined in this file — it might not load properly`,
+                    range: eventNode.range,
+                });
+            }
         }
     }
 
     return errors;
 }
 
+/**
+ * Content type classification for block fingerprinting.
+ * Used to detect when content is placed in the wrong directory.
+ */
+export type ContentType = 'event' | 'decision' | 'character_interaction' | 'on_action' | 'unknown';
+
+/** Keys that fingerprint a block as a decision */
+const DECISION_FINGERPRINTS = new Set([
+    'is_shown', 'is_valid', 'is_valid_showing_failures_only',
+]);
+
+/** Keys that fingerprint a block as a character interaction */
+const INTERACTION_FINGERPRINTS = new Set([
+    'on_accept', 'on_decline', 'category', 'can_send',
+    'send_option', 'greeting', 'notification_text',
+]);
+
+/** Keys that fingerprint a block as an on-action */
+const ON_ACTION_FINGERPRINTS = new Set([
+    'random_events', 'first_valid', 'events', 'on_actions',
+]);
+
+/** Event ID pattern: word.digits */
+const EVENT_ID_PATTERN = /^[a-zA-Z_][a-zA-Z0-9_]*\.\d+$/;
+
+/**
+ * Classify what type of content a top-level block looks like
+ * based on its structural fingerprint (child keys and key pattern).
+ *
+ * This is a heuristic — it checks for characteristic child keys
+ * that distinguish events from decisions, interactions, and on-actions.
+ */
+export function classifyBlockContentType(node: ASTNode): ContentType {
+    if (!node.children || node.children.length === 0) return 'unknown';
+
+    const childKeys = new Set(
+        node.children
+            .map(c => c.key)
+            .filter((k): k is string => Boolean(k))
+    );
+
+    // Events: key matches namespace.number AND has a `type` child with an event type value
+    if (node.key && EVENT_ID_PATTERN.test(node.key)) {
+        const typeChild = node.children.find(c => c.key === 'type' && c.value);
+        if (typeChild && EVENT_TYPES.has(String(typeChild.value))) {
+            return 'event';
+        }
+        // Even without a valid type, the namespace.number pattern strongly suggests event
+        return 'event';
+    }
+
+    // Decision: has is_shown, is_valid, or is_valid_showing_failures_only
+    for (const fp of DECISION_FINGERPRINTS) {
+        if (childKeys.has(fp)) return 'decision';
+    }
+
+    // Character interaction: has on_accept, on_decline, category, can_send, etc.
+    // Require at least 2 fingerprints to avoid false positives
+    let interactionScore = 0;
+    for (const fp of INTERACTION_FINGERPRINTS) {
+        if (childKeys.has(fp)) interactionScore++;
+    }
+    if (interactionScore >= 2) return 'character_interaction';
+
+    // On-action: has random_events, first_valid, events, on_actions
+    for (const fp of ON_ACTION_FINGERPRINTS) {
+        if (childKeys.has(fp)) return 'on_action';
+    }
+
+    return 'unknown';
+}
+
+/**
+ * Directory-to-expected-content-type mapping.
+ * Maps directory path segments to the content type they should contain.
+ */
+const DIRECTORY_CONTENT_MAP: Array<{ pathSegment: string; expectedType: ContentType; label: string }> = [
+    { pathSegment: '/events/', expectedType: 'event', label: 'events/' },
+    { pathSegment: '/common/decisions/', expectedType: 'decision', label: 'common/decisions/' },
+    { pathSegment: '/common/character_interactions/', expectedType: 'character_interaction', label: 'common/character_interactions/' },
+    { pathSegment: '/common/on_actions/', expectedType: 'on_action', label: 'common/on_actions/' },
+];
+
+/** Human-readable labels for content types */
+const CONTENT_TYPE_LABELS: Record<ContentType, string> = {
+    event: 'event',
+    decision: 'decision',
+    character_interaction: 'character interaction',
+    on_action: 'on-action',
+    unknown: 'unknown',
+};
+
+/**
+ * Validate that top-level blocks in a file match the expected content type
+ * for the directory the file is in.
+ *
+ * - EVENT-017: Non-event content detected in events/ directory
+ *   (e.g., a decision block with is_shown/is_valid in events/)
+ * - EVENT-018: Event content detected in non-event directory
+ *   (e.g., a namespace.0001 block in common/decisions/)
+ */
+export function validateContentTypePlacement(
+    rootNode: ASTNode,
+    documentUri: string,
+): Array<{ code: string; message: string; range?: any }> {
+    const normalized = documentUri.replace(/\\/g, '/').toLowerCase();
+    const children = rootNode.children || [];
+    if (children.length === 0) return [];
+
+    // Determine what directory this file is in
+    let expectedType: ContentType | null = null;
+    let dirLabel = '';
+    for (const mapping of DIRECTORY_CONTENT_MAP) {
+        if (normalized.includes(mapping.pathSegment)) {
+            expectedType = mapping.expectedType;
+            dirLabel = mapping.label;
+            break;
+        }
+    }
+
+    // If we can't determine the directory type, skip validation
+    if (!expectedType) return [];
+
+    const errors: Array<{ code: string; message: string; range?: any }> = [];
+
+    // Check each top-level block (skip assignments like `namespace = X`)
+    for (const child of children) {
+        if (!child.children || child.children.length === 0) continue;
+
+        const detectedType = classifyBlockContentType(child);
+        if (detectedType === 'unknown') continue;
+
+        if (detectedType !== expectedType) {
+            const detectedLabel = CONTENT_TYPE_LABELS[detectedType];
+            const expectedLabel = CONTENT_TYPE_LABELS[expectedType];
+            const code = expectedType === 'event' ? 'EVENT-017' : 'EVENT-018';
+
+            errors.push({
+                code,
+                message: `Block '${child.key || '(unnamed)'}' looks like a ${detectedLabel} (not a ${expectedLabel}) — it is in '${dirLabel}' directory where ${expectedLabel} content is expected`,
+                range: child.range,
+            });
+        }
+    }
+
+    return errors;
+}

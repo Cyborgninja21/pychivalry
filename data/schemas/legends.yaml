@@ -1,0 +1,51 @@
+# Legend Type Validation Schema
+version: "1.0"
+file_type: legend_type
+
+identification:
+  path_patterns:
+    - "*/common/legends/legend_types/*.txt"
+    - "common/legends/legend_types/*.txt"
+
+fields:
+  type:
+    type: string
+    description: "Legend category"
+
+  quality:
+    type: block
+    description: "Quality calculation"
+
+  is_valid:
+    type: trigger_block
+    description: "Validity conditions"
+
+  chronicle:
+    type: block
+    description: "Chronicle entries configuration"
+
+  promoter_modifier:
+    type: block
+    description: "Modifier for the legend promoter"
+
+  province_modifier:
+    type: block
+    description: "Modifier for provinces with legend"
+
+  on_start:
+    type: effect_block
+    description: "Effects when legend starts spreading"
+
+  on_complete:
+    type: effect_block
+    description: "Effects when legend completes"
+
+field_docs:
+  quality:
+    description: "Quality calculation"
+    snippet: "quality = {\n\tadd = ${1:100}\n}"
+
+symbols:
+  primary:
+    kind: Object
+    name_from: key

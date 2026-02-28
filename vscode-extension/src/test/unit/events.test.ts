@@ -20,6 +20,8 @@ import {
     validateEventFromNode,
     validateEventFileLocation,
     validateNamespaceDeclaration,
+    validateContentTypePlacement,
+    classifyBlockContentType,
     isEventFilePath,
 } from '../../server/ck3/validation/events';
 
@@ -328,32 +330,82 @@ describe('Event Validation', () => {
     });
 
     describe('File Location Validation', () => {
-        it('should detect events/ in path', () => {
-            assert.ok(isEventFilePath('file:///mod/events/test.txt'));
-            assert.ok(isEventFilePath('file:///C:/mod/events/subfolder/test.txt'));
-            assert.ok(isEventFilePath('C:\\mod\\events\\test.txt'));
+        describe('isEventFilePath()', () => {
+            it('should detect events/ in path (forward slash)', () => {
+                assert.ok(isEventFilePath('file:///mod/events/test.txt'));
+            });
+
+            it('should detect events/ in subdirectory path', () => {
+                assert.ok(isEventFilePath('file:///C:/mod/events/subfolder/test.txt'));
+            });
+
+            it('should detect events/ with backslash (Windows)', () => {
+                assert.ok(isEventFilePath('C:\\mod\\events\\test.txt'));
+            });
+
+            it('should be case-insensitive', () => {
+                assert.ok(isEventFilePath('file:///mod/Events/test.txt'));
+                assert.ok(isEventFilePath('file:///mod/EVENTS/test.txt'));
+            });
+
+            it('should reject non-events paths', () => {
+                assert.ok(!isEventFilePath('file:///mod/decisions/test.txt'));
+                assert.ok(!isEventFilePath('file:///mod/common/test.txt'));
+                assert.ok(!isEventFilePath('C:\\mod\\common\\test.txt'));
+            });
         });
 
-        it('should detect non-events paths', () => {
-            assert.ok(!isEventFilePath('file:///mod/decisions/test.txt'));
-            assert.ok(!isEventFilePath('file:///mod/common/test.txt'));
-            assert.ok(!isEventFilePath('C:\\mod\\common\\test.txt'));
+        describe('validateEventFileLocation() - EVENT-008', () => {
+            it('should flag EVENT-008 when events not in events/ dir', () => {
+                const errors = validateEventFileLocation('file:///mod/common/test.txt', true);
+                assert.ok(errors.some(e => e.code === 'EVENT-008'));
+            });
+
+            it('should return no errors when events are in events/ dir (.txt)', () => {
+                const errors = validateEventFileLocation('file:///mod/events/test.txt', true);
+                assert.strictEqual(errors.length, 0);
+            });
+
+            it('should accept events/ subdirectories', () => {
+                const errors = validateEventFileLocation('file:///mod/events/lifestyle/focus.txt', true);
+                assert.strictEqual(errors.length, 0);
+            });
+
+            it('should return no errors when no event blocks', () => {
+                const errors = validateEventFileLocation('file:///mod/common/test.txt', false);
+                assert.strictEqual(errors.length, 0);
+            });
         });
 
-        it('should return EVENT-008 when events not in events/ dir', () => {
-            const errors = validateEventFileLocation('file:///mod/common/test.txt', true);
-            assert.strictEqual(errors.length, 1);
-            assert.strictEqual(errors[0].code, 'EVENT-008');
+        describe('validateEventFileLocation() - EVENT-015 (common/events/)', () => {
+            it('should flag EVENT-015 when events in common/events/', () => {
+                const errors = validateEventFileLocation('file:///mod/common/events/test.txt', true);
+                assert.ok(errors.some(e => e.code === 'EVENT-015'),
+                    'Should warn about common/events/ vs top-level events/');
+            });
+
+            it('should not flag EVENT-015 for top-level events/', () => {
+                const errors = validateEventFileLocation('file:///mod/events/test.txt', true);
+                assert.ok(!errors.some(e => e.code === 'EVENT-015'));
+            });
         });
 
-        it('should return no errors when events are in events/ dir', () => {
-            const errors = validateEventFileLocation('file:///mod/events/test.txt', true);
-            assert.strictEqual(errors.length, 0);
-        });
+        describe('validateEventFileLocation() - EVENT-014 (.txt extension)', () => {
+            it('should flag EVENT-014 for non-.txt file in events/', () => {
+                const errors = validateEventFileLocation('file:///mod/events/test.yml', true);
+                assert.ok(errors.some(e => e.code === 'EVENT-014'),
+                    'Should warn about non-.txt extension');
+            });
 
-        it('should return no errors when no event blocks', () => {
-            const errors = validateEventFileLocation('file:///mod/common/test.txt', false);
-            assert.strictEqual(errors.length, 0);
+            it('should flag EVENT-014 for .json file in events/', () => {
+                const errors = validateEventFileLocation('file:///mod/events/test.json', true);
+                assert.ok(errors.some(e => e.code === 'EVENT-014'));
+            });
+
+            it('should not flag EVENT-014 for .txt file', () => {
+                const errors = validateEventFileLocation('file:///mod/events/test.txt', true);
+                assert.ok(!errors.some(e => e.code === 'EVENT-014'));
+            });
         });
     });
 
@@ -385,7 +437,7 @@ describe('Event Validation', () => {
             assert.ok(errors.some(e => e.code === 'EVENT-010'));
         });
 
-        it('should flag EVENT-009 for namespace mismatch', () => {
+        it('should flag EVENT-009 for single namespace mismatch', () => {
             const root: ASTNode = {
                 type: NodeType.ROOT,
                 key: 'root',
@@ -396,7 +448,43 @@ describe('Event Validation', () => {
                 range: { start: { line: 0, character: 0 }, end: { line: 10, character: 0 } },
             };
             const errors = validateNamespaceDeclaration(root, 'file:///mod/events/test.txt');
-            assert.ok(errors.some(e => e.code === 'EVENT-009'));
+            assert.ok(errors.some(e => e.code === 'EVENT-009'),
+                'Should use EVENT-009 when single namespace declared');
+            assert.ok(!errors.some(e => e.code === 'EVENT-016'),
+                'Should NOT use EVENT-016 when single namespace declared');
+        });
+
+        it('should flag EVENT-016 when multiple namespaces and event uses undeclared one', () => {
+            const root: ASTNode = {
+                type: NodeType.ROOT,
+                key: 'root',
+                children: [
+                    makeAssignment('namespace', 'ns_a'),
+                    makeAssignment('namespace', 'ns_b'),
+                    makeEventNode('ns_a.0001'),
+                    makeEventNode('ns_c.0001'),  // ns_c not declared
+                ],
+                range: { start: { line: 0, character: 0 }, end: { line: 10, character: 0 } },
+            };
+            const errors = validateNamespaceDeclaration(root, 'file:///mod/events/test.txt');
+            assert.ok(errors.some(e => e.code === 'EVENT-016'),
+                'Should use EVENT-016 for undeclared namespace with multiple declarations');
+        });
+
+        it('should pass with multiple namespace declarations all matching', () => {
+            const root: ASTNode = {
+                type: NodeType.ROOT,
+                key: 'root',
+                children: [
+                    makeAssignment('namespace', 'ns_a'),
+                    makeAssignment('namespace', 'ns_b'),
+                    makeEventNode('ns_a.0001'),
+                    makeEventNode('ns_b.0001'),
+                ],
+                range: { start: { line: 0, character: 0 }, end: { line: 10, character: 0 } },
+            };
+            const errors = validateNamespaceDeclaration(root, 'file:///mod/events/test.txt');
+            assert.strictEqual(errors.length, 0, 'All event namespaces are declared');
         });
 
         it('should skip validation for non-event files', () => {
@@ -423,6 +511,274 @@ describe('Event Validation', () => {
             };
             const errors = validateNamespaceDeclaration(root, 'file:///mod/events/test.txt');
             assert.strictEqual(errors.length, 0, 'Should skip when no event blocks');
+        });
+    });
+
+    describe('Content-Type Fingerprinting', () => {
+        describe('classifyBlockContentType()', () => {
+            it('should classify event blocks (namespace.number key + event type)', () => {
+                const node = makeBlock('my_mod.0001', [
+                    makeAssignment('type', 'character_event'),
+                    makeAssignment('title', 'test.t'),
+                ]);
+                assert.strictEqual(classifyBlockContentType(node), 'event');
+            });
+
+            it('should classify event blocks with just namespace.number key', () => {
+                const node = makeBlock('test.0001', [
+                    makeAssignment('title', 'test.t'),
+                ]);
+                assert.strictEqual(classifyBlockContentType(node), 'event');
+            });
+
+            it('should classify decision blocks (has is_shown)', () => {
+                const node = makeBlock('my_decision', [
+                    makeBlock('is_shown', [makeAssignment('is_ruler', 'yes')]),
+                    makeBlock('effect', [makeAssignment('add_gold', '100')]),
+                ]);
+                assert.strictEqual(classifyBlockContentType(node), 'decision');
+            });
+
+            it('should classify decision blocks (has is_valid)', () => {
+                const node = makeBlock('my_decision', [
+                    makeBlock('is_valid', [makeAssignment('is_alive', 'yes')]),
+                    makeBlock('effect', [makeAssignment('add_gold', '100')]),
+                ]);
+                assert.strictEqual(classifyBlockContentType(node), 'decision');
+            });
+
+            it('should classify decision blocks (has is_valid_showing_failures_only)', () => {
+                const node = makeBlock('my_decision', [
+                    makeBlock('is_valid_showing_failures_only', [makeAssignment('age', '16')]),
+                ]);
+                assert.strictEqual(classifyBlockContentType(node), 'decision');
+            });
+
+            it('should classify character interaction blocks (2+ fingerprints)', () => {
+                const node = makeBlock('my_interaction', [
+                    makeBlock('on_accept', []),
+                    makeBlock('on_decline', []),
+                    makeAssignment('category', 'interaction_category_diplomacy'),
+                ]);
+                assert.strictEqual(classifyBlockContentType(node), 'character_interaction');
+            });
+
+            it('should NOT classify as interaction with only 1 fingerprint', () => {
+                const node = makeBlock('some_block', [
+                    makeBlock('on_accept', []),
+                ]);
+                // Should be unknown, not interaction (need >= 2)
+                assert.notStrictEqual(classifyBlockContentType(node), 'character_interaction');
+            });
+
+            it('should classify on-action blocks (has random_events)', () => {
+                const node = makeBlock('on_birth', [
+                    makeBlock('random_events', []),
+                ]);
+                assert.strictEqual(classifyBlockContentType(node), 'on_action');
+            });
+
+            it('should classify on-action blocks (has first_valid)', () => {
+                const node = makeBlock('on_death', [
+                    makeBlock('first_valid', []),
+                ]);
+                assert.strictEqual(classifyBlockContentType(node), 'on_action');
+            });
+
+            it('should return unknown for empty blocks', () => {
+                const node = makeBlock('some_block', []);
+                assert.strictEqual(classifyBlockContentType(node), 'unknown');
+            });
+
+            it('should return unknown for unrecognized blocks', () => {
+                const node = makeBlock('some_block', [
+                    makeAssignment('weight', '10'),
+                    makeAssignment('modifier', 'some_mod'),
+                ]);
+                assert.strictEqual(classifyBlockContentType(node), 'unknown');
+            });
+        });
+
+        describe('validateContentTypePlacement()', () => {
+            it('should produce no errors for events in events/ dir', () => {
+                const root: ASTNode = {
+                    type: NodeType.ROOT,
+                    key: 'root',
+                    children: [
+                        makeAssignment('namespace', 'my_mod'),
+                        makeEventNode('my_mod.0001'),
+                    ],
+                    range: { start: { line: 0, character: 0 }, end: { line: 10, character: 0 } },
+                };
+                const errors = validateContentTypePlacement(root, 'file:///mod/events/test.txt');
+                assert.strictEqual(errors.length, 0);
+            });
+
+            it('should flag EVENT-017 for decision block in events/ dir', () => {
+                const root: ASTNode = {
+                    type: NodeType.ROOT,
+                    key: 'root',
+                    children: [
+                        makeBlock('my_decision', [
+                            makeBlock('is_shown', [makeAssignment('is_ruler', 'yes')]),
+                            makeBlock('effect', [makeAssignment('add_gold', '100')]),
+                        ]),
+                    ],
+                    range: { start: { line: 0, character: 0 }, end: { line: 10, character: 0 } },
+                };
+                const errors = validateContentTypePlacement(root, 'file:///mod/events/test.txt');
+                assert.ok(errors.some(e => e.code === 'EVENT-017'),
+                    'Should flag decision in events/ dir');
+                assert.ok(errors[0].message.includes('decision'),
+                    'Message should mention decision');
+            });
+
+            it('should flag EVENT-017 for interaction block in events/ dir', () => {
+                const root: ASTNode = {
+                    type: NodeType.ROOT,
+                    key: 'root',
+                    children: [
+                        makeBlock('my_interaction', [
+                            makeBlock('on_accept', []),
+                            makeBlock('on_decline', []),
+                            makeAssignment('category', 'interaction_category_diplomacy'),
+                        ]),
+                    ],
+                    range: { start: { line: 0, character: 0 }, end: { line: 10, character: 0 } },
+                };
+                const errors = validateContentTypePlacement(root, 'file:///mod/events/test.txt');
+                assert.ok(errors.some(e => e.code === 'EVENT-017'),
+                    'Should flag interaction in events/ dir');
+                assert.ok(errors[0].message.includes('character interaction'),
+                    'Message should mention character interaction');
+            });
+
+            it('should flag EVENT-017 for on-action block in events/ dir', () => {
+                const root: ASTNode = {
+                    type: NodeType.ROOT,
+                    key: 'root',
+                    children: [
+                        makeBlock('on_birth', [
+                            makeBlock('random_events', []),
+                        ]),
+                    ],
+                    range: { start: { line: 0, character: 0 }, end: { line: 10, character: 0 } },
+                };
+                const errors = validateContentTypePlacement(root, 'file:///mod/events/test.txt');
+                assert.ok(errors.some(e => e.code === 'EVENT-017'),
+                    'Should flag on-action in events/ dir');
+            });
+
+            it('should flag EVENT-018 for event block in decisions/ dir', () => {
+                const root: ASTNode = {
+                    type: NodeType.ROOT,
+                    key: 'root',
+                    children: [
+                        makeEventNode('my_mod.0001'),
+                    ],
+                    range: { start: { line: 0, character: 0 }, end: { line: 10, character: 0 } },
+                };
+                const errors = validateContentTypePlacement(root, 'file:///mod/common/decisions/test.txt');
+                assert.ok(errors.some(e => e.code === 'EVENT-018'),
+                    'Should flag event in decisions/ dir');
+                assert.ok(errors[0].message.includes('event'),
+                    'Message should mention event');
+            });
+
+            it('should flag EVENT-018 for event block in character_interactions/ dir', () => {
+                const root: ASTNode = {
+                    type: NodeType.ROOT,
+                    key: 'root',
+                    children: [
+                        makeEventNode('my_mod.0001'),
+                    ],
+                    range: { start: { line: 0, character: 0 }, end: { line: 10, character: 0 } },
+                };
+                const errors = validateContentTypePlacement(root, 'file:///mod/common/character_interactions/test.txt');
+                assert.ok(errors.some(e => e.code === 'EVENT-018'),
+                    'Should flag event in character_interactions/ dir');
+            });
+
+            it('should flag EVENT-018 for event block in on_actions/ dir', () => {
+                const root: ASTNode = {
+                    type: NodeType.ROOT,
+                    key: 'root',
+                    children: [
+                        makeEventNode('my_mod.0001'),
+                    ],
+                    range: { start: { line: 0, character: 0 }, end: { line: 10, character: 0 } },
+                };
+                const errors = validateContentTypePlacement(root, 'file:///mod/common/on_actions/test.txt');
+                assert.ok(errors.some(e => e.code === 'EVENT-018'),
+                    'Should flag event in on_actions/ dir');
+            });
+
+            it('should produce no errors for decisions in decisions/ dir', () => {
+                const root: ASTNode = {
+                    type: NodeType.ROOT,
+                    key: 'root',
+                    children: [
+                        makeBlock('my_decision', [
+                            makeBlock('is_shown', []),
+                            makeBlock('effect', []),
+                        ]),
+                    ],
+                    range: { start: { line: 0, character: 0 }, end: { line: 10, character: 0 } },
+                };
+                const errors = validateContentTypePlacement(root, 'file:///mod/common/decisions/test.txt');
+                assert.strictEqual(errors.length, 0);
+            });
+
+            it('should skip validation for unknown directories', () => {
+                const root: ASTNode = {
+                    type: NodeType.ROOT,
+                    key: 'root',
+                    children: [
+                        makeBlock('my_decision', [
+                            makeBlock('is_shown', []),
+                            makeBlock('effect', []),
+                        ]),
+                    ],
+                    range: { start: { line: 0, character: 0 }, end: { line: 10, character: 0 } },
+                };
+                const errors = validateContentTypePlacement(root, 'file:///mod/common/cultures/test.txt');
+                assert.strictEqual(errors.length, 0, 'Should skip for unknown directories');
+            });
+
+            it('should skip unknown blocks without flagging', () => {
+                const root: ASTNode = {
+                    type: NodeType.ROOT,
+                    key: 'root',
+                    children: [
+                        makeBlock('generic_block', [
+                            makeAssignment('weight', '10'),
+                        ]),
+                    ],
+                    range: { start: { line: 0, character: 0 }, end: { line: 10, character: 0 } },
+                };
+                const errors = validateContentTypePlacement(root, 'file:///mod/events/test.txt');
+                assert.strictEqual(errors.length, 0, 'Unknown blocks should be skipped');
+            });
+
+            it('should handle mixed content — flag only mismatched blocks', () => {
+                const root: ASTNode = {
+                    type: NodeType.ROOT,
+                    key: 'root',
+                    children: [
+                        makeAssignment('namespace', 'my_mod'),
+                        makeEventNode('my_mod.0001'),  // correct — event in events/
+                        makeBlock('oops_decision', [   // wrong — decision in events/
+                            makeBlock('is_shown', []),
+                            makeBlock('effect', []),
+                        ]),
+                    ],
+                    range: { start: { line: 0, character: 0 }, end: { line: 10, character: 0 } },
+                };
+                const errors = validateContentTypePlacement(root, 'file:///mod/events/test.txt');
+                assert.strictEqual(errors.length, 1, 'Should flag only the decision block');
+                assert.ok(errors[0].message.includes('oops_decision'));
+                assert.strictEqual(errors[0].code, 'EVENT-017');
+            });
         });
     });
 });

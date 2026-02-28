@@ -235,8 +235,40 @@ export class SchemaLoader {
             return this.loadSchema('guest_invite_rules');
         } else if (/\/decision_group_types\//.test(uri)) {
             return this.loadSchema('decision_group_types');
+        } else if (/\/casus_belli_types\//.test(uri)) {
+            return this.loadSchema('casus_belli_types');
+        } else if (/\/court_positions\//.test(uri)) {
+            return this.loadSchema('court_positions');
+        } else if (/\/council_tasks\//.test(uri)) {
+            return this.loadSchema('council_tasks');
+        } else if (/\/modifiers\//.test(uri) || /\/opinion_modifiers\//.test(uri)) {
+            return this.loadSchema('modifiers');
+        } else if (/\/culture\/traditions\//.test(uri)) {
+            return this.loadSchema('culture_traditions');
+        } else if (/\/religion\/doctrines\//.test(uri)) {
+            return this.loadSchema('faith_doctrines');
+        } else if (/\/buildings\//.test(uri)) {
+            return this.loadSchema('buildings');
+        } else if (/\/landed_titles\//.test(uri)) {
+            return this.loadSchema('landed_titles');
+        } else if (/\/dynasty_legacies\//.test(uri)) {
+            return this.loadSchema('dynasty_legacies');
+        } else if (/\/artifacts\/types\//.test(uri)) {
+            return this.loadSchema('artifacts');
+        } else if (/\/travel\/travel_options\//.test(uri)) {
+            return this.loadSchema('travel_options');
+        } else if (/\/struggle\/struggles\//.test(uri)) {
+            return this.loadSchema('struggles');
+        } else if (/\/legends\/legend_types\//.test(uri)) {
+            return this.loadSchema('legends');
+        } else if (/\/subject_contracts\//.test(uri)) {
+            return this.loadSchema('vassal_contracts');
+        } else if (/\/great_projects\//.test(uri)) {
+            return this.loadSchema('great_projects');
+        } else if (/\/factions\//.test(uri)) {
+            return this.loadSchema('factions');
         }
-        
+
         // Default to generic rules
         return this.loadSchema('generic_rules');
     }
@@ -350,6 +382,23 @@ export class SchemaLoader {
             scripted_trigger: 'generic_rules',
             scripted_effect: 'generic_rules',
             script_value: 'generic_rules',
+            casus_belli_type: 'casus_belli_types',
+            court_position: 'court_positions',
+            council_task: 'council_tasks',
+            modifier: 'modifiers',
+            opinion_modifier: 'modifiers',
+            culture_tradition: 'culture_traditions',
+            faith_doctrine: 'faith_doctrines',
+            building: 'buildings',
+            landed_title: 'landed_titles',
+            dynasty_legacy: 'dynasty_legacies',
+            artifact_type: 'artifacts',
+            travel_option: 'travel_options',
+            struggle: 'struggles',
+            legend_type: 'legends',
+            vassal_contract: 'vassal_contracts',
+            great_project: 'great_projects',
+            faction: 'factions',
         };
         return mapping[contentType] || null;
     }

@@ -1,0 +1,49 @@
+# Modifier Validation Schema
+version: "1.0"
+file_type: modifier
+
+identification:
+  path_patterns:
+    - "*/common/modifiers/*.txt"
+    - "*/common/opinion_modifiers/*.txt"
+    - "common/modifiers/*.txt"
+    - "common/opinion_modifiers/*.txt"
+
+fields:
+  icon:
+    type: string
+    description: "Modifier icon"
+
+  opinion:
+    type: integer
+    description: "Opinion value (for opinion modifiers)"
+
+  stacking:
+    type: boolean
+    description: "Whether modifier stacks"
+
+  decay:
+    type: block
+    description: "Decay configuration"
+
+  months:
+    type: integer
+    description: "Duration in months"
+
+  years:
+    type: integer
+    description: "Duration in years"
+
+  days:
+    type: integer
+    description: "Duration in days"
+
+field_docs:
+  opinion:
+    description: "Opinion value"
+    snippet: "opinion = ${1:10}"
+
+symbols:
+  primary:
+    kind: Object
+    name_from: key

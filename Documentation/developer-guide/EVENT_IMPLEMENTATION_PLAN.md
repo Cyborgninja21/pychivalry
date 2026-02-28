@@ -762,4 +762,4 @@ If issues arise:
 - [ ] PATH-001 fires when event file is in wrong directory
 - [ ] No regression in existing tests
 - [ ] Hover documentation shows event type details
-- [ ] Compile succeeds with no TypeScript errors
+- [ ] Compile succeeds with no TypeScript errors

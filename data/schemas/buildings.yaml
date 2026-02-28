@@ -1,0 +1,91 @@
+# Building Validation Schema
+version: "1.0"
+file_type: building
+
+identification:
+  path_patterns:
+    - "*/common/buildings/*.txt"
+    - "common/buildings/*.txt"
+
+fields:
+  construction_time:
+    type: integer
+    description: "Days to construct"
+
+  cost:
+    type: block
+    description: "Construction cost (gold)"
+
+  next_building:
+    type: string
+    description: "Upgrade target building"
+
+  can_construct_potential:
+    type: trigger_block
+    description: "Broad eligibility trigger"
+
+  can_construct:
+    type: trigger_block
+    description: "Detailed construction conditions"
+
+  is_enabled:
+    type: trigger_block
+    description: "Whether building effects are active"
+
+  county_modifier:
+    type: block
+    description: "County-wide modifier"
+
+  province_modifier:
+    type: block
+    description: "Province-specific modifier"
+
+  character_modifier:
+    type: block
+    description: "Character modifier from building"
+
+  flag:
+    type: string
+    description: "Building flag"
+
+  type_icon:
+    type: string
+    description: "Building type icon"
+
+  levy:
+    type: integer
+    description: "Levy contribution"
+
+  max_garrison:
+    type: integer
+    description: "Maximum garrison size"
+
+  ai_value:
+    type: block
+    description: "AI construction priority"
+
+validations:
+  - name: missing_cost
+    condition: "NOT cost.exists"
+    diagnostic: BUILD-001
+    severity: warning
+    message: "Building missing 'cost' block"
+
+  - name: no_modifiers
+    condition: "NOT county_modifier.exists AND NOT province_modifier.exists AND NOT character_modifier.exists"
+    diagnostic: BUILD-002
+    severity: information
+    message: "Building has no modifier effects"
+
+field_docs:
+  cost:
+    description: "Construction cost"
+    snippet: "cost = {\n\tgold = ${1:100}\n}"
+  county_modifier:
+    description: "County modifier when built"
+    snippet: "county_modifier = {\n\t$0\n}"
+
+symbols:
+  primary:
+    kind: Object
+    name_from: key

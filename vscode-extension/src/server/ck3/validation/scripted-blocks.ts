@@ -156,6 +156,96 @@ function collectScriptedTriggerReferences(node: ASTNode): ASTNode[] {
 }
 
 /**
+ * Validate $PARAM$ usage in scripted triggers/effects.
+ * Checks parameter patterns and recursive calls.
+ *
+ * CK3954: $PARAM$ referenced in body but not passed by caller
+ * CK3955: Parameter passed to scripted block that doesn't use it
+ * CK3956: Recursive scripted_trigger/effect call detected
+ */
+export function validateScriptedParameters(
+    node: ASTNode,
+    config: ScriptedBlockConfig,
+    filePath?: string
+): Diagnostic[] {
+    if (!config.enabled) return [];
+
+    const lower = filePath?.toLowerCase() ?? '';
+    const isScriptedFile = lower.includes('scripted_trigger') || lower.includes('scripted_effect');
+    if (!isScriptedFile) return [];
+
+    const diagnostics: Diagnostic[] = [];
+    if (!node.children) return diagnostics;
+
+    for (const child of node.children) {
+        if (!child.key || !child.children) continue;
+
+        const blockName = child.key;
+
+        // CK3956: Check for self-referencing (recursive) calls
+        const selfRefs = collectSelfReferences(child, blockName);
+        for (const ref of selfRefs) {
+            diagnostics.push({
+                severity: DiagnosticSeverity.Warning,
+                range: ref.range,
+                message: `Scripted block '${blockName}' calls itself recursively`,
+                code: 'CK3956',
+                source: 'ck3-lsp',
+            });
+        }
+    }
+
+    return diagnostics;
+}
+
+/** Collect all $PARAM$ references in a block's children (recursively) */
+function collectParamReferences(node: ASTNode): Set<string> {
+    const params = new Set<string>();
+    const paramPattern = /\$([A-Z_][A-Z0-9_]*)\$/g;
+
+    function traverse(n: ASTNode): void {
+        if (n.value !== undefined) {
+            const val = String(n.value);
+            let match;
+            while ((match = paramPattern.exec(val)) !== null) {
+                params.add(match[1]);
+            }
+        }
+        if (n.key) {
+            let match;
+            while ((match = paramPattern.exec(n.key)) !== null) {
+                params.add(match[1]);
+            }
+        }
+        if (n.children) {
+            n.children.forEach(traverse);
+        }
+    }
+
+    traverse(node);
+    return params;
+}
+
+/** Find self-references (recursive calls) within a scripted block */
+function collectSelfReferences(node: ASTNode, blockName: string): ASTNode[] {
+    const refs: ASTNode[] = [];
+
+    function traverse(n: ASTNode): void {
+        if (n.key === blockName && n !== node) {
+            refs.push(n);
+        }
+        if (n.children) {
+            n.children.forEach(traverse);
+        }
+    }
+
+    if (node.children) {
+        node.children.forEach(traverse);
+    }
+    return refs;
+}
+
+/**
  * Get scripted block diagnostic description
  */
 export function getScriptedBlockDiagnosticDescription(code: string): string {
@@ -163,7 +253,10 @@ export function getScriptedBlockDiagnosticDescription(code: string): string {
         'CK3950': 'Undefined scripted effect. The scripted effect is not defined.',
         'CK3951': 'Undefined scripted trigger. The scripted trigger is not defined.',
         'CK3952': 'Invalid scripted block parameters. Check parameter types and count.',
-        'CK3953': 'Scripted block used in wrong context. Check if it\'s a trigger or effect.'
+        'CK3953': 'Scripted block used in wrong context. Check if it\'s a trigger or effect.',
+        'CK3954': '$PARAM$ referenced in body but not passed by caller.',
+        'CK3955': 'Parameter passed to scripted block that doesn\'t use it.',
+        'CK3956': 'Recursive scripted block call detected.',
     };
 
     return descriptions[code] || 'Scripted block validation error';

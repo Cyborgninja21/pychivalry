@@ -42,7 +42,7 @@ import { serverLogger } from '../../utils/logger';
 import { validateGenericRules, GenericRulesConfig } from './generic-rules';
 import { validateAssets, AssetConfig } from './assets';
 import { validateStoryCycles, StoryCycleConfig } from './story-cycles';
-import { validateEventFromNode, validateEventFileLocation, validateNamespaceDeclaration } from './events';
+import { validateEventFromNode, validateEventFileLocation, validateNamespaceDeclaration, validateContentTypePlacement } from './events';
 import { validateScriptValues, ScriptValuesConfig, DEFAULT_SCRIPT_VALUES_CONFIG } from './script-values';
 import { SchemaValidator } from '../../schema/validator';
 import { SchemaLoader } from '../../schema/loader';
@@ -56,6 +56,12 @@ import { validateSwitch, DEFAULT_SWITCH_CONFIG } from './switch-validation';
 import { validateDecisions, DEFAULT_DECISION_CONFIG } from './decisions';
 import { validateInteractions, DEFAULT_INTERACTION_VALIDATION_CONFIG } from './interactions';
 import { validateActivities, DEFAULT_ACTIVITY_CONFIG } from './activities';
+import { validateOnActions, DEFAULT_ON_ACTION_CONFIG } from './on-actions';
+import { validateSchemes, DEFAULT_SCHEME_CONFIG } from './schemes';
+import { validateModifiers, DEFAULT_MODIFIER_CONFIG } from './modifiers';
+import { validateCasusBelli, DEFAULT_CASUS_BELLI_CONFIG } from './casus-belli';
+import { validateCourtPositions, DEFAULT_COURT_POSITION_CONFIG } from './court-positions';
+import { validateScriptedParameters } from './scripted-blocks';
 import { classifyContext } from './context-engine';
 
 /**
@@ -81,6 +87,11 @@ export interface DiagnosticConfig {
     enableDecisionChecks: boolean;
     enableInteractionValidation: boolean;
     enableActivityChecks: boolean;
+    enableOnActionChecks: boolean;
+    enableSchemeChecks: boolean;
+    enableModifierChecks: boolean;
+    enableCasusBelliChecks: boolean;
+    enableCourtPositionChecks: boolean;
     maxDiagnostics: number;
     /** Workspace root paths for asset validation */
     workspaceRoots: string[];
@@ -111,6 +122,11 @@ const DEFAULT_CONFIG: DiagnosticConfig = {
     enableDecisionChecks: true,
     enableInteractionValidation: true,
     enableActivityChecks: true,
+    enableOnActionChecks: true,
+    enableSchemeChecks: true,
+    enableModifierChecks: true,
+    enableCasusBelliChecks: true,
+    enableCourtPositionChecks: true,
     maxDiagnostics: 1000,
     workspaceRoots: [],
 };
@@ -467,6 +483,18 @@ export class DiagnosticsEngine {
                         });
                     }
                 }
+
+                // EVENT-017/EVENT-018: Content-type mismatch detection
+                const placementErrors = validateContentTypePlacement(node, document.uri);
+                for (const err of placementErrors) {
+                    diagnostics.push({
+                        severity: DiagnosticSeverity.Warning,
+                        range: err.range || { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } },
+                        message: err.message,
+                        code: err.code,
+                        source: 'ck3-event',
+                    });
+                }
             }
 
             // Paradox convention checks (effects in trigger context, event structure, etc.)
@@ -589,6 +617,41 @@ export class DiagnosticsEngine {
             // Activity lifecycle validation
             if (this.config.enableActivityChecks) {
                 diagnostics.push(...validateActivities(node, DEFAULT_ACTIVITY_CONFIG, document.uri));
+            }
+
+            // On-action validation
+            if (this.config.enableOnActionChecks) {
+                diagnostics.push(...validateOnActions(node, DEFAULT_ON_ACTION_CONFIG, document.uri));
+            }
+
+            // Scheme validation
+            if (this.config.enableSchemeChecks) {
+                diagnostics.push(...validateSchemes(node, DEFAULT_SCHEME_CONFIG, document.uri));
+            }
+
+            // Modifier validation
+            if (this.config.enableModifierChecks) {
+                diagnostics.push(...validateModifiers(node, DEFAULT_MODIFIER_CONFIG, document.uri));
+            }
+
+            // Casus belli validation
+            if (this.config.enableCasusBelliChecks) {
+                diagnostics.push(...validateCasusBelli(node, DEFAULT_CASUS_BELLI_CONFIG, document.uri));
+            }
+
+            // Court position validation
+            if (this.config.enableCourtPositionChecks) {
+                diagnostics.push(...validateCourtPositions(node, DEFAULT_COURT_POSITION_CONFIG, document.uri));
+            }
+
+            // Scripted parameter validation ($PARAM$ checks)
+            if (this.config.enableScriptedBlockChecks) {
+                const scriptedBlockConfig: ScriptedBlockConfig = {
+                    enabled: true,
+                    checkEffects: true,
+                    checkTriggers: true,
+                };
+                diagnostics.push(...validateScriptedParameters(node, scriptedBlockConfig, document.uri));
             }
         }
 

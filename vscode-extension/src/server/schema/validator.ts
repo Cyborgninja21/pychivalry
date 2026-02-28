@@ -103,18 +103,31 @@ export class SchemaValidator {
 
         const fileName = filePath.toLowerCase();
 
-        if (fileName.includes('/events/') || fileName.includes('\\events\\')) {
-            return await this.loader.loadSchema('events');
-        } else if (fileName.includes('/decisions/') || fileName.includes('\\decisions\\')) {
-            return await this.loader.loadSchema('decisions');
-        } else if (fileName.includes('/character_interactions/') || fileName.includes('\\character_interactions\\')) {
-            return await this.loader.loadSchema('character_interactions');
-        } else if (fileName.includes('/on_actions/') || fileName.includes('\\on_actions\\')) {
-            return await this.loader.loadSchema('on_actions');
-        } else if (fileName.includes('/story_cycles/') || fileName.includes('\\story_cycles\\')) {
-            return await this.loader.loadSchema('story_cycles');
-        } else if (fileName.includes('/schemes/') || fileName.includes('\\schemes\\')) {
-            return await this.loader.loadSchema('schemes');
+        // Map directory path segments to schema names (order matters: more specific first)
+        const pathMappings: Array<[string, string]> = [
+            ['events', 'events'],
+            ['decisions', 'decisions'],
+            ['character_interactions', 'character_interactions'],
+            ['on_action', 'on_actions'],
+            ['story_cycles', 'story_cycles'],
+            ['schemes', 'schemes'],
+            ['casus_belli_types', 'casus_belli_types'],
+            ['court_positions', 'court_positions'],
+            ['council_tasks', 'council_tasks'],
+            ['opinion_modifiers', 'modifiers'],
+            ['modifiers', 'modifiers'],
+            ['buildings', 'buildings'],
+            ['landed_titles', 'landed_titles'],
+            ['dynasty_legacies', 'dynasty_legacies'],
+            ['factions', 'factions'],
+            ['great_projects', 'great_projects'],
+            ['subject_contracts', 'vassal_contracts'],
+        ];
+
+        for (const [segment, schemaName] of pathMappings) {
+            if (fileName.includes(`/${segment}/`) || fileName.includes(`\\${segment}\\`)) {
+                return await this.loader.loadSchema(schemaName);
+            }
         }
 
         return null;
@@ -351,41 +364,95 @@ export class SchemaValidator {
     }
 
     /**
-     * Evaluate a condition expression
+     * Evaluate a condition expression.
+     *
+     * Supported syntax:
+     *   field.exists              — child with key "field" is present
+     *   field.value == val        — child value equals val
+     *   field.count == N          — number of children with that key
+     *   NOT expr                  — negation
+     *   expr AND expr [AND expr]  — conjunction (all must be true)
+     *   expr OR expr [OR expr]    — disjunction (any must be true)
+     *
+     * Legacy (still supported):
+     *   field_name exists         — same as field_name.exists
+     *   field_name = value        — same as field_name.value == value
+     *   field_name != value
+     *   field_name in [a, b, c]
      */
     private evaluateCondition(node: ASTNode, condition: string): boolean {
         if (!condition) {
             return true;
         }
 
-        // Simple condition evaluation
-        // Supports: field_name exists, field_name = value, field_name != value
-        
-        // Check for "exists" condition
-        if (condition.endsWith(' exists')) {
-            const fieldName = condition.replace(' exists', '').trim();
+        const trimmed = condition.trim();
+
+        // Handle AND — split on " AND " and require all parts to be true
+        if (trimmed.includes(' AND ')) {
+            const parts = trimmed.split(' AND ');
+            return parts.every(part => this.evaluateCondition(node, part.trim()));
+        }
+
+        // Handle OR — split on " OR " and require any part to be true
+        if (trimmed.includes(' OR ')) {
+            const parts = trimmed.split(' OR ');
+            return parts.some(part => this.evaluateCondition(node, part.trim()));
+        }
+
+        // Handle NOT — negate the inner expression
+        if (trimmed.startsWith('NOT ')) {
+            return !this.evaluateCondition(node, trimmed.slice(4).trim());
+        }
+
+        // Dotted access: field.exists
+        if (trimmed.endsWith('.exists')) {
+            const fieldName = trimmed.slice(0, -7);
             return node.children ? node.children.some((child: ASTNode) => child.key === fieldName) : false;
         }
 
-        // Check for "= value" condition
-        if (condition.includes(' = ')) {
-            const [fieldName, value] = condition.split(' = ').map(s => s.trim());
-            const field = node.children ? node.children.find((child: ASTNode) => child.key === fieldName) : undefined;
-            return field ? field.value === value : false;
+        // Dotted access: field.value == val
+        const dotValueMatch = trimmed.match(/^(\w+)\.value\s*==\s*(.+)$/);
+        if (dotValueMatch) {
+            const fieldName = dotValueMatch[1];
+            const expected = dotValueMatch[2].trim();
+            const field = node.children?.find((child: ASTNode) => child.key === fieldName);
+            return field ? String(field.value) === expected : false;
         }
 
-        // Check for "!= value" condition
-        if (condition.includes(' != ')) {
-            const [fieldName, value] = condition.split(' != ').map(s => s.trim());
-            const field = node.children ? node.children.find((child: ASTNode) => child.key === fieldName) : undefined;
+        // Dotted access: field.count == N
+        const dotCountMatch = trimmed.match(/^(\w+)\.count\s*==\s*(\d+)$/);
+        if (dotCountMatch) {
+            const fieldName = dotCountMatch[1];
+            const expected = parseInt(dotCountMatch[2], 10);
+            const count = node.children?.filter((child: ASTNode) => child.key === fieldName).length ?? 0;
+            return count === expected;
+        }
+
+        // Legacy: "field_name exists"
+        if (trimmed.endsWith(' exists')) {
+            const fieldName = trimmed.replace(' exists', '').trim();
+            return node.children ? node.children.some((child: ASTNode) => child.key === fieldName) : false;
+        }
+
+        // Legacy: "field != value"
+        if (trimmed.includes(' != ')) {
+            const [fieldName, value] = trimmed.split(' != ').map(s => s.trim());
+            const field = node.children?.find((child: ASTNode) => child.key === fieldName);
             return field ? field.value !== value : true;
         }
 
-        // Check for "in [values]" condition
-        if (condition.includes(' in ')) {
-            const [fieldName, valuesStr] = condition.split(' in ').map(s => s.trim());
+        // Legacy: "field = value" (must come after != check)
+        if (trimmed.includes(' = ')) {
+            const [fieldName, value] = trimmed.split(' = ').map(s => s.trim());
+            const field = node.children?.find((child: ASTNode) => child.key === fieldName);
+            return field ? field.value === value : false;
+        }
+
+        // Legacy: "field in [values]"
+        if (trimmed.includes(' in ')) {
+            const [fieldName, valuesStr] = trimmed.split(' in ').map(s => s.trim());
             const values = valuesStr.replace(/[\[\]]/g, '').split(',').map(s => s.trim());
-            const field = node.children ? node.children.find((child: ASTNode) => child.key === fieldName) : undefined;
+            const field = node.children?.find((child: ASTNode) => child.key === fieldName);
             return field ? values.includes(String(field.value)) : false;
         }
 
@@ -472,6 +539,39 @@ export class SchemaValidator {
             'CK3800': 'Unknown trait: {value}',
             'CK3850': 'Unknown decision: {value}',
             'CK4100': 'Missing localization key: {value}',
+            // On-action schema codes
+            'ON_ACTION-001': 'On-action \'{key}\' has no effects or events — does nothing',
+            'ON_ACTION-002': 'On-action \'{key}\' has empty events list',
+            // Scheme schema codes
+            'SCHEME-001': 'Scheme \'{key}\' is missing required \'skill\' field',
+            'SCHEME-002': 'Scheme \'{key}\' has no effects — does nothing when executed',
+            'SCHEME-003': 'Scheme \'{key}\' uses agents but has no valid_agent conditions',
+            // Casus belli codes
+            'CB-001': 'Casus belli \'{key}\' is missing both on_victory and on_defeat effects',
+            'CB-002': 'Casus belli \'{key}\' has unknown cost currency',
+            'CB-003': 'Casus belli \'{key}\' has no target constraint',
+            // Court position codes
+            'COURT-001': 'Court position \'{key}\' is missing can_be_appointed trigger',
+            'COURT-002': 'Court position \'{key}\' has salary but no opinion modifier',
+            'COURT-003': 'Court position task references unknown position type',
+            // Council codes
+            'COUNCIL-001': 'Council task \'{key}\' is missing required position field',
+            'COUNCIL-002': 'Council task \'{key}\' has unknown position type',
+            // Culture codes
+            'CULTURE-001': 'Tradition \'{key}\' is missing category',
+            'CULTURE-002': 'Tradition \'{key}\' has modifiers but no can_pick trigger',
+            // Faith codes
+            'FAITH-001': 'Doctrine \'{key}\' is missing group',
+            'FAITH-002': 'Doctrine \'{key}\' has unknown doctrine group',
+            // Building codes
+            'BUILD-001': 'Building \'{key}\' is missing cost block',
+            'BUILD-002': 'Building \'{key}\' has no modifier effects',
+            'BUILD-003': 'Building \'{key}\' has invalid construction_time',
+            // Modifier codes
+            'MOD-001': 'Unknown modifier key \'{value}\'',
+            'MOD-002': 'Modifier value for \'{key}\' is non-numeric',
+            'MOD-003': 'Opinion modifier \'{key}\' is missing opinion field',
+            'MOD-004': 'Opinion modifier \'{key}\' value out of typical range',
             'UNKNOWN': 'Validation error at {key}'
         };
 

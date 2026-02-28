@@ -1,0 +1,55 @@
+# Dynasty Legacy Validation Schema
+version: "1.0"
+file_type: dynasty_legacy
+
+identification:
+  path_patterns:
+    - "*/common/dynasty_legacies/*.txt"
+    - "common/dynasty_legacies/*.txt"
+
+fields:
+  track:
+    required: true
+    type: string
+    diagnostic: DYNASTY-001
+    message: "Legacy missing required 'track' field"
+    description: "Legacy track this perk belongs to"
+
+  icon:
+    type: string
+    description: "Legacy icon"
+
+  is_shown:
+    type: trigger_block
+    description: "Visibility condition"
+
+  can_be_picked:
+    type: trigger_block
+    description: "Unlock conditions"
+
+  effect:
+    type: effect_block
+    description: "Effects when unlocked"
+
+  character_modifier:
+    type: block
+    description: "Character modifier for dynasty members"
+
+  cost:
+    type: block
+    description: "Renown cost to unlock"
+
+  ai_chance:
+    type: block
+    description: "AI selection weight"
+
+field_docs:
+  track:
+    description: "Legacy track name"
+    snippet: "track = ${1:track_name}"
+
+symbols:
+  primary:
+    kind: EnumMember
+    name_from: key
+    detail_from: track

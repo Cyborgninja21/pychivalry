@@ -1,0 +1,54 @@
+# Struggle Validation Schema
+version: "1.0"
+file_type: struggle
+
+identification:
+  path_patterns:
+    - "*/common/struggle/struggles/*.txt"
+    - "common/struggle/struggles/*.txt"
+
+fields:
+  cultures:
+    type: block
+    description: "Involved cultures"
+
+  faiths:
+    type: block
+    description: "Involved faiths"
+
+  regions:
+    type: block
+    description: "Geographic region"
+
+  involvement:
+    type: block
+    description: "Character involvement rules"
+
+  phases:
+    required: true
+    type: block
+    diagnostic: STRUGGLE-001
+    message: "Struggle missing required 'phases' block"
+    description: "Phase definitions"
+
+  on_start:
+    type: effect_block
+    description: "Effects when struggle starts"
+
+  on_end:
+    type: effect_block
+    description: "Effects when struggle ends"
+
+  start_phase:
+    type: string
+    description: "Initial phase"
+
+field_docs:
+  phases:
+    description: "Phase definitions"
+    snippet: "phases = {\n\t${1:phase_name} = {\n\t\t$0\n\t}\n}"
+
+symbols:
+  primary:
+    kind: Class
+    name_from: key

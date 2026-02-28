@@ -1,0 +1,94 @@
+# Casus Belli Types Validation Schema
+version: "1.0"
+file_type: casus_belli_type
+
+identification:
+  path_patterns:
+    - "*/common/casus_belli_types/*.txt"
+    - "common/casus_belli_types/*.txt"
+
+field_order:
+  enabled: true
+  mode: flexible
+  order:
+    - group
+    - icon
+    - valid_to_start
+    - should_invalidate
+    - cost
+    - on_victory
+    - on_white_peace
+    - on_defeat
+    - on_invalidated
+    - war_score_from_battles_factor
+    - war_score_from_occupation_factor
+    - ai_score
+
+fields:
+  group:
+    type: string
+    description: "CB group category"
+
+  valid_to_start:
+    type: trigger_block
+    description: "Conditions for declaring war with this CB"
+
+  should_invalidate:
+    type: trigger_block
+    description: "Conditions that invalidate the war"
+
+  cost:
+    type: block
+    description: "Cost to declare war (prestige, piety, gold)"
+
+  on_victory:
+    type: effect_block
+    description: "Effects when attacker wins"
+
+  on_white_peace:
+    type: effect_block
+    description: "Effects on white peace"
+
+  on_defeat:
+    type: effect_block
+    description: "Effects when attacker loses"
+
+  on_invalidated:
+    type: effect_block
+    description: "Effects when war is invalidated"
+
+  war_score_from_battles_factor:
+    type: number
+    description: "Multiplier for battle war score"
+
+  war_score_from_occupation_factor:
+    type: number
+    description: "Multiplier for occupation war score"
+
+  ai_score:
+    type: block
+    description: "AI decision weight for using this CB"
+
+validations:
+  - name: no_outcome_effects
+    condition: "NOT on_victory.exists AND NOT on_defeat.exists AND NOT on_white_peace.exists"
+    diagnostic: CB-001
+    severity: warning
+    message: "Casus belli has no outcome effects (on_victory/on_defeat/on_white_peace)"
+
+field_docs:
+  valid_to_start:
+    description: "Conditions for declaring war"
+    detail: "Trigger block — must be true to start war"
+    snippet: "valid_to_start = {\n\t$0\n}"
+  on_victory:
+    description: "Effects when attacker wins"
+    snippet: "on_victory = {\n\t$0\n}"
+  on_defeat:
+    description: "Effects when attacker loses"
+    snippet: "on_defeat = {\n\t$0\n}"
+
+symbols:
+  primary:
+    kind: Class
+    name_from: key

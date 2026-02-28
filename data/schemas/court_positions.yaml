@@ -1,0 +1,93 @@
+# Court Position Validation Schema
+version: "1.0"
+file_type: court_position
+
+identification:
+  path_patterns:
+    - "*/common/court_positions/types/*.txt"
+    - "*/common/court_positions/*.txt"
+    - "common/court_positions/**/*.txt"
+
+field_order:
+  enabled: true
+  mode: flexible
+  order:
+    - is_shown
+    - can_be_appointed
+    - auto_fill
+    - opinion
+    - aptitude
+    - salary
+    - base_employer_modifier
+    - scaling_employer_modifier
+    - modifier
+    - custom_employer_modifier_description
+    - search_for_courtier
+
+fields:
+  is_shown:
+    type: trigger_block
+    description: "When this position is visible to the player"
+
+  can_be_appointed:
+    type: trigger_block
+    description: "Conditions for a character to fill this position"
+
+  auto_fill:
+    type: boolean
+    description: "Whether AI auto-fills this position"
+
+  opinion:
+    type: block
+    description: "Opinion modifier toward employer"
+
+  aptitude:
+    type: block
+    description: "Aptitude calculation for position"
+
+  salary:
+    type: block
+    description: "Monthly salary cost"
+
+  base_employer_modifier:
+    type: block
+    description: "Base modifier applied to employer"
+
+  scaling_employer_modifier:
+    type: block
+    description: "Modifier scaled by holder aptitude"
+
+  modifier:
+    type: block
+    description: "Modifier applied to position holder"
+
+  search_for_courtier:
+    type: block
+    description: "Courtier search configuration"
+
+validations:
+  - name: missing_appointment
+    condition: "NOT can_be_appointed.exists"
+    diagnostic: COURT-001
+    severity: warning
+    message: "Court position missing 'can_be_appointed' trigger"
+
+  - name: salary_without_opinion
+    condition: "salary.exists AND NOT opinion.exists"
+    diagnostic: COURT-002
+    severity: information
+    message: "Court position has salary but no opinion modifier"
+
+field_docs:
+  can_be_appointed:
+    description: "Appointment eligibility"
+    detail: "Trigger block — character must pass to be appointed"
+    snippet: "can_be_appointed = {\n\t$0\n}"
+  salary:
+    description: "Monthly salary"
+    snippet: "salary = {\n\tround = yes\n\tadd = ${1:2}\n}"
+
+symbols:
+  primary:
+    kind: Interface
+    name_from: key

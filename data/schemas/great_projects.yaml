@@ -1,0 +1,70 @@
+# Great Project Validation Schema
+version: "1.0"
+file_type: great_project
+
+identification:
+  path_patterns:
+    - "*/common/great_projects/types/*.txt"
+    - "*/common/great_projects/*.txt"
+    - "common/great_projects/**/*.txt"
+
+fields:
+  can_construct:
+    type: trigger_block
+    description: "Construction eligibility"
+
+  cost:
+    type: block
+    description: "Construction cost"
+
+  construction_time:
+    type: integer
+    description: "Construction duration in days"
+
+  on_complete:
+    type: effect_block
+    description: "Effects when construction completes"
+
+  on_start:
+    type: effect_block
+    description: "Effects when construction begins"
+
+  province_modifier:
+    type: block
+    description: "Province modifier when built"
+
+  county_modifier:
+    type: block
+    description: "County modifier when built"
+
+  character_modifier:
+    type: block
+    description: "Character modifier for holder"
+
+  is_shown:
+    type: trigger_block
+    description: "Visibility conditions"
+
+  can_be_destroyed:
+    type: trigger_block
+    description: "Destruction conditions"
+
+validations:
+  - name: missing_cost
+    condition: "NOT cost.exists"
+    diagnostic: PROJECT-001
+    severity: warning
+    message: "Great project missing 'cost' block"
+
+field_docs:
+  cost:
+    description: "Construction cost"
+    snippet: "cost = {\n\tgold = ${1:500}\n}"
+  can_construct:
+    description: "Who can build this"
+    snippet: "can_construct = {\n\t$0\n}"
+
+symbols:
+  primary:
+    kind: Object
+    name_from: key

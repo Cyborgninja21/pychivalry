@@ -1,0 +1,56 @@
+# Vassal Contract Validation Schema
+version: "1.0"
+file_type: vassal_contract
+
+identification:
+  path_patterns:
+    - "*/common/subject_contracts/contracts/*.txt"
+    - "*/common/subject_contracts/*.txt"
+    - "common/subject_contracts/**/*.txt"
+
+fields:
+  display_mode:
+    type: string
+    description: "How the contract is displayed"
+
+  is_shown:
+    type: trigger_block
+    description: "Visibility conditions"
+
+  can_be_set:
+    type: trigger_block
+    description: "Conditions for setting this contract term"
+
+  effect:
+    type: effect_block
+    description: "Effects when contract term is set"
+
+  vassal_modifier:
+    type: block
+    description: "Modifier applied to vassal"
+
+  liege_modifier:
+    type: block
+    description: "Modifier applied to liege"
+
+  tax_factor:
+    type: number
+    description: "Tax contribution factor"
+
+  levies_factor:
+    type: number
+    description: "Levy contribution factor"
+
+  ai_will_do:
+    type: block
+    description: "AI preference weight"
+
+field_docs:
+  can_be_set:
+    description: "Conditions for this contract"
+    snippet: "can_be_set = {\n\t$0\n}"
+
+symbols:
+  primary:
+    kind: Interface
+    name_from: key

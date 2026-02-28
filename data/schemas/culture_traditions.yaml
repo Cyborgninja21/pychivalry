@@ -1,0 +1,83 @@
+# Culture Tradition Validation Schema
+version: "1.0"
+file_type: culture_tradition
+
+identification:
+  path_patterns:
+    - "*/common/culture/traditions/*.txt"
+    - "common/culture/traditions/*.txt"
+
+constants:
+  tradition_categories:
+    - realm
+    - combat
+    - societal
+    - ritual
+    - regional
+
+fields:
+  category:
+    required: true
+    type: enum
+    values: $tradition_categories
+    diagnostic: CULTURE-001
+    message: "Tradition missing required 'category' field"
+    description: "Tradition category"
+
+  layers:
+    type: block
+    description: "Visual layer configuration"
+
+  is_shown:
+    type: trigger_block
+    description: "When this tradition is visible"
+
+  can_pick:
+    type: trigger_block
+    description: "Conditions to adopt this tradition"
+
+  can_pick_reason:
+    type: block
+    description: "Reason display configuration"
+
+  parameters:
+    type: block
+    description: "Tradition parameter configuration"
+
+  character_modifier:
+    type: block
+    description: "Character modifier when tradition active"
+
+  county_modifier:
+    type: block
+    description: "County modifier when tradition active"
+
+  province_modifier:
+    type: block
+    description: "Province modifier when tradition active"
+
+  doctrine_character_modifier:
+    type: block
+    description: "Modifier from doctrines"
+
+  cost:
+    type: block
+    description: "Cost to adopt tradition"
+
+  ai_will_do:
+    type: block
+    description: "AI preference weight"
+
+field_docs:
+  category:
+    description: "Tradition category"
+    snippet: "category = ${1|realm,combat,societal,ritual,regional|}"
+  can_pick:
+    description: "Adoption conditions"
+    snippet: "can_pick = {\n\t$0\n}"
+
+symbols:
+  primary:
+    kind: EnumMember
+    name_from: key
+    detail_from: category

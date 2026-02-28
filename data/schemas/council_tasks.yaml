@@ -1,0 +1,68 @@
+# Council Task Validation Schema
+version: "1.0"
+file_type: council_task
+
+identification:
+  path_patterns:
+    - "*/common/council_tasks/*.txt"
+    - "common/council_tasks/*.txt"
+
+constants:
+  council_positions:
+    - councillor_chancellor
+    - councillor_marshal
+    - councillor_steward
+    - councillor_spymaster
+    - councillor_court_chaplain
+
+fields:
+  position:
+    required: true
+    type: enum
+    values: $council_positions
+    diagnostic: COUNCIL-001
+    message: "Council task missing required 'position' field"
+    description: "Which council position performs this task"
+
+  task_type:
+    type: string
+    description: "Task type identifier"
+
+  county_target:
+    type: string
+    description: "County targeting mode"
+
+  effect:
+    type: effect_block
+    description: "Effects when task is performed"
+
+  on_start_task:
+    type: effect_block
+    description: "Effects when task begins"
+
+  on_finish_task:
+    type: effect_block
+    description: "Effects when task completes"
+
+  valid:
+    type: trigger_block
+    description: "Conditions for task to be available"
+
+  progress:
+    type: block
+    description: "Progress configuration"
+
+  ai_will_do:
+    type: block
+    description: "AI preference weight"
+
+field_docs:
+  position:
+    description: "Council position for this task"
+    snippet: "position = ${1|councillor_chancellor,councillor_marshal,councillor_steward,councillor_spymaster,councillor_court_chaplain|}"
+
+symbols:
+  primary:
+    kind: Function
+    name_from: key
+    detail_from: position

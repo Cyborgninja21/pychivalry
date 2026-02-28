@@ -1,0 +1,63 @@
+# Landed Title Validation Schema
+version: "1.0"
+file_type: landed_title
+
+identification:
+  path_patterns:
+    - "*/common/landed_titles/*.txt"
+    - "common/landed_titles/*.txt"
+
+fields:
+  color:
+    type: block
+    description: "Title color (RGB)"
+
+  color2:
+    type: block
+    description: "Secondary title color"
+
+  capital:
+    type: string
+    description: "Capital county/barony"
+
+  definite_form:
+    type: boolean
+    description: "Use 'the' in title name"
+
+  ruler_uses_title_name:
+    type: boolean
+    description: "Ruler uses title name as name"
+
+  can_create:
+    type: trigger_block
+    description: "Conditions to create this title"
+
+  can_destroy:
+    type: trigger_block
+    description: "Conditions to destroy this title"
+
+  de_jure_drift_disabled:
+    type: boolean
+    description: "Disable de jure drift"
+
+  male_names:
+    type: block
+    description: "Male name list"
+
+  female_names:
+    type: block
+    description: "Female name list"
+
+  cultural_names:
+    type: block
+    description: "Culture-specific names"
+
+field_docs:
+  capital:
+    description: "Capital holding"
+    snippet: "capital = ${1:c_county_name}"
+
+symbols:
+  primary:
+    kind: Object
+    name_from: key

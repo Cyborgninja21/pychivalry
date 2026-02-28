@@ -1,0 +1,59 @@
+# Artifact Type Validation Schema
+version: "1.0"
+file_type: artifact_type
+
+identification:
+  path_patterns:
+    - "*/common/artifacts/types/*.txt"
+    - "common/artifacts/types/*.txt"
+
+fields:
+  slot:
+    required: true
+    type: string
+    diagnostic: ARTIFACT-001
+    message: "Artifact type missing required 'slot' field"
+    description: "Equipment slot for this artifact"
+
+  icon:
+    type: string
+    description: "Artifact icon"
+
+  can_equip:
+    type: trigger_block
+    description: "Conditions for equipping"
+
+  can_benefit:
+    type: trigger_block
+    description: "Conditions for receiving benefits"
+
+  modifier:
+    type: block
+    description: "Modifier when equipped"
+
+  max_durability:
+    type: integer
+    description: "Maximum durability"
+
+  can_reforge:
+    type: trigger_block
+    description: "Conditions for reforging"
+
+  destroy_on_zero_durability:
+    type: boolean
+    description: "Whether artifact is destroyed at 0 durability"
+
+  ai_will_do:
+    type: block
+    description: "AI equip preference"
+
+field_docs:
+  slot:
+    description: "Equipment slot"
+    snippet: "slot = ${1|primary_armament,helmet,armor,regalia,trinket,artifact_body|}"
+
+symbols:
+  primary:
+    kind: Object
+    name_from: key
+    detail_from: slot

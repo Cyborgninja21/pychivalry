@@ -1,0 +1,214 @@
+# CK3 Known Modifier Types
+# Registry of all modifier keys the game engine recognizes
+version: "1.0"
+
+# Character attribute modifiers
+character_stats:
+  - diplomacy
+  - martial
+  - stewardship
+  - intrigue
+  - learning
+  - prowess
+  - health
+  - fertility
+  - negate_health_penalty_add
+  - stress_gain_mult
+  - stress_loss_mult
+
+# Monthly resource modifiers
+monthly_resources:
+  - monthly_income
+  - monthly_prestige
+  - monthly_prestige_gain_mult
+  - monthly_piety
+  - monthly_piety_gain_mult
+  - monthly_lifestyle_xp_gain_mult
+  - monthly_diplomacy_lifestyle_xp_gain_mult
+  - monthly_martial_lifestyle_xp_gain_mult
+  - monthly_stewardship_lifestyle_xp_gain_mult
+  - monthly_intrigue_lifestyle_xp_gain_mult
+  - monthly_learning_lifestyle_xp_gain_mult
+  - monthly_dynasty_prestige
+  - monthly_dynasty_prestige_mult
+  - monthly_war_chest_gold_add
+
+# Domain and vassal modifiers
+domain:
+  - domain_limit
+  - domain_tax_mult
+  - domain_tax_different_faith_mult
+  - domain_tax_same_faith_mult
+  - vassal_limit
+  - vassal_tax_mult
+  - vassal_tax_contribution_mult
+  - vassal_levy_contribution_mult
+  - vassal_levy_contribution_add
+  - build_speed
+  - build_gold_cost
+  - build_piety_cost
+  - build_prestige_cost
+  - holding_build_speed
+  - holding_build_gold_cost
+
+# Development modifiers
+development:
+  - development_growth
+  - development_growth_factor
+
+# Combat and military modifiers
+combat:
+  - advantage
+  - max_combat_roll
+  - min_combat_roll
+  - pursuit
+  - screen
+  - damage
+  - toughness
+  - knight_effectiveness_mult
+  - knights_effectiveness_mult
+  - counter_efficiency
+  - siege_phase_time
+  - enemy_hard_casualty_modifier
+  - hard_casualty_modifier
+  - levy_reinforcement_rate
+  - levy_reinforcement_rate_friendly_territory
+  - levy_size
+  - garrison_size
+  - siege_progress
+  - max_number_of_knights_mult
+  - army_damage_mult
+  - army_toughness_mult
+  - army_pursuit_mult
+  - army_screen_mult
+  - army_maintenance_mult
+  - men_at_arms_maintenance
+  - men_at_arms_maintenance_per_dread_mult
+  - men_at_arms_cap
+  - men_at_arms_limit
+  - men_at_arms_recruitment_cost
+  - naval_speed_mult
+  - supply_duration
+  - supply_capacity_mult
+  - supply_limit
+  - supply_limit_mult
+  - retreat_losses
+
+# Opinion modifiers
+opinion:
+  - general_opinion
+  - attraction_opinion
+  - same_faith_opinion
+  - different_faith_opinion
+  - dynasty_opinion
+  - vassal_opinion
+  - liege_opinion
+  - courtier_opinion
+  - clergy_opinion
+  - same_culture_opinion
+  - different_culture_opinion
+  - prisoner_opinion
+  - independent_ruler_opinion
+  - fellow_vassal_opinion
+  - twin_opinion
+  - close_relative_opinion
+  - child_opinion
+  - spouse_opinion
+  - minority_opinion
+  - county_opinion_add
+  - direct_vassal_opinion
+
+# Scheme modifiers
+scheme:
+  - scheme_power
+  - scheme_resistance
+  - max_hostile_schemes_mult
+  - hostile_scheme_power_mult
+  - hostile_scheme_power_add
+  - hostile_scheme_resistance_mult
+  - hostile_scheme_resistance_add
+  - personal_scheme_power_mult
+  - personal_scheme_power_add
+  - owned_hostile_scheme_success_chance_add
+  - enemy_hostile_scheme_success_chance_add
+  - dread_gain_mult
+  - dread_loss_mult
+  - dread_baseline_add
+  - dread_decay_mult
+  - intimidation_against_same_faith_mult
+
+# Court and prestige modifiers
+court:
+  - court_grandeur_baseline_add
+  - monthly_court_grandeur_change_add
+  - monthly_court_grandeur_change_mult
+  - court_grandeur_minimum_expected_add
+  - amenity_level_add
+
+# Title and succession
+title:
+  - title_creation_cost
+  - title_creation_cost_mult
+  - short_reign_duration_mult
+
+# Travel modifiers
+travel:
+  - travel_speed
+  - travel_speed_mult
+  - travel_danger
+  - travel_safety
+
+# Lifestyle and learning
+lifestyle:
+  - monthly_lifestyle_xp_gain_mult
+  - learning_per_book_mult
+  - perk_point_gain_mult
+
+# County modifiers (used in county_modifier blocks)
+county:
+  - tax_mult
+  - levy_size
+  - development_growth
+  - development_growth_factor
+  - monthly_county_control_change_add
+  - monthly_county_control_change_factor
+  - garrison_size
+  - supply_limit
+  - supply_limit_mult
+  - holding_build_speed
+  - holding_build_gold_cost
+  - county_opinion_add
+
+# Province modifiers
+province:
+  - defender_advantage
+  - fort_level
+  - garrison_size
+  - supply_limit
+  - levy_size
+  - tax_mult
+
+# Character interaction modifiers
+interaction:
+  - diplomacy_per_piety_mult
+  - piety_per_diplomacy_mult
+  - tyranny_gain_mult
+  - tyranny_loss_mult
+  - short_reign_duration_mult
+  - long_reign_bonus_mult
+  - natural_dread_decay_mult
+  - ignore_negative_opinion_of_culture
+
+# AI behavior modifiers (typically not validated strictly)
+ai:
+  - ai_boldness
+  - ai_compassion
+  - ai_energy
+  - ai_greed
+  - ai_honor
+  - ai_rationality
+  - ai_sociability
+  - ai_vengefulness
+  - ai_zeal
+  - ai_war_chance
+  - ai_war_cooldown
