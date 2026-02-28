@@ -28,6 +28,8 @@ title:
     claimant: character
     county_province: province
     de_jure_county: title
+    election_candidate: character
+    title_heir: character
 
   triggers:
     - tier

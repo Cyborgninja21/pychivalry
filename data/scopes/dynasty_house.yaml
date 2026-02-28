@@ -6,6 +6,7 @@ dynasty_house:
   links:
     house_head: character
     founder: character
+    house_founder: character
     dynasty: dynasty
 
   lists:

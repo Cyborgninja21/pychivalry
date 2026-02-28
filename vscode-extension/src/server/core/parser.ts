@@ -58,6 +58,8 @@ export interface ParseError {
 enum TokenType {
     IDENTIFIER = 'IDENTIFIER',
     EQUALS = 'EQUALS',
+    DOUBLE_EQUALS = 'DOUBLE_EQUALS',
+    NOT_EQUALS = 'NOT_EQUALS',
     NULL_SAFE_EQUALS = 'NULL_SAFE_EQUALS',
     GREATER = 'GREATER',
     LESS = 'LESS',
@@ -157,9 +159,22 @@ export class CK3Parser {
                 continue;
             }
 
-            if (char === '=') {
-                tokens.push(this.createToken(TokenType.EQUALS, '='));
+            if (char === '!' && this.peek() === '=') {
+                tokens.push(this.createToken(TokenType.NOT_EQUALS, '!='));
                 this.advanceChar();
+                this.advanceChar();
+                continue;
+            }
+
+            if (char === '=') {
+                if (this.peek() === '=') {
+                    tokens.push(this.createToken(TokenType.DOUBLE_EQUALS, '=='));
+                    this.advanceChar();
+                    this.advanceChar();
+                } else {
+                    tokens.push(this.createToken(TokenType.EQUALS, '='));
+                    this.advanceChar();
+                }
                 continue;
             }
 
@@ -265,8 +280,8 @@ export class CK3Parser {
      * Parse a statement (assignment, comparison, or block)
      */
     private parseStatement(): ASTNode | null {
-        // Must start with an identifier
-        if (!this.check(TokenType.IDENTIFIER)) {
+        // Must start with an identifier or number (for random_list weights)
+        if (!this.check(TokenType.IDENTIFIER) && !this.check(TokenType.NUMBER)) {
             this.skipToNextStatement();
             return null;
         }
@@ -284,10 +299,11 @@ export class CK3Parser {
             }
             return node;
         } else if (this.check(TokenType.GREATER) || this.check(TokenType.LESS) ||
-            this.check(TokenType.GREATER_EQUAL) || this.check(TokenType.LESS_EQUAL)) {
+            this.check(TokenType.GREATER_EQUAL) || this.check(TokenType.LESS_EQUAL) ||
+            this.check(TokenType.DOUBLE_EQUALS) || this.check(TokenType.NOT_EQUALS)) {
             return this.parseComparison(key, startPos);
         } else {
-            this.addError('Expected operator (=, >, <, >=, <=, ?=) after key', startPos);
+            this.addError('Expected operator (=, ==, !=, >, <, >=, <=, ?=) after key', startPos);
             this.skipToNextStatement();
             return null;
         }
@@ -353,6 +369,8 @@ export class CK3Parser {
 
             // Check if it's a list (no key, just values)
             if (!this.checkNext(TokenType.EQUALS) &&
+                !this.checkNext(TokenType.DOUBLE_EQUALS) &&
+                !this.checkNext(TokenType.NOT_EQUALS) &&
                 !this.checkNext(TokenType.NULL_SAFE_EQUALS) &&
                 !this.checkNext(TokenType.GREATER) &&
                 !this.checkNext(TokenType.LESS) &&
@@ -466,10 +484,20 @@ export class CK3Parser {
         let value = '';
 
         while (this.position < this.text.length && this.text[this.position] !== '"') {
-            if (this.text[this.position] === '\\' && this.peek() === '"') {
-                this.advanceChar(); // skip \
-                value += '"';
-                this.advanceChar();
+            if (this.text[this.position] === '\\') {
+                const nextChar = this.peek();
+                if (nextChar === '"') {
+                    this.advanceChar(); // skip backslash
+                    value += '"';
+                    this.advanceChar();
+                } else if (nextChar === '\\') {
+                    this.advanceChar(); // skip first backslash
+                    value += '\\';
+                    this.advanceChar();
+                } else {
+                    value += this.text[this.position];
+                    this.advanceChar();
+                }
             } else {
                 value += this.text[this.position];
                 this.advanceChar();

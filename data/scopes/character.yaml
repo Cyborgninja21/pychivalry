@@ -50,6 +50,8 @@ character:
     vassal_or_below: character
     relation: character
     traveling_family_member: character
+    liege_or_above: character
+    parent: character
     memory: none
     owned_story: story_cycle
     targeting_faction: faction

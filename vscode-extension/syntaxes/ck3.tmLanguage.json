@@ -10,6 +10,7 @@
         { "include": "#operators" },
         { "include": "#keywords" },
         { "include": "#scope-references" },
+        { "include": "#variable-interpolation" },
         { "include": "#variables" },
         { "include": "#parameters" },
         { "include": "#event-definitions" },
@@ -45,23 +46,27 @@
             "patterns": [
                 {
                     "name": "keyword.operator.comparison.ck3",
-                    "match": "(<|>|<=|>=|==|!=)"
+                    "match": "(\\?=|<=|>=|==|!=|<|>)"
                 },
                 {
                     "name": "keyword.operator.assignment.ck3",
-                    "match": "="
+                    "match": "(?<![?!=<>])=(?!=)"
                 }
             ]
         },
         "keywords": {
             "patterns": [
                 {
+                    "name": "keyword.operator.logical.ck3",
+                    "match": "\\b(AND|OR|NOT|NOR|NAND)\\b"
+                },
+                {
                     "name": "keyword.control.ck3",
-                    "match": "\\b(if|else|else_if|while|switch|trigger_switch|limit|break)\\b"
+                    "match": "\\b(if|else|else_if|while|switch|trigger_switch|trigger_if|trigger_else_if|trigger_else|limit|break)\\b"
                 },
                 {
                     "name": "keyword.other.event.ck3",
-                    "match": "\\b(trigger|effect|immediate|option|desc|title|theme|type|weight)\\b"
+                    "match": "\\b(trigger|effect|immediate|option|desc|title|theme|type|weight|hidden_effect|show_as_tooltip|random_list|weighted_random_list)\\b"
                 },
                 {
                     "name": "entity.name.type.ck3",
@@ -81,13 +86,17 @@
                 }
             ]
         },
+        "variable-interpolation": {
+            "name": "variable.other.interpolation.ck3",
+            "match": "@\\[[^\\]]*\\]"
+        },
         "variables": {
             "name": "variable.other.variable.ck3",
             "match": "\\bvar:[\\w_]+"
         },
         "parameters": {
             "name": "variable.parameter.ck3",
-            "match": "\\$[A-Z_]+\\$"
+            "match": "\\$[a-zA-Z_][a-zA-Z0-9_]*\\$"
         },
         "event-definitions": {
             "name": "entity.name.function.event.ck3",

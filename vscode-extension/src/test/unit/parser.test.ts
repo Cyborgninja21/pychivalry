@@ -384,4 +384,170 @@ describe('CK3Parser', () => {
             assert.deepStrictEqual(result.errors, []);
         });
     });
+
+    describe('double equals operator (==)', () => {
+        it('should parse key == numeric value as COMPARISON', () => {
+            const result = parser.parse('prestige == 1000');
+            const node = result.ast.children![0];
+            assert.strictEqual(node.type, NodeType.COMPARISON);
+            assert.strictEqual(node.key, 'prestige');
+            assert.strictEqual(node.operator, '==');
+            assert.strictEqual(node.value, 1000);
+        });
+
+        it('should parse == with identifier value', () => {
+            const result = parser.parse('culture == norse');
+            const node = result.ast.children![0];
+            assert.strictEqual(node.type, NodeType.COMPARISON);
+            assert.strictEqual(node.operator, '==');
+            assert.strictEqual(node.value, 'norse');
+        });
+
+        it('should produce no errors for == operator', () => {
+            const result = parser.parse('age == 16');
+            assert.deepStrictEqual(result.errors, []);
+        });
+
+        it('should parse == inside a block', () => {
+            const result = parser.parse('trigger = {\n\tprestige == 500\n}');
+            assert.deepStrictEqual(result.errors, []);
+            const block = result.ast.children![0];
+            assert.strictEqual(block.type, NodeType.BLOCK);
+            const child = block.children![0];
+            assert.strictEqual(child.type, NodeType.COMPARISON);
+            assert.strictEqual(child.operator, '==');
+        });
+    });
+
+    describe('not equals operator (!=)', () => {
+        it('should parse key != value as COMPARISON', () => {
+            const result = parser.parse('culture != norse');
+            const node = result.ast.children![0];
+            assert.strictEqual(node.type, NodeType.COMPARISON);
+            assert.strictEqual(node.key, 'culture');
+            assert.strictEqual(node.operator, '!=');
+            assert.strictEqual(node.value, 'norse');
+        });
+
+        it('should parse != with numeric value', () => {
+            const result = parser.parse('gold != 0');
+            const node = result.ast.children![0];
+            assert.strictEqual(node.type, NodeType.COMPARISON);
+            assert.strictEqual(node.operator, '!=');
+            assert.strictEqual(node.value, 0);
+        });
+
+        it('should produce no errors for != operator', () => {
+            const result = parser.parse('trait != brave');
+            assert.deepStrictEqual(result.errors, []);
+        });
+
+        it('should parse != inside a block', () => {
+            const result = parser.parse('trigger = {\n\tfaith != catholic\n}');
+            assert.deepStrictEqual(result.errors, []);
+            const block = result.ast.children![0];
+            const child = block.children![0];
+            assert.strictEqual(child.type, NodeType.COMPARISON);
+            assert.strictEqual(child.operator, '!=');
+        });
+    });
+
+    describe('numeric keys (random_list weights)', () => {
+        it('should parse number = { block } inside a block', () => {
+            const result = parser.parse('random_list = {\n\t50 = {\n\t\tadd_gold = 100\n\t}\n}');
+            assert.deepStrictEqual(result.errors, []);
+            const randomList = result.ast.children![0];
+            assert.strictEqual(randomList.type, NodeType.BLOCK);
+            assert.strictEqual(randomList.key, 'random_list');
+            const weightBlock = randomList.children![0];
+            assert.strictEqual(weightBlock.type, NodeType.BLOCK);
+            assert.strictEqual(weightBlock.key, '50');
+        });
+
+        it('should parse number = simple_value as ASSIGNMENT', () => {
+            const result = parser.parse('random_list = {\n\t50 = some_effect\n}');
+            assert.deepStrictEqual(result.errors, []);
+            const randomList = result.ast.children![0];
+            const child = randomList.children![0];
+            assert.strictEqual(child.type, NodeType.ASSIGNMENT);
+            assert.strictEqual(child.key, '50');
+            assert.strictEqual(child.value, 'some_effect');
+        });
+
+        it('should parse multiple numeric keys', () => {
+            const result = parser.parse('random_list = {\n\t50 = { a = 1 }\n\t30 = { b = 2 }\n\t20 = { c = 3 }\n}');
+            assert.deepStrictEqual(result.errors, []);
+            const randomList = result.ast.children![0];
+            assert.strictEqual(randomList.children!.length, 3);
+            assert.strictEqual(randomList.children![0].key, '50');
+            assert.strictEqual(randomList.children![1].key, '30');
+            assert.strictEqual(randomList.children![2].key, '20');
+        });
+    });
+
+    describe('backslash escape in strings', () => {
+        it('should handle \\\\ escape sequence', () => {
+            const result = parser.parse('path = "C:\\\\Users\\\\test"');
+            const node = result.ast.children![0];
+            assert.strictEqual(node.value, 'C:\\Users\\test');
+        });
+
+        it('should handle mixed \\\\ and \\" escapes', () => {
+            const result = parser.parse('desc = "He said \\"hello\\\\"');
+            const node = result.ast.children![0];
+            assert.strictEqual(node.value, 'He said "hello\\');
+        });
+
+        it('should preserve unknown escape sequences literally', () => {
+            const result = parser.parse('text = "line\\nbreak"');
+            const node = result.ast.children![0];
+            assert.strictEqual(node.value, 'line\\nbreak');
+        });
+    });
+
+    describe('mixed operators in realistic CK3 script', () => {
+        it('should parse a trigger block with ==, !=, >=, > operators', () => {
+            const script = [
+                'trigger = {',
+                '\tculture == norse',
+                '\tfaith != catholic',
+                '\tage >= 16',
+                '\tgold > 100',
+                '}',
+            ].join('\n');
+            const result = parser.parse(script);
+            assert.deepStrictEqual(result.errors, []);
+            const trigger = result.ast.children![0];
+            assert.strictEqual(trigger.type, NodeType.BLOCK);
+            const children = trigger.children!;
+            assert.strictEqual(children.length, 4);
+            assert.strictEqual(children[0].operator, '==');
+            assert.strictEqual(children[1].operator, '!=');
+            assert.strictEqual(children[2].operator, '>=');
+            assert.strictEqual(children[3].operator, '>');
+        });
+
+        it('should parse a full random_list with weighted blocks', () => {
+            const script = [
+                'random_list = {',
+                '\t10 = {',
+                '\t\tadd_trait = brave',
+                '\t}',
+                '\t10 = {',
+                '\t\tadd_trait = craven',
+                '\t}',
+                '}',
+            ].join('\n');
+            const result = parser.parse(script);
+            assert.deepStrictEqual(result.errors, []);
+            const randomList = result.ast.children![0];
+            assert.strictEqual(randomList.type, NodeType.BLOCK);
+            assert.strictEqual(randomList.children!.length, 2);
+            assert.strictEqual(randomList.children![0].key, '10');
+            assert.strictEqual(randomList.children![1].key, '10');
+            const inner = randomList.children![0].children![0];
+            assert.strictEqual(inner.key, 'add_trait');
+            assert.strictEqual(inner.value, 'brave');
+        });
+    });
 });

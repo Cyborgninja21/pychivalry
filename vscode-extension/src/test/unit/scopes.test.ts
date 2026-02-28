@@ -23,7 +23,7 @@ describe('Scope Validation', () => {
 
     describe('isScopeLink', () => {
         it('should recognise universal links', () => {
-            for (const link of ['root', 'this', 'prev', 'from', 'fromfrom']) {
+            for (const link of ['root', 'this', 'prev', 'prev_prev', 'from', 'fromfrom']) {
                 assert.strictEqual(isScopeLink(link, 'character'), true, `${link} should be a scope link`);
             }
         });

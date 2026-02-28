@@ -8,10 +8,12 @@ culture:
 
   lists:
     culture_county: title
+    culture_character: character
 
   triggers:
     - has_cultural_tradition
     - has_cultural_pillar
+    - has_innovation
     - exists
 
   effects:
