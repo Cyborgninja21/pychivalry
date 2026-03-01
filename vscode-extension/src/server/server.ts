@@ -31,7 +31,9 @@ import {
 
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import * as fs from 'fs';
+import * as path from 'path';
 import { promisify } from 'util';
+import { pathToFileUri, fileUriToPath } from './utils/uri';
 
 const readFileAsync = promisify(fs.readFile);
 
@@ -450,8 +452,8 @@ export class CK3LanguageServer {
 
             // Scan localization files
             for (const folder of this.workspaceFolders) {
-                const folderPath = folder.uri.replace('file:///', '').replace(/%20/g, ' ');
-                const locPath = require('path').join(folderPath, 'localization');
+                const folderPath = fileUriToPath(folder.uri);
+                const locPath = path.join(folderPath, 'localization');
                 const count = await this.localizationIndex.scanDirectory(locPath);
                 if (count > 0) {
                     this.connection.sendNotification('ck3/indexLog', {
@@ -1256,13 +1258,26 @@ export class CK3LanguageServer {
         return { success: true, ...diagnosticsCount };
     }
 
+    /**
+     * Rescan all workspace folders: discover CK3 files, index them, rebuild
+     * localization, then validate every file (open or not) and publish diagnostics.
+     *
+     * Files are read and indexed concurrently in batches of BATCH_SIZE to avoid
+     * overwhelming the file system while still being significantly faster than
+     * sequential reads.
+     */
     private async rescanWorkspace(): Promise<any> {
         let filesScanned = 0;
         let errors = 0;
+        const BATCH_SIZE = 15;
 
         this.connection.sendNotification('ck3/indexLog', {
             message: 'Starting workspace rescan...'
         });
+
+        // Track every successfully indexed URI so we can validate them all
+        // afterwards — including files that are not currently open in the editor
+        const allFileUris: string[] = [];
 
         for (const folder of this.workspaceFolders) {
             const files = await this.workspaceManager.findCK3Files(folder);
@@ -1271,31 +1286,40 @@ export class CK3LanguageServer {
                 message: `Found ${files.length} CK3 files in ${folder.name}`
             });
 
-            for (const file of files) {
-                try {
-                    const content = await readFileAsync(file, 'utf-8');
-                    const uri = 'file:///' + file.replace(/\\/g, '/').split('/').map(encodeURIComponent).join('/');
-                    const parsed = this.parser.parse(content);
-                    await this.indexer.indexDocumentEnhanced(uri, parsed.ast);
-                    filesScanned++;
+            // Read + parse + index files in concurrent batches.
+            // Promise.allSettled lets individual failures not abort the batch.
+            for (let i = 0; i < files.length; i += BATCH_SIZE) {
+                const batch = files.slice(i, i + BATCH_SIZE);
+                const results = await Promise.allSettled(
+                    batch.map(async (file) => {
+                        const content = await readFileAsync(file, 'utf-8');
+                        const uri = pathToFileUri(file);
+                        const parsed = this.parser.parse(content);
+                        await this.indexer.indexDocumentEnhanced(uri, parsed.ast);
+                        return uri;
+                    })
+                );
 
-                    // Send progress every 10 files
-                    if (filesScanned % 10 === 0) {
-                        this.connection.sendNotification('ck3/indexLog', {
-                            message: `Indexed ${filesScanned} files...`
-                        });
+                for (const result of results) {
+                    if (result.status === 'fulfilled') {
+                        filesScanned++;
+                        allFileUris.push(result.value);
+                    } else {
+                        errors++;
+                        this.connection.console.error(`Failed to scan file: ${result.reason}`);
                     }
-                } catch (error) {
-                    errors++;
-                    this.connection.console.error(`Failed to scan file ${file}: ${error}`);
                 }
+
+                this.connection.sendNotification('ck3/indexLog', {
+                    message: `Indexed ${filesScanned} files...`
+                });
             }
         }
 
-        // Rescan localization files
+        // Rescan localization files (uses fileUriToPath for correct decoding)
         for (const folder of this.workspaceFolders) {
-            const folderPath = folder.uri.replace('file:///', '').replace(/%20/g, ' ');
-            const locPath = require('path').join(folderPath, 'localization');
+            const folderPath = fileUriToPath(folder.uri);
+            const locPath = path.join(folderPath, 'localization');
             const count = await this.localizationIndex.scanDirectory(locPath);
             if (count > 0) {
                 this.connection.sendNotification('ck3/indexLog', {
@@ -1311,9 +1335,26 @@ export class CK3LanguageServer {
             ]
         });
 
-        // Revalidate all open documents after rescan
+        // Revalidate documents the editor already has open
         for (const document of this.documents.all()) {
             await this.validateDocument(document);
+        }
+
+        // Validate non-open files so the Problems panel shows workspace-wide
+        // diagnostics, not just diagnostics for files the user happens to have open
+        const openUris = new Set(this.documents.all().map(d => d.uri));
+        for (const uri of allFileUris) {
+            if (!openUris.has(uri)) {
+                try {
+                    const filePath = fileUriToPath(uri);
+                    const content = await readFileAsync(filePath, 'utf-8');
+                    const doc = TextDocument.create(uri, 'ck3', 0, content);
+                    const diagnostics = await this.diagnosticsProvider.provideDiagnostics(doc);
+                    this.connection.sendDiagnostics({ uri, diagnostics });
+                } catch (error) {
+                    this.connection.console.error(`Failed to validate ${uri}: ${error}`);
+                }
+            }
         }
 
         return {

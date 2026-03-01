@@ -11,8 +11,6 @@ import { promisify } from 'util';
 import { serverLogger } from '../utils/logger';
 
 const readFile = promisify(fs.readFile);
-const readdir = promisify(fs.readdir);
-const stat = promisify(fs.stat);
 
 export interface ModDescriptor {
     name: string;
@@ -186,29 +184,37 @@ export class WorkspaceManager {
     /**
      * Recursively find CK3 files
      */
+    /**
+     * Recursively walk a directory tree collecting CK3 file paths.
+     *
+     * Uses readdir({ withFileTypes: true }) to get Dirent objects directly,
+     * avoiding a separate stat() syscall per entry.  Only EACCES/EPERM errors
+     * are silenced (permission issues on certain OS folders); all other errors
+     * are logged so they surface during debugging.
+     */
     private async findCK3FilesRecursive(dirPath: string, files: string[]): Promise<void> {
         try {
-            const entries = await readdir(dirPath);
-            
+            const entries = await fsp.readdir(dirPath, { withFileTypes: true });
+
             for (const entry of entries) {
-                const fullPath = path.join(dirPath, entry);
-                const stats = await stat(fullPath);
-                
-                if (stats.isDirectory()) {
-                    // Skip common non-CK3 directories
-                    if (entry === 'node_modules' || entry === '.git' || entry === '.vscode') {
+                const fullPath = path.join(dirPath, entry.name);
+
+                if (entry.isDirectory()) {
+                    if (entry.name === 'node_modules' || entry.name === '.git' || entry.name === '.vscode') {
                         continue;
                     }
                     await this.findCK3FilesRecursive(fullPath, files);
-                } else if (stats.isFile()) {
-                    // Check if it's a CK3 file
-                    if (this.isCK3File(entry)) {
+                } else if (entry.isFile()) {
+                    if (this.isCK3File(entry.name)) {
                         files.push(fullPath);
                     }
                 }
             }
-        } catch (error) {
-            // Ignore permission errors and continue
+        } catch (error: any) {
+            // Only silence permission errors — log everything else (EMFILE, ENOENT, etc.)
+            if (error?.code !== 'EACCES' && error?.code !== 'EPERM') {
+                serverLogger.error(`Error scanning directory ${dirPath}: ${error}`);
+            }
         }
     }
 

@@ -32,8 +32,6 @@ import { ASTNode, NodeType } from './parser';
 import { serverLogger } from '../utils/logger';
 
 const readFile = promisify(fs.readFile);
-const readdir = promisify(fs.readdir);
-const stat = promisify(fs.stat);
 
 // =============================================================================
 // DATA STRUCTURES
@@ -435,66 +433,70 @@ export class EnhancedWorkspaceManager {
     /**
      * Scan workspace for asset files and register their relative paths
      */
+    /**
+     * Recursively scan for asset files (textures, audio, GUI definitions, etc.)
+     * and store their workspace-relative paths in this.assetPaths.
+     *
+     * Uses readdir({ withFileTypes: true }) to avoid extra stat() calls.
+     * Only EACCES/EPERM errors are silenced; others are logged.
+     */
     private async scanAssetFiles(rootPath: string): Promise<void> {
         const ASSET_EXTENSIONS = new Set(['.dds', '.tga', '.png', '.wav', '.ogg', '.mp3', '.anim', '.gui', '.gfx', '.asset']);
         const scanDir = async (dirPath: string): Promise<void> => {
             try {
-                const entries = await readdir(dirPath);
+                const entries = await fsp.readdir(dirPath, { withFileTypes: true });
                 for (const entry of entries) {
-                    const fullPath = path.join(dirPath, entry);
-                    try {
-                        const info = await stat(fullPath);
-                        if (info.isDirectory()) {
-                            if (entry === 'node_modules' || entry === '.git' || entry === '.vscode') continue;
-                            await scanDir(fullPath);
-                        } else if (info.isFile()) {
-                            const ext = path.extname(entry).toLowerCase();
-                            if (ASSET_EXTENSIONS.has(ext)) {
-                                // Store relative path from workspace root (forward slashes)
-                                const relPath = path.relative(rootPath, fullPath).replace(/\\/g, '/');
-                                this.assetPaths.add(relPath);
-                            }
+                    const fullPath = path.join(dirPath, entry.name);
+                    if (entry.isDirectory()) {
+                        if (entry.name === 'node_modules' || entry.name === '.git' || entry.name === '.vscode') continue;
+                        await scanDir(fullPath);
+                    } else if (entry.isFile()) {
+                        const ext = path.extname(entry.name).toLowerCase();
+                        if (ASSET_EXTENSIONS.has(ext)) {
+                            // Store forward-slash relative paths for cross-platform consistency
+                            const relPath = path.relative(rootPath, fullPath).replace(/\\/g, '/');
+                            this.assetPaths.add(relPath);
                         }
-                    } catch {
-                        // Skip inaccessible entries
                     }
                 }
-            } catch {
-                // Skip inaccessible directories
+            } catch (error: any) {
+                if (error?.code !== 'EACCES' && error?.code !== 'EPERM') {
+                    serverLogger.error(`Error scanning asset directory ${dirPath}: ${error}`);
+                }
             }
         };
         await scanDir(rootPath);
     }
 
     /**
-     * Recursively find CK3 script files
+     * Recursively find CK3 script files (.txt, .gui, .gfx, .asset).
+     *
+     * Uses readdir({ withFileTypes: true }) for efficiency. Only EACCES/EPERM
+     * errors are silenced; unexpected errors (EMFILE, ENOENT race, etc.) are logged.
      */
     private async findCK3FilesRecursive(dirPath: string): Promise<string[]> {
         const files: string[] = [];
         try {
-            const entries = await readdir(dirPath);
+            const entries = await fsp.readdir(dirPath, { withFileTypes: true });
             for (const entry of entries) {
-                const fullPath = path.join(dirPath, entry);
-                try {
-                    const info = await stat(fullPath);
-                    if (info.isDirectory()) {
-                        if (entry === 'node_modules' || entry === '.git' || entry === '.vscode') {
-                            continue;
-                        }
-                        const subFiles = await this.findCK3FilesRecursive(fullPath);
-                        files.push(...subFiles);
-                    } else if (info.isFile()) {
-                        const ext = path.extname(entry).toLowerCase();
-                        if (ext === '.txt' || ext === '.gui' || ext === '.gfx' || ext === '.asset') {
-                            files.push(fullPath);
-                        }
+                const fullPath = path.join(dirPath, entry.name);
+                if (entry.isDirectory()) {
+                    if (entry.name === 'node_modules' || entry.name === '.git' || entry.name === '.vscode') {
+                        continue;
                     }
-                } catch {
-                    // Skip inaccessible entries
+                    const subFiles = await this.findCK3FilesRecursive(fullPath);
+                    files.push(...subFiles);
+                } else if (entry.isFile()) {
+                    const ext = path.extname(entry.name).toLowerCase();
+                    if (ext === '.txt' || ext === '.gui' || ext === '.gfx' || ext === '.asset') {
+                        files.push(fullPath);
+                    }
                 }
             }
-        } catch {
-            // Skip inaccessible directories
+        } catch (error: any) {
+            if (error?.code !== 'EACCES' && error?.code !== 'EPERM') {
+                serverLogger.error(`Error scanning directory ${dirPath}: ${error}`);
+            }
         }
         return files;
     }
