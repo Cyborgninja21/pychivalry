@@ -261,8 +261,15 @@ export class DiagnosticsEngine {
         // Phase 7: Extended validation modules
         diagnostics.push(...this.checkExtendedValidation(ast, document));
 
-        // Deduplicate: remove style-checker brace diagnostics (CK3330/CK3331)
-        // that overlap with parser-reported brace errors (PARSE-*) on the same line.
+        // Deduplicate overlapping brace diagnostics from two independent sources:
+        //
+        // 1. The parser (parser.ts) detects brace errors during AST construction
+        //    and reports them as PARSE-XXX codes with messages containing "brace".
+        // 2. The style checker (style-checks.ts) independently scans the raw text
+        //    for brace mismatches, reporting CK3330 (unclosed) and CK3331 (extra).
+        //
+        // When both systems report an error on the same line, we keep only the
+        // parser's diagnostic since it has more precise context from the AST.
         const parseBraceLines = new Set<number>();
         for (const d of diagnostics) {
             if (typeof d.code === 'string' && d.code.startsWith('PARSE-') &&

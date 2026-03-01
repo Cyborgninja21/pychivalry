@@ -259,7 +259,9 @@ export class CK3Parser {
                 continue;
             }
 
-            // Stray closing brace at root level — no block is open
+            // Detect stray closing braces at root level where no block is open.
+            // This catches cases like event blocks with an extra '}' that closes
+            // prematurely, leaving a dangling '}' outside any block context.
             if (this.check(TokenType.RIGHT_BRACE)) {
                 const bracePos = this.getCurrentPosition();
                 this.advance();
@@ -286,6 +288,8 @@ export class CK3Parser {
 
     /**
      * Parse a statement (assignment, comparison, or block)
+     * @param depth - Current nesting depth, used to track block hierarchy
+     *               for error reporting in child parseBlock() calls
      */
     private parseStatement(depth: number = 0): ASTNode | null {
         // Must start with an identifier or number (for random_list weights)
@@ -319,6 +323,7 @@ export class CK3Parser {
 
     /**
      * Parse assignment (key = value or key = { ... })
+     * @param depth - Current nesting depth, forwarded to parseBlock()
      */
     private parseAssignment(key: string, startPos: Position, depth: number = 0): ASTNode {
         // Check if it's a block or simple value
@@ -357,8 +362,16 @@ export class CK3Parser {
 
     /**
      * Parse block (key = { ... })
+     *
+     * Captures the opening brace token before consuming it so that unclosed
+     * brace errors are reported at the position of the opening '{' rather
+     * than at EOF. This gives users a clear indication of which block is
+     * unclosed.
+     *
+     * @param depth - Current nesting depth, incremented for child statements
      */
     private parseBlock(key: string, startPos: Position, depth: number = 0): ASTNode {
+        // Capture opening brace position for better error reporting
         const openBraceToken = this.tokens[this.tokenIndex];
         this.advance(); // consume {
 
@@ -410,7 +423,9 @@ export class CK3Parser {
         if (this.match(TokenType.RIGHT_BRACE)) {
             // Success
         } else {
-            // Report unclosed brace at the opening brace position
+            // Report unclosed brace at the opening brace position, not at EOF.
+            // Pointing to the opening '{' helps the user find the block that
+            // needs to be closed rather than scrolling to the end of the file.
             this.addError(
                 `Unclosed brace (missing "}")`,
                 openBraceToken.range.start

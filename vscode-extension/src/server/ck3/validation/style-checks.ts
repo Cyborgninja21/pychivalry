@@ -289,16 +289,27 @@ export function checkBraceMatching(text: string, config: StyleConfig): Diagnosti
 
     const lines = text.split('\n');
 
-    // Determine whether the file uses indentation. If it does, we can safely
-    // segment on unindented lines. If not (e.g. test data), do a single pass.
+    // Determine whether the file uses indentation (tabs or 2+ spaces).
+    // Real CK3 mod files always use indentation; if present, we segment
+    // into independent top-level blocks so that a brace mismatch in one
+    // block doesn't mask or cancel out a mismatch in another. Without
+    // segmentation, a file with one block missing a '}' and another with
+    // an extra '}' would show net-zero errors.
+    //
+    // When no indentation is detected (e.g. synthetic test data where all
+    // lines start at column 0), segmentation can't reliably distinguish
+    // top-level boundaries, so we fall back to a single-pass check.
     const hasIndentation = lines.some(l => l.startsWith('\t') || l.startsWith('  '));
 
     if (!hasIndentation) {
         return checkBracesInRange(lines, 0, lines.length);
     }
 
-    // Segment-based: find top-level boundaries (lines starting at col 0
-    // with an identifier followed by `=` or `?=`)
+    // Segment-based validation: find top-level boundaries.
+    // A top-level boundary is a line starting at column 0 with an identifier
+    // followed by '=' or '?=' — this pattern matches CK3 definition starts
+    // like 'namespace = my_ns', 'my_event = { ... }', 'my_decision = { ... }'.
+    // Each boundary starts a new independent segment for brace validation.
     const topLevelPattern = /^[a-zA-Z_@$][\w.:]*\s*[?]?=/;
     const boundaries: number[] = [];
 
@@ -334,8 +345,21 @@ export function checkBraceMatching(text: string, config: StyleConfig): Diagnosti
 }
 
 /**
- * Check braces in a range of lines [startLine, endLine).
- * Returns diagnostics for unmatched braces within this segment.
+ * Validate brace matching within a contiguous range of lines [startLine, endLine).
+ *
+ * Uses a stack-based approach: opening braces push positions onto the stack,
+ * closing braces pop from it. Extra closing braces (empty stack at '}') and
+ * unclosed opening braces (non-empty stack at end) are reported as errors.
+ *
+ * Correctly handles:
+ * - Comments: everything after an unquoted '#' is ignored
+ * - Quoted strings: braces inside "..." are ignored
+ * - Escape sequences: '\"' inside strings doesn't end the string
+ *
+ * @param lines - All lines of the file (indexed by line number)
+ * @param startLine - First line of the segment (inclusive)
+ * @param endLine - Last line of the segment (exclusive)
+ * @returns Diagnostics for CK3330 (unclosed brace) and CK3331 (extra closing brace)
  */
 function checkBracesInRange(lines: string[], startLine: number, endLine: number): Diagnostic[] {
     const diagnostics: Diagnostic[] = [];
