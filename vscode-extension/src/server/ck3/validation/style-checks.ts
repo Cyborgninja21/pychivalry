@@ -28,6 +28,9 @@
 import { Diagnostic, DiagnosticSeverity, Range, Position } from 'vscode-languageserver';
 import { ASTNode } from '../../core/parser';
 
+/** Event ID pattern: namespace.digits (e.g., my_mod.0001, adventure.0004) */
+const EVENT_ID_PATTERN = /^[a-zA-Z_][a-zA-Z0-9_]*\.\d+$/;
+
 /**
  * Style validation configuration
  */
@@ -269,21 +272,100 @@ export function checkNestingDepth(ast: ASTNode, config: StyleConfig): Diagnostic
 
 /**
  * Check brace matching
+ *
+ * Uses a stack-based approach to detect unmatched braces.
+ * Skips braces inside comments (#) and quoted strings.
+ *
+ * When the file uses indentation (tabs/spaces), the checker segments the file
+ * into independent top-level blocks by detecting non-indented definitions
+ * (lines starting at column 0 with `identifier = `). Each segment is validated
+ * independently so that a mismatch in one block can't cancel out a mismatch
+ * in another.
  */
 export function checkBraceMatching(text: string, config: StyleConfig): Diagnostic[] {
     if (!config.checkBraceMatching) {
         return [];
     }
 
-    const diagnostics: Diagnostic[] = [];
-    const stack: { line: number; col: number }[] = [];
     const lines = text.split('\n');
+
+    // Determine whether the file uses indentation. If it does, we can safely
+    // segment on unindented lines. If not (e.g. test data), do a single pass.
+    const hasIndentation = lines.some(l => l.startsWith('\t') || l.startsWith('  '));
+
+    if (!hasIndentation) {
+        return checkBracesInRange(lines, 0, lines.length);
+    }
+
+    // Segment-based: find top-level boundaries (lines starting at col 0
+    // with an identifier followed by `=` or `?=`)
+    const topLevelPattern = /^[a-zA-Z_@$][\w.:]*\s*[?]?=/;
+    const boundaries: number[] = [];
 
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
+        // Skip blank lines and comments
+        if (line.trim() === '' || line.trimStart().startsWith('#')) {
+            continue;
+        }
+        if (topLevelPattern.test(line)) {
+            boundaries.push(i);
+        }
+    }
+
+    if (boundaries.length === 0) {
+        return checkBracesInRange(lines, 0, lines.length);
+    }
+
+    const diagnostics: Diagnostic[] = [];
+
+    for (let b = 0; b < boundaries.length; b++) {
+        const start = boundaries[b];
+        const end = b + 1 < boundaries.length ? boundaries[b + 1] : lines.length;
+        diagnostics.push(...checkBracesInRange(lines, start, end));
+    }
+
+    // Also check any content before the first boundary
+    if (boundaries[0] > 0) {
+        diagnostics.push(...checkBracesInRange(lines, 0, boundaries[0]));
+    }
+
+    return diagnostics;
+}
+
+/**
+ * Check braces in a range of lines [startLine, endLine).
+ * Returns diagnostics for unmatched braces within this segment.
+ */
+function checkBracesInRange(lines: string[], startLine: number, endLine: number): Diagnostic[] {
+    const diagnostics: Diagnostic[] = [];
+    const stack: { line: number; col: number }[] = [];
+
+    for (let i = startLine; i < endLine; i++) {
+        const line = lines[i];
+        let inString = false;
+
         for (let j = 0; j < line.length; j++) {
             const char = line[j];
-            
+
+            // Skip comments — everything after an unquoted # is a comment
+            if (char === '#' && !inString) {
+                break;
+            }
+
+            // Track quoted strings so braces inside them are ignored
+            if (char === '"') {
+                inString = !inString;
+                continue;
+            }
+
+            if (inString) {
+                if (char === '\\' && j + 1 < line.length) {
+                    j++;
+                }
+                continue;
+            }
+
             if (char === '{') {
                 stack.push({ line: i, col: j });
             } else if (char === '}') {
@@ -340,30 +422,33 @@ export function checkScopeReferences(ast: ASTNode, config: StyleConfig): Diagnos
 
     function traverse(node: ASTNode): void {
         if (node.key && node.key.includes('.')) {
-            const parts = node.key.split('.');
-            const firstPart = parts[0];
+            // Skip event IDs (namespace.digits) — these are identifiers, not scope references
+            if (!EVENT_ID_PATTERN.test(node.key)) {
+                const parts = node.key.split('.');
+                const firstPart = parts[0];
 
-            // Check if first part looks like a scope but isn't known
-            if (firstPart && !knownScopes.has(firstPart) && 
-                /^[a-z_]+$/.test(firstPart) && firstPart.length > 2) {
-                diagnostics.push({
-                    range: node.range,
-                    severity: DiagnosticSeverity.Warning,
-                    code: 'CK3340',
-                    message: `Unknown/suspicious scope reference "${firstPart}" (possible typo)`,
-                    source: 'ck3-style'
-                });
-            }
+                // Check if first part looks like a scope but isn't known
+                if (firstPart && !knownScopes.has(firstPart) &&
+                    /^[a-z_]+$/.test(firstPart) && firstPart.length > 2) {
+                    diagnostics.push({
+                        range: node.range,
+                        severity: DiagnosticSeverity.Warning,
+                        code: 'CK3340',
+                        message: `Unknown/suspicious scope reference "${firstPart}" (possible typo)`,
+                        source: 'ck3-style'
+                    });
+                }
 
-            // Check for truncated references (ending with .)
-            if (node.key.endsWith('.')) {
-                diagnostics.push({
-                    range: node.range,
-                    severity: DiagnosticSeverity.Warning,
-                    code: 'CK3341',
-                    message: 'Scope reference appears truncated (ends with ".")',
-                    source: 'ck3-style'
-                });
+                // Check for truncated references (ending with .)
+                if (node.key.endsWith('.')) {
+                    diagnostics.push({
+                        range: node.range,
+                        severity: DiagnosticSeverity.Warning,
+                        code: 'CK3341',
+                        message: 'Scope reference appears truncated (ends with ".")',
+                        source: 'ck3-style'
+                    });
+                }
             }
         }
 

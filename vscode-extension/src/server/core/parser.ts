@@ -259,6 +259,14 @@ export class CK3Parser {
                 continue;
             }
 
+            // Stray closing brace at root level — no block is open
+            if (this.check(TokenType.RIGHT_BRACE)) {
+                const bracePos = this.getCurrentPosition();
+                this.advance();
+                this.addError('Extra closing brace (no matching "{")', bracePos);
+                continue;
+            }
+
             // Parse assignment or block
             const node = this.parseStatement();
             if (node) {
@@ -279,7 +287,7 @@ export class CK3Parser {
     /**
      * Parse a statement (assignment, comparison, or block)
      */
-    private parseStatement(): ASTNode | null {
+    private parseStatement(depth: number = 0): ASTNode | null {
         // Must start with an identifier or number (for random_list weights)
         if (!this.check(TokenType.IDENTIFIER) && !this.check(TokenType.NUMBER)) {
             this.skipToNextStatement();
@@ -291,9 +299,9 @@ export class CK3Parser {
 
         // Check operator
         if (this.match(TokenType.EQUALS)) {
-            return this.parseAssignment(key, startPos);
+            return this.parseAssignment(key, startPos, depth);
         } else if (this.match(TokenType.NULL_SAFE_EQUALS)) {
-            const node = this.parseAssignment(key, startPos);
+            const node = this.parseAssignment(key, startPos, depth);
             if (node) {
                 node.operator = '?=';
             }
@@ -312,10 +320,10 @@ export class CK3Parser {
     /**
      * Parse assignment (key = value or key = { ... })
      */
-    private parseAssignment(key: string, startPos: Position): ASTNode {
+    private parseAssignment(key: string, startPos: Position, depth: number = 0): ASTNode {
         // Check if it's a block or simple value
         if (this.check(TokenType.LEFT_BRACE)) {
-            return this.parseBlock(key, startPos);
+            return this.parseBlock(key, startPos, depth);
         } else {
             return this.parseSimpleAssignment(key, startPos);
         }
@@ -350,7 +358,8 @@ export class CK3Parser {
     /**
      * Parse block (key = { ... })
      */
-    private parseBlock(key: string, startPos: Position): ASTNode {
+    private parseBlock(key: string, startPos: Position, depth: number = 0): ASTNode {
+        const openBraceToken = this.tokens[this.tokenIndex];
         this.advance(); // consume {
 
         const children: ASTNode[] = [];
@@ -390,7 +399,7 @@ export class CK3Parser {
             }
 
             // Parse statement
-            const stmt = this.parseStatement();
+            const stmt = this.parseStatement(depth + 1);
             if (stmt) {
                 children.push(stmt);
             }
@@ -401,7 +410,11 @@ export class CK3Parser {
         if (this.match(TokenType.RIGHT_BRACE)) {
             // Success
         } else {
-            this.addError('Expected }', endPos);
+            // Report unclosed brace at the opening brace position
+            this.addError(
+                `Unclosed brace (missing "}")`,
+                openBraceToken.range.start
+            );
         }
 
         // Determine if it's a list (all children are values) or a block

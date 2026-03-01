@@ -25,6 +25,8 @@ import {
     isScopeLink,
     isValidEffect,
     isValidTrigger,
+    isKnownEffect,
+    isKnownTrigger,
     getScopeLinks,
     getTargetScopeType,
     getListResultScope,
@@ -139,6 +141,10 @@ const EFFECT_CONTEXT_KEYS = new Set([
     'on_success', 'on_failure', 'on_start',
     'on_invalidated', 'on_monthly',
     'if', 'else_if', 'else',
+    // Effect containers — propagate effect context to their children
+    'hidden_effect', 'show_as_tooltip',
+    'random_list', 'weighted_random_list',
+    'switch', 'while', 'random',
 ]);
 
 /**
@@ -150,6 +156,39 @@ const TRIGGER_CONTEXT_KEYS = new Set([
     'potential', 'allow', 'ai_potential',
     'can_be_shown', 'can_start',
     'trigger_if', 'trigger_else_if', 'trigger_else',
+    // Logical operators — propagate trigger context to children
+    'AND', 'OR', 'NOT', 'NOR', 'NAND',
+    // Trigger-context blocks inside iterators and conditionals
+    'limit', 'calc_true_if', 'alternative_limit',
+]);
+
+/**
+ * Pattern matching event definition IDs (e.g., my_namespace.0001)
+ */
+const EVENT_ID_PATTERN = /^[a-zA-Z_][a-zA-Z0-9_]*\.\d+$/;
+
+/**
+ * Structural fields at the event definition level.
+ * These are NOT effects/triggers — they configure the event's presentation and behavior.
+ * Derived from the events.yaml schema field_order + known event-level keys.
+ */
+const EVENT_LEVEL_FIELDS = new Set([
+    'type', 'title', 'desc', 'theme', 'hidden', 'sender',
+    'trigger', 'option', 'immediate', 'after', 'on_completion',
+    'left_portrait', 'right_portrait', 'center_portrait',
+    'lower_left_portrait', 'lower_center_portrait', 'lower_right_portrait',
+    'widgets', 'is_triggered_only', 'override_background', 'override_icon',
+    'override_sound', 'weight_multiplier', 'cooldown', 'opening',
+]);
+
+/**
+ * Structural fields within an option block.
+ * These are NOT effects — they configure the option's presentation and AI behavior.
+ */
+const OPTION_STRUCTURAL_FIELDS = new Set([
+    'name', 'trigger', 'ai_chance', 'highlight_portrait', 'flavor',
+    'custom_tooltip', 'show_as_tooltip', 'exclusive', 'fallback',
+    'show_as_unavailable',
 ]);
 
 /**
@@ -222,12 +261,29 @@ export class DiagnosticsEngine {
         // Phase 7: Extended validation modules
         diagnostics.push(...this.checkExtendedValidation(ast, document));
 
+        // Deduplicate: remove style-checker brace diagnostics (CK3330/CK3331)
+        // that overlap with parser-reported brace errors (PARSE-*) on the same line.
+        const parseBraceLines = new Set<number>();
+        for (const d of diagnostics) {
+            if (typeof d.code === 'string' && d.code.startsWith('PARSE-') &&
+                d.message.includes('brace')) {
+                parseBraceLines.add(d.range.start.line);
+            }
+        }
+        const deduped = diagnostics.filter(d => {
+            if ((d.code === 'CK3330' || d.code === 'CK3331') &&
+                parseBraceLines.has(d.range.start.line)) {
+                return false; // Parser already reports this error
+            }
+            return true;
+        });
+
         // Limit total diagnostics
-        if (diagnostics.length > this.config.maxDiagnostics) {
-            diagnostics.length = this.config.maxDiagnostics;
+        if (deduped.length > this.config.maxDiagnostics) {
+            deduped.length = this.config.maxDiagnostics;
         }
 
-        return diagnostics;
+        return deduped;
     }
 
     /**
@@ -284,7 +340,7 @@ export class DiagnosticsEngine {
         }
 
         // Phase 2: Walk the AST with context tracking
-        const walk = (nodes: ASTNode[], currentScope: string = 'character', context: 'none' | 'effect' | 'trigger' = 'none') => {
+        const walk = (nodes: ASTNode[], currentScope: string = 'character', context: 'none' | 'effect' | 'trigger' = 'none', parentKey: string | null = null) => {
             for (const node of nodes) {
                 // Check scope chains (e.g., root.liege.primary_title)
                 // Only validate if the first segment is a known scope link;
@@ -305,10 +361,21 @@ export class DiagnosticsEngine {
                 // Determine context for this node's children
                 let childContext = context;
                 if (node.key) {
-                    if (EFFECT_CONTEXT_KEYS.has(node.key)) {
+                    if (EVENT_ID_PATTERN.test(node.key)) {
+                        // Event definition block: children are structural fields, not effects/triggers
+                        childContext = 'none';
+                    } else if (EFFECT_CONTEXT_KEYS.has(node.key)) {
                         childContext = 'effect';
                     } else if (TRIGGER_CONTEXT_KEYS.has(node.key)) {
                         childContext = 'trigger';
+                    } else if (context === 'effect' && node.children && isKnownEffect(node.key) && !isListIterator(node.key)) {
+                        // Known compound effect with block body — children are parameters, not sub-effects
+                        // e.g., add_opinion = { modifier = ... target = ... }
+                        //        stress_impact = { brave = -10 content = 10 }
+                        childContext = 'none';
+                    } else if (context === 'trigger' && node.children && isKnownTrigger(node.key) && !isListIterator(node.key)) {
+                        // Known compound trigger with block body — children are parameters
+                        childContext = 'none';
                     } else if (childContext === 'none') {
                         // Fallback: use context engine for keys not in either set
                         const classification = classifyContext([], node.key, document.uri);
@@ -322,9 +389,18 @@ export class DiagnosticsEngine {
                     }
                 }
 
-                // Check effects in effect context
+                // Check effects in effect context — only flag known effects in the wrong scope
                 if (context === 'effect' && node.key && !node.key.includes('.')) {
-                    if (!isValidEffect(node.key, currentScope)) {
+                    const inEventBlock = parentKey !== null && EVENT_ID_PATTERN.test(parentKey);
+                    const inOptionBlock = parentKey === 'option';
+                    const isStructuralField =
+                        (inEventBlock && EVENT_LEVEL_FIELDS.has(node.key)) ||
+                        (inOptionBlock && OPTION_STRUCTURAL_FIELDS.has(node.key));
+                    const isContextKey = EFFECT_CONTEXT_KEYS.has(node.key) || TRIGGER_CONTEXT_KEYS.has(node.key);
+                    const isIterator = isListIterator(node.key);
+
+                    if (!isStructuralField && !isContextKey && !isIterator
+                            && isKnownEffect(node.key) && !isValidEffect(node.key, currentScope)) {
                         diagnostics.push({
                             severity: DiagnosticSeverity.Warning,
                             range: node.range,
@@ -335,9 +411,18 @@ export class DiagnosticsEngine {
                     }
                 }
 
-                // Check triggers in trigger context
+                // Check triggers in trigger context — only flag known triggers in the wrong scope
                 if (context === 'trigger' && node.key && !node.key.includes('.')) {
-                    if (!isValidTrigger(node.key, currentScope)) {
+                    const inEventBlock = parentKey !== null && EVENT_ID_PATTERN.test(parentKey);
+                    const inOptionBlock = parentKey === 'option';
+                    const isStructuralField =
+                        (inEventBlock && EVENT_LEVEL_FIELDS.has(node.key)) ||
+                        (inOptionBlock && OPTION_STRUCTURAL_FIELDS.has(node.key));
+                    const isContextKey = EFFECT_CONTEXT_KEYS.has(node.key) || TRIGGER_CONTEXT_KEYS.has(node.key);
+                    const isIterator = isListIterator(node.key);
+
+                    if (!isStructuralField && !isContextKey && !isIterator
+                            && isKnownTrigger(node.key) && !isValidTrigger(node.key, currentScope)) {
                         diagnostics.push({
                             severity: DiagnosticSeverity.Warning,
                             range: node.range,
@@ -384,7 +469,7 @@ export class DiagnosticsEngine {
                             }
                         }
                     }
-                    walk(node.children, childScope, childContext);
+                    walk(node.children, childScope, childContext, node.key || null);
                 }
             }
         };
