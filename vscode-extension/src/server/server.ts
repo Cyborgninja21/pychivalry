@@ -25,6 +25,8 @@ import {
     WorkspaceFolder,
     Connection,
     ServerCapabilities,
+    SelectionRangeParams,
+    SelectionRange,
 } from 'vscode-languageserver/node';
 
 import { TextDocument } from 'vscode-languageserver-textdocument';
@@ -68,6 +70,7 @@ import { DocumentHighlightProvider } from './lsp/document-highlight';
 import { InlayHintsProvider } from './lsp/inlay-hints';
 import { SignatureHelpProvider } from './lsp/signature-help';
 import { CallHierarchyProvider } from './lsp/call-hierarchy';
+import { SelectionRangeProvider } from './lsp/selection-range';
 
 /**
  * Server configuration interface
@@ -134,6 +137,7 @@ export class CK3LanguageServer {
     private inlayHintsProvider: InlayHintsProvider;
     private signatureHelpProvider: SignatureHelpProvider;
     private callHierarchyProvider: CallHierarchyProvider;
+    private selectionRangeProvider: SelectionRangeProvider;
 
     // Log watcher + analyzer
     private logWatcher: CK3LogWatcher | null = null;
@@ -220,6 +224,7 @@ export class CK3LanguageServer {
         this.inlayHintsProvider = new InlayHintsProvider(this.parser);
         this.signatureHelpProvider = new SignatureHelpProvider(this.parser);
         this.callHierarchyProvider = new CallHierarchyProvider(this.parser, this.indexer);
+        this.selectionRangeProvider = new SelectionRangeProvider(this.parser);
 
         // Register handlers
         this.registerHandlers();
@@ -272,6 +277,7 @@ export class CK3LanguageServer {
         this.connection.languages.callHierarchy.onPrepare(this.onPrepareCallHierarchy.bind(this));
         this.connection.languages.callHierarchy.onIncomingCalls(this.onCallHierarchyIncomingCalls.bind(this));
         this.connection.languages.callHierarchy.onOutgoingCalls(this.onCallHierarchyOutgoingCalls.bind(this));
+        this.connection.onSelectionRanges(this.onSelectionRanges.bind(this));
 
         // Workspace features
         this.connection.onWorkspaceSymbol(this.onWorkspaceSymbol.bind(this));
@@ -339,6 +345,7 @@ export class CK3LanguageServer {
             },
             inlayHintProvider: { resolveProvider: true },
             callHierarchyProvider: true,
+            selectionRangeProvider: true,
             workspaceSymbolProvider: true,
             executeCommandProvider: {
                 commands: [
@@ -877,6 +884,23 @@ export class CK3LanguageServer {
             return this.foldingProvider.provideFoldingRanges(document);
         } catch (error) {
             this.connection.console.error(`Folding ranges error: ${error}`);
+            return [];
+        }
+    }
+
+    /**
+     * Selection ranges handler
+     */
+    private async onSelectionRanges(params: SelectionRangeParams): Promise<SelectionRange[]> {
+        const document = this.documents.get(params.textDocument.uri);
+        if (!document) {
+            return [];
+        }
+
+        try {
+            return this.selectionRangeProvider.provideSelectionRanges(document, params.positions);
+        } catch (error) {
+            this.connection.console.error(`Selection ranges error: ${error}`);
             return [];
         }
     }

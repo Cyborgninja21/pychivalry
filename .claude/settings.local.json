@@ -29,7 +29,15 @@
       "Bash(npx tsc -p . --outDir out)",
       "Bash(node -e \":*)",
       "Bash(gh auth status)",
-      "Bash(git -C c:/git/pychivalry remote -v)"
+      "Bash(git -C c:/git/pychivalry remote -v)",
+      "Bash(npm run compile)",
+      "Bash(npm test)",
+      "Bash(npx mocha --require ts-node/register --timeout 10000 'src/test/unit/selection-range.test.ts')",
+      "Bash(npx mocha './out/test/unit/selection-range.test.js')",
+      "Bash(npx tsc --noEmit --project vscode-extension/tsconfig.json)",
+      "Bash(./node_modules/.bin/tsc --noEmit)",
+      "Bash(./node_modules/.bin/eslint src/server/server.ts src/server/lsp/selection-range.ts src/test/unit/selection-range.test.ts)",
+      "Bash(npx mocha out/test/unit/**/*.test.js --timeout 10000)"
     ],
     "deny": [],
     "ask": []

@@ -235,6 +235,18 @@ export function isValidTrigger(triggerName: string, scopeType: string): boolean 
     return trigger.scope === scopeType;
 }
 
+// Check if an effect name exists in our data, regardless of scope.
+// Use this before isValidEffect to distinguish "wrong scope" from "unknown name".
+export function isKnownEffect(name: string): boolean {
+    return getDataLoader().getEffects().has(name);
+}
+
+// Check if a trigger name exists in our data, regardless of scope.
+// Use this before isValidTrigger to distinguish "wrong scope" from "unknown name".
+export function isKnownTrigger(name: string): boolean {
+    return getDataLoader().getTriggers().has(name);
+}
+
 // Check if a string is a valid list base name for a scope type.
 // For example, 'vassal' is a valid list base in 'character' scope,
 // enabling iterators like any_vassal, every_vassal, etc.

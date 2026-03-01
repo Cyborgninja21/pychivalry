@@ -238,6 +238,20 @@ describe('Style Checks', () => {
             assert.ok(diags.some(d => d.code === 'CK3341'));
         });
 
+        it('should not flag event IDs as scope references', () => {
+            const ast = parseAST('adventure.0004 = { type = character_event }');
+            const diags = checkScopeReferences(ast, makeConfig());
+            const scopeFlags = diags.filter(d => d.code === 'CK3340');
+            assert.strictEqual(scopeFlags.length, 0, 'Event ID should not be flagged as unknown scope');
+        });
+
+        it('should not flag event IDs with underscores as scope references', () => {
+            const ast = parseAST('my_mod_namespace.0042 = { type = character_event }');
+            const diags = checkScopeReferences(ast, makeConfig());
+            const scopeFlags = diags.filter(d => d.code === 'CK3340');
+            assert.strictEqual(scopeFlags.length, 0, 'Event ID with underscores should not be flagged');
+        });
+
         it('should return empty when disabled', () => {
             const ast = parseAST('unknown_scope.something = yes');
             const diags = checkScopeReferences(ast, makeConfig({ checkScopeReferences: false }));
