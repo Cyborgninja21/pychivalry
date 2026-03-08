@@ -1,13 +1,13 @@
 <#
 .SYNOPSIS
-    Installs pychivalry prerequisites on Windows using winget.
+    Installs ck3-language-support prerequisites on Windows using winget.
 
 .DESCRIPTION
     Checks for and installs required development tools:
-    - Python 3.9+
-    - Visual Studio Code
     - Git
+    - Visual Studio Code
     - Node.js 18+
+    - GitHub CLI
 
 .PARAMETER Auto
     Automatically install all missing prerequisites without prompting.
@@ -30,20 +30,6 @@ $ErrorActionPreference = "Stop"
 
 $Prerequisites = @(
     @{
-        Name       = "Python"
-        WingetId   = "Python.Python.3.12"
-        MinVersion = [Version]"3.9.0"
-        Commands   = @("python", "python3", "py")
-        VersionPattern = "Python (\d+\.\d+\.\d+)"
-    },
-    @{
-        Name       = "VS Code"
-        WingetId   = "Microsoft.VisualStudioCode"
-        MinVersion = $null
-        Commands   = @("code")
-        VersionPattern = "^(\d+\.\d+\.\d+)"
-    },
-    @{
         Name       = "Git"
         WingetId   = "Git.Git"
         MinVersion = $null
@@ -56,6 +42,20 @@ $Prerequisites = @(
         MinVersion = [Version]"18.0.0"
         Commands   = @("node")
         VersionPattern = "v(\d+\.\d+\.\d+)"
+    },
+    @{
+        Name       = "VS Code"
+        WingetId   = "Microsoft.VisualStudioCode"
+        MinVersion = $null
+        Commands   = @("code")
+        VersionPattern = "^(\d+\.\d+\.\d+)"
+    },
+    @{
+        Name       = "GitHub CLI"
+        WingetId   = "GitHub.cli"
+        MinVersion = $null
+        Commands   = @("gh")
+        VersionPattern = "gh version (\d+\.\d+\.\d+)"
     }
 )
 
@@ -84,7 +84,7 @@ function Write-Status {
 function Show-Banner {
     Write-Host ""
     Write-Host "╔═══════════════════════════════════════════════════════════╗" -ForegroundColor Magenta
-    Write-Host "║         pychivalry - Prerequisites Installer              ║" -ForegroundColor Magenta
+    Write-Host "║     ck3-language-support - Prerequisites Installer        ║" -ForegroundColor Magenta
     Write-Host "╚═══════════════════════════════════════════════════════════╝" -ForegroundColor Magenta
     Write-Host ""
 }
@@ -252,7 +252,7 @@ if ($needsRestart) {
 if ($allInstalled) {
     Write-Status "All prerequisites installed!" -Type Success
     Write-Host ""
-    Write-Host "  Next: pip install pychivalry" -ForegroundColor Cyan
+    Write-Host "  Next: cd vscode-extension && npm ci" -ForegroundColor Cyan
     exit 0
 }
 else {

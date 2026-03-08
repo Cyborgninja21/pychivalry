@@ -2,57 +2,33 @@
 
 ## Overview
 
-The development setup and prerequisite-check scripts still assume a Python-based workflow. They try to install Python packages, check for pygls/pytest, and reference `pip install -e .` against a nonexistent `setup.py`. These must be updated to reflect the TypeScript-only reality.
-
-**Files to modify:**
-
-1. `tools/setup-dev-env.sh` — Complete rewrite. Currently:
-   - Checks for Python 3.9+ (unnecessary)
-   - Runs `pip install -e ".[dev]"` (broken — no setup.py exists)
-   - Tells user to run `pytest` (no Python tests exist)
-   
-   New version should:
-   - Check for Node.js 18+ and npm
-   - Run `cd vscode-extension && npm ci`
-   - Install pre-commit hooks (`pre-commit install`)
-   - Run pre-commit on all files
-   - Print next steps referencing `task test:unit`, `task lint`, and F5 launch
-
-2. `tools/Check-Prerequisites.ps1` — Update to remove Python-specific checks:
-   - Remove Python 3.9+ version check
-   - Remove pip availability check
-   - Remove Python package checks (pytest, black, flake8, mypy, pre-commit, isort, pygls, pyyaml)
-   - Remove `pychivalry` pip package check
-   - Keep: Git, GitHub CLI, Node.js 18+, npm, VS Code checks
-
-3. `tools/Install-Prerequisites.ps1` — Update to remove Python installation:
-   - Remove Python 3.12 winget installation
-   - Remove `pip install pychivalry` instructions
-   - Keep: Node.js, Git, GitHub CLI installation
-
-**Technical considerations:**
-- Follow existing script style and emoji conventions
-- Keep pre-commit hook installation (it's still used for TypeScript linting)
-- Ensure scripts work on both Linux/macOS (bash) and Windows (PowerShell)
-
-**Acceptance criteria:**
-- `tools/setup-dev-env.sh` runs successfully on a fresh clone with Node.js installed
-- No references to Python, pip, pytest, pygls, or pychivalry package in any tools/ script
-- Scripts correctly guide developers through TypeScript-only setup
-- `tools/Check-Prerequisites.ps1` only checks Node.js/npm/Git/VS Code
+The three developer-facing setup scripts in `tools/` still reference a Python-based workflow that no longer exists — checking for Python 3.9+, running `pip install -e ".[dev]"` against a nonexistent `setup.py`, and guiding developers to run `pytest`. This task rewrites all three scripts to reflect the current TypeScript-only stack (VS Code extension + embedded LSP server built with webpack).
 
 ## Goals
 
-- [ ] Define specific goals here
+- Eliminate all Python, pip, pytest, pygls, and pychivalry-package references from `tools/` scripts
+- Ensure `tools/setup-dev-env.sh` successfully bootstraps a fresh clone when only Node.js 18+ is installed
+- Ensure `tools/Check-Prerequisites.ps1` reports pass/fail for exactly: Git, GitHub CLI, Node.js 18+, npm, and VS Code
+- Ensure `tools/Install-Prerequisites.ps1` offers to install only Node.js, Git, GitHub CLI, and VS Code via winget
 
 ## Key Capabilities
 
-- Describe what this task will accomplish
+- `tools/setup-dev-env.sh` validates Node.js 18+ and npm, runs `npm ci` in `vscode-extension/`, installs pre-commit hooks, runs `pre-commit run --all-files`, and prints next steps referencing `task test:unit`, `task lint`, and F5 launch
+- `tools/Check-Prerequisites.ps1` checks Git, GitHub CLI (with auth status), Node.js 18+, npm, VS Code, and `vscode-extension/node_modules` presence — with no Python sections, helper functions, or parameters (`-SkipPythonPackages`)
+- `tools/Install-Prerequisites.ps1` removes the Python prerequisite entry from its `$Prerequisites` array and removes the `pip install pychivalry` next-step message
 
 ## Non-Goals
 
-- What is explicitly out of scope
+- Adding new tooling or dependencies (e.g., nvm, volta, fnm) — scripts check for Node.js but do not manage its installation on Linux/macOS
+- Changing the pre-commit hook configuration (`.pre-commit-config.yaml`) — it already targets TypeScript/Prettier/ESLint
+- Updating CI workflows (`.github/`) — those already use the correct TypeScript pipeline
+- Cross-platform unification (rewriting PowerShell scripts into bash or vice-versa)
 
 ## Requirements
 
-- List technical and functional requirements
+- Scripts preserve existing style conventions: emoji status indicators in bash (`✓`, `❌`, `✅`), `Write-Check`/`Write-Status` helpers and box-drawing banners in PowerShell
+- `setup-dev-env.sh` uses `set -e` and exits non-zero on missing prerequisites
+- `Check-Prerequisites.ps1` retains its `Write-Check` helper, `Get-CommandVersion` helper, `Test-MinVersion` helper, `-Detailed` parameter, and summary/exit-code behavior
+- `Install-Prerequisites.ps1` retains its winget-based install flow and `-Auto` parameter
+- No references remain to: Python, pip, pytest, pygls, pyyaml, black, flake8, mypy, isort, `setup.py`, or `pychivalry` as a pip package
+- Next-steps messaging in all scripts references the TypeScript workflow: `npm ci`, `task build`, `task test:unit`, `task lint`, F5 in VS Code

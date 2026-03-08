@@ -3,53 +3,64 @@
 
 set -e
 
-echo "🔧 Setting up development environment for PyChivalry..."
+echo "🔧 Setting up development environment for ck3-language-support..."
 
-# Check Python version
-python_version=$(python3 --version | cut -d' ' -f2 | cut -d'.' -f1,2)
-required_version="3.9"
-
-if [ "$(printf '%s\n' "$required_version" "$python_version" | sort -V | head -n1)" != "$required_version" ]; then
-    echo "❌ Python 3.9 or higher is required. Current version: $python_version"
+# Check Node.js version
+if ! command -v node &> /dev/null; then
+    echo "❌ Node.js is not installed. Install Node.js 18+ from https://nodejs.org/"
     exit 1
 fi
 
-echo "✓ Python version: $python_version"
+node_version=$(node --version | sed 's/^v//')
+node_major=$(echo "$node_version" | cut -d'.' -f1)
 
-# Install Python dependencies
-echo ""
-echo "📦 Installing Python dependencies..."
-pip install -e ".[dev]" -q
-
-# Install pre-commit hooks
-echo ""
-echo "🪝 Installing pre-commit hooks..."
-pre-commit install
-
-# Install VS Code extension dependencies (if Node.js is available)
-if command -v npm &> /dev/null; then
-    echo ""
-    echo "📦 Installing VS Code extension dependencies..."
-    cd vscode-extension
-    npm ci --quiet
-    cd ..
-    echo "✓ VS Code extension dependencies installed"
-else
-    echo ""
-    echo "⚠️  npm not found. Skipping VS Code extension setup."
-    echo "   Install Node.js to set up the VS Code extension."
+if [ "$node_major" -lt 18 ]; then
+    echo "❌ Node.js 18+ is required. Current version: v$node_version"
+    exit 1
 fi
 
-# Run initial pre-commit on all files (optional, can be slow)
+echo "✓ Node.js version: v$node_version"
+
+# Check npm
+if ! command -v npm &> /dev/null; then
+    echo "❌ npm is not installed. It should come with Node.js."
+    exit 1
+fi
+
+npm_version=$(npm --version)
+echo "✓ npm version: v$npm_version"
+
+# Install VS Code extension dependencies
 echo ""
-echo "🔍 Running pre-commit hooks on all files (this may take a minute)..."
-pre-commit run --all-files || true
+echo "📦 Installing VS Code extension dependencies..."
+cd vscode-extension
+npm ci --quiet
+cd ..
+echo "✓ VS Code extension dependencies installed"
+
+# Install pre-commit hooks
+if command -v pre-commit &> /dev/null; then
+    echo ""
+    echo "🪝 Installing pre-commit hooks..."
+    pre-commit install
+
+    # Run initial pre-commit on all files (optional, can be slow)
+    echo ""
+    echo "🔍 Running pre-commit hooks on all files (this may take a minute)..."
+    pre-commit run --all-files || true
+else
+    echo ""
+    echo "⚠️  pre-commit not found. Skipping hook installation."
+    echo "   Install pre-commit to enable automatic linting on commit:"
+    echo "   https://pre-commit.com/#install"
+fi
 
 echo ""
 echo "✅ Development environment setup complete!"
 echo ""
 echo "📝 Next steps:"
-echo "   - Pre-commit hooks are now active and will run automatically on git commit"
-echo "   - Run 'pytest' to run the Python tests"
-echo "   - Run 'pre-commit run --all-files' to manually run all hooks"
+echo "   - Run 'task build' to compile the extension"
+echo "   - Run 'task test:unit' to run unit tests"
+echo "   - Run 'task lint' to lint the source code"
+echo "   - Press F5 in VS Code to launch the extension in debug mode"
 echo "   - See CONTRIBUTING.md for more information"

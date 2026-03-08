@@ -1,0 +1,69 @@
+{
+  "version": "1.0",
+  "taskId": "t-4",
+  "title": "Rewrite development setup scripts for TypeScript-only workflow",
+  "createdAt": "2026-03-08T00:00:00Z",
+  "updatedAt": "2026-03-08T00:00:00Z",
+  "subtasks": [
+    {
+      "id": "1",
+      "content": "Rewrite `tools/setup-dev-env.sh`: remove Python 3.9+ check, pip install, and pytest references; add Node.js 18+ and npm version checks with `set -e` exit-on-failure",
+      "status": "completed"
+    },
+    {
+      "id": "2",
+      "content": "In `tools/setup-dev-env.sh`: replace `pip install -e \".[dev]\"` with `npm ci` in `vscode-extension/`; keep pre-commit hook installation and `pre-commit run --all-files`",
+      "status": "completed"
+    },
+    {
+      "id": "3",
+      "content": "In `tools/setup-dev-env.sh`: update next-steps messaging to reference `task test:unit`, `task lint`, `task build`, and F5 launch in VS Code; preserve emoji status indicators",
+      "status": "completed"
+    },
+    {
+      "id": "4",
+      "content": "Rewrite `tools/Check-Prerequisites.ps1`: remove `Test-PythonPackage` and `Test-PipPackage` helper functions; remove the `-SkipPythonPackages` parameter",
+      "status": "completed"
+    },
+    {
+      "id": "5",
+      "content": "In `tools/Check-Prerequisites.ps1`: remove the entire Python section (Python version check, pip packages: pytest, black, flake8, mypy, isort, pygls, pyyaml)",
+      "status": "completed"
+    },
+    {
+      "id": "6",
+      "content": "In `tools/Check-Prerequisites.ps1`: ensure checks cover exactly Git, GitHub CLI (with auth status), Node.js 18+, npm, VS Code, and `vscode-extension/node_modules`; retain `Write-Check`, `Get-CommandVersion`, `Test-MinVersion`, `-Detailed` parameter, box-drawing banners, and summary/exit-code behavior",
+      "status": "completed"
+    },
+    {
+      "id": "7",
+      "content": "Rewrite `tools/Install-Prerequisites.ps1`: remove the Python prerequisite entry from the `$Prerequisites` array and the `pip install pychivalry` next-step message",
+      "status": "completed"
+    },
+    {
+      "id": "8",
+      "content": "In `tools/Install-Prerequisites.ps1`: verify the prerequisites list contains only Node.js, Git, GitHub CLI, and VS Code entries; retain `Write-Status`, `Show-Banner`, helpers, `-Auto` parameter, and winget install flow",
+      "status": "completed"
+    },
+    {
+      "id": "9",
+      "content": "Run `grep -riE 'python|pip |pytest|pygls|pyyaml|black|flake8|mypy|isort|setup\\.py|pychivalry' tools/` to verify zero Python-related references remain in any `tools/` script",
+      "status": "completed"
+    },
+    {
+      "id": "10",
+      "content": "Validate `tools/setup-dev-env.sh` syntax with `bash -n tools/setup-dev-env.sh`",
+      "status": "completed"
+    },
+    {
+      "id": "11",
+      "content": "Validate `tools/Check-Prerequisites.ps1` and `tools/Install-Prerequisites.ps1` syntax with PowerShell parsing or manual review",
+      "status": "skipped"
+    },
+    {
+      "id": "12",
+      "content": "Review next-steps messaging in all three scripts for consistency: references to `npm ci`, `task build`, `task test:unit`, `task lint`, and F5 in VS Code",
+      "status": "completed"
+    }
+  ]
+}

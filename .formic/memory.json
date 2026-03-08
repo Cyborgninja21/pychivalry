@@ -317,6 +317,54 @@
         "refactoring",
         "grep"
       ]
+    },
+    {
+      "id": "mem-fb592485-833e-4510-8877-946e483b4425",
+      "created_at": "2026-03-08T20:27:44.805Z",
+      "type": "pattern",
+      "content": "When removing legacy Python settings from .vscode/settings.json, clean up all related categories: interpreter path, linting, formatting, testing, file excludes (__pycache__, *.pyc, .pytest_cache), search excludes, and python-envs settings",
+      "source_task": "t-3",
+      "relevance_tags": [
+        ".vscode/settings.json",
+        "python-migration",
+        "workspace-config"
+      ]
+    },
+    {
+      "id": "mem-ee4db83d-7e75-4712-8ae9-ce38ea9de1c7",
+      "created_at": "2026-03-08T20:27:44.806Z",
+      "type": "pattern",
+      "content": "The ck3LanguageServer.pythonPath setting was also a legacy Python artifact that needed removal alongside the python.* settings",
+      "source_task": "t-3",
+      "relevance_tags": [
+        ".vscode/settings.json",
+        "ck3-language-server",
+        "python-migration"
+      ]
+    },
+    {
+      "id": "mem-b0f736af-5cc9-4388-b17e-4c1c118d40cf",
+      "created_at": "2026-03-08T20:27:44.807Z",
+      "type": "pitfall",
+      "content": "Legacy settings can be scattered across multiple sections of settings.json (top-level, files.exclude, search.exclude) — must audit all sections, not just the obvious python.* namespace",
+      "source_task": "t-3",
+      "relevance_tags": [
+        ".vscode/settings.json",
+        "workspace-config",
+        "cleanup"
+      ]
+    },
+    {
+      "id": "mem-5ee6e463-00be-4463-86de-4196a0d5968c",
+      "created_at": "2026-03-08T20:27:44.808Z",
+      "type": "pattern",
+      "content": "Project has migrated from Python to TypeScript. Tasks t-1 through t-8 track the full migration cleanup. Task board is in .formic/board.json",
+      "source_task": "t-3",
+      "relevance_tags": [
+        ".formic/board.json",
+        "project-migration",
+        "task-management"
+      ]
     }
   ]
 }

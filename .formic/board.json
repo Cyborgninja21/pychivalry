@@ -230,26 +230,80 @@
         ],
         "shared": []
       },
-      "completedAt": "2026-03-08T20:27:25.244Z"
+      "completedAt": "2026-03-08T20:27:25.244Z",
+      "reflectionMemories": [
+        "mem-fb592485-833e-4510-8877-946e483b4425",
+        "mem-ee4db83d-7e75-4712-8ae9-ce38ea9de1c7",
+        "mem-b0f736af-5cc9-4388-b17e-4c1c118d40cf",
+        "mem-5ee6e463-00be-4463-86de-4196a0d5968c"
+      ]
     },
     {
       "id": "t-4",
       "title": "Rewrite development setup scripts for TypeScript-only workflow",
       "context": "The development setup and prerequisite-check scripts still assume a Python-based workflow. They try to install Python packages, check for pygls/pytest, and reference `pip install -e .` against a nonexistent `setup.py`. These must be updated to reflect the TypeScript-only reality.\n\n**Files to modify:**\n\n1. `tools/setup-dev-env.sh` — Complete rewrite. Currently:\n   - Checks for Python 3.9+ (unnecessary)\n   - Runs `pip install -e \".[dev]\"` (broken — no setup.py exists)\n   - Tells user to run `pytest` (no Python tests exist)\n   \n   New version should:\n   - Check for Node.js 18+ and npm\n   - Run `cd vscode-extension && npm ci`\n   - Install pre-commit hooks (`pre-commit install`)\n   - Run pre-commit on all files\n   - Print next steps referencing `task test:unit`, `task lint`, and F5 launch\n\n2. `tools/Check-Prerequisites.ps1` — Update to remove Python-specific checks:\n   - Remove Python 3.9+ version check\n   - Remove pip availability check\n   - Remove Python package checks (pytest, black, flake8, mypy, pre-commit, isort, pygls, pyyaml)\n   - Remove `pychivalry` pip package check\n   - Keep: Git, GitHub CLI, Node.js 18+, npm, VS Code checks\n\n3. `tools/Install-Prerequisites.ps1` — Update to remove Python installation:\n   - Remove Python 3.12 winget installation\n   - Remove `pip install pychivalry` instructions\n   - Keep: Node.js, Git, GitHub CLI installation\n\n**Technical considerations:**\n- Follow existing script style and emoji conventions\n- Keep pre-commit hook installation (it's still used for TypeScript linting)\n- Ensure scripts work on both Linux/macOS (bash) and Windows (PowerShell)\n\n**Acceptance criteria:**\n- `tools/setup-dev-env.sh` runs successfully on a fresh clone with Node.js installed\n- No references to Python, pip, pytest, pygls, or pychivalry package in any tools/ script\n- Scripts correctly guide developers through TypeScript-only setup\n- `tools/Check-Prerequisites.ps1` only checks Node.js/npm/Git/VS Code",
       "priority": "medium",
-      "status": "queued",
+      "status": "review",
       "docsPath": ".formic/tasks/t-4_rewrite-development-setup-scri",
       "agentLogs": [],
       "pid": null,
       "type": "standard",
-      "workflowStep": "pending",
-      "workflowLogs": {},
+      "workflowStep": "complete",
+      "workflowLogs": {
+        "brief": [
+          "The specification has been written to `/home/cwallace/git/pychivalry/.formic/tasks/t-4_rewrite-development-setup-scri/README.md`."
+        ],
+        "plan": [
+          "Both files have been written:",
+          "1. **PLAN.md** — 4-phase implementation plan covering the bash script rewrite, both PowerShell script rewrites, and a verification phase with clear success criteria.",
+          "2. **subtasks.json** — 12 subtasks ordered logically: bash script changes (3), Check-Prerequisites.ps1 changes (3), Install-Prerequisites.ps1 changes (2), and verification gates (4 — grep for remaining references, bash syntax check, PowerShell syntax check, next-steps messaging review)."
+        ],
+        "execute": [
+          "`declared-files.json` written. The task modifies exactly three files — all exclusive, no shared hotspots:",
+          "- `tools/setup-dev-env.sh`",
+          "- `tools/Check-Prerequisites.ps1`",
+          "- `tools/Install-Prerequisites.ps1`",
+          "All three scripts have been rewritten. Here's a summary of changes:",
+          "### `tools/setup-dev-env.sh` — Complete rewrite",
+          "- Replaced Python 3.9+ check with Node.js 18+ and npm checks",
+          "- Replaced `pip install -e \".[dev]\"` with `cd vscode-extension && npm ci`",
+          "- Made pre-commit conditional (graceful skip if not installed)",
+          "- Updated next steps to reference `task build`, `task test:unit`, `task lint`, and F5",
+          "### `tools/Check-Prerequisites.ps1` — Major cleanup",
+          "- Removed `Test-PythonPackage` and `Test-PipPackage` helper functions",
+          "- Removed `-SkipPythonPackages` parameter",
+          "- Removed entire Python Environment section (Python version, pip, all dev packages)",
+          "- Removed `pychivalry` pip package check from Project Setup",
+          "- Retained: `Write-Check`, `Get-CommandVersion`, `Test-MinVersion`, `-Detailed`, box-drawing banners, summary/exit-code",
+          "- Checks now cover exactly: Git, GitHub CLI, Node.js 18+, npm, VS Code, `node_modules`",
+          "- Updated next steps and banner text",
+          "### `tools/Install-Prerequisites.ps1` — Targeted edits",
+          "- Removed Python entry from `$Prerequisites` array",
+          "- Added GitHub CLI entry",
+          "- Changed `pip install pychivalry` next-step to `cd vscode-extension && npm ci`",
+          "- Updated banner and synopsis text",
+          "### Verification",
+          "- `bash -n` syntax check passes for `setup-dev-env.sh`",
+          "- Zero Python/pip/pytest/pygls/pychivalry references in the three setup scripts",
+          "- Subtask 11 (PowerShell syntax validation) marked as `skipped` — `pwsh` not available in this environment"
+        ]
+      },
       "createdAt": "2026-03-08T20:20:28.752Z",
-      "safePointCommit": null,
+      "safePointCommit": "8dbf12f7a50253b71129ccaee6b53df313e1747e",
       "retryCount": null,
       "fixForTaskId": null,
       "parentGoalId": "t-1",
-      "queuedAt": "2026-03-08T20:20:28.779Z"
+      "queuedAt": "2026-03-08T20:20:28.779Z",
+      "startedAt": "2026-03-08T20:27:25.282Z",
+      "declaredFiles": {
+        "exclusive": [
+          "tools/setup-dev-env.sh",
+          "tools/Check-Prerequisites.ps1",
+          "tools/Install-Prerequisites.ps1"
+        ],
+        "shared": []
+      },
+      "completedAt": "2026-03-08T20:32:58.251Z"
     },
     {
       "id": "t-5",

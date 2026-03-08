@@ -1,30 +1,22 @@
 #!/usr/bin/env pwsh
 <#
 .SYNOPSIS
-    Check if all pychivalry development prerequisites are installed.
+    Check if all ck3-language-support development prerequisites are installed.
 
 .DESCRIPTION
-    Verifies that all tools needed for pychivalry development are available:
+    Verifies that all tools needed for ck3-language-support development are available:
     - Git (version control)
     - GitHub CLI (gh) (GitHub operations)
-    - Python 3.9+ (LSP server)
-    - Node.js 18+ (VS Code extension)
+    - Node.js 18+ (VS Code extension and LSP server)
     - npm (package management)
     - VS Code (recommended)
-    
-    Also checks Python development packages:
-    - pytest, black, flake8, mypy, pre-commit, isort
 
 .PARAMETER Detailed
     Show additional details about each check.
 
-.PARAMETER SkipPythonPackages
-    Skip checking Python development packages.
-
 .EXAMPLE
     .\Check-Prerequisites.ps1
     .\Check-Prerequisites.ps1 -Detailed
-    .\Check-Prerequisites.ps1 -SkipPythonPackages
 
 .NOTES
     Run this script to verify your development environment before starting work.
@@ -33,8 +25,7 @@
 
 [CmdletBinding()]
 param(
-    [switch]$Detailed,
-    [switch]$SkipPythonPackages
+    [switch]$Detailed
 )
 
 $script:allPassed = $true
@@ -53,15 +44,15 @@ function Write-Check {
         [string]$FixHint = "",
         [bool]$Required = $true
     )
-    
+
     if ($Required) {
         $status = if ($Passed) { "[PASS]" } else { "[FAIL]"; $script:allPassed = $false }
     } else {
         $status = if ($Passed) { "[PASS]" } else { "[SKIP]" }
     }
-    
+
     $color = if ($Passed) { "Green" } elseif ($Required) { "Red" } else { "Yellow" }
-    
+
     Write-Host "$status " -ForegroundColor $color -NoNewline
     Write-Host $Name -NoNewline
     if ($Details) {
@@ -69,11 +60,11 @@ function Write-Check {
     } else {
         Write-Host ""
     }
-    
+
     if (-not $Passed -and $FixHint) {
         Write-Host "       Hint: $FixHint" -ForegroundColor Yellow
     }
-    
+
     $script:results += [PSCustomObject]@{
         Name     = $Name
         Passed   = $Passed
@@ -89,7 +80,7 @@ function Get-CommandVersion {
         [string]$VersionArg = "--version",
         [string]$Pattern = "(\d+\.\d+\.\d+)"
     )
-    
+
     try {
         $output = & $Command $VersionArg 2>&1 | Select-Object -First 1
         if ($output -match $Pattern) {
@@ -111,33 +102,9 @@ function Test-MinVersion {
         [string]$Current,
         [string]$Minimum
     )
-    
+
     try {
         return [Version]$Current -ge [Version]$Minimum
-    }
-    catch {
-        return $false
-    }
-}
-
-function Test-PythonPackage {
-    param([string]$PackageName)
-    
-    try {
-        $result = & python -c "import $PackageName; print('OK')" 2>&1
-        return $result -eq "OK"
-    }
-    catch {
-        return $false
-    }
-}
-
-function Test-PipPackage {
-    param([string]$PackageName)
-    
-    try {
-        $result = & pip show $PackageName 2>&1
-        return $LASTEXITCODE -eq 0
     }
     catch {
         return $false
@@ -150,7 +117,7 @@ function Test-PipPackage {
 
 Write-Host ""
 Write-Host "╔═══════════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
-Write-Host "║         pychivalry - Prerequisites Checker                    ║" -ForegroundColor Cyan
+Write-Host "║       ck3-language-support - Prerequisites Checker           ║" -ForegroundColor Cyan
 Write-Host "╚═══════════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
 Write-Host ""
 
@@ -189,39 +156,6 @@ if ($gh.Found) {
 }
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# Python Environment
-# ═══════════════════════════════════════════════════════════════════════════════
-
-Write-Host ""
-Write-Host "── Python Environment ───────────────────────────────────────────" -ForegroundColor White
-
-# Python
-$python = Get-CommandVersion -Command "python" -Pattern "Python (\d+\.\d+\.\d+)"
-$pythonOk = $false
-if ($python.Found) {
-    $pythonOk = Test-MinVersion -Current $python.Version -Minimum "3.9.0"
-    if ($pythonOk) {
-        Write-Check -Name "Python 3.9+" -Passed $true -Details "v$($python.Version)"
-    } else {
-        Write-Check -Name "Python 3.9+" -Passed $false `
-            -Details "v$($python.Version) (too old)" `
-            -FixHint "Upgrade to Python 3.9+: winget install Python.Python.3.12"
-    }
-} else {
-    Write-Check -Name "Python 3.9+" -Passed $false `
-        -FixHint "Install from https://python.org/ or run: winget install Python.Python.3.12"
-}
-
-# pip
-$pip = Get-CommandVersion -Command "pip" -Pattern "pip (\d+\.\d+)"
-if ($pip.Found) {
-    Write-Check -Name "pip" -Passed $true -Details "v$($pip.Version)"
-} else {
-    Write-Check -Name "pip" -Passed $false `
-        -FixHint "Usually installed with Python. Try: python -m ensurepip --upgrade"
-}
-
-# ═══════════════════════════════════════════════════════════════════════════════
 # Node.js Environment
 # ═══════════════════════════════════════════════════════════════════════════════
 
@@ -255,7 +189,7 @@ if ($npm.Found) {
 }
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# Optional: VS Code
+# Development Tools (Optional)
 # ═══════════════════════════════════════════════════════════════════════════════
 
 Write-Host ""
@@ -271,70 +205,11 @@ if ($code.Found) {
 }
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# Python Development Packages
-# ═══════════════════════════════════════════════════════════════════════════════
-
-if (-not $SkipPythonPackages -and $pythonOk) {
-    Write-Host ""
-    Write-Host "── Python Dev Packages ──────────────────────────────────────────" -ForegroundColor White
-    
-    $devPackages = @(
-        @{ Name = "pytest"; Import = "pytest" }
-        @{ Name = "black"; Import = "black" }
-        @{ Name = "flake8"; Import = "flake8" }
-        @{ Name = "mypy"; Import = "mypy" }
-        @{ Name = "pre-commit"; Import = "pre_commit" }
-        @{ Name = "isort"; Import = "isort" }
-        @{ Name = "pygls"; Import = "pygls" }
-        @{ Name = "pyyaml"; Import = "yaml" }
-    )
-    
-    $missingPackages = @()
-    
-    foreach ($pkg in $devPackages) {
-        $installed = Test-PipPackage -PackageName $pkg.Name
-        if ($installed) {
-            if ($Detailed) {
-                Write-Check -Name $pkg.Name -Passed $true -Required $false
-            }
-        } else {
-            $missingPackages += $pkg.Name
-            if ($Detailed) {
-                Write-Check -Name $pkg.Name -Passed $false -Required $false
-            }
-        }
-    }
-    
-    if (-not $Detailed) {
-        $installedCount = $devPackages.Count - $missingPackages.Count
-        if ($missingPackages.Count -eq 0) {
-            Write-Check -Name "Python dev packages" -Passed $true `
-                -Details "$installedCount/$($devPackages.Count) installed" -Required $false
-        } else {
-            Write-Check -Name "Python dev packages" -Passed $false -Required $false `
-                -Details "$installedCount/$($devPackages.Count) installed" `
-                -FixHint "Run: pip install -e '.[dev]' in pychivalry root"
-        }
-    } elseif ($missingPackages.Count -gt 0) {
-        Write-Host "       Hint: pip install $($missingPackages -join ' ')" -ForegroundColor Yellow
-    }
-}
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# Project-Specific Checks
+# Project Setup
 # ═══════════════════════════════════════════════════════════════════════════════
 
 Write-Host ""
 Write-Host "── Project Setup ────────────────────────────────────────────────" -ForegroundColor White
-
-# Check if pychivalry is installed
-$pychivalryInstalled = Test-PipPackage -PackageName "pychivalry"
-if ($pychivalryInstalled) {
-    Write-Check -Name "pychivalry package" -Passed $true -Required $false
-} else {
-    Write-Check -Name "pychivalry package" -Passed $false -Required $false `
-        -FixHint "Run: pip install -e '.[dev]' in pychivalry root"
-}
 
 # Check if vscode-extension node_modules exist
 $nodeModulesPath = Join-Path $PSScriptRoot "..\vscode-extension\node_modules"
@@ -342,7 +217,7 @@ if (Test-Path $nodeModulesPath) {
     Write-Check -Name "VS Code extension deps" -Passed $true -Required $false
 } else {
     Write-Check -Name "VS Code extension deps" -Passed $false -Required $false `
-        -FixHint "Run: npm install in vscode-extension folder"
+        -FixHint "Run: cd vscode-extension && npm ci"
 }
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -379,23 +254,21 @@ Write-Host ""
 
 if ($script:allPassed) {
     Write-Host " Next steps:" -ForegroundColor White
-    Write-Host "   1. cd to pychivalry root" -ForegroundColor Gray
-    Write-Host "   2. pip install -e '.[dev]'" -ForegroundColor Gray
-    Write-Host "   3. cd vscode-extension && npm install" -ForegroundColor Gray
-    Write-Host "   4. npm run compile" -ForegroundColor Gray
+    Write-Host "   1. cd vscode-extension && npm ci" -ForegroundColor Gray
+    Write-Host "   2. task build" -ForegroundColor Gray
+    Write-Host "   3. task test:unit" -ForegroundColor Gray
+    Write-Host "   4. Press F5 in VS Code to launch the extension" -ForegroundColor Gray
 } else {
     Write-Host " To install missing tools:" -ForegroundColor White
     Write-Host "   Run: .\Install-Prerequisites.ps1" -ForegroundColor Gray
     Write-Host ""
     Write-Host " Quick install commands (winget):" -ForegroundColor White
-    
+
     $failedRequired = $script:results | Where-Object { $_.Required -and -not $_.Passed }
     foreach ($item in $failedRequired) {
         switch ($item.Name) {
             "Git" { Write-Host "   winget install Git.Git" -ForegroundColor Gray }
             "GitHub CLI (gh)" { Write-Host "   winget install GitHub.cli" -ForegroundColor Gray }
-            "Python 3.9+" { Write-Host "   winget install Python.Python.3.12" -ForegroundColor Gray }
-            "pip" { Write-Host "   python -m ensurepip --upgrade" -ForegroundColor Gray }
             "Node.js 18+" { Write-Host "   winget install OpenJS.NodeJS.LTS" -ForegroundColor Gray }
             "npm" { Write-Host "   (Comes with Node.js)" -ForegroundColor Gray }
         }
