@@ -1,0 +1,49 @@
+# ===================================================================
+# TEST FOCUSES - Lifestyle Focus Validation
+# ===================================================================
+# This file tests lifestyle focus definitions.
+#
+# What this tests:
+# - Focus structure (lifestyle, skill, modifier)
+# - auto_selection_weight with trait modifiers
+# - Description references
+#
+# Expected validation result: NO ERRORS
+# ===================================================================
+
+martial_strategy_focus = {
+	lifestyle = martial_lifestyle
+	skill = martial
+
+	modifier = {
+		martial = 3
+		monthly_prestige = 0.3
+	}
+
+	auto_selection_weight = {
+		value = 100
+		modifier = {
+			factor = 3
+			has_trait = ambitious
+		}
+	}
+
+	desc = martial_strategy_focus_desc
+}
+
+diplomacy_family_focus = {
+	lifestyle = diplomacy_lifestyle
+	skill = diplomacy
+
+	modifier = {
+		diplomacy = 3
+		monthly_piety = 0.2
+		opinion_of_same_faith = 10
+	}
+
+	auto_selection_weight = {
+		value = 100
+	}
+
+	desc = diplomacy_family_focus_desc
+}

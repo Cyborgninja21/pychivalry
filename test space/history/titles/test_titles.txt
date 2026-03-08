@@ -1,0 +1,38 @@
+# ===================================================================
+# TEST TITLE HISTORY - Title History Validation
+# ===================================================================
+# This file tests title history definitions with holder assignments
+# and liege references.
+#
+# What this tests:
+# - Title history structure (date blocks with holder/liege)
+# - Cross-file title references to landed_titles/test_landed_titles.txt
+# - Cross-file character references to characters/test_characters.txt
+# - Hierarchy (kingdom > duchy > county)
+#
+# Expected validation result: NO ERRORS
+# ===================================================================
+
+k_test_kingdom = {
+	867.1.1 = {
+		holder = 100001
+		liege = 0
+	}
+	950.1.1 = {
+		holder = 0
+	}
+}
+
+d_test_duchy = {
+	867.1.1 = {
+		holder = 100001
+		liege = k_test_kingdom
+	}
+}
+
+c_test_county = {
+	867.1.1 = {
+		holder = 100001
+		liege = d_test_duchy
+	}
+}

@@ -1,0 +1,116 @@
+# ===================================================================
+# TEST EVENTS - Core Event Validation
+# ===================================================================
+# This file tests event parsing, cross-file references, and chain
+# validation in a workspace path containing spaces (URI encoding test).
+#
+# What this tests:
+# - Event namespace and ID parsing
+# - trigger_event chain resolution
+# - Scope usage in trigger/immediate/option blocks
+# - Intentional errors for diagnostic validation
+#
+# Expected validation result: ERRORS in test_space.0003
+# ===================================================================
+
+namespace = test_space
+
+# -------------------------------------------------------------------
+# Example 1: Complete character event with all standard elements
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Basic event structure with trigger, immediate, options
+# SHOULD PASS: Yes - proper structure, valid triggers/effects
+# DEMONSTRATES: Minimal correct event with event chain
+# -------------------------------------------------------------------
+test_space.0001 = {
+	type = character_event
+	title = test_space.0001.t
+	desc = test_space.0001.desc
+	theme = diplomacy
+
+	left_portrait = root
+
+	trigger = {
+		is_alive = yes
+		age >= 16
+	}
+
+	immediate = {
+		save_scope_as = feast_host
+		add_prestige = 100
+	}
+
+	option = {
+		name = test_space.0001.a
+		add_gold = 50
+		trigger_event = {
+			id = test_space.0002
+			days = 30
+		}
+	}
+
+	option = {
+		name = test_space.0001.b
+		add_piety = 25
+	}
+}
+
+# -------------------------------------------------------------------
+# Example 2: Follow-up event in chain
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Event triggered by test_space.0001
+# SHOULD PASS: Yes - valid chain target
+# DEMONSTRATES: Event chaining with trigger_event
+# -------------------------------------------------------------------
+test_space.0002 = {
+	type = character_event
+	title = test_space.0002.t
+	desc = test_space.0002.desc
+	theme = intrigue
+
+	left_portrait = root
+
+	trigger = {
+		is_alive = yes
+	}
+
+	immediate = {
+		save_scope_as = investigator
+	}
+
+	option = {
+		name = test_space.0002.a
+		add_dread = 10
+		trigger_event = test_space.0003
+	}
+}
+
+# -------------------------------------------------------------------
+# Example 3: Event with INTENTIONAL ERRORS
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Diagnostics for unknown effects and broken chains
+# SHOULD FAIL: Yes
+# EXPECTED ERRORS:
+#   - CK3101: Unknown effect 'some_fake_effect'
+#   - CK4300: Undefined event reference 'test_space.9999'
+# -------------------------------------------------------------------
+test_space.0003 = {
+	type = character_event
+	title = test_space.0003.t
+	desc = test_space.0003.desc
+	theme = martial
+
+	left_portrait = root
+
+	trigger = {
+		is_alive = yes
+	}
+
+	option = {
+		name = test_space.0003.a
+		# ERROR CK3101: Unknown effect
+		some_fake_effect = yes
+		# ERROR CK4300: Event does not exist
+		trigger_event = test_space.9999
+	}
+}

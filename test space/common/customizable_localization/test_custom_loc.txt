@@ -1,0 +1,40 @@
+# ===================================================================
+# TEST CUSTOMIZABLE LOCALIZATION - Custom Loc Validation
+# ===================================================================
+# This file tests customizable localization definitions with
+# conditional text based on character properties.
+#
+# What this tests:
+# - Custom loc structure (type, random_valid, text blocks)
+# - Triggered text with gender and title tier conditions
+# - Fallback text handling
+# - Localization key references
+#
+# Expected validation result: NO ERRORS
+# ===================================================================
+
+GetTestTitle = {
+	type = character
+	random_valid = yes
+
+	text = {
+		trigger = {
+			is_male = yes
+			highest_held_title_tier >= tier_kingdom
+		}
+		localization_key = test_title_king
+	}
+
+	text = {
+		trigger = {
+			is_female = yes
+			highest_held_title_tier >= tier_kingdom
+		}
+		localization_key = test_title_queen
+	}
+
+	text = {
+		fallback = yes
+		localization_key = test_title_ruler
+	}
+}

@@ -33,7 +33,9 @@ import {
     isListIterator,
     parseListIterator,
     isValidListBase,
+    isAnyScopeLink,
 } from './scopes';
+import { CK3Language } from '../language';
 import { validateDocumentScopeTiming, DEFAULT_SCOPE_TIMING_CONFIG } from './scope-timing';
 import { validateStyle, DEFAULT_STYLE_CONFIG } from './style-checks';
 import { validateParadoxConventions, DEFAULT_PARADOX_CONFIG } from './paradox-checks';
@@ -346,9 +348,17 @@ export class DiagnosticsEngine {
             diagnostics.push(...timingDiags);
         }
 
+        // Track saved scopes for CK3202 validation
+        const savedScopes = new Set<string>();
+
         // Phase 2: Walk the AST with context tracking
         const walk = (nodes: ASTNode[], currentScope: string = 'character', context: 'none' | 'effect' | 'trigger' = 'none', parentKey: string | null = null) => {
             for (const node of nodes) {
+                // Track save_scope_as assignments (e.g., save_scope_as = actor)
+                if (node.key === 'save_scope_as' && node.value && typeof node.value === 'string') {
+                    savedScopes.add(node.value);
+                }
+
                 // Check scope chains (e.g., root.liege.primary_title)
                 // Only validate if the first segment is a known scope link;
                 // dotted identifiers like event IDs (my_namespace.0001) are not scope chains.
@@ -360,6 +370,42 @@ export class DiagnosticsEngine {
                             range: node.range,
                             message: error,
                             code: 'SCOPE-003',
+                            source: 'ck3-scope',
+                        });
+                    }
+                }
+
+                // Check block-style scope links (CK3201)
+                // When a block key is a scope link in SOME scope type but NOT the current one,
+                // it means the modder is using a wrong scope transition.
+                // e.g., primary_title = { spouse = { ... } } — 'spouse' is a character link, not title
+                if (node.key && node.children && !node.key.includes('.') && !isListIterator(node.key)) {
+                    const scopeLinks = getScopeLinks(currentScope);
+                    if (!scopeLinks.includes(node.key) && isAnyScopeLink(node.key)) {
+                        // This key is a scope link but not valid for the current scope
+                        const inEventBlock = parentKey !== null && EVENT_ID_PATTERN.test(parentKey);
+                        if (!inEventBlock) {
+                            diagnostics.push({
+                                severity: DiagnosticSeverity.Error,
+                                range: node.range,
+                                message: `'${node.key}' is not a valid scope link from '${currentScope}' scope`,
+                                code: 'SCOPE-003',
+                                source: 'ck3-scope',
+                            });
+                        }
+                    }
+                }
+
+                // Check saved scope references (CK3202)
+                // scope:xxx references must match a previously saved scope name
+                if (node.key && node.key.startsWith('scope:') && node.children) {
+                    const scopeName = node.key.substring(6); // strip 'scope:'
+                    if (scopeName && !savedScopes.has(scopeName)) {
+                        diagnostics.push({
+                            severity: DiagnosticSeverity.Warning,
+                            range: node.range,
+                            message: `Undefined saved scope '${scopeName}'. No prior 'save_scope_as = ${scopeName}' found in this event.`,
+                            code: 'SCOPE-007',
                             source: 'ck3-scope',
                         });
                     }
@@ -396,8 +442,10 @@ export class DiagnosticsEngine {
                     }
                 }
 
-                // Check effects in effect context — only flag known effects in the wrong scope
-                if (context === 'effect' && node.key && !node.key.includes('.')) {
+                // Check effects in effect context
+                if (context === 'effect' && node.key && !node.key.includes('.')
+                    && !node.key.startsWith('scope:') && !node.key.startsWith('$')
+                    && !/^\d+$/.test(node.key) && node.type !== NodeType.COMPARISON) {
                     const inEventBlock = parentKey !== null && EVENT_ID_PATTERN.test(parentKey);
                     const inOptionBlock = parentKey === 'option';
                     const isStructuralField =
@@ -405,21 +453,37 @@ export class DiagnosticsEngine {
                         (inOptionBlock && OPTION_STRUCTURAL_FIELDS.has(node.key));
                     const isContextKey = EFFECT_CONTEXT_KEYS.has(node.key) || TRIGGER_CONTEXT_KEYS.has(node.key);
                     const isIterator = isListIterator(node.key);
+                    const isScopeNav = isAnyScopeLink(node.key);
 
-                    if (!isStructuralField && !isContextKey && !isIterator
-                            && isKnownEffect(node.key) && !isValidEffect(node.key, currentScope)) {
-                        diagnostics.push({
-                            severity: DiagnosticSeverity.Warning,
-                            range: node.range,
-                            message: `Effect '${node.key}' may not be valid in ${currentScope} scope`,
-                            code: 'SCOPE-005',
-                            source: 'ck3-scope',
-                        });
+                    if (!isStructuralField && !isContextKey && !isIterator && !isScopeNav) {
+                        if (isKnownEffect(node.key)) {
+                            if (!isValidEffect(node.key, currentScope)) {
+                                diagnostics.push({
+                                    severity: DiagnosticSeverity.Warning,
+                                    range: node.range,
+                                    message: `Effect '${node.key}' may not be valid in ${currentScope} scope`,
+                                    code: 'SCOPE-005',
+                                    source: 'ck3-scope',
+                                });
+                            }
+                        } else if (!CK3Language.isEffect(node.key) && !CK3Language.isTrigger(node.key)
+                            && !isKnownTrigger(node.key)) {
+                            // Not a known effect or trigger — unknown keyword in effect context
+                            diagnostics.push({
+                                severity: DiagnosticSeverity.Warning,
+                                range: node.range,
+                                message: `Unknown effect '${node.key}'`,
+                                code: 'CK3103',
+                                source: 'ck3-semantic',
+                            });
+                        }
                     }
                 }
 
-                // Check triggers in trigger context — only flag known triggers in the wrong scope
-                if (context === 'trigger' && node.key && !node.key.includes('.')) {
+                // Check triggers in trigger context
+                if (context === 'trigger' && node.key && !node.key.includes('.')
+                    && !node.key.startsWith('scope:') && !node.key.startsWith('$')
+                    && !/^\d+$/.test(node.key) && node.type !== NodeType.COMPARISON) {
                     const inEventBlock = parentKey !== null && EVENT_ID_PATTERN.test(parentKey);
                     const inOptionBlock = parentKey === 'option';
                     const isStructuralField =
@@ -427,16 +491,30 @@ export class DiagnosticsEngine {
                         (inOptionBlock && OPTION_STRUCTURAL_FIELDS.has(node.key));
                     const isContextKey = EFFECT_CONTEXT_KEYS.has(node.key) || TRIGGER_CONTEXT_KEYS.has(node.key);
                     const isIterator = isListIterator(node.key);
+                    const isScopeNav = isAnyScopeLink(node.key);
 
-                    if (!isStructuralField && !isContextKey && !isIterator
-                            && isKnownTrigger(node.key) && !isValidTrigger(node.key, currentScope)) {
-                        diagnostics.push({
-                            severity: DiagnosticSeverity.Warning,
-                            range: node.range,
-                            message: `Trigger '${node.key}' may not be valid in ${currentScope} scope`,
-                            code: 'SCOPE-004',
-                            source: 'ck3-scope',
-                        });
+                    if (!isStructuralField && !isContextKey && !isIterator && !isScopeNav) {
+                        if (isKnownTrigger(node.key)) {
+                            if (!isValidTrigger(node.key, currentScope)) {
+                                diagnostics.push({
+                                    severity: DiagnosticSeverity.Warning,
+                                    range: node.range,
+                                    message: `Trigger '${node.key}' may not be valid in ${currentScope} scope`,
+                                    code: 'SCOPE-004',
+                                    source: 'ck3-scope',
+                                });
+                            }
+                        } else if (!CK3Language.isTrigger(node.key) && !CK3Language.isEffect(node.key)
+                            && !isKnownEffect(node.key)) {
+                            // Not a known trigger or effect — unknown keyword in trigger context
+                            diagnostics.push({
+                                severity: DiagnosticSeverity.Warning,
+                                range: node.range,
+                                message: `Unknown trigger '${node.key}'`,
+                                code: 'CK3101',
+                                source: 'ck3-semantic',
+                            });
+                        }
                     }
                 }
 

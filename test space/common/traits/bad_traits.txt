@@ -1,0 +1,39 @@
+# ===================================================================
+# BAD TRAITS - Trait Validation Errors
+# ===================================================================
+# This file deliberately contains unknown trait references to test
+# the validation diagnostics for trait definitions.
+#
+# What this tests:
+# - CK3800: Unknown trait reference
+#
+# Expected validation result: ERRORS
+# ===================================================================
+
+# CK3800: Unknown trait reference
+# Should error: Unknown trait: "completely_fictional_trait"
+# Note: This trait definition itself is valid, but uses an unknown
+# trait in its opposites list to trigger the diagnostic.
+bad_trait_example = {
+	index = 999
+
+	# This references a trait that does not exist anywhere
+	opposites = {
+		completely_fictional_trait
+	}
+
+	# Valid structure otherwise
+	category = personality
+	diplomacy = 2
+	martial = -1
+
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = { is_male = yes }
+				desc = trait_battle_hardened_desc
+			}
+			desc = trait_battle_hardened_female_desc
+		}
+	}
+}

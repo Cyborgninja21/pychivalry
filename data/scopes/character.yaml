@@ -26,6 +26,7 @@ character:
     liege_or_court_owner: character
     primary_title: title
     capital_county: title
+    capital_province: province
     location: province
     dynasty: dynasty
     house: dynasty_house
@@ -123,7 +124,6 @@ character:
   - has_character_flag
   - has_variable
   - exists
-
   # Valid effects in character scope
   effects:
   - add_trait

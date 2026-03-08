@@ -399,9 +399,10 @@ export function validateEventFromNode(node: ASTNode): {
     }
 
     // Extract other fields
+    // Check both ASSIGNMENT (desc = loc_key) and BLOCK (desc = { first_valid = { ... } }) forms
     const children = node.children || [];
-    const title = children.find((c: ASTNode) => c.type === NodeType.ASSIGNMENT && c.key === 'title')?.value;
-    const desc = children.find((c: ASTNode) => c.type === NodeType.ASSIGNMENT && c.key === 'desc')?.value;
+    const title = children.find((c: ASTNode) => (c.type === NodeType.ASSIGNMENT || c.type === NodeType.BLOCK) && c.key === 'title')?.value;
+    const desc = children.find((c: ASTNode) => (c.type === NodeType.ASSIGNMENT || c.type === NodeType.BLOCK) && c.key === 'desc');
     const theme = children.find((c: ASTNode) => c.type === NodeType.ASSIGNMENT && c.key === 'theme')?.value;
 
     // Check hidden flag
@@ -413,7 +414,7 @@ export function validateEventFromNode(node: ASTNode): {
         eventType,
         namespace,
         title: title ? String(title) : undefined,
-        desc: desc ? String(desc) : undefined,
+        desc: desc ? (desc.type === NodeType.BLOCK ? '[block]' : String(desc.value)) : undefined,
         theme: theme ? String(theme) : undefined,
         requiredFields: REQUIRED_FIELDS.get(eventType) || new Set(),
         portraits: new Map(),

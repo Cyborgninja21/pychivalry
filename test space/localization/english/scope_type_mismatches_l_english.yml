@@ -1,0 +1,62 @@
+l_english:
+ # Scope Type Mismatch Examples - CK3605
+ # Demonstrates localization functions used with wrong scope types
+
+ # ERROR CK3605: Using character functions on non-character scopes
+ scope_mismatch.title_scope:0 "[ROOT.Title.GetName] rules [ROOT.Title.GetAge]"
+ # GetAge requires character scope, but ROOT.Title is a title scope
+
+ scope_mismatch.province_scope:0 "[province.GetFirstName]"
+ # GetFirstName is for characters, not provinces
+
+ scope_mismatch.faith_scope:0 "[faith.GetSheHe]"
+ # Gender functions don't apply to faith scopes
+
+ # ERROR CK3605: Using title functions on character scopes
+ scope_mismatch.char_as_title:0 "[ROOT.Char.GetTier]"
+ # GetTier is for titles, not characters
+
+ scope_mismatch.char_capital:0 "[ROOT.Char.GetCapitalLocation]"
+ # Capital location is a title property, not character
+
+ # ERROR CK3605: Culture/Faith functions on wrong scopes
+ scope_mismatch.title_faith:0 "[ROOT.Title.GetFaith.GetName]"
+ # Titles don't have faith directly, characters do
+
+ scope_mismatch.province_culture:0 "[province.GetCulture.GetColorHex]"
+ # This might work, but if province is wrong scope type, it fails
+
+ # ERROR CK3605: Dynasty functions on non-character scopes
+ scope_mismatch.title_dynasty:0 "[ROOT.Title.GetDynasty.GetName]"
+ # Titles don't have dynasties, characters do
+
+ scope_mismatch.faith_house:0 "[faith.GetHouse.GetName]"
+ # Houses belong to characters, not faiths
+
+ # ERROR CK3605: Possession functions on wrong scopes
+ scope_mismatch.province_liege:0 "[province.GetLiege.GetName]"
+ # Provinces don't have lieges, characters do
+
+ scope_mismatch.title_spouse:0 "[title.GetSpouse.GetName]"
+ # Titles don't have spouses, characters do
+
+ # ERROR CK3605: Relationship functions on wrong scopes
+ scope_mismatch.faith_father:0 "[faith.GetFather.GetName]"
+ # Faiths don't have fathers, characters do
+
+ scope_mismatch.culture_mother:0 "[culture.GetMother.GetName]"
+ # Cultures don't have mothers, characters do
+
+ # ERROR CK3605: Gender functions on non-character scopes
+ scope_mismatch.title_gender:0 "[title.GetHerHis|U] lands"
+ # Gender pronouns are for characters only
+
+ scope_mismatch.province_gender:0 "[province.GetSheHe] prospers"
+ # Provinces don't have gender
+
+ # ERROR CK3605: Wrong scope in complex chains
+ scope_mismatch.complex:0 "[ROOT.Char.GetPrimaryTitle.GetAge]"
+ # GetPrimaryTitle returns a title, which doesn't have GetAge
+
+ scope_mismatch.complex2:0 "[ROOT.Char.GetFaith.GetLiege.GetName]"
+ # GetFaith returns faith scope, which doesn't have GetLiege

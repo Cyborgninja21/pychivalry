@@ -1,0 +1,183 @@
+# ===================================================================
+# GOOD SYNTAX EXAMPLES
+# ===================================================================
+# This file demonstrates CORRECT bracket matching and syntax structure.
+# All examples in this file should PASS validation with NO errors.
+#
+# What this tests:
+# - Proper opening and closing bracket matching
+# - Correct nesting of blocks
+# - Valid syntax structure
+#
+# Expected validation result: NO ERRORS
+# ===================================================================
+
+namespace = syntax_good
+
+# -------------------------------------------------------------------
+# Example 1: Simple event with proper brackets
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Basic bracket matching in a simple event
+# SHOULD PASS: Yes - all brackets are properly matched
+# DEMONSTRATES: Correct event structure with balanced braces
+# -------------------------------------------------------------------
+syntax_good.0001 = {
+	type = character_event
+	title = syntax_good.0001.t
+	desc = syntax_good.0001.desc
+
+	trigger = {
+		is_adult = yes
+	}
+
+	immediate = {
+		save_scope_as = actor
+	}
+
+	option = {
+		name = syntax_good.0001.a
+		add_gold = 100
+	}
+}
+
+# -------------------------------------------------------------------
+# Example 2: Nested blocks with proper closing
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Complex nested bracket structures (OR, AND blocks)
+# SHOULD PASS: Yes - all nested blocks properly closed
+# DEMONSTRATES: Proper handling of deeply nested logic blocks
+# -------------------------------------------------------------------
+syntax_good.0002 = {
+	type = character_event
+	title = syntax_good.0002.t
+	desc = syntax_good.0002.desc
+
+	trigger = {
+		age >= 16
+		OR = {
+			is_ruler = yes
+			AND = {
+				is_landed = yes
+				is_adult = yes
+			}
+		}
+	}
+
+	option = {
+		name = syntax_good.0002.a
+		if = {
+			limit = {
+				gold >= 100
+			}
+			add_prestige = 50
+		}
+		else = {
+			add_piety = 25
+		}
+	}
+}
+
+# -------------------------------------------------------------------
+# Example 3: Decision with proper bracket structure
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Bracket matching in decision definitions
+# SHOULD PASS: Yes - all decision blocks properly structured
+# DEMONSTRATES: Correct syntax for multi-block structures
+# -------------------------------------------------------------------
+syntax_good_decision = {
+	picture = "gfx/interface/illustrations/decisions/decision_misc.dds"
+
+	desc = syntax_good_decision_desc
+
+	is_shown = {
+		is_ruler = yes
+	}
+
+	is_valid = {
+		gold >= 100
+	}
+
+	effect = {
+		remove_short_term_gold = 100
+		add_prestige = 200
+	}
+
+	ai_check_interval = 60
+
+	ai_potential = {
+		always = yes
+	}
+
+	ai_will_do = {
+		base = 100
+	}
+}
+
+# -------------------------------------------------------------------
+# Example 4: Scripted effect with proper nesting
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Bracket matching in scripted effects
+# SHOULD PASS: Yes - complex nested iterator blocks properly closed
+# DEMONSTRATES: Correct syntax for effects with limits and NOT blocks
+# -------------------------------------------------------------------
+syntax_good_effect = {
+	every_vassal = {
+		limit = {
+			is_adult = yes
+			NOT = {
+				has_trait = lazy
+			}
+		}
+		add_opinion = {
+			target = root
+			modifier = grateful_opinion
+			opinion = 10
+		}
+	}
+}
+
+# -------------------------------------------------------------------
+# Example 5: Complex nested structure
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Deeply nested triggered_desc blocks
+# SHOULD PASS: Yes - all first_valid and triggered_desc blocks matched
+# DEMONSTRATES: Most complex valid bracket nesting scenario
+# -------------------------------------------------------------------
+syntax_good.0003 = {
+	type = character_event
+	title = syntax_good.0003.t
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					has_trait = brave
+				}
+				desc = syntax_good.0003.desc_brave
+			}
+			triggered_desc = {
+				trigger = {
+					has_trait = craven
+				}
+				desc = syntax_good.0003.desc_craven
+			}
+			desc = syntax_good.0003.desc_default
+		}
+	}
+
+	trigger = {
+		is_adult = yes
+	}
+
+	option = {
+		name = syntax_good.0003.a
+		trigger = {
+			has_trait = brave
+		}
+		add_prestige = 100
+	}
+
+	option = {
+		name = syntax_good.0003.b
+		add_gold = 50
+	}
+}

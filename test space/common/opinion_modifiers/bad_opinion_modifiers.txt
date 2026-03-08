@@ -1,0 +1,31 @@
+# ===================================================================
+# BAD OPINION MODIFIERS - Opinion Modifier Validation Errors
+# ===================================================================
+# Tests MOD-003 and MOD-004.
+#
+# Expected validation result: ERRORS
+# ===================================================================
+
+# -------------------------------------------------------------------
+# ERROR MOD-003: Missing 'opinion' field
+# -------------------------------------------------------------------
+missing_opinion_field = {
+	# ERROR MOD-003: Opinion modifier must have 'opinion' field
+	years = 5
+	decaying = yes
+}
+
+# -------------------------------------------------------------------
+# ERROR MOD-004: Opinion value outside range
+# -------------------------------------------------------------------
+extreme_opinion = {
+	# ERROR MOD-004: 500 is outside typical range (-200 to 200)
+	opinion = 500
+	years = 10
+}
+
+negative_extreme_opinion = {
+	# ERROR MOD-004: -300 is outside typical range
+	opinion = -300
+	years = 5
+}

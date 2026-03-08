@@ -1,0 +1,96 @@
+# ===================================================================
+# STORY CYCLE EVENTS - Multi-Stage Event Chain
+# ===================================================================
+# This file demonstrates a complete story cycle event chain with
+# proper cross-event references and scope management.
+#
+# What this tests:
+# - Story cycle event chain validation
+# - save_scope_as / scope usage across events
+# - Delayed trigger_event with day ranges
+# - custom_tooltip references
+#
+# Expected validation result: NO ERRORS
+# ===================================================================
+
+namespace = test_story
+
+# -------------------------------------------------------------------
+# Stage 1: Story cycle begins - ambition awakens
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Initial story event with trait-gated trigger
+# SHOULD PASS: Yes - proper structure and scope saving
+# DEMONSTRATES: Story cycle entry point
+# -------------------------------------------------------------------
+test_story.0001 = {
+	type = character_event
+	title = test_story.0001.t
+	desc = test_story.0001.desc
+	theme = diplomacy
+
+	left_portrait = root
+
+	trigger = {
+		is_alive = yes
+		has_trait = ambitious
+	}
+
+	immediate = {
+		save_scope_as = story_owner
+	}
+
+	option = {
+		name = test_story.0001.a
+		trigger_event = {
+			id = test_story.0002
+			days = { 30 60 }
+		}
+	}
+}
+
+# -------------------------------------------------------------------
+# Stage 2: Story cycle progresses
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Mid-chain event with custom_tooltip
+# SHOULD PASS: Yes - references valid chain target
+# DEMONSTRATES: custom_tooltip usage in options
+# -------------------------------------------------------------------
+test_story.0002 = {
+	type = character_event
+	title = test_story.0002.t
+	desc = test_story.0002.desc
+	theme = diplomacy
+
+	left_portrait = root
+
+	trigger = {
+		is_alive = yes
+	}
+
+	option = {
+		name = test_story.0002.a
+		custom_tooltip = test_story_conclude_tt
+		trigger_event = test_story.0003
+	}
+}
+
+# -------------------------------------------------------------------
+# Stage 3: Story cycle concludes
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Final event in chain, terminal node
+# SHOULD PASS: Yes - no further chain references needed
+# DEMONSTRATES: Story cycle completion with reward
+# -------------------------------------------------------------------
+test_story.0003 = {
+	type = character_event
+	title = test_story.0003.t
+	desc = test_story.0003.desc
+	theme = diplomacy
+
+	left_portrait = root
+
+	option = {
+		name = test_story.0003.a
+		add_prestige = 500
+	}
+}

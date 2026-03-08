@@ -96,7 +96,8 @@ function validateAnyIterator(
         if (!child.key) continue;
 
         // Skip known structural keys
-        if (child.key === 'count' || child.key === 'percent' || TRIGGER_KEYS.has(child.key)) {
+        if (child.key === 'count' || child.key === 'percent' ||
+            child.key === 'save_temporary_scope_as' || TRIGGER_KEYS.has(child.key)) {
             continue;
         }
 

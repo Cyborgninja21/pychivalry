@@ -1,0 +1,77 @@
+# ===================================================================
+# BAD SWITCH - Switch Validation Errors
+# ===================================================================
+# This file deliberately contains switch block errors to test
+# the validation diagnostics for switch statements.
+#
+# What this tests:
+# - SWITCH-001: Switch block missing required 'trigger' field
+# - SWITCH-002: Switch block has no branch values
+# - SWITCH-003: Switch references unknown trigger
+#
+# Expected validation result: ERRORS
+# ===================================================================
+
+namespace = bad_switch
+
+# SWITCH-001: Switch block missing 'trigger' field
+# Should error: Switch block is missing required 'trigger' field
+bad_switch_no_trigger = {
+	type = character_event
+	title = bad_switch.0001.t
+
+	immediate = {
+		switch = {
+			1 = {
+				add_prestige = 100
+			}
+			2 = {
+				add_prestige = 200
+			}
+		}
+	}
+
+	option = {
+		name = bad_switch.0001.a
+	}
+}
+
+# SWITCH-002: Switch block has no branch values
+# Should warn: Switch block has no branch values
+bad_switch_no_branches = {
+	type = character_event
+	title = bad_switch.0002.t
+
+	immediate = {
+		switch = {
+			trigger = faith
+		}
+	}
+
+	option = {
+		name = bad_switch.0002.a
+	}
+}
+
+# SWITCH-003: Switch references unknown trigger
+# Should warn: Switch references unknown trigger 'nonexistent_trigger_field'
+bad_switch_unknown_trigger = {
+	type = character_event
+	title = bad_switch.0003.t
+
+	immediate = {
+		switch = {
+			trigger = nonexistent_trigger_field
+			value_1 = {
+				add_prestige = 100
+			}
+			value_2 = {
+				add_prestige = 200
+			}
+		}
+	}
+
+	option = {
+		name = bad_switch.0003.a
+	}
+}

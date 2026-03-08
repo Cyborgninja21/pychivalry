@@ -1,0 +1,86 @@
+# ===================================================================
+# TEST SCRIPTED EFFECTS - Reusable Effect Validation
+# ===================================================================
+# This file defines reusable scripted effects referenced by
+# on-actions, decisions, story cycles, and scripted GUIs.
+#
+# What this tests:
+# - Scripted effect definitions
+# - Cross-file scripted trigger usage (has_strong_military_trigger)
+# - Cross-file event references (trigger_event)
+# - Scope iteration (every_vassal)
+# - Conditional effects (if/else)
+# - stress_impact blocks
+#
+# Expected validation result: NO ERRORS
+# ===================================================================
+
+# -------------------------------------------------------------------
+# Example 1: Feast rewards effect with scope iteration
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Effect with stress_impact and every_vassal
+# SHOULD PASS: Yes - valid effects and scope usage
+# DEMONSTRATES: Complex effect with opinion modifiers
+# REFERENCED BY: common/on_action/test_on_actions.txt,
+#                common/scripted_guis/test_sgui.txt
+# -------------------------------------------------------------------
+apply_feast_rewards_effect = {
+	add_prestige = 200
+	add_piety = 50
+	stress_impact = {
+		gregarious = medium_stress_loss
+		shy = medium_stress_gain
+	}
+	every_vassal = {
+		limit = {
+			opinion = {
+				target = root
+				value >= 0
+			}
+		}
+		add_opinion = {
+			target = root
+			modifier = feast_opinion
+			opinion = 10
+		}
+	}
+}
+
+# -------------------------------------------------------------------
+# Example 2: Story cycle setup effect
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Effect with scope saving, flag, and delayed event
+# SHOULD PASS: Yes - valid scope/flag/event usage
+# DEMONSTRATES: Story cycle initialization
+# REFERENCED BY: common/story_cycles/test_story_cycles.txt
+# -------------------------------------------------------------------
+setup_story_cycle_effect = {
+	save_scope_as = story_owner
+	add_character_flag = in_story_cycle
+	trigger_event = {
+		id = test_story.0001
+		days = { 5 15 }
+	}
+}
+
+# -------------------------------------------------------------------
+# Example 3: Conditional effect with scripted trigger
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Effect using if/else with scripted trigger
+# SHOULD PASS: Yes - valid conditional structure
+# DEMONSTRATES: Cross-file scripted trigger in effect limit
+# REFERENCED BY: (standalone example)
+# -------------------------------------------------------------------
+grant_military_bonus_effect = {
+	if = {
+		limit = {
+			# Cross-file reference to scripted_triggers/test_triggers.txt
+			has_strong_military_trigger = yes
+		}
+		add_martial_skill = 2
+		add_prowess_skill = 1
+	}
+	else = {
+		add_martial_skill = 1
+	}
+}

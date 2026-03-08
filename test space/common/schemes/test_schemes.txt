@@ -1,0 +1,71 @@
+# ===================================================================
+# TEST SCHEMES - Scheme Structure Validation
+# ===================================================================
+# This file tests scheme parsing with agent mechanics and
+# cross-file event references.
+#
+# What this tests:
+# - Scheme structure (skill, target_type, agent_join_chance)
+# - on_ready / on_success / on_fail callbacks
+# - Cross-file trigger_event references
+# - Scripted trigger usage in valid_target
+#
+# Expected validation result: NO ERRORS
+# ===================================================================
+
+# -------------------------------------------------------------------
+# Example 1: Complete scheme with all fields
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Full scheme with agent mechanics and callbacks
+# SHOULD PASS: Yes - all required fields present
+# DEMONSTRATES: Scheme with agents, progress, event hooks
+# -------------------------------------------------------------------
+spy_scheme = {
+	skill = intrigue
+	desc = spy_scheme_desc
+	category = hostile
+
+	is_valid = {
+		age >= 16
+		NOT = { this = scope:target }
+	}
+
+	valid_target = {
+		is_alive = yes
+		is_ruler = yes
+	}
+
+	base_success = {
+		base = 5
+		modifier = {
+			add = 10
+			intrigue >= 15
+		}
+	}
+
+	agent_join_chance = {
+		base = 10
+		modifier = {
+			add = 20
+			opinion = {
+				target = scope:owner
+				value >= 40
+			}
+		}
+	}
+
+	on_ready = {
+		# Cross-file reference to events/test_events.txt
+		trigger_event = test_space.0002
+	}
+
+	on_success = {
+		trigger_event = test_space.0003
+	}
+
+	on_fail = {
+		scope:owner = {
+			add_dread = -10
+		}
+	}
+}

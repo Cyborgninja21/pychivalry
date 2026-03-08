@@ -1,0 +1,61 @@
+# ===================================================================
+# BAD CONVENTIONS - Event Convention Validation Errors
+# ===================================================================
+# This file deliberately contains events that violate CK3 event
+# conventions to test the validation diagnostics.
+#
+# What this tests:
+# - CONV-001: Event missing type field
+# - CONV-002: Event missing title field
+# - CONV-003: Event missing desc field
+# - CONV-004: Option missing name field
+#
+# Expected validation result: ERRORS
+# ===================================================================
+
+namespace = bad_conventions
+
+# CONV-001: Event missing type
+# Should warn: Event missing 'type' field
+bad_no_type = {
+	title = bad_conventions.0001.t
+	desc = bad_conventions.0001.desc
+
+	option = {
+		name = bad_conventions.0001.a
+	}
+}
+
+# CONV-002: Event missing title
+# Should warn: Event missing 'title' field
+bad_no_title = {
+	type = character_event
+	desc = bad_conventions.0002.desc
+
+	option = {
+		name = bad_conventions.0002.a
+	}
+}
+
+# CONV-003: Event missing desc
+# Should warn: Event missing 'desc' field
+bad_no_desc = {
+	type = character_event
+	title = bad_conventions.0003.t
+
+	option = {
+		name = bad_conventions.0003.a
+	}
+}
+
+# CONV-004: Option missing name
+# Should warn: Option missing 'name' field
+bad_no_option_name = {
+	type = character_event
+	title = bad_conventions.0004.t
+	desc = bad_conventions.0004.desc
+
+	option = {
+		add_prestige = 100
+	}
+}

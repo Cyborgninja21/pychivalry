@@ -1,0 +1,72 @@
+# ===================================================================
+# TEST ON-ACTIONS - On-Action Hook Validation
+# ===================================================================
+# This file tests on_action hooks with cross-file event references.
+#
+# What this tests:
+# - On-action structure (events list, effect blocks)
+# - Cross-file event references to events/*.txt
+# - Scripted effect usage in on-action effects
+# - Standard game on-actions (on_birthday, on_death, on_war_started)
+# - Custom on-action definitions
+#
+# Expected validation result: NO ERRORS
+# ===================================================================
+
+# -------------------------------------------------------------------
+# Example 1: Standard on_birthday hook
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Game on-action with event list
+# SHOULD PASS: Yes - valid event reference
+# DEMONSTRATES: Basic on-action with events block
+# -------------------------------------------------------------------
+on_birthday = {
+	events = {
+		test_space.0001
+	}
+}
+
+# -------------------------------------------------------------------
+# Example 2: on_death with effect block
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: On-action with effect instead of events
+# SHOULD PASS: Yes - effect block is valid in on-actions
+# DEMONSTRATES: Using effects directly in on-action
+# -------------------------------------------------------------------
+on_death = {
+	effect = {
+		every_held_title = {
+			save_scope_as = lost_title
+		}
+	}
+}
+
+# -------------------------------------------------------------------
+# Example 3: on_war_started referencing story events
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Cross-file reference to story_cycle_events.txt
+# SHOULD PASS: Yes - event exists in events/story_cycle_events.txt
+# DEMONSTRATES: On-action triggering story cycle
+# -------------------------------------------------------------------
+on_war_started = {
+	events = {
+		test_story.0001
+	}
+}
+
+# -------------------------------------------------------------------
+# Example 4: Custom on-action with events and effects
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Custom on-action with both events and effects
+# SHOULD PASS: Yes - valid structure
+# DEMONSTRATES: Combined events list and scripted effect usage
+# -------------------------------------------------------------------
+on_feast_start = {
+	events = {
+		test_space.0001
+	}
+	effect = {
+		# Cross-file reference to scripted_effects/test_effects.txt
+		apply_feast_rewards_effect = yes
+	}
+}

@@ -1,0 +1,74 @@
+# ===================================================================
+# TEST MEN-AT-ARMS - MaA Type Validation
+# ===================================================================
+# This file tests men-at-arms type definitions with terrain bonuses
+# and counter mechanics.
+#
+# What this tests:
+# - MaA structure (type, damage, toughness, pursuit, screen)
+# - terrain_bonus blocks
+# - buy_cost / maintenance_cost
+# - counters system
+#
+# Expected validation result: NO ERRORS
+# ===================================================================
+
+# -------------------------------------------------------------------
+# Example 1: Heavy cavalry with terrain bonuses
+# -------------------------------------------------------------------
+heavy_cavalry_elite = {
+	type = heavy_cavalry
+
+	damage = 150
+	toughness = 40
+	pursuit = 50
+	screen = 10
+
+	terrain_bonus = {
+		plains = { damage = 30 }
+		farmlands = { damage = 20 }
+		hills = { damage = -20 toughness = -10 }
+		mountains = { damage = -40 toughness = -20 }
+	}
+
+	buy_cost = { gold = 200 }
+	low_maintenance_cost = { gold = 2.0 }
+	high_maintenance_cost = { gold = 6.0 }
+
+	max_sub_regiments = 5
+	regiment_cap = 1
+
+	counters = {
+		heavy_infantry = 1
+		pikemen = -1
+	}
+}
+
+# -------------------------------------------------------------------
+# Example 2: Ranged unit with forest bonus
+# -------------------------------------------------------------------
+longbowmen_regiment = {
+	type = archers
+
+	damage = 60
+	toughness = 15
+	pursuit = 10
+	screen = 20
+
+	terrain_bonus = {
+		hills = { damage = 15 }
+		forest = { damage = 10 screen = 10 }
+		wetlands = { damage = -10 }
+	}
+
+	buy_cost = { gold = 100 }
+	low_maintenance_cost = { gold = 1.0 }
+	high_maintenance_cost = { gold = 3.0 }
+
+	max_sub_regiments = 10
+
+	counters = {
+		skirmishers = 1
+		light_cavalry = 0.5
+	}
+}

@@ -1,0 +1,503 @@
+# ===================================================================
+# BAD SCOPE TIMING EXAMPLES - "THE GOLDEN RULE" VIOLATIONS
+# ===================================================================
+# This file demonstrates INCORRECT scope timing that SHOULD FAIL validation.
+# All examples in this file violate "The Golden Rule".
+#
+# Error Codes Demonstrated:
+# - CK3550: Scope in trigger from immediate
+# - CK3551: Scope in desc from immediate
+# - CK3552: Scope in triggered_desc trigger from immediate
+# - CK3553: Variable checked before set
+# - CK3554: Temporary scope across events
+# - CK3555: Scope needed but not passed
+# - CK3560: Scope in desc localization from immediate
+# - CK3561: Scope in title localization from immediate
+# - CK3562: Scope may be used in desc
+#
+# ⚠️ CRITICAL: This is the #1 source of bugs in CK3 modding!
+#
+# Expected validation result: ERRORS DETECTED
+# ===================================================================
+
+namespace = scope_timing_bad
+
+# ===================================================================
+# THE GOLDEN RULE (violated in all examples below):
+# Event Evaluation Order:
+# 1. trigger = { }    <- Evaluated FIRST
+# 2. desc = { }       <- Evaluated SECOND
+# 3. immediate = { }  <- Runs THIRD (scopes created here)
+# 4. Portraits        <- Displayed FOURTH
+# 5. Options          <- Rendered FIFTH
+#
+# VIOLATION: Scopes created in 'immediate' are NOT available in 'trigger' or 'desc'!
+
+# -------------------------------------------------------------------
+# ERROR CK3550: Scope in trigger from immediate
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Detection of scopes used before creation
+# SHOULD FAIL: Yes - CK3550 error
+# WHY IT'S BAD: trigger runs BEFORE immediate, scope doesn't exist yet
+# HOW TO FIX: Save scope in trigger, not immediate
+# SEVERITY: ERROR - will crash or cause unpredictable behavior
+# -------------------------------------------------------------------
+scope_timing_bad.0001 = {
+	type = character_event
+	title = scope_timing_bad.0001.t
+	desc = scope_timing_bad.0001.desc
+
+	trigger = {
+		is_adult = yes
+		# ERROR CK3550: scope:my_liege doesn't exist yet!
+		# It's created in immediate (which runs AFTER trigger)
+		scope:my_liege = {
+			is_alive = yes
+		}
+	}
+
+	immediate = {
+		save_scope_as = actor
+		# Saving scope here, but trigger already ran
+		liege = {
+			save_scope_as = my_liege
+		}
+	}
+
+	option = {
+		name = scope_timing_bad.0001.a
+		add_gold = 100
+	}
+}
+
+# -------------------------------------------------------------------
+# ERROR CK3551: Scope in desc from immediate (WARNING)
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Detection of scopes in desc from immediate
+# SHOULD FAIL: Yes - CK3551 warning
+# WHY IT'S BAD: desc evaluates BEFORE immediate, scope doesn't exist
+# HOW TO FIX: Save scope in trigger if needed in desc
+# SEVERITY: WARNING - desc will be broken/empty
+# -------------------------------------------------------------------
+scope_timing_bad.0002 = {
+	type = character_event
+	title = scope_timing_bad.0002.t
+	# ERROR CK3551: desc block references scope created in immediate
+	desc = {
+		triggered_desc = {
+			trigger = {
+				# scope:rival doesn't exist yet! (created in immediate)
+				scope:rival = {
+					is_alive = yes
+				}
+			}
+			desc = scope_timing_bad.0002.desc_rival
+		}
+		desc = scope_timing_bad.0002.desc_default
+	}
+
+	trigger = {
+		is_adult = yes
+	}
+
+	immediate = {
+		# Too late - desc already evaluated
+		random_courtier = {
+			limit = {
+				has_relation_rival = root
+			}
+			save_scope_as = rival
+		}
+	}
+
+	option = {
+		name = scope_timing_bad.0002.a
+		add_gold = 100
+	}
+}
+
+# ERROR CK3552: Scope in triggered_desc trigger from immediate (ERROR)
+scope_timing_bad.0003 = {
+	type = character_event
+	title = scope_timing_bad.0003.t
+	desc = {
+		# ERROR CK3552: triggered_desc trigger uses scope from immediate
+		triggered_desc = {
+			trigger = {
+				scope:chosen_vassal = {
+					has_trait = ambitious
+				}
+			}
+			desc = scope_timing_bad.0003.desc_ambitious
+		}
+		desc = scope_timing_bad.0003.desc_default
+	}
+
+	trigger = {
+		is_adult = yes
+	}
+
+	immediate = {
+		random_vassal = {
+			save_scope_as = chosen_vassal # Too late for desc!
+		}
+	}
+
+	option = {
+		name = scope_timing_bad.0003.a
+		add_prestige = 50
+	}
+}
+
+# ERROR CK3553: Variable checked before set
+scope_timing_bad.0004 = {
+	type = character_event
+	title = scope_timing_bad.0004.t
+	desc = scope_timing_bad.0004.desc
+
+	trigger = {
+		is_adult = yes
+		# ERROR CK3553: Checking variable that's set in immediate
+		has_variable = quest_started # Variable doesn't exist yet!
+	}
+
+	immediate = {
+		# Setting variable here, but trigger already checked it
+		set_variable = {
+			name = quest_started
+			value = yes
+		}
+	}
+
+	option = {
+		name = scope_timing_bad.0004.a
+		add_gold = 100
+	}
+}
+
+# ERROR CK3554: Temporary scope across events
+scope_timing_bad.0005 = {
+	type = character_event
+	title = scope_timing_bad.0005.t
+	desc = scope_timing_bad.0005.desc
+
+	trigger = {
+		is_adult = yes
+	}
+
+	immediate = {
+		random_vassal = {
+			# ERROR CK3554: save_temporary_scope_as doesn't persist across events
+			save_temporary_scope_as = temp_vassal
+		}
+	}
+
+	option = {
+		name = scope_timing_bad.0005.a
+		trigger_event = {
+			id = scope_timing_bad.0006
+			days = 30
+		}
+		# scope:temp_vassal will be LOST when .0006 fires
+	}
+}
+
+scope_timing_bad.0006 = {
+	type = character_event
+	title = scope_timing_bad.0006.t
+	desc = scope_timing_bad.0006.desc
+
+	trigger = {
+		# ERROR CK3554: scope:temp_vassal doesn't exist here
+		# Temporary scopes don't persist across events
+		scope:temp_vassal = {
+			is_alive = yes
+		}
+	}
+
+	option = {
+		name = scope_timing_bad.0006.a
+		add_gold = 100
+	}
+}
+
+# ERROR CK3555: Scope needed in triggered event but not passed
+scope_timing_bad.0007 = {
+	type = character_event
+	title = scope_timing_bad.0007.t
+	desc = scope_timing_bad.0007.desc
+
+	trigger = {
+		is_adult = yes
+	}
+
+	immediate = {
+		save_scope_as = actor
+		random_vassal = {
+			save_scope_as = chosen_vassal
+		}
+	}
+
+	option = {
+		name = scope_timing_bad.0007.a
+		# ERROR CK3555: Triggering event that needs scope:chosen_vassal
+		# but the scope context might not be available
+		trigger_event = {
+			id = scope_timing_bad.0008
+			days = 30
+		}
+	}
+}
+
+scope_timing_bad.0008 = {
+	type = character_event
+	title = scope_timing_bad.0008.t
+	desc = scope_timing_bad.0008.desc
+
+	trigger = {
+		is_adult = yes
+		# This might fail if scope:chosen_vassal isn't available
+		scope:chosen_vassal = {
+			is_alive = yes
+		}
+	}
+
+	option = {
+		name = scope_timing_bad.0008.a
+		add_gold = 100
+	}
+}
+
+# ERROR CK3560: Scope created in immediate but used in desc localization
+scope_timing_bad.0009 = {
+	type = character_event
+	title = scope_timing_bad.0009.t
+	# ERROR CK3560: Localization key references scope:rival
+	# But scope:rival is created in immediate (too late!)
+	desc = scope_timing_bad.0009.desc # Contains [rival.GetName] or similar
+
+	trigger = {
+		is_adult = yes
+	}
+
+	immediate = {
+		# Too late - desc localization already evaluated
+		random_courtier = {
+			limit = {
+				has_relation_rival = root
+			}
+			save_scope_as = rival
+		}
+	}
+
+	option = {
+		name = scope_timing_bad.0009.a
+		add_gold = 100
+	}
+}
+
+# ERROR CK3561: Scope created in immediate but used in title localization
+scope_timing_bad.0010 = {
+	type = character_event
+	# ERROR CK3561: Title localization references scope:target
+	# But scope:target is created in immediate!
+	title = scope_timing_bad.0010.t # Contains [target.GetTitledFirstName] or similar
+	desc = scope_timing_bad.0010.desc
+
+	trigger = {
+		is_adult = yes
+	}
+
+	immediate = {
+		# Too late - title already evaluated
+		random_vassal = {
+			save_scope_as = target
+		}
+	}
+
+	option = {
+		name = scope_timing_bad.0010.a
+		add_prestige = 50
+	}
+}
+
+# ERROR CK3562: Scope may be used in desc but defined in immediate
+scope_timing_bad.0011 = {
+	type = character_event
+	title = scope_timing_bad.0011.t
+	# ERROR CK3562: desc might reference scopes created in immediate
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					scope:ally = { is_alive = yes }
+				}
+				# This localization might reference scope:ally
+				desc = scope_timing_bad.0011.desc_ally
+			}
+			desc = scope_timing_bad.0011.desc_default
+		}
+	}
+
+	trigger = {
+		is_adult = yes
+	}
+
+	immediate = {
+		# Scope created here is too late for desc
+		random_vassal = {
+			limit = {
+				has_relation_friend = root
+			}
+			save_scope_as = ally
+		}
+	}
+
+	option = {
+		name = scope_timing_bad.0011.a
+		add_gold = 100
+	}
+}
+
+# ERROR: Multiple scope timing violations in one event
+scope_timing_bad.0012 = {
+	type = character_event
+	# ERROR CK3561: Title references scope:enemy (created in immediate)
+	title = scope_timing_bad.0012.t
+	# ERROR CK3560: Desc references scope:ally (created in immediate)
+	desc = scope_timing_bad.0012.desc
+
+	trigger = {
+		is_adult = yes
+		# ERROR CK3550: Trigger references scope:target (created in immediate)
+		scope:target = {
+			is_alive = yes
+		}
+	}
+
+	immediate = {
+		# All these scopes are created too late for trigger/desc/title!
+		random_vassal = {
+			save_scope_as = ally
+		}
+		random_courtier = {
+			limit = {
+				has_relation_rival = root
+			}
+			save_scope_as = enemy
+		}
+		liege = {
+			save_scope_as = target
+		}
+	}
+
+	option = {
+		name = scope_timing_bad.0012.a
+		# Options are fine - they run after immediate
+		scope:ally = {
+			add_gold = 50
+		}
+	}
+}
+
+# ERROR CK3553: Variable operations in wrong order
+scope_timing_bad.0013 = {
+	type = character_event
+	title = scope_timing_bad.0013.t
+	desc = scope_timing_bad.0013.desc
+
+	trigger = {
+		is_adult = yes
+		# ERROR CK3553: Checking variable value before it's set
+		var:progress >= 100
+	}
+
+	immediate = {
+		# Setting variable after trigger checked it
+		set_variable = {
+			name = progress
+			value = 0
+		}
+		change_variable = {
+			name = progress
+			add = 50
+		}
+	}
+
+	option = {
+		name = scope_timing_bad.0013.a
+		add_gold = 100
+	}
+}
+
+# ERROR: Portrait references scope from immediate
+scope_timing_bad.0014 = {
+	type = character_event
+	title = scope_timing_bad.0014.t
+	desc = scope_timing_bad.0014.desc
+
+	# ERROR: Portraits are evaluated before immediate runs
+	left_portrait = root
+	# ERROR CK3560/CK3561: scope:spouse doesn't exist yet
+	right_portrait = scope:spouse
+
+	trigger = {
+		is_adult = yes
+	}
+
+	immediate = {
+		# Too late - portraits already rendered
+		random_spouse = {
+			save_scope_as = spouse
+		}
+	}
+
+	option = {
+		name = scope_timing_bad.0014.a
+		add_gold = 100
+	}
+}
+
+# ERROR CK3555: Triggering event without needed scope context
+scope_timing_bad.0015 = {
+	type = character_event
+	title = scope_timing_bad.0015.t
+	desc = scope_timing_bad.0015.desc
+
+	trigger = {
+		is_adult = yes
+	}
+
+	immediate = {
+		save_scope_as = original_actor
+		random_vassal = {
+			save_scope_as = important_vassal
+			# ERROR CK3555: Triggering event on vassal
+			# but original_actor scope won't be available there
+			trigger_event = scope_timing_bad.0016
+		}
+	}
+
+	option = {
+		name = scope_timing_bad.0015.a
+		add_gold = 100
+	}
+}
+
+scope_timing_bad.0016 = {
+	type = character_event
+	title = scope_timing_bad.0016.t
+	desc = scope_timing_bad.0016.desc
+
+	trigger = {
+		is_adult = yes
+	}
+
+	option = {
+		name = scope_timing_bad.0016.a
+		# ERROR: scope:original_actor doesn't exist in this context
+		scope:original_actor = {
+			add_prestige = 50
+		}
+	}
+}

@@ -1,0 +1,105 @@
+# ===================================================================
+# TEST BUILDINGS - Building Chain Validation
+# ===================================================================
+# This file tests building definitions with upgrade chains,
+# cost structures, and AI valuation.
+#
+# What this tests:
+# - Building structure (construction_time, cost, modifiers)
+# - next_building upgrade chain
+# - county_modifier vs province_modifier distinction
+# - AI value with conditional modifiers
+#
+# Expected validation result: NO ERRORS
+# ===================================================================
+
+# -------------------------------------------------------------------
+# Example 1: Building chain tier 1
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Base building with next_building reference
+# SHOULD PASS: Yes - valid building chain
+# DEMONSTRATES: Building with county and province modifiers
+# -------------------------------------------------------------------
+training_grounds_01 = {
+	construction_time = 730
+
+	cost = {
+		gold = 100
+		prestige = 50
+	}
+
+	county_modifier = {
+		levy_size = 0.1
+		garrison_size = 0.15
+	}
+
+	province_modifier = {
+		fort_level = 1
+	}
+
+	next_building = training_grounds_02
+
+	ai_value = {
+		base = 50
+		modifier = {
+			factor = 2
+			holder.culture = { has_innovation = innovation_castle_keeps }
+		}
+	}
+}
+
+# -------------------------------------------------------------------
+# Example 2: Building chain tier 2
+# -------------------------------------------------------------------
+training_grounds_02 = {
+	construction_time = 1095
+
+	cost = {
+		gold = 200
+		prestige = 100
+	}
+
+	county_modifier = {
+		levy_size = 0.2
+		garrison_size = 0.25
+	}
+
+	province_modifier = {
+		fort_level = 2
+	}
+
+	next_building = training_grounds_03
+
+	ai_value = {
+		base = 75
+	}
+}
+
+# -------------------------------------------------------------------
+# Example 3: Building chain tier 3 (terminal)
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Final building in chain, no next_building
+# SHOULD PASS: Yes - terminal building is valid
+# -------------------------------------------------------------------
+training_grounds_03 = {
+	construction_time = 1460
+
+	cost = {
+		gold = 400
+		prestige = 200
+	}
+
+	county_modifier = {
+		levy_size = 0.3
+		garrison_size = 0.35
+		levy_reinforcement_rate = 0.1
+	}
+
+	province_modifier = {
+		fort_level = 3
+	}
+
+	ai_value = {
+		base = 100
+	}
+}

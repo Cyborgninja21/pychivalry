@@ -1,0 +1,72 @@
+# ===================================================================
+# BAD CASUS BELLI - CB Validation Errors
+# ===================================================================
+# This file demonstrates INCORRECT casus belli definitions.
+#
+# What this tests:
+# - CB-001: No outcome effects (on_victory/on_defeat/on_white_peace)
+# - CB-002: Unknown cost type
+#
+# Expected validation result: ERRORS
+# ===================================================================
+
+# -------------------------------------------------------------------
+# ERROR CB-001: CB with no outcome effects
+# -------------------------------------------------------------------
+no_outcome_cb = {
+	group = religious
+
+	allowed_for_character = {
+		is_landed = yes
+	}
+
+	allowed_against_character = {
+		is_landed = yes
+	}
+
+	# ERROR CB-001: No on_victory, on_defeat, or on_white_peace defined
+	cost = {
+		piety = 200
+	}
+}
+
+# -------------------------------------------------------------------
+# ERROR CB-002: Unknown cost type
+# -------------------------------------------------------------------
+bad_cost_cb = {
+	group = personal
+
+	allowed_for_character = {
+		is_landed = yes
+	}
+
+	cost = {
+		# ERROR CB-002: 'honor' is not a valid cost type
+		honor = 100
+		# ERROR CB-002: 'mana' is not a valid cost type
+		mana = 50
+	}
+
+	on_victory = {
+		scope:attacker = {
+			add_prestige = 200
+		}
+	}
+}
+
+# -------------------------------------------------------------------
+# Both errors combined
+# -------------------------------------------------------------------
+both_errors_cb = {
+	group = claim
+
+	allowed_for_character = {
+		is_landed = yes
+	}
+
+	# ERROR CB-002: Unknown cost type
+	cost = {
+		reputation = 300
+	}
+	# ERROR CB-001: No outcome effects
+}

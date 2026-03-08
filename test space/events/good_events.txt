@@ -1,0 +1,355 @@
+# ===================================================================
+# GOOD EVENTS EXAMPLES
+# ===================================================================
+# This file demonstrates CORRECT event structure, options, descriptions, and portraits.
+# All examples in this file should PASS validation with NO errors.
+#
+# What this tests:
+# - Proper event structure (type, title, desc)
+# - Valid option configurations
+# - Correct description blocks (triggered_desc, first_valid)
+# - Proper portrait placement
+# - Valid AI chance configuration
+# - Correct control flow (trigger_if, trigger_else)
+#
+# Expected validation result: NO ERRORS
+# ===================================================================
+
+namespace = events_good
+
+# -------------------------------------------------------------------
+# Example 1: Complete character event with all elements
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Basic event structure with all required fields
+# SHOULD PASS: Yes - has type, title, desc, options
+# DEMONSTRATES: Minimal complete event
+# -------------------------------------------------------------------
+events_good.0001 = {
+	type = character_event
+	title = events_good.0001.t
+	desc = events_good.0001.desc
+	theme = intrigue
+
+	left_portrait = root
+
+	trigger = {
+		is_adult = yes
+		is_ruler = yes
+	}
+
+	immediate = {
+		save_scope_as = actor
+	}
+
+	option = {
+		name = events_good.0001.a
+		add_gold = 100
+	}
+
+	option = {
+		name = events_good.0001.b
+		add_prestige = 50
+	}
+}
+
+# Example 2: Event with conditional descriptions (triggered_desc)
+events_good.0002 = {
+	type = character_event
+	title = events_good.0002.t
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					has_trait = brave
+				}
+				desc = events_good.0002.desc_brave
+			}
+			triggered_desc = {
+				trigger = {
+					has_trait = craven
+				}
+				desc = events_good.0002.desc_craven
+			}
+			# Fallback with always = yes
+			triggered_desc = {
+				trigger = {
+					always = yes
+				}
+				desc = events_good.0002.desc_default
+			}
+		}
+	}
+
+	left_portrait = root
+
+	trigger = {
+		is_adult = yes
+	}
+
+	option = {
+		name = events_good.0002.a
+		add_gold = 100
+	}
+}
+
+# Example 3: Event with AI chance modifiers
+events_good.0003 = {
+	type = character_event
+	title = events_good.0003.t
+	desc = events_good.0003.desc
+
+	left_portrait = root
+
+	trigger = {
+		is_adult = yes
+	}
+
+	option = {
+		name = events_good.0003.a
+		add_gold = 100
+
+		ai_chance = {
+			base = 50
+
+			modifier = {
+				add = 25
+				has_trait = greedy
+			}
+
+			modifier = {
+				factor = 0.5
+				has_trait = generous
+			}
+		}
+	}
+
+	option = {
+		name = events_good.0003.b
+		add_prestige = 50
+
+		ai_chance = {
+			base = 50
+		}
+	}
+}
+
+# Example 4: Hidden event (no desc, no options, no portraits)
+events_good.0004 = {
+	type = character_event
+	hidden = yes
+
+	trigger = {
+		is_adult = yes
+	}
+
+	immediate = {
+		add_gold = 100
+		trigger_event = {
+			id = events_good.0005
+			days = 30
+		}
+	}
+}
+
+events_good.0005 = {
+	type = character_event
+	title = events_good.0005.t
+	desc = events_good.0005.desc
+
+	left_portrait = root
+
+	option = {
+		name = events_good.0005.a
+		add_prestige = 50
+	}
+}
+
+# Example 5: Event with multiple portraits
+events_good.0006 = {
+	type = character_event
+	title = events_good.0006.t
+	desc = events_good.0006.desc
+
+	left_portrait = root
+	right_portrait = {
+		character = liege
+		animation = personality_rational
+	}
+
+	trigger = {
+		is_adult = yes
+		exists = liege
+	}
+
+	option = {
+		name = events_good.0006.a
+		add_gold = 100
+	}
+}
+
+# Example 7: Event with triggered options
+events_good.0007 = {
+	type = character_event
+	title = events_good.0007.t
+	desc = events_good.0007.desc
+
+	left_portrait = root
+
+	trigger = {
+		is_adult = yes
+	}
+
+	option = {
+		name = events_good.0007.a
+		trigger = {
+			gold >= 100
+		}
+		remove_short_term_gold = 100
+		add_prestige = 200
+	}
+
+	option = {
+		name = events_good.0007.b
+		trigger = {
+			prestige >= 50
+		}
+		add_prestige = -50
+		add_gold = 150
+	}
+
+	# Fallback option (no trigger - always available)
+	option = {
+		name = events_good.0007.c
+		add_piety = 25
+	}
+}
+
+# Example 8: Event with after block
+events_good.0008 = {
+	type = character_event
+	title = events_good.0008.t
+	desc = events_good.0008.desc
+
+	left_portrait = root
+
+	trigger = {
+		is_adult = yes
+	}
+
+	option = {
+		name = events_good.0008.a
+		add_gold = 100
+	}
+
+	option = {
+		name = events_good.0008.b
+		add_prestige = 50
+	}
+
+	# after block runs after player selects an option
+	after = {
+		trigger_event = {
+			id = events_good.0009
+			days = 30
+		}
+	}
+}
+
+events_good.0009 = {
+	type = character_event
+	title = events_good.0009.t
+	desc = events_good.0009.desc
+
+	left_portrait = root
+
+	option = {
+		name = events_good.0009.a
+		add_piety = 25
+	}
+}
+
+# Example 10: Letter event type
+events_good.0010 = {
+	type = letter_event
+	opening = events_good.0010.opening
+	desc = events_good.0010.desc
+	sender = root
+
+	trigger = {
+		is_adult = yes
+	}
+
+	option = {
+		name = events_good.0010.a
+		add_gold = 100
+	}
+}
+
+# Example 11: Event with show_as_unavailable option
+events_good.0011 = {
+	type = character_event
+	title = events_good.0011.t
+	desc = events_good.0011.desc
+
+	left_portrait = root
+
+	trigger = {
+		is_adult = yes
+	}
+
+	option = {
+		name = events_good.0011.a
+		trigger = {
+			gold >= 100
+		}
+		show_as_unavailable = {
+			gold < 100
+		}
+		remove_short_term_gold = 100
+		add_prestige = 200
+	}
+
+	option = {
+		name = events_good.0011.b
+		add_piety = 25
+	}
+}
+
+# Example 12: Event with random_valid descriptions
+events_good.0012 = {
+	type = character_event
+	title = events_good.0012.t
+	desc = {
+		random_valid = {
+			triggered_desc = {
+				trigger = {
+					always = yes
+				}
+				desc = events_good.0012.desc_1
+			}
+			triggered_desc = {
+				trigger = {
+					always = yes
+				}
+				desc = events_good.0012.desc_2
+			}
+			triggered_desc = {
+				trigger = {
+					always = yes
+				}
+				desc = events_good.0012.desc_3
+			}
+		}
+	}
+
+	left_portrait = root
+
+	trigger = {
+		is_adult = yes
+	}
+
+	option = {
+		name = events_good.0012.a
+		add_gold = 100
+	}
+}

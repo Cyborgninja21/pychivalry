@@ -1,0 +1,36 @@
+# ===================================================================
+# BAD HOOKS - Interaction Hook Validation Errors
+# ===================================================================
+# This file deliberately contains unknown interaction hooks to test
+# the validation diagnostics for character interactions.
+#
+# What this tests:
+# - HOOK-001: Unknown interaction hook
+#
+# Expected validation result: ERRORS
+# ===================================================================
+
+# HOOK-001: Unknown interaction hook
+# Should info: Unknown interaction hook 'on_totally_fake_hook'
+bad_unknown_hook_interaction = {
+	category = interaction_category_diplomacy
+	desc = bad_unknown_hook_interaction_desc
+
+	is_shown = {
+		NOT = { scope:actor = scope:recipient }
+	}
+
+	on_accept = {
+		add_prestige = 50
+	}
+
+	# This hook does not exist in CK3
+	on_totally_fake_hook = {
+		add_gold = 100
+	}
+
+	# Another unknown hook (close to a real one to test suggestions)
+	on_accep = {
+		add_prestige = 25
+	}
+}

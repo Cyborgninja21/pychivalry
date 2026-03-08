@@ -1,0 +1,54 @@
+# ===================================================================
+# TEST STORY CYCLES - Story Cycle Definition Validation
+# ===================================================================
+# This file tests story cycle structure with cross-file references
+# to scripted effects and story cycle events.
+#
+# What this tests:
+# - Story cycle structure (on_setup, on_end, on_owner_death)
+# - effect_group with day ranges and triggered_effect
+# - Cross-file scripted effect usage
+# - Cross-file event references to events/story_cycle_events.txt
+#
+# Expected validation result: NO ERRORS
+# ===================================================================
+
+# -------------------------------------------------------------------
+# Example 1: Complete story cycle with effect groups
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Full story cycle with setup, teardown, and timed effects
+# SHOULD PASS: Yes - proper structure with valid references
+# DEMONSTRATES: Story cycle with triggered_effect and event chain
+# -------------------------------------------------------------------
+story_ambitious_ruler = {
+	on_setup = {
+		# Cross-file reference to scripted_effects/test_effects.txt
+		setup_story_cycle_effect = yes
+	}
+
+	on_end = {
+		remove_character_flag = in_story_cycle
+	}
+
+	on_owner_death = {
+		end_story = yes
+	}
+
+	effect_group = {
+		days = { 30 90 }
+
+		trigger = {
+			is_alive = yes
+		}
+
+		triggered_effect = {
+			trigger = {
+				has_trait = ambitious
+			}
+			effect = {
+				# Cross-file reference to events/story_cycle_events.txt
+				trigger_event = test_story.0002
+			}
+		}
+	}
+}

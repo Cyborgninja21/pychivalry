@@ -1,0 +1,80 @@
+# ===================================================================
+# TEST CHARACTERS - Historical Character Validation
+# ===================================================================
+# This file tests historical character definitions with traits,
+# birth/death dates, and nicknames.
+#
+# What this tests:
+# - Character structure (name, dynasty, religion, culture, skills)
+# - Trait assignments (including custom traits from common/traits/)
+# - Date-based events (birth, death, nickname, spouse)
+# - Cross-file trait references (battle_hardened, silver_tongue)
+#
+# Expected validation result: NO ERRORS
+# ===================================================================
+
+# -------------------------------------------------------------------
+# Example 1: Male ruler with custom traits
+# -------------------------------------------------------------------
+100001 = {
+	name = "Test_King"
+	dynasty = 1000
+	religion = "catholic"
+	culture = "english"
+	martial = 15
+	diplomacy = 10
+	intrigue = 8
+	stewardship = 12
+	learning = 6
+	prowess = 14
+
+	# Cross-file trait references to common/traits/test_traits.txt
+	trait = brave
+	trait = ambitious
+	trait = battle_hardened
+
+	867.1.1 = {
+		birth = yes
+	}
+
+	900.1.1 = {
+		give_nickname = nick_the_bold
+	}
+
+	950.1.1 = {
+		death = yes
+	}
+}
+
+# -------------------------------------------------------------------
+# Example 2: Female ruler with custom traits
+# -------------------------------------------------------------------
+100002 = {
+	name = "Test_Queen"
+	female = yes
+	dynasty = 1001
+	religion = "catholic"
+	culture = "english"
+	martial = 8
+	diplomacy = 16
+	intrigue = 14
+	stewardship = 10
+	learning = 12
+	prowess = 5
+
+	trait = silver_tongue
+	trait = just
+	trait = compassionate
+
+	870.1.1 = {
+		birth = yes
+	}
+
+	890.1.1 = {
+		add_spouse = 100001
+	}
+
+	955.1.1 = {
+		death = yes
+	}
+}

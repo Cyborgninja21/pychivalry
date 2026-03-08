@@ -1,0 +1,136 @@
+# Bad Character Interactions Examples
+# Demonstrates INTERACTION-001 to INTERACTION-003
+
+# ERROR INTERACTION-001: Missing category field
+bad_interaction_001 = {
+	# ERROR INTERACTION-001: No category field
+	# Should have: category = interaction_category_diplomacy (or similar)
+
+	desc = bad_interaction_001_desc
+
+	is_shown = {
+		scope:actor = {
+			is_adult = yes
+		}
+	}
+
+	on_accept = {
+		scope:actor = {
+			add_gold = 100
+		}
+	}
+
+	ai_frequency = 60
+
+	ai_accept = {
+		base = 50
+	}
+}
+
+# ERROR INTERACTION-002: No effects
+bad_interaction_002 = {
+	category = interaction_category_diplomacy
+
+	desc = bad_interaction_002_desc
+
+	is_shown = {
+		scope:actor = {
+			is_adult = yes
+		}
+	}
+
+	# ERROR INTERACTION-002: No on_accept, on_decline, or any effect blocks
+	# Interaction does nothing when accepted
+
+	ai_frequency = 60
+
+	ai_accept = {
+		base = 50
+	}
+}
+
+# ERROR INTERACTION-003: No AI configuration
+bad_interaction_003 = {
+	category = interaction_category_diplomacy
+
+	desc = bad_interaction_003_desc
+
+	is_shown = {
+		scope:actor = {
+			is_adult = yes
+		}
+	}
+
+	on_accept = {
+		scope:actor = {
+			add_prestige = 50
+		}
+	}
+
+	# ERROR INTERACTION-003: No ai_frequency, ai_targets, ai_accept, or any AI config
+	# AI will never use this interaction
+}
+
+# Multiple errors combined
+bad_interaction_all = {
+	# ERROR INTERACTION-001: Missing category
+
+	desc = bad_interaction_all_desc
+
+	is_shown = {
+		always = yes
+	}
+
+	# ERROR INTERACTION-002: No effects
+
+	# ERROR INTERACTION-003: No AI configuration
+}
+
+# ERROR INTERACTION-001: Wrong category value
+bad_interaction_wrong_category = {
+	category = invalid_category_type # ERROR INTERACTION-001: Invalid category
+
+	desc = bad_interaction_wrong_category_desc
+
+	on_accept = {
+		add_gold = 100
+	}
+
+	ai_frequency = 60
+}
+
+# ERROR INTERACTION-002: Empty effect blocks
+bad_interaction_empty_effects = {
+	category = interaction_category_diplomacy
+
+	desc = bad_interaction_empty_effects_desc
+
+	is_shown = {
+		always = yes
+	}
+
+	# ERROR INTERACTION-002: Empty on_accept
+	on_accept = {
+	}
+
+	# ERROR INTERACTION-002: Empty on_decline
+	on_decline = {
+	}
+
+	ai_frequency = 60
+}
+
+# ERROR INTERACTION-003: Incomplete AI configuration
+bad_interaction_partial_ai = {
+	category = interaction_category_diplomacy
+
+	desc = bad_interaction_partial_ai_desc
+
+	on_accept = {
+		add_prestige = 50
+	}
+
+	# ERROR INTERACTION-003: Has ai_frequency but no ai_accept or ai_targets
+	ai_frequency = 60
+	# Missing ai_accept and ai_targets
+}

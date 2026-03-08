@@ -1,0 +1,29 @@
+# ===================================================================
+# CALL HIERARCHY — ON-ACTION EXAMPLES
+# ===================================================================
+# On-actions are game engine hooks that fire events automatically.
+# Use Call Hierarchy (Shift+Alt+H) on an on-action name to see:
+#   Incoming: (on-actions are triggered by the game engine, not script)
+#   Outgoing: Which events are listed in the events block
+#
+# Cross-references:
+#   on_yearly_pulse — fires adventure.0001
+#
+# Expected validation result: NO ERRORS
+# ===================================================================
+
+# -------------------------------------------------------------------
+# on_yearly_pulse
+# -------------------------------------------------------------------
+# INCOMING CALLS: (game engine — no script callers)
+# OUTGOING CALLS: adventure.0001
+#
+# This on-action fires adventure.0001 once per year for eligible
+# characters. In Call Hierarchy, adventure.0001's incoming calls
+# should include this on-action.
+# -------------------------------------------------------------------
+on_yearly_pulse = {
+	events = {
+		adventure.0001
+	}
+}

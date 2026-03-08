@@ -1,0 +1,70 @@
+# ===================================================================
+# TEST GUI - GUI Window Validation
+# ===================================================================
+# This file tests GUI window definitions with layout, states,
+# and scripted GUI references.
+#
+# What this tests:
+# - Window structure (name, size, position, layer)
+# - State definitions (show/hide animations)
+# - Layout containers (vbox, scrollbox)
+# - Scripted GUI onclick reference (start_feast)
+# - Localization key references in text fields
+#
+# Expected validation result: NO ERRORS
+# ===================================================================
+
+window = {
+	name = "test_feast_window"
+	size = { 600 800 }
+	position = { 0 0 }
+	parentanchor = center
+	layer = windows_layer
+
+	using = Window_Background
+	using = Window_Decoration
+
+	state = {
+		name = _show
+		using = Animation_FadeIn_Quick
+	}
+
+	state = {
+		name = _hide
+		using = Animation_FadeOut_Quick
+	}
+
+	vbox = {
+		header_pattern = {
+			layoutpolicy_horizontal = expanding
+
+			blockoverride "header_text" {
+				text = "FEAST_WINDOW_TITLE"
+			}
+
+			blockoverride "button_close" {
+				onclick = "[GetVariableSystem.Clear('feast_window')]"
+			}
+		}
+
+		scrollbox = {
+			layoutpolicy_horizontal = expanding
+			layoutpolicy_vertical = expanding
+
+			blockoverride "scrollbox_content" {
+				vbox = {
+					text_single = {
+						text = "FEAST_DESCRIPTION"
+						max_width = 550
+					}
+
+					button_standard = {
+						text = "START_FEAST"
+						# Cross-file reference to scripted_guis/test_sgui.txt
+						onclick = "[GetScriptedGui('start_feast').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+					}
+				}
+			}
+		}
+	}
+}

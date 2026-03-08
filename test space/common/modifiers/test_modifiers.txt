@@ -1,0 +1,53 @@
+# ===================================================================
+# TEST MODIFIERS - Character Modifier Validation
+# ===================================================================
+# This file tests character modifier definitions with asset
+# references and stat modifiers.
+#
+# What this tests:
+# - Modifier structure (icon, stat bonuses, opinion effects)
+# - Asset path references (gfx/interface/icons/)
+# - Cross-file usage (applied by decisions and scripted effects)
+#
+# Expected validation result: NO ERRORS
+# ===================================================================
+
+# -------------------------------------------------------------------
+# Example 1: Feast cooldown modifier
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Modifier with icon reference and opinion bonuses
+# SHOULD PASS: Yes - valid modifier structure
+# REFERENCED BY: common/decisions/test_decisions.txt (is_valid check)
+# -------------------------------------------------------------------
+recent_feast = {
+	icon = "gfx/interface/icons/modifiers/feast.dds"
+
+	diplomacy = 2
+	monthly_prestige = 0.5
+	vassal_opinion = 5
+	courtier_opinion = 10
+}
+
+# -------------------------------------------------------------------
+# Example 2: Recruitment cooldown modifier
+# -------------------------------------------------------------------
+# REFERENCED BY: common/decisions/test_decisions.txt
+# -------------------------------------------------------------------
+recently_recruited = {
+	icon = "gfx/interface/icons/modifiers/recruit.dds"
+
+	martial = 1
+	monthly_prestige = 0.2
+}
+
+# -------------------------------------------------------------------
+# Example 3: Battle veteran modifier
+# -------------------------------------------------------------------
+battle_veteran = {
+	icon = "gfx/interface/icons/modifiers/veteran.dds"
+
+	martial = 3
+	prowess = 2
+	monthly_prestige = 0.3
+	attraction_opinion = 5
+}

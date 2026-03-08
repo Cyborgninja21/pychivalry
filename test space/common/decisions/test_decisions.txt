@@ -1,0 +1,127 @@
+# ===================================================================
+# TEST DECISIONS - Decision Structure Validation
+# ===================================================================
+# This file tests decision parsing with cross-file references to
+# events, scripted triggers, and opinion modifiers.
+#
+# What this tests:
+# - Decision structure (is_shown, is_valid, cost, effect, ai_will_do)
+# - Cross-file trigger_event references to events/test_events.txt
+# - Scripted trigger usage (is_valid_feast_target_trigger)
+# - Opinion modifier references
+# - AI weight modifiers with trait conditions
+#
+# Expected validation result: NO ERRORS
+# ===================================================================
+
+# -------------------------------------------------------------------
+# Example 1: Full decision with all standard blocks
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Complete decision structure with AI configuration
+# SHOULD PASS: Yes - all required fields present
+# DEMONSTRATES: Decision with cost, effect, ai_will_do, trait modifiers
+# -------------------------------------------------------------------
+hold_grand_feast_decision = {
+	picture = "gfx/interface/illustrations/decisions/decision_feast.dds"
+	major = yes
+
+	desc = hold_grand_feast_decision_desc
+	selection_tooltip = hold_grand_feast_decision_tooltip
+
+	ai_check_interval = 60
+
+	is_shown = {
+		is_landed = yes
+		highest_held_title_tier >= tier_county
+	}
+
+	is_valid = {
+		gold >= 50
+		prestige >= 100
+		NOT = { has_character_modifier = recent_feast }
+	}
+
+	is_valid_showing_failures_only = {
+		gold >= 50
+	}
+
+	cost = {
+		gold = 50
+		prestige = 100
+	}
+
+	effect = {
+		add_character_modifier = {
+			modifier = recent_feast
+			years = 5
+		}
+		# Cross-file reference to events/test_events.txt
+		trigger_event = test_space.0001
+		every_vassal = {
+			limit = {
+				opinion = {
+					target = root
+					value >= 0
+				}
+			}
+			add_opinion = {
+				target = root
+				modifier = feast_opinion
+				opinion = 15
+			}
+		}
+	}
+
+	ai_potential = {
+		gold >= 100
+	}
+
+	ai_will_do = {
+		base = 50
+		modifier = {
+			factor = 2
+			has_trait = gregarious
+		}
+		modifier = {
+			factor = 0.5
+			has_trait = shy
+		}
+	}
+}
+
+# -------------------------------------------------------------------
+# Example 2: Simple decision with scripted trigger reference
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Decision using scripted trigger from another file
+# SHOULD PASS: Yes - references valid scripted trigger
+# DEMONSTRATES: Cross-file scripted trigger usage in is_valid
+# -------------------------------------------------------------------
+recruit_champion_decision = {
+	picture = "gfx/interface/illustrations/decisions/decision_knight.dds"
+
+	desc = recruit_champion_decision_desc
+
+	is_shown = {
+		is_landed = yes
+	}
+
+	is_valid = {
+		gold >= 25
+		NOT = { has_character_modifier = recently_recruited }
+	}
+
+	cost = {
+		gold = 25
+	}
+
+	effect = {
+		add_character_modifier = {
+			modifier = recently_recruited
+			years = 2
+		}
+	}
+
+	ai_will_do = {
+		base = 25
+	}
+}

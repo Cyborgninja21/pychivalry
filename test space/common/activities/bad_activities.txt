@@ -1,0 +1,121 @@
+# ===================================================================
+# BAD ACTIVITIES - Activity Validation Errors
+# ===================================================================
+# This file demonstrates INCORRECT activity definitions.
+# All examples should trigger specific validation errors.
+#
+# What this tests:
+# - ACT-001: Missing is_shown field
+# - ACT-002: Phase references non-existent phase
+# - ACT-003: Invalid province filter value
+# - ACT-004: Trigger in lifecycle hook (effect context)
+# - ACT-005: Duplicate phase name
+#
+# Expected validation result: ERRORS
+# ===================================================================
+
+# -------------------------------------------------------------------
+# ERROR ACT-001: Activity missing 'is_shown'
+# -------------------------------------------------------------------
+missing_is_shown_activity = {
+	desc = missing_is_shown_activity_desc
+
+	is_valid = {
+		is_landed = yes
+	}
+
+	effect = {
+		add_prestige = 100
+	}
+}
+
+# -------------------------------------------------------------------
+# ERROR ACT-002: Phase references non-existent phase
+# -------------------------------------------------------------------
+bad_phase_ref_activity = {
+	desc = bad_phase_ref_activity_desc
+
+	is_shown = {
+		always = yes
+	}
+
+	phases = {
+		opening_phase = {
+			on_enter_phase = {
+				add_prestige = 10
+			}
+			# ERROR ACT-002: 'banquet_phase' is not defined in phases
+			next_phase = banquet_phase
+		}
+		closing_phase = {
+			on_enter_phase = {
+				add_prestige = 20
+			}
+		}
+	}
+}
+
+# -------------------------------------------------------------------
+# ERROR ACT-003: Invalid province filter
+# -------------------------------------------------------------------
+bad_province_filter_activity = {
+	desc = bad_province_filter_activity_desc
+
+	is_shown = {
+		always = yes
+	}
+
+	# ERROR ACT-003: 'underwater' is not a valid province filter
+	province_filter = underwater
+
+	effect = {
+		add_prestige = 50
+	}
+}
+
+# -------------------------------------------------------------------
+# ERROR ACT-004: Trigger in lifecycle hook (effect context)
+# -------------------------------------------------------------------
+trigger_in_hook_activity = {
+	desc = trigger_in_hook_activity_desc
+
+	is_shown = {
+		always = yes
+	}
+
+	on_activate = {
+		# ERROR ACT-004: 'is_alive' is a trigger, not an effect
+		is_alive = yes
+		add_prestige = 100
+	}
+
+	on_complete = {
+		# ERROR ACT-004: 'has_trait' is a trigger in effect context
+		has_trait = brave
+	}
+}
+
+# -------------------------------------------------------------------
+# ERROR ACT-005: Duplicate phase name
+# -------------------------------------------------------------------
+duplicate_phase_activity = {
+	desc = duplicate_phase_activity_desc
+
+	is_shown = {
+		always = yes
+	}
+
+	phases = {
+		feast_phase = {
+			on_enter_phase = {
+				add_prestige = 10
+			}
+		}
+		# ERROR ACT-005: 'feast_phase' already defined above
+		feast_phase = {
+			on_enter_phase = {
+				add_gold = 10
+			}
+		}
+	}
+}

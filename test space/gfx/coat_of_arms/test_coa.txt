@@ -1,0 +1,31 @@
+# ===================================================================
+# TEST COAT OF ARMS - CoA Definition Validation
+# ===================================================================
+# This file tests coat of arms definitions with patterns,
+# emblems, and colored emblems.
+#
+# What this tests:
+# - Pattern structure (name, texture)
+# - Emblem structure (name, texture)
+# - Colored emblem structure (color, mask)
+# - Asset path references (gfx/coat_of_arms/)
+#
+# Expected validation result: NO ERRORS
+# ===================================================================
+
+pattern = {
+	name = "test_pattern_chevron"
+	texture = "gfx/coat_of_arms/patterns/chevron.dds"
+}
+
+emblem = {
+	name = "test_emblem_lion"
+	texture = "gfx/coat_of_arms/emblems/lion.dds"
+}
+
+colored_emblem = {
+	name = "test_colored_lion"
+	texture = "gfx/coat_of_arms/colored_emblems/ce_lion.dds"
+	color1 = hsv{ 0.08 0.9 0.8 }
+	mask = { 2 3 }
+}

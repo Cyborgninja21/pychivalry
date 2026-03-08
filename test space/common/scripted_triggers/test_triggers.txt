@@ -1,0 +1,82 @@
+# ===================================================================
+# TEST SCRIPTED TRIGGERS - Reusable Trigger Validation
+# ===================================================================
+# This file defines reusable scripted triggers referenced by
+# decisions, interactions, and scripted effects across the mod.
+#
+# What this tests:
+# - Scripted trigger definitions
+# - Trigger composition (AND, OR, NOT)
+# - Cross-file usage (referenced by decisions, interactions, effects)
+# - Trait condition checks
+# - Title tier comparisons
+#
+# Expected validation result: NO ERRORS
+# ===================================================================
+
+# -------------------------------------------------------------------
+# Example 1: Basic eligibility trigger
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Simple compound trigger with valid conditions
+# SHOULD PASS: Yes - all triggers are valid CK3 triggers
+# DEMONSTRATES: Reusable trigger for feast decisions
+# REFERENCED BY: common/decisions/test_decisions.txt
+# -------------------------------------------------------------------
+is_valid_feast_target_trigger = {
+	is_alive = yes
+	is_landed = yes
+	highest_held_title_tier >= tier_county
+	NOT = { has_trait = incapable }
+}
+
+# -------------------------------------------------------------------
+# Example 2: Complex trigger with OR block
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Trigger with OR composition and prowess check
+# SHOULD PASS: Yes - valid OR block with trait checks
+# DEMONSTRATES: Reusable trigger for duel interactions
+# REFERENCED BY: common/character_interactions/test_interactions.txt
+# -------------------------------------------------------------------
+is_eligible_for_duel_trigger = {
+	is_alive = yes
+	age >= 16
+	NOT = { has_trait = incapable }
+	prowess >= 5
+	OR = {
+		has_trait = brave
+		has_trait = wrathful
+		has_trait = ambitious
+		has_trait = battle_hardened
+	}
+}
+
+# -------------------------------------------------------------------
+# Example 3: Cost validation trigger
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Trigger checking resource requirements
+# SHOULD PASS: Yes - valid gold/prestige/modifier checks
+# DEMONSTRATES: Pre-condition trigger for feast cost
+# REFERENCED BY: common/scripted_guis/test_sgui.txt
+# -------------------------------------------------------------------
+can_afford_feast_trigger = {
+	gold >= 50
+	prestige >= 100
+	NOT = { has_character_modifier = recent_feast }
+}
+
+# -------------------------------------------------------------------
+# Example 4: Military strength trigger
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Trigger with skill checks and education traits
+# SHOULD PASS: Yes - valid martial/prowess checks
+# DEMONSTRATES: Complex multi-condition military trigger
+# REFERENCED BY: common/scripted_effects/test_effects.txt
+# -------------------------------------------------------------------
+has_strong_military_trigger = {
+	martial >= 12
+	OR = {
+		has_trait = brilliant_strategist
+		has_trait = master_strategist
+	}
+	number_of_knights >= 5
+}

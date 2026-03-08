@@ -1,0 +1,48 @@
+# ===================================================================
+# TEST GOVERNMENT TYPES - Government Definition Validation
+# ===================================================================
+# This file tests government type definitions.
+#
+# What this tests:
+# - Government structure (valid_holdings, primary_holding)
+# - Court generation settings
+# - Government flags
+# - Vassal contract references
+#
+# Expected validation result: NO ERRORS
+# ===================================================================
+
+feudal_government = {
+	create_cadet_branches = yes
+	rulers_should_have_dynasty = yes
+	dynasty_named_realms = yes
+
+	valid_holdings = { castle_holding city_holding }
+	primary_holding = castle_holding
+
+	court_generate_spouses = 3
+	court_generate_commanders = 2
+
+	prestige_opinion_override = { -1 0 1 2 3 }
+
+	flag = government_is_feudal
+
+	vassal_contract = {
+		feudal_obligations
+		religious_obligations
+		fortification_obligations
+	}
+}
+
+republic_government = {
+	create_cadet_branches = no
+	rulers_should_have_dynasty = no
+
+	valid_holdings = { city_holding castle_holding }
+	primary_holding = city_holding
+
+	court_generate_spouses = 2
+	court_generate_commanders = 1
+
+	flag = government_is_republic
+}

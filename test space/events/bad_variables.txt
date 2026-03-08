@@ -1,0 +1,97 @@
+# ===================================================================
+# BAD VARIABLES - Variable Validation Errors
+# ===================================================================
+# This file deliberately contains variable usage errors to test
+# the validation diagnostics for CK3 scripted variables.
+#
+# What this tests:
+# - CK3701: Variable used but never declared (set_variable)
+# - CK3702: Variable declared but never used
+# - CK3703: Variable scope mismatch (local vs global)
+# - CK3705: Variable used as both list and value
+#
+# Expected validation result: ERRORS
+# ===================================================================
+
+namespace = bad_variables
+
+# CK3701: Variable used but never declared
+# Should warn: Variable "never_declared_var" used but never declared
+bad_undeclared_variable = {
+	type = character_event
+	title = bad_variables.0001.t
+
+	trigger = {
+		has_variable = never_declared_var
+	}
+
+	immediate = { }
+
+	option = {
+		name = bad_variables.0001.a
+	}
+}
+
+# CK3702: Variable declared but never used
+# Should hint: Variable "unused_var" declared but never used
+bad_unused_variable = {
+	type = character_event
+	title = bad_variables.0002.t
+
+	immediate = {
+		set_variable = {
+			name = unused_var
+			value = 42
+		}
+	}
+
+	option = {
+		name = bad_variables.0002.a
+	}
+}
+
+# CK3703: Variable scope mismatch - local accessed as global
+# Should error: Variable "my_local_var" is local but accessed as global
+bad_scope_mismatch = {
+	type = character_event
+	title = bad_variables.0003.t
+
+	immediate = {
+		set_local_variable = {
+			name = my_local_var
+			value = 10
+		}
+	}
+
+	option = {
+		name = bad_variables.0003.a
+		trigger = {
+			has_variable = my_local_var
+		}
+	}
+}
+
+# CK3705: Variable used as both list and value
+# Should warn: Variable "dual_use_var" used as both list and value
+bad_dual_use_variable = {
+	type = character_event
+	title = bad_variables.0004.t
+
+	immediate = {
+		set_variable = {
+			name = dual_use_var
+			value = 5
+		}
+		add_to_variable_list = {
+			name = dual_use_var
+			target = root
+		}
+	}
+
+	option = {
+		name = bad_variables.0004.a
+		trigger = {
+			has_variable = dual_use_var
+		}
+	}
+}

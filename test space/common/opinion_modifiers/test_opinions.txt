@@ -1,0 +1,36 @@
+# ===================================================================
+# TEST OPINION MODIFIERS - Opinion Modifier Validation
+# ===================================================================
+# This file tests opinion modifier definitions referenced by
+# decisions, interactions, and scripted effects.
+#
+# What this tests:
+# - Opinion modifier structure (opinion, years, decaying)
+# - Cross-file references from effects and decisions
+#
+# Expected validation result: NO ERRORS
+# ===================================================================
+
+# REFERENCED BY: common/decisions/test_decisions.txt,
+#                common/scripted_effects/test_effects.txt
+feast_opinion = {
+	opinion = 15
+	years = 3
+	decaying = yes
+}
+
+duel_winner_opinion = {
+	opinion = 20
+	years = 10
+}
+
+duel_loser_opinion = {
+	opinion = -15
+	years = 5
+	decaying = yes
+}
+
+betrayed_trust_opinion = {
+	opinion = -30
+	years = 20
+}

@@ -1,0 +1,62 @@
+# ===================================================================
+# TEST LANDED TITLES - Title Hierarchy Validation
+# ===================================================================
+# This file tests landed title definitions with nested hierarchy.
+#
+# What this tests:
+# - Title hierarchy nesting (kingdom > duchy > county > barony)
+# - Color definitions (RGB)
+# - Capital assignments
+# - Province number assignments
+# - AI priority conditions
+#
+# Expected validation result: NO ERRORS
+# ===================================================================
+
+k_test_kingdom = {
+	color = { 180 30 30 }
+	color2 = { 255 255 255 }
+
+	capital = c_test_county
+
+	ai_primary_priority = {
+		if = {
+			limit = { has_culture_group = west_germanic_group }
+			add = 100
+		}
+	}
+
+	d_test_duchy = {
+		color = { 200 50 50 }
+		color2 = { 255 255 255 }
+
+		capital = c_test_county
+
+		c_test_county = {
+			color = { 220 70 70 }
+			color2 = { 255 255 255 }
+
+			b_test_castle = {
+				province = 1
+			}
+			b_test_city = {
+				province = 2
+			}
+			b_test_temple = {
+				province = 3
+			}
+		}
+
+		c_test_county_2 = {
+			color = { 210 60 60 }
+			color2 = { 255 255 255 }
+
+			b_test_castle_2 = {
+				province = 4
+			}
+			b_test_city_2 = {
+				province = 5
+			}
+		}
+	}
+}

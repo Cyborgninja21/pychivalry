@@ -1,0 +1,36 @@
+# ===================================================================
+# TEST RELIGIONS - Religion Definition Validation
+# ===================================================================
+# This file tests religion and faith definitions.
+#
+# What this tests:
+# - Religion family structure
+# - Doctrine assignments
+# - Faith definitions with holy sites and tenets
+# - Color definitions (RGB)
+#
+# Expected validation result: NO ERRORS
+# ===================================================================
+
+test_religion_family = {
+	graphical_faith = western_gfx
+
+	doctrine = doctrine_no_head
+	doctrine = doctrine_gender_male_dominated
+	doctrine = doctrine_pluralism_pluralistic
+	doctrine = doctrine_theocracy_temporal
+
+	test_faith = {
+		color = { 0.8 0.2 0.2 }
+		icon = faith_christianity
+		reformed_icon = faith_christianity
+
+		holy_site = rome
+		holy_site = jerusalem
+		holy_site = canterbury
+
+		doctrine = tenet_armed_pilgrimages
+		doctrine = tenet_communal_identity
+		doctrine = tenet_monasticism
+	}
+}

@@ -1,0 +1,435 @@
+# ===================================================================
+# BAD TRIGGERS EXAMPLES
+# ===================================================================
+# This file demonstrates INCORRECT trigger usage that SHOULD FAIL validation.
+# All examples in this file contain semantic errors.
+#
+# Error Codes Demonstrated:
+# - CK3005: Logical operator (NOT/OR/AND) without block value
+# - CK3007: Empty block with no children
+# - CK3101: Unknown/invalid trigger keyword
+# - CK3102: Effect used in trigger block
+# - CK3870: Effect in trigger (duplicate of CK3102)
+# - CK3871: Effect in limit block
+# - CK3872: Redundant always=yes trigger
+# - CK3873: Impossible always=no trigger
+# - CK3875: random_ iterator without limit block
+# - CK3976: Effect in any_ iterator (trigger context)
+# - CK3977: every_ without limit (affects all)
+# - CK5137: is_alive check without exists check (crash risk)
+# - CK5142: Character comparison with = instead of 'this ='
+#
+# Expected validation result: ERRORS DETECTED
+# ===================================================================
+
+namespace = semantic_bad_triggers
+
+# -------------------------------------------------------------------
+# ERROR CK3101: Unknown trigger
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Detection of invalid/nonexistent trigger keywords
+# SHOULD FAIL: Yes - CK3101 errors for made-up triggers
+# WHY IT'S BAD: These triggers don't exist in CK3
+# HOW TO FIX: Use only valid CK3 trigger keywords
+# -------------------------------------------------------------------
+semantic_bad_triggers.0001 = {
+	type = character_event
+	title = semantic_bad_triggers.0001.t
+	desc = semantic_bad_triggers.0001.desc
+
+	trigger = {
+		is_adult = yes
+		is_super_powerful = yes # ERROR CK3101: Unknown trigger
+		has_magic_powers = yes # ERROR CK3101: Unknown trigger
+		can_fly = yes # ERROR CK3101: Unknown trigger
+	}
+
+	option = {
+		name = semantic_bad_triggers.0001.a
+		add_gold = 100
+	}
+}
+
+# -------------------------------------------------------------------
+# ERROR CK3102 / CK3870: Effect used in trigger block
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Detection of effects in trigger-only contexts
+# SHOULD FAIL: Yes - CK3102 errors for each effect
+# WHY IT'S BAD: Triggers check conditions, effects modify state - can't mix
+# HOW TO FIX: Move effects to immediate or option blocks
+# -------------------------------------------------------------------
+semantic_bad_triggers.0002 = {
+	type = character_event
+	title = semantic_bad_triggers.0002.t
+	desc = semantic_bad_triggers.0002.desc
+
+	trigger = {
+		is_adult = yes
+		add_gold = 100 # ERROR CK3102: Effect in trigger block
+		add_prestige = 50 # ERROR CK3102: Effect in trigger block
+		save_scope_as = actor # ERROR CK3102: Effect in trigger block
+	}
+
+	option = {
+		name = semantic_bad_triggers.0002.a
+		add_piety = 50
+	}
+}
+
+# -------------------------------------------------------------------
+# ERROR CK3871: Effect in limit block
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Detection of effects in limit blocks
+# SHOULD FAIL: Yes - CK3871 error
+# WHY IT'S BAD: Limit blocks are trigger-only contexts for filtering
+# HOW TO FIX: Remove effects from limit, keep only triggers
+# -------------------------------------------------------------------
+semantic_bad_triggers.0003 = {
+	type = character_event
+	title = semantic_bad_triggers.0003.t
+	desc = semantic_bad_triggers.0003.desc
+
+	trigger = {
+		is_adult = yes
+	}
+
+	immediate = {
+		every_vassal = {
+			limit = {
+				is_adult = yes
+				add_gold = 10 # ERROR CK3871: Effect in limit block (should be trigger only)
+			}
+			add_prestige = 50
+		}
+	}
+
+	option = {
+		name = semantic_bad_triggers.0003.a
+		add_gold = 100
+	}
+}
+
+# -------------------------------------------------------------------
+# ERROR CK3872: Redundant always=yes trigger
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Detection of pointless always=yes conditions
+# SHOULD FAIL: Yes - CK3872 warning
+# WHY IT'S BAD: always=yes does nothing, wastes performance
+# HOW TO FIX: Remove always=yes or add real conditions
+# -------------------------------------------------------------------
+semantic_bad_triggers.0004 = {
+	type = character_event
+	title = semantic_bad_triggers.0004.t
+	desc = semantic_bad_triggers.0004.desc
+
+	trigger = {
+		always = yes # ERROR CK3872: Redundant - event will always trigger
+	}
+
+	option = {
+		name = semantic_bad_triggers.0004.a
+		add_gold = 100
+	}
+}
+
+# -------------------------------------------------------------------
+# ERROR CK3873: Impossible always=no trigger
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Detection of impossible trigger conditions
+# SHOULD FAIL: Yes - CK3873 error
+# WHY IT'S BAD: Event will NEVER fire, dead code
+# HOW TO FIX: Remove always=no or fix the logic
+# -------------------------------------------------------------------
+semantic_bad_triggers.0005 = {
+	type = character_event
+	title = semantic_bad_triggers.0005.t
+	desc = semantic_bad_triggers.0005.desc
+
+	trigger = {
+		always = no # ERROR CK3873: Event will never trigger
+	}
+
+	option = {
+		name = semantic_bad_triggers.0005.a
+		add_gold = 100
+	}
+}
+
+# -------------------------------------------------------------------
+# ERROR CK3875: random_ without limit
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Detection of random_ iterators without filtering
+# SHOULD FAIL: Yes - CK3875 warning (2 instances)
+# WHY IT'S BAD: Picks from entire pool, likely unintended
+# HOW TO FIX: Add limit block to narrow selection
+# -------------------------------------------------------------------
+semantic_bad_triggers.0006 = {
+	type = character_event
+	title = semantic_bad_triggers.0006.t
+	desc = semantic_bad_triggers.0006.desc
+
+	trigger = {
+		is_adult = yes
+	}
+
+	immediate = {
+		# ERROR CK3875: random_ should have limit to narrow selection
+		random_vassal = {
+			add_gold = 100
+		}
+
+		# ERROR CK3875: No limit - will pick any courtier
+		random_courtier = {
+			add_prestige = 50
+		}
+	}
+
+	option = {
+		name = semantic_bad_triggers.0006.a
+		add_gold = 50
+	}
+}
+
+# -------------------------------------------------------------------
+# ERROR CK3976: Effect in any_ iterator (trigger-only context)
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Detection of effects in any_ checking contexts
+# SHOULD FAIL: Yes - CK3976 error
+# WHY IT'S BAD: any_ checks if ANY match, can't modify them
+# HOW TO FIX: Use every_ in immediate/option blocks for effects
+# -------------------------------------------------------------------
+semantic_bad_triggers.0007 = {
+	type = character_event
+	title = semantic_bad_triggers.0007.t
+	desc = semantic_bad_triggers.0007.desc
+
+	trigger = {
+		# any_ is for checking conditions, not executing effects
+		any_vassal = {
+			add_gold = 10 # ERROR CK3976: Effect in any_ iterator (should use every_ in immediate/option)
+		}
+	}
+
+	option = {
+		name = semantic_bad_triggers.0007.a
+		add_prestige = 50
+	}
+}
+
+# -------------------------------------------------------------------
+# ERROR CK3977: every_ without limit (affects ALL entries)
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Detection of every_ without filtering
+# SHOULD FAIL: Yes - CK3977 warning (2 instances)
+# WHY IT'S BAD: Affects EVERY single character, likely unintended
+# HOW TO FIX: Add limit block to narrow scope
+# -------------------------------------------------------------------
+semantic_bad_triggers.0008 = {
+	type = character_event
+	title = semantic_bad_triggers.0008.t
+	desc = semantic_bad_triggers.0008.desc
+
+	trigger = {
+		is_adult = yes
+	}
+
+	immediate = {
+		# ERROR CK3977: No limit - affects every single vassal (might be unintended)
+		every_vassal = {
+			add_gold = 100
+		}
+
+		# ERROR CK3977: No limit - affects every single courtier
+		every_courtier = {
+			add_prestige = 50
+		}
+	}
+
+	option = {
+		name = semantic_bad_triggers.0008.a
+		add_gold = 50
+	}
+}
+
+# -------------------------------------------------------------------
+# ERROR CK5137: is_alive without exists check (can crash)
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Detection of is_alive without exists guard
+# SHOULD FAIL: Yes - CK5137 error (2 instances)
+# WHY IT'S BAD: If father/liege is null, game CRASHES
+# HOW TO FIX: Check 'exists = yes' before using is_alive
+# CRITICAL: This is a crash bug, not just a warning!
+# -------------------------------------------------------------------
+	type = character_event
+	title = semantic_bad_triggers.0009.t
+	desc = semantic_bad_triggers.0009.desc
+
+	trigger = {
+		is_adult = yes
+		# ERROR CK5137: Should check 'exists' before 'is_alive' to prevent crashes
+		father = {
+			is_alive = yes # Can crash if father is null
+		}
+
+		# ERROR CK5137: Missing exists check
+		liege = {
+			is_alive = yes
+			is_ruler = yes
+		}
+	}
+
+	option = {
+		name = semantic_bad_triggers.0009.a
+		add_gold = 100
+	}
+}
+
+# -------------------------------------------------------------------
+# ERROR CK5142: Character comparison with = instead of 'this ='
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Detection of incorrect character comparison syntax
+# SHOULD FAIL: Yes - CK5142 error (2 instances)
+# WHY IT'S BAD: 'liege = root' is invalid, use 'liege = { this = root }'
+# HOW TO FIX: Use 'this = root' inside a scope block
+# -------------------------------------------------------------------
+	type = character_event
+	title = semantic_bad_triggers.0010.t
+	desc = semantic_bad_triggers.0010.desc
+
+	trigger = {
+		# ERROR CK5142: Use 'this = root' not '= root' for character comparison
+		liege = root # Wrong syntax for character comparison
+
+		# ERROR CK5142: Should use 'this = scope:actor'
+		any_vassal = {
+			save_temporary_scope_as = vassal
+			# Wrong: trying to compare character directly
+			scope:vassal = root
+		}
+	}
+
+	option = {
+		name = semantic_bad_triggers.0010.a
+		add_prestige = 50
+	}
+}
+
+# -------------------------------------------------------------------
+# Multiple errors combined
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Multiple semantic errors in one event
+# SHOULD FAIL: Yes - CK3101, CK5137, CK3102, CK3871 errors
+# WHY IT'S BAD: Combines unknown triggers, missing exists, effects in wrong places
+# DEMONSTRATES: How errors compound in poorly written code
+# -------------------------------------------------------------------
+semantic_bad_triggers.0011 = {
+	type = character_event
+	title = semantic_bad_triggers.0011.t
+	desc = semantic_bad_triggers.0011.desc
+
+	trigger = {
+		is_adult = yes
+		has_super_trait = brave # ERROR CK3101: Unknown trigger
+		father = {
+			is_alive = yes # ERROR CK5137: Missing exists check
+		}
+		add_gold = 50 # ERROR CK3102: Effect in trigger block
+	}
+
+	immediate = {
+		every_vassal = {
+			limit = {
+				is_adult = yes
+				save_scope_as = temp # ERROR CK3871: Effect in limit block
+			}
+			add_prestige = 50
+		}
+	}
+
+	option = {
+		name = semantic_bad_triggers.0011.a
+		add_gold = 100
+	}
+}
+
+# -------------------------------------------------------------------
+# ERROR CK3101 + CK3102: Combined unknown triggers and effects in trigger
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Mix of unknown triggers and effects in trigger block
+# SHOULD FAIL: Yes - 2x CK3101, 2x CK3102 errors
+# WHY IT'S BAD: Neither unknown triggers nor effects belong in trigger blocks
+# DEMONSTRATES: Common beginner mistakes
+# -------------------------------------------------------------------
+semantic_bad_triggers.0012 = {
+	type = character_event
+	title = semantic_bad_triggers.0012.t
+	desc = semantic_bad_triggers.0012.desc
+
+	trigger = {
+		is_mega_ruler = yes # ERROR CK3101: Unknown trigger
+		has_flying_ability = yes # ERROR CK3101: Unknown trigger
+		trigger_event = semantic_bad_triggers.0013 # ERROR CK3102: Effect in trigger
+		remove_trait = lazy # ERROR CK3102: Effect in trigger
+	}
+
+	option = {
+		name = semantic_bad_triggers.0012.a
+		add_prestige = 100
+	}
+}
+
+# -------------------------------------------------------------------
+# ERROR CK3005: Logical operator not followed by block
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Detection of logical operators with scalar values
+# SHOULD FAIL: Yes - 3x CK3005 errors (NOT, OR, AND)
+# WHY IT'S BAD: NOT/OR/AND require block values { ... }, not yes/no
+# HOW TO FIX: Use 'NOT = { condition }' not 'NOT = yes'
+# -------------------------------------------------------------------
+semantic_bad_triggers.0013 = {
+	type = character_event
+	title = semantic_bad_triggers.0013.t
+	desc = semantic_bad_triggers.0013.desc
+
+	trigger = {
+		is_adult = yes
+		# ERROR CK3005: NOT requires a block value { ... }
+		NOT = yes
+		# ERROR CK3005: OR requires a block value { ... }
+		OR = yes
+		# ERROR CK3005: AND requires a block value { ... }
+		AND = no
+	}
+
+	option = {
+		name = semantic_bad_triggers.0013.a
+		add_gold = 100
+	}
+}
+
+# -------------------------------------------------------------------
+# ERROR CK3007: Empty block with no children
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Detection of empty blocks
+# SHOULD FAIL: Yes - 3x CK3007 errors (trigger, immediate, option)
+# WHY IT'S BAD: Empty blocks serve no purpose, likely incomplete code
+# HOW TO FIX: Add content to blocks or remove them
+# -------------------------------------------------------------------
+semantic_bad_triggers.0014 = {
+	type = character_event
+	title = semantic_bad_triggers.0014.t
+	desc = semantic_bad_triggers.0014.desc
+
+	trigger = {
+		# ERROR CK3007: Empty trigger block
+	}
+
+	immediate = {
+		# ERROR CK3007: Empty immediate block
+	}
+
+	option = {
+		name = semantic_bad_triggers.0014.a
+		# ERROR CK3007: Empty option (only has name, no effects)
+	}
+}

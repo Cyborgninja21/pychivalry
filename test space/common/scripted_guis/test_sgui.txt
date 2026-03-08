@@ -1,0 +1,35 @@
+# ===================================================================
+# TEST SCRIPTED GUIS - Scripted GUI Validation
+# ===================================================================
+# This file tests scripted GUI definitions with cross-file
+# references to scripted triggers and effects.
+#
+# What this tests:
+# - Scripted GUI structure (scope, is_shown, is_valid, effect)
+# - Cross-file scripted trigger usage (can_afford_feast_trigger)
+# - Cross-file scripted effect usage (apply_feast_rewards_effect)
+# - Cross-file event reference
+#
+# Expected validation result: NO ERRORS
+# ===================================================================
+
+# REFERENCED BY: gui/test_window.gui (onclick handler)
+start_feast = {
+	scope = character
+
+	is_shown = {
+		is_alive = yes
+		is_landed = yes
+	}
+
+	is_valid = {
+		# Cross-file reference to scripted_triggers/test_triggers.txt
+		can_afford_feast_trigger = yes
+	}
+
+	effect = {
+		# Cross-file reference to scripted_effects/test_effects.txt
+		apply_feast_rewards_effect = yes
+		trigger_event = test_space.0001
+	}
+}

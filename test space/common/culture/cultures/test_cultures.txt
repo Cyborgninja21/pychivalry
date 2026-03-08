@@ -1,0 +1,40 @@
+# ===================================================================
+# TEST CULTURES - Culture Definition Validation
+# ===================================================================
+# This file tests culture definitions with ethos, heritage,
+# traditions, and graphical assignments.
+#
+# What this tests:
+# - Culture structure (color, ethos, heritage, language)
+# - Tradition assignments
+# - GFX assignments (coa, building, clothing, unit)
+# - Ethnicity definitions
+# - Name list references
+#
+# Expected validation result: NO ERRORS
+# ===================================================================
+
+test_culture = {
+	color = hsv{ 0.55 0.6 0.7 }
+
+	ethos = ethos_bellicose
+	heritage = heritage_west_germanic
+	language = language_anglo_saxon
+	martial_custom = martial_custom_male_only
+
+	name_list = name_list_english
+
+	coa_gfx = { western_coa_gfx }
+	building_gfx = { western_building_gfx }
+	clothing_gfx = { western_clothing_gfx }
+	unit_gfx = { western_unit_gfx }
+
+	traditions = {
+		tradition_warrior_culture
+		tradition_castle_keepers
+	}
+
+	ethnicities = {
+		10 = caucasian_blond
+	}
+}

@@ -1,0 +1,68 @@
+# ===================================================================
+# TEST LAWS - Law Definition Validation
+# ===================================================================
+# This file tests law definitions with upgrade chains.
+#
+# What this tests:
+# - Law structure (can_have, modifier, flag, next_law)
+# - on_pass callback
+# - revoke_cost blocks
+# - AI will_do with trait-based modifiers
+#
+# Expected validation result: NO ERRORS
+# ===================================================================
+
+# -------------------------------------------------------------------
+# Crown authority level 0 (base)
+# -------------------------------------------------------------------
+crown_authority_0 = {
+	can_have = {
+		highest_held_title_tier >= tier_duchy
+	}
+
+	modifier = {
+		domain_limit = 0
+		vassal_limit = 10
+	}
+
+	flag = crown_authority_0
+	next_law = crown_authority_1
+
+	on_pass = {
+		custom_tooltip = crown_authority_0_pass_tt
+	}
+
+	ai_will_do = {
+		base = 0
+	}
+}
+
+# -------------------------------------------------------------------
+# Crown authority level 1 (upgraded)
+# -------------------------------------------------------------------
+crown_authority_1 = {
+	can_have = {
+		highest_held_title_tier >= tier_duchy
+	}
+
+	modifier = {
+		domain_limit = 1
+		vassal_limit = 5
+		monthly_prestige = 0.5
+	}
+
+	flag = crown_authority_1
+	next_law = crown_authority_2
+
+	revoke_cost = {
+		prestige = 500
+	}
+
+	ai_will_do = {
+		base = 25
+		modifier = {
+			factor = 2
+			has_trait = ambitious
+		}
+	}
+}

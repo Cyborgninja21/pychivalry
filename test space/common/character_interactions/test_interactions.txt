@@ -1,0 +1,84 @@
+# ===================================================================
+# TEST INTERACTIONS - Character Interaction Validation
+# ===================================================================
+# This file tests character interaction parsing with cross-file
+# references to scripted triggers and events.
+#
+# What this tests:
+# - Interaction structure (category, is_shown, on_accept, ai_accept)
+# - Cross-file scripted trigger usage (is_eligible_for_duel_trigger)
+# - Cross-file trigger_event references
+# - AI acceptance weights with trait modifiers
+# - ai_targets and ai_frequency
+#
+# Expected validation result: NO ERRORS
+# ===================================================================
+
+# -------------------------------------------------------------------
+# Example 1: Full interaction with AI behavior
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Complete interaction with acceptance logic
+# SHOULD PASS: Yes - all fields valid
+# DEMONSTRATES: Hostile interaction with trait-based AI weights
+# -------------------------------------------------------------------
+challenge_to_duel_interaction = {
+	category = interaction_category_hostile
+
+	desc = challenge_to_duel_interaction_desc
+
+	is_shown = {
+		NOT = { this = scope:recipient }
+		scope:recipient = {
+			is_alive = yes
+		}
+	}
+
+	is_valid_showing_failures_only = {
+		# Cross-file reference to scripted_triggers/test_triggers.txt
+		is_eligible_for_duel_trigger = yes
+		scope:recipient = {
+			is_eligible_for_duel_trigger = yes
+		}
+	}
+
+	on_accept = {
+		# Cross-file reference to events/test_events.txt
+		trigger_event = test_space.0002
+	}
+
+	on_decline = {
+		scope:recipient = {
+			add_prestige = -50
+		}
+	}
+
+	ai_accept = {
+		base = -50
+		modifier = {
+			add = 30
+			has_trait = brave
+		}
+		modifier = {
+			add = 50
+			has_trait = wrathful
+		}
+		modifier = {
+			add = -30
+			has_trait = craven
+		}
+	}
+
+	ai_frequency = 24
+
+	ai_potential = {
+		is_eligible_for_duel_trigger = yes
+	}
+
+	ai_targets = {
+		ai_recipients = neighboring_rulers
+	}
+
+	ai_will_do = {
+		base = 10
+	}
+}

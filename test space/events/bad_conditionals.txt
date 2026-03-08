@@ -1,0 +1,77 @@
+# ===================================================================
+# BAD CONDITIONALS - Conditional Block Validation Errors
+# ===================================================================
+# This file deliberately contains conditional structure errors to
+# test the validation diagnostics for if/else/else_if blocks.
+#
+# What this tests:
+# - COND-001: trigger_if/if missing limit block
+# - COND-002: trigger_else/else has limit (should use else_if)
+# - COND-003: trigger_else/else without preceding if
+#
+# Expected validation result: ERRORS
+# ===================================================================
+
+namespace = bad_conditionals
+
+# COND-001: trigger_if / if missing limit
+# Should error about missing limit block
+bad_if_no_limit = {
+	type = character_event
+	title = bad_conditionals.0001.t
+
+	trigger = {
+		trigger_if = {
+			is_alive = yes
+		}
+	}
+
+	immediate = { }
+
+	option = {
+		name = bad_conditionals.0001.a
+	}
+}
+
+# COND-002: trigger_else / else has limit (should use trigger_else_if)
+# Should warn that else has limit block — use else_if instead
+bad_else_with_limit = {
+	type = character_event
+	title = bad_conditionals.0002.t
+
+	trigger = {
+		trigger_if = {
+			limit = { is_alive = yes }
+			is_landed = yes
+		}
+		trigger_else = {
+			limit = { is_female = yes }
+			is_adult = yes
+		}
+	}
+
+	immediate = { }
+
+	option = {
+		name = bad_conditionals.0002.a
+	}
+}
+
+# COND-003: trigger_else / else without preceding if
+# Should error about else without preceding if block
+bad_else_no_if = {
+	type = character_event
+	title = bad_conditionals.0003.t
+
+	trigger = {
+		trigger_else = {
+			is_alive = yes
+		}
+	}
+
+	immediate = { }
+
+	option = {
+		name = bad_conditionals.0003.a
+	}
+}

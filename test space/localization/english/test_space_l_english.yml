@@ -1,0 +1,70 @@
+l_english:
+ # ===================================================================
+ # TEST SPACE MOD - Localization Keys
+ # ===================================================================
+ # This file provides localization for all test space mod content.
+ # Keys are organized by source file for easy cross-referencing.
+ #
+ # What this tests:
+ # - Standard loc key format (key:version "text")
+ # - Event title/desc/option keys
+ # - Decision and interaction description keys
+ # - Tooltip keys
+ # - Custom loc keys
+ # ===================================================================
+
+ # --- events/test_events.txt ---
+ test_space.0001.t:0 "A Grand Opportunity"
+ test_space.0001.desc:0 "A messenger arrives with news of a great feast being held in your honor. The nobility of [ROOT.Char.GetPrimaryTitle.GetName] awaits your presence."
+ test_space.0001.a:0 "Attend the feast!"
+ test_space.0001.b:0 "I shall pray instead."
+ test_space.0002.t:0 "Shadows in the Hall"
+ test_space.0002.desc:0 "During the feast, [ROOT.Char.GetFirstName] notices suspicious figures lurking in the shadows."
+ test_space.0002.a:0 "Investigate immediately!"
+ test_space.0003.t:0 "The Confrontation"
+ test_space.0003.desc:0 "You confront the shadowy figures and discover a plot against [ROOT.Char.GetHerHis] rule."
+ test_space.0003.a:0 "Deal with them harshly."
+
+ # --- events/story_cycle_events.txt ---
+ test_story.0001.t:0 "Ambitions Stirring"
+ test_story.0001.desc:0 "[ROOT.Char.GetFirstName]'s ambitious nature drives [ROOT.Char.GetHerHim] to seek greater power."
+ test_story.0001.a:0 "I will seize my destiny!"
+ test_story.0002.t:0 "The Path Forward"
+ test_story.0002.desc:0 "Your plans are taking shape. The realm watches with anticipation."
+ test_story.0002.a:0 "Continue on this path."
+ test_story.0003.t:0 "Ambition Realized"
+ test_story.0003.desc:0 "Your ambitions have borne fruit. The realm acknowledges [ROOT.Char.GetFirstName]'s greatness."
+ test_story.0003.a:0 "This is only the beginning."
+ test_story_conclude_tt:0 "The story will reach its conclusion soon."
+
+ # --- common/decisions/test_decisions.txt ---
+ hold_grand_feast_decision_desc:0 "Hold a grand feast to impress your vassals and gain prestige throughout [ROOT.Char.GetPrimaryTitle.GetName]."
+ hold_grand_feast_decision_tooltip:0 "Hold a feast for your court"
+ recruit_champion_decision_desc:0 "Recruit a skilled champion to serve in your court."
+
+ # --- common/character_interactions/test_interactions.txt ---
+ challenge_to_duel_interaction_desc:0 "Challenge [scope:recipient.GetFirstName] to single combat to settle a dispute through honorable means."
+
+ # --- common/schemes/test_schemes.txt ---
+ spy_scheme_desc:0 "Send spies to uncover the secrets of a rival ruler and gain leverage over them."
+
+ # --- common/traits/test_traits.txt ---
+ trait_battle_hardened_desc:0 "Years of warfare have hardened this character into a formidable warrior."
+ trait_battle_hardened_female_desc:0 "Years of warfare have hardened this woman into a fearsome warrior feared by all."
+
+ # --- common/focuses/test_focuses.txt ---
+ martial_strategy_focus_desc:0 "Focus on military strategy and battlefield tactics."
+ diplomacy_family_focus_desc:0 "Focus on family bonds and diplomatic relationships."
+
+ # --- common/laws/test_laws.txt ---
+ crown_authority_0_pass_tt:0 "Your vassals will enjoy greater freedom under minimal crown authority."
+
+ # --- gui/test_window.gui ---
+ FEAST_WINDOW_TITLE:0 "Grand Feast"
+ FEAST_DESCRIPTION:0 "Hold a grand feast to impress your vassals and gain prestige. Requires £gold£ 50 gold and £prestige£ 100 prestige."
+ START_FEAST:0 "Begin the Feast"
+
+ # --- common/customizable_localization/test_custom_loc.txt ---
+ test_title_king:0 "King"
+ test_title_queen:0 "Queen"
+ test_title_ruler:0 "Ruler"

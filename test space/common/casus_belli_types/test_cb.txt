@@ -1,0 +1,65 @@
+# ===================================================================
+# TEST CASUS BELLI - CB Type Validation
+# ===================================================================
+# This file tests casus belli type definitions with war score
+# configuration and outcome callbacks.
+#
+# What this tests:
+# - CB structure (group, allowed_for_character, allowed_against_character)
+# - War score settings
+# - on_victory / on_defeat / on_white_peace callbacks
+# - Faith doctrine checks in triggers
+#
+# Expected validation result: NO ERRORS
+# ===================================================================
+
+# -------------------------------------------------------------------
+# Example 1: Religious CB with victory/defeat callbacks
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Full CB with faith conditions and outcome effects
+# SHOULD PASS: Yes - valid CB structure
+# DEMONSTRATES: Complete CB with all outcome hooks
+# -------------------------------------------------------------------
+test_holy_war_cb = {
+	group = religious
+
+	allowed_for_character = {
+		is_landed = yes
+		piety >= 500
+		faith = {
+			has_doctrine = doctrine_pluralism_righteous
+		}
+	}
+
+	allowed_against_character = {
+		is_landed = yes
+		NOT = { faith = root.faith }
+	}
+
+	cost = {
+		piety = 500
+	}
+
+	war_score_from_battles = 0.8
+	war_score_from_occupation = 1.0
+
+	on_victory = {
+		scope:attacker = {
+			add_piety = 250
+			add_prestige = 100
+		}
+	}
+
+	on_defeat = {
+		scope:attacker = {
+			add_piety = -500
+			add_prestige = -200
+		}
+	}
+
+	on_white_peace = {
+		scope:attacker = {
+			add_prestige = -100
+		}
+	}
+}

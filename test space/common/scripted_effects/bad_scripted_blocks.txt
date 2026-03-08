@@ -1,0 +1,34 @@
+# ===================================================================
+# BAD SCRIPTED BLOCKS - Scripted Block Validation Errors
+# ===================================================================
+# This file deliberately contains scripted effect/trigger errors
+# to test the validation diagnostics for scripted blocks.
+#
+# What this tests:
+# - CK3950: Undefined scripted effect reference
+# - CK3951: Undefined scripted trigger reference
+# - CK3956: Recursive scripted block (calls itself)
+#
+# Expected validation result: ERRORS
+# ===================================================================
+
+# CK3950: Undefined scripted effect
+# Should error: Undefined scripted effect: "this_effect_does_not_exist"
+bad_calling_effect = {
+	this_effect_does_not_exist = yes
+}
+
+# CK3951: Undefined scripted trigger (used within a trigger context)
+# Should error: Undefined scripted trigger: "this_trigger_does_not_exist"
+bad_calling_trigger = {
+	trigger = {
+		this_trigger_does_not_exist = yes
+	}
+}
+
+# CK3956: Recursive scripted block (calls itself)
+# Should warn: Scripted block 'recursive_feast_effect' calls itself recursively
+recursive_feast_effect = {
+	add_prestige = 100
+	recursive_feast_effect = yes
+}

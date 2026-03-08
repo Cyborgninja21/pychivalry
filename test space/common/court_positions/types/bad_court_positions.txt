@@ -1,0 +1,42 @@
+# ===================================================================
+# BAD COURT POSITIONS - Court Position Validation Errors
+# ===================================================================
+# This file demonstrates INCORRECT court position definitions.
+#
+# What this tests:
+# - COURT-001: Missing 'can_be_appointed' trigger
+# - COURT-002: Has salary but no opinion modifier
+#
+# Expected validation result: ERRORS
+# ===================================================================
+
+# -------------------------------------------------------------------
+# ERROR COURT-001: Missing can_be_appointed
+# -------------------------------------------------------------------
+no_appointment_position = {
+	# ERROR COURT-001: No 'can_be_appointed' trigger defined
+	opinion = {
+		value = 10
+	}
+	salary = { gold = 1 }
+}
+
+# -------------------------------------------------------------------
+# ERROR COURT-002: Salary without opinion
+# -------------------------------------------------------------------
+salary_no_opinion_position = {
+	can_be_appointed = {
+		is_adult = yes
+	}
+	# ERROR COURT-002: Has salary but no opinion modifier
+	salary = { gold = 2 }
+}
+
+# -------------------------------------------------------------------
+# GOOD: Both errors combined
+# -------------------------------------------------------------------
+both_errors_position = {
+	# ERROR COURT-001: Missing can_be_appointed
+	# ERROR COURT-002: Has salary but no opinion
+	salary = { gold = 3 }
+}

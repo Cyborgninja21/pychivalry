@@ -1,0 +1,90 @@
+# ===================================================================
+# BAD ITERATORS - Iterator Validation Errors
+# ===================================================================
+# This file deliberately contains iterator errors to test
+# the validation diagnostics for any_*, every_*, and ordered_* blocks.
+#
+# What this tests:
+# - ITER-001: any_* block contains effects (should use every_*)
+# - ITER-002: every_* block has no effects (should use any_*)
+# - ITER-003: ordered_* missing order_by
+# - ITER-004: ordered_* missing position/max
+#
+# Expected validation result: ERRORS
+# ===================================================================
+
+namespace = bad_iterators
+
+# ITER-001: any_* block contains effects
+# Should warn: 'any_vassal' is a trigger iterator - 'add_prestige' looks like an effect
+bad_any_with_effects = {
+	type = character_event
+	title = bad_iterators.0001.t
+
+	trigger = {
+		any_vassal = {
+			is_alive = yes
+			add_prestige = 100
+		}
+	}
+
+	immediate = { }
+
+	option = {
+		name = bad_iterators.0001.a
+	}
+}
+
+# ITER-002: every_* block with only triggers, no effects
+# Should warn: 'every_vassal' is an effect iterator but contains no obvious effects
+bad_every_no_effects = {
+	type = character_event
+	title = bad_iterators.0002.t
+
+	immediate = {
+		every_vassal = {
+			is_alive = yes
+			is_landed = yes
+		}
+	}
+
+	option = {
+		name = bad_iterators.0002.a
+	}
+}
+
+# ITER-003: ordered_* missing order_by
+# Should warn: 'ordered_vassal' is missing required 'order_by' field
+bad_ordered_no_order_by = {
+	type = character_event
+	title = bad_iterators.0003.t
+
+	immediate = {
+		ordered_vassal = {
+			max = 5
+			add_prestige = 100
+		}
+	}
+
+	option = {
+		name = bad_iterators.0003.a
+	}
+}
+
+# ITER-004: ordered_* missing position and max
+# Should info: 'ordered_vassal' has no 'position' or 'max' field
+bad_ordered_no_position_max = {
+	type = character_event
+	title = bad_iterators.0004.t
+
+	immediate = {
+		ordered_vassal = {
+			order_by = martial
+			add_prestige = 100
+		}
+	}
+
+	option = {
+		name = bad_iterators.0004.a
+	}
+}

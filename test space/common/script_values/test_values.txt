@@ -1,0 +1,69 @@
+# ===================================================================
+# TEST SCRIPT VALUES - Dynamic Value Validation
+# ===================================================================
+# This file tests script value definitions with conditional modifiers.
+#
+# What this tests:
+# - Script value structure (value, if/limit, add, multiply)
+# - Title tier conditional scaling
+# - Stress level calculations
+# - Static vs dynamic script values
+#
+# Expected validation result: NO ERRORS
+# ===================================================================
+
+# -------------------------------------------------------------------
+# Dynamic cost value scaling with title tier
+# -------------------------------------------------------------------
+feast_cost_value = {
+	value = 50
+	if = {
+		limit = {
+			highest_held_title_tier >= tier_duchy
+		}
+		add = 25
+	}
+	if = {
+		limit = {
+			highest_held_title_tier >= tier_kingdom
+		}
+		add = 50
+	}
+}
+
+# -------------------------------------------------------------------
+# Static value (simple number)
+# -------------------------------------------------------------------
+duel_prowess_threshold = 8
+
+# -------------------------------------------------------------------
+# Gold-based conditional scaling
+# -------------------------------------------------------------------
+recruit_cost_value = {
+	value = 25
+	if = {
+		limit = {
+			gold >= 200
+		}
+		multiply = 1.5
+	}
+}
+
+# -------------------------------------------------------------------
+# Stress-scaled delay values for story cycles
+# -------------------------------------------------------------------
+story_cycle_delay_short = {
+	value = 15
+	add = {
+		value = 15
+		multiply = stress_level
+	}
+}
+
+story_cycle_delay_long = {
+	value = 60
+	add = {
+		value = 30
+		multiply = stress_level
+	}
+}

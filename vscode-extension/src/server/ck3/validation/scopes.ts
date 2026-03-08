@@ -345,6 +345,25 @@ export function isValidScopeType(scopeType: string): boolean {
     return scopes.has(scopeType);
 }
 
+// Check if a key is a recognized scope link in ANY scope type.
+// This helps distinguish scope navigation keys (liege, spouse, primary_title)
+// from non-scope keys (effects, triggers, structural fields) when validating
+// block-style scope transitions.
+export function isAnyScopeLink(name: string): boolean {
+    if (UNIVERSAL_LINKS.includes(name)) {
+        return true;
+    }
+    const dataLoader = getDataLoader();
+    const scopes = dataLoader.getScopes();
+    for (const scopeData of scopes.values()) {
+        const links = scopeData.links || {};
+        if (name in links) {
+            return true;
+        }
+    }
+    return false;
+}
+
 // Get a human-readable documentation string for a scope link.
 // Universal links get predefined descriptions; scope-specific links
 // describe the navigation as "Navigate from X to Y".

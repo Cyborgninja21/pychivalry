@@ -1,0 +1,38 @@
+# ===================================================================
+# BAD MODIFIERS - Modifier Validation Errors
+# ===================================================================
+# This file demonstrates INCORRECT modifier definitions.
+#
+# What this tests:
+# - MOD-001: Unknown modifier key
+# - MOD-002: Non-numeric modifier value
+# - MOD-003: Opinion modifier missing 'opinion' field
+# - MOD-004: Opinion value outside typical range
+#
+# Expected validation result: ERRORS
+# ===================================================================
+
+# -------------------------------------------------------------------
+# ERROR MOD-001: Unknown modifier key
+# -------------------------------------------------------------------
+unknown_key_modifier = {
+	icon = "gfx/interface/icons/modifiers/test.dds"
+
+	diplomacy = 2
+	# ERROR MOD-001: 'charisma' is not a known modifier key
+	charisma = 5
+	# ERROR MOD-001: 'magic_power' is not known
+	magic_power = 10
+}
+
+# -------------------------------------------------------------------
+# ERROR MOD-002: Non-numeric modifier value
+# -------------------------------------------------------------------
+non_numeric_modifier = {
+	icon = "gfx/interface/icons/modifiers/test.dds"
+
+	# ERROR MOD-002: 'lots' is not a valid numeric value
+	diplomacy = lots
+	# ERROR MOD-002: 'very_high' is not numeric
+	martial = very_high
+}

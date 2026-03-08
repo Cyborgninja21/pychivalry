@@ -1,0 +1,81 @@
+# ===================================================================
+# BAD SCRIPT VALUES - Script Value Validation Errors
+# ===================================================================
+# This file deliberately contains script value errors to test
+# the validation diagnostics for script values and formulas.
+#
+# What this tests:
+# - VALUE-001: Unrecognized script value reference
+# - VALUE-002: Range minimum greater than maximum
+# - VALUE-003: Unknown formula operation
+# - VALUE-004: Invalid conditional structure (else_if/else ordering)
+# - VALUE-005: Formula with arithmetic but no explicit value
+# - VALUE-006: round_to must be positive
+#
+# Expected validation result: ERRORS
+# ===================================================================
+
+# VALUE-001: Unrecognized script value reference
+# Should warn: Unrecognized script value reference: 'totally_fake_value'
+bad_value_reference = {
+	value = totally_fake_value
+}
+
+# VALUE-002: Range minimum greater than maximum
+# Should error: Range minimum (50) cannot be greater than maximum (10)
+bad_range_value = {
+	min = 50
+	max = 10
+}
+
+# VALUE-003: Unknown formula operation
+# Should warn: Unknown formula operation: 'frobnicate'
+bad_formula_operation = {
+	value = 10
+	frobnicate = 5
+}
+
+# VALUE-004a: else_if after else
+# Should error: else_if cannot follow else
+bad_conditional_order = {
+	if = {
+		limit = { always = yes }
+		value = 10
+	}
+	else = {
+		value = 5
+	}
+	else_if = {
+		limit = { always = no }
+		value = 0
+	}
+}
+
+# VALUE-004b: Multiple else blocks
+# Should error: Multiple else blocks are not allowed
+bad_multiple_else = {
+	if = {
+		limit = { always = yes }
+		value = 10
+	}
+	else = {
+		value = 5
+	}
+	else = {
+		value = 0
+	}
+}
+
+# VALUE-005: Formula uses arithmetic without explicit value
+# Should info: Formula uses arithmetic operations without an explicit value
+bad_implicit_value = {
+	add = 10
+	multiply = 2
+}
+
+# VALUE-006: round_to must be positive
+# Should error: round_to parameter must be a positive number (got -1)
+bad_round_to = {
+	value = 10
+	round_to = -1
+}

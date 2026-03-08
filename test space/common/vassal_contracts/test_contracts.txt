@@ -1,0 +1,43 @@
+# ===================================================================
+# TEST VASSAL CONTRACTS - Contract Definition Validation
+# ===================================================================
+# This file tests vassal contract type definitions.
+#
+# What this tests:
+# - Contract structure (is_valid, obligation_levels)
+# - Government flag checks
+# - Obligation level definitions with opinion/tax/levy modifiers
+#
+# Expected validation result: NO ERRORS
+# ===================================================================
+
+# REFERENCED BY: common/government_types/test_governments.txt
+feudal_obligations = {
+	is_valid = {
+		government_has_flag = government_is_feudal
+	}
+
+	obligation_levels = {
+		feudal_obligations_0 = {
+			default = yes
+			vassal_opinion = 0
+			tax_contribution = 0
+			levies_contribution = 0
+		}
+		feudal_obligations_1 = {
+			vassal_opinion = -10
+			tax_contribution = 0.1
+			levies_contribution = 0.1
+		}
+		feudal_obligations_2 = {
+			vassal_opinion = -20
+			tax_contribution = 0.2
+			levies_contribution = 0.2
+		}
+		feudal_obligations_3 = {
+			vassal_opinion = -30
+			tax_contribution = 0.3
+			levies_contribution = 0.3
+		}
+	}
+}

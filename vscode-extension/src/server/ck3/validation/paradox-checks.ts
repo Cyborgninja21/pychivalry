@@ -115,7 +115,8 @@ export function checkRedundantTriggers(node: ASTNode): Diagnostic[] {
 
     for (const child of children) {
         // Check for always = yes (redundant)
-        if (child.key === 'always' && child.value === 'yes') {
+        // Parser converts 'yes' to boolean true, 'no' to boolean false
+        if (child.key === 'always' && (child.value === true || child.value === 'yes')) {
             diagnostics.push({
                 range: child.range,
                 severity: DiagnosticSeverity.Warning,
@@ -126,7 +127,7 @@ export function checkRedundantTriggers(node: ASTNode): Diagnostic[] {
         }
 
         // Check for always = no (impossible)
-        if (child.key === 'always' && child.value === 'no') {
+        if (child.key === 'always' && (child.value === false || child.value === 'no')) {
             diagnostics.push({
                 range: child.range,
                 severity: DiagnosticSeverity.Error,
@@ -156,11 +157,11 @@ export function checkListIteratorMisuse(node: ASTNode): Diagnostic[] {
     for (const child of children) {
         if (!child.key) continue;
 
-        // Check for any_ with effects
+        // Check for any_ with effects (except save_temporary_scope_as which is valid in any_)
         if (child.key.startsWith('any_') && child.type === NodeType.BLOCK) {
             const blockChildren = child.children || [];
             for (const blockChild of blockChildren) {
-                if (blockChild.key && isEffect(blockChild.key)) {
+                if (blockChild.key && isEffect(blockChild.key) && blockChild.key !== 'save_temporary_scope_as') {
                     diagnostics.push({
                         range: blockChild.range,
                         severity: DiagnosticSeverity.Error,
@@ -315,7 +316,7 @@ export function checkEventStructure(node: ASTNode): Diagnostic[] {
 
 /**
  * Check for common CK3 gotchas
- * DIAGNOSTIC: CK5137
+ * DIAGNOSTIC: CK5137, CK5142
  */
 export function checkCommonGotchas(node: ASTNode): Diagnostic[] {
     const diagnostics: Diagnostic[] = [];
@@ -335,6 +336,24 @@ export function checkCommonGotchas(node: ASTNode): Diagnostic[] {
             });
         }
 
+        // Check for character comparison with = instead of 'this ='  (CK5142)
+        // e.g., 'liege = root' should be 'liege = { this = root }'
+        // Scope links used as simple assignments with another scope name as the value
+        if (child.key && child.type !== NodeType.BLOCK && typeof child.value === 'string') {
+            const scopeLinks = ['liege', 'father', 'mother', 'spouse', 'primary_heir', 'killer',
+                                'guardian', 'host', 'employer', 'court_owner', 'betrothed'];
+            const scopeValues = ['root', 'prev', 'from', 'fromfrom', 'this'];
+            if (scopeLinks.includes(child.key) && (scopeValues.includes(child.value) || child.value.startsWith('scope:'))) {
+                diagnostics.push({
+                    range: child.range,
+                    severity: DiagnosticSeverity.Error,
+                    code: 'CK5142',
+                    source: 'ck3-lsp',
+                    message: `Invalid character comparison '${child.key} = ${child.value}'. Use '${child.key} = { this = ${child.value} }' to compare characters.`,
+                });
+            }
+        }
+
         // Recursively check nested blocks
         if (child.type === NodeType.BLOCK) {
             diagnostics.push(...checkCommonGotchas(child));
@@ -352,16 +371,32 @@ export function validateParadoxConventions(node: ASTNode, config: ParadoxConfig 
 
     // Effect/trigger context checks
     if (config.effectTriggerContext) {
-        // Check trigger blocks
-        const children = node.children || [];
-        for (const child of children) {
-            if (child.key === 'trigger' && child.type === NodeType.BLOCK) {
-                diagnostics.push(...checkEffectInTriggerContext(child, 'trigger'));
+        // Walk recursively to find trigger and limit blocks at any depth
+        const walkForTriggerContext = (n: ASTNode) => {
+            const children = n.children || [];
+            for (const child of children) {
+                if (child.key === 'trigger' && child.type === NodeType.BLOCK) {
+                    diagnostics.push(...checkEffectInTriggerContext(child, 'trigger'));
+                }
+                if (child.key === 'limit' && child.type === NodeType.BLOCK) {
+                    diagnostics.push(...checkEffectInTriggerContext(child, 'limit'));
+                }
+                // Check logical operators without block value (CK3005)
+                if (child.key && ['NOT', 'OR', 'AND', 'NOR', 'NAND'].includes(child.key) && child.type !== NodeType.BLOCK) {
+                    diagnostics.push({
+                        range: child.range,
+                        severity: DiagnosticSeverity.Error,
+                        code: 'CK3005',
+                        source: 'ck3-lsp',
+                        message: `Logical operator '${child.key}' requires a block value { ... }, not a scalar.`,
+                    });
+                }
+                if (child.type === NodeType.BLOCK) {
+                    walkForTriggerContext(child);
+                }
             }
-            if (child.key === 'limit' && child.type === NodeType.BLOCK) {
-                diagnostics.push(...checkEffectInTriggerContext(child, 'limit'));
-            }
-        }
+        };
+        walkForTriggerContext(node);
 
         // Check for redundant triggers
         diagnostics.push(...checkRedundantTriggers(node));

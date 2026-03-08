@@ -1,0 +1,329 @@
+# ===================================================================
+# BAD SCOPES EXAMPLES
+# ===================================================================
+# This file demonstrates INCORRECT scope usage that SHOULD FAIL validation.
+# All examples in this file contain scope validation errors.
+#
+# Error Codes Demonstrated:
+# - CK3201: Invalid scope chain (wrong scope type transitions)
+# - CK3202: Undefined saved scope (using scope: that wasn't saved)
+# - CK3203: Invalid list iteration base (using any_/every_ on wrong scope type)
+#
+# Common mistakes:
+# - Using character scopes on titles (title.spouse)
+# - Using title scopes on characters (character.duchy)
+# - Referencing scopes before saving them
+# - Typos in saved scope names
+# - Using any_/every_ on singular scopes
+#
+# Expected validation result: ERRORS DETECTED
+# ===================================================================
+
+namespace = semantic_bad_scopes
+
+# -------------------------------------------------------------------
+# ERROR CK3201: Invalid scope chain - title doesn't have spouse
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Detection of invalid scope type transitions
+# SHOULD FAIL: Yes - CK3201 error
+# WHY IT'S BAD: Titles don't have spouses, only characters do
+# HOW TO FIX: Use character scopes for character properties
+# -------------------------------------------------------------------
+semantic_bad_scopes.0001 = {
+	type = character_event
+	title = semantic_bad_scopes.0001.t
+	desc = semantic_bad_scopes.0001.desc
+
+	trigger = {
+		is_adult = yes
+		# ERROR CK3201: title doesn't have a 'spouse' scope
+		primary_title = {
+			spouse = {
+				is_alive = yes
+			}
+		}
+	}
+
+	option = {
+		name = semantic_bad_scopes.0001.a
+		add_gold = 100
+	}
+}
+
+# ERROR CK3201: Invalid scope chain - wrong scope type
+semantic_bad_scopes.0002 = {
+	type = character_event
+	title = semantic_bad_scopes.0002.t
+	desc = semantic_bad_scopes.0002.desc
+
+	trigger = {
+		is_adult = yes
+		# ERROR CK3201: Characters don't have a 'duchy' scope (titles do)
+		duchy = {
+			tier = tier_duchy
+		}
+	}
+
+	option = {
+		name = semantic_bad_scopes.0002.a
+		add_prestige = 50
+	}
+}
+
+# ERROR CK3201: Invalid multi-level scope chain
+semantic_bad_scopes.0003 = {
+	type = character_event
+	title = semantic_bad_scopes.0003.t
+	desc = semantic_bad_scopes.0003.desc
+
+	trigger = {
+		is_adult = yes
+		# ERROR CK3201: province doesn't have 'liege' (that's a character scope)
+		capital_province = {
+			liege = {
+				is_ruler = yes
+			}
+		}
+	}
+
+	option = {
+		name = semantic_bad_scopes.0003.a
+		add_gold = 100
+	}
+}
+
+# ERROR CK3202: Undefined saved scope
+semantic_bad_scopes.0004 = {
+	type = character_event
+	title = semantic_bad_scopes.0004.t
+	desc = semantic_bad_scopes.0004.desc
+
+	trigger = {
+		is_adult = yes
+	}
+
+	immediate = {
+		# Using a scope that was never saved
+		scope:my_liege = { # ERROR CK3202: 'my_liege' was never saved
+			add_gold = 100
+		}
+
+		scope:rival_character = { # ERROR CK3202: 'rival_character' was never saved
+			add_prestige = 50
+		}
+	}
+
+	option = {
+		name = semantic_bad_scopes.0004.a
+		# ERROR CK3202: Undefined saved scope
+		scope:undefined_target = {
+			add_piety = 25
+		}
+	}
+}
+
+# ERROR CK3202: Typo in saved scope name
+semantic_bad_scopes.0005 = {
+	type = character_event
+	title = semantic_bad_scopes.0005.t
+	desc = semantic_bad_scopes.0005.desc
+
+	trigger = {
+		is_adult = yes
+	}
+
+	immediate = {
+		save_scope_as = actor
+
+		# ERROR CK3202: Typo - saved as 'actor' but using 'acter'
+		scope:acter = {
+			add_gold = 100
+		}
+
+		liege = {
+			save_scope_as = my_liege
+		}
+
+		# ERROR CK3202: Typo - saved as 'my_liege' but using 'my_leige'
+		scope:my_leige = {
+			add_prestige = 50
+		}
+	}
+
+	option = {
+		name = semantic_bad_scopes.0005.a
+		add_gold = 50
+	}
+}
+
+# ERROR CK3203: Invalid list iteration base
+semantic_bad_scopes.0006 = {
+	type = character_event
+	title = semantic_bad_scopes.0006.t
+	desc = semantic_bad_scopes.0006.desc
+
+	trigger = {
+		is_adult = yes
+		# ERROR CK3203: Title scopes don't have vassals (characters do)
+		primary_title = {
+			any_vassal = {
+				is_adult = yes
+			}
+		}
+	}
+
+	option = {
+		name = semantic_bad_scopes.0006.a
+		add_gold = 100
+	}
+}
+
+# ERROR CK3203: Invalid list iteration - wrong scope type
+semantic_bad_scopes.0007 = {
+	type = character_event
+	title = semantic_bad_scopes.0007.t
+	desc = semantic_bad_scopes.0007.desc
+
+	trigger = {
+		is_adult = yes
+	}
+
+	immediate = {
+		# ERROR CK3203: Provinces don't have courtiers (characters do)
+		capital_province = {
+			every_courtier = {
+				add_gold = 10
+			}
+		}
+	}
+
+	option = {
+		name = semantic_bad_scopes.0007.a
+		add_prestige = 50
+	}
+}
+
+# ERROR CK3203: Invalid iteration on non-list scope
+semantic_bad_scopes.0008 = {
+	type = character_event
+	title = semantic_bad_scopes.0008.t
+	desc = semantic_bad_scopes.0008.desc
+
+	trigger = {
+		is_adult = yes
+		# ERROR CK3203: 'father' is a single character, not a list
+		every_father = {
+			is_alive = yes
+		}
+	}
+
+	option = {
+		name = semantic_bad_scopes.0008.a
+		add_gold = 100
+	}
+}
+
+# ERROR CK3201 + CK3203: Combined scope errors
+semantic_bad_scopes.0009 = {
+	type = character_event
+	title = semantic_bad_scopes.0009.t
+	desc = semantic_bad_scopes.0009.desc
+
+	trigger = {
+		is_adult = yes
+		# ERROR CK3201: Invalid scope chain
+		primary_title = {
+			capital_county = {
+				# ERROR CK3203: Counties don't have children (characters do)
+				any_child = {
+					is_adult = yes
+				}
+			}
+		}
+	}
+
+	option = {
+		name = semantic_bad_scopes.0009.a
+		add_prestige = 50
+	}
+}
+
+# ERROR CK3201: Character scope used on title
+semantic_bad_scopes.0010 = {
+	type = character_event
+	title = semantic_bad_scopes.0010.t
+	desc = semantic_bad_scopes.0010.desc
+
+	trigger = {
+		is_adult = yes
+	}
+
+	immediate = {
+		primary_title = {
+			# ERROR CK3201: Titles don't have age/traits (characters do)
+			age = 30
+			has_trait = brave
+		}
+	}
+
+	option = {
+		name = semantic_bad_scopes.0010.a
+		add_gold = 100
+	}
+}
+
+# ERROR CK3202: Scope used before being saved
+semantic_bad_scopes.0011 = {
+	type = character_event
+	title = semantic_bad_scopes.0011.t
+	desc = semantic_bad_scopes.0011.desc
+
+	trigger = {
+		is_adult = yes
+	}
+
+	immediate = {
+		# ERROR CK3202: Using scope before it's saved
+		scope:rival = {
+			add_opinion = {
+				target = root
+				modifier = rivalry_opinion
+			}
+		}
+
+		# Saving it here, but it's too late
+		random_courtier = {
+			save_scope_as = rival
+		}
+	}
+
+	option = {
+		name = semantic_bad_scopes.0011.a
+		add_gold = 50
+	}
+}
+
+# ERROR CK3203: Invalid 'any_' on singular scope
+semantic_bad_scopes.0012 = {
+	type = character_event
+	title = semantic_bad_scopes.0012.t
+	desc = semantic_bad_scopes.0012.desc
+
+	trigger = {
+		is_adult = yes
+		# ERROR CK3203: 'liege' is singular, can't use 'any_'
+		any_liege = {
+			is_ruler = yes
+		}
+
+		# ERROR CK3203: 'spouse' is singular, can't use 'every_'
+		every_spouse = {
+			is_alive = yes
+		}
+	}
+
+	option = {
+		name = semantic_bad_scopes.0012.a
+		add_prestige = 50
+	}
+}

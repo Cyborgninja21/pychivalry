@@ -1,0 +1,114 @@
+# ===================================================================
+# TEST TRAITS - Trait Definition Validation
+# ===================================================================
+# This file tests trait parsing including custom personality traits
+# and education traits with all standard fields.
+#
+# What this tests:
+# - Trait structure (index, category, skill modifiers)
+# - opposites and compatibility blocks
+# - Conditional descriptions (triggered_desc)
+# - AI personality weight fields
+# - Education trait category
+#
+# Expected validation result: NO ERRORS
+# ===================================================================
+
+# -------------------------------------------------------------------
+# Example 1: Custom personality trait with all fields
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Full trait with opposites, compatibility, conditional desc
+# SHOULD PASS: Yes - all standard trait fields present
+# DEMONSTRATES: Complete personality trait definition
+# REFERENCED BY: common/scripted_triggers/test_triggers.txt (in OR block)
+# -------------------------------------------------------------------
+battle_hardened = {
+	index = 500
+	category = personality
+
+	diplomacy = -2
+	martial = 4
+	prowess = 3
+
+	monthly_prestige = 0.5
+	attraction_opinion = -5
+	vassal_opinion = 5
+
+	ai_energy = 25
+	ai_boldness = 50
+	ai_compassion = -25
+
+	opposites = {
+		craven
+	}
+
+	compatibility = {
+		brave = 30
+		wrathful = 15
+		ambitious = 10
+	}
+
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					is_female = yes
+				}
+				desc = trait_battle_hardened_female_desc
+			}
+			desc = trait_battle_hardened_desc
+		}
+	}
+}
+
+# -------------------------------------------------------------------
+# Example 2: Social personality trait
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Trait with negative compatibility and opinion modifiers
+# SHOULD PASS: Yes - valid structure
+# DEMONSTRATES: Trait with same_opinion and attraction_opinion
+# -------------------------------------------------------------------
+silver_tongue = {
+	index = 501
+	category = personality
+
+	diplomacy = 5
+	intrigue = 2
+
+	monthly_prestige = 1.0
+	attraction_opinion = 15
+	same_opinion = 10
+
+	ai_sociability = 50
+	ai_honor = -10
+
+	opposites = {
+		shy
+		stuttering
+	}
+
+	compatibility = {
+		gregarious = 20
+		honest = -10
+	}
+}
+
+# -------------------------------------------------------------------
+# Example 3: Education trait
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Education category trait with ruler_designer_cost
+# SHOULD PASS: Yes - valid education trait
+# DEMONSTRATES: Education trait definition
+# REFERENCED BY: common/scripted_triggers/test_triggers.txt
+# -------------------------------------------------------------------
+master_strategist = {
+	index = 502
+	category = education
+
+	martial = 8
+	prowess = 2
+
+	monthly_prestige = 0.5
+
+	ruler_designer_cost = 50
+}

@@ -1,0 +1,37 @@
+# ===================================================================
+# TEST DEFINES - Game Define Overrides
+# ===================================================================
+# This file tests define structure parsing.
+#
+# What this tests:
+# - Define block structure (NGame, NDiplomacy, NMilitary, NCharacter)
+# - Numeric value assignments
+# - String value assignments
+#
+# Expected validation result: NO ERRORS
+# ===================================================================
+
+NGame = {
+	MAX_PLAYER_CHARACTERS = 1
+	START_DATE = "867.1.1"
+	END_DATE = "1453.1.1"
+}
+
+NDiplomacy = {
+	FEAST_COST = 50
+	FEAST_COOLDOWN_YEARS = 5
+	OPINION_DECAY_PER_MONTH = 0.5
+}
+
+NMilitary = {
+	DUEL_BASE_SUCCESS = 50
+	PROWESS_DAMAGE_FACTOR = 0.1
+	KNIGHT_EFFECTIVENESS_MULTIPLIER = 1.5
+}
+
+NCharacter = {
+	MAX_STRESS = 400
+	STRESS_LEVEL_1 = 100
+	STRESS_LEVEL_2 = 200
+	STRESS_LEVEL_3 = 300
+}
