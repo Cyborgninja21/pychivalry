@@ -1,13 +1,13 @@
 /**
- * Crusader Kings 3 Language Server - Main LSP Server Implementation (TypeScript)
- * 
- * This is a complete rewrite of the Python language server in TypeScript,
- * implementing all features as a single-process solution that runs within
- * the VS Code extension for improved performance and simplified deployment.
- * 
+ * Crusader Kings 3 Language Server - Main LSP Server Implementation
+ *
+ * Single-process TypeScript LSP server embedded within the VS Code extension,
+ * providing diagnostics, completions, hover, navigation, formatting, and
+ * CK3-specific validation features.
+ *
  * ARCHITECTURE:
- * - No separate Python process required
- * - Runs in same process as VS Code extension
+ * - Runs in the same process as the VS Code extension host
+ * - Single-threaded event-loop model for request handling
  * - Full LSP feature implementation
  * - CK3-specific validation and features
  */
@@ -1370,7 +1370,7 @@ export class CK3LanguageServer {
     }
 
     private getThreadingMetrics(): any {
-        // TypeScript server doesn't have threading like Python
+        // Single-threaded event-loop model — all requests are handled sequentially
         return {
             isThreaded: false,
             model: 'single-threaded',

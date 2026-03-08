@@ -1,47 +1,37 @@
-# Remove Python migration comments from TypeScript source and clean .gitignore
+# Remove Python Migration Comments from TypeScript Source and Clean .gitignore
 
 ## Overview
 
-Several TypeScript source files contain comments referencing the old Python implementation. While informational, these comments are now stale and should be updated to describe the current architecture without referencing the migration origin.
-
-**Files to modify:**
-
-1. `vscode-extension/src/server/server.ts`:
-   - Lines 1-12: Update file header comment. Remove 'This is a complete rewrite of the Python language server in TypeScript' and 'No separate Python process required'. Replace with a forward-looking description of the TypeScript LSP server architecture.
-   - Line 1373: Remove or rephrase the comment 'TypeScript server doesn't have threading like Python' — describe what the server *does* (single-threaded event loop) rather than what it doesn't have compared to Python.
-
-2. `vscode-extension/src/test/suite/commands.test.ts`:
-   - Line 97: Remove comment 'depending on whether Python/LSP server is available' — update to reference whether the LSP server is running.
-
-3. `.gitignore` (root):
-   - Line 15: Remove `pygls-workspace/` entry (no longer relevant)
-   - Line 16: Remove `vscode-python-tools-template/` entry (no longer relevant)
-
-**Technical considerations:**
-- Keep all `// legacy format` or `// Legacy:` comments in `completions.ts`, `loader.ts`, and `validator.ts` — these refer to CK3 game data legacy formats, NOT the Python migration
-- Keep the `dynasty_legacy` reference in `schema/loader.ts` — it's a CK3 game concept
-- Do not modify functional code, only comments
-- Ensure no trailing whitespace is introduced
-
-**Acceptance criteria:**
-- No comments in TypeScript source reference Python, pygls, or the migration from Python
-- `.gitignore` contains no Python-era directory entries
-- `task lint` passes
-- `task format:check` passes
-- All CK3-related 'legacy' comments are preserved (they refer to game data, not the codebase)
+The CK3 Language Support extension was originally implemented in Python and later rewritten in TypeScript. Several source files still contain comments referencing the Python origin, and the root `.gitignore` still lists Python-era reference directories (`pygls-workspace/`, `vscode-python-tools-template/`). These stale references should be removed or replaced with forward-looking descriptions of the current TypeScript LSP architecture.
 
 ## Goals
 
-- [ ] Define specific goals here
+- Replace Python-referencing header comments in `server.ts` with an accurate description of the current single-process TypeScript LSP server architecture
+- Rephrase migration-comparative comments (e.g., "doesn't have threading like Python") to describe actual runtime behavior
+- Update the test comment in `commands.test.ts` to reference the LSP server without mentioning Python
+- Remove obsolete `.gitignore` entries for `pygls-workspace/` and `vscode-python-tools-template/`
+- Pass `task lint` and `task format:check` after all changes
 
 ## Key Capabilities
 
-- Describe what this task will accomplish
+- Accurate, self-contained documentation — comments describe what the server *is* rather than what it replaced
+- Clean `.gitignore` with no references to tooling or directories from the Python era
+- Preserved CK3 game-data `// legacy format` and `// Legacy:` comments that refer to in-game concepts, not the codebase migration
 
 ## Non-Goals
 
-- What is explicitly out of scope
+- Modifying any functional/executable code — only comments and `.gitignore` entries change
+- Touching `// legacy format` or `// Legacy:` comments in `completions.ts`, `loader.ts`, or `validator.ts` (these describe CK3 game data formats)
+- Removing or altering the `dynasty_legacy` reference in `schema/loader.ts` (CK3 game concept)
+- Adding new documentation files or updating `CHANGELOG.md`
+- Refactoring or restructuring any server subsystems
 
 ## Requirements
 
-- List technical and functional requirements
+- No TypeScript source comment in the repository references "Python", "pygls", or the Python-to-TypeScript migration after this task is complete
+- The `server.ts` file header describes the TypeScript LSP server architecture without comparative language
+- The `getThreadingMetrics()` comment in `server.ts` describes the single-threaded event-loop model positively
+- The `commands.test.ts` comment references LSP server availability without mentioning Python
+- `.gitignore` no longer contains `pygls-workspace/` or `vscode-python-tools-template/`
+- `task lint` and `task format:check` pass with zero warnings
+- No trailing whitespace is introduced by the changes

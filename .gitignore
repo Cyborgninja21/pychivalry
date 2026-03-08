@@ -11,10 +11,6 @@
 .DS_Store
 Thumbs.db
 
-# Reference repositories
-pygls-workspace/
-vscode-python-tools-template/
-
 # Node.js
 node_modules/
 

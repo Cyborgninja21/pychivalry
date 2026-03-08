@@ -94,7 +94,7 @@ suite('Command Tests', () => {
     suite('LSP-Dependent Commands', () => {
         // These commands require the LSP server to be running
         // We test that they can be invoked, but may not complete successfully
-        // depending on whether Python/LSP server is available
+        // depending on whether the LSP server is running
 
         test('restart command should be invocable', async () => {
             try {

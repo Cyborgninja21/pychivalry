@@ -527,6 +527,69 @@
         "task-management",
         "subtasks"
       ]
+    },
+    {
+      "id": "mem-9f6b49dc-0039-4a9c-b9f8-d25c420a2d42",
+      "created_at": "2026-03-08T21:37:26.028Z",
+      "type": "pattern",
+      "content": "When cleaning migration-era comments, distinguish between comments referencing the migration itself (remove/rewrite) and comments using 'legacy' to describe domain concepts like CK3 game-data formats (preserve unchanged)",
+      "source_task": "t-7",
+      "relevance_tags": [
+        "comments",
+        "migration",
+        "server.ts",
+        "completions.ts",
+        "loader.ts",
+        "validator.ts"
+      ]
+    },
+    {
+      "id": "mem-a354ae8e-17d2-4670-84bd-9098f82c5d55",
+      "created_at": "2026-03-08T21:37:26.029Z",
+      "type": "pattern",
+      "content": "For comment-only changes, always run `task lint` and `task format:check` afterward — whitespace and formatting regressions can slip in when rewriting multi-line comment blocks",
+      "source_task": "t-7",
+      "relevance_tags": [
+        "task lint",
+        "task format:check",
+        "comments",
+        "quality-gates"
+      ]
+    },
+    {
+      "id": "mem-52d8c82f-95b5-4df4-9847-fd8da032f87d",
+      "created_at": "2026-03-08T21:37:26.038Z",
+      "type": "preference",
+      "content": "Replace comparative/historical comments ('doesn't have X like Y') with positive, self-contained descriptions of current behavior ('Single-threaded event-loop model — all requests handled sequentially')",
+      "source_task": "t-7",
+      "relevance_tags": [
+        "comments",
+        "documentation",
+        "server.ts"
+      ]
+    },
+    {
+      "id": "mem-a607dc78-55dc-45d4-91ed-be69ea25cb83",
+      "created_at": "2026-03-08T21:37:26.039Z",
+      "type": "pitfall",
+      "content": "The .gitignore had stale section headers ('# Reference repositories') that became empty after removing entries — always check for orphaned section comments when deleting .gitignore lines",
+      "source_task": "t-7",
+      "relevance_tags": [
+        ".gitignore",
+        "cleanup"
+      ]
+    },
+    {
+      "id": "mem-df394b36-2f5a-4962-9801-297d886879ca",
+      "created_at": "2026-03-08T21:37:26.041Z",
+      "type": "pattern",
+      "content": "After removing references to a keyword (e.g. 'Python', 'pygls'), grep the entire TypeScript source tree to confirm no remaining occurrences before declaring the task complete",
+      "source_task": "t-7",
+      "relevance_tags": [
+        "grep",
+        "verification",
+        "completeness-check"
+      ]
     }
   ]
 }

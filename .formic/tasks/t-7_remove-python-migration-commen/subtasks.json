@@ -1,0 +1,49 @@
+{
+  "version": "1.0",
+  "taskId": "t-7",
+  "title": "Remove Python migration comments from TypeScript source and clean .gitignore",
+  "createdAt": "2026-03-08T00:00:00Z",
+  "updatedAt": "2026-03-08T00:00:00Z",
+  "subtasks": [
+    {
+      "id": "1",
+      "content": "Replace the file-header comment block (lines 1–13) in `vscode-extension/src/server/server.ts` with a self-contained description of the TypeScript LSP server architecture, removing all references to Python, pygls, and the rewrite",
+      "status": "completed"
+    },
+    {
+      "id": "2",
+      "content": "Update the `getThreadingMetrics()` comment on line 1373 of `vscode-extension/src/server/server.ts` from 'TypeScript server doesn't have threading like Python' to a positive description of the single-threaded event-loop model",
+      "status": "completed"
+    },
+    {
+      "id": "3",
+      "content": "Update the comment on line 97 of `vscode-extension/src/test/suite/commands.test.ts` from 'depending on whether Python/LSP server is available' to reference only LSP server availability",
+      "status": "completed"
+    },
+    {
+      "id": "4",
+      "content": "Remove the `pygls-workspace/` and `vscode-python-tools-template/` entries (lines 14–16) and the 'Reference repositories' section header from the root `.gitignore`",
+      "status": "completed"
+    },
+    {
+      "id": "5",
+      "content": "Grep all `.ts` files under `vscode-extension/src/` for remaining references to 'Python', 'pygls', or migration-comparative language to confirm completeness",
+      "status": "completed"
+    },
+    {
+      "id": "6",
+      "content": "Verify that CK3 game-data `// legacy format` and `// Legacy:` comments in `completions.ts`, `loader.ts`, and `validator.ts` are unchanged",
+      "status": "completed"
+    },
+    {
+      "id": "7",
+      "content": "Run `task lint` and confirm zero warnings",
+      "status": "completed"
+    },
+    {
+      "id": "8",
+      "content": "Run `task format:check` and confirm no formatting regressions",
+      "status": "completed"
+    }
+  ]
+}

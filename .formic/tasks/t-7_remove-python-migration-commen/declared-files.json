@@ -1,0 +1,8 @@
+{
+  "exclusive": [
+    "vscode-extension/src/server/server.ts",
+    "vscode-extension/src/test/suite/commands.test.ts",
+    ".gitignore"
+  ],
+  "shared": []
+}
