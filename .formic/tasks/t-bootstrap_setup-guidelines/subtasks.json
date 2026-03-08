@@ -1,0 +1,79 @@
+{
+  "version": "1.0",
+  "taskId": "t-bootstrap",
+  "title": "Setup AI Development Guidelines",
+  "createdAt": "2026-03-08T00:00:00Z",
+  "updatedAt": "2026-03-08T00:00:00Z",
+  "subtasks": [
+    {
+      "id": "1",
+      "content": "Read and extract tech stack details from `vscode-extension/package.json` (dependencies, devDependencies, VS Code engine version, extension metadata)",
+      "status": "completed"
+    },
+    {
+      "id": "2",
+      "content": "Read and extract build configuration from `vscode-extension/webpack.config.js` and `vscode-extension/tsconfig.json` (entry points, targets, compiler options)",
+      "status": "completed"
+    },
+    {
+      "id": "3",
+      "content": "Read and extract linting/formatting rules from `.pre-commit-config.yaml`, ESLint config, and Prettier config in `vscode-extension/`",
+      "status": "completed"
+    },
+    {
+      "id": "4",
+      "content": "Read and extract existing coding standards from `.github/copilot-instructions.md` and `CONTRIBUTING.md`",
+      "status": "completed"
+    },
+    {
+      "id": "5",
+      "content": "Read and extract CI pipeline details from `.github/workflows/ci.yml` and task runner commands from `Taskfile.yml`",
+      "status": "completed"
+    },
+    {
+      "id": "6",
+      "content": "Map the architectural layout of `vscode-extension/src/` (server/, core/, lsp/, ck3/, schema/, log/, data/, test/) by listing directories and reading key entry points (`extension.ts`, `server/server.ts`)",
+      "status": "completed"
+    },
+    {
+      "id": "7",
+      "content": "Write Section 1 (Project Overview) of `kanban-development-guideline.md` covering project purpose, repository structure, and tech stack with verified dependency versions",
+      "status": "completed"
+    },
+    {
+      "id": "8",
+      "content": "Write Section 2 (Architectural Patterns) documenting the VS Code extension + embedded language server architecture, subsystem boundaries, and data flow",
+      "status": "completed"
+    },
+    {
+      "id": "9",
+      "content": "Write Section 3 (Coding Standards) codifying TypeScript strict mode, naming conventions, formatting rules (Prettier), linting rules (ESLint), and error handling patterns",
+      "status": "completed"
+    },
+    {
+      "id": "10",
+      "content": "Write Section 4 (Preferred Libraries & Tools) listing runtime dependencies, dev tooling, task runner commands, and their intended usage",
+      "status": "completed"
+    },
+    {
+      "id": "11",
+      "content": "Write Section 5 (Development Workflow) documenting branching strategy, pre-commit hooks, CI pipeline, and PR process",
+      "status": "completed"
+    },
+    {
+      "id": "12",
+      "content": "Write Section 6 (Build & Test Commands) with exact commands for building, testing (unit/integration), linting, formatting, and packaging",
+      "status": "completed"
+    },
+    {
+      "id": "13",
+      "content": "Write Section 7 (Forbidden Practices) derived from linting rules, pre-commit hooks, copilot-instructions.md, and observed project conventions",
+      "status": "completed"
+    },
+    {
+      "id": "14",
+      "content": "Verify all file paths, dependency versions, and conventions cited in `kanban-development-guideline.md` against the actual codebase",
+      "status": "completed"
+    }
+  ]
+}

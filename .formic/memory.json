@@ -1,0 +1,139 @@
+{
+  "version": "1.0",
+  "entries": [
+    {
+      "id": "mem-a4682677-d016-4560-832a-04db79cfe303",
+      "created_at": "2026-03-08T20:07:46.404Z",
+      "type": "pattern",
+      "content": "Project is a VS Code extension with embedded LSP server — two webpack entry points: src/extension.ts (client) and src/server/server.ts (server)",
+      "source_task": "t-bootstrap",
+      "relevance_tags": [
+        "architecture",
+        "webpack",
+        "vscode-extension",
+        "lsp"
+      ]
+    },
+    {
+      "id": "mem-bde55130-5758-4f49-8643-416deb4b2641",
+      "created_at": "2026-03-08T20:07:46.405Z",
+      "type": "pattern",
+      "content": "Server code organized into subsystems: core/, lsp/, ck3/, schema/, data/, log/, utils/ — uses functional composition over inheritance and coordinator pattern for validation",
+      "source_task": "t-bootstrap",
+      "relevance_tags": [
+        "architecture",
+        "server",
+        "patterns"
+      ]
+    },
+    {
+      "id": "mem-ba4176e5-61ec-46ae-9dda-b15476cba4bb",
+      "created_at": "2026-03-08T20:07:46.406Z",
+      "type": "pattern",
+      "content": "kanban-development-guideline.md is the single-source-of-truth for all coding standards, workflow, and forbidden practices — always consult it before making changes",
+      "source_task": "t-bootstrap",
+      "relevance_tags": [
+        "kanban-development-guideline.md",
+        "guidelines",
+        "standards"
+      ]
+    },
+    {
+      "id": "mem-cd46f37f-526b-4608-bf6a-256d26bb6279",
+      "created_at": "2026-03-08T20:07:46.415Z",
+      "type": "preference",
+      "content": "Prettier: printWidth 100, tabWidth 4 (spaces only), semicolons required, single quotes, trailing commas es5, bracket spacing, arrow parens always",
+      "source_task": "t-bootstrap",
+      "relevance_tags": [
+        "prettier",
+        "formatting",
+        "code-style"
+      ]
+    },
+    {
+      "id": "mem-2eb51ed4-557a-40ea-b754-7b893dbcbc81",
+      "created_at": "2026-03-08T20:07:46.416Z",
+      "type": "preference",
+      "content": "Naming: camelCase for variables/functions, PascalCase for interfaces/types/classes, SCREAMING_SNAKE_CASE for constants, kebab-case.ts for file names",
+      "source_task": "t-bootstrap",
+      "relevance_tags": [
+        "naming",
+        "conventions",
+        "typescript"
+      ]
+    },
+    {
+      "id": "mem-53666553-9c34-45a6-98ca-dcab78fc0f25",
+      "created_at": "2026-03-08T20:07:46.417Z",
+      "type": "pitfall",
+      "content": "Never use 'any' type — use 'unknown' with type guards. Never use 'var' — only const/let. Never use loose equality (==) — use strict (===)",
+      "source_task": "t-bootstrap",
+      "relevance_tags": [
+        "typescript",
+        "type-safety",
+        "forbidden"
+      ]
+    },
+    {
+      "id": "mem-d19f60c8-31b0-4c4d-99ec-abe0bdc51e3e",
+      "created_at": "2026-03-08T20:07:46.418Z",
+      "type": "pitfall",
+      "content": "No console.log in production code — use the project's logger. No throw literals — always throw Error objects",
+      "source_task": "t-bootstrap",
+      "relevance_tags": [
+        "logging",
+        "error-handling",
+        "forbidden"
+      ]
+    },
+    {
+      "id": "mem-7a6dde44-9d8d-471f-b999-4f8b9922f3cb",
+      "created_at": "2026-03-08T20:07:46.418Z",
+      "type": "pattern",
+      "content": "Use Taskfile wrapper commands (task build, task test, task lint, task format) at workspace root, or npm scripts in vscode-extension/",
+      "source_task": "t-bootstrap",
+      "relevance_tags": [
+        "build",
+        "test",
+        "taskfile",
+        "npm"
+      ]
+    },
+    {
+      "id": "mem-838c97c0-c350-4cd9-964c-fbca5c170eaa",
+      "created_at": "2026-03-08T20:07:46.419Z",
+      "type": "pattern",
+      "content": "Pre-commit hooks run 8 checks including formatting, linting, YAML/JSON validation — never skip them with --no-verify",
+      "source_task": "t-bootstrap",
+      "relevance_tags": [
+        "pre-commit",
+        "hooks",
+        "ci"
+      ]
+    },
+    {
+      "id": "mem-56a2d641-7915-4b73-a22a-9025295c83a7",
+      "created_at": "2026-03-08T20:07:46.420Z",
+      "type": "preference",
+      "content": "Branching model: main (stable), develop (integration), feature/* (features). No new dependencies without explicit permission",
+      "source_task": "t-bootstrap",
+      "relevance_tags": [
+        "git",
+        "branching",
+        "workflow"
+      ]
+    },
+    {
+      "id": "mem-f1a2c97d-9ce8-408f-9579-973a5767934e",
+      "created_at": "2026-03-08T20:07:46.421Z",
+      "type": "pattern",
+      "content": "Formic task system: tasks live in .formic/tasks/t-{name}/, board state in .formic/board.json, subtasks in subtasks.json, declared files in declared-files.json",
+      "source_task": "t-bootstrap",
+      "relevance_tags": [
+        ".formic",
+        "task-management",
+        "workflow"
+      ]
+    }
+  ]
+}
