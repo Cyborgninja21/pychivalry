@@ -399,7 +399,8 @@
           "- Made file references more precise based on the actual files found in `.github/skills/` and `.github/prompts/`",
           "- Added specific test file names (`parser.test.ts`, `log-diagnostics.test.ts`, `style-checks.test.ts`) as examples of the patterns to follow",
           "- Expanded Non-Goals with additional language-agnostic templates that should be left untouched",
-          "- Tightened the requirements to reference specific Python tools that must be removed from copilot instructions"
+          "- Tightened the requirements to reference specific Python tools that must be removed from copilot instructions",
+          "The README.md specification has been written to `/home/cwallace/git/pychivalry/.formic/tasks/t-6_update-github-prompts-copilot-/README.md`."
         ],
         "plan": [
           "Both files have been written:",
@@ -414,7 +415,21 @@
           "4. **Update 3 skills** with Python/pytest debugging references",
           "5. **Update config files** (copilot-instructions, kanban guideline, claude settings)",
           "6. **Verification** via grep to confirm zero residual Python references",
-          "**subtasks.json** — 18 subtasks covering every file that needs modification, ordered logically (research first, then skills, prompts, configs, and final verification)."
+          "**subtasks.json** — 18 subtasks covering every file that needs modification, ordered logically (research first, then skills, prompts, configs, and final verification).",
+          "Both files written. Here's a summary of what changed from the previous plan:",
+          "**PLAN.md updates:**",
+          "- Marked Phases 1-2 as completed (✓)",
+          "- Added `.github/placeholder` and `.github/skills/tool-list.md` to Phase 5 — these were missing from the prior plan but contain Python references",
+          "- Added `prompts/README.md` update to Phase 6",
+          "- Updated success criteria to cover the newly identified files",
+          "**subtasks.json updates:**",
+          "- Preserved subtasks 1-2 as `completed`",
+          "- Added 4 new subtasks (18-22):",
+          "  - **#18**: Clean `.github/placeholder` of Python references",
+          "  - **#19**: Remove Python tool sections from `.github/skills/tool-list.md`",
+          "  - **#20**: Update `prompts/README.md` descriptions",
+          "  - **#22**: Cross-verify consistency between `kanban-development-guideline.md` and `copilot-instructions.md`",
+          "- Total: 22 subtasks (2 completed, 20 pending)"
         ],
         "execute": [
           "Written `declared-files.json` with 16 exclusive files and 1 shared file:",
@@ -427,11 +442,21 @@
           "- 2 top-level config files: `.github/copilot-instructions.md`, `kanban-development-guideline.md`",
           "**Shared (1):**",
           "- `.claude/settings.local.json` — config file that multiple tasks may modify",
-          "Notable addition vs. the previous version: `.github/prompts/gh pr review.prompt.md` was missing and has been added (subtask 8 in the plan)."
+          "Notable addition vs. the previous version: `.github/prompts/gh pr review.prompt.md` was missing and has been added (subtask 8 in the plan).",
+          "Done. Updated `declared-files.json` with all files from the plan:",
+          "**Exclusive (19 files):**",
+          "- 9 prompt templates (`.github/prompts/`) including README.md",
+          "- 4 skill files (mocha-testing-patterns, pytest-testing-patterns to delete, lsp-feature-debugging, lsp-performance-optimization, ck3-validation-debugging)",
+          "- `.github/skills/tool-list.md`",
+          "- `.github/copilot-instructions.md`",
+          "- `.github/placeholder`",
+          "- `kanban-development-guideline.md`",
+          "**Shared (1 file):**",
+          "- `.claude/settings.local.json` — configuration file that multiple tasks may modify"
         ]
       },
       "createdAt": "2026-03-08T20:20:28.762Z",
-      "safePointCommit": "c54f04046dbf1c373e1b43b6bb2ff50fdb1f5fb2",
+      "safePointCommit": "8a38a1be82866b376063491a6064d9f41ad27da5",
       "retryCount": null,
       "fixForTaskId": null,
       "parentGoalId": "t-1",
@@ -444,6 +469,7 @@
           ".github/skills/lsp-feature-debugging",
           ".github/skills/lsp-performance-optimization",
           ".github/skills/ck3-validation-debugging",
+          ".github/skills/tool-list.md",
           ".github/prompts/Test Writing Best Practices.prompt.md",
           ".github/prompts/Debugging LSP Server Issues.prompt.md",
           ".github/prompts/LSP Feature Implementation.prompt.md",
@@ -453,7 +479,9 @@
           ".github/prompts/Version Update Assistant.prompt.md",
           ".github/prompts/architecture_and_flow.md",
           ".github/prompts/documentation_standard.md",
+          ".github/prompts/README.md",
           ".github/copilot-instructions.md",
+          ".github/placeholder",
           "kanban-development-guideline.md"
         ],
         "shared": [

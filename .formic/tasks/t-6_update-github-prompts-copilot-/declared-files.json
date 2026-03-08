@@ -5,6 +5,7 @@
     ".github/skills/lsp-feature-debugging",
     ".github/skills/lsp-performance-optimization",
     ".github/skills/ck3-validation-debugging",
+    ".github/skills/tool-list.md",
     ".github/prompts/Test Writing Best Practices.prompt.md",
     ".github/prompts/Debugging LSP Server Issues.prompt.md",
     ".github/prompts/LSP Feature Implementation.prompt.md",
@@ -14,7 +15,9 @@
     ".github/prompts/Version Update Assistant.prompt.md",
     ".github/prompts/architecture_and_flow.md",
     ".github/prompts/documentation_standard.md",
+    ".github/prompts/README.md",
     ".github/copilot-instructions.md",
+    ".github/placeholder",
     "kanban-development-guideline.md"
   ],
   "shared": [

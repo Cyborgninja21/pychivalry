@@ -87,12 +87,32 @@
     },
     {
       "id": "17",
-      "content": "Remove `Bash(pytest:*)`, `Bash(python:*)`, and the PowerShell `test_paradox_checks.py` entry from `.claude/settings.local.json`",
+      "content": "Remove `Bash(pytest:*)`, `Bash(python:*)`, and the PowerShell `test_paradox_checks.py` entry from `.claude/settings.local.json`; validate resulting JSON",
       "status": "pending"
     },
     {
       "id": "18",
+      "content": "Remove Python 3.9+ references, pytest patterns, pygls documentation references, and pip-based setup instructions from `.github/placeholder`",
+      "status": "pending"
+    },
+    {
+      "id": "19",
+      "content": "Remove Python Environment Management tools section and Pylance/Python Analysis tools section from `.github/skills/tool-list.md`",
+      "status": "pending"
+    },
+    {
+      "id": "20",
+      "content": "Update `.github/prompts/README.md` to replace any descriptions referencing pytest patterns with TypeScript/Mocha descriptions",
+      "status": "pending"
+    },
+    {
+      "id": "21",
       "content": "Run `grep -ri` across `.github/`, `kanban-development-guideline.md`, and `.claude/settings.local.json` for pytest, pyproject, pygls, flake8, mypy, and 'python 3.9' to verify zero remaining Python references",
+      "status": "pending"
+    },
+    {
+      "id": "22",
+      "content": "Verify `kanban-development-guideline.md` and `.github/copilot-instructions.md` are consistent with each other after all edits",
       "status": "pending"
     }
   ]

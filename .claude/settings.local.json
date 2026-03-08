@@ -1,17 +1,14 @@
 {
   "permissions": {
     "allow": [
-      "Bash(pytest:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(python:*)",
       "Bash(gh issue view:*)",
       "Bash(gh issue list:*)",
       "Bash(gh issue comment:*)",
       "Bash(gh issue close:*)",
       "Bash(dir:*)",
       "Bash(git checkout:*)",
-      "Bash(powershell -Command \"(Get-Content ''c:\\git\\pychivalry\\tests\\test_paradox_checks.py'' | Measure-Object -Line).Lines\")",
       "Bash(gh issue edit:*)",
       "Bash(mkdir:*)",
       "Bash(xcopy:*)",

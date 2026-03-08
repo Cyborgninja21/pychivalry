@@ -74,14 +74,6 @@
   - Use optional chaining (`?.`) and nullish coalescing (`??`)
   - Use proper interfaces and type guards for narrowing
 
-### Python (Historical — guidelines preserved for future contributions)
-
-- Target: Python 3.9+
-- Follow PEP 8; format with Black (line-length 100)
-- Lint with flake8; sort imports with isort
-- Type-check with mypy (`disallow_untyped_defs = true`)
-- Write tests with pytest; use pytest-asyncio for async tests
-
 ## 4. Preferred Libraries & Tools
 
 ### Runtime Dependencies
