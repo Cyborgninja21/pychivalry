@@ -1,0 +1,89 @@
+{
+  "version": "1.0",
+  "taskId": "t-5",
+  "title": "Update README and user-facing documentation to reflect TypeScript architecture",
+  "createdAt": "2026-03-08T00:00:00Z",
+  "updatedAt": "2026-03-08T00:00:00Z",
+  "subtasks": [
+    {
+      "id": "1",
+      "content": "Root README.md: Replace Python 3.9+ badge with Node.js 18+ badge and remove Python from Prerequisites section",
+      "status": "completed"
+    },
+    {
+      "id": "2",
+      "content": "Root README.md: Rewrite Installation section — remove `pip install -e .`, keep only npm-based build steps from vscode-extension/",
+      "status": "completed"
+    },
+    {
+      "id": "3",
+      "content": "Root README.md: Remove 'For Developers' Python section (pip install -e \".[dev]\", pytest, black, flake8, mypy) and replace with npm/task developer commands",
+      "status": "completed"
+    },
+    {
+      "id": "4",
+      "content": "Root README.md: Remove `ck3LanguageServer.pythonPath` from Configuration example JSON and settings table; update '⚡ Fast' description from Python to TypeScript",
+      "status": "completed"
+    },
+    {
+      "id": "5",
+      "content": "Root README.md: Replace project structure tree with actual TypeScript layout (vscode-extension/src/server/{core,lsp,ck3,schema,data,log,utils}/, src/test/{unit,suite}/, data/ YAML files)",
+      "status": "completed"
+    },
+    {
+      "id": "6",
+      "content": "Root README.md: Update Contributing section — remove Python pre-commit hook references (Black, flake8); replace pygls acknowledgment with vscode-languageserver ^9.0.1; remove pygls docs link from Resources; update Trait Validation to remove Python 3.9+ requirement",
+      "status": "completed"
+    },
+    {
+      "id": "7",
+      "content": "vscode-extension/README.md: Rewrite Requirements to remove Python 3.9+ and `pip install pychivalry`; state embedded LSP server requires no separate installation",
+      "status": "pending"
+    },
+    {
+      "id": "8",
+      "content": "vscode-extension/README.md: Remove `pythonPath` from Extension Settings list and all example JSON blocks; remove 'Coming Soon' section (features already shipped)",
+      "status": "pending"
+    },
+    {
+      "id": "9",
+      "content": "vscode-extension/README.md: Remove Python Detection from Enhanced Error Handling; rewrite Troubleshooting to remove 'Python Not Found' and 'pychivalry Not Installed' sections; update Usage to remove Python prerequisites",
+      "status": "pending"
+    },
+    {
+      "id": "10",
+      "content": "CONTRIBUTING.md: Rewrite Prerequisites to list Node.js 18+, npm, Git (no Python); replace manual setup `pip install -e \".[dev]\"` with `cd vscode-extension && npm install`",
+      "status": "pending"
+    },
+    {
+      "id": "11",
+      "content": "CONTRIBUTING.md: Update Pre-commit Hooks section to remove Python-specific hooks (Black, flake8, isort); replace development workflow commands with npm/task equivalents",
+      "status": "pending"
+    },
+    {
+      "id": "12",
+      "content": "CONTRIBUTING.md: Replace project structure tree with actual TypeScript layout; update PR checklist, Bug Reports, and 'Areas for Contribution' to reflect current TypeScript state",
+      "status": "pending"
+    },
+    {
+      "id": "13",
+      "content": "vscode-extension/CHANGELOG.md: Remove `pythonPath` from v0.1.0 Configuration Settings table; update v0.2.0 Enhanced Error Handling to remove Python Detection references",
+      "status": "pending"
+    },
+    {
+      "id": "14",
+      "content": "vscode-extension/CHANGELOG.md: Remove stale Roadmap section (v0.3.0, v0.4.0, v1.0.0 targets) and forward-looking 'Coming Soon' items that are already implemented",
+      "status": "pending"
+    },
+    {
+      "id": "15",
+      "content": "Verify: Grep all four target files for banned terms (pip, pytest, pygls, pythonPath, Black, flake8, mypy, 'Python 3.9') — must return zero matches",
+      "status": "pending"
+    },
+    {
+      "id": "16",
+      "content": "Verify: Run pre-commit hooks on all four modified files to confirm markdown/YAML validation passes",
+      "status": "pending"
+    }
+  ]
+}

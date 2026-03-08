@@ -303,7 +303,15 @@
         ],
         "shared": []
       },
-      "completedAt": "2026-03-08T20:32:58.251Z"
+      "completedAt": "2026-03-08T20:32:58.251Z",
+      "reflectionMemories": [
+        "mem-796e8e0a-634b-44b1-b000-ba69dee80111",
+        "mem-2563e862-9aaf-44eb-8d15-f0f2fc114cc1",
+        "mem-35788f16-dc37-4cfc-940c-35eaf49d0e2e",
+        "mem-81bc3782-cd25-4eb0-a38b-0d87e776aea1",
+        "mem-796ec68a-1848-4e07-a9f7-eaa96489ae06",
+        "mem-52460e41-8ca9-42de-89a8-0cbab6ffa97a"
+      ]
     },
     {
       "id": "t-5",
@@ -315,14 +323,36 @@
       "agentLogs": [],
       "pid": null,
       "type": "standard",
-      "workflowStep": "pending",
-      "workflowLogs": {},
+      "workflowStep": "execute",
+      "workflowLogs": {
+        "brief": [
+          "The brief has been written to `/home/cwallace/git/pychivalry/.formic/tasks/t-5_update-readme-and-user-facing-/README.md`."
+        ],
+        "plan": [
+          "Both files are written:",
+          "- **PLAN.md** — 5-phase implementation plan covering each of the 4 target files plus verification",
+          "- **subtasks.json** — 16 subtasks ordered by file (root README → extension README → CONTRIBUTING → CHANGELOG → verification), each a single verifiable action with specific file paths and content to change"
+        ],
+        "execute": [
+          "Written `declared-files.json` with 4 exclusive files (`README.md`, `vscode-extension/README.md`, `CONTRIBUTING.md`, `vscode-extension/CHANGELOG.md`) and no shared files. All are documentation-only modifications with no overlap with common hotspot files."
+        ]
+      },
       "createdAt": "2026-03-08T20:20:28.758Z",
-      "safePointCommit": null,
+      "safePointCommit": "e04d3d3d1b0577f38cc3e38c77ae7ceadd11f4c7",
       "retryCount": null,
       "fixForTaskId": null,
       "parentGoalId": "t-1",
-      "queuedAt": "2026-03-08T20:20:28.781Z"
+      "queuedAt": "2026-03-08T20:20:28.781Z",
+      "startedAt": "2026-03-08T20:32:58.336Z",
+      "declaredFiles": {
+        "exclusive": [
+          "README.md",
+          "vscode-extension/README.md",
+          "CONTRIBUTING.md",
+          "vscode-extension/CHANGELOG.md"
+        ],
+        "shared": []
+      }
     },
     {
       "id": "t-6",

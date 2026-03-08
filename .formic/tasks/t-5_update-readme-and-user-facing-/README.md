@@ -1,65 +1,38 @@
-# Update README and user-facing documentation to reflect TypeScript architecture
+# Update README and User-Facing Documentation to Reflect TypeScript Architecture
 
 ## Overview
 
-The root README.md, vscode-extension/README.md, CONTRIBUTING.md, and vscode-extension/CHANGELOG.md contain extensive Python references that are now misleading to users and contributors.
-
-**Files to modify:**
-
-1. `README.md` (root) — Major updates needed:
-   - Line 3: Remove or replace Python 3.9+ badge (replace with Node.js 18+ badge)
-   - Line 103: Change 'Lightweight Python server' to describe the TypeScript server
-   - Lines 143-155: Remove Python prerequisite and `pip install -e .` instructions; update to Node.js-only prerequisites and build steps
-   - Lines 186-197: Remove `pip install -e ".[dev]"`, `pytest`, `black`, `flake8`, `mypy` developer commands; replace with `npm run compile`, `npm test`, `npm run lint`
-   - Lines 199-215: Remove `pythonPath` from configuration table and example JSON
-   - Lines 238-243: Update trait extraction section to remove 'Python 3.9+ with PyYAML' requirement (trait extraction is now handled by TypeScript)
-   - Lines 269-298: Rewrite project structure to show current TypeScript layout (`vscode-extension/src/server/`, `vscode-extension/src/test/`, etc.) instead of the old Python layout (`pychivalry/*.py`, `tests/`)
-   - Lines 319-325: Update contributor setup to remove Python tool references; mention only TypeScript/Prettier/ESLint
-   - Lines 342-349: Remove pygls acknowledgment and documentation link; acknowledge vscode-languageserver instead
-
-2. `vscode-extension/README.md` — Update:
-   - Remove 'Python Detection' feature description
-   - Remove 'Python 3.9 or higher' requirement
-   - Remove `pip install pychivalry` instructions
-   - Remove `pythonPath` from settings documentation
-   - Remove 'Python Not Found' troubleshooting section
-   - Update to describe the embedded TypeScript LSP server
-
-3. `vscode-extension/CHANGELOG.md` — Update:
-   - Line 50-57: Remove 'Python Detection' feature description
-   - Line 106: Remove `pythonPath` from configuration table
-
-4. `CONTRIBUTING.md` — Update:
-   - Line 9: Remove 'Python 3.9 or higher' prerequisite
-   - Lines 52-54: Remove Python formatting/linting references (Black, flake8)
-   - Lines 168-181: Update project structure to reflect TypeScript layout
-   - Lines 225-226: Remove 'Python version' from bug report template
-
-**Technical considerations:**
-- Preserve the project name 'pychivalry' throughout (it's the project brand, not a Python reference)
-- Keep references to `data/` YAML files (these are still used)
-- Do not remove the Apache 2.0 license or Paradox Interactive acknowledgment
-- Keep the existing feature list accurate — verify against current implementation
-
-**Acceptance criteria:**
-- No instructions to install Python, pip, or pygls in any user-facing documentation
-- No `pythonPath` configuration documented
-- Project structure section accurately reflects the TypeScript codebase
-- Setup instructions work for a fresh clone with only Node.js installed
-- All markdown files pass YAML/markdown lint
+The root `README.md`, `vscode-extension/README.md`, `CONTRIBUTING.md`, and `vscode-extension/CHANGELOG.md` still describe a Python-based architecture (pygls, pip, pytest, Black, flake8, `pythonPath` configuration) that was fully replaced by a TypeScript/Node.js implementation. This task removes all misleading Python references from user-facing documentation and replaces them with accurate descriptions of the current embedded TypeScript LSP server, Node.js prerequisites, and npm-based build/test workflow.
 
 ## Goals
 
-- [ ] Define specific goals here
+- Eliminate all Python installation, configuration, and tooling instructions from user-facing documentation so that new users and contributors follow a correct Node.js-only setup path
+- Accurately describe the current TypeScript project structure (`vscode-extension/src/server/`, `vscode-extension/src/test/`, `data/`) in the project structure sections of `README.md` and `CONTRIBUTING.md`
+- Update the extension README (`vscode-extension/README.md`) requirements, troubleshooting, and settings sections to reflect the embedded LSP server that requires no separate installation
+- Ensure all four target files pass markdown lint and contain no references to `pip`, `pytest`, `pygls`, `pythonPath`, `Black`, `flake8`, `mypy`, or Python 3.9+ as a prerequisite
 
 ## Key Capabilities
 
-- Describe what this task will accomplish
+- **Accurate onboarding:** Fresh-clone setup instructions work with only Node.js 18+ installed — no Python toolchain required
+- **Correct configuration reference:** Settings documentation lists only current settings (no `ck3LanguageServer.pythonPath`); developer commands reference `npm run compile`, `npm test`, `npm run lint`, `task build`, etc.
+- **Current project structure:** Tree diagrams reflect the actual TypeScript layout — `vscode-extension/src/server/{core,lsp,ck3,schema,data,log,utils}/`, `vscode-extension/src/test/{unit,suite}/`, and `data/` YAML files
+- **Updated acknowledgments:** Replace pygls acknowledgment with vscode-languageserver ^9.0.1 acknowledgment in root README
+- **Preserved historical changelog entries:** `vscode-extension/CHANGELOG.md` entries for v0.1.0 and v0.2.0 retain historical accuracy but remove forward-looking instructions (e.g., stale roadmap targets, `pythonPath` as a current setting)
 
 ## Non-Goals
 
-- What is explicitly out of scope
+- Renaming the project from "pychivalry" — the name is the project brand and stays as-is
+- Modifying the root `CHANGELOG.md` historical entries (v0.1.0, v0.2.0) — these are accurate records of past releases
+- Rewriting `kanban-development-guideline.md` — its Python section is already marked "Historical" and is out of scope
+- Updating `vscode-extension/src/server/README.md` — this is a developer-internal doc and not part of this task
+- Adding new documentation content beyond what is needed to replace removed Python references (no new feature descriptions, tutorials, or architecture deep-dives)
 
 ## Requirements
 
-- List technical and functional requirements
+- All four target files (`README.md`, `vscode-extension/README.md`, `CONTRIBUTING.md`, `vscode-extension/CHANGELOG.md`) must contain zero instructions to install Python, pip, or pygls
+- The `ck3LanguageServer.pythonPath` setting must not appear in any settings table or example JSON in user-facing docs
+- Project structure sections must match the actual directory layout verified against the filesystem
+- Setup instructions must be verifiable: a fresh clone on a machine with only Node.js 18+ and npm should be able to follow them successfully
+- The Python 3.9+ badge in root `README.md` must be replaced with a Node.js 18+ badge
+- All edits must preserve existing non-Python content (feature lists, license info, Paradox Interactive acknowledgment, links to CK3 wiki)
+- All modified markdown files must pass the pre-commit YAML/markdown validation hooks

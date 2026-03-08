@@ -365,6 +365,80 @@
         "project-migration",
         "task-management"
       ]
+    },
+    {
+      "id": "mem-796e8e0a-634b-44b1-b000-ba69dee80111",
+      "created_at": "2026-03-08T20:34:08.832Z",
+      "type": "pattern",
+      "content": "Development setup scripts (tools/setup-dev-env.sh, tools/Check-Prerequisites.ps1, tools/Install-Prerequisites.ps1) now target a TypeScript-only workflow: Node.js 18+, npm ci in vscode-extension/, task build/test:unit/lint commands, F5 debug launch. All Python/pip/pytest references removed.",
+      "source_task": "t-4",
+      "relevance_tags": [
+        "tools/setup-dev-env.sh",
+        "tools/Check-Prerequisites.ps1",
+        "tools/Install-Prerequisites.ps1",
+        "developer-setup"
+      ]
+    },
+    {
+      "id": "mem-2563e862-9aaf-44eb-8d15-f0f2fc114cc1",
+      "created_at": "2026-03-08T20:34:08.834Z",
+      "type": "pattern",
+      "content": "Install-Prerequisites.ps1 uses a data-driven $Prerequisites array of hashtables (Name, WingetId, MinVersion, Commands, VersionPattern) making it easy to add/remove tools. Current entries: Git, Node.js, VS Code, GitHub CLI.",
+      "source_task": "t-4",
+      "relevance_tags": [
+        "tools/Install-Prerequisites.ps1",
+        "powershell",
+        "winget"
+      ]
+    },
+    {
+      "id": "mem-35788f16-dc37-4cfc-940c-35eaf49d0e2e",
+      "created_at": "2026-03-08T20:34:08.835Z",
+      "type": "pattern",
+      "content": "setup-dev-env.sh uses semantic version parsing for Node.js checks: extract version with sed 's/^v//', get major with cut -d'.' -f1, then numeric comparison. Pre-commit install is conditional (command -v pre-commit) with || true on pre-commit run.",
+      "source_task": "t-4",
+      "relevance_tags": [
+        "tools/setup-dev-env.sh",
+        "bash",
+        "version-checking"
+      ]
+    },
+    {
+      "id": "mem-81bc3782-cd25-4eb0-a38b-0d87e776aea1",
+      "created_at": "2026-03-08T20:34:08.837Z",
+      "type": "pitfall",
+      "content": "When rewriting scripts to remove a technology (e.g. Python), must also remove related helper functions (Test-PythonPackage, Test-PipPackage) and parameters (SkipPythonPackages) that become dead code, not just the sections that call them.",
+      "source_task": "t-4",
+      "relevance_tags": [
+        "tools/Check-Prerequisites.ps1",
+        "refactoring",
+        "dead-code"
+      ]
+    },
+    {
+      "id": "mem-796ec68a-1848-4e07-a9f7-eaa96489ae06",
+      "created_at": "2026-03-08T20:34:08.838Z",
+      "type": "preference",
+      "content": "Project has been renamed from 'PyChivalry'/'pychivalry' to 'ck3-language-support' in user-facing messaging. Update references in any new scripts or docs.",
+      "source_task": "t-4",
+      "relevance_tags": [
+        "naming",
+        "project-identity",
+        "ck3-language-support"
+      ]
+    },
+    {
+      "id": "mem-52460e41-8ca9-42de-89a8-0cbab6ffa97a",
+      "created_at": "2026-03-08T20:34:08.839Z",
+      "type": "pattern",
+      "content": "All three setup scripts use consistent next-steps messaging: npm ci in vscode-extension/, task build, task test:unit, task lint, and F5 launch in VS Code. Keep these in sync when updating any one script.",
+      "source_task": "t-4",
+      "relevance_tags": [
+        "tools/setup-dev-env.sh",
+        "tools/Check-Prerequisites.ps1",
+        "tools/Install-Prerequisites.ps1",
+        "consistency"
+      ]
     }
   ]
 }
