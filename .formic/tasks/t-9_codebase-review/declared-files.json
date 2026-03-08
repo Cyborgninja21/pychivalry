@@ -1,8 +1,7 @@
 {
   "exclusive": [
-    "vscode-extension/src/server/README.md",
-    "Documentation/COMPLETE-pygls-replacement.md",
     ".github/copilot-instructions.md",
+    ".github/placeholder",
     ".github/prompts/Adding New CK3 Language Features.prompt.md",
     ".github/prompts/LSP Feature Implementation.prompt.md",
     ".github/prompts/Version Update Assistant.prompt.md",
@@ -16,12 +15,14 @@
     ".github/skills/lsp-performance-optimization",
     ".github/skills/vscode-extension-workflow",
     ".github/skills/tool-list.md",
-    "Documentation/HYBRID_ARCHITECTURE_PROPOSAL.md",
-    "Documentation/feature-parity-analysis.md",
-    "Documentation/typescript-server-complete.md",
-    "Documentation/typescript-implementation-plan.md",
-    "Documentation/IMPLEMENTATION_STATUS.md",
     "Documentation/PRD.md",
+    "Documentation/IMPLEMENTATION_STATUS.md",
+    "Documentation/HYBRID_ARCHITECTURE_PROPOSAL.md",
+    "Documentation/DATA_EXTRACTION_GUIDE.md",
+    "Documentation/COMPLETE-pygls-replacement.md",
+    "Documentation/typescript-implementation-plan.md",
+    "Documentation/typescript-server-complete.md",
+    "Documentation/feature-parity-analysis.md",
     "Documentation/SPRINT_5_COMPLETE.md",
     "Documentation/developer-guide/async-migration.md",
     "Documentation/developer-guide/async-implementation-summary.md",
@@ -29,10 +30,11 @@
     "Documentation/developer-guide/architecture/ARCHITECTURE_FLOW.md",
     "Documentation/developer-guide/PRE_COMMIT_SETUP.md",
     "Documentation/developer-guide/PRE_COMMIT_USAGE_GUIDE.md",
+    "vscode-extension/src/server/README.md",
+    "vscode-extension/DEVELOPMENT_PLAN.md",
     "tools/README.md",
     "tools/SCOPE_EXTRACTION_WORKFLOW.md",
-    "SECURITY.md",
-    "vscode-extension/DEVELOPMENT_PLAN.md"
+    "SECURITY.md"
   ],
   "shared": [
     ".formic/board.json"

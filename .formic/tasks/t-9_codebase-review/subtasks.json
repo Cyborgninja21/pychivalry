@@ -2,72 +2,77 @@
   "version": "1.0",
   "taskId": "t-9",
   "title": "Codebase review",
-  "createdAt": "2026-03-08T22:30:00.000Z",
-  "updatedAt": "2026-03-08T22:30:00.000Z",
+  "createdAt": "2026-03-08T00:00:00Z",
+  "updatedAt": "2026-03-08T00:00:00Z",
   "subtasks": [
     {
       "id": "1",
-      "content": "Run full-text audit of repo for Python keywords (python, pygls, pythonPath, serverImplementation, .py, pip, pytest, requirements.txt) excluding node_modules/ and dist/; categorize each match as historical-record (keep) or stale-artifact (remove/rewrite)",
+      "content": "Run full-text audit of repository (excluding node_modules/ and dist/) for Python keywords: python, pygls, pythonPath, serverImplementation, requirements.txt, .py, pip, pytest, Black, flake8, mypy. Classify each hit as historical record (preserve) or active guidance/stale artifact (remove/rewrite).",
       "status": "completed"
     },
     {
       "id": "2",
-      "content": "Rewrite vscode-extension/src/server/README.md: remove the 'Running' section's serverImplementation/Python toggle, remove the 'Performance' section's Python comparison, update introductory sentence to drop 'rewrite of the Python server' framing",
-      "status": "completed"
+      "content": "Rewrite .github/copilot-instructions.md to remove all Python 3.9+ requirements, Black/flake8/mypy tooling, pytest patterns, pygls LSP patterns, and Python folder structure. Retain only TypeScript-stack guidance.",
+      "status": "pending"
     },
     {
       "id": "3",
-      "content": "Remove Documentation/COMPLETE-pygls-replacement.md (migration artifact no longer needed)",
+      "content": "Update .github/placeholder to remove Python 3.9+, pytest, Black, flake8, mypy, and pip references.",
       "status": "pending"
     },
     {
       "id": "4",
-      "content": "Update .github/copilot-instructions.md to remove any Python/pygls references and describe the project as TypeScript-only",
+      "content": "Update Documentation/PRD.md to replace pygls 2.0 technology references with current TypeScript LSP stack (vscode-languageserver ^9.0.1) and remove the pygls glossary entry and stale pytest coverage metrics.",
       "status": "pending"
     },
     {
       "id": "5",
-      "content": "Clean Python references from .github/prompts/ files: review and update Adding New CK3 Language Features.prompt.md, LSP Feature Implementation.prompt.md, Version Update Assistant.prompt.md, architecture_and_flow.md, Branch Merge Assistant.prompt.md, documentation_standard.md, gh pr review.prompt.md, and README.md",
+      "content": "Review Documentation/IMPLEMENTATION_STATUS.md line 4 migration reference and update if it serves as active guidance rather than historical record.",
       "status": "pending"
     },
     {
       "id": "6",
-      "content": "Clean Python references from .github/skills/ files: review and update ck3-validation-debugging, lsp-feature-debugging, lsp-performance-optimization, vscode-extension-workflow, and tool-list.md",
+      "content": "Rewrite vscode-extension/src/server/README.md to describe the TypeScript server on its own terms, removing references to the Python implementation and serverImplementation toggle.",
       "status": "pending"
     },
     {
       "id": "7",
-      "content": "Clean Documentation/ files with stale Python references: review and update HYBRID_ARCHITECTURE_PROPOSAL.md, feature-parity-analysis.md, typescript-server-complete.md, typescript-implementation-plan.md, IMPLEMENTATION_STATUS.md, PRD.md, SPRINT_5_COMPLETE.md, and developer-guide files (async-migration.md, async-implementation-summary.md, Test Suites.md, ARCHITECTURE_FLOW.md, PRE_COMMIT_SETUP.md, PRE_COMMIT_USAGE_GUIDE.md)",
+      "content": "Delete obsolete migration document: Documentation/HYBRID_ARCHITECTURE_PROPOSAL.md",
       "status": "pending"
     },
     {
       "id": "8",
-      "content": "Clean Python references from tools/README.md and tools/SCOPE_EXTRACTION_WORKFLOW.md",
+      "content": "Delete obsolete migration document: Documentation/DATA_EXTRACTION_GUIDE.md",
       "status": "pending"
     },
     {
       "id": "9",
-      "content": "Review and clean SECURITY.md of any Python dependency references",
+      "content": "Delete obsolete migration document: Documentation/COMPLETE-pygls-replacement.md",
       "status": "pending"
     },
     {
       "id": "10",
-      "content": "Review vscode-extension/DEVELOPMENT_PLAN.md for Python references and clean if needed",
+      "content": "Delete obsolete migration document: Documentation/typescript-implementation-plan.md",
       "status": "pending"
     },
     {
       "id": "11",
-      "content": "Mark Formic tasks t-2, t-3, t-4, t-7 as completed in .formic/board.json",
+      "content": "Delete obsolete migration document: Documentation/typescript-server-complete.md",
       "status": "pending"
     },
     {
       "id": "12",
-      "content": "Run task lint and task format:check to verify zero warnings after all changes",
+      "content": "Verify .formic/board.json reflects completed status for tasks t-2, t-3, t-4, and t-7. Update if any are incorrectly marked.",
       "status": "pending"
     },
     {
       "id": "13",
-      "content": "Final keyword sweep: re-run full-text search for Python keywords to confirm no active references remain outside CHANGELOG.md and .formic/ task docs",
+      "content": "Run task lint and task format:check to confirm zero warnings after all changes.",
+      "status": "pending"
+    },
+    {
+      "id": "14",
+      "content": "Re-run keyword audit to verify no active Python guidance remains in non-historical files.",
       "status": "pending"
     }
   ]
