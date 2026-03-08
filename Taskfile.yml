@@ -1,0 +1,122 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+
+version: '3'
+
+vars:
+  EXT_DIR: vscode-extension
+
+tasks:
+  default:
+    desc: List available tasks
+    cmds:
+      - task --list
+    silent: true
+
+  # ─── Install & Build ────────────────────────────────────────────
+
+  install:
+    desc: Install extension dependencies
+    dir: "{{.EXT_DIR}}"
+    cmds:
+      - npm install
+
+  compile:
+    desc: Compile the extension (webpack)
+    dir: "{{.EXT_DIR}}"
+    deps: [install]
+    cmds:
+      - npm run compile
+
+  compile:tests:
+    desc: Compile test files (tsc)
+    dir: "{{.EXT_DIR}}"
+    cmds:
+      - npm run compile-tests
+
+  build:
+    desc: Full build (install + compile extension + compile tests)
+    cmds:
+      - task: compile
+      - task: compile:tests
+
+  watch:
+    desc: Watch mode for extension rebuild
+    dir: "{{.EXT_DIR}}"
+    cmds:
+      - npm run watch
+
+  # ─── Testing ────────────────────────────────────────────────────
+
+  test:
+    desc: Run all tests (pretest + full test suite)
+    dir: "{{.EXT_DIR}}"
+    cmds:
+      - npm test
+
+  test:unit:
+    desc: Run unit tests only (fast, no VS Code instance)
+    dir: "{{.EXT_DIR}}"
+    deps: [compile:tests]
+    cmds:
+      - npm run test:unit
+
+  test:integration:
+    desc: Run integration tests (launches VS Code)
+    dir: "{{.EXT_DIR}}"
+    cmds:
+      - npm run test:integration
+
+  test:quick:
+    desc: Run tests without linting (compile + test)
+    dir: "{{.EXT_DIR}}"
+    cmds:
+      - npm run test:quick
+
+  test:watch:
+    desc: Watch and re-run tests on changes
+    dir: "{{.EXT_DIR}}"
+    cmds:
+      - npm run test:watch
+
+  # ─── Code Quality ──────────────────────────────────────────────
+
+  lint:
+    desc: Lint TypeScript source files
+    dir: "{{.EXT_DIR}}"
+    cmds:
+      - npm run lint
+
+  format:
+    desc: Format source files with Prettier
+    dir: "{{.EXT_DIR}}"
+    cmds:
+      - npm run format
+
+  format:check:
+    desc: Check formatting without modifying files
+    dir: "{{.EXT_DIR}}"
+    cmds:
+      - npm run format-check
+
+  check:
+    desc: Run lint + format check (CI-friendly)
+    cmds:
+      - task: lint
+      - task: format:check
+
+  # ─── Combined Workflows ────────────────────────────────────────
+
+  ci:
+    desc: Full CI pipeline (build + lint + format check + tests)
+    cmds:
+      - task: build
+      - task: lint
+      - task: format:check
+      - task: test:unit
+
+  precommit:
+    desc: Pre-commit checks (lint + format check + unit tests)
+    cmds:
+      - task: lint
+      - task: format:check
+      - task: test:unit
