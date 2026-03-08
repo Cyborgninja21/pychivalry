@@ -1,0 +1,255 @@
+---
+name: mocha-testing-patterns
+description: Guide for writing effective Mocha/TypeScript tests for the CK3 Language Support extension. Use this when adding new tests or improving test coverage.
+---
+
+# Mocha Testing Patterns for CK3 Language Support
+
+## Test Structure
+
+### Basic Test Template
+
+```typescript
+import * as assert from 'assert';
+import { CK3Parser, NodeType } from '../../server/core/parser';
+
+describe('FeatureName', () => {
+    let parser: CK3Parser;
+
+    beforeEach(() => {
+        parser = new CK3Parser();
+    });
+
+    it('should handle the basic case', () => {
+        const result = parser.parse('key = value');
+        assert.strictEqual(result.ast.type, NodeType.ROOT);
+        assert.deepStrictEqual(result.errors, []);
+    });
+});
+```
+
+## Nested Describe Blocks
+
+Group related tests with nested `describe` blocks:
+
+```typescript
+describe('CK3Parser', () => {
+    let parser: CK3Parser;
+
+    beforeEach(() => {
+        parser = new CK3Parser();
+    });
+
+    describe('parse()', () => {
+        it('should return a ROOT node for empty input', () => {
+            const result = parser.parse('');
+            assert.strictEqual(result.ast.type, NodeType.ROOT);
+            assert.deepStrictEqual(result.errors, []);
+        });
+    });
+
+    describe('simple assignments', () => {
+        it('should parse key = string_value', () => {
+            const result = parser.parse('name = my_event');
+            const node = result.ast.children![0];
+            assert.strictEqual(node.type, NodeType.ASSIGNMENT);
+            assert.strictEqual(node.key, 'name');
+            assert.strictEqual(node.value, 'my_event');
+        });
+
+        it('should parse key = yes as boolean true', () => {
+            const result = parser.parse('is_triggered_only = yes');
+            const node = result.ast.children![0];
+            assert.strictEqual(node.value, true);
+        });
+    });
+});
+```
+
+## Setup and Teardown
+
+Use `beforeEach` for per-test setup and helper functions for test data:
+
+```typescript
+function makeConfig(overrides: Partial<StyleConfig> = {}): StyleConfig {
+    return { ...DEFAULT_STYLE_CONFIG, ...overrides };
+}
+
+function parseAST(text: string): ASTNode {
+    const parser = new CK3Parser();
+    return parser.parse(text).ast;
+}
+
+describe('Style Checks', () => {
+    it('should flag space indentation when tabs preferred', () => {
+        const text = '    key = value';
+        const diags = checkIndentation(text, makeConfig({ preferTabs: true }));
+        assert.ok(diags.length > 0, 'Should flag space indentation');
+        assert.ok(diags.some((d) => d.code === 'CK3303'));
+    });
+});
+```
+
+## Parametric Tests (Loop-Driven)
+
+Use loops within `describe` blocks to test multiple cases:
+
+```typescript
+describe('scope resolution', () => {
+    const cases = [
+        { input: 'root', expected: 'character' },
+        { input: 'root.liege', expected: 'character' },
+        { input: 'root.capital_province', expected: 'province' },
+        { input: 'root.primary_title', expected: 'title' },
+    ];
+
+    for (const { input, expected } of cases) {
+        it(`should resolve "${input}" to scope "${expected}"`, () => {
+            const result = resolveScope(input, 'character');
+            assert.strictEqual(result, expected);
+        });
+    }
+});
+```
+
+## Testing Error Conditions
+
+```typescript
+describe('error handling', () => {
+    it('should record parse errors for invalid syntax', () => {
+        const parser = new CK3Parser();
+        const result = parser.parse('invalid {{{');
+        assert.ok(result.errors.length > 0, 'Should have parse errors');
+    });
+
+    it('should return null when source file is missing', () => {
+        const converter = new LogDiagnosticConverter(mockConnection(), []);
+        const diag = converter.convertToDiagnostic(
+            makeResult({ sourceFile: undefined })
+        );
+        assert.strictEqual(diag, null);
+    });
+});
+```
+
+## Testing Diagnostics
+
+```typescript
+describe('diagnostic generation', () => {
+    it('creates a diagnostic from a result with source location', () => {
+        const conn = mockConnection();
+        const converter = new LogDiagnosticConverter(conn, []);
+        const diag = converter.convertToDiagnostic(makeResult());
+        assert.ok(diag, 'Should produce a diagnostic');
+        assert.strictEqual(diag!.source, 'ck3-game-log');
+        assert.strictEqual(diag!.code, 'GAME_LOG_UNKNOWN_EFFECT');
+        assert.ok(diag!.message.includes('[Game Log]'));
+    });
+
+    it('attaches suggestions as data', () => {
+        const conn = mockConnection();
+        const converter = new LogDiagnosticConverter(conn, []);
+        const diag = converter.convertToDiagnostic(makeResult());
+        assert.deepStrictEqual((diag as unknown as { data: { suggestions: string[] } }).data.suggestions, ['add_gold']);
+    });
+});
+```
+
+## Mocking Dependencies
+
+Create lightweight mock objects directly:
+
+```typescript
+function mockConnection(): { sendDiagnostics: (p: { uri: string; diagnostics: unknown[] }) => void; _published: Array<{ uri: string; diagnostics: unknown[] }> } {
+    const published: Array<{ uri: string; diagnostics: unknown[] }> = [];
+    return {
+        sendDiagnostics: (params: { uri: string; diagnostics: unknown[] }) => {
+            published.push(params);
+        },
+        _published: published,
+    };
+}
+```
+
+## Performance Benchmarks
+
+```typescript
+describe('performance', () => {
+    it('should parse large files within time budget', () => {
+        const parser = new CK3Parser();
+        const largeFile = 'has_trait = brave\n'.repeat(10000);
+
+        const start = process.hrtime.bigint();
+        const result = parser.parse(largeFile);
+        const elapsed = Number(process.hrtime.bigint() - start) / 1e6; // ms
+
+        assert.ok(result.ast !== null);
+        assert.ok(elapsed < 1000, `Parsing took ${elapsed}ms, expected < 1000ms`);
+    });
+});
+```
+
+## Test Organization
+
+```
+vscode-extension/src/test/
+├── unit/                       # Fast unit tests (no VS Code instance)
+│   ├── parser.test.ts          # Parser tests
+│   ├── style-checks.test.ts    # Style validation tests
+│   ├── log-diagnostics.test.ts # Log diagnostics tests
+│   └── *.test.ts               # Other unit tests
+├── integration/                # Integration tests (launches VS Code)
+│   └── extension.test.ts
+└── fixtures/                   # Test data files
+    └── sample_events.txt
+```
+
+## Running Tests
+
+```bash
+# Run all tests (pretest + full suite)
+npm test
+
+# Run unit tests only (fast, no VS Code instance)
+npm run test:unit
+
+# Run integration tests (launches VS Code)
+npm run test:integration
+
+# Run tests without linting
+npm run test:quick
+
+# Run specific test file with Mocha
+npx mocha out/test/unit/parser.test.js --timeout 10000
+
+# Run tests matching a pattern
+npm run test:unit -- --grep "CK3Parser"
+
+# Via Taskfile (from workspace root)
+task test:unit
+task test
+task test:quick
+```
+
+## Best Practices
+
+### Do
+
+- Write descriptive test names in `it('should ...')` format
+- Test one behavior per `it` block
+- Use `beforeEach` for shared setup
+- Use loop-driven `it` blocks for similar test cases
+- Test edge cases and error conditions
+- Keep tests fast (unit tests need no VS Code instance)
+- Use `assert.strictEqual` for value comparisons
+- Use `assert.deepStrictEqual` for object/array comparisons
+- Use `assert.ok` for truthiness with descriptive messages
+
+### Don't
+
+- Write tests that depend on other tests
+- Use `setTimeout` in tests (use proper async patterns)
+- Test implementation details (test behavior)
+- Ignore flaky tests (fix them)
+- Skip writing tests for "simple" code
+- Use `assert.equal` (use `assert.strictEqual` instead)

@@ -394,22 +394,44 @@
       "workflowStep": "execute",
       "workflowLogs": {
         "brief": [
-          "README.md written to `/home/cwallace/git/pychivalry/.formic/tasks/t-6_update-github-prompts-copilot-/README.md`. The spec covers the full scope of Python-to-TypeScript documentation cleanup across `.github/prompts/`, `.github/skills/`, `.github/copilot-instructions.md`, `kanban-development-guideline.md`, and `.claude/settings.local.json`, with clear goals, non-goals, and verifiable requirements."
+          "README.md written to `/home/cwallace/git/pychivalry/.formic/tasks/t-6_update-github-prompts-copilot-/README.md`. The spec covers the full scope of Python-to-TypeScript documentation cleanup across `.github/prompts/`, `.github/skills/`, `.github/copilot-instructions.md`, `kanban-development-guideline.md`, and `.claude/settings.local.json`, with clear goals, non-goals, and verifiable requirements.",
+          "README.md written to `/home/cwallace/git/pychivalry/.formic/tasks/t-6_update-github-prompts-copilot-/README.md`. Key refinements from the existing version:",
+          "- Made file references more precise based on the actual files found in `.github/skills/` and `.github/prompts/`",
+          "- Added specific test file names (`parser.test.ts`, `log-diagnostics.test.ts`, `style-checks.test.ts`) as examples of the patterns to follow",
+          "- Expanded Non-Goals with additional language-agnostic templates that should be left untouched",
+          "- Tightened the requirements to reference specific Python tools that must be removed from copilot instructions"
         ],
         "plan": [
           "Both files have been written:",
           "1. **`PLAN.md`** — 4-phase implementation plan covering core config files, skills, prompt templates, and verification",
           "2. **`subtasks.json`** — 17 subtasks ordered by dependency (core configs → skills → prompts → verification grep)",
-          "The plan covers all 16 files identified with Python/pytest references across `.github/copilot-instructions.md`, 5 skills files, 8 prompt templates, `kanban-development-guideline.md`, and `.claude/settings.local.json`."
+          "The plan covers all 16 files identified with Python/pytest references across `.github/copilot-instructions.md`, 5 skills files, 8 prompt templates, `kanban-development-guideline.md`, and `.claude/settings.local.json`.",
+          "Both files have been written:",
+          "**PLAN.md** — 6-phase implementation plan:",
+          "1. **Gather patterns** from existing Mocha unit tests",
+          "2. **Replace pytest skill** with `mocha-testing-patterns`",
+          "3. **Update 9 prompt templates** containing Python/pytest references",
+          "4. **Update 3 skills** with Python/pytest debugging references",
+          "5. **Update config files** (copilot-instructions, kanban guideline, claude settings)",
+          "6. **Verification** via grep to confirm zero residual Python references",
+          "**subtasks.json** — 18 subtasks covering every file that needs modification, ordered logically (research first, then skills, prompts, configs, and final verification)."
         ],
         "execute": [
           "Written `declared-files.json` with 16 exclusive files and 1 shared file:",
           "- **16 exclusive**: All `.github/prompts/` and `.github/skills/` files being updated or replaced, plus `kanban-development-guideline.md` and the deleted/created `pytest-testing-patterns` → `mocha-testing-patterns` swap",
-          "- **1 shared**: `.claude/settings.local.json` (configuration file that multiple tasks may modify)"
+          "- **1 shared**: `.claude/settings.local.json` (configuration file that multiple tasks may modify)",
+          "Written `declared-files.json` with 16 exclusive files and 1 shared file:",
+          "**Exclusive (16):**",
+          "- 3 skills created/deleted/modified: `mocha-testing-patterns` (new), `pytest-testing-patterns` (delete), `lsp-feature-debugging`, `lsp-performance-optimization`, `ck3-validation-debugging`",
+          "- 9 prompt templates modified: `Test Writing Best Practices`, `Debugging LSP Server Issues`, `LSP Feature Implementation`, `Adding New CK3 Language Features`, `Branch Merge Assistant`, `gh pr review`, `Version Update Assistant`, `architecture_and_flow`, `documentation_standard`",
+          "- 2 top-level config files: `.github/copilot-instructions.md`, `kanban-development-guideline.md`",
+          "**Shared (1):**",
+          "- `.claude/settings.local.json` — config file that multiple tasks may modify",
+          "Notable addition vs. the previous version: `.github/prompts/gh pr review.prompt.md` was missing and has been added (subtask 8 in the plan)."
         ]
       },
       "createdAt": "2026-03-08T20:20:28.762Z",
-      "safePointCommit": "abc6e4c79dce232ad2f84112c405cbdc6fabe2a9",
+      "safePointCommit": "c54f04046dbf1c373e1b43b6bb2ff50fdb1f5fb2",
       "retryCount": null,
       "fixForTaskId": null,
       "parentGoalId": "t-1",
@@ -417,22 +439,22 @@
       "startedAt": "2026-03-08T20:52:24.560Z",
       "declaredFiles": {
         "exclusive": [
-          ".github/copilot-instructions.md",
-          "kanban-development-guideline.md",
-          ".github/skills/pytest-testing-patterns",
           ".github/skills/mocha-testing-patterns",
+          ".github/skills/pytest-testing-patterns",
           ".github/skills/lsp-feature-debugging",
-          ".github/skills/ck3-validation-debugging",
           ".github/skills/lsp-performance-optimization",
-          ".github/skills/tool-list.md",
+          ".github/skills/ck3-validation-debugging",
           ".github/prompts/Test Writing Best Practices.prompt.md",
           ".github/prompts/Debugging LSP Server Issues.prompt.md",
-          ".github/prompts/Adding New CK3 Language Features.prompt.md",
           ".github/prompts/LSP Feature Implementation.prompt.md",
+          ".github/prompts/Adding New CK3 Language Features.prompt.md",
           ".github/prompts/Branch Merge Assistant.prompt.md",
+          ".github/prompts/gh pr review.prompt.md",
           ".github/prompts/Version Update Assistant.prompt.md",
+          ".github/prompts/architecture_and_flow.md",
           ".github/prompts/documentation_standard.md",
-          ".github/prompts/architecture_and_flow.md"
+          ".github/copilot-instructions.md",
+          "kanban-development-guideline.md"
         ],
         "shared": [
           ".claude/settings.local.json"

@@ -1,6 +1,6 @@
 # Test Writing Best Practices
 
-**Purpose:** Guidelines and patterns for writing high-quality tests in pychivalry using pytest.
+**Purpose:** Guidelines and patterns for writing high-quality tests using Mocha and TypeScript.
 
 **Use this when:** Adding new tests, improving test coverage, or refactoring existing tests.
 
@@ -25,360 +25,274 @@
 
 ### Directory Structure
 ```
-tests/
-├── conftest.py                 # Shared fixtures
-├── test_parser.py              # Parser unit tests
-├── test_scopes.py              # Scope validation tests
-├── test_diagnostics.py         # Diagnostics tests
-├── test_completions.py         # Completion tests
-├── integration/                # Integration tests
-│   ├── test_full_workflow.py
-│   └── test_server_lifecycle.py
-├── fixtures/                   # Test data files
-│   ├── sample_events.txt
-│   └── large_file.txt
-└── performance/                # Performance tests
-    └── test_benchmarks.py
+vscode-extension/src/test/
+├── unit/                       # Fast unit tests (no VS Code instance)
+│   ├── parser.test.ts          # Parser unit tests
+│   ├── style-checks.test.ts    # Style validation tests
+│   ├── log-diagnostics.test.ts # Log diagnostics tests
+│   └── *.test.ts               # Other unit tests
+├── integration/                # Integration tests (launches VS Code)
+│   └── extension.test.ts
+└── fixtures/                   # Test data files
+    └── sample_events.txt
 ```
 
 ### Naming Conventions
 
-```python
-# Test files: test_*.py
-# Test functions: test_*
-# Test classes: Test*
+```typescript
+// Test files: kebab-case.test.ts
+// Describe blocks: PascalCase class/module name
+// It blocks: 'should ...' description
 
-def test_parser_handles_empty_input():
-    """Test that parser handles empty input gracefully."""
-    pass
+describe('CK3Parser', () => {
+    describe('parse()', () => {
+        it('should return a ROOT node for empty input', () => {
+            // ...
+        });
+    });
+});
 
-def test_scope_validation_detects_invalid_transition():
-    """Test scope validator catches invalid transitions."""
-    pass
-
-class TestCompletionProvider:
-    """Tests for completion provider."""
-    
-    def test_provides_keyword_completions(self):
-        pass
-    
-    def test_filters_by_context(self):
-        pass
+describe('Style Checks', () => {
+    describe('checkIndentation()', () => {
+        it('should flag space indentation when tabs preferred', () => {
+            // ...
+        });
+    });
+});
 ```
 
 ## Unit Test Patterns
 
 ### Basic Unit Test Structure
 
-```python
-def test_feature():
-    """Clear description of what is being tested."""
-    # Arrange: Set up test data
-    input_data = "test input"
-    expected_output = "expected result"
-    
-    # Act: Execute the code under test
-    actual_output = function_under_test(input_data)
-    
-    # Assert: Verify the results
-    assert actual_output == expected_output
+```typescript
+import * as assert from 'assert';
+import { CK3Parser, NodeType } from '../../server/core/parser';
+
+describe('CK3Parser', () => {
+    let parser: CK3Parser;
+
+    beforeEach(() => {
+        parser = new CK3Parser();
+    });
+
+    it('should parse key = string_value', () => {
+        // Arrange
+        const input = 'name = my_event';
+
+        // Act
+        const result = parser.parse(input);
+
+        // Assert
+        const node = result.ast.children![0];
+        assert.strictEqual(node.type, NodeType.ASSIGNMENT);
+        assert.strictEqual(node.key, 'name');
+        assert.strictEqual(node.value, 'my_event');
+    });
+});
 ```
 
-### Testing with Fixtures
+### Setup with beforeEach and Helper Functions
 
-```python
-@pytest.fixture
-def parser():
-    """Provide a configured CK3Parser instance."""
-    return CK3Parser()
+```typescript
+import * as assert from 'assert';
+import {
+    checkIndentation,
+    DEFAULT_STYLE_CONFIG,
+    StyleConfig,
+} from '../../server/ck3/validation/style-checks';
+import { CK3Parser, ASTNode } from '../../server/core/parser';
 
-@pytest.fixture
-def sample_script():
-    """Provide sample CK3 script for testing."""
-    return """
-    namespace = test_mod
-    
-    test_event = {
-        type = character_event
-        title = test_event.title
-    }
-    """
+function makeConfig(overrides: Partial<StyleConfig> = {}): StyleConfig {
+    return { ...DEFAULT_STYLE_CONFIG, ...overrides };
+}
 
-def test_parse_event(parser, sample_script):
-    """Test parsing of a complete event."""
-    ast = parser.parse_text(sample_script)
-    
-    assert ast is not None
-    assert len(ast.events) == 1
-    assert ast.events[0].name == "test_event"
+function parseAST(text: string): ASTNode {
+    const parser = new CK3Parser();
+    return parser.parse(text).ast;
+}
+
+describe('Style Checks', () => {
+    describe('checkIndentation()', () => {
+        it('should flag space indentation when tabs preferred', () => {
+            const text = '    key = value';
+            const diags = checkIndentation(text, makeConfig({ preferTabs: true }));
+            assert.ok(diags.length > 0, 'Should flag space indentation');
+            assert.ok(diags.some((d) => d.code === 'CK3303'));
+        });
+
+        it('should return empty when indentation checking disabled', () => {
+            const text = '    key = value';
+            const diags = checkIndentation(text, makeConfig({ indentation: false }));
+            assert.strictEqual(diags.length, 0);
+        });
+    });
+});
 ```
 
-### Parametrized Tests
+### Parametric Tests (Loop-Driven)
 
 Use for testing multiple similar cases:
 
-```python
-@pytest.mark.parametrize("input_code,expected_scope", [
-    ("root", "character"),
-    ("root.liege", "character"),
-    ("root.capital_province", "province"),
-    ("root.primary_title", "title"),
-])
-def test_scope_resolution(input_code, expected_scope):
-    """Test scope resolution for various expressions."""
-    tracker = ScopeTracker(initial_scope="character")
-    result = tracker.resolve_scope(input_code)
-    
-    assert result == expected_scope
+```typescript
+describe('scope resolution', () => {
+    const cases = [
+        { input: 'root', expected: 'character' },
+        { input: 'root.liege', expected: 'character' },
+        { input: 'root.capital_province', expected: 'province' },
+        { input: 'root.primary_title', expected: 'title' },
+    ];
 
+    for (const { input, expected } of cases) {
+        it(`should resolve "${input}" to scope "${expected}"`, () => {
+            const result = resolveScope(input, 'character');
+            assert.strictEqual(result, expected);
+        });
+    }
+});
 
-@pytest.mark.parametrize("trait_name,is_valid", [
-    ("brave", True),
-    ("craven", True),
-    ("not_a_real_trait", False),
-    ("", False),
-])
-def test_trait_validation(trait_name, is_valid):
-    """Test trait name validation."""
-    validator = TraitValidator()
-    result = validator.is_valid_trait(trait_name)
-    
-    assert result == is_valid
+describe('trait validation', () => {
+    const validTraits = ['brave', 'craven', 'just', 'arbitrary'];
+    const invalidTraits = ['not_a_real_trait', ''];
+
+    for (const trait of validTraits) {
+        it(`should accept valid trait "${trait}"`, () => {
+            assert.strictEqual(isValidTrait(trait), true);
+        });
+    }
+
+    for (const trait of invalidTraits) {
+        it(`should reject invalid trait "${trait}"`, () => {
+            assert.strictEqual(isValidTrait(trait), false);
+        });
+    }
+});
 ```
 
-### Testing Exceptions
+### Testing Error Conditions
 
-```python
-def test_parser_raises_on_invalid_syntax():
-    """Test that parser raises SyntaxError for invalid syntax."""
-    parser = CK3Parser()
-    invalid_code = "namespace = { { {"
-    
-    with pytest.raises(SyntaxError) as exc_info:
-        parser.parse_text(invalid_code)
-    
-    assert "unexpected token" in str(exc_info.value).lower()
+```typescript
+describe('error handling', () => {
+    let parser: CK3Parser;
 
-def test_validator_handles_none_gracefully():
-    """Test that validator handles None input without crashing."""
-    validator = ScopeValidator()
-    
-    # Should not raise, should return empty list
-    result = validator.validate(None)
-    
-    assert result == []
+    beforeEach(() => {
+        parser = new CK3Parser();
+    });
+
+    it('should record parse errors for invalid syntax', () => {
+        const result = parser.parse('namespace = { { {');
+        assert.ok(result.errors.length > 0, 'Should have parse errors');
+    });
+
+    it('should handle null input gracefully', () => {
+        const converter = new LogDiagnosticConverter(mockConnection(), []);
+        const diag = converter.convertToDiagnostic(
+            makeResult({ sourceFile: undefined })
+        );
+        assert.strictEqual(diag, null);
+    });
+});
 ```
 
 ## Integration Test Patterns
 
-### Testing LSP Handlers
+### Testing with VS Code Instance
 
-```python
-@pytest.mark.asyncio
-async def test_completion_handler():
-    """Integration test for completion handler."""
-    # Create test server
-    server = CK3LanguageServer()
-    
-    # Simulate document opening
-    uri = "file:///test.txt"
-    text = "namespace = test\n"
-    
-    await server.did_open(uri, text)
-    
-    # Request completions
-    params = CompletionParams(
-        text_document=TextDocumentIdentifier(uri=uri),
-        position=Position(line=0, character=10)
-    )
-    
-    result = await completion_handler(server, params)
-    
-    assert result is not None
-    assert len(result.items) > 0
-    assert any(item.label == "namespace" for item in result.items)
-```
+Integration tests launch a VS Code instance and test the full extension:
 
-### Testing Full Workflows
+```typescript
+import * as vscode from 'vscode';
+import * as assert from 'assert';
 
-```python
-@pytest.mark.integration
-@pytest.mark.asyncio
-async def test_edit_and_validate_workflow():
-    """Test complete edit and validation workflow."""
-    server = CK3LanguageServer()
-    uri = "file:///test.txt"
-    
-    # 1. Open document
-    await server.did_open(uri, "namespace = test")
-    
-    # 2. Edit document
-    await server.did_change(uri, "namespace = test\nadd_trait = brave")
-    
-    # 3. Get diagnostics
-    diagnostics = server.get_diagnostics(uri)
-    
-    # 4. Get completions
-    completions = await server.completion(uri, line=1, char=10)
-    
-    # 5. Get hover
-    hover = await server.hover(uri, line=1, char=5)
-    
-    # Verify all features work
-    assert len(diagnostics) == 0
-    assert len(completions.items) > 0
-    assert hover is not None
-```
-
-## Async Test Patterns
-
-### Basic Async Test
-
-```python
-@pytest.mark.asyncio
-async def test_async_function():
-    """Test asynchronous function."""
-    result = await async_function()
-    assert result is not None
-```
-
-### Testing Concurrent Operations
-
-```python
-@pytest.mark.asyncio
-async def test_concurrent_validations():
-    """Test that multiple validations can run concurrently."""
-    validator = AsyncValidator()
-    
-    # Start multiple validations
-    tasks = [
-        validator.validate(doc1),
-        validator.validate(doc2),
-        validator.validate(doc3),
-    ]
-    
-    # Wait for all to complete
-    results = await asyncio.gather(*tasks)
-    
-    assert len(results) == 3
-    assert all(r is not None for r in results)
+describe('Extension Integration', () => {
+    it('should activate the extension', async () => {
+        const ext = vscode.extensions.getExtension('publisher.ck3-language-support');
+        assert.ok(ext, 'Extension should be found');
+        await ext!.activate();
+        assert.strictEqual(ext!.isActive, true);
+    });
+});
 ```
 
 ## Test Data Management
 
-### Using Fixtures Directory
+### Using Helper Functions for Test Data
 
-```python
-import pytest
-from pathlib import Path
+```typescript
+import { DiagnosticSeverity } from 'vscode-languageserver/node';
+import { LogAnalysisResult } from '../../server/log/analyzer';
 
-@pytest.fixture
-def fixtures_dir():
-    """Path to fixtures directory."""
-    return Path(__file__).parent / "fixtures"
-
-def test_with_fixture_file(fixtures_dir):
-    """Test using a fixture file."""
-    test_file = fixtures_dir / "sample_events.txt"
-    content = test_file.read_text()
-    
-    result = process_file(content)
-    assert result is not None
+function makeResult(overrides: Partial<LogAnalysisResult> = {}): LogAnalysisResult {
+    return {
+        severity: DiagnosticSeverity.Error,
+        category: 'unknown_effect',
+        message: "Unknown effect 'add_glod'",
+        rawLine: 'Unknown effect: add_glod',
+        timestamp: Date.now(),
+        sourceFile: 'events/my_event.txt',
+        lineNumber: 45,
+        extractedValues: { group0: 'add_glod' },
+        suggestions: ['add_gold'],
+        codeActionType: 'suggest_similar_effect',
+        ...overrides,
+    };
+}
 ```
 
-### Temporary Files
+## Mocking and Stubbing
 
-```python
-def test_with_temp_file(tmp_path):
-    """Test using temporary file."""
-    # tmp_path is a pytest fixture providing a temporary directory
-    test_file = tmp_path / "test.txt"
-    test_file.write_text("namespace = test")
-    
-    result = parse_file(str(test_file))
-    
-    assert result is not None
-```
+### Lightweight Mock Objects
 
-## Mocking and Patching
+```typescript
+function mockConnection(): {
+    sendDiagnostics: (p: { uri: string; diagnostics: unknown[] }) => void;
+    _published: Array<{ uri: string; diagnostics: unknown[] }>;
+} {
+    const published: Array<{ uri: string; diagnostics: unknown[] }> = [];
+    return {
+        sendDiagnostics: (params: { uri: string; diagnostics: unknown[] }) => {
+            published.push(params);
+        },
+        _published: published,
+    };
+}
 
-### Mocking External Dependencies
+describe('LogDiagnosticConverter', () => {
+    it('sends empty diagnostics for all tracked URIs', () => {
+        const conn = mockConnection();
+        const converter = new LogDiagnosticConverter(conn, []);
 
-```python
-from unittest.mock import Mock, patch
+        const diag = converter.convertToDiagnostic(makeResult());
+        converter.publishDiagnostics('file:///test.txt', [diag!]);
 
-def test_with_mock():
-    """Test with mocked dependency."""
-    # Create mock
-    mock_indexer = Mock()
-    mock_indexer.find_symbol.return_value = Symbol("test")
-    
-    # Use mock
-    validator = ScopeValidator(indexer=mock_indexer)
-    result = validator.validate_symbol("test")
-    
-    # Verify mock was called
-    mock_indexer.find_symbol.assert_called_once_with("test")
+        converter.clearAllLogDiagnostics();
 
-@patch('pychivalry.external_api.call')
-def test_with_patch(mock_call):
-    """Test with patched function."""
-    mock_call.return_value = {"status": "ok"}
-    
-    result = function_that_calls_api()
-    
-    assert result["status"] == "ok"
-    mock_call.assert_called()
+        const cleared = conn._published.filter(
+            (p: { diagnostics: unknown[] }) => p.diagnostics.length === 0
+        );
+        assert.ok(cleared.length > 0, 'Should send empty diagnostics');
+    });
+});
 ```
 
 ## Performance Testing
 
-### Benchmarking with pytest-benchmark
+### Benchmarking with Timing
 
-```python
-def test_parser_performance(benchmark):
-    """Benchmark parser performance."""
-    parser = CK3Parser()
-    code = generate_large_script(1000)  # 1000 events
-    
-    result = benchmark(parser.parse_text, code)
-    
-    assert result is not None
+```typescript
+describe('performance', () => {
+    it('should parse large files within time budget', () => {
+        const parser = new CK3Parser();
+        const largeFile = 'has_trait = brave\n'.repeat(10000);
 
-@pytest.mark.benchmark
-def test_completion_speed(benchmark):
-    """Ensure completions are fast enough."""
-    provider = CompletionProvider()
-    document = create_test_document()
-    
-    result = benchmark(provider.provide, document, Position(0, 10))
-    
-    # Should complete in < 100ms (benchmark will measure)
-    assert len(result.items) > 0
-```
+        const start = process.hrtime.bigint();
+        const result = parser.parse(largeFile);
+        const elapsed = Number(process.hrtime.bigint() - start) / 1e6; // ms
 
-### Testing Resource Usage
-
-```python
-import psutil
-import os
-
-def test_memory_usage():
-    """Test that memory usage stays reasonable."""
-    process = psutil.Process(os.getpid())
-    
-    initial_memory = process.memory_info().rss / 1024 / 1024  # MB
-    
-    # Perform memory-intensive operation
-    parser = CK3Parser()
-    for _ in range(100):
-        parser.parse_text(large_script)
-    
-    final_memory = process.memory_info().rss / 1024 / 1024  # MB
-    memory_increase = final_memory - initial_memory
-    
-    # Memory increase should be less than 100 MB
-    assert memory_increase < 100
+        assert.ok(result.ast !== null);
+        assert.ok(elapsed < 1000, `Parsing took ${elapsed}ms, expected < 1000ms`);
+    });
+});
 ```
 
 ## Test Coverage
@@ -386,116 +300,75 @@ def test_memory_usage():
 ### Running with Coverage
 
 ```bash
-# Run tests with coverage
-pytest --cov=pychivalry --cov-report=html tests/
+# Run unit tests (fast, no VS Code instance)
+npm run test:unit
 
-# View report
-open htmlcov/index.html
+# Run all tests
+npm test
 ```
 
 ### Coverage Goals
 
 - **Parser:** 90%+ coverage
-- **Validators:** 85%+ coverage  
+- **Validators:** 85%+ coverage
 - **LSP Handlers:** 80%+ coverage
 - **Utilities:** 75%+ coverage
 
-### Identifying Gaps
+## Running Tests
 
-```python
-# Use coverage to find untested code
-pytest --cov=pychivalry --cov-report=term-missing tests/
-
-# Focus on untested lines
-```
-
-## Test Markers
-
-### Custom Markers
-
-```python
-# In pytest.ini or pyproject.toml
-[tool.pytest.ini_options]
-markers = [
-    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
-    "integration: marks tests as integration tests",
-    "performance: marks performance tests",
-]
-
-# Use in tests
-@pytest.mark.slow
-def test_large_file_parsing():
-    """Test parsing of very large file."""
-    pass
-
-@pytest.mark.integration
-@pytest.mark.asyncio
-async def test_full_server():
-    """Integration test for full server."""
-    pass
-```
-
-### Running Specific Tests
+### Quick Reference
 
 ```bash
-# Run only integration tests
-pytest -m integration
+# Run all tests (pretest + full suite)
+npm test
 
-# Skip slow tests
-pytest -m "not slow"
+# Run unit tests only (fast)
+npm run test:unit
+
+# Run integration tests (launches VS Code)
+npm run test:integration
+
+# Run without linting
+npm run test:quick
+
+# Run specific test file
+npx mocha out/test/unit/parser.test.js --timeout 10000
 
 # Run tests matching pattern
-pytest -k "completion" tests/
+npm run test:unit -- --grep "CK3Parser"
+
+# Via Taskfile (from workspace root)
+task test:unit
+task test
+task test:quick
+
+# Stop on first failure
+npm run test:unit -- --bail
 ```
 
 ## Best Practices Summary
 
-### ✅ Do
+### Do
 
-- Write descriptive test names and docstrings
-- Test one thing per test function
-- Use fixtures for common setup
-- Use parametrize for similar test cases
+- Write descriptive test names using `it('should ...')` format
+- Test one behavior per `it` block
+- Use `beforeEach` for shared setup
+- Use loop-driven `it` blocks for similar test cases
 - Test edge cases and error conditions
-- Keep tests fast (mock expensive operations)
-- Organize tests logically
-- Aim for high coverage on critical paths
+- Keep tests fast (unit tests need no VS Code instance)
+- Use `assert.strictEqual` for value comparisons
+- Use `assert.deepStrictEqual` for object/array comparisons
+- Use `assert.ok` for truthiness with descriptive messages
+- Organize tests logically with nested `describe` blocks
 - Write tests before fixing bugs
 
-### ❌ Don't
+### Don't
 
 - Write tests that depend on other tests
-- Use sleep() in tests (use async properly)
+- Use `setTimeout` in tests (use proper async patterns)
 - Test implementation details (test behavior)
 - Ignore flaky tests (fix them)
 - Skip writing tests for "simple" code
 - Let tests become unmaintainable
 - Forget to test error paths
-
-## Quick Reference
-
-```bash
-# Run all tests
-pytest tests/ -v
-
-# Run specific file
-pytest tests/test_parser.py -v
-
-# Run specific test
-pytest tests/test_parser.py::test_parse_event -v
-
-# Run with coverage
-pytest tests/ --cov=pychivalry
-
-# Run fast tests only
-pytest tests/ -m "not slow"
-
-# Show output (print statements)
-pytest tests/ -s
-
-# Stop on first failure
-pytest tests/ -x
-
-# Run last failed tests
-pytest tests/ --lf
-```
+- Use `assert.equal` (use `assert.strictEqual` instead)

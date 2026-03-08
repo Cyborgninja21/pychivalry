@@ -1,6 +1,6 @@
 # Debugging LSP Server Issues
 
-**Purpose:** Comprehensive guide for troubleshooting Language Server Protocol server issues in pychivalry.
+**Purpose:** Comprehensive guide for troubleshooting Language Server Protocol server issues in the CK3 Language Support extension.
 
 **Use this when:** LSP server is not starting, crashing, not responding, or behaving incorrectly.
 
@@ -11,7 +11,7 @@
 ### 1. Check Server Status
 
 In VS Code:
-1. Open Output panel (View → Output)
+1. Open Output panel (View -> Output)
 2. Select "CK3 Language Server" from dropdown
 3. Look for startup messages or errors
 
@@ -29,14 +29,15 @@ Restart VS Code and check Output panel for detailed logs.
 ### 3. Verify Installation
 
 ```bash
-# Check Python version
-python --version  # Should be 3.9+
+# Check Node.js version
+node --version  # Should be 18+
 
-# Check pychivalry is installed
-python -c "import pychivalry; print(pychivalry.__version__)"
+# Verify extension builds
+cd vscode-extension
+npm run compile
 
-# Test server directly
-python -m pychivalry.server --version
+# Run unit tests
+npm run test:unit
 ```
 
 ## Common Issues and Solutions
@@ -47,44 +48,30 @@ python -m pychivalry.server --version
 
 **Possible Causes:**
 
-1. **Python not found**
-   ```json
-   // Set correct Python path in settings
-   {
-     "ck3LanguageServer.pythonPath": "/path/to/python"
-   }
-   ```
-
-2. **pychivalry not installed**
+1. **Extension not compiled**
    ```bash
-   pip install -e .
-   # Or
-   pip install pychivalry
+   cd vscode-extension
+   npm run compile
    ```
 
-3. **Wrong Python environment**
+2. **Dependencies not installed**
    ```bash
-   # Ensure you're in the correct virtual environment
-   which python
-   # Should point to environment with pychivalry
+   cd vscode-extension
+   npm install
    ```
 
-4. **Extension not activated**
-   - Check that `.txt` files trigger activation
+3. **Extension not activated**
+   - Check that CK3 script files trigger activation
    - Open a CK3 script file
    - Run command: "CK3 Language Server: Restart"
 
 **Debug Steps:**
 
-1. Check VS Code Developer Tools (Help → Toggle Developer Tools)
+1. Check VS Code Developer Tools (Help -> Toggle Developer Tools)
 2. Look for extension errors in Console tab
-3. Try starting server manually:
+3. Verify the server bundle exists:
    ```bash
-   python -m pychivalry.server
-   ```
-4. Check if server process is running:
-   ```bash
-   ps aux | grep pychivalry
+   ls vscode-extension/dist/server-main.js
    ```
 
 ### Server Crashes on Startup
@@ -93,26 +80,18 @@ python -m pychivalry.server --version
 
 **Check Output panel for errors:**
 
-**Error: "ModuleNotFoundError"**
+**Error: Missing module**
 ```bash
-# Missing dependency
-pip install -e ".[dev]"
+cd vscode-extension
+npm install
+npm run compile
 ```
-
-**Error: "ImportError"**
-```bash
-# Check all dependencies installed
-pip list | grep -E "pygls|pyyaml"
-```
-
-**Error: "SyntaxError"**
-- Python version too old
-- Check: `python --version` (need 3.9+)
 
 **Debug with direct execution:**
 ```bash
-# Run server with verbose output
-python -m pychivalry.server --log-level DEBUG
+# Check TypeScript compilation
+cd vscode-extension
+npx tsc --noEmit
 ```
 
 ### Server Crashes During Operation
@@ -122,15 +101,13 @@ python -m pychivalry.server --log-level DEBUG
 **Common Causes:**
 
 1. **Unhandled exception in handler**
-   - Check Output panel for traceback
+   - Check Output panel for stack traces
    - Look for the failing LSP method
    - Fix exception in handler code
 
 2. **Memory leak**
-   ```bash
-   # Monitor memory usage
-   python -m memory_profiler server.py
-   ```
+   - Monitor memory usage in VS Code Developer Tools
+   - Check for unbounded caches or document references
 
 3. **Infinite loop**
    - Check for recursive calls
@@ -138,27 +115,30 @@ python -m pychivalry.server --log-level DEBUG
 
 **Debug Steps:**
 
-1. Enable Python logging:
-   ```python
-   import logging
-   logging.basicConfig(level=logging.DEBUG)
+1. Enable verbose server logging:
+   ```json
+   {
+     "ck3LanguageServer.trace.server": "verbose"
+   }
    ```
 
-2. Add exception handlers:
-   ```python
-   @server.feature(TEXT_DOCUMENT_COMPLETION)
-   async def completion(params):
-       try:
-           # handler code
-       except Exception as e:
-           logger.exception("Completion failed")
-           return None
+2. Add error logging in handler code:
+   ```typescript
+   import { logger } from '../utils/logger';
+
+   function handleRequest(params: RequestParams): Result | null {
+       try {
+           // handler code
+       } catch (e) {
+           logger.error('Request failed', e);
+           return null;
+       }
+   }
    ```
 
-3. Use Python debugger:
-   ```python
-   import pdb; pdb.set_trace()
-   ```
+3. Use VS Code debugger:
+   - Set breakpoints in server code
+   - Use "Attach to Server" launch configuration
 
 ### Features Not Working
 
@@ -171,26 +151,28 @@ python -m pychivalry.server --log-level DEBUG
    - Verify capabilities are advertised
 
 2. **Check if handler is registered**
-   ```python
-   # Ensure decorator is present
-   @server.feature(TEXT_DOCUMENT_COMPLETION)
-   async def completion_handler(params):
-       pass
+   ```typescript
+   // Ensure capability is declared in server.ts
+   connection.onCompletion((params) => {
+       return completionProvider.provide(params);
+   });
    ```
 
 3. **Test handler directly**
-   ```python
-   # Create test
-   @pytest.mark.asyncio
-   async def test_completion():
-       server = CK3LanguageServer()
-       result = await completion_handler(server, test_params)
-       assert result is not None
+   ```typescript
+   // Create a unit test
+   describe('CompletionProvider', () => {
+       it('should provide completions', () => {
+           const provider = new CompletionProvider();
+           const result = provider.provide(testDocument, testPosition);
+           assert.ok(result !== null);
+       });
+   });
    ```
 
 4. **Check LSP protocol**
    - Use VS Code LSP Inspector
-   - Help → Toggle Developer Tools → Console
+   - Help -> Toggle Developer Tools -> Console
    - Filter for LSP messages
 
 ### Diagnostics Not Appearing
@@ -200,37 +182,36 @@ python -m pychivalry.server --log-level DEBUG
 **Check:**
 
 1. **Is validation enabled?**
-   ```python
-   # Ensure publishDiagnostics is called
-   server.publish_diagnostics(uri, diagnostics)
+   ```typescript
+   // Ensure publishDiagnostics is called
+   connection.sendDiagnostics({ uri, diagnostics });
    ```
 
 2. **Are diagnostics generated?**
-   ```python
-   # Add logging
-   logger.info(f"Generated {len(diagnostics)} diagnostics")
+   ```typescript
+   // Add logging
+   logger.info(`Generated ${diagnostics.length} diagnostics`);
    ```
 
 3. **Check diagnostic format**
-   ```python
-   # Must be proper LSP Diagnostic objects
-   from lsprotocol.types import Diagnostic, Range, Position
-   
-   diag = Diagnostic(
-       range=Range(
-           start=Position(line=0, character=0),
-           end=Position(line=0, character=10)
-       ),
-       message="Error message",
-       severity=DiagnosticSeverity.Error
-   )
+   ```typescript
+   import { Diagnostic, Range, Position, DiagnosticSeverity } from 'vscode-languageserver/node';
+
+   const diag: Diagnostic = {
+       range: {
+           start: { line: 0, character: 0 },
+           end: { line: 0, character: 10 },
+       },
+       message: 'Error message',
+       severity: DiagnosticSeverity.Error,
+   };
    ```
 
 4. **Test validation directly**
-   ```python
-   validator = DiagnosticsEngine()
-   diags = validator.validate(document)
-   print(diags)
+   ```typescript
+   const engine = new DiagnosticsEngine();
+   const diags = engine.validate(document);
+   console.log(diags);
    ```
 
 ### Slow Performance
@@ -239,20 +220,11 @@ python -m pychivalry.server --log-level DEBUG
 
 **Profile the code:**
 
-```python
-import cProfile
-import pstats
+Use the VS Code Performance tab or Node.js inspector:
 
-profiler = cProfile.Profile()
-profiler.enable()
-
-# Run the slow operation
-result = slow_function()
-
-profiler.disable()
-stats = pstats.Stats(profiler)
-stats.sort_stats('cumulative')
-stats.print_stats(30)
+```bash
+# Start server with inspector
+node --inspect dist/server-main.js
 ```
 
 **Common bottlenecks:**
@@ -274,16 +246,14 @@ stats.print_stats(30)
    - Don't block event loop
 
 **Monitor with:**
-```python
-import time
-
-@functools.wraps(func)
-async def timed(func):
-    start = time.perf_counter()
-    result = await func(*args, **kwargs)
-    elapsed = time.perf_counter() - start
-    logger.info(f"{func.__name__}: {elapsed:.3f}s")
-    return result
+```typescript
+function timed<T>(label: string, fn: () => T): T {
+    const start = process.hrtime.bigint();
+    const result = fn();
+    const elapsed = Number(process.hrtime.bigint() - start) / 1e6;
+    logger.info(`${label}: ${elapsed.toFixed(3)}ms`);
+    return result;
+}
 ```
 
 ### Document Synchronization Issues
@@ -297,11 +267,11 @@ async def timed(func):
    - Verify version numbers
 
 2. **Document cache**
-   ```python
-   # Check document store
-   document = server.workspace.get_document(uri)
-   print(f"Version: {document.version}")
-   print(f"Content length: {len(document.source)}")
+   ```typescript
+   // Check document store
+   const document = documents.get(uri);
+   logger.info(`Version: ${document?.version}`);
+   logger.info(`Content length: ${document?.getText().length}`);
    ```
 
 3. **URI format**
@@ -314,20 +284,19 @@ async def timed(func):
 
 **Debug:**
 
-1. **Check stdio/socket**
-   ```python
-   # Server uses stdio by default
-   if __name__ == "__main__":
-       server.start_io()  # Ensure this is called
+1. **Check server transport**
+   ```typescript
+   // Server uses Node IPC by default
+   const connection = createConnection(ProposedFeatures.all);
    ```
 
 2. **Check client configuration**
    ```typescript
    // In extension.ts
-   const serverOptions = {
-       command: pythonPath,
-       args: ["-m", "pychivalry.server"],
-       // Ensure correct
+   const serverModule = context.asAbsolutePath(path.join('dist', 'server-main.js'));
+   const serverOptions: ServerOptions = {
+       run: { module: serverModule, transport: TransportKind.ipc },
+       debug: { module: serverModule, transport: TransportKind.ipc },
    };
    ```
 
@@ -339,22 +308,25 @@ async def timed(func):
 
 ### VS Code Developer Tools
 
-1. Help → Toggle Developer Tools
+1. Help -> Toggle Developer Tools
 2. Console tab: JavaScript errors
 3. Network tab: LSP messages
 4. Sources tab: Set breakpoints in extension code
 
-### Python Debugger
+### Node.js Debugger
 
-```python
-# Add to server code
-import debugpy
-debugpy.listen(5678)
-print("Waiting for debugger...")
-debugpy.wait_for_client()
+Use the VS Code launch configuration to attach to the server:
+
+```json
+{
+    "name": "Attach to Server",
+    "type": "node",
+    "request": "attach",
+    "port": 6009,
+    "restart": true,
+    "outFiles": ["${workspaceFolder}/dist/**/*.js"]
+}
 ```
-
-Then attach VS Code debugger to port 5678.
 
 ### LSP Inspector
 
@@ -364,36 +336,25 @@ Then attach VS Code debugger to port 5678.
 
 ### Logging
 
-```python
-import logging
+```typescript
+import { logger } from '../utils/logger';
 
-# Set up logging
-logging.basicConfig(
-    level=logging.DEBUG,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('lsp_server.log'),
-        logging.StreamHandler()
-    ]
-)
-
-logger = logging.getLogger(__name__)
-
-# Use throughout code
-logger.debug("Processing completion request")
-logger.info("Server started successfully")
-logger.warning("Document not found in cache")
-logger.error("Validation failed", exc_info=True)
+// Use throughout code
+logger.debug('Processing completion request');
+logger.info('Server started successfully');
+logger.warn('Document not found in cache');
+logger.error('Validation failed', error);
 ```
 
 ## Testing Checklist
 
 When debugging, systematically check:
 
-- [ ] Python version is 3.9+
-- [ ] pychivalry is installed correctly
-- [ ] Extension is activated (open a .txt file)
-- [ ] Server process is running (check process list)
+- [ ] Node.js version is 18+
+- [ ] Dependencies installed (`npm install`)
+- [ ] Extension compiles (`npm run compile`)
+- [ ] Unit tests pass (`npm run test:unit`)
+- [ ] Extension is activated (open a CK3 script file)
 - [ ] No errors in Output panel
 - [ ] Verbose logging is enabled
 - [ ] Server capabilities are advertised
@@ -409,7 +370,7 @@ When debugging, systematically check:
 If issues persist:
 
 1. **Gather information:**
-   - Python version: `python --version`
+   - Node.js version: `node --version`
    - VS Code version
    - Extension version
    - Operating system
@@ -433,16 +394,16 @@ If issues persist:
 
 ```bash
 # Restart server
-Command Palette → "CK3 Language Server: Restart"
+Command Palette -> "CK3 Language Server: Restart"
 
 # Check logs
-View → Output → "CK3 Language Server"
+View -> Output -> "CK3 Language Server"
 
-# Test server
-python -m pychivalry.server --version
+# Verify build
+cd vscode-extension && npm run compile
 
 # Run tests
-pytest tests/ -v
+npm run test:unit
 
 # Enable debug logging
 # Add to settings.json:

@@ -7,87 +7,92 @@
   "subtasks": [
     {
       "id": "1",
-      "content": "Update `.github/copilot-instructions.md`: remove Python 3.9+, pytest, Black, flake8, mypy, pygls, pip, setuptools, pyproject.toml references from Development Environment, Testing, and Folder Structure sections; replace with TypeScript/Mocha/ESLint/Prettier equivalents",
-      "status": "pending"
+      "content": "Read existing unit tests (`vscode-extension/src/test/unit/parser.test.ts`, `log-diagnostics.test.ts`, `style-checks.test.ts`) to extract Mocha/assert patterns for use as replacement examples",
+      "status": "completed"
     },
     {
       "id": "2",
-      "content": "Remove the 'Python (Historical)' section (lines 77–83) from `kanban-development-guideline.md`",
-      "status": "pending"
+      "content": "Delete `.github/skills/pytest-testing-patterns` and create `.github/skills/mocha-testing-patterns` with TypeScript/Mocha testing patterns (describe/it/assert, beforeEach, sinon, parametric, CLI commands) derived from existing unit tests",
+      "status": "completed"
     },
     {
       "id": "3",
-      "content": "Remove `Bash(pytest:*)`, `Bash(python:*)`, and the hardcoded PowerShell `test_paradox_checks.py` permission entry from `.claude/settings.local.json`",
+      "content": "Rewrite `.github/prompts/Test Writing Best Practices.prompt.md` to replace all pytest examples with TypeScript/Mocha equivalents (assert.strictEqual, assert.deepStrictEqual, describe/it blocks, Mocha CLI commands, coverage goals)",
       "status": "pending"
     },
     {
       "id": "4",
-      "content": "Delete `.github/skills/pytest-testing-patterns` and create `.github/skills/mocha-testing-patterns` with TypeScript/Mocha testing patterns (describe/it/assert, beforeEach setup, async patterns) derived from existing unit tests in `vscode-extension/src/test/unit/`",
+      "content": "Update `.github/prompts/Debugging LSP Server Issues.prompt.md` to remove pytest test examples, Python logging setup, pip install, and python -m references; replace with TypeScript/Mocha debugging workflows",
       "status": "pending"
     },
     {
       "id": "5",
-      "content": "Update `.github/skills/lsp-feature-debugging`: replace pytest reproducer patterns and `@pytest.mark.asyncio` with Mocha test patterns and TypeScript debugging steps",
+      "content": "Update `.github/prompts/LSP Feature Implementation.prompt.md` to replace @pytest.fixture and @pytest.mark.asyncio examples with Mocha beforeEach/describe/it patterns",
       "status": "pending"
     },
     {
       "id": "6",
-      "content": "Update `.github/skills/ck3-validation-debugging`: replace `def test_specific_validation_issue()` pytest patterns with TypeScript/Mocha equivalents",
+      "content": "Update `.github/prompts/Adding New CK3 Language Features.prompt.md` to replace Python code snippets and pytest.mark test examples with TypeScript equivalents",
       "status": "pending"
     },
     {
       "id": "7",
-      "content": "Update `.github/skills/lsp-performance-optimization`: replace `cProfile`/`memory_profiler`/`pytest-benchmark` references with Node.js profiling tools and Mocha-based performance test patterns",
+      "content": "Update `.github/prompts/Branch Merge Assistant.prompt.md` to replace `pytest tests/ -v` and `flake8`/`mypy` commands with `npm run test:unit`, `npm run lint`, `npm run format-check`",
       "status": "pending"
     },
     {
       "id": "8",
-      "content": "Update `.github/skills/tool-list.md`: remove Python environment tool entries (`configure_python_environment`, `install_python_packages`, Pylance MCP tools)",
+      "content": "Update `.github/prompts/gh pr review.prompt.md` to replace `pytest tests/` with `npm run test:unit` in the code review workflow",
       "status": "pending"
     },
     {
       "id": "9",
-      "content": "Rewrite `.github/prompts/Test Writing Best Practices.prompt.md` from pytest to TypeScript/Mocha with describe/it/assert.strictEqual/assert.deepStrictEqual patterns matching project conventions",
+      "content": "Update `.github/prompts/Version Update Assistant.prompt.md` to remove pyproject.toml, python -m build, python -m twine, and pychivalry/__init__.py references",
       "status": "pending"
     },
     {
       "id": "10",
-      "content": "Update `.github/prompts/Debugging LSP Server Issues.prompt.md`: replace `pytest tests/ -v` and `python -m pychivalry.server` with TypeScript equivalents (`npm test`, `npm run test:unit`)",
+      "content": "Update `.github/prompts/architecture_and_flow.md` to replace Python module names (server.py, parser.py, etc.) with TypeScript equivalents (server.ts, parser.ts, etc.) and update testing strategy section",
       "status": "pending"
     },
     {
       "id": "11",
-      "content": "Update `.github/prompts/Adding New CK3 Language Features.prompt.md`: replace `def test_*()`, `@pytest.mark.integration`, `@pytest.mark.asyncio` examples with Mocha describe/it patterns",
+      "content": "Update `.github/prompts/documentation_standard.md` to replace Python docstring standards with TSDoc/TypeScript documentation conventions",
       "status": "pending"
     },
     {
       "id": "12",
-      "content": "Update `.github/prompts/LSP Feature Implementation.prompt.md`: replace pygls handler patterns and pytest test structure with TypeScript LSP provider and Mocha test examples",
+      "content": "Update `.github/skills/lsp-feature-debugging` Step 8 to replace pytest reproduction example with a Mocha describe/it test block",
       "status": "pending"
     },
     {
       "id": "13",
-      "content": "Update `.github/prompts/Branch Merge Assistant.prompt.md`: replace `pytest tests/ -v`, `flake8 pychivalry/`, `mypy pychivalry/` final checks with `npm run lint`, `npm run format-check`, `npm test`",
+      "content": "Update `.github/skills/lsp-performance-optimization` to replace @pytest.mark.performance, cProfile, memory_profiler, and benchmark fixture references with TypeScript profiling approaches",
       "status": "pending"
     },
     {
       "id": "14",
-      "content": "Update `.github/prompts/Version Update Assistant.prompt.md`: remove `pyproject.toml`, `pychivalry/__init__.py`, `python -m build`, `pip install` references; keep only `vscode-extension/package.json` and VSIX packaging",
+      "content": "Update `.github/skills/ck3-validation-debugging` Step 9 to replace pytest-style test function and Python import examples with Mocha/TypeScript equivalents",
       "status": "pending"
     },
     {
       "id": "15",
-      "content": "Update `.github/prompts/documentation_standard.md`: replace Python docstring templates (module/function/class) with TSDoc/JSDoc conventions matching project style",
+      "content": "Update `.github/copilot-instructions.md` to remove Python 3.9+, pytest, Black, flake8, mypy, pygls, hypothesis sections; remove Python folder structure; ensure TypeScript-only content throughout",
       "status": "pending"
     },
     {
       "id": "16",
-      "content": "Update `.github/prompts/architecture_and_flow.md`: replace pytest references in testing strategy section with Mocha testing patterns",
+      "content": "Remove the 'Python (Historical)' section (lines 77-83) from `kanban-development-guideline.md`",
       "status": "pending"
     },
     {
       "id": "17",
-      "content": "Verify: grep all files in `.github/`, `kanban-development-guideline.md`, and `.claude/settings.local.json` for residual Python/pytest/pygls/flake8/mypy/Black references; fix any remaining occurrences",
+      "content": "Remove `Bash(pytest:*)`, `Bash(python:*)`, and the PowerShell `test_paradox_checks.py` entry from `.claude/settings.local.json`",
+      "status": "pending"
+    },
+    {
+      "id": "18",
+      "content": "Run `grep -ri` across `.github/`, `kanban-development-guideline.md`, and `.claude/settings.local.json` for pytest, pyproject, pygls, flake8, mypy, and 'python 3.9' to verify zero remaining Python references",
       "status": "pending"
     }
   ]

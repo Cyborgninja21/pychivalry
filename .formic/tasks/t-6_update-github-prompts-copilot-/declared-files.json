@@ -1,21 +1,21 @@
 {
   "exclusive": [
-    ".github/copilot-instructions.md",
-    "kanban-development-guideline.md",
-    ".github/skills/pytest-testing-patterns",
     ".github/skills/mocha-testing-patterns",
+    ".github/skills/pytest-testing-patterns",
     ".github/skills/lsp-feature-debugging",
-    ".github/skills/ck3-validation-debugging",
     ".github/skills/lsp-performance-optimization",
-    ".github/skills/tool-list.md",
+    ".github/skills/ck3-validation-debugging",
     ".github/prompts/Test Writing Best Practices.prompt.md",
     ".github/prompts/Debugging LSP Server Issues.prompt.md",
-    ".github/prompts/Adding New CK3 Language Features.prompt.md",
     ".github/prompts/LSP Feature Implementation.prompt.md",
+    ".github/prompts/Adding New CK3 Language Features.prompt.md",
     ".github/prompts/Branch Merge Assistant.prompt.md",
+    ".github/prompts/gh pr review.prompt.md",
     ".github/prompts/Version Update Assistant.prompt.md",
+    ".github/prompts/architecture_and_flow.md",
     ".github/prompts/documentation_standard.md",
-    ".github/prompts/architecture_and_flow.md"
+    ".github/copilot-instructions.md",
+    "kanban-development-guideline.md"
   ],
   "shared": [
     ".claude/settings.local.json"
