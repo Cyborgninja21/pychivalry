@@ -6,9 +6,9 @@ Thank you for your interest in contributing to pychivalry! This document provide
 
 ### Prerequisites
 
-- Python 3.9 or higher
+- Node.js 18 or higher
+- npm
 - Git
-- Node.js and npm (for VS Code extension development)
 
 ### Setting Up Development Environment
 
@@ -27,9 +27,10 @@ git clone https://github.com/YOUR_USERNAME/pychivalry.git
 cd pychivalry
 ```
 
-2. Install the package in development mode with dev dependencies:
+2. Install extension dependencies:
 ```bash
-pip install -e ".[dev]"
+cd vscode-extension
+npm install
 ```
 
 3. Install pre-commit hooks (recommended):
@@ -39,25 +40,16 @@ pre-commit install
 
 This will automatically run code formatters and linters before each commit, ensuring code quality and consistency.
 
-4. For VS Code extension development:
-```bash
-cd vscode-extension
-npm install
-```
-
 ### Pre-commit Hooks
 
 The project uses pre-commit hooks to automatically check and format code before commits. These hooks:
 
-- **Python:**
-  - Format code with Black
-  - Check code style with flake8
-  - Sort imports with isort
-  - Check for trailing whitespace and other issues
-
-- **TypeScript (VS Code extension):**
-  - Format code with Prettier
-  - Lint with ESLint
+- Fix trailing whitespace and ensure end-of-file newlines
+- Validate YAML and JSON files
+- Check for merge conflict markers
+- Normalize line endings to LF
+- Format TypeScript files with Prettier
+- Lint TypeScript files with ESLint (`--max-warnings=0`)
 
 **Manual execution:**
 ```bash
@@ -66,9 +58,6 @@ pre-commit run --all-files
 
 # Run on staged files only
 pre-commit run
-
-# Skip hooks for a specific commit (not recommended)
-git commit --no-verify -m "message"
 ```
 
 ### GitHub Copilot Support
@@ -105,35 +94,47 @@ git checkout -b feature/your-feature-name
 pre-commit run --all-files
 
 # Or run individual tools
-black pychivalry/ tests/
-flake8 pychivalry/ tests/
-isort pychivalry/ tests/
+cd vscode-extension
+npm run format
+npm run lint
 ```
 
 4. Run tests:
 ```bash
-pytest tests/ -v
+# Unit tests (fast, no VS Code instance)
+cd vscode-extension
+npm run test:unit
+
+# Full test suite (compiles + lints + tests)
+npm test
+```
+
+Or from the workspace root using the Taskfile:
+```bash
+task test:unit
+task test
 ```
 
 5. Commit your changes with a descriptive message:
 ```bash
-git commit -m "Add feature: description of your change"
+git commit -m "feat: description of your change"
 ```
 The pre-commit hooks will run automatically and fix most formatting issues.
 
 ### Code Style
 
-- Follow PEP 8 guidelines
-- Use Black for code formatting (line length: 100)
-- Write docstrings for all public functions and classes
-- Add type hints where appropriate
+- Follow the project TypeScript coding standards (strict mode, no `any`)
+- Use Prettier for code formatting (print width 100, 4-space indent, single quotes, semicolons)
+- Use ESLint for linting (`@typescript-eslint/recommended` rules)
+- File names: `kebab-case.ts`
+- Variables/functions: `camelCase`, types/interfaces: `PascalCase`, constants: `SCREAMING_SNAKE_CASE`
 
 ### Testing
 
 - Write tests for all new features
 - Ensure all existing tests pass
-- Aim for good test coverage
-- Tests should be in the `tests/` directory
+- Unit tests go in `vscode-extension/src/test/unit/`
+- Integration tests go in `vscode-extension/src/test/suite/`
 
 ### Documentation
 
@@ -153,31 +154,41 @@ The pre-commit hooks will run automatically and fix most formatting issues.
 
 ### Pull Request Checklist
 
-- [ ] Tests pass (`pytest tests/`)
+- [ ] Tests pass (`npm test` or `task test`)
 - [ ] Pre-commit hooks pass (`pre-commit run --all-files`)
-- [ ] Code is formatted with Black (automatic with pre-commit)
+- [ ] Code is formatted with Prettier (automatic with pre-commit)
 - [ ] No linting errors (automatic with pre-commit)
-- [ ] Type checking passes (`mypy pychivalry/`)
 - [ ] Documentation is updated
 - [ ] CHANGELOG.md is updated
-- [ ] Commit messages are clear and descriptive
+- [ ] Commit messages are clear and descriptive (conventional commits: `feat:`, `fix:`, `refactor:`, etc.)
 
 ## Project Structure
 
 ```
 pychivalry/
-├── pychivalry/          # Main Python package
-│   ├── __init__.py
-│   └── server.py        # Language server implementation
-├── tests/               # Test suite
-│   └── test_server.py
-├── vscode-extension/    # VS Code extension
+├── vscode-extension/        # VS Code extension + embedded LSP server
 │   ├── src/
-│   │   └── extension.ts
+│   │   ├── extension.ts     # Extension client entry point
+│   │   ├── server-main.ts   # Language server entry point
+│   │   ├── server/
+│   │   │   ├── core/        # Parser, indexer, workspace management
+│   │   │   ├── lsp/         # LSP feature providers (completions, hover, etc.)
+│   │   │   ├── ck3/         # CK3 game logic and validation
+│   │   │   ├── schema/      # YAML schema loading and validation
+│   │   │   ├── data/        # Data loader, directory registry
+│   │   │   ├── log/         # Game log watcher and analyzer
+│   │   │   └── utils/       # Shared utilities (logger, fuzzy match, etc.)
+│   │   └── test/
+│   │       ├── unit/        # Unit tests (Mocha)
+│   │       └── suite/       # Integration tests (VS Code test runner)
+│   ├── syntaxes/            # TextMate grammars
+│   ├── snippets/            # Code snippets
 │   ├── package.json
-│   └── tsconfig.json
-├── examples/            # Example CK3 files
-├── pyproject.toml       # Python project configuration
+│   ├── tsconfig.json
+│   └── webpack.config.js
+├── data/                    # Static YAML data files (effects, triggers, scopes, schemas)
+├── Documentation/           # Developer and user guides
+├── example mod/             # Example CK3 mod for manual testing
 └── README.md
 ```
 
@@ -187,21 +198,22 @@ We welcome contributions in these areas:
 
 ### Language Server Features
 
-- [ ] Syntax validation and diagnostics
-- [ ] Auto-completion for CK3 keywords and scopes
-- [ ] Hover information for game concepts
-- [ ] Go to definition for scripted effects/triggers
+- [x] Syntax validation and diagnostics
+- [x] Auto-completion for CK3 keywords and scopes
+- [x] Hover information for game concepts
+- [x] Go to definition for scripted effects/triggers
 - [ ] Find references
-- [ ] Code formatting
-- [ ] Symbol search
+- [x] Code formatting
+- [x] Symbol search
+- [ ] Rename support improvements
 
 ### CK3 Language Support
 
-- [ ] Comprehensive keyword database
-- [ ] Scope validation
-- [ ] Effect and trigger validation
-- [ ] Localization support
-- [ ] Error messages and diagnostics
+- [x] Comprehensive keyword database
+- [x] Scope validation
+- [x] Effect and trigger validation
+- [x] Localization support
+- [x] Error messages and diagnostics
 
 ### Testing & Documentation
 
@@ -213,22 +225,24 @@ We welcome contributions in these areas:
 
 ### VS Code Extension
 
-- [ ] Syntax highlighting themes
-- [ ] Code snippets
-- [ ] Better file associations
-- [ ] Configuration options
+- [x] Syntax highlighting themes
+- [x] Code snippets
+- [x] Better file associations
+- [x] Configuration options
+- [ ] Additional snippet coverage
 
 ## Bug Reports
 
 When filing a bug report, please include:
 
-- Python version
-- pychivalry version
+- Node.js version
+- VS Code version
+- Extension version
 - Operating system
 - Steps to reproduce
 - Expected behavior
 - Actual behavior
-- Error messages or logs
+- Error messages or logs (from "CK3: Show Output Channel")
 
 ## Feature Requests
 
@@ -265,4 +279,4 @@ Contributors will be recognized in:
 - Project documentation
 - Release notes
 
-Thank you for contributing to pychivalry! 🎉
+Thank you for contributing to pychivalry!

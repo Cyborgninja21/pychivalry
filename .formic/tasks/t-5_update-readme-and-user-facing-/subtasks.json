@@ -37,53 +37,68 @@
     },
     {
       "id": "7",
-      "content": "vscode-extension/README.md: Rewrite Requirements to remove Python 3.9+ and `pip install pychivalry`; state embedded LSP server requires no separate installation",
-      "status": "pending"
+      "content": "vscode-extension/README.md: Rewrite Requirements section to state embedded LSP server requires no separate installation; remove Python 3.9+ and `pip install pychivalry` references",
+      "status": "completed"
     },
     {
       "id": "8",
-      "content": "vscode-extension/README.md: Remove `pythonPath` from Extension Settings list and all example JSON blocks; remove 'Coming Soon' section (features already shipped)",
-      "status": "pending"
+      "content": "vscode-extension/README.md: Update Extension Settings — remove `pythonPath` and `args` entries, update to match actual package.json contributes.configuration (enable, trace.server, logLevel, formatting.*, inlayHints.*, logWatcher.*)",
+      "status": "completed"
     },
     {
       "id": "9",
-      "content": "vscode-extension/README.md: Remove Python Detection from Enhanced Error Handling; rewrite Troubleshooting to remove 'Python Not Found' and 'pychivalry Not Installed' sections; update Usage to remove Python prerequisites",
-      "status": "pending"
+      "content": "vscode-extension/README.md: Remove Python Detection from Enhanced Error Handling section; remove 'Coming Soon' features that are already shipped (completions, diagnostics, hover, go-to-definition, symbol search)",
+      "status": "completed"
     },
     {
       "id": "10",
-      "content": "CONTRIBUTING.md: Rewrite Prerequisites to list Node.js 18+, npm, Git (no Python); replace manual setup `pip install -e \".[dev]\"` with `cd vscode-extension && npm install`",
-      "status": "pending"
+      "content": "vscode-extension/README.md: Rewrite Troubleshooting — remove 'Python Not Found' and 'pychivalry Not Installed' subsections; update 'Server Won't Start' to remove Python path references; update Usage steps to remove Python prerequisites",
+      "status": "completed"
     },
     {
       "id": "11",
-      "content": "CONTRIBUTING.md: Update Pre-commit Hooks section to remove Python-specific hooks (Black, flake8, isort); replace development workflow commands with npm/task equivalents",
-      "status": "pending"
+      "content": "CONTRIBUTING.md: Rewrite Prerequisites (Node.js 18+, npm, Git — no Python) and dev-environment setup (remove `pip install -e \".[dev]\"`, add `cd vscode-extension && npm install`)",
+      "status": "completed"
     },
     {
       "id": "12",
-      "content": "CONTRIBUTING.md: Replace project structure tree with actual TypeScript layout; update PR checklist, Bug Reports, and 'Areas for Contribution' to reflect current TypeScript state",
-      "status": "pending"
+      "content": "CONTRIBUTING.md: Update Pre-commit Hooks section — remove Python-specific hooks (Black, flake8, isort); update manual execution commands to TypeScript-only tools",
+      "status": "completed"
     },
     {
       "id": "13",
-      "content": "vscode-extension/CHANGELOG.md: Remove `pythonPath` from v0.1.0 Configuration Settings table; update v0.2.0 Enhanced Error Handling to remove Python Detection references",
-      "status": "pending"
+      "content": "CONTRIBUTING.md: Rewrite Making Changes / Code Style / Testing sections — replace `black`, `flake8`, `isort`, `pytest` commands with `npm run lint`, `npm run format`, `npm test`, `task test`",
+      "status": "completed"
     },
     {
       "id": "14",
-      "content": "vscode-extension/CHANGELOG.md: Remove stale Roadmap section (v0.3.0, v0.4.0, v1.0.0 targets) and forward-looking 'Coming Soon' items that are already implemented",
-      "status": "pending"
+      "content": "CONTRIBUTING.md: Update PR Checklist (remove pytest, mypy, Black references); update Bug Reports (Python version → Node.js version, VS Code version); update Project Structure tree to actual TypeScript layout",
+      "status": "completed"
     },
     {
       "id": "15",
-      "content": "Verify: Grep all four target files for banned terms (pip, pytest, pygls, pythonPath, Black, flake8, mypy, 'Python 3.9') — must return zero matches",
-      "status": "pending"
+      "content": "CONTRIBUTING.md: Update 'Areas for Contribution' checkboxes to reflect current state — mark completed items, update remaining items to reference TypeScript codebase",
+      "status": "completed"
     },
     {
       "id": "16",
+      "content": "vscode-extension/CHANGELOG.md: Remove Python-specific entries from v0.2.0 Enhanced Error Handling (Python Detection, pychivalry module check, Python-path configure action, Install pychivalry server action)",
+      "status": "completed"
+    },
+    {
+      "id": "17",
+      "content": "vscode-extension/CHANGELOG.md: Update v0.1.0 Configuration Settings table — remove `pythonPath` row; remove pip-install known limitation; remove stale Roadmap section (v0.3.0, v0.4.0, v1.0.0)",
+      "status": "completed"
+    },
+    {
+      "id": "18",
+      "content": "Verify: Grep all four target files for banned terms (pip, pytest, pygls, pythonPath, Black, flake8, mypy, 'Python 3.9') — fix any remaining hits until zero matches",
+      "status": "completed"
+    },
+    {
+      "id": "19",
       "content": "Verify: Run pre-commit hooks on all four modified files to confirm markdown/YAML validation passes",
-      "status": "pending"
+      "status": "completed"
     }
   ]
 }

@@ -1,6 +1,6 @@
 # pychivalry
 
-[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![Node.js 18+](https://img.shields.io/badge/node.js-18+-339933.svg)](https://nodejs.org/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![VS Code](https://img.shields.io/badge/VS%20Code-Extension-007ACC.svg)](vscode-extension/)
 
@@ -100,7 +100,7 @@ See **Optional: Trait Validation Setup** section below for setup instructions.
 Real-time document tracking as you type.
 
 #### ⚡ Fast
-Lightweight Python server with instant responses.
+Lightweight embedded TypeScript server with instant responses.
 
 ### Auto-completion Includes
 
@@ -140,7 +140,6 @@ Lightweight Python server with instant responses.
 
 ### Prerequisites
 
-- **Python 3.9+** — [Download](https://www.python.org/downloads/)
 - **VS Code** — [Download](https://code.visualstudio.com/)
 - **Node.js 18+** — [Download](https://nodejs.org/) (for building the extension)
 
@@ -151,10 +150,7 @@ Lightweight Python server with instant responses.
 git clone https://github.com/Cyborgninja21/pychivalry.git
 cd pychivalry
 
-# 2. Install the language server
-pip install -e .
-
-# 3. Build the VS Code extension
+# 2. Build the VS Code extension
 cd vscode-extension
 npm install
 npm run compile
@@ -184,16 +180,25 @@ Then in VS Code: **Extensions** → **...** → **Install from VSIX** → select
 ### For Developers
 
 ```bash
-# Install with dev dependencies
-pip install -e ".[dev]"
+cd vscode-extension
 
 # Run tests
-pytest tests/ -v
+npm test
 
-# Code quality
-black pychivalry/
-flake8 pychivalry/
-mypy pychivalry/
+# Unit tests only (fast)
+npm run test:unit
+
+# Lint and format
+npm run lint
+npm run format
+```
+
+Or from the workspace root using the Taskfile:
+```bash
+task build    # Full build (install + compile + compile tests)
+task test     # Full test suite
+task lint     # Lint TypeScript
+task format   # Format with Prettier
 ```
 
 ## ⚙️ Configuration
@@ -203,16 +208,19 @@ Add to your VS Code `settings.json`:
 ```json
 {
   "ck3LanguageServer.enable": true,
-  "ck3LanguageServer.pythonPath": "python",
-  "ck3LanguageServer.trace.server": "off"
+  "ck3LanguageServer.trace.server": "off",
+  "ck3LanguageServer.logLevel": "info"
 }
 ```
 
 | Setting | Default | Description |
 |---------|---------|-------------|
 | `enable` | `true` | Enable/disable the language server |
-| `pythonPath` | `"python"` | Path to Python interpreter |
 | `trace.server` | `"off"` | Set to `"verbose"` for debugging |
+| `logLevel` | `"info"` | Log level: `debug`, `info`, `warning`, `error` |
+| `formatting.enabled` | `true` | Enable document formatting |
+| `inlayHints.enabled` | `true` | Enable inlay hints for scopes and types |
+| `logWatcher.enabled` | `true` | Enable game log watcher |
 
 **Command Palette:**
 - `CK3 Language Server: Restart` — Restart the server
@@ -240,7 +248,6 @@ The extraction tool will create local YAML files in `pychivalry/data/traits/` fo
 ### Requirements
 
 - Crusader Kings III installed (Steam or standalone)
-- Python 3.9+ with PyYAML package
 
 ### Privacy & Copyright
 
@@ -255,7 +262,7 @@ The language server works perfectly without trait validation:
 
 - ✅ All other features work normally
 - ✅ Syntax validation
-- ✅ Scope validation  
+- ✅ Scope validation
 - ✅ Effect/trigger validation
 - ✅ Auto-completion (except trait-specific)
 - ✅ Hover documentation
@@ -267,35 +274,29 @@ Trait validation is silently disabled when data files are not available—no err
 
 ```
 pychivalry/
-├── pychivalry/           # Python language server
-│   ├── server.py         # LSP implementation with feature handlers
-│   ├── parser.py         # CK3 script parser (syntax → AST)
-│   ├── indexer.py        # Document symbol indexer
-│   ├── scopes.py         # Scope system & validation
-│   ├── diagnostics.py    # Validation & error detection
-│   ├── hover.py          # Hover documentation
-│   ├── completions.py    # Context-aware completions
-│   ├── navigation.py     # Go-to-definition support
-│   ├── code_actions.py   # Quick fixes & refactoring
-│   ├── events.py         # Event structure validation
-│   ├── lists.py          # List iterator validation
-│   ├── script_values.py  # Script value validation
-│   ├── variables.py      # Variable system support
-│   ├── scripted_blocks.py# Scripted effects/triggers
-│   ├── localization.py   # Localization support
-│   ├── workspace.py      # Cross-file validation
-│   ├── ck3_language.py   # CK3 language definitions
-│   └── data/             # YAML data files for game definitions
-├── vscode-extension/     # VS Code client extension
-│   ├── src/extension.ts
-│   └── package.json
-├── examples/             # Test files
-├── tests/                # Comprehensive test suite (645+ tests)
-│   ├── integration/      # Integration tests
-│   ├── regression/       # Regression tests
-│   ├── fuzzing/          # Fuzz tests
-│   └── performance/      # Performance benchmarks
-└── Documentation/        # Developer documentation
+├── vscode-extension/          # VS Code extension + embedded LSP server
+│   ├── src/
+│   │   ├── extension.ts       # Extension client entry point
+│   │   ├── server-main.ts     # Language server entry point
+│   │   ├── server/
+│   │   │   ├── core/          # Parser, indexer, workspace management
+│   │   │   ├── lsp/           # LSP feature providers (completions, hover, etc.)
+│   │   │   ├── ck3/           # CK3 game logic and validation
+│   │   │   ├── schema/        # YAML schema loading and validation
+│   │   │   ├── data/          # Data loader, directory registry
+│   │   │   ├── log/           # Game log watcher and analyzer
+│   │   │   └── utils/         # Shared utilities (logger, fuzzy match, etc.)
+│   │   └── test/
+│   │       ├── unit/          # Unit tests (Mocha)
+│   │       └── suite/         # Integration tests (VS Code test runner)
+│   ├── syntaxes/              # TextMate grammars
+│   ├── snippets/              # Code snippets
+│   ├── package.json
+│   └── webpack.config.js
+├── data/                      # Static YAML data files (effects, triggers, scopes, schemas)
+├── Documentation/             # Developer and user guides
+├── example mod/               # Example CK3 mod for manual testing
+└── README.md
 ```
 
 ## 🤝 Contributing
@@ -317,18 +318,17 @@ Contributions are welcome! Whether it's:
    ```
 
 2. **Pre-commit hooks** are automatically installed to ensure code quality:
-   - Auto-formats Python code with Black
-   - Lints Python with flake8
    - Formats TypeScript with Prettier
    - Lints TypeScript with ESLint
-   
+   - Validates YAML/JSON and checks for common issues
+
    See [docs/PRE_COMMIT_SETUP.md](docs/PRE_COMMIT_SETUP.md) for details.
 
 3. **GitHub Copilot** is configured to assist development:
    - Instructions and coding standards in [`.github/copilot-instructions.md`](.github/copilot-instructions.md)
    - Custom prompts for common tasks in [`.github/prompts/`](.github/prompts/)
    - Specialized skills in [`.github/skills/`](.github/skills/)
-   
+
    See [`.github/README.md`](.github/README.md) for details on using Copilot with this project.
 
 4. See [CONTRIBUTING.md](CONTRIBUTING.md) for complete guidelines.
@@ -339,14 +339,14 @@ Contributions are welcome! Whether it's:
 
 ## 🙏 Acknowledgments
 
-- **[pygls](https://github.com/openlawlibrary/pygls)** — The Python LSP framework powering this server
+- **[vscode-languageserver](https://github.com/microsoft/vscode-languageserver-node)** — The LSP framework powering this server
 - **[Paradox Interactive](https://www.paradoxinteractive.com/)** — Creators of Crusader Kings 3
 - **CK3 Modding Community** — For inspiration and support
 
 ## 📚 Resources
 
 - [Language Server Protocol](https://microsoft.github.io/language-server-protocol/) — LSP specification
-- [pygls Documentation](https://pygls.readthedocs.io/) — Server framework docs
+- [vscode-languageserver](https://github.com/microsoft/vscode-languageserver-node) — Server framework
 - [CK3 Modding Wiki](https://ck3.paradoxwikis.com/Modding) — Official modding reference
 
 ---

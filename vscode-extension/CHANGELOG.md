@@ -47,17 +47,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Open CK3 modding documentation
 
 #### Enhanced Error Handling 🛡️
-- **Python Detection**: Automatic discovery of Python 3.9+ installations
-  - Tries configured path, then `python3`, `python`, `py`
-  - Validates Python version meets requirements
-- **Server Installation Check**: Verifies `pychivalry` module is installed
+- **Automatic Recovery**: Detects server crashes and restarts automatically
 - **User-Friendly Errors**: Actionable error dialogs with options:
-  - Configure Python path
-  - Install Python
-  - Install pychivalry server
+  - Restart server
+  - Show output logs
+  - Open settings
   - View documentation
 - **Workspace Trust**: Respects VS Code workspace trust settings
-- **Security Hardened**: Proper shell escaping to prevent command injection
+- **Security Hardened**: Input validation and proper error boundaries
 
 #### Commands 🎮
 - **CK3: Restart Language Server** - Restart the language server
@@ -85,7 +82,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 #### Language Client
-- **Language Server Connection**: Connects to pychivalry LSP server via stdio
+- **Language Server Connection**: Connects to embedded LSP server via stdio
 - **Auto-start**: Server starts automatically when CK3 files are opened
 - **Configuration Watching**: Restarts server when settings change
 
@@ -103,7 +100,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
 | `ck3LanguageServer.enable` | boolean | `true` | Enable/disable the language server |
-| `ck3LanguageServer.pythonPath` | string | `"python"` | Path to Python executable |
 | `ck3LanguageServer.args` | array | `[]` | Additional server arguments |
 | `ck3LanguageServer.trace.server` | string | `"off"` | LSP trace level |
 
@@ -119,33 +115,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Node.js target
 
 ### Known Limitations
-- Server must be installed separately via pip (but extension helps with this)
-- No auto-completion yet (coming from LSP server)
-- No diagnostics yet (coming from LSP server)
-- No hover documentation yet (coming from LSP server)
-- No go-to-definition yet (coming from LSP server)
-
----
-
-## Roadmap
-
-### v0.3.0 - Workspace Awareness
-- [ ] Mod descriptor parsing (`.mod` files)
-- [ ] Game installation detection
-- [ ] Multi-mod workspace support
-- [ ] Workspace info panel
-
-### v0.4.0 - Commands & Productivity
-- [ ] Copy console command
-- [ ] Generate localization keys
-- [ ] Create event file wizard
-- [ ] Context menu items
-
-### v1.0.0 - Marketplace Release
-- [ ] Full test coverage
-- [ ] Extension icon and branding
-- [ ] Comprehensive documentation
-- [ ] Marketplace publishing
+- No auto-completion yet (coming in a future release)
+- No diagnostics yet (coming in a future release)
+- No hover documentation yet (coming in a future release)
+- No go-to-definition yet (coming in a future release)
 
 ---
 

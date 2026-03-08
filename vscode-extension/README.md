@@ -55,12 +55,11 @@ Click the status bar item for quick actions:
 
 Intelligent error detection and recovery:
 
-- **Python Detection**: Automatically finds Python 3.9+ installation
-- **Module Check**: Verifies `pychivalry` is installed
+- **Automatic Recovery**: Detects server crashes and restarts automatically
 - **Helpful Actions**: One-click solutions for common issues
-  - Configure Python path
-  - Install Python
-  - Install pychivalry server
+  - Restart server
+  - Show output logs
+  - Open settings
 - **Workspace Trust**: Respects VS Code workspace trust settings
 
 ### 🚀 Real-time Language Features
@@ -76,20 +75,11 @@ Intelligent error detection and recovery:
 - `.gfx` - Graphics definition files
 - `.asset` - Asset definition files
 
-### Coming Soon
-
-- Auto-completion for CK3 keywords and scopes
-- Syntax diagnostics and error checking
-- Hover documentation for game concepts
-- Go-to-definition for scripted effects and triggers
-- Symbol search across files
-
 ## Requirements
 
-- **Python 3.9 or higher** - The extension will help you install it if missing
-- **pychivalry LSP server** - Install with: `pip install pychivalry`
+- **VS Code 1.75 or higher**
 
-The extension will automatically detect Python and guide you through setup if anything is missing.
+The language server is embedded in the extension — no separate installation is required.
 
 ## Installation
 
@@ -105,10 +95,36 @@ The extension will automatically detect Python and guide you through setup if an
 
 This extension contributes the following settings:
 
+### General
+
 * `ck3LanguageServer.enable`: Enable/disable the CK3 language server (default: `true`)
-* `ck3LanguageServer.pythonPath`: Path to Python executable (default: `python`)
 * `ck3LanguageServer.args`: Additional arguments to pass to the language server (default: `[]`)
 * `ck3LanguageServer.trace.server`: Trace LSP communication for debugging (`off`, `messages`, `verbose`)
+* `ck3LanguageServer.logLevel`: Log level for the server — `debug`, `info`, `warning`, `error` (default: `info`)
+
+### Formatting
+
+* `ck3LanguageServer.formatting.enabled`: Enable document formatting (default: `true`)
+* `ck3LanguageServer.formatting.insertSpaces`: Use spaces instead of tabs (default: `false`)
+* `ck3LanguageServer.formatting.tabSize`: Number of spaces per tab (default: `4`)
+
+### Inlay Hints
+
+* `ck3LanguageServer.inlayHints.enabled`: Enable inlay hints (default: `true`)
+* `ck3LanguageServer.inlayHints.showScopeTypes`: Show type hints for saved scopes (default: `true`)
+* `ck3LanguageServer.inlayHints.showChainTypes`: Show type hints for scope chains (default: `true`)
+* `ck3LanguageServer.inlayHints.showIteratorTypes`: Show type hints for iterators (default: `true`)
+* `ck3LanguageServer.inlayHints.maxHintsPerLine`: Max hints per line, 1–10 (default: `3`)
+
+### Game Log Watcher
+
+* `ck3LanguageServer.logWatcher.enabled`: Enable game log watcher (default: `true`)
+* `ck3LanguageServer.logWatcher.autoStart`: Auto-start watching on workspace open (default: `false`)
+* `ck3LanguageServer.logWatcher.logPath`: Custom path to CK3 logs directory (default: auto-detect)
+* `ck3LanguageServer.logWatcher.showInOutput`: Show log entries in GameLogs output channel (default: `true`)
+* `ck3LanguageServer.logWatcher.maxLogSize`: Max game.log size to process in MB (default: `100`)
+* `ck3LanguageServer.logWatcher.debounceDelay`: Delay in ms before processing changes (default: `500`)
+* `ck3LanguageServer.logWatcher.patterns`: Custom regex patterns for error detection (default: `[]`)
 
 ## Commands
 
@@ -122,20 +138,16 @@ You can also click the CK3 status bar item for a quick action menu.
 
 ## Usage
 
-1. **Install Prerequisites**:
-   - Ensure Python 3.9+ is installed
-   - Install pychivalry: `pip install pychivalry`
-
-2. **Open Your CK3 Mod**:
+1. **Open Your CK3 Mod**:
    - Open a CK3 mod folder in VS Code
    - The extension activates automatically for CK3 files
 
-3. **Check Status**:
+2. **Check Status**:
    - Look for the CK3 icon in the status bar (bottom right)
    - Green checkmark = ready to use
    - Click for quick actions
 
-4. **Start Coding**:
+3. **Start Coding**:
    - Type snippet prefixes (e.g., `event`, `if`, `option`) and press Tab
    - Enjoy syntax highlighting for all CK3 constructs
    - Use the Command Palette for additional actions
@@ -148,25 +160,6 @@ You can also click the CK3 status bar item for a quick action menu.
 - **Settings**: Search for "CK3" in VS Code settings to configure
 
 ## Troubleshooting
-
-### Python Not Found
-
-The extension will prompt you to:
-1. Configure Python path in settings
-2. Install Python from python.org
-
-Set a custom Python path:
-```json
-{
-    "ck3LanguageServer.pythonPath": "/path/to/python"
-}
-```
-
-### pychivalry Not Installed
-
-The extension will offer to:
-1. Open a terminal to run `pip install pychivalry`
-2. View installation documentation
 
 ### Server Won't Start
 

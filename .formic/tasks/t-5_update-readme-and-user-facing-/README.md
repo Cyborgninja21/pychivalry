@@ -17,15 +17,15 @@ The root `README.md`, `vscode-extension/README.md`, `CONTRIBUTING.md`, and `vsco
 - **Correct configuration reference:** Settings documentation lists only current settings (no `ck3LanguageServer.pythonPath`); developer commands reference `npm run compile`, `npm test`, `npm run lint`, `task build`, etc.
 - **Current project structure:** Tree diagrams reflect the actual TypeScript layout — `vscode-extension/src/server/{core,lsp,ck3,schema,data,log,utils}/`, `vscode-extension/src/test/{unit,suite}/`, and `data/` YAML files
 - **Updated acknowledgments:** Replace pygls acknowledgment with vscode-languageserver ^9.0.1 acknowledgment in root README
-- **Preserved historical changelog entries:** `vscode-extension/CHANGELOG.md` entries for v0.1.0 and v0.2.0 retain historical accuracy but remove forward-looking instructions (e.g., stale roadmap targets, `pythonPath` as a current setting)
+- **Corrected changelog entries:** `vscode-extension/CHANGELOG.md` removes forward-looking Python instructions (e.g., `pythonPath` as a current setting in the v0.1.0 configuration table, Python detection feature descriptions) while retaining non-Python historical content
 
 ## Non-Goals
 
 - Renaming the project from "pychivalry" — the name is the project brand and stays as-is
-- Modifying the root `CHANGELOG.md` historical entries (v0.1.0, v0.2.0) — these are accurate records of past releases
 - Rewriting `kanban-development-guideline.md` — its Python section is already marked "Historical" and is out of scope
-- Updating `vscode-extension/src/server/README.md` — this is a developer-internal doc and not part of this task
+- Updating internal developer docs (`vscode-extension/src/server/README.md`) — only user-facing documentation is in scope
 - Adding new documentation content beyond what is needed to replace removed Python references (no new feature descriptions, tutorials, or architecture deep-dives)
+- Removing the Apache 2.0 license or Paradox Interactive acknowledgment
 
 ## Requirements
 

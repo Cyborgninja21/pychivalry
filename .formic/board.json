@@ -318,27 +318,44 @@
       "title": "Update README and user-facing documentation to reflect TypeScript architecture",
       "context": "The root README.md, vscode-extension/README.md, CONTRIBUTING.md, and vscode-extension/CHANGELOG.md contain extensive Python references that are now misleading to users and contributors.\n\n**Files to modify:**\n\n1. `README.md` (root) — Major updates needed:\n   - Line 3: Remove or replace Python 3.9+ badge (replace with Node.js 18+ badge)\n   - Line 103: Change 'Lightweight Python server' to describe the TypeScript server\n   - Lines 143-155: Remove Python prerequisite and `pip install -e .` instructions; update to Node.js-only prerequisites and build steps\n   - Lines 186-197: Remove `pip install -e \".[dev]\"`, `pytest`, `black`, `flake8`, `mypy` developer commands; replace with `npm run compile`, `npm test`, `npm run lint`\n   - Lines 199-215: Remove `pythonPath` from configuration table and example JSON\n   - Lines 238-243: Update trait extraction section to remove 'Python 3.9+ with PyYAML' requirement (trait extraction is now handled by TypeScript)\n   - Lines 269-298: Rewrite project structure to show current TypeScript layout (`vscode-extension/src/server/`, `vscode-extension/src/test/`, etc.) instead of the old Python layout (`pychivalry/*.py`, `tests/`)\n   - Lines 319-325: Update contributor setup to remove Python tool references; mention only TypeScript/Prettier/ESLint\n   - Lines 342-349: Remove pygls acknowledgment and documentation link; acknowledge vscode-languageserver instead\n\n2. `vscode-extension/README.md` — Update:\n   - Remove 'Python Detection' feature description\n   - Remove 'Python 3.9 or higher' requirement\n   - Remove `pip install pychivalry` instructions\n   - Remove `pythonPath` from settings documentation\n   - Remove 'Python Not Found' troubleshooting section\n   - Update to describe the embedded TypeScript LSP server\n\n3. `vscode-extension/CHANGELOG.md` — Update:\n   - Line 50-57: Remove 'Python Detection' feature description\n   - Line 106: Remove `pythonPath` from configuration table\n\n4. `CONTRIBUTING.md` — Update:\n   - Line 9: Remove 'Python 3.9 or higher' prerequisite\n   - Lines 52-54: Remove Python formatting/linting references (Black, flake8)\n   - Lines 168-181: Update project structure to reflect TypeScript layout\n   - Lines 225-226: Remove 'Python version' from bug report template\n\n**Technical considerations:**\n- Preserve the project name 'pychivalry' throughout (it's the project brand, not a Python reference)\n- Keep references to `data/` YAML files (these are still used)\n- Do not remove the Apache 2.0 license or Paradox Interactive acknowledgment\n- Keep the existing feature list accurate — verify against current implementation\n\n**Acceptance criteria:**\n- No instructions to install Python, pip, or pygls in any user-facing documentation\n- No `pythonPath` configuration documented\n- Project structure section accurately reflects the TypeScript codebase\n- Setup instructions work for a fresh clone with only Node.js installed\n- All markdown files pass YAML/markdown lint",
       "priority": "medium",
-      "status": "queued",
+      "status": "review",
       "docsPath": ".formic/tasks/t-5_update-readme-and-user-facing-",
       "agentLogs": [],
       "pid": null,
       "type": "standard",
-      "workflowStep": "execute",
+      "workflowStep": "complete",
       "workflowLogs": {
         "brief": [
-          "The brief has been written to `/home/cwallace/git/pychivalry/.formic/tasks/t-5_update-readme-and-user-facing-/README.md`."
+          "The brief has been written to `/home/cwallace/git/pychivalry/.formic/tasks/t-5_update-readme-and-user-facing-/README.md`.",
+          "Task specification written to `/home/cwallace/git/pychivalry/.formic/tasks/t-5_update-readme-and-user-facing-/README.md`. The spec covers all four target files, defines measurable goals around eliminating Python references, and includes requirements verified against the actual filesystem layout."
         ],
         "plan": [
           "Both files are written:",
           "- **PLAN.md** — 5-phase implementation plan covering each of the 4 target files plus verification",
-          "- **subtasks.json** — 16 subtasks ordered by file (root README → extension README → CONTRIBUTING → CHANGELOG → verification), each a single verifiable action with specific file paths and content to change"
+          "- **subtasks.json** — 16 subtasks ordered by file (root README → extension README → CONTRIBUTING → CHANGELOG → verification), each a single verifiable action with specific file paths and content to change",
+          "Both files written:",
+          "- **PLAN.md** — 5-phase implementation plan with Phase 1 (root README) marked complete, covering all four target files and a verification phase",
+          "- **subtasks.json** — 19 subtasks: 6 completed (root README), 13 pending (extension README ×4, CONTRIBUTING ×5, CHANGELOG ×2, verification ×2)"
         ],
         "execute": [
-          "Written `declared-files.json` with 4 exclusive files (`README.md`, `vscode-extension/README.md`, `CONTRIBUTING.md`, `vscode-extension/CHANGELOG.md`) and no shared files. All are documentation-only modifications with no overlap with common hotspot files."
+          "Written `declared-files.json` with 4 exclusive files (`README.md`, `vscode-extension/README.md`, `CONTRIBUTING.md`, `vscode-extension/CHANGELOG.md`) and no shared files. All are documentation-only modifications with no overlap with common hotspot files.",
+          "The `declared-files.json` already exists with the correct content. The task touches exactly four documentation files — all exclusive, no shared hotspot files:",
+          "- **`README.md`** — Root project README (Phase 1, already completed)",
+          "- **`vscode-extension/README.md`** — Extension marketplace README (Phase 2)",
+          "- **`CONTRIBUTING.md`** — Contributor guide (Phase 3)",
+          "- **`vscode-extension/CHANGELOG.md`** — Extension changelog (Phase 4)",
+          "No new files are created and no shared configuration files (like `package.json` or `tsconfig.json`) are modified by this task.",
+          "All subtasks are complete. Here's a summary of what was done:",
+          "**Files modified:**",
+          "1. **`README.md`** (root) — Replaced Python 3.9+ badge with Node.js 18+; removed Python from prerequisites; removed `pip install` from installation/developer sections; replaced with npm/Taskfile commands; removed `pythonPath` from config table; updated project structure tree to TypeScript layout; removed Python from trait validation requirements; replaced pygls acknowledgment with vscode-languageserver; updated pre-commit hook descriptions.",
+          "2. **`vscode-extension/README.md`** — Removed \"Coming Soon\" section (features already shipped); rewrote Requirements to state embedded server (no separate install); removed `pythonPath`/`args` from settings; added full settings documentation matching package.json (General, Formatting, Inlay Hints, Game Log Watcher); removed Python Detection from error handling; removed Python Not Found/pychivalry Not Installed troubleshooting sections; removed Python prerequisites from Usage steps.",
+          "3. **`CONTRIBUTING.md`** — Full rewrite: prerequisites now Node.js 18+/npm/Git only; dev setup uses `npm install`; pre-commit hooks list TypeScript-only tools; code style references Prettier/ESLint; testing uses `npm test`/`task test`; PR checklist references TypeScript tooling; project structure shows actual TypeScript layout; bug reports ask for Node.js/VS Code version; Areas for Contribution updated with completed items checked.",
+          "4. **`vscode-extension/CHANGELOG.md`** — Removed Python Detection/pychivalry module check from v0.2.0 error handling; removed `pythonPath` from v0.1.0 config table; updated \"connects to pychivalry LSP server\" → \"connects to embedded LSP server\"; removed pip-install known limitation; removed stale Roadmap section.",
+          "**Verification:** All four files grep-clean for banned terms (`pip`, `pytest`, `pygls`, `pythonPath`, `Black`, `flake8`, `mypy`, `Python 3.9`). Pre-commit hooks pass on all modified files."
         ]
       },
       "createdAt": "2026-03-08T20:20:28.758Z",
-      "safePointCommit": "e04d3d3d1b0577f38cc3e38c77ae7ceadd11f4c7",
+      "safePointCommit": "f5a146a41c2349b43644a31ed2f8ea853513eabb",
       "retryCount": null,
       "fixForTaskId": null,
       "parentGoalId": "t-1",
@@ -352,7 +369,8 @@
           "vscode-extension/CHANGELOG.md"
         ],
         "shared": []
-      }
+      },
+      "completedAt": "2026-03-08T20:52:24.525Z"
     },
     {
       "id": "t-6",
