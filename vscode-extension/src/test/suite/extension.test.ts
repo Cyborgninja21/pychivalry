@@ -37,7 +37,6 @@ suite('Extension Test Suite', () => {
         // Note: In test workspace, settings may override defaults
         // Just verify the configuration exists and has expected keys
         assert.ok(config.has('enable'), 'enable setting should exist');
-        assert.ok(config.has('pythonPath'), 'pythonPath setting should exist');
         assert.ok(config.has('trace.server'), 'trace.server setting should exist');
         assert.ok(config.has('args'), 'args setting should exist');
     });

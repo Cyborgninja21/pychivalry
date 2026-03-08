@@ -102,26 +102,77 @@
         "t-7",
         "t-8"
       ],
-      "completedAt": "2026-03-08T20:20:28.787Z"
+      "completedAt": "2026-03-08T20:20:28.787Z",
+      "reflectionMemories": [
+        "mem-c0498371-067a-4b60-b24f-c554b1e95027",
+        "mem-5af37e54-6312-4318-a243-0a4fd8603176",
+        "mem-a4b87f88-9c21-4525-a28f-7045662919fd",
+        "mem-ac9e04c9-1750-44a2-8edd-ad0b3a2f842e",
+        "mem-5fa1ba63-249e-44dd-907c-eef9396b0263",
+        "mem-7d334ff7-ccf6-4960-b2b3-2943c8489770",
+        "mem-cf036bf7-50a9-45d1-a684-f3bd75c6df8c",
+        "mem-e395c595-b833-4646-9ca6-41aa1f0ca724",
+        "mem-705f17d9-758c-436e-9e74-653262ebcdfe",
+        "mem-5fccfd4c-9e6f-47dc-a86c-b7bbaa9c4225"
+      ]
     },
     {
       "id": "t-2",
       "title": "Remove obsolete pythonPath configuration setting and its tests",
       "context": "The extension still defines a `ck3LanguageServer.pythonPath` configuration property that was used to locate the Python interpreter for the old pygls-based server. This setting is completely unused by the TypeScript server — no code in `src/extension.ts` or `src/server/` reads it. It must be removed along with all tests that validate it.\n\n**Files to modify:**\n- `vscode-extension/package.json` — Remove the `ck3LanguageServer.pythonPath` property from `contributes.configuration.properties` (currently defines type string, default 'python', description 'Path to Python interpreter')\n- `vscode-extension/src/test/suite/configuration.test.ts` — Remove:\n  - Line 11: `pythonPath` from `originalConfig` object\n  - Line 47: `'pythonPath'` from `requiredSettings` array\n  - Lines 79-88: Entire `'pythonPath should default to \"python\"'` test\n  - Lines 183-192: Entire `'Should update pythonPath'` test and its restore logic\n- `vscode-extension/src/test/suite/extension.test.ts` — Remove line 40: `assert.ok(config.has('pythonPath'), 'pythonPath setting should exist')`\n\n**Technical considerations:**\n- The `args` setting in package.json is legitimate (used in `extension.ts:1046`) — do NOT remove it\n- After removing `pythonPath`, verify remaining tests still pass by running `task test:unit`\n- Ensure the `originalConfig` save/restore logic in `configuration.test.ts` is still valid without `pythonPath`\n\n**Acceptance criteria:**\n- No `pythonPath` references exist in package.json contributes section\n- No `pythonPath` references exist in test files\n- `task test:unit` passes\n- `task lint` passes",
       "priority": "high",
-      "status": "queued",
+      "status": "review",
       "docsPath": ".formic/tasks/t-2_remove-obsolete-pythonpath-con",
       "agentLogs": [],
       "pid": null,
       "type": "standard",
-      "workflowStep": "pending",
-      "workflowLogs": {},
+      "workflowStep": "complete",
+      "workflowLogs": {
+        "brief": [
+          "Specification written to `/home/cwallace/git/pychivalry/.formic/tasks/t-2_remove-obsolete-pythonpath-con/README.md`."
+        ],
+        "plan": [
+          "Both files have been written:",
+          "- **PLAN.md** — 4-phase plan: verify package.json is clean, remove 4 references from `configuration.test.ts`, remove 1 reference from `extension.test.ts`, then run lint + tests.",
+          "- **subtasks.json** — 8 subtasks covering verification, each individual code removal, and quality gates (`task lint`, `task test:unit`)."
+        ],
+        "execute": [
+          "Wrote `declared-files.json` with:",
+          "- **Exclusive**: `configuration.test.ts` and `extension.test.ts` — the two test files receiving all the `pythonPath` removal edits",
+          "- **Shared**: `vscode-extension/package.json` — a common hotspot file that needs verification (and possible modification if `pythonPath` is still present)",
+          "All done. Here's a summary of what was completed:",
+          "**Changes made:**",
+          "1. **`vscode-extension/src/test/suite/configuration.test.ts`** — 4 edits:",
+          "   - Removed `pythonPath` from `originalConfig` save/restore object",
+          "   - Removed `'pythonPath'` from `requiredSettings` array",
+          "   - Deleted the `'pythonPath should default to \"python\"'` test block",
+          "   - Deleted the `'Should update pythonPath'` test block",
+          "2. **`vscode-extension/src/test/suite/extension.test.ts`** — 1 edit:",
+          "   - Removed `assert.ok(config.has('pythonPath'), ...)` assertion",
+          "3. **`vscode-extension/package.json`** — already clean, no `pythonPath` references found",
+          "**Verification:**",
+          "- Zero `pythonPath` references remain in test files",
+          "- Lint passes on modified files (pre-existing warnings in other files are unchanged)",
+          "- All 455 unit tests pass"
+        ]
+      },
       "createdAt": "2026-03-08T20:20:28.742Z",
-      "safePointCommit": null,
+      "safePointCommit": "1f2f4ff4bb1bbb48c1f40ff3012f9ef71704f22e",
       "retryCount": null,
       "fixForTaskId": null,
       "parentGoalId": "t-1",
-      "queuedAt": "2026-03-08T20:20:28.776Z"
+      "queuedAt": "2026-03-08T20:20:28.776Z",
+      "startedAt": "2026-03-08T20:20:28.886Z",
+      "declaredFiles": {
+        "exclusive": [
+          "vscode-extension/src/test/suite/configuration.test.ts",
+          "vscode-extension/src/test/suite/extension.test.ts"
+        ],
+        "shared": [
+          "vscode-extension/package.json"
+        ]
+      },
+      "completedAt": "2026-03-08T20:24:22.755Z"
     },
     {
       "id": "t-3",

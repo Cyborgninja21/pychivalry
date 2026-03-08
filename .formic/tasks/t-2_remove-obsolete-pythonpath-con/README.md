@@ -2,40 +2,30 @@
 
 ## Overview
 
-The extension still defines a `ck3LanguageServer.pythonPath` configuration property that was used to locate the Python interpreter for the old pygls-based server. This setting is completely unused by the TypeScript server — no code in `src/extension.ts` or `src/server/` reads it. It must be removed along with all tests that validate it.
-
-**Files to modify:**
-- `vscode-extension/package.json` — Remove the `ck3LanguageServer.pythonPath` property from `contributes.configuration.properties` (currently defines type string, default 'python', description 'Path to Python interpreter')
-- `vscode-extension/src/test/suite/configuration.test.ts` — Remove:
-  - Line 11: `pythonPath` from `originalConfig` object
-  - Line 47: `'pythonPath'` from `requiredSettings` array
-  - Lines 79-88: Entire `'pythonPath should default to "python"'` test
-  - Lines 183-192: Entire `'Should update pythonPath'` test and its restore logic
-- `vscode-extension/src/test/suite/extension.test.ts` — Remove line 40: `assert.ok(config.has('pythonPath'), 'pythonPath setting should exist')`
-
-**Technical considerations:**
-- The `args` setting in package.json is legitimate (used in `extension.ts:1046`) — do NOT remove it
-- After removing `pythonPath`, verify remaining tests still pass by running `task test:unit`
-- Ensure the `originalConfig` save/restore logic in `configuration.test.ts` is still valid without `pythonPath`
-
-**Acceptance criteria:**
-- No `pythonPath` references exist in package.json contributes section
-- No `pythonPath` references exist in test files
-- `task test:unit` passes
-- `task lint` passes
+The `ck3LanguageServer.pythonPath` configuration property is a vestige of the original pygls-based Python server. Since the extension was rewritten in TypeScript, no code in `src/extension.ts` or `src/server/` reads this setting — it is dead configuration that confuses users and clutters the settings UI. This task removes the property definition from `package.json` (if still present) and all test assertions that reference it, ensuring the configuration surface accurately reflects the current TypeScript server.
 
 ## Goals
 
-- [ ] Define specific goals here
+- Eliminate every reference to `pythonPath` from the extension manifest (`package.json`) and test suites (`configuration.test.ts`, `extension.test.ts`)
+- Keep all remaining configuration settings (`args`, `trace.server`, `logLevel`, `enable`, formatting, inlay hints, log watcher) intact and tested
+- Maintain green CI: `task test:unit` and `task lint` pass after the change
 
 ## Key Capabilities
 
-- Describe what this task will accomplish
+- Clean configuration UX — users no longer see a "Path to Python interpreter" setting that does nothing
+- Accurate test coverage — tests validate only settings the TypeScript server actually uses
+- Save/restore logic in `configuration.test.ts` remains correct after removing the `pythonPath` key from `originalConfig`
 
 ## Non-Goals
 
-- What is explicitly out of scope
+- Removing the `args` setting — it is actively used in `extension.ts` for passing extra arguments to the language server
+- Refactoring the test structure or adding new tests beyond what is necessary to keep existing tests passing
+- Modifying any runtime source code (`src/extension.ts`, `src/server/`) — this task is limited to manifest and test files
 
 ## Requirements
 
-- List technical and functional requirements
+- `package.json`: no `ck3LanguageServer.pythonPath` entry exists in `contributes.configuration[].properties`
+- `configuration.test.ts`: `pythonPath` removed from `originalConfig` object, `requiredSettings` array, the "pythonPath should default to python" test, and the "Should update pythonPath" test
+- `extension.test.ts`: the `config.has('pythonPath')` assertion removed
+- `task test:unit` exits 0
+- `task lint` exits 0

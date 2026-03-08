@@ -1,0 +1,49 @@
+{
+  "version": "1.0",
+  "taskId": "t-2",
+  "title": "Remove obsolete pythonPath configuration setting and its tests",
+  "createdAt": "2026-03-08T00:00:00Z",
+  "updatedAt": "2026-03-08T00:00:00Z",
+  "subtasks": [
+    {
+      "id": "1",
+      "content": "Verify `vscode-extension/package.json` has no `pythonPath` in `contributes.configuration[].properties`",
+      "status": "completed"
+    },
+    {
+      "id": "2",
+      "content": "Remove `pythonPath: config.get('pythonPath'),` from `originalConfig` object in `vscode-extension/src/test/suite/configuration.test.ts` (line 11)",
+      "status": "completed"
+    },
+    {
+      "id": "3",
+      "content": "Remove `'pythonPath',` from `requiredSettings` array in `vscode-extension/src/test/suite/configuration.test.ts` (line 47)",
+      "status": "completed"
+    },
+    {
+      "id": "4",
+      "content": "Delete the `'pythonPath should default to \"python\"'` test block in `vscode-extension/src/test/suite/configuration.test.ts` (lines 79–88)",
+      "status": "completed"
+    },
+    {
+      "id": "5",
+      "content": "Delete the `'Should update pythonPath'` test block in `vscode-extension/src/test/suite/configuration.test.ts` (lines 183–192)",
+      "status": "completed"
+    },
+    {
+      "id": "6",
+      "content": "Remove `assert.ok(config.has('pythonPath'), 'pythonPath setting should exist');` from `vscode-extension/src/test/suite/extension.test.ts` (line 40)",
+      "status": "completed"
+    },
+    {
+      "id": "7",
+      "content": "Run `task lint` and verify exit 0",
+      "status": "completed"
+    },
+    {
+      "id": "8",
+      "content": "Run `task test:unit` and verify exit 0",
+      "status": "completed"
+    }
+  ]
+}

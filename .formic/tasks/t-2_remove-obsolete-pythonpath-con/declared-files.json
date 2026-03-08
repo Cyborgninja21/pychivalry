@@ -1,0 +1,9 @@
+{
+  "exclusive": [
+    "vscode-extension/src/test/suite/configuration.test.ts",
+    "vscode-extension/src/test/suite/extension.test.ts"
+  ],
+  "shared": [
+    "vscode-extension/package.json"
+  ]
+}

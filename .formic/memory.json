@@ -134,6 +134,140 @@
         "task-management",
         "workflow"
       ]
+    },
+    {
+      "id": "mem-c0498371-067a-4b60-b24f-c554b1e95027",
+      "created_at": "2026-03-08T20:21:13.609Z",
+      "type": "pattern",
+      "content": "The architect decomposition pattern works well for large migration tasks — decompose into independent cleanup subtasks (config, tests, docs, scripts, AI configs, comments) plus a final verification gate that depends on all others",
+      "source_task": "t-1",
+      "relevance_tags": [
+        "formic",
+        "architect",
+        "task-decomposition",
+        "migration"
+      ]
+    },
+    {
+      "id": "mem-5af37e54-6312-4318-a243-0a4fd8603176",
+      "created_at": "2026-03-08T20:21:13.610Z",
+      "type": "pattern",
+      "content": "TypeScript migration is functionally complete (commit d13348d): all 53 features reimplemented, 225 unit tests added, 17 audit issues fixed. Remaining work is purely artifact cleanup across 7 child tasks (t-2 through t-8)",
+      "source_task": "t-1",
+      "relevance_tags": [
+        "migration",
+        "typescript",
+        "python-to-typescript",
+        "d13348d"
+      ]
+    },
+    {
+      "id": "mem-a4b87f88-9c21-4525-a28f-7045662919fd",
+      "created_at": "2026-03-08T20:21:13.620Z",
+      "type": "pitfall",
+      "content": "When removing legacy Python config (pythonPath), do NOT remove the 'args' setting in package.json — it is legitimate and used in extension.ts:1046",
+      "source_task": "t-1",
+      "relevance_tags": [
+        "vscode-extension/package.json",
+        "extension.ts",
+        "configuration"
+      ]
+    },
+    {
+      "id": "mem-ac9e04c9-1750-44a2-8edd-ad0b3a2f842e",
+      "created_at": "2026-03-08T20:21:13.621Z",
+      "type": "pitfall",
+      "content": "CK3 game data uses 'legacy' terminology (e.g. dynasty_legacy, legacy format) — these are game concepts, NOT references to the Python migration. Never remove comments containing 'legacy' in completions.ts, loader.ts, or validator.ts without verifying context",
+      "source_task": "t-1",
+      "relevance_tags": [
+        "ck3",
+        "schema/loader.ts",
+        "completions.ts",
+        "validator.ts",
+        "legacy"
+      ]
+    },
+    {
+      "id": "mem-5fa1ba63-249e-44dd-907c-eef9396b0263",
+      "created_at": "2026-03-08T20:21:13.622Z",
+      "type": "pattern",
+      "content": "Project name 'pychivalry' is the brand name, not a Python reference — preserve it throughout documentation even after full TypeScript migration",
+      "source_task": "t-1",
+      "relevance_tags": [
+        "pychivalry",
+        "branding",
+        "documentation",
+        "README.md"
+      ]
+    },
+    {
+      "id": "mem-7d334ff7-ccf6-4960-b2b3-2943c8489770",
+      "created_at": "2026-03-08T20:21:13.623Z",
+      "type": "pattern",
+      "content": "Child tasks t-2 through t-7 are independent and can be parallelized; t-8 (verification) depends on all six. Current status: t-2 is in briefing, t-3 through t-7 are queued, t-8 is blocked",
+      "source_task": "t-1",
+      "relevance_tags": [
+        "formic",
+        "t-1",
+        "t-2",
+        "t-3",
+        "t-4",
+        "t-5",
+        "t-6",
+        "t-7",
+        "t-8",
+        "task-status"
+      ]
+    },
+    {
+      "id": "mem-cf036bf7-50a9-45d1-a684-f3bd75c6df8c",
+      "created_at": "2026-03-08T20:21:13.624Z",
+      "type": "pitfall",
+      "content": "The .vscode/settings.json has interleaved Python and TypeScript settings — when cleaning, preserve all ck3LanguageServer.* settings (enable, logLevel, trace, logWatcher), editor settings, and Node.js exclusions (node_modules, dist)",
+      "source_task": "t-1",
+      "relevance_tags": [
+        ".vscode/settings.json",
+        "workspace-settings",
+        "cleanup"
+      ]
+    },
+    {
+      "id": "mem-e395c595-b833-4646-9ca6-41aa1f0ca724",
+      "created_at": "2026-03-08T20:21:13.626Z",
+      "type": "pattern",
+      "content": "tools/ directory has 3 scripts needing Python removal: setup-dev-env.sh (bash), Check-Prerequisites.ps1 (PowerShell), Install-Prerequisites.ps1 (PowerShell). All should reference Node.js 18+, npm, task commands only",
+      "source_task": "t-1",
+      "relevance_tags": [
+        "tools/",
+        "setup-dev-env.sh",
+        "Check-Prerequisites.ps1",
+        "Install-Prerequisites.ps1",
+        "developer-setup"
+      ]
+    },
+    {
+      "id": "mem-705f17d9-758c-436e-9e74-653262ebcdfe",
+      "created_at": "2026-03-08T20:21:13.627Z",
+      "type": "preference",
+      "content": "Migration commit messages should enumerate specific changes: features added count, tests added count, issues fixed count, with categorized bullet points (Critical/Stubs/Dead code/Missing diagnostics/Consistency)",
+      "source_task": "t-1",
+      "relevance_tags": [
+        "git",
+        "commit-messages",
+        "migration"
+      ]
+    },
+    {
+      "id": "mem-5fccfd4c-9e6f-47dc-a86c-b7bbaa9c4225",
+      "created_at": "2026-03-08T20:21:13.628Z",
+      "type": "pattern",
+      "content": "For verifying migration completeness, search for these terms and expect zero hits (excluding node_modules, dist, Documentation/): pythonPath, pygls, pip install, pytest, setup.py, pyproject.toml, requirements.txt",
+      "source_task": "t-1",
+      "relevance_tags": [
+        "verification",
+        "migration-completeness",
+        "search-terms"
+      ]
     }
   ]
 }

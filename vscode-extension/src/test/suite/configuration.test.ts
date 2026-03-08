@@ -8,7 +8,6 @@ suite('Configuration Tests', () => {
         // Save original configuration
         const config = vscode.workspace.getConfiguration('ck3LanguageServer');
         originalConfig = {
-            pythonPath: config.get('pythonPath'),
             args: config.get('args'),
             traceServer: config.get('trace.server'),
             logLevel: config.get('logLevel'),
@@ -44,7 +43,6 @@ suite('Configuration Tests', () => {
             const config = vscode.workspace.getConfiguration('ck3LanguageServer');
 
             const requiredSettings = [
-                'pythonPath',
                 'args',
                 'trace.server',
                 'logLevel',
@@ -76,17 +74,6 @@ suite('Configuration Tests', () => {
     });
 
     suite('Default Values', () => {
-        test('pythonPath should default to "python"', () => {
-            const config = vscode.workspace.getConfiguration('ck3LanguageServer');
-            const inspect = config.inspect('pythonPath');
-
-            assert.strictEqual(
-                inspect?.defaultValue,
-                'python',
-                'pythonPath default should be "python"'
-            );
-        });
-
         test('enable should default to true', () => {
             const config = vscode.workspace.getConfiguration('ck3LanguageServer');
             const inspect = config.inspect('enable');
@@ -180,17 +167,6 @@ suite('Configuration Tests', () => {
     });
 
     suite('Configuration Updates', () => {
-        test('Should update pythonPath', async () => {
-            const config = vscode.workspace.getConfiguration('ck3LanguageServer');
-            const testValue = '/usr/bin/python3';
-
-            await config.update('pythonPath', testValue, vscode.ConfigurationTarget.Global);
-            assert.strictEqual(config.get('pythonPath'), testValue, 'pythonPath should update');
-
-            // Restore
-            await config.update('pythonPath', originalConfig.pythonPath, vscode.ConfigurationTarget.Global);
-        });
-
         test('Should update logLevel', async () => {
             const config = vscode.workspace.getConfiguration('ck3LanguageServer');
             const testValue = 'debug';
