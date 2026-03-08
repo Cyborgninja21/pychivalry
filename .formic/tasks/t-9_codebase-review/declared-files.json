@@ -1,0 +1,40 @@
+{
+  "exclusive": [
+    "vscode-extension/src/server/README.md",
+    "Documentation/COMPLETE-pygls-replacement.md",
+    ".github/copilot-instructions.md",
+    ".github/prompts/Adding New CK3 Language Features.prompt.md",
+    ".github/prompts/LSP Feature Implementation.prompt.md",
+    ".github/prompts/Version Update Assistant.prompt.md",
+    ".github/prompts/architecture_and_flow.md",
+    ".github/prompts/Branch Merge Assistant.prompt.md",
+    ".github/prompts/documentation_standard.md",
+    ".github/prompts/gh pr review.prompt.md",
+    ".github/prompts/README.md",
+    ".github/skills/ck3-validation-debugging",
+    ".github/skills/lsp-feature-debugging",
+    ".github/skills/lsp-performance-optimization",
+    ".github/skills/vscode-extension-workflow",
+    ".github/skills/tool-list.md",
+    "Documentation/HYBRID_ARCHITECTURE_PROPOSAL.md",
+    "Documentation/feature-parity-analysis.md",
+    "Documentation/typescript-server-complete.md",
+    "Documentation/typescript-implementation-plan.md",
+    "Documentation/IMPLEMENTATION_STATUS.md",
+    "Documentation/PRD.md",
+    "Documentation/SPRINT_5_COMPLETE.md",
+    "Documentation/developer-guide/async-migration.md",
+    "Documentation/developer-guide/async-implementation-summary.md",
+    "Documentation/developer-guide/Test Suites.md",
+    "Documentation/developer-guide/architecture/ARCHITECTURE_FLOW.md",
+    "Documentation/developer-guide/PRE_COMMIT_SETUP.md",
+    "Documentation/developer-guide/PRE_COMMIT_USAGE_GUIDE.md",
+    "tools/README.md",
+    "tools/SCOPE_EXTRACTION_WORKFLOW.md",
+    "SECURITY.md",
+    "vscode-extension/DEVELOPMENT_PLAN.md"
+  ],
+  "shared": [
+    ".formic/board.json"
+  ]
+}
