@@ -1,50 +1,36 @@
-# Update GitHub prompts, copilot instructions, and AI agent configurations
+# Update GitHub Prompts, Copilot Instructions, and AI Agent Configurations
 
 ## Overview
 
-The `.github/` directory contains Copilot instructions, prompt templates, and agent definitions that still reference Python tooling, pytest patterns, and the old pygls-based architecture. These need to be updated so AI assistants and contributors receive accurate guidance.
-
-**Files to search and update in `.github/`:**
-
-1. `.github/prompts/Test Writing Best Practices.prompt.md` — Contains extensive Python/pytest test examples (lines 46-237+). Replace all Python test examples with TypeScript/Mocha equivalents that match the project's actual test patterns in `vscode-extension/src/test/unit/`.
-
-2. `.github/copilot-instructions.md` — Search for and update any references to:
-   - Python development workflow
-   - pygls architecture
-   - pytest testing
-   - Python file structure
-   - pip/setuptools/pyproject.toml
-
-3. Any other `.prompt.md` or agent definition files in `.github/prompts/`, `.github/skills/`, or `.github/agents/` that reference the old Python stack.
-
-**Also update:**
-- `kanban-development-guideline.md` — Remove the 'Python (Historical — guidelines preserved for future contributions)' section (lines 77-83). This was marked historical but is no longer needed and creates confusion.
-- `.claude/settings.local.json` — Remove `Bash(pytest:*)` and `Bash(python:*)` from the allowed permissions list (these grant permissions for commands that no longer exist in the project).
-
-**Technical considerations:**
-- The TypeScript test patterns to use as replacements are in `vscode-extension/src/test/unit/*.test.ts` — use Mocha `describe`/`it`/`assert` patterns
-- Keep any prompt templates that are language-agnostic
-- Ensure copilot instructions align with the kanban-development-guideline.md after Python section removal
-
-**Acceptance criteria:**
-- No Python/pytest code examples in `.github/prompts/`
-- No Python prerequisites or workflow references in copilot instructions
-- `kanban-development-guideline.md` has no Python section
-- `.claude/settings.local.json` has no Python-related permissions
-- All AI assistants receive TypeScript-only guidance
+The project's `.github/` directory, AI assistant configurations, and development guidelines still contain extensive Python/pytest references from the original pygls-based architecture. Since the project has fully migrated to TypeScript with Mocha-based testing, these outdated references actively mislead AI assistants and contributors. This task removes all Python-era guidance and replaces it with accurate TypeScript/Mocha patterns that reflect the current codebase.
 
 ## Goals
 
-- [ ] Define specific goals here
+- Eliminate all Python/pytest code examples and workflow references from `.github/prompts/`, `.github/skills/`, and `.github/copilot-instructions.md` so AI assistants generate TypeScript-only guidance
+- Replace the `pytest-testing-patterns` skill and Python test examples in `Test Writing Best Practices.prompt.md` with TypeScript/Mocha equivalents derived from the project's 25 existing unit tests in `vscode-extension/src/test/unit/`
+- Remove the historical Python section from `kanban-development-guideline.md` and Python-related permissions from `.claude/settings.local.json`
+- Ensure all AI-facing documentation is internally consistent and aligned with the TypeScript-only development workflow
 
 ## Key Capabilities
 
-- Describe what this task will accomplish
+- `.github/skills/pytest-testing-patterns` replaced with a comprehensive TypeScript/Mocha testing patterns guide covering `describe`/`it`/`assert`, `beforeEach` setup, and the project's actual test conventions
+- `.github/copilot-instructions.md` provides TypeScript-only prerequisites, build commands, and folder structure with no Python sections
+- `.github/skills/ck3-validation-debugging` and `.github/skills/lsp-feature-debugging` reference TypeScript debugging and Mocha test patterns instead of Python/pytest examples
+- `.github/prompts/Test Writing Best Practices.prompt.md` contains TypeScript/Mocha test examples matching project conventions
+- `.github/prompts/Debugging LSP Server Issues.prompt.md` updated to reference TypeScript-based server debugging
 
 ## Non-Goals
 
-- What is explicitly out of scope
+- Rewriting or restructuring the CK3-specific agent definitions in `.github/agents/` (these are game-content-focused and do not reference Python)
+- Modifying any language-agnostic prompt templates (e.g., `gh` CLI prompts, `Branch Creation Assistant`, `Commit Message Assistant`)
+- Changing actual test code or test infrastructure in `vscode-extension/src/test/`
+- Adding new prompt templates or skills beyond what currently exists
 
 ## Requirements
 
-- List technical and functional requirements
+- All `.prompt.md` files in `.github/prompts/` must contain zero Python/pytest code blocks or Python-specific workflow references
+- All skill files in `.github/skills/` must use TypeScript/Mocha examples exclusively; the `pytest-testing-patterns` skill must be replaced with `mocha-testing-patterns` (or equivalent)
+- `.github/copilot-instructions.md` must not reference Python 3.9+, pytest, Black, flake8, mypy, pygls, pip, setuptools, or pyproject.toml
+- `kanban-development-guideline.md` must have the "Python (Historical)" section (lines 77-83) removed entirely
+- `.claude/settings.local.json` must have `Bash(pytest:*)` and `Bash(python:*)` entries removed from the allowed permissions list
+- TypeScript test examples used as replacements must follow the Mocha `describe`/`it`/`assert.strictEqual`/`assert.deepStrictEqual` patterns found in existing unit tests

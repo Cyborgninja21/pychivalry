@@ -439,6 +439,94 @@
         "tools/Install-Prerequisites.ps1",
         "consistency"
       ]
+    },
+    {
+      "id": "mem-6920c60e-6b65-4f46-845e-fe93114b65bd",
+      "created_at": "2026-03-08T20:53:07.098Z",
+      "type": "pattern",
+      "content": "Documentation migration task t-5 updated 4 files (README.md, vscode-extension/README.md, CONTRIBUTING.md, vscode-extension/CHANGELOG.md) — removed all Python references (pip, pytest, pygls, pythonPath, Black, flake8, mypy, Python 3.9+) and replaced with TypeScript/Node.js equivalents (npm, Node.js 18+, vscode-languageserver, task commands)",
+      "source_task": "t-5",
+      "relevance_tags": [
+        "README.md",
+        "CONTRIBUTING.md",
+        "vscode-extension/README.md",
+        "vscode-extension/CHANGELOG.md",
+        "documentation",
+        "migration"
+      ]
+    },
+    {
+      "id": "mem-940e8ff9-14ef-4258-b23f-38fb5285518f",
+      "created_at": "2026-03-08T20:53:07.099Z",
+      "type": "pattern",
+      "content": "When updating user-facing docs after a language migration, verify with grep for banned terms across all target files as a final validation step — ensures no stale references survive",
+      "source_task": "t-5",
+      "relevance_tags": [
+        "documentation",
+        "migration",
+        "verification"
+      ]
+    },
+    {
+      "id": "mem-aa7baa61-40a1-43d1-9953-7779e92974ea",
+      "created_at": "2026-03-08T20:53:07.100Z",
+      "type": "preference",
+      "content": "The project name 'pychivalry' is intentionally kept despite the Python-to-TypeScript migration — it is the project brand and must never be renamed",
+      "source_task": "t-5",
+      "relevance_tags": [
+        "pychivalry",
+        "naming",
+        "branding"
+      ]
+    },
+    {
+      "id": "mem-e3be0482-e930-453d-9cd7-b5fe4c854b56",
+      "created_at": "2026-03-08T20:53:07.101Z",
+      "type": "pattern",
+      "content": "The extension uses an embedded LSP server (no separate installation required) — user docs must state that VS Code is the only prerequisite beyond Node.js 18+; no pip install or pythonPath configuration",
+      "source_task": "t-5",
+      "relevance_tags": [
+        "vscode-extension/README.md",
+        "installation",
+        "lsp",
+        "architecture"
+      ]
+    },
+    {
+      "id": "mem-613fc4c5-92fa-471a-9c6b-d6c82b3148f3",
+      "created_at": "2026-03-08T20:53:07.102Z",
+      "type": "pattern",
+      "content": "Root README badge was changed from Python 3.9+ to Node.js 18+; acknowledgments section replaced pygls with vscode-languageserver ^9.0.1",
+      "source_task": "t-5",
+      "relevance_tags": [
+        "README.md",
+        "badges",
+        "acknowledgments"
+      ]
+    },
+    {
+      "id": "mem-3de0d376-50a6-4c52-b0a5-696baf36a97e",
+      "created_at": "2026-03-08T20:53:07.103Z",
+      "type": "pitfall",
+      "content": "CHANGELOG.md contained forward-looking Python instructions (pythonPath setting in v0.1.0 config table, Python Detection features in v0.2.0) that looked like historical records but were actually never-shipped Python features — these needed removal, not just annotation",
+      "source_task": "t-5",
+      "relevance_tags": [
+        "vscode-extension/CHANGELOG.md",
+        "changelog",
+        "migration"
+      ]
+    },
+    {
+      "id": "mem-d014bd26-55eb-49f1-86d4-1a4ba2f50310",
+      "created_at": "2026-03-08T20:53:07.104Z",
+      "type": "pattern",
+      "content": "Formic task t-5 had 19 subtasks across 4 files — granular subtask decomposition (one per logical section per file) made the documentation sweep systematic and prevented missed references",
+      "source_task": "t-5",
+      "relevance_tags": [
+        "formic",
+        "task-management",
+        "subtasks"
+      ]
     }
   ]
 }

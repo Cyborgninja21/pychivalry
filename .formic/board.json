@@ -370,7 +370,16 @@
         ],
         "shared": []
       },
-      "completedAt": "2026-03-08T20:52:24.525Z"
+      "completedAt": "2026-03-08T20:52:24.525Z",
+      "reflectionMemories": [
+        "mem-6920c60e-6b65-4f46-845e-fe93114b65bd",
+        "mem-940e8ff9-14ef-4258-b23f-38fb5285518f",
+        "mem-aa7baa61-40a1-43d1-9953-7779e92974ea",
+        "mem-e3be0482-e930-453d-9cd7-b5fe4c854b56",
+        "mem-613fc4c5-92fa-471a-9c6b-d6c82b3148f3",
+        "mem-3de0d376-50a6-4c52-b0a5-696baf36a97e",
+        "mem-d014bd26-55eb-49f1-86d4-1a4ba2f50310"
+      ]
     },
     {
       "id": "t-6",
@@ -382,14 +391,53 @@
       "agentLogs": [],
       "pid": null,
       "type": "standard",
-      "workflowStep": "pending",
-      "workflowLogs": {},
+      "workflowStep": "execute",
+      "workflowLogs": {
+        "brief": [
+          "README.md written to `/home/cwallace/git/pychivalry/.formic/tasks/t-6_update-github-prompts-copilot-/README.md`. The spec covers the full scope of Python-to-TypeScript documentation cleanup across `.github/prompts/`, `.github/skills/`, `.github/copilot-instructions.md`, `kanban-development-guideline.md`, and `.claude/settings.local.json`, with clear goals, non-goals, and verifiable requirements."
+        ],
+        "plan": [
+          "Both files have been written:",
+          "1. **`PLAN.md`** — 4-phase implementation plan covering core config files, skills, prompt templates, and verification",
+          "2. **`subtasks.json`** — 17 subtasks ordered by dependency (core configs → skills → prompts → verification grep)",
+          "The plan covers all 16 files identified with Python/pytest references across `.github/copilot-instructions.md`, 5 skills files, 8 prompt templates, `kanban-development-guideline.md`, and `.claude/settings.local.json`."
+        ],
+        "execute": [
+          "Written `declared-files.json` with 16 exclusive files and 1 shared file:",
+          "- **16 exclusive**: All `.github/prompts/` and `.github/skills/` files being updated or replaced, plus `kanban-development-guideline.md` and the deleted/created `pytest-testing-patterns` → `mocha-testing-patterns` swap",
+          "- **1 shared**: `.claude/settings.local.json` (configuration file that multiple tasks may modify)"
+        ]
+      },
       "createdAt": "2026-03-08T20:20:28.762Z",
-      "safePointCommit": null,
+      "safePointCommit": "abc6e4c79dce232ad2f84112c405cbdc6fabe2a9",
       "retryCount": null,
       "fixForTaskId": null,
       "parentGoalId": "t-1",
-      "queuedAt": "2026-03-08T20:20:28.782Z"
+      "queuedAt": "2026-03-08T20:20:28.782Z",
+      "startedAt": "2026-03-08T20:52:24.560Z",
+      "declaredFiles": {
+        "exclusive": [
+          ".github/copilot-instructions.md",
+          "kanban-development-guideline.md",
+          ".github/skills/pytest-testing-patterns",
+          ".github/skills/mocha-testing-patterns",
+          ".github/skills/lsp-feature-debugging",
+          ".github/skills/ck3-validation-debugging",
+          ".github/skills/lsp-performance-optimization",
+          ".github/skills/tool-list.md",
+          ".github/prompts/Test Writing Best Practices.prompt.md",
+          ".github/prompts/Debugging LSP Server Issues.prompt.md",
+          ".github/prompts/Adding New CK3 Language Features.prompt.md",
+          ".github/prompts/LSP Feature Implementation.prompt.md",
+          ".github/prompts/Branch Merge Assistant.prompt.md",
+          ".github/prompts/Version Update Assistant.prompt.md",
+          ".github/prompts/documentation_standard.md",
+          ".github/prompts/architecture_and_flow.md"
+        ],
+        "shared": [
+          ".claude/settings.local.json"
+        ]
+      }
     },
     {
       "id": "t-7",
