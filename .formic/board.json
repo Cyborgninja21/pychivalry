@@ -386,7 +386,7 @@
       "title": "Update GitHub prompts, copilot instructions, and AI agent configurations",
       "context": "The `.github/` directory contains Copilot instructions, prompt templates, and agent definitions that still reference Python tooling, pytest patterns, and the old pygls-based architecture. These need to be updated so AI assistants and contributors receive accurate guidance.\n\n**Files to search and update in `.github/`:**\n\n1. `.github/prompts/Test Writing Best Practices.prompt.md` — Contains extensive Python/pytest test examples (lines 46-237+). Replace all Python test examples with TypeScript/Mocha equivalents that match the project's actual test patterns in `vscode-extension/src/test/unit/`.\n\n2. `.github/copilot-instructions.md` — Search for and update any references to:\n   - Python development workflow\n   - pygls architecture\n   - pytest testing\n   - Python file structure\n   - pip/setuptools/pyproject.toml\n\n3. Any other `.prompt.md` or agent definition files in `.github/prompts/`, `.github/skills/`, or `.github/agents/` that reference the old Python stack.\n\n**Also update:**\n- `kanban-development-guideline.md` — Remove the 'Python (Historical — guidelines preserved for future contributions)' section (lines 77-83). This was marked historical but is no longer needed and creates confusion.\n- `.claude/settings.local.json` — Remove `Bash(pytest:*)` and `Bash(python:*)` from the allowed permissions list (these grant permissions for commands that no longer exist in the project).\n\n**Technical considerations:**\n- The TypeScript test patterns to use as replacements are in `vscode-extension/src/test/unit/*.test.ts` — use Mocha `describe`/`it`/`assert` patterns\n- Keep any prompt templates that are language-agnostic\n- Ensure copilot instructions align with the kanban-development-guideline.md after Python section removal\n\n**Acceptance criteria:**\n- No Python/pytest code examples in `.github/prompts/`\n- No Python prerequisites or workflow references in copilot instructions\n- `kanban-development-guideline.md` has no Python section\n- `.claude/settings.local.json` has no Python-related permissions\n- All AI assistants receive TypeScript-only guidance",
       "priority": "low",
-      "status": "todo",
+      "status": "queued",
       "docsPath": ".formic/tasks/t-6_update-github-prompts-copilot-",
       "agentLogs": [],
       "pid": null,
@@ -407,7 +407,12 @@
           "- References actual project files, patterns, and conventions",
           "- Has measurable goals and clear non-goals",
           "- Matches the acceptance criteria from the task description",
-          "The file is already written at the specified output location and needs no changes. The specification is complete."
+          "The file is already written at the specified output location and needs no changes. The specification is complete.",
+          "README.md written to `/home/cwallace/git/pychivalry/.formic/tasks/t-6_update-github-prompts-copilot-/README.md`.",
+          "Key updates from the previous version:",
+          "- **Removed references to `kanban-development-guideline.md` and `.claude/settings.local.json`** from Goals/Requirements — exploration confirmed these have already been cleaned up (no Python content in either file)",
+          "- **Expanded the scope of affected `.github/prompts/` files** — grep revealed Python references in 10+ prompt files beyond just `Test Writing Best Practices.prompt.md` (which is actually already TypeScript)",
+          "- **Listed specific affected files** in the Goals section for clarity"
         ],
         "plan": [
           "Both files have been written:",
@@ -445,7 +450,14 @@
           "- Added specific audit subtasks for `kanban-development-guideline.md` and `.claude/settings.local.json` (current readings show they may already be clean)",
           "- Added `vscode-extension-workflow` skill update and `.github/placeholder` cleanup",
           "- Added agent definitions audit (13 files under `.github/agents/`)",
-          "- Separated verification from update subtasks for clearer tracking"
+          "- Separated verification from update subtasks for clearer tracking",
+          "Both files written successfully.",
+          "**PLAN.md** — 4-phase implementation plan covering core config files, prompt templates, skills, and final verification. Preserves prior work context (subtasks 1-2 completed).",
+          "**subtasks.json** — 24 subtasks (2 completed, 22 pending):",
+          "- **Phase 1** (subtasks 3-6): Core config — copilot-instructions.md, kanban guideline, .claude settings, placeholder",
+          "- **Phase 2** (subtasks 7-15): Prompt templates — 9 files with Python/pygls/pytest references to replace",
+          "- **Phase 3** (subtasks 16-20): Skills — 5 skill files with Python code examples",
+          "- **Phase 4** (subtasks 21-24): Index update, agent audit, verification grep, consistency check"
         ],
         "execute": [
           "Written `declared-files.json` with 16 exclusive files and 1 shared file:",
@@ -475,36 +487,42 @@
           "- All 13 `.github/agents/*.agent.md` files + `.github/agents/README.md` — subtask 21 (audit for Python/pytest/pygls references)",
           "**Retained from previous version:**",
           "- All prompt templates, skills, copilot-instructions, placeholder, and kanban-development-guideline files",
-          "- `.claude/settings.local.json` as shared (configuration hotspot)"
+          "- `.claude/settings.local.json` as shared (configuration hotspot)",
+          "Done. Updated `declared-files.json` with 32 exclusive files and 2 shared files:",
+          "**Key changes from previous version:**",
+          "- Removed `pytest-testing-patterns` (already deleted in completed subtask 2)",
+          "- Added `.github/prompts/gh run view.prompt.md` (subtask 14)",
+          "- Moved `kanban-development-guideline.md` to **shared** (central guideline doc that multiple tasks may reference)",
+          "- Kept `.github/prompts/Debugging LSP Server Issues.prompt.md` (in prompts dir, may contain Python references to audit)"
         ]
       },
       "createdAt": "2026-03-08T20:20:28.762Z",
-      "safePointCommit": "25b38a8146e4b3c980373cebd0a4f2e0119c6ade",
+      "safePointCommit": "4b3dcc5bff0666ed978335dd100cddd1fb1248a4",
       "retryCount": null,
       "fixForTaskId": null,
       "parentGoalId": "t-1",
       "queuedAt": "2026-03-08T20:20:28.782Z",
       "declaredFiles": {
         "exclusive": [
-          ".github/skills/mocha-testing-patterns",
-          ".github/skills/pytest-testing-patterns",
-          ".github/skills/lsp-feature-debugging",
-          ".github/skills/lsp-performance-optimization",
-          ".github/skills/ck3-validation-debugging",
-          ".github/skills/vscode-extension-workflow",
-          ".github/skills/tool-list.md",
-          ".github/prompts/Test Writing Best Practices.prompt.md",
-          ".github/prompts/Debugging LSP Server Issues.prompt.md",
-          ".github/prompts/LSP Feature Implementation.prompt.md",
-          ".github/prompts/Adding New CK3 Language Features.prompt.md",
-          ".github/prompts/Branch Merge Assistant.prompt.md",
-          ".github/prompts/gh pr review.prompt.md",
-          ".github/prompts/Version Update Assistant.prompt.md",
-          ".github/prompts/architecture_and_flow.md",
-          ".github/prompts/documentation_standard.md",
-          ".github/prompts/README.md",
           ".github/copilot-instructions.md",
           ".github/placeholder",
+          ".github/prompts/LSP Feature Implementation.prompt.md",
+          ".github/prompts/Adding New CK3 Language Features.prompt.md",
+          ".github/prompts/architecture_and_flow.md",
+          ".github/prompts/Version Update Assistant.prompt.md",
+          ".github/prompts/documentation_standard.md",
+          ".github/prompts/Branch Merge Assistant.prompt.md",
+          ".github/prompts/gh pr review.prompt.md",
+          ".github/prompts/gh run view.prompt.md",
+          ".github/prompts/Test Writing Best Practices.prompt.md",
+          ".github/prompts/Debugging LSP Server Issues.prompt.md",
+          ".github/prompts/README.md",
+          ".github/skills/mocha-testing-patterns",
+          ".github/skills/ck3-validation-debugging",
+          ".github/skills/lsp-feature-debugging",
+          ".github/skills/lsp-performance-optimization",
+          ".github/skills/vscode-extension-workflow",
+          ".github/skills/tool-list.md",
           ".github/agents/ck3-activity-builder.agent.md",
           ".github/agents/ck3-onaction-builder.agent.md",
           ".github/agents/ck3-story-cycle-builder.agent.md",
@@ -517,13 +535,14 @@
           ".github/agents/ck3-interaction-builder.agent.md",
           ".github/agents/ck3-event-builder.agent.md",
           ".github/agents/ck3-decision-builder.agent.md",
-          ".github/agents/README.md",
-          "kanban-development-guideline.md"
+          ".github/agents/README.md"
         ],
         "shared": [
+          "kanban-development-guideline.md",
           ".claude/settings.local.json"
         ]
-      }
+      },
+      "startedAt": "2026-03-08T21:37:56.850Z"
     },
     {
       "id": "t-7",

@@ -3,7 +3,7 @@
   "taskId": "t-6",
   "title": "Update GitHub prompts, copilot instructions, and AI agent configurations",
   "createdAt": "2026-03-08T00:00:00Z",
-  "updatedAt": "2026-03-08T12:00:00Z",
+  "updatedAt": "2026-03-08T18:00:00Z",
   "subtasks": [
     {
       "id": "1",
@@ -17,12 +17,12 @@
     },
     {
       "id": "3",
-      "content": "Update `.github/copilot-instructions.md` to remove Python 3.9+, pytest, Black, flake8, mypy, pygls, hypothesis, lsprotocol sections; remove Python folder structure (`pyproject.toml`, `pychivalry/` package paths); ensure TypeScript-only content throughout",
+      "content": "Update `.github/copilot-instructions.md` to remove Python 3.9+ prerequisite (line 124) and the entire 'Python Requirements' section (lines 131-170); remove Python folder structure references; ensure TypeScript-only content throughout",
       "status": "pending"
     },
     {
       "id": "4",
-      "content": "Audit `kanban-development-guideline.md` for vestigial Python section (README references lines 77-83); remove if found, confirm TypeScript-only content",
+      "content": "Audit `kanban-development-guideline.md` for vestigial Python section; remove if found, confirm TypeScript-only content",
       "status": "pending"
     },
     {
@@ -37,7 +37,7 @@
     },
     {
       "id": "7",
-      "content": "Rewrite `.github/prompts/LSP Feature Implementation.prompt.md` to replace pygls `@server.feature()` decorator patterns, `from pygls.server import LanguageServer` examples, and pytest fixture/async tests with TypeScript LSP provider patterns and Mocha tests",
+      "content": "Rewrite `.github/prompts/LSP Feature Implementation.prompt.md` to replace pygls `@server.feature()` decorator patterns, `from pygls.server import LanguageServer` examples, and pytest fixture/async test patterns with TypeScript LSP provider patterns and Mocha tests",
       "status": "pending"
     },
     {
@@ -57,7 +57,7 @@
     },
     {
       "id": "11",
-      "content": "Update `.github/prompts/documentation_standard.md` to replace Python docstring standards (Google/NumPy style, mypy compatibility) with TSDoc/TypeScript documentation conventions",
+      "content": "Update `.github/prompts/documentation_standard.md` to replace `from pygls.server import LanguageServer` example and Python docstring standards with TSDoc/TypeScript documentation conventions",
       "status": "pending"
     },
     {
@@ -72,51 +72,56 @@
     },
     {
       "id": "14",
-      "content": "Verify `.github/prompts/Test Writing Best Practices.prompt.md` contains no Python/pytest references; update if any vestiges found",
+      "content": "Update `.github/prompts/gh run view.prompt.md` to replace any Python-specific test job logging references with TypeScript/Mocha equivalents",
       "status": "pending"
     },
     {
       "id": "15",
-      "content": "Rewrite `.github/skills/ck3-validation-debugging` to replace all Python validator examples (`pychivalry.parser`, `pychivalry.scopes`, `pychivalry.traits`, `pychivalry.events`, `pychivalry.lists`, `pychivalry.script_values`, `pychivalry.localization`) with TypeScript test patterns using actual project imports",
+      "content": "Verify `.github/prompts/Test Writing Best Practices.prompt.md` contains no Python/pytest references; update if any vestiges found",
       "status": "pending"
     },
     {
       "id": "16",
-      "content": "Update `.github/skills/lsp-feature-debugging` to replace `pychivalry.parser.CK3Parser` usage, pytest `@pytest.mark.asyncio` tests, and `cProfile`/`pstats` profiling with TypeScript debugging patterns and Mocha tests",
+      "content": "Rewrite `.github/skills/ck3-validation-debugging` to replace all Python validator examples (`pychivalry.parser`, `pychivalry.scopes`, etc.) with TypeScript test patterns using actual project imports",
       "status": "pending"
     },
     {
       "id": "17",
-      "content": "Rewrite `.github/skills/lsp-performance-optimization` to replace Python profiling tools (`cProfile`, `memory_profiler`, `line_profiler`, `psutil`), `asyncio` patterns, `functools.wraps` examples, and `@pytest.mark.performance`/`pytest-benchmark` with Node.js profiling and Mocha performance tests",
+      "content": "Update `.github/skills/lsp-feature-debugging` to replace `pychivalry.parser.CK3Parser` usage, pytest `@pytest.mark.asyncio` tests, and `cProfile`/`pstats` profiling with TypeScript debugging patterns and Mocha tests",
       "status": "pending"
     },
     {
       "id": "18",
-      "content": "Update `.github/skills/vscode-extension-workflow` to remove `python -m pychivalry --version` command reference",
+      "content": "Rewrite `.github/skills/lsp-performance-optimization` to replace Python profiling tools (`cProfile`, `memory_profiler`, `line_profiler`, `psutil`), `asyncio` patterns, and `pytest-benchmark` with Node.js profiling and Mocha performance tests",
       "status": "pending"
     },
     {
       "id": "19",
-      "content": "Remove the Python Environment Management tools section (~4 tools) and Pylance/Python Analysis (MCP) section (~11 tools) from `.github/skills/tool-list.md`",
+      "content": "Update `.github/skills/vscode-extension-workflow` to remove `python -m pychivalry --version` command reference",
       "status": "pending"
     },
     {
       "id": "20",
-      "content": "Update `.github/prompts/README.md` to replace any descriptions referencing pytest patterns with TypeScript/Mocha descriptions",
+      "content": "Remove the Python Environment Management tools section and Pylance/Python Analysis (MCP) section from `.github/skills/tool-list.md`",
       "status": "pending"
     },
     {
       "id": "21",
-      "content": "Audit all 13 agent definition files under `.github/agents/` for any Python/pytest/pygls references",
+      "content": "Update `.github/prompts/README.md` to replace any descriptions referencing pytest patterns with TypeScript/Mocha descriptions; remove mentions of 'Python files'",
       "status": "pending"
     },
     {
       "id": "22",
-      "content": "Run `grep -ri` across `.github/`, `kanban-development-guideline.md`, and `.claude/` for pytest, pyproject, pygls, flake8, mypy, hypothesis, and 'python 3.9' to verify zero remaining Python references",
+      "content": "Audit all 13 agent definition files under `.github/agents/` for any Python/pytest/pygls references",
       "status": "pending"
     },
     {
       "id": "23",
+      "content": "Run `grep -ri` across `.github/`, `kanban-development-guideline.md`, and `.claude/` for pytest, pyproject, pygls, flake8, mypy, hypothesis, and 'python 3.9' to verify zero remaining Python references",
+      "status": "pending"
+    },
+    {
+      "id": "24",
       "content": "Verify `kanban-development-guideline.md` and `.github/copilot-instructions.md` are consistent with each other after all edits",
       "status": "pending"
     }
