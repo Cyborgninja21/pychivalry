@@ -386,7 +386,7 @@
       "title": "Update GitHub prompts, copilot instructions, and AI agent configurations",
       "context": "The `.github/` directory contains Copilot instructions, prompt templates, and agent definitions that still reference Python tooling, pytest patterns, and the old pygls-based architecture. These need to be updated so AI assistants and contributors receive accurate guidance.\n\n**Files to search and update in `.github/`:**\n\n1. `.github/prompts/Test Writing Best Practices.prompt.md` — Contains extensive Python/pytest test examples (lines 46-237+). Replace all Python test examples with TypeScript/Mocha equivalents that match the project's actual test patterns in `vscode-extension/src/test/unit/`.\n\n2. `.github/copilot-instructions.md` — Search for and update any references to:\n   - Python development workflow\n   - pygls architecture\n   - pytest testing\n   - Python file structure\n   - pip/setuptools/pyproject.toml\n\n3. Any other `.prompt.md` or agent definition files in `.github/prompts/`, `.github/skills/`, or `.github/agents/` that reference the old Python stack.\n\n**Also update:**\n- `kanban-development-guideline.md` — Remove the 'Python (Historical — guidelines preserved for future contributions)' section (lines 77-83). This was marked historical but is no longer needed and creates confusion.\n- `.claude/settings.local.json` — Remove `Bash(pytest:*)` and `Bash(python:*)` from the allowed permissions list (these grant permissions for commands that no longer exist in the project).\n\n**Technical considerations:**\n- The TypeScript test patterns to use as replacements are in `vscode-extension/src/test/unit/*.test.ts` — use Mocha `describe`/`it`/`assert` patterns\n- Keep any prompt templates that are language-agnostic\n- Ensure copilot instructions align with the kanban-development-guideline.md after Python section removal\n\n**Acceptance criteria:**\n- No Python/pytest code examples in `.github/prompts/`\n- No Python prerequisites or workflow references in copilot instructions\n- `kanban-development-guideline.md` has no Python section\n- `.claude/settings.local.json` has no Python-related permissions\n- All AI assistants receive TypeScript-only guidance",
       "priority": "low",
-      "status": "queued",
+      "status": "todo",
       "docsPath": ".formic/tasks/t-6_update-github-prompts-copilot-",
       "agentLogs": [],
       "pid": null,
@@ -400,7 +400,14 @@
           "- Added specific test file names (`parser.test.ts`, `log-diagnostics.test.ts`, `style-checks.test.ts`) as examples of the patterns to follow",
           "- Expanded Non-Goals with additional language-agnostic templates that should be left untouched",
           "- Tightened the requirements to reference specific Python tools that must be removed from copilot instructions",
-          "The README.md specification has been written to `/home/cwallace/git/pychivalry/.formic/tasks/t-6_update-github-prompts-copilot-/README.md`."
+          "The README.md specification has been written to `/home/cwallace/git/pychivalry/.formic/tasks/t-6_update-github-prompts-copilot-/README.md`.",
+          "The existing README.md already covers this task specification well. Let me verify it against the brief requirements and update it based on what the exploration revealed.",
+          "The current README.md is comprehensive and accurate. It properly:",
+          "- Describes the what/why without implementation details",
+          "- References actual project files, patterns, and conventions",
+          "- Has measurable goals and clear non-goals",
+          "- Matches the acceptance criteria from the task description",
+          "The file is already written at the specified output location and needs no changes. The specification is complete."
         ],
         "plan": [
           "Both files have been written:",
@@ -429,7 +436,16 @@
           "  - **#19**: Remove Python tool sections from `.github/skills/tool-list.md`",
           "  - **#20**: Update `prompts/README.md` descriptions",
           "  - **#22**: Cross-verify consistency between `kanban-development-guideline.md` and `copilot-instructions.md`",
-          "- Total: 22 subtasks (2 completed, 20 pending)"
+          "- Total: 22 subtasks (2 completed, 20 pending)",
+          "Both files written:",
+          "- **`PLAN.md`** — 4-phase implementation plan covering core configs, prompt templates, skills, and audit/verification",
+          "- **`subtasks.json`** — 23 subtasks (2 completed, 21 pending) ordered by dependency: core configs first → heavy prompt rewrites → skill updates → audit/verification",
+          "Key changes from the previous plan:",
+          "- Moved `copilot-instructions.md` update earlier (subtask 3) since it's the most impactful config file",
+          "- Added specific audit subtasks for `kanban-development-guideline.md` and `.claude/settings.local.json` (current readings show they may already be clean)",
+          "- Added `vscode-extension-workflow` skill update and `.github/placeholder` cleanup",
+          "- Added agent definitions audit (13 files under `.github/agents/`)",
+          "- Separated verification from update subtasks for clearer tracking"
         ],
         "execute": [
           "Written `declared-files.json` with 16 exclusive files and 1 shared file:",
@@ -452,16 +468,22 @@
           "- `.github/placeholder`",
           "- `kanban-development-guideline.md`",
           "**Shared (1 file):**",
-          "- `.claude/settings.local.json` — configuration file that multiple tasks may modify"
+          "- `.claude/settings.local.json` — configuration file that multiple tasks may modify",
+          "Done. Updated `declared-files.json` with the complete file list. Changes from the previous version:",
+          "**Added files:**",
+          "- `.github/skills/vscode-extension-workflow` — subtask 18 (remove `python -m pychivalry --version` reference)",
+          "- All 13 `.github/agents/*.agent.md` files + `.github/agents/README.md` — subtask 21 (audit for Python/pytest/pygls references)",
+          "**Retained from previous version:**",
+          "- All prompt templates, skills, copilot-instructions, placeholder, and kanban-development-guideline files",
+          "- `.claude/settings.local.json` as shared (configuration hotspot)"
         ]
       },
       "createdAt": "2026-03-08T20:20:28.762Z",
-      "safePointCommit": "8a38a1be82866b376063491a6064d9f41ad27da5",
+      "safePointCommit": "25b38a8146e4b3c980373cebd0a4f2e0119c6ade",
       "retryCount": null,
       "fixForTaskId": null,
       "parentGoalId": "t-1",
       "queuedAt": "2026-03-08T20:20:28.782Z",
-      "startedAt": "2026-03-08T20:52:24.560Z",
       "declaredFiles": {
         "exclusive": [
           ".github/skills/mocha-testing-patterns",
@@ -469,6 +491,7 @@
           ".github/skills/lsp-feature-debugging",
           ".github/skills/lsp-performance-optimization",
           ".github/skills/ck3-validation-debugging",
+          ".github/skills/vscode-extension-workflow",
           ".github/skills/tool-list.md",
           ".github/prompts/Test Writing Best Practices.prompt.md",
           ".github/prompts/Debugging LSP Server Issues.prompt.md",
@@ -482,6 +505,19 @@
           ".github/prompts/README.md",
           ".github/copilot-instructions.md",
           ".github/placeholder",
+          ".github/agents/ck3-activity-builder.agent.md",
+          ".github/agents/ck3-onaction-builder.agent.md",
+          ".github/agents/ck3-story-cycle-builder.agent.md",
+          ".github/agents/ck3-variable-designer.agent.md",
+          ".github/agents/ck3-trait-designer.agent.md",
+          ".github/agents/ck3-localization-manager.agent.md",
+          ".github/agents/ck3-validator.agent.md",
+          ".github/agents/ck3-mod-orchestrator.agent.md",
+          ".github/agents/ck3-scope-timing.agent.md",
+          ".github/agents/ck3-interaction-builder.agent.md",
+          ".github/agents/ck3-event-builder.agent.md",
+          ".github/agents/ck3-decision-builder.agent.md",
+          ".github/agents/README.md",
           "kanban-development-guideline.md"
         ],
         "shared": [
