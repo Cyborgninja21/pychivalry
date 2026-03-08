@@ -1,0 +1,7 @@
+{
+  "exclusive": [
+    ".vscode/settings.json",
+    "pychivalry.code-workspace"
+  ],
+  "shared": []
+}

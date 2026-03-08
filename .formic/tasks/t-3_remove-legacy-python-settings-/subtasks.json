@@ -1,0 +1,59 @@
+{
+  "version": "1.0",
+  "taskId": "t-3",
+  "title": "Remove legacy Python settings from VS Code workspace configuration",
+  "createdAt": "2026-03-08T00:00:00Z",
+  "updatedAt": "2026-03-08T00:00:00Z",
+  "subtasks": [
+    {
+      "id": "1",
+      "content": "Remove the `// Python settings` comment and all `python.*` keys (defaultInterpreterPath, analysis.typeCheckingMode, linting.enabled, linting.flake8Enabled, linting.mypyEnabled, formatting.provider, testing.pytestEnabled, testing.pytestArgs) from `.vscode/settings.json`",
+      "status": "completed"
+    },
+    {
+      "id": "2",
+      "content": "Remove the `ck3LanguageServer.pythonPath` key from `.vscode/settings.json` while preserving all other `ck3LanguageServer.*` keys",
+      "status": "completed"
+    },
+    {
+      "id": "3",
+      "content": "Remove Python artifact patterns (`**/__pycache__`, `**/*.pyc`, `**/.pytest_cache`) from `files.exclude` in `.vscode/settings.json`, keeping only `**/node_modules` and `**/dist`",
+      "status": "completed"
+    },
+    {
+      "id": "4",
+      "content": "Remove Python artifact patterns (`**/__pycache__`, `**/.pytest_cache`) from `search.exclude` in `.vscode/settings.json`, keeping only `**/node_modules` and `**/dist`",
+      "status": "completed"
+    },
+    {
+      "id": "5",
+      "content": "Remove `python-envs.defaultPackageManager` and `python-envs.pythonProjects` keys from `.vscode/settings.json`",
+      "status": "completed"
+    },
+    {
+      "id": "6",
+      "content": "Remove `python-envs.defaultPackageManager` from the `settings` block in `pychivalry.code-workspace`; if `settings` becomes empty, remove the `settings` key entirely",
+      "status": "completed"
+    },
+    {
+      "id": "7",
+      "content": "Validate `.vscode/settings.json` parses as valid JSON (e.g., `python3 -m json.tool` or `json_pp`)",
+      "status": "completed"
+    },
+    {
+      "id": "8",
+      "content": "Validate `pychivalry.code-workspace` parses as valid JSON",
+      "status": "completed"
+    },
+    {
+      "id": "9",
+      "content": "Verify no `python` or `pythonPath` keys remain in either file (grep confirmation)",
+      "status": "completed"
+    },
+    {
+      "id": "10",
+      "content": "Verify all active CK3 language server settings (`ck3LanguageServer.enable`, `logLevel`, `trace.server`, `logWatcher.*`), editor settings, and non-Python exclusions are preserved unchanged",
+      "status": "completed"
+    }
+  ]
+}

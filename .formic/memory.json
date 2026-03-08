@@ -268,6 +268,55 @@
         "migration-completeness",
         "search-terms"
       ]
+    },
+    {
+      "id": "mem-dd2764fc-40a9-4475-baa2-2d612bf05754",
+      "created_at": "2026-03-08T20:24:45.635Z",
+      "type": "pattern",
+      "content": "When removing an obsolete config setting, check three layers: package.json contributes.configuration (declaration), runtime code that reads it, and test assertions. All three must be cleaned.",
+      "source_task": "t-2",
+      "relevance_tags": [
+        "vscode-extension",
+        "configuration",
+        "package.json",
+        "refactoring"
+      ]
+    },
+    {
+      "id": "mem-6d45f9d9-560e-4d37-9f44-d01c29f757b3",
+      "created_at": "2026-03-08T20:24:45.636Z",
+      "type": "pattern",
+      "content": "configuration.test.ts stores originalConfig for restore-after-test; when removing a setting, also remove it from that backup object, not just from test cases.",
+      "source_task": "t-2",
+      "relevance_tags": [
+        "configuration.test.ts",
+        "testing",
+        "cleanup"
+      ]
+    },
+    {
+      "id": "mem-49141145-b9ac-4301-a640-fd3d10344e27",
+      "created_at": "2026-03-08T20:24:45.646Z",
+      "type": "pitfall",
+      "content": "pythonPath was a leftover from the original Python-based server. The extension is now pure TypeScript with an embedded LSP server—no Python dependency remains.",
+      "source_task": "t-2",
+      "relevance_tags": [
+        "architecture",
+        "ck3LanguageServer",
+        "migration"
+      ]
+    },
+    {
+      "id": "mem-fa575cb3-bb7b-42a6-9a4c-d4678c442fee",
+      "created_at": "2026-03-08T20:24:45.647Z",
+      "type": "pattern",
+      "content": "Use grep -r across vscode-extension/ with --include='*.ts' --include='*.json' to confirm zero remaining references after removing an obsolete symbol.",
+      "source_task": "t-2",
+      "relevance_tags": [
+        "verification",
+        "refactoring",
+        "grep"
+      ]
     }
   ]
 }

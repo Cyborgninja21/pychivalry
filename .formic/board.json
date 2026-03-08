@@ -172,26 +172,65 @@
           "vscode-extension/package.json"
         ]
       },
-      "completedAt": "2026-03-08T20:24:22.755Z"
+      "completedAt": "2026-03-08T20:24:22.755Z",
+      "reflectionMemories": [
+        "mem-dd2764fc-40a9-4475-baa2-2d612bf05754",
+        "mem-6d45f9d9-560e-4d37-9f44-d01c29f757b3",
+        "mem-49141145-b9ac-4301-a640-fd3d10344e27",
+        "mem-fa575cb3-bb7b-42a6-9a4c-d4678c442fee"
+      ]
     },
     {
       "id": "t-3",
       "title": "Remove legacy Python settings from VS Code workspace configuration",
       "context": "The `.vscode/settings.json` and `pychivalry.code-workspace` files contain obsolete Python development settings that are no longer relevant now that the project is TypeScript-only.\n\n**Files to modify:**\n\n1. `.vscode/settings.json` — Remove these Python-era settings:\n   - Lines 2-12: All `python.*` settings (`python.defaultInterpreterPath`, `python.analysis.typeCheckingMode`, `python.linting.enabled`, `python.linting.flake8Enabled`, `python.linting.mypyEnabled`, `python.formatting.provider`, `python.testing.pytestEnabled`, `python.testing.pytestArgs`)\n   - Line 16: `ck3LanguageServer.pythonPath` setting\n   - Lines 31-33: Python artifact exclusions from `files.exclude` (`**/__pycache__`, `**/*.pyc`, `**/.pytest_cache`)\n   - Lines 41-42: Python artifact exclusions from `search.exclude` (`**/.pytest_cache`, `**/__pycache__`)\n   - Lines 44-45: `python-envs.defaultPackageManager` and `python-envs.pythonProjects`\n\n   Keep all legitimate settings: `ck3LanguageServer.enable`, `ck3LanguageServer.logLevel`, `ck3LanguageServer.trace.server`, `ck3LanguageServer.logWatcher.*`, `editor.*`, and Node.js-related exclusions (`**/node_modules`, `**/dist`).\n\n2. `pychivalry.code-workspace` — Remove the `python-envs.defaultPackageManager` setting from the `settings` block. Keep the `folders` array intact.\n\n**Technical considerations:**\n- Ensure JSON remains valid after edits\n- Do not remove `// CK3 language server settings` comment or valid CK3 settings\n- Preserve the `ck3LanguageServer.logWatcher.*` settings block\n\n**Acceptance criteria:**\n- No `python.*` settings remain in `.vscode/settings.json`\n- No `pythonPath` in `.vscode/settings.json`\n- No `__pycache__`, `*.pyc`, or `.pytest_cache` exclusions remain\n- No `python-envs` settings in workspace config\n- Both JSON files are valid\n- Extension still works correctly when launched via F5",
       "priority": "medium",
-      "status": "queued",
+      "status": "review",
       "docsPath": ".formic/tasks/t-3_remove-legacy-python-settings-",
       "agentLogs": [],
       "pid": null,
       "type": "standard",
-      "workflowStep": "pending",
-      "workflowLogs": {},
+      "workflowStep": "complete",
+      "workflowLogs": {
+        "brief": [
+          "README.md has been written to `/home/cwallace/git/pychivalry/.formic/tasks/t-3_remove-legacy-python-settings-/README.md`."
+        ],
+        "plan": [
+          "Both files have been written:",
+          "1. **PLAN.md** — 3-phase plan: clean `.vscode/settings.json`, clean `pychivalry.code-workspace`, validate both files",
+          "2. **subtasks.json** — 10 subtasks covering each specific removal (Python settings, pythonPath, artifact exclusions, python-envs keys) plus JSON validation and preservation verification"
+        ],
+        "execute": [
+          "Declared files written. This task touches two files:",
+          "- **`.vscode/settings.json`** (exclusive) — remove all `python.*` keys, `pythonPath`, Python artifact exclusions, and `python-envs.*` keys",
+          "- **`pychivalry.code-workspace`** (exclusive) — remove `python-envs.*` from the `settings` block",
+          "Both classified as exclusive since they are the direct targets of this cleanup task and not typical shared hotspots.",
+          "All done. Here's a summary of what was removed:",
+          "**`.vscode/settings.json`:**",
+          "- `// Python settings` comment and all 8 `python.*` keys (lines 2-12)",
+          "- `ck3LanguageServer.pythonPath` (line 16)",
+          "- `__pycache__`, `*.pyc`, `.pytest_cache` from `files.exclude` and `search.exclude`",
+          "- `python-envs.defaultPackageManager` and `python-envs.pythonProjects`",
+          "**`pychivalry.code-workspace`:**",
+          "- Removed the entire `settings` block (contained only `python-envs.defaultPackageManager`)",
+          "**Preserved:** All CK3 language server settings, log watcher settings, editor settings, and `node_modules`/`dist` exclusions. Both files validate as valid JSON."
+        ]
+      },
       "createdAt": "2026-03-08T20:20:28.747Z",
-      "safePointCommit": null,
+      "safePointCommit": "ea57b74a82d6a9cc824578754c3b8b900d28a551",
       "retryCount": null,
       "fixForTaskId": null,
       "parentGoalId": "t-1",
-      "queuedAt": "2026-03-08T20:20:28.777Z"
+      "queuedAt": "2026-03-08T20:20:28.777Z",
+      "startedAt": "2026-03-08T20:24:22.797Z",
+      "declaredFiles": {
+        "exclusive": [
+          ".vscode/settings.json",
+          "pychivalry.code-workspace"
+        ],
+        "shared": []
+      },
+      "completedAt": "2026-03-08T20:27:25.244Z"
     },
     {
       "id": "t-4",

@@ -1,47 +1,31 @@
-# Remove legacy Python settings from VS Code workspace configuration
+# Remove Legacy Python Settings from VS Code Workspace Configuration
 
 ## Overview
-
-The `.vscode/settings.json` and `pychivalry.code-workspace` files contain obsolete Python development settings that are no longer relevant now that the project is TypeScript-only.
-
-**Files to modify:**
-
-1. `.vscode/settings.json` — Remove these Python-era settings:
-   - Lines 2-12: All `python.*` settings (`python.defaultInterpreterPath`, `python.analysis.typeCheckingMode`, `python.linting.enabled`, `python.linting.flake8Enabled`, `python.linting.mypyEnabled`, `python.formatting.provider`, `python.testing.pytestEnabled`, `python.testing.pytestArgs`)
-   - Line 16: `ck3LanguageServer.pythonPath` setting
-   - Lines 31-33: Python artifact exclusions from `files.exclude` (`**/__pycache__`, `**/*.pyc`, `**/.pytest_cache`)
-   - Lines 41-42: Python artifact exclusions from `search.exclude` (`**/.pytest_cache`, `**/__pycache__`)
-   - Lines 44-45: `python-envs.defaultPackageManager` and `python-envs.pythonProjects`
-
-   Keep all legitimate settings: `ck3LanguageServer.enable`, `ck3LanguageServer.logLevel`, `ck3LanguageServer.trace.server`, `ck3LanguageServer.logWatcher.*`, `editor.*`, and Node.js-related exclusions (`**/node_modules`, `**/dist`).
-
-2. `pychivalry.code-workspace` — Remove the `python-envs.defaultPackageManager` setting from the `settings` block. Keep the `folders` array intact.
-
-**Technical considerations:**
-- Ensure JSON remains valid after edits
-- Do not remove `// CK3 language server settings` comment or valid CK3 settings
-- Preserve the `ck3LanguageServer.logWatcher.*` settings block
-
-**Acceptance criteria:**
-- No `python.*` settings remain in `.vscode/settings.json`
-- No `pythonPath` in `.vscode/settings.json`
-- No `__pycache__`, `*.pyc`, or `.pytest_cache` exclusions remain
-- No `python-envs` settings in workspace config
-- Both JSON files are valid
-- Extension still works correctly when launched via F5
+The project has fully transitioned from Python to TypeScript, but `.vscode/settings.json` and `pychivalry.code-workspace` still carry obsolete Python development settings. This task removes those legacy entries to reduce confusion and keep workspace configuration clean and accurate for the current TypeScript-only stack.
 
 ## Goals
-
-- [ ] Define specific goals here
+- Eliminate all `python.*` settings from `.vscode/settings.json`
+- Remove the obsolete `ck3LanguageServer.pythonPath` setting that referenced the former Python-based server
+- Remove Python artifact exclusions (`__pycache__`, `*.pyc`, `.pytest_cache`) from `files.exclude` and `search.exclude`
+- Remove `python-envs.*` settings from both `.vscode/settings.json` and `pychivalry.code-workspace`
+- Ensure both JSON files remain valid and the extension launches correctly via F5
 
 ## Key Capabilities
-
-- Describe what this task will accomplish
+- Cleaner workspace configuration that reflects the actual TypeScript toolchain
+- Reduced developer confusion when onboarding or reviewing settings
+- No functional impact — only inert, unused settings are removed
 
 ## Non-Goals
-
-- What is explicitly out of scope
+- Modifying any active CK3 language server settings (`ck3LanguageServer.enable`, `logLevel`, `trace.server`, `logWatcher.*`)
+- Changing editor or Node.js-related settings (`editor.*`, `node_modules`/`dist` exclusions)
+- Removing Python references from documentation or historical guidelines (e.g., the Python section in coding standards)
+- Altering the `folders` array in `pychivalry.code-workspace`
 
 ## Requirements
-
-- List technical and functional requirements
+- `.vscode/settings.json` contains zero `python.*` keys after the edit
+- `.vscode/settings.json` contains no `pythonPath` key under any namespace
+- `files.exclude` and `search.exclude` retain only `**/node_modules` and `**/dist`
+- `pychivalry.code-workspace` `settings` block contains no `python-envs.*` keys
+- Both files parse as valid JSON (verified by `json_pp` or equivalent)
+- The `// Python settings` comment block is removed since there are no Python settings left
+- The `// CK3 language server settings` comment and all valid CK3/editor/exclusion settings are preserved
