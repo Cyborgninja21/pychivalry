@@ -239,8 +239,8 @@ Check `package.json` activation events:
 
 ### Language Server Not Starting
 
-1. Check Python path in settings
-2. Verify `pychivalry` is installed: `python -m pychivalry --version`
+1. Check that Node.js 18+ is installed
+2. Verify the extension is built: `npm run compile` in `vscode-extension/`
 3. Check Output panel for error messages
 
 ### Syntax Highlighting Not Working

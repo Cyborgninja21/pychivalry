@@ -41,10 +41,10 @@ This guide shows you how to use pre-commit hooks in the pychivalry project.
 
 ```bash
 # Make your changes
-vim pychivalry/server.py
+vim vscode-extension/src/server/server.ts
 
 # Stage your changes
-git add pychivalry/server.py
+git add vscode-extension/src/server/server.ts
 
 # Commit (hooks run automatically)
 git commit -m "Add new feature"
@@ -66,9 +66,9 @@ The setup script installs everything you need:
 ```
 
 This will:
-- Install Python development dependencies
+- Install TypeScript development dependencies
 - Install pre-commit hooks
-- Install VS Code extension dependencies (if Node.js is available)
+- Install VS Code extension dependencies
 - Run initial checks on all files
 
 ### Option 2: Manual Setup
@@ -76,16 +76,16 @@ This will:
 If you prefer to install manually:
 
 ```bash
-# 1. Install Python dependencies
-pip install -e ".[dev]"
-
-# 2. Install pre-commit hooks
+# 1. Install pre-commit hooks
 pre-commit install
 
-# 3. (Optional) Install VS Code extension dependencies
+# 2. Install TypeScript dependencies
 cd vscode-extension
 npm install
 cd ..
+
+# 3. Install development dependencies for linting and formatting
+npm install
 ```
 
 ### Verify Installation
@@ -119,120 +119,114 @@ git commit -m "Your commit message"
 ### Example: Successful Commit
 
 ```bash
-$ git commit -m "Add user authentication"
-black....................................................................Passed
-flake8...................................................................Passed
-isort....................................................................Passed
+$ git commit -m "Add LSP hover feature"
+prettier.................................................................Passed
+eslint...................................................................Passed
 trailing whitespace......................................................Passed
-[main abc1234] Add user authentication
+[main abc1234] Add LSP hover feature
  1 file changed, 10 insertions(+)
 ```
 
 ### Example: Auto-Fixed Issues
 
 ```bash
-$ git commit -m "Add user authentication"
-black....................................................................Failed
-- hook id: black
+$ git commit -m "Add LSP hover feature"
+prettier.................................................................Failed
+- hook id: prettier
 - files were modified by this hook
 
-reformatted pychivalry/auth.py
-1 file reformatted.
+vscode-extension/src/server/lsp/hover.ts
 
 # Review the auto-fixes
 $ git diff
 
 # Stage the fixes and commit again
 $ git add -u
-$ git commit -m "Add user authentication"
-black....................................................................Passed
-[main def5678] Add user authentication
+$ git commit -m "Add LSP hover feature"
+prettier.................................................................Passed
+[main def5678] Add LSP hover feature
  1 file changed, 10 insertions(+)
 ```
 
 ### Example: Manual Fixes Required
 
 ```bash
-$ git commit -m "Add user authentication"
-flake8...................................................................Failed
-- hook id: flake8
+$ git commit -m "Add LSP hover feature"
+eslint...................................................................Failed
+- hook id: eslint
 - exit code: 1
 
-pychivalry/auth.py:42:80: E501 line too long (110 > 100 characters)
+vscode-extension/src/server/lsp/hover.ts
+  42:80  error  Line too long (max 120 characters)  max-len
 
 # Fix the issue manually
-$ vim pychivalry/auth.py
+$ vim vscode-extension/src/server/lsp/hover.ts
 
 # Try again
-$ git add pychivalry/auth.py
-$ git commit -m "Add user authentication"
+$ git add vscode-extension/src/server/lsp/hover.ts
+$ git commit -m "Add LSP hover feature"
 ```
 
 ## What Gets Checked
 
-### Python Files
-
-#### Black (Auto-formats)
-- **What**: Formats Python code for consistent style
-- **Line length**: 100 characters
-- **Auto-fixes**: Yes
-- **Files**: `pychivalry/`, `tests/`, `tools/`
-
-Example:
-```python
-# Before (poorly formatted)
-def my_function(arg1,arg2,arg3):
-    return arg1+arg2+arg3
-
-# After (Black auto-formats)
-def my_function(arg1, arg2, arg3):
-    return arg1 + arg2 + arg3
-```
-
-#### flake8 (Linting)
-- **What**: Checks code style and catches potential errors
-- **Auto-fixes**: No (you must fix manually)
-- **Files**: `pychivalry/`, `tests/`, `tools/`
-
-Common errors caught:
-- Unused imports
-- Undefined variables
-- Lines too long
-- Missing whitespace
-- Syntax errors
-
-#### isort (Import sorting)
-- **What**: Organizes import statements
-- **Auto-fixes**: Yes
-- **Files**: `pychivalry/`, `tests/`, `tools/`
-
-Example:
-```python
-# Before (messy imports)
-from typing import Dict
-import os
-from pychivalry.parser import parse_document
-import sys
-
-# After (isort organizes)
-import os
-import sys
-from typing import Dict
-
-from pychivalry.parser import parse_document
-```
-
-### TypeScript Files (VS Code Extension)
+### TypeScript Files (Main Language Server)
 
 #### Prettier (Auto-formats)
-- **What**: Formats TypeScript code
+- **What**: Formats TypeScript code for consistent style
 - **Auto-fixes**: Yes
-- **Files**: `vscode-extension/src/*.ts`
+- **Files**: `vscode-extension/src/**/*.ts`
+
+Example:
+```typescript
+// Before (poorly formatted)
+function parseDocument(text:string,uri:string):Document{
+return{uri,ast:parse(text)}
+}
+
+// After (Prettier auto-formats)
+function parseDocument(text: string, uri: string): Document {
+  return { uri, ast: parse(text) };
+}
+```
 
 #### ESLint (Linting)
-- **What**: Checks TypeScript code quality
+- **What**: Checks code quality and catches potential TypeScript errors
 - **Auto-fixes**: Some issues (when `--fix` can handle them)
-- **Files**: `vscode-extension/src/*.ts`
+- **Files**: `vscode-extension/src/**/*.ts`
+
+Common errors caught:
+- Unused variables and imports
+- Missing type annotations
+- Inconsistent code style
+- Potential runtime errors
+- TypeScript-specific issues
+
+### TypeScript Files (Data Extraction Tools)
+
+#### Prettier (Auto-formats)
+- **What**: Formats TypeScript code for consistent style
+- **Line length**: 120 characters
+- **Auto-fixes**: Yes
+- **Files**: `tools/**/*.ts`
+
+#### ESLint (Linting)
+- **What**: Checks code style and catches potential TypeScript errors
+- **Auto-fixes**: Some issues (when `--fix` can handle them)
+- **Files**: `tools/**/*.ts`
+
+Example:
+```typescript
+// Before (poorly formatted)
+function extractData(filePath:string,outputPath:string):Promise<void>{
+const data=processFile(filePath);return writeOutput(outputPath,data);
+}
+
+// After (Prettier auto-formats)
+function extractData(filePath: string, outputPath: string): Promise<void> {
+  const data = processFile(filePath);
+  return writeOutput(outputPath, data);
+}
+```
 
 ### All Files
 
@@ -250,12 +244,12 @@ from pychivalry.parser import parse_document
 # Setup hooks
 ./tools/setup-dev-env.sh
 
-# Make a change
-echo "# New feature" >> pychivalry/server.py
+# Make a change to the TypeScript server
+echo "export function newFeature() { return 'feature'; }" >> vscode-extension/src/server/core/parser.ts
 
 # Commit
-git add pychivalry/server.py
-git commit -m "Add feature"
+git add vscode-extension/src/server/core/parser.ts
+git commit -m "Add new parser feature"
 
 # Hooks run automatically ✓
 ```
@@ -263,13 +257,13 @@ git commit -m "Add feature"
 ### Scenario 2: Multiple Files Changed
 
 ```bash
-# Edit multiple files
-vim pychivalry/server.py
-vim tests/test_server.py
+# Edit multiple TypeScript files
+vim vscode-extension/src/server/lsp/completions.ts
+vim vscode-extension/src/server/lsp/hover.ts
 
 # Commit all changes
 git add .
-git commit -m "Add server tests"
+git commit -m "Add LSP features"
 
 # All changed files are checked ✓
 ```
@@ -278,21 +272,21 @@ git commit -m "Add server tests"
 
 ```bash
 # Make changes with poor formatting
-vim pychivalry/server.py
+vim vscode-extension/src/server/server.ts
 
 # Commit
-git add pychivalry/server.py
+git add vscode-extension/src/server/server.ts
 git commit -m "Update server"
 
 # Output:
-# black....................................................Failed
+# prettier..................................................Failed
 # - files were modified by this hook
 
 # Review what was fixed
 git diff
 
 # Stage fixes and commit again
-git add pychivalry/server.py
+git add vscode-extension/src/server/server.ts
 git commit -m "Update server"
 
 # Now it passes ✓
@@ -316,10 +310,10 @@ pre-commit run --all-files
 pre-commit run
 
 # Run specific hook on all files
-pre-commit run black --all-files
+pre-commit run prettier --all-files
 
 # Run on specific file
-pre-commit run --files pychivalry/server.py
+pre-commit run --files tools/extract-traits.ts
 ```
 
 ### Scenario 6: Hooks Fail on Large Codebase Import
@@ -371,7 +365,7 @@ pre-commit run --all-files
 pre-commit run --verbose --all-files
 
 # Or run specific hook
-pre-commit run black --verbose
+pre-commit run prettier --verbose
 ```
 
 ### Problem: "Command Not Found" Error
@@ -380,21 +374,23 @@ pre-commit run black --verbose
 
 **Solution**:
 ```bash
-# Install pre-commit
+# Install pre-commit via npm or pip
+npm install -g pre-commit
+# or
 pip install pre-commit
 
-# Or reinstall all dev dependencies
-pip install -e ".[dev]"
+# Reinstall TypeScript dependencies
+cd vscode-extension && npm install
 ```
 
-### Problem: Python Import Errors in Hooks
+### Problem: TypeScript/Node Module Errors in Hooks
 
-**Symptom**: Hooks fail with `ModuleNotFoundError`
+**Symptom**: Hooks fail with module resolution errors
 
 **Solution**:
 ```bash
-# Reinstall project and dependencies
-pip install -e ".[dev]"
+# Reinstall TypeScript dependencies
+cd vscode-extension && npm install
 
 # Clear pre-commit cache
 pre-commit clean
@@ -408,14 +404,13 @@ pre-commit install --install-hooks
 **Solution**:
 ```bash
 # For auto-fixable issues, run manually
-pre-commit run black --all-files
-pre-commit run isort --all-files
+pre-commit run prettier --all-files
 
 # Stage the fixes
 git add -u
 
 # For non-fixable issues, check the error and fix manually
-pre-commit run flake8 --all-files
+pre-commit run eslint --all-files
 ```
 
 ### Problem: Hooks Modified Files But Commit Still Fails
@@ -441,10 +436,10 @@ git commit -m "Your message"
 **Solution**:
 ```bash
 # Skip specific hook (not recommended)
-SKIP=flake8 git commit -m "message"
+SKIP=eslint git commit -m "message"
 
 # Or fix the issue instead (recommended)
-pre-commit run flake8 --all-files
+pre-commit run eslint --all-files
 # Fix the issues shown
 git add -u
 git commit -m "message"
@@ -455,14 +450,11 @@ git commit -m "message"
 ### Running Specific Hooks
 
 ```bash
-# Python formatting only
-pre-commit run black --all-files
+# TypeScript formatting only (extraction tools)
+pre-commit run prettier --all-files
 
-# Python linting only
-pre-commit run flake8 --all-files
-
-# Import sorting only
-pre-commit run isort --all-files
+# TypeScript linting only (extraction tools)
+pre-commit run eslint --all-files
 
 # TypeScript formatting only
 pre-commit run prettier --all-files
@@ -519,10 +511,10 @@ Edit `.pre-commit-config.yaml` to customize:
 
 ```yaml
 repos:
-  - repo: https://github.com/psf/black
-    rev: 24.1.1
+  - repo: https://github.com/prettier/prettier
+    rev: 3.2.5
     hooks:
-      - id: black
+      - id: prettier
         args: [--line-length=120]  # Change line length
         exclude: ^tests/  # Skip tests directory
 ```
@@ -530,11 +522,11 @@ repos:
 ### Running on Specific File Patterns
 
 ```bash
-# Run on Python files only
-pre-commit run --files pychivalry/**/*.py
-
-# Run on TypeScript files only
+# Run on TypeScript files only (main extension)
 pre-commit run --files vscode-extension/src/**/*.ts
+
+# Run on TypeScript files only (extraction tools)
+pre-commit run --files tools/**/*.ts
 
 # Run on changed files in git
 pre-commit run --files $(git diff --name-only --cached)
@@ -567,14 +559,17 @@ pre-commit run --all-files --verbose
 
 ### What if hooks conflict with my editor's formatting?
 
-Configure your editor to use the same tools (Black, Prettier) with the same settings. See `.vscode/settings.json` for VS Code configuration.
+Configure your editor to use the same tools (Prettier, ESLint) with the same settings. See `.vscode/settings.json` for VS Code configuration.
 
-### Can I use different Python version for hooks?
+### Can I use different Node.js version for hooks?
 
-Hooks use the Python version from your virtual environment. To change:
+Hooks use the Node.js version from your current environment. To change:
 ```bash
-# Activate different Python environment
-source venv/bin/activate
+# Switch Node.js version (if using nvm)
+nvm use 18
+
+# Reinstall TypeScript dependencies
+cd vscode-extension && npm install
 
 # Reinstall hooks
 pre-commit install
@@ -591,7 +586,7 @@ pre-commit install
 Hooks already run in parallel automatically. You can't make them faster, but you can run specific hooks:
 ```bash
 # Run only fast hooks
-pre-commit run black isort
+pre-commit run prettier eslint
 ```
 
 ### What if I'm working on a large refactor?
@@ -622,9 +617,7 @@ Yes! Pre-commit supports Windows, Mac, and Linux.
 ## Additional Resources
 
 - [Pre-commit official documentation](https://pre-commit.com/)
-- [Black documentation](https://black.readthedocs.io/)
-- [flake8 documentation](https://flake8.pycqa.org/)
-- [isort documentation](https://pycqa.github.io/isort/)
+
 - [Prettier documentation](https://prettier.io/)
 - [ESLint documentation](https://eslint.org/)
 - [Project CONTRIBUTING.md](../CONTRIBUTING.md)

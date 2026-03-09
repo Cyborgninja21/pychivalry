@@ -221,4 +221,4 @@ scope:story = {
 ## Reference Files
 
 - Story Cycles Schema: `pychivalry/data/schemas/story_cycles.yaml`
-- Story Cycle Validator: `pychivalry/story_cycles.py`
+- Story Cycle Validator: `pychivalry/story-cycles.ts`

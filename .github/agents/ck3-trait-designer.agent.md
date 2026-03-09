@@ -213,4 +213,4 @@ my_trait_good = {
 ## Reference Files
 
 - Trait Categories: `pychivalry/data/traits/`
-- Trait Validator: `pychivalry/traits.py`
+- Trait Validator: `pychivalry/traits.ts`

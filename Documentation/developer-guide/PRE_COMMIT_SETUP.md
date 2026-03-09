@@ -4,14 +4,15 @@ This project uses [pre-commit](https://pre-commit.com/) to automatically run cod
 
 ## What Gets Checked?
 
-### Python Files (`pychivalry/`, `tests/`, `tools/`)
-- **Black**: Auto-formats code to maintain consistent style (100 char line length)
-- **flake8**: Checks for code style and potential errors
-- **isort**: Sorts and organizes imports
-
 ### TypeScript Files (`vscode-extension/src/`)
 - **Prettier**: Auto-formats code for consistent style
 - **ESLint**: Checks for code quality and potential bugs
+- **TypeScript Compiler**: Type checking and compilation validation
+
+### TypeScript Files (`tools/`)
+- **Prettier**: Auto-formats extraction scripts to maintain consistent style (120 char line length)
+- **ESLint**: Checks for code style and potential errors in extraction tools
+- **TypeScript Compiler**: Type checking and compilation validation
 
 ### All Files
 - Removes trailing whitespace
@@ -30,11 +31,18 @@ Run the setup script from the repository root:
 
 ### Manual
 ```bash
-# Install pre-commit
+# Install pre-commit (if not installed system-wide)
+npm install -g pre-commit
+# or
 pip install pre-commit
 
 # Install the git hook scripts
 pre-commit install
+
+# Install TypeScript dependencies
+cd vscode-extension/
+npm install
+cd ..
 ```
 
 ## Usage
@@ -52,10 +60,13 @@ Run hooks manually without committing:
 pre-commit run --all-files
 
 # Run on specific files
-pre-commit run --files pychivalry/server.py
+pre-commit run --files vscode-extension/src/server/server.ts
 
-# Run specific hook
-pre-commit run black --all-files
+# Run specific hook on TypeScript files
+pre-commit run eslint --all-files
+
+# Run specific hook on TypeScript files (extraction tools)
+pre-commit run eslint --all-files
 ```
 
 ### Bypassing Hooks (Not Recommended)
@@ -93,22 +104,26 @@ pre-commit run --verbose --all-files
 
 ### Skip a specific hook temporarily
 ```bash
-# Set environment variable
-SKIP=flake8 git commit -m "message"
+# Set environment variable to skip ESLint
+SKIP=eslint git commit -m "message"
+
+# Skip multiple hooks
+SKIP=eslint,prettier git commit -m "message"
 ```
 
 ## Configuration
 
 The pre-commit configuration is in `.pre-commit-config.yaml` at the repository root.
 
-### Python Configuration
-- Black: Line length 100, configured in `pyproject.toml`
-- flake8: Line length 100, configured in `.flake8`
-- isort: Black-compatible profile, configured in `pyproject.toml`
-
 ### TypeScript Configuration
 - Prettier: Configured in `vscode-extension/.prettierrc`
 - ESLint: Configured in `vscode-extension/.eslintrc.json`
+- TypeScript: Configured in `vscode-extension/tsconfig.json`
+
+### TypeScript Configuration (Extraction Tools)
+- Prettier: Line length 120, configured in `tools/.prettierrc`
+- ESLint: Configured in `tools/.eslintrc.json`
+- TypeScript: Configured in `tools/tsconfig.json`
 
 ## CI Integration
 
@@ -125,7 +140,5 @@ Pre-commit hooks are also run in CI/CD pipelines to ensure all code meets qualit
 ## Learn More
 
 - [pre-commit documentation](https://pre-commit.com/)
-- [Black documentation](https://black.readthedocs.io/)
-- [flake8 documentation](https://flake8.pycqa.org/)
 - [ESLint documentation](https://eslint.org/)
 - [Prettier documentation](https://prettier.io/)

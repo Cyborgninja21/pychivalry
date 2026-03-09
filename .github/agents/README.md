@@ -115,11 +115,11 @@ Agent instructions here...
 
 | pychivalry Module | Agent Usage |
 |-------------------|-------------|
-| `diagnostics.py` | ck3-validator uses 6-phase pipeline |
-| `scopes.py` | ck3-scope-timing validates chains |
-| `scope_timing.py` | ck3-scope-timing enforces Golden Rule |
-| `events.py` | ck3-event-builder follows schema |
-| `localization.py` | ck3-localization-manager uses functions |
+| `diagnostics.ts` | ck3-validator uses 6-phase pipeline |
+| `scopes.ts` | ck3-scope-timing validates chains |
+| `scope-timing.ts` | ck3-scope-timing enforces Golden Rule |
+| `events.ts` | ck3-event-builder follows schema |
+| `localization.ts` | ck3-localization-manager uses functions |
 
 ## Resources
 

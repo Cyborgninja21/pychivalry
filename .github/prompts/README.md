@@ -7,7 +7,7 @@ This directory contains reference documentation for maintaining code quality, un
 ### Core Documentation
 
 #### `documentation_standard.md`
-**Purpose**: Defines the comprehensive documentation standard for all Python files in pychivalry.
+**Purpose**: Defines the comprehensive documentation standard for all TypeScript files in pychivalry.
 
 **Use this when**:
 - Writing new modules
@@ -19,7 +19,7 @@ This directory contains reference documentation for maintaining code quality, un
 - Module docstring template with diagnostic codes
 - Function documentation standards
 - Inline comment guidelines
-- Class/dataclass documentation patterns
+- Class/interface documentation patterns
 - Examples of excellent documentation
 
 #### `architecture_and_flow.md`
@@ -85,7 +85,7 @@ This directory contains reference documentation for maintaining code quality, un
 - Testing checklist
 
 #### `Test Writing Best Practices.prompt.md`
-**Purpose**: Patterns and guidelines for writing high-quality pytest tests.
+**Purpose**: Patterns and guidelines for writing high-quality Mocha tests.
 
 **Use this when**:
 - Writing new tests
@@ -96,7 +96,7 @@ This directory contains reference documentation for maintaining code quality, un
 **Key sections**:
 - Unit test structure
 - Async test patterns
-- Fixtures and parametrization
+- Fixtures and test setup
 - Integration testing
 - Performance testing
 
@@ -123,7 +123,7 @@ This directory contains reference documentation for maintaining code quality, un
 ### For New Contributors
 1. Read `architecture_and_flow.md` to understand the system
 2. Review `documentation_standard.md` for code style
-3. Look at completed files (scopes.py, lists.py, data/__init__.py) as examples
+3. Look at completed files (scopes.ts, lists.ts, data/loader.ts) as examples
 
 ### For Documentation Work
 1. Use `documentation_standard.md` as template
@@ -138,16 +138,16 @@ This directory contains reference documentation for maintaining code quality, un
 ## Documentation Status
 
 **Completed** (5/32 files - 16%):
-- ✅ `__init__.py` - Package initialization
-- ✅ `data/__init__.py` - Data loading
-- ✅ `scopes.py` - Scope validation
-- ✅ `parser.py` - AST parsing (partial)
-- ✅ `lists.py` - List iterator validation
+- ✅ `extension.ts` - Extension initialization
+- ✅ `data/loader.ts` - Data loading
+- ✅ `ck3/validation/scopes.ts` - Scope validation
+- ✅ `core/parser.ts` - AST parsing (partial)
+- ✅ `ck3/validation/lists.ts` - List iterator validation
 
 **In Progress** (27/32 files - 84%):
 - See `architecture_and_flow.md` for priority order
-- Critical: server.py, indexer.py, diagnostics.py, completions.py
-- High: semantic_tokens.py, hover.py, navigation.py, ck3_language.py
+- Critical: server.ts, indexer.ts, diagnostics.ts, completions.ts
+- High: semantic-tokens.ts, hover.ts, navigation.ts, language.ts
 - Medium: All other feature implementations
 - Lower: Supporting utilities and specialized validators
 

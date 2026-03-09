@@ -113,7 +113,7 @@ root.gold  # ERROR: 'gold' is a value, not a scope
 
 ## Diagnostic Codes
 
-From `pychivalry/scope_timing.py`:
+From `pychivalry/scope-timing.ts`:
 
 | Code | Description |
 |------|-------------|
@@ -146,5 +146,5 @@ Validation Results:
 ## Reference Files
 
 - Scope Types: `pychivalry/data/scopes/`
-- Scope Validator: `pychivalry/scopes.py`
-- Timing Validator: `pychivalry/scope_timing.py`
+- Scope Validator: `pychivalry/scopes.ts`
+- Timing Validator: `pychivalry/scope-timing.ts`

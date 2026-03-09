@@ -30,12 +30,13 @@ Use Semantic Versioning (SemVer): `MAJOR.MINOR.PATCH`
 
 For this project, version numbers appear in multiple locations:
 
-### 1. Python Package (`pyproject.toml`)
+### 1. Main Package (`package.json`)
 
-```toml
-[project]
-name = "pychivalry"
-version = "X.Y.Z"
+```json
+{
+  "name": "pychivalry",
+  "version": "X.Y.Z"
+}
 ````
 
 ### 2. VS Code Extension (`vscode-extension/package.json`)
@@ -50,10 +51,10 @@ version = "X.Y.Z"
 }
 ```
 
-### 3. Python Package Init (`pychivalry/__init__.py`)
+### 3. Extension Version Constants (`vscode-extension/src/extension.ts`)
 
-```python
-__version__ = "X.Y.Z"
+```typescript
+export const VERSION = "X.Y.Z";
 ```
 
 ## Version Update Workflow
@@ -82,16 +83,16 @@ git log $(git describe --tags --abbrev=0)..HEAD
 # Set version variable for consistency
 NEW_VERSION="1.2.0"
 
-# Update pyproject.toml (Python package)
-sed -i "s/^version = .*/version = \"$NEW_VERSION\"/" pyproject.toml
+# Update package.json (main package)
+npm version $NEW_VERSION --no-git-tag-version
 
 # Update package.json (VS Code extension)
 cd vscode-extension
 npm version $NEW_VERSION --no-git-tag-version
 cd ..
 
-# Update Python __init__.py
-sed -i "s/__version__ = .*/__version__ = \"$NEW_VERSION\"/" pychivalry/__init__.py
+# Update extension constants
+sed -i "s/export const VERSION = .*/export const VERSION = \"$NEW_VERSION\";/" vscode-extension/src/extension.ts
 
 # Verify changes
 git diff
@@ -132,16 +133,16 @@ Add release notes following format:
 ### 4. **Commit version changes**
 
 ```bash
-git add pyproject.toml vscode-extension/package.json pychivalry/__init__.py CHANGELOG.md
+git add package.json vscode-extension/package.json vscode-extension/src/extension.ts CHANGELOG.md
 
 git commit -m "chore: Bump version to $NEW_VERSION
 
 Release: version $NEW_VERSION
 
 Updated version across:
-- pyproject.toml (Python package)
+- package.json (main package)
 - vscode-extension/package.json (VS Code extension)
-- pychivalry/__init__.py (package version)
+- vscode-extension/src/extension.ts (extension constants)
 - CHANGELOG.md (release notes)
 
 Release type: [major/minor/patch]
@@ -193,23 +194,23 @@ git log v1.1.0..HEAD --oneline
 NEW_VERSION="1.1.1"
 
 # Update version files
-sed -i "s/^version = .*/version = \"$NEW_VERSION\"/" pyproject.toml
-sed -i "s/__version__ = .*/__version__ = \"$NEW_VERSION\"/" pychivalry/__init__.py
+npm version $NEW_VERSION --no-git-tag-version
+sed -i "s/export const VERSION = .*/export const VERSION = \"$NEW_VERSION\";/" vscode-extension/src/extension.ts
 cd vscode-extension && npm version $NEW_VERSION --no-git-tag-version && cd ..
 
 # Update CHANGELOG.md manually with release notes
 # (Edit file to add new section at top)
 
 # Commit changes
-git add pyproject.toml vscode-extension/package.json pychivalry/__init__.py CHANGELOG.md
+git add package.json vscode-extension/package.json vscode-extension/src/extension.ts CHANGELOG.md
 git commit -m "chore: Bump version to $NEW_VERSION
 
 Release: version $NEW_VERSION
 
 Updated version across:
-- pyproject.toml (Python package)
+- package.json (main package)
 - vscode-extension/package.json (VS Code extension)
-- pychivalry/__init__.py (package version)
+- vscode-extension/src/extension.ts (extension constants)
 - CHANGELOG.md (release notes)
 
 Release type: patch
@@ -238,21 +239,21 @@ git push origin v$NEW_VERSION
 NEW_VERSION="1.2.0"
 
 # Update all version files
-sed -i "s/^version = .*/version = \"$NEW_VERSION\"/" pyproject.toml
-sed -i "s/__version__ = .*/__version__ = \"$NEW_VERSION\"/" pychivalry/__init__.py
+npm version $NEW_VERSION --no-git-tag-version
+sed -i "s/export const VERSION = .*/export const VERSION = \"$NEW_VERSION\";/" vscode-extension/src/extension.ts
 cd vscode-extension && npm version $NEW_VERSION --no-git-tag-version && cd ..
 
 # Update CHANGELOG.md with new features
 
-git add pyproject.toml vscode-extension/package.json pychivalry/__init__.py CHANGELOG.md
+git add package.json vscode-extension/package.json vscode-extension/src/extension.ts CHANGELOG.md
 git commit -m "chore: Bump version to $NEW_VERSION
 
 Release: version $NEW_VERSION
 
 Updated version across:
-- pyproject.toml (Python package)
+- package.json (main package)
 - vscode-extension/package.json (VS Code extension)
-- pychivalry/__init__.py (package version)
+- vscode-extension/src/extension.ts (extension constants)
 - CHANGELOG.md (release notes)
 
 Release type: minor
@@ -279,21 +280,21 @@ git push origin v$NEW_VERSION
 NEW_VERSION="2.0.0"
 
 # Update all version files
-sed -i "s/^version = .*/version = \"$NEW_VERSION\"/" pyproject.toml
-sed -i "s/__version__ = .*/__version__ = \"$NEW_VERSION\"/" pychivalry/__init__.py
+npm version $NEW_VERSION --no-git-tag-version
+sed -i "s/export const VERSION = .*/export const VERSION = \"$NEW_VERSION\";/" vscode-extension/src/extension.ts
 cd vscode-extension && npm version $NEW_VERSION --no-git-tag-version && cd ..
 
 # Update CHANGELOG.md with breaking changes section
 
-git add pyproject.toml vscode-extension/package.json pychivalry/__init__.py CHANGELOG.md
+git add package.json vscode-extension/package.json vscode-extension/src/extension.ts CHANGELOG.md
 git commit -m "chore: Bump version to $NEW_VERSION
 
 Release: version $NEW_VERSION - BREAKING CHANGES
 
 Updated version across:
-- pyproject.toml (Python package)
+- package.json (main package)
 - vscode-extension/package.json (VS Code extension)
-- pychivalry/__init__.py (package version)
+- vscode-extension/src/extension.ts (extension constants)
 - CHANGELOG.md (release notes with migration guide)
 
 Release type: major
@@ -329,34 +330,34 @@ git push origin v$NEW_VERSION
 
 ```bash
 # Check all version files match
-grep -r "version.*=.*\".*\"" pyproject.toml pychivalry/__init__.py vscode-extension/package.json
+grep -r "version.*:.*\".*\"" package.json vscode-extension/package.json
+grep "VERSION.*=" vscode-extension/src/extension.ts
 ```
 
 ### 2. **Build and test release artifacts**
 
 ```bash
-# Build Python package
-python -m build
+# Build TypeScript project
+npm run compile
 
-# Verify package metadata
-python -m pip install dist/pychivalry-$NEW_VERSION-py3-none-any.whl
-python -c "import pychivalry; print(pychivalry.__version__)"
+# Verify extension version
+node -e "const pkg = require('./vscode-extension/package.json'); console.log(pkg.version)"
 
 # Build VS Code extension
 cd vscode-extension
 npm run compile
-vsce package
+npx vsce package
 ```
 
 ### 3. **Publish releases (if applicable)**
 
 ```bash
-# Publish Python package to PyPI
-python -m twine upload dist/*
+# Publish to npm (if configured)
+npm publish
 
 # Publish VS Code extension
 cd vscode-extension
-vsce publish
+npx vsce publish
 ```
 
 ### 4. **Create GitHub release**
@@ -409,7 +410,7 @@ Alternative (Web Interface):
 
 ```bash
 # View current version
-grep "^version = " pyproject.toml
+grep '"version"' package.json
 
 # View all tags
 git tag -l
@@ -437,9 +438,8 @@ rg -g '!node_modules' -g '!dist' -g '!*.egg-info' 'version.*=.*[0-9]+\.[0-9]+\.[
 ## Version Update Checklist
 
 - [ ] Determine appropriate version bump (major/minor/patch)
-- [ ] Update pyproject.toml
 - [ ] Update vscode-extension/package.json
-- [ ] Update pychivalry/**init**.py
+- [ ] Update vscode-extension/src/extension.ts (VERSION constant)
 - [ ] Update CHANGELOG.md with release notes
 - [ ] Commit version changes with descriptive message
 - [ ] Create annotated git tag
@@ -461,8 +461,8 @@ rg 'version.*[0-9]+\.[0-9]+\.[0-9]+'
 
 # Update all at once with sed
 NEW_VERSION="1.2.0"
-find . -type f -name "pyproject.toml" -o -name "__init__.py" -o -name "package.json" | \
-  xargs sed -i "s/version.*=.*\"[0-9.]*\"/version = \"$NEW_VERSION\"/"
+find . -name "package.json" | \
+  xargs sed -i "s/\"version\": \"[0-9.]*\"/\"version\": \"$NEW_VERSION\"/"
 ```
 
 ### Tag already exists
@@ -524,7 +524,7 @@ git merge --no-ff hotfix/critical-fix
 5. **Document breaking changes** prominently
 6. **Create release branches** for long-term support
 7. **Automate version updates** with scripts when possible
-8. **Coordinate multi-component releases** (Python + Extension)
+8. **Coordinate releases**
 
 ## Automation Scripts
 
@@ -544,8 +544,8 @@ fi
 NEW_VERSION="$1"
 
 # Update all version files
-sed -i "s/^version = .*/version = \"$NEW_VERSION\"/" pyproject.toml
-sed -i "s/__version__ = .*/__version__ = \"$NEW_VERSION\"/" pychivalry/__init__.py
+sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$NEW_VERSION\"/" package.json
+sed -i "s/export const VERSION = .*/export const VERSION = \"$NEW_VERSION\";/" vscode-extension/src/extension.ts
 cd vscode-extension && npm version $NEW_VERSION --no-git-tag-version && cd ..
 
 echo "Version updated to $NEW_VERSION in all files"
@@ -580,7 +580,7 @@ echo "Update CHANGELOG.md now, then press enter..."
 read
 
 # Commit
-git add pyproject.toml vscode-extension/package.json pychivalry/__init__.py CHANGELOG.md
+git add package.json vscode-extension/package.json vscode-extension/src/extension.ts CHANGELOG.md
 git commit -m "chore: Bump version to $VERSION"
 
 # Tag

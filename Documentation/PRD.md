@@ -58,7 +58,7 @@ pychivalry provides:
 
 | Component | Technology | Purpose |
 |-----------|------------|---------|
-| Language Server | Python 3.9+ (pygls 2.0) | LSP implementation |
+| Language Server | TypeScript (vscode-languageserver) | LSP implementation |
 | VS Code Extension | TypeScript | Editor integration |
 | Data Format | YAML schemas | Declarative validation rules |
 | Protocol | LSP 3.17 | Editor-agnostic communication |
@@ -385,7 +385,7 @@ See [docs/threading-optimization-complete.md](../docs/threading-optimization-com
 
 | Requirement | Specification |
 |-------------|---------------|
-| Python | 3.9, 3.10, 3.11, 3.12 |
+| Node.js | 18+ |
 | VS Code | 1.75.0+ |
 | Node.js | 18+ (for extension build) |
 | Operating Systems | Windows, macOS, Linux |
@@ -509,7 +509,7 @@ Many advanced pychivalry features require data extracted from a user's CK3 insta
 | Metric | How Measured | Frequency |
 |--------|--------------|-----------|
 | Schema coverage | Count files in `data/schemas/` | Per release |
-| Test coverage | pytest --cov output | Per commit |
+| Test coverage | Mocha test output | Per commit |
 | Marketplace installs | VS Code Marketplace dashboard | Weekly |
 | GitHub activity | GitHub Insights | Monthly |
 
@@ -552,7 +552,6 @@ Many advanced pychivalry features require data extracted from a user's CK3 insta
 |------|------------|--------|------------|
 | CK3 syntax changes | Low | Medium | Version detection, community reports |
 | Paradox legal concerns | Low | High | User-extracted data only, respect copyright |
-| pygls breaking changes | Low | Medium | Pin versions, test on upgrade |
 | VS Code API changes | Low | Low | Use stable APIs only |
 
 ---
@@ -587,7 +586,7 @@ Many advanced pychivalry features require data extracted from a user's CK3 insta
 | **Scope** | CK3 context (character, title, province, etc.) |
 | **Effect** | CK3 command that changes game state |
 | **Trigger** | CK3 condition that evaluates to true/false |
-| **pygls** | Python Language Server framework |
+| **vscode-languageserver** | TypeScript Language Server framework |
 
 ---
 

@@ -44,7 +44,7 @@ l_english:
 
 ## Character Functions (70+)
 
-Reference from `pychivalry/localization.py`:
+Reference from `pychivalry/localization.ts`:
 
 ### Name Functions
 ```
@@ -180,6 +180,6 @@ l_english:
 
 ## Reference Files
 
-- Character Functions: `pychivalry/localization.py`
+- Character Functions: `pychivalry/localization.ts`
 - Icons: `pychivalry/data/icons/icons.yaml`
 - Concepts: `pychivalry/data/concepts/concepts.yaml`

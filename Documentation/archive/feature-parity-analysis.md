@@ -1,5 +1,7 @@
 # Complete Feature Parity Analysis: TypeScript vs Python pygls
 
+**Note:** Migration from Python to TypeScript is complete. This document is retained for historical reference.
+
 This document provides a comprehensive analysis demonstrating that the TypeScript implementation has **100% feature parity** with the Python pygls-based language server.
 
 ## LSP Protocol Features

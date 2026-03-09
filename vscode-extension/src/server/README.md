@@ -1,6 +1,6 @@
 # TypeScript Language Server Implementation
 
-This directory contains the TypeScript implementation of the CK3 Language Server, which is a complete rewrite of the Python language server in TypeScript.
+This directory contains the CK3 Language Server implementation providing comprehensive LSP features for Crusader Kings III modding.
 
 ## Architecture
 
@@ -75,13 +75,7 @@ This produces two output files:
 
 ## Running
 
-The server is automatically started by the VS Code extension when a CK3 workspace is opened. You can choose between the TypeScript and Python implementations in settings:
-
-```json
-{
-  "ck3LanguageServer.serverImplementation": "typescript"  // or "python"
-}
-```
+The server is automatically started by the VS Code extension when a CK3 workspace is opened.
 
 ## Testing
 
@@ -95,12 +89,11 @@ The server expects LSP protocol messages on stdin and writes responses to stdout
 
 ## Performance
 
-The TypeScript server offers several performance advantages over the Python implementation:
+The server provides excellent performance characteristics:
 
-1. **Faster startup**: ~50-100ms vs ~350-400ms (YAML loading eliminated via lazy loading)
+1. **Fast startup**: ~50-100ms (YAML loading via lazy loading)
 2. **Single process**: Runs in the same process as the extension
-3. **No Python dependency**: Users don't need Python installed
-4. **Smaller distribution**: ~2-3MB vs ~500KB + Python runtime
+3. **Compact distribution**: ~2-3MB total package size
 
 ## Development
 

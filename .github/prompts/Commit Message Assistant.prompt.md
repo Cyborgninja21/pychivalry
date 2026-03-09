@@ -64,7 +64,7 @@ git commit -m "feat: Add scope validation system (Phase 2)
     - Invalid scope transition detection
     - Scope narrowing warnings
 - Diagnostic integration
-  * Enhanced diagnostics.py with scope error reporting
+  * Enhanced diagnostics.ts with scope error reporting
   * Added inline error messages with fix suggestions
 - Implementation notes
   * Used dataclasses for scope context management

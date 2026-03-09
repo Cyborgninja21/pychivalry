@@ -15,7 +15,7 @@ Pychivalry is a Language Server Protocol (LSP) implementation for Crusader Kings
                              │ JSON-RPC over stdin/stdout
                              │
 ┌────────────────────────────▼────────────────────────────────────┐
-│                        server.py (Main Hub)                      │
+│                        server.ts (Main Hub)                      │
 │  - Receives LSP requests                                         │
 │  - Routes to appropriate handlers                                │
 │  - Manages document lifecycle                                    │
@@ -32,10 +32,10 @@ Pychivalry is a Language Server Protocol (LSP) implementation for Crusader Kings
                              │
                    ┌─────────▼──────────┐
                    │  Supporting Layer  │
-                   │  - scopes.py       │
-                   │  - lists.py        │
-                   │  - variables.py    │
-                   │  - events.py       │
+                   │  - scopes.ts       │
+                   │  - lists.ts        │
+                   │  - variables.ts    │
+                   │  - events.ts       │
                    │  - data loader     │
                    └────────────────────┘
 ```
@@ -44,91 +44,91 @@ Pychivalry is a Language Server Protocol (LSP) implementation for Crusader Kings
 
 ### 1. FOUNDATION LAYER (Infrastructure)
 
-#### `__init__.py` (139 lines)
-**Role**: Package entry point and metadata
-**Purpose**: Defines package version, exports, and high-level documentation
+#### `extension.ts` (139 lines)
+**Role**: Extension entry point and metadata
+**Purpose**: Defines extension version, exports, and high-level initialization
 **Status**: ✅ Documented
 **Interactions**: Imported by all modules for version info
 
-#### `data/__init__.py` (659 lines)
+#### `data/loader.ts` (659 lines)
 **Role**: Game data loader
 **Purpose**: Loads CK3 definitions (scopes, effects, triggers) from YAML files
 **Status**: ✅ Documented
 **Interactions**:
-- Called by: `scopes.py`, `ck3_language.py`, validation modules
+- Called by: `scopes.ts`, `language.ts`, validation modules
 - Provides: Cached game definition data
 - Performance: Caching layer prevents repeated file I/O
 
-#### `parser.py` (568 lines)
+#### `core/parser.ts` (568 lines)
 **Role**: Lexical and syntactic analysis
 **Purpose**: Converts CK3 script text → Abstract Syntax Tree (AST)
 **Status**: ✅ Documented (partial)
 **Interactions**:
-- Called by: `server.py`, all analysis modules
+- Called by: `server.ts`, all analysis modules
 - Uses: Regular expressions, position tracking
 - Produces: `CK3Node` tree structure with LSP positions
 - Critical Path: Every feature depends on this
 
 ### 2. CORE VALIDATION LAYER
 
-#### `scopes.py` (657 lines)
+#### `ck3/validation/scopes.ts` (657 lines)
 **Role**: Scope system validation
 **Purpose**: Validates scope types, links, and transformations
 **Status**: ✅ Documented
 **Interactions**:
-- Called by: `diagnostics.py`, `completions.py`, `semantic_tokens.py`
-- Uses: `data/__init__.py` for scope definitions
+- Called by: `diagnostics.ts`, `completions.ts`, `semantic-tokens.ts`
+- Uses: `data/loader.ts` for scope definitions
 - Validates: `character.liege.primary_title` chains
 - Critical for: Context-aware validation and completions
 
-#### `lists.py` (862 lines)
+#### `ck3/validation/lists.ts` (862 lines)
 **Role**: List iterator validation
 **Purpose**: Validates `any_`, `every_`, `random_`, `ordered_` patterns
 **Status**: ✅ Documented
 **Interactions**:
-- Called by: `diagnostics.py`, `completions.py`
-- Uses: `scopes.py` for scope-specific list bases
+- Called by: `diagnostics.ts`, `completions.ts`
+- Uses: `scopes.ts` for scope-specific list bases
 - Validates: Iterator parameters and block contents
 
-#### `variables.py` (421 lines)
+#### `ck3/validation/variables.ts` (421 lines)
 **Role**: Variable system validation
 **Purpose**: Validates `var:`, `local_var:`, `global_var:` usage
 **Status**: ⏳ Needs documentation
 **Interactions**:
-- Called by: `diagnostics.py`, `completions.py`
+- Called by: `diagnostics.ts`, `completions.ts`
 - Tracks: Variable declarations and usage
 - Validates: Variable operations and scopes
 
-#### `script_values.py` (381 lines)
+#### `ck3/validation/script-values.ts` (381 lines)
 **Role**: Formula and range validation
 **Purpose**: Validates script value calculations and ranges
 **Status**: ⏳ Needs documentation
 **Interactions**:
-- Called by: `diagnostics.py`
+- Called by: `diagnostics.ts`
 - Validates: Mathematical formulas, conditional logic
 - Checks: Operation validity, range bounds
 
-#### `events.py` (451 lines)
+#### `ck3/validation/events.ts` (451 lines)
 **Role**: Event structure validation
 **Purpose**: Validates event definitions (character_event, letter_event, etc.)
 **Status**: ⏳ Needs documentation
 **Interactions**:
-- Called by: `diagnostics.py`
+- Called by: `diagnostics.ts`
 - Validates: Event types, required fields, portrait configurations
 - Checks: Option structures, theme validity
 
-#### `scripted_blocks.py` (399 lines)
+#### `ck3/validation/scripted-blocks.ts` (399 lines)
 **Role**: Scripted trigger/effect validation
 **Purpose**: Validates custom scripted triggers and effects
 **Status**: ⏳ Needs documentation
 **Interactions**:
-- Called by: `diagnostics.py`, `completions.py`
-- Uses: `indexer.py` to find definitions
+- Called by: `diagnostics.ts`, `completions.ts`
+- Uses: `indexer.ts` to find definitions
 - Validates: Parameter passing, scope contexts
 
 ### 3. LANGUAGE SERVER PROTOCOL LAYER
 
-#### `server.py` (3,212 lines) ⚠️ LARGEST FILE
+#### `server/server.ts` (3,212 lines) ⚠️ LARGEST FILE
 **Role**: Main LSP server implementation
 **Purpose**: Central hub that receives and routes LSP requests
 **Status**: ⏳ Needs documentation
@@ -141,33 +141,33 @@ Pychivalry is a Language Server Protocol (LSP) implementation for Crusader Kings
 
 **Critical Interactions**:
 ```
-Editor Request → server.py → Feature Module → server.py → Editor Response
+Editor Request → server.ts → Feature Module → server.ts → Editor Response
 
 Example Flow (Completion):
 1. Editor: textDocument/completion request
-2. server.py: Parse request, get document
-3. completions.py: Generate suggestions
-4. server.py: Format LSP response
+2. server.ts: Parse request, get document
+3. completions.ts: Generate suggestions
+4. server.ts: Format LSP response
 5. Editor: Display suggestions
 ```
 
 **Handlers** (examples):
-- `@server.feature(TEXT_DOCUMENT_COMPLETION)` → `completions.py`
-- `@server.feature(TEXT_DOCUMENT_HOVER)` → `hover.py`
-- `@server.feature(TEXT_DOCUMENT_DIAGNOSTIC)` → `diagnostics.py`
+- `connection.onCompletion()` → `completions.ts`
+- `connection.onHover()` → `hover.ts`
+- `documents.onDidChangeContent()` → `diagnostics.ts`
 
-#### `workspace.py` (439 lines)
+#### `core/workspace.ts` (439 lines)
 **Role**: Multi-folder workspace management
 **Purpose**: Manages multiple workspace folders and their documents
 **Status**: ⏳ Needs documentation
 **Interactions**:
-- Called by: `server.py`
+- Called by: `server.ts`
 - Manages: Document collection across folders
 - Provides: Workspace-wide symbol lookup
 
 ### 4. FEATURE IMPLEMENTATION LAYER
 
-#### `completions.py` (626 lines)
+#### `lsp/completions.ts` (626 lines)
 **Role**: Auto-completion generation
 **Purpose**: Context-aware completion suggestions
 **Status**: ⏳ Needs documentation
@@ -176,54 +176,54 @@ Example Flow (Completion):
 1. Analyze cursor position
 2. Determine context (inside trigger?, effect?, scope?)
 3. Query relevant validators:
-   - scopes.py: Valid scope links
-   - lists.py: Valid list iterators
-   - ck3_language.py: Valid keywords
+   - scopes.ts: Valid scope links
+   - lists.ts: Valid list iterators
+   - language.ts: Valid keywords
 4. Filter by context
 5. Return suggestions
 ```
 
-#### `diagnostics.py` (667 lines)
+#### `lsp/diagnostics.ts` (667 lines)
 **Role**: Error and warning detection
 **Purpose**: Multi-phase validation (syntax → semantics → scopes)
 **Status**: ⏳ Needs documentation
 **Validation Pipeline**:
 ```
-Phase 1: Syntax (parser.py)
+Phase 1: Syntax (parser.ts)
   → Basic structure validity
   
-Phase 2: Semantics (ck3_language.py)
+Phase 2: Semantics (language.ts)
   → Effect/trigger validity
   → Parameter correctness
   
-Phase 3: Scope Validation (scopes.py)
+Phase 3: Scope Validation (scopes.ts)
   → Scope chain validity
   → Context-appropriate commands
   
-Phase 4: Specialized (lists.py, events.py, etc.)
+Phase 4: Specialized (lists.ts, events.ts, etc.)
   → Domain-specific rules
 ```
 
-#### `hover.py` (563 lines)
+#### `lsp/hover.ts` (563 lines)
 **Role**: Hover information provider
 **Purpose**: Shows documentation when hovering over identifiers
 **Status**: ⏳ Needs documentation
 **Interactions**:
-- Uses: `parser.py` to find node at position
-- Uses: `ck3_language.py` for effect/trigger docs
-- Uses: `scopes.py` for scope information
-- Uses: `indexer.py` for event/scripted block definitions
+- Uses: `parser.ts` to find node at position
+- Uses: `language.ts` for effect/trigger docs
+- Uses: `scopes.ts` for scope information
+- Uses: `indexer.ts` for event/scripted block definitions
 
-#### `navigation.py` (560 lines)
+#### `lsp/navigation.ts` (560 lines)
 **Role**: Go-to-definition implementation
 **Purpose**: Jumps to definition of events, scripted blocks, etc.
 **Status**: ⏳ Needs documentation
 **Interactions**:
-- Uses: `indexer.py` heavily for symbol lookup
-- Uses: `parser.py` for position mapping
+- Uses: `indexer.ts` heavily for symbol lookup
+- Uses: `parser.ts` for position mapping
 - Handles: Events, scripted effects, scripted triggers
 
-#### `semantic_tokens.py` (686 lines)
+#### `lsp/semantic-tokens.ts` (686 lines)
 **Role**: Semantic syntax highlighting
 **Purpose**: Rich, context-aware syntax coloring
 **Status**: ⏳ Needs documentation
@@ -240,7 +240,7 @@ Phase 4: Specialized (lists.py, events.py, etc.)
 4. Return token array to editor
 ```
 
-#### `code_actions.py` (588 lines)
+#### `lsp/code-actions.ts` (588 lines)
 **Role**: Quick fixes and refactoring
 **Purpose**: Suggests fixes for diagnostics
 **Status**: ⏳ Needs documentation
@@ -249,69 +249,69 @@ Phase 4: Specialized (lists.py, events.py, etc.)
 - Generates: Text edits to fix issues
 - Examples: Fix typos, add missing fields
 
-#### `code_lens.py` (603 lines)
+#### `lsp/code-lens.ts` (603 lines)
 **Role**: Inline code annotations
 **Purpose**: Shows clickable hints in editor
 **Status**: ⏳ Needs documentation
 **Features**: Reference counts, run commands
 
-#### `formatting.py` (626 lines)
+#### `lsp/formatting.ts` (626 lines)
 **Role**: Code formatting
 **Purpose**: Formats CK3 scripts consistently
 **Status**: ⏳ Needs documentation
 **Formatting Rules**: Indentation, spacing, alignment
 
-#### `rename.py` (653 lines)
+#### `lsp/rename.ts` (653 lines)
 **Role**: Symbol renaming
 **Purpose**: Renames symbols across files
 **Status**: ⏳ Needs documentation
-**Interactions**: Uses `indexer.py` for all references
+**Interactions**: Uses `indexer.ts` for all references
 
-#### `signature_help.py` (646 lines)
+#### `lsp/signature-help.ts` (646 lines)
 **Role**: Parameter hints
 **Purpose**: Shows parameter info while typing
 **Status**: ⏳ Needs documentation
 
-#### `inlay_hints.py` (663 lines)
+#### `lsp/inlay-hints.ts` (663 lines)
 **Role**: Inline type hints
 **Purpose**: Shows inferred types/values in editor
 **Status**: ⏳ Needs documentation
 
-#### `document_highlight.py` (548 lines)
+#### `lsp/document-highlight.ts` (548 lines)
 **Role**: Symbol highlighting
 **Purpose**: Highlights all occurrences of symbol under cursor
 **Status**: ⏳ Needs documentation
 
-#### `document_links.py` (561 lines)
+#### `lsp/document-links.ts` (561 lines)
 **Role**: Clickable links
 **Purpose**: Detects file paths and makes them clickable
 **Status**: ⏳ Needs documentation
 
-#### `symbols.py` (449 lines)
+#### `lsp/symbols.ts` (449 lines)
 **Role**: Document symbol extraction
 **Purpose**: Provides outline/breadcrumb navigation
 **Status**: ⏳ Needs documentation
 
-#### `folding.py` (458 lines)
+#### `lsp/folding.ts` (458 lines)
 **Role**: Code folding ranges
 **Purpose**: Enables collapsing/expanding code blocks
 **Status**: ⏳ Needs documentation
 
 ### 5. SPECIALIZED VALIDATION LAYER
 
-#### `style_checks.py` (957 lines)
+#### `ck3/validation/style-checks.ts` (957 lines)
 **Role**: Style and convention validation
 **Purpose**: Enforces CK3 modding best practices
 **Status**: ⏳ Needs documentation
 **Checks**: Naming conventions, structure, patterns
 
-#### `paradox_checks.py` (506 lines)
+#### `ck3/validation/paradox-checks.ts` (506 lines)
 **Role**: Paradox-specific validations
 **Purpose**: Checks for common Paradox engine issues
 **Status**: ⏳ Needs documentation
 **Checks**: Performance patterns, known bugs
 
-#### `scope_timing.py` (444 lines)
+#### `ck3/validation/scope-timing.ts` (444 lines)
 **Role**: Performance tracking for scopes
 **Purpose**: Monitors scope validation performance
 **Status**: ⏳ Needs documentation
@@ -319,7 +319,7 @@ Phase 4: Specialized (lists.py, events.py, etc.)
 
 ### 6. INDEXING LAYER
 
-#### `indexer.py` (1,184 lines) ⚠️ SECOND LARGEST
+#### `core/indexer.ts` (1,184 lines) ⚠️ SECOND LARGEST
 **Role**: Cross-document symbol indexing
 **Purpose**: Maintains searchable index of all symbols
 **Status**: ⏳ Needs documentation
@@ -334,13 +334,13 @@ Phase 4: Specialized (lists.py, events.py, etc.)
 4. Provides fast symbol resolution
 
 **Interactions**:
-- Called by: `navigation.py`, `hover.py`, `completions.py`
-- Uses: `parser.py` for each file
+- Called by: `navigation.ts`, `hover.ts`, `completions.ts`
+- Uses: `parser.ts` for each file
 - Critical for: Go-to-definition, hover on events
 
 ### 7. LANGUAGE DEFINITIONS LAYER
 
-#### `ck3_language.py` (623 lines)
+#### `ck3/language.ts` (623 lines)
 **Role**: CK3 language definition catalog
 **Purpose**: Central registry of CK3 keywords, effects, triggers
 **Status**: ⏳ Needs documentation
@@ -356,7 +356,7 @@ Phase 4: Specialized (lists.py, events.py, etc.)
 - Provides: Quick lookups for validation
 - Source: Maintained manually from CK3 documentation
 
-#### `localization.py` (440 lines)
+#### `ck3/localization/validator.ts` (440 lines)
 **Role**: Localization key validation
 **Purpose**: Validates localization key references
 **Status**: ⏳ Needs documentation
@@ -369,35 +369,35 @@ Phase 4: Specialized (lists.py, events.py, etc.)
 ### Example 1: User Types "any_v" and Triggers Completion
 
 ```
-1. Editor → server.py
+1. Editor → server.ts
    Request: textDocument/completion
    Position: line 5, character 8
 
-2. server.py → parser.py
+2. server.ts → parser.ts
    Action: Parse document to get AST
    Output: CK3Node tree
 
-3. server.py → parser.py
+3. server.ts → parser.ts
    Action: Get node at cursor position
    Output: CK3Node (inside trigger block)
 
-4. server.py → completions.py
+4. server.ts → completions.ts
    Action: get_context_aware_completions()
    Context: Inside trigger, partial text "any_v"
 
-5. completions.py → scopes.py
+5. completions.ts → scopes.ts
    Query: get_scope_lists(current_scope)
    Output: ['vassal', 'courtier', 'child', ...]
 
-6. completions.py → lists.py
+6. completions.ts → lists.ts
    Query: Valid list prefixes for triggers
    Output: ['any_'] (not 'every_' in trigger context)
 
-7. completions.py
+7. completions.ts
    Filter: Starts with "any_v"
    Generate: ['any_vassal']
 
-8. server.py → Editor
+8. server.ts → Editor
    Response: LSP CompletionList with suggestions
 ```
 
@@ -648,7 +648,7 @@ Editor (jump to location)
 ## References
 
 - LSP Specification: https://microsoft.github.io/language-server-protocol/
-- pygls Documentation: https://pygls.readthedocs.io/
+- vscode-languageserver Documentation: https://github.com/microsoft/vscode-languageserver-node
 - CK3 Modding Wiki: https://ck3.paradoxwikis.com/Modding
 
 Last Updated: 2026-01-01

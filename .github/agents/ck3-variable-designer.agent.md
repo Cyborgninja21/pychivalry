@@ -174,5 +174,5 @@ total_vassal_income = {
 
 ## Reference Files
 
-- Variables Validator: `pychivalry/variables.py`
-- Script Values Validator: `pychivalry/script_values.py`
+- Variables Validator: `pychivalry/variables.ts`
+- Script Values Validator: `pychivalry/script-values.ts`

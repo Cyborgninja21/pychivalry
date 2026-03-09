@@ -100,7 +100,7 @@ Validates scope chains, saved scope references, and list iterations.
 - `fromfrom` - The scope two levels up in the calling chain
 
 #### Scope-Specific Links
-Loaded from YAML definition files in `pychivalry/data/scopes/`:
+Loaded from YAML definition files in `data/scopes/`:
 - `character.yaml` - Character scope links (liege, spouse, father, mother, etc.)
 - `title.yaml` - Title scope links (holder, de_jure_liege, etc.)
 - `province.yaml` - Province scope links (county, barony, etc.)
@@ -343,18 +343,18 @@ trigger = {
 
 ## Configuration
 
-All validation categories can be enabled/disabled programmatically:
+All validation categories can be enabled/disabled through the TypeScript configuration:
 
-```python
-from pychivalry.diagnostics import DiagnosticConfig, collect_all_diagnostics
+```typescript
+import { DiagnosticConfig, collectAllDiagnostics } from './ck3/validation/diagnostics';
 
-config = DiagnosticConfig(
-    style_enabled=True,        # CK33xx checks
-    paradox_enabled=True,      # CK35xx-CK52xx checks
-    scope_timing_enabled=True  # CK3550-CK3555 checks
-)
+const config: DiagnosticConfig = {
+    styleEnabled: true,        // CK33xx checks
+    paradoxEnabled: true,      // CK35xx-CK52xx checks
+    scopeTimingEnabled: true   // CK3550-CK3555 checks
+};
 
-diagnostics = collect_all_diagnostics(doc, ast, index, config)
+const diagnostics = collectAllDiagnostics(document, ast, index, config);
 ```
 
 ### Phase 1-3 Implementation Status
@@ -384,17 +384,17 @@ See [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) for detailed roadmap.
 
 Trait validation requires user-extracted data:
 
-```python
-from pychivalry.traits import is_trait_data_available, is_valid_trait
+```typescript
+import { isTraitDataAvailable, isValidTrait } from './ck3/validation/traits';
 
-if is_trait_data_available():
-    # Trait data extracted - can validate trait references
-    if not is_valid_trait('brave'):
-        # Emit diagnostic for unknown trait
-        pass
-else:
-    # Gracefully skip trait validation
-    pass
+if (isTraitDataAvailable()) {
+    // Trait data extracted - can validate trait references
+    if (!isValidTrait('brave')) {
+        // Emit diagnostic for unknown trait
+    }
+} else {
+    // Gracefully skip trait validation
+}
 ```
 
 Users extract trait data via VS Code command: **"CK3: Extract Trait Data from CK3 Installation"**
@@ -407,48 +407,48 @@ See: [Enhanced Trait System](../../README.md#trait-validation-opt-in) for detail
 ### Individual Module Configurations
 
 #### Style Configuration
-```python
-from pychivalry.style_checks import StyleConfig
+```typescript
+import { StyleConfig } from './ck3/validation/style-checks';
 
-style_config = StyleConfig(
-    indentation=True,
-    prefer_tabs=True,
-    multiple_statements=True,
-    trailing_whitespace=True,
-    operator_spacing=True,
-    brace_alignment=True,
-    max_line_length=120,
-    max_nesting_depth=6,
-    check_empty_blocks=True,
-    check_namespace_position=True
-)
+const styleConfig: StyleConfig = {
+    indentation: true,
+    preferTabs: true,
+    multipleStatements: true,
+    trailingWhitespace: true,
+    operatorSpacing: true,
+    braceAlignment: true,
+    maxLineLength: 120,
+    maxNestingDepth: 6,
+    checkEmptyBlocks: true,
+    checkNamespacePosition: true
+};
 ```
 
 #### Paradox Convention Configuration
-```python
-from pychivalry.paradox_checks import ParadoxConfig
+```typescript
+import { ParadoxConfig } from './ck3/validation/paradox-checks';
 
-paradox_config = ParadoxConfig(
-    effect_trigger_context=True,
-    list_iterators=True,
-    opinion_modifiers=True,
-    event_structure=True,
-    common_gotchas=True,
-    redundant_triggers=True
-)
+const paradoxConfig: ParadoxConfig = {
+    effectTriggerContext: true,
+    listIterators: true,
+    opinionModifiers: true,
+    eventStructure: true,
+    commonGotchas: true,
+    redundantTriggers: true
+};
 ```
 
 #### Scope Timing Configuration
-```python
-from pychivalry.scope_timing import ScopeTimingConfig
+```typescript
+import { ScopeTimingConfig } from './ck3/validation/scope-timing';
 
-timing_config = ScopeTimingConfig(
-    check_trigger_block=True,
-    check_desc_block=True,
-    check_triggered_desc=True,
-    check_variables=True,
-    check_temporary_scopes=True
-)
+const timingConfig: ScopeTimingConfig = {
+    checkTriggerBlock: true,
+    checkDescBlock: true,
+    checkTriggeredDesc: true,
+    checkVariables: true,
+    checkTemporaryScopes: true
+};
 ```
 
 ---
@@ -457,14 +457,14 @@ timing_config = ScopeTimingConfig(
 
 | Range | Category | Module |
 |-------|----------|--------|
-| CK3001-CK3002 | Syntax (brackets) | `diagnostics.py` |
-| CK3101-CK3103 | Semantic (effects/triggers) | `diagnostics.py` |
-| CK3201-CK3203 | Scope validation | `diagnostics.py` |
-| CK3301-CK3345 | Style/formatting | `style_checks.py` |
-| CK3400-CK3406 | Namespace & event ID validation | `paradox_checks.py` |
-| CK3550-CK3555 | Scope timing | `scope_timing.py` |
-| CK3656 | Opinion modifiers | `paradox_checks.py` |
-| CK3760-CK3768 | Event structure | `paradox_checks.py` |
-| CK3870-CK3875 | Effect/trigger context | `paradox_checks.py` |
-| CK3976-CK3977 | List iterators | `paradox_checks.py` |
-| CK5137-CK5142 | Common gotchas | `paradox_checks.py` |
+| CK3001-CK3002 | Syntax (brackets) | `vscode-extension/src/server/ck3/validation/diagnostics.ts` |
+| CK3101-CK3103 | Semantic (effects/triggers) | `vscode-extension/src/server/ck3/validation/diagnostics.ts` |
+| CK3201-CK3203 | Scope validation | `vscode-extension/src/server/ck3/validation/scopes.ts` |
+| CK3301-CK3345 | Style/formatting | `vscode-extension/src/server/ck3/validation/style-checks.ts` |
+| CK3400-CK3406 | Namespace & event ID validation | `vscode-extension/src/server/ck3/validation/paradox-checks.ts` |
+| CK3550-CK3555 | Scope timing | `vscode-extension/src/server/ck3/validation/scope-timing.ts` |
+| CK3656 | Opinion modifiers | `vscode-extension/src/server/ck3/validation/paradox-checks.ts` |
+| CK3760-CK3768 | Event structure | `vscode-extension/src/server/ck3/validation/events.ts` |
+| CK3870-CK3875 | Effect/trigger context | `vscode-extension/src/server/ck3/validation/paradox-checks.ts` |
+| CK3976-CK3977 | List iterators | `vscode-extension/src/server/ck3/validation/paradox-checks.ts` |
+| CK5137-CK5142 | Common gotchas | `vscode-extension/src/server/ck3/validation/paradox-checks.ts` |

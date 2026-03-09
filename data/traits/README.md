@@ -69,7 +69,7 @@ The extension will automatically skip trait validation when these files are miss
 - **Format:** YAML with structured trait definitions
 - **Size:** ~50KB total for 297 traits
 - **Performance:** Cached in memory for O(1) validation
-- **Extraction Tool:** `tools/extract_traits.py`
+- **Extraction Tool:** `tools/extract-traits.ts`
 
 ## Support
 

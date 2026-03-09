@@ -56,7 +56,7 @@ gh pr review 42 --request-changes --body "Good progress, but needs some fixes:
 ```bash
 gh pr review 42 --comment --body "A few suggestions:
 
-- Consider using dataclass for scope context
+- Consider using interfaces for scope context
 - Performance looks good
 - Documentation is clear
 
@@ -79,11 +79,11 @@ gh pr review 42 --approve --body-file review_comments.md
 gh pr checkout 42
 
 # 2. Run tests
-pytest tests/ -v
+npm test
 
 # 3. Check code quality
-flake8 pychivalry/
-mypy pychivalry/
+npm run lint
+npx tsc --noEmit
 
 # 4. Review changes
 git diff main...HEAD
@@ -117,7 +117,7 @@ gh pr view 42 --diff | less
 gh pr review 42 --request-changes --body "Please address these items:
 
 ## Code Quality
-- [ ] Add type hints to scope_validator.py
+- [ ] Add type hints to scope_validator.ts
 - [ ] Extract SCOPE_TYPES constant
 - [ ] Fix indentation in line 234
 
@@ -167,7 +167,6 @@ gh pr view 42 --diff
 
 # 4. Checkout and test locally
 gh pr checkout 42
-pytest tests/
 npm test
 
 # 5. Check code quality

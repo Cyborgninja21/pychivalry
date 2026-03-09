@@ -121,55 +121,17 @@ This project has the following tools installed and available:
   - Use `gh release create` for creating GitHub releases
   - Use `gh pr` commands for pull request management
   - Use `gh issue` commands for issue management
-- **Python 3.9+**: Primary language for LSP server
-- **Node.js/npm**: Required for VS Code extension development
+- **Node.js 18+**: Primary runtime for the language server and extension
+- **npm**: Package manager for all dependencies
+- **TypeScript 5.0+**: Primary language for all code
 
 ## General Requirements
 
-Use modern technologies as described below for all code suggestions. Prioritize clean, maintainable code with appropriate comments.
+Use TypeScript for all code. Prioritize clean, maintainable code with appropriate comments.
 
-## Python Requirements
 
-- **Target Version**: Python 3.9 or higher (compatible with 3.9, 3.10, 3.11, 3.12)
-- **Features to Use**:
-  - Type hints for all function parameters and return types
-  - Dataclasses for data structures
-  - f-strings for string formatting
-  - Walrus operator (`:=`) where appropriate
-  - Pattern matching (`match`/`case`) for Python 3.10+
-  - Union types with `|` syntax for Python 3.10+
-  - `typing` module for complex type annotations
-  - Context managers for resource handling
-  - Generators and iterators for memory efficiency
-  - Async/await for asynchronous operations (pygls LSP)
-- **Coding Standards**:
-  - Follow PEP 8 style guidelines
-  - Use Black formatter with line-length of 100
-  - Run flake8 for linting
-  - Use mypy for static type checking with `disallow_untyped_defs = true`
-  - Prefer composition over inheritance
-  - Use dependency injection patterns
-- **Static Analysis**:
-  - Include comprehensive docstrings (Google or NumPy style)
-  - Type annotations compatible with mypy strict mode
-  - Document all public APIs with param, return, and raises
-- **Error Handling**:
-  - Use exceptions consistently for error handling
-  - Create custom exception classes for domain-specific errors
-  - Provide meaningful, clear exception messages
-  - Use `logging` module for diagnostic output
-- **Testing**:
-  - Write tests using pytest framework
-  - Use pytest-asyncio for async test functions
-  - Use hypothesis for property-based testing where appropriate
-  - Aim for high test coverage on core functionality
-- **LSP-Specific (pygls)**:
-  - Follow pygls patterns for language server features
-  - Use proper LSP types from `lsprotocol`
-  - Handle document synchronization correctly
-  - Implement incremental text document sync when possible
 
-## TypeScript Requirements (VS Code Extension)
+## TypeScript Requirements
 
 - **Target**: ES2020, CommonJS module format
 - **Compiler Options**:
@@ -213,177 +175,184 @@ Use modern technologies as described below for all code suggestions. Prioritize 
 Follow this structured directory layout:
 
 ```
-pychivalry/                   # Project root
-├── .github/                  # GitHub configuration
-│   └── copilot-instructions.md  # AI assistant guidelines
-├── pychivalry/               # Main Python package (LSP server source code)
-│   ├── __init__.py           # Package init with feature overview
-│   ├── server.py             # LSP server entry point and protocol handlers
-│   │
-│   ├── core/                 # Infrastructure (7 files)
-│   │   ├── __init__.py
-│   │   ├── parser.py         # CK3 script parser, converts text to AST
-│   │   ├── incremental_parser.py  # Optimized incremental parsing
-│   │   ├── indexer.py        # Cross-file symbol indexing
-│   │   ├── threading.py      # Thread pool management, task prioritization
-│   │   ├── utils.py          # URI/path utilities, position checks
-│   │   └── workspace.py      # Workspace management, mod descriptor parsing
-│   │
-│   ├── lsp/                  # LSP features (14 files)
-│   │   ├── __init__.py
-│   │   ├── completions.py    # Context-aware auto-completion
-│   │   ├── hover.py          # Hover documentation provider
-│   │   ├── navigation.py     # Go-to-definition, find references
-│   │   ├── symbols.py        # Document outline/breadcrumbs
-│   │   ├── semantic_tokens.py  # Semantic syntax highlighting
-│   │   ├── code_actions.py   # Quick fixes, refactoring
-│   │   ├── code_lens.py      # Inline actionable info
-│   │   ├── formatting.py     # Document/range formatting
-│   │   ├── folding.py        # Code folding ranges
-│   │   ├── rename.py         # Workspace-wide renaming
-│   │   ├── inlay_hints.py    # Inline type annotations
-│   │   ├── signature_help.py # Parameter hints
-│   │   ├── document_highlight.py  # Highlight occurrences
-│   │   └── document_links.py      # Clickable file/URL links
-│   │
-│   ├── schema/               # Schema system (5 files)
-│   │   ├── __init__.py
-│   │   ├── loader.py         # Load YAML schemas, resolve inheritance
-│   │   ├── validator.py      # Schema-based validation engine
-│   │   ├── completions.py    # Schema-aware completions
-│   │   ├── hover.py          # Schema-based hover docs
-│   │   └── symbols.py        # Schema-driven symbol extraction
-│   │
-│   ├── ck3/                  # CK3 game logic (17 files)
-│   │   ├── __init__.py
-│   │   ├── language.py       # Keywords, effects, triggers, scopes
-│   │   ├── effect_trigger_docs.py  # Effect/trigger YAML documentation loader
-│   │   │
-│   │   ├── validation/       # Game validators (15 files)
-│   │   │   ├── __init__.py
-│   │   │   ├── diagnostics.py     # Coordinator
-│   │   │   ├── scopes.py
-│   │   │   ├── scope_timing.py
-│   │   │   ├── events.py
-│   │   │   ├── story_cycles.py
-│   │   │   ├── lists.py
-│   │   │   ├── variables.py
-│   │   │   ├── scripted_blocks.py
-│   │   │   ├── script_values.py
-│   │   │   ├── traits.py
-│   │   │   ├── paradox_checks.py
-│   │   │   ├── style_checks.py
-│   │   │   ├── block_validator.py
-│   │   │   ├── generic_rules_validator.py
-│   │   │   └── asset_validation.py
-│   │   │
-│   │   └── localization/     # Localization subsystem (3 files)
-│   │       ├── __init__.py
-│   │       ├── validator.py  # Localization syntax validation
-│   │       ├── concepts.py   # Game concept validation
-│   │       └── icons.py      # Icon reference validation
-│   │
-│   ├── log/                  # Game log integration (3 files)
-│   │   ├── __init__.py
-│   │   ├── watcher.py        # Real-time log monitoring
-│   │   ├── analyzer.py       # Log pattern matching
-│   │   └── diagnostics.py    # Convert log to LSP diagnostics
-│   │
-│   └── data/                 # Static data files (YAML definitions)
-│       ├── __init__.py       # Data loader for YAML game definitions
-│       ├── game_structure.yaml   # CK3 folder/file structure mapping
-│       ├── diagnostics.yaml      # Diagnostic message definitions
-│       │
-│       ├── schemas/          # Content type validation schemas (YAML)
-│       │   ├── _base.yaml        # Base schema definitions and inheritance
-│       │   ├── _types.yaml       # Reusable type definitions
-│       │   ├── events.yaml       # Event file schema
-│       │   ├── decisions.yaml    # Decision file schema
-│       │   ├── character_interactions.yaml  # Interaction schema
-│       │   ├── on_actions.yaml   # On-action hook schema
-│       │   ├── schemes.yaml      # Scheme file schema
-│       │   ├── story_cycles.yaml # Story cycle schema
-│       │   └── generic_rules.yaml # Generic validation rules
-│       │
-│       ├── scopes/           # Scope type definitions (YAML)
-│       │   ├── character.yaml    # Character scope links and operations
-│       │   ├── province.yaml     # Province scope links and operations
-│       │   └── title.yaml        # Landed title scope links and operations
-│       │
-│       ├── effects/          # Effect definitions
-│       │   └── effects.yaml      # All game effects with signatures
-│       │
-│       ├── triggers/         # Trigger definitions
-│       │   └── triggers.yaml     # All game triggers with signatures
-│       │
-│       └── traits/           # Trait definitions by category
-│           ├── childhood.yaml    # Childhood traits
-│           ├── education.yaml    # Education traits
-│           ├── fame.yaml         # Fame/legacy traits
-│           ├── health.yaml       # Health-related traits
-│           ├── lifestyle.yaml    # Lifestyle traits
-│           ├── personality.yaml  # Personality traits
-│           └── special.yaml      # Special/unique traits
+pychivalry/                          # Project root
+├── .github/                         # GitHub & AI configuration
+│   ├── copilot-instructions.md      # AI assistant guidelines (this file)
+│   ├── agents/                      # CK3 specialist agents (13 agent definitions)
+│   ├── prompts/                     # Reusable context prompts (27 files)
+│   ├── skills/                      # Debugging & workflow skills (7 skill areas)
+│   └── workflows/                   # GitHub Actions CI/CD
+│       └── ci.yml                   # Automated testing & releases
 │
-├── vscode-extension/         # VS Code extension (TypeScript)
-│   ├── src/                  # Extension source code
-│   ├── syntaxes/             # TextMate grammars for syntax highlighting
-│   ├── snippets/             # Code snippets for common patterns
-│   ├── test-workspace/       # Test workspace for extension development
-│   ├── package.json          # Extension manifest
-│   ├── tsconfig.json         # TypeScript configuration
-│   └── webpack.config.js     # Build configuration
+├── data/                            # Game definition data (YAML format)
+│   ├── animations.yaml              # CK3 animation definitions
+│   ├── diagnostics.yaml             # Error/warning message definitions
+│   ├── game_structure.yaml          # CK3 folder/file structure mapping
+│   ├── interaction_hooks.yaml       # Character interaction hooks
+│   ├── modifier_types.yaml          # In-game modifier types
+│   ├── on_actions.yaml              # On-action trigger definitions
+│   ├── scope_accessors.yaml         # Scope accessor chains
+│   ├── scriptable_directories.yaml  # Scriptable game directories
+│   ├── concepts/                    # Game concepts & categories
+│   ├── effects/                     # Game effects with signatures
+│   │   └── effects.yaml
+│   ├── icons/                       # Icon definitions (5,452 references)
+│   ├── mods/                        # Mod registry & Carnalitas integration
+│   ├── schemas/                     # Content type validation schemas (35 files)
+│   │   ├── _base.yaml               # Base schema definitions
+│   │   ├── _types.yaml              # Reusable type definitions
+│   │   ├── events.yaml              # Event file schema
+│   │   ├── decisions.yaml           # Decision file schema
+│   │   └── ...                      # 30+ additional content type schemas
+│   ├── scopes/                      # Scope type definitions (15 files)
+│   │   ├── character.yaml           # Character scope chains
+│   │   ├── province.yaml            # Province scope chains
+│   │   ├── title.yaml               # Landed title scope chains
+│   │   └── ...                      # 12 additional scope types
+│   ├── traits/                      # Trait definitions by category (7 files)
+│   │   ├── personality.yaml
+│   │   ├── education.yaml
+│   │   └── ...
+│   └── triggers/                    # Game triggers with signatures
+│       └── triggers.yaml
 │
-├── tests/                    # Unit and integration tests
-│   ├── conftest.py           # Pytest configuration and fixtures
-│   ├── fixtures/             # Test fixture files
-│   ├── integration/          # Integration tests
-│   ├── performance/          # Performance benchmarks
-│   ├── regression/           # Regression test cases
-│   ├── fuzzing/              # Fuzz testing
-│   └── test_*.py             # Test modules (one per source module)
+├── vscode-extension/                # VS Code extension & LSP server (TypeScript)
+│   ├── package.json                 # Extension manifest & dependencies
+│   ├── tsconfig.json                # TypeScript configuration
+│   ├── webpack.config.js            # Build configuration
+│   ├── .eslintrc.json               # Linting rules
+│   ├── .prettierrc                  # Code formatting
+│   ├── syntaxes/                    # TextMate grammars for syntax highlighting
+│   ├── snippets/                    # Code snippets for common patterns
+│   │
+│   └── src/                         # TypeScript source code
+│       ├── extension.ts             # Extension entry point (client side)
+│       ├── server-main.ts           # LSP server launcher
+│       ├── statusBar.ts             # Status bar integration
+│       ├── logger.ts                # Client-side logging
+│       │
+│       ├── server/                  # LSP server implementation
+│       │   ├── server.ts            # Main server init & protocol handlers
+│       │   │
+│       │   ├── core/                # Core infrastructure (8 files)
+│       │   │   ├── parser.ts        # CK3 script parser (AST generation)
+│       │   │   ├── incremental-parser.ts  # Optimized incremental parsing
+│       │   │   ├── indexer.ts       # Symbol indexing
+│       │   │   ├── indexer-enhanced.ts    # Enhanced indexing features
+│       │   │   ├── workspace.ts     # Workspace management
+│       │   │   ├── workspace-enhanced.ts  # Enhanced workspace features
+│       │   │   ├── call-graph.ts    # Call graph analysis
+│       │   │   └── localization-index.ts  # Localization indexing
+│       │   │
+│       │   ├── lsp/                 # LSP protocol handlers (17 files)
+│       │   │   ├── completions.ts   # Auto-completion
+│       │   │   ├── hover.ts         # Hover information
+│       │   │   ├── navigation.ts    # Go-to-definition, find references
+│       │   │   ├── symbols.ts       # Document outline
+│       │   │   ├── diagnostics.ts   # Diagnostic aggregator
+│       │   │   ├── semantic-tokens.ts    # Syntax highlighting
+│       │   │   ├── code-actions.ts  # Quick fixes, refactoring
+│       │   │   ├── code-lens.ts     # Inline actionable info
+│       │   │   ├── formatting.ts    # Document formatting
+│       │   │   ├── folding.ts       # Code folding
+│       │   │   ├── rename.ts        # Workspace renaming
+│       │   │   ├── inlay-hints.ts   # Inline hints
+│       │   │   ├── signature-help.ts     # Parameter hints
+│       │   │   ├── document-highlight.ts # Highlight occurrences
+│       │   │   ├── document-links.ts     # Clickable links
+│       │   │   ├── selection-range.ts    # Smart selection
+│       │   │   └── call-hierarchy.ts     # Call hierarchy
+│       │   │
+│       │   ├── schema/              # Schema system (5 files)
+│       │   │   ├── loader.ts        # Load & resolve YAML schemas
+│       │   │   ├── validator.ts     # Schema-based validation engine
+│       │   │   ├── completions.ts   # Schema-aware completions
+│       │   │   ├── hover.ts         # Schema-based hover docs
+│       │   │   └── symbols.ts       # Schema-driven symbol extraction
+│       │   │
+│       │   ├── ck3/                 # CK3-specific game logic
+│       │   │   ├── language.ts      # Keywords, effects, triggers, scopes
+│       │   │   ├── validation/      # Game validators (28 files)
+│       │   │   │   ├── diagnostics.ts    # Validation coordinator
+│       │   │   │   ├── scopes.ts         # Scope validation
+│       │   │   │   ├── scope-timing.ts   # Scope timing rules
+│       │   │   │   ├── events.ts         # Event validation
+│       │   │   │   ├── traits.ts         # Trait validation
+│       │   │   │   └── ...               # 23 additional validators
+│       │   │   └── localization/    # Localization subsystem (3 files)
+│       │   │       ├── validator.ts # Localization syntax validation
+│       │   │       ├── concepts.ts  # Game concept validation
+│       │   │       └── icons.ts     # Icon reference validation
+│       │   │
+│       │   ├── log/                 # Game log integration (3 files)
+│       │   │   ├── watcher.ts       # Real-time log monitoring
+│       │   │   ├── analyzer.ts      # Log pattern matching
+│       │   │   └── diagnostics.ts   # Convert log to LSP diagnostics
+│       │   │
+│       │   ├── data/                # Data loading (3 files)
+│       │   │   ├── loader.ts        # YAML data loader (singleton)
+│       │   │   ├── directory-registry.ts  # Scriptable directory registry
+│       │   │   └── mod-scanner.ts   # Mod detection and scanning
+│       │   │
+│       │   └── utils/               # Utilities (3 files)
+│       │       ├── logger.ts        # Server-side logging
+│       │       ├── uri.ts           # URI/path utilities
+│       │       └── fuzzy-match.ts   # Fuzzy string matching
+│       │
+│       └── test/                    # Tests (Mocha + TypeScript)
+│           ├── runTest.ts           # Test runner
+│           ├── suite/               # Integration test suites
+│           └── unit/                # Unit tests
 │
-├── example mod/              # Example CK3 mod for testing
-│   ├── descriptor.mod        # Mod descriptor
-│   ├── common/               # Common game files
-│   ├── events/               # Event files
-│   ├── localization/         # Localization files
-│   └── ...                   # Other mod directories
+├── tools/                           # Development & automation scripts
+│   ├── merge-keywords.js            # Merge keywords from pdx-parser-re
+│   ├── extract-traits.ts            # Trait extraction from CK3 game files
+│   ├── extract-effects.ts           # Effect extraction
+│   ├── extract-triggers.ts          # Trigger extraction
+│   ├── extract-on-actions.ts        # On-action extraction
+│   ├── extract-themes.ts            # Event theme extraction
+│   ├── extract-backgrounds.ts       # Event background extraction
+│   ├── extract-scopes.ts            # Scope accessor extraction
+│   ├── lib/                         # Shared extraction utilities
+│   │   └── extractor-utils.ts       # CK3 file parser, YAML writer
+│   ├── Check-Prerequisites.ps1      # Windows environment check
+│   ├── Install-Prerequisites.ps1    # Windows setup script
+│   └── setup-dev-env.sh             # Unix setup script
 │
-├── Documentation/            # All project documentation (consolidated)
-│   ├── README.md             # Documentation index
-│   ├── PRD.md                # Product requirements document
-│   ├── archive/              # Historical planning docs
-│   ├── ck3-reference/        # CK3 game reference materials
-│   ├── developer-guide/      # Developer documentation
-│   │   ├── architecture/     # Architecture docs (VALIDATION.md, ARCHITECTURE_FLOW.md)
-│   │   └── ...               # Pre-commit guides, test suites
-│   ├── schemas/              # Schema authoring guides
-│   ├── user-guide/           # User-facing documentation
-│   │   ├── feature_matrix.md # Feature implementation status
-│   │   └── diagnostics/      # Diagnostic code documentation
-│   └── examples/             # Documentation examples
-
-├── tools/                    # Development and setup scripts
-│   ├── extract_traits.py     # Trait extraction utility
-│   ├── Install-Prerequisites.ps1  # Windows setup script
-│   └── setup-dev-env.sh      # Unix setup script
+├── example mod/                     # Example CK3 mod for testing
+│   ├── descriptor.mod               # Mod descriptor
+│   ├── 01_syntax/ ... 14_*/         # Organized test scenarios
+│   └── README.md
 │
-├── pyproject.toml            # Python project configuration
-├── README.md                 # Project readme
-├── CHANGELOG.md              # Version history
-├── CONTRIBUTING.md           # Contribution guidelines
-├── SECURITY.md               # Security policy
-└── LICENSE                   # License file
+├── Documentation/                   # All project documentation (consolidated)
+│   ├── README.md                    # Documentation index
+│   ├── PRD.md                       # Product requirements document
+│   ├── archive/                     # Historical planning docs
+│   ├── ck3-reference/               # CK3 game reference materials
+│   ├── developer-guide/             # Developer documentation
+│   │   ├── architecture/            # Architecture docs
+│   │   └── ...                      # Pre-commit guides, test suites
+│   ├── schemas/                     # Schema authoring guides
+│   ├── user-guide/                  # User-facing documentation
+│   │   ├── feature_matrix.md        # Feature implementation status
+│   │   └── diagnostics/             # Diagnostic code documentation
+│   └── examples/                    # Documentation examples
+│
+├── README.md                        # Project readme
+├── CHANGELOG.md                     # Version history
+├── CONTRIBUTING.md                  # Contribution guidelines
+├── SECURITY.md                      # Security policy
+├── Taskfile.yml                     # Task runner definitions
+├── package.json                     # Root package (devDependencies only)
+└── LICENSE                          # License file
 ```
 
 ## Documentation Requirements
 
 ### Code Documentation
-- Include docstrings for all Python modules, classes, and functions.
 - Include JSDoc/TSDoc comments for TypeScript code.
 - Document complex functions with clear examples.
-- Minimum docblock info: `param`, `return`, `raises`/`throws`
+- Minimum docblock info: `param`, `return`, `throws`
 
 ### Folder Documentation Rule
 **ONE README.md per folder hierarchy.** Each major folder should have exactly one `README.md` that documents:
@@ -394,7 +363,7 @@ pychivalry/                   # Project root
 Do NOT create additional markdown files to summarize changes or document individual features within a folder. Keep documentation consolidated:
 - Use `Documentation/` for all project documentation
 - Use `Documentation/archive/` for historical planning docs
-- Do NOT create docs in `pychivalry/`, `tests/`, or code folders (except folder-specific README.md files for data directories)
+- Do NOT create docs in `vscode-extension/` or code folders (except folder-specific README.md files for data directories)
 
 ### New Documentation Rule
 **ALL new documentation MUST be placed in the `Documentation/` folder.** When creating any new markdown documentation:
@@ -402,7 +371,7 @@ Do NOT create additional markdown files to summarize changes or document individ
 - Place schema docs in `Documentation/schemas/`
 - Place planning/historical docs in `Documentation/archive/`
 - Place CK3 reference materials in `Documentation/ck3-reference/`
-- NEVER create documentation files in the project root, `pychivalry/`, `tests/`, or `vscode-extension/` folders
+- NEVER create documentation files in the project root or `vscode-extension/` folders
 - Exception: README.md files for folder navigation and standard root files (CHANGELOG.md, CONTRIBUTING.md, SECURITY.md)
 
 ## Security Considerations

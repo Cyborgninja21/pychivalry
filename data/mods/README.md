@@ -29,35 +29,35 @@ and extracts game data automatically. We do NOT ship other people's mod content.
 | File | Purpose |
 |------|---------|
 | `mod_registry.yaml` | Defines known mods and extraction rules |
-| `scanner.py` | Discovers mods and extracts data dynamically |
-| `__init__.py` | High-level API for the LSP |
+| `scanner.ts` | Discovers mods and extracts data dynamically |
+| `index.ts` | High-level API for the LSP |
 | `carnalitas/` | Fallback static data (if mod not installed) |
 
 ## Usage
 
 ### Auto-Discovery (Recommended)
 
-```python
-from pychivalry.data.mods import auto_discover_mods, get_mod_loader
+```typescript
+import { autoDiscoverMods, getModLoader } from 'pychivalry/data/mods';
 
-# Scan for installed mods and enable them
-discovered = auto_discover_mods()
-print(discovered)
-# {'carnalitas': {'name': 'Carnalitas', 'path': 'C:/Users/.../mod/Carnalitas'}}
+// Scan for installed mods and enable them
+const discovered = autoDiscoverMods();
+console.log(discovered);
+// {'carnalitas': {'name': 'Carnalitas', 'path': 'C:/Users/.../mod/Carnalitas'}}
 
-# Get all traits from discovered mods
-loader = get_mod_loader()
-traits = loader.get_all_traits()
-'lifestyle_prostitute' in traits  # True if Carnalitas installed
+// Get all traits from discovered mods
+const loader = getModLoader();
+const traits = loader.getAllTraits();
+'lifestyle_prostitute' in traits  // True if Carnalitas installed
 ```
 
 ### Manual Enable
 
-```python
-from pychivalry.data.mods import enable_mod
+```typescript
+import { enableMod } from 'pychivalry/data/mods';
 
-# Enable specific mod (will use dynamic if found, static fallback otherwise)
-enable_mod("carnalitas")
+// Enable specific mod (will use dynamic if found, static fallback otherwise)
+enableMod("carnalitas");
 ```
 
 ### VS Code Extension Integration

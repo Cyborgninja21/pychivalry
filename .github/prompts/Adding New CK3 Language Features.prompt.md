@@ -22,104 +22,112 @@ CK3 scripting has several types of language elements:
 
 ### 1. Update Language Definitions
 
-Edit `pychivalry/ck3_language.py`:
+Edit `vscode-extension/src/server/ck3/language.ts`:
 
-```python
-# CK3 Keywords
-KEYWORDS = {
-    # Control flow
+```typescript
+// CK3 Keywords
+export const KEYWORDS = {
+    // Control flow
     "if": {
-        "description": "Conditional execution",
-        "example": "if = { has_trait = brave }",
-        "category": "control_flow"
+        description: "Conditional execution",
+        example: "if = { has_trait = brave }",
+        category: "control_flow"
     },
     "else": {
-        "description": "Alternative branch",
-        "example": "else = { add_trait = craven }",
-        "category": "control_flow"
+        description: "Alternative branch",
+        example: "else = { add_trait = craven }",
+        category: "control_flow"
     },
-    # Add new keyword
+    // Add new keyword
     "new_keyword": {
-        "description": "Description of the keyword",
-        "example": "new_keyword = { ... }",
-        "category": "control_flow"
+        description: "Description of the keyword",
+        example: "new_keyword = { ... }",
+        category: "control_flow"
     },
-}
+};
 ```
 
 ### 2. Update Parser (if needed)
 
-If the keyword has special syntax, update `pychivalry/parser.py`:
+If the keyword has special syntax, update `vscode-extension/src/server/core/parser.ts`:
 
-```python
-def parse_statement(self):
-    """Parse a statement."""
-    if self.current_token == "new_keyword":
-        return self.parse_new_keyword()
-    # ... existing logic
-```
+```typescript
+parseStatement(): StatementNode | null {
+    // Parse a statement
+    if (this.currentToken === "new_keyword") {
+        return this.parseNewKeyword();
+    }
+    // ... existing logic
+}
 
 ### 3. Add Completion Support
 
-In `pychivalry/completions.py`:
+In `vscode-extension/src/server/lsp/completions.ts`:
 
-```python
-def get_keyword_completions(self) -> List[CompletionItem]:
-    """Get keyword completions."""
-    items = []
+```typescript
+getKeywordCompletions(): CompletionItem[] {
+    // Get keyword completions
+    const items: CompletionItem[] = [];
     
-    for keyword, info in KEYWORDS.items():
-        items.append(CompletionItem(
-            label=keyword,
-            kind=CompletionItemKind.Keyword,
-            detail=info["description"],
-            documentation=f"Example: {info['example']}",
-            insert_text=f"{keyword} = {{\n\t$0\n}}" if needs_block else keyword,
-            insert_text_format=InsertTextFormat.Snippet
-        ))
+    for (const [keyword, info] of Object.entries(KEYWORDS)) {
+        items.push({
+            label: keyword,
+            kind: CompletionItemKind.Keyword,
+            detail: info.description,
+            documentation: `Example: ${info.example}`,
+            insertText: needsBlock ? `${keyword} = {\n\t$0\n}` : keyword,
+            insertTextFormat: InsertTextFormat.Snippet
+        });
+    }
     
-    return items
+    return items;
+}
 ```
 
 ### 4. Add Hover Documentation
 
-In `pychivalry/hover.py`:
+In `vscode-extension/src/server/lsp/hover.ts`:
 
-```python
-def get_keyword_hover(self, keyword: str) -> Optional[Hover]:
-    """Get hover information for keyword."""
-    info = KEYWORDS.get(keyword)
-    if not info:
-        return None
+```typescript
+getKeywordHover(keyword: string): Hover | null {
+    // Get hover information for keyword
+    const info = KEYWORDS[keyword];
+    if (!info) {
+        return null;
+    }
     
-    content = f"**{keyword}** ({info['category']})\n\n"
-    content += f"{info['description']}\n\n"
-    content += f"Example:\n```ck3\n{info['example']}\n```"
+    const content = `**${keyword}** (${info.category})\n\n` +
+                   `${info.description}\n\n` +
+                   `Example:\n\`\`\`ck3\n${info.example}\n\`\`\``;
     
-    return Hover(contents=MarkupContent(
-        kind=MarkupKind.Markdown,
-        value=content
-    ))
+    return {
+        contents: {
+            kind: MarkupKind.Markdown,
+            value: content
+        }
+    };
+}
 ```
 
 ### 5. Add Tests
 
-```python
-def test_new_keyword_completion():
-    """Test completion for new keyword."""
-    provider = CompletionProvider()
-    completions = provider.get_keyword_completions()
-    
-    assert any(c.label == "new_keyword" for c in completions)
+```typescript
+describe('New Keyword', () => {
+    it('should provide completions for new keyword', () => {
+        const provider = new CompletionProvider();
+        const completions = provider.getKeywordCompletions();
+        
+        expect(completions.some(c => c.label === "new_keyword")).toBe(true);
+    });
 
-def test_new_keyword_hover():
-    """Test hover for new keyword."""
-    provider = HoverProvider()
-    hover = provider.get_keyword_hover("new_keyword")
-    
-    assert hover is not None
-    assert "Description of the keyword" in hover.contents.value
-```
+    it('should provide hover for new keyword', () => {
+        const provider = new HoverProvider();
+        const hover = provider.getKeywordHover("new_keyword");
+        
+        expect(hover).not.toBeNull();
+        expect(hover?.contents.value).toContain("Description of the keyword");
+    });
+});
 
 ## Adding New Effects
 
@@ -127,92 +135,103 @@ Effects are actions that modify game state.
 
 ### 1. Add to Effect Definitions
 
-Edit `pychivalry/ck3_language.py`:
+Edit `vscode-extension/src/server/ck3/language.ts`:
 
-```python
-EFFECTS = {
+```typescript
+export const EFFECTS = {
     "add_trait": {
-        "description": "Adds a trait to a character",
-        "scopes": ["character"],
-        "parameters": {
-            "required": ["trait"],
-            "optional": []
+        description: "Adds a trait to a character",
+        scopes: ["character"],
+        parameters: {
+            required: ["trait"],
+            optional: []
         },
-        "example": "add_trait = brave"
+        example: "add_trait = brave"
     },
-    # Add new effect
+    // Add new effect
     "new_effect": {
-        "description": "What this effect does",
-        "scopes": ["character", "province"],  # Which scopes it works in
-        "parameters": {
-            "required": ["param1"],
-            "optional": ["param2"]
+        description: "What this effect does",
+        scopes: ["character", "province"],  // Which scopes it works in
+        parameters: {
+            required: ["param1"],
+            optional: ["param2"]
         },
-        "example": "new_effect = param1",
-        "added_in": "1.11.0"  # Game version
+        example: "new_effect = param1",
+        addedIn: "1.11.0"  // Game version
     },
-}
-```
+};
 
 ### 2. Add Validation
 
-In `pychivalry/diagnostics.py`:
+In `vscode-extension/src/server/lsp/diagnostics.ts`:
 
-```python
-def validate_effect(self, effect_node):
-    """Validate an effect."""
-    effect_name = effect_node.name
-    effect_info = EFFECTS.get(effect_name)
+```typescript
+validateEffect(effectNode: EffectNode): Diagnostic | null {
+    // Validate an effect
+    const effectName = effectNode.name;
+    const effectInfo = EFFECTS[effectName];
     
-    if not effect_info:
-        # Unknown effect
-        return Diagnostic(
-            range=effect_node.range,
-            message=f"Unknown effect: {effect_name}",
-            severity=DiagnosticSeverity.Error,
-            code="CK3201"
-        )
+    if (!effectInfo) {
+        // Unknown effect
+        return {
+            range: effectNode.range,
+            message: `Unknown effect: ${effectName}`,
+            severity: DiagnosticSeverity.Error,
+            code: "CK3201"
+        };
+    }
     
-    # Check scope compatibility
-    if self.current_scope not in effect_info["scopes"]:
-        return Diagnostic(
-            range=effect_node.range,
-            message=f"Effect '{effect_name}' not valid in {self.current_scope} scope",
-            severity=DiagnosticSeverity.Error,
-            code="CK3202"
-        )
+    // Check scope compatibility
+    if (!effectInfo.scopes.includes(this.currentScope)) {
+        return {
+            range: effectNode.range,
+            message: `Effect '${effectName}' not valid in ${this.currentScope} scope`,
+            severity: DiagnosticSeverity.Error,
+            code: "CK3202"
+        };
+    }
     
-    # Validate parameters
-    # ... parameter validation logic
-```
+    // Validate parameters
+    // ... parameter validation logic
+    
+    return null;
+}
 
 ### 3. Add Signature Help
 
-In `pychivalry/signature_help.py`:
+In `vscode-extension/src/server/lsp/signature-help.ts`:
 
-```python
-def get_effect_signature(self, effect_name: str) -> Optional[SignatureHelp]:
-    """Get signature help for effect."""
-    effect_info = EFFECTS.get(effect_name)
-    if not effect_info:
-        return None
+```typescript
+getEffectSignature(effectName: string): SignatureHelp | null {
+    // Get signature help for effect
+    const effectInfo = EFFECTS[effectName];
+    if (!effectInfo) {
+        return null;
+    }
     
-    params = effect_info["parameters"]
+    const params = effectInfo.parameters;
     
-    signature = SignatureInformation(
-        label=f"{effect_name} = ...",
-        documentation=effect_info["description"],
-        parameters=[
-            ParameterInformation(label=p, documentation="Required")
-            for p in params["required"]
-        ] + [
-            ParameterInformation(label=p, documentation="Optional")
-            for p in params["optional"]
+    const signature: SignatureInformation = {
+        label: `${effectName} = ...`,
+        documentation: effectInfo.description,
+        parameters: [
+            ...params.required.map(p => ({
+                label: p,
+                documentation: "Required"
+            })),
+            ...params.optional.map(p => ({
+                label: p,
+                documentation: "Optional"
+            }))
         ]
-    )
+    };
     
-    return SignatureHelp(signatures=[signature])
-```
+    return {
+        signatures: [signature],
+        activeSignature: 0,
+        activeParameter: 0
+    };
+}
 
 ## Adding New Triggers
 
@@ -220,25 +239,24 @@ Triggers are conditions that evaluate to true/false.
 
 ### 1. Add to Trigger Definitions
 
-```python
-TRIGGERS = {
+```typescript
+export const TRIGGERS = {
     "has_trait": {
-        "description": "Checks if character has a trait",
-        "scopes": ["character"],
-        "type": "boolean",
-        "parameters": ["trait_name"],
-        "example": "has_trait = brave"
+        description: "Checks if character has a trait",
+        scopes: ["character"],
+        type: "boolean",
+        parameters: ["trait_name"],
+        example: "has_trait = brave"
     },
-    # Add new trigger
+    // Add new trigger
     "new_trigger": {
-        "description": "What this trigger checks",
-        "scopes": ["character"],
-        "type": "boolean",  # or "comparison" for >, <, etc.
-        "parameters": ["param"],
-        "example": "new_trigger = param"
+        description: "What this trigger checks",
+        scopes: ["character"],
+        type: "boolean",  // or "comparison" for >, <, etc.
+        parameters: ["param"],
+        example: "new_trigger = param"
     },
-}
-```
+};
 
 ### 2. Follow Effect Pattern
 
@@ -250,7 +268,7 @@ Scopes define the context (character, province, title, etc.) for effects/trigger
 
 ### 1. Define Scope Type
 
-Create YAML file: `pychivalry/data/scopes/new_scope.yaml`
+Create YAML file: `data/scopes/new_scope.yaml`
 
 ```yaml
 name: new_scope_type
@@ -281,48 +299,55 @@ triggers:
 
 ### 2. Load in Data Loader
 
-Ensure `pychivalry/data/__init__.py` loads the new scope:
+Ensure `vscode-extension/src/server/data/loader.ts` loads the new scope:
 
-```python
-def load_scopes():
-    """Load all scope definitions."""
-    scopes = {}
-    scope_dir = Path(__file__).parent / "scopes"
+```typescript
+loadScopes(): Record<string, ScopeData> {
+    // Load all scope definitions
+    const scopes: Record<string, ScopeData> = {};
+    const scopeDir = path.join(__dirname, "../../../data/scopes");
     
-    for yaml_file in scope_dir.glob("*.yaml"):
-        with open(yaml_file) as f:
-            scope_data = yaml.safe_load(f)
-            scopes[scope_data["name"]] = scope_data
+    const yamlFiles = fs.readdirSync(scopeDir).filter(f => f.endsWith('.yaml'));
     
-    return scopes
-```
+    for (const yamlFile of yamlFiles) {
+        const filePath = path.join(scopeDir, yamlFile);
+        const content = fs.readFileSync(filePath, 'utf-8');
+        const scopeData = yaml.parse(content) as ScopeData;
+        scopes[scopeData.name] = scopeData;
+    }
+    
+    return scopes;
+}
 
 ### 3. Update Scope Validator
 
-In `pychivalry/scopes.py`:
+In `vscode-extension/src/server/ck3/validation/scopes.ts`:
 
-```python
-class ScopeTracker:
-    """Tracks current scope and validates transitions."""
+```typescript
+export class ScopeTracker {
+    // Tracks current scope and validates transitions
     
-    VALID_SCOPES = [
+    static VALID_SCOPES = [
         "character",
-        "province",
+        "province", 
         "title",
-        "new_scope_type",  # Add here
-    ]
+        "new_scope_type",  // Add here
+    ];
     
-    def navigate_to(self, target: str) -> Optional[str]:
-        """Navigate to target scope."""
-        # Check if transition is valid from current scope
-        scope_data = SCOPES[self.current_scope]
+    navigateTo(target: string): string | null {
+        // Navigate to target scope
+        // Check if transition is valid from current scope
+        const scopeData = SCOPES[this.currentScope];
         
-        for link in scope_data["links"]:
-            if link["syntax"] == target:
-                return link["target"]
+        for (const link of scopeData.links) {
+            if (link.syntax === target) {
+                return link.target;
+            }
+        }
         
-        return None
-```
+        return null;
+    }
+}
 
 ## Adding List Iterators
 
@@ -330,92 +355,94 @@ List iterators like `any_vassal`, `every_courtier` allow iteration over collecti
 
 ### 1. Define Iterator
 
-```python
-LIST_ITERATORS = {
+```typescript
+export const LIST_ITERATORS = {
     "any_vassal": {
-        "description": "Iterates over vassals",
-        "parent_scope": "character",
-        "child_scope": "character",
-        "has_limit": True,
-        "example": "any_vassal = { limit = { ... } }"
+        description: "Iterates over vassals",
+        parentScope: "character",
+        childScope: "character",
+        hasLimit: true,
+        example: "any_vassal = { limit = { ... } }"
     },
-    # Add new iterator
+    // Add new iterator
     "any_new_collection": {
-        "description": "Iterates over new collection",
-        "parent_scope": "new_scope_type",
-        "child_scope": "character",
-        "has_limit": True,
-        "example": "any_new_collection = { ... }"
+        description: "Iterates over new collection",
+        parentScope: "new_scope_type",
+        childScope: "character",
+        hasLimit: true,
+        example: "any_new_collection = { ... }"
     },
-}
-```
+};
 
 ### 2. Update List Validator
 
-In `pychivalry/lists.py`:
+In `vscode-extension/src/server/ck3/validation/lists.ts`:
 
-```python
-def validate_list_iterator(self, node):
-    """Validate list iterator syntax."""
-    iterator_name = node.name
-    iterator_info = LIST_ITERATORS.get(iterator_name)
+```typescript
+validateListIterator(node: ListIteratorNode): Diagnostic | null {
+    // Validate list iterator syntax
+    const iteratorName = node.name;
+    const iteratorInfo = LIST_ITERATORS[iteratorName];
     
-    if not iterator_info:
-        return self._unknown_iterator_diagnostic(node)
+    if (!iteratorInfo) {
+        return this.unknownIteratorDiagnostic(node);
+    }
     
-    # Check parent scope
-    if self.current_scope != iterator_info["parent_scope"]:
-        return self._invalid_scope_diagnostic(node, iterator_info)
+    // Check parent scope
+    if (this.currentScope !== iteratorInfo.parentScope) {
+        return this.invalidScopeDiagnostic(node, iteratorInfo);
+    }
     
-    # Track scope transition
-    self.scope_tracker.enter_scope(iterator_info["child_scope"])
-```
+    // Track scope transition
+    this.scopeTracker.enterScope(iteratorInfo.childScope);
+    
+    return null;
+}
 
 ## Testing New Features
 
 ### 1. Unit Tests
 
-```python
-def test_new_feature_completion():
-    """Test completion for new feature."""
-    provider = CompletionProvider()
-    completions = provider.get_completions(context="effect")
-    
-    assert any(c.label == "new_effect" for c in completions)
+```typescript
+describe('New Feature Tests', () => {
+    it('should provide completion for new feature', () => {
+        const provider = new CompletionProvider();
+        const completions = provider.getCompletions("effect");
+        
+        expect(completions.some(c => c.label === "new_effect")).toBe(true);
+    });
 
-def test_new_feature_validation():
-    """Test validation of new feature."""
-    validator = DiagnosticsEngine()
-    code = "new_effect = param"
-    
-    diagnostics = validator.validate(code, scope="character")
-    
-    # Should not produce errors
-    assert len(diagnostics) == 0
+    it('should validate new feature without errors', () => {
+        const validator = new DiagnosticsEngine();
+        const code = "new_effect = param";
+        
+        const diagnostics = validator.validate(code, "character");
+        
+        // Should not produce errors
+        expect(diagnostics).toHaveLength(0);
+    });
 
-def test_new_feature_wrong_scope():
-    """Test new feature in wrong scope."""
-    validator = DiagnosticsEngine()
-    code = "new_effect = param"
-    
-    diagnostics = validator.validate(code, scope="province")
-    
-    # Should produce scope error
-    assert len(diagnostics) == 1
-    assert diagnostics[0].code == "CK3202"
-```
+    it('should detect new feature in wrong scope', () => {
+        const validator = new DiagnosticsEngine();
+        const code = "new_effect = param";
+        
+        const diagnostics = validator.validate(code, "province");
+        
+        // Should produce scope error
+        expect(diagnostics).toHaveLength(1);
+        expect(diagnostics[0].code).toBe("CK3202");
+    });
+});
 
 ### 2. Integration Tests
 
-```python
-@pytest.mark.integration
-@pytest.mark.asyncio
-async def test_new_feature_full_workflow():
-    """Test new feature in full LSP workflow."""
-    server = CK3LanguageServer()
-    uri = "file:///test.txt"
-    
-    code = """
+```typescript
+describe('New Feature Full Workflow', () => {
+    it('should handle new feature in full LSP workflow', async () => {
+        const server = new CK3LanguageServer();
+        const uri = "file:///test.txt";
+        
+        const code = `
     namespace = test
     
     test_event = {
@@ -424,23 +451,24 @@ async def test_new_feature_full_workflow():
             new_effect = param
         }
     }
-    """
-    
-    # Open document
-    await server.did_open(uri, code)
-    
-    # Get diagnostics (should be none)
-    diagnostics = server.get_diagnostics(uri)
-    assert len(diagnostics) == 0
-    
-    # Get completion at "new_"
-    completions = await server.completion(uri, line=6, char=16)
-    assert any("new_effect" in c.label for c in completions.items)
-    
-    # Get hover on "new_effect"
-    hover = await server.hover(uri, line=6, char=12)
-    assert "What this effect does" in hover.contents.value
-```
+    `;
+        
+        // Open document
+        await server.didOpen(uri, code);
+        
+        // Get diagnostics (should be none)
+        const diagnostics = server.getDiagnostics(uri);
+        expect(diagnostics).toHaveLength(0);
+        
+        // Get completion at "new_"
+        const completions = await server.completion(uri, 6, 16);
+        expect(completions.items.some(c => c.label.includes("new_effect"))).toBe(true);
+        
+        // Get hover on "new_effect"
+        const hover = await server.hover(uri, 6, 12);
+        expect(hover?.contents.value).toContain("What this effect does");
+    });
+});
 
 ## Documentation
 
@@ -471,14 +499,14 @@ Add to `CHANGELOG.md`:
 
 ## Checklist for New Features
 
-- [ ] Add to language definitions (`ck3_language.py`)
+- [ ] Add to language definitions (`vscode-extension/src/server/ck3/language.ts`)
 - [ ] Update parser if syntax is special
 - [ ] Add validation logic
 - [ ] Add completion support
 - [ ] Add hover documentation
 - [ ] Add signature help (for effects/triggers)
 - [ ] Create scope definition (for new scopes)
-- [ ] Write unit tests
+- [ ] Write unit tests (Mocha)
 - [ ] Write integration tests
 - [ ] Update README.md
 - [ ] Update CHANGELOG.md

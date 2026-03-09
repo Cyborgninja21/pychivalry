@@ -130,7 +130,7 @@ Ensure complete documentation of:
 ├─────────────────────────────────────────────────────────────────────────┤
 │                                                                         │
 │  ┌──────────────────────────────────────────────────────────┐          │
-│  │                  main_module.py (Core)                    │          │
+│  │                  main_module.ts (Core)                    │          │
 │  │          Primary Entry Point & Orchestration              │          │
 │  └────────────────────┬─────────────────────────────────────┘          │
 │                       │                                                 │
@@ -138,7 +138,7 @@ Ensure complete documentation of:
 │         │             │             │                  │               │
 │         ▼             ▼             ▼                  ▼               │
 │  ┌────────────┐ ┌───────────┐ ┌──────────┐  ┌──────────────┐         │
-│  │ module1.py │ │module2.py │ │module3.py│  │  module4.py  │         │
+│  │ module1.ts │ │module2.ts │ │module3.ts│  │  module4.ts  │         │
 │  │  (Type)    │ │  (Type)   │ │  (Type)  │  │    (Type)    │         │
 │  ├────────────┤ ├───────────┤ ├──────────┤  ├──────────────┤         │
 │  │• Function1 │ │• Function │ │• Function│  │• Function    │         │
@@ -151,9 +151,9 @@ Ensure complete documentation of:
 │         ▼                    ▼                                         │
 │  ┌──────────────────────────────────────────┐                         │
 │  │  Supporting/Dependency Modules            │                         │
-│  │  • support_module1.py (purpose)           │                         │
-│  │  • support_module2.py (purpose)           │                         │
-│  │  • support_module3.py (purpose)           │                         │
+│  │  • support_module1.ts (purpose)           │                         │
+│  │  • support_module2.ts (purpose)           │                         │
+│  │  • support_module3.ts (purpose)           │                         │
 │  └──────────────────────────────────────────┘                         │
 │                                                                         │
 │  Module Count Summary:                                                 │

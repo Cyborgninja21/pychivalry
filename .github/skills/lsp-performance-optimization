@@ -18,47 +18,43 @@ Common performance issues in language servers:
 
 ### 1. CPU Profiling
 
-```python
-import cProfile
-import pstats
-from pychivalry.server import main
+```typescript
+// CPU Profiling
+// Run with: node --prof dist/server-main.js
+// Process: node --prof-process isolate-*.log > profile.txt
 
-profiler = cProfile.Profile()
-profiler.enable()
-
-# Run server for a session
-main()
-
-profiler.disable()
-stats = pstats.Stats(profiler)
-stats.sort_stats('cumulative')
-stats.print_stats(30)  # Top 30 functions
+// Or use Chrome DevTools:
+// node --inspect dist/server-main.js
+// Open chrome://inspect in Chrome
 ```
 
 ### 2. Memory Profiling
 
-```python
-from memory_profiler import profile
-
-@profile
-def heavy_function():
-    # Function to profile
-    pass
+```typescript
+// Memory monitoring
+function profileMemory(fn: Function) {
+    const before = process.memoryUsage();
+    const result = fn();
+    const after = process.memoryUsage();
+    
+    console.log(`Memory delta: ${(after.heapUsed - before.heapUsed) / 1024 / 1024} MB`);
+    return result;
+}
 ```
-
-Run with: `python -m memory_profiler script.py`
 
 ### 3. Line-by-Line Profiling
 
-```python
-from line_profiler import LineProfiler
+```typescript
+// Performance timing with hooks
+import { performance } from 'perf_hooks';
 
-profiler = LineProfiler()
-profiler.add_function(function_to_profile)
-profiler.enable()
-# Run code
-profiler.disable()
-profiler.print_stats()
+function profileFunction(fn: Function) {
+    const start = performance.now();
+    const result = fn();
+    const end = performance.now();
+    console.log(`Function took ${end - start}ms`);
+    return result;
+}
 ```
 
 ## Optimization Strategies
@@ -69,20 +65,22 @@ profiler.print_stats()
 
 **Solution:** Cache AST with document version
 
-```python
-class DocumentCache:
-    def __init__(self):
-        self._cache = {}  # uri -> (version, ast)
+```typescript
+class DocumentCache {
+    private cache = new Map<string, { version: number; ast: any }>();
     
-    def get(self, uri: str, version: int):
-        if uri in self._cache:
-            cached_version, ast = self._cache[uri]
-            if cached_version == version:
-                return ast
-        return None
+    get(uri: string, version: number) {
+        const cached = this.cache.get(uri);
+        if (cached && cached.version === version) {
+            return cached.ast;
+        }
+        return null;
+    }
     
-    def set(self, uri: str, version: int, ast):
-        self._cache[uri] = (version, ast)
+    set(uri: string, version: number, ast: any) {
+        this.cache.set(uri, { version, ast });
+    }
+}
 ```
 
 ### 2. Incremental Parsing
@@ -91,18 +89,19 @@ class DocumentCache:
 
 **Solution:** Parse only changed regions
 
-```python
-def incremental_parse(old_ast, change_range, new_text):
-    # Identify affected nodes
-    affected = find_nodes_in_range(old_ast, change_range)
+```typescript
+function incrementalParse(oldAst: any, changeRange: Range, newText: string) {
+    // Identify affected nodes
+    const affected = findNodesInRange(oldAst, changeRange);
     
-    # Re-parse only affected subtree
-    new_subtree = parse_text(new_text)
+    // Re-parse only affected subtree
+    const newSubtree = parseText(newText);
     
-    # Replace in AST
-    replace_subtree(old_ast, affected, new_subtree)
+    // Replace in AST
+    replaceSubtree(oldAst, affected, newSubtree);
     
-    return old_ast
+    return oldAst;
+}
 ```
 
 ### 3. Lazy Validation
@@ -111,24 +110,25 @@ def incremental_parse(old_ast, change_range, new_text):
 
 **Solution:** Debounce and prioritize validation
 
-```python
-import asyncio
-from typing import Callable
-
-class DebounceValidator:
-    def __init__(self, delay: float = 0.5):
-        self.delay = delay
-        self._task = None
+```typescript
+class DebounceValidator {
+    private delay: number;
+    private timeoutId?: NodeJS.Timeout;
     
-    async def debounce_validate(self, validate_fn: Callable):
-        if self._task:
-            self._task.cancel()
+    constructor(delay = 500) {
+        this.delay = delay;
+    }
+    
+    debounceValidate(validateFn: () => Promise<void>) {
+        if (this.timeoutId) {
+            clearTimeout(this.timeoutId);
+        }
         
-        async def delayed():
-            await asyncio.sleep(self.delay)
-            await validate_fn()
-        
-        self._task = asyncio.create_task(delayed())
+        this.timeoutId = setTimeout(async () => {
+            await validateFn();
+        }, this.delay);
+    }
+}
 ```
 
 ### 4. Background Indexing
@@ -137,27 +137,29 @@ class DebounceValidator:
 
 **Solution:** Index in background with progress
 
-```python
-import asyncio
-from concurrent.futures import ThreadPoolExecutor
+```typescript
+import { Worker } from 'worker_threads';
 
-class BackgroundIndexer:
-    def __init__(self):
-        self.executor = ThreadPoolExecutor(max_workers=2)
+class BackgroundIndexer {
+    private workers = new Set<Worker>();
     
-    async def index_workspace(self, workspace_path):
-        loop = asyncio.get_event_loop()
-        
-        # Run in thread pool
-        await loop.run_in_executor(
-            self.executor,
-            self._index_files,
-            workspace_path
-        )
-    
-    def _index_files(self, workspace_path):
-        # Heavy indexing work
-        pass
+    async indexWorkspace(workspacePath: string): Promise<void> {
+        return new Promise((resolve, reject) => {
+            const worker = new Worker('./indexer-worker.js', {
+                workerData: { workspacePath }
+            });
+            
+            this.workers.add(worker);
+            
+            worker.on('message', (result) => {
+                this.workers.delete(worker);
+                resolve(result);
+            });
+            
+            worker.on('error', reject);
+        });
+    }
+}
 ```
 
 ### 5. Limit Scope of Operations
@@ -166,16 +168,19 @@ class BackgroundIndexer:
 
 **Solution:** Process only relevant files
 
-```python
-def find_references(symbol, workspace):
-    # Bad: Search all files
-    # for file in workspace.all_files:
-    #     search_file(file, symbol)
+```typescript
+function findReferences(symbol: string, workspace: Workspace) {
+    // Bad: Search all files
+    // for (const file of workspace.allFiles) {
+    //     searchFile(file, symbol);
+    // }
     
-    # Good: Search only likely locations
-    candidates = workspace.index.get_files_with_symbol(symbol)
-    for file in candidates:
-        search_file(file, symbol)
+    // Good: Search only likely locations
+    const candidates = workspace.index.getFilesWithSymbol(symbol);
+    for (const file of candidates) {
+        searchFile(file, symbol);
+    }
+}
 ```
 
 ### 6. Optimize Data Structures
@@ -184,31 +189,39 @@ def find_references(symbol, workspace):
 
 **Solution:** Use appropriate data structures
 
-```python
-# Bad: List for many lookups
-traits = ["brave", "craven", ...]  # O(n) lookup
+```typescript
+// Bad: Array for many lookups
+const traits = ["brave", "craven"];  // O(n) lookup
 
-# Good: Set for membership testing
-traits = {"brave", "craven", ...}  # O(1) lookup
+// Good: Set for membership testing
+const traits = new Set(["brave", "craven"]);  // O(1) lookup
 
-# Good: Trie for prefix matching
-class Trie:
-    def __init__(self):
-        self.root = {}
+// Good: Trie for prefix matching
+class Trie {
+    private root = new Map<string, any>();
     
-    def add(self, word):
-        node = self.root
-        for char in word:
-            node = node.setdefault(char, {})
-        node['$'] = True
+    add(word: string) {
+        let node = this.root;
+        for (const char of word) {
+            if (!node.has(char)) {
+                node.set(char, new Map());
+            }
+            node = node.get(char);
+        }
+        node.set('$', true);
+    }
     
-    def search_prefix(self, prefix):
-        node = self.root
-        for char in prefix:
-            if char not in node:
-                return []
-            node = node[char]
-        return self._collect_words(node, prefix)
+    searchPrefix(prefix: string): string[] {
+        let node = this.root;
+        for (const char of prefix) {
+            if (!node.has(char)) {
+                return [];
+            }
+            node = node.get(char);
+        }
+        return this.collectWords(node, prefix);
+    }
+}
 ```
 
 ### 7. Batch Document Updates
@@ -217,32 +230,40 @@ class Trie:
 
 **Solution:** Batch changes and process once
 
-```python
-class BatchProcessor:
-    def __init__(self, batch_size=10, timeout=1.0):
-        self.batch_size = batch_size
-        self.timeout = timeout
-        self.pending = []
-        self._task = None
+```typescript
+class BatchProcessor {
+    private batchSize: number;
+    private timeout: number;
+    private pending: any[] = [];
+    private timeoutId?: NodeJS.Timeout;
     
-    async def add(self, item):
-        self.pending.append(item)
+    constructor(batchSize = 10, timeout = 1000) {
+        this.batchSize = batchSize;
+        this.timeout = timeout;
+    }
+    
+    async add(item: any) {
+        this.pending.push(item);
         
-        if len(self.pending) >= self.batch_size:
-            await self._process_batch()
-        elif not self._task:
-            self._task = asyncio.create_task(self._wait_and_process())
+        if (this.pending.length >= this.batchSize) {
+            await this.processBatch();
+        } else if (!this.timeoutId) {
+            this.timeoutId = setTimeout(() => this.processBatch(), this.timeout);
+        }
+    }
     
-    async def _wait_and_process(self):
-        await asyncio.sleep(self.timeout)
-        await self._process_batch()
-    
-    async def _process_batch(self):
-        if self.pending:
-            batch = self.pending[:]
-            self.pending.clear()
-            await process(batch)
-        self._task = None
+    private async processBatch() {
+        if (this.pending.length > 0) {
+            const batch = [...this.pending];
+            this.pending = [];
+            await this.process(batch);
+        }
+        if (this.timeoutId) {
+            clearTimeout(this.timeoutId);
+            this.timeoutId = undefined;
+        }
+    }
+}
 ```
 
 ### 8. Stream Large Results
@@ -251,134 +272,174 @@ class BatchProcessor:
 
 **Solution:** Paginate or stream results
 
-```python
-async def get_completions(position, limit=100):
-    all_items = compute_all_completions(position)
+```typescript
+async function getCompletions(position: Position, limit = 100) {
+    const allItems = computeAllCompletions(position);
     
-    # Return top N most relevant
-    scored = score_completions(all_items, position)
-    return sorted(scored, reverse=True)[:limit]
+    // Return top N most relevant
+    const scored = scoreCompletions(allItems, position);
+    return scored.sort((a, b) => b.score - a.score).slice(0, limit);
+}
 ```
 
 ## Memory Optimization
 
 ### 1. Release Document Cache
 
-```python
-class DocumentManager:
-    def __init__(self, max_cache_size=50):
-        self.max_cache_size = max_cache_size
-        self.cache = OrderedDict()
+```typescript
+class DocumentManager {
+    private maxCacheSize: number;
+    private cache = new Map<string, any>();
+    private accessOrder: string[] = [];
     
-    def add(self, uri, document):
-        if len(self.cache) >= self.max_cache_size:
-            self.cache.popitem(last=False)  # LRU eviction
-        self.cache[uri] = document
+    constructor(maxCacheSize = 50) {
+        this.maxCacheSize = maxCacheSize;
+    }
+    
+    add(uri: string, document: any) {
+        if (this.cache.size >= this.maxCacheSize) {
+            const oldest = this.accessOrder.shift();
+            if (oldest) {
+                this.cache.delete(oldest);
+            }
+        }
+        this.cache.set(uri, document);
+        this.accessOrder.push(uri);
+    }
+}
 ```
 
 ### 2. Use Weak References for Cross-References
 
-```python
-import weakref
-
-class Symbol:
-    def __init__(self):
-        self.references = []  # Strong refs
+```typescript
+class Symbol {
+    private references = new Set<WeakRef<any>>();
     
-    def add_weak_reference(self, ref):
-        self.references.append(weakref.ref(ref))
+    addWeakReference(ref: any) {
+        this.references.add(new WeakRef(ref));
+    }
     
-    def get_references(self):
-        return [r() for r in self.references if r() is not None]
+    getReferences() {
+        const valid: any[] = [];
+        for (const weakRef of this.references) {
+            const ref = weakRef.deref();
+            if (ref) {
+                valid.push(ref);
+            } else {
+                this.references.delete(weakRef);
+            }
+        }
+        return valid;
+    }
+}
 ```
 
 ### 3. Avoid Storing Full Text
 
-```python
-# Bad: Store entire document
-class Document:
-    def __init__(self, text):
-        self.text = text  # Could be megabytes
-        self.lines = text.split('\n')
+```typescript
+// Bad: Store entire document
+class Document {
+    text: string;  // Could be megabytes
+    lines: string[];
+    
+    constructor(text: string) {
+        this.text = text;
+        this.lines = text.split('\n');
+    }
+}
 
-# Good: Store only metadata
-class Document:
-    def __init__(self, uri):
-        self.uri = uri
-        self.version = 0
-        self.ast = None  # Parsed structure, not text
+// Good: Store only metadata
+class Document {
+    uri: string;
+    version = 0;
+    ast?: any;  // Parsed structure, not text
+    
+    constructor(uri: string) {
+        this.uri = uri;
+    }
+}
 ```
 
 ## Monitoring Performance
 
 ### Add Performance Metrics
 
-```python
-import time
-from functools import wraps
+```typescript
+import { performance } from 'perf_hooks';
 
-def measure_time(func):
-    @wraps(func)
-    async def wrapper(*args, **kwargs):
-        start = time.perf_counter()
-        result = await func(*args, **kwargs)
-        elapsed = time.perf_counter() - start
+function measureTime<T>(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+    const originalMethod = descriptor.value;
+    
+    descriptor.value = async function (...args: any[]) {
+        const start = performance.now();
+        const result = await originalMethod.apply(this, args);
+        const elapsed = performance.now() - start;
         
-        if elapsed > 0.1:  # Log slow operations
-            logger.warning(f"{func.__name__} took {elapsed:.3f}s")
+        if (elapsed > 100) {  // Log slow operations
+            console.warn(`${propertyKey} took ${elapsed.toFixed(3)}ms`);
+        }
         
-        return result
-    return wrapper
+        return result;
+    };
+}
 
-@measure_time
-async def completion_handler(params):
-    # Implementation
-    pass
+// Usage:
+class Handler {
+    @measureTime
+    async completionHandler(params: any) {
+        // Implementation
+    }
+}
 ```
 
 ### Track Memory Usage
 
-```python
-import psutil
-import os
+```typescript
+function getMemoryUsage(): number {
+    const used = process.memoryUsage();
+    return used.rss / 1024 / 1024;  // MB
+}
 
-def get_memory_usage():
-    process = psutil.Process(os.getpid())
-    return process.memory_info().rss / 1024 / 1024  # MB
-
-# Log periodically
-async def memory_monitor():
-    while True:
-        await asyncio.sleep(60)  # Every minute
-        mem = get_memory_usage()
-        logger.info(f"Memory usage: {mem:.1f} MB")
+// Log periodically
+async function memoryMonitor() {
+    setInterval(() => {
+        const mem = getMemoryUsage();
+        console.log(`Memory usage: ${mem.toFixed(1)} MB`);
+    }, 60000);  // Every minute
+}
 ```
 
 ## Performance Testing
 
-```python
-import pytest
-import time
+```typescript
+import * as assert from 'assert';
+import { performance } from 'perf_hooks';
 
-def test_completion_performance(benchmark):
-    """Ensure completions are fast enough."""
-    def run_completion():
-        return get_completions(sample_document, line=10, char=5)
+describe('Performance Tests', () => {
+    it('should ensure completions are fast enough', () => {
+        const runCompletion = () => {
+            return getCompletions(sampleDocument, 10, 5);
+        };
+        
+        const start = performance.now();
+        const result = runCompletion();
+        const elapsed = performance.now() - start;
+        
+        assert.ok(result.length > 0);
+        assert.ok(elapsed < 100);  // Should complete in < 100ms
+    });
     
-    result = benchmark(run_completion)
-    assert len(result) > 0
-
-@pytest.mark.performance
-def test_parse_large_file():
-    """Test parsing performance on large file."""
-    large_file = "has_trait = brave\n" * 10000
-    
-    start = time.perf_counter()
-    ast = parser.parse_text(large_file)
-    elapsed = time.perf_counter() - start
-    
-    assert elapsed < 1.0  # Should complete in < 1 second
-    assert ast is not None
+    it('should parse large file quickly', () => {
+        const largeFile = 'has_trait = brave\n'.repeat(10000);
+        
+        const start = performance.now();
+        const ast = parser.parse(largeFile);
+        const elapsed = performance.now() - start;
+        
+        assert.ok(elapsed < 1000);  // Should complete in < 1 second
+        assert.ok(ast !== null);
+    });
+});
 ```
 
 ## Quick Wins Checklist

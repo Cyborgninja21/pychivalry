@@ -1,0 +1,26 @@
+{
+    "compilerOptions": {
+        "target": "ES2020",
+        "module": "commonjs",
+        "strict": true,
+        "esModuleInterop": true,
+        "forceConsistentCasingInFileNames": true,
+        "skipLibCheck": true,
+        "outDir": "./dist",
+        "rootDir": ".",
+        "resolveJsonModule": true,
+        "moduleResolution": "node",
+        "baseUrl": ".",
+        "paths": {
+            "js-yaml": [
+                "../vscode-extension/node_modules/js-yaml"
+            ]
+        },
+        "typeRoots": [
+            "../vscode-extension/node_modules/@types"
+        ]
+    },
+    "include": [
+        "**/*.ts"
+    ]
+}

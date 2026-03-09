@@ -48,12 +48,12 @@ Check logs for `textDocument/didOpen` and `textDocument/didChange` events.
 ## 5. Test Parsing
 
 For syntax-related features, verify the parser:
-```python
-from pychivalry.parser import CK3Parser
+```typescript
+import { CK3Parser } from '../core/parser';
 
-parser = CK3Parser()
-ast = parser.parse_text(document_content)
-# Check if AST is correct
+const parser = new CK3Parser();
+const ast = parser.parse(documentContent);
+// Check if AST is correct
 ```
 
 ## 6. Isolate the Issue
@@ -84,16 +84,21 @@ Create a minimal test case:
 - Verify symbol lookup in index
 - Check if URI conversion is correct
 
-## 8. Use pytest for Reproducible Tests
+## 8. Use Mocha for Reproducible Tests
 
 Write a failing test first:
-```python
-@pytest.mark.asyncio
-async def test_completion_at_position():
-    server = create_test_server()
-    doc = "namespace = test\n"
-    result = await server.completion(doc, line=0, character=10)
-    assert len(result.items) > 0
+```typescript
+import * as assert from 'assert';
+import { CK3Parser } from '../../server/core/parser';
+
+describe('Completions', () => {
+    it('should provide completions at position', async () => {
+        const parser = new CK3Parser();
+        const ast = parser.parse(testContent);
+        // Assert completions at target position
+        assert.ok(ast);
+    });
+});
 ```
 
 ## 9. Check LSP Protocol Conformance
@@ -106,15 +111,14 @@ Use the LSP inspector in VS Code (Help → Toggle Developer Tools).
 ## 10. Performance Profiling
 
 If the feature is slow:
-```python
-import cProfile
-import pstats
+```typescript
+// Use Node.js built-in profiling:
+// node --prof dist/server-main.js
+// node --prof-process isolate-*.log > profile.txt
 
-profiler = cProfile.Profile()
-profiler.enable()
-# Run the feature
-profiler.disable()
-stats = pstats.Stats(profiler)
-stats.sort_stats('cumulative')
-stats.print_stats(20)
+// Or use performance hooks:
+import { performance } from 'perf_hooks';
+const start = performance.now();
+// ... operation ...
+console.log(`Operation took ${performance.now() - start}ms`);
 ```

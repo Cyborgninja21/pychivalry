@@ -237,4 +237,4 @@ is_shown = {
 - Schema: `pychivalry/data/schemas/decisions.yaml`
 - Effects: `pychivalry/data/effects/`
 - Triggers: `pychivalry/data/triggers/`
-- Script Values: `pychivalry/script_values.py`
+- Script Values: `pychivalry/script-values.ts`

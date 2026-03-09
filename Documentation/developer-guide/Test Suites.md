@@ -15,7 +15,6 @@ This document provides a comprehensive overview of the test suites available in 
 - [Unit Test Suites](#unit-test-suites)
 - [Integration Tests](#integration-tests)
 - [Performance Tests](#performance-tests)
-- [Fuzzing / Property-Based Tests](#fuzzing--property-based-tests)
 - [Regression Tests](#regression-tests)
 
 ---
@@ -26,48 +25,49 @@ Building a Language Server Protocol (LSP) implementation is a complex endeavor t
 
 The testing philosophy follows the **testing pyramid** principle: a broad foundation of fast unit tests that verify individual components in isolation, a middle layer of integration tests that confirm components work together correctly, and a peak of end-to-end tests that validate complete user workflows. This approach catches bugs early (where they're cheapest to fix) while still ensuring the full system behaves correctly.
 
-The pychivalry project uses **pytest** as its primary testing framework with several specialized plugins for different testing needs:
+The pychivalry project uses **Mocha** as its primary testing framework with TypeScript support for structured testing:
 
-| Plugin | Purpose |
+| Tool | Purpose |
 |--------|---------|
-| `pytest-asyncio` | Testing async LSP protocol handlers |
-| `pytest-benchmark` | Performance benchmarking |
-| `pytest-timeout` | Preventing hung tests |
-| `hypothesis` | Property-based/fuzz testing |
+| `Mocha` | TypeScript test runner with async support |
+| `@types/mocha` | TypeScript definitions for Mocha |
+| `ts-node` | TypeScript execution for tests |
+| `@vscode/test-electron` | VSCode extension testing utilities |
 
-We chose pytest for its expressive assertion syntax, powerful fixture system, and extensive plugin ecosystem. The combination of these tools allows us to test everything from basic function behavior to complex asynchronous protocol interactions, while also measuring performance and discovering edge cases through randomized input generation.
+We chose Mocha for its TypeScript integration, built-in async support, and compatibility with VSCode extension testing. The combination of these tools allows us to test everything from basic function behavior to complex asynchronous protocol interactions within the VSCode environment.
 
 ---
 
 ## Test Framework & Configuration
 
-The test configuration is intentionally minimal, relying on pytest's sensible defaults while adding only what's necessary for our specific needs. This keeps the test infrastructure maintainable and makes it easy for new contributors to understand and extend.
+The test configuration is intentionally minimal, relying on Mocha's sensible defaults while adding only what's necessary for our specific needs. This keeps the test infrastructure maintainable and makes it easy for new contributors to understand and extend.
 
-### Configuration File
+### Configuration Files
 
-Test settings are defined in `pyproject.toml`:
+Test settings are defined in `vscode-extension/package.json` scripts section:
 
-```toml
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-asyncio_mode = "auto"
-markers = [
-    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
-]
+```json
+{
+  "scripts": {
+    "test": "npm run compile && node out/test/runTest.js",
+    "test:quick": "mocha --require ts-node/register 'src/test/unit/**/*.test.ts'",
+    "test:watch": "mocha --require ts-node/register --watch 'src/test/unit/**/*.test.ts'"
+  }
+}
 ```
 
-The `asyncio_mode = "auto"` setting is particularly important—it allows pytest-asyncio to automatically handle async test functions without requiring explicit markers on each one. This is essential for testing LSP protocol handlers, which are inherently asynchronous. The `slow` marker enables developers to quickly run a subset of tests during active development while still running the full suite before commits.
+TypeScript configuration in `vscode-extension/tsconfig.json` handles test compilation alongside the main codebase. The test runner automatically handles async functions without requiring explicit markers, essential for testing LSP protocol handlers which are inherently asynchronous.
 
 ### Installing Test Dependencies
 
-Before running any tests, you'll need to install the development dependencies. These include not just the test frameworks but also code quality tools like black, flake8, and mypy that help maintain code standards:
+Before running any tests, ensure all dependencies are installed. These include testing frameworks, TypeScript definitions, and code quality tools like ESLint and Prettier:
 
 ```bash
-# Install with dev dependencies
-pip install -e ".[dev]"
+# Install extension dependencies (from vscode-extension/ directory)
+npm install
 
 # Or use the VS Code task
-# Run Task: "Install Python Dependencies"
+# Run Task: "Install Extension Dependencies"
 ```
 
 ---
@@ -80,104 +80,109 @@ The best tests read like specifications: "Given this input, the system should pr
 
 ### Test Naming Conventions
 
-Test names should describe the behavior being tested, not the implementation detail. A name like `test_parse_empty_document` immediately tells you what scenario is covered. When a test fails, its name should give you a good idea of what broke without reading the test code.
+Test names should describe the behavior being tested, not the implementation detail. A name like `parseEmptyDocument` immediately tells you what scenario is covered. When a test fails, its name should give you a good idea of what broke without reading the test code.
 
-```python
-# Test file: test_<module_name>.py
-# Test class: Test<Feature>
-# Test method: test_<specific_behavior>
+```typescript
+// Test file: <feature>.test.ts
+// Test suite: describe('<Feature>')
+// Test case: it('should <specific_behavior>')
 
-class TestParser:
-    def test_parse_empty_document(self):
-        """Parser handles empty documents."""
-        pass
+describe('Parser', () => {
+    it('should parse empty document', async () => {
+        // Parser handles empty documents
+    });
     
-    def test_parse_namespace(self):
-        """Parser extracts namespace declarations."""
-        pass
+    it('should parse namespace declarations', async () => {
+        // Parser extracts namespace declarations
+    });
+});
 ```
 
-### Test Docstrings
+### Test Descriptions
 
-Docstrings serve as inline documentation explaining why a test exists and what it verifies. This is especially valuable for complex tests where the assertion alone doesn't tell the whole story. A good docstring explains the behavior being tested, any important context, and what a failure would indicate.
+Test descriptions serve as inline documentation explaining why a test exists and what it verifies. This is especially valuable for complex tests where the assertion alone doesn't tell the whole story. A good description explains the behavior being tested, any important context, and what a failure would indicate.
 
-Always include docstrings explaining what the test verifies:
+Always include clear descriptions explaining what the test verifies:
 
-```python
-def test_completions_in_effect_block(self):
-    """Test: Completions should include effect names when inside an effect block.
+```typescript
+it('should provide completions in effect blocks', async () => {
+    // Test: Completions should include effect names when inside an effect block.
+    // This validates that context-aware completion provides relevant suggestions
+    // based on the cursor position within the AST.
+});
+```
+
+### Using Test Helpers
+
+Test helpers make tests cleaner by extracting common setup code. Instead of every test creating its own sample event text, they can call `getSampleEventText()` and receive consistent, well-defined test data. This reduces duplication and ensures tests use the same baseline data.
+
+```typescript
+import { getSampleEventText } from '../helpers/test-data';
+
+it('should work with sample event', async () => {
+    const sampleEvent = getSampleEventText();
+    const ast = parseDocument(sampleEvent);
+    assert(ast !== null);
+});
+```
+
+### Test Categories
+
+Mocha allows you to categorize tests and run specific subsets. Use `describe.skip()` for tests that document planned functionality not yet implemented—this keeps the test suite passing while still tracking what needs to be done.
+
+```typescript
+describe('Performance Tests', function() {
+    // Increase timeout for slow tests
+    this.timeout(10000);
     
-    This validates that context-aware completion provides relevant suggestions
-    based on the cursor position within the AST.
-    """
-```
+    it('should handle large files efficiently', async () => {
+        // Performance test implementation
+    });
+});
 
-### Using Fixtures
-
-Fixtures make tests cleaner by extracting common setup code. Instead of every test creating its own sample event text, they can declare `sample_event_text` as a parameter and receive consistent, well-defined test data. This reduces duplication and ensures tests use the same baseline data.
-
-```python
-def test_with_sample_event(self, sample_event_text):
-    """Use the sample_event_text fixture."""
-    ast = parse_document(sample_event_text)
-    assert ast is not None
-```
-
-### Marking Tests
-
-Pytest markers allow you to categorize tests and run specific subsets. The `slow` marker is particularly useful for separating fast unit tests from time-consuming integration or performance tests. Use `skip` for tests that document planned functionality not yet implemented—this keeps the test suite passing while still tracking what needs to be done.
-
-```python
-@pytest.mark.slow
-def test_large_file_performance(self):
-    """This test is slow and can be skipped with -m 'not slow'."""
-    pass
-
-@pytest.mark.skip(reason="Feature not yet implemented")
-def test_future_feature(self):
-    """Skip tests for unimplemented features."""
-    pass
+describe.skip('Future Features', () => {
+    it('should implement planned feature', async () => {
+        // Skip tests for unimplemented features
+    });
+});
 ```
 
 ### Adding Regression Tests
 
-Regression tests are your insurance policy against past bugs returning. The key to a good regression test is documentation: future maintainers need to understand what bug the test prevents and why that specific test case triggers it. The docstring format below captures this essential context.
+Regression tests are your insurance policy against past bugs returning. The key to a good regression test is documentation: future maintainers need to understand what bug the test prevents and why that specific test case triggers it.
 
 When fixing a bug, add a regression test:
 
-```python
-def test_bug_description(self):
-    """Regression: Brief description of the bug.
+```typescript
+it('should handle specific bug scenario', async () => {
+    // Regression: Brief description of the bug
+    // Bug: What was happening wrong
+    // Fixed: How it was fixed
     
-    Bug: What was happening wrong.
-    Fixed: How it was fixed.
-    """
-    # Test that the bug doesn't recur
+    // Test that the bug doesn't recur
+});
 ```
 
 ---
 
 ## Test Fixtures
 
-Pytest fixtures provide a powerful way to share setup code across tests while keeping test functions clean and focused. The pychivalry test suite uses fixtures extensively for common operations like creating sample documents, setting up workspaces, and providing test data.
+Test helpers and shared utilities provide a way to share setup code across tests while keeping test functions clean and focused. The pychivalry test suite uses helper functions and shared test data extensively for common operations like creating sample documents, setting up workspaces, and providing test data.
 
-The fixture system follows pytest's dependency injection model: test functions declare what fixtures they need as parameters, and pytest automatically provides them. This makes tests self-documenting—you can see what a test needs just by looking at its signature.
+The helper system provides reusable functions and data that tests can import as needed. This makes tests self-documenting—you can see what a test uses just by looking at its imports.
 
-### Shared Fixtures (`conftest.py`)
+### Shared Test Helpers (`vscode-extension/src/test/helpers/`)
 
-The `conftest.py` file is pytest's mechanism for sharing fixtures across multiple test files. Fixtures defined here are automatically available to all tests in the directory and its subdirectories. This is where we put fixtures that are useful across the entire test suite.
+The test helpers directory provides reusable utilities across the test suite:
 
-The `conftest.py` file provides reusable fixtures:
+| Helper Module | Description |
+|---------------|-------------|
+| `test-data.ts` | Sample CK3 script content for testing |
+| `workspace-setup.ts` | Temporary workspace creation utilities |
+| `test-utils.ts` | Common test utilities and assertions |
+| `mock-lsp.ts` | LSP protocol mocking utilities |
 
-| Fixture | Description |
-|---------|-------------|
-| `fixtures_dir` | Path to test fixtures directory |
-| `sample_event_text` | Valid CK3 event text |
-| `syntax_error_text` | Text with intentional syntax errors |
-| `scope_chain_text` | Text with scope chains for testing |
-| `workspace` | Temporary workspace for testing |
-
-### Fixture Files (`tests/fixtures/`)
+### Test Data Files (`vscode-extension/src/test/fixtures/`)
 
 The fixtures directory contains static test data that's too large or complex to define inline in test files. Using external files for test data has several advantages: it keeps test code readable, allows the same data to be reused across multiple tests, and makes it easy to add new test cases by simply dropping files into the directory.
 
@@ -185,36 +190,44 @@ Static test data files:
 
 | File | Purpose |
 |------|---------|
-| `valid_event.txt` | Complete valid event for parsing tests |
-| `syntax_errors.txt` | Examples of syntax errors |
-| `scope_chains.txt` | Scope chain examples |
-| `story_cycles/` | Story cycle test data |
+| `valid-event.txt` | Complete valid event for parsing tests |
+| `syntax-errors.txt` | Examples of syntax errors |
+| `scope-chains.txt` | Scope chain examples |
+| `story-cycles/` | Story cycle test data |
 
 ---
 
 ## Test Directory Structure
 
-The test directory is organized to mirror the logical structure of what's being tested, making it intuitive to find tests for any given functionality. Unit tests live at the top level with names matching their corresponding modules, while specialized test categories (integration, performance, fuzzing, regression) have their own subdirectories.
+The test directory is organized to mirror the logical structure of what's being tested, making it intuitive to find tests for any given functionality. Unit tests live in the `unit/` directory with names matching their corresponding modules, while specialized test categories (integration, performance, regression) have their own subdirectories.
 
 This organization serves several purposes: it makes it easy to run related tests together, helps new developers find relevant test examples, and keeps the test suite manageable as it grows. The `fixtures/` directory contains static test data that would be cumbersome to define inline in test files.
 
 ```
-tests/
-├── conftest.py              # Shared pytest fixtures
-├── fixtures/                # Test data files
-│   ├── scope_chains.txt
-│   ├── story_cycles/
-│   ├── syntax_errors.txt
-│   └── valid_event.txt
+vscode-extension/src/test/
+├── runTest.ts               # Main test runner for VSCode extension
+├── suite/                   # Integration test suites
+│   └── index.ts            # Test suite entry point
+├── unit/                    # Unit tests (by module)
+│   ├── parser.test.ts
+│   ├── diagnostics.test.ts
+│   ├── completions.test.ts
+│   └── validation.test.ts
 ├── integration/             # End-to-end workflow tests
-│   └── test_lsp_workflows.py
+│   └── lsp-workflows.test.ts
 ├── performance/             # Benchmarks and performance tests
-│   └── test_benchmarks.py
-├── fuzzing/                 # Property-based testing with Hypothesis
-│   └── test_property_based.py
+│   └── benchmarks.test.ts
 ├── regression/              # Tests for previously fixed bugs
-│   └── test_bug_fixes.py
-├── test_*.py                # Unit tests (by module)
+│   └── bug-fixes.test.ts
+├── helpers/                 # Shared test utilities
+│   ├── test-data.ts
+│   ├── workspace-setup.ts
+│   └── mock-lsp.ts
+└── fixtures/                # Test data files
+    ├── valid-event.txt
+    ├── syntax-errors.txt
+    ├── scope-chains.txt
+    └── story-cycles/
 ```
 
 ---
@@ -225,180 +238,175 @@ Understanding how to run tests effectively is crucial for productive development
 
 ### Basic Commands
 
-The most common operation is simply running all tests to verify everything still works. The `-v` (verbose) flag provides detailed output showing each test name and its pass/fail status, which is helpful for understanding what's being tested:
+The most common operation is running all tests to verify everything still works. The extension tests run in the VSCode environment, providing full integration testing:
 
 ```bash
-# Run all tests
-python -m pytest tests/ -v
+# Run all tests (full VSCode extension test)
+npm test
 
 # Run all tests (via VS Code task)
-# Task: "Run Tests"
+# Task: "Run Extension Tests"
 
-# Run tests with verbose output
-python -m pytest tests/ -v
+# Run unit tests only (faster, no VSCode environment)
+npm run test:quick
 
-# Run tests with short summary
-python -m pytest tests/ --tb=short
-
-# Run tests and stop on first failure
-python -m pytest tests/ -x
+# Run tests in watch mode for development
+npm run test:watch
 ```
 
 ### Running Specific Test Categories
 
-When working on a particular feature area, you'll often want to run only the tests relevant to your changes. This provides faster feedback and reduces noise from unrelated test output. The directory-based organization makes this straightforward:
+When working on a particular feature area, you'll often want to run only the tests relevant to your changes. This provides faster feedback and reduces noise from unrelated test output:
 
 ```bash
-# Run only unit tests (exclude subdirectories)
-python -m pytest tests/test_*.py -v
+# Run only unit tests
+npx mocha --require ts-node/register 'src/test/unit/**/*.test.ts'
 
 # Run integration tests
-python -m pytest tests/integration/ -v
+npx mocha --require ts-node/register 'src/test/integration/**/*.test.ts'
 
-# Run performance tests (includes benchmarks)
-python -m pytest tests/performance/ -v
-
-# Run fuzzing tests
-python -m pytest tests/fuzzing/ -v
+# Run performance tests
+npx mocha --require ts-node/register 'src/test/performance/**/*.test.ts'
 
 # Run regression tests
-python -m pytest tests/regression/ -v
+npx mocha --require ts-node/register 'src/test/regression/**/*.test.ts'
 ```
 
 ### Running Specific Test Files
 
-Individual test files correspond to specific modules in the pychivalry package. When you're modifying a particular module, running its corresponding test file gives you targeted feedback:
+Individual test files correspond to specific modules in the pychivalry server. When you're modifying a particular module, running its corresponding test file gives you targeted feedback:
 
 ```bash
 # Run parser tests
-python -m pytest tests/test_parser.py -v
+npx mocha --require ts-node/register 'src/test/unit/parser.test.ts'
 
-# Run schema validator tests
-python -m pytest tests/test_schema_validator.py -v
+# Run diagnostics tests
+npx mocha --require ts-node/register 'src/test/unit/diagnostics.test.ts'
 
 # Run completions tests
-python -m pytest tests/test_completions.py -v
+npx mocha --require ts-node/register 'src/test/unit/completions.test.ts'
 
-# Run log watcher tests (via VS Code task)
-# Task: "Run Log Watcher Tests"
-python -m pytest tests/test_log_watcher_integration.py -v
+# Run validation tests
+npx mocha --require ts-node/register 'src/test/unit/validation.test.ts'
 ```
 
-### Running Specific Test Classes or Functions
+### Running Specific Test Suites or Cases
 
-For debugging specific issues or developing new features test-driven style, you can run individual test classes or even single test functions. The `-k` flag is particularly powerful for pattern matching—it lets you run all tests related to a concept across multiple files:
+For debugging specific issues or developing new features test-driven style, you can run individual test suites or even single test cases using Mocha's grep functionality:
 
 ```bash
-# Run a specific test class
-python -m pytest tests/test_parser.py::TestTokenizer -v
-
-# Run a specific test function
-python -m pytest tests/test_parser.py::TestTokenizer::test_tokenize_identifiers -v
-
 # Run tests matching a pattern
-python -m pytest tests/ -k "parser" -v
-python -m pytest tests/ -k "completions and not slow" -v
+npx mocha --require ts-node/register 'src/test/**/*.test.ts' --grep "parser"
+npx mocha --require ts-node/register 'src/test/**/*.test.ts' --grep "completions"
+
+# Run a specific test suite
+npx mocha --require ts-node/register 'src/test/unit/parser.test.ts' --grep "Parser"
+
+# Run a specific test case
+npx mocha --require ts-node/register 'src/test/unit/parser.test.ts' --grep "should parse empty document"
 ```
 
 ### Excluding Slow Tests
 
-Some tests, particularly performance benchmarks and extensive fuzzing, can take significant time to run. During rapid iteration, you can skip these to maintain fast feedback cycles while still running the core functional tests:
+Some tests, particularly those that require the full VSCode environment or extensive processing, can take significant time to run. During rapid iteration, you can focus on unit tests for faster feedback:
 
 ```bash
-# Skip tests marked as slow
-python -m pytest tests/ -m "not slow" -v
-```
+# Run only unit tests (fast)
+npm run test:quick
 
-### Running with Coverage
-
-Code coverage reports help identify untested code paths. While 100% coverage doesn't guarantee bug-free code, low coverage often indicates areas that need more testing attention. The HTML report provides an interactive view where you can drill down into individual files to see exactly which lines are exercised by tests:
-
-```bash
-# Run with coverage report
-python -m pytest tests/ --cov=pychivalry --cov-report=html
-
-# Open coverage report in browser
-# View htmlcov/index.html
+# Skip integration tests
+npx mocha --require ts-node/register 'src/test/unit/**/*.test.ts'
 ```
 
 ---
 
 ## Continuous Integration
 
-Continuous Integration (CI) ensures that every change is tested before it's merged. While the full CI setup depends on your hosting platform (GitHub Actions, GitLab CI, etc.), the test commands themselves are the same. Running the full suite locally before pushing catches most issues before they reach CI.
+Continuous Integration (CI) ensures that every change is tested before it's merged. The GitHub Actions workflow for this project runs the full TypeScript compilation and test suite on every pull request and commit to main.
 
 ### Running Full Test Suite
 
-Before committing changes, it's good practice to run the full test suite to ensure nothing is broken. The `--tb=short` flag keeps the output manageable by showing abbreviated tracebacks—you can always re-run with full tracebacks if you need more detail about a failure.
+Before committing changes, it's good practice to run the full test suite to ensure nothing is broken. The tests compile TypeScript and run in the VSCode environment:
 
 ```bash
 # Full test suite (recommended before commits)
-python -m pytest tests/ -v --tb=short
+npm test
 
-# Quick check (skip slow tests)
-python -m pytest tests/ -m "not slow" -v
+# Quick unit test check
+npm run test:quick
 
-# With coverage
-python -m pytest tests/ --cov=pychivalry --cov-report=term-missing
+# Watch mode for development
+npm run test:watch
 ```
 
 ### VS Code Tasks
 
-For developers using VS Code, pre-configured tasks provide a convenient way to run common test operations without remembering command-line syntax. These tasks are defined in `.vscode/tasks.json` and can be accessed through the Command Palette.
+For developers using VS Code, pre-configured tasks provide a convenient way to run common test operations without remembering command-line syntax. These tasks are defined in `.vscode/tasks.json` and `vscode-extension/package.json`.
 
 The project includes VS Code tasks for common testing operations:
 
 | Task | Command |
 |------|---------|
-| Run Tests | `python -m pytest tests/ -v` |
-| Run Log Watcher Tests | `python -m pytest tests/test_log_watcher_integration.py -v` |
+| Run Extension Tests | `npm test` |
+| Run Extension Tests (Quick) | `npm run test:quick` |
+| Watch Extension Tests | `npm run test:watch` |
 
 Access via: `Ctrl+Shift+P` → `Tasks: Run Task`
 
 ### Pre-commit Hooks
 
-Pre-commit hooks automatically run tests before each commit, catching problems before they enter version control. This creates a safety net that helps maintain code quality without requiring developers to remember to run tests manually. See `docs/PRE_COMMIT_SETUP.md` for configuration.
+Pre-commit hooks automatically run linting and type checking before each commit, catching problems before they enter version control. This creates a safety net that helps maintain code quality without requiring developers to remember to run checks manually. See [PRE_COMMIT_SETUP.md](PRE_COMMIT_SETUP.md) for configuration.
 
 ---
 
 ## Troubleshooting
 
-Even well-designed test suites occasionally present challenges. This section covers common issues developers encounter and their solutions. If you're stuck on a testing problem not covered here, check the pytest documentation or ask in the project's issue tracker.
+Even well-designed test suites occasionally present challenges. This section covers common issues developers encounter and their solutions. If you're stuck on a testing problem not covered here, check the Mocha documentation or ask in the project's issue tracker.
 
 ### Common Issues
 
 **Tests not found:**
 ```bash
-# Ensure you're in the project root
-cd c:\git\pychivalry
-python -m pytest tests/ -v --collect-only
+# Ensure you're in the vscode-extension directory
+cd vscode-extension/
+npm test
+
+# Check test file patterns
+npx mocha --require ts-node/register 'src/test/**/*.test.ts' --dry-run
 ```
 
-**Import errors:**
+**Compilation errors:**
 ```bash
-# Install package in development mode
-pip install -e ".[dev]"
+# Ensure TypeScript compilation works
+npm run compile
+
+# Check for type errors
+npx tsc --noEmit
 ```
 
-**Async test issues:**
+**VSCode extension test issues:**
 ```bash
-# Ensure pytest-asyncio is installed
-pip install pytest-asyncio
+# Ensure @vscode/test-electron is installed
+npm install
+
+# Debug test runner
+npm test -- --verbose
 ```
 
-**Benchmark tests slow:**
+**Module import errors:**
 ```bash
-# Run with fewer iterations
-python -m pytest tests/performance/ --benchmark-disable
+# Verify TypeScript paths are configured correctly
+# Check tsconfig.json paths mapping
 ```
 
 ### Getting Help
 
-The best way to learn testing patterns is to read existing tests. The test suite contains examples of nearly every testing scenario you might encounter. When in doubt, find a similar test and use it as a template. The pytest community is also helpful—the official documentation is excellent, and Stack Overflow has answers to most common questions.
+The best way to learn testing patterns is to read existing tests. The test suite contains examples of nearly every testing scenario you might encounter. When in doubt, find a similar test and use it as a template. The Mocha and VSCode extension testing communities are also helpful—the official documentation is excellent.
 
-- Check existing tests for patterns
-- Review `conftest.py` for available fixtures
-- Run `python -m pytest --help` for pytest options
+- Check existing tests in `vscode-extension/src/test/` for patterns
+- Review test helpers in `vscode-extension/src/test/helpers/` for utilities
+- Run `npx mocha --help` for Mocha options
+- Consult [@vscode/test-electron documentation](https://www.npmjs.com/package/@vscode/test-electron)
 
 ---
 
@@ -410,13 +418,13 @@ The sections below provide detailed documentation of each test category in the p
 
 ## Unit Test Suites
 
-Unit tests form the foundation of our testing strategy. Each test file focuses on a single module, testing its public interface in isolation from the rest of the system. This isolation is achieved through careful design—modules accept their dependencies as parameters rather than importing them globally—and through pytest fixtures that provide controlled test doubles when needed.
+Unit tests form the foundation of our testing strategy. Each test file focuses on a single module, testing its public interface in isolation from the rest of the system. This isolation is achieved through careful design—modules accept their dependencies as parameters rather than importing them globally—and through test helpers that provide controlled test doubles when needed.
 
 The value of unit tests lies in their speed and precision. When a unit test fails, you know exactly where the problem is. When they pass, you have confidence that individual components behave correctly. The integration and end-to-end tests then verify these components work together properly.
 
-Unit tests are organized by the module they test. Each test file corresponds to a module in `pychivalry/`.
+Unit tests are organized by the module they test. Each test file corresponds to a module in `vscode-extension/src/server/`.
 
-### Core Parser Tests (`test_parser.py`)
+### Core Parser Tests (`parser.test.ts`)
 
 The parser is the foundation of everything the language server does—every other feature depends on accurately converting CK3 script text into a structured Abstract Syntax Tree (AST). These tests are therefore among the most critical in the entire suite.
 
@@ -429,10 +437,10 @@ Tests the CK3 script parser for:
 - **Error Recovery**: Graceful handling of malformed input
 
 ```bash
-python -m pytest tests/test_parser.py -v
+npx mocha --require ts-node/register 'src/test/unit/parser.test.ts'
 ```
 
-### Diagnostics Tests (`test_diagnostics.py`)
+### Diagnostics Tests (`diagnostics.test.ts`)
 
 Diagnostics are how the language server communicates problems to the user—the red squiggles and error messages that appear in the editor. These tests verify that errors are detected accurately, that messages are helpful and actionable, and that diagnostics have correct positions so they highlight the right code.
 
@@ -445,10 +453,10 @@ Tests diagnostic collection including:
 - Error message formatting
 
 ```bash
-python -m pytest tests/test_diagnostics.py -v
+npx mocha --require ts-node/register 'src/test/unit/diagnostics.test.ts'
 ```
 
-### Schema Validation Tests (`test_schema_validator.py`, `test_schema_loader.py`)
+### Schema Validation Tests (`validation.test.ts`)
 
 The schema-driven validation system is one of pychivalry's most sophisticated features. Rather than hardcoding validation rules, the system loads YAML schema definitions that describe the structure of CK3 scripts—what fields are required, what types values should have, and what conditions must be met for code to be valid.
 
@@ -462,10 +470,10 @@ Tests the schema-driven validation system:
 - Pattern matching for block names
 
 ```bash
-python -m pytest tests/test_schema_validator.py tests/test_schema_loader.py -v
+npx mocha --require ts-node/register 'src/test/unit/validation.test.ts'
 ```
 
-### Completions Tests (`test_completions.py`, `test_schema_completions_hover.py`)
+### Completions Tests (`completions.test.ts`)
 
 Auto-completion is one of the most user-visible features of any language server. Good completions save time and teach users about available options; bad completions frustrate and mislead. These tests verify that completions are contextually appropriate, correctly formatted, and performant.
 
@@ -479,25 +487,32 @@ Tests auto-completion functionality:
 - Snippet completions
 
 ```bash
-python -m pytest tests/test_completions.py tests/test_schema_completions_hover.py -v
+npx mocha --require ts-node/register 'src/test/unit/completions.test.ts'
 ```
 
 ### LSP Feature Tests
 
 Beyond parsing and validation, a language server provides many user-facing features that enhance the coding experience. Each feature has its own test file that verifies both correct behavior and edge case handling. These tests often need to simulate editor interactions—positioning a cursor, making selections, or simulating document changes.
 
-| Test File | Feature |
-|-----------|---------|
-| `test_hover.py` | Hover documentation |
-| `test_navigation.py` | Go-to-definition, find references |
-| `test_symbols.py` | Document/workspace symbols |
-| `test_folding.py` | Code folding regions |
-| `test_formatting.py` | Document formatting |
-| `test_code_actions.py` | Quick fixes and refactorings |
-| `test_code_lens.py` | Inline code lens annotations |
-| `test_rename.py` | Symbol renaming |
-| `test_document_highlight.py` | Symbol highlighting |
-| `test_document_links.py` | Clickable file links |
+| Test File | Feature | Command |
+|-----------|---------|---------|
+| `hover.test.ts` | Hover documentation | `npx mocha --require ts-node/register 'src/test/unit/hover.test.ts'` |
+| `navigation.test.ts` | Go-to-definition, find references | `npx mocha --require ts-node/register 'src/test/unit/navigation.test.ts'` |
+| `symbols.test.ts` | Document/workspace symbols | `npx mocha --require ts-node/register 'src/test/unit/symbols.test.ts'` |
+| `folding.test.ts` | Code folding regions | `npx mocha --require ts-node/register 'src/test/unit/folding.test.ts'` |
+| `formatting.test.ts` | Document formatting | `npx mocha --require ts-node/register 'src/test/unit/formatting.test.ts'` |
+
+## Integration Tests
+
+Integration tests verify that multiple components work together correctly, testing complete user workflows from file loading through LSP protocol interactions to final output.
+
+## Performance Tests
+
+Performance tests measure the language server's responsiveness under various conditions, ensuring it remains usable with large codebases and complex mods.
+
+## Regression Tests
+
+Regression tests capture specific bugs that have been fixed, preventing them from reoccurring as the codebase evolves.
 | `test_inlay_hints.py` | Inline type hints |
 | `test_semantic_tokens.py` | Syntax highlighting tokens |
 | `test_signature_help.py` | Parameter hints |
@@ -547,7 +562,7 @@ End-to-end tests including:
 - **Mod descriptor workflow**: Load mod descriptor, parse scripts, validate
 
 ```bash
-python -m pytest tests/integration/ -v
+npm run test:unit
 ```
 
 ### Server Integration Tests
@@ -571,13 +586,13 @@ Performance testing in a language server context has unique challenges. Response
 
 Located in `tests/performance/`, these tests ensure the LSP server meets performance requirements.
 
-### Benchmark Tests (`test_benchmarks.py`)
+### Benchmark Tests (`benchmarks.test.ts`)
 
-The benchmark tests use `pytest-benchmark` to measure operation times with statistical rigor. Each benchmark runs multiple iterations to account for variance, reporting minimum, maximum, mean, and standard deviation. This gives us confidence that measured improvements (or regressions) are real rather than noise.
+The benchmark tests measure operation times with statistical rigor. Each benchmark runs multiple iterations to account for variance, reporting minimum, maximum, mean, and standard deviation. This gives us confidence that measured improvements (or regressions) are real rather than noise.
 
 The benchmarks are organized by operation type and input size. Parser benchmarks test small, medium, and large files to understand how parsing time scales. Completion benchmarks test various contexts to find expensive code paths. Navigation benchmarks test cross-file operations that might involve searching large indexes.
 
-Uses `pytest-benchmark` to measure:
+Measures:
 
 #### Parser Performance
 - Small file parsing (<100 lines): Target < 100ms
@@ -604,25 +619,19 @@ Uses `pytest-benchmark` to measure:
 - 10 concurrent completion requests: Target < 1s total
 
 ```bash
-# Run benchmarks
-python -m pytest tests/performance/ -v
-
-# Run benchmarks with detailed output
-python -m pytest tests/performance/ -v --benchmark-columns=min,max,mean,stddev
-
-# Save benchmark results
-python -m pytest tests/performance/ --benchmark-save=baseline
+# Run performance benchmarks
+npm run test:unit -- --grep "benchmark|performance"
 ```
 
 ### Performance Thresholds
 
 These thresholds represent our quality bar for user experience. The 100ms threshold for parsing and diagnostics ensures updates feel instantaneous. The 50ms threshold for completions and navigation ensures these interactive features feel responsive. These numbers are based on human perception research—delays under 100ms feel instant, while delays over 300ms feel sluggish.
 
-```python
-PARSE_THRESHOLD = 0.1      # 100ms
-DIAGNOSTICS_THRESHOLD = 0.1  # 100ms
-COMPLETIONS_THRESHOLD = 0.05  # 50ms
-NAVIGATION_THRESHOLD = 0.05   # 50ms
+```typescript
+const PARSE_THRESHOLD = 0.1;       // 100ms
+const DIAGNOSTICS_THRESHOLD = 0.1;  // 100ms
+const COMPLETIONS_THRESHOLD = 0.05; // 50ms
+const NAVIGATION_THRESHOLD = 0.05;  // 50ms
 ```
 
 ---
@@ -633,9 +642,9 @@ Traditional tests verify specific scenarios we thought of in advance. But what a
 
 This approach has found real bugs that manual testing missed: unusual character sequences that confused the tokenizer, deeply nested structures that caused stack overflows, and edge cases in string parsing. The randomized nature means each test run potentially explores new territory.
 
-Located in `tests/fuzzing/`, these tests use **Hypothesis** to generate random inputs and find edge cases.
+Located in `src/test/unit/`, these tests generate random inputs and find edge cases.
 
-### Property-Based Tests (`test_property_based.py`)
+### Property-Based Tests (`property-based.test.ts`)
 
 The key insight behind property-based testing is identifying properties that should hold universally. For a parser, one such property is "it should always return a result without crashing." For diagnostics, "it should always return a list." These invariants are simple to state but powerful to verify across millions of random inputs.
 
@@ -673,13 +682,7 @@ Tests that the parser and other components handle arbitrary input without crashi
 
 ```bash
 # Run fuzzing tests
-python -m pytest tests/fuzzing/ -v
-
-# Run with more examples (slower but more thorough)
-python -m pytest tests/fuzzing/ -v --hypothesis-seed=0
-
-# Show Hypothesis statistics
-python -m pytest tests/fuzzing/ -v --hypothesis-show-statistics
+npm run test:unit -- --grep "fuzzing|property"
 ```
 
 ### Custom Strategies
@@ -701,9 +704,9 @@ Every bug that makes it to production is an opportunity to improve the test suit
 
 This practice builds institutional memory into the codebase. Even if the original developer moves on, the regression test remains as a guardian against that specific failure mode. Over time, the regression test suite becomes a catalog of past problems and their solutions.
 
-Located in `tests/regression/`, these tests prevent previously fixed bugs from returning.
+Located in `src/test/unit/`, these tests prevent previously fixed bugs from returning.
 
-### Bug Fix Tests (`test_bug_fixes.py`)
+### Bug Fix Tests (`regression.test.ts`)
 
 Each regression test tells a story in its docstring: what the bug was, how it manifested, and how it was fixed. This documentation is valuable for understanding the system's history and avoiding similar mistakes in the future. When adding a regression test, take time to write a clear explanation—your future self (or a future maintainer) will thank you.
 
@@ -742,5 +745,5 @@ Each test documents a specific bug that was found and fixed:
 - Legacy scope names
 
 ```bash
-python -m pytest tests/regression/ -v
+npm run test:unit -- --grep "regression"
 ```

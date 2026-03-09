@@ -19,7 +19,7 @@ You are a comprehensive CK3 validator. You analyze mod files using pychivalry's 
 
 ## 6-Phase Validation Pipeline
 
-From `pychivalry/diagnostics.py`:
+From `pychivalry/diagnostics.ts`:
 
 ### Phase 1: Parse (10-50ms)
 Syntax errors and AST generation.
@@ -158,7 +158,7 @@ SCOPE-006: Trigger not valid in scope type
 
 ## Reference Files
 
-- Diagnostics Engine: `pychivalry/diagnostics.py`
-- Paradox Checks: `pychivalry/paradox_checks.py`
-- Scope Timing: `pychivalry/scope_timing.py`
+- Diagnostics Engine: `pychivalry/diagnostics.ts`
+- Paradox Checks: `pychivalry/paradox-checks.ts`
+- Scope Timing: `pychivalry/scope-timing.ts`
 - Diagnostic Codes: `pychivalry/data/diagnostics.yaml`

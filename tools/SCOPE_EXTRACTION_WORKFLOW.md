@@ -11,7 +11,8 @@ The pychivalry LSP uses scope type information to:
 
 ## Prerequisites
 
-- Python 3.9+
+- Node.js 18+
+- TypeScript Development Environment
 - Access to CK3 game installation directory
 - Typically located at: `C:\Program Files (x86)\Steam\steamapps\common\Crusader Kings III\game`
 
@@ -19,9 +20,9 @@ The pychivalry LSP uses scope type information to:
 
 Run the extraction script against the CK3 game directory:
 
-```powershell
-cd c:\git\pychivalry
-python tools/extract_scope_accessors.py "C:\Program Files (x86)\Steam\steamapps\common\Crusader Kings III\game" --output tools/scope_accessors_extracted.csv --summary tools/scope_accessors_summary.txt
+```bash
+cd /path/to/pychivalry
+npx ts-node tools/extract-scopes.ts "C:\Program Files (x86)\Steam\steamapps\common\Crusader Kings III\game" --output tools/scope_accessors_extracted.csv --summary tools/scope_accessors_summary.txt
 ```
 
 ### Script Options
@@ -62,11 +63,11 @@ Organized sections:
 
 ## Step 3: Compare with Current Implementation
 
-Check the current scope type map in `pychivalry/indexer.py`:
+Check the current scope type map in `vscode-extension/src/server/core/indexer.ts`:
 
-```python
-# Look for the _infer_scope_type() method
-# Compare the scope_type_map dictionary against extracted data
+```typescript
+// Look for the inferScopeType() method
+// Compare the scopeTypeMap object against extracted data
 ```
 
 Key questions to answer:
@@ -78,17 +79,17 @@ Key questions to answer:
 
 If new scope accessors are found:
 
-1. Update `_infer_scope_type()` in `pychivalry/indexer.py`
-2. Add new entries to the `scope_type_map` dictionary
-3. Update `pychivalry/data/scope_accessors.yaml` reference file
+1. Update `inferScopeType()` in `vscode-extension/src/server/core/indexer.ts`
+2. Add new entries to the `scopeTypeMap` object
+3. Update `data/scope_accessors.yaml` reference file
 
 ### Example Update
 
-```python
-# In _infer_scope_type() scope_type_map
-"character": [
-    # ... existing entries ...
-    "new_character_accessor",  # Added in CK3 version X.Y
+```typescript
+// In inferScopeType() scopeTypeMap
+character: [
+    // ... existing entries ...
+    "new_character_accessor",  // Added in CK3 version X.Y
 ],
 ```
 
@@ -96,15 +97,15 @@ If new scope accessors are found:
 
 After updating, validate the changes:
 
-```powershell
+```bash
 # Run indexer tests
-python -m pytest tests/test_indexer.py -v
+npm test -- --grep "indexer"
 
-# Run diagnostics tests
-python -m pytest tests/test_diagnostics.py -v
+# Run diagnostics tests  
+npm test -- --grep "diagnostics"
 
 # Full test suite
-python -m pytest tests/ -v
+npm test
 ```
 
 ## Output Files Reference
@@ -113,10 +114,10 @@ After running this workflow, the tools folder should contain:
 
 ```
 tools/
-├── extract_scope_accessors.py      # Extraction script
-├── scope_accessors_extracted.csv   # Full extraction results
-├── scope_accessors_summary.txt     # Summary report
-└── SCOPE_EXTRACTION_WORKFLOW.md    # This documentation
+├── extract-scopes.ts                # Extraction script (TypeScript)
+├── scope_accessors_extracted.csv    # Full extraction results
+├── scope_accessors_summary.txt      # Summary report
+└── SCOPE_EXTRACTION_WORKFLOW.md     # This documentation
 ```
 
 ## Extraction Statistics (Last Run)

@@ -163,8 +163,8 @@ gh run view 12345678 --log-failed | grep -i "error"
 # Find specific error pattern
 gh run view 12345678 --log | grep -A 5 "FAILED"
 
-# Extract Python tracebacks
-gh run view 12345678 --log | grep -A 20 "Traceback"
+# Extract TypeScript/Node.js stack traces
+gh run view 12345678 --log | grep -A 20 "Error:"
 ```
 
 ### Check Specific Job Details
@@ -202,7 +202,7 @@ grep "error" run-12345678.log
 
 ```bash
 # Find specific error
-gh run view 12345678 --log | grep "ModuleNotFoundError"
+gh run view 12345678 --log | grep "Cannot find module"
 
 # Case insensitive search
 gh run view 12345678 --log | grep -i "timeout"
@@ -221,9 +221,9 @@ gh run view 12345678 --json jobs --jq '.jobs[] | .name'
 gh run view 12345678 --job "build" --log
 
 # Compare job logs
-gh run view 12345678 --job "test-python-3.9" --log > py39.log
-gh run view 12345678 --job "test-python-3.10" --log > py310.log
-diff py39.log py310.log
+gh run view 12345678 --job "test-node-18" --log > node18.log
+gh run view 12345678 --job "test-node-20" --log > node20.log
+diff node18.log node20.log
 ```
 
 ## Run Status Information
@@ -350,7 +350,7 @@ gh run view 12345678 --web
 gh run view 12345678 --json jobs --jq '.jobs[] | .name'
 
 # Use exact job name
-gh run view 12345678 --job "test-python-3.9"
+gh run view 12345678 --job "test-node-18"
 ```
 
 ### JSON Parsing Error

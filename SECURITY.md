@@ -46,7 +46,7 @@ We take the security of pychivalry seriously. If you discover a security vulnera
 When using pychivalry:
 
 1. **Keep Updated**: Always use the latest stable version
-2. **Review Dependencies**: Check `pyproject.toml` for dependency security advisories
+2. **Review Dependencies**: Check `package.json` for dependency security advisories
 3. **Secure Configuration**: Follow security best practices in your VS Code settings
 4. **File Permissions**: Ensure proper file permissions on mod directories
 5. **Untrusted Input**: Be cautious when opening mod files from untrusted sources
@@ -54,15 +54,15 @@ When using pychivalry:
 ## Known Security Considerations
 
 - **File System Access**: The language server has read access to your mod directories
-- **Python Execution**: The server runs Python code with your user's permissions
-- **VS Code Extension**: The extension communicates with the Python server via stdio
+- **Node.js Execution**: The language server runs as a Node.js subprocess with your user's permissions
+- **VS Code Extension**: The extension communicates with the TypeScript language server via stdio
 
 ## Scope
 
 This security policy applies to:
 
-- The pychivalry Python package
-- The VS Code extension (ck3-language-support)
+- The VS Code extension (CK3 Language Support)
+- The TypeScript language server bundled with the extension
 - Official documentation and examples
 
 It does not cover:

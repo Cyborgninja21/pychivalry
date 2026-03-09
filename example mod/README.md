@@ -255,12 +255,17 @@ This directory contains comprehensive examples demonstrating all PyChivalry vali
 
 ### For Testing
 Each file can be used in unit tests to verify specific validation rules:
-```python
-def test_unmatched_bracket():
-    with open('tests/fixtures/comprehensive_mod/01_syntax/bad_syntax.txt') as f:
-        # Test CK3001, CK3002
-        diagnostics = validate(f.read())
-        assert any(d.code == 'CK3001' for d in diagnostics)
+```typescript
+import { validate } from 'pychivalry';
+import { readFileSync } from 'fs';
+
+function testUnmatchedBracket() {
+    const content = readFileSync('tests/fixtures/comprehensive_mod/01_syntax/bad_syntax.txt', 'utf8');
+    // Test CK3001, CK3002
+    const diagnostics = validate(content);
+    const hasCK3001 = diagnostics.some(d => d.code === 'CK3001');
+    // Assert hasCK3001 is true
+}
 ```
 
 ### For Learning

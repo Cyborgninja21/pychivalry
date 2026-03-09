@@ -150,7 +150,7 @@ git checkout -b hotfix/critical-parser-crash
 
 # Work on fix...
 # Commit fix
-git add pychivalry/parser.py
+git add vscode-extension/src/server/core/parser.ts
 git commit -m "fix: Prevent parser crash on unexpected EOF
 
 - Added null checks in token iterator
@@ -175,7 +175,7 @@ git commit --allow-empty -m "chore: Begin experimental async parser rewrite
 EXPERIMENTAL: This branch explores async/await patterns for parser
 
 Goals:
-- Evaluate asyncio benefits for parsing
+- Evaluate Promise-based async benefits for parsing
 - Test performance with large files
 - Assess complexity vs. benefit trade-offs
 

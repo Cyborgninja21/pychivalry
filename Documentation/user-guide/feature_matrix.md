@@ -4,7 +4,7 @@ Comprehensive mapping of PyChivalry features to CK3 file types and locations.
 
 ## Document Overview
 
-This document tracks which LSP features work for which file types/locations. **Section 1 (Fully Validated File Types)** is organized by *file type*—it shows which CK3 content files (events, decisions, story cycles, etc.) have complete schema-driven validation and what validations apply to each. **Section 6.1 (Features by Module)** is organized by *implementation module*—it shows which Python modules provide which features and whether they are schema-driven. In short: Section 1 answers "what gets validated?" while Section 6.1 answers "how is validation implemented?"
+This document tracks which LSP features work for which file types/locations. **Section 1 (Fully Validated File Types)** is organized by *file type*—it shows which CK3 content files (events, decisions, story cycles, etc.) have complete schema-driven validation and what validations apply to each. **Section 6.1 (Features by Module)** is organized by *implementation module*—it shows which TypeScript modules provide which features and whether they are schema-driven. In short: Section 1 answers "what gets validated?" while Section 6.1 answers "how is validation implemented?"
 
 Use this as a reference for:
 - Understanding current coverage
@@ -35,7 +35,7 @@ Use this as a reference for:
 10. Trigger documentation (all 80 triggers with examples)
 11. Portrait animations (251 animations from `data/animations.yaml`)
 
-**What Stays in Python:**
+**What Stays in TypeScript:**
 - Parser (AST construction)
 - Scope chain validation (complex state tracking)
 - Cross-file indexing (symbol resolution)
@@ -203,7 +203,7 @@ PyChivalry does NOT validate that referenced graphics files exist. Missing `.dds
 
 ## 3. NOT YET VALIDATED FILE TYPES
 
-**Note:** The schema-driven architecture makes it easy to add support for new file types. Creating a new schema file takes ~2 hours instead of days of Python coding.
+**Note:** The schema-driven architecture makes it easy to add support for new file types. Creating a new schema file takes ~2 hours instead of days of TypeScript coding.
 
 ### Table 3a: Structure & Context
 
@@ -320,7 +320,7 @@ PyChivalry does NOT validate that referenced graphics files exist. Missing `.dds
 ---
 ## 6. FEATURE IMPLEMENTATION DETAILS
 
-> **Section 6** is organized by *Python module*—it answers "what does each source file do?" Each row in the table below represents a `.py` file in the codebase, showing what features that module provides, whether it has file-type-specific logic, and whether it uses the schema-driven architecture. This is a **developer-focused** view useful for understanding the codebase structure and finding where specific functionality is implemented.
+> **Section 6** is organized by *TypeScript module*—it answers "what does each source file do?" Each row in the table below represents a `.ts` file in the codebase, showing what features that module provides, whether it has file-type-specific logic, and whether it uses the schema-driven architecture. This is a **developer-focused** view useful for understanding the codebase structure and finding where specific functionality is implemented.
 
 ### 6.1 Features by Module (Updated for Schema-Driven Architecture)
 

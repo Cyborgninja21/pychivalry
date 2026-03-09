@@ -4,11 +4,11 @@ Complete guide for creating YAML schemas to add validation, completions, hover d
 
 ## Overview
 
-PyChivalry uses a **declarative, schema-driven architecture**. Instead of writing Python code to validate each file type, you define validation rules, completions, hover docs, and symbols in YAML schema files. The schema engine handles the rest.
+PyChivalry uses a **declarative, schema-driven architecture**. Instead of writing TypeScript code to validate each file type, you define validation rules, completions, hover docs, and symbols in YAML schema files. The schema engine handles the rest.
 
 **Benefits:**
-- Add support for a new file type in ~2 hours (vs. days of Python coding)
-- No Python knowledge required
+- Add support for a new file type in ~2 hours (vs. days of TypeScript coding)
+- No TypeScript knowledge required
 - Schemas are easy to read, review, and maintain
 - Changes don't require code deployment—just update YAML
 

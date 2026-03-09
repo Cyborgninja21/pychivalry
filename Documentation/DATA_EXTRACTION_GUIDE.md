@@ -1,6 +1,6 @@
 # CK3 Game Data Extraction Guide
 
-> **Complete guide to extracting and using CK3 game data for validation in PyChivalry**
+> **Complete guide to extracting and using CK3 game data for validation in pychivalry**
 
 ---
 
@@ -21,15 +21,15 @@
 
 ## Overview
 
-PyChivalry uses **user-extracted game data** instead of hardcoded definitions. This ensures:
+pychivalry uses **user-extracted game data** instead of hardcoded definitions. This ensures:
 
 ✅ **Always up-to-date** - Data matches your CK3 version (including patches & DLC)
 ✅ **Mod support** - Extract mod-specific data (Carnalitas, etc.)
-✅ **No manual updates** - No need to update PyChivalry when Paradox adds new content
+✅ **No manual updates** - No need to update pychivalry when Paradox adds new content
 ✅ **Accurate validation** - Direct extraction eliminates transcription errors
 ✅ **Legal compliance** - Users provide their own game data (no redistribution)
 
-**First time setup:** Run the extraction once to generate data files. PyChivalry will use them for validation.
+**First time setup:** Run the extraction once to generate data files. pychivalry will use them for validation.
 
 ---
 
@@ -37,14 +37,14 @@ PyChivalry uses **user-extracted game data** instead of hardcoded definitions. T
 
 | Data Type | Source Location | Output File | Count | Usage |
 |-----------|----------------|-------------|-------|-------|
-| **Themes** | `game/common/event_themes/` | `pychivalry/data/themes.yaml` | ~32+ | Event theme validation |
-| **Backgrounds** | `game/common/event_backgrounds/` | `pychivalry/data/backgrounds.yaml` | ~44+ | Event background validation |
-| **Environments** | `game/gfx/portraits/environments/` | `pychivalry/data/environments.yaml` | ~44+ | Environment lighting validation |
-| **On-Actions** | `game/common/on_action/` | `pychivalry/data/on_actions.yaml` | ~30+ | On-action + scope validation |
-| **Traits** | `game/common/traits/` | `pychivalry/data/traits/*.yaml` | ~300+ | Trait validation (already working) |
-| **Animations** | Extracted from events | `pychivalry/data/animations.yaml` | ~251 | Portrait animation validation (already working) |
+| **Themes** | `game/common/event_themes/` | `data/themes.yaml` | ~32+ | Event theme validation |
+| **Backgrounds** | `game/common/event_backgrounds/` | `data/backgrounds.yaml` | ~44+ | Event background validation |
+| **Environments** | `game/gfx/portraits/environments/` | `data/environments.yaml` | ~44+ | Environment lighting validation |
+| **On-Actions** | `game/common/on_action/` | `data/on_actions.yaml` | ~30+ | On-action + scope validation |
+| **Traits** | `game/common/traits/` | `data/traits/*.yaml` | ~300+ | Trait validation (already working) |
+| **Animations** | Extracted from events | `data/animations.yaml` | ~251 | Portrait animation validation (already working) |
 
-**Note:** Traits and Animations are already extracted and included in PyChivalry. You only need to extract the new data types (themes, backgrounds, environments, on-actions).
+**Note:** Traits and Animations are already extracted and included in pychivalry. You only need to extract the new data types (themes, backgrounds, environments, on-actions).
 
 ---
 
@@ -59,7 +59,7 @@ PyChivalry uses **user-extracted game data** instead of hardcoded definitions. T
 5. Wait for extraction to complete (~10-30 seconds)
 6. Restart the language server when prompted
 
-**Done!** PyChivalry now has all game data for validation.
+**Done!** pychivalry now has all game data for validation.
 
 ---
 
@@ -83,7 +83,7 @@ PyChivalry uses **user-extracted game data** instead of hardcoded definitions. T
    - Click **Yes** in the confirmation dialog
 
 4. **Select CK3 Folder (if needed)**
-   - PyChivalry tries to auto-detect your CK3 installation
+   - pychivalry tries to auto-detect your CK3 installation
    - If not found, browse to your CK3 installation folder
    - Common locations:
      ```
@@ -106,7 +106,7 @@ PyChivalry uses **user-extracted game data** instead of hardcoded definitions. T
 ✅ Output shows: `✓ Backgrounds extraction completed`
 ✅ Output shows: `✓ Environments extraction completed`
 ✅ Output shows: `✓ On-Actions extraction completed`
-✅ Files created in `pychivalry/data/` directory
+✅ Files created in `data/` directory
 
 ---
 
@@ -118,23 +118,23 @@ PyChivalry uses **user-extracted game data** instead of hardcoded definitions. T
 
 ```bash
 # Basic usage (auto-detect Steam path)
-python tools/extract_all.py
+npx ts-node tools/extract-all.ts
 
 # Specify custom CK3 path
-python tools/extract_all.py --ck3-path "C:/Program Files (x86)/Steam/steamapps/common/Crusader Kings III"
+npx ts-node tools/extract-all.ts --ck3-path "C:/Program Files (x86)/Steam/steamapps/common/Crusader Kings III"
 
 # Custom output directory
-python tools/extract_all.py --ck3-path "/path/to/ck3" --output-dir "./my-data"
+npx ts-node tools/extract-all.ts --ck3-path "/path/to/ck3" --output-dir "./my-data"
 ```
 
 #### Extract Specific Types:
 
 ```bash
 # Only extract themes and backgrounds
-python tools/extract_all.py --only themes,backgrounds
+npx ts-node tools/extract-all.ts --only themes,backgrounds
 
 # Only extract on_actions
-python tools/extract_all.py --only on_actions
+npx ts-node tools/extract-all.ts --only on_actions
 ```
 
 #### Command Line Options:
@@ -142,7 +142,7 @@ python tools/extract_all.py --only on_actions
 | Option | Description | Default |
 |--------|-------------|---------|
 | `--ck3-path PATH` | Path to CK3 installation | `~/.local/share/Steam/steamapps/common/Crusader Kings III` (Linux) |
-| `--output-dir DIR` | Output directory for YAML files | `pychivalry/data` |
+| `--output-dir DIR` | Output directory for YAML files | `data` |
 | `--only TYPES` | Comma-separated list of data types | All types |
 | `--update` | Update existing data files | Same as running normally |
 
@@ -155,46 +155,46 @@ You can also run extractors individually for specific data types:
 ### Extract Themes
 
 ```bash
-python tools/extract_themes.py --ck3-path "/path/to/ck3"
+npx ts-node tools/extract-themes.ts --ck3-path "/path/to/ck3"
 ```
 
-**Output:** `pychivalry/data/themes.yaml`
+**Output:** `data/themes.yaml`
 **Contains:** Event themes (diplomacy, intrigue, war, etc.)
 
 ### Extract Backgrounds
 
 ```bash
-python tools/extract_backgrounds.py --ck3-path "/path/to/ck3"
+npx ts-node tools/extract-backgrounds.ts --ck3-path "/path/to/ck3"
 ```
 
-**Output:** `pychivalry/data/backgrounds.yaml`
+**Output:** `data/backgrounds.yaml`
 **Contains:** Event backgrounds (throne_room, bedchamber, etc.)
 
 ### Extract Environments
 
 ```bash
-python tools/extract_environments.py --ck3-path "/path/to/ck3"
+npx ts-node tools/extract-environments.ts --ck3-path "/path/to/ck3"
 ```
 
-**Output:** `pychivalry/data/environments.yaml`
+**Output:** `data/environments.yaml`
 **Contains:** Lighting environments (interior, exterior, etc.)
 
 ### Extract On-Actions
 
 ```bash
-python tools/extract_on_actions.py --ck3-path "/path/to/ck3"
+npx ts-node tools/extract-on-actions.ts --ck3-path "/path/to/ck3"
 ```
 
-**Output:** `pychivalry/data/on_actions.yaml`
+**Output:** `data/on_actions.yaml`
 **Contains:** On-actions with scope information (on_birth, on_death, etc.)
 
 ### Extract Traits
 
 ```bash
-python tools/extract_traits.py --ck3-path "/path/to/ck3"
+npx ts-node tools/extract-traits.ts --ck3-path "/path/to/ck3"
 ```
 
-**Output:** `pychivalry/data/traits/*.yaml`
+**Output:** `data/traits/*.yaml`
 **Contains:** Character traits (brave, cruel, genius, etc.)
 
 ---
@@ -203,7 +203,7 @@ python tools/extract_traits.py --ck3-path "/path/to/ck3"
 
 ### ❌ "CK3 installation not found"
 
-**Problem:** PyChivalry can't auto-detect your CK3 installation
+**Problem:** pychivalry can't auto-detect your CK3 installation
 
 **Solutions:**
 1. Manually specify the path with `--ck3-path`
@@ -212,7 +212,7 @@ python tools/extract_traits.py --ck3-path "/path/to/ck3"
 
 **Example:**
 ```bash
-python tools/extract_all.py --ck3-path "D:/SteamLibrary/steamapps/common/Crusader Kings III"
+npx ts-node tools/extract-all.ts --ck3-path "D:/SteamLibrary/steamapps/common/Crusader Kings III"
 ```
 
 ### ❌ "No data extracted" / Empty files
@@ -237,13 +237,13 @@ python tools/extract_all.py --ck3-path "D:/SteamLibrary/steamapps/common/Crusade
 **Solutions:**
 ```bash
 # Linux/macOS: Check permissions
-ls -la pychivalry/data/
+ls -la data/
 
 # Windows: Run as administrator
-# Right-click Python, select "Run as administrator"
+# Right-click command prompt, select "Run as administrator"
 
 # Or specify different output directory
-python tools/extract_all.py --output-dir "./data-backup"
+npx ts-node tools/extract-all.ts --output-dir "./data-backup"
 ```
 
 ### ❌ YAML parsing errors
@@ -259,18 +259,21 @@ python tools/extract_all.py --output-dir "./data-backup"
 
 ### ❌ "Import error" when running extractors
 
-**Problem:** Python can't find extraction modules
+**Problem:** TypeScript can't find extraction modules
 
 **Solutions:**
 ```bash
 # Make sure you're in the project root
 cd /path/to/pychivalry
 
+# Ensure TypeScript dependencies are installed
+npm install
+
 # Run from project root
-python tools/extract_all.py
+npx ts-node tools/extract-all.ts
 
 # Or use absolute paths
-python "C:/git/pychivalry/tools/extract_all.py"
+npx ts-node "/path/to/pychivalry/tools/extract-all.ts"
 ```
 
 ### ⚠️ Validation not working after extraction
@@ -282,7 +285,7 @@ python "C:/git/pychivalry/tools/extract_all.py"
 **Solutions:**
 1. In VS Code: `Ctrl+Shift+P` → `CK3: Restart Language Server`
 2. Or reload VS Code window: `Ctrl+Shift+P` → `Developer: Reload Window`
-3. Check that YAML files exist in `pychivalry/data/`
+3. Check that YAML files exist in `data/`
 
 ---
 
@@ -294,10 +297,10 @@ To extract mod-specific data (requires mod to be installed):
 
 ```bash
 # Point to your mod's folder instead of base game
-python tools/extract_themes.py --ck3-path "/path/to/mod"
+npx ts-node tools/extract-themes.ts --ck3-path "/path/to/mod"
 
 # Use custom output to keep mod data separate
-python tools/extract_all.py \
+npx ts-node tools/extract-all.ts \
     --ck3-path "/path/to/mod" \
     --output-dir "./mod-data"
 ```
@@ -315,7 +318,7 @@ Extract data automatically in build scripts:
 CK3_PATH="/mnt/steam/Crusader Kings III"
 
 echo "Extracting CK3 game data..."
-python tools/extract_all.py --ck3-path "$CK3_PATH"
+npx ts-node tools/extract-all.ts --ck3-path "$CK3_PATH"
 
 if [ $? -eq 0 ]; then
     echo "✓ Extraction successful"
@@ -329,23 +332,23 @@ fi
 
 Check that extraction worked:
 
-```python
-# test_extraction.py
-from pychivalry.data import get_themes, get_backgrounds, get_on_actions
+```typescript
+// test-extraction.ts
+import { getThemes, getBackgrounds, getOnActions } from './vscode-extension/src/server/data/loader';
 
-themes = get_themes()
-backgrounds = get_backgrounds()
-on_actions = get_on_actions()
+const themes = getThemes();
+const backgrounds = getBackgrounds();
+const onActions = getOnActions();
 
-print(f"Themes: {len(themes)}")
-print(f"Backgrounds: {len(backgrounds)}")
-print(f"On-actions: {len(on_actions)}")
+console.log(`Themes: ${Object.keys(themes).length}`);
+console.log(`Backgrounds: ${Object.keys(backgrounds).length}`);
+console.log(`On-actions: ${Object.keys(onActions).length}`);
 
-assert len(themes) > 0, "No themes extracted!"
-assert len(backgrounds) > 0, "No backgrounds extracted!"
-assert len(on_actions) > 0, "No on-actions extracted!"
+console.assert(Object.keys(themes).length > 0, "No themes extracted!");
+console.assert(Object.keys(backgrounds).length > 0, "No backgrounds extracted!");
+console.assert(Object.keys(onActions).length > 0, "No on-actions extracted!");
 
-print("✓ All data extracted successfully")
+console.log("✓ All data extracted successfully");
 ```
 
 ### Updating Data After CK3 Patches
@@ -358,7 +361,7 @@ When CK3 updates, re-extract data:
 **Command Line:**
 ```bash
 # Re-extract everything
-python tools/extract_all.py --update
+npx ts-node tools/extract-all.ts --update
 
 # Restart language server to reload data
 # (in VS Code: Ctrl+Shift+P → Restart Language Server)
@@ -395,21 +398,21 @@ intrigue:
 
 ### Loading Data in Code
 
-```python
-from pychivalry.data import get_themes, get_backgrounds, get_environments, get_on_actions
+```typescript
+import { getThemes, getBackgrounds, getEnvironments, getOnActions } from './data/loader';
 
-# Load themes (cached after first call)
-themes = get_themes()
-is_valid = 'diplomacy' in themes
+// Load themes (cached after first call)
+const themes = getThemes();
+const isValid = 'diplomacy' in themes;
 
-# Load backgrounds
-backgrounds = get_backgrounds()
-has_throne_room = 'throne_room' in backgrounds
+// Load backgrounds
+const backgrounds = getBackgrounds();
+const hasThroneRoom = 'throne_room' in backgrounds;
 
-# Load on-actions with scope info
-on_actions = get_on_actions()
-on_birth_scopes = on_actions.get('on_birth', {}).get('scopes', {})
-# Returns: {'root': 'character', 'mother': 'character', 'father': 'character'}
+// Load on-actions with scope info
+const onActions = getOnActions();
+const onBirthScopes = onActions['on_birth']?.scopes || {};
+// Returns: { root: 'character', mother: 'character', father: 'character' }
 ```
 
 ### Performance
@@ -433,31 +436,36 @@ pychivalry/
 │       ├── personality.yaml
 │       ├── education.yaml
 │       └── ...
+├── vscode-extension/
+│   └── src/
+│       └── server/
+│           └── data/
+│               └── loader.ts    # TypeScript data loader
 └── ...
 
 tools/
-├── extract_all.py               # Unified extraction command
-├── extract_themes.py            # Theme extractor
-├── extract_backgrounds.py       # Background extractor
-├── extract_environments.py      # Environment extractor
-├── extract_on_actions.py        # On-action extractor
-└── extract_traits.py            # Trait extractor
+├── extract-all.ts               # Unified extraction command
+├── extract-themes.ts            # Theme extractor
+├── extract-backgrounds.ts       # Background extractor
+├── extract-environments.ts      # Environment extractor
+├── extract-on-actions.ts        # On-action extractor
+└── extract-traits.ts            # Trait extractor
 ```
 
 ---
 
 ## FAQ
 
-### Do I need to extract data every time I use PyChivalry?
+### Do I need to extract data every time I use pychivalry?
 
-**No!** Extract once, and PyChivalry will use those files until you update them. Only re-extract when:
+**No!** Extract once, and pychivalry will use those files until you update them. Only re-extract when:
 - CK3 receives a patch/DLC
 - You install new mods
 - You want to update validation data
 
 ### What happens if I don't extract data?
 
-PyChivalry will still work, but validation will be **disabled** for missing data types:
+pychivalry will still work, but validation will be **disabled** for missing data types:
 - ✅ Animations & Traits: Pre-extracted (work out of the box)
 - ⚠️ Themes: Validation disabled (accepts all values)
 - ⚠️ Backgrounds: Validation disabled
@@ -482,7 +490,7 @@ PyChivalry will still work, but validation will be **disabled** for missing data
 
 Check for output files:
 ```bash
-ls -lh pychivalry/data/*.yaml
+ls -lh data/*.yaml
 
 # Should show:
 # themes.yaml (5-15 KB)
@@ -491,11 +499,12 @@ ls -lh pychivalry/data/*.yaml
 # on_actions.yaml (15-50 KB)
 ```
 
-Or in Python:
-```python
-from pychivalry.data import get_themes
-themes = get_themes()
-print(f"Extracted {len(themes)} themes")  # Should be 30+
+Or in TypeScript:
+```typescript
+import { getThemes } from './vscode-extension/src/server/data/loader';
+
+const themes = getThemes();
+console.log(`Extracted ${Object.keys(themes).length} themes`);  // Should be 30+
 ```
 
 ---
@@ -542,8 +551,8 @@ Found a bug in the extractors? Want to improve extraction?
 - ✨ Automatic CK3 path detection (Steam, GOG, Epic)
 
 **Changed:**
-- 🔄 `events.py` - Themes now loaded from YAML (removed hardcoded set)
-- 🔄 `data/__init__.py` - Added theme/background/environment/on-action loaders
+- 🔄 Event validation - Themes now loaded from YAML (removed hardcoded set)
+- 🔄 Data loader - Added theme/background/environment/on-action loaders in TypeScript
 
 **Benefits:**
 - ✅ Always up-to-date with CK3 patches
@@ -555,8 +564,8 @@ Found a bug in the extractors? Want to improve extraction?
 
 ## License
 
-PyChivalry is open source. Extracted game data is for personal use only and subject to Paradox Interactive's terms of service.
+pychivalry is open source. Extracted game data is for personal use only and subject to Paradox Interactive's terms of service.
 
 ---
 
-**🎉 You're all set! Happy modding with PyChivalry!**
+**🎉 You're all set! Happy modding with pychivalry!**

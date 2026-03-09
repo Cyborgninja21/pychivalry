@@ -38,25 +38,6 @@
         "t-6",
         "t-7"
       ]
-    },
-    {
-      "id": "t-9",
-      "title": "Codebase review",
-      "context": "Our project started out as a A Python based language server that utilized pygls. We have since pivoted to TypeScript. \n\nBut there are still remnants of legacy Python   code in the code base and potentially functions that have yet to be converted over.\n\nAdult our code base to remove any remaining Python code and references. \n",
-      "priority": "high",
-      "status": "queued",
-      "docsPath": ".formic/tasks/t-9_codebase-review",
-      "agentLogs": [],
-      "pid": null,
-      "type": "standard",
-      "workflowStep": "pending",
-      "workflowLogs": {
-        "execute": []
-      },
-      "createdAt": "2026-03-08T21:59:36.832Z",
-      "safePointCommit": null,
-      "retryCount": null,
-      "fixForTaskId": null
     }
   ]
 }

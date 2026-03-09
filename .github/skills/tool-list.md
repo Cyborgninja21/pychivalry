@@ -83,7 +83,7 @@ Get comprehensive project setup steps for full initialization.
 
 ### get_project_setup_info
 Get project setup information for specific project type.
-- **Parameters**: `projectType` (string) - python-script, python-project, mcp-server, vscode-extension, next-js, vite, other
+- **Parameters**: `projectType` (string) - mcp-server, vscode-extension, next-js, vite, other
 
 ## VS Code Specific
 
@@ -193,25 +193,9 @@ Install packages in notebook kernel.
 List installed packages in notebook kernel.
 - **Parameters**: `filePath` (string) - path to notebook file
 
-## Python Environment Management
-
-### configure_python_environment
-Set up Python environment for workspace (call before other Python tools).
-- **Parameters**: `resourcePath` (string, optional) - path to Python file/workspace
-
-### get_python_environment_details
-Get Python env type, version, and installed packages.
-- **Parameters**: `resourcePath` (string, optional) - path to Python file/workspace
-
-### get_python_executable_details
-Get Python executable path and command construction details.
-- **Parameters**: `resourcePath` (string, optional) - path to Python file/workspace
-
-### install_python_packages
-Install Python packages in workspace environment.
-- **Parameters**:
-  - `packageList` (array) - list of packages to install
-  - `resourcePath` (string, optional) - path to Python file/workspace
+## Python Environment Management (Not Used)
+> These VS Code tools exist but are not used by this TypeScript-only project.
+> Tools: configure_python_environment, get_python_environment_details, get_python_executable_details, install_python_packages
 
 ## GitHub & Pull Requests
 
@@ -330,70 +314,9 @@ Tag container image with new tag.
 Prune unused container resources.
 - **Parameters**: `pruneTarget` (string) - containers, images, volumes, networks, or all
 
-## Pylance/Python Analysis (MCP)
-
-### mcp_pylance_mcp_s_pylanceDocuments
-Search Pylance documentation for help and configuration.
-- **Parameters**: `search` (string) - detailed question in natural language
-
-### mcp_pylance_mcp_s_pylanceWorkspaceRoots
-Get workspace root directories.
-- **Parameters**: `fileUri` (string, optional) - file URI to check workspace
-
-### mcp_pylance_mcp_s_pylanceWorkspaceUserFiles
-List all user Python files in workspace (excludes libraries).
-- **Parameters**: `workspaceRoot` (string) - workspace root URI
-
-### mcp_pylance_mcp_s_pylanceFileSyntaxErrors
-Check Python file for syntax errors.
-- **Parameters**:
-  - `workspaceRoot` (string) - workspace root URI
-  - `fileUri` (string) - file URI to check
-
-### mcp_pylance_mcp_s_pylanceSyntaxErrors
-Validate Python code snippet for syntax errors.
-- **Parameters**:
-  - `code` (string) - Python code to validate
-  - `pythonVersion` (string) - Python version (e.g., "3.10")
-
-### mcp_pylance_mcp_s_pylanceImports
-Analyze imports across workspace user files.
-- **Parameters**: `workspaceRoot` (string) - workspace root URI
-
-### mcp_pylance_mcp_s_pylanceInstalledTopLevelModules
-Get available top-level modules from installed packages.
-- **Parameters**:
-  - `workspaceRoot` (string) - workspace root URI
-  - `pythonEnvironment` (string, optional) - Python environment path
-
-### mcp_pylance_mcp_s_pylancePythonEnvironments
-Get Python environment info for workspace.
-- **Parameters**: `workspaceRoot` (string) - workspace root URI
-
-### mcp_pylance_mcp_s_pylanceUpdatePythonEnvironment
-Switch active Python environment for workspace.
-- **Parameters**:
-  - `workspaceRoot` (string) - workspace root URI
-  - `pythonEnvironment` (string) - Python environment path or executable
-
-### mcp_pylance_mcp_s_pylanceSettings
-Get current Python analysis settings and configuration.
-- **Parameters**: `workspaceRoot` (string) - workspace root URI
-
-### mcp_pylance_mcp_s_pylanceInvokeRefactoring
-Apply automated code refactoring to Python files.
-- **Parameters**:
-  - `fileUri` (string) - file URI to refactor
-  - `name` (string) - refactoring name (source.unusedImports, source.convertImportFormat, source.convertImportStar, source.addTypeAnnotation, source.fixAll.pylance)
-  - `mode` (string, optional) - output mode: update, edits, or string
-
-### mcp_pylance_mcp_s_pylanceRunCodeSnippet
-Execute Python code directly in workspace environment (PREFERRED over terminal).
-- **Parameters**:
-  - `workspaceRoot` (string) - workspace root URI
-  - `codeSnippet` (string) - code to execute
-  - `workingDirectory` (string, optional) - working directory
-  - `timeout` (number, optional) - execution timeout
+## Pylance/Python Analysis (Not Used)
+> These MCP tools exist but are not used by this TypeScript-only project.
+> Tools: mcp_pylance_mcp_s_pylanceDocuments, mcp_pylance_mcp_s_pylanceWorkspaceRoots, mcp_pylance_mcp_s_pylanceWorkspaceUserFiles, mcp_pylance_mcp_s_pylanceFileSyntaxErrors, mcp_pylance_mcp_s_pylanceSyntaxErrors, mcp_pylance_mcp_s_pylanceImports, mcp_pylance_mcp_s_pylanceInstalledTopLevelModules, mcp_pylance_mcp_s_pylancePythonEnvironments, mcp_pylance_mcp_s_pylanceUpdatePythonEnvironment, mcp_pylance_mcp_s_pylanceSettings, mcp_pylance_mcp_s_pylanceInvokeRefactoring, mcp_pylance_mcp_s_pylanceRunCodeSnippet
 
 ## Task & Project Management
 

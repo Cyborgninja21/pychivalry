@@ -32,4 +32,4 @@ personal CK3 installation for modding assistance only. Do not redistribute.
 ## Regenerating
 
 Run: `CK3: Extract Localization Data from CK3 Installation` in VS Code
-Or: `python tools/extract_concepts.py --ck3-path "/path/to/ck3"`
+Or: `npx ts-node tools/extract-concepts.ts --ck3-path "/path/to/ck3"`
