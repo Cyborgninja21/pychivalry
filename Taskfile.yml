@@ -66,6 +66,13 @@ tasks:
     cmds:
       - npm run test:integration
 
+  test:examples:
+    desc: Run example mod validation tests only
+    dir: "{{.EXT_DIR}}"
+    deps: [compile:tests]
+    cmds:
+      - npm run test:examples
+
   test:quick:
     desc: Run tests without linting (compile + test)
     dir: "{{.EXT_DIR}}"

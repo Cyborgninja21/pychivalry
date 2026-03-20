@@ -1,6 +1,7 @@
 {
   "version": "0.2.0",
   "configurations": [
+    // ── Extension Host ─────────────────────────────────────────────
     {
       "name": "🎯 Extension - Full Rebuild",
       "type": "extensionHost",
@@ -50,6 +51,90 @@
       "presentation": {
         "group": "1-extension",
         "order": 3
+      }
+    },
+    // ── Unit Tests ─────────────────────────────────────────────────
+    {
+      "name": "🧪 Unit Tests - All",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/vscode-extension/node_modules/mocha/bin/_mocha",
+      "args": [
+        "${workspaceFolder}/vscode-extension/out/test/unit/**/*.test.js",
+        "--timeout",
+        "15000"
+      ],
+      "cwd": "${workspaceFolder}/vscode-extension",
+      "outFiles": [
+        "${workspaceFolder}/vscode-extension/out/**/*.js"
+      ],
+      "preLaunchTask": "Compile Tests",
+      "console": "integratedTerminal",
+      "presentation": {
+        "group": "2-tests",
+        "order": 1
+      }
+    },
+    {
+      "name": "🧪 Unit Tests - Current File",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/vscode-extension/node_modules/mocha/bin/_mocha",
+      "args": [
+        "${file}",
+        "--timeout",
+        "15000"
+      ],
+      "cwd": "${workspaceFolder}/vscode-extension",
+      "outFiles": [
+        "${workspaceFolder}/vscode-extension/out/**/*.js"
+      ],
+      "preLaunchTask": "Compile Tests",
+      "console": "integratedTerminal",
+      "presentation": {
+        "group": "2-tests",
+        "order": 2
+      }
+    },
+    {
+      "name": "🧪 Example Mod Validation Tests",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/vscode-extension/node_modules/mocha/bin/_mocha",
+      "args": [
+        "${workspaceFolder}/vscode-extension/out/test/unit/example-mod-validation.test.js",
+        "--timeout",
+        "15000"
+      ],
+      "cwd": "${workspaceFolder}/vscode-extension",
+      "outFiles": [
+        "${workspaceFolder}/vscode-extension/out/**/*.js"
+      ],
+      "preLaunchTask": "Compile Tests",
+      "console": "integratedTerminal",
+      "presentation": {
+        "group": "2-tests",
+        "order": 3
+      }
+    },
+    // ── Integration Tests ──────────────────────────────────────────
+    {
+      "name": "🧪 Integration Tests",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}/vscode-extension",
+        "--extensionTestsPath=${workspaceFolder}/vscode-extension/out/test/suite",
+        "${workspaceFolder}/vscode-extension/test-workspace"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/vscode-extension/out/**/*.js",
+        "${workspaceFolder}/vscode-extension/dist/**/*.js"
+      ],
+      "preLaunchTask": "Build Extension (Install + Compile)",
+      "presentation": {
+        "group": "2-tests",
+        "order": 4
       }
     }
   ]

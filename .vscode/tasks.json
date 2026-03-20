@@ -1,6 +1,7 @@
 {
   "version": "2.0.0",
   "tasks": [
+    // ── Install & Build ──────────────────────────────────────────
     {
       "label": "Install Extension Dependencies",
       "type": "npm",
@@ -38,6 +39,17 @@
       }
     },
     {
+      "label": "Compile Tests",
+      "type": "npm",
+      "script": "compile-tests",
+      "path": "vscode-extension/",
+      "problemMatcher": "$tsc",
+      "presentation": {
+        "reveal": "silent",
+        "panel": "dedicated"
+      }
+    },
+    {
       "label": "npm: watch",
       "type": "npm",
       "script": "watch",
@@ -56,6 +68,7 @@
         "panel": "dedicated"
       }
     },
+    // ── Tests ────────────────────────────────────────────────────
     {
       "label": "Run Extension Tests",
       "type": "npm",
@@ -76,6 +89,30 @@
       "type": "npm",
       "script": "test:quick",
       "path": "vscode-extension/",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "Run Unit Tests",
+      "type": "npm",
+      "script": "test:unit",
+      "path": "vscode-extension/",
+      "dependsOn": ["Compile Tests"],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "Run Example Mod Validation Tests",
+      "type": "npm",
+      "script": "test:examples",
+      "path": "vscode-extension/",
+      "dependsOn": ["Compile Tests"],
       "problemMatcher": [],
       "presentation": {
         "reveal": "always",
@@ -104,6 +141,40 @@
           "endsPattern": "^.*tests complete.*$"
         }
       },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    // ── Code Quality ─────────────────────────────────────────────
+    {
+      "label": "Lint",
+      "type": "npm",
+      "script": "lint",
+      "path": "vscode-extension/",
+      "problemMatcher": "$eslint-stylish",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "Format Check",
+      "type": "npm",
+      "script": "format-check",
+      "path": "vscode-extension/",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "Format",
+      "type": "npm",
+      "script": "format",
+      "path": "vscode-extension/",
+      "problemMatcher": [],
       "presentation": {
         "reveal": "always",
         "panel": "dedicated"
