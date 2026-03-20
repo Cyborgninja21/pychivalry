@@ -13,6 +13,7 @@
 # Expected validation result: ERRORS DETECTED
 # ===================================================================
 
+# ERROR: CK3306
 namespace = variables_bad
 
 # -------------------------------------------------------------------
@@ -110,7 +111,7 @@ variables_bad.0003 = {
 }
 
 # -------------------------------------------------------------------
-# ERROR CK3705: Variable used as both list and value
+# Variable used as both list and value
 # -------------------------------------------------------------------
 # WHAT THIS TESTS: Detection of variable type confusion
 # SHOULD FAIL: Yes - CK3705 warning

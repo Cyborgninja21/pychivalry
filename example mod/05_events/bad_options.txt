@@ -1,6 +1,12 @@
 # Bad Options Examples
 # Demonstrates CK3450-CK3461 (option validation) and CK3610-CK3614 (AI chance validation)
 
+# ERROR: CK3103
+# ERROR: CK3420
+# ERROR: CK3872
+# ERROR: CONV-004
+# ERROR: EVENT-007
+# ERROR: LOC-001
 namespace = events_bad_options
 
 # ERROR CK3450: Option missing name
@@ -26,7 +32,7 @@ events_bad_options.0001 = {
 	}
 }
 
-# ERROR CK3452: Invalid skill reference in option
+# Invalid skill reference in option
 events_bad_options.0002 = {
 	type = character_event
 	title = events_bad_options.0002.t
@@ -45,7 +51,7 @@ events_bad_options.0002 = {
 	}
 }
 
-# ERROR CK3453: Invalid add_internal_flag value
+# Invalid add_internal_flag value
 events_bad_options.0003 = {
 	type = character_event
 	title = events_bad_options.0003.t
@@ -64,7 +70,7 @@ events_bad_options.0003 = {
 	}
 }
 
-# ERROR CK3454: Redundant fallback option
+# Redundant fallback option
 events_bad_options.0004 = {
 	type = character_event
 	title = events_bad_options.0004.t
@@ -83,7 +89,7 @@ events_bad_options.0004 = {
 
 	option = {
 		name = events_bad_options.0004.b
-		# ERROR CK3454: This is the fallback option, 'always = yes' is redundant
+# This is the fallback option, 'always = yes' is redundant
 		trigger = {
 			always = yes
 		}
@@ -91,7 +97,7 @@ events_bad_options.0004 = {
 	}
 }
 
-# ERROR CK3455: Multiple exclusive options may conflict
+# Multiple exclusive options may conflict
 events_bad_options.0005 = {
 	type = character_event
 	title = events_bad_options.0005.t
@@ -105,7 +111,7 @@ events_bad_options.0005 = {
 
 	option = {
 		name = events_bad_options.0005.a
-		# ERROR CK3455: Both options have mutually exclusive triggers
+# Both options have mutually exclusive triggers
 		trigger = {
 			has_trait = brave
 		}
@@ -123,7 +129,7 @@ events_bad_options.0005 = {
 	}
 }
 
-# ERROR CK3456: show_as_unavailable without trigger
+# show_as_unavailable without trigger
 events_bad_options.0006 = {
 	type = character_event
 	title = events_bad_options.0006.t
@@ -137,7 +143,7 @@ events_bad_options.0006 = {
 
 	option = {
 		name = events_bad_options.0006.a
-		# ERROR CK3456: show_as_unavailable without trigger doesn't make sense
+# show_as_unavailable without trigger doesn't make sense
 		show_as_unavailable = {
 			gold < 100
 		}
@@ -150,7 +156,7 @@ events_bad_options.0006 = {
 	}
 }
 
-# ERROR CK3457: highlight_portrait references undefined scope
+# highlight_portrait references undefined scope
 events_bad_options.0007 = {
 	type = character_event
 	title = events_bad_options.0007.t
@@ -164,13 +170,13 @@ events_bad_options.0007 = {
 
 	option = {
 		name = events_bad_options.0007.a
-		# ERROR CK3457: scope:target was never saved
+# scope:target was never saved
 		highlight_portrait = scope:target
 		add_gold = 100
 	}
 }
 
-# ERROR CK3458: Literal option name (informational)
+# Literal option name (informational)
 events_bad_options.0008 = {
 	type = character_event
 	title = events_bad_options.0008.t
@@ -193,7 +199,7 @@ events_bad_options.0008 = {
 	}
 }
 
-# ERROR CK3459: All options have triggers (no fallback)
+# All options have triggers (no fallback)
 events_bad_options.0009 = {
 	type = character_event
 	title = events_bad_options.0009.t
@@ -205,7 +211,7 @@ events_bad_options.0009 = {
 		is_adult = yes
 	}
 
-	# ERROR CK3459: All options have triggers - no guaranteed fallback
+# All options have triggers - no guaranteed fallback
 	option = {
 		name = events_bad_options.0009.a
 		trigger = {
@@ -233,7 +239,7 @@ events_bad_options.0009 = {
 	# If player has no gold, prestige, or piety, event won't display!
 }
 
-# ERROR CK3460: Option with multiple names
+# Option with multiple names
 events_bad_options.0010 = {
 	type = character_event
 	title = events_bad_options.0010.t
@@ -252,7 +258,7 @@ events_bad_options.0010 = {
 	}
 }
 
-# ERROR CK3461: Empty option block
+# Empty option block
 events_bad_options.0011 = {
 	type = character_event
 	title = events_bad_options.0011.t
@@ -266,7 +272,7 @@ events_bad_options.0011 = {
 
 	option = {
 		name = events_bad_options.0011.a
-		# ERROR CK3461: Option has only name, no effects or content
+# Option has only name, no effects or content
 	}
 }
 
@@ -351,7 +357,7 @@ events_bad_options.0014 = {
 	}
 }
 
-# ERROR CK3614: Modifier without trigger
+# Modifier without trigger
 events_bad_options.0015 = {
 	type = character_event
 	title = events_bad_options.0015.t
@@ -370,7 +376,7 @@ events_bad_options.0015 = {
 		ai_chance = {
 			base = 50
 
-			# ERROR CK3614: Modifier without trigger applies every time
+# Modifier without trigger applies every time
 			modifier = {
 				add = 25
 				# Missing trigger - this bonus always applies
@@ -398,7 +404,7 @@ events_bad_options.0016 = {
 
 	option = {
 		# ERROR CK3450: Missing name
-		# ERROR CK3461: Empty (only has nothing)
+# Empty (only has nothing)
 	}
 
 	option = {

@@ -1,16 +1,22 @@
 # Bad Descriptions Examples
 # Demonstrates CK3440-CK3446 - Description block validation errors
 
+# ERROR: CK3103
+# ERROR: CK3317
+# ERROR: CK3872
+# ERROR: CK3875
+# ERROR: LOC-001
+# ERROR: SCOPE-006
 namespace = events_bad_desc
 
-# ERROR CK3440: triggered_desc missing trigger
+# triggered_desc missing trigger
 events_bad_desc.0001 = {
 	type = character_event
 	title = events_bad_desc.0001.t
 	desc = {
 		first_valid = {
 			triggered_desc = {
-				# ERROR CK3440: Missing trigger block
+# Missing trigger block
 				desc = events_bad_desc.0001.desc_brave
 			}
 			triggered_desc = {
@@ -34,7 +40,7 @@ events_bad_desc.0001 = {
 	}
 }
 
-# ERROR CK3441: triggered_desc missing desc
+# triggered_desc missing desc
 events_bad_desc.0002 = {
 	type = character_event
 	title = events_bad_desc.0002.t
@@ -44,7 +50,7 @@ events_bad_desc.0002 = {
 				trigger = {
 					has_trait = brave
 				}
-				# ERROR CK3441: Missing desc field
+# Missing desc field
 			}
 			triggered_desc = {
 				trigger = {
@@ -67,12 +73,12 @@ events_bad_desc.0002 = {
 	}
 }
 
-# ERROR CK3442: first_valid has no fallback
+# first_valid has no fallback
 events_bad_desc.0003 = {
 	type = character_event
 	title = events_bad_desc.0003.t
 	desc = {
-		# ERROR CK3442: No unconditional fallback (no always = yes at end)
+# No unconditional fallback (no always = yes at end)
 		first_valid = {
 			triggered_desc = {
 				trigger = {
@@ -102,12 +108,12 @@ events_bad_desc.0003 = {
 	}
 }
 
-# ERROR CK3443: Empty desc block
+# Empty desc block
 events_bad_desc.0004 = {
 	type = character_event
 	title = events_bad_desc.0004.t
 	desc = {
-		# ERROR CK3443: Empty desc block
+# Empty desc block
 	}
 
 	left_portrait = root
@@ -122,7 +128,7 @@ events_bad_desc.0004 = {
 	}
 }
 
-# ERROR CK3444: Literal string in desc
+# Literal string in desc
 events_bad_desc.0005 = {
 	type = character_event
 	title = events_bad_desc.0005.t
@@ -140,12 +146,12 @@ events_bad_desc.0005 = {
 	}
 }
 
-# ERROR CK3445: Invalid desc structure (mixing first_valid/random_valid)
+# Invalid desc structure (mixing first_valid/random_valid)
 events_bad_desc.0006 = {
 	type = character_event
 	title = events_bad_desc.0006.t
 	desc = {
-		# ERROR CK3445: Mixing first_valid and random_valid is confusing
+# Mixing first_valid and random_valid is confusing
 		first_valid = {
 			triggered_desc = {
 				trigger = {
@@ -176,12 +182,12 @@ events_bad_desc.0006 = {
 	}
 }
 
-# ERROR CK3446: Excessive desc nesting (>3 levels)
+# Excessive desc nesting (>3 levels)
 events_bad_desc.0007 = {
 	type = character_event
 	title = events_bad_desc.0007.t
 	desc = {
-		# ERROR CK3446: Too deeply nested (4+ levels)
+# Too deeply nested (4+ levels)
 		first_valid = {
 			triggered_desc = {
 				trigger = {
@@ -235,8 +241,8 @@ events_bad_desc.0008 = {
 	desc = {
 		first_valid = {
 			triggered_desc = {
-				# ERROR CK3440: Missing trigger
-				# ERROR CK3441: Missing desc
+# Missing trigger
+# Missing desc
 			}
 			triggered_desc = {
 				trigger = {
@@ -244,7 +250,7 @@ events_bad_desc.0008 = {
 				}
 				desc = "Literal string" # ERROR CK3444: Literal string
 			}
-			# ERROR CK3442: No fallback
+# No fallback
 		}
 	}
 
@@ -260,7 +266,7 @@ events_bad_desc.0008 = {
 	}
 }
 
-# ERROR CK3443: Completely empty desc
+# Completely empty desc
 events_bad_desc.0009 = {
 	type = character_event
 	title = events_bad_desc.0009.t
@@ -278,12 +284,12 @@ events_bad_desc.0009 = {
 	}
 }
 
-# ERROR CK3442: random_valid without fallback
+# random_valid without fallback
 events_bad_desc.0010 = {
 	type = character_event
 	title = events_bad_desc.0010.t
 	desc = {
-		# ERROR CK3442: All triggered_desc have conditions, no guaranteed fallback
+# All triggered_desc have conditions, no guaranteed fallback
 		random_valid = {
 			triggered_desc = {
 				trigger = {

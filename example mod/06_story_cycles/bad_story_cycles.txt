@@ -1,7 +1,11 @@
 # Bad Story Cycle Examples
 # Demonstrates STORY-001 to STORY-045
 
-# ERROR STORY-001: effect_group missing timing keyword
+# effect_group missing timing keyword
+# ERROR: CK3103
+# ERROR: CK3314
+# ERROR: CK3702
+# ERROR: SCOPE-007
 bad_story_001 = {
 	on_owner_death = {
 		scope:story = {
@@ -9,13 +13,13 @@ bad_story_001 = {
 		}
 	}
 
-	# ERROR STORY-001: No days, months, or years specified
+# No days, months, or years specified
 	effect_group = {
 		add_gold = 100
 	}
 }
 
-# ERROR STORY-002: Invalid timing format
+# Invalid timing format
 bad_story_002 = {
 	on_owner_death = {
 		scope:story = {
@@ -29,7 +33,7 @@ bad_story_002 = {
 	}
 }
 
-# ERROR STORY-003: Invalid timing range
+# Invalid timing range
 bad_story_003 = {
 	on_owner_death = {
 		scope:story = {
@@ -48,7 +52,7 @@ bad_story_003 = {
 	}
 }
 
-# ERROR STORY-004: Multiple timing keywords
+# Multiple timing keywords
 bad_story_004 = {
 	on_owner_death = {
 		scope:story = {
@@ -69,7 +73,7 @@ bad_story_004 = {
 	}
 }
 
-# ERROR STORY-005: triggered_effect missing trigger
+# triggered_effect missing trigger
 bad_story_005 = {
 	on_owner_death = {
 		scope:story = {
@@ -81,7 +85,7 @@ bad_story_005 = {
 		months = 1
 
 		triggered_effect = {
-			# ERROR STORY-005: Missing trigger block
+# Missing trigger block
 			effect = {
 				add_gold = 100
 			}
@@ -89,7 +93,7 @@ bad_story_005 = {
 	}
 }
 
-# ERROR STORY-006: triggered_effect missing effect
+# triggered_effect missing effect
 bad_story_006 = {
 	on_owner_death = {
 		scope:story = {
@@ -104,12 +108,12 @@ bad_story_006 = {
 			trigger = {
 				is_adult = yes
 			}
-			# ERROR STORY-006: Missing effect block
+# Missing effect block
 		}
 	}
 }
 
-# ERROR STORY-007: No effect_group blocks
+# No effect_group blocks
 bad_story_007 = {
 	on_setup = {
 		set_variable = {
@@ -128,13 +132,13 @@ bad_story_007 = {
 		}
 	}
 
-	# ERROR STORY-007: Story has no effect_group blocks - does nothing
+# Story has no effect_group blocks - does nothing
 }
 
-# ERROR STORY-008: Wrong folder path
-# ERROR STORY-008: This file should be in common/story_cycles/ not common/events/
+# Wrong folder path
+# This file should be in common/story_cycles/ not common/events/
 
-# ERROR STORY-020: Missing on_owner_death handler
+# Missing on_owner_death handler
 bad_story_020 = {
 	on_setup = {
 		set_variable = {
@@ -143,7 +147,7 @@ bad_story_020 = {
 		}
 	}
 
-	# ERROR STORY-020: No on_owner_death - story may persist indefinitely
+# No on_owner_death - story may persist indefinitely
 	# Story continues after character dies
 
 	effect_group = {
@@ -152,10 +156,10 @@ bad_story_020 = {
 	}
 }
 
-# ERROR STORY-021: on_owner_death doesn't end story
+# on_owner_death doesn't end story
 bad_story_021 = {
 	on_owner_death = {
-		# ERROR STORY-021: Should call end_story or make_story_owner
+# Should call end_story or make_story_owner
 		add_gold = 100
 		# Story continues in undefined state
 	}
@@ -166,7 +170,7 @@ bad_story_021 = {
 	}
 }
 
-# ERROR STORY-022: effect_group without trigger
+# effect_group without trigger
 bad_story_022 = {
 	on_owner_death = {
 		scope:story = {
@@ -182,7 +186,7 @@ bad_story_022 = {
 	}
 }
 
-# ERROR STORY-023: chance > 100%
+# chance > 100%
 bad_story_023 = {
 	on_owner_death = {
 		scope:story = {
@@ -199,7 +203,7 @@ bad_story_023 = {
 	}
 }
 
-# ERROR STORY-024: chance = 0 or negative
+# chance = 0 or negative
 bad_story_024 = {
 	on_owner_death = {
 		scope:story = {
@@ -224,7 +228,7 @@ bad_story_024 = {
 	}
 }
 
-# ERROR STORY-025: effect_group with trigger but no triggered_effects
+# effect_group with trigger but no triggered_effects
 bad_story_025 = {
 	on_owner_death = {
 		scope:story = {
@@ -235,7 +239,7 @@ bad_story_025 = {
 	effect_group = {
 		months = 1
 
-		# ERROR STORY-025: Has trigger but no triggered_effects to use it
+# Has trigger but no triggered_effects to use it
 		trigger = {
 			is_adult = yes
 		}
@@ -244,7 +248,7 @@ bad_story_025 = {
 	}
 }
 
-# ERROR STORY-026: first_valid missing unconditional fallback
+# first_valid missing unconditional fallback
 bad_story_026 = {
 	on_owner_death = {
 		scope:story = {
@@ -274,13 +278,13 @@ bad_story_026 = {
 				}
 			}
 
-			# ERROR STORY-026: No always = yes fallback
+# No always = yes fallback
 			# What if character has neither trait?
 		}
 	}
 }
 
-# ERROR STORY-027: Mixing triggered_effect and first_valid
+# Mixing triggered_effect and first_valid
 bad_story_027 = {
 	on_owner_death = {
 		scope:story = {
@@ -291,7 +295,7 @@ bad_story_027 = {
 	effect_group = {
 		months = 1
 
-		# ERROR STORY-027: Confusing pattern - mixing two approaches
+# Confusing pattern - mixing two approaches
 		triggered_effect = {
 			trigger = {
 				is_adult = yes
@@ -426,7 +430,7 @@ bad_story_045 = {
 
 # Multiple errors combined
 bad_story_all_errors = {
-	# ERROR STORY-020: Missing on_owner_death
+# Missing on_owner_death
 	# INFO STORY-040: Empty on_setup
 	on_setup = {
 	}
@@ -435,15 +439,15 @@ bad_story_all_errors = {
 	on_end = {
 	}
 
-	# ERROR STORY-001 + STORY-004: Multiple timing keywords
+# + STORY-004: Multiple timing keywords
 	effect_group = {
 		days = 30
 		months = 1
-		# ERROR STORY-022: No trigger - fires unconditionally
+# No trigger - fires unconditionally
 		add_gold = 100
 	}
 
-	# ERROR STORY-005 + STORY-006: Missing trigger and effect
+# + STORY-006: Missing trigger and effect
 	effect_group = {
 		years = 1
 
@@ -452,14 +456,14 @@ bad_story_all_errors = {
 		}
 	}
 
-	# ERROR STORY-023 + STORY-024: Invalid chance values
+# + STORY-024: Invalid chance values
 	effect_group = {
 		months = 1
 		chance = -50
 		add_prestige = 50
 	}
 
-	# ERROR STORY-026: first_valid without fallback
+# first_valid without fallback
 	effect_group = {
 		months = 2
 

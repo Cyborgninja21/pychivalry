@@ -20,6 +20,15 @@
 # Expected validation result: ERRORS DETECTED
 # ===================================================================
 
+# ERROR: CK3101
+# ERROR: CK3306
+# ERROR: CK3317
+# ERROR: CK3701
+# ERROR: CK3702
+# ERROR: CK3875
+# ERROR: CK5137
+# ERROR: EVENT-008
+# ERROR: SCOPE-007
 namespace = scope_timing_bad
 
 # ===================================================================
@@ -71,7 +80,7 @@ scope_timing_bad.0001 = {
 }
 
 # -------------------------------------------------------------------
-# ERROR CK3551: Scope in desc from immediate (WARNING)
+# Scope in desc from immediate (WARNING)
 # -------------------------------------------------------------------
 # WHAT THIS TESTS: Detection of scopes in desc from immediate
 # SHOULD FAIL: Yes - CK3551 warning
@@ -82,7 +91,7 @@ scope_timing_bad.0001 = {
 scope_timing_bad.0002 = {
 	type = character_event
 	title = scope_timing_bad.0002.t
-	# ERROR CK3551: desc block references scope created in immediate
+# desc block references scope created in immediate
 	desc = {
 		triggered_desc = {
 			trigger = {
@@ -175,7 +184,7 @@ scope_timing_bad.0004 = {
 	}
 }
 
-# ERROR CK3554: Temporary scope across events
+# Temporary scope across events
 scope_timing_bad.0005 = {
 	type = character_event
 	title = scope_timing_bad.0005.t
@@ -187,7 +196,7 @@ scope_timing_bad.0005 = {
 
 	immediate = {
 		random_vassal = {
-			# ERROR CK3554: save_temporary_scope_as doesn't persist across events
+# save_temporary_scope_as doesn't persist across events
 			save_temporary_scope_as = temp_vassal
 		}
 	}
@@ -208,7 +217,7 @@ scope_timing_bad.0006 = {
 	desc = scope_timing_bad.0006.desc
 
 	trigger = {
-		# ERROR CK3554: scope:temp_vassal doesn't exist here
+# scope:temp_vassal doesn't exist here
 		# Temporary scopes don't persist across events
 		scope:temp_vassal = {
 			is_alive = yes
@@ -221,7 +230,7 @@ scope_timing_bad.0006 = {
 	}
 }
 
-# ERROR CK3555: Scope needed in triggered event but not passed
+# Scope needed in triggered event but not passed
 scope_timing_bad.0007 = {
 	type = character_event
 	title = scope_timing_bad.0007.t
@@ -240,7 +249,7 @@ scope_timing_bad.0007 = {
 
 	option = {
 		name = scope_timing_bad.0007.a
-		# ERROR CK3555: Triggering event that needs scope:chosen_vassal
+# Triggering event that needs scope:chosen_vassal
 		# but the scope context might not be available
 		trigger_event = {
 			id = scope_timing_bad.0008
@@ -268,11 +277,11 @@ scope_timing_bad.0008 = {
 	}
 }
 
-# ERROR CK3560: Scope created in immediate but used in desc localization
+# Scope created in immediate but used in desc localization
 scope_timing_bad.0009 = {
 	type = character_event
 	title = scope_timing_bad.0009.t
-	# ERROR CK3560: Localization key references scope:rival
+# Localization key references scope:rival
 	# But scope:rival is created in immediate (too late!)
 	desc = scope_timing_bad.0009.desc # Contains [rival.GetName] or similar
 
@@ -296,10 +305,10 @@ scope_timing_bad.0009 = {
 	}
 }
 
-# ERROR CK3561: Scope created in immediate but used in title localization
+# Scope created in immediate but used in title localization
 scope_timing_bad.0010 = {
 	type = character_event
-	# ERROR CK3561: Title localization references scope:target
+# Title localization references scope:target
 	# But scope:target is created in immediate!
 	title = scope_timing_bad.0010.t # Contains [target.GetTitledFirstName] or similar
 	desc = scope_timing_bad.0010.desc
@@ -321,11 +330,11 @@ scope_timing_bad.0010 = {
 	}
 }
 
-# ERROR CK3562: Scope may be used in desc but defined in immediate
+# Scope may be used in desc but defined in immediate
 scope_timing_bad.0011 = {
 	type = character_event
 	title = scope_timing_bad.0011.t
-	# ERROR CK3562: desc might reference scopes created in immediate
+# desc might reference scopes created in immediate
 	desc = {
 		first_valid = {
 			triggered_desc = {
@@ -362,9 +371,9 @@ scope_timing_bad.0011 = {
 # ERROR: Multiple scope timing violations in one event
 scope_timing_bad.0012 = {
 	type = character_event
-	# ERROR CK3561: Title references scope:enemy (created in immediate)
+# Title references scope:enemy (created in immediate)
 	title = scope_timing_bad.0012.t
-	# ERROR CK3560: Desc references scope:ally (created in immediate)
+# Desc references scope:ally (created in immediate)
 	desc = scope_timing_bad.0012.desc
 
 	trigger = {
@@ -438,7 +447,7 @@ scope_timing_bad.0014 = {
 
 	# ERROR: Portraits are evaluated before immediate runs
 	left_portrait = root
-	# ERROR CK3560/CK3561: scope:spouse doesn't exist yet
+# /CK3561: scope:spouse doesn't exist yet
 	right_portrait = scope:spouse
 
 	trigger = {
@@ -458,7 +467,7 @@ scope_timing_bad.0014 = {
 	}
 }
 
-# ERROR CK3555: Triggering event without needed scope context
+# Triggering event without needed scope context
 scope_timing_bad.0015 = {
 	type = character_event
 	title = scope_timing_bad.0015.t
@@ -472,7 +481,7 @@ scope_timing_bad.0015 = {
 		save_scope_as = original_actor
 		random_vassal = {
 			save_scope_as = important_vassal
-			# ERROR CK3555: Triggering event on vassal
+# Triggering event on vassal
 			# but original_actor scope won't be available there
 			trigger_event = scope_timing_bad.0016
 		}

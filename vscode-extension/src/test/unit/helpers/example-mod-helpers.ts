@@ -148,8 +148,8 @@ export function getSimulatedUri(sectionDir: string, fileName: string): string {
 export function extractExpectedCodes(content: string): Set<string> {
     const codes = new Set<string>();
     // Matches: optional whitespace, #, whitespace, ERROR, optional colon,
-    // whitespace, then the code (uppercase letters + optional hyphen + digits)
-    const regex = /^[\t ]*#\s*ERROR[:\s]+([A-Z]+-?\d+)/gm;
+    // whitespace, then the code (uppercase letters/underscores + optional hyphen + digits)
+    const regex = /^[\t ]*#\s*ERROR[:\s]+([A-Z][A-Z_]*-?\d+)/gm;
     let match: RegExpExecArray | null;
     while ((match = regex.exec(content)) !== null) {
         codes.add(match[1]);

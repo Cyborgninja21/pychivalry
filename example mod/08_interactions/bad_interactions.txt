@@ -1,9 +1,15 @@
 # Bad Character Interactions Examples
 # Demonstrates INTERACTION-001 to INTERACTION-003
 
-# ERROR INTERACTION-001: Missing category field
+# Missing category field
+# ERROR: CK3103
+# ERROR: CK3314
+# ERROR: CK3872
+# ERROR: EVENT-018
+# ERROR: INTERACT-002
+# ERROR: SCOPE-007
 bad_interaction_001 = {
-	# ERROR INTERACTION-001: No category field
+# No category field
 	# Should have: category = interaction_category_diplomacy (or similar)
 
 	desc = bad_interaction_001_desc
@@ -27,7 +33,7 @@ bad_interaction_001 = {
 	}
 }
 
-# ERROR INTERACTION-002: No effects
+# No effects
 bad_interaction_002 = {
 	category = interaction_category_diplomacy
 
@@ -39,7 +45,7 @@ bad_interaction_002 = {
 		}
 	}
 
-	# ERROR INTERACTION-002: No on_accept, on_decline, or any effect blocks
+# No on_accept, on_decline, or any effect blocks
 	# Interaction does nothing when accepted
 
 	ai_frequency = 60
@@ -49,7 +55,7 @@ bad_interaction_002 = {
 	}
 }
 
-# ERROR INTERACTION-003: No AI configuration
+# No AI configuration
 bad_interaction_003 = {
 	category = interaction_category_diplomacy
 
@@ -67,13 +73,13 @@ bad_interaction_003 = {
 		}
 	}
 
-	# ERROR INTERACTION-003: No ai_frequency, ai_targets, ai_accept, or any AI config
+# No ai_frequency, ai_targets, ai_accept, or any AI config
 	# AI will never use this interaction
 }
 
 # Multiple errors combined
 bad_interaction_all = {
-	# ERROR INTERACTION-001: Missing category
+# Missing category
 
 	desc = bad_interaction_all_desc
 
@@ -81,12 +87,12 @@ bad_interaction_all = {
 		always = yes
 	}
 
-	# ERROR INTERACTION-002: No effects
+# No effects
 
-	# ERROR INTERACTION-003: No AI configuration
+# No AI configuration
 }
 
-# ERROR INTERACTION-001: Wrong category value
+# Wrong category value
 bad_interaction_wrong_category = {
 	category = invalid_category_type # ERROR INTERACTION-001: Invalid category
 
@@ -99,7 +105,7 @@ bad_interaction_wrong_category = {
 	ai_frequency = 60
 }
 
-# ERROR INTERACTION-002: Empty effect blocks
+# Empty effect blocks
 bad_interaction_empty_effects = {
 	category = interaction_category_diplomacy
 
@@ -109,18 +115,18 @@ bad_interaction_empty_effects = {
 		always = yes
 	}
 
-	# ERROR INTERACTION-002: Empty on_accept
+# Empty on_accept
 	on_accept = {
 	}
 
-	# ERROR INTERACTION-002: Empty on_decline
+# Empty on_decline
 	on_decline = {
 	}
 
 	ai_frequency = 60
 }
 
-# ERROR INTERACTION-003: Incomplete AI configuration
+# Incomplete AI configuration
 bad_interaction_partial_ai = {
 	category = interaction_category_diplomacy
 
@@ -130,7 +136,7 @@ bad_interaction_partial_ai = {
 		add_prestige = 50
 	}
 
-	# ERROR INTERACTION-003: Has ai_frequency but no ai_accept or ai_targets
+# Has ai_frequency but no ai_accept or ai_targets
 	ai_frequency = 60
 	# Missing ai_accept and ai_targets
 }

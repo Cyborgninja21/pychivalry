@@ -22,6 +22,12 @@
 # Expected validation result: ERRORS DETECTED
 # ===================================================================
 
+# ERROR: CK3306
+# ERROR: CK3870
+# ERROR: EVENT-008
+# ERROR: ITER-001
+# ERROR: PARSE-001
+# ERROR: PARSE-002
 namespace = semantic_bad_triggers
 
 # -------------------------------------------------------------------
@@ -51,7 +57,7 @@ semantic_bad_triggers.0001 = {
 }
 
 # -------------------------------------------------------------------
-# ERROR CK3102 / CK3870: Effect used in trigger block
+# / CK3870: Effect used in trigger block
 # -------------------------------------------------------------------
 # WHAT THIS TESTS: Detection of effects in trigger-only contexts
 # SHOULD FAIL: Yes - CK3102 errors for each effect
@@ -408,7 +414,7 @@ semantic_bad_triggers.0013 = {
 }
 
 # -------------------------------------------------------------------
-# ERROR CK3007: Empty block with no children
+# Empty block with no children
 # -------------------------------------------------------------------
 # WHAT THIS TESTS: Detection of empty blocks
 # SHOULD FAIL: Yes - 3x CK3007 errors (trigger, immediate, option)
@@ -421,15 +427,15 @@ semantic_bad_triggers.0014 = {
 	desc = semantic_bad_triggers.0014.desc
 
 	trigger = {
-		# ERROR CK3007: Empty trigger block
+# Empty trigger block
 	}
 
 	immediate = {
-		# ERROR CK3007: Empty immediate block
+# Empty immediate block
 	}
 
 	option = {
 		name = semantic_bad_triggers.0014.a
-		# ERROR CK3007: Empty option (only has name, no effects)
+# Empty option (only has name, no effects)
 	}
 }

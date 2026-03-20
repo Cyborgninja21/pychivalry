@@ -2,6 +2,11 @@
 # Demonstrates SCHEME-001 to SCHEME-003
 
 # ERROR SCHEME-001: Missing skill field
+# ERROR: CK3103
+# ERROR: CK3314
+# ERROR: CK5137
+# ERROR: SCHEME-004
+# ERROR: SCOPE-007
 bad_scheme_001 = {
 	# ERROR SCHEME-001: No skill field
 	# Should have: skill = intrigue (or diplomacy, stewardship, etc.)
@@ -40,7 +45,7 @@ bad_scheme_002 = {
 	# Scheme does nothing when ready
 }
 
-# ERROR SCHEME-003: Uses agents but no valid_agent conditions
+# Uses agents but no valid_agent conditions
 bad_scheme_003 = {
 	skill = intrigue
 	desc = bad_scheme_003_desc
@@ -51,7 +56,7 @@ bad_scheme_003 = {
 		is_alive = yes
 	}
 
-	# ERROR SCHEME-003: Has agent_join_chance but no valid_agent block
+# Has agent_join_chance but no valid_agent block
 	agent_join_chance = {
 		base = 25
 
@@ -79,7 +84,7 @@ bad_scheme_all = {
 
 	target_type = character
 
-	# ERROR SCHEME-003: Has agent_join_chance but no valid_agent
+# Has agent_join_chance but no valid_agent
 	agent_join_chance = {
 		base = 50
 	}
@@ -116,14 +121,14 @@ bad_scheme_empty_effects = {
 	}
 }
 
-# ERROR SCHEME-003: Agent logic without valid_agent
+# Agent logic without valid_agent
 bad_scheme_agents_no_validation = {
 	skill = intrigue
 	desc = bad_scheme_agents_no_validation_desc
 
 	target_type = character
 
-	# ERROR SCHEME-003: No valid_agent block to define who can be an agent
+# No valid_agent block to define who can be an agent
 	agent_join_chance = {
 		base = 25
 

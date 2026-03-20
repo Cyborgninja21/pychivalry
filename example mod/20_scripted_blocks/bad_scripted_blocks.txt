@@ -12,10 +12,14 @@
 # Expected validation result: ERRORS DETECTED
 # ===================================================================
 
+# ERROR: CK3101
+# ERROR: CK3103
+# ERROR: CK3306
+# ERROR: EVENT-008
 namespace = scripted_bad
 
 # -------------------------------------------------------------------
-# ERROR CK3950: Undefined scripted effect
+# Undefined scripted effect
 # -------------------------------------------------------------------
 # WHAT THIS TESTS: Detection of calls to scripted effects that don't exist
 # SHOULD FAIL: Yes - CK3950 error
@@ -43,7 +47,7 @@ scripted_bad.0001 = {
 }
 
 # -------------------------------------------------------------------
-# ERROR CK3951: Undefined scripted trigger
+# Undefined scripted trigger
 # -------------------------------------------------------------------
 # WHAT THIS TESTS: Detection of calls to scripted triggers that don't exist
 # SHOULD FAIL: Yes - CK3951 error

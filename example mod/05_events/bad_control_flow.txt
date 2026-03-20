@@ -1,6 +1,11 @@
 # Bad Control Flow Examples
 # Demonstrates CK3510-CK3521 - Control flow validation errors
 
+# ERROR: CK3103
+# ERROR: CK3314
+# ERROR: COND-001
+# ERROR: COND-003
+# ERROR: EVENT-012
 namespace = events_bad_control
 
 # ERROR CK3510: trigger_else without trigger_if
@@ -64,7 +69,7 @@ events_bad_control.0002 = {
 	}
 }
 
-# ERROR CK3512: trigger_if missing limit
+# trigger_if missing limit
 events_bad_control.0003 = {
 	type = character_event
 	title = events_bad_control.0003.t
@@ -77,7 +82,7 @@ events_bad_control.0003 = {
 	}
 
 	immediate = {
-		# ERROR CK3512: trigger_if requires limit block
+# trigger_if requires limit block
 		trigger_if = {
 			add_gold = 100
 		}
@@ -89,7 +94,7 @@ events_bad_control.0003 = {
 	}
 }
 
-# ERROR CK3513: Empty trigger_if limit
+# Empty trigger_if limit
 events_bad_control.0004 = {
 	type = character_event
 	title = events_bad_control.0004.t
@@ -103,7 +108,7 @@ events_bad_control.0004 = {
 
 	immediate = {
 		trigger_if = {
-			# ERROR CK3513: Empty limit block
+# Empty limit block
 			limit = {
 			}
 			add_gold = 100
@@ -149,7 +154,7 @@ events_bad_control.0005 = {
 	}
 }
 
-# ERROR CK3515: Duplicate trigger conditions
+# Duplicate trigger conditions
 events_bad_control.0006 = {
 	type = character_event
 	title = events_bad_control.0006.t
@@ -158,7 +163,7 @@ events_bad_control.0006 = {
 	left_portrait = root
 
 	trigger = {
-		# ERROR CK3515: Same condition checked twice
+# Same condition checked twice
 		is_adult = yes
 		is_ruler = yes
 		is_adult = yes # Duplicate!
@@ -170,7 +175,7 @@ events_bad_control.0006 = {
 	}
 }
 
-# ERROR CK3520: after block in hidden event
+# after block in hidden event
 events_bad_control.0007 = {
 	type = character_event
 	hidden = yes
@@ -183,13 +188,13 @@ events_bad_control.0007 = {
 		add_gold = 100
 	}
 
-	# ERROR CK3520: after block ignored in hidden events
+# after block ignored in hidden events
 	after = {
 		add_prestige = 50
 	}
 }
 
-# ERROR CK3521: after block without options
+# after block without options
 events_bad_control.0008 = {
 	type = character_event
 	hidden = yes
@@ -202,7 +207,7 @@ events_bad_control.0008 = {
 		add_gold = 100
 	}
 
-	# ERROR CK3521: after runs after player choice, but there are no options
+# after runs after player choice, but there are no options
 	after = {
 		add_prestige = 50
 	}
@@ -218,7 +223,7 @@ events_bad_control.0009 = {
 
 	trigger = {
 		is_adult = yes
-		# ERROR CK3515: Duplicate
+# Duplicate
 		is_adult = yes
 	}
 
@@ -229,7 +234,7 @@ events_bad_control.0009 = {
 		}
 
 		trigger_if = {
-			# ERROR CK3512: Missing limit
+# Missing limit
 			add_prestige = 100
 		}
 
@@ -256,7 +261,7 @@ events_bad_control.0009 = {
 	}
 }
 
-# ERROR CK3512 + CK3513: trigger_if variations
+# + CK3513: trigger_if variations
 events_bad_control.0010 = {
 	type = character_event
 	title = events_bad_control.0010.t
@@ -269,12 +274,12 @@ events_bad_control.0010 = {
 	}
 
 	immediate = {
-		# ERROR CK3512: No limit block at all
+# No limit block at all
 		trigger_if = {
 			add_gold = 100
 		}
 
-		# ERROR CK3513: Empty limit
+# Empty limit
 		trigger_if = {
 			limit = {
 			}
@@ -288,7 +293,7 @@ events_bad_control.0010 = {
 	}
 }
 
-# ERROR CK3520 + CK3521: after block issues
+# + CK3521: after block issues
 events_bad_control.0011 = {
 	type = character_event
 	hidden = yes # ERROR CK3520: Hidden event with after
@@ -301,8 +306,8 @@ events_bad_control.0011 = {
 		add_gold = 100
 	}
 
-	# ERROR CK3520: Ignored in hidden event
-	# ERROR CK3521: No options to trigger after
+# Ignored in hidden event
+# No options to trigger after
 	after = {
 		add_prestige = 50
 	}

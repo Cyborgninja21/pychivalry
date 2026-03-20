@@ -1,11 +1,18 @@
 # Bad Event Structure Examples
 # Demonstrates CK3760-CK3769 - Event structure validation errors
 
+# ERROR: CONV-001
+# ERROR: CONV-002
+# ERROR: CONV-003
+# ERROR: EVENT-001
+# ERROR: EVENT-002
+# ERROR: EVENT-011
+# ERROR: EVENT-013
 namespace = events_bad_structure
 
-# ERROR CK3760: Event missing type declaration
+# Event missing type declaration
 events_bad_structure.0001 = {
-	# ERROR CK3760: No 'type = character_event' or similar
+# No 'type = character_event' or similar
 	title = events_bad_structure.0001.t
 	desc = events_bad_structure.0001.desc
 
@@ -21,7 +28,7 @@ events_bad_structure.0001 = {
 	}
 }
 
-# ERROR CK3761: Invalid event type
+# Invalid event type
 events_bad_structure.0002 = {
 	type = super_awesome_event # ERROR CK3761: Not a valid event type
 	title = events_bad_structure.0002.t
@@ -39,7 +46,7 @@ events_bad_structure.0002 = {
 	}
 }
 
-# ERROR CK3762: Hidden event with options
+# Hidden event with options
 events_bad_structure.0003 = {
 	type = character_event
 	hidden = yes # Hidden events shouldn't have options
@@ -52,7 +59,7 @@ events_bad_structure.0003 = {
 		add_gold = 100
 	}
 
-	# ERROR CK3762: Hidden events don't display options
+# Hidden events don't display options
 	option = {
 		name = events_bad_structure.0003.a
 		add_prestige = 50
@@ -64,7 +71,7 @@ events_bad_structure.0003 = {
 	}
 }
 
-# ERROR CK3763: Event with no option blocks
+# Event with no option blocks
 events_bad_structure.0004 = {
 	type = character_event
 	title = events_bad_structure.0004.t
@@ -80,14 +87,14 @@ events_bad_structure.0004 = {
 		add_gold = 100
 	}
 
-	# ERROR CK3763: No options - player has no way to dismiss event
+# No options - player has no way to dismiss event
 }
 
-# ERROR CK3764: Non-hidden event missing desc
+# Non-hidden event missing desc
 events_bad_structure.0005 = {
 	type = character_event
 	title = events_bad_structure.0005.t
-	# ERROR CK3764: Missing desc field (required for non-hidden events)
+# Missing desc field (required for non-hidden events)
 
 	left_portrait = root
 
@@ -101,7 +108,7 @@ events_bad_structure.0005 = {
 	}
 }
 
-# ERROR CK3766: Multiple after blocks
+# Multiple after blocks
 events_bad_structure.0006 = {
 	type = character_event
 	title = events_bad_structure.0006.t
@@ -118,7 +125,7 @@ events_bad_structure.0006 = {
 		add_gold = 100
 	}
 
-	# ERROR CK3766: Only the first after block will execute
+# Only the first after block will execute
 	after = {
 		trigger_event = {
 			id = events_bad_structure.0007
@@ -145,12 +152,12 @@ events_bad_structure.0007 = {
 	}
 }
 
-# ERROR CK3767: Empty event block
+# Empty event block
 events_bad_structure.0008 = {
-	# ERROR CK3767: Event has no content at all
+# Event has no content at all
 }
 
-# ERROR CK3768: Multiple immediate blocks
+# Multiple immediate blocks
 events_bad_structure.0009 = {
 	type = character_event
 	title = events_bad_structure.0009.t
@@ -162,7 +169,7 @@ events_bad_structure.0009 = {
 		is_adult = yes
 	}
 
-	# ERROR CK3768: Only one immediate block allowed
+# Only one immediate block allowed
 	immediate = {
 		add_gold = 100
 	}
@@ -178,13 +185,13 @@ events_bad_structure.0009 = {
 	}
 }
 
-# ERROR CK3769: Character event has no portraits
+# Character event has no portraits
 events_bad_structure.0010 = {
 	type = character_event
 	title = events_bad_structure.0010.t
 	desc = events_bad_structure.0010.desc
 
-	# ERROR CK3769: No left_portrait, right_portrait, or any portraits defined
+# No left_portrait, right_portrait, or any portraits defined
 	# Visual events should show character portraits
 
 	trigger = {
@@ -199,17 +206,17 @@ events_bad_structure.0010 = {
 
 # Multiple structure errors combined
 events_bad_structure.0011 = {
-	# ERROR CK3760: Missing type
-	# ERROR CK3764: Missing desc
+# Missing type
+# Missing desc
 	title = events_bad_structure.0011.t
 
-	# ERROR CK3769: No portraits
+# No portraits
 
 	trigger = {
 		is_adult = yes
 	}
 
-	# ERROR CK3768: Multiple immediate blocks
+# Multiple immediate blocks
 	immediate = {
 		add_gold = 100
 	}
@@ -223,7 +230,7 @@ events_bad_structure.0011 = {
 		add_piety = 25
 	}
 
-	# ERROR CK3766: Multiple after blocks
+# Multiple after blocks
 	after = {
 		add_gold = 50
 	}
@@ -233,7 +240,7 @@ events_bad_structure.0011 = {
 	}
 }
 
-# ERROR CK3761: Wrong event type name (typo)
+# Wrong event type name (typo)
 events_bad_structure.0012 = {
 	type = charcter_event # ERROR CK3761: Typo - should be 'character_event'
 	title = events_bad_structure.0012.t
@@ -251,7 +258,7 @@ events_bad_structure.0012 = {
 	}
 }
 
-# ERROR CK3762: Hidden event with desc (wasteful)
+# Hidden event with desc (wasteful)
 events_bad_structure.0013 = {
 	type = character_event
 	hidden = yes
@@ -270,8 +277,8 @@ events_bad_structure.0013 = {
 	}
 }
 
-# ERROR CK3767: Event with only type (empty)
+# Event with only type (empty)
 events_bad_structure.0014 = {
 	type = character_event
-	# ERROR CK3767: Nothing else defined - event does nothing
+# Nothing else defined - event does nothing
 }

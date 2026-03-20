@@ -2,6 +2,9 @@
 # Demonstrates DECISION-001 to DECISION-004
 
 # ERROR DECISION-001: Missing ai_check_interval
+# ERROR: CK3103
+# ERROR: CK3314
+# ERROR: CK3872
 bad_decision_001 = {
 	picture = "gfx/interface/illustrations/decisions/decision_misc.dds"
 
@@ -32,7 +35,7 @@ bad_decision_001 = {
 	}
 }
 
-# ERROR DECISION-002: Missing effect block
+# Missing effect block
 bad_decision_002 = {
 	picture = "gfx/interface/illustrations/decisions/decision_misc.dds"
 
@@ -50,7 +53,7 @@ bad_decision_002 = {
 		gold = 100
 	}
 
-	# ERROR DECISION-002: Missing effect block
+# Missing effect block
 	# Decision has no actual effect when taken
 
 	ai_check_interval = 60
@@ -64,14 +67,14 @@ bad_decision_002 = {
 	}
 }
 
-# ERROR DECISION-003: No is_shown or is_valid
+# No is_shown or is_valid
 bad_decision_003 = {
 	picture = "gfx/interface/illustrations/decisions/decision_misc.dds"
 
 	desc = bad_decision_003_desc
 
-	# ERROR DECISION-003: Missing is_shown
-	# ERROR DECISION-003: Missing is_valid
+# Missing is_shown
+# Missing is_valid
 	# Decision will always be available to everyone
 
 	effect = {
@@ -89,7 +92,7 @@ bad_decision_003 = {
 	}
 }
 
-# ERROR DECISION-004: Effects but no cost/validity check
+# Effects but no cost/validity check
 bad_decision_004 = {
 	picture = "gfx/interface/illustrations/decisions/decision_misc.dds"
 
@@ -99,14 +102,14 @@ bad_decision_004 = {
 		is_ruler = yes
 	}
 
-	# ERROR DECISION-004: is_valid exists but has no actual checks
+# is_valid exists but has no actual checks
 	is_valid = {
 		always = yes
 	}
 
 	# No cost field
 
-	# ERROR DECISION-004: Gives benefits with no cost or real requirements
+# Gives benefits with no cost or real requirements
 	effect = {
 		add_gold = 1000
 		add_prestige = 500
@@ -130,10 +133,10 @@ bad_decision_all_errors = {
 
 	desc = bad_decision_all_errors_desc
 
-	# ERROR DECISION-003: No is_shown
-	# ERROR DECISION-003: No is_valid
+# No is_shown
+# No is_valid
 
-	# ERROR DECISION-002: No effect block
+# No effect block
 
 	# ERROR DECISION-001: No ai_check_interval
 
@@ -180,7 +183,7 @@ bad_decision_no_interval = {
 	}
 }
 
-# ERROR DECISION-002: Effect block is empty
+# Effect block is empty
 bad_decision_empty_effect = {
 	picture = "gfx/interface/illustrations/decisions/decision_misc.dds"
 
@@ -198,7 +201,7 @@ bad_decision_empty_effect = {
 		gold = 100
 	}
 
-	# ERROR DECISION-002: Empty effect block
+# Empty effect block
 	effect = {
 	}
 
@@ -213,7 +216,7 @@ bad_decision_empty_effect = {
 	}
 }
 
-# ERROR DECISION-004: Free lunch decision
+# Free lunch decision
 bad_decision_free_lunch = {
 	picture = "gfx/interface/illustrations/decisions/decision_misc.dds"
 
@@ -223,14 +226,14 @@ bad_decision_free_lunch = {
 		is_ruler = yes
 	}
 
-	# ERROR DECISION-004: No meaningful validation
+# No meaningful validation
 	is_valid = {
 		is_adult = yes # Always true if shown
 	}
 
 	# No cost
 
-	# ERROR DECISION-004: Huge benefits with no cost
+# Huge benefits with no cost
 	effect = {
 		add_gold = 5000
 		add_prestige = 2000
@@ -252,13 +255,13 @@ bad_decision_free_lunch = {
 	}
 }
 
-# ERROR DECISION-003: Only has effect and picture
+# Only has effect and picture
 bad_decision_minimal = {
 	picture = "gfx/interface/illustrations/decisions/decision_misc.dds"
 
-	# ERROR DECISION-003: No is_shown - available to everyone
-	# ERROR DECISION-003: No is_valid - no requirements
-	# ERROR DECISION-002: No effect block (only AI logic)
+# No is_shown - available to everyone
+# No is_valid - no requirements
+# No effect block (only AI logic)
 	# ERROR DECISION-001: No ai_check_interval
 
 	desc = bad_decision_minimal_desc

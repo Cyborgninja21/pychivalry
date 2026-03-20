@@ -11,10 +11,22 @@
 # Expected validation result: ERRORS DETECTED
 # ===================================================================
 
+# ERROR: CK3101
+# ERROR: CK3306
+# ERROR: CK3317
+# ERROR: CK3330
+# ERROR: CK3331
+# ERROR: CK3870
+# ERROR: CK3871
+# ERROR: EVENT-008
+# ERROR: PARSE-001
+# ERROR: PARSE-002
+# ERROR: PARSE-003
+# ERROR: PARSE-004
 namespace = syntax_bad
 
 # -------------------------------------------------------------------
-# ERROR CK3001: Unmatched closing bracket - extra closing brace
+# Unmatched closing bracket - extra closing brace
 # -------------------------------------------------------------------
 # WHAT THIS TESTS: Detection of extra closing braces
 # SHOULD FAIL: Yes - CK3001 error
@@ -38,7 +50,7 @@ syntax_bad.0001 = {
 }
 
 # -------------------------------------------------------------------
-# ERROR CK3002: Unclosed bracket - missing closing brace
+# Unclosed bracket - missing closing brace
 # -------------------------------------------------------------------
 # WHAT THIS TESTS: Detection of missing closing braces
 # SHOULD FAIL: Yes - CK3002 error
@@ -60,7 +72,7 @@ syntax_bad.0002 = {
 	# MISSING CLOSING BRACE for option block
 
 # -------------------------------------------------------------------
-# ERROR CK3002: Unclosed bracket in nested structure
+# Unclosed bracket in nested structure
 # -------------------------------------------------------------------
 # WHAT THIS TESTS: Detection of missing braces in nested logic blocks
 # SHOULD FAIL: Yes - CK3002 error
@@ -90,7 +102,7 @@ syntax_bad.0003 = {
 }
 
 # -------------------------------------------------------------------
-# ERROR CK3001: Unmatched closing bracket in if/else chain
+# Unmatched closing bracket in if/else chain
 # -------------------------------------------------------------------
 # WHAT THIS TESTS: Detection of extra braces after valid structures
 # SHOULD FAIL: Yes - CK3001 error
@@ -119,7 +131,7 @@ syntax_bad.0004 = {
 }
 
 # -------------------------------------------------------------------
-# ERROR CK3002: Missing closing brace for event
+# Missing closing brace for event
 # -------------------------------------------------------------------
 # WHAT THIS TESTS: Detection of incomplete event definitions
 # SHOULD FAIL: Yes - CK3002 error
@@ -142,7 +154,7 @@ syntax_bad.0005 = {
 # MISSING CLOSING BRACE for entire event
 
 # -------------------------------------------------------------------
-# ERROR CK3002: Unclosed limit block
+# Unclosed limit block
 # -------------------------------------------------------------------
 # WHAT THIS TESTS: Detection of unclosed blocks in scripted effects
 # SHOULD FAIL: Yes - CK3002 error
@@ -165,7 +177,7 @@ syntax_bad_effect = {
 }
 
 # -------------------------------------------------------------------
-# ERROR CK3001: Too many closing braces in decision
+# Too many closing braces in decision
 # -------------------------------------------------------------------
 # WHAT THIS TESTS: Detection of multiple extra closing braces
 # SHOULD FAIL: Yes - CK3001 error (reported twice)
@@ -186,7 +198,7 @@ syntax_bad_decision = {
 } # Two extra closing braces
 
 # -------------------------------------------------------------------
-# ERROR CK3002: Missing closing for triggered_desc
+# Missing closing for triggered_desc
 # -------------------------------------------------------------------
 # WHAT THIS TESTS: Detection of unclosed trigger blocks in descriptions
 # SHOULD FAIL: Yes - CK3002 error
@@ -216,7 +228,7 @@ syntax_bad.0006 = {
 }
 
 # -------------------------------------------------------------------
-# ERROR CK3001: Unmatched closing in complex nesting
+# Unmatched closing in complex nesting
 # -------------------------------------------------------------------
 # WHAT THIS TESTS: Detection of extra braces in OR blocks
 # SHOULD FAIL: Yes - CK3001 error

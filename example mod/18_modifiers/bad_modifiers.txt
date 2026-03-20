@@ -17,13 +17,14 @@
 # ===================================================================
 
 # -------------------------------------------------------------------
-# ERROR MOD-001: Unknown modifier key not in knownModifierKeys
+# Unknown modifier key not in knownModifierKeys
 # -------------------------------------------------------------------
 # WHAT THIS TESTS: Detection of unrecognized modifier keys
 # SHOULD FAIL: Yes - MOD-001 for each unknown key
 # WHY IT'S BAD: These keys don't exist in CK3
 # HOW TO FIX: Use only valid modifier keys (diplomacy, martial, etc.)
 # -------------------------------------------------------------------
+# ERROR: CK3306
 bad_unknown_keys_modifier = {
 	diplomacy = 2
 	super_strength = 5 # ERROR MOD-001: Unknown modifier key 'super_strength'
@@ -46,7 +47,7 @@ bad_nonnumeric_modifier = {
 }
 
 # -------------------------------------------------------------------
-# ERROR MOD-003: Opinion modifier missing 'opinion' field
+# Opinion modifier missing 'opinion' field
 # -------------------------------------------------------------------
 # WHAT THIS TESTS: Detection of opinion modifiers without the opinion key
 # SHOULD FAIL: Yes - MOD-003 warning
@@ -59,7 +60,7 @@ bad_missing_opinion_modifier = {
 }
 
 # -------------------------------------------------------------------
-# ERROR MOD-004: Opinion value outside typical range (-200 to 200)
+# Opinion value outside typical range (-200 to 200)
 # -------------------------------------------------------------------
 # WHAT THIS TESTS: Detection of extreme opinion values
 # SHOULD FAIL: Yes - MOD-004 for out-of-range values
@@ -89,7 +90,7 @@ bad_everything_wrong_modifier = {
 	laser_eyes = 10 # ERROR MOD-001: Unknown modifier key 'laser_eyes'
 	years = 5
 	decaying = yes
-	# ERROR MOD-003: Missing 'opinion' field (has years/decaying but no opinion)
+# Missing 'opinion' field (has years/decaying but no opinion)
 }
 
 bad_combined_opinion_modifier = {
