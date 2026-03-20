@@ -117,6 +117,133 @@
         "order": 3
       }
     },
+    // ── Test Groups (debug a related set of tests) ───────────────
+    {
+      "name": "🔬 Core Tests (parser, indexer, cache)",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/vscode-extension/node_modules/mocha/bin/_mocha",
+      "args": [
+        "${workspaceFolder}/vscode-extension/out/test/unit/parser.test.js",
+        "${workspaceFolder}/vscode-extension/out/test/unit/incremental-parser.test.js",
+        "${workspaceFolder}/vscode-extension/out/test/unit/parse-cache.test.js",
+        "${workspaceFolder}/vscode-extension/out/test/unit/indexer.test.js",
+        "--timeout",
+        "15000"
+      ],
+      "cwd": "${workspaceFolder}/vscode-extension",
+      "outFiles": [
+        "${workspaceFolder}/vscode-extension/out/**/*.js"
+      ],
+      "preLaunchTask": "Compile Tests",
+      "console": "integratedTerminal",
+      "presentation": {
+        "group": "3-groups",
+        "order": 1
+      }
+    },
+    {
+      "name": "🔬 LSP Tests (completions, hover, navigation)",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/vscode-extension/node_modules/mocha/bin/_mocha",
+      "args": [
+        "${workspaceFolder}/vscode-extension/out/test/unit/completions.test.js",
+        "${workspaceFolder}/vscode-extension/out/test/unit/hover.test.js",
+        "${workspaceFolder}/vscode-extension/out/test/unit/selection-range.test.js",
+        "${workspaceFolder}/vscode-extension/out/test/unit/call-hierarchy.test.js",
+        "${workspaceFolder}/vscode-extension/out/test/unit/call-graph.test.js",
+        "${workspaceFolder}/vscode-extension/out/test/unit/fuzzy-match.test.js",
+        "--timeout",
+        "15000"
+      ],
+      "cwd": "${workspaceFolder}/vscode-extension",
+      "outFiles": [
+        "${workspaceFolder}/vscode-extension/out/**/*.js"
+      ],
+      "preLaunchTask": "Compile Tests",
+      "console": "integratedTerminal",
+      "presentation": {
+        "group": "3-groups",
+        "order": 2
+      }
+    },
+    {
+      "name": "🔬 Validation Tests (diagnostics, scopes, modifiers)",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/vscode-extension/node_modules/mocha/bin/_mocha",
+      "args": [
+        "${workspaceFolder}/vscode-extension/out/test/unit/diagnostics-engine.test.js",
+        "${workspaceFolder}/vscode-extension/out/test/unit/style-checks.test.js",
+        "${workspaceFolder}/vscode-extension/out/test/unit/scopes.test.js",
+        "${workspaceFolder}/vscode-extension/out/test/unit/script-values.test.js",
+        "${workspaceFolder}/vscode-extension/out/test/unit/scripted-params.test.js",
+        "${workspaceFolder}/vscode-extension/out/test/unit/modifiers.test.js",
+        "${workspaceFolder}/vscode-extension/out/test/unit/schema-conditions.test.js",
+        "${workspaceFolder}/vscode-extension/out/test/unit/localization-validator.test.js",
+        "--timeout",
+        "15000"
+      ],
+      "cwd": "${workspaceFolder}/vscode-extension",
+      "outFiles": [
+        "${workspaceFolder}/vscode-extension/out/**/*.js"
+      ],
+      "preLaunchTask": "Compile Tests",
+      "console": "integratedTerminal",
+      "presentation": {
+        "group": "3-groups",
+        "order": 3
+      }
+    },
+    {
+      "name": "🔬 CK3 Game Logic Tests (events, decisions, schemes)",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/vscode-extension/node_modules/mocha/bin/_mocha",
+      "args": [
+        "${workspaceFolder}/vscode-extension/out/test/unit/events.test.js",
+        "${workspaceFolder}/vscode-extension/out/test/unit/on-actions.test.js",
+        "${workspaceFolder}/vscode-extension/out/test/unit/schemes.test.js",
+        "${workspaceFolder}/vscode-extension/out/test/unit/casus-belli.test.js",
+        "${workspaceFolder}/vscode-extension/out/test/unit/court-positions.test.js",
+        "${workspaceFolder}/vscode-extension/out/test/unit/language.test.js",
+        "--timeout",
+        "15000"
+      ],
+      "cwd": "${workspaceFolder}/vscode-extension",
+      "outFiles": [
+        "${workspaceFolder}/vscode-extension/out/**/*.js"
+      ],
+      "preLaunchTask": "Compile Tests",
+      "console": "integratedTerminal",
+      "presentation": {
+        "group": "3-groups",
+        "order": 4
+      }
+    },
+    {
+      "name": "🔬 Log Analysis Tests (analyzer, diagnostics)",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/vscode-extension/node_modules/mocha/bin/_mocha",
+      "args": [
+        "${workspaceFolder}/vscode-extension/out/test/unit/log-analyzer.test.js",
+        "${workspaceFolder}/vscode-extension/out/test/unit/log-diagnostics.test.js",
+        "--timeout",
+        "15000"
+      ],
+      "cwd": "${workspaceFolder}/vscode-extension",
+      "outFiles": [
+        "${workspaceFolder}/vscode-extension/out/**/*.js"
+      ],
+      "preLaunchTask": "Compile Tests",
+      "console": "integratedTerminal",
+      "presentation": {
+        "group": "3-groups",
+        "order": 5
+      }
+    },
     // ── Integration Tests ──────────────────────────────────────────
     {
       "name": "🧪 Integration Tests",

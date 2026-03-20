@@ -119,6 +119,67 @@
         "panel": "dedicated"
       }
     },
+    // ── Test Groups ─────────────────────────────────────────────
+    {
+      "label": "Run Core Tests (parser, indexer, cache)",
+      "type": "shell",
+      "command": "npx mocha ./out/test/unit/parser.test.js ./out/test/unit/incremental-parser.test.js ./out/test/unit/parse-cache.test.js ./out/test/unit/indexer.test.js --timeout 15000",
+      "options": { "cwd": "${workspaceFolder}/vscode-extension" },
+      "dependsOn": ["Compile Tests"],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "Run LSP Tests (completions, hover, navigation)",
+      "type": "shell",
+      "command": "npx mocha ./out/test/unit/completions.test.js ./out/test/unit/hover.test.js ./out/test/unit/selection-range.test.js ./out/test/unit/call-hierarchy.test.js ./out/test/unit/call-graph.test.js ./out/test/unit/fuzzy-match.test.js --timeout 15000",
+      "options": { "cwd": "${workspaceFolder}/vscode-extension" },
+      "dependsOn": ["Compile Tests"],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "Run Validation Tests (diagnostics, scopes, modifiers)",
+      "type": "shell",
+      "command": "npx mocha ./out/test/unit/diagnostics-engine.test.js ./out/test/unit/style-checks.test.js ./out/test/unit/scopes.test.js ./out/test/unit/script-values.test.js ./out/test/unit/scripted-params.test.js ./out/test/unit/modifiers.test.js ./out/test/unit/schema-conditions.test.js ./out/test/unit/localization-validator.test.js --timeout 15000",
+      "options": { "cwd": "${workspaceFolder}/vscode-extension" },
+      "dependsOn": ["Compile Tests"],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "Run CK3 Game Logic Tests (events, decisions, schemes)",
+      "type": "shell",
+      "command": "npx mocha ./out/test/unit/events.test.js ./out/test/unit/on-actions.test.js ./out/test/unit/schemes.test.js ./out/test/unit/casus-belli.test.js ./out/test/unit/court-positions.test.js ./out/test/unit/language.test.js --timeout 15000",
+      "options": { "cwd": "${workspaceFolder}/vscode-extension" },
+      "dependsOn": ["Compile Tests"],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "Run Log Analysis Tests (analyzer, diagnostics)",
+      "type": "shell",
+      "command": "npx mocha ./out/test/unit/log-analyzer.test.js ./out/test/unit/log-diagnostics.test.js --timeout 15000",
+      "options": { "cwd": "${workspaceFolder}/vscode-extension" },
+      "dependsOn": ["Compile Tests"],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
     {
       "label": "Watch Extension Tests",
       "type": "npm",
