@@ -66,6 +66,13 @@ tasks:
     cmds:
       - npm run test:integration
 
+  test:examples:
+    desc: Run example mod validation tests only
+    dir: "{{.EXT_DIR}}"
+    deps: [compile:tests]
+    cmds:
+      - npm run test:examples
+
   test:quick:
     desc: Run tests without linting (compile + test)
     dir: "{{.EXT_DIR}}"
@@ -77,6 +84,227 @@ tasks:
     dir: "{{.EXT_DIR}}"
     cmds:
       - npm run test:watch
+
+  # ─── Test Groups (run related test files together) ─────────────
+
+  test:core:
+    desc: "Core tests: parser, incremental parser, parse cache, indexer"
+    dir: "{{.EXT_DIR}}"
+    deps: [compile:tests]
+    cmds:
+      - npx mocha ./out/test/unit/parser.test.js ./out/test/unit/incremental-parser.test.js ./out/test/unit/parse-cache.test.js ./out/test/unit/indexer.test.js --timeout 15000
+
+  test:lsp:
+    desc: "LSP feature tests: completions, hover, selection range, call hierarchy/graph, fuzzy match"
+    dir: "{{.EXT_DIR}}"
+    deps: [compile:tests]
+    cmds:
+      - npx mocha ./out/test/unit/completions.test.js ./out/test/unit/hover.test.js ./out/test/unit/selection-range.test.js ./out/test/unit/call-hierarchy.test.js ./out/test/unit/call-graph.test.js ./out/test/unit/fuzzy-match.test.js --timeout 15000
+
+  test:validation:
+    desc: "Validation tests: diagnostics engine, style, scopes, script values, params, modifiers, schema, loc"
+    dir: "{{.EXT_DIR}}"
+    deps: [compile:tests]
+    cmds:
+      - npx mocha ./out/test/unit/diagnostics-engine.test.js ./out/test/unit/style-checks.test.js ./out/test/unit/scopes.test.js ./out/test/unit/script-values.test.js ./out/test/unit/scripted-params.test.js ./out/test/unit/modifiers.test.js ./out/test/unit/schema-conditions.test.js ./out/test/unit/localization-validator.test.js --timeout 15000
+
+  test:ck3:
+    desc: "CK3 game logic tests: events, on-actions, schemes, casus belli, court positions, language"
+    dir: "{{.EXT_DIR}}"
+    deps: [compile:tests]
+    cmds:
+      - npx mocha ./out/test/unit/events.test.js ./out/test/unit/on-actions.test.js ./out/test/unit/schemes.test.js ./out/test/unit/casus-belli.test.js ./out/test/unit/court-positions.test.js ./out/test/unit/language.test.js --timeout 15000
+
+  test:log:
+    desc: "Log analysis tests: log analyzer, log diagnostics"
+    dir: "{{.EXT_DIR}}"
+    deps: [compile:tests]
+    cmds:
+      - npx mocha ./out/test/unit/log-analyzer.test.js ./out/test/unit/log-diagnostics.test.js --timeout 15000
+
+  # ─── Individual Test Domains ───────────────────────────────────
+
+  test:parser:
+    desc: Run parser tests
+    dir: "{{.EXT_DIR}}"
+    deps: [compile:tests]
+    cmds:
+      - npx mocha ./out/test/unit/parser.test.js --timeout 15000
+
+  test:incremental-parser:
+    desc: Run incremental parser tests
+    dir: "{{.EXT_DIR}}"
+    deps: [compile:tests]
+    cmds:
+      - npx mocha ./out/test/unit/incremental-parser.test.js --timeout 15000
+
+  test:parse-cache:
+    desc: Run parse cache tests
+    dir: "{{.EXT_DIR}}"
+    deps: [compile:tests]
+    cmds:
+      - npx mocha ./out/test/unit/parse-cache.test.js --timeout 15000
+
+  test:indexer:
+    desc: Run indexer tests
+    dir: "{{.EXT_DIR}}"
+    deps: [compile:tests]
+    cmds:
+      - npx mocha ./out/test/unit/indexer.test.js --timeout 15000
+
+  test:completions:
+    desc: Run completions tests
+    dir: "{{.EXT_DIR}}"
+    deps: [compile:tests]
+    cmds:
+      - npx mocha ./out/test/unit/completions.test.js --timeout 15000
+
+  test:hover:
+    desc: Run hover tests
+    dir: "{{.EXT_DIR}}"
+    deps: [compile:tests]
+    cmds:
+      - npx mocha ./out/test/unit/hover.test.js --timeout 15000
+
+  test:selection-range:
+    desc: Run selection range tests
+    dir: "{{.EXT_DIR}}"
+    deps: [compile:tests]
+    cmds:
+      - npx mocha ./out/test/unit/selection-range.test.js --timeout 15000
+
+  test:call-hierarchy:
+    desc: Run call hierarchy tests
+    dir: "{{.EXT_DIR}}"
+    deps: [compile:tests]
+    cmds:
+      - npx mocha ./out/test/unit/call-hierarchy.test.js --timeout 15000
+
+  test:call-graph:
+    desc: Run call graph tests
+    dir: "{{.EXT_DIR}}"
+    deps: [compile:tests]
+    cmds:
+      - npx mocha ./out/test/unit/call-graph.test.js --timeout 15000
+
+  test:fuzzy-match:
+    desc: Run fuzzy match tests
+    dir: "{{.EXT_DIR}}"
+    deps: [compile:tests]
+    cmds:
+      - npx mocha ./out/test/unit/fuzzy-match.test.js --timeout 15000
+
+  test:diagnostics-engine:
+    desc: Run diagnostics engine tests
+    dir: "{{.EXT_DIR}}"
+    deps: [compile:tests]
+    cmds:
+      - npx mocha ./out/test/unit/diagnostics-engine.test.js --timeout 15000
+
+  test:style-checks:
+    desc: Run style checks tests
+    dir: "{{.EXT_DIR}}"
+    deps: [compile:tests]
+    cmds:
+      - npx mocha ./out/test/unit/style-checks.test.js --timeout 15000
+
+  test:scopes:
+    desc: Run scopes tests
+    dir: "{{.EXT_DIR}}"
+    deps: [compile:tests]
+    cmds:
+      - npx mocha ./out/test/unit/scopes.test.js --timeout 15000
+
+  test:script-values:
+    desc: Run script values tests
+    dir: "{{.EXT_DIR}}"
+    deps: [compile:tests]
+    cmds:
+      - npx mocha ./out/test/unit/script-values.test.js --timeout 15000
+
+  test:scripted-params:
+    desc: Run scripted params tests
+    dir: "{{.EXT_DIR}}"
+    deps: [compile:tests]
+    cmds:
+      - npx mocha ./out/test/unit/scripted-params.test.js --timeout 15000
+
+  test:modifiers:
+    desc: Run modifiers tests
+    dir: "{{.EXT_DIR}}"
+    deps: [compile:tests]
+    cmds:
+      - npx mocha ./out/test/unit/modifiers.test.js --timeout 15000
+
+  test:schema-conditions:
+    desc: Run schema conditions tests
+    dir: "{{.EXT_DIR}}"
+    deps: [compile:tests]
+    cmds:
+      - npx mocha ./out/test/unit/schema-conditions.test.js --timeout 15000
+
+  test:localization:
+    desc: Run localization validator tests
+    dir: "{{.EXT_DIR}}"
+    deps: [compile:tests]
+    cmds:
+      - npx mocha ./out/test/unit/localization-validator.test.js --timeout 15000
+
+  test:events:
+    desc: Run events tests
+    dir: "{{.EXT_DIR}}"
+    deps: [compile:tests]
+    cmds:
+      - npx mocha ./out/test/unit/events.test.js --timeout 15000
+
+  test:on-actions:
+    desc: Run on-actions tests
+    dir: "{{.EXT_DIR}}"
+    deps: [compile:tests]
+    cmds:
+      - npx mocha ./out/test/unit/on-actions.test.js --timeout 15000
+
+  test:schemes:
+    desc: Run schemes tests
+    dir: "{{.EXT_DIR}}"
+    deps: [compile:tests]
+    cmds:
+      - npx mocha ./out/test/unit/schemes.test.js --timeout 15000
+
+  test:casus-belli:
+    desc: Run casus belli tests
+    dir: "{{.EXT_DIR}}"
+    deps: [compile:tests]
+    cmds:
+      - npx mocha ./out/test/unit/casus-belli.test.js --timeout 15000
+
+  test:court-positions:
+    desc: Run court positions tests
+    dir: "{{.EXT_DIR}}"
+    deps: [compile:tests]
+    cmds:
+      - npx mocha ./out/test/unit/court-positions.test.js --timeout 15000
+
+  test:language:
+    desc: Run language tests
+    dir: "{{.EXT_DIR}}"
+    deps: [compile:tests]
+    cmds:
+      - npx mocha ./out/test/unit/language.test.js --timeout 15000
+
+  test:log-analyzer:
+    desc: Run log analyzer tests
+    dir: "{{.EXT_DIR}}"
+    deps: [compile:tests]
+    cmds:
+      - npx mocha ./out/test/unit/log-analyzer.test.js --timeout 15000
+
+  test:log-diagnostics:
+    desc: Run log diagnostics tests
+    dir: "{{.EXT_DIR}}"
+    deps: [compile:tests]
+    cmds:
+      - npx mocha ./out/test/unit/log-diagnostics.test.js --timeout 15000
 
   # ─── Code Quality ──────────────────────────────────────────────
 

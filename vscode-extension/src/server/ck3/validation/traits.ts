@@ -93,7 +93,7 @@ function checkTraitExists(
     
     if (!knownTraits.has(traitName)) {
         return [{
-            severity: DiagnosticSeverity.Error,
+            severity: DiagnosticSeverity.Warning,
             range: node.range,
             message: `Unknown trait: "${traitName}"`,
             code: 'CK3800',

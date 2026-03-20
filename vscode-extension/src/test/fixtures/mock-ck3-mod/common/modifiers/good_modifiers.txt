@@ -1,0 +1,98 @@
+# ===================================================================
+# GOOD MODIFIER EXAMPLES
+# ===================================================================
+# This file demonstrates CORRECT CK3 modifier definitions.
+# All examples in this file should PASS validation with NO errors.
+#
+# What this tests:
+# - Standard character modifiers with numeric stat bonuses
+# - Opinion modifiers with required fields
+# - Timed modifiers
+# - Complex modifiers with multiple stats
+#
+# File scope note: The modifier validator only runs on files
+# whose path contains "modifier" or "opinion_modifier".
+#
+# Expected validation result: NO ERRORS
+# ===================================================================
+
+# -------------------------------------------------------------------
+# Example 1: Standard character modifier with numeric stat bonuses
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Basic modifier with known keys and numeric values
+# SHOULD PASS: Yes - all keys are known, all values are numeric
+# DEMONSTRATES: Simple modifier definition
+# -------------------------------------------------------------------
+good_character_modifier = {
+	diplomacy = 2
+	martial = 1
+	stewardship = 3
+}
+
+# -------------------------------------------------------------------
+# Example 2: Opinion modifier with all fields
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Opinion modifier with opinion, years, and decaying
+# SHOULD PASS: Yes - opinion field present and in range
+# DEMONSTRATES: Complete opinion modifier definition
+# -------------------------------------------------------------------
+good_opinion_modifier = {
+	opinion = -25
+	years = 5
+	decaying = yes
+}
+
+# -------------------------------------------------------------------
+# Example 3: Timed modifier with icon
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Modifier with duration-related fields
+# SHOULD PASS: Yes - all known keys, numeric values
+# DEMONSTRATES: Timed modifier pattern
+# -------------------------------------------------------------------
+good_timed_modifier = {
+	diplomacy = 5
+	monthly_prestige = 0.5
+	years = 10
+}
+
+# -------------------------------------------------------------------
+# Example 4: Complex modifier with multiple stat bonuses
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Modifier using many different stat keys
+# SHOULD PASS: Yes - all keys recognized, all values numeric or yes/no
+# DEMONSTRATES: Multi-stat modifier with boolean and numeric values
+# -------------------------------------------------------------------
+good_complex_modifier = {
+	diplomacy = 3
+	martial = 2
+	stewardship = 1
+	intrigue = 4
+	learning = 2
+	prowess = 5
+	monthly_prestige = 1.0
+	monthly_piety = 0.5
+	fertility = 0.1
+	health = 0.5
+	same_opinion = 10
+	opposite_opinion = -5
+	attraction_opinion = 15
+}
+
+# -------------------------------------------------------------------
+# Example 5: Opinion modifier at reasonable boundary values
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Opinion values at edges of typical range
+# SHOULD PASS: Yes - values within -200 to 200
+# DEMONSTRATES: Boundary-safe opinion modifiers
+# -------------------------------------------------------------------
+good_strong_positive_opinion = {
+	opinion = 200
+	years = 20
+	decaying = yes
+}
+
+good_strong_negative_opinion = {
+	opinion = -200
+	years = 15
+	decaying = no
+}

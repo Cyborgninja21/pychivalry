@@ -4513,3 +4513,11 @@ triggers:
     description: CK3 trigger (from binary analysis)
     scopes:
       - any
+  government_has_flag:
+    description: Check if the character's government type has a specific flag
+    scopes:
+      - character
+  has_education_trait:
+    description: Check if the character has any education trait
+    scopes:
+      - character

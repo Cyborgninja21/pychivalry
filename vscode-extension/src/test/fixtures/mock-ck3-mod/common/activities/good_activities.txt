@@ -1,0 +1,225 @@
+# Good Activities Examples
+# Demonstrates proper activity structure with phases, province filters, and lifecycle hooks
+
+namespace = activities_good
+
+# Example 1: Complete activity with all fields
+hold_grand_tournament = {
+	is_shown = {
+		is_ruler = yes
+		is_adult = yes
+		gold >= 200
+	}
+
+	is_valid = {
+		is_at_war = no
+		prestige >= 100
+	}
+
+	cost = {
+		gold = 200
+	}
+
+	province_filter = realm
+
+	phases = {
+		opening_ceremony = {
+			next_phase = jousting_phase
+		}
+		jousting_phase = {
+			next_phase = melee_phase
+		}
+		melee_phase = {
+			next_phase = feast_phase
+		}
+		feast_phase = {
+			# Final phase — no next_phase needed
+		}
+	}
+
+	on_start = {
+		add_prestige = 100
+		save_scope_as = tournament_host
+	}
+
+	on_complete = {
+		add_prestige = 200
+		every_participant = {
+			add_opinion = {
+				target = root
+				modifier = grateful_opinion
+				opinion = 10
+			}
+		}
+	}
+
+	on_invalidated = {
+		add_prestige = -50
+	}
+}
+
+# Example 2: Minimal valid activity
+simple_pilgrimage = {
+	is_shown = {
+		is_adult = yes
+	}
+
+	is_valid = {
+		gold >= 50
+	}
+
+	cost = {
+		gold = 50
+	}
+
+	phases = {
+		journey = {
+			# Single phase activity
+		}
+	}
+
+	on_complete = {
+		add_piety = 100
+	}
+}
+
+# Example 3: Activity with complex phase transitions and coastal filter
+coastal_expedition = {
+	is_shown = {
+		is_ruler = yes
+		is_adult = yes
+		any_held_title = {
+			tier = tier_county
+		}
+	}
+
+	is_valid = {
+		gold >= 300
+		is_at_war = no
+	}
+
+	cost = {
+		gold = 300
+	}
+
+	province_filter = coastal
+
+	phases = {
+		preparation = {
+			next_phase = departure
+		}
+		departure = {
+			next_phase = voyage
+		}
+		voyage = {
+			next_phase = arrival
+		}
+		arrival = {
+			next_phase = exploration
+		}
+		exploration = {
+			# Final phase
+		}
+	}
+
+	on_start = {
+		add_prestige = 50
+	}
+
+	on_complete = {
+		add_gold = 500
+		add_prestige = 300
+	}
+
+	on_invalidated = {
+		add_gold = -100
+	}
+}
+
+# Example 4: Activity using capital province filter with lifecycle hooks
+capital_festival = {
+	is_shown = {
+		is_ruler = yes
+		is_adult = yes
+	}
+
+	is_valid = {
+		gold >= 100
+		prestige >= 50
+	}
+
+	cost = {
+		gold = 100
+	}
+
+	province_filter = capital
+
+	phases = {
+		gathering = {
+			next_phase = celebration
+		}
+		celebration = {
+			# Final phase
+		}
+	}
+
+	on_start = {
+		save_scope_as = host
+		add_prestige = 25
+	}
+
+	on_complete = {
+		add_prestige = 150
+		add_piety = 50
+	}
+}
+
+# Example 5: Activity with holy_site filter and multiple hooks
+holy_pilgrimage = {
+	is_shown = {
+		is_ruler = yes
+		is_adult = yes
+		piety >= 100
+	}
+
+	is_valid = {
+		is_at_war = no
+		gold >= 150
+	}
+
+	cost = {
+		gold = 150
+		piety = 50
+	}
+
+	province_filter = holy_site
+
+	phases = {
+		departure = {
+			next_phase = travel
+		}
+		travel = {
+			next_phase = prayer
+		}
+		prayer = {
+			next_phase = return_home
+		}
+		return_home = {
+			# Final phase
+		}
+	}
+
+	on_start = {
+		add_piety = 25
+		save_scope_as = pilgrim
+	}
+
+	on_complete = {
+		add_piety = 500
+		add_prestige = 100
+	}
+
+	on_invalidated = {
+		add_piety = -25
+	}
+}

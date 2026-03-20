@@ -1,0 +1,74 @@
+l_english:
+ # Bad Localization Syntax Examples
+ # Demonstrates LOC-001 to LOC-007
+
+ # ERROR LOC-001: Invalid localization key format
+ 123_invalid_key:0 "Keys can't start with numbers"
+ Invalid-Key-With-Dashes:0 "Dashes not allowed"
+ Invalid Key With Spaces:0 "Spaces not allowed in keys"
+ Invalid.Key.UpperCase:0 "Only lowercase letters allowed"
+
+ # ERROR LOC-002: Unknown character function
+ loc_bad.0001.t:0 "[ROOT.Char.GetNam]"
+ loc_bad.0002.desc:0 "[ROOT.Char.GetFirstNam]"
+ loc_bad.0003.t:0 "[ROOT.Char.GetUnknownFunction]"
+ loc_bad.0004.desc:0 "[ROOT.Char.GetTitl]"
+
+ # ERROR LOC-003: Malformed text formatting code
+ loc_bad.0005.t:0 "##bold Double hash#!"
+ loc_bad.0006.desc:0 "#italc Wrong code#!"
+ loc_bad.0007.t:0 "#boldd Extra letter#!"
+ loc_bad.0008.desc:0 "No closing tag #bold"
+
+ # ERROR LOC-004: Invalid icon reference
+ loc_bad.0009.t:0 "Invalid £gld£ icon"
+ loc_bad.0010.desc:0 "Unknown £unknown_icon£ reference"
+ loc_bad.0011.t:0 "£prestge£ typo"
+ loc_bad.0012.desc:0 "£pity£ wrong icon"
+
+ # ERROR LOC-005: Unclosed brackets
+ loc_bad.0013.t:0 "[ROOT.Char.GetName missing bracket"
+ loc_bad.0014.desc:0 "Text [ROOT.Char.GetTitle without closing"
+ loc_bad.0015.t:0 "[ROOT.Char.GetName] and [ROOT.Char.GetLiege.GetName missing"
+ loc_bad.0016.desc:0 "Multiple [ROOT.Char.GetName unclosed [ROOT.Char.GetTitle brackets"
+
+ # ERROR LOC-006: Unknown concept reference
+ loc_bad.0017.t:0 "Learn about [nonexistent_concept|E]"
+ loc_bad.0018.desc:0 "Understanding [fake_concept|E] is important"
+ loc_bad.0019.t:0 "Master [unknown|E] and [another_fake|E]"
+
+ # ERROR LOC-007: Invalid variable substitution
+ loc_bad.0020.t:0 "The AMOUNT Problem"
+ loc_bad.0021.desc:0 "Value: VALUE|0"
+ loc_bad.0022.t:0 "Missing $BRACKETS"
+ loc_bad.0023.desc:0 "$UNCLOSED variable"
+ loc_bad.0024.t:0 "Wrong $FORMAT$0 separator"
+
+ # Multiple errors combined
+ loc_bad.0025.t:0 "[ROOT.Char.GetNam missing bracket ##bold wrong #!"
+ loc_bad.0026.desc:0 "£gld£ and AMOUNT and [fake_concept|E]"
+ 123_bad_combo:0 "[ROOT.Char.GetUnknown] $VAR without closing"
+
+ # ERROR LOC-002: More unknown functions
+ loc_bad.0027.t:0 "[ROOT.Char.GetAge] is wrong - should be [ROOT.Char.GetAge|V]"
+ loc_bad.0028.desc:0 "[ROOT.Char.GetRank] typo - should be custom"
+ loc_bad.0029.t:0 "[ROOT.Char.GetHersOrHis]"
+
+ # ERROR LOC-003: More formatting errors
+ loc_bad.0030.desc:0 "#colour_green Wrong color spelling#!"
+ loc_bad.0031.t:0 "#color_gren Typo in color#!"
+ loc_bad.0032.desc:0 "#! Closing without opening"
+
+ # ERROR LOC-004: More icon errors
+ loc_bad.0033.t:0 "£golds£ plural not valid"
+ loc_bad.0034.desc:0 "£Gold£ capitalized"
+ loc_bad.0035.t:0 "£ empty icon £"
+
+ # ERROR LOC-005: Nested unclosed brackets
+ loc_bad.0036.desc:0 "[ROOT.Char.MakeScope.Var('test').GetName unclosed"
+ loc_bad.0037.t:0 "Text [ROOT.Char.GetLiege.GetPrimaryTitle.GetName incomplete"
+
+ # ERROR LOC-007: More variable errors
+ loc_bad.0038.desc:0 "$VALUE|wrong_format$"
+ loc_bad.0039.t:0 "$$DOUBLE_DOLLAR$$"
+ loc_bad.0040.desc:0 "$|PIPE_FIRST$"

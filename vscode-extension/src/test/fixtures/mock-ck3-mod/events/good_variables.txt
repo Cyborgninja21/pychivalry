@@ -1,0 +1,206 @@
+# ===================================================================
+# GOOD VARIABLE EXAMPLES
+# ===================================================================
+# This file demonstrates CORRECT CK3 variable usage patterns.
+# All examples in this file should PASS validation with NO errors.
+#
+# What this tests:
+# - set_variable + has_variable (standard pattern)
+# - Local variables (set_local_variable + has_local_variable)
+# - Global variables (set_global_variable + has_global_variable)
+# - Variable arithmetic (change_variable, add_to_variable, etc.)
+# - Variable lists (add_to_variable_list + any_in_list)
+#
+# Expected validation result: NO ERRORS
+# ===================================================================
+
+namespace = variables_good
+
+# -------------------------------------------------------------------
+# Example 1: Standard variable — set and check
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Basic set_variable + has_variable pattern
+# SHOULD PASS: Yes - variable declared before use
+# DEMONSTRATES: Correct variable lifecycle
+# -------------------------------------------------------------------
+variables_good.0001 = {
+	type = character_event
+	title = variables_good.0001.t
+	desc = variables_good.0001.desc
+
+	trigger = {
+		is_adult = yes
+	}
+
+	immediate = {
+		set_variable = {
+			name = quest_started
+			value = yes
+		}
+	}
+
+	option = {
+		name = variables_good.0001.a
+		if = {
+			limit = {
+				has_variable = quest_started
+			}
+			add_prestige = 50
+		}
+	}
+}
+
+# -------------------------------------------------------------------
+# Example 2: Local variables within a single event
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: set_local_variable + has_local_variable
+# SHOULD PASS: Yes - local scope used consistently
+# DEMONSTRATES: Proper local variable usage
+# -------------------------------------------------------------------
+variables_good.0002 = {
+	type = character_event
+	title = variables_good.0002.t
+	desc = variables_good.0002.desc
+
+	trigger = {
+		is_adult = yes
+	}
+
+	immediate = {
+		set_local_variable = {
+			name = temp_count
+			value = 0
+		}
+		change_local_variable = {
+			name = temp_count
+			add = 1
+		}
+	}
+
+	option = {
+		name = variables_good.0002.a
+		trigger = {
+			has_local_variable = temp_count
+		}
+		add_gold = 100
+	}
+}
+
+# -------------------------------------------------------------------
+# Example 3: Global variable pattern
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: set_global_variable + has_global_variable
+# SHOULD PASS: Yes - global scope used consistently
+# DEMONSTRATES: Cross-event global variable tracking
+# -------------------------------------------------------------------
+variables_good.0003 = {
+	type = character_event
+	title = variables_good.0003.t
+	desc = variables_good.0003.desc
+
+	trigger = {
+		is_adult = yes
+	}
+
+	immediate = {
+		set_global_variable = {
+			name = world_event_happened
+			value = yes
+		}
+	}
+
+	option = {
+		name = variables_good.0003.a
+		trigger = {
+			has_global_variable = world_event_happened
+		}
+		add_prestige = 100
+	}
+}
+
+# -------------------------------------------------------------------
+# Example 4: Variable arithmetic
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: change_variable, add_to_variable, subtract, multiply, divide
+# SHOULD PASS: Yes - variable declared before arithmetic operations
+# DEMONSTRATES: Full variable arithmetic lifecycle
+# -------------------------------------------------------------------
+variables_good.0004 = {
+	type = character_event
+	title = variables_good.0004.t
+	desc = variables_good.0004.desc
+
+	trigger = {
+		is_adult = yes
+	}
+
+	immediate = {
+		set_variable = {
+			name = battle_score
+			value = 10
+		}
+		change_variable = {
+			name = battle_score
+			add = 5
+		}
+		add_to_variable = {
+			name = battle_score
+			value = 3
+		}
+		subtract_from_variable = {
+			name = battle_score
+			value = 2
+		}
+		multiply_variable = {
+			name = battle_score
+			value = 2
+		}
+		divide_variable = {
+			name = battle_score
+			value = 4
+		}
+	}
+
+	option = {
+		name = variables_good.0004.a
+		trigger = {
+			has_variable = battle_score
+		}
+		add_gold = 100
+	}
+}
+
+# -------------------------------------------------------------------
+# Example 5: Variable as list
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: add_to_variable_list + any_in_list
+# SHOULD PASS: Yes - list variable used consistently as a list
+# DEMONSTRATES: Variable list pattern
+# -------------------------------------------------------------------
+variables_good.0005 = {
+	type = character_event
+	title = variables_good.0005.t
+	desc = variables_good.0005.desc
+
+	trigger = {
+		is_adult = yes
+	}
+
+	immediate = {
+		add_to_variable_list = {
+			name = allies_list
+			value = root
+		}
+	}
+
+	option = {
+		name = variables_good.0005.a
+		trigger = {
+			any_in_list = {
+				variable = allies_list
+				is_adult = yes
+			}
+		}
+		add_prestige = 50
+	}
+}

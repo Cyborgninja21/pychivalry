@@ -1,0 +1,224 @@
+# Bad Traits Examples
+# Demonstrates CK3800 (and reserved CK3801-CK3804)
+
+namespace = traits_bad
+
+# ERROR CK3800: Unknown trait referenced — common misspellings
+traits_bad.0001 = {
+	type = character_event
+	title = traits_bad.0001.t
+	desc = traits_bad.0001.desc
+
+	left_portrait = root
+
+	trigger = {
+		has_trait = proud # ERROR CK3800: Unknown trait: "proud"
+		# Should have: has_trait = arrogant
+	}
+
+	immediate = {
+		save_scope_as = actor
+	}
+
+	option = {
+		name = traits_bad.0001.a
+		add_prestige = 50
+	}
+}
+
+# ERROR CK3800: Wrong depressed trait name
+traits_bad.0002 = {
+	type = character_event
+	title = traits_bad.0002.t
+	desc = traits_bad.0002.desc
+
+	left_portrait = root
+
+	trigger = {
+		has_trait = depressed # ERROR CK3800: Unknown trait: "depressed"
+		# Should have: has_trait = depressed_1
+	}
+
+	immediate = {
+		save_scope_as = actor
+	}
+
+	option = {
+		name = traits_bad.0002.a
+		remove_trait = depressed # ERROR CK3800: Unknown trait: "depressed"
+		# Should have: remove_trait = depressed_1
+		add_piety = 50
+	}
+}
+
+# ERROR CK3800: Wrong beauty trait naming
+traits_bad.0003 = {
+	type = character_event
+	title = traits_bad.0003.t
+	desc = traits_bad.0003.desc
+
+	left_portrait = root
+
+	trigger = {
+		has_trait = beauty_1 # ERROR CK3800: Unknown trait: "beauty_1"
+		# Should have: has_trait = beauty_good_1
+	}
+
+	immediate = {
+		save_scope_as = actor
+	}
+
+	option = {
+		name = traits_bad.0003.a
+		add_prestige = 100
+	}
+}
+
+# ERROR CK3800: add_trait with nonexistent trait
+traits_bad.0004 = {
+	type = character_event
+	title = traits_bad.0004.t
+	desc = traits_bad.0004.desc
+
+	left_portrait = root
+
+	trigger = {
+		is_adult = yes
+	}
+
+	immediate = {
+		save_scope_as = actor
+	}
+
+	option = {
+		name = traits_bad.0004.a
+		add_trait = heroic # ERROR CK3800: Unknown trait: "heroic"
+		# Should have: add_trait = brave
+		add_prestige = 100
+	}
+}
+
+# ERROR CK3800: Multiple wrong trait names in one event
+traits_bad.0005 = {
+	type = character_event
+	title = traits_bad.0005.t
+	desc = traits_bad.0005.desc
+
+	left_portrait = root
+
+	trigger = {
+		has_trait = cowardly # ERROR CK3800: Unknown trait: "cowardly"
+		# Should have: has_trait = craven
+	}
+
+	immediate = {
+		save_scope_as = actor
+	}
+
+	option = {
+		name = traits_bad.0005.a
+		remove_trait = cowardly # ERROR CK3800: Unknown trait: "cowardly"
+		# Should have: remove_trait = craven
+		add_trait = courageous # ERROR CK3800: Unknown trait: "courageous"
+		# Should have: add_trait = brave
+		add_prestige = 100
+	}
+}
+
+# ERROR CK3800: Edge cases — similar-sounding traits
+traits_bad.0006 = {
+	type = character_event
+	title = traits_bad.0006.t
+	desc = traits_bad.0006.desc
+
+	left_portrait = root
+
+	trigger = {
+		is_adult = yes
+		OR = {
+			has_trait = stressed # ERROR CK3800: Unknown trait: "stressed"
+			# Should have: has_trait = stressed_1
+			has_trait = wounded # ERROR CK3800: Unknown trait: "wounded"
+			# Should have: has_trait = wounded_1
+			has_trait = ugly # ERROR CK3800: Unknown trait: "ugly"
+			# Should have: has_trait = beauty_bad_1
+		}
+	}
+
+	immediate = {
+		save_scope_as = actor
+	}
+
+	option = {
+		name = traits_bad.0006.a
+		add_gold = 50
+	}
+}
+
+# =====================================================================
+# Reserved diagnostic codes — not currently emitted
+# These blocks document future validation rules
+# =====================================================================
+
+# CK3801 (reserved for future validation): Incompatible traits coexist
+# Example: brave and craven are opposites and should not coexist
+# traits_bad.reserved_0801 = {
+#     trigger = {
+#         has_trait = brave
+#         has_trait = craven  # Would flag: incompatible traits
+#     }
+#     option = {
+#         add_trait = lustful
+#         add_trait = chaste  # Would flag: incompatible traits
+#     }
+# }
+
+# CK3802 (reserved for future validation): Duplicate trait definition
+# Example: defining the same trait twice in common/traits/
+# my_custom_trait = { ... }
+# my_custom_trait = { ... }  # Would flag: duplicate definition
+
+# CK3803 (reserved for future validation): Missing trait opposite
+# Example: a trait defined with opposite = missing_trait where missing_trait doesn't exist
+# my_trait = {
+#     opposite = nonexistent_trait  # Would flag: opposite not defined
+# }
+
+# CK3804 (reserved for future validation): Invalid trait group
+# Example: a trait assigned to a group that doesn't exist
+# my_trait = {
+#     group = nonexistent_group  # Would flag: unknown trait group
+# }
+
+# All errors combined
+traits_bad_all_errors = {
+	type = character_event
+	title = traits_bad_all_errors.t
+	desc = traits_bad_all_errors.desc
+
+	left_portrait = root
+
+	trigger = {
+		has_trait = proud # ERROR CK3800: Unknown trait: "proud"
+		has_trait = depressed # ERROR CK3800: Unknown trait: "depressed"
+		has_trait = beauty_1 # ERROR CK3800: Unknown trait: "beauty_1"
+	}
+
+	immediate = {
+		save_scope_as = actor
+	}
+
+	option = {
+		name = traits_bad_all_errors.a
+		remove_trait = cowardly # ERROR CK3800: Unknown trait: "cowardly"
+		add_trait = heroic # ERROR CK3800: Unknown trait: "heroic"
+		add_prestige = 100
+	}
+
+	option = {
+		name = traits_bad_all_errors.b
+		add_trait = ugly # ERROR CK3800: Unknown trait: "ugly"
+		# Should have: add_trait = beauty_bad_1
+		add_gold = 50
+	}
+}

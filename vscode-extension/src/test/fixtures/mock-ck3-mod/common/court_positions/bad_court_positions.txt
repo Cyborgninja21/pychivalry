@@ -1,0 +1,117 @@
+# Bad Court Positions Examples
+# Demonstrates COURT-001 and COURT-002
+
+# ERROR COURT-001: Missing can_be_appointed trigger
+bad_court_001 = {
+	# ERROR COURT-001: No can_be_appointed trigger
+	# Should have: can_be_appointed = { is_adult = yes }
+
+	salary = {
+		gold = 2
+	}
+
+	opinion = {
+		value = 10
+	}
+
+	aptitude = {
+		value = {
+			add = learning
+			multiply = 0.5
+		}
+	}
+
+	is_shown = {
+		always = yes
+	}
+}
+
+# ERROR COURT-002: Has salary but no opinion modifier
+bad_court_002 = {
+	can_be_appointed = {
+		is_adult = yes
+	}
+
+	salary = {
+		gold = 2
+	}
+
+	# ERROR COURT-002: Salary defined but no opinion block
+	# Should have: opinion = { value = 10 }
+
+	aptitude = {
+		value = {
+			add = stewardship
+			multiply = 0.5
+		}
+	}
+}
+
+# Multiple errors combined
+bad_court_all = {
+	# ERROR COURT-001: Missing can_be_appointed
+
+	salary = {
+		gold = 3
+	}
+
+	# ERROR COURT-002: Has salary but no opinion
+
+	aptitude = {
+		value = {
+			add = diplomacy
+			multiply = 0.5
+		}
+	}
+
+	is_shown = {
+		always = yes
+	}
+}
+
+# Edge case: Empty can_be_appointed (still technically present)
+bad_court_empty_trigger = {
+	can_be_appointed = {
+	}
+
+	salary = {
+		gold = 1
+	}
+
+	opinion = {
+		value = 5
+	}
+}
+
+# Edge case: Only aptitude defined, no can_be_appointed
+bad_court_aptitude_only = {
+	# ERROR COURT-001: No can_be_appointed trigger
+	# Should have: can_be_appointed = { is_adult = yes }
+
+	aptitude = {
+		value = {
+			add = intrigue
+			multiply = 0.5
+		}
+	}
+}
+
+# Edge case: Salary with complex cost but still no opinion
+bad_court_complex_salary = {
+	can_be_appointed = {
+		is_adult = yes
+		martial >= 10
+	}
+
+	salary = {
+		round = yes
+		gold = 5
+	}
+
+	# ERROR COURT-002: Complex salary defined but no opinion block
+	# Should have: opinion = { value = 15 }
+
+	is_shown = {
+		has_royal_court = yes
+	}
+}
