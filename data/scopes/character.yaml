@@ -70,6 +70,19 @@ character:
     scheme: scheme
     secret: none
     artifact: artifact
+    # Global / cross-scope iterators accessible from character scope
+    living_character: character
+    ruler: character
+    neighboring_realm_same_rank_owner: character
+    war_enemy: character
+    war_ally: character
+    pool_character: character
+    independent_ruler: character
+    player: character
+    in_list: none
+    de_jure_vassal: character
+    sub_realm_county: title
+    sub_realm_barony: title
 
   # Valid triggers in character scope
   triggers:

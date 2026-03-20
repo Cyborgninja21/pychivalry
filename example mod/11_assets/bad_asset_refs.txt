@@ -1,7 +1,6 @@
 # Bad Asset References Examples
 # Demonstrates GFX001, SND001, SND002
 
-# ERROR: CK3103
 # ERROR: EVENT-017
 namespace = assets_bad
 

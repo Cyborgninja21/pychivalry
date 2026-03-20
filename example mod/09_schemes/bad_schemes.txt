@@ -6,7 +6,6 @@
 # ERROR: CK3314
 # ERROR: CK5137
 # ERROR: SCHEME-004
-# ERROR: SCOPE-007
 bad_scheme_001 = {
 	# ERROR SCHEME-001: No skill field
 	# Should have: skill = intrigue (or diplomacy, stewardship, etc.)

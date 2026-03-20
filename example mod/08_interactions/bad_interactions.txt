@@ -7,7 +7,6 @@
 # ERROR: CK3872
 # ERROR: EVENT-018
 # ERROR: INTERACT-002
-# ERROR: SCOPE-007
 bad_interaction_001 = {
 # No category field
 	# Should have: category = interaction_category_diplomacy (or similar)

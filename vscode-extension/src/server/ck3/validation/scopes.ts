@@ -262,6 +262,16 @@ export function isValidListBase(listBase: string, scopeType: string): boolean {
 export function parseListIterator(iterator: string): [string, string] | null {
     const prefixes = ['any_', 'every_', 'random_', 'ordered_'];
 
+    // Description resolution constructs that use iterator-like prefixes
+    // but are NOT list iterators (e.g., first_valid, random_valid in triggered_desc)
+    const NOT_ITERATORS = new Set([
+        'random_valid', 'ordered_valid',
+        'random_list', 'ordered_list',
+    ]);
+    if (NOT_ITERATORS.has(iterator)) {
+        return null;
+    }
+
     for (const prefix of prefixes) {
         if (iterator.startsWith(prefix)) {
             const baseName = iterator.substring(prefix.length);

@@ -1,7 +1,6 @@
 # Bad Options Examples
 # Demonstrates CK3450-CK3461 (option validation) and CK3610-CK3614 (AI chance validation)
 
-# ERROR: CK3103
 # ERROR: CK3420
 # ERROR: CK3872
 # ERROR: CONV-004

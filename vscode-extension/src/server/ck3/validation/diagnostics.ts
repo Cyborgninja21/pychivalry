@@ -147,6 +147,10 @@ const EFFECT_CONTEXT_KEYS = new Set([
     'hidden_effect', 'show_as_tooltip',
     'random_list', 'weighted_random_list',
     'switch', 'while', 'random',
+    // Interaction / story-cycle / activity lifecycle effect hooks
+    'on_accept', 'on_decline', 'on_send',
+    'on_setup', 'on_end', 'on_owner_death',
+    'on_activate', 'on_complete', 'on_invalidate',
 ]);
 
 /**
@@ -162,6 +166,8 @@ const TRIGGER_CONTEXT_KEYS = new Set([
     'AND', 'OR', 'NOT', 'NOR', 'NAND',
     // Trigger-context blocks inside iterators and conditionals
     'limit', 'calc_true_if', 'alternative_limit',
+    // Interaction/scheme targeting conditions
+    'can_send', 'is_highlighted',
 ]);
 
 /**
@@ -191,6 +197,92 @@ const OPTION_STRUCTURAL_FIELDS = new Set([
     'name', 'trigger', 'ai_chance', 'highlight_portrait', 'flavor',
     'custom_tooltip', 'show_as_tooltip', 'exclusive', 'fallback',
     'show_as_unavailable',
+]);
+
+/**
+ * Structural fields for content-definition blocks (decisions, interactions,
+ * story cycles, schemes, activities, on-actions, traits, modifiers, etc.).
+ * These are NOT effects or triggers — they configure the content block.
+ */
+const CONTENT_DEFINITION_FIELDS = new Set([
+    // Common presentation fields
+    'desc', 'picture', 'theme', 'category', 'icon',
+    'selection_tooltip', 'greeting', 'notification_text',
+    'confirm_text', 'tooltip',
+    // AI behavior blocks (script-value containers — children are NOT effects)
+    'ai_will_do', 'ai_check_interval', 'ai_accept', 'ai_chance',
+    'ai_targets', 'ai_recipients', 'ai_frequency',
+    'ai_target_quick_trigger', 'ai_potential',
+    // Interaction-specific
+    'auto_accept', 'use_diplomatic_range',
+    'interface', 'scheme', 'target_type', 'target',
+    // Story cycle lifecycle hooks (children ARE effects, but handled via EFFECT_CONTEXT_KEYS)
+    'on_setup', 'on_end', 'on_owner_death',
+    // Cost blocks (children are value params, not effects)
+    'cost',
+    // Decision flags
+    'is_shown_check_tooltip_tag', 'major', 'sort_order',
+    // Scheme configuration
+    'cooldown', 'power_per_skill_point', 'resistance_per_skill_point',
+    'base_progress_goal', 'power_per_agent_skill_point',
+    'skill', 'agent_join_chance', 'agent_leave_chance',
+    'maximum_breakthroughs', 'maximum_secrecy',
+    'base_secrecy', 'base_success_chance',
+    'years', 'months', 'days',
+    // Scheme hooks / blocks
+    'is_valid_target', 'valid_agent', 'on_ready', 'on_exposed',
+    'on_agent_join', 'on_agent_leave', 'on_agent_exposed',
+    // Trait configuration
+    'group', 'index', 'opposites', 'compatibility',
+    'birth', 'genetic', 'physical', 'good', 'fame',
+    'ruler_designer_cost', 'minimum_age',
+    'health', 'fertility', 'inherit_chance',
+    'level', 'flag', 'parent',
+    // Script value / triggered constructs
+    'triggered_effect', 'triggered_desc',
+    // Activity structural fields
+    'province_filter', 'phases', 'next_phase',
+    'opening_ceremony', 'jousting_phase', 'melee_phase', 'feast_phase',
+    'journey', 'preparation', 'departure', 'voyage', 'arrival',
+    'exploration', 'gathering', 'celebration', 'travel', 'prayer', 'return_home',
+    // On-action structural fields
+    'events', 'delay', 'on_action', 'random_events', 'first_valid_event',
+    // Common trigger/effect parameters that appear as block keys
+    'adult', 'alliance_with', 'war_with',
+    // Variable operation effects (legacy syntax)
+    'add_to_variable', 'subtract_from_variable',
+    'multiply_variable', 'divide_variable',
+    'variable', 'name',
+    // Iterator configuration fields
+    'order_by', 'position', 'check_range',
+    // Switch/case: 'fallback' is the default case
+    'fallback',
+]);
+
+/**
+ * Structural fields for weighted-value / script-value blocks.
+ * Found inside ai_will_do, ai_chance, ai_accept, weight_multiplier, etc.
+ * Children of these blocks are value parameters, NOT effects/triggers.
+ */
+const SCRIPT_VALUE_FIELDS = new Set([
+    'base', 'modifier', 'factor', 'add', 'subtract', 'multiply', 'divide',
+    'value', 'min', 'max', 'weight', 'compare_value',
+    'integer', 'fixed_range', 'ceiling', 'floor', 'round',
+]);
+
+/**
+ * Structural fields for description-resolution blocks.
+ * Used in triggered_desc, first_valid, random_valid patterns.
+ */
+const DESCRIPTION_FIELDS = new Set([
+    'first_valid', 'triggered_desc', 'desc', 'random_valid',
+]);
+
+/**
+ * Portrait block fields — not effects, they configure character portraits.
+ */
+const PORTRAIT_FIELDS = new Set([
+    'character', 'animation', 'outfit',
 ]);
 
 /**
@@ -351,11 +443,43 @@ export class DiagnosticsEngine {
         // Track saved scopes for CK3202 validation
         const savedScopes = new Set<string>();
 
+        // Pre-populate implicit scopes based on file context.
+        // Interactions always have actor/recipient in scope; story cycles have story/story_owner.
+        const normalizedUri = document.uri.replace(/\\/g, '/').toLowerCase();
+        if (normalizedUri.includes('/character_interaction') || normalizedUri.includes('interaction')) {
+            savedScopes.add('actor');
+            savedScopes.add('recipient');
+            savedScopes.add('secondary_actor');
+            savedScopes.add('secondary_recipient');
+        }
+        if (normalizedUri.includes('/story_cycle') || normalizedUri.includes('story')) {
+            savedScopes.add('story');
+            savedScopes.add('story_owner');
+            savedScopes.add('story.story_owner');
+        }
+        if (normalizedUri.includes('/scheme')) {
+            savedScopes.add('owner');
+            savedScopes.add('target');
+            savedScopes.add('agent');
+        }
+        if (normalizedUri.includes('/on_action')) {
+            savedScopes.add('actor');
+            savedScopes.add('recipient');
+        }
+        if (normalizedUri.includes('/casus_belli')) {
+            savedScopes.add('attacker');
+            savedScopes.add('defender');
+        }
+        // Common implicit scopes available in many contexts
+        savedScopes.add('root');
+        savedScopes.add('this');
+
         // Phase 2: Walk the AST with context tracking
         const walk = (nodes: ASTNode[], currentScope: string = 'character', context: 'none' | 'effect' | 'trigger' = 'none', parentKey: string | null = null) => {
             for (const node of nodes) {
                 // Track save_scope_as assignments (e.g., save_scope_as = actor)
-                if (node.key === 'save_scope_as' && node.value && typeof node.value === 'string') {
+                if ((node.key === 'save_scope_as' || node.key === 'save_temporary_scope_as')
+                    && node.value && typeof node.value === 'string') {
                     savedScopes.add(node.value);
                 }
 
@@ -417,6 +541,13 @@ export class DiagnosticsEngine {
                     if (EVENT_ID_PATTERN.test(node.key)) {
                         // Event definition block: children are structural fields, not effects/triggers
                         childContext = 'none';
+                    } else if (node.key === 'switch') {
+                        // Switch block: immediate children are { trigger = X } header + case labels
+                        // Case labels are NOT effects/triggers — they're match values
+                        childContext = 'none';
+                    } else if (CONTENT_DEFINITION_FIELDS.has(node.key) && node.children) {
+                        // Structural field with block body — children are configuration, not effects
+                        childContext = 'none';
                     } else if (EFFECT_CONTEXT_KEYS.has(node.key)) {
                         childContext = 'effect';
                     } else if (TRIGGER_CONTEXT_KEYS.has(node.key)) {
@@ -445,12 +576,17 @@ export class DiagnosticsEngine {
                 // Check effects in effect context
                 if (context === 'effect' && node.key && !node.key.includes('.')
                     && !node.key.startsWith('scope:') && !node.key.startsWith('$')
+                    && !node.key.startsWith('var:')
                     && !/^\d+$/.test(node.key) && node.type !== NodeType.COMPARISON) {
                     const inEventBlock = parentKey !== null && EVENT_ID_PATTERN.test(parentKey);
                     const inOptionBlock = parentKey === 'option';
                     const isStructuralField =
                         (inEventBlock && EVENT_LEVEL_FIELDS.has(node.key)) ||
-                        (inOptionBlock && OPTION_STRUCTURAL_FIELDS.has(node.key));
+                        (inOptionBlock && OPTION_STRUCTURAL_FIELDS.has(node.key)) ||
+                        CONTENT_DEFINITION_FIELDS.has(node.key) ||
+                        SCRIPT_VALUE_FIELDS.has(node.key) ||
+                        DESCRIPTION_FIELDS.has(node.key) ||
+                        PORTRAIT_FIELDS.has(node.key);
                     const isContextKey = EFFECT_CONTEXT_KEYS.has(node.key) || TRIGGER_CONTEXT_KEYS.has(node.key);
                     const isIterator = isListIterator(node.key);
                     const isScopeNav = isAnyScopeLink(node.key);
@@ -483,12 +619,17 @@ export class DiagnosticsEngine {
                 // Check triggers in trigger context
                 if (context === 'trigger' && node.key && !node.key.includes('.')
                     && !node.key.startsWith('scope:') && !node.key.startsWith('$')
+                    && !node.key.startsWith('var:')
                     && !/^\d+$/.test(node.key) && node.type !== NodeType.COMPARISON) {
                     const inEventBlock = parentKey !== null && EVENT_ID_PATTERN.test(parentKey);
                     const inOptionBlock = parentKey === 'option';
                     const isStructuralField =
                         (inEventBlock && EVENT_LEVEL_FIELDS.has(node.key)) ||
-                        (inOptionBlock && OPTION_STRUCTURAL_FIELDS.has(node.key));
+                        (inOptionBlock && OPTION_STRUCTURAL_FIELDS.has(node.key)) ||
+                        CONTENT_DEFINITION_FIELDS.has(node.key) ||
+                        SCRIPT_VALUE_FIELDS.has(node.key) ||
+                        DESCRIPTION_FIELDS.has(node.key) ||
+                        PORTRAIT_FIELDS.has(node.key);
                     const isContextKey = EFFECT_CONTEXT_KEYS.has(node.key) || TRIGGER_CONTEXT_KEYS.has(node.key);
                     const isIterator = isListIterator(node.key);
                     const isScopeNav = isAnyScopeLink(node.key);
@@ -658,7 +799,7 @@ export class DiagnosticsEngine {
                 const placementErrors = validateContentTypePlacement(node, document.uri);
                 for (const err of placementErrors) {
                     diagnostics.push({
-                        severity: DiagnosticSeverity.Warning,
+                        severity: DiagnosticSeverity.Information,
                         range: err.range || { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } },
                         message: err.message,
                         code: err.code,

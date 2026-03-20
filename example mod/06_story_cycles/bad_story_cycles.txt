@@ -5,7 +5,6 @@
 # ERROR: CK3103
 # ERROR: CK3314
 # ERROR: CK3702
-# ERROR: SCOPE-007
 bad_story_001 = {
 	on_owner_death = {
 		scope:story = {

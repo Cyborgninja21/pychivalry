@@ -2,7 +2,6 @@
 # Demonstrates DECISION-001 to DECISION-004
 
 # ERROR DECISION-001: Missing ai_check_interval
-# ERROR: CK3103
 # ERROR: CK3314
 # ERROR: CK3872
 bad_decision_001 = {

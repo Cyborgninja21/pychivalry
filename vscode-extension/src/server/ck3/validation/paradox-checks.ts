@@ -83,8 +83,15 @@ export function checkEffectInTriggerContext(node: ASTNode, context: 'trigger' | 
     const diagnostics: Diagnostic[] = [];
     const children = node.children || [];
 
+    // save_temporary_scope_as is intentionally allowed in trigger blocks in CK3.
+    // It's a common pattern to capture a scope reference during trigger evaluation.
+    const TRIGGER_SAFE_EFFECTS = new Set([
+        'save_temporary_scope_as',
+        'save_scope_as',
+    ]);
+
     for (const child of children) {
-        if (child.key && isEffect(child.key)) {
+        if (child.key && isEffect(child.key) && !TRIGGER_SAFE_EFFECTS.has(child.key)) {
             const code = context === 'limit' ? 'CK3871' : 'CK3870';
             const contextName = context === 'limit' ? 'limit' : 'trigger';
             diagnostics.push({
@@ -119,7 +126,7 @@ export function checkRedundantTriggers(node: ASTNode): Diagnostic[] {
         if (child.key === 'always' && (child.value === true || child.value === 'yes')) {
             diagnostics.push({
                 range: child.range,
-                severity: DiagnosticSeverity.Warning,
+                severity: DiagnosticSeverity.Information,
                 code: 'CK3872',
                 source: 'ck3-lsp',
                 message: "Redundant 'always = yes' trigger. This is always true and can be removed.",

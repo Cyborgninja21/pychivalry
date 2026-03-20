@@ -20,14 +20,12 @@
 # Expected validation result: ERRORS DETECTED
 # ===================================================================
 
-# ERROR: CK3101
 # ERROR: CK3306
 # ERROR: CK3317
 # ERROR: CK3701
 # ERROR: CK3702
 # ERROR: CK3875
 # ERROR: CK5137
-# ERROR: EVENT-008
 # ERROR: SCOPE-007
 namespace = scope_timing_bad
 

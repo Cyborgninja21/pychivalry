@@ -48,7 +48,7 @@ export function checkOpinionModifiers(node: ASTNode, config: ParadoxConfig = {})
                     diagnostics.push(createDiagnostic(
                         `Inline opinion value in ${n.key}. Define opinion modifier in common/opinion_modifiers/ and reference by name with 'modifier = your_modifier_name'.`,
                         n.range,
-                        DiagnosticSeverity.Error,
+                        DiagnosticSeverity.Information,
                         'CK3656'
                     ));
                     break;

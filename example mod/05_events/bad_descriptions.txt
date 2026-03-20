@@ -1,12 +1,10 @@
 # Bad Descriptions Examples
 # Demonstrates CK3440-CK3446 - Description block validation errors
 
-# ERROR: CK3103
 # ERROR: CK3317
 # ERROR: CK3872
 # ERROR: CK3875
 # ERROR: LOC-001
-# ERROR: SCOPE-006
 namespace = events_bad_desc
 
 # triggered_desc missing trigger

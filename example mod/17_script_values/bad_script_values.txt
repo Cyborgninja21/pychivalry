@@ -2,7 +2,6 @@
 # Demonstrates VALUE-001 through VALUE-006
 
 # Unrecognized script value reference
-# ERROR: CK3103
 # ERROR: CK3316
 # ERROR: CK3872
 # ERROR: COND-003
