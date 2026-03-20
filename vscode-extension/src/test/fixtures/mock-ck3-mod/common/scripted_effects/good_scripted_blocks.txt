@@ -1,0 +1,168 @@
+# ===================================================================
+# GOOD SCRIPTED BLOCK EXAMPLES
+# ===================================================================
+# This file demonstrates CORRECT CK3 scripted effect and trigger usage.
+# All examples in this file should PASS validation with NO errors.
+#
+# What this tests:
+# - Scripted effect definitions and usage
+# - Scripted trigger definitions and usage
+# - Parameterized scripted effects ($PARAM$ syntax)
+# - Scripted effects calling other scripted effects (non-recursive)
+#
+# NOTE: In a real mod, definitions go in common/scripted_effects/
+# and common/scripted_triggers/. Usage goes in events/.
+# Both are shown here for demonstration purposes.
+#
+# Expected validation result: NO ERRORS
+# ===================================================================
+
+# ===================================================================
+# DEFINITIONS (as they would appear in common/scripted_effects/)
+# ===================================================================
+
+# -------------------------------------------------------------------
+# Definition 1: Simple scripted effect
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Basic scripted effect definition
+# DEMONSTRATES: A reusable effect that grants rewards
+# -------------------------------------------------------------------
+grant_standard_reward_effect = {
+	add_gold = 100
+	add_prestige = 50
+}
+
+# -------------------------------------------------------------------
+# Definition 2: Parameterized scripted effect ($PARAM$ syntax)
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Scripted effect with parameter substitution
+# DEMONSTRATES: $PARAM$ syntax for flexible scripted effects
+# -------------------------------------------------------------------
+grant_scaled_reward_effect = {
+	add_gold = $GOLD_AMOUNT$
+	add_prestige = $PRESTIGE_AMOUNT$
+}
+
+# -------------------------------------------------------------------
+# Definition 3: Scripted effect that calls another scripted effect
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Non-recursive composition of scripted effects
+# DEMONSTRATES: One scripted effect calling a different one
+# -------------------------------------------------------------------
+full_victory_reward_effect = {
+	grant_standard_reward_effect = yes
+	add_piety = 25
+}
+
+# ===================================================================
+# DEFINITIONS (as they would appear in common/scripted_triggers/)
+# ===================================================================
+
+# -------------------------------------------------------------------
+# Definition 4: Simple scripted trigger
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Basic scripted trigger definition
+# DEMONSTRATES: A reusable trigger checking eligibility
+# -------------------------------------------------------------------
+is_eligible_hero_trigger = {
+	is_adult = yes
+	is_ruler = yes
+	is_alive = yes
+}
+
+# ===================================================================
+# USAGE (as they would appear in events/)
+# ===================================================================
+
+namespace = scripted_good
+
+# -------------------------------------------------------------------
+# Example 1: Using a scripted effect in an event
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Calling a defined scripted effect
+# SHOULD PASS: Yes - effect is defined above
+# DEMONSTRATES: Standard scripted effect invocation
+# -------------------------------------------------------------------
+scripted_good.0001 = {
+	type = character_event
+	title = scripted_good.0001.t
+	desc = scripted_good.0001.desc
+
+	trigger = {
+		is_adult = yes
+	}
+
+	option = {
+		name = scripted_good.0001.a
+		grant_standard_reward_effect = yes
+	}
+}
+
+# -------------------------------------------------------------------
+# Example 2: Using a scripted trigger in an event
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Calling a defined scripted trigger
+# SHOULD PASS: Yes - trigger is defined above
+# DEMONSTRATES: Standard scripted trigger invocation
+# -------------------------------------------------------------------
+scripted_good.0002 = {
+	type = character_event
+	title = scripted_good.0002.t
+	desc = scripted_good.0002.desc
+
+	trigger = {
+		is_eligible_hero_trigger = yes
+	}
+
+	option = {
+		name = scripted_good.0002.a
+		add_gold = 100
+	}
+}
+
+# -------------------------------------------------------------------
+# Example 3: Using parameterized scripted effect
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Calling a scripted effect with $PARAM$ values
+# SHOULD PASS: Yes - effect defined with parameters, invoked with values
+# DEMONSTRATES: Parameter passing to scripted effects
+# -------------------------------------------------------------------
+scripted_good.0003 = {
+	type = character_event
+	title = scripted_good.0003.t
+	desc = scripted_good.0003.desc
+
+	trigger = {
+		is_adult = yes
+	}
+
+	option = {
+		name = scripted_good.0003.a
+		grant_scaled_reward_effect = {
+			GOLD_AMOUNT = 200
+			PRESTIGE_AMOUNT = 100
+		}
+	}
+}
+
+# -------------------------------------------------------------------
+# Example 4: Using composed scripted effect (non-recursive)
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Using an effect that internally calls another effect
+# SHOULD PASS: Yes - full_victory_reward_effect calls grant_standard_reward_effect (not itself)
+# DEMONSTRATES: Safe effect composition without recursion
+# -------------------------------------------------------------------
+scripted_good.0004 = {
+	type = character_event
+	title = scripted_good.0004.t
+	desc = scripted_good.0004.desc
+
+	trigger = {
+		is_eligible_hero_trigger = yes
+	}
+
+	option = {
+		name = scripted_good.0004.a
+		full_victory_reward_effect = yes
+	}
+}

@@ -1,0 +1,278 @@
+# Bad On-Actions Examples
+# Demonstrates CK3400-CK3404, CK3500-CK3508, ON_ACTION-001, ON_ACTION-002
+
+# ERROR: CK3103
+# ERROR: CK3875
+# ERROR: EVENT-008
+# ERROR: EVENT-018
+# ERROR: HOOK-001
+# ERROR: ON_ACTION-001
+# ERROR: SCOPE-006
+namespace = on_actions_bad
+
+# Invalid days format
+on_birth_bad = {
+	events = {
+		delay = { days = "thirty" } # ERROR CK3401: Should be integer
+		on_actions_bad.0001
+	}
+}
+
+on_actions_bad.0001 = {
+	type = character_event
+	title = on_actions_bad.0001.t
+	desc = on_actions_bad.0001.desc
+
+	left_portrait = root
+
+	option = {
+		name = on_actions_bad.0001.a
+		add_gold = 100
+	}
+}
+
+# Invalid delay specification
+on_adult_bad = {
+	events = {
+		delay = { days = -30 } # ERROR CK3402: Negative delay
+		on_actions_bad.0002
+	}
+}
+
+on_actions_bad.0002 = {
+	type = character_event
+	title = on_actions_bad.0002.t
+	desc = on_actions_bad.0002.desc
+
+	left_portrait = root
+
+	option = {
+		name = on_actions_bad.0002.a
+		add_prestige = 50
+	}
+}
+
+# Invalid on_action structure
+on_marriage_bad = {
+# Malformed structure - missing events or effect
+	random_stuff = {
+		foo = bar
+	}
+}
+
+# Invalid event format in on_action
+on_death_bad = {
+	events = {
+		invalid_event_format # ERROR CK3404: Should be namespace.id format
+		on_actions_bad.0003
+	}
+}
+
+on_actions_bad.0003 = {
+	type = character_event
+	title = on_actions_bad.0003.t
+	desc = on_actions_bad.0003.desc
+
+	left_portrait = root
+
+	option = {
+		name = on_actions_bad.0003.a
+		add_gold = 100
+	}
+}
+
+# Effect overwrites vanilla on_action
+on_birth = { # ERROR CK3500: Overwriting vanilla on_action with custom effect
+	effect = {
+		add_gold = 1000 # Custom behavior overwrites game behavior
+	}
+}
+
+# Unknown on_action reference
+on_custom_event = {
+	on_action = nonexistent_on_action # ERROR CK3501: This on_action doesn't exist
+}
+
+# Invalid delay format
+on_yearly_pulse_bad = {
+	events = {
+		delay = yes # ERROR CK3502: Should be { days/months/years = N }
+		on_actions_bad.0004
+	}
+}
+
+on_actions_bad.0004 = {
+	type = character_event
+	title = on_actions_bad.0004.t
+	desc = on_actions_bad.0004.desc
+
+	left_portrait = root
+
+	option = {
+		name = on_actions_bad.0004.a
+		add_gold = 100
+	}
+}
+
+# N² performance issue in pulse on_action
+on_daily_pulse = { # ERROR CK3503: Fires every single day (365x/year)
+	effect = {
+		every_living_character = { # N² complexity: every character, every day
+			limit = {
+				is_adult = yes
+			}
+			add_gold = 1
+		}
+	}
+}
+
+# Circular fallback reference
+on_circular_a = {
+	on_action = on_circular_b # ERROR CK3504: Creates infinite loop
+}
+
+on_circular_b = {
+	on_action = on_circular_a # Circular reference back to on_circular_a
+}
+
+# Missing weight_multiplier in random selection
+on_random_bad = {
+	random_events = {
+		on_actions_bad.0005 # ERROR CK3505: No weight specified
+		on_actions_bad.0006 # ERROR CK3505: No weight specified
+	}
+}
+
+on_actions_bad.0005 = {
+	type = character_event
+	title = on_actions_bad.0005.t
+	desc = on_actions_bad.0005.desc
+
+	left_portrait = root
+
+	option = {
+		name = on_actions_bad.0005.a
+		add_gold = 100
+	}
+}
+
+on_actions_bad.0006 = {
+	type = character_event
+	title = on_actions_bad.0006.t
+	desc = on_actions_bad.0006.desc
+
+	left_portrait = root
+
+	option = {
+		name = on_actions_bad.0006.a
+		add_prestige = 50
+	}
+}
+
+# Zero weight event
+on_random_weighted = {
+	random_events = {
+		0 = on_actions_bad.0007 # ERROR CK3506: Weight of 0 means never selected
+		100 = on_actions_bad.0008
+	}
+}
+
+on_actions_bad.0007 = {
+	type = character_event
+	title = on_actions_bad.0007.t
+	desc = on_actions_bad.0007.desc
+
+	left_portrait = root
+
+	option = {
+		name = on_actions_bad.0007.a
+		add_gold = 100
+	}
+}
+
+on_actions_bad.0008 = {
+	type = character_event
+	title = on_actions_bad.0008.t
+	desc = on_actions_bad.0008.desc
+
+	left_portrait = root
+
+	option = {
+		name = on_actions_bad.0008.a
+		add_prestige = 50
+	}
+}
+
+# chance_to_happen > 100
+on_actions_bad.0009 = {
+	type = character_event
+	title = on_actions_bad.0009.t
+	desc = on_actions_bad.0009.desc
+
+	left_portrait = root
+
+	trigger = {
+		is_adult = yes
+	}
+
+	weight_multiplier = {
+		base = 250 # ERROR CK3507: Capped at 100%, wasteful
+	}
+
+	option = {
+		name = on_actions_bad.0009.a
+		add_gold = 100
+	}
+}
+
+# Wrong folder path for on_action
+# This file should be in common/on_action/ not common/events/
+
+# ERROR ON_ACTION-001: No effects or events
+on_empty_action = {
+	# ERROR ON_ACTION-001: Empty on_action with no effects or events
+}
+
+# Empty events list
+on_empty_events = {
+	events = {
+# Empty events list
+	}
+}
+
+# Multiple errors combined
+on_super_bad = {
+# Invalid structure
+	events = {
+		delay = { days = "invalid" } # ERROR CK3401: Invalid format
+		delay = { months = -5 } # ERROR CK3402: Negative delay
+		nonexistent.event # ERROR CK3404: Invalid format
+	}
+
+	random_events = {
+		on_actions_bad.0010 # ERROR CK3505: Missing weight
+	}
+
+	on_action = circular_reference # ERROR CK3501: Unknown + ERROR CK3504: Circular
+}
+
+on_actions_bad.0010 = {
+	type = character_event
+	title = on_actions_bad.0010.t
+	desc = on_actions_bad.0010.desc
+
+	left_portrait = root
+
+	option = {
+		name = on_actions_bad.0010.a
+		add_gold = 100
+	}
+}
+
+# Generic on_action violation
+on_generic_bad = {
+	invalid_field = yes # ERROR CK3400: Unknown field in on_action
+	another_bad_field = {
+		nested = yes
+	}
+}

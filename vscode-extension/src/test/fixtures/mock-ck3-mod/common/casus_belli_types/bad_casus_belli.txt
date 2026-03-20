@@ -1,0 +1,110 @@
+# Bad Casus Belli Examples
+# Demonstrates CB-001 and CB-002
+
+# ERROR CB-001: No outcome effects
+bad_cb_001 = {
+	# ERROR CB-001: No on_victory, on_defeat, or on_white_peace
+	# Should have: on_victory = { scope:attacker = { add_prestige = 100 } }
+
+	valid_to_start = {
+		is_at_war = no
+	}
+
+	should_invalidate = {
+		NOT = { is_alive = yes }
+	}
+
+	cost = {
+		prestige = 100
+	}
+
+	war_score_from_battles_factor = 1.0
+}
+
+# ERROR CB-002: Unknown cost type
+bad_cb_002 = {
+	valid_to_start = {
+		is_adult = yes
+	}
+
+	cost = {
+		honor = 100 # ERROR CB-002: 'honor' is not a valid cost type
+		# Should have: prestige, piety, or gold
+	}
+
+	on_victory = {
+		scope:attacker = {
+			add_gold = 100
+		}
+	}
+}
+
+# Multiple errors combined
+bad_cb_all = {
+	valid_to_start = {
+		is_at_war = no
+	}
+
+	should_invalidate = {
+		NOT = { is_alive = yes }
+	}
+
+	cost = {
+		renown = 50 # ERROR CB-002: 'renown' is not a valid cost type
+	}
+
+	# ERROR CB-001: No on_victory, on_defeat, or on_white_peace
+
+	war_score_from_battles_factor = 1.0
+}
+
+# Edge case: Only on_defeat defined (still has outcome)
+bad_cb_only_defeat = {
+	valid_to_start = {
+		is_adult = yes
+	}
+
+	on_defeat = {
+		scope:attacker = {
+			add_prestige = -100
+		}
+	}
+
+	# Not an error — on_defeat counts as an outcome effect
+}
+
+# Edge case: Multiple unknown cost types
+bad_cb_multiple_unknown_costs = {
+	valid_to_start = {
+		is_at_war = no
+	}
+
+	cost = {
+		honor = 50 # ERROR CB-002: 'honor' is not a valid cost type
+		influence = 25 # ERROR CB-002: 'influence' is not a valid cost type
+		gold = 100 # Valid cost type
+	}
+
+	on_victory = {
+		scope:attacker = {
+			add_gold = 200
+		}
+	}
+}
+
+# Edge case: Empty outcome effects
+bad_cb_empty_outcomes = {
+	# ERROR CB-001: Empty outcome blocks count as no effects
+
+	valid_to_start = {
+		is_adult = yes
+	}
+
+	on_victory = {
+	}
+
+	on_defeat = {
+	}
+
+	war_score_from_battles_factor = 0.5
+}

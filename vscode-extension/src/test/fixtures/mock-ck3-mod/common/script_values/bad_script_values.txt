@@ -1,0 +1,153 @@
+# Bad Script Values Examples
+# Demonstrates VALUE-001 through VALUE-006
+
+# Unrecognized script value reference
+# ERROR: CK3316
+# ERROR: CK3872
+# ERROR: COND-003
+scaled_reward = {
+	value = nonexistent_script_value # ERROR VALUE-001: Unrecognized script value reference: 'nonexistent_script_value'
+	# Should have: value = 100 (or a defined script value name)
+	add = 50
+}
+
+# Range min > max
+bad_range = {
+	value = {
+		min = 200 # ERROR VALUE-002: Range minimum (200) cannot be greater than maximum (50)
+		max = 50
+	}
+	# Should have: min = 50, max = 200
+}
+
+# Unknown formula operation
+bad_formula_op = {
+	value = 100
+	power = 2 # ERROR VALUE-003: Unknown formula operation: 'power'
+	# Should have: multiply = 2 (or use valid ops: add, subtract, multiply, divide, modulo, min, max, round, round_to, ceiling, floor)
+}
+
+# else_if after else (bad conditional structure)
+bad_conditional_else_if_after_else = {
+	value = 100
+
+	if = {
+		limit = {
+			has_trait = brave
+		}
+		add = 50
+	}
+	else = {
+		add = 10
+	}
+	else_if = { # ERROR VALUE-004: else_if after else
+		limit = {
+			has_trait = craven
+		}
+		subtract = 25
+		# Should have: placed this else_if before the else block
+	}
+}
+
+# Formula without explicit value key
+implicit_zero_formula = {
+	add = 50 # ERROR VALUE-005: Formula uses arithmetic operations without an explicit value — implicit 0 will be used
+	multiply = 2
+	# Should have: value = 0 (or another starting value) before arithmetic ops
+	# Result: implicit 0 + 50 * 2 = 100
+}
+
+# round_to <= 0
+bad_round_to = {
+	value = 100
+	divide = 3
+	round_to = 0 # ERROR VALUE-006: round_to parameter must be a positive number (got 0)
+	# Should have: round_to = 1 (or any positive number)
+}
+
+# Another unknown operation
+bad_formula_sqrt = {
+	value = 144
+	sqrt = yes # ERROR VALUE-003: Unknown formula operation: 'sqrt'
+	# Should have: use a valid operation like divide
+}
+
+# else_if without preceding if
+bad_conditional_no_if = {
+	value = 100
+
+	else_if = { # ERROR VALUE-004: else_if without preceding if
+		limit = {
+			has_trait = brave
+		}
+		add = 50
+		# Should have: if = { ... } before else_if
+	}
+}
+
+# Multiple else blocks
+bad_conditional_double_else = {
+	value = 100
+
+	if = {
+		limit = {
+			has_trait = brave
+		}
+		add = 50
+	}
+	else = {
+		add = 10
+	}
+	else = { # ERROR VALUE-004: Multiple else blocks
+		add = 20
+		# Should have: only one else block per if chain
+	}
+}
+
+# Edge case — equal min/max is valid, but reversed is not
+bad_range_negative = {
+	value = {
+		min = 100 # ERROR VALUE-002: Range minimum (100) cannot be greater than maximum (-50)
+		max = -50
+	}
+	# Should have: min = -50, max = 100
+}
+
+# Negative round_to
+bad_round_to_negative = {
+	value = 250
+	divide = 7
+	round_to = -5 # ERROR VALUE-006: round_to parameter must be a positive number (got -5)
+	# Should have: round_to = 5
+}
+
+# Multiple unrecognized references
+chained_bad_refs = {
+	value = mystery_base_value # ERROR VALUE-001: Unrecognized script value reference: 'mystery_base_value'
+	add = phantom_modifier # ERROR VALUE-001: Unrecognized script value reference: 'phantom_modifier'
+	# Should have: value = 100 and add = 50 (or defined script value names)
+}
+
+# All errors combined
+all_errors_script_value = {
+# No explicit value key
+	add = unknown_ref # ERROR VALUE-001: Unrecognized script value reference: 'unknown_ref'
+	power = 2 # ERROR VALUE-003: Unknown formula operation: 'power'
+	round_to = 0 # ERROR VALUE-006: round_to parameter must be a positive number (got 0)
+
+	if = {
+		limit = {
+			has_trait = brave
+		}
+		add = 50
+	}
+	else = {
+		add = 10
+	}
+	else_if = { # ERROR VALUE-004: else_if after else
+		limit = {
+			has_trait = craven
+		}
+		subtract = 25
+	}
+}

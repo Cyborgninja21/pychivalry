@@ -1,8 +1,15 @@
 /**
  * Helper utilities for the Example Mod Validation Test Suite.
  *
- * Provides file discovery, URI mapping, error-code extraction,
- * diagnostic formatting, and reporting functions.
+ * Files live in a mock CK3 mod directory at:
+ *   vscode-extension/src/test/fixtures/mock-ck3-mod/
+ *
+ * The mock mod mirrors a real CK3 mod layout (events/, common/decisions/,
+ * common/schemes/, localization/english/, etc.) so path-based validators
+ * fire correctly without any URI simulation.
+ *
+ * Provides file discovery, error-code extraction, diagnostic formatting,
+ * and reporting functions.
  */
 
 import * as fs from 'fs';
@@ -15,9 +22,9 @@ import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver-types';
 // ---------------------------------------------------------------------------
 
 export interface ExampleFileEntry {
-    /** Section directory name, e.g. "05_events" */
+    /** CK3 directory within the mock mod, e.g. "events" or "common/decisions" */
     sectionDir: string;
-    /** File name, e.g. "bad_missing_namespace.txt" */
+    /** File name, e.g. "bad_syntax.txt" */
     fileName: string;
     /** Absolute path to the file */
     filePath: string;
@@ -55,58 +62,60 @@ interface JsonReport {
 }
 
 // ---------------------------------------------------------------------------
-// URI Mapping
+// Mock Mod Root
 // ---------------------------------------------------------------------------
 
-const URI_MAP: Record<string, string> = {
-    // Sections that contain event definitions → events/ directory
-    '01_syntax': 'file:///mod/events/',
-    '02_semantic': 'file:///mod/events/',
-    '03_scopes': 'file:///mod/events/',
-    '04_style': 'file:///mod/events/',
-    '05_events': 'file:///mod/events/',
-    '11_assets': 'file:///mod/events/',
-    '16_traits': 'file:///mod/events/',
-    '19_variables': 'file:///mod/events/',
-    '23_switch': 'file:///mod/events/',
-    '24_iterators': 'file:///mod/events/',
-    // Sections with specific CK3 content types → proper common/ subdirectory
-    '06_story_cycles': 'file:///mod/common/story_cycles/',
-    '07_decisions': 'file:///mod/common/decisions/',
-    '08_interactions': 'file:///mod/common/character_interactions/',
-    '09_schemes': 'file:///mod/common/schemes/',
-    '10_on_actions': 'file:///mod/common/on_actions/',
-    '15_activities': 'file:///mod/common/activities/',
-    '17_script_values': 'file:///mod/common/script_values/',
-    '18_modifiers': 'file:///mod/common/modifiers/',
-    '20_scripted_blocks': 'file:///mod/common/scripted_effects/',
-    '21_court_positions': 'file:///mod/common/court_positions/',
-    '22_casus_belli': 'file:///mod/common/casus_belli_types/',
-    // Other sections
-    '12_localization': 'file:///mod/localization/english/',
-    '13_call_hierarchy': 'file:///mod/events/',
-    '14_selection_range': 'file:///mod/events/',
-};
+/**
+ * Resolve the absolute path to the mock CK3 mod fixture directory.
+ *
+ * At runtime (compiled JS in out/test/unit/helpers/), __dirname is:
+ *   <repo>/vscode-extension/out/test/unit/helpers
+ * We need:
+ *   <repo>/vscode-extension/src/test/fixtures/mock-ck3-mod
+ */
+export function getMockModRoot(): string {
+    // Walk up from out/test/unit/helpers → out/test/unit → out/test → out → vscode-extension
+    const vsCodeExtRoot = path.resolve(__dirname, '..', '..', '..', '..');
+    return path.join(vsCodeExtRoot, 'src', 'test', 'fixtures', 'mock-ck3-mod');
+}
 
 // ---------------------------------------------------------------------------
 // Discovery
 // ---------------------------------------------------------------------------
 
+/**
+ * CK3 content directories to scan for test files.
+ * Each entry is a relative path within the mock mod root.
+ */
+const CK3_CONTENT_DIRS = [
+    'events',
+    'common/decisions',
+    'common/character_interactions',
+    'common/story_cycles',
+    'common/schemes',
+    'common/on_actions',
+    'common/activities',
+    'common/traits',
+    'common/script_values',
+    'common/modifiers',
+    'common/scripted_effects',
+    'common/scripted_triggers',
+    'common/court_positions',
+    'common/casus_belli_types',
+    'localization/english',
+];
+
 export function discoverExampleFiles(): ExampleFileEntry[] {
-    const repoRoot = path.resolve(__dirname, '..', '..', '..', '..', '..');
-    const exampleModDir = path.join(repoRoot, 'example mod');
+    const mockModRoot = getMockModRoot();
     const entries: ExampleFileEntry[] = [];
 
-    for (const sectionDir of fs.readdirSync(exampleModDir)) {
-        const sectionPath = path.join(exampleModDir, sectionDir);
-        if (!fs.statSync(sectionPath).isDirectory()) {
-            continue;
-        }
-        if (!/^\d{2}_/.test(sectionDir)) {
+    for (const ck3Dir of CK3_CONTENT_DIRS) {
+        const dirPath = path.join(mockModRoot, ck3Dir);
+        if (!fs.existsSync(dirPath) || !fs.statSync(dirPath).isDirectory()) {
             continue;
         }
 
-        for (const fileName of fs.readdirSync(sectionPath)) {
+        for (const fileName of fs.readdirSync(dirPath)) {
             if (!fileName.endsWith('.txt') && !fileName.endsWith('.yml')) {
                 continue;
             }
@@ -121,9 +130,9 @@ export function discoverExampleFiles(): ExampleFileEntry[] {
             }
 
             entries.push({
-                sectionDir,
+                sectionDir: ck3Dir,
                 fileName,
-                filePath: path.join(sectionPath, fileName),
+                filePath: path.join(dirPath, fileName),
                 expectation,
             });
         }
@@ -136,12 +145,15 @@ export function discoverExampleFiles(): ExampleFileEntry[] {
 // URI Helpers
 // ---------------------------------------------------------------------------
 
-export function getSimulatedUri(sectionDir: string, fileName: string): string {
-    const base = URI_MAP[sectionDir];
-    if (!base) {
-        return `file:///test/${fileName}`;
-    }
-    return `${base}${fileName}`;
+/**
+ * Build a file:// URI from the real file path inside the mock mod.
+ * Since files already live in the correct CK3 directory structure,
+ * the URI naturally contains the path segments that validators check.
+ */
+export function getFileUri(filePath: string): string {
+    // Use the real absolute path — validators check for path segments like
+    // /events/, /common/decisions/, /common/schemes/ etc.
+    return `file://${filePath.replace(/\\/g, '/')}`;
 }
 
 // ---------------------------------------------------------------------------
@@ -238,8 +250,9 @@ export function printSummaryTable(results: TestResult[]): void {
 // ---------------------------------------------------------------------------
 
 export function writeJsonReport(results: TestResult[]): void {
-    const repoRoot = path.resolve(__dirname, '..', '..', '..', '..', '..');
-    const reportDir = path.join(repoRoot, 'vscode-extension', 'out', 'test-reports');
+    // Walk from out/test/unit/helpers → vscode-extension root
+    const vsCodeExtRoot = path.resolve(__dirname, '..', '..', '..', '..');
+    const reportDir = path.join(vsCodeExtRoot, 'out', 'test-reports');
 
     if (!fs.existsSync(reportDir)) {
         fs.mkdirSync(reportDir, { recursive: true });

@@ -1,0 +1,104 @@
+# Good Casus Belli Examples
+# Demonstrates proper CB structure with outcome effects and valid costs
+
+# Example 1: Full CB with all outcome effects and valid cost
+conquest_cb_example = {
+	war_score_from_battles_factor = 1.0
+
+	valid_to_start = {
+		is_at_war = no
+		prestige >= 100
+	}
+
+	should_invalidate = {
+		NOT = { is_alive = yes }
+	}
+
+	cost = {
+		prestige = 100
+	}
+
+	on_victory = {
+		scope:attacker = {
+			add_prestige = 200
+		}
+		scope:defender = {
+			add_prestige = -100
+		}
+	}
+
+	on_defeat = {
+		scope:attacker = {
+			add_prestige = -200
+			add_gold = -50
+		}
+	}
+
+	on_white_peace = {
+		scope:attacker = {
+			add_prestige = -50
+		}
+		scope:defender = {
+			add_prestige = 50
+		}
+	}
+}
+
+# Example 2: Minimal valid CB
+raid_cb_example = {
+	valid_to_start = {
+		is_adult = yes
+	}
+
+	on_victory = {
+		scope:attacker = {
+			add_gold = 100
+		}
+	}
+}
+
+# Example 3: CB with complex victory conditions
+holy_war_cb_example = {
+	war_score_from_battles_factor = 0.75
+
+	valid_to_start = {
+		is_at_war = no
+		piety >= 200
+		NOT = { faith = scope:defender.faith }
+	}
+
+	should_invalidate = {
+		OR = {
+			NOT = { is_alive = yes }
+			faith = scope:defender.faith
+		}
+	}
+
+	cost = {
+		piety = 200
+		gold = 50
+	}
+
+	on_victory = {
+		scope:attacker = {
+			add_piety = 500
+			add_prestige = 200
+		}
+		scope:defender = {
+			add_piety = -200
+		}
+	}
+
+	on_defeat = {
+		scope:attacker = {
+			add_piety = -300
+			add_prestige = -100
+		}
+	}
+
+	on_white_peace = {
+		scope:attacker = {
+			add_piety = -100
+		}
+	}
+}

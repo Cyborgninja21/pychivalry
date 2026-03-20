@@ -1,0 +1,149 @@
+# Bad Schemes Examples
+# Demonstrates SCHEME-001 to SCHEME-003
+
+# ERROR SCHEME-001: Missing skill field
+# ERROR: CK3314
+# ERROR: CK5137
+# ERROR: SCHEME-004
+bad_scheme_001 = {
+	# ERROR SCHEME-001: No skill field
+	# Should have: skill = intrigue (or diplomacy, stewardship, etc.)
+
+	desc = bad_scheme_001_desc
+	category = hostile
+
+	target_type = character
+	is_valid_target = {
+		is_alive = yes
+	}
+
+	base_progress_goal = 180
+
+	on_ready = {
+		scope:owner = {
+			add_gold = 100
+		}
+	}
+}
+
+# ERROR SCHEME-002: No effects
+bad_scheme_002 = {
+	skill = intrigue
+	desc = bad_scheme_002_desc
+	category = hostile
+
+	target_type = character
+	is_valid_target = {
+		is_alive = yes
+	}
+
+	base_progress_goal = 180
+
+	# ERROR SCHEME-002: No on_ready, on_invalidated, or any effect blocks
+	# Scheme does nothing when ready
+}
+
+# Uses agents but no valid_agent conditions
+bad_scheme_003 = {
+	skill = intrigue
+	desc = bad_scheme_003_desc
+	category = hostile
+
+	target_type = character
+	is_valid_target = {
+		is_alive = yes
+	}
+
+# Has agent_join_chance but no valid_agent block
+	agent_join_chance = {
+		base = 25
+
+		modifier = {
+			add = 50
+			has_trait = ambitious
+		}
+	}
+
+	base_progress_goal = 180
+
+	on_ready = {
+		scope:owner = {
+			add_prestige = 100
+		}
+	}
+}
+
+# Multiple errors combined
+bad_scheme_all = {
+	# ERROR SCHEME-001: Missing skill
+
+	desc = bad_scheme_all_desc
+	category = hostile
+
+	target_type = character
+
+# Has agent_join_chance but no valid_agent
+	agent_join_chance = {
+		base = 50
+	}
+
+	base_progress_goal = 180
+
+	# ERROR SCHEME-002: No effects
+}
+
+# ERROR SCHEME-001: Wrong skill value
+bad_scheme_wrong_skill = {
+	skill = super_skill # ERROR SCHEME-001: Invalid skill
+
+	desc = bad_scheme_wrong_skill_desc
+
+	on_ready = {
+		add_gold = 100
+	}
+}
+
+# ERROR SCHEME-002: Empty effect blocks
+bad_scheme_empty_effects = {
+	skill = intrigue
+	desc = bad_scheme_empty_effects_desc
+
+	base_progress_goal = 180
+
+	# ERROR SCHEME-002: Empty on_ready
+	on_ready = {
+	}
+
+	# ERROR SCHEME-002: Empty on_invalidated
+	on_invalidated = {
+	}
+}
+
+# Agent logic without valid_agent
+bad_scheme_agents_no_validation = {
+	skill = intrigue
+	desc = bad_scheme_agents_no_validation_desc
+
+	target_type = character
+
+# No valid_agent block to define who can be an agent
+	agent_join_chance = {
+		base = 25
+
+		modifier = {
+			add = 25
+			has_trait = ambitious
+		}
+
+		modifier = {
+			add = 50
+			has_relation_friend = scope:owner
+		}
+	}
+
+	base_progress_goal = 180
+
+	on_ready = {
+		add_prestige = 100
+	}
+}

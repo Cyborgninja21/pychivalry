@@ -1,0 +1,114 @@
+# ===================================================================
+# BAD MODIFIER EXAMPLES
+# ===================================================================
+# This file demonstrates INCORRECT modifier definitions that SHOULD FAIL validation.
+# All examples in this file contain modifier errors.
+#
+# Error Codes Demonstrated:
+# - MOD-001 (Information): Unknown modifier key
+# - MOD-002 (Warning): Non-numeric modifier value
+# - MOD-003 (Warning): Opinion modifier missing 'opinion' field
+# - MOD-004 (Information): Opinion value outside typical range
+#
+# File scope note: The modifier validator only runs on files
+# whose path contains "modifier" or "opinion_modifier".
+#
+# Expected validation result: ERRORS DETECTED
+# ===================================================================
+
+# -------------------------------------------------------------------
+# Unknown modifier key not in knownModifierKeys
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Detection of unrecognized modifier keys
+# SHOULD FAIL: Yes - MOD-001 for each unknown key
+# WHY IT'S BAD: These keys don't exist in CK3
+# HOW TO FIX: Use only valid modifier keys (diplomacy, martial, etc.)
+# -------------------------------------------------------------------
+# ERROR: CK3306
+bad_unknown_keys_modifier = {
+	diplomacy = 2
+	super_strength = 5 # ERROR MOD-001: Unknown modifier key 'super_strength'
+	magic_power = 10 # ERROR MOD-001: Unknown modifier key 'magic_power'
+	fire_resistance = 3 # ERROR MOD-001: Unknown modifier key 'fire_resistance'
+}
+
+# -------------------------------------------------------------------
+# ERROR MOD-002: Non-numeric modifier value
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Detection of string values where numbers are expected
+# SHOULD FAIL: Yes - MOD-002 for each non-numeric value
+# WHY IT'S BAD: Modifier values must be numeric (or yes/no for booleans)
+# HOW TO FIX: Use numeric values (diplomacy = 5, not diplomacy = high)
+# -------------------------------------------------------------------
+bad_nonnumeric_modifier = {
+	diplomacy = high # ERROR MOD-002: Modifier value for 'diplomacy' is non-numeric: 'high'
+	martial = strong # ERROR MOD-002: Modifier value for 'martial' is non-numeric: 'strong'
+	stewardship = lots # ERROR MOD-002: Modifier value for 'stewardship' is non-numeric: 'lots'
+}
+
+# -------------------------------------------------------------------
+# Opinion modifier missing 'opinion' field
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Detection of opinion modifiers without the opinion key
+# SHOULD FAIL: Yes - MOD-003 warning
+# WHY IT'S BAD: Opinion modifiers must have an 'opinion' field to function
+# HOW TO FIX: Add opinion = <value> to the modifier
+# -------------------------------------------------------------------
+bad_missing_opinion_modifier = {
+	years = 10 # ERROR MOD-003: Opinion modifier 'bad_missing_opinion_modifier' is missing 'opinion' field
+	decaying = yes
+}
+
+# -------------------------------------------------------------------
+# Opinion value outside typical range (-200 to 200)
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Detection of extreme opinion values
+# SHOULD FAIL: Yes - MOD-004 for out-of-range values
+# WHY IT'S BAD: Opinion values outside -200 to 200 are atypical and likely errors
+# HOW TO FIX: Keep opinion values within -200 to 200
+# -------------------------------------------------------------------
+bad_extreme_positive_opinion = {
+	opinion = 500 # ERROR MOD-004: Opinion modifier value 500 is outside typical range (-200 to 200)
+	years = 10
+	decaying = yes
+}
+
+bad_extreme_negative_opinion = {
+	opinion = -999 # ERROR MOD-004: Opinion modifier value -999 is outside typical range (-200 to 200)
+	years = 5
+}
+
+# -------------------------------------------------------------------
+# Combined: All modifier errors in one block
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Multiple error types at once
+# SHOULD FAIL: Yes - MOD-001, MOD-002, MOD-003, MOD-004
+# DEMONSTRATES: A modifier with every category of error
+# -------------------------------------------------------------------
+bad_everything_wrong_modifier = {
+	diplomacy = great # ERROR MOD-002: Non-numeric value 'great'
+	laser_eyes = 10 # ERROR MOD-001: Unknown modifier key 'laser_eyes'
+	years = 5
+	decaying = yes
+# Missing 'opinion' field (has years/decaying but no opinion)
+}
+
+bad_combined_opinion_modifier = {
+	opinion = 350 # ERROR MOD-004: Outside typical range
+	telekinesis = 7 # ERROR MOD-001: Unknown modifier key
+	martial = mega # ERROR MOD-002: Non-numeric value
+}
+
+# -------------------------------------------------------------------
+# Edge cases
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Subtle errors that are easy to miss
+# -------------------------------------------------------------------
+bad_typo_modifier = {
+	diplomcy = 3 # ERROR MOD-001: Unknown modifier key 'diplomcy' (typo of diplomacy)
+	martail = 2 # ERROR MOD-001: Unknown modifier key 'martail' (typo of martial)
+}
+
+bad_opinion_just_decaying = {
+	decaying = yes # ERROR MOD-003: Missing 'opinion' field
+}

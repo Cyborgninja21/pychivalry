@@ -1,0 +1,213 @@
+# Bad Iterators Examples
+# Demonstrates ITER-001, ITER-002, ITER-003, and ITER-004
+
+namespace = iterators_bad
+
+# ERROR ITER-001: Effect inside any_ block
+iterators_bad.0001 = {
+	type = character_event
+	title = iterators_bad.0001.t
+	desc = iterators_bad.0001.desc
+	theme = diplomacy
+
+	left_portrait = root
+
+	trigger = {
+		any_vassal = {
+			is_adult = yes
+			add_gold = 100 # ERROR ITER-001: 'add_gold' is an effect inside trigger iterator any_vassal
+			# Should use: every_vassal for effects
+		}
+	}
+
+	option = {
+		name = iterators_bad.0001.a
+	}
+}
+
+# ERROR ITER-002: Only triggers in every_ block
+iterators_bad.0002 = {
+	type = character_event
+	title = iterators_bad.0002.t
+	desc = iterators_bad.0002.desc
+	theme = stewardship
+
+	left_portrait = root
+
+	immediate = {
+		every_vassal = {
+			limit = {
+				is_adult = yes
+			}
+			is_ruler = yes # ERROR ITER-002: Trigger inside effect iterator every_vassal
+			is_alive = yes # ERROR ITER-002: Another trigger, no effects present
+			# Should use: any_vassal for trigger evaluation, or add effects
+		}
+	}
+
+	option = {
+		name = iterators_bad.0002.a
+	}
+}
+
+# ERROR ITER-003: ordered_ missing order_by
+iterators_bad.0003 = {
+	type = character_event
+	title = iterators_bad.0003.t
+	desc = iterators_bad.0003.desc
+	theme = martial
+
+	left_portrait = root
+
+	immediate = {
+		ordered_vassal = {
+			# ERROR ITER-003: Missing required 'order_by' field
+			# Should have: order_by = martial
+			limit = {
+				is_adult = yes
+			}
+			max = 3
+			add_prestige = 100
+		}
+	}
+
+	option = {
+		name = iterators_bad.0003.a
+	}
+}
+
+# ERROR ITER-004: ordered_ missing position and max
+iterators_bad.0004 = {
+	type = character_event
+	title = iterators_bad.0004.t
+	desc = iterators_bad.0004.desc
+	theme = intrigue
+
+	left_portrait = root
+
+	immediate = {
+		ordered_vassal = {
+			order_by = intrigue
+			# ERROR ITER-004: No 'position' or 'max' field
+			# Should have: max = 5 or position = 0
+			limit = {
+				is_adult = yes
+			}
+			add_gold = 100
+		}
+	}
+
+	option = {
+		name = iterators_bad.0004.a
+	}
+}
+
+# Multiple errors combined
+iterators_bad.0005 = {
+	type = character_event
+	title = iterators_bad.0005.t
+	desc = iterators_bad.0005.desc
+	theme = learning
+
+	left_portrait = root
+
+	trigger = {
+		any_vassal = {
+			is_adult = yes
+			add_prestige = 50 # ERROR ITER-001: Effect in trigger iterator
+		}
+	}
+
+	immediate = {
+		every_vassal = {
+			limit = {
+				is_adult = yes
+			}
+			is_ruler = yes # ERROR ITER-002: Only triggers in effect iterator
+		}
+
+		ordered_vassal = {
+			# ERROR ITER-003: Missing order_by
+			# ERROR ITER-004: Missing position and max
+			limit = {
+				is_alive = yes
+			}
+			add_gold = 100
+		}
+	}
+
+	option = {
+		name = iterators_bad.0005.a
+	}
+}
+
+# Edge case: Effect in any_ nested inside trigger block
+iterators_bad.0006 = {
+	type = character_event
+	title = iterators_bad.0006.t
+	desc = iterators_bad.0006.desc
+	theme = diplomacy
+
+	left_portrait = root
+
+	trigger = {
+		any_child = {
+			is_adult = yes
+			any_vassal = {
+				is_alive = yes
+				remove_trait = craven # ERROR ITER-001: Effect in nested trigger iterator
+			}
+		}
+	}
+
+	option = {
+		name = iterators_bad.0006.a
+	}
+}
+
+# Edge case: ordered_ with order_by but nothing else useful
+iterators_bad.0007 = {
+	type = character_event
+	title = iterators_bad.0007.t
+	desc = iterators_bad.0007.desc
+	theme = stewardship
+
+	left_portrait = root
+
+	immediate = {
+		ordered_courtier = {
+			order_by = stewardship
+			# ERROR ITER-004: Has order_by but no position or max
+			# Should have: max = 5 or position = 0 to limit iteration
+			add_gold = 50
+		}
+	}
+
+	option = {
+		name = iterators_bad.0007.a
+	}
+}
+
+# Edge case: every_ with limit triggers only (no body effects)
+iterators_bad.0008 = {
+	type = character_event
+	title = iterators_bad.0008.t
+	desc = iterators_bad.0008.desc
+	theme = martial
+
+	left_portrait = root
+
+	immediate = {
+		every_held_title = {
+			limit = {
+				tier >= tier_duchy
+			}
+			# ERROR ITER-002: No effects after limit — did you mean any_held_title?
+			# Should use: any_held_title for evaluation, or add effects here
+		}
+	}
+
+	option = {
+		name = iterators_bad.0008.a
+	}
+}

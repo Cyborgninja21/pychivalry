@@ -1,10 +1,14 @@
 /**
  * Example Mod Validation Test Suite
  *
- * Validates every file in the `example mod/` directory against the Language
- * Server's DiagnosticsEngine. Good files must produce zero Error/Warning
- * diagnostics; bad files must contain all expected diagnostic codes annotated
- * via `# ERROR: CODE` comments.
+ * Validates every file in the mock CK3 mod directory
+ * (`src/test/fixtures/mock-ck3-mod/`) against the Language Server's
+ * DiagnosticsEngine. Good files must produce zero Error/Warning
+ * diagnostics; bad files must contain all expected diagnostic codes
+ * annotated via `# ERROR: CODE` comments.
+ *
+ * Files live in a real CK3 directory layout (events/, common/decisions/,
+ * etc.) so path-based validators fire correctly without URI simulation.
  *
  * Runs as part of `npm run test:unit` — no VS Code host required.
  */
@@ -24,7 +28,8 @@ import {
 } from '../../server/ck3/localization/validator';
 import {
     discoverExampleFiles,
-    getSimulatedUri,
+    getFileUri,
+    getMockModRoot,
     extractExpectedCodes,
     createDoc,
     formatDiags,
@@ -66,7 +71,9 @@ describe('Example Mod Validation', () => {
     before(async function () {
         this.timeout(10_000); // YAML loading can be slow on first run
 
-        const repoRoot = path.resolve(__dirname, '..', '..', '..', '..');
+        // data/ lives at repo root, one level above vscode-extension/
+        const vsCodeExtRoot = path.resolve(__dirname, '..', '..', '..');
+        const repoRoot = path.resolve(vsCodeExtRoot, '..');
         const dataPath = path.join(repoRoot, 'data');
 
         // 1. DataLoader — must initialize first (scope validation depends on it)
@@ -78,10 +85,10 @@ describe('Example Mod Validation', () => {
         await schemaLoader.initialize();
         await schemaLoader.preloadCommonSchemas();
 
-        // 3. LocalizationIndex — independent but initialized here for .yml pipeline
+        // 3. LocalizationIndex — scan the mock mod's localization directory
         locIndex = new LocalizationIndex();
-        const exampleModDir = path.join(repoRoot, 'example mod');
-        await locIndex.scanDirectory(exampleModDir);
+        const mockModRoot = getMockModRoot();
+        await locIndex.scanDirectory(mockModRoot);
     });
 
     after(() => {
@@ -99,7 +106,7 @@ describe('Example Mod Validation', () => {
             for (const entry of sectionEntries) {
                 it(`[${entry.expectation}] ${entry.fileName}`, async () => {
                     const content = fs.readFileSync(entry.filePath, 'utf-8');
-                    const uri = getSimulatedUri(entry.sectionDir, entry.fileName);
+                    const uri = getFileUri(entry.filePath);
                     let diagnostics: Diagnostic[];
 
                     if (entry.fileName.endsWith('.yml')) {

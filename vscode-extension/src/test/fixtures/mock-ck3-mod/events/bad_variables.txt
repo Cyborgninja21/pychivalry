@@ -1,0 +1,220 @@
+# ===================================================================
+# BAD VARIABLE EXAMPLES
+# ===================================================================
+# This file demonstrates INCORRECT CK3 variable usage that SHOULD FAIL validation.
+# All examples in this file contain variable errors.
+#
+# Error Codes Demonstrated:
+# - CK3701 (Warning): Variable used but never declared
+# - CK3702 (Hint): Variable declared but never used
+# - CK3703 (Error): Scope mismatch — local declared, global checked (or vice versa)
+# - CK3705 (Warning): Variable used as both list and value
+#
+# Expected validation result: ERRORS DETECTED
+# ===================================================================
+
+# ERROR: CK3306
+namespace = variables_bad
+
+# -------------------------------------------------------------------
+# ERROR CK3701: Variable used but never declared
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Detection of variables checked but never set
+# SHOULD FAIL: Yes - CK3701 warning
+# WHY IT'S BAD: has_variable checks a variable that was never set_variable'd
+# HOW TO FIX: Add set_variable = { name = mystery_var value = yes } before use
+# -------------------------------------------------------------------
+variables_bad.0001 = {
+	type = character_event
+	title = variables_bad.0001.t
+	desc = variables_bad.0001.desc
+
+	trigger = {
+		is_adult = yes
+	}
+
+	immediate = {
+		# No set_variable for mystery_var anywhere
+	}
+
+	option = {
+		name = variables_bad.0001.a
+		trigger = {
+			has_variable = mystery_var # ERROR CK3701: Variable "mystery_var" used but never declared
+		}
+		add_gold = 100
+	}
+}
+
+# -------------------------------------------------------------------
+# ERROR CK3702: Variable declared but never used
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Detection of variables set but never checked or read
+# SHOULD FAIL: Yes - CK3702 hint
+# WHY IT'S BAD: Dead variable — set but never read, wastes processing
+# HOW TO FIX: Either use the variable or remove the set_variable call
+# -------------------------------------------------------------------
+variables_bad.0002 = {
+	type = character_event
+	title = variables_bad.0002.t
+	desc = variables_bad.0002.desc
+
+	trigger = {
+		is_adult = yes
+	}
+
+	immediate = {
+		set_variable = {
+			name = forgotten_var # ERROR CK3702: Variable "forgotten_var" declared but never used
+			value = 42
+		}
+	}
+
+	option = {
+		name = variables_bad.0002.a
+		add_prestige = 50
+		# forgotten_var is never checked or read
+	}
+}
+
+# -------------------------------------------------------------------
+# ERROR CK3703: Scope mismatch — local declared, global checked
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Detection of mismatched variable scope access
+# SHOULD FAIL: Yes - CK3703 error
+# WHY IT'S BAD: Variable set as local but checked as global (different scopes)
+# HOW TO FIX: Use consistent scope — set_local_variable + has_local_variable
+# -------------------------------------------------------------------
+variables_bad.0003 = {
+	type = character_event
+	title = variables_bad.0003.t
+	desc = variables_bad.0003.desc
+
+	trigger = {
+		is_adult = yes
+	}
+
+	immediate = {
+		set_local_variable = {
+			name = my_counter
+			value = 5
+		}
+	}
+
+	option = {
+		name = variables_bad.0003.a
+		trigger = {
+			has_global_variable = my_counter # ERROR CK3703: Variable "my_counter" is local but accessed as global
+		}
+		add_gold = 100
+	}
+}
+
+# -------------------------------------------------------------------
+# Variable used as both list and value
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Detection of variable type confusion
+# SHOULD FAIL: Yes - CK3705 warning
+# WHY IT'S BAD: Variable used as a scalar value and as a list simultaneously
+# HOW TO FIX: Use separate variables for value and list
+# -------------------------------------------------------------------
+variables_bad.0004 = {
+	type = character_event
+	title = variables_bad.0004.t
+	desc = variables_bad.0004.desc
+
+	trigger = {
+		is_adult = yes
+	}
+
+	immediate = {
+		set_variable = {
+			name = mixed_var
+			value = 10
+		}
+		add_to_variable_list = {
+			name = mixed_var # ERROR CK3705: Variable "mixed_var" used as both list and value
+			value = root
+		}
+	}
+
+	option = {
+		name = variables_bad.0004.a
+		add_gold = 100
+	}
+}
+
+# -------------------------------------------------------------------
+# Combined: All variable errors in one event
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Multiple error types at once
+# SHOULD FAIL: Yes - CK3701, CK3702, CK3703, CK3705
+# DEMONSTRATES: An event with every category of variable error
+# -------------------------------------------------------------------
+variables_bad.0005 = {
+	type = character_event
+	title = variables_bad.0005.t
+	desc = variables_bad.0005.desc
+
+	trigger = {
+		is_adult = yes
+	}
+
+	immediate = {
+		set_variable = {
+			name = unused_score # ERROR CK3702: Declared but never used
+			value = 100
+		}
+		set_local_variable = {
+			name = scope_confused
+			value = 42
+		}
+		set_variable = {
+			name = type_confused
+			value = 5
+		}
+		add_to_variable_list = {
+			name = type_confused # ERROR CK3705: Used as both list and value
+			value = root
+		}
+	}
+
+	option = {
+		name = variables_bad.0005.a
+		trigger = {
+			has_variable = never_set_var # ERROR CK3701: Used but never declared
+			has_global_variable = scope_confused # ERROR CK3703: Local variable accessed as global
+		}
+		add_prestige = 50
+	}
+}
+
+# -------------------------------------------------------------------
+# Edge cases
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Subtle variable errors that are easy to miss
+# -------------------------------------------------------------------
+variables_bad.0006 = {
+	type = character_event
+	title = variables_bad.0006.t
+	desc = variables_bad.0006.desc
+
+	trigger = {
+		is_adult = yes
+	}
+
+	immediate = {
+		set_global_variable = {
+			name = global_tracker
+			value = 1
+		}
+	}
+
+	option = {
+		name = variables_bad.0006.a
+		trigger = {
+			has_local_variable = global_tracker # ERROR CK3703: Variable "global_tracker" is global but accessed as local
+		}
+		add_gold = 50
+	}
+}
