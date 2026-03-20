@@ -1,0 +1,91 @@
+# Good Court Positions Examples
+# Demonstrates proper court position structure and usage
+
+# Example 1: Full court position with all fields
+court_physician_example = {
+	can_be_appointed = {
+		is_adult = yes
+		is_alive = yes
+		learning >= 8
+	}
+
+	salary = {
+		round = yes
+		gold = 2
+	}
+
+	opinion = {
+		value = 10
+	}
+
+	aptitude = {
+		value = {
+			add = learning
+			multiply = 0.5
+		}
+	}
+
+	is_shown = {
+		always = yes
+	}
+}
+
+# Example 2: Minimal valid court position
+court_jester_example = {
+	can_be_appointed = {
+		is_adult = yes
+	}
+
+	salary = {
+		gold = 1
+	}
+
+	opinion = {
+		value = 5
+	}
+}
+
+# Example 3: Court position with complex appointment conditions
+court_chancellor_example = {
+	can_be_appointed = {
+		is_adult = yes
+		is_alive = yes
+		diplomacy >= 12
+		NOT = { has_trait = incapable }
+		OR = {
+			is_vassal_of = scope:liege
+			is_courtier_of = scope:liege
+		}
+	}
+
+	salary = {
+		round = yes
+		gold = 3
+	}
+
+	opinion = {
+		value = 15
+	}
+
+	aptitude = {
+		value = {
+			add = diplomacy
+			multiply = 0.8
+		}
+	}
+
+	is_shown = {
+		has_royal_court = yes
+	}
+
+	on_appointed_effect = {
+		add_prestige = 50
+	}
+
+	on_removed_effect = {
+		add_opinion = {
+			target = scope:liege
+			modifier = rq_dismissed_from_court
+		}
+	}
+}

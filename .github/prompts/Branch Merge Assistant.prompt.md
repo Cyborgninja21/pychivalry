@@ -33,11 +33,11 @@ git merge main
 
 ```bash
 # Run tests
-npm test
+pytest tests/ -v
 
 # Run linters
-npm run lint
-npx tsc --noEmit
+flake8 pychivalry/
+mypy pychivalry/
 
 # Build extension (if applicable)
 npm run compile --prefix vscode-extension/
@@ -192,7 +192,7 @@ git log --oneline --graph -10
 
    - Update CHANGELOG.md with release notes
    - Update README.md if features changed
-   - Update version numbers in package.json
+   - Update version numbers in pyproject.toml, package.json
 
 4. **Notify team:**
    - Post merge announcement

@@ -167,3 +167,216 @@ demand_conversion = {
 		}
 	}
 }
+
+# Example 4: Interaction with send_option and auto_accept
+grant_title_interaction = {
+	category = interaction_category_diplomacy
+
+	desc = grant_title_interaction_desc
+
+	is_shown = {
+		scope:actor = {
+			is_ruler = yes
+			any_held_title = {
+				tier >= tier_county
+			}
+		}
+		scope:recipient = {
+			is_courtier_of = scope:actor
+		}
+	}
+
+	send_option = {
+		flag = with_ceremony
+		localization = GRANT_TITLE_WITH_CEREMONY
+	}
+
+	send_option = {
+		flag = secretly
+		localization = GRANT_TITLE_SECRETLY
+	}
+
+	auto_accept = yes
+
+	on_accept = {
+		if = {
+			limit = {
+				scope:with_ceremony = yes
+			}
+			scope:recipient = {
+				add_opinion = {
+					target = scope:actor
+					modifier = granted_title_ceremony_opinion
+				}
+			}
+			scope:actor = {
+				add_prestige = 50
+			}
+		}
+		else = {
+			scope:recipient = {
+				add_opinion = {
+					target = scope:actor
+					modifier = granted_title_opinion
+				}
+			}
+		}
+	}
+
+	ai_targets = {
+		ai_recipients = courtiers
+	}
+
+	ai_frequency = 120
+
+	ai_will_do = {
+		base = 25
+
+		modifier = {
+			add = 25
+			scope:recipient = {
+				has_trait = ambitious
+			}
+		}
+	}
+}
+
+# Example 5: Interaction with complex AI targeting
+arrange_marriage_interaction = {
+	category = interaction_category_diplomacy
+
+	desc = arrange_marriage_interaction_desc
+
+	is_shown = {
+		scope:actor = {
+			is_ruler = yes
+			is_adult = yes
+		}
+		scope:recipient = {
+			is_ruler = yes
+			NOT = { this = scope:actor }
+		}
+	}
+
+	is_valid_showing_failures_only = {
+		scope:actor = {
+			any_child = {
+				is_married = no
+				is_adult = yes
+			}
+		}
+	}
+
+	on_accept = {
+		scope:actor = {
+			add_prestige = 100
+		}
+		scope:recipient = {
+			add_opinion = {
+				target = scope:actor
+				modifier = arranged_marriage_opinion
+			}
+		}
+	}
+
+	on_decline = {
+		scope:actor = {
+			add_opinion = {
+				target = scope:recipient
+				modifier = rejected_marriage_opinion
+			}
+		}
+	}
+
+	ai_targets = {
+		ai_recipients = neighboring_rulers
+		ai_recipients = liege
+		ai_recipients = vassals
+		max = 10
+	}
+
+	ai_target_quick_trigger = {
+		adult = yes
+	}
+
+	ai_frequency = 180
+
+	ai_potential = {
+		is_at_war = no
+		any_child = {
+			is_married = no
+			is_adult = yes
+		}
+	}
+
+	ai_will_do = {
+		base = 30
+
+		modifier = {
+			add = 40
+			scope:recipient = {
+				has_trait = gregarious
+			}
+		}
+
+		modifier = {
+			add = -20
+			scope:recipient = {
+				has_trait = shy
+			}
+		}
+
+		modifier = {
+			factor = 0
+			scope:recipient = {
+				opinion = {
+					target = scope:actor
+					value < -50
+				}
+			}
+		}
+	}
+
+	ai_accept = {
+		base = 20
+
+		modifier = {
+			add = 30
+			scope:recipient = {
+				alliance_with = scope:actor
+			}
+		}
+
+		modifier = {
+			add = 50
+			scope:recipient = {
+				opinion = {
+					target = scope:actor
+					value >= 75
+				}
+			}
+		}
+
+		modifier = {
+			add = -50
+			scope:recipient = {
+				is_at_war_with = scope:actor
+			}
+		}
+	}
+}
+
+# Example 6: Minimal valid interaction
+simple_interaction = {
+	category = interaction_category_diplomacy
+
+	is_shown = {
+		always = yes
+	}
+
+	on_accept = {
+		scope:actor = {
+			add_prestige = 10
+		}
+	}
+}

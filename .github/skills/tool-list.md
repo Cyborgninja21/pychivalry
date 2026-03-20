@@ -250,69 +250,9 @@ Search specific GitHub repository for code snippets.
   - `repo` (string) - repository in format owner/repo
   - `query` (string) - search query with context
 
-## Docker/Container Management (MCP)
-
-### mcp_copilot_conta_list_containers
-List all containers (including stopped ones).
-- **Parameters**: None
-
-### mcp_copilot_conta_list_images
-List container images (including untagged and orphaned).
-- **Parameters**: None
-
-### mcp_copilot_conta_list_networks
-List container networks.
-- **Parameters**: None
-
-### mcp_copilot_conta_list_volumes
-List container volumes.
-- **Parameters**: None
-
-### mcp_copilot_conta_act_container
-Start/stop/restart/remove container by name or ID.
-- **Parameters**:
-  - `containerNameOrId` (string) - container name or ID
-  - `action` (string) - start, stop, restart, or remove
-
-### mcp_copilot_conta_act_image
-Pull/remove container image by name or ID.
-- **Parameters**:
-  - `imageNameOrId` (string) - image name or ID
-  - `action` (string) - pull or remove
-
-### mcp_copilot_conta_inspect_container
-Inspect container by name or ID.
-- **Parameters**: `containerNameOrId` (string) - container name or ID
-
-### mcp_copilot_conta_inspect_image
-Inspect image by name or ID.
-- **Parameters**: `imageNameOrId` (string) - image name or ID
-
-### mcp_copilot_conta_logs_for_container
-View container logs by name or ID.
-- **Parameters**: `containerNameOrId` (string) - container name or ID
-
-### mcp_copilot_conta_run_container
-Run new container with full configuration.
-- **Parameters**:
-  - `image` (string) - image to start container from
-  - `name` (string, optional) - container name
-  - `ports` (array, optional) - port bindings
-  - `environmentVariables` (object, optional) - environment variables
-  - `mounts` (array, optional) - bind/volume mounts
-  - `network` (string, optional) - network name
-  - `publishAllPorts` (boolean, optional) - publish all exposed ports
-  - `interactive` (boolean, optional) - run interactively
-
-### mcp_copilot_conta_tag_image
-Tag container image with new tag.
-- **Parameters**:
-  - `imageNameOrId` (string) - image name or ID
-  - `tag` (string) - tag to apply
-
-### mcp_copilot_conta_prune
-Prune unused container resources.
-- **Parameters**: `pruneTarget` (string) - containers, images, volumes, networks, or all
+## Docker/Container Management (Not Used)
+> These MCP tools exist but are not used by this TypeScript VS Code extension project.
+> Tools: mcp_copilot_conta_list_containers, mcp_copilot_conta_list_images, mcp_copilot_conta_list_networks, mcp_copilot_conta_list_volumes, mcp_copilot_conta_act_container, mcp_copilot_conta_act_image, mcp_copilot_conta_inspect_container, mcp_copilot_conta_inspect_image, mcp_copilot_conta_logs_for_container, mcp_copilot_conta_run_container, mcp_copilot_conta_tag_image, mcp_copilot_conta_prune
 
 ## Pylance/Python Analysis (Not Used)
 > These MCP tools exist but are not used by this TypeScript-only project.

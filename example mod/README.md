@@ -56,9 +56,9 @@ This directory contains comprehensive examples demonstrating all PyChivalry vali
 - `bad_decisions.txt` - Decision validation errors
 
 ### 08_interactions/
-**Error Codes**: INTERACTION-001 to INTERACTION-003
+**Error Codes**: INTERACTION-001 to INTERACTION-004, INTERACT-003, INTERACT-004, HOOK-001
 - `good_interactions.txt` - Valid character interactions
-- `bad_interactions.txt` - Interaction validation errors
+- `bad_interactions.txt` - Interaction validation errors (including unreachable on_decline, missing is_shown, unknown hooks)
 
 ### 09_schemes/
 **Error Codes**: SCHEME-001 to SCHEME-003
@@ -84,6 +84,56 @@ This directory contains comprehensive examples demonstrating all PyChivalry vali
 - `english/missing_keys.yml` - Missing localization keys (CK3600)
 - `english/unused_keys.yml` - Unused localization keys (CK3604)
 - `english/scope_type_mismatches.yml` - Scope type errors (CK3605)
+
+### 15_activities/
+**Error Codes**: ACT-001 to ACT-005
+- `good_activities.txt` - Valid activity structure
+- `bad_activities.txt` - Activity validation errors
+
+### 16_traits/
+**Error Codes**: CK3800
+- `good_traits.txt` - Valid trait references
+- `bad_traits.txt` - Unknown and misspelled trait names
+
+### 17_script_values/
+**Error Codes**: VALUE-001 to VALUE-006
+- `good_script_values.txt` - Valid script value definitions
+- `bad_script_values.txt` - Script value validation errors
+
+### 18_modifiers/
+**Error Codes**: MOD-001 to MOD-004
+- `good_modifiers.txt` - Valid modifier definitions
+- `bad_modifiers.txt` - Modifier validation errors
+
+### 19_variables/
+**Error Codes**: CK3701-CK3705
+- `good_variables.txt` - Valid variable usage patterns
+- `bad_variables.txt` - Variable validation errors
+
+### 20_scripted_blocks/
+**Error Codes**: CK3950-CK3956
+- `good_scripted_blocks.txt` - Valid scripted effect/trigger definitions
+- `bad_scripted_blocks.txt` - Undefined and recursive scripted blocks
+
+### 21_court_positions/
+**Error Codes**: COURT-001 to COURT-002
+- `good_court_positions.txt` - Valid court position definitions
+- `bad_court_positions.txt` - Court position validation errors
+
+### 22_casus_belli/
+**Error Codes**: CB-001 to CB-002
+- `good_casus_belli.txt` - Valid casus belli definitions
+- `bad_casus_belli.txt` - Casus belli validation errors
+
+### 23_switch/
+**Error Codes**: SWITCH-001 to SWITCH-003
+- `good_switch.txt` - Valid switch block usage
+- `bad_switch.txt` - Switch validation errors
+
+### 24_iterators/
+**Error Codes**: ITER-001 to ITER-004
+- `good_iterators.txt` - Valid iterator usage (any_, every_, random_, ordered_)
+- `bad_iterators.txt` - Iterator validation errors
 
 ## Complete Error Code Index
 
@@ -221,6 +271,9 @@ This directory contains comprehensive examples demonstrating all PyChivalry vali
 - **INTERACTION-001**: Missing category field → `08_interactions/bad_interactions.txt`
 - **INTERACTION-002**: No effects → `08_interactions/bad_interactions.txt`
 - **INTERACTION-003**: No AI configuration → `08_interactions/bad_interactions.txt`
+- **INTERACT-003**: Unreachable on_decline → `08_interactions/bad_interactions.txt`
+- **INTERACT-004**: Missing is_shown → `08_interactions/bad_interactions.txt`
+- **HOOK-001**: Unknown interaction hook → `08_interactions/bad_interactions.txt`
 
 ### Schemes
 - **SCHEME-001**: Missing skill field → `09_schemes/bad_schemes.txt`
@@ -251,6 +304,60 @@ This directory contains comprehensive examples demonstrating all PyChivalry vali
 - **LOC-006**: Unknown concept reference → `12_localization/english/bad_syntax.yml`
 - **LOC-007**: Invalid variable substitution → `12_localization/english/bad_syntax.yml`
 
+### Activities
+- **ACT-001**: Activity missing is_shown → `15_activities/bad_activities.txt`
+- **ACT-002**: Phase reference not defined → `15_activities/bad_activities.txt`
+- **ACT-003**: Unknown province filter → `15_activities/bad_activities.txt`
+- **ACT-004**: Trigger in lifecycle hook (effect context) → `15_activities/bad_activities.txt`
+- **ACT-005**: Duplicate phase name → `15_activities/bad_activities.txt`
+
+### Traits
+- **CK3800**: Unknown trait → `16_traits/bad_traits.txt`
+
+### Script Values
+- **VALUE-001**: Unrecognized script value reference → `17_script_values/bad_script_values.txt`
+- **VALUE-002**: Range min greater than max → `17_script_values/bad_script_values.txt`
+- **VALUE-003**: Unknown formula operation → `17_script_values/bad_script_values.txt`
+- **VALUE-004**: Invalid conditional structure → `17_script_values/bad_script_values.txt`
+- **VALUE-005**: Formula without explicit value → `17_script_values/bad_script_values.txt`
+- **VALUE-006**: Invalid round_to parameter → `17_script_values/bad_script_values.txt`
+
+### Modifiers
+- **MOD-001**: Unknown modifier key → `18_modifiers/bad_modifiers.txt`
+- **MOD-002**: Non-numeric modifier value → `18_modifiers/bad_modifiers.txt`
+- **MOD-003**: Opinion modifier missing opinion field → `18_modifiers/bad_modifiers.txt`
+- **MOD-004**: Opinion value outside typical range → `18_modifiers/bad_modifiers.txt`
+
+### Variables
+- **CK3701**: Variable used but never declared → `19_variables/bad_variables.txt`
+- **CK3702**: Variable declared but never used → `19_variables/bad_variables.txt`
+- **CK3703**: Variable scope mismatch (local vs global) → `19_variables/bad_variables.txt`
+- **CK3705**: Variable used as both list and value → `19_variables/bad_variables.txt`
+
+### Scripted Blocks
+- **CK3950**: Undefined scripted effect → `20_scripted_blocks/bad_scripted_blocks.txt`
+- **CK3951**: Undefined scripted trigger → `20_scripted_blocks/bad_scripted_blocks.txt`
+- **CK3956**: Recursive scripted block → `20_scripted_blocks/bad_scripted_blocks.txt`
+
+### Court Positions
+- **COURT-001**: Missing can_be_appointed trigger → `21_court_positions/bad_court_positions.txt`
+- **COURT-002**: Salary without opinion modifier → `21_court_positions/bad_court_positions.txt`
+
+### Casus Belli
+- **CB-001**: No outcome effects → `22_casus_belli/bad_casus_belli.txt`
+- **CB-002**: Unknown cost type → `22_casus_belli/bad_casus_belli.txt`
+
+### Switch Validation
+- **SWITCH-001**: Missing trigger field → `23_switch/bad_switch.txt`
+- **SWITCH-002**: No branch values → `23_switch/bad_switch.txt`
+- **SWITCH-003**: Unknown trigger reference → `23_switch/bad_switch.txt`
+
+### Iterators
+- **ITER-001**: Effect in trigger iterator (any_) → `24_iterators/bad_iterators.txt`
+- **ITER-002**: Only triggers in effect iterator (every_) → `24_iterators/bad_iterators.txt`
+- **ITER-003**: ordered_ missing order_by → `24_iterators/bad_iterators.txt`
+- **ITER-004**: ordered_ missing position/max → `24_iterators/bad_iterators.txt`
+
 ## Usage
 
 ### For Testing
@@ -276,7 +383,7 @@ Reference specific files when explaining validation rules in docs or issues.
 
 ## Total Coverage
 
-- **150+ error codes** across 10 validation categories
-- **~2500 lines** of example code
-- **Good and bad examples** for every rule
-- **Complete CK3 modding patterns**
+- **200+ error codes** across 20 validation categories
+- **24 sections** covering all validator types
+- **62+ files** of example code
+- **Good and bad examples for every active validation rule**

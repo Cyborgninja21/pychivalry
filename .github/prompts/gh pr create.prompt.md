@@ -220,7 +220,7 @@ gh pr create \
 Parser crashes when encountering unexpected EOF in event files.
 
 ## Root Cause
-Missing null check in token iterator (parser.ts:234)
+Missing null check in token iterator (parser.py:234)
 
 ## Fix
 - Added null checks before token access

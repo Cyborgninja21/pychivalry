@@ -1,0 +1,155 @@
+# ===================================================================
+# BAD SCRIPTED BLOCK EXAMPLES
+# ===================================================================
+# This file demonstrates INCORRECT CK3 scripted effect/trigger usage
+# that SHOULD FAIL validation. All examples contain scripted block errors.
+#
+# Error Codes Demonstrated:
+# - CK3950 (Error): Undefined scripted effect
+# - CK3951 (Error): Undefined scripted trigger
+# - CK3956 (Warning): Recursive scripted block
+#
+# Expected validation result: ERRORS DETECTED
+# ===================================================================
+
+namespace = scripted_bad
+
+# -------------------------------------------------------------------
+# ERROR CK3950: Undefined scripted effect
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Detection of calls to scripted effects that don't exist
+# SHOULD FAIL: Yes - CK3950 error
+# WHY IT'S BAD: The scripted effect name is not defined anywhere
+# HOW TO FIX: Define the effect in common/scripted_effects/ or fix the name
+# -------------------------------------------------------------------
+scripted_bad.0001 = {
+	type = character_event
+	title = scripted_bad.0001.t
+	desc = scripted_bad.0001.desc
+
+	trigger = {
+		is_adult = yes
+	}
+
+	option = {
+		name = scripted_bad.0001.a
+		grant_epic_loot_effect = yes # ERROR CK3950: Undefined scripted effect: "grant_epic_loot_effect"
+	}
+
+	option = {
+		name = scripted_bad.0001.b
+		summon_dragon_effect = yes # ERROR CK3950: Undefined scripted effect: "summon_dragon_effect"
+	}
+}
+
+# -------------------------------------------------------------------
+# ERROR CK3951: Undefined scripted trigger
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Detection of calls to scripted triggers that don't exist
+# SHOULD FAIL: Yes - CK3951 error
+# WHY IT'S BAD: The scripted trigger name is not defined anywhere
+# HOW TO FIX: Define the trigger in common/scripted_triggers/ or fix the name
+# -------------------------------------------------------------------
+scripted_bad.0002 = {
+	type = character_event
+	title = scripted_bad.0002.t
+	desc = scripted_bad.0002.desc
+
+	trigger = {
+		is_legendary_hero_trigger = yes # ERROR CK3951: Undefined scripted trigger: "is_legendary_hero_trigger"
+	}
+
+	option = {
+		name = scripted_bad.0002.a
+		trigger = {
+			can_cast_magic_trigger = yes # ERROR CK3951: Undefined scripted trigger: "can_cast_magic_trigger"
+		}
+		add_gold = 100
+	}
+}
+
+# -------------------------------------------------------------------
+# ERROR CK3956: Recursive scripted block — block calls itself
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Detection of scripted blocks that call themselves
+# SHOULD FAIL: Yes - CK3956 warning
+# WHY IT'S BAD: Infinite recursion will crash the game or hang
+# HOW TO FIX: Remove the self-reference or refactor into separate effects
+# -------------------------------------------------------------------
+recursive_reward_effect = {
+	add_gold = 50
+	recursive_reward_effect = yes # ERROR CK3956: Scripted block 'recursive_reward_effect' calls itself recursively
+}
+
+recursive_check_trigger = {
+	is_adult = yes
+	recursive_check_trigger = yes # ERROR CK3956: Scripted block 'recursive_check_trigger' calls itself recursively
+}
+
+# -------------------------------------------------------------------
+# Combined: All scripted block errors in one event
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Multiple error types at once
+# SHOULD FAIL: Yes - CK3950, CK3951, CK3956
+# DEMONSTRATES: An event with every category of scripted block error
+# -------------------------------------------------------------------
+
+# Recursive definition
+broken_loop_effect = {
+	add_prestige = 25
+	broken_loop_effect = yes # ERROR CK3956: Calls itself recursively
+}
+
+scripted_bad.0003 = {
+	type = character_event
+	title = scripted_bad.0003.t
+	desc = scripted_bad.0003.desc
+
+	trigger = {
+		has_power_of_gods_trigger = yes # ERROR CK3951: Undefined scripted trigger
+	}
+
+	option = {
+		name = scripted_bad.0003.a
+		destroy_world_effect = yes # ERROR CK3950: Undefined scripted effect
+		broken_loop_effect = yes # Uses the recursive effect defined above
+	}
+}
+
+# -------------------------------------------------------------------
+# Edge cases
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Subtle errors that are easy to miss
+# -------------------------------------------------------------------
+
+# Typo in scripted effect name (close to a real one but wrong)
+scripted_bad.0004 = {
+	type = character_event
+	title = scripted_bad.0004.t
+	desc = scripted_bad.0004.desc
+
+	trigger = {
+		is_adult = yes
+	}
+
+	option = {
+		name = scripted_bad.0004.a
+		grant_standrd_reward_effect = yes # ERROR CK3950: Undefined scripted effect (typo of grant_standard_reward_effect)
+	}
+}
+
+# Typo in scripted trigger name
+scripted_bad.0005 = {
+	type = character_event
+	title = scripted_bad.0005.t
+	desc = scripted_bad.0005.desc
+
+	trigger = {
+		is_elegible_hero_trigger = yes # ERROR CK3951: Undefined scripted trigger (typo of is_eligible_hero_trigger)
+	}
+
+	option = {
+		name = scripted_bad.0005.a
+		add_gold = 100
+	}
+}

@@ -1,0 +1,246 @@
+# Bad Activities Examples
+# Demonstrates ACT-001 through ACT-005
+
+namespace = activities_bad
+
+# ERROR ACT-001: Activity missing 'is_shown'
+tournament_no_shown = {
+	# ERROR ACT-001: Activity 'tournament_no_shown' is missing 'is_shown'
+	# Should have: is_shown = { is_ruler = yes }
+
+	is_valid = {
+		gold >= 100
+	}
+
+	cost = {
+		gold = 100
+	}
+
+	phases = {
+		main_event = {
+			# Single phase
+		}
+	}
+
+	on_complete = {
+		add_prestige = 100
+	}
+}
+
+# ERROR ACT-002: next_phase references undefined phase
+tournament_bad_phase = {
+	is_shown = {
+		is_ruler = yes
+	}
+
+	is_valid = {
+		gold >= 100
+	}
+
+	cost = {
+		gold = 100
+	}
+
+	phases = {
+		opening = {
+			next_phase = grand_finale # ERROR ACT-002: Phase 'grand_finale' is not defined in this activity
+			# Should have: next_phase = closing (a phase that exists)
+		}
+		closing = {
+			# Final phase
+		}
+	}
+
+	on_complete = {
+		add_prestige = 100
+	}
+}
+
+# ERROR ACT-003: Invalid province_filter value
+expedition_bad_filter = {
+	is_shown = {
+		is_ruler = yes
+	}
+
+	is_valid = {
+		gold >= 200
+	}
+
+	cost = {
+		gold = 200
+	}
+
+	province_filter = mountains # ERROR ACT-003: Unknown province filter 'mountains'
+	# Should have: province_filter = realm (or all, coastal, inland, capital, holy_site, neighboring, same_continent)
+
+	phases = {
+		expedition = {
+			# Single phase
+		}
+	}
+
+	on_complete = {
+		add_gold = 300
+	}
+}
+
+# ERROR ACT-004: Trigger keyword in lifecycle hook (effect context)
+festival_trigger_in_hook = {
+	is_shown = {
+		is_ruler = yes
+	}
+
+	is_valid = {
+		gold >= 100
+	}
+
+	cost = {
+		gold = 100
+	}
+
+	phases = {
+		celebration = {
+			# Single phase
+		}
+	}
+
+	on_start = {
+		is_adult = yes # ERROR ACT-004: Trigger 'is_adult' in lifecycle hook 'on_start' — hooks are effect context
+		# Should have: an effect like add_prestige = 50
+	}
+
+	on_complete = {
+		is_ruler = yes # ERROR ACT-004: Trigger 'is_ruler' in lifecycle hook 'on_complete' — hooks are effect context
+		# Should have: an effect like add_prestige = 200
+	}
+}
+
+# ERROR ACT-005: Duplicate phase names
+tournament_dup_phases = {
+	is_shown = {
+		is_ruler = yes
+	}
+
+	is_valid = {
+		gold >= 200
+	}
+
+	cost = {
+		gold = 200
+	}
+
+	phases = {
+		jousting = {
+			next_phase = melee
+		}
+		melee = {
+			next_phase = jousting
+		}
+		jousting = { # ERROR ACT-005: Duplicate phase name 'jousting'
+			# Should have: a unique phase name like jousting_finals
+		}
+	}
+
+	on_complete = {
+		add_prestige = 200
+	}
+}
+
+# ERROR ACT-003: Another invalid province_filter
+hunt_bad_filter = {
+	is_shown = {
+		is_adult = yes
+	}
+
+	is_valid = {
+		gold >= 50
+	}
+
+	cost = {
+		gold = 50
+	}
+
+	province_filter = forest # ERROR ACT-003: Unknown province filter 'forest'
+	# Should have: province_filter = inland
+
+	phases = {
+		hunt = {
+			# Single phase
+		}
+	}
+
+	on_complete = {
+		add_prestige = 50
+	}
+}
+
+# ERROR ACT-002: next_phase chain references missing phase
+expedition_broken_chain = {
+	is_shown = {
+		is_ruler = yes
+	}
+
+	is_valid = {
+		gold >= 300
+	}
+
+	cost = {
+		gold = 300
+	}
+
+	phases = {
+		preparation = {
+			next_phase = departure
+		}
+		departure = {
+			next_phase = sea_voyage # ERROR ACT-002: Phase 'sea_voyage' is not defined in this activity
+			# Should have: next_phase = arrival
+		}
+		arrival = {
+			# Final phase
+		}
+	}
+
+	on_complete = {
+		add_gold = 500
+	}
+}
+
+# All errors combined
+activity_all_errors = {
+	# ERROR ACT-001: Activity 'activity_all_errors' is missing 'is_shown'
+	# Should have: is_shown = { is_ruler = yes }
+
+	is_valid = {
+		gold >= 500
+	}
+
+	cost = {
+		gold = 500
+	}
+
+	province_filter = swamp # ERROR ACT-003: Unknown province filter 'swamp'
+	# Should have: province_filter = realm
+
+	phases = {
+		opening = {
+			next_phase = grand_melee # ERROR ACT-002: Phase 'grand_melee' is not defined in this activity
+		}
+		closing = {
+			next_phase = opening
+		}
+		closing = { # ERROR ACT-005: Duplicate phase name 'closing'
+			# Should have: a unique name like closing_ceremony
+		}
+	}
+
+	on_start = {
+		is_alive = yes # ERROR ACT-004: Trigger 'is_alive' in lifecycle hook 'on_start' — hooks are effect context
+		# Should have: add_prestige = 50
+	}
+
+	on_complete = {
+		has_trait = brave # ERROR ACT-004: Trigger 'has_trait' in lifecycle hook 'on_complete' — hooks are effect context
+		# Should have: add_prestige = 200
+	}
+}

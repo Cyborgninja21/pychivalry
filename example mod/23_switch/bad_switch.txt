@@ -1,0 +1,148 @@
+# Bad Switch Examples
+# Demonstrates SWITCH-001, SWITCH-002, and SWITCH-003
+
+namespace = switch_bad
+
+# ERROR SWITCH-001: Missing trigger field
+switch_bad.0001 = {
+	type = character_event
+	title = switch_bad.0001.t
+	desc = switch_bad.0001.desc
+	theme = intrigue
+
+	left_portrait = root
+
+	immediate = {
+		switch = {
+			# ERROR SWITCH-001: No trigger field in switch block
+			# Should have: trigger = has_trait
+			brave = {
+				add_prestige = 100
+			}
+			craven = {
+				add_prestige = -50
+			}
+		}
+	}
+
+	option = {
+		name = switch_bad.0001.a
+	}
+}
+
+# ERROR SWITCH-002: No branch values
+switch_bad.0002 = {
+	type = character_event
+	title = switch_bad.0002.t
+	desc = switch_bad.0002.desc
+	theme = stewardship
+
+	left_portrait = root
+
+	immediate = {
+		switch = {
+			trigger = has_trait
+			# ERROR SWITCH-002: Only structural keys, no actual branch values
+			# Should have branch values like: brave = { add_gold = 100 }
+		}
+	}
+
+	option = {
+		name = switch_bad.0002.a
+	}
+}
+
+# ERROR SWITCH-003: Unknown trigger name
+switch_bad.0003 = {
+	type = character_event
+	title = switch_bad.0003.t
+	desc = switch_bad.0003.desc
+	theme = learning
+
+	left_portrait = root
+
+	immediate = {
+		switch = {
+			trigger = has_magic_power # ERROR SWITCH-003: Unknown trigger 'has_magic_power'
+			# Should have: trigger = has_trait (or other valid trigger)
+			fire = {
+				add_gold = 100
+			}
+			ice = {
+				add_prestige = 100
+			}
+		}
+	}
+
+	option = {
+		name = switch_bad.0003.a
+	}
+}
+
+# Multiple errors combined
+switch_bad.0004 = {
+	type = character_event
+	title = switch_bad.0004.t
+	desc = switch_bad.0004.desc
+	theme = diplomacy
+
+	left_portrait = root
+
+	immediate = {
+		switch = {
+			# ERROR SWITCH-001: Missing trigger field
+			# ERROR SWITCH-002: No branch values
+		}
+	}
+
+	option = {
+		name = switch_bad.0004.a
+	}
+}
+
+# Edge case: Trigger field present but empty
+switch_bad.0005 = {
+	type = character_event
+	title = switch_bad.0005.t
+	desc = switch_bad.0005.desc
+	theme = martial
+
+	left_portrait = root
+
+	immediate = {
+		switch = {
+			trigger = # ERROR SWITCH-003: Empty trigger value
+			brave = {
+				add_prestige = 100
+			}
+		}
+	}
+
+	option = {
+		name = switch_bad.0005.a
+	}
+}
+
+# Edge case: Fallback only, no real branches
+switch_bad.0006 = {
+	type = character_event
+	title = switch_bad.0006.t
+	desc = switch_bad.0006.desc
+	theme = intrigue
+
+	left_portrait = root
+
+	immediate = {
+		switch = {
+			trigger = has_trait
+			# ERROR SWITCH-002: Only fallback, no actual branch values
+			fallback = {
+				add_gold = 50
+			}
+		}
+	}
+
+	option = {
+		name = switch_bad.0006.a
+	}
+}

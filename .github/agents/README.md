@@ -1,128 +1,178 @@
-# CK3 Mod Building Agents
+# pychivalry Copilot Agents
 
-This directory contains specialized VS Code Copilot agents for building Crusader Kings 3 mods. These agents leverage pychivalry's validation infrastructure to produce high-quality, validated mod content.
+This directory contains VS Code Copilot agents for developing the pychivalry CK3 Language Server extension. Two agent systems coexist:
+
+1. **Development Team** — Star Trek themed agents for building/maintaining pychivalry itself (TypeScript, LSP, VS Code extension)
+2. **CK3 Mod Builders** — Domain-specific agents for authoring CK3 mod content (dogfooding pychivalry's validation)
 
 ## Quick Start
 
-1. **Main Entry Point**: Use `@ck3-mod-orchestrator` for complex tasks
-2. **Direct Access**: Use specific agents like `@ck3-event-builder` for focused tasks
-3. **Validation**: Always run `@ck3-validator` before finalizing
+- **Complex tasks**: `@picard` decomposes and delegates across specialists
+- **Direct implementation**: `@riker` coordinates multi-file changes
+- **Solo coding**: `@scotty` (complex) or `@rutherford` (straightforward)
+- **CK3 mod content**: `@ck3-mod-orchestrator` or specific builders like `@ck3-event-builder`
 
-## Agent Architecture
+## Development Team Architecture
 
 ```
-┌──────────────────────────────────────────────────────────────┐
-│                   ck3-mod-orchestrator                        │
-│            (Routes requests to specialized agents)            │
-└──────────────────────────────────────────────────────────────┘
-                              │
-        ┌─────────────────────┼─────────────────────┐
-        │                     │                     │
-        ▼                     ▼                     ▼
-┌───────────────┐   ┌───────────────┐   ┌───────────────────┐
-│ Content       │   │ Structure     │   │ Support           │
-│ Builders      │   │ Builders      │   │ Agents            │
-├───────────────┤   ├───────────────┤   ├───────────────────┤
-│ event-builder │   │ story-cycle   │   │ localization-mgr  │
-│ decision-bldr │   │ onaction-bldr │   │ scope-timing      │
-│ interaction   │   │ variable-dsgn │   │ validator         │
-│ activity-bldr │   │ trait-designer│   │                   │
-└───────────────┘   └───────────────┘   └───────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                      Captain Picard                              │
+│              (Strategic command & delegation)                     │
+└─────────────────────────────────────────────────────────────────┘
+          │                    │                    │
+          ▼                    ▼                    ▼
+   ┌─────────────┐    ┌──────────────┐    ┌──────────────┐
+   │  Research    │    │ Architecture │    │  Review &    │
+   │  & Planning  │    │  & Security  │    │  Quality     │
+   ├─────────────┤    ├──────────────┤    ├──────────────┤
+   │ Data        │    │ La Forge     │    │ Crusher      │
+   │ Lore        │    │ Worf         │    │ Troi         │
+   │ Sisko       │    │              │    │ Q            │
+   └─────────────┘    └──────────────┘    └──────────────┘
+          │
+          ▼
+   ┌─────────────────────────────────────────────────────────────┐
+   │                     Commander Riker                          │
+   │          (Implementation coordination & dispatch)             │
+   └─────────────────────────────────────────────────────────────┘
+          │              │              │              │
+          ▼              ▼              ▼              ▼
+   ┌───────────┐  ┌───────────┐  ┌───────────┐  ┌───────────┐
+   │ Engineers  │  │ Bulk Ops  │  │ Ops &     │  │ Support   │
+   ├───────────┤  ├───────────┤  │ Infra     │  ├───────────┤
+   │ Scotty    │  │ Seven     │  ├───────────┤  │ Guinan    │
+   │ Rutherford│  │ Hugh      │  │ O'Brien   │  │ Tuvok     │
+   │ Kirk      │  │           │  │ Mariner   │  │ Dax       │
+   │ Wesley    │  │           │  │ Boimler   │  │ Barclay   │
+   │ Torres    │  │           │  │ Tendi     │  │ Janeway   │
+   └───────────┘  └───────────┘  └───────────┘  └───────────┘
 ```
 
-## Available Agents
+## Development Team Agents
+
+### Command
+
+| Agent | Role | User-Invokable |
+|-------|------|:-:|
+| **Captain Picard** | Strategic command — decomposes missions, delegates to specialists | Yes |
+| **Commander Riker** | Implementation coordinator — dispatches engineers in parallel | Yes |
+
+### Research & Planning
+
+| Agent | Role | User-Invokable |
+|-------|------|:-:|
+| **Lt. Cmdr. Data** | Research, codebase analysis, implementation plans | Yes |
+| **Lt. Cmdr. Lore** | Parallel research (works alongside Data) | Yes |
+| **Captain Sisko** | Project management, sprint planning, backlog tracking | Yes |
+
+### Architecture & Security
+
+| Agent | Role | User-Invokable |
+|-------|------|:-:|
+| **Lt. Cmdr. La Forge** | Architecture, systems design, technical coherence | Yes |
+| **Lt. Worf** | Security auditing, vulnerability analysis, compliance | Yes |
+
+### Review & Quality
+
+| Agent | Role | User-Invokable |
+|-------|------|:-:|
+| **Dr. Crusher** | Code review, quality diagnosis, test coverage validation | Yes |
+| **Counselor Troi** | Value assessment, outcome validation, lessons learned | Yes |
+| **Q** | Adversarial review, stress-testing, edge case discovery | Yes |
+
+### Engineering
+
+| Agent | Role | User-Invokable |
+|-------|------|:-:|
+| **Montgomery Scott** | Senior engineer — complex/architectural code | No |
+| **Ensign Rutherford** | Standard engineer — straightforward implementations | No |
+| **Captain Kirk** | Rapid prototyping, unconventional solutions | Yes |
+| **Wesley Crusher** | Testing and test automation | No |
+| **B'Elanna Torres** | Debugging — root cause analysis and fix | No |
+
+### Bulk Operations
+
+| Agent | Role | User-Invokable |
+|-------|------|:-:|
+| **Seven of Nine** | Pattern-based changes across many files | No |
+| **Hugh** | Parallel bulk ops (works alongside Seven) | No |
+
+### Operations & Infrastructure
+
+| Agent | Role | User-Invokable |
+|-------|------|:-:|
+| **Chief O'Brien** | DevOps, git, CI/CD, deployment | Yes |
+| **Ensign Mariner** | Linux/remote server operations | No |
+| **Ensign Boimler** | Windows/local system operations | No |
+| **Ensign Tendi** | Docker, service health, log analysis | No |
+
+### Knowledge & Support
+
+| Agent | Role | User-Invokable |
+|-------|------|:-:|
+| **Guinan** | Documentation and knowledge management | Yes |
+| **Lt. Cmdr. Tuvok** | Knowledge graph, institutional memory | No |
+| **Jadzia Dax** | Data modeling, schema design, migrations | No |
+| **Lt. Barclay** | Performance profiling, benchmarks, bottleneck analysis | Yes |
+| **Captain Janeway** | Optimization, resource efficiency | Yes |
+
+## CK3 Mod Building Agents
+
+These agents produce CK3 mod content and serve as a dogfooding testbed for pychivalry's validation features.
 
 ### Orchestrator
 
-| Agent | File | Description |
-|-------|------|-------------|
-| **ck3-mod-orchestrator** | `ck3-mod-orchestrator.agent.md` | Main coordinator |
+| Agent | Description |
+|-------|-------------|
+| **ck3-mod-orchestrator** | Routes mod building requests to specialized builders |
 
 ### Content Builders (User-Invokable)
 
-| Agent | File | Use Case |
-|-------|------|----------|
-| **ck3-event-builder** | `ck3-event-builder.agent.md` | Events, options, portraits |
-| **ck3-decision-builder** | `ck3-decision-builder.agent.md` | Player decisions |
-| **ck3-interaction-builder** | `ck3-interaction-builder.agent.md` | Character interactions |
-| **ck3-activity-builder** | `ck3-activity-builder.agent.md` | Activities (hunts, feasts) |
-| **ck3-trait-designer** | `ck3-trait-designer.agent.md` | Character traits |
-| **ck3-story-cycle-builder** | `ck3-story-cycle-builder.agent.md` | Narrative chains |
-| **ck3-onaction-builder** | `ck3-onaction-builder.agent.md` | Game event hooks |
-| **ck3-variable-designer** | `ck3-variable-designer.agent.md` | Variables, script values |
+| Agent | Use Case |
+|-------|----------|
+| **ck3-event-builder** | Events, options, portraits |
+| **ck3-decision-builder** | Player decisions |
+| **ck3-interaction-builder** | Character interactions |
+| **ck3-activity-builder** | Activities (hunts, feasts) |
+| **ck3-trait-designer** | Character traits |
+| **ck3-story-cycle-builder** | Narrative chains |
+| **ck3-onaction-builder** | Game event hooks |
+| **ck3-variable-designer** | Variables, script values |
 
 ### Support Agents (SubAgent-Only)
 
-| Agent | File | Use Case |
-|-------|------|----------|
-| **ck3-localization-manager** | `ck3-localization-manager.agent.md` | Text formatting |
-| **ck3-scope-timing** | `ck3-scope-timing.agent.md` | Golden Rule validation |
-| **ck3-validator** | `ck3-validator.agent.md` | Comprehensive validation |
-
-## Usage Examples
-
-### Creating a Simple Event
-```
-@ck3-event-builder Create an event where a character finds a mysterious letter
-```
-
-### Creating a Complex Feature
-```
-@ck3-mod-orchestrator Create a rebellion storyline where a vassal plots
-against their liege over 5 events
-```
-
-### Validating Existing Code
-```
-@ck3-validator Validate this event file for issues
-```
-
-## The Golden Rule
-
-All agents enforce CK3's critical timing rule:
-
-> **Scopes created in `immediate` are NOT available in `trigger` or `desc` blocks.**
-
-Evaluation order: `trigger` → `desc` → `immediate` → `option effects`
+| Agent | Use Case |
+|-------|----------|
+| **ck3-localization-manager** | Localization text formatting |
+| **ck3-scope-timing** | Scope timing validation |
+| **ck3-validator** | Comprehensive CK3 validation |
 
 ## File Format
 
-Agent files use `.agent.md` extension with YAML frontmatter at the very top:
+Agent files use `.agent.md` with YAML frontmatter:
 
 ```yaml
 ---
 name: agent-name
 description: Brief description
-user-invokable: true
-tools: ['agent', 'codebase', 'search', 'editFiles']
+tools: ['execute', 'read', 'search', 'edit', 'todo']
 agents: ['subagent1', 'subagent2']
 ---
 
 # Agent Title
 
-Agent instructions here...
+Instructions...
 ```
 
 ### Key Properties
 
-- **name**: Agent identifier
-- **description**: Shown as placeholder text
-- **user-invokable**: `true` = visible in agents dropdown, `false` = subagent only
-- **tools**: Available VS Code tools
+- **name**: Agent identifier (used with `@name`)
+- **description**: Shown as placeholder text in chat
+- **tools**: Available VS Code Copilot tools
 - **agents**: Allowed subagents (`*` for all, `[]` for none)
-
-## Integration with pychivalry
-
-| pychivalry Module | Agent Usage |
-|-------------------|-------------|
-| `diagnostics.ts` | ck3-validator uses 6-phase pipeline |
-| `scopes.ts` | ck3-scope-timing validates chains |
-| `scope-timing.ts` | ck3-scope-timing enforces Golden Rule |
-| `events.ts` | ck3-event-builder follows schema |
-| `localization.ts` | ck3-localization-manager uses functions |
+- **handoffs**: Quick delegation buttons shown in chat UI
 
 ## Resources
 
-- [CK3 Modding Wiki](https://ck3.paradoxwikis.com/Modding)
 - [VS Code Custom Agents](https://code.visualstudio.com/docs/copilot/customization/custom-agents)
 - [pychivalry Documentation](../../Documentation/)

@@ -276,19 +276,19 @@ RUN_ID=$1
 
 for i in $(seq 1 $MAX_RETRIES); do
   CONCLUSION=$(gh run view $RUN_ID --json conclusion --jq '.conclusion')
-  
+
   if [ "$CONCLUSION" = "success" ]; then
     echo "✅ Run successful"
     exit 0
   fi
-  
+
   echo "Attempt $i of $MAX_RETRIES: Re-running failed jobs..."
   gh run rerun $RUN_ID --failed
-  
+
   # Wait for completion
   sleep 30
   RUN_ID=$(gh run list --limit 1 --json databaseId --jq '.[0].databaseId')
-  
+
   while [ "$(gh run view $RUN_ID --json status --jq '.status')" != "completed" ]; do
     sleep 10
   done

@@ -1,0 +1,159 @@
+# Good Iterators Examples
+# Demonstrates proper any_, every_, random_, and ordered_ iterator usage in events
+
+namespace = iterators_good
+
+# Example 1: any_vassal with proper trigger usage and count
+iterators_good.0001 = {
+	type = character_event
+	title = iterators_good.0001.t
+	desc = iterators_good.0001.desc
+	theme = diplomacy
+
+	left_portrait = root
+
+	trigger = {
+		any_vassal = {
+			is_adult = yes
+			is_powerful_vassal = yes
+			count >= 3
+		}
+	}
+
+	immediate = {
+		add_prestige = 50
+	}
+
+	option = {
+		name = iterators_good.0001.a
+		add_gold = 100
+	}
+}
+
+# Example 2: every_vassal with limit and effects
+iterators_good.0002 = {
+	type = character_event
+	title = iterators_good.0002.t
+	desc = iterators_good.0002.desc
+	theme = stewardship
+
+	left_portrait = root
+
+	immediate = {
+		every_vassal = {
+			limit = {
+				is_adult = yes
+				opinion = {
+					target = root
+					value >= 50
+				}
+			}
+			add_gold = 100
+			add_opinion = {
+				target = root
+				modifier = rq_grateful_opinion
+			}
+		}
+	}
+
+	option = {
+		name = iterators_good.0002.a
+	}
+}
+
+# Example 3: random_vassal with limit, weight, and effects
+iterators_good.0003 = {
+	type = character_event
+	title = iterators_good.0003.t
+	desc = iterators_good.0003.desc
+	theme = intrigue
+
+	left_portrait = root
+
+	immediate = {
+		random_vassal = {
+			limit = {
+				is_adult = yes
+				is_alive = yes
+			}
+			weight = {
+				base = 1
+				modifier = {
+					add = 10
+					has_trait = ambitious
+				}
+				modifier = {
+					add = 5
+					intrigue >= 12
+				}
+			}
+			save_scope_as = chosen_vassal
+			add_prestige = 50
+		}
+	}
+
+	option = {
+		name = iterators_good.0003.a
+		scope:chosen_vassal = {
+			add_gold = 100
+		}
+	}
+}
+
+# Example 4: ordered_vassal with order_by, max, position, and effects
+iterators_good.0004 = {
+	type = character_event
+	title = iterators_good.0004.t
+	desc = iterators_good.0004.desc
+	theme = martial
+
+	left_portrait = root
+
+	immediate = {
+		ordered_vassal = {
+			limit = {
+				is_adult = yes
+			}
+			order_by = martial
+			max = 3
+			position = 0
+			add_prestige = 100
+			add_gold = 50
+		}
+	}
+
+	option = {
+		name = iterators_good.0004.a
+	}
+}
+
+# Example 5: save_temporary_scope_as usage in any_ block
+iterators_good.0005 = {
+	type = character_event
+	title = iterators_good.0005.t
+	desc = iterators_good.0005.desc
+	theme = learning
+
+	left_portrait = root
+
+	trigger = {
+		any_vassal = {
+			is_adult = yes
+			learning >= 15
+			save_temporary_scope_as = learned_vassal
+		}
+	}
+
+	immediate = {
+		scope:learned_vassal = {
+			save_scope_as = mentor
+		}
+	}
+
+	option = {
+		name = iterators_good.0005.a
+		scope:mentor = {
+			add_piety = 100
+		}
+	}
+}

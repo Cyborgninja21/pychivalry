@@ -1,0 +1,136 @@
+# Good Switch Examples
+# Demonstrates proper switch block usage in events
+
+namespace = switch_good
+
+# Example 1: Switch on has_trait with multiple branches and fallback
+switch_good.0001 = {
+	type = character_event
+	title = switch_good.0001.t
+	desc = switch_good.0001.desc
+	theme = intrigue
+
+	left_portrait = root
+
+	immediate = {
+		switch = {
+			trigger = has_trait
+			brave = {
+				add_prestige = 100
+			}
+			craven = {
+				add_prestige = -50
+			}
+			ambitious = {
+				add_prestige = 75
+			}
+			fallback = {
+				add_prestige = 25
+			}
+		}
+	}
+
+	option = {
+		name = switch_good.0001.a
+		add_gold = 50
+	}
+}
+
+# Example 2: Switch on government_has_flag
+switch_good.0002 = {
+	type = character_event
+	title = switch_good.0002.t
+	desc = switch_good.0002.desc
+	theme = stewardship
+
+	left_portrait = root
+
+	immediate = {
+		switch = {
+			trigger = government_has_flag
+			government_is_feudal = {
+				add_gold = 100
+			}
+			government_is_tribal = {
+				add_prestige = 100
+			}
+			government_is_clan = {
+				add_gold = 50
+				add_prestige = 50
+			}
+		}
+	}
+
+	option = {
+		name = switch_good.0002.a
+	}
+}
+
+# Example 3: Switch on has_religion
+switch_good.0003 = {
+	type = character_event
+	title = switch_good.0003.t
+	desc = switch_good.0003.desc
+	theme = learning
+
+	left_portrait = root
+
+	immediate = {
+		switch = {
+			trigger = has_religion
+			religion_christianity = {
+				add_piety = 100
+			}
+			religion_islam = {
+				add_piety = 100
+			}
+			fallback = {
+				add_piety = 50
+			}
+		}
+	}
+
+	option = {
+		name = switch_good.0003.a
+	}
+}
+
+# Example 4: Nested switch blocks
+switch_good.0004 = {
+	type = character_event
+	title = switch_good.0004.t
+	desc = switch_good.0004.desc
+	theme = diplomacy
+
+	left_portrait = root
+
+	immediate = {
+		switch = {
+			trigger = has_trait
+			brave = {
+				switch = {
+					trigger = has_education_trait
+					education_diplomacy_4 = {
+						add_prestige = 200
+					}
+					education_martial_4 = {
+						add_prestige = 150
+					}
+					fallback = {
+						add_prestige = 100
+					}
+				}
+			}
+			craven = {
+				add_prestige = -25
+			}
+			fallback = {
+				add_gold = 50
+			}
+		}
+	}
+
+	option = {
+		name = switch_good.0004.a
+	}
+}

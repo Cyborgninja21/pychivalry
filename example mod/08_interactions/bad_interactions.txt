@@ -134,3 +134,114 @@ bad_interaction_partial_ai = {
 	ai_frequency = 60
 	# Missing ai_accept and ai_targets
 }
+
+# ERROR INTERACT-003: Unreachable on_decline (auto_accept with on_decline)
+bad_interaction_unreachable_decline = {
+	category = interaction_category_diplomacy
+
+	desc = bad_interaction_unreachable_decline_desc
+
+	is_shown = {
+		scope:actor = {
+			is_adult = yes
+		}
+	}
+
+	auto_accept = yes
+
+	on_accept = {
+		scope:actor = {
+			add_prestige = 50
+		}
+	}
+
+	# ERROR INTERACT-003: on_decline is unreachable because auto_accept = yes
+	on_decline = {
+		scope:actor = {
+			add_stress = 10
+		}
+	}
+
+	ai_frequency = 60
+}
+
+# ERROR INTERACT-004: Missing is_shown trigger
+bad_interaction_no_is_shown = {
+	category = interaction_category_hostile
+
+	desc = bad_interaction_no_is_shown_desc
+
+	# ERROR INTERACT-004: No is_shown block
+	# Interaction has no visibility conditions
+
+	on_accept = {
+		scope:actor = {
+			add_gold = 100
+		}
+	}
+
+	ai_frequency = 60
+
+	ai_accept = {
+		base = 50
+	}
+}
+
+# ERROR HOOK-001: Unknown interaction hook (typo)
+bad_interaction_unknown_hook = {
+	category = interaction_category_diplomacy
+
+	desc = bad_interaction_unknown_hook_desc
+
+	is_shown = {
+		scope:actor = {
+			is_adult = yes
+		}
+	}
+
+	# ERROR HOOK-001: "on_accep" is not a valid interaction hook (typo for on_accept)
+	on_accep = {
+		scope:actor = {
+			add_gold = 100
+		}
+	}
+
+	ai_frequency = 60
+
+	ai_accept = {
+		base = 50
+	}
+}
+
+# ERROR HOOK-001: Multiple unknown hooks
+bad_interaction_wrong_hook_names = {
+	category = interaction_category_diplomacy
+
+	desc = bad_interaction_wrong_hook_names_desc
+
+	is_shown = {
+		scope:actor = {
+			is_adult = yes
+		}
+	}
+
+	# ERROR HOOK-001: "on_completed" is not a valid interaction hook
+	on_completed = {
+		scope:actor = {
+			add_prestige = 100
+		}
+	}
+
+	# ERROR HOOK-001: "on_reject" is not a valid interaction hook (should be on_decline)
+	on_reject = {
+		scope:actor = {
+			add_stress = 20
+		}
+	}
+
+	ai_frequency = 60
+
+	ai_accept = {
+		base = 50
+	}
+}
