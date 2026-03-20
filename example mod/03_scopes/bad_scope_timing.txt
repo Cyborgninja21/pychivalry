@@ -26,7 +26,6 @@
 # ERROR: CK3702
 # ERROR: CK3875
 # ERROR: CK5137
-# ERROR: SCOPE-007
 namespace = scope_timing_bad
 
 # ===================================================================

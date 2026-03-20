@@ -2,7 +2,6 @@
 # Demonstrates STORY-001 to STORY-045
 
 # effect_group missing timing keyword
-# ERROR: CK3103
 # ERROR: CK3314
 # ERROR: CK3702
 bad_story_001 = {

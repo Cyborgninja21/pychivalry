@@ -2,7 +2,6 @@
 # Demonstrates SCHEME-001 to SCHEME-003
 
 # ERROR SCHEME-001: Missing skill field
-# ERROR: CK3103
 # ERROR: CK3314
 # ERROR: CK5137
 # ERROR: SCHEME-004

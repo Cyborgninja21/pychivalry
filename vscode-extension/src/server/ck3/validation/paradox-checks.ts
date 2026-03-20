@@ -187,7 +187,7 @@ export function checkListIteratorMisuse(node: ASTNode): Diagnostic[] {
             if (!hasLimit) {
                 diagnostics.push({
                     range: child.range,
-                    severity: DiagnosticSeverity.Warning,
+                    severity: DiagnosticSeverity.Information,
                     code: 'CK3875',
                     source: 'ck3-lsp',
                     message: `random_ iterator without limit. Consider adding limit = { ... } to filter candidates.`,

@@ -475,6 +475,24 @@ export class DiagnosticsEngine {
         savedScopes.add('this');
 
         // Phase 2: Walk the AST with context tracking
+        // Pre-scan ALL nodes for save_scope_as to handle CK3's non-linear execution order.
+        // In CK3, desc/title evaluate AFTER triggers, so scopes saved in trigger blocks
+        // are available in desc blocks that appear earlier in the file.
+        const preScanForSavedScopes = (nodes: ASTNode[]) => {
+            for (const node of nodes) {
+                if ((node.key === 'save_scope_as' || node.key === 'save_temporary_scope_as')
+                    && node.value && typeof node.value === 'string') {
+                    savedScopes.add(node.value);
+                }
+                if (node.children) {
+                    preScanForSavedScopes(node.children);
+                }
+            }
+        };
+        for (const node of ast) {
+            preScanForSavedScopes(node.children || []);
+        }
+
         const walk = (nodes: ASTNode[], currentScope: string = 'character', context: 'none' | 'effect' | 'trigger' = 'none', parentKey: string | null = null) => {
             for (const node of nodes) {
                 // Track save_scope_as assignments (e.g., save_scope_as = actor)
@@ -659,8 +677,9 @@ export class DiagnosticsEngine {
                     }
                 }
 
-                // Check list iterators
-                if (node.key && isListIterator(node.key)) {
+                // Check list iterators — only in effect/trigger context
+                // (top-level definitions like script values may start with random_)
+                if (node.key && (context === 'effect' || context === 'trigger') && isListIterator(node.key)) {
                     const parsed = parseListIterator(node.key);
                     if (parsed) {
                         const [prefix, baseName] = parsed;

@@ -267,6 +267,8 @@ export function parseListIterator(iterator: string): [string, string] | null {
     const NOT_ITERATORS = new Set([
         'random_valid', 'ordered_valid',
         'random_list', 'ordered_list',
+        // On-action structural keywords
+        'random_events', 'ordered_events',
     ]);
     if (NOT_ITERATORS.has(iterator)) {
         return null;

@@ -271,6 +271,7 @@ events_good.0009 = {
 # Example 10: Letter event type
 events_good.0010 = {
 	type = letter_event
+	title = events_good.0010.t
 	opening = events_good.0010.opening
 	desc = events_good.0010.desc
 	sender = root

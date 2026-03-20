@@ -188,9 +188,13 @@ function extractVariableReferences(node: ASTNode): Set<string> {
     }
 
     // Check for has_variable
-    if (node.key === 'has_variable' && typeof node.value === 'string') {
-        variables.add(node.value);
-    }
+    // Note: has_variable checks for EXISTENCE, not value.
+    // Using has_variable in trigger with set_variable in immediate is a valid
+    // "fire once" pattern (NOT = { has_variable = X } / set_variable = X).
+    // Only flag var: references as problematic timing, not existence checks.
+    // if (node.key === 'has_variable' && typeof node.value === 'string') {
+    //     variables.add(node.value);
+    // }
 
     for (const child of (node.children || [])) {
         const childVars = extractVariableReferences(child);

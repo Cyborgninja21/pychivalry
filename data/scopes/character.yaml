@@ -83,6 +83,9 @@ character:
     de_jure_vassal: character
     sub_realm_county: title
     sub_realm_barony: title
+    # Activity-accessible iterators
+    participant: character
+    guest: character
 
   # Valid triggers in character scope
   triggers:

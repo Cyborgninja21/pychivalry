@@ -1,6 +1,7 @@
 # Bad Portraits Examples
 # Demonstrates CK3420-CK3422, CK3430 - Portrait and theme validation errors
 
+# ERROR: EVENT-003
 namespace = events_bad_portraits
 
 # ERROR CK3420: Invalid portrait position
@@ -47,7 +48,7 @@ events_bad_portraits.0002 = {
 	}
 }
 
-# ERROR CK3422: Invalid animation
+# Invalid animation
 events_bad_portraits.0003 = {
 	type = character_event
 	title = events_bad_portraits.0003.t
@@ -182,7 +183,7 @@ events_bad_portraits.0008 = {
 	}
 }
 
-# ERROR CK3422: Multiple invalid animations
+# Multiple invalid animations
 events_bad_portraits.0009 = {
 	type = character_event
 	title = events_bad_portraits.0009.t

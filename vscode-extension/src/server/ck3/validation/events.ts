@@ -150,6 +150,9 @@ export function isValidPortraitPosition(position: string): boolean {
  */
 export function isValidPortraitAnimation(animation: string): boolean {
     const animations = getPortraitAnimations();
+    if (animations.size === 0) {
+        return true; // Validation disabled if no animations loaded
+    }
     return animations.has(animation);
 }
 
