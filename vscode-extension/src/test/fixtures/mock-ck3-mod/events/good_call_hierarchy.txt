@@ -1,0 +1,150 @@
+# ===================================================================
+# CALL HIERARCHY — EVENT CHAIN EXAMPLES
+# ===================================================================
+# This file demonstrates the Call Hierarchy feature (Shift+Alt+H).
+# Place your cursor on any event ID and right-click > Peek Call Hierarchy
+# to see what triggers it (Incoming) and what it fires (Outgoing).
+#
+# Event chain map:
+#
+#   on_yearly_pulse ──┐
+#                     ├──> adventure.0001 ──> adventure.0002 ──> adventure.0003
+#   start_adventure ──┘        │                                     │
+#     (decision)               │                                     │
+#                              └──> adventure.0004                   │
+#                                                                    │
+#                              adventure.0001 <──────────────────────┘
+#                                (circular back-reference)
+#
+# Scripted effect/trigger cross-references:
+#   adventure.0001 calls  grant_adventure_rewards (scripted effect)
+#   adventure.0004 calls  grant_adventure_rewards (scripted effect)
+#   adventure.0001 checks is_adventure_eligible   (scripted trigger)
+#   adventure.0004 checks is_adventure_eligible   (scripted trigger)
+#
+# Expected validation result: NO ERRORS
+# ===================================================================
+
+namespace = adventure
+
+# -------------------------------------------------------------------
+# Event 1: Adventure begins — entry point
+# -------------------------------------------------------------------
+# INCOMING CALLS: on_yearly_pulse (on-action), start_adventure (decision),
+#                 adventure.0003 (circular back-reference)
+# OUTGOING CALLS: adventure.0002, adventure.0004,
+#                 grant_adventure_rewards (scripted effect)
+# -------------------------------------------------------------------
+adventure.0001 = {
+	type = character_event
+	title = adventure.0001.t
+	desc = adventure.0001.desc
+	theme = adventure
+
+	trigger = {
+		is_adult = yes
+		is_available = yes
+		is_adventure_eligible = yes
+	}
+
+	immediate = {
+		save_scope_as = adventurer
+		grant_adventure_rewards = yes
+	}
+
+	option = {
+		name = adventure.0001.a
+		# Continue the chain — fires adventure.0002
+		trigger_event = {
+			id = adventure.0002
+			days = 30
+		}
+	}
+
+	option = {
+		name = adventure.0001.b
+		# Branch — fires adventure.0004 directly
+		trigger_event = adventure.0004
+	}
+}
+
+# -------------------------------------------------------------------
+# Event 2: Mid-chain event
+# -------------------------------------------------------------------
+# INCOMING CALLS: adventure.0001
+# OUTGOING CALLS: adventure.0003, log_adventure_progress (scripted effect)
+# -------------------------------------------------------------------
+adventure.0002 = {
+	type = character_event
+	title = adventure.0002.t
+	desc = adventure.0002.desc
+
+	trigger = {
+		is_alive = yes
+	}
+
+	immediate = {
+		log_adventure_progress = yes
+		trigger_event = adventure.0003
+	}
+
+	option = {
+		name = adventure.0002.a
+		add_prestige = 50
+	}
+}
+
+# -------------------------------------------------------------------
+# Event 3: Circular reference event
+# -------------------------------------------------------------------
+# INCOMING CALLS: adventure.0002
+# OUTGOING CALLS: adventure.0001 (circular — back to start!)
+#
+# Try Call Hierarchy here to see the circular chain visualised:
+#   adventure.0001 -> 0002 -> 0003 -> 0001
+# CodeLens should also flag the circular reference warning.
+# -------------------------------------------------------------------
+adventure.0003 = {
+	type = character_event
+	title = adventure.0003.t
+	desc = adventure.0003.desc
+
+	immediate = {
+		add_character_modifier = {
+			modifier = adventurer_modifier
+			years = 2
+		}
+	}
+
+	after = {
+		# Circular: chains back to 0001
+		trigger_event = adventure.0001
+	}
+
+	option = {
+		name = adventure.0003.a
+		add_gold = 100
+	}
+}
+
+# -------------------------------------------------------------------
+# Event 4: Leaf event — no outgoing event calls
+# -------------------------------------------------------------------
+# INCOMING CALLS: adventure.0001, grant_adventure_rewards (scripted effect)
+# OUTGOING CALLS: (none — uses is_adventure_eligible scripted trigger only)
+# -------------------------------------------------------------------
+adventure.0004 = {
+	type = character_event
+	title = adventure.0004.t
+	desc = adventure.0004.desc
+
+	trigger = {
+		is_adventure_eligible = yes
+	}
+
+	option = {
+		name = adventure.0004.a
+		add_prestige = 200
+		add_gold = 500
+	}
+}
