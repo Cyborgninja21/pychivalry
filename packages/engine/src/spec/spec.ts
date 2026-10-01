@@ -48,6 +48,7 @@ export class Spec {
     private readonly prefixes: string[];
     private readonly templateRegex: RegExp | undefined;
     private readonly multi = new Map<string, Bucket[]>();
+    private messagePatterns: Array<{ id: string; length: number; regex: RegExp }> | undefined;
 
     constructor(data: SpecPackage, source = '<memory>') {
         this.data = data;
@@ -252,6 +253,38 @@ export class Spec {
             throw new UnknownMessageError(id);
         }
         return fillPlaceholders(entry.text, args);
+    }
+
+    /**
+     * The catalogue entry whose text a message (a game log line's message, say) is an
+     * instance of: placeholders match any text, a trailing ` at <file>:<line>` location is
+     * allowed, and the longest matching template wins. Undefined when none matches.
+     */
+    public matchMessage(message: string): { id: string; args: string[] } | undefined {
+        if (!this.messagePatterns) {
+            this.messagePatterns = this.data.errors
+                .filter((e) => e.text.trim().length > 0)
+                .map((e) => {
+                    const body = e.text
+                        .split(PLACEHOLDER)
+                        .map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+                        .join('(.+?)');
+                    return {
+                        id: e.id,
+                        length: e.text.length,
+                        regex: new RegExp(`^${body}(?: at \\S+:\\d+)?$`),
+                    };
+                })
+                .sort((a, b) => b.length - a.length);
+        }
+        const text = message.trim();
+        for (const pattern of this.messagePatterns) {
+            const match = pattern.regex.exec(text);
+            if (match) {
+                return { id: pattern.id, args: match.slice(1) };
+            }
+        }
+        return undefined;
     }
 
     /** The retirement record for a name removed from the engine, if any. */

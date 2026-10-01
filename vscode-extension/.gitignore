@@ -13,6 +13,8 @@ node_modules/
 
 # Logs
 *.log
+# Recorded game logs are test fixtures
+!src/test/fixtures/game-logs/*.log
 npm-debug.log*
 
 # OS files

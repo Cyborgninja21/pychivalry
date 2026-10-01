@@ -1,0 +1,16 @@
+[12:00:00][system.cpp:212]: Hand-recorded fixture (no game run); origin in src/test/unit/log-oracle.test.ts
+[12:00:01][jomini_script_system.cpp:282]: Loading script files from 'events/'
+[12:00:01][E][jomini_effect.cpp:504]: Unknown effect 'give_super_powers' at events/bad_effects.txt:40
+[12:00:01][E][jomini_effect.cpp:504]: Unknown effect 'trigger_else' at events/bad_control_flow.txt:25
+[12:00:01][E][jomini_trigger.cpp:323]: Unknown trigger 'is_super_powerful' at events/bad_triggers.txt:47
+[12:00:01][E][jomini_trigger.cpp:323]: Unknown trigger 'add_gold' at events/bad_triggers.txt:73
+[12:00:01][E][jomini_trigger.cpp:323]: Unknown trigger 'add_gold' at events/bad_iterators.txt:18
+[12:00:01][E][jomini_effect.cpp:504]: Unknown effect 'is_ruler' at events/bad_iterators.txt:42
+[12:00:01][E][jomini_trigger.cpp:323]: Unknown trigger 'spouse' at events/bad_scopes.txt:49
+[12:00:01][E][pdx_persistent_reader.cpp:216]: Unexpected token, expected 'key = {' at events/bad_syntax.txt:50
+[12:00:01][E][pdx_persistent_reader.cpp:216]: Expected } after arguments at events/bad_syntax.txt:60
+[12:00:01][E][pdx_persistent_reader.cpp:216]: Unexpected token, expected 'key = {' at events/bad_switch.txt:115
+[12:00:02][E][modifier.cpp:155]: Unknown modifier type 'super_strength' at common/modifiers/bad_modifiers.txt:30
+[12:00:02][E][casus_belli_type.cpp:403]: Casus belli conquest_cb_example missing on_invalidated_desc at common/casus_belli_types/good_casus_belli.txt:5
+[12:00:02][E][character_interaction.cpp:612]: Unknown 'on_accep' in character_interaction 'bad_interaction_unknown_hook' at common/character_interactions/bad_interactions.txt:208
+[12:00:03][game.cpp:118]: Script system initialized

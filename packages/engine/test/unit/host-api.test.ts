@@ -290,3 +290,44 @@ describe('Host API: Spec.withOverlay and Workspace.useSpec', () => {
         assert.ok(!after.includes('unknown_effect_X'), after.join(', '));
     });
 });
+
+describe('Host API: Spec.matchMessage (game log lines → catalogue ids)', () => {
+    const spec = defaultSpec();
+
+    it('maps a message to its catalogue id and placeholder values', () => {
+        assert.deepStrictEqual(spec.matchMessage("Unknown effect 'give_super_powers'"), {
+            id: 'unknown_effect_X',
+            args: ['give_super_powers'],
+        });
+        assert.deepStrictEqual(spec.matchMessage('Expected } after arguments'), {
+            id: 'expected_after_arguments',
+            args: [],
+        });
+    });
+
+    it('accepts a trailing location and prefers the template that contains one', () => {
+        assert.strictEqual(
+            spec.matchMessage("Unknown trigger 'add_gold' at events/x.txt:73")?.id,
+            'unknown_trigger_X'
+        );
+        assert.deepStrictEqual(
+            spec.matchMessage(
+                "Unknown modifier type 'super_strength' at common/modifiers/m.txt:30"
+            ),
+            {
+                id: 'unknown_modifier_type_X_at_X',
+                args: ['super_strength', 'common/modifiers/m.txt:30'],
+            }
+        );
+    });
+
+    it('round-trips every catalogue text filled by message()', () => {
+        for (const id of ['unknown_effect_X', 'casus_belli_X_missing_on_invalidated_desc']) {
+            assert.strictEqual(spec.matchMessage(spec.message(id, 'abc_def'))?.id, id);
+        }
+    });
+
+    it('returns undefined for text that is no catalogue message', () => {
+        assert.strictEqual(spec.matchMessage('Loaded 12 events'), undefined);
+    });
+});

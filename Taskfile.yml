@@ -136,11 +136,11 @@ tasks:
       - npx mocha ./out/test/unit/events.test.js --timeout 15000
 
   test:log:
-    desc: "Log analysis tests: log analyzer, log diagnostics"
+    desc: "Log analysis tests: log analyzer, log diagnostics, the error.log oracle"
     dir: "{{.EXT_DIR}}"
     deps: [compile:tests]
     cmds:
-      - npx mocha ./out/test/unit/log-analyzer.test.js ./out/test/unit/log-diagnostics.test.js --timeout 15000
+      - npx mocha ./out/test/unit/log-analyzer.test.js ./out/test/unit/log-diagnostics.test.js ./out/test/unit/log-oracle.test.js --timeout 15000
 
   # ─── Individual Test Domains ───────────────────────────────────
 
