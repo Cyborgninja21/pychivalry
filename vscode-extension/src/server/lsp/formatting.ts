@@ -1,6 +1,6 @@
 /**
  * Formatting Provider - Provides document and range formatting
- * 
+ *
  * Features:
  * - Style-aware formatting (Paradox conventions)
  * - Indentation normalization (tabs by default, configurable)
@@ -11,13 +11,9 @@
  * - Smart line breaking for long values
  */
 
-import {
-    TextEdit,
-    FormattingOptions,
-    Range,
-} from 'vscode-languageserver/node';
+import { TextEdit, FormattingOptions, Range } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { CK3Parser, ASTNode, NodeType } from '../core/parser';
+import { ASTNode, CK3Parser, NodeType } from 'pychivalry-engine';
 
 /**
  * Formatting style configuration
@@ -67,20 +63,22 @@ export class FormattingProvider {
         options: FormattingOptions
     ): Promise<TextEdit[]> {
         const parsed = this.parser.parse(document.getText());
-        
+
         // Apply formatting options
         const effectiveOptions = this.mergeOptions(options);
-        
+
         const formatted = this.formatAST(parsed.ast, effectiveOptions, 0);
-        
+
         // Return a single edit that replaces the entire document
-        return [{
-            range: {
-                start: { line: 0, character: 0 },
-                end: document.positionAt(document.getText().length),
+        return [
+            {
+                range: {
+                    start: { line: 0, character: 0 },
+                    end: document.positionAt(document.getText().length),
+                },
+                newText: formatted,
             },
-            newText: formatted,
-        }];
+        ];
     }
 
     /**
@@ -93,15 +91,17 @@ export class FormattingProvider {
     ): Promise<TextEdit[]> {
         const text = document.getText(range);
         const effectiveOptions = this.mergeOptions(options);
-        
+
         // Parse just the range
         const parsed = this.parser.parse(text);
         const formatted = this.formatAST(parsed.ast, effectiveOptions, 0);
-        
-        return [{
-            range,
-            newText: formatted,
-        }];
+
+        return [
+            {
+                range,
+                newText: formatted,
+            },
+        ];
     }
 
     /**
@@ -123,32 +123,28 @@ export class FormattingProvider {
             return '';
         }
 
-        const indentStr = this.getIndent(indent, options);
         const lines: string[] = [];
-        
+
         // Calculate operator alignment if enabled
-        const alignColumn = this.style.alignOperators 
+        const alignColumn = this.style.alignOperators
             ? this.calculateAlignmentColumn(node.children)
             : 0;
 
-        let lastWasEmpty = false;
         let emptyLineCount = 0;
 
         for (let i = 0; i < node.children.length; i++) {
             const child = node.children[i];
             const formatted = this.formatNode(child, options, indent, alignColumn);
-            
+
             if (formatted === '') {
                 // Empty line
                 if (this.style.preserveEmptyLines && emptyLineCount < this.style.maxEmptyLines) {
                     lines.push('');
                     emptyLineCount++;
                 }
-                lastWasEmpty = true;
             } else {
                 lines.push(formatted);
                 emptyLineCount = 0;
-                lastWasEmpty = false;
             }
         }
 
@@ -174,7 +170,7 @@ export class FormattingProvider {
         if (node.type === NodeType.ASSIGNMENT) {
             const key = node.key || '';
             const value = this.formatValue(node.value);
-            
+
             if (this.style.alignOperators && alignColumn > 0) {
                 const padding = ' '.repeat(Math.max(0, alignColumn - key.length));
                 return `${indentStr}${key}${padding}${spacing}=${spacing}${value}`;
@@ -187,7 +183,7 @@ export class FormattingProvider {
             const key = node.key || '';
             const op = node.operator || '=';
             const value = this.formatValue(node.value);
-            
+
             if (this.style.alignOperators && alignColumn > 0) {
                 const padding = ' '.repeat(Math.max(0, alignColumn - key.length));
                 return `${indentStr}${key}${padding}${spacing}${op}${spacing}${value}`;
@@ -199,29 +195,29 @@ export class FormattingProvider {
         if (node.type === NodeType.BLOCK) {
             const key = node.key || '';
             const lines: string[] = [];
-            
+
             if (this.style.braceStyle === 'same-line') {
                 lines.push(`${indentStr}${key}${spacing}=${spacing}{`);
             } else {
                 lines.push(`${indentStr}${key}${spacing}=${spacing}`);
                 lines.push(`${indentStr}{`);
             }
-            
+
             if (node.children && node.children.length > 0) {
                 const childText = this.formatAST(node, options, indent + 1);
                 if (childText) {
                     lines.push(childText);
                 }
             }
-            
+
             lines.push(indentStr + '}');
             return lines.join('\n');
         }
 
         if (node.type === NodeType.LIST) {
             const key = node.key || '';
-            const values = node.children?.map(c => this.formatValue(c.value)) || [];
-            
+            const values = node.children?.map((c) => this.formatValue(c.value)) || [];
+
             if (this.style.compactLists && values.length <= 5) {
                 // Keep short lists on one line
                 return `${indentStr}${key}${spacing}=${spacing}{${spacing}${values.join(' ')}${spacing}}`;
@@ -229,12 +225,12 @@ export class FormattingProvider {
                 // Multi-line list
                 const lines: string[] = [];
                 lines.push(`${indentStr}${key}${spacing}=${spacing}{`);
-                
+
                 const childIndent = this.getIndent(indent + 1, options);
                 for (const value of values) {
                     lines.push(`${childIndent}${value}`);
                 }
-                
+
                 lines.push(indentStr + '}');
                 return lines.join('\n');
             }
@@ -246,7 +242,7 @@ export class FormattingProvider {
     /**
      * Format a value (string, number, boolean)
      */
-    private formatValue(value: any): string {
+    private formatValue(value: string | number | boolean | undefined): string {
         if (typeof value === 'string') {
             // Quote strings with spaces
             if (value.includes(' ') || value.includes('\t')) {
@@ -254,15 +250,15 @@ export class FormattingProvider {
             }
             return value;
         }
-        
+
         if (typeof value === 'number') {
             return value.toString();
         }
-        
+
         if (typeof value === 'boolean') {
             return value ? 'yes' : 'no';
         }
-        
+
         return String(value);
     }
 
@@ -270,12 +266,17 @@ export class FormattingProvider {
      * Calculate alignment column for operators
      */
     private calculateAlignmentColumn(children: ASTNode[]): number {
-        if (!this.style.alignOperators) return 0;
+        if (!this.style.alignOperators) {
+            return 0;
+        }
 
         let maxKeyLength = 0;
-        
+
         for (const child of children) {
-            if ((child.type === NodeType.ASSIGNMENT || child.type === NodeType.COMPARISON) && child.key) {
+            if (
+                (child.type === NodeType.ASSIGNMENT || child.type === NodeType.COMPARISON) &&
+                child.key
+            ) {
                 maxKeyLength = Math.max(maxKeyLength, child.key.length);
             }
         }
@@ -288,9 +289,7 @@ export class FormattingProvider {
      * Get indentation string
      */
     private getIndent(level: number, options: FormattingOptions): string {
-        const unit = options.insertSpaces 
-            ? ' '.repeat(options.tabSize)
-            : '\t';
+        const unit = options.insertSpaces ? ' '.repeat(options.tabSize) : '\t';
         return unit.repeat(level);
     }
 }

@@ -49,6 +49,8 @@ import { DataLoader } from './data/loader';
 import { ModScanner } from './data/mod-scanner';
 import { CK3Language } from './ck3/language';
 import { serverLogger } from './utils/logger';
+import { IncrementalParser as EngineParser } from 'pychivalry-engine';
+import { bundledSpec } from './engine-host';
 
 // Log watcher + analyzer
 import { CK3LogWatcher, LogEntry, LogWatcherConfig } from './log/watcher';
@@ -114,6 +116,8 @@ export class CK3LanguageServer {
 
     // Core components
     private parser: CK3Parser;
+    /** The engine's parser (pychivalry-engine), used by the providers already migrated. */
+    private syntaxParser: EngineParser;
     private indexer: EnhancedIndexer;
     private workspaceManager: WorkspaceManager;
     private enhancedWorkspace: EnhancedWorkspaceManager;
@@ -191,6 +195,7 @@ export class CK3LanguageServer {
 
         // Initialize core components
         this.parser = new IncrementalParser();
+        this.syntaxParser = new EngineParser(5, { spec: bundledSpec() });
         this.indexer = new EnhancedIndexer();
         this.workspaceManager = new WorkspaceManager();
         this.enhancedWorkspace = new EnhancedWorkspaceManager();
@@ -215,18 +220,18 @@ export class CK3LanguageServer {
             () => this.enhancedWorkspace.getKnownAssets(),
             this.localizationIndex,
         );
-        this.formattingProvider = new FormattingProvider(this.parser);
-        this.foldingProvider = new FoldingRangeProvider(this.parser);
+        this.formattingProvider = new FormattingProvider(this.syntaxParser);
+        this.foldingProvider = new FoldingRangeProvider(this.syntaxParser);
         this.renameProvider = new RenameProvider(this.parser, this.indexer);
         this.semanticTokensProvider = new SemanticTokensProvider(this.parser);
         this.codeActionsProvider = new CodeActionsProvider(this.parser);
         this.codeLensProvider = new CodeLensProvider(this.parser, this.indexer, this.localizationIndex);
         this.documentLinksProvider = new DocumentLinksProvider(this.parser, this.indexer);
-        this.documentHighlightProvider = new DocumentHighlightProvider(this.parser);
+        this.documentHighlightProvider = new DocumentHighlightProvider(this.syntaxParser);
         this.inlayHintsProvider = new InlayHintsProvider(this.parser);
         this.signatureHelpProvider = new SignatureHelpProvider(this.parser);
         this.callHierarchyProvider = new CallHierarchyProvider(this.parser, this.indexer);
-        this.selectionRangeProvider = new SelectionRangeProvider(this.parser);
+        this.selectionRangeProvider = new SelectionRangeProvider(this.syntaxParser);
 
         // Register handlers
         this.registerHandlers();

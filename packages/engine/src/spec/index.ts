@@ -8,5 +8,6 @@ export {
     fillPlaceholders,
     loadSpec,
     packageRoot,
+    setDefaultSpec,
 } from './spec';
 export type { LoadSpecOptions } from './spec';

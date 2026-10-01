@@ -8,7 +8,7 @@
 
 import { SelectionRange, Position, Range } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { CK3Parser, ASTNode, NodeType } from '../core/parser';
+import { ASTNode, CK3Parser, NodeType } from 'pychivalry-engine';
 
 /**
  * Selection Range Provider
@@ -19,14 +19,11 @@ export class SelectionRangeProvider {
     /**
      * Provide selection ranges for the given positions
      */
-    public provideSelectionRanges(
-        document: TextDocument,
-        positions: Position[],
-    ): SelectionRange[] {
+    public provideSelectionRanges(document: TextDocument, positions: Position[]): SelectionRange[] {
         const text = document.getText();
         const parsed = this.parser.parse(text);
 
-        return positions.map(pos => this.buildSelectionRange(parsed.ast, pos, text));
+        return positions.map((pos) => this.buildSelectionRange(parsed.ast, pos, text));
     }
 
     /**
@@ -115,7 +112,9 @@ export class SelectionRangeProvider {
     private collectAncestorPath(node: ASTNode, position: Position): ASTNode[] {
         const path: ASTNode[] = [node];
 
-        if (!node.children) return path;
+        if (!node.children) {
+            return path;
+        }
 
         for (const child of node.children) {
             if (this.containsPosition(child.range, position)) {
@@ -170,7 +169,8 @@ export class SelectionRangeProvider {
         let closeChar = -1;
         for (let line = node.range.end.line; line >= node.range.start.line; line--) {
             const lineText = lines[line];
-            const endChar = line === node.range.end.line ? node.range.end.character : lineText.length;
+            const endChar =
+                line === node.range.end.line ? node.range.end.character : lineText.length;
             const braceIdx = lineText.lastIndexOf('}', endChar);
             if (braceIdx !== -1) {
                 closeLine = line;
@@ -179,15 +179,19 @@ export class SelectionRangeProvider {
             }
         }
 
-        if (openLine === -1 || closeLine === -1) return null;
+        if (openLine === -1 || closeLine === -1) {
+            return null;
+        }
 
         // Inner range starts after '{' and ends before '}'
         const innerStart: Position = { line: openLine, character: openChar + 1 };
         const innerEnd: Position = { line: closeLine, character: closeChar };
 
         // Don't return if inner range is empty or inverted
-        if (innerStart.line > innerEnd.line ||
-            (innerStart.line === innerEnd.line && innerStart.character >= innerEnd.character)) {
+        if (
+            innerStart.line > innerEnd.line ||
+            (innerStart.line === innerEnd.line && innerStart.character >= innerEnd.character)
+        ) {
             return null;
         }
 
@@ -198,7 +202,9 @@ export class SelectionRangeProvider {
      * Get the range of just the value portion of an ASSIGNMENT or COMPARISON node.
      */
     private getValueRange(node: ASTNode, text: string): Range | null {
-        if (node.value === undefined && node.value !== '') return null;
+        if (node.value === undefined && node.value !== '') {
+            return null;
+        }
 
         const lines = text.split('\n');
 
@@ -212,7 +218,10 @@ export class SelectionRangeProvider {
             if (operatorMatch) {
                 // Value starts after operator + whitespace
                 let valueStart = operatorMatch.end;
-                while (valueStart < lineText.length && (lineText[valueStart] === ' ' || lineText[valueStart] === '\t')) {
+                while (
+                    valueStart < lineText.length &&
+                    (lineText[valueStart] === ' ' || lineText[valueStart] === '\t')
+                ) {
                     valueStart++;
                 }
 
@@ -231,19 +240,38 @@ export class SelectionRangeProvider {
     /**
      * Find operator position in a line of text.
      */
-    private findOperator(lineText: string, startChar: number): { start: number; end: number } | null {
+    private findOperator(
+        lineText: string,
+        startChar: number
+    ): { start: number; end: number } | null {
         for (let i = startChar; i < lineText.length; i++) {
             const ch = lineText[i];
             const next = i + 1 < lineText.length ? lineText[i + 1] : '';
 
-            if (ch === '=' && next === '=') return { start: i, end: i + 2 };
-            if (ch === '!' && next === '=') return { start: i, end: i + 2 };
-            if (ch === '>' && next === '=') return { start: i, end: i + 2 };
-            if (ch === '<' && next === '=') return { start: i, end: i + 2 };
-            if (ch === '?' && next === '=') return { start: i, end: i + 2 };
-            if (ch === '>' && next !== '=') return { start: i, end: i + 1 };
-            if (ch === '<' && next !== '=') return { start: i, end: i + 1 };
-            if (ch === '=' && next !== '=') return { start: i, end: i + 1 };
+            if (ch === '=' && next === '=') {
+                return { start: i, end: i + 2 };
+            }
+            if (ch === '!' && next === '=') {
+                return { start: i, end: i + 2 };
+            }
+            if (ch === '>' && next === '=') {
+                return { start: i, end: i + 2 };
+            }
+            if (ch === '<' && next === '=') {
+                return { start: i, end: i + 2 };
+            }
+            if (ch === '?' && next === '=') {
+                return { start: i, end: i + 2 };
+            }
+            if (ch === '>' && next !== '=') {
+                return { start: i, end: i + 1 };
+            }
+            if (ch === '<' && next !== '=') {
+                return { start: i, end: i + 1 };
+            }
+            if (ch === '=' && next !== '=') {
+                return { start: i, end: i + 1 };
+            }
         }
         return null;
     }
@@ -262,8 +290,12 @@ export class SelectionRangeProvider {
             if (op) {
                 // Cursor is on value side if it's on a line after the operator,
                 // or on the same line and past the operator
-                if (position.line > line) return true;
-                if (position.line === line && position.character >= op.end) return true;
+                if (position.line > line) {
+                    return true;
+                }
+                if (position.line === line && position.character >= op.end) {
+                    return true;
+                }
                 return false;
             }
         }
@@ -277,15 +309,21 @@ export class SelectionRangeProvider {
      */
     private getCommentGroupRange(comment: ASTNode, siblings: ASTNode[]): Range | null {
         const commentIdx = siblings.indexOf(comment);
-        if (commentIdx === -1) return null;
+        if (commentIdx === -1) {
+            return null;
+        }
 
         // Find the start of the consecutive comment group
         let groupStart = commentIdx;
         while (groupStart > 0) {
             const prev = siblings[groupStart - 1];
-            if (prev.type !== NodeType.COMMENT) break;
+            if (prev.type !== NodeType.COMMENT) {
+                break;
+            }
             // Must be on consecutive lines
-            if (prev.range.end.line + 1 !== siblings[groupStart].range.start.line) break;
+            if (prev.range.end.line + 1 !== siblings[groupStart].range.start.line) {
+                break;
+            }
             groupStart--;
         }
 
@@ -293,13 +331,19 @@ export class SelectionRangeProvider {
         let groupEnd = commentIdx;
         while (groupEnd < siblings.length - 1) {
             const next = siblings[groupEnd + 1];
-            if (next.type !== NodeType.COMMENT) break;
-            if (siblings[groupEnd].range.end.line + 1 !== next.range.start.line) break;
+            if (next.type !== NodeType.COMMENT) {
+                break;
+            }
+            if (siblings[groupEnd].range.end.line + 1 !== next.range.start.line) {
+                break;
+            }
             groupEnd++;
         }
 
         // Only create a group range if there are multiple consecutive comments
-        if (groupStart === groupEnd) return null;
+        if (groupStart === groupEnd) {
+            return null;
+        }
 
         return {
             start: siblings[groupStart].range.start,
@@ -312,7 +356,9 @@ export class SelectionRangeProvider {
      * Input should be ordered innermost-first.
      */
     private deduplicateRanges(ranges: Range[]): Range[] {
-        if (ranges.length === 0) return [];
+        if (ranges.length === 0) {
+            return [];
+        }
 
         const result: Range[] = [ranges[0]];
 
@@ -321,7 +367,9 @@ export class SelectionRangeProvider {
             const curr = ranges[i];
 
             // Skip if same range
-            if (this.rangesEqual(prev, curr)) continue;
+            if (this.rangesEqual(prev, curr)) {
+                continue;
+            }
 
             // Only include if strictly larger than previous
             if (this.rangeContains(curr, prev)) {
@@ -336,10 +384,12 @@ export class SelectionRangeProvider {
      * Check if two ranges are equal.
      */
     private rangesEqual(a: Range, b: Range): boolean {
-        return a.start.line === b.start.line &&
+        return (
+            a.start.line === b.start.line &&
             a.start.character === b.start.character &&
             a.end.line === b.end.line &&
-            a.end.character === b.end.character;
+            a.end.character === b.end.character
+        );
     }
 
     /**
@@ -348,7 +398,8 @@ export class SelectionRangeProvider {
     private rangeContains(outer: Range, inner: Range): boolean {
         const startsBeforeOrAt =
             outer.start.line < inner.start.line ||
-            (outer.start.line === inner.start.line && outer.start.character <= inner.start.character);
+            (outer.start.line === inner.start.line &&
+                outer.start.character <= inner.start.character);
         const endsAfterOrAt =
             outer.end.line > inner.end.line ||
             (outer.end.line === inner.end.line && outer.end.character >= inner.end.character);

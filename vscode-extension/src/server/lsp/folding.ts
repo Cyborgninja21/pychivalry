@@ -1,6 +1,6 @@
 /**
  * Folding Range Provider - Provides code folding ranges
- * 
+ *
  * Features:
  * - Smart folding by block type (events, options, triggers, effects)
  * - Comment region folding
@@ -11,7 +11,7 @@
 
 import { FoldingRange, FoldingRangeKind } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { CK3Parser, ASTNode, NodeType } from '../core/parser';
+import { ASTNode, CK3Parser, NodeType } from 'pychivalry-engine';
 
 /**
  * Folding strategy configuration
@@ -57,18 +57,18 @@ export class FoldingRangeProvider {
     public async provideFoldingRanges(document: TextDocument): Promise<FoldingRange[]> {
         const parsed = this.parser.parse(document.getText());
         const ranges: FoldingRange[] = [];
-        
+
         // Collect folding ranges from AST
         this.collectFoldingRanges(parsed.ast, ranges);
-        
+
         // Collect comment regions
         if (this.strategy.foldComments || this.strategy.foldRegions) {
             this.collectCommentFolds(document, ranges);
         }
-        
+
         // Sort by start line
         ranges.sort((a, b) => a.startLine - b.startLine);
-        
+
         return ranges;
     }
 
@@ -76,11 +76,13 @@ export class FoldingRangeProvider {
      * Collect folding ranges from AST
      */
     private collectFoldingRanges(node: ASTNode, ranges: FoldingRange[]): void {
-        if (!node.children) return;
+        if (!node.children) {
+            return;
+        }
 
         for (const child of node.children) {
             const lineCount = child.range.end.line - child.range.start.line + 1;
-            
+
             // Skip if below minimum line threshold
             if (lineCount < this.strategy.minimumLines) {
                 if (child.children) {
@@ -183,10 +185,9 @@ export class FoldingRangeProvider {
      * Check if node is an event option
      */
     private isEventOption(node: ASTNode): boolean {
-        return node.type === NodeType.BLOCK && (
-            node.key === 'option' ||
-            node.key === 'immediate' ||
-            node.key === 'after'
+        return (
+            node.type === NodeType.BLOCK &&
+            (node.key === 'option' || node.key === 'immediate' || node.key === 'after')
         );
     }
 
@@ -194,7 +195,9 @@ export class FoldingRangeProvider {
      * Check if node is a trigger block
      */
     private isTriggerBlock(node: ASTNode): boolean {
-        if (node.type !== NodeType.BLOCK) return false;
+        if (node.type !== NodeType.BLOCK) {
+            return false;
+        }
 
         const triggerKeys = [
             'trigger',
@@ -215,7 +218,9 @@ export class FoldingRangeProvider {
      * Check if node is an effect block
      */
     private isEffectBlock(node: ASTNode): boolean {
-        if (node.type !== NodeType.BLOCK) return false;
+        if (node.type !== NodeType.BLOCK) {
+            return false;
+        }
 
         const effectKeys = [
             'effect',
@@ -240,10 +245,9 @@ export class FoldingRangeProvider {
     private collectCommentFolds(document: TextDocument, ranges: FoldingRange[]): void {
         const text = document.getText();
         const lines = text.split('\n');
-        
+
         let commentStart: number | null = null;
         let regionStart: number | null = null;
-        let regionName: string | null = null;
 
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i].trim();
@@ -252,7 +256,6 @@ export class FoldingRangeProvider {
             if (this.strategy.foldRegions) {
                 if (line.startsWith('#region') || line.startsWith('# region')) {
                     regionStart = i;
-                    regionName = line.substring(line.indexOf('region') + 6).trim();
                 } else if (line.startsWith('#endregion') || line.startsWith('# endregion')) {
                     if (regionStart !== null) {
                         ranges.push({
@@ -261,7 +264,6 @@ export class FoldingRangeProvider {
                             kind: FoldingRangeKind.Region,
                         });
                         regionStart = null;
-                        regionName = null;
                     }
                 }
             }

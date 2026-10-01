@@ -320,10 +320,19 @@ export function defaultSpecPath(): string {
 
 let cachedDefault: Spec | undefined;
 
-/** The bundled spec, loaded once per process. */
+/** The bundled spec, loaded once per process (or the one given to setDefaultSpec). */
 export function defaultSpec(): Spec {
     if (!cachedDefault) {
         cachedDefault = loadSpec(defaultSpecPath());
     }
     return cachedDefault;
+}
+
+/**
+ * Make `spec` the process default that defaultSpec() returns, for hosts that bundle the
+ * engine and ship the package somewhere packageRoot() cannot find (the VS Code
+ * extension's webpack bundle loads it from its own dist/ and registers it here).
+ */
+export function setDefaultSpec(spec: Spec): void {
+    cachedDefault = spec;
 }

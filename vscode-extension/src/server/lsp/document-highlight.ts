@@ -1,6 +1,6 @@
 /**
  * Document Highlight Provider - Highlights all occurrences of a symbol
- * 
+ *
  * Features:
  * - Highlight all occurrences of symbol under cursor
  * - Differentiate read/write highlights
@@ -11,7 +11,7 @@
 
 import { DocumentHighlight, DocumentHighlightKind, Position } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { CK3Parser, ASTNode, NodeType } from '../core/parser';
+import { ASTNode, CK3Parser, NodeType } from 'pychivalry-engine';
 
 /**
  * Highlight context
@@ -37,7 +37,9 @@ export class DocumentHighlightProvider {
         position: Position
     ): Promise<DocumentHighlight[]> {
         const word = this.getWordAtPosition(document, position);
-        if (!word) return [];
+        if (!word) {
+            return [];
+        }
 
         const highlights: DocumentHighlight[] = [];
         const text = document.getText();
@@ -91,7 +93,7 @@ export class DocumentHighlightProvider {
         // Check if cursor is on a variable assignment
         const parsed = this.parser.parse(document.getText());
         const node = this.findNodeAtPosition(parsed.ast, position);
-        
+
         if (node && this.isVariableContext(node)) {
             return {
                 word,
@@ -115,15 +117,11 @@ export class DocumentHighlightProvider {
      */
     private isVariableContext(node: ASTNode): boolean {
         // Check if node is part of set_variable, change_variable, etc.
-        if (!node.key) return false;
+        if (!node.key) {
+            return false;
+        }
 
-        const varKeys = [
-            'set_variable',
-            'change_variable',
-            'remove_variable',
-            'var',
-            'variable',
-        ];
+        const varKeys = ['set_variable', 'change_variable', 'remove_variable', 'var', 'variable'];
 
         return varKeys.includes(node.key);
     }
@@ -136,7 +134,9 @@ export class DocumentHighlightProvider {
         context: HighlightContext,
         highlights: DocumentHighlight[]
     ): void {
-        if (!node.children) return;
+        if (!node.children) {
+            return;
+        }
 
         for (const child of node.children) {
             // Check key matches
@@ -172,7 +172,7 @@ export class DocumentHighlightProvider {
                 } else if (child.value.includes(context.word)) {
                     // Partial match (e.g., in scope chains)
                     const parts = child.value.split('.');
-                    if (parts.some(p => p === context.word)) {
+                    if (parts.some((p) => p === context.word)) {
                         highlights.push({
                             range: child.range,
                             kind: DocumentHighlightKind.Read,
@@ -198,12 +198,12 @@ export class DocumentHighlightProvider {
             if (node.key === 'set_variable' || node.key === 'change_variable') {
                 return DocumentHighlightKind.Write;
             }
-            
+
             // Check if within a variable setter
             if (this.isWithinVariableSetter(node)) {
                 return DocumentHighlightKind.Write;
             }
-            
+
             return DocumentHighlightKind.Read;
         }
 
@@ -228,7 +228,9 @@ export class DocumentHighlightProvider {
      * Find containing block for a position
      */
     private findContainingBlock(node: ASTNode, position: Position): ASTNode | null {
-        if (!node.children) return null;
+        if (!node.children) {
+            return null;
+        }
 
         for (const child of node.children) {
             // Check if position is within this node
@@ -259,7 +261,9 @@ export class DocumentHighlightProvider {
      * Find node at position
      */
     private findNodeAtPosition(node: ASTNode, position: Position): ASTNode | null {
-        if (!node.children) return null;
+        if (!node.children) {
+            return null;
+        }
 
         for (const child of node.children) {
             // Check if position is within this node's range
@@ -274,9 +278,11 @@ export class DocumentHighlightProvider {
                 // Check children first (find most specific node)
                 if (child.children) {
                     const innerNode = this.findNodeAtPosition(child, position);
-                    if (innerNode) return innerNode;
+                    if (innerNode) {
+                        return innerNode;
+                    }
                 }
-                
+
                 return child;
             }
         }
@@ -290,21 +296,23 @@ export class DocumentHighlightProvider {
     private getWordAtPosition(document: TextDocument, position: Position): string | null {
         const text = document.getText();
         const offset = document.offsetAt(position);
-        
+
         let start = offset;
         let end = offset;
-        
+
         // Include scope:, var:, flag: prefixes
         while (start > 0 && /[a-zA-Z0-9_.:@]/.test(text[start - 1])) {
             start--;
         }
-        
+
         while (end < text.length && /[a-zA-Z0-9_.:@]/.test(text[end])) {
             end++;
         }
-        
-        if (start === end) return null;
-        
+
+        if (start === end) {
+            return null;
+        }
+
         return text.substring(start, end);
     }
 }
