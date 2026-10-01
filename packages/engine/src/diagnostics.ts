@@ -2,11 +2,13 @@
  * The diagnostics pipeline: parse → registry → schema → scope → plug-ins.
  *
  * Every engine diagnostic carries the spec package's catalogue id and text (or a listed
- * package-local PYCH- id). Plug-ins receive the parsed file and the shared spec and index
- * and return their own diagnostics, which are marked `source: 'plugin'`. None are
- * registered in this phase; Phase 4 decides which per-system validators become plug-ins.
+ * package-local PYCH- id). Plug-ins receive the parsed file (tree, text, URI) and the
+ * shared spec and index and return their own diagnostics, which are marked
+ * `source: 'plugin'`. The engine registers none; a host (the VS Code extension) passes
+ * its plug-ins per call or registers them with registerPlugin.
  */
 
+import * as fs from 'fs';
 import * as path from 'path';
 
 import { Indexer } from './index/indexer';
@@ -26,6 +28,10 @@ export interface PluginContext {
     ast: ASTNode;
     /** Mod-relative path of the file. */
     file: string;
+    /** The text that was parsed. */
+    text: string;
+    /** The URI the file is indexed under. */
+    uri: string;
 }
 
 export type Plugin = (ctx: PluginContext) => Diagnostic[];
@@ -33,6 +39,12 @@ export type Plugin = (ctx: PluginContext) => Diagnostic[];
 export interface DiagnoseOptions {
     /** File content (read from disk when omitted). */
     text?: string;
+    /**
+     * URI to index the file under (default: pathToUri of the path). A host whose editor
+     * spells URIs differently (VS Code's `file:///c%3A/…` on Windows) passes its own so
+     * that the index keeps one entry per file.
+     */
+    uri?: string;
     /** Plug-ins to run after the engine checks (none by default). */
     plugins?: readonly Plugin[];
 }
@@ -78,14 +90,16 @@ export function diagnose(
 ): Diagnostic[] {
     const absolute = path.resolve(file);
     const rel = workspace.relativePath(absolute);
-    const parsed = workspace.parse(absolute, options.text);
-    workspace.index.indexSync(pathToUri(absolute), parsed.ast);
+    const text = options.text ?? fs.readFileSync(absolute, 'utf-8');
+    const uri = options.uri ?? pathToUri(absolute);
+    const parsed = workspace.parse(absolute, text);
+    workspace.index.indexSync(uri, parsed.ast);
 
     const input: CheckInput = {
         spec: workspace.spec,
         workspace,
         file: rel,
-        uri: pathToUri(absolute),
+        uri,
         ast: parsed.ast,
     };
     const diagnostics: Diagnostic[] = parsed.errors.map((e) => parseErrorToDiagnostic(rel, e));
@@ -98,6 +112,8 @@ export function diagnose(
             index: workspace.index,
             ast: parsed.ast,
             file: rel,
+            text,
+            uri,
         };
         for (const d of plugin(context)) {
             diagnostics.push({ ...d, source: 'plugin' });

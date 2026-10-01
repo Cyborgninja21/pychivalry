@@ -14,7 +14,7 @@
  */
 
 import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver/node';
-import { ASTNode, NodeType } from '../../core/parser';
+import { ASTNode, NodeType } from 'pychivalry-engine';
 
 // ---------------------------------------------------------------------------
 // Configuration
@@ -43,11 +43,19 @@ const FORMULA_OPERATIONS = new Set([
     // Base value
     'value',
     // Arithmetic
-    'add', 'subtract', 'multiply', 'divide', 'modulo',
+    'add',
+    'subtract',
+    'multiply',
+    'divide',
+    'modulo',
     // Constraints
-    'min', 'max',
+    'min',
+    'max',
     // Rounding
-    'round', 'round_to', 'ceiling', 'floor',
+    'round',
+    'round_to',
+    'ceiling',
+    'floor',
 ]);
 
 /** Conditional keywords in formulas */
@@ -58,10 +66,16 @@ const ARITHMETIC_OPS = new Set(['add', 'subtract', 'multiply', 'divide', 'modulo
 
 /** Common game value references that can appear as the value= target */
 const COMMON_VALUE_REFERENCES = new Set([
-    'gold', 'prestige', 'piety', 'age',
-    'max_military_strength', 'realm_size',
-    'num_of_vassals', 'num_of_powerful_vassals',
-    'short_term_gold', 'monthly_character_income',
+    'gold',
+    'prestige',
+    'piety',
+    'age',
+    'max_military_strength',
+    'realm_size',
+    'num_of_vassals',
+    'num_of_powerful_vassals',
+    'short_term_gold',
+    'monthly_character_income',
     'monthly_character_expenses',
 ]);
 
@@ -70,8 +84,12 @@ const COMMON_VALUE_REFERENCES = new Set([
 // ---------------------------------------------------------------------------
 
 function isNumber(v: string | number | boolean | undefined): boolean {
-    if (v === undefined) return false;
-    if (typeof v === 'number') return true;
+    if (v === undefined) {
+        return false;
+    }
+    if (typeof v === 'number') {
+        return true;
+    }
     if (typeof v === 'string') {
         const n = Number(v);
         return !isNaN(n) && v.trim() !== '';
@@ -80,7 +98,9 @@ function isNumber(v: string | number | boolean | undefined): boolean {
 }
 
 function toNumber(v: string | number | boolean | undefined): number {
-    if (typeof v === 'number') return v;
+    if (typeof v === 'number') {
+        return v;
+    }
     return Number(v);
 }
 
@@ -102,7 +122,9 @@ function isScriptValueContext(node: ASTNode): boolean {
  * Validate script value definitions within the AST.
  */
 export function validateScriptValues(root: ASTNode, config: ScriptValuesConfig): Diagnostic[] {
-    if (!config.enabled) return [];
+    if (!config.enabled) {
+        return [];
+    }
 
     const diagnostics: Diagnostic[] = [];
     walkForScriptValues(root, config, diagnostics);
@@ -110,7 +132,9 @@ export function validateScriptValues(root: ASTNode, config: ScriptValuesConfig):
 }
 
 function walkForScriptValues(node: ASTNode, config: ScriptValuesConfig, out: Diagnostic[]): void {
-    if (!node.children) return;
+    if (!node.children) {
+        return;
+    }
 
     if (isScriptValueContext(node)) {
         // Each child is an individual script_value definition
@@ -125,16 +149,25 @@ function walkForScriptValues(node: ASTNode, config: ScriptValuesConfig, out: Dia
     }
 }
 
-function validateSingleScriptValue(node: ASTNode, config: ScriptValuesConfig, out: Diagnostic[]): void {
-    if (node.type === NodeType.COMMENT) return;
+function validateSingleScriptValue(
+    node: ASTNode,
+    config: ScriptValuesConfig,
+    out: Diagnostic[]
+): void {
+    if (node.type === NodeType.COMMENT) {
+        return;
+    }
 
     // --- Fixed value: key = <number> or key = <reference> ---
     if (node.type === NodeType.ASSIGNMENT) {
-        if (node.value !== undefined && typeof node.value === 'string'
-            && !isNumber(node.value)
-            && !COMMON_VALUE_REFERENCES.has(node.value)
-            && !node.value.startsWith('scope:')
-            && !node.value.startsWith('@')) {
+        if (
+            node.value !== undefined &&
+            typeof node.value === 'string' &&
+            !isNumber(node.value) &&
+            !COMMON_VALUE_REFERENCES.has(node.value) &&
+            !node.value.startsWith('scope:') &&
+            !node.value.startsWith('@')
+        ) {
             // VALUE-001: unrecognized script value reference
             out.push({
                 severity: DiagnosticSeverity.Warning,
@@ -150,8 +183,8 @@ function validateSingleScriptValue(node: ASTNode, config: ScriptValuesConfig, ou
     // --- Block value: key = { ... } ---
     if (node.type === NodeType.BLOCK && node.children) {
         const childKeys = node.children
-            .filter(c => c.type !== NodeType.COMMENT)
-            .map(c => c.key)
+            .filter((c) => c.type !== NodeType.COMMENT)
+            .map((c) => c.key)
             .filter((k): k is string => k !== undefined);
 
         // Detect range: block with min and max keys
@@ -163,8 +196,8 @@ function validateSingleScriptValue(node: ASTNode, config: ScriptValuesConfig, ou
         }
 
         // Detect formula: block containing formula operations
-        const hasFormulaOp = childKeys.some(k => FORMULA_OPERATIONS.has(k));
-        const hasConditional = childKeys.some(k => CONDITIONAL_KEYWORDS.has(k));
+        const hasFormulaOp = childKeys.some((k) => FORMULA_OPERATIONS.has(k));
+        const hasConditional = childKeys.some((k) => CONDITIONAL_KEYWORDS.has(k));
 
         if (hasFormulaOp && config.checkFormulas) {
             validateFormula(node, out);
@@ -177,7 +210,7 @@ function validateSingleScriptValue(node: ASTNode, config: ScriptValuesConfig, ou
         // If block has no recognised operations at all
         if (!hasFormulaOp && !hasConditional && !hasMin && !hasMax) {
             // Could be a list-style range { 50 100 } — represented as VALUE children
-            const valueChildren = node.children.filter(c => c.type === NodeType.VALUE);
+            const valueChildren = node.children.filter((c) => c.type === NodeType.VALUE);
             if (valueChildren.length === 2 && config.checkRanges) {
                 const v0 = valueChildren[0].value;
                 const v1 = valueChildren[1].value;
@@ -204,12 +237,16 @@ function validateSingleScriptValue(node: ASTNode, config: ScriptValuesConfig, ou
 // ---------------------------------------------------------------------------
 
 function validateRange(node: ASTNode, out: Diagnostic[]): void {
-    if (!node.children) return;
+    if (!node.children) {
+        return;
+    }
 
-    const minNode = node.children.find(c => c.key === 'min');
-    const maxNode = node.children.find(c => c.key === 'max');
+    const minNode = node.children.find((c) => c.key === 'min');
+    const maxNode = node.children.find((c) => c.key === 'max');
 
-    if (!minNode || !maxNode) return;
+    if (!minNode || !maxNode) {
+        return;
+    }
 
     const minVal = minNode.value;
     const maxVal = maxNode.value;
@@ -234,15 +271,21 @@ function validateRange(node: ASTNode, out: Diagnostic[]): void {
 // ---------------------------------------------------------------------------
 
 function validateFormula(node: ASTNode, out: Diagnostic[]): void {
-    if (!node.children) return;
+    if (!node.children) {
+        return;
+    }
 
     let hasValueKey = false;
     let hasArithmeticOp = false;
 
     for (const child of node.children) {
-        if (child.type === NodeType.COMMENT) continue;
+        if (child.type === NodeType.COMMENT) {
+            continue;
+        }
         const key = child.key;
-        if (!key) continue;
+        if (!key) {
+            continue;
+        }
 
         if (key === 'value') {
             hasValueKey = true;
@@ -286,7 +329,8 @@ function validateFormula(node: ASTNode, out: Diagnostic[]): void {
         out.push({
             severity: DiagnosticSeverity.Information,
             range: node.range,
-            message: 'Formula uses arithmetic operations without an explicit value — implicit 0 will be used',
+            message:
+                'Formula uses arithmetic operations without an explicit value — implicit 0 will be used',
             code: 'VALUE-005',
             source: 'ck3-values',
         });
@@ -298,15 +342,21 @@ function validateFormula(node: ASTNode, out: Diagnostic[]): void {
 // ---------------------------------------------------------------------------
 
 function validateConditionals(node: ASTNode, out: Diagnostic[]): void {
-    if (!node.children) return;
+    if (!node.children) {
+        return;
+    }
 
     let hasIf = false;
     let hasElse = false;
 
     for (const child of node.children) {
-        if (child.type === NodeType.COMMENT) continue;
+        if (child.type === NodeType.COMMENT) {
+            continue;
+        }
         const key = child.key;
-        if (!key) continue;
+        if (!key) {
+            continue;
+        }
 
         if (key === 'if') {
             hasIf = true;

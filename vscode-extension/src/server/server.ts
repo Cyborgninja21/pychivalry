@@ -42,12 +42,11 @@ import { CK3Parser, CachingParser } from './core/parser';
 import { IncrementalParser } from './core/incremental-parser';
 import { EnhancedIndexer } from './core/indexer-enhanced';
 import { WorkspaceManager } from './core/workspace';
-import { EnhancedWorkspaceManager } from './core/workspace-enhanced';
 import { LocalizationIndex } from './core/localization-index';
-import { SchemaLoader } from './schema/loader';
 import { DataLoader } from './data/loader';
 import { ModScanner } from './data/mod-scanner';
-import { CK3Language } from './ck3/language';
+import { enginePlugins, localizationDiagnostics } from './plugins';
+import { loadExtractedTraits } from './data/traits';
 import { serverLogger } from './utils/logger';
 import {
     IncrementalParser as EngineParser,
@@ -131,10 +130,8 @@ export class CK3LanguageServer {
     private engineLocalization: EngineLocalizationIndex;
     private indexer: EnhancedIndexer;
     private workspaceManager: WorkspaceManager;
-    private enhancedWorkspace: EnhancedWorkspaceManager;
     private localizationIndex: LocalizationIndex;
     private modScanner: ModScanner;
-    private schemaLoader: SchemaLoader;
     private dataLoader: DataLoader;
 
     // LSP feature providers
@@ -211,17 +208,10 @@ export class CK3LanguageServer {
         this.engineLocalization = new EngineLocalizationIndex();
         this.indexer = new EnhancedIndexer();
         this.workspaceManager = new WorkspaceManager();
-        this.enhancedWorkspace = new EnhancedWorkspaceManager();
         this.localizationIndex = new LocalizationIndex();
         this.modScanner = new ModScanner();
-        this.schemaLoader = new SchemaLoader();
         this.dataLoader = DataLoader.getInstance();
 
-        // Populate CK3Language keyword sets from YAML data
-        CK3Language.initialize(
-            this.dataLoader.getEffects().keys(),
-            this.dataLoader.getTriggers().keys(),
-        );
 
         // Initialize LSP providers
         this.completionProvider = new CompletionProvider(this.syntaxParser, this.engineWorkspace);
@@ -241,16 +231,21 @@ export class CK3LanguageServer {
             this.engineWorkspace.index,
             bundledSpec()
         );
+        const extractedTraits = loadExtractedTraits();
         this.diagnosticsProvider = new DiagnosticsProvider(
-            this.parser, this.schemaLoader, this.indexer, [],
-            () => this.enhancedWorkspace.getKnownAssets(),
-            this.localizationIndex,
+            this.engineWorkspace,
+            enginePlugins({
+                localization: this.engineLocalization,
+                extractedTraits: () => extractedTraits,
+            }),
+            this.engineLocalization,
+            localizationDiagnostics
         );
         this.formattingProvider = new FormattingProvider(this.syntaxParser);
         this.foldingProvider = new FoldingRangeProvider(this.syntaxParser);
         this.renameProvider = new RenameProvider(this.syntaxParser, this.engineWorkspace.index);
         this.semanticTokensProvider = new SemanticTokensProvider(this.syntaxParser, this.engineWorkspace);
-        this.codeActionsProvider = new CodeActionsProvider(this.parser);
+        this.codeActionsProvider = new CodeActionsProvider(this.syntaxParser, bundledSpec());
         this.codeLensProvider = new CodeLensProvider(this.parser, this.indexer, this.localizationIndex);
         this.documentLinksProvider = new DocumentLinksProvider(this.syntaxParser, this.engineWorkspace.index);
         this.documentHighlightProvider = new DocumentHighlightProvider(this.syntaxParser);
@@ -457,14 +452,9 @@ export class CK3LanguageServer {
                 message: 'Initializing workspace...'
             });
 
-            // Load schemas (lazy loading for performance)
-            await this.schemaLoader.initialize();
             this.connection.sendNotification('ck3/indexLog', {
-                message: 'Schemas loaded'
+                message: `CK3 spec package ${bundledSpec().version()} loaded`
             });
-
-            // Preload commonly used schemas
-            await this.schemaLoader.preloadCommonSchemas();
 
             // Initialize data loader (async I/O for effects, triggers, scopes, etc.)
             await this.dataLoader.initialize();
@@ -478,7 +468,6 @@ export class CK3LanguageServer {
                     message: `Scanning workspace folder: ${folder.name}`
                 });
                 await this.workspaceManager.addWorkspaceFolder(folder);
-                await this.enhancedWorkspace.addWorkspaceFolder(folder);
                 await this.engineWorkspace.addWorkspaceFolder(folder);
             }
 

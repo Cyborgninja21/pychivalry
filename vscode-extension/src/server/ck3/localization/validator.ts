@@ -20,7 +20,7 @@
  */
 
 import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver/node';
-import { LocalizationEntry } from '../../core/localization-index';
+import { LocalizationEntry } from 'pychivalry-engine';
 import { isValidConcept, suggestSimilarConcepts } from './concepts';
 import { isValidIcon, suggestSimilarIcons } from './icons';
 
@@ -53,30 +53,64 @@ export const DEFAULT_LOC_VALIDATION_CONFIG: LocalizationValidationConfig = {
 /** 70+ character functions valid in localization strings */
 const CHARACTER_FUNCTIONS = new Set([
     // Name functions
-    'GetName', 'GetFirstName', 'GetLastName', 'GetFullName', 'GetBirthName', 'GetNickname',
+    'GetName',
+    'GetFirstName',
+    'GetLastName',
+    'GetFullName',
+    'GetBirthName',
+    'GetNickname',
     // UI name variants
-    'GetUIName', 'GetUINameNoTooltip', 'GetShortUIName', 'GetShortUINameNoTooltip',
+    'GetUIName',
+    'GetUINameNoTooltip',
+    'GetShortUIName',
+    'GetShortUINameNoTooltip',
     'GetShortUINamePossessive',
     // Titled names
-    'GetTitledFirstName', 'GetTitledFirstNameNoTooltip', 'GetTitledFirstNamePossessive',
+    'GetTitledFirstName',
+    'GetTitledFirstNameNoTooltip',
+    'GetTitledFirstNamePossessive',
     // Possessive
-    'GetNamePossessive', 'GetFirstNamePossessive',
+    'GetNamePossessive',
+    'GetFirstNamePossessive',
     // Gender pronouns
-    'GetSheHe', 'GetHeOrShe', 'GetHerHim', 'GetHimOrHer', 'GetHerHis', 'GetHisOrHer',
+    'GetSheHe',
+    'GetHeOrShe',
+    'GetHerHim',
+    'GetHimOrHer',
+    'GetHerHis',
+    'GetHisOrHer',
     'GetHerselfHimself',
     // Titles
-    'GetTitle', 'GetPrimaryTitle', 'GetHerHisPrimaryTitle',
+    'GetTitle',
+    'GetPrimaryTitle',
+    'GetHerHisPrimaryTitle',
     // Accessors
-    'GetFaith', 'GetReligion', 'GetCulture', 'GetGovernment', 'GetDynasty', 'GetHouse',
-    'GetLiege', 'GetPlayer',
+    'GetFaith',
+    'GetReligion',
+    'GetCulture',
+    'GetGovernment',
+    'GetDynasty',
+    'GetHouse',
+    'GetLiege',
+    'GetPlayer',
     // Special
-    'Custom', 'MakeScope', 'ScriptValue',
+    'Custom',
+    'MakeScope',
+    'ScriptValue',
     // Game mechanic
-    'GetScheme', 'GetVassalStance', 'GetReligionFamily', 'GetDefine',
+    'GetScheme',
+    'GetVassalStance',
+    'GetReligionFamily',
+    'GetDefine',
     // Additional name variants
-    'GetNameNoTierNoTooltip', 'GetNameWithRegnalNoTooltip', 'GetBaseNameNoTooltip',
+    'GetNameNoTierNoTooltip',
+    'GetNameWithRegnalNoTooltip',
+    'GetBaseNameNoTooltip',
     // Utility
-    'GetAge', 'GetDynastyHouseNameNoTooltip', 'GetCourtName', 'GetRealmCapital',
+    'GetAge',
+    'GetDynastyHouseNameNoTooltip',
+    'GetCourtName',
+    'GetRealmCapital',
     // Trait accessor
     'GetTrait',
     // Null character
@@ -86,53 +120,139 @@ const CHARACTER_FUNCTIONS = new Set([
 /** 40+ text formatting codes (case-sensitive) */
 const TEXT_FORMATTING_CODES = new Set([
     // Basic
-    '#bold', '#italic', '#underline', '#!',
+    '#bold',
+    '#italic',
+    '#underline',
+    '#!',
     // Style
-    '#weak', '#high', '#low', '#emphasis', '#EMP',
+    '#weak',
+    '#high',
+    '#low',
+    '#emphasis',
+    '#EMP',
     // Case-sensitive colour codes
-    '#N', '#n', '#P', '#X', '#V', '#v', '#L',
+    '#N',
+    '#n',
+    '#P',
+    '#X',
+    '#V',
+    '#v',
+    '#L',
     // Tutorial
     '#TUT_KW',
     // Named colours
-    '#color_red', '#color_blue', '#color_green', '#color_yellow',
-    '#color_white', '#color_black', '#color_grey', '#color_gray',
+    '#color_red',
+    '#color_blue',
+    '#color_green',
+    '#color_yellow',
+    '#color_white',
+    '#color_black',
+    '#color_grey',
+    '#color_gray',
     // Game-specific
-    '#positive', '#negative', '#warning', '#F', '#T', '#D',
+    '#positive',
+    '#negative',
+    '#warning',
+    '#F',
+    '#T',
+    '#D',
 ]);
 
 /** Built-in common icon references (subset — full list comes from YAML) */
 const BUILTIN_ICONS = new Set([
-    'gold_icon', 'prestige_icon', 'piety_icon', 'dread_icon', 'stress_icon',
-    'tyranny_icon', 'renown_icon', 'devotion_icon', 'splendor_icon',
-    'prowess_icon', 'diplomacy_icon', 'martial_icon', 'stewardship_icon',
-    'intrigue_icon', 'learning_icon',
-    'opinion_icon', 'hook_icon', 'weak_hook_icon', 'strong_hook_icon',
-    'lover_icon', 'friend_icon', 'rival_icon',
-    'knight_icon', 'levy_icon', 'men_at_arms_icon', 'army_icon', 'siege_icon',
-    'councillor_icon', 'council_icon', 'chancellor_icon', 'steward_icon',
-    'marshal_icon', 'spymaster_icon', 'court_chaplain_icon',
-    'title_icon', 'titles_icon', 'county_icon', 'duchy_icon',
-    'kingdom_icon', 'empire_icon', 'barony_icon',
-    'warning_icon', 'death_icon', 'alert_icon', 'yes_icon', 'no_icon', 'info_icon',
-    'faith_icon', 'religion_icon', 'culture_icon', 'innovation_icon', 'tradition_icon',
-    'building_icon', 'holding_icon', 'fort_level_icon',
-    'scheme_icon', 'murder_icon', 'seduce_icon',
-    'trait_icon', 'genetic_icon', 'personality_icon',
-    'prison_icon', 'control_icon', 'age_icon', 'health_icon', 'fertility_icon',
+    'gold_icon',
+    'prestige_icon',
+    'piety_icon',
+    'dread_icon',
+    'stress_icon',
+    'tyranny_icon',
+    'renown_icon',
+    'devotion_icon',
+    'splendor_icon',
+    'prowess_icon',
+    'diplomacy_icon',
+    'martial_icon',
+    'stewardship_icon',
+    'intrigue_icon',
+    'learning_icon',
+    'opinion_icon',
+    'hook_icon',
+    'weak_hook_icon',
+    'strong_hook_icon',
+    'lover_icon',
+    'friend_icon',
+    'rival_icon',
+    'knight_icon',
+    'levy_icon',
+    'men_at_arms_icon',
+    'army_icon',
+    'siege_icon',
+    'councillor_icon',
+    'council_icon',
+    'chancellor_icon',
+    'steward_icon',
+    'marshal_icon',
+    'spymaster_icon',
+    'court_chaplain_icon',
+    'title_icon',
+    'titles_icon',
+    'county_icon',
+    'duchy_icon',
+    'kingdom_icon',
+    'empire_icon',
+    'barony_icon',
+    'warning_icon',
+    'death_icon',
+    'alert_icon',
+    'yes_icon',
+    'no_icon',
+    'info_icon',
+    'faith_icon',
+    'religion_icon',
+    'culture_icon',
+    'innovation_icon',
+    'tradition_icon',
+    'building_icon',
+    'holding_icon',
+    'fort_level_icon',
+    'scheme_icon',
+    'murder_icon',
+    'seduce_icon',
+    'trait_icon',
+    'genetic_icon',
+    'personality_icon',
+    'prison_icon',
+    'control_icon',
+    'age_icon',
+    'health_icon',
+    'fertility_icon',
 ]);
 
 /** Valid scope names that can precede a character function */
 const LOCALIZATION_SCOPES = new Set([
-    'CHARACTER', 'ROOT', 'PREV', 'TARGET', 'TARGET_CHARACTER',
-    'actor', 'recipient', 'liege', 'spouse', 'father', 'mother',
-    'killer', 'imprisoner', 'guardian',
-    'TITLE', 'title', 'faith', 'culture', 'GetPlayer',
+    'CHARACTER',
+    'ROOT',
+    'PREV',
+    'TARGET',
+    'TARGET_CHARACTER',
+    'actor',
+    'recipient',
+    'liege',
+    'spouse',
+    'father',
+    'mother',
+    'killer',
+    'imprisoner',
+    'guardian',
+    'TITLE',
+    'title',
+    'faith',
+    'culture',
+    'GetPlayer',
 ]);
 
 /** Valid format specifiers for variable substitutions ($VAR|spec$) */
-const VALID_FORMAT_SPECIFIERS = new Set([
-    '+', '-', 'V0', 'V1', 'V2', 'U', 'L', '0', '1', '2',
-]);
+const VALID_FORMAT_SPECIFIERS = new Set(['+', '-', 'V0', 'V1', 'V2', 'U', 'L', '0', '1', '2']);
 
 // ---------------------------------------------------------------------------
 // Extraction regexes (compiled once)
@@ -163,9 +283,11 @@ const RE_CONCEPT_LINK = /\[(\w+)\|(\w+)\]/g;
  */
 export function validateLocalizationContent(
     entry: LocalizationEntry,
-    config: LocalizationValidationConfig,
+    config: LocalizationValidationConfig
 ): Diagnostic[] {
-    if (!config.enabled) return [];
+    if (!config.enabled) {
+        return [];
+    }
 
     const diagnostics: Diagnostic[] = [];
     const text = entry.text;
@@ -207,13 +329,15 @@ export function validateLocalizationContent(
  */
 export function validateLocalizationEntries(
     entries: LocalizationEntry[],
-    config: LocalizationValidationConfig,
+    config: LocalizationValidationConfig
 ): Map<string, Diagnostic[]> {
     const result = new Map<string, Diagnostic[]>();
 
     for (const entry of entries) {
         const diags = validateLocalizationContent(entry, config);
-        if (diags.length === 0) continue;
+        if (diags.length === 0) {
+            continue;
+        }
 
         const uri = entry.fileUri;
         const existing = result.get(uri) ?? [];
@@ -231,13 +355,21 @@ export function validateLocalizationEntries(
 function validateBrackets(text: string, line: number, out: Diagnostic[]): void {
     let depth = 0;
     for (const ch of text) {
-        if (ch === '[') depth++;
-        else if (ch === ']') depth--;
+        if (ch === '[') {
+            depth++;
+        } else if (ch === ']') {
+            depth--;
+        }
     }
     if (depth !== 0) {
-        out.push(makeDiag(line, DiagnosticSeverity.Warning,
-            `Unbalanced brackets in localization text (depth ${depth})`,
-            'LOC-005'));
+        out.push(
+            makeDiag(
+                line,
+                DiagnosticSeverity.Warning,
+                `Unbalanced brackets in localization text (depth ${depth})`,
+                'LOC-005'
+            )
+        );
     }
 }
 
@@ -250,9 +382,14 @@ function validateCharacterFunctions(text: string, line: number, out: Diagnostic[
 
         // Validate function name
         if (!CHARACTER_FUNCTIONS.has(funcName)) {
-            out.push(makeDiag(line, DiagnosticSeverity.Warning,
-                `Unknown character function '${funcName}' in localization`,
-                'LOC-002'));
+            out.push(
+                makeDiag(
+                    line,
+                    DiagnosticSeverity.Warning,
+                    `Unknown character function '${funcName}' in localization`,
+                    'LOC-002'
+                )
+            );
             continue;
         }
 
@@ -261,9 +398,11 @@ function validateCharacterFunctions(text: string, line: number, out: Diagnostic[
     }
 }
 
-function validateScopeChainRoot(chain: string, line: number, out: Diagnostic[]): void {
+function validateScopeChainRoot(chain: string, _line: number, _out: Diagnostic[]): void {
     // scope:variable_name format
-    if (chain.startsWith('scope:')) return; // dynamic scopes are always accepted
+    if (chain.startsWith('scope:')) {
+        return;
+    } // dynamic scopes are always accepted
 
     // Extract the root of the chain (e.g. "ROOT" from "ROOT.liege.spouse")
     const root = chain.split('.')[0];
@@ -279,9 +418,14 @@ function validateFormattingCodes(text: string, line: number, out: Diagnostic[]):
     while ((match = RE_FORMAT_CODE.exec(text)) !== null) {
         const code = match[0];
         if (!TEXT_FORMATTING_CODES.has(code)) {
-            out.push(makeDiag(line, DiagnosticSeverity.Information,
-                `Unknown text formatting code '${code}' in localization`,
-                'LOC-003'));
+            out.push(
+                makeDiag(
+                    line,
+                    DiagnosticSeverity.Information,
+                    `Unknown text formatting code '${code}' in localization`,
+                    'LOC-003'
+                )
+            );
         }
     }
 }
@@ -293,16 +437,20 @@ function validateIconReferences(text: string, line: number, out: Diagnostic[]): 
         const iconName = match[1]; // without @ and !
 
         // Check built-in set first
-        if (BUILTIN_ICONS.has(iconName)) continue;
+        if (BUILTIN_ICONS.has(iconName)) {
+            continue;
+        }
 
         // Check DataLoader icons
-        if (isValidIcon(iconName)) continue;
+        if (isValidIcon(iconName)) {
+            continue;
+        }
 
         // Unknown icon — suggest similar
         const suggestions = suggestSimilarIcons(iconName, 3);
         let msg = `Unknown icon reference '@${iconName}!'`;
         if (suggestions.length > 0) {
-            msg += `. Did you mean: ${suggestions.map(s => `@${s}!`).join(', ')}?`;
+            msg += `. Did you mean: ${suggestions.map((s) => `@${s}!`).join(', ')}?`;
         }
         out.push(makeDiag(line, DiagnosticSeverity.Warning, msg, 'LOC-004'));
     }
@@ -317,16 +465,26 @@ function validateVariableSubstitutions(text: string, line: number, out: Diagnost
 
         // Variable name must match [A-Z_][A-Z0-9_]*
         if (!/^[A-Z_][A-Z0-9_]*$/.test(varName)) {
-            out.push(makeDiag(line, DiagnosticSeverity.Warning,
-                `Invalid variable name '${varName}' — must be UPPER_SNAKE_CASE`,
-                'LOC-007'));
+            out.push(
+                makeDiag(
+                    line,
+                    DiagnosticSeverity.Warning,
+                    `Invalid variable name '${varName}' — must be UPPER_SNAKE_CASE`,
+                    'LOC-007'
+                )
+            );
         }
 
         // Validate format specifier if present
         if (formatSpec !== undefined && !VALID_FORMAT_SPECIFIERS.has(formatSpec)) {
-            out.push(makeDiag(line, DiagnosticSeverity.Warning,
-                `Unknown variable format specifier '|${formatSpec}' for $${varName}$`,
-                'LOC-007'));
+            out.push(
+                makeDiag(
+                    line,
+                    DiagnosticSeverity.Warning,
+                    `Unknown variable format specifier '|${formatSpec}' for $${varName}$`,
+                    'LOC-007'
+                )
+            );
         }
     }
 }
@@ -386,7 +544,7 @@ function makeDiag(
     line: number,
     severity: DiagnosticSeverity,
     message: string,
-    code: string,
+    code: string
 ): Diagnostic {
     return {
         severity,

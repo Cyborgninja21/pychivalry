@@ -8,6 +8,7 @@ import * as os from 'os';
 import * as path from 'path';
 
 import { contextAt } from '../../src/check/context';
+import { diagnose, PluginContext } from '../../src/diagnostics';
 import { isLocalizationFile, LocalizationIndex } from '../../src/index/localization';
 import { pathToUri, Workspace } from '../../src/index/workspace';
 import { CK3Parser } from '../../src/syntax/parser';
@@ -153,5 +154,42 @@ describe('Host API: contextAt (the context tracker)', () => {
     it('a common/modifiers record body is a modifier block', () => {
         const c = at('common/modifiers/m.txt', ['my_modifier = {', '    ', '}'], 1, 4);
         assert.strictEqual(c.kind, 'modifier');
+    });
+});
+
+describe('Host API: diagnose options and plug-in context', () => {
+    const root = path.resolve('/virtual-ck3-mod');
+
+    it('gives plug-ins the text and URI and indexes under the given URI', () => {
+        const workspace = new Workspace(root);
+        const file = path.join(root, 'events', 'p.txt');
+        const text = 'p.1 = {\n\ttype = character_event\n}\n';
+        let seen: PluginContext | undefined;
+        const result = diagnose(workspace, file, {
+            text,
+            uri: 'file:///editor/spelling/p.txt',
+            plugins: [
+                (ctx) => {
+                    seen = ctx;
+                    return [
+                        {
+                            file: ctx.file,
+                            range: { start: { line: 0, character: 0 }, end: { line: 0, character: 3 } },
+                            severity: 'hint',
+                            code: 'TEST-1',
+                            message: 'from a plug-in',
+                            source: 'engine',
+                        },
+                    ];
+                },
+            ],
+        });
+        assert.ok(seen);
+        assert.strictEqual(seen.text, text);
+        assert.strictEqual(seen.uri, 'file:///editor/spelling/p.txt');
+        assert.strictEqual(seen.file, 'events/p.txt');
+        const mine = result.find((d) => d.code === 'TEST-1');
+        assert.strictEqual(mine?.source, 'plugin');
+        assert.deepStrictEqual(workspace.index.getIndexedUris(), ['file:///editor/spelling/p.txt']);
     });
 });

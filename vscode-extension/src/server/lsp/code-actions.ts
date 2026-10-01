@@ -1,12 +1,16 @@
 /**
  * Enhanced Code Actions Provider - Quick fixes, refactorings, and code generation
- * 
+ *
  * Features:
  * - Quick fixes for common validation errors
  * - Refactoring actions (extract, inline, rename)
  * - Code generation (templates, localization stubs)
  * - Auto-fix for style issues
  * - Source-level actions (organize, cleanup)
+ *
+ * Quick fixes are keyed by the diagnostic codes of the engine pipeline (catalogue ids
+ * from the spec package) and of the extension's plug-ins; effect/trigger detection for
+ * the extract refactorings uses the spec package's buckets (pychivalry-engine).
  */
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -21,9 +25,7 @@ import {
     WorkspaceEdit,
 } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { CK3Parser, ASTNode } from '../core/parser';
-import { SchemaLoader } from '../schema/loader';
-import { DocumentIndexer } from '../core/indexer';
+import { ASTNode, CK3Parser, defaultSpec, Spec } from 'pychivalry-engine';
 
 /**
  * Code action builder with fluent API
@@ -79,8 +81,7 @@ type QuickFixGenerator = (
  */
 interface CodeActionContext {
     parser: CK3Parser;
-    schemaLoader: SchemaLoader;
-    indexer: DocumentIndexer;
+    spec: Spec;
     ast: ASTNode | null;
 }
 
@@ -104,7 +105,7 @@ const TEMPLATES = {
 \t\t\${5:# Effects here}
 \t}
 }`,
-    
+
     decision: `\${1:decision_id} = {
 \tpicture = "\${2:gfx/interface/illustrations/decisions/decision_icon.dds}"
 \t
@@ -120,25 +121,25 @@ const TEMPLATES = {
 \t\t\${5:# Effects here}
 \t}
 }`,
-    
+
     option: `option = {
 \tname = \${1:option_key}
 \t\${2:# Effects here}
 }`,
-    
+
     scriptedEffect: `\${1:effect_name} = {
 \t\${2:# Effects here}
 }`,
-    
+
     scriptedTrigger: `\${1:trigger_name} = {
 \t\${2:# Triggers here}
 }`,
-    
+
     limitBlock: `limit = {
 \t\${1:# Conditions here}
 }
 \${0}`,
-    
+
     ifBlock: `if = {
 \tlimit = {
 \t\t\${1:# Conditions here}
@@ -152,16 +153,11 @@ const TEMPLATES = {
  */
 export class CodeActionsProvider {
     private quickFixRegistry: Map<string, QuickFixGenerator>;
-    private schemaLoader: SchemaLoader;
-    private indexer: DocumentIndexer;
 
     constructor(
         private parser: CK3Parser,
-        schemaLoader?: SchemaLoader,
-        indexer?: DocumentIndexer
+        private spec: Spec = defaultSpec()
     ) {
-        this.schemaLoader = schemaLoader || new SchemaLoader();
-        this.indexer = indexer || new DocumentIndexer();
         this.quickFixRegistry = this.buildQuickFixRegistry();
     }
 
@@ -177,8 +173,7 @@ export class CodeActionsProvider {
         const parsed = this.parser.parse(document.getText());
         const context: CodeActionContext = {
             parser: this.parser,
-            schemaLoader: this.schemaLoader,
-            indexer: this.indexer,
+            spec: this.spec,
             ast: parsed.ast,
         };
 
@@ -208,12 +203,13 @@ export class CodeActionsProvider {
      */
     private buildQuickFixRegistry(): Map<string, QuickFixGenerator> {
         return new Map([
-            ['SCOPE-003', this.fixInvalidScope.bind(this)],
-            ['SCOPE-004', this.fixUndefinedReference.bind(this)],
-            ['SCOPE-005', this.fixTypeMismatch.bind(this)],
+            ['unknown_effect_X', this.fixUndefinedReference.bind(this)],
+            ['unknown_trigger_X', this.fixUndefinedReference.bind(this)],
+            ['PYCH-R001', this.fixRetiredKeyword.bind(this)],
             ['LOC-001', this.fixMissingLocalization.bind(this)],
-            ['CONV-001', this.fixIndentation.bind(this)],
-            ['CONV-002', this.fixSpacing.bind(this)],
+            ['CK4100', this.fixMissingLocalization.bind(this)],
+            ['CK3303', this.fixIndentation.bind(this)],
+            ['CK3306', this.fixSpacing.bind(this)],
         ]);
     }
 
@@ -259,9 +255,7 @@ export class CodeActionsProvider {
                     .withDiagnostic(diagnostic)
                     .withEdit({
                         changes: {
-                            [document.uri]: [
-                                { range: diagnostic.range, newText: ' = yes' },
-                            ],
+                            [document.uri]: [{ range: diagnostic.range, newText: ' = yes' }],
                         },
                     })
                     .isPreferred()
@@ -276,9 +270,7 @@ export class CodeActionsProvider {
                     .withDiagnostic(diagnostic)
                     .withEdit({
                         changes: {
-                            [document.uri]: [
-                                { range: diagnostic.range, newText: 'yes' },
-                            ],
+                            [document.uri]: [{ range: diagnostic.range, newText: 'yes' }],
                         },
                     })
                     .build()
@@ -336,8 +328,18 @@ export class CodeActionsProvider {
         // Template generators (show at cursor position)
         if (this.isEmptyLineOrBlock(document, range.start)) {
             actions.push(
-                this.createTemplateAction('Generate Event Template', TEMPLATES.event, document, range),
-                this.createTemplateAction('Generate Decision Template', TEMPLATES.decision, document, range),
+                this.createTemplateAction(
+                    'Generate Event Template',
+                    TEMPLATES.event,
+                    document,
+                    range
+                ),
+                this.createTemplateAction(
+                    'Generate Decision Template',
+                    TEMPLATES.decision,
+                    document,
+                    range
+                ),
                 this.createTemplateAction('Add Event Option', TEMPLATES.option, document, range)
             );
         }
@@ -391,26 +393,33 @@ export class CodeActionsProvider {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     // ============================================================================
 
-    private fixInvalidScope(doc: TextDocument, diag: Diagnostic, _ctx: CodeActionContext): CodeAction[] {
-        const actions: CodeAction[] = [];
-        const validScopes = ['character', 'province', 'title', 'faith', 'culture'];
-        
-        for (const scope of validScopes) {
-            actions.push(
-                new CodeActionBuilder(`Change to '${scope}' scope`)
-                    .withKind(CodeActionKind.QuickFix)
-                    .withDiagnostic(diag)
-                    .withEdit({ changes: { [doc.uri]: [{ range: diag.range, newText: scope }] } })
-                    .build()
-            );
-        }
-        
-        return actions;
+    /** A keyword the engine retired (PYCH-R001): replace it with each listed replacement. */
+    private fixRetiredKeyword(
+        doc: TextDocument,
+        diag: Diagnostic,
+        ctx: CodeActionContext
+    ): CodeAction[] {
+        const name = doc.getText(diag.range);
+        const retired = ctx.spec.retired(name);
+        const replacement = retired?.replacement;
+        const list = Array.isArray(replacement) ? replacement : replacement ? [replacement] : [];
+        return list.map((r) =>
+            new CodeActionBuilder(`Replace '${name}' with '${r}'`)
+                .withKind(CodeActionKind.QuickFix)
+                .withDiagnostic(diag)
+                .withEdit({ changes: { [doc.uri]: [{ range: diag.range, newText: r }] } })
+                .isPreferred()
+                .build()
+        );
     }
 
-    private fixUndefinedReference(doc: TextDocument, diag: Diagnostic, _ctx: CodeActionContext): CodeAction[] {
+    private fixUndefinedReference(
+        doc: TextDocument,
+        diag: Diagnostic,
+        _ctx: CodeActionContext
+    ): CodeAction[] {
         const refName = doc.getText(diag.range);
-        
+
         return [
             new CodeActionBuilder(`Create definition for '${refName}'`)
                 .withKind(CodeActionKind.QuickFix)
@@ -424,27 +433,13 @@ export class CodeActionsProvider {
         ];
     }
 
-    private fixTypeMismatch(doc: TextDocument, diag: Diagnostic, _ctx: CodeActionContext): CodeAction[] {
-        const value = doc.getText(diag.range);
-        const actions: CodeAction[] = [];
-        
-        // Try converting to boolean
-        if (value.match(/^(true|false|yes|no)$/i)) {
-            actions.push(
-                new CodeActionBuilder('Convert to boolean')
-                    .withKind(CodeActionKind.QuickFix)
-                    .withDiagnostic(diag)
-                    .withEdit({ changes: { [doc.uri]: [{ range: diag.range, newText: 'yes' }] } })
-                    .build()
-            );
-        }
-        
-        return actions;
-    }
-
-    private fixMissingLocalization(doc: TextDocument, diag: Diagnostic, _ctx: CodeActionContext): CodeAction[] {
+    private fixMissingLocalization(
+        doc: TextDocument,
+        diag: Diagnostic,
+        _ctx: CodeActionContext
+    ): CodeAction[] {
         const key = doc.getText(diag.range);
-        
+
         return [
             new CodeActionBuilder(`Generate localization stub for '${key}'`)
                 .withKind(CodeActionKind.QuickFix)
@@ -458,26 +453,32 @@ export class CodeActionsProvider {
         ];
     }
 
-    private fixIndentation(doc: TextDocument, diag: Diagnostic, _ctx: CodeActionContext): CodeAction[] {
-        const line = doc.getText({ 
+    private fixIndentation(
+        doc: TextDocument,
+        diag: Diagnostic,
+        _ctx: CodeActionContext
+    ): CodeAction[] {
+        const line = doc.getText({
             start: { line: diag.range.start.line, character: 0 },
-            end: { line: diag.range.start.line, character: 100 }
+            end: { line: diag.range.start.line, character: 100 },
         });
         const fixed = line.replace(/^ +/, (spaces) => '\t'.repeat(Math.floor(spaces.length / 4)));
-        
+
         return [
             new CodeActionBuilder('Fix indentation (use tabs)')
                 .withKind(CodeActionKind.QuickFix)
                 .withDiagnostic(diag)
                 .withEdit({
                     changes: {
-                        [doc.uri]: [{
-                            range: {
-                                start: { line: diag.range.start.line, character: 0 },
-                                end: { line: diag.range.start.line, character: line.length }
+                        [doc.uri]: [
+                            {
+                                range: {
+                                    start: { line: diag.range.start.line, character: 0 },
+                                    end: { line: diag.range.start.line, character: line.length },
+                                },
+                                newText: fixed,
                             },
-                            newText: fixed,
-                        }],
+                        ],
                     },
                 })
                 .build(),
@@ -486,8 +487,11 @@ export class CodeActionsProvider {
 
     private fixSpacing(doc: TextDocument, diag: Diagnostic, _ctx: CodeActionContext): CodeAction[] {
         const text = doc.getText(diag.range);
-        const fixed = text.replace(/\s*=\s*/, ' = ').replace(/\s*{\s*/, ' { ').replace(/\s*}\s*/, ' }');
-        
+        const fixed = text
+            .replace(/\s*=\s*/, ' = ')
+            .replace(/\s*{\s*/, ' { ')
+            .replace(/\s*}\s*/, ' }');
+
         return [
             new CodeActionBuilder('Fix spacing')
                 .withKind(CodeActionKind.QuickFix)
@@ -501,20 +505,23 @@ export class CodeActionsProvider {
     // Helper Methods
     // ============================================================================
 
+    /** Keys of the selected text (`key =`, `key ?=`, `key {`). */
+    private selectedKeys(text: string): string[] {
+        return Array.from(text.matchAll(/(?:^|\s)([A-Za-z_][\w]*)\s*(?:\??=|\{)/g), (m) => m[1]);
+    }
+
     private isEffectBlock(text: string): boolean {
-        const effects = ['add_gold', 'add_prestige', 'add_piety', 'trigger_event', 'set_variable'];
-        return effects.some(effect => text.includes(effect));
+        return this.selectedKeys(text).some((k) => this.spec.has(k, 'effects'));
     }
 
     private isTriggerBlock(text: string): boolean {
-        const triggers = ['has_trait', 'is_alive', 'age', 'gold', 'prestige'];
-        return triggers.some(trigger => text.includes(trigger));
+        return this.selectedKeys(text).some((k) => this.spec.has(k, 'triggers'));
     }
 
     private isEmptyLineOrBlock(document: TextDocument, position: Position): boolean {
         const line = document.getText({
             start: { line: position.line, character: 0 },
-            end: { line: position.line, character: 1000 }
+            end: { line: position.line, character: 1000 },
         });
         return line.trim().length === 0;
     }
@@ -523,11 +530,11 @@ export class CodeActionsProvider {
         const keyPattern = /\b(\w+\.(?:\w+\.)*[a-z])\b/g;
         const keys: string[] = [];
         let match;
-        
+
         while ((match = keyPattern.exec(text)) !== null) {
             keys.push(match[1]);
         }
-        
+
         return [...new Set(keys)];
     }
 
@@ -555,16 +562,21 @@ export class CodeActionsProvider {
 
     private createWrapInLimitAction(document: TextDocument, range: Range): CodeAction {
         const selectedText = document.getText(range);
-        const indented = selectedText.split('\n').map(line => '\t' + line).join('\n');
-        
+        const indented = selectedText
+            .split('\n')
+            .map((line) => '\t' + line)
+            .join('\n');
+
         return new CodeActionBuilder('Wrap in limit block')
             .withKind(CodeActionKind.Refactor)
             .withEdit({
                 changes: {
-                    [document.uri]: [{
-                        range,
-                        newText: `limit = {\n${indented}\n}`,
-                    }],
+                    [document.uri]: [
+                        {
+                            range,
+                            newText: `limit = {\n${indented}\n}`,
+                        },
+                    ],
                 },
             })
             .build();
@@ -572,30 +584,42 @@ export class CodeActionsProvider {
 
     private createWrapInIfAction(document: TextDocument, range: Range): CodeAction {
         const selectedText = document.getText(range);
-        const indented = selectedText.split('\n').map(line => '\t' + line).join('\n');
-        
+        const indented = selectedText
+            .split('\n')
+            .map((line) => '\t' + line)
+            .join('\n');
+
         return new CodeActionBuilder('Wrap in if block')
             .withKind(CodeActionKind.Refactor)
             .withEdit({
                 changes: {
-                    [document.uri]: [{
-                        range,
-                        newText: `if = {\n\tlimit = {\n\t\t# Conditions\n\t}\n${indented}\n}`,
-                    }],
+                    [document.uri]: [
+                        {
+                            range,
+                            newText: `if = {\n\tlimit = {\n\t\t# Conditions\n\t}\n${indented}\n}`,
+                        },
+                    ],
                 },
             })
             .build();
     }
 
-    private createTemplateAction(title: string, template: string, document: TextDocument, range: Range): CodeAction {
+    private createTemplateAction(
+        title: string,
+        template: string,
+        document: TextDocument,
+        range: Range
+    ): CodeAction {
         return new CodeActionBuilder(title)
             .withKind(CodeActionKind.Source)
             .withEdit({
                 changes: {
-                    [document.uri]: [{
-                        range: { start: range.start, end: range.start },
-                        newText: template + '\n',
-                    }],
+                    [document.uri]: [
+                        {
+                            range: { start: range.start, end: range.start },
+                            newText: template + '\n',
+                        },
+                    ],
                 },
             })
             .build();

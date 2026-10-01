@@ -10,14 +10,20 @@
  *     SWITCH-001: switch block missing 'trigger' field
  *     SWITCH-002: switch block has no branch values
  *     SWITCH-003: unknown trigger reference in switch
+ *
+ * Kept as an engine plug-in: the engine reads `switch` as a container (its `trigger`
+ * parameter and case blocks) but does not check that the header names a trigger or that
+ * a case exists. SWITCH-003 judges the header against the spec package's triggers bucket
+ * (and the workspace's scripted triggers, passed in by the plug-in).
  */
 
 import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver/node';
-import { ASTNode } from '../../core/parser';
-import { getDataLoader } from '../../data/loader';
+import { ASTNode } from 'pychivalry-engine';
 
 export interface SwitchValidationConfig {
     enabled: boolean;
+    /** Is `name` a trigger (engine bucket or a scripted trigger)? Unchecked when absent. */
+    isTrigger?: (name: string) => boolean;
 }
 
 export const DEFAULT_SWITCH_CONFIG: SwitchValidationConfig = {
@@ -27,14 +33,13 @@ export const DEFAULT_SWITCH_CONFIG: SwitchValidationConfig = {
 /**
  * Validate switch statements in the given AST.
  */
-export function validateSwitch(
-    node: ASTNode,
-    config: SwitchValidationConfig
-): Diagnostic[] {
-    if (!config.enabled) return [];
+export function validateSwitch(node: ASTNode, config: SwitchValidationConfig): Diagnostic[] {
+    if (!config.enabled) {
+        return [];
+    }
 
     const diagnostics: Diagnostic[] = [];
-    walkForSwitch(node, diagnostics);
+    walkForSwitch(node, diagnostics, config);
     return diagnostics;
 }
 
@@ -43,32 +48,40 @@ const SWITCH_STRUCTURAL_KEYS = new Set(['trigger', 'fallback']);
 
 function walkForSwitch(
     node: ASTNode,
-    diagnostics: Diagnostic[]
+    diagnostics: Diagnostic[],
+    config: SwitchValidationConfig
 ): void {
-    if (!node.children) return;
+    if (!node.children) {
+        return;
+    }
 
     for (const child of node.children) {
         if (child.key === 'switch' && child.children) {
-            validateSwitchBlock(child, diagnostics);
+            validateSwitchBlock(child, diagnostics, config);
         }
 
         // Recurse
-        walkForSwitch(child, diagnostics);
+        walkForSwitch(child, diagnostics, config);
     }
 }
 
 function validateSwitchBlock(
     node: ASTNode,
-    diagnostics: Diagnostic[]
+    diagnostics: Diagnostic[],
+    config: SwitchValidationConfig
 ): void {
-    if (!node.children) return;
+    if (!node.children) {
+        return;
+    }
 
     let hasTrigger = false;
     let triggerValue: string | undefined;
     let branchCount = 0;
 
     for (const child of node.children) {
-        if (!child.key) continue;
+        if (!child.key) {
+            continue;
+        }
 
         if (child.key === 'trigger') {
             hasTrigger = true;
@@ -101,10 +114,8 @@ function validateSwitchBlock(
     }
 
     // Validate trigger reference exists
-    if (triggerValue) {
-        const dataLoader = getDataLoader();
-        const triggers = dataLoader.getTriggers();
-        if (triggers.size > 0 && !triggers.has(triggerValue)) {
+    if (triggerValue && config.isTrigger) {
+        if (!config.isTrigger(triggerValue)) {
             diagnostics.push({
                 severity: DiagnosticSeverity.Warning,
                 range: node.range,

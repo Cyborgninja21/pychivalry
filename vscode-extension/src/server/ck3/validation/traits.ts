@@ -1,22 +1,23 @@
 /**
  * Traits Validation Module
- * 
+ *
  * Validates trait references and definitions:
  * - Trait existence
  * - Trait compatibility
  * - Trait opposites
  * - Trait requirements
- * 
+ *
  * Diagnostic Codes:
  * - CK3800: Unknown trait reference
- * - CK3801: Incompatible traits
- * - CK3802: Trait already defined
- * - CK3803: Missing trait opposite
- * - CK3804: Invalid trait group
+ *
+ * Kept as an engine plug-in only while trait data is present: traits are game content,
+ * not engine vocabulary, so the known set is the optional user-extracted data/traits/
+ * plus the workspace's own trait definitions (the plug-in supplies both). Without that
+ * data the check does not run. CK3801-CK3804 were documented but never emitted.
  */
 
 import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver';
-import { ASTNode } from '../../core/parser';
+import { ASTNode } from 'pychivalry-engine';
 
 export interface TraitInfo {
     name: string;
@@ -37,10 +38,7 @@ export interface TraitsConfig {
 /**
  * Validate trait references in document
  */
-export function validateTraits(
-    node: ASTNode,
-    config: TraitsConfig
-): Diagnostic[] {
+export function validateTraits(node: ASTNode, config: TraitsConfig): Diagnostic[] {
     if (!config.enabled) {
         return [];
     }
@@ -63,17 +61,17 @@ export function validateTraits(
  */
 function collectTraitReferences(node: ASTNode): ASTNode[] {
     const refs: ASTNode[] = [];
-    
+
     function traverse(n: ASTNode): void {
         if (n.key === 'trait' || n.key === 'add_trait' || n.key === 'remove_trait') {
             refs.push(n);
         }
-        
+
         if (n.children) {
             n.children.forEach((child: ASTNode) => traverse(child));
         }
     }
-    
+
     traverse(node);
     return refs;
 }
@@ -81,24 +79,23 @@ function collectTraitReferences(node: ASTNode): ASTNode[] {
 /**
  * Check if trait exists
  */
-function checkTraitExists(
-    node: ASTNode,
-    knownTraits?: Set<string>
-): Diagnostic[] {
+function checkTraitExists(node: ASTNode, knownTraits?: Set<string>): Diagnostic[] {
     if (!knownTraits || !node.value) {
         return [];
     }
 
     const traitName = String(node.value);
-    
+
     if (!knownTraits.has(traitName)) {
-        return [{
-            severity: DiagnosticSeverity.Warning,
-            range: node.range,
-            message: `Unknown trait: "${traitName}"`,
-            code: 'CK3800',
-            source: 'ck3-lsp'
-        }];
+        return [
+            {
+                severity: DiagnosticSeverity.Warning,
+                range: node.range,
+                message: `Unknown trait: "${traitName}"`,
+                code: 'CK3800',
+                source: 'ck3-lsp',
+            },
+        ];
     }
 
     return [];
@@ -109,11 +106,11 @@ function checkTraitExists(
  */
 export function getTraitDiagnosticDescription(code: string): string {
     const descriptions: Record<string, string> = {
-        'CK3800': 'Unknown trait reference. The trait is not defined in trait files.',
-        'CK3801': 'Incompatible traits. These traits cannot exist together.',
-        'CK3802': 'Trait already defined. Duplicate trait definition.',
-        'CK3803': 'Missing trait opposite. Define opposite trait relationship.',
-        'CK3804': 'Invalid trait group. The trait group does not exist.'
+        CK3800: 'Unknown trait reference. The trait is not defined in trait files.',
+        CK3801: 'Incompatible traits. These traits cannot exist together.',
+        CK3802: 'Trait already defined. Duplicate trait definition.',
+        CK3803: 'Missing trait opposite. Define opposite trait relationship.',
+        CK3804: 'Invalid trait group. The trait group does not exist.',
     };
 
     return descriptions[code] || 'Trait validation error';

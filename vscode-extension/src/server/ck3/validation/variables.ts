@@ -1,12 +1,12 @@
 /**
  * Variables Validation Module
- * 
+ *
  * Validates variable usage in CK3 scripts:
  * - Variable declarations (set_variable, set_local_variable, etc.)
  * - Variable references
  * - Variable scope validity
  * - Variable type consistency
- * 
+ *
  * Diagnostic Codes:
  * - CK3700: Variable used before declaration
  * - CK3701: Variable never declared but used
@@ -18,7 +18,7 @@
  */
 
 import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver';
-import { ASTNode } from '../../core/parser';
+import { ASTNode } from 'pychivalry-engine';
 
 export interface VariableInfo {
     name: string;
@@ -26,7 +26,7 @@ export interface VariableInfo {
     declarationNode: ASTNode;
     usageNodes: ASTNode[];
     type?: 'flag' | 'value' | 'list';
-    value?: any;
+    value?: unknown;
 }
 
 export interface VariablesConfig {
@@ -53,7 +53,7 @@ const VARIABLE_DECLARATIONS = [
     'add_to_variable',
     'subtract_from_variable',
     'multiply_variable',
-    'divide_variable'
+    'divide_variable',
 ];
 
 /**
@@ -64,16 +64,13 @@ const VARIABLE_CHECKS = [
     'has_local_variable',
     'has_global_variable',
     'variable_value',
-    'check_variable'
+    'check_variable',
 ];
 
 /**
  * Validate variables in a document
  */
-export function validateVariables(
-    node: ASTNode,
-    config: VariablesConfig
-): Diagnostic[] {
+export function validateVariables(node: ASTNode, config: VariablesConfig): Diagnostic[] {
     if (!config.enabled) {
         return [];
     }
@@ -121,7 +118,7 @@ function collectVariableInfo(node: ASTNode): Map<string, VariableInfo> {
                         scope: currentScope,
                         declarationNode: n,
                         usageNodes: [],
-                        type: inferVariableType(n)
+                        type: inferVariableType(n),
                     });
                 }
             }
@@ -138,7 +135,7 @@ function collectVariableInfo(node: ASTNode): Map<string, VariableInfo> {
                         scope: currentScope,
                         declarationNode: n, // First usage
                         usageNodes: [n],
-                        type: 'value'
+                        type: 'value',
                     });
                 } else {
                     variables.get(varName)!.usageNodes.push(n);
@@ -208,22 +205,20 @@ function inferVariableType(node: ASTNode): 'flag' | 'value' | 'list' {
 /**
  * Check for undeclared variables
  */
-function checkUndeclaredVariables(
-    variables: Map<string, VariableInfo>
-): Diagnostic[] {
+function checkUndeclaredVariables(variables: Map<string, VariableInfo>): Diagnostic[] {
     const diagnostics: Diagnostic[] = [];
 
     for (const [name, info] of variables) {
         // Variable used but never declared with set_variable
         const isDeclared = VARIABLE_DECLARATIONS.includes(info.declarationNode.key || '');
-        
+
         if (!isDeclared && info.usageNodes.length > 0) {
             diagnostics.push({
                 severity: DiagnosticSeverity.Warning,
                 range: info.usageNodes[0].range,
                 message: `Variable "${name}" used but never declared`,
                 code: 'CK3701',
-                source: 'ck3-lsp'
+                source: 'ck3-lsp',
             });
         }
     }
@@ -234,21 +229,19 @@ function checkUndeclaredVariables(
 /**
  * Check for unused variables
  */
-function checkUnusedVariables(
-    variables: Map<string, VariableInfo>
-): Diagnostic[] {
+function checkUnusedVariables(variables: Map<string, VariableInfo>): Diagnostic[] {
     const diagnostics: Diagnostic[] = [];
 
     for (const [name, info] of variables) {
         const isDeclared = VARIABLE_DECLARATIONS.includes(info.declarationNode.key || '');
-        
+
         if (isDeclared && info.usageNodes.length === 0) {
             diagnostics.push({
                 severity: DiagnosticSeverity.Hint,
                 range: info.declarationNode.range,
                 message: `Variable "${name}" declared but never used`,
                 code: 'CK3702',
-                source: 'ck3-lsp'
+                source: 'ck3-lsp',
             });
         }
     }
@@ -280,7 +273,7 @@ function checkVariableScopes(
                     range: usage.range,
                     message: `Variable "${name}" is local but accessed as global`,
                     code: 'CK3703',
-                    source: 'ck3-lsp'
+                    source: 'ck3-lsp',
                 });
             } else if (isGlobal && usageIsLocal) {
                 diagnostics.push({
@@ -288,7 +281,7 @@ function checkVariableScopes(
                     range: usage.range,
                     message: `Variable "${name}" is global but accessed as local`,
                     code: 'CK3703',
-                    source: 'ck3-lsp'
+                    source: 'ck3-lsp',
                 });
             }
         }
@@ -300,18 +293,16 @@ function checkVariableScopes(
 /**
  * Check variable type consistency
  */
-function checkVariableTypes(
-    variables: Map<string, VariableInfo>
-): Diagnostic[] {
+function checkVariableTypes(variables: Map<string, VariableInfo>): Diagnostic[] {
     const diagnostics: Diagnostic[] = [];
 
     for (const [name, info] of variables) {
         // Check if variable is used as different types
-        const usedAsList = info.usageNodes.some(n => 
-            n.key === 'any_in_list' || n.key === 'ordered_in_list'
+        const usedAsList = info.usageNodes.some(
+            (n) => n.key === 'any_in_list' || n.key === 'ordered_in_list'
         );
-        const usedAsValue = info.usageNodes.some(n => 
-            n.key === 'variable_value' || n.key?.includes('compare')
+        const usedAsValue = info.usageNodes.some(
+            (n) => n.key === 'variable_value' || n.key?.includes('compare')
         );
 
         if (usedAsList && usedAsValue) {
@@ -320,7 +311,7 @@ function checkVariableTypes(
                 range: info.declarationNode.range,
                 message: `Variable "${name}" used as both list and value`,
                 code: 'CK3705',
-                source: 'ck3-lsp'
+                source: 'ck3-lsp',
             });
         }
     }
@@ -341,7 +332,7 @@ export function isValidVariableName(name: string): boolean {
 /**
  * Validate variable value range
  */
-export function isValidVariableValue(value: any, type: 'flag' | 'value' | 'list'): boolean {
+export function isValidVariableValue(value: unknown, type: 'flag' | 'value' | 'list'): boolean {
     if (type === 'flag') {
         // Flags are boolean
         return typeof value === 'boolean';
@@ -360,13 +351,13 @@ export function isValidVariableValue(value: any, type: 'flag' | 'value' | 'list'
  */
 export function getVariableDiagnosticDescription(code: string): string {
     const descriptions: Record<string, string> = {
-        'CK3700': 'Variable used before declaration. Declare the variable with set_variable first.',
-        'CK3701': 'Variable never declared but used. Use set_variable to create the variable.',
-        'CK3702': 'Variable declared but never used. Consider removing this unused variable.',
-        'CK3703': 'Variable scope mismatch. Local and global variables cannot be mixed.',
-        'CK3704': 'Invalid variable name. Use alphanumeric characters and underscores only.',
-        'CK3705': 'Variable type mismatch. A variable is used as both a list and a value.',
-        'CK3706': 'Variable value out of range. Check the value constraints.'
+        CK3700: 'Variable used before declaration. Declare the variable with set_variable first.',
+        CK3701: 'Variable never declared but used. Use set_variable to create the variable.',
+        CK3702: 'Variable declared but never used. Consider removing this unused variable.',
+        CK3703: 'Variable scope mismatch. Local and global variables cannot be mixed.',
+        CK3704: 'Invalid variable name. Use alphanumeric characters and underscores only.',
+        CK3705: 'Variable type mismatch. A variable is used as both a list and a value.',
+        CK3706: 'Variable value out of range. Check the value constraints.',
     };
 
     return descriptions[code] || 'Variable validation error';
@@ -383,7 +374,7 @@ export function suggestVariableName(name: string): string[] {
         .replace(/([A-Z])/g, '_$1')
         .toLowerCase()
         .replace(/^_/, '');
-    
+
     if (snakeCase !== name) {
         suggestions.push(snakeCase);
     }
