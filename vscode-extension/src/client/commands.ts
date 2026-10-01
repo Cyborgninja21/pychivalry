@@ -28,6 +28,11 @@ interface NamespaceEvent {
 
 const NOT_RUNNING = 'CK3 Language Server is not running';
 
+/** Show an information message without waiting for it to be dismissed. */
+function notify(message: string): void {
+    void vscode.window.showInformationMessage(message);
+}
+
 const DEPRECATED_EXTRACTION =
     'This command has been replaced by the built-in TypeScript language server. Game data is bundled with the extension.';
 
@@ -59,16 +64,18 @@ export function registerCommands(context: vscode.ExtensionContext, host: Command
     const commands: Record<string, (...args: never[]) => unknown> = {
         restart: () => host.restart(),
 
-        // Data extraction is no longer run from the extension
-        extractTraitData: () => vscode.window.showInformationMessage(DEPRECATED_EXTRACTION),
-        extractAllGameData: () => vscode.window.showInformationMessage(DEPRECATED_EXTRACTION),
-        extractLocalizationData: () => vscode.window.showInformationMessage(DEPRECATED_EXTRACTION),
-        discoverModData: () => vscode.window.showInformationMessage(DEPRECATED_EXTRACTION),
+        // Data extraction is no longer run from the extension. The notification is not
+        // awaited (the command returns at once, as before Phase 4).
+        extractTraitData: () => notify(DEPRECATED_EXTRACTION),
+        extractAllGameData: () => notify(DEPRECATED_EXTRACTION),
+        extractLocalizationData: () => notify(DEPRECATED_EXTRACTION),
+        discoverModData: () => notify(DEPRECATED_EXTRACTION),
 
         showMenu: () => showMenu(),
         showOutput: () => showOutput(),
-        openDocumentation: () =>
-            vscode.env.openExternal(vscode.Uri.parse('https://ck3.paradoxwikis.com/Modding')),
+        openDocumentation: () => {
+            void vscode.env.openExternal(vscode.Uri.parse('https://ck3.paradoxwikis.com/Modding'));
+        },
 
         validateWorkspace: async () => {
             const result = await server('ck3.validateWorkspace', 'Validation failed');
