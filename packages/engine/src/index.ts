@@ -23,6 +23,8 @@ export {
     uriToPath,
 } from './index/workspace';
 export type { ModDescriptor, WorkspaceFolder, WorkspaceOptions } from './index/workspace';
+export { LocalizationIndex, isLocalizationFile } from './index/localization';
+export type { LocalizationEntry } from './index/localization';
 
 export { checkRegistry } from './check/registry';
 export { checkSchema } from './check/schema';

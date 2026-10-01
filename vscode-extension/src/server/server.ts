@@ -49,7 +49,11 @@ import { DataLoader } from './data/loader';
 import { ModScanner } from './data/mod-scanner';
 import { CK3Language } from './ck3/language';
 import { serverLogger } from './utils/logger';
-import { IncrementalParser as EngineParser } from 'pychivalry-engine';
+import {
+    IncrementalParser as EngineParser,
+    LocalizationIndex as EngineLocalizationIndex,
+    Workspace as EngineWorkspace,
+} from 'pychivalry-engine';
 import { bundledSpec } from './engine-host';
 
 // Log watcher + analyzer
@@ -118,6 +122,13 @@ export class CK3LanguageServer {
     private parser: CK3Parser;
     /** The engine's parser (pychivalry-engine), used by the providers already migrated. */
     private syntaxParser: EngineParser;
+    /**
+     * The engine workspace (spec + index). Until the old core modules are retired (4.4) the
+     * server indexes every document into both this index and the old EnhancedIndexer.
+     */
+    private engineWorkspace: EngineWorkspace;
+    /** Engine localization index for the migrated providers (the old one is retired in 4.4). */
+    private engineLocalization: EngineLocalizationIndex;
     private indexer: EnhancedIndexer;
     private workspaceManager: WorkspaceManager;
     private enhancedWorkspace: EnhancedWorkspaceManager;
@@ -196,6 +207,8 @@ export class CK3LanguageServer {
         // Initialize core components
         this.parser = new IncrementalParser();
         this.syntaxParser = new EngineParser(5, { spec: bundledSpec() });
+        this.engineWorkspace = new EngineWorkspace(undefined, { spec: bundledSpec() });
+        this.engineLocalization = new EngineLocalizationIndex();
         this.indexer = new EnhancedIndexer();
         this.workspaceManager = new WorkspaceManager();
         this.enhancedWorkspace = new EnhancedWorkspaceManager();
@@ -213,8 +226,17 @@ export class CK3LanguageServer {
         // Initialize LSP providers
         this.completionProvider = new CompletionProvider(this.parser, this.indexer, this.schemaLoader, this.modScanner);
         this.hoverProvider = new HoverProvider(this.parser, this.schemaLoader, this.indexer, this.localizationIndex, this.modScanner);
-        this.definitionProvider = new DefinitionProvider(this.parser, this.indexer, this.localizationIndex);
-        this.symbolProvider = new DocumentSymbolProvider(this.parser, this.indexer);
+        this.definitionProvider = new DefinitionProvider(
+            this.syntaxParser,
+            this.engineWorkspace.index,
+            this.engineLocalization,
+            bundledSpec()
+        );
+        this.symbolProvider = new DocumentSymbolProvider(
+            this.syntaxParser,
+            this.engineWorkspace.index,
+            bundledSpec()
+        );
         this.diagnosticsProvider = new DiagnosticsProvider(
             this.parser, this.schemaLoader, this.indexer, [],
             () => this.enhancedWorkspace.getKnownAssets(),
@@ -222,11 +244,11 @@ export class CK3LanguageServer {
         );
         this.formattingProvider = new FormattingProvider(this.syntaxParser);
         this.foldingProvider = new FoldingRangeProvider(this.syntaxParser);
-        this.renameProvider = new RenameProvider(this.parser, this.indexer);
+        this.renameProvider = new RenameProvider(this.syntaxParser, this.engineWorkspace.index);
         this.semanticTokensProvider = new SemanticTokensProvider(this.parser);
         this.codeActionsProvider = new CodeActionsProvider(this.parser);
         this.codeLensProvider = new CodeLensProvider(this.parser, this.indexer, this.localizationIndex);
-        this.documentLinksProvider = new DocumentLinksProvider(this.parser, this.indexer);
+        this.documentLinksProvider = new DocumentLinksProvider(this.syntaxParser, this.engineWorkspace.index);
         this.documentHighlightProvider = new DocumentHighlightProvider(this.syntaxParser);
         this.inlayHintsProvider = new InlayHintsProvider(this.parser);
         this.signatureHelpProvider = new SignatureHelpProvider(this.parser);
@@ -453,6 +475,7 @@ export class CK3LanguageServer {
                 });
                 await this.workspaceManager.addWorkspaceFolder(folder);
                 await this.enhancedWorkspace.addWorkspaceFolder(folder);
+                await this.engineWorkspace.addWorkspaceFolder(folder);
             }
 
             // Scan localization files
@@ -460,6 +483,7 @@ export class CK3LanguageServer {
                 const folderPath = fileUriToPath(folder.uri);
                 const locPath = path.join(folderPath, 'localization');
                 const count = await this.localizationIndex.scanDirectory(locPath);
+                await this.engineLocalization.scanDirectory(locPath);
                 if (count > 0) {
                     this.connection.sendNotification('ck3/indexLog', {
                         message: `Indexed ${count} localization keys`
@@ -514,6 +538,7 @@ export class CK3LanguageServer {
         // Clear indexer data for all open documents
         for (const document of this.documents.all()) {
             this.indexer.removeDocument(document.uri);
+            this.engineWorkspace.index.removeDocument(document.uri);
         }
 
         // Clear document diagnostics for all open documents
@@ -556,6 +581,11 @@ export class CK3LanguageServer {
         return parsed;
     }
 
+    /** Index a document into the engine workspace's index. */
+    private indexIntoEngine(uri: string, text: string): void {
+        this.engineWorkspace.index.indexSync(uri, this.syntaxParser.parse(text).ast);
+    }
+
     /**
      * Document opened event
      */
@@ -568,6 +598,7 @@ export class CK3LanguageServer {
 
         // Index document with enhanced tracking (event metadata, references, loc keys)
         await this.indexer.indexDocumentEnhanced(document.uri, parsed.ast);
+        this.indexIntoEngine(document.uri, document.getText());
 
         // Validate and send diagnostics
         await this.validateDocument(document);
@@ -582,6 +613,7 @@ export class CK3LanguageServer {
         // Parse and index immediately (needed for completions/hover)
         const parsed = this.getParsed(document);
         await this.indexer.indexDocumentEnhanced(document.uri, parsed.ast);
+        this.indexIntoEngine(document.uri, document.getText());
 
         // Debounce validation to avoid firing on every keystroke
         const existing = this.validationTimers.get(document.uri);
@@ -618,6 +650,7 @@ export class CK3LanguageServer {
 
         // Remove from index
         this.indexer.removeDocument(document.uri);
+        this.engineWorkspace.index.removeDocument(document.uri);
 
         // Clear diagnostics
         this.connection.sendDiagnostics({ uri: document.uri, diagnostics: [] });
@@ -1301,6 +1334,7 @@ export class CK3LanguageServer {
                         const uri = pathToFileUri(file);
                         const parsed = this.parser.parse(content);
                         await this.indexer.indexDocumentEnhanced(uri, parsed.ast);
+                        this.indexIntoEngine(uri, content);
                         return uri;
                     })
                 );
@@ -1326,6 +1360,7 @@ export class CK3LanguageServer {
             const folderPath = fileUriToPath(folder.uri);
             const locPath = path.join(folderPath, 'localization');
             const count = await this.localizationIndex.scanDirectory(locPath);
+            await this.engineLocalization.scanDirectory(locPath);
             if (count > 0) {
                 this.connection.sendNotification('ck3/indexLog', {
                     message: `Indexed ${count} localization keys`

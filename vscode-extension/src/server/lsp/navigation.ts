@@ -3,12 +3,18 @@
  * Supports go-to-definition, find-references, type definitions, and implementations
  */
 
-import { Location, Position, LocationLink } from 'vscode-languageserver/node';
+import { Location, Position, LocationLink, Range } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { CK3Parser, ASTNode, NodeType } from '../core/parser';
-import { DocumentIndexer, Symbol, SymbolType } from '../core/indexer';
-import { CK3Language } from '../ck3/language';
-import { LocalizationIndex } from '../core/localization-index';
+import {
+    ASTNode,
+    CK3Parser,
+    defaultSpec,
+    DocumentIndexer,
+    LocalizationIndex,
+    Spec,
+    IndexSymbol,
+    SymbolType,
+} from 'pychivalry-engine';
 
 interface TokenInfo {
     text: string;
@@ -34,7 +40,7 @@ enum NavigationContext {
     SCRIPTED_GUI,
     DECISION_GROUP_TYPE,
     TRAIT,
-    UNKNOWN
+    UNKNOWN,
 }
 
 /**
@@ -44,8 +50,9 @@ export class DefinitionProvider {
     constructor(
         private ck3Parser: CK3Parser,
         private symbolIndexer: DocumentIndexer,
-        private localizationIndex?: LocalizationIndex
-    ) { }
+        private localizationIndex?: LocalizationIndex,
+        private spec: Spec = defaultSpec()
+    ) {}
 
     /**
      * Navigate to definition (supports LocationLink for preview)
@@ -55,17 +62,21 @@ export class DefinitionProvider {
         pos: Position
     ): Promise<Location[] | LocationLink[] | null> {
         const tokenInfo = this.extractTokenAtCursor(doc, pos);
-        if (!tokenInfo) return null;
+        if (!tokenInfo) {
+            return null;
+        }
 
         const targetLocations = await this.resolveDefinitionTargets(tokenInfo, doc.uri);
 
-        if (targetLocations.length === 0) return null;
+        if (targetLocations.length === 0) {
+            return null;
+        }
 
         // Return as LocationLink for better UX with preview
-        return targetLocations.map(target =>
+        return targetLocations.map((target) =>
             LocationLink.create(target.uri, target.range, target.range, {
                 start: doc.positionAt(tokenInfo.startOffset),
-                end: doc.positionAt(tokenInfo.endOffset)
+                end: doc.positionAt(tokenInfo.endOffset),
             })
         );
     }
@@ -79,11 +90,15 @@ export class DefinitionProvider {
         includeDecl: boolean
     ): Promise<Location[]> {
         const tokenInfo = this.extractTokenAtCursor(doc, pos);
-        if (!tokenInfo) return [];
+        if (!tokenInfo) {
+            return [];
+        }
 
         const matchingSymbols = this.symbolIndexer.findSymbolsByName(tokenInfo.text);
 
-        if (matchingSymbols.length === 0) return [];
+        if (matchingSymbols.length === 0) {
+            return [];
+        }
 
         // Filter by context type for accuracy
         const contextFilteredSymbols = this.filterByNavigationContext(
@@ -91,15 +106,16 @@ export class DefinitionProvider {
             tokenInfo.context
         );
 
-        const referenceLocations: Location[] = contextFilteredSymbols.map(sym =>
+        const referenceLocations: Location[] = contextFilteredSymbols.map((sym) =>
             Location.create(sym.uri, sym.range)
         );
 
         // Optionally exclude declaration
         if (!includeDecl && contextFilteredSymbols.length > 0) {
             const primaryDef = this.selectPrimaryDefinition(contextFilteredSymbols);
-            return referenceLocations.filter(loc =>
-                !(loc.uri === primaryDef.uri && this.rangesEqual(loc.range, primaryDef.range))
+            return referenceLocations.filter(
+                (loc) =>
+                    !(loc.uri === primaryDef.uri && this.rangesEqual(loc.range, primaryDef.range))
             );
         }
 
@@ -114,25 +130,29 @@ export class DefinitionProvider {
         pos: Position
     ): Promise<Location[] | null> {
         const tokenInfo = this.extractTokenAtCursor(doc, pos);
-        if (!tokenInfo) return null;
+        if (!tokenInfo) {
+            return null;
+        }
 
         // For variables, find their set_variable declarations
         if (tokenInfo.context === NavigationContext.VARIABLE_NAME) {
-            const varSymbols = this.symbolIndexer.findSymbolsByType(SymbolType.VARIABLE)
-                .filter(s => s.name === tokenInfo.text);
+            const varSymbols = this.symbolIndexer
+                .findSymbolsByType(SymbolType.VARIABLE)
+                .filter((s) => s.name === tokenInfo.text);
 
             if (varSymbols.length > 0) {
-                return varSymbols.map(s => Location.create(s.uri, s.range));
+                return varSymbols.map((s) => Location.create(s.uri, s.range));
             }
         }
 
         // For scopes, find their save_scope_as declarations
         if (tokenInfo.context === NavigationContext.SCOPE_NAME) {
-            const scopeSymbols = this.symbolIndexer.findSymbolsByType(SymbolType.SCOPE)
-                .filter(s => s.name === tokenInfo.text);
+            const scopeSymbols = this.symbolIndexer
+                .findSymbolsByType(SymbolType.SCOPE)
+                .filter((s) => s.name === tokenInfo.text);
 
             if (scopeSymbols.length > 0) {
-                return scopeSymbols.map(s => Location.create(s.uri, s.range));
+                return scopeSymbols.map((s) => Location.create(s.uri, s.range));
             }
         }
 
@@ -142,27 +162,28 @@ export class DefinitionProvider {
     /**
      * Find implementation of effect/trigger (where it's defined as scripted)
      */
-    public async findImplementation(
-        doc: TextDocument,
-        pos: Position
-    ): Promise<Location[] | null> {
+    public async findImplementation(doc: TextDocument, pos: Position): Promise<Location[] | null> {
         const tokenInfo = this.extractTokenAtCursor(doc, pos);
-        if (!tokenInfo) return null;
+        if (!tokenInfo) {
+            return null;
+        }
 
         const implLocations: Location[] = [];
 
         // Check if it's a scripted effect
         if (tokenInfo.context === NavigationContext.EFFECT_NAME) {
-            const scriptedEffects = this.symbolIndexer.findSymbolsByType(SymbolType.SCRIPTED_EFFECT)
-                .filter(s => s.name === tokenInfo.text);
-            implLocations.push(...scriptedEffects.map(s => Location.create(s.uri, s.range)));
+            const scriptedEffects = this.symbolIndexer
+                .findSymbolsByType(SymbolType.SCRIPTED_EFFECT)
+                .filter((s) => s.name === tokenInfo.text);
+            implLocations.push(...scriptedEffects.map((s) => Location.create(s.uri, s.range)));
         }
 
         // Check if it's a scripted trigger
         if (tokenInfo.context === NavigationContext.TRIGGER_NAME) {
-            const scriptedTriggers = this.symbolIndexer.findSymbolsByType(SymbolType.SCRIPTED_TRIGGER)
-                .filter(s => s.name === tokenInfo.text);
-            implLocations.push(...scriptedTriggers.map(s => Location.create(s.uri, s.range)));
+            const scriptedTriggers = this.symbolIndexer
+                .findSymbolsByType(SymbolType.SCRIPTED_TRIGGER)
+                .filter((s) => s.name === tokenInfo.text);
+            implLocations.push(...scriptedTriggers.map((s) => Location.create(s.uri, s.range)));
         }
 
         return implLocations.length > 0 ? implLocations : null;
@@ -176,19 +197,21 @@ export class DefinitionProvider {
         pos: Position
     ): Promise<Location[] | null> {
         const tokenInfo = this.extractTokenAtCursor(doc, pos);
-        if (!tokenInfo) return null;
+        if (!tokenInfo) {
+            return null;
+        }
 
         if (tokenInfo.context === NavigationContext.EVENT_ID) {
             // For events, prioritize on_action declarations that reference this event
             const onActionSymbols = this.symbolIndexer.findSymbolsByType(SymbolType.ON_ACTION);
 
             // Search on_action symbols for those that contain this event ID in their name/detail
-            const matchingOnActions = onActionSymbols.filter(s =>
-                s.detail?.includes(tokenInfo.text) || s.name.includes(tokenInfo.text)
+            const matchingOnActions = onActionSymbols.filter(
+                (s) => s.detail?.includes(tokenInfo.text) || s.name.includes(tokenInfo.text)
             );
 
             if (matchingOnActions.length > 0) {
-                return matchingOnActions.map(s => Location.create(s.uri, s.range));
+                return matchingOnActions.map((s) => Location.create(s.uri, s.range));
             }
 
             // Fall back to event definition
@@ -204,15 +227,19 @@ export class DefinitionProvider {
      * Convert LocationLink[] or Location[] to Location[]
      */
     private convertToLocationArray(result: Location[] | LocationLink[] | null): Location[] | null {
-        if (!result) return null;
+        if (!result) {
+            return null;
+        }
 
-        if (result.length === 0) return [];
+        if (result.length === 0) {
+            return [];
+        }
 
         // Check if first item is LocationLink
-        const firstItem = result[0] as any;
+        const firstItem: Location | LocationLink = result[0];
         if ('targetUri' in firstItem) {
             // It's LocationLink[], convert to Location[]
-            return (result as LocationLink[]).map(link =>
+            return (result as LocationLink[]).map((link) =>
                 Location.create(link.targetUri, link.targetRange)
             );
         }
@@ -241,7 +268,9 @@ export class DefinitionProvider {
             scanEnd++;
         }
 
-        if (scanStart === scanEnd) return null;
+        if (scanStart === scanEnd) {
+            return null;
+        }
 
         const extractedText = documentText.substring(scanStart, scanEnd);
         const navContext = this.determineNavigationContext(extractedText, doc, pos);
@@ -250,7 +279,7 @@ export class DefinitionProvider {
             text: extractedText,
             startOffset: scanStart,
             endOffset: scanEnd,
-            context: navContext
+            context: navContext,
         };
     }
 
@@ -268,12 +297,12 @@ export class DefinitionProvider {
         }
 
         // Check if it's a known effect
-        if (CK3Language.isEffect(tokenText)) {
+        if (this.spec.has(tokenText, 'effects')) {
             return NavigationContext.EFFECT_NAME;
         }
 
         // Check if it's a known trigger
-        if (CK3Language.isTrigger(tokenText)) {
+        if (this.spec.has(tokenText, 'triggers')) {
             return NavigationContext.TRIGGER_NAME;
         }
 
@@ -312,7 +341,10 @@ export class DefinitionProvider {
                 return NavigationContext.EVENT_ID;
             }
 
-            if (enclosingNode.key === 'save_scope_as' || enclosingNode.key === 'save_temporary_scope_as') {
+            if (
+                enclosingNode.key === 'save_scope_as' ||
+                enclosingNode.key === 'save_temporary_scope_as'
+            ) {
                 return NavigationContext.SCOPE_NAME;
             }
 
@@ -321,26 +353,39 @@ export class DefinitionProvider {
             }
 
             // Detect flag-related keys
-            if (enclosingNode.key === 'set_character_flag' || enclosingNode.key === 'has_character_flag' ||
-                enclosingNode.key === 'remove_character_flag') {
+            if (
+                enclosingNode.key === 'set_character_flag' ||
+                enclosingNode.key === 'has_character_flag' ||
+                enclosingNode.key === 'remove_character_flag'
+            ) {
                 return NavigationContext.CHARACTER_FLAG;
             }
 
             // Detect modifier references
-            if (enclosingNode.key === 'add_modifier' || enclosingNode.key === 'remove_modifier' ||
-                enclosingNode.key === 'has_modifier') {
+            if (
+                enclosingNode.key === 'add_modifier' ||
+                enclosingNode.key === 'remove_modifier' ||
+                enclosingNode.key === 'has_modifier'
+            ) {
                 return NavigationContext.MODIFIER;
             }
 
             // Detect trait references
-            if (enclosingNode.key === 'has_trait' || enclosingNode.key === 'add_trait' ||
-                enclosingNode.key === 'remove_trait') {
+            if (
+                enclosingNode.key === 'has_trait' ||
+                enclosingNode.key === 'add_trait' ||
+                enclosingNode.key === 'remove_trait'
+            ) {
                 return NavigationContext.TRAIT;
             }
 
             // Detect localization keys
-            if (enclosingNode.key === 'title' || enclosingNode.key === 'desc' ||
-                enclosingNode.key === 'text' || enclosingNode.key === 'tooltip') {
+            if (
+                enclosingNode.key === 'title' ||
+                enclosingNode.key === 'desc' ||
+                enclosingNode.key === 'text' ||
+                enclosingNode.key === 'tooltip'
+            ) {
                 return NavigationContext.LOCALIZATION_KEY;
             }
 
@@ -374,7 +419,9 @@ export class DefinitionProvider {
         if (ast.children) {
             for (const child of ast.children) {
                 const found = this.findNodeAtPosition(child, pos);
-                if (found) return found;
+                if (found) {
+                    return found;
+                }
             }
         }
 
@@ -384,7 +431,7 @@ export class DefinitionProvider {
     /**
      * Check if position is within range
      */
-    private positionInRange(pos: Position, range: any): boolean {
+    private positionInRange(pos: Position, range: Range): boolean {
         if (pos.line < range.start.line || pos.line > range.end.line) {
             return false;
         }
@@ -402,27 +449,31 @@ export class DefinitionProvider {
      */
     private async resolveDefinitionTargets(
         tokenInfo: TokenInfo,
-        sourceUri: string
-    ): Promise<Symbol[]> {
+        _sourceUri: string
+    ): Promise<IndexSymbol[]> {
         // Handle localization key navigation
         if (tokenInfo.context === NavigationContext.LOCALIZATION_KEY && this.localizationIndex) {
             const entry = this.localizationIndex.findLocalization(tokenInfo.text);
             if (entry) {
-                return [{
-                    name: entry.key,
-                    type: SymbolType.GENERIC,
-                    uri: entry.fileUri,
-                    range: {
-                        start: { line: entry.line, character: 0 },
-                        end: { line: entry.line, character: entry.key.length }
-                    }
-                }];
+                return [
+                    {
+                        name: entry.key,
+                        type: SymbolType.GENERIC,
+                        uri: entry.fileUri,
+                        range: {
+                            start: { line: entry.line, character: 0 },
+                            end: { line: entry.line, character: entry.key.length },
+                        },
+                    },
+                ];
             }
         }
 
         const candidates = this.symbolIndexer.findSymbolsByName(tokenInfo.text);
 
-        if (candidates.length === 0) return [];
+        if (candidates.length === 0) {
+            return [];
+        }
 
         // Filter and rank by context
         return this.filterByNavigationContext(candidates, tokenInfo.context);
@@ -432,9 +483,9 @@ export class DefinitionProvider {
      * Filter symbols by navigation context for better accuracy
      */
     private filterByNavigationContext(
-        symbols: Symbol[],
+        symbols: IndexSymbol[],
         context: NavigationContext
-    ): Symbol[] {
+    ): IndexSymbol[] {
         const contextTypeMap: Record<NavigationContext, SymbolType[]> = {
             [NavigationContext.EVENT_ID]: [SymbolType.EVENT],
             [NavigationContext.DECISION_ID]: [SymbolType.DECISION],
@@ -443,7 +494,10 @@ export class DefinitionProvider {
             [NavigationContext.VARIABLE_NAME]: [SymbolType.VARIABLE],
             [NavigationContext.SCOPE_NAME]: [SymbolType.SCOPE],
             [NavigationContext.LOCALIZATION_KEY]: [],
-            [NavigationContext.SCRIPTED_BLOCK]: [SymbolType.SCRIPTED_EFFECT, SymbolType.SCRIPTED_TRIGGER],
+            [NavigationContext.SCRIPTED_BLOCK]: [
+                SymbolType.SCRIPTED_EFFECT,
+                SymbolType.SCRIPTED_TRIGGER,
+            ],
             [NavigationContext.CHARACTER_FLAG]: [SymbolType.CHARACTER_FLAG],
             [NavigationContext.CHARACTER_INTERACTION]: [SymbolType.CHARACTER_INTERACTION],
             [NavigationContext.MODIFIER]: [SymbolType.MODIFIER],
@@ -452,21 +506,25 @@ export class DefinitionProvider {
             [NavigationContext.SCRIPTED_GUI]: [SymbolType.SCRIPTED_GUI],
             [NavigationContext.DECISION_GROUP_TYPE]: [SymbolType.DECISION_GROUP_TYPE],
             [NavigationContext.TRAIT]: [SymbolType.TRAIT],
-            [NavigationContext.UNKNOWN]: []
+            [NavigationContext.UNKNOWN]: [],
         };
 
         const targetTypes = contextTypeMap[context];
 
-        if (targetTypes.length === 0) return symbols;
+        if (targetTypes.length === 0) {
+            return symbols;
+        }
 
-        return symbols.filter(sym => targetTypes.includes(sym.type));
+        return symbols.filter((sym) => targetTypes.includes(sym.type));
     }
 
     /**
      * Select primary definition (prefer first declaration in alphabetical order by URI)
      */
-    private selectPrimaryDefinition(symbols: Symbol[]): Symbol {
-        if (symbols.length === 1) return symbols[0];
+    private selectPrimaryDefinition(symbols: IndexSymbol[]): IndexSymbol {
+        if (symbols.length === 1) {
+            return symbols[0];
+        }
 
         // Sort by URI and take first
         const sorted = [...symbols].sort((a, b) => a.uri.localeCompare(b.uri));
@@ -483,10 +541,12 @@ export class DefinitionProvider {
     /**
      * Check if ranges are equal
      */
-    private rangesEqual(r1: any, r2: any): boolean {
-        return r1.start.line === r2.start.line &&
+    private rangesEqual(r1: Range, r2: Range): boolean {
+        return (
+            r1.start.line === r2.start.line &&
             r1.start.character === r2.start.character &&
             r1.end.line === r2.end.line &&
-            r1.end.character === r2.end.character;
+            r1.end.character === r2.end.character
+        );
     }
 }
