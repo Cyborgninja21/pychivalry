@@ -69,6 +69,20 @@ tasks:
       - npm run lint
       - npm run format:check
 
+  # ─── Documentation ─────────────────────────────────────────────
+
+  docs:diagnostics:
+    desc: Regenerate Documentation/user-guide/diagnostics/ from the engine catalogue and data/diagnostics.yaml
+    deps: [engine:build]
+    cmds:
+      - npm run docs:diagnostics
+
+  docs:diagnostics:check:
+    desc: Fail when the diagnostics reference is stale or data/diagnostics.yaml disagrees with the plug-ins
+    deps: [engine:build]
+    cmds:
+      - npm run docs:diagnostics:check
+
   # ─── Testing ────────────────────────────────────────────────────
 
   test:
@@ -264,6 +278,7 @@ tasks:
       - task: build
       - task: engine:check
       - task: engine:test
+      - task: docs:diagnostics:check
       - task: lint
       - task: format:check
       - task: test:unit

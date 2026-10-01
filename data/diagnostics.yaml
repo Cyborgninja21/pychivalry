@@ -1,353 +1,480 @@
-# Centralized Diagnostic Codes for PyChivalry
-# All diagnostic codes used throughout the validation system
-version: "1.0"
+# Diagnostic codes of the extension's plug-ins (pychivalry 2.0.0)
+#
+# The engine core (packages/engine) reports its own diagnostics with the ids and texts of the
+# spec package's error catalogue (plus a few package-local PYCH- ids); those are documented
+# from the package itself, not from this file. This file lists every code the extension's
+# plug-ins emit: the validators registered in vscode-extension/src/server/plugins.ts, which
+# run after the engine's parse, registry, schema and scope checks, and the localization
+# validator for .yml files.
+#
+# tools/gen-diagnostics-docs.ts renders Documentation/user-guide/diagnostics/ from the
+# engine catalogue and this file; `npm run docs:diagnostics:check` fails when a plug-in
+# source emits a code that is missing here, when this file lists a code no plug-in emits,
+# or when the generated pages are out of date.
+#
+# Per code: plugin (a plugins key), severity (error | warning | information | hint), message
+# (what the diagnostic means). LOC-001 and LOC-002 mean different things in script files
+# (localization-references) and in localization files (localization); both are listed.
+version: "2.0"
 
-categories:
-  syntax:
-    prefix: "CK30"
-    description: "Syntax and parsing errors"
-  scope:
-    prefix: "CK31"
-    description: "Scope chain and type validation"
-  style:
-    prefix: "CK33"
-    description: "Code style and formatting"
-  event_structure:
-    prefix: "CK37"
-    description: "Event structure validation"
-  context:
-    prefix: "CK38"
-    description: "Effect/trigger context violations"
-  iterators:
-    prefix: "CK39"
-    description: "List iterator validation"
-  gotchas:
-    prefix: "CK51"
-    description: "Common CK3 gotchas"
-  story_cycles:
-    prefix: "STORY"
-    description: "Story cycle validation"
-  decisions:
-    prefix: "DECISION"
-    description: "Decision validation"
-  events:
-    prefix: "EVENT"
-    description: "Event-specific validation"
-  interactions:
-    prefix: "INTERACTION"
-    description: "Character interaction validation"
-  schemes:
-    prefix: "SCHEME"
-    description: "Scheme validation"
-  on_actions:
-    prefix: "ON_ACTION"
-    description: "On-action validation"
-  schema:
-    prefix: "SCHEMA"
-    description: "Schema-driven validation (patterns, types, order)"
+plugins:
+    scope-timing:
+        source: vscode-extension/src/server/ck3/validation/scope-timing.ts
+        description: >-
+            The event evaluation order: trigger and desc are evaluated before immediate runs,
+            so scopes and variables created in immediate are not available there.
+    style-checks:
+        source: vscode-extension/src/server/ck3/validation/style-checks.ts
+        description: >-
+            Formatting and brace style. Where the engine reports an unbalanced brace on a line,
+            this plug-in's own brace codes (CK3330, CK3331) on that line are dropped.
+    conventions:
+        source: vscode-extension/src/server/ck3/validation/conventions.ts
+        description: Event conventions (CONV) and if/else ordering (COND).
+    localization-references:
+        source: vscode-extension/src/server/ck3/validation/conventions.ts
+        description: >-
+            Localization keys referenced from script: literal text where a key belongs, and
+            keys missing from the workspace's localization files.
+    events:
+        source: vscode-extension/src/server/ck3/validation/events.ts
+        description: >-
+            Event records: type, theme, portraits, options, namespaces. Reported as warnings.
+    paradox-checks:
+        source: vscode-extension/src/server/ck3/validation/paradox-checks.ts
+        description: >-
+            Paradox conventions and common pitfalls that parse and resolve but misbehave in
+            game: event structure, ai_chance, trigger_else, after blocks, portraits, iterators
+            without limit.
+    variables:
+        source: vscode-extension/src/server/ck3/validation/variables.ts
+        description: Variables declared, used, scoped and typed consistently within a file.
+    traits:
+        source: vscode-extension/src/server/ck3/validation/traits.ts
+        description: >-
+            Trait names in has_trait, add_trait and remove_trait. Runs only when the optional
+            extracted trait data (data/traits/) is present; workspace traits count as known.
+    scripted-blocks:
+        source: vscode-extension/src/server/ck3/validation/scripted-blocks.ts
+        description: Calls to scripted effects and triggers, and recursion between them.
+    script-values:
+        source: vscode-extension/src/server/ck3/validation/script-values.ts
+        description: Script value formulas in common/script_values.
+    iterators:
+        source: vscode-extension/src/server/ck3/validation/iterators.ts
+        description: ordered_ iterator parameters.
+    switch:
+        source: vscode-extension/src/server/ck3/validation/switch-validation.ts
+        description: switch blocks.
+    localization:
+        source: vscode-extension/src/server/ck3/localization/validator.ts
+        description: >-
+            Localization files (.yml): key format, character functions, formatting codes,
+            icons, concepts, brackets and $VARIABLE$ substitutions. Not an engine plug-in:
+            localization is not CK3 script.
 
 diagnostics:
-  # ============== Syntax (CK30xx) ==============
-  CK3001:
-    severity: error
-    category: syntax
-    message: "Unmatched closing bracket - no corresponding opening bracket found"
+    # scope-timing
+    CK3550:
+        plugin: scope-timing
+        severity: error
+        message: A scope used in the trigger block is saved in immediate, which runs after the trigger is evaluated.
+    CK3551:
+        plugin: scope-timing
+        severity: warning
+        message: A scope used in the desc block is saved in immediate; desc may be evaluated before immediate runs.
+    CK3552:
+        plugin: scope-timing
+        severity: error
+        message: A scope used in a triggered_desc trigger is saved in immediate, which runs after those triggers.
+    CK3553:
+        plugin: scope-timing
+        severity: error
+        message: A variable checked in the trigger block is set in immediate, which runs after the trigger is evaluated.
+    CK3554:
+        plugin: scope-timing
+        severity: warning
+        message: A temporary scope (save_temporary_scope_as) is passed to a triggered event; it does not persist across events.
 
-  CK3002:
-    severity: error
-    category: syntax
-    message: "Unclosed bracket - opened at line {line}, expected closing '}}'"
+    # style-checks
+    CK3301:
+        plugin: style-checks
+        severity: warning
+        message: Inconsistent indentation within a block.
+    CK3303:
+        plugin: style-checks
+        severity: warning
+        message: Indentation uses spaces instead of tabs.
+    CK3304:
+        plugin: style-checks
+        severity: information
+        message: Trailing whitespace.
+    CK3306:
+        plugin: style-checks
+        severity: information
+        message: Inconsistent spacing around an operator.
+    CK3314:
+        plugin: style-checks
+        severity: warning
+        message: Empty block.
+    CK3316:
+        plugin: style-checks
+        severity: information
+        message: Line longer than the recommended length (120 characters).
+    CK3317:
+        plugin: style-checks
+        severity: information
+        message: Blocks nested deeper than the recommended depth (6).
+    CK3330:
+        plugin: style-checks
+        severity: error
+        message: Unclosed brace (dropped where the engine reports the brace on the same line).
+    CK3331:
+        plugin: style-checks
+        severity: error
+        message: Extra closing brace (dropped where the engine reports the brace on the same line).
+    CK3340:
+        plugin: style-checks
+        severity: warning
+        message: Unknown or suspicious scope reference (possible typo).
+    CK3341:
+        plugin: style-checks
+        severity: warning
+        message: Scope reference appears truncated.
 
-  # ============== Event Structure (CK37xx) ==============
-  CK3760:
-    severity: error
-    category: event_structure
-    message: "Event '{id}' missing 'type' declaration (e.g., type = character_event)"
-    fix: "Add 'type = character_event' or appropriate event type"
+    # conventions
+    CONV-001:
+        plugin: conventions
+        severity: warning
+        message: An event with options has no type.
+    CONV-002:
+        plugin: conventions
+        severity: warning
+        message: An event with options has no title.
+    CONV-003:
+        plugin: conventions
+        severity: information
+        message: An event with options has no desc.
+    CONV-004:
+        plugin: conventions
+        severity: warning
+        message: An option block has no name.
+    COND-001:
+        plugin: conventions
+        severity: warning
+        message: if, else_if, trigger_if or trigger_else_if without a limit.
+    COND-002:
+        plugin: conventions
+        severity: warning
+        message: else or trigger_else with a limit (it is ignored).
+    COND-003:
+        plugin: conventions
+        severity: warning
+        message: else or trigger_else without a preceding if.
 
-  CK3761:
-    severity: error
-    category: event_structure
-    message: "Invalid event type '{value}'. Valid types: {valid_values}"
+    # localization-references (script files) and localization (.yml files)
+    LOC-001:
+        plugin: localization-references, localization
+        severity: warning
+        message: >-
+            In script files, a title, desc or name value contains spaces (literal text where a
+            localization key belongs). In localization files, an entry key the localization
+            index cannot read (it starts with a digit, or contains spaces, dashes or other
+            punctuation).
+    LOC-002:
+        plugin: localization-references, localization
+        severity: warning
+        message: >-
+            In script files, a tooltip value contains spaces (literal text where a localization
+            key belongs). In localization files, an unknown character function such as
+            [ROOT.Char.GetNam].
+    CK4100:
+        plugin: localization-references
+        severity: warning
+        message: A localization key referenced from script is not defined in the workspace's localization files.
 
-  CK3762:
-    severity: warning
-    category: event_structure
-    message: "Hidden event '{id}' has option blocks, but options are ignored in hidden events"
+    # events
+    EVENT-001:
+        plugin: events
+        severity: warning
+        message: Invalid event type.
+    EVENT-002:
+        plugin: events
+        severity: warning
+        message: An event is missing a required field.
+    EVENT-003:
+        plugin: events
+        severity: warning
+        message: Invalid event theme.
+    EVENT-004:
+        plugin: events
+        severity: warning
+        message: Invalid portrait position or animation.
+    EVENT-005:
+        plugin: events
+        severity: warning
+        message: Malformed event id (expected namespace.number).
+    EVENT-006:
+        plugin: events
+        severity: warning
+        message: Invalid dynamic description (first_valid, random_valid, triggered_desc).
+    EVENT-007:
+        plugin: events
+        severity: warning
+        message: Invalid option configuration.
+    EVENT-009:
+        plugin: events
+        severity: warning
+        message: An event id does not match the file's namespace declaration.
+    EVENT-010:
+        plugin: events
+        severity: warning
+        message: An event file has no namespace declaration.
+    EVENT-011:
+        plugin: events
+        severity: warning
+        message: A hidden event has options.
+    EVENT-012:
+        plugin: events
+        severity: warning
+        message: A hidden event has an after block.
+    EVENT-013:
+        plugin: events
+        severity: warning
+        message: A non-hidden event has no options.
+    EVENT-016:
+        plugin: events
+        severity: warning
+        message: An event uses a namespace that is not declared in its file (the game's own warning).
 
-  CK3763:
-    severity: warning
-    category: event_structure
-    message: "Event '{id}' has no option blocks - player cannot interact"
+    # paradox-checks
+    CK3005:
+        plugin: paradox-checks
+        severity: error
+        message: A logical operator (AND, OR, NOT, NOR, NAND) with a scalar value instead of a block.
+    CK3420:
+        plugin: paradox-checks
+        severity: error
+        message: Invalid portrait position.
+    CK3421:
+        plugin: paradox-checks
+        severity: warning
+        message: A portrait block has no character field.
+    CK3422:
+        plugin: paradox-checks
+        severity: warning
+        message: Unknown portrait animation.
+    CK3430:
+        plugin: paradox-checks
+        severity: warning
+        message: Unknown event theme.
+    CK3450:
+        plugin: paradox-checks
+        severity: warning
+        message: An option has no name field for its localization.
+    CK3510:
+        plugin: paradox-checks
+        severity: error
+        message: trigger_else without a preceding trigger_if has no effect.
+    CK3511:
+        plugin: paradox-checks
+        severity: warning
+        message: Several trigger_else blocks; only the first one executes.
+    CK3520:
+        plugin: paradox-checks
+        severity: warning
+        message: An after block in a hidden event has no effect.
+    CK3521:
+        plugin: paradox-checks
+        severity: information
+        message: An after block in an event without options is unnecessary.
+    CK3610:
+        plugin: paradox-checks
+        severity: warning
+        message: Negative base in ai_chance; the AI never selects the option.
+    CK3611:
+        plugin: paradox-checks
+        severity: information
+        message: ai_chance base above 100 is clamped to 100.
+    CK3612:
+        plugin: paradox-checks
+        severity: information
+        message: ai_chance base = 0; the AI never selects the option (ai_accept = no may be meant).
+    CK3614:
+        plugin: paradox-checks
+        severity: warning
+        message: An ai_chance modifier without a trigger applies unconditionally.
+    CK3656:
+        plugin: paradox-checks
+        severity: information
+        message: An inline opinion value in add_opinion or reverse_add_opinion; define an opinion modifier in common/opinion_modifiers and reference it by name.
+    CK3760:
+        plugin: paradox-checks
+        severity: error
+        message: An event has no type declaration.
+    CK3761:
+        plugin: paradox-checks
+        severity: error
+        message: Invalid event type.
+    CK3762:
+        plugin: paradox-checks
+        severity: warning
+        message: A hidden event has options.
+    CK3763:
+        plugin: paradox-checks
+        severity: warning
+        message: An event has no options.
+    CK3764:
+        plugin: paradox-checks
+        severity: error
+        message: A non-hidden event has no desc.
+    CK3766:
+        plugin: paradox-checks
+        severity: warning
+        message: Several after blocks in one event.
+    CK3767:
+        plugin: paradox-checks
+        severity: error
+        message: An empty event.
+    CK3768:
+        plugin: paradox-checks
+        severity: error
+        message: Several immediate blocks in one event.
+    CK3769:
+        plugin: paradox-checks
+        severity: information
+        message: A non-hidden event has no portraits.
+    CK3872:
+        plugin: paradox-checks
+        severity: information
+        message: Redundant trigger = { always = yes }.
+    CK3873:
+        plugin: paradox-checks
+        severity: error
+        message: Impossible trigger = { always = no }.
+    CK3875:
+        plugin: paradox-checks
+        severity: information
+        message: A random_ iterator without a limit.
+    CK3977:
+        plugin: paradox-checks
+        severity: information
+        message: An every_ iterator without a limit affects every matching element.
+    CK5137:
+        plugin: paradox-checks
+        severity: information
+        message: is_alive on a scope without an exists check first.
+    CK5142:
+        plugin: paradox-checks
+        severity: error
+        message: A character comparison written as `link = root` (or prev, this, scope:x); compare with `link = { this = root }`.
 
-  CK3764:
-    severity: warning
-    category: event_structure
-    message: "Event '{id}' is missing 'desc' field"
+    # variables
+    CK3701:
+        plugin: variables
+        severity: warning
+        message: A variable is used but never set in the file.
+    CK3702:
+        plugin: variables
+        severity: hint
+        message: A variable is set but never used in the file.
+    CK3703:
+        plugin: variables
+        severity: error
+        message: A local variable accessed as global, or a global variable accessed as local.
+    CK3705:
+        plugin: variables
+        severity: warning
+        message: A variable used both as a list and as a value.
 
-  CK3766:
-    severity: error
-    category: event_structure
-    message: "Event '{id}' has {count} after blocks - only the first will execute"
+    # traits
+    CK3800:
+        plugin: traits
+        severity: warning
+        message: Unknown trait (not in the extracted trait data or the workspace's traits).
 
-  CK3767:
-    severity: warning
-    category: event_structure
-    message: "Event '{id}' is empty - it has no fields or content"
+    # scripted-blocks
+    CK3950:
+        plugin: scripted-blocks
+        severity: error
+        message: Call to an undefined scripted effect.
+    CK3951:
+        plugin: scripted-blocks
+        severity: error
+        message: Call to an undefined scripted trigger.
+    CK3956:
+        plugin: scripted-blocks
+        severity: warning
+        message: Recursive scripted effect or trigger call.
 
-  CK3768:
-    severity: error
-    category: event_structure
-    message: "Event '{id}' has {count} immediate blocks - only the first will execute"
+    # script-values
+    VALUE-001:
+        plugin: script-values
+        severity: warning
+        message: Invalid script value type.
+    VALUE-002:
+        plugin: script-values
+        severity: error
+        message: Invalid range (min greater than max).
+    VALUE-003:
+        plugin: script-values
+        severity: warning
+        message: Unknown formula operation.
+    VALUE-004:
+        plugin: script-values
+        severity: error
+        message: Invalid conditional structure (else_if after else).
+    VALUE-005:
+        plugin: script-values
+        severity: information
+        message: An arithmetic operation without a value.
+    VALUE-006:
+        plugin: script-values
+        severity: error
+        message: Invalid round_to parameter (it must be positive).
 
-  CK3769:
-    severity: information
-    category: event_structure
-    message: "Character event '{id}' has no portrait positions defined"
+    # iterators
+    ITER-003:
+        plugin: iterators
+        severity: warning
+        message: An ordered_ iterator without order_by.
+    ITER-004:
+        plugin: iterators
+        severity: information
+        message: An ordered_ iterator without position or max.
 
-  # ============== Options (CK345x) ==============
-  CK3450:
-    severity: error
-    category: event_structure
-    message: "Option block is missing required 'name' field for localization"
-    fix: "Add 'name = your_event.option_a'"
+    # switch
+    SWITCH-001:
+        plugin: switch
+        severity: error
+        message: A switch block has no trigger field.
+    SWITCH-002:
+        plugin: switch
+        severity: warning
+        message: A switch block has no branch values.
+    SWITCH-003:
+        plugin: switch
+        severity: warning
+        message: The switch trigger names no trigger of the spec package and no workspace scripted trigger.
 
-  CK3452:
-    severity: error
-    category: event_structure
-    message: "Invalid skill '{value}' for option. Valid skills: diplomacy, martial, stewardship, intrigue, learning, prowess"
-    fix: "Use one of: diplomacy, martial, stewardship, intrigue, learning, prowess"
-
-  CK3453:
-    severity: error
-    category: event_structure
-    message: "Invalid internal flag '{value}' for add_internal_flag. Valid flags: special, dangerous"
-    fix: "Use one of: special, dangerous"
-
-  CK3454:
-    severity: warning
-    category: event_structure
-    message: "Redundant fallback option - use 'exclusive = yes' instead of duplicate trigger logic"
-    fix: "Remove fallback trigger and add 'exclusive = yes' to the exclusive option"
-
-  CK3455:
-    severity: error
-    category: event_structure
-    message: "Multiple options have 'exclusive = yes' - only one option can be exclusive per event"
-    fix: "Remove 'exclusive = yes' from all but one option"
-
-  CK3456:
-    severity: warning
-    category: event_structure
-    message: "'show_as_unavailable = yes' without trigger block - option will always show but never be selectable"
-    fix: "Add a trigger block or remove show_as_unavailable"
-
-  CK3457:
-    severity: warning
-    category: event_structure
-    message: "highlight_portrait references non-existent portrait position '{value}'"
-    fix: "Use a portrait position defined in the event (left_portrait, right_portrait, etc.)"
-
-  CK3458:
-    severity: information
-    category: event_structure
-    message: "Option uses literal 'name = \"text\"' instead of localization key"
-    fix: "Use a localization key: name = my_event.option_a"
-
-  CK3459:
-    severity: warning
-    category: event_structure
-    message: "All options have triggers - event may be impossible to select an option if all triggers fail. Consider a fallback option."
-    fix: "Add an option without a trigger, or use 'fallback = yes' on one option"
-
-  CK3460:
-    severity: warning
-    category: event_structure
-    message: "Option has {count} 'name' fields - only the first will be used"
-
-  CK3461:
-    severity: warning
-    category: event_structure
-    message: "Empty option block - options need at least a 'name' field"
-
-  # ============== Portraits (CK342x) ==============
-  CK3420:
-    severity: error
-    category: event_structure
-    message: "Invalid portrait position '{value}'. Valid: {valid_values}"
-
-  CK3421:
-    severity: warning
-    category: event_structure
-    message: "Portrait '{position}' is missing required 'character' field"
-
-  CK3422:
-    severity: warning
-    category: event_structure
-    message: "Invalid animation '{value}'. Valid: {valid_values}"
-
-  CK3430:
-    severity: warning
-    category: event_structure
-    message: "Invalid theme '{value}'. Valid: {valid_values}"
-
-  # ============== triggered_desc (CK344x) ==============
-  CK3440:
-    severity: error
-    category: event_structure
-    message: "triggered_desc block is missing required 'trigger' field"
-
-  CK3441:
-    severity: error
-    category: event_structure
-    message: "triggered_desc block is missing required 'desc' field"
-
-  CK3442:
-    severity: warning
-    category: event_structure
-    message: "'first_valid' has no fallback - may show nothing if no triggers match"
-
-  CK3443:
-    severity: warning
-    category: event_structure
-    message: "Empty desc block - event needs a description"
-
-  CK3444:
-    severity: information
-    category: event_structure
-    message: "Consider using a localization key instead of a literal string in 'desc'"
-
-  CK3445:
-    severity: error
-    category: event_structure
-    message: "Invalid desc structure: mixing 'first_valid' and 'random_valid' at the same level"
-
-  CK3446:
-    severity: warning
-    category: event_structure
-    message: "Description has excessive nesting (>3 levels) - consider simplifying"
-
-  # ============== trigger_if/else (CK351x) ==============
-  CK3510:
-    severity: error
-    category: event_structure
-    message: "trigger_else without preceding trigger_if - this block will never execute"
-
-  CK3511:
-    severity: error
-    category: event_structure
-    message: "Multiple trigger_else blocks - only the first will execute"
-
-  CK3512:
-    severity: error
-    category: event_structure
-    message: "trigger_if block is missing required 'limit' field"
-
-  CK3513:
-    severity: warning
-    category: event_structure
-    message: "trigger_if limit is empty - condition always passes"
-
-  # ============== After blocks (CK352x) ==============
-  CK3520:
-    severity: warning
-    category: event_structure
-    message: "Hidden event has 'after' block - after blocks only run after player chooses an option"
-
-  CK3521:
-    severity: warning
-    category: event_structure
-    message: "Event has 'after' block but no options - after block won't execute"
-
-  # ============== AI Chance (CK361x) ==============
-  CK3610:
-    severity: warning
-    category: event_structure
-    message: "ai_chance has negative base ({value}) - AI will never select unless modifiers bring it positive"
-
-  CK3611:
-    severity: information
-    category: event_structure
-    message: "ai_chance has high base ({value}) - heavily weights this option"
-
-  CK3612:
-    severity: warning
-    category: event_structure
-    message: "ai_chance has base = 0 with no modifiers - AI will never select this option"
-
-  CK3614:
-    severity: information
-    category: event_structure
-    message: "ai_chance modifier has no trigger - applies unconditionally"
-
-  # ============== Opinion (CK365x) ==============
-  CK3656:
-    severity: error
-    category: context
-    message: "Inline opinion value in {effect}. Define opinion modifier in common/opinion_modifiers/"
-
-  # ============== Context (CK387x) ==============
-  CK3872:
-    severity: information
-    category: context
-    message: "'trigger = {{ always = yes }}' is redundant - remove the trigger block"
-
-  CK3873:
-    severity: warning
-    category: context
-    message: "'trigger = {{ always = no }}' makes this event impossible to fire"
-
-  CK3875:
-    severity: warning
-    category: iterators
-    message: "'{iterator}' without limit - selection is completely random"
-
-  # ============== Iterators (CK397x) ==============
-  CK3977:
-    severity: information
-    category: iterators
-    message: "'{iterator}' without limit - affects ALL entries. Add limit or comment if intentional."
-
-  # ============== Gotchas (CK51xx) ==============
-  CK5137:
-    severity: warning
-    category: gotchas
-    message: "is_alive without exists check - may crash if target doesn't exist"
-
-  CK5142:
-    severity: error
-    category: gotchas
-    message: "Character comparison '{expr}' may not work. Use '{scope} = {{ this = {target} }}'"
-
-  # ============== Scope Timing - Golden Rule (CK355x-356x) ==============
-  # These diagnostics enforce CK3's "Golden Rule": scopes created in immediate
-  # are NOT available in trigger, desc, or title blocks because those blocks
-  # evaluate BEFORE immediate runs. This is the #1 source of bugs for new modders.
-
-  # CK3550-3555 are already defined in scope_timing.py module header
-  # Adding new codes for enhanced localization-aware scope timing checks
-
-  CK3560:
-    severity: error
-    category: scope
-    message: "Scope 'scope:{scope_name}' created in immediate but used in desc localization. Desc evaluates BEFORE immediate runs."
-    fix: "Pass scope from calling event, use variable check (var:), or move scope creation to parent event"
-
-  CK3561:
-    severity: error
-    category: scope
-    message: "Scope 'scope:{scope_name}' created in immediate but used in title localization. Title evaluates BEFORE immediate runs."
-    fix: "Pass scope from calling event, use variable check (var:), or move scope creation to parent event"
-
-  CK3562:
-    severity: warning
-    category: scope
-    message: "Scope 'scope:{scope_name}' created in immediate but may be used in desc block. Consider using triggered_desc with variable checks."
-    fix: "Use triggered_desc with var: checks, or pass scope from calling event"
-
-  # ============== Events (EVENT-xxx) ==============
-  EVENT-003:
-    severity: error
-    category: events
-    message: "Letter event missing required 'sender' field"
-    fix: "Add 'sender = scope:actor' or appropriate scope reference"
+    # localization (.yml files)
+    LOC-003:
+        plugin: localization
+        severity: information
+        message: Unknown text formatting code (#bold, #P, #color_red, ...).
+    LOC-004:
+        plugin: localization
+        severity: warning
+        message: Unknown icon reference (@name! or £name£).
+    LOC-005:
+        plugin: localization
+        severity: warning
+        message: Unbalanced brackets in localization text.
+    LOC-006:
+        plugin: localization
+        severity: warning
+        message: Unknown concept in a [concept|E] link.
+    LOC-007:
+        plugin: localization
+        severity: warning
+        message: Invalid $VARIABLE$ substitution (name or format specifier).

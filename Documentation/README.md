@@ -27,19 +27,10 @@ Documentation for CK3 modders using PyChivalry.
 
 ### ⚠️ Diagnostic Reference
 
-PyChivalry provides extensive diagnostics to help you catch errors. See the [Diagnostic Index](user-guide/diagnostics/Diagnostic%20codes%20-%20Index.md) for a complete list, or jump to a category:
-
-| Category | Code Prefix | Description |
-|----------|-------------|-------------|
-| [Standard](user-guide/diagnostics/Diagnostic%20codes.md) | `CK3XXX` | Core syntax, semantic, scope, and style validation |
-| [Story Cycles](user-guide/diagnostics/Diagnostic%20codes%20-%20Story%20Cycles.md) | `STORY-XXX` | Story cycle structure and flow validation |
-| [Decisions](user-guide/diagnostics/Diagnostic%20codes%20-%20Decisions.md) | `DECISION-XXX` | Decision configuration validation |
-| [Interactions](user-guide/diagnostics/Diagnostic%20codes%20-%20Interactions.md) | `INTERACTION-XXX` | Character interaction validation |
-| [Schemes](user-guide/diagnostics/Diagnostic%20codes%20-%20Schemes.md) | `SCHEME-XXX` | Scheme configuration validation |
-| [On Actions](user-guide/diagnostics/Diagnostic%20codes%20-%20On%20Actions.md) | `ON_ACTION-XXX` | On-action hook validation |
-| [Events](user-guide/diagnostics/Diagnostic%20codes%20-%20Events.md) | `EVENT-XXX` | Event-type-specific validation |
-| [Schema](user-guide/diagnostics/Diagnostic%20codes%20-%20Schema%20Validation.md) | `SCHEMA-XXX` | Pattern and type validation |
-| [Internal](user-guide/diagnostics/Diagnostic%20codes%20-%20Internal.md) | Various | Debug and internal diagnostics |
+The [diagnostics reference](user-guide/diagnostics/README.md) is generated from the engine's
+error catalogue and `data/diagnostics.yaml` by `tools/gen-diagnostics-docs.ts`: what the engine
+core reports (the game's own message ids and texts), one page per plug-in, and the full game
+message catalogue by category.
 
 ### Understanding Diagnostic Severity
 
@@ -58,7 +49,9 @@ Documentation for PyChivalry contributors.
 
 | Document | Description |
 |----------|-------------|
-| [Test Suites](developer-guide/Test%20Suites.md) | Test organization, coverage, and how to run tests |
+| [Spec Package](developer-guide/spec-package.md) | The generated CK3 vocabulary package and how a new game version is adopted |
+| [Issue Triage 2.0.0](developer-guide/issue-triage-2.0.0.md) | The 2.0.0 triage of the open issues |
+| [Test Suites](developer-guide/Test%20Suites.md) | Test organization, coverage, and how to run tests (1.x layout) |
 | [Pre-commit Setup](developer-guide/PRE_COMMIT_SETUP.md) | Installing pre-commit hooks for code quality |
 | [Pre-commit Usage](developer-guide/PRE_COMMIT_USAGE_GUIDE.md) | Daily workflow with pre-commit hooks |
 
@@ -66,13 +59,16 @@ Documentation for PyChivalry contributors.
 
 | Document | Description |
 |----------|-------------|
-| [Validation Architecture](developer-guide/architecture/VALIDATION.md) | How the validation system works internally |
+| [Architecture Flow](developer-guide/architecture/ARCHITECTURE_FLOW.md) | Spec package, engine core and extension layers; start-up, editing and request flows |
+| [Validation Pipeline](developer-guide/architecture/VALIDATION.md) | Parse, registry, schema, scope, plug-ins |
 
 ---
 
 ## 📐 Schema Authoring
 
-Documentation for creating validation schemas for new CK3 file types.
+Historical (1.x). Since 2.0.0 the per-directory schemas come from the spec package
+([spec package](developer-guide/spec-package.md)); the hand-written YAML schemas these guides
+describe (`data/schemas/`) were deleted.
 
 | Document | Description |
 |----------|-------------|

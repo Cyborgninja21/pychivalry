@@ -1,356 +1,145 @@
 # pychivalry
 
-[![Node.js 18+](https://img.shields.io/badge/node.js-18+-339933.svg)](https://nodejs.org/)
+[![Node.js 22+](https://img.shields.io/badge/node.js-22+-339933.svg)](https://nodejs.org/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![VS Code](https://img.shields.io/badge/VS%20Code-Extension-007ACC.svg)](vscode-extension/)
 
-**A Language Server for Crusader Kings 3 Modding**
+**Crusader Kings III script tooling that reports what the game itself would report.**
 
-CK3 modding is powerful but challenging—Paradox's custom scripting language lacks the tooling that modern developers expect. No autocomplete, no error checking, no documentation on hover. You're left hunting through wiki pages and guessing at syntax.
+pychivalry checks CK3 mod scripts against the game's own vocabulary and error messages, taken
+from the game executable rather than from wiki pages or scraped lists. It ships as a VS Code
+extension (a language server with completion, hover, navigation, formatting and diagnostics)
+and as a command-line checker for whole mod folders. Version 2.0.0 targets CK3 1.20.0.2.
 
-**pychivalry changes that.**
+## How it is built
 
-Built on the [Language Server Protocol](https://microsoft.github.io/language-server-protocol/), pychivalry brings the full power of modern IDE features to CK3 mod development. Get instant feedback on syntax errors, discover effects and triggers through intelligent autocomplete, navigate your mod with go-to-definition, and understand any scope chain at a glance—all without leaving VS Code.
+**The spec package.** Everything pychivalry knows about the CK3 language comes from one
+generated file: the spec package (`ck3-spec-1.20.0.2.json`), produced by
+[pdx-parser-re](https://github.com/Cyborgninja21/pdx-parser-re) from the game executable of a
+given version (identified by its sha256). It holds the six keyword buckets (triggers,
+effects, links, lists, on_actions and the modifier table, each with the engine's own
+documentation string), the script directories and their per-directory field schema, the
+game's error-message catalogue (1,967 messages) and the table of keywords retired between
+versions. The engine bundles a checksum-verified copy; nothing else in the repository holds
+CK3 vocabulary. See [the spec package](Documentation/developer-guide/spec-package.md).
 
-Whether you're writing your first event or maintaining a complex overhaul mod, pychivalry helps you write better scripts faster and catch mistakes before they crash your game.
+**The engine core** (`packages/engine`, npm name `pychivalry-engine`). A dependency-free
+TypeScript package that turns a mod directory into diagnostics. It parses CK3 script
+(including dates, `@name` constants, `@[ … ]` arithmetic, scope chains and the UTF-8 BOM),
+indexes the workspace (events, scripted effects and triggers, scripted lists, script values,
+saved scopes, the call graph) and runs four checks in order: parse errors with the game's
+message text, the registry check (unknown triggers, effects, iterators and modifiers judged by
+name and context, retired keywords with their replacement), the schema check (fields a
+directory does not have, the few required fields the engine enforces) and the scope check
+(scope chains walked link by link, undefined saved scopes). Diagnostic ids and texts are the
+catalogue's, so a problem in the editor reads like the line `error.log` would show.
 
-<!-- ![Demo placeholder](https://via.placeholder.com/800x400?text=Demo+GIF+Coming+Soon) -->
+**The VS Code extension** (`vscode-extension`). A thin client and a language server. The
+server wires 17 LSP providers (completions, hover, definitions and references, symbols,
+semantic tokens, inlay hints, signature help, formatting, folding, rename, code actions,
+code lens, document links, document highlights, call hierarchy, selection ranges and
+diagnostics) to the engine: providers read the spec package, parser and index; diagnostics
+run the engine pipeline followed by the extension's plug-ins, the surviving validators that
+encode game behaviour the spec package does not describe (event evaluation order, script
+values, variables, style, Paradox conventions, localization text). The server also watches
+the game's `error.log` while you test and maps its lines to the same diagnostics.
 
-## ✨ Features
+**Optional game content** (`data/`). Data that is game content rather than script vocabulary
+stays separate and optional: trait lists, game concepts and icons for localization
+checks, portrait animations, and a registry of popular mods (Carnalitas) whose scripted
+triggers and effects are layered over the spec package when the mod is found.
 
-### Available Now
+## Install
 
-#### 🔤 Context-Aware Auto-completion
-150+ CK3 keywords, effects, triggers, and scopes with intelligent filtering.
+From a release VSIX: in VS Code, **Extensions → … → Install from VSIX…** and pick
+`ck3-language-support-2.0.0.vsix`, or run
+`code --install-extension ck3-language-support-2.0.0.vsix`.
 
-<!-- ![Auto-completion demo](assets/images/autocomplete.png) -->
-
-#### ✅ Real-Time Diagnostics
-Syntax, semantic, and scope validation as you type.
-
-<!-- ![Diagnostics demo](assets/images/diagnostics.png) -->
-
-#### 📖 Hover Documentation
-Rich tooltips for effects, triggers, scopes, events, and saved scopes.
-
-<!-- ![Hover demo](assets/images/hover.png) -->
-
-#### 🔗 Go to Definition
-Jump to events, scripted effects/triggers, localization keys, and more.
-
-<!-- ![Go to definition demo](assets/images/goto-definition.png) -->
-
-#### 🔍 Scope System
-Full scope chain validation and saved scope tracking.
-
-<!-- ![Scope validation demo](assets/images/scope-system.png) -->
-
-#### 📋 List Iterators
-Validates any_, every_, random_, ordered_ patterns with parameters.
-
-<!-- ![List iterators demo](assets/images/list-iterators.png) -->
-
-#### 🔢 Script Values
-Formula and range validation with operations support.
-
-<!-- ![Script values demo](assets/images/script-values.png) -->
-
-#### 💾 Variables
-Full variable system support (var:, local_var:, global_var:).
-
-<!-- ![Variables demo](assets/images/variables.png) -->
-
-#### 📝 Event Validation
-Event structure, themes, portraits, and option validation.
-
-<!-- ![Event validation demo](assets/images/event-validation.png) -->
-
-#### 🔧 Code Actions
-Quick fixes for typos, refactoring suggestions.
-
-<!-- ![Code actions demo](assets/images/code-actions.png) -->
-
-#### 🎮 Live Game Log Analysis (NEW!)
-Real-time monitoring of CK3 game logs with intelligent error detection:
-- Watch `game.log` for errors as you test your mod
-- 10+ error pattern types with fuzzy-match suggestions
-- Diagnostics appear directly in VS Code Problems panel
-- Performance analytics and statistics tracking
-- Custom pattern support for mod-specific validation
-
-See [Log Watcher Usage Guide](plan%20docs/LOG_WATCHER_USAGE.md) for details.
-
-<!-- ![Log watcher demo](assets/images/log-watcher.png) -->
-
-#### 🎯 Trait Validation (OPTIONAL)
-Validate trait names in `has_trait`, `add_trait`, and `remove_trait`:
-- ✅ Warnings for unknown traits (CK3451)
-- 💡 Smart suggestions for typos ("Did you mean: brave, craven?")
-- 🔍 Auto-completion with all 297 CK3 traits
-- 📚 Hover documentation with trait details, opposites, categories
-
-**This feature is OPTIONAL** and requires you to extract trait data from your own CK3 installation.
-
-See **Optional: Trait Validation Setup** section below for setup instructions.
-
-#### 📁 File Support
-`.txt`, `.gui`, `.gfx`, and `.asset` files.
-
-#### 🔄 Live Sync
-Real-time document tracking as you type.
-
-#### ⚡ Fast
-Lightweight embedded TypeScript server with instant responses.
-
-### Auto-completion Includes
-
-- **Keywords**: `if`, `else`, `trigger`, `effect`, `immediate`, `limit`, `namespace`...
-- **Effects**: `add_trait`, `add_gold`, `add_prestige`, `trigger_event`, `save_scope_as`...
-- **Triggers**: `has_trait`, `is_ruler`, `is_adult`, `age`, `gold`, `opinion`...
-- **Scopes**: `root`, `prev`, `liege`, `every_vassal`, `random_courtier`, `primary_title`...
-- **Event Types**: `character_event`, `letter_event`, `court_event`, `duel_event`...
-- **Snippets**: Event templates, scripted effects/triggers, common patterns
-
-> 📖 See [CK3_FEATURES.md](CK3_FEATURES.md) for the complete list.
-
-### Development Status
-
-- [x] **Parser Foundation** — Full AST parsing with position tracking
-- [x] **Scope System** — Scope validation, chains, and saved scopes
-- [x] **Script Lists** — List iterator validation (any_, every_, random_, ordered_)
-- [x] **Script Values** — Formula and range validation
-- [x] **Variables System** — Variable tracking (var:, local_var:, global_var:)
-- [x] **Scripted Blocks** — Scripted triggers/effects with parameter support
-- [x] **Event System** — Event structure and validation
-- [x] **Diagnostics** — Real-time syntax and semantic validation
-- [x] **Context-Aware Completions** — Intelligent filtering by context
-- [x] **Hover Documentation** — Rich tooltips with examples
-- [x] **Localization Support** — Localization key validation and navigation
-- [x] **Go to Definition** — Navigation to definitions across files
-- [x] **Code Actions** — Quick fixes and refactoring suggestions
-- [x] **Find References** — Find all usages of symbols (NEW!)
-- [x] **Document Symbols** — Outline view for scripts (NEW!)
-- [x] **Workspace Symbols** — Search symbols across workspace (NEW!)
-- [ ] **Semantic Tokens** — Rich syntax highlighting
-- [ ] **Workspace Validation** — Cross-file validation
-
-**Status**: 1,142+ tests • Comprehensive CK3 support • Production ready (v1.0.0)
-
-## 🚀 Quick Start
-
-### Prerequisites
-
-- **VS Code** — [Download](https://code.visualstudio.com/)
-- **Node.js 18+** — [Download](https://nodejs.org/) (for building the extension)
-
-### Installation
+From source (Node.js 22 and npm 10):
 
 ```bash
-# 1. Clone the repository
 git clone https://github.com/Cyborgninja21/pychivalry.git
 cd pychivalry
-
-# 2. Build the VS Code extension
-cd vscode-extension
-npm install
-npm run compile
+npm ci                                   # installs the workspace (engine + extension)
+npm run build                            # builds packages/engine
+cd vscode-extension && npm run package   # bundles the extension (dist/)
+npx @vscode/vsce package --no-dependencies   # writes ck3-language-support-2.0.0.vsix
 ```
 
-### Try It Out
+To try it without packaging, open the repository in VS Code and press **F5** (Extension
+Development Host), then open a mod folder such as `example mod/`.
 
-1. Open `vscode-extension/` in VS Code
-2. Press **F5** to launch the Extension Development Host
-3. In the new window, open `examples/hello_world.txt`
-4. Start typing and enjoy auto-completion!
+## The command-line checker
 
-> 📖 See [TESTING.md](TESTING.md) for detailed testing instructions.
-
-## 📦 Installation Options
-
-### For Users (VS Code Extension)
+The engine has its own CLI; it needs no VS Code:
 
 ```bash
-cd vscode-extension
-npm install
-npm run package
+npx pychivalry-engine check "path/to/my mod"                       # human-readable, grouped by file
+npx pychivalry-engine check "path/to/my mod" --json                # one JSON diagnostic per line
+npx pychivalry-engine check "path/to/my mod" --vanilla "path/to/Crusader Kings III/game"
+npx pychivalry-engine check "path/to/my mod" --spec ck3-spec-<version>.json
 ```
 
-Then in VS Code: **Extensions** → **...** → **Install from VSIX** → select the generated `.vsix` file.
+`--vanilla` indexes the base game's scripted effects, triggers, lists, modifiers, script
+values and on_actions, so a mod's calls into them resolve, and enables the undefined-saved-
+scope check. `--spec` checks against another spec package. The exit code is 1 when an error
+was reported, 2 on a usage error. Run it from the repository after `npm ci && npm run build`
+(the `pychivalry-engine` binary is linked into `node_modules/.bin`).
 
-### For Developers
+## Trait data (optional)
+
+Trait names (`has_trait`, `add_trait`, `remove_trait`) are checked only when trait data is
+present in `data/traits/`. The repository carries a copy extracted from the game; to refresh
+it from your own installation after a patch:
 
 ```bash
-cd vscode-extension
-
-# Run tests
-npm test
-
-# Unit tests only (fast)
-npm run test:unit
-
-# Lint and format
-npm run lint
-npm run format
+npx ts-node tools/extract-traits.ts --game-path "/path/to/Crusader Kings III"
 ```
 
-Or from the workspace root using the Taskfile:
+(`ts-node` is not a dependency of the repository; `npx` fetches it.) With the data present,
+unknown traits get `CK3800` with suggestions, and trait names complete and hover. Delete the
+YAML files in `data/traits/` to turn the check off; everything else works without them.
+Extracted data is Paradox Interactive's content: keep it for personal use. The extension's
+former extraction commands now only show a notice; the script above replaces them.
+
+## Known gap: per-keyword scope validity
+
+pychivalry checks scope **structure**: chains such as `root.liege.primary_title` are resolved
+link by link, `scope:` names must be saved somewhere, iterator prefixes must match a list.
+It does **not** yet check whether a trigger or effect is valid in the scope it is used in
+("`is_landed` is not a valid trigger in a title scope"). That information is not in the
+game executable's tables; it comes from the game's own `script_docs` output, which has not
+been captured for 1.20.0.2. The spec package has the slot (`scope_validity`, empty today),
+so a future package fills it without a code change. Inlay hints therefore show saved-scope
+names, not scope types.
+
+## Configuration
+
+| Setting (`ck3LanguageServer.*`) | Default | Description |
+| --- | --- | --- |
+| `enable` | `true` | Enable the language server |
+| `trace.server` | `off` | LSP trace (`messages`, `verbose`) |
+| `logLevel` | `info` | Server log level |
+| `formatting.enabled`, `formatting.insertSpaces`, `formatting.tabSize` | `true`, `false`, `4` | Formatter |
+| `inlayHints.enabled` | `true` | Inlay hints |
+| `logWatcher.enabled`, `logWatcher.autoStart`, `logWatcher.logPath` | `true`, `false`, auto | Game log watcher |
+
+Diagnostics are documented in the generated [diagnostics reference](Documentation/user-guide/diagnostics/README.md).
+
+## Development
+
 ```bash
-task build    # Full build (install + compile + compile tests)
-task test     # Full test suite
-task lint     # Lint TypeScript
-task format   # Format with Prettier
+npm ci                 # once, at the repository root
+task ci                # build, lint, format check, engine tests, diagnostics-docs check, unit tests
+task test:integration  # VS Code integration tests (needs a display; use xvfb-run on Linux)
 ```
 
-## ⚙️ Configuration
+[CONTRIBUTING.md](CONTRIBUTING.md) has the workspace layout and the rules;
+[CLAUDE.md](CLAUDE.md) is the short architecture brief; the
+[architecture flow](Documentation/developer-guide/architecture/ARCHITECTURE_FLOW.md) and
+[validation pipeline](Documentation/developer-guide/architecture/VALIDATION.md) go deeper.
 
-Add to your VS Code `settings.json`:
+## License
 
-```json
-{
-  "ck3LanguageServer.enable": true,
-  "ck3LanguageServer.trace.server": "off",
-  "ck3LanguageServer.logLevel": "info"
-}
-```
-
-| Setting | Default | Description |
-|---------|---------|-------------|
-| `enable` | `true` | Enable/disable the language server |
-| `trace.server` | `"off"` | Set to `"verbose"` for debugging |
-| `logLevel` | `"info"` | Log level: `debug`, `info`, `warning`, `error` |
-| `formatting.enabled` | `true` | Enable document formatting |
-| `inlayHints.enabled` | `true` | Enable inlay hints for scopes and types |
-| `logWatcher.enabled` | `true` | Enable game log watcher |
-
-**Command Palette:**
-- `CK3 Language Server: Restart` — Restart the server
-
-## 🎯 Optional: Trait Validation Setup
-
-PyChivalry can validate trait names (`has_trait`, `add_trait`, `remove_trait`) against CK3's trait list, providing:
-
-- ✅ Warnings for invalid trait names (CK3451)
-- 💡 Smart suggestions for misspelled traits
-- 🔍 Auto-completion with all 297 CK3 traits
-- 📚 Hover documentation with trait details
-
-**This feature is OPTIONAL** and requires you to extract trait data from your own CK3 installation.
-
-### Setup Steps
-
-1. **Open VS Code Command Palette** (`Ctrl+Shift+P` or `Cmd+Shift+P`)
-2. **Run:** `CK3: Extract Trait Data from CK3 Installation`
-3. **Select your CK3 installation folder** (auto-detected on Steam)
-4. **Restart the language server** when prompted
-
-The extraction tool will create local YAML files in `pychivalry/data/traits/` for your personal use.
-
-### Requirements
-
-- Crusader Kings III installed (Steam or standalone)
-
-### Privacy & Copyright
-
-- ⚠️ Extracted data contains game content that is **copyright Paradox Interactive AB**
-- ✅ Stored locally on your machine (not uploaded or distributed)
-- ✅ For personal use only (respects Paradox copyright)
-- ✅ Files are automatically gitignored
-
-### Without Trait Data
-
-The language server works perfectly without trait validation:
-
-- ✅ All other features work normally
-- ✅ Syntax validation
-- ✅ Scope validation
-- ✅ Effect/trigger validation
-- ✅ Auto-completion (except trait-specific)
-- ✅ Hover documentation
-- ❌ Trait name validation (skipped)
-
-Trait validation is silently disabled when data files are not available—no errors or crashes.
-
-## 📂 Project Structure
-
-```
-pychivalry/
-├── vscode-extension/          # VS Code extension + embedded LSP server
-│   ├── src/
-│   │   ├── extension.ts       # Extension client entry point
-│   │   ├── server-main.ts     # Language server entry point
-│   │   ├── server/
-│   │   │   ├── core/          # Parser, indexer, workspace management
-│   │   │   ├── lsp/           # LSP feature providers (completions, hover, etc.)
-│   │   │   ├── ck3/           # CK3 game logic and validation
-│   │   │   ├── schema/        # YAML schema loading and validation
-│   │   │   ├── data/          # Data loader, directory registry
-│   │   │   ├── log/           # Game log watcher and analyzer
-│   │   │   └── utils/         # Shared utilities (logger, fuzzy match, etc.)
-│   │   └── test/
-│   │       ├── unit/          # Unit tests (Mocha)
-│   │       └── suite/         # Integration tests (VS Code test runner)
-│   ├── syntaxes/              # TextMate grammars
-│   ├── snippets/              # Code snippets
-│   ├── package.json
-│   └── webpack.config.js
-├── data/                      # Static YAML data files (effects, triggers, scopes, schemas)
-├── Documentation/             # Developer and user guides
-├── example mod/               # Example CK3 mod for manual testing
-└── README.md
-```
-
-## 🤝 Contributing
-
-Contributions are welcome! Whether it's:
-
-- 🐛 Bug reports and fixes
-- ✨ New CK3 language features
-- 📖 Documentation improvements
-- 💡 Feature suggestions
-
-### Quick Start for Contributors
-
-1. **Clone and set up development environment:**
-   ```bash
-   git clone https://github.com/Cyborgninja21/pychivalry.git
-   cd pychivalry
-   ./tools/setup-dev-env.sh
-   ```
-
-2. **Pre-commit hooks** are automatically installed to ensure code quality:
-   - Formats TypeScript with Prettier
-   - Lints TypeScript with ESLint
-   - Validates YAML/JSON and checks for common issues
-
-   See [docs/PRE_COMMIT_SETUP.md](docs/PRE_COMMIT_SETUP.md) for details.
-
-3. **GitHub Copilot** is configured to assist development:
-   - Instructions and coding standards in [`.github/copilot-instructions.md`](.github/copilot-instructions.md)
-   - Custom prompts for common tasks in [`.github/prompts/`](.github/prompts/)
-   - Specialized skills in [`.github/skills/`](.github/skills/)
-
-   See [`.github/README.md`](.github/README.md) for details on using Copilot with this project.
-
-4. See [CONTRIBUTING.md](CONTRIBUTING.md) for complete guidelines.
-
-## 📄 License
-
-[Apache License 2.0](LICENSE) — Free to use, modify, and distribute.
-
-## 🙏 Acknowledgments
-
-- **[vscode-languageserver](https://github.com/microsoft/vscode-languageserver-node)** — The LSP framework powering this server
-- **[Paradox Interactive](https://www.paradoxinteractive.com/)** — Creators of Crusader Kings 3
-- **CK3 Modding Community** — For inspiration and support
-
-## 📚 Resources
-
-- [Language Server Protocol](https://microsoft.github.io/language-server-protocol/) — LSP specification
-- [vscode-languageserver](https://github.com/microsoft/vscode-languageserver-node) — Server framework
-- [CK3 Modding Wiki](https://ck3.paradoxwikis.com/Modding) — Official modding reference
-
----
-
-<p align="center">
-  Made with ❤️ for the CK3 modding community
-</p>
+[Apache License 2.0](LICENSE). Crusader Kings III is a trademark of Paradox Interactive AB;
+pychivalry is not affiliated with Paradox.

@@ -7,15 +7,15 @@ echo "🔧 Setting up development environment for ck3-language-support..."
 
 # Check Node.js version
 if ! command -v node &> /dev/null; then
-    echo "❌ Node.js is not installed. Install Node.js 18+ from https://nodejs.org/"
+    echo "❌ Node.js is not installed. Install Node.js 22+ from https://nodejs.org/"
     exit 1
 fi
 
 node_version=$(node --version | sed 's/^v//')
 node_major=$(echo "$node_version" | cut -d'.' -f1)
 
-if [ "$node_major" -lt 18 ]; then
-    echo "❌ Node.js 18+ is required. Current version: v$node_version"
+if [ "$node_major" -lt 22 ]; then
+    echo "❌ Node.js 22+ is required. Current version: v$node_version"
     exit 1
 fi
 
@@ -30,13 +30,11 @@ fi
 npm_version=$(npm --version)
 echo "✓ npm version: v$npm_version"
 
-# Install VS Code extension dependencies
+# Install the npm workspace (packages/engine + vscode-extension) from the root lock file
 echo ""
-echo "📦 Installing VS Code extension dependencies..."
-cd vscode-extension
+echo "📦 Installing workspace dependencies..."
 npm ci --quiet
-cd ..
-echo "✓ VS Code extension dependencies installed"
+echo "✓ Workspace dependencies installed"
 
 # Install pre-commit hooks
 if command -v pre-commit &> /dev/null; then
@@ -59,7 +57,7 @@ echo ""
 echo "✅ Development environment setup complete!"
 echo ""
 echo "📝 Next steps:"
-echo "   - Run 'task build' to compile the extension"
+echo "   - Run 'task build' to build the engine and the extension"
 echo "   - Run 'task test:unit' to run unit tests"
 echo "   - Run 'task lint' to lint the source code"
 echo "   - Press F5 in VS Code to launch the extension in debug mode"

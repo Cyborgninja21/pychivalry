@@ -62,3 +62,6 @@ coverage/
 # pychivalry-engine build outputs
 packages/engine/dist/
 packages/engine/out/
+
+# Compiled tools (tools/tsconfig.json)
+tools/dist/

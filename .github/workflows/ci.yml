@@ -4,8 +4,10 @@
 # Builds the engine package (packages/engine) and the VS Code extension
 # (vscode-extension) from the npm workspace at the repository root, then runs
 # lint and format checks, the engine's unit, golden, corpus and CLI tests, the
+# diagnostics-reference check (tools/gen-diagnostics-docs.ts --check), the
 # extension's unit tests, and the extension's integration tests in a VS Code
-# Extension Development Host. `task ci` runs the same steps locally.
+# Extension Development Host. `task ci` runs the same steps locally except the
+# integration run (`task test:integration`, which needs a display).
 # =============================================================================
 
 name: CI
@@ -57,6 +59,9 @@ jobs:
       - name: Engine tests (unit, golden, corpus, CLI)
         working-directory: packages/engine
         run: npm test
+
+      - name: Diagnostics reference up to date
+        run: npm run docs:diagnostics:check
 
       - name: Lint extension
         working-directory: vscode-extension
