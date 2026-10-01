@@ -166,7 +166,7 @@ describe('CompletionProvider', () => {
             const value =
                 typeof resolved.documentation === 'string'
                     ? resolved.documentation
-                    : resolved.documentation?.value ?? '';
+                    : (resolved.documentation?.value ?? '');
             assert.ok(value.includes(defaultSpec().doc('add_gold', 'effects') ?? '<none>'));
         });
     });

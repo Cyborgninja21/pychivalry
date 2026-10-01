@@ -15,16 +15,18 @@ tasks:
   # ─── Install & Build ────────────────────────────────────────────
 
   install:
-    desc: Install extension dependencies
-    dir: "{{.EXT_DIR}}"
+    desc: Install the npm workspace (packages/engine + vscode-extension) from the root lock file
     cmds:
-      - npm install
+      - npm ci
+    status:
+      - test -f node_modules/.package-lock.json
 
   compile:
     desc: Compile the extension (webpack; bundles the built engine and its spec package)
     dir: "{{.EXT_DIR}}"
-    deps: [install, engine:build]
     cmds:
+      - task: install
+      - task: engine:build
       - npm run compile
 
   compile:tests:
@@ -257,9 +259,11 @@ tasks:
   # ─── Combined Workflows ────────────────────────────────────────
 
   ci:
-    desc: Full CI pipeline (build + lint + format check + tests)
+    desc: "Full CI pipeline as in .github/workflows/ci.yml, minus the integration run (task test:integration, needs a display)"
     cmds:
       - task: build
+      - task: engine:check
+      - task: engine:test
       - task: lint
       - task: format:check
       - task: test:unit

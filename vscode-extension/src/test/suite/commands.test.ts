@@ -1,6 +1,23 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 
+/**
+ * Run a command that opens a quick pick (showOutput, showMenu) and dismiss the picker, as a
+ * user pressing Escape would: such a command only settles once its picker is closed, so
+ * awaiting it in a headless host never returns.
+ */
+async function executeDismissingQuickPick(command: string): Promise<void> {
+    let settled = false;
+    const run = Promise.resolve(vscode.commands.executeCommand(command)).finally(() => {
+        settled = true;
+    });
+    for (let i = 0; i < 50 && !settled; i++) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        await vscode.commands.executeCommand('workbench.action.closeQuickOpen');
+    }
+    await run;
+}
+
 suite('Command Tests', () => {
     let extension: vscode.Extension<unknown> | undefined;
 
@@ -71,7 +88,7 @@ suite('Command Tests', () => {
         test('showOutput command should execute without error', async () => {
             // This command just shows the output channel, should never throw
             await assert.doesNotReject(
-                Promise.resolve(vscode.commands.executeCommand('ck3LanguageServer.showOutput')),
+                executeDismissingQuickPick('ck3LanguageServer.showOutput'),
                 'showOutput command should execute'
             );
         });
@@ -337,7 +354,7 @@ suite('Command Tests', () => {
 
             for (const cmd of commands) {
                 await assert.doesNotReject(
-                    Promise.resolve(vscode.commands.executeCommand(cmd)),
+                    executeDismissingQuickPick(cmd),
                     `Command ${cmd} should execute in sequence`
                 );
             }

@@ -22,27 +22,20 @@ repos:
         args: [--fix=lf]
         exclude: ^(examples/|plan docs/)
 
-  # TypeScript/JavaScript formatting with Prettier (for VS Code extension)
-  - repo: https://github.com/pre-commit/mirrors-prettier
-    rev: v4.0.0-alpha.8
+  # Prettier and ESLint run from the npm workspace (run `npm ci` at the root first), so the
+  # hooks use exactly the versions CI and `task ci` use. The former mirrors-prettier hook
+  # pinned prettier 3.2.5, which formats some expressions differently from the workspace's
+  # prettier 3.x and made the hook and `npm run format-check` disagree.
+  - repo: local
     hooks:
       - id: prettier
-        files: ^vscode-extension/src/.*\.(ts|js|json)$
-        exclude: ^vscode-extension/(dist/|out/|node_modules/)
-        additional_dependencies:
-          - prettier@3.2.5
-          - typescript@5.3.3
-
-  # TypeScript linting with ESLint (for VS Code extension)
-  - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v9.0.0-beta.2
-    hooks:
+        name: prettier (workspace)
+        entry: node_modules/.bin/prettier --write
+        language: system
+        files: ^(vscode-extension/src|packages/engine/(src|test))/.*\.(ts|js|json)$
+        exclude: ^(vscode-extension/(dist|out|node_modules)/|packages/engine/(dist|out|node_modules)/)
       - id: eslint
-        files: ^vscode-extension/src/.*\.ts$
-        types: [file]
-        args: [--fix, --max-warnings=0]
-        additional_dependencies:
-          - eslint@8.57.0
-          - '@typescript-eslint/eslint-plugin@6.21.0'
-          - '@typescript-eslint/parser@6.21.0'
-          - typescript@5.3.3
+        name: eslint (workspace)
+        entry: node_modules/.bin/eslint --fix --max-warnings=0
+        language: system
+        files: ^(vscode-extension/src|packages/engine/(src|test))/.*\.ts$

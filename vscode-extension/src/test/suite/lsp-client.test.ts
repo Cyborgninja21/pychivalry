@@ -263,14 +263,16 @@ test.0002 = {
             this.timeout(10000);
 
             const config = vscode.workspace.getConfiguration('ck3LanguageServer');
-            const originalLogLevel = config.get('logLevel');
+            const originalLogLevel = config.inspect('logLevel')?.globalValue;
 
             try {
                 // Change configuration
                 await config.update('logLevel', 'debug', vscode.ConfigurationTarget.Global);
                 await new Promise((resolve) => setTimeout(resolve, 500));
 
-                const newLogLevel = config.get('logLevel');
+                const newLogLevel = vscode.workspace
+                    .getConfiguration('ck3LanguageServer')
+                    .get('logLevel');
                 assert.strictEqual(newLogLevel, 'debug', 'Configuration should update');
 
                 // Restore original
@@ -294,13 +296,15 @@ test.0002 = {
             this.timeout(10000);
 
             const config = vscode.workspace.getConfiguration('ck3LanguageServer');
-            const originalTrace = config.get('trace.server');
+            const originalTrace = config.inspect('trace.server')?.globalValue;
 
             try {
                 await config.update('trace.server', 'verbose', vscode.ConfigurationTarget.Global);
                 await new Promise((resolve) => setTimeout(resolve, 500));
 
-                const newTrace = config.get('trace.server');
+                const newTrace = vscode.workspace
+                    .getConfiguration('ck3LanguageServer')
+                    .get('trace.server');
                 assert.strictEqual(newTrace, 'verbose', 'Trace configuration should update');
 
                 await config.update(

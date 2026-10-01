@@ -2,34 +2,44 @@ import * as assert from 'assert';
 import * as vscode from 'vscode';
 
 suite('Configuration Tests', () => {
+    /** Test property name -> setting key, for the settings these tests write. */
+    const KEYS: Record<string, string> = {
+        args: 'args',
+        traceServer: 'trace.server',
+        logLevel: 'logLevel',
+        enable: 'enable',
+        formattingEnabled: 'formatting.enabled',
+        formattingInsertSpaces: 'formatting.insertSpaces',
+        formattingTabSize: 'formatting.tabSize',
+        inlayHintsEnabled: 'inlayHints.enabled',
+        logWatcherEnabled: 'logWatcher.enabled',
+        logWatcherAutoStart: 'logWatcher.autoStart',
+        logWatcherPatterns: 'logWatcher.patterns',
+    };
+
+    /**
+     * The user-level (Global) value of each setting before the suite ran; undefined means
+     * "not set", and restoring undefined removes the user value again. Restoring the
+     * effective value instead would pin defaults into the user settings, which then leak
+     * into the next run (the cause of the run-to-run variation these tests used to show).
+     */
     let originalConfig: { [key: string]: unknown } = {};
 
+    /** A fresh snapshot: a WorkspaceConfiguration object does not see later updates. */
+    const current = () => vscode.workspace.getConfiguration('ck3LanguageServer');
+
     suiteSetup(() => {
-        // Save original configuration
-        const config = vscode.workspace.getConfiguration('ck3LanguageServer');
-        originalConfig = {
-            args: config.get('args'),
-            traceServer: config.get('trace.server'),
-            logLevel: config.get('logLevel'),
-            enable: config.get('enable'),
-            formattingEnabled: config.get('formatting.enabled'),
-            formattingInsertSpaces: config.get('formatting.insertSpaces'),
-            formattingTabSize: config.get('formatting.tabSize'),
-            inlayHintsEnabled: config.get('inlayHints.enabled'),
-            logWatcherEnabled: config.get('logWatcher.enabled'),
-            logWatcherAutoStart: config.get('logWatcher.autoStart'),
-        };
+        const config = current();
+        originalConfig = {};
+        for (const [name, key] of Object.entries(KEYS)) {
+            originalConfig[name] = config.inspect(key)?.globalValue;
+        }
     });
 
     suiteTeardown(async () => {
-        // Restore original configuration
-        const config = vscode.workspace.getConfiguration('ck3LanguageServer');
-        for (const [key, value] of Object.entries(originalConfig)) {
-            const configKey = key
-                .replace(/([A-Z])/g, '.$1')
-                .toLowerCase()
-                .replace(/^\./, '');
-            await config.update(configKey, value, vscode.ConfigurationTarget.Global);
+        const config = current();
+        for (const [name, key] of Object.entries(KEYS)) {
+            await config.update(key, originalConfig[name], vscode.ConfigurationTarget.Global);
         }
     });
 
@@ -165,7 +175,7 @@ suite('Configuration Tests', () => {
             const testValue = 'debug';
 
             await config.update('logLevel', testValue, vscode.ConfigurationTarget.Global);
-            assert.strictEqual(config.get('logLevel'), testValue, 'logLevel should update');
+            assert.strictEqual(current().get('logLevel'), testValue, 'logLevel should update');
 
             // Restore
             await config.update(
@@ -180,7 +190,11 @@ suite('Configuration Tests', () => {
             const testValue = 'verbose';
 
             await config.update('trace.server', testValue, vscode.ConfigurationTarget.Global);
-            assert.strictEqual(config.get('trace.server'), testValue, 'trace.server should update');
+            assert.strictEqual(
+                current().get('trace.server'),
+                testValue,
+                'trace.server should update'
+            );
 
             // Restore
             await config.update(
@@ -196,7 +210,7 @@ suite('Configuration Tests', () => {
 
             await config.update('formatting.enabled', testValue, vscode.ConfigurationTarget.Global);
             assert.strictEqual(
-                config.get('formatting.enabled'),
+                current().get('formatting.enabled'),
                 testValue,
                 'formatting.enabled should update'
             );
@@ -215,7 +229,7 @@ suite('Configuration Tests', () => {
 
             await config.update('inlayHints.enabled', testValue, vscode.ConfigurationTarget.Global);
             assert.strictEqual(
-                config.get('inlayHints.enabled'),
+                current().get('inlayHints.enabled'),
                 testValue,
                 'inlayHints.enabled should update'
             );
@@ -234,8 +248,8 @@ suite('Configuration Tests', () => {
             await config.update('logLevel', 'error', vscode.ConfigurationTarget.Global);
             await config.update('trace.server', 'messages', vscode.ConfigurationTarget.Global);
 
-            assert.strictEqual(config.get('logLevel'), 'error');
-            assert.strictEqual(config.get('trace.server'), 'messages');
+            assert.strictEqual(current().get('logLevel'), 'error');
+            assert.strictEqual(current().get('trace.server'), 'messages');
 
             // Restore
             await config.update(
@@ -459,7 +473,7 @@ suite('Configuration Tests', () => {
                 vscode.ConfigurationTarget.Global
             );
 
-            const patterns = config.get('logWatcher.patterns') as { severity?: string }[];
+            const patterns = current().get('logWatcher.patterns') as { severity?: string }[];
             assert.strictEqual(patterns.length, 1, 'Should have one custom pattern');
             assert.strictEqual(
                 patterns[0].severity,
@@ -468,7 +482,11 @@ suite('Configuration Tests', () => {
             );
 
             // Restore
-            await config.update('logWatcher.patterns', [], vscode.ConfigurationTarget.Global);
+            await config.update(
+                'logWatcher.patterns',
+                originalConfig.logWatcherPatterns,
+                vscode.ConfigurationTarget.Global
+            );
         });
     });
 });
