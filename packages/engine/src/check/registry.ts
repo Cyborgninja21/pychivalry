@@ -36,6 +36,17 @@ import { CheckInput, Diagnostic, Severity } from './types';
 
 export type Context = 'trigger' | 'effect';
 
+/**
+ * How the registry read one block body: the context its keys were judged in and the
+ * schema fields it admits. Recorded per children array when tracing (see contextAt).
+ */
+export interface BlockContext {
+    /** trigger/effect block, modifier block, script-value block or none of them. */
+    kind: 'trigger' | 'effect' | 'modifier' | 'value' | 'none';
+    /** Fields the schema records at this position (record bodies, nested fields). */
+    fields?: Record<string, FieldSpec>;
+}
+
 /** Extra keys a block body accepts beyond triggers/effects. */
 interface BlockExtras {
     params?: ReadonlyMap<string, ChildContext>;
@@ -121,7 +132,10 @@ class RegistryWalker {
     private readonly localTriggers = new Set<string>();
     private readonly localEffects = new Set<string>();
 
-    constructor(private readonly input: CheckInput) {
+    constructor(
+        private readonly input: CheckInput,
+        private readonly trace?: Map<ASTNode[], BlockContext>
+    ) {
         for (const node of input.ast.children ?? []) {
             if (node.keyPrefix === 'scripted_trigger' && node.key) {
                 this.localTriggers.add(node.key);
@@ -169,6 +183,13 @@ class RegistryWalker {
         }
     }
 
+    /** Record how a block body was read (first reading wins). */
+    private mark(nodes: ASTNode[], context: BlockContext): void {
+        if (this.trace && !this.trace.has(nodes)) {
+            this.trace.set(nodes, context);
+        }
+    }
+
     private walkRecord(record: ASTNode, schema: SchemaEntry): void {
         const children = record.children ?? [];
         switch (schema.record_body) {
@@ -197,6 +218,7 @@ class RegistryWalker {
         fields: Record<string, FieldSpec> | undefined,
         valueMode = false
     ): void {
+        this.mark(nodes, { kind: valueMode ? 'value' : 'none', fields });
         for (const node of nodes) {
             if (!node.children) {
                 continue;
@@ -254,6 +276,7 @@ class RegistryWalker {
         allowed?: Record<string, FieldSpec>,
         extras?: BlockExtras
     ): void {
+        this.mark(nodes, { kind: ctx, fields: allowed });
         for (const node of nodes) {
             if (node.type === NodeType.COMMENT || node.type === NodeType.VALUE) {
                 continue;
@@ -483,6 +506,7 @@ class RegistryWalker {
         fields: Record<string, FieldSpec> | undefined,
         unconfirmed?: Record<string, unknown>
     ): void {
+        this.mark(nodes, { kind: 'modifier', fields });
         const { spec, workspace } = this.input;
         for (const node of nodes) {
             if (node.type === NodeType.COMMENT || node.type === NodeType.VALUE || !node.key) {
@@ -531,4 +555,19 @@ export function checkRegistry(input: CheckInput): Diagnostic[] {
     const walker = new RegistryWalker(input);
     walker.run();
     return walker.diagnostics;
+}
+
+/**
+ * The registry's reading of every block body of one file: for each children array, the
+ * context its keys are judged in. The body of an unknown keyword is not read and so has
+ * no entry. The top level of the file is recorded as 'none' with the directory's record
+ * fields absent (the keys there are record names).
+ */
+export function blockContexts(input: CheckInput): Map<ASTNode[], BlockContext> {
+    const trace = new Map<ASTNode[], BlockContext>();
+    if (input.ast.children) {
+        trace.set(input.ast.children, { kind: 'none' });
+    }
+    new RegistryWalker(input, trace).run();
+    return trace;
 }

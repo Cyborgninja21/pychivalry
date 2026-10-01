@@ -1,128 +1,121 @@
 /**
- * Unit Tests for Hover Provider
+ * Unit Tests for Hover Provider (on the engine since Phase 4)
+ *
+ * The hand-written keyword and context-field hover texts are gone: a keyword shows the
+ * spec package's engine doc string verbatim with its bucket, and a record field shows
+ * what the directory schema records for it at that position.
  */
 
 import * as assert from 'assert';
-import { CK3Parser } from '../../server/core/parser';
-import { HoverProvider } from '../../server/lsp/hover';
-import { SchemaLoader } from '../../server/schema/loader';
+import * as path from 'path';
+import { Hover, Position } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { Position } from 'vscode-languageserver/node';
+import { CK3Parser, defaultSpec, Workspace } from 'pychivalry-engine';
+import { HoverProvider } from '../../server/lsp/hover';
+
+function text(hover: Hover | null): string {
+    assert.ok(hover, 'expected a hover');
+    const contents = hover.contents;
+    return typeof contents === 'string' ? contents : 'value' in contents ? contents.value : '';
+}
 
 describe('HoverProvider', () => {
-    let parser: CK3Parser;
-    let schemaLoader: SchemaLoader;
     let hoverProvider: HoverProvider;
 
     beforeEach(() => {
-        parser = new CK3Parser();
-        schemaLoader = new SchemaLoader();
-        hoverProvider = new HoverProvider(parser, schemaLoader);
+        const parser = new CK3Parser({ spec: defaultSpec() });
+        hoverProvider = new HoverProvider(parser, new Workspace(path.resolve('/test')));
     });
 
-    function createDocument(content: string, uri: string = 'file:///test/events/test.txt'): TextDocument {
+    function createDocument(content: string, uri = 'file:///test/events/test.txt'): TextDocument {
         return TextDocument.create(uri, 'ck3', 1, content);
     }
 
-    describe('keyword hover', () => {
-        it('should provide hover for "trigger" keyword', async () => {
-            const doc = createDocument('trigger = {\n\tis_ai = no\n}');
-            const hover = await hoverProvider.provideHover(doc, Position.create(0, 2));
-            assert.ok(hover, 'Should return hover for trigger keyword');
-            assert.ok(hover.contents, 'Should have contents');
-            const value = typeof hover.contents === 'string' ? hover.contents : (hover.contents as any).value;
-            assert.ok(value.includes('Trigger'), 'Should mention Trigger in hover');
+    const EVENT = [
+        'my_events.0001 = {', //                       0
+        '\ttrigger = {', //                            1
+        '\t\tis_adult = yes', //                       2
+        '\t}', //                                      3
+        '\timmediate = {', //                          4
+        '\t\tif = { limit = { always = yes } }', //    5
+        '\t\twhile = { count = 2 }', //               6
+        '\t\telse = { add_gold = 50 }', //             7
+        '\t\tevery_vassal = { add_gold = 1 }', //      8
+        '\t\tcustom_tooltip = { text = x }', //        9
+        '\t}', //                                      10
+        '}', //                                        11
+    ].join('\n');
+
+    describe('keyword hover (engine doc strings)', () => {
+        for (const [name, line, character, bucket] of [
+            ['is_adult', 2, 4, 'triggers'],
+            ['if', 5, 2, 'effects'],
+            ['while', 6, 3, 'effects'],
+            ['else', 7, 3, 'effects'],
+        ] as const) {
+            it(`shows the engine doc of "${name}" verbatim`, async () => {
+                const value = text(
+                    await hoverProvider.provideHover(
+                        createDocument(EVENT),
+                        Position.create(line, character)
+                    )
+                );
+                const doc = defaultSpec().doc(name, bucket);
+                assert.ok(doc, `the spec documents ${name}`);
+                assert.ok(value.includes(doc), value);
+            });
+        }
+
+        it('shows both buckets for a name registered as trigger and effect', async () => {
+            const value = text(
+                await hoverProvider.provideHover(createDocument(EVENT), Position.create(9, 5))
+            );
+            assert.ok(value.includes('*trigger*') && value.includes('*effect*'), value);
+            assert.ok(value.includes('As trigger') && value.includes('As effect'), value);
         });
 
-        it('should provide hover for "immediate" keyword', async () => {
-            const doc = createDocument('immediate = {\n\tset_variable = { name = x value = 1 }\n}');
-            const hover = await hoverProvider.provideHover(doc, Position.create(0, 3));
-            assert.ok(hover, 'Should return hover for immediate keyword');
-            const value = typeof hover.contents === 'string' ? hover.contents : (hover.contents as any).value;
-            assert.ok(value.includes('Immediate'), 'Should mention Immediate in hover');
-        });
-
-        it('should provide hover for "option" keyword', async () => {
-            const doc = createDocument('option = {\n\tname = test\n}');
-            const hover = await hoverProvider.provideHover(doc, Position.create(0, 3));
-            assert.ok(hover, 'Should return hover for option keyword');
-            const value = typeof hover.contents === 'string' ? hover.contents : (hover.contents as any).value;
-            assert.ok(value.includes('Option'), 'Should mention Option in hover');
-        });
-
-        it('should provide hover for "if" keyword', async () => {
-            const doc = createDocument('if = {\n\tlimit = { is_adult = yes }\n}');
-            const hover = await hoverProvider.provideHover(doc, Position.create(0, 1));
-            assert.ok(hover, 'Should return hover for if keyword');
-            const value = typeof hover.contents === 'string' ? hover.contents : (hover.contents as any).value;
-            assert.ok(value.includes('Conditional'), 'Should mention Conditional in hover');
-        });
-
-        it('should provide hover for "while" keyword', async () => {
-            const doc = createDocument('while = {\n\tlimit = { gold >= 100 }\n}');
-            const hover = await hoverProvider.provideHover(doc, Position.create(0, 2));
-            assert.ok(hover, 'Should return hover for while keyword');
-            const value = typeof hover.contents === 'string' ? hover.contents : (hover.contents as any).value;
-            assert.ok(value.includes('While'), 'Should mention While Loop in hover');
-        });
-
-        it('should provide hover for "else" keyword', async () => {
-            const doc = createDocument('else = {\n\tadd_gold = 50\n}');
-            const hover = await hoverProvider.provideHover(doc, Position.create(0, 2));
-            assert.ok(hover, 'Should return hover for else keyword');
-            const value = typeof hover.contents === 'string' ? hover.contents : (hover.contents as any).value;
-            assert.ok(value.includes('Else'), 'Should mention Else in hover');
+        it('shows the list doc for an iterator', async () => {
+            const value = text(
+                await hoverProvider.provideHover(createDocument(EVENT), Position.create(8, 5))
+            );
+            assert.ok(value.includes('vassal'), value);
+            assert.ok(value.includes(defaultSpec().doc('vassal', 'lists') ?? '<none>'), value);
         });
     });
 
-    describe('context field hover', () => {
-        it('should provide hover for "ai_chance" field', async () => {
-            const doc = createDocument('ai_chance = {\n\tbase = 50\n}');
-            const hover = await hoverProvider.provideHover(doc, Position.create(0, 3));
-            assert.ok(hover, 'Should return hover for ai_chance');
-            const value = typeof hover.contents === 'string' ? hover.contents : (hover.contents as any).value;
-            assert.ok(value.includes('AI'), 'Should mention AI in hover');
+    describe('record field hover (directory schema)', () => {
+        it('shows the events schema entry for "trigger"', async () => {
+            const value = text(
+                await hoverProvider.provideHover(createDocument(EVENT), Position.create(1, 3))
+            );
+            assert.ok(value.includes('Field of `events` records'), value);
+            assert.ok(value.includes('trigger block'), value);
         });
 
-        it('should provide hover for "left_portrait" field', async () => {
-            const doc = createDocument('left_portrait = root');
-            const hover = await hoverProvider.provideHover(doc, Position.create(0, 5));
-            assert.ok(hover, 'Should return hover for left_portrait');
-            const value = typeof hover.contents === 'string' ? hover.contents : (hover.contents as any).value;
-            assert.ok(value.includes('Portrait'), 'Should mention Portrait in hover');
-        });
-
-        it('should provide hover for "cooldown" field', async () => {
-            const doc = createDocument('cooldown = { years = 5 }');
-            const hover = await hoverProvider.provideHover(doc, Position.create(0, 4));
-            assert.ok(hover, 'Should return hover for cooldown');
-            const value = typeof hover.contents === 'string' ? hover.contents : (hover.contents as any).value;
-            assert.ok(value.includes('Cooldown'), 'Should mention Cooldown in hover');
-        });
-
-        it('should provide hover for "is_shown" field', async () => {
-            const doc = createDocument('is_shown = {\n\tis_ruler = yes\n}');
-            const hover = await hoverProvider.provideHover(doc, Position.create(0, 5));
-            assert.ok(hover, 'Should return hover for is_shown');
-            const value = typeof hover.contents === 'string' ? hover.contents : (hover.contents as any).value;
-            assert.ok(value.includes('Shown'), 'Should mention Shown in hover');
+        it('shows the decisions schema description for "is_shown"', async () => {
+            const doc = createDocument(
+                'my_decision = {\n\tis_shown = {\n\t\tis_ruler = yes\n\t}\n}',
+                'file:///test/common/decisions/d.txt'
+            );
+            const value = text(await hoverProvider.provideHover(doc, Position.create(1, 3)));
+            assert.ok(value.includes('Field of `common/decisions` records'), value);
+            assert.ok(value.includes('Conditions for decision to appear in UI'), value);
         });
     });
 
     describe('cache behavior', () => {
         it('should cache hover results', async () => {
-            const doc = createDocument('trigger = {\n\tis_ai = no\n}');
-            const hover1 = await hoverProvider.provideHover(doc, Position.create(0, 2));
-            const hover2 = await hoverProvider.provideHover(doc, Position.create(0, 2));
-            assert.ok(hover1, 'First hover should return result');
-            assert.ok(hover2, 'Second hover (cached) should return result');
+            const doc = createDocument(EVENT);
+            const hover1 = await hoverProvider.provideHover(doc, Position.create(2, 4));
+            const hover2 = await hoverProvider.provideHover(doc, Position.create(2, 4));
+            assert.deepStrictEqual(hover1, hover2);
         });
 
         it('should clear cache', async () => {
-            const doc = createDocument('trigger = {\n\tis_ai = no\n}');
-            await hoverProvider.provideHover(doc, Position.create(0, 2));
+            const doc = createDocument(EVENT);
+            await hoverProvider.provideHover(doc, Position.create(2, 4));
             hoverProvider.clearCache();
-            const hover = await hoverProvider.provideHover(doc, Position.create(0, 2));
+            const hover = await hoverProvider.provideHover(doc, Position.create(2, 4));
             assert.ok(hover, 'Should still return result after cache clear');
         });
     });
@@ -131,8 +124,7 @@ describe('HoverProvider', () => {
         it('should return null for unknown identifiers', async () => {
             const doc = createDocument('zzz_unknown_xyz = 5');
             const hover = await hoverProvider.provideHover(doc, Position.create(0, 5));
-            // May or may not return hover depending on data loader state, just ensure no crash
-            assert.ok(true, 'Should not crash on unknown identifiers');
+            assert.strictEqual(hover, null);
         });
 
         it('should return null for empty position', async () => {

@@ -224,8 +224,12 @@ export class CK3LanguageServer {
         );
 
         // Initialize LSP providers
-        this.completionProvider = new CompletionProvider(this.parser, this.indexer, this.schemaLoader, this.modScanner);
-        this.hoverProvider = new HoverProvider(this.parser, this.schemaLoader, this.indexer, this.localizationIndex, this.modScanner);
+        this.completionProvider = new CompletionProvider(this.syntaxParser, this.engineWorkspace);
+        this.hoverProvider = new HoverProvider(
+            this.syntaxParser,
+            this.engineWorkspace,
+            this.engineLocalization
+        );
         this.definitionProvider = new DefinitionProvider(
             this.syntaxParser,
             this.engineWorkspace.index,
@@ -245,13 +249,13 @@ export class CK3LanguageServer {
         this.formattingProvider = new FormattingProvider(this.syntaxParser);
         this.foldingProvider = new FoldingRangeProvider(this.syntaxParser);
         this.renameProvider = new RenameProvider(this.syntaxParser, this.engineWorkspace.index);
-        this.semanticTokensProvider = new SemanticTokensProvider(this.parser);
+        this.semanticTokensProvider = new SemanticTokensProvider(this.syntaxParser, this.engineWorkspace);
         this.codeActionsProvider = new CodeActionsProvider(this.parser);
         this.codeLensProvider = new CodeLensProvider(this.parser, this.indexer, this.localizationIndex);
         this.documentLinksProvider = new DocumentLinksProvider(this.syntaxParser, this.engineWorkspace.index);
         this.documentHighlightProvider = new DocumentHighlightProvider(this.syntaxParser);
-        this.inlayHintsProvider = new InlayHintsProvider(this.parser);
-        this.signatureHelpProvider = new SignatureHelpProvider(this.parser);
+        this.inlayHintsProvider = new InlayHintsProvider(this.syntaxParser, this.engineWorkspace);
+        this.signatureHelpProvider = new SignatureHelpProvider(bundledSpec());
         this.callHierarchyProvider = new CallHierarchyProvider(this.parser, this.indexer);
         this.selectionRangeProvider = new SelectionRangeProvider(this.syntaxParser);
 

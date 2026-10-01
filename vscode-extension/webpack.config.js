@@ -75,6 +75,12 @@ module.exports = [
                         from: path.resolve(__dirname, '..', 'data'),
                         to: path.resolve(__dirname, 'dist', 'data'),
                     },
+                    // The engine's spec package (built by `npm run build` in packages/engine):
+                    // server/engine-host.ts loads dist/data/engine/ck3-spec.json.gz.
+                    {
+                        from: path.resolve(__dirname, '..', 'packages', 'engine', 'dist', 'data'),
+                        to: path.resolve(__dirname, 'dist', 'data', 'engine'),
+                    },
                 ],
             }),
         ],

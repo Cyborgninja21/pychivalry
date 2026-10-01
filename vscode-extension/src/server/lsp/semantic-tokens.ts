@@ -1,6 +1,10 @@
 /**
- * Semantic Tokens Provider - Context-aware syntax highlighting with scope coloring
- * Provides rich semantic highlighting based on CK3 script context
+ * Semantic Tokens Provider - context-aware highlighting from the engine (pychivalry-engine)
+ *
+ * Keys are classified by the spec package's buckets (effects as functions, triggers as
+ * macros, the structural logical operators as keywords) and block bodies take their
+ * trigger/effect context from the engine's context tracker (blockContexts), the same
+ * reading the registry check uses.
  */
 
 import {
@@ -9,9 +13,21 @@ import {
     SemanticTokensLegend,
 } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { CK3Parser, ASTNode, NodeType } from '../core/parser';
-import { CK3Language } from '../ck3/language';
-import { classifyContext } from '../ck3/validation/context-engine';
+import {
+    ASTNode,
+    BlockContext,
+    blockContexts,
+    CK3Parser,
+    NodeType,
+    pathToUri,
+    Spec,
+    STRUCTURAL,
+    uriToPath,
+    Workspace,
+} from 'pychivalry-engine';
+
+/** The logical operators among the engine's structural keywords. */
+const LOGICAL_OPERATORS = new Set(['AND', 'OR', 'NOT', 'NOR', 'NAND']);
 
 /**
  * Token type indices (must match legend registration order)
@@ -92,10 +108,40 @@ export class SemanticTokensProvider {
             'modification',
             'documentation',
             'defaultLibrary',
-        ]
+        ],
     };
 
-    constructor(private ck3Parser: CK3Parser) {}
+    /** Block contexts of the document being tokenized (engine context tracker). */
+    private contexts = new Map<ASTNode[], BlockContext>();
+
+    constructor(
+        private ck3Parser: CK3Parser,
+        private workspace: Workspace
+    ) {}
+
+    private get spec(): Spec {
+        return this.workspace.spec;
+    }
+
+    private isEffect(key: string): boolean {
+        return this.spec.has(key, 'effects');
+    }
+
+    private isTrigger(key: string): boolean {
+        return this.spec.has(key, 'triggers');
+    }
+
+    /** Read the document's block contexts with the engine before walking it. */
+    private loadContexts(doc: TextDocument, ast: ASTNode): void {
+        const file = uriToPath(doc.uri);
+        this.contexts = blockContexts({
+            spec: this.spec,
+            workspace: this.workspace,
+            file: this.workspace.relativePath(file),
+            uri: pathToUri(file),
+            ast,
+        });
+    }
 
     /**
      * Get token legend for registration
@@ -109,8 +155,9 @@ export class SemanticTokensProvider {
      */
     public async generateSemanticTokens(doc: TextDocument): Promise<SemanticTokens> {
         const parseResult = this.ck3Parser.parse(doc.getText());
+        this.loadContexts(doc, parseResult.ast);
         const tokenBuilder = new SemanticTokensBuilder();
-        
+
         const initialContext: SemanticContext = {
             isEffectBlock: false,
             isTriggerBlock: false,
@@ -181,7 +228,9 @@ export class SemanticTokensProvider {
     private createNodeContext(node: ASTNode, parentContext: SemanticContext): SemanticContext {
         const newContext: SemanticContext = { ...parentContext };
 
-        if (!node.key) return newContext;
+        if (!node.key) {
+            return newContext;
+        }
 
         // Update context based on node key
         if (node.key.includes('.') && /^\w+\.\d+$/.test(node.key)) {
@@ -190,24 +239,13 @@ export class SemanticTokensProvider {
             newContext.isTriggerBlock = false;
         } else if (/_decision$/.test(node.key)) {
             newContext.isDecisionBlock = true;
-        } else if (CK3Language.isEffect(node.key)) {
-            newContext.isEffectBlock = true;
-            newContext.isTriggerBlock = false;
-        } else if (CK3Language.isTrigger(node.key)) {
-            newContext.isTriggerBlock = true;
-            newContext.isEffectBlock = false;
-        } else {
-            // Fallback: use context engine for keys not in effect/trigger lists
-            const ctx = classifyContext([], node.key, '');
-            if (ctx.confidence !== 'low') {
-                if (ctx.context === 'effect') {
-                    newContext.isEffectBlock = true;
-                    newContext.isTriggerBlock = false;
-                } else if (ctx.context === 'trigger') {
-                    newContext.isTriggerBlock = true;
-                    newContext.isEffectBlock = false;
-                }
-            }
+        }
+
+        // The engine's reading of this node's block body decides its context.
+        const body = node.children ? this.contexts.get(node.children) : undefined;
+        if (body) {
+            newContext.isEffectBlock = body.kind === 'effect';
+            newContext.isTriggerBlock = body.kind === 'trigger';
         }
 
         // Track parent key for context
@@ -231,7 +269,9 @@ export class SemanticTokensProvider {
         builder: SemanticTokensBuilder,
         context: SemanticContext
     ): void {
-        if (!node.key) return;
+        if (!node.key) {
+            return;
+        }
 
         const tokenClassification = this.classifyKey(node.key, context);
         const modifierMask = this.calculateModifierMask(node, context);
@@ -258,17 +298,20 @@ export class SemanticTokensProvider {
         }
 
         // Logical operators (AND, OR, NOT, NOR, NAND) — keyword highlighting
-        if (CK3Language.isLogicalOperator(keyName)) {
+        if (LOGICAL_OPERATORS.has(keyName) || STRUCTURAL.has(keyName)) {
             return { type: TokenTypeIndex.KEYWORD, description: 'Logical operator' };
         }
 
-        // CK3 Effects
-        if (CK3Language.isEffect(keyName)) {
+        // CK3 effects (by the block context first for names in both buckets)
+        if (context.isTriggerBlock && this.isTrigger(keyName)) {
+            return { type: TokenTypeIndex.MACRO, description: 'CK3 trigger' };
+        }
+        if (this.isEffect(keyName)) {
             return { type: TokenTypeIndex.FUNCTION, description: 'CK3 effect' };
         }
 
         // CK3 Triggers
-        if (CK3Language.isTrigger(keyName)) {
+        if (this.isTrigger(keyName)) {
             return { type: TokenTypeIndex.MACRO, description: 'CK3 trigger' };
         }
 
@@ -332,26 +375,26 @@ export class SemanticTokensProvider {
 
         // Mark declarations
         if (node.key && context.isEventBlock && node.key.includes('.')) {
-            mask |= (1 << TokenModifierBit.DECLARATION);
+            mask |= 1 << TokenModifierBit.DECLARATION;
         }
 
         if (node.key === 'save_scope_as' || node.key === 'save_temporary_scope_as') {
-            mask |= (1 << TokenModifierBit.DECLARATION);
+            mask |= 1 << TokenModifierBit.DECLARATION;
         }
 
         // Mark readonly (triggers are readonly conditions)
-        if (context.isTriggerBlock && node.key && CK3Language.isTrigger(node.key)) {
-            mask |= (1 << TokenModifierBit.READONLY);
+        if (context.isTriggerBlock && node.key && this.isTrigger(node.key)) {
+            mask |= 1 << TokenModifierBit.READONLY;
         }
 
         // Mark modifications (effects modify game state)
-        if (context.isEffectBlock && node.key && CK3Language.isEffect(node.key)) {
-            mask |= (1 << TokenModifierBit.MODIFICATION);
+        if (context.isEffectBlock && node.key && this.isEffect(node.key)) {
+            mask |= 1 << TokenModifierBit.MODIFICATION;
         }
 
         // Mark default library (built-in CK3 functions)
-        if (node.key && (CK3Language.isEffect(node.key) || CK3Language.isTrigger(node.key))) {
-            mask |= (1 << TokenModifierBit.DEFAULT_LIBRARY);
+        if (node.key && (this.isEffect(node.key) || this.isTrigger(node.key))) {
+            mask |= 1 << TokenModifierBit.DEFAULT_LIBRARY;
         }
 
         return mask;
@@ -365,7 +408,9 @@ export class SemanticTokensProvider {
         builder: SemanticTokensBuilder,
         documentLines: string[]
     ): void {
-        if (node.value === undefined || node.value === null) return;
+        if (node.value === undefined || node.value === null) {
+            return;
+        }
 
         // Calculate value position (approximate - after key and operator)
         const valueStr = String(node.value);
@@ -374,8 +419,10 @@ export class SemanticTokensProvider {
         // Find value position in text (search after '=')
         const lineText = this.getLineText(documentLines, node.range.start.line);
         const valueStart = lineText.indexOf(valueStr, keyEndOffset);
-        
-        if (valueStart === -1) return;
+
+        if (valueStart === -1) {
+            return;
+        }
 
         let tokenType: TokenTypeIndex;
 
@@ -396,13 +443,7 @@ export class SemanticTokensProvider {
             tokenType = TokenTypeIndex.STRING;
         }
 
-        builder.push(
-            node.range.start.line,
-            valueStart,
-            valueStr.length,
-            tokenType,
-            0
-        );
+        builder.push(node.range.start.line, valueStart, valueStr.length, tokenType, 0);
     }
 
     /**
@@ -413,14 +454,18 @@ export class SemanticTokensProvider {
         builder: SemanticTokensBuilder,
         documentLines: string[]
     ): void {
-        if (!node.operator) return;
+        if (!node.operator) {
+            return;
+        }
 
         // Find operator position (between key and value)
         const lineText = this.getLineText(documentLines, node.range.start.line);
         const keyEndPos = node.range.start.character + (node.key?.length || 0);
         const operatorPos = lineText.indexOf(node.operator, keyEndPos);
 
-        if (operatorPos === -1) return;
+        if (operatorPos === -1) {
+            return;
+        }
 
         builder.push(
             node.range.start.line,
@@ -436,7 +481,7 @@ export class SemanticTokensProvider {
      */
     private emitCommentToken(node: ASTNode, builder: SemanticTokensBuilder): void {
         const commentText = String(node.value || '');
-        
+
         builder.push(
             node.range.start.line,
             node.range.start.character,
@@ -458,9 +503,13 @@ export class SemanticTokensProvider {
      */
     public async generateRangeSemanticTokens(
         doc: TextDocument,
-        range: { start: { line: number; character: number }; end: { line: number; character: number } }
+        range: {
+            start: { line: number; character: number };
+            end: { line: number; character: number };
+        }
     ): Promise<SemanticTokens> {
         const parseResult = this.ck3Parser.parse(doc.getText());
+        this.loadContexts(doc, parseResult.ast);
         const tokenBuilder = new SemanticTokensBuilder();
 
         const initialContext: SemanticContext = {
@@ -474,7 +523,13 @@ export class SemanticTokensProvider {
 
         const documentText = doc.getText();
         const documentLines = documentText.split('\n');
-        this.processASTForTokensInRange(parseResult.ast, tokenBuilder, initialContext, documentLines, range);
+        this.processASTForTokensInRange(
+            parseResult.ast,
+            tokenBuilder,
+            initialContext,
+            documentLines,
+            range
+        );
 
         return tokenBuilder.build();
     }
@@ -487,7 +542,10 @@ export class SemanticTokensProvider {
         tokenBuilder: SemanticTokensBuilder,
         context: SemanticContext,
         documentLines: string[],
-        range: { start: { line: number; character: number }; end: { line: number; character: number } }
+        range: {
+            start: { line: number; character: number };
+            end: { line: number; character: number };
+        }
     ): void {
         if (!astNode.children || astNode.children.length === 0) {
             return;
@@ -504,7 +562,10 @@ export class SemanticTokensProvider {
             }
 
             if (childNode.type === NodeType.COMMENT) {
-                if (childNode.range.start.line >= range.start.line && childNode.range.start.line <= range.end.line) {
+                if (
+                    childNode.range.start.line >= range.start.line &&
+                    childNode.range.start.line <= range.end.line
+                ) {
                     this.emitCommentToken(childNode, tokenBuilder);
                 }
                 continue;
@@ -517,7 +578,10 @@ export class SemanticTokensProvider {
             const nodeContext = this.createNodeContext(childNode, context);
 
             // Only emit tokens for nodes whose start line falls within the range
-            if (childNode.range.start.line >= range.start.line && childNode.range.start.line <= range.end.line) {
+            if (
+                childNode.range.start.line >= range.start.line &&
+                childNode.range.start.line <= range.end.line
+            ) {
                 this.emitKeyToken(childNode, tokenBuilder, nodeContext);
 
                 if (childNode.value !== undefined) {
@@ -531,7 +595,13 @@ export class SemanticTokensProvider {
 
             // Recurse into children that may overlap with the range
             if (childNode.children) {
-                this.processASTForTokensInRange(childNode, tokenBuilder, nodeContext, documentLines, range);
+                this.processASTForTokensInRange(
+                    childNode,
+                    tokenBuilder,
+                    nodeContext,
+                    documentLines,
+                    range
+                );
             }
         }
     }

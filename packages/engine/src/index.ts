@@ -26,7 +26,9 @@ export type { ModDescriptor, WorkspaceFolder, WorkspaceOptions } from './index/w
 export { LocalizationIndex, isLocalizationFile } from './index/localization';
 export type { LocalizationEntry } from './index/localization';
 
-export { checkRegistry } from './check/registry';
+export { checkRegistry, blockContexts } from './check/registry';
+export { contextAt } from './check/context';
+export type { BlockContext, PositionContext } from './check/context';
 export { checkSchema } from './check/schema';
 export { checkScope, scopeValidity } from './check/scope';
 export { STRUCTURAL, ITERATOR_PARAMS, MODIFIER_BLOCK_PARAMS } from './check/structural';

@@ -3,27 +3,28 @@
  */
 
 import * as assert from 'assert';
-import { CK3Parser } from '../../server/core/parser';
-import { DocumentIndexer, SymbolType } from '../../server/core/indexer';
-import { SchemaLoader } from '../../server/schema/loader';
+import * as path from 'path';
+import { CK3Parser, defaultSpec, Indexer, SymbolType, Workspace } from 'pychivalry-engine';
 import { CompletionProvider } from '../../server/lsp/completions';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { Position, CompletionItemKind } from 'vscode-languageserver/node';
+import { Position } from 'vscode-languageserver/node';
 
 describe('CompletionProvider', () => {
     let parser: CK3Parser;
-    let indexer: DocumentIndexer;
-    let schemaLoader: SchemaLoader;
+    let indexer: Indexer;
     let provider: CompletionProvider;
 
     beforeEach(() => {
-        parser = new CK3Parser();
-        indexer = new DocumentIndexer();
-        schemaLoader = new SchemaLoader();
-        provider = new CompletionProvider(parser, indexer, schemaLoader);
+        parser = new CK3Parser({ spec: defaultSpec() });
+        const workspace = new Workspace(path.resolve('/mod'));
+        indexer = workspace.index;
+        provider = new CompletionProvider(parser, workspace);
     });
 
-    function createDocument(content: string, uri: string = 'file:///test/events/test.txt'): TextDocument {
+    function createDocument(
+        content: string,
+        uri: string = 'file:///test/events/test.txt'
+    ): TextDocument {
         return TextDocument.create(uri, 'ck3', 1, content);
     }
 
@@ -52,7 +53,7 @@ describe('CompletionProvider', () => {
                 '\timmediate = {',
                 '\t\tsave_scope_as = my_target',
                 '\t}',
-                '}'
+                '}',
             ].join('\n');
             const eventResult = parser.parse(eventText);
             await indexer.indexDocument('file:///mod/events/events.txt', eventResult.ast);
@@ -60,7 +61,10 @@ describe('CompletionProvider', () => {
             // Verify the scope was indexed
             const scopes = indexer.findSymbolsByType(SymbolType.SCOPE);
             assert.ok(scopes.length > 0, 'Should have indexed at least one scope');
-            assert.ok(scopes.some(s => s.name === 'my_target'), 'Should have indexed my_target scope');
+            assert.ok(
+                scopes.some((s) => s.name === 'my_target'),
+                'Should have indexed my_target scope'
+            );
 
             // Now create a document where user is typing scope:
             const content = 'scope:';
@@ -68,7 +72,7 @@ describe('CompletionProvider', () => {
             const completions = await provider.provideCompletions(doc, Position.create(0, 6));
 
             // Check that we get scope completions
-            const scopeCompletions = completions.filter(c => c.label === 'my_target');
+            const scopeCompletions = completions.filter((c) => c.label === 'my_target');
             assert.ok(scopeCompletions.length > 0, 'Should suggest saved scope "my_target"');
         });
 
@@ -84,7 +88,7 @@ describe('CompletionProvider', () => {
             const doc = createDocument(content, 'file:///mod/events/test.txt');
             const completions = await provider.provideCompletions(doc, Position.create(0, 6));
 
-            const scopeCompletions = completions.filter(c => c.label === 'shared_scope');
+            const scopeCompletions = completions.filter((c) => c.label === 'shared_scope');
             assert.strictEqual(scopeCompletions.length, 1, 'Should deduplicate scope completions');
         });
     });
@@ -105,6 +109,68 @@ describe('CompletionProvider', () => {
         });
     });
 
+    describe('engine-driven key completions (4.2)', () => {
+        const EVENT = [
+            'namespace = my_events',
+            'my_events.0001 = {',
+            '\ttrigger = {',
+            '\t\t',
+            '\t}',
+            '\timmediate = {',
+            '\t\t',
+            '\t}',
+            '\t',
+            '}',
+        ].join('\n');
+
+        it('offers triggers, any_ iterators and structural keywords in a trigger block', async () => {
+            const doc = createDocument(EVENT, 'file:///mod/events/test.txt');
+            const labels = (await provider.provideCompletions(doc, Position.create(3, 2))).map(
+                (c) => c.label
+            );
+            assert.ok(labels.includes('is_adult'), 'trigger is_adult');
+            assert.ok(labels.includes('any_vassal'), 'iterator any_vassal');
+            assert.ok(labels.includes('limit') && labels.includes('OR'), 'structural keywords');
+            assert.ok(!labels.includes('add_gold'), 'no effects in a trigger block');
+            assert.ok(!labels.includes('every_vassal'), 'no effect iterators in a trigger block');
+        });
+
+        it('offers effects and every_/random_/ordered_ iterators in an effect block', async () => {
+            const doc = createDocument(EVENT, 'file:///mod/events/test.txt');
+            const labels = (await provider.provideCompletions(doc, Position.create(6, 2))).map(
+                (c) => c.label
+            );
+            assert.ok(labels.includes('add_gold'), 'effect add_gold');
+            assert.ok(labels.includes('every_vassal') && labels.includes('random_vassal'));
+            assert.ok(!labels.includes('is_adult'), 'no trigger-only names in an effect block');
+            assert.ok(!labels.includes('any_vassal'), 'no any_ iterators in an effect block');
+        });
+
+        it('offers the directory schema fields inside a record', async () => {
+            const doc = createDocument(EVENT, 'file:///mod/events/test.txt');
+            const labels = (await provider.provideCompletions(doc, Position.create(8, 1))).map(
+                (c) => c.label
+            );
+            for (const field of ['option', 'immediate', 'trigger', 'after']) {
+                assert.ok(labels.includes(field), `field ${field}`);
+            }
+            assert.ok(!labels.includes('add_gold'), 'a record body is not an effect block');
+        });
+
+        it('resolves the engine doc string verbatim', async () => {
+            const doc = createDocument(EVENT, 'file:///mod/events/test.txt');
+            const items = await provider.provideCompletions(doc, Position.create(6, 2));
+            const addGold = items.find((c) => c.label === 'add_gold');
+            assert.ok(addGold);
+            const resolved = await provider.resolveCompletion(addGold);
+            const value =
+                typeof resolved.documentation === 'string'
+                    ? resolved.documentation
+                    : resolved.documentation?.value ?? '';
+            assert.ok(value.includes(defaultSpec().doc('add_gold', 'effects') ?? '<none>'));
+        });
+    });
+
     describe('general robustness', () => {
         it('should not crash on empty document', async () => {
             const doc = createDocument('');
@@ -121,7 +187,10 @@ describe('CompletionProvider', () => {
         it('should not crash with cursor at end of document', async () => {
             const content = 'test = yes';
             const doc = createDocument(content);
-            const completions = await provider.provideCompletions(doc, Position.create(0, content.length));
+            const completions = await provider.provideCompletions(
+                doc,
+                Position.create(0, content.length)
+            );
             assert.ok(Array.isArray(completions), 'Should return array at document end');
         });
 
