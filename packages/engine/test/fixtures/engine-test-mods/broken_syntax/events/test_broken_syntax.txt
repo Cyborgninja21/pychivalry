@@ -1,0 +1,71 @@
+# Test mod for triggering parser syntax errors
+# Load this mod and watch error.log for parser messages
+# Use with x64dbg breakpoints on error strings
+
+namespace = re_broken_syntax
+
+# ERROR 1: Missing equals sign
+re_broken_syntax.0001 = {
+	type = character_event
+	title  re_broken_syntax.0001.t    # <-- INTENTIONAL: Missing =
+	desc = re_broken_syntax.0001.desc
+
+	trigger = {
+		is_alive = yes
+	}
+
+	option = {
+		name = re_broken_syntax.0001.a
+	}
+}
+
+# ERROR 2: Unclosed brace
+re_broken_syntax.0002 = {
+	type = character_event
+	title = re_broken_syntax.0002.t
+	desc = re_broken_syntax.0002.desc
+
+	trigger = {
+		is_alive = yes
+	# <-- INTENTIONAL: Missing closing brace
+
+	option = {
+		name = re_broken_syntax.0002.a
+	}
+}
+
+# ERROR 3: Extra closing brace
+re_broken_syntax.0003 = {
+	type = character_event
+	title = re_broken_syntax.0003.t
+	desc = re_broken_syntax.0003.desc
+
+	trigger = {
+		is_alive = yes
+	}}  # <-- INTENTIONAL: Extra brace
+
+	option = {
+		name = re_broken_syntax.0003.a
+	}
+}
+
+# ERROR 4: Invalid assignment target
+re_broken_syntax.0004 = {
+	type = character_event
+	123 = invalid_number_key    # <-- INTENTIONAL: Number as key
+	title = re_broken_syntax.0004.t
+
+	option = {
+		name = re_broken_syntax.0004.a
+	}
+}
+
+# ERROR 5: Malformed string
+re_broken_syntax.0005 = {
+	type = character_event
+	title = "unclosed string    # <-- INTENTIONAL: Unclosed quote
+
+	option = {
+		name = re_broken_syntax.0005.a
+	}
+}

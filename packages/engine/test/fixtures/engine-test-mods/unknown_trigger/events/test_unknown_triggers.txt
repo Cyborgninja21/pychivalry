@@ -1,0 +1,57 @@
+# Test mod for triggering "unknown trigger" errors
+# These trigger names are intentionally made up to trigger error messages
+
+namespace = re_unknown_trigger
+
+re_unknown_trigger.0001 = {
+	type = character_event
+	title = re_unknown_trigger.0001.t
+	desc = re_unknown_trigger.0001.desc
+
+	trigger = {
+		# Valid trigger for context
+		is_alive = yes
+
+		# INTENTIONAL: Made-up trigger names to trigger registry lookup errors
+		this_trigger_does_not_exist_at_all = yes
+		completely_fake_trigger_name = yes
+		is_definitely_not_a_real_trigger = yes
+		has_nonexistent_trait_modifier = yes
+		any_made_up_scope_trigger = {
+			fake_nested_trigger = yes
+		}
+	}
+
+	option = {
+		name = re_unknown_trigger.0001.a
+	}
+}
+
+re_unknown_trigger.0002 = {
+	type = character_event
+	title = re_unknown_trigger.0002.t
+	desc = re_unknown_trigger.0002.desc
+
+	trigger = {
+		# Test variations of trigger patterns
+		xyzzy_completely_random = yes
+		test_numbered_trigger_99 = yes
+		UPPERCASE_TRIGGER = yes
+		MixedCase_Trigger = yes
+
+		# Lists with fake triggers
+		OR = {
+			fake_or_trigger_1 = yes
+			fake_or_trigger_2 = yes
+		}
+
+		AND = {
+			fake_and_trigger_1 = yes
+			fake_and_trigger_2 = no
+		}
+	}
+
+	option = {
+		name = re_unknown_trigger.0002.a
+	}
+}

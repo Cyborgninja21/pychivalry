@@ -1,0 +1,84 @@
+# Test mod for triggering "unknown effect" errors
+# These effect names are intentionally made up to trigger error messages
+
+namespace = re_unknown_effect
+
+re_unknown_effect.0001 = {
+	type = character_event
+	title = re_unknown_effect.0001.t
+	desc = re_unknown_effect.0001.desc
+
+	trigger = {
+		is_alive = yes
+	}
+
+	immediate = {
+		# INTENTIONAL: Made-up effect names to trigger registry lookup errors
+		this_effect_does_not_exist_at_all = yes
+		completely_fake_effect_name = yes
+		add_nonexistent_resource = 100
+		remove_fake_modifier = yes
+		set_imaginary_flag = yes
+
+		# Fake scoped effects
+		random_fake_scope = {
+			limit = {
+				is_alive = yes
+			}
+			another_fake_nested_effect = yes
+		}
+	}
+
+	option = {
+		name = re_unknown_effect.0001.a
+
+		# Effects in options
+		trigger_nonexistent_event = {
+			id = fake.9999
+		}
+
+		give_fake_claim = {
+			target = root
+		}
+	}
+}
+
+re_unknown_effect.0002 = {
+	type = character_event
+	title = re_unknown_effect.0002.t
+	desc = re_unknown_effect.0002.desc
+
+	trigger = {
+		is_alive = yes
+	}
+
+	immediate = {
+		# Test variations of effect patterns
+		xyzzy_random_effect = yes
+		test_numbered_effect_99 = yes
+		UPPERCASE_EFFECT = yes
+		MixedCase_Effect = yes
+
+		# Hidden effect with fakes
+		hidden_effect = {
+			fake_hidden_effect_1 = yes
+			fake_hidden_effect_2 = {
+				target = root
+				value = 50
+			}
+		}
+
+		# Show as tooltip with fakes
+		show_as_tooltip = {
+			fake_tooltip_effect = yes
+		}
+	}
+
+	option = {
+		name = re_unknown_effect.0002.a
+		# Valid effect for comparison
+		add_gold = 100
+		# Invalid effect
+		add_platinum = 100
+	}
+}

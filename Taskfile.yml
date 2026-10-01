@@ -45,6 +45,27 @@ tasks:
     cmds:
       - npm run watch
 
+  # ─── Engine core (packages/engine) ──────────────────────────────
+
+  engine:build:
+    desc: Build pychivalry-engine (packages/engine) and bundle its CK3 spec package
+    dir: packages/engine
+    cmds:
+      - npm run build
+
+  engine:test:
+    desc: Build and run the engine's unit, golden, corpus and CLI tests
+    dir: packages/engine
+    cmds:
+      - npm test
+
+  engine:check:
+    desc: Lint and format-check the engine package
+    dir: packages/engine
+    cmds:
+      - npm run lint
+      - npm run format:check
+
   # ─── Testing ────────────────────────────────────────────────────
 
   test:

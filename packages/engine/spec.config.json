@@ -1,0 +1,5 @@
+{
+    "spec": "spec/ck3-spec-1.20.0.2.json.gz",
+    "sha256": "spec/ck3-spec-1.20.0.2.sha256",
+    "schema": "spec/schema.json"
+}

@@ -1,0 +1,39 @@
+{
+    "root": true,
+    "env": {
+        "es6": true,
+        "node": true
+    },
+    "extends": [
+        "eslint:recommended",
+        "plugin:@typescript-eslint/recommended"
+    ],
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+        "ecmaVersion": 2020,
+        "sourceType": "module"
+    },
+    "plugins": [
+        "@typescript-eslint"
+    ],
+    "rules": {
+        "@typescript-eslint/naming-convention": [
+            "warn",
+            { "selector": "default", "format": ["camelCase"], "leadingUnderscore": "allow" },
+            { "selector": "variable", "format": ["camelCase", "UPPER_CASE"] },
+            { "selector": "typeLike", "format": ["PascalCase"] },
+            { "selector": "enumMember", "format": ["UPPER_CASE"] },
+            { "selector": ["property", "objectLiteralProperty", "typeProperty"], "format": null },
+            { "selector": "import", "format": null }
+        ],
+        "@typescript-eslint/semi": "warn",
+        "@typescript-eslint/no-explicit-any": "error",
+        "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
+        "curly": "warn",
+        "eqeqeq": "warn",
+        "no-throw-literal": "warn",
+        "no-var": "error",
+        "no-console": "error",
+        "semi": "off"
+    }
+}

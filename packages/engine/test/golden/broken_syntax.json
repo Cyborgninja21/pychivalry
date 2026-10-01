@@ -1,0 +1,54 @@
+{
+    "mod": "broken_syntax",
+    "derivation": "Written by hand from the fixture's five intentional errors and how the engine's reader propagates them; not copied from a run.",
+    "diagnostics": [
+        {
+            "file": "events/test_broken_syntax.txt",
+            "line": 10,
+            "code": "unexpected_token_X_found_at_X_expected",
+            "severity": "error",
+            "message": "Unexpected token 're_broken_syntax.0001.t' found at 'events/test_broken_syntax.txt:10', '=' expected",
+            "why": "ERROR 1: `title  re_broken_syntax.0001.t` has no '='; the reader takes `title` as a key and finds the next token where '=' belongs"
+        },
+        {
+            "file": "events/test_broken_syntax.txt",
+            "line": 32,
+            "code": "unknown_trigger_X",
+            "severity": "error",
+            "message": "Unknown trigger 'option'",
+            "why": "ERROR 2: the trigger block opened on line 28 is never closed, so `option` is read as a trigger"
+        },
+        {
+            "file": "events/test_broken_syntax.txt",
+            "line": 38,
+            "code": "unknown_X_in_X",
+            "severity": "warning",
+            "message": "Unknown 're_broken_syntax.0003' in event 're_broken_syntax.0002'",
+            "why": "ERROR 2 continued: event 0002's own '}' closes the trigger block, so event 0003 is read as a field of event 0002"
+        },
+        {
+            "file": "events/test_broken_syntax.txt",
+            "line": 55,
+            "code": "unknown_X_in_X",
+            "severity": "warning",
+            "message": "Unknown '123' in event 're_broken_syntax.0004'",
+            "why": "ERROR 4: a number is a legal key in the grammar (random_list weights, history dates); in an event it is an unknown field. ERROR 3's extra '}' closes event 0002 and cancels ERROR 2's missing one, so no brace error is reported for either"
+        },
+        {
+            "file": "events/test_broken_syntax.txt",
+            "line": 64,
+            "code": "expected_after_arguments",
+            "severity": "error",
+            "message": "Expected } after arguments",
+            "why": "ERROR 5 consequence: the unterminated string runs to the end of the file, so event 0005's block (opened on line 64) is never closed"
+        },
+        {
+            "file": "events/test_broken_syntax.txt",
+            "line": 66,
+            "code": "PYCH-P001",
+            "severity": "error",
+            "message": "Unterminated string starting at 'events/test_broken_syntax.txt:66'",
+            "why": "ERROR 5: the quoted string has no closing quote; the catalogue has no engine text for this, hence the package-local id"
+        }
+    ]
+}
