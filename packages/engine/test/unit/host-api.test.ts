@@ -11,6 +11,7 @@ import { contextAt } from '../../src/check/context';
 import { diagnose, PluginContext } from '../../src/diagnostics';
 import { isLocalizationFile, LocalizationIndex } from '../../src/index/localization';
 import { pathToUri, Workspace } from '../../src/index/workspace';
+import { Indexer, SymbolType } from '../../src/index/indexer';
 import { CK3Parser } from '../../src/syntax/parser';
 import { defaultSpec, loadSpec, packageRoot, setDefaultSpec } from '../../src/spec';
 
@@ -191,5 +192,54 @@ describe('Host API: diagnose options and plug-in context', () => {
         const mine = result.find((d) => d.code === 'TEST-1');
         assert.strictEqual(mine?.source, 'plugin');
         assert.deepStrictEqual(workspace.index.getIndexedUris(), ['file:///editor/spelling/p.txt']);
+    });
+});
+
+describe('Host API: index queries for the extension commands', () => {
+    const parser = new CK3Parser();
+    const A = [
+        'namespace = chain',
+        'chain.1 = {',
+        '\ttype = character_event',
+        '\ttitle = chain.1.t',
+        '\tdesc = chain.1.desc',
+        '\timmediate = { trigger_event = chain.2 }',
+        '\toption = {',
+        '\t\tname = chain.1.a',
+        '\t\ttrigger_event = { id = chain.3 days = 2 }',
+        '\t}',
+        '}',
+    ].join('\n');
+    const B = 'chain.2 = {\n\ttype = character_event\n\ttitle = chain.2.t\n}\n';
+
+    it('getEventChain lists the events an event triggers', () => {
+        const index = new Indexer();
+        index.indexSync('file:///m/events/a.txt', parser.parse(A).ast);
+        assert.deepStrictEqual(index.getEventChain('chain.1').sort(), ['chain.2', 'chain.3']);
+        assert.deepStrictEqual(index.getEventChain('nope.1'), []);
+    });
+
+    it('getLocalizationKeys collects the events keys', () => {
+        const index = new Indexer();
+        index.indexSync('file:///m/events/a.txt', parser.parse(A).ast);
+        const keys = index.getLocalizationKeys();
+        for (const key of ['chain.1.t', 'chain.1.desc', 'chain.1.a']) {
+            assert.ok(keys.includes(key), `${key} in ${keys.join(', ')}`);
+        }
+    });
+
+    it('getUndefinedReferences resolves late definitions and forgets removed files', () => {
+        const index = new Indexer();
+        index.indexSync('file:///m/events/a.txt', parser.parse(A).ast);
+        const before = index.getUndefinedReferences().map((r) => r.name);
+        assert.deepStrictEqual(before, ['chain.2', 'chain.3']);
+        assert.strictEqual(index.getUndefinedReferences()[0].type, SymbolType.EVENT);
+        index.indexSync('file:///m/events/b.txt', parser.parse(B).ast);
+        assert.deepStrictEqual(
+            index.getUndefinedReferences().map((r) => r.name),
+            ['chain.3']
+        );
+        index.removeDocument('file:///m/events/a.txt');
+        assert.deepStrictEqual(index.getUndefinedReferences(), []);
     });
 });

@@ -17,7 +17,7 @@ import {
     DEFAULT_STYLE_CONFIG,
     StyleConfig,
 } from '../../server/ck3/validation/style-checks';
-import { CK3Parser, ASTNode, NodeType } from '../../server/core/parser';
+import { CK3Parser, ASTNode, NodeType } from 'pychivalry-engine';
 
 function makeConfig(overrides: Partial<StyleConfig> = {}): StyleConfig {
     return { ...DEFAULT_STYLE_CONFIG, ...overrides };
@@ -29,26 +29,25 @@ function parseAST(text: string): ASTNode {
 }
 
 describe('Style Checks', () => {
-
     describe('checkIndentation()', () => {
         it('should flag space indentation when tabs preferred', () => {
             const text = '    key = value';
             const diags = checkIndentation(text, makeConfig({ preferTabs: true }));
             assert.ok(diags.length > 0, 'Should flag space indentation');
-            assert.ok(diags.some(d => d.code === 'CK3303'));
+            assert.ok(diags.some((d) => d.code === 'CK3303'));
         });
 
         it('should not flag tab indentation when tabs preferred', () => {
             const text = '\tkey = value';
             const diags = checkIndentation(text, makeConfig({ preferTabs: true }));
-            const spaceFlags = diags.filter(d => d.code === 'CK3303');
+            const spaceFlags = diags.filter((d) => d.code === 'CK3303');
             assert.strictEqual(spaceFlags.length, 0);
         });
 
         it('should flag mixed tabs and spaces', () => {
             const text = '\t key = value';
             const diags = checkIndentation(text, makeConfig());
-            assert.ok(diags.some(d => d.code === 'CK3301'));
+            assert.ok(diags.some((d) => d.code === 'CK3301'));
         });
 
         it('should return empty when indentation checking disabled', () => {
@@ -68,13 +67,13 @@ describe('Style Checks', () => {
         it('should flag trailing spaces', () => {
             const text = 'key = value   ';
             const diags = checkTrailingWhitespace(text, makeConfig());
-            assert.ok(diags.some(d => d.code === 'CK3304'));
+            assert.ok(diags.some((d) => d.code === 'CK3304'));
         });
 
         it('should flag trailing tabs', () => {
             const text = 'key = value\t\t';
             const diags = checkTrailingWhitespace(text, makeConfig());
-            assert.ok(diags.some(d => d.code === 'CK3304'));
+            assert.ok(diags.some((d) => d.code === 'CK3304'));
         });
 
         it('should not flag clean lines', () => {
@@ -94,7 +93,7 @@ describe('Style Checks', () => {
         it('should flag lines exceeding max length', () => {
             const text = 'a'.repeat(130);
             const diags = checkLineLength(text, makeConfig({ maxLineLength: 120 }));
-            assert.ok(diags.some(d => d.code === 'CK3316'));
+            assert.ok(diags.some((d) => d.code === 'CK3316'));
         });
 
         it('should not flag lines within max length', () => {
@@ -115,7 +114,7 @@ describe('Style Checks', () => {
         it('should flag operators without spaces', () => {
             const text = 'key=value';
             const diags = checkOperatorSpacing(text, makeConfig());
-            assert.ok(diags.some(d => d.code === 'CK3306'));
+            assert.ok(diags.some((d) => d.code === 'CK3306'));
         });
 
         it('should not flag operators with spaces', () => {
@@ -135,18 +134,15 @@ describe('Style Checks', () => {
         it('should flag empty blocks', () => {
             const ast = parseAST('trigger = { }');
             const diags = checkEmptyBlocks(ast, makeConfig());
-            // The parser may create a BLOCK or LIST node; only BLOCK is flagged
-            // Check if any empty block was flagged
-            const emptyBlockFlags = diags.filter(d => d.code === 'CK3314');
-            // This depends on parser output — empty blocks may be LIST or BLOCK
-            // Just verify no error is thrown
-            assert.ok(Array.isArray(diags));
+            // The engine parser reads `{ }` as an empty BLOCK, which the check flags.
+            const emptyBlockFlags = diags.filter((d) => d.code === 'CK3314');
+            assert.strictEqual(emptyBlockFlags.length, 1);
         });
 
         it('should not flag blocks with children', () => {
             const ast = parseAST('trigger = {\n\tis_alive = yes\n}');
             const diags = checkEmptyBlocks(ast, makeConfig());
-            const emptyBlockFlags = diags.filter(d => d.code === 'CK3314');
+            const emptyBlockFlags = diags.filter((d) => d.code === 'CK3314');
             assert.strictEqual(emptyBlockFlags.length, 0);
         });
 
@@ -159,17 +155,18 @@ describe('Style Checks', () => {
 
     describe('checkNestingDepth()', () => {
         it('should flag deeply nested blocks', () => {
-            const text = 'a = {\nb = {\nc = {\nd = {\ne = {\nf = {\ng = {\nh = yes\n}\n}\n}\n}\n}\n}\n}';
+            const text =
+                'a = {\nb = {\nc = {\nd = {\ne = {\nf = {\ng = {\nh = yes\n}\n}\n}\n}\n}\n}\n}';
             const ast = parseAST(text);
             const diags = checkNestingDepth(ast, makeConfig({ maxNestingDepth: 6 }));
-            assert.ok(diags.some(d => d.code === 'CK3317'));
+            assert.ok(diags.some((d) => d.code === 'CK3317'));
         });
 
         it('should not flag blocks within depth limit', () => {
             const text = 'a = {\nb = {\nc = yes\n}\n}';
             const ast = parseAST(text);
             const diags = checkNestingDepth(ast, makeConfig({ maxNestingDepth: 6 }));
-            const depthFlags = diags.filter(d => d.code === 'CK3317');
+            const depthFlags = diags.filter((d) => d.code === 'CK3317');
             assert.strictEqual(depthFlags.length, 0);
         });
     });
@@ -178,13 +175,13 @@ describe('Style Checks', () => {
         it('should flag unclosed braces', () => {
             const text = 'block = {\nkey = value';
             const diags = checkBraceMatching(text, makeConfig());
-            assert.ok(diags.some(d => d.code === 'CK3330'));
+            assert.ok(diags.some((d) => d.code === 'CK3330'));
         });
 
         it('should flag extra closing braces', () => {
             const text = 'key = value\n}';
             const diags = checkBraceMatching(text, makeConfig());
-            assert.ok(diags.some(d => d.code === 'CK3331'));
+            assert.ok(diags.some((d) => d.code === 'CK3331'));
         });
 
         it('should not flag matched braces', () => {
@@ -210,14 +207,14 @@ describe('Style Checks', () => {
         it('should flag unknown scope references', () => {
             const ast = parseAST('unknown_scope.something = yes');
             const diags = checkScopeReferences(ast, makeConfig());
-            const scopeFlags = diags.filter(d => d.code === 'CK3340');
+            const scopeFlags = diags.filter((d) => d.code === 'CK3340');
             assert.ok(scopeFlags.length > 0, 'Should flag unknown scope reference');
         });
 
         it('should not flag known scope references', () => {
             const ast = parseAST('root.primary_title = yes');
             const diags = checkScopeReferences(ast, makeConfig());
-            const scopeFlags = diags.filter(d => d.code === 'CK3340');
+            const scopeFlags = diags.filter((d) => d.code === 'CK3340');
             assert.strictEqual(scopeFlags.length, 0);
         });
 
@@ -227,29 +224,42 @@ describe('Style Checks', () => {
             const ast: ASTNode = {
                 type: NodeType.ROOT,
                 range: { start: { line: 0, character: 0 }, end: { line: 0, character: 10 } },
-                children: [{
-                    type: NodeType.ASSIGNMENT,
-                    key: 'root.',
-                    value: 'yes',
-                    range: { start: { line: 0, character: 0 }, end: { line: 0, character: 10 } },
-                }],
+                children: [
+                    {
+                        type: NodeType.ASSIGNMENT,
+                        key: 'root.',
+                        value: 'yes',
+                        range: {
+                            start: { line: 0, character: 0 },
+                            end: { line: 0, character: 10 },
+                        },
+                    },
+                ],
             };
             const diags = checkScopeReferences(ast, makeConfig());
-            assert.ok(diags.some(d => d.code === 'CK3341'));
+            assert.ok(diags.some((d) => d.code === 'CK3341'));
         });
 
         it('should not flag event IDs as scope references', () => {
             const ast = parseAST('adventure.0004 = { type = character_event }');
             const diags = checkScopeReferences(ast, makeConfig());
-            const scopeFlags = diags.filter(d => d.code === 'CK3340');
-            assert.strictEqual(scopeFlags.length, 0, 'Event ID should not be flagged as unknown scope');
+            const scopeFlags = diags.filter((d) => d.code === 'CK3340');
+            assert.strictEqual(
+                scopeFlags.length,
+                0,
+                'Event ID should not be flagged as unknown scope'
+            );
         });
 
         it('should not flag event IDs with underscores as scope references', () => {
             const ast = parseAST('my_mod_namespace.0042 = { type = character_event }');
             const diags = checkScopeReferences(ast, makeConfig());
-            const scopeFlags = diags.filter(d => d.code === 'CK3340');
-            assert.strictEqual(scopeFlags.length, 0, 'Event ID with underscores should not be flagged');
+            const scopeFlags = diags.filter((d) => d.code === 'CK3340');
+            assert.strictEqual(
+                scopeFlags.length,
+                0,
+                'Event ID with underscores should not be flagged'
+            );
         });
 
         it('should return empty when disabled', () => {
@@ -290,7 +300,10 @@ describe('Style Checks', () => {
             const fixed = autoFixStyle(text, makeConfig());
             const lines = fixed.split('\n');
             for (const line of lines) {
-                assert.ok(!line.match(/\s+$/), `Line should not have trailing whitespace: "${line}"`);
+                assert.ok(
+                    !line.match(/\s+$/),
+                    `Line should not have trailing whitespace: "${line}"`
+                );
             }
         });
 
@@ -305,17 +318,24 @@ describe('Style Checks', () => {
         it('should fix operator spacing', () => {
             const text = 'key=value';
             const fixed = autoFixStyle(text, makeConfig({ operatorSpacing: true }));
-            assert.ok(fixed.includes('key = value') || fixed.includes('key =value') || fixed.includes('key= value'),
-                'Should add spaces around operator');
+            assert.ok(
+                fixed.includes('key = value') ||
+                    fixed.includes('key =value') ||
+                    fixed.includes('key= value'),
+                'Should add spaces around operator'
+            );
         });
 
         it('should not modify when config disabled', () => {
             const text = '    key=value   ';
-            const fixed = autoFixStyle(text, makeConfig({
-                trailingWhitespace: false,
-                preferTabs: false,
-                operatorSpacing: false,
-            }));
+            const fixed = autoFixStyle(
+                text,
+                makeConfig({
+                    trailingWhitespace: false,
+                    preferTabs: false,
+                    operatorSpacing: false,
+                })
+            );
             assert.strictEqual(fixed, text);
         });
     });

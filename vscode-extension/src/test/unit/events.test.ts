@@ -6,7 +6,7 @@
  */
 
 import * as assert from 'assert';
-import { NodeType, ASTNode } from '../../server/core/parser';
+import { NodeType, ASTNode } from 'pychivalry-engine';
 import {
     EVENT_TYPES,
     PORTRAIT_POSITIONS,

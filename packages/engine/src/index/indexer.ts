@@ -34,6 +34,9 @@ const EVENT_TYPES: ReadonlySet<string> = new Set([
     'empty_event',
 ]);
 
+/** Key of an event record: `<namespace>.<number>`. */
+const EVENT_RECORD_ID = /^[A-Za-z_][A-Za-z0-9_-]*\.\d+$/;
+
 function isEventType(key: string): key is EventType {
     return EVENT_TYPES.has(key);
 }
@@ -78,6 +81,13 @@ export interface EventReference {
     toEvent: string;
     via: 'option' | 'immediate' | 'after';
     optionIndex?: number;
+}
+
+/** A reference to a name that no indexed symbol defines (yet). */
+export interface UndefinedReference {
+    name: string;
+    type: SymbolType;
+    locations: ReferenceLocation[];
 }
 
 /** Reference information */
@@ -182,6 +192,8 @@ export class Indexer {
     private events: Map<string, EventMetadata> = new Map();
     private eventsByNamespace: Map<string, EventMetadata[]> = new Map();
     private references: Map<string, Reference> = new Map();
+    /** References to names without a definition when they were indexed. */
+    private unresolved: Map<string, ReferenceLocation[]> = new Map();
     private callGraph: CallGraph = new CallGraph(this);
 
     /**
@@ -260,6 +272,14 @@ export class Indexer {
                 this.references.delete(name);
             }
         }
+        for (const [name, locations] of this.unresolved) {
+            const kept = locations.filter((loc) => loc.uri !== uri);
+            if (kept.length === 0) {
+                this.unresolved.delete(name);
+            } else {
+                this.unresolved.set(name, kept);
+            }
+        }
         this.callGraph.clearDocument(uri);
     }
 
@@ -321,6 +341,43 @@ export class Indexer {
     /** Get all references to a symbol */
     public getReferences(symbolName: string): Reference | undefined {
         return this.references.get(symbolName);
+    }
+
+    /** Events an event triggers (from its options, immediate and after blocks). */
+    public getEventChain(eventId: string): string[] {
+        const event = this.events.get(eventId);
+        if (!event) {
+            return [];
+        }
+        return Array.from(new Set(event.references.map((r) => r.toEvent)));
+    }
+
+    /** Localization keys the indexed events use (title, desc, option names), sorted. */
+    public getLocalizationKeys(): string[] {
+        const keys = new Set<string>();
+        for (const event of this.events.values()) {
+            for (const key of event.localizationKeys) {
+                keys.add(key);
+            }
+        }
+        return Array.from(keys).sort();
+    }
+
+    /**
+     * References (trigger_event, add_to_list, flag and variable checks) to names that no
+     * indexed symbol defines now. Resolved when asked, so the order files are indexed in
+     * does not matter.
+     */
+    public getUndefinedReferences(): UndefinedReference[] {
+        const out: UndefinedReference[] = [];
+        for (const [name, locations] of this.unresolved) {
+            if (this.findSymbolsByName(name).length > 0) {
+                continue;
+            }
+            const type = /^\w+\.\d+$/.test(name) ? SymbolType.EVENT : SymbolType.GENERIC;
+            out.push({ name, type, locations: [...locations] });
+        }
+        return out.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
     }
 
     /** Get the call graph instance for call hierarchy and code lens */
@@ -460,21 +517,33 @@ export class Indexer {
     // ── event metadata (core/indexer-enhanced.ts) ───────────────────────
 
     private extractEventMetadata(uri: string, ast: ASTNode): void {
+        const add = (metadata: EventMetadata | null): void => {
+            if (metadata) {
+                this.events.set(metadata.id, metadata);
+                pushTo(this.eventsByNamespace, metadata.namespace, metadata);
+            }
+        };
+        // The CK3 form: `<namespace>.<number> = { type = character_event ... }` records.
+        for (const node of ast.children ?? []) {
+            if (node.key && node.children && EVENT_RECORD_ID.test(node.key)) {
+                add(this.parseEventNode(node, 'character_event', uri, node.key));
+            }
+        }
+        // The older keyed form: `character_event = { id = <namespace>.<number> ... }`.
         traverse(ast, (node) => {
-            if (!node.key || !isEventType(node.key)) {
-                return;
+            if (node.key && isEventType(node.key)) {
+                add(this.parseEventNode(node, node.key, uri));
             }
-            const metadata = this.parseEventNode(node, node.key, uri);
-            if (!metadata) {
-                return;
-            }
-            this.events.set(metadata.id, metadata);
-            pushTo(this.eventsByNamespace, metadata.namespace, metadata);
         });
     }
 
-    private parseEventNode(node: ASTNode, eventType: EventType, uri: string): EventMetadata | null {
-        const eventId = findChildValue(node, 'id');
+    private parseEventNode(
+        node: ASTNode,
+        eventType: EventType,
+        uri: string,
+        id?: string
+    ): EventMetadata | null {
+        const eventId = id ?? findChildValue(node, 'id');
         if (!eventId) {
             return null;
         }
@@ -610,7 +679,11 @@ export class Indexer {
         if (!ref) {
             const symbols = this.findSymbolsByName(symbolName);
             if (symbols.length === 0) {
-                return; // undefined reference: not tracked here
+                // Not defined (yet): kept for getUndefinedReferences().
+                const list = this.unresolved.get(symbolName) ?? [];
+                list.push({ uri, range: node.range, context });
+                this.unresolved.set(symbolName, list);
+                return;
             }
             ref = { symbol: symbols[0], locations: [] };
             this.references.set(symbolName, ref);

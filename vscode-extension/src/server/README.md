@@ -51,7 +51,7 @@ All standard LSP features are implemented:
 
 ### CK3 Language Support
 
-- **Effects and Triggers** (`ck3/language.ts`)
+- **Effects and Triggers** (the `pychivalry-engine` spec package)
   - Definitions for all CK3 effects and triggers
   - Context-aware completions
   - Documentation for each effect/trigger

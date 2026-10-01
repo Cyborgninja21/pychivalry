@@ -9,9 +9,7 @@
 
 import * as assert from 'assert';
 import { CallHierarchyProvider } from '../../server/lsp/call-hierarchy';
-import { EnhancedIndexer } from '../../server/core/indexer-enhanced';
-import { CK3Parser } from '../../server/core/parser';
-import { SymbolType } from '../../server/core/indexer';
+import { CK3Parser, EnhancedIndexer, SymbolType } from 'pychivalry-engine';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { SymbolKind } from 'vscode-languageserver/node';
 
@@ -62,11 +60,7 @@ describe('CallHierarchyProvider', () => {
         });
 
         it('should return null when cursor is on whitespace', async () => {
-            const content = [
-                'my_mod.0001 = {',
-                '\ttype = character_event',
-                '}',
-            ].join('\n');
+            const content = ['my_mod.0001 = {', '\ttype = character_event', '}'].join('\n');
             const uri = 'file:///mod/events/test.txt';
             const doc = createDocument(uri, content);
             await indexDocument(uri, content);
@@ -78,15 +72,14 @@ describe('CallHierarchyProvider', () => {
             });
 
             // The '{' character is not an identifier, so this should be null
-            assert.ok(!result || result.length === 0, 'Should return null or empty for non-identifier');
+            assert.ok(
+                !result || result.length === 0,
+                'Should return null or empty for non-identifier'
+            );
         });
 
         it('should return item for scripted effect name', async () => {
-            const content = [
-                'my_custom_effect = {',
-                '\tadd_gold = 100',
-                '}',
-            ].join('\n');
+            const content = ['my_custom_effect = {', '\tadd_gold = 100', '}'].join('\n');
             const uri = 'file:///mod/scripted_effects/my_effects.txt';
             const doc = createDocument(uri, content);
             await indexDocument(uri, content);
@@ -107,18 +100,21 @@ describe('CallHierarchyProvider', () => {
     describe('incomingCalls', () => {
         it('should return callers of an event', async () => {
             // Event A triggers Event B
-            await indexDocument('file:///mod/events/test.txt', [
-                'my_mod.0001 = {',
-                '\ttype = character_event',
-                '\timmediate = {',
-                '\t\ttrigger_event = my_mod.0002',
-                '\t}',
-                '}',
-                'my_mod.0002 = {',
-                '\ttype = character_event',
-                '\ttrigger = { always = yes }',
-                '}',
-            ].join('\n'));
+            await indexDocument(
+                'file:///mod/events/test.txt',
+                [
+                    'my_mod.0001 = {',
+                    '\ttype = character_event',
+                    '\timmediate = {',
+                    '\t\ttrigger_event = my_mod.0002',
+                    '\t}',
+                    '}',
+                    'my_mod.0002 = {',
+                    '\ttype = character_event',
+                    '\ttrigger = { always = yes }',
+                    '}',
+                ].join('\n')
+            );
 
             const result = provider.incomingCalls({
                 item: {
@@ -126,7 +122,10 @@ describe('CallHierarchyProvider', () => {
                     kind: SymbolKind.Event,
                     uri: 'file:///mod/events/test.txt',
                     range: { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } },
-                    selectionRange: { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } },
+                    selectionRange: {
+                        start: { line: 0, character: 0 },
+                        end: { line: 0, character: 0 },
+                    },
                     data: { name: 'my_mod.0002', type: SymbolType.EVENT },
                 },
             });
@@ -138,21 +137,24 @@ describe('CallHierarchyProvider', () => {
 
         it('should group multiple call sites from same caller', async () => {
             // Event A triggers Event B in two places
-            await indexDocument('file:///mod/events/test.txt', [
-                'my_mod.0001 = {',
-                '\ttype = character_event',
-                '\timmediate = {',
-                '\t\ttrigger_event = my_mod.0002',
-                '\t}',
-                '\tafter = {',
-                '\t\ttrigger_event = my_mod.0002',
-                '\t}',
-                '}',
-                'my_mod.0002 = {',
-                '\ttype = character_event',
-                '\ttrigger = { always = yes }',
-                '}',
-            ].join('\n'));
+            await indexDocument(
+                'file:///mod/events/test.txt',
+                [
+                    'my_mod.0001 = {',
+                    '\ttype = character_event',
+                    '\timmediate = {',
+                    '\t\ttrigger_event = my_mod.0002',
+                    '\t}',
+                    '\tafter = {',
+                    '\t\ttrigger_event = my_mod.0002',
+                    '\t}',
+                    '}',
+                    'my_mod.0002 = {',
+                    '\ttype = character_event',
+                    '\ttrigger = { always = yes }',
+                    '}',
+                ].join('\n')
+            );
 
             const result = provider.incomingCalls({
                 item: {
@@ -160,7 +162,10 @@ describe('CallHierarchyProvider', () => {
                     kind: SymbolKind.Event,
                     uri: 'file:///mod/events/test.txt',
                     range: { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } },
-                    selectionRange: { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } },
+                    selectionRange: {
+                        start: { line: 0, character: 0 },
+                        end: { line: 0, character: 0 },
+                    },
                     data: { name: 'my_mod.0002', type: SymbolType.EVENT },
                 },
             });
@@ -171,12 +176,15 @@ describe('CallHierarchyProvider', () => {
         });
 
         it('should return empty for event with no callers', async () => {
-            await indexDocument('file:///mod/events/test.txt', [
-                'my_mod.0001 = {',
-                '\ttype = character_event',
-                '\ttrigger = { always = yes }',
-                '}',
-            ].join('\n'));
+            await indexDocument(
+                'file:///mod/events/test.txt',
+                [
+                    'my_mod.0001 = {',
+                    '\ttype = character_event',
+                    '\ttrigger = { always = yes }',
+                    '}',
+                ].join('\n')
+            );
 
             const result = provider.incomingCalls({
                 item: {
@@ -184,7 +192,10 @@ describe('CallHierarchyProvider', () => {
                     kind: SymbolKind.Event,
                     uri: 'file:///mod/events/test.txt',
                     range: { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } },
-                    selectionRange: { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } },
+                    selectionRange: {
+                        start: { line: 0, character: 0 },
+                        end: { line: 0, character: 0 },
+                    },
                     data: { name: 'my_mod.0001', type: SymbolType.EVENT },
                 },
             });
@@ -195,15 +206,18 @@ describe('CallHierarchyProvider', () => {
 
     describe('outgoingCalls', () => {
         it('should return events triggered by an event', async () => {
-            await indexDocument('file:///mod/events/test.txt', [
-                'my_mod.0001 = {',
-                '\ttype = character_event',
-                '\timmediate = {',
-                '\t\ttrigger_event = my_mod.0002',
-                '\t\ttrigger_event = my_mod.0003',
-                '\t}',
-                '}',
-            ].join('\n'));
+            await indexDocument(
+                'file:///mod/events/test.txt',
+                [
+                    'my_mod.0001 = {',
+                    '\ttype = character_event',
+                    '\timmediate = {',
+                    '\t\ttrigger_event = my_mod.0002',
+                    '\t\ttrigger_event = my_mod.0003',
+                    '\t}',
+                    '}',
+                ].join('\n')
+            );
 
             const result = provider.outgoingCalls({
                 item: {
@@ -211,34 +225,39 @@ describe('CallHierarchyProvider', () => {
                     kind: SymbolKind.Event,
                     uri: 'file:///mod/events/test.txt',
                     range: { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } },
-                    selectionRange: { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } },
+                    selectionRange: {
+                        start: { line: 0, character: 0 },
+                        end: { line: 0, character: 0 },
+                    },
                     data: { name: 'my_mod.0001', type: SymbolType.EVENT },
                 },
             });
 
             assert.ok(result.length >= 2, 'Should have at least two outgoing calls');
-            const names = result.map(r => r.to.name);
+            const names = result.map((r) => r.to.name);
             assert.ok(names.includes('my_mod.0002'), 'Should include my_mod.0002');
             assert.ok(names.includes('my_mod.0003'), 'Should include my_mod.0003');
         });
 
         it('should return scripted effects called by an event', async () => {
             // Index scripted effect first
-            await indexDocument('file:///mod/scripted_effects/my_effects.txt', [
-                'my_custom_effect = {',
-                '\tadd_gold = 100',
-                '}',
-            ].join('\n'));
+            await indexDocument(
+                'file:///mod/scripted_effects/my_effects.txt',
+                ['my_custom_effect = {', '\tadd_gold = 100', '}'].join('\n')
+            );
 
             // Index event that uses it
-            await indexDocument('file:///mod/events/test.txt', [
-                'my_mod.0001 = {',
-                '\ttype = character_event',
-                '\timmediate = {',
-                '\t\tmy_custom_effect = yes',
-                '\t}',
-                '}',
-            ].join('\n'));
+            await indexDocument(
+                'file:///mod/events/test.txt',
+                [
+                    'my_mod.0001 = {',
+                    '\ttype = character_event',
+                    '\timmediate = {',
+                    '\t\tmy_custom_effect = yes',
+                    '\t}',
+                    '}',
+                ].join('\n')
+            );
 
             const result = provider.outgoingCalls({
                 item: {
@@ -246,22 +265,28 @@ describe('CallHierarchyProvider', () => {
                     kind: SymbolKind.Event,
                     uri: 'file:///mod/events/test.txt',
                     range: { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } },
-                    selectionRange: { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } },
+                    selectionRange: {
+                        start: { line: 0, character: 0 },
+                        end: { line: 0, character: 0 },
+                    },
                     data: { name: 'my_mod.0001', type: SymbolType.EVENT },
                 },
             });
 
-            const effectCall = result.find(r => r.to.name === 'my_custom_effect');
+            const effectCall = result.find((r) => r.to.name === 'my_custom_effect');
             assert.ok(effectCall, 'Should include scripted effect in outgoing calls');
         });
 
         it('should return empty for event with no outgoing calls', async () => {
-            await indexDocument('file:///mod/events/test.txt', [
-                'my_mod.0001 = {',
-                '\ttype = character_event',
-                '\ttrigger = { always = yes }',
-                '}',
-            ].join('\n'));
+            await indexDocument(
+                'file:///mod/events/test.txt',
+                [
+                    'my_mod.0001 = {',
+                    '\ttype = character_event',
+                    '\ttrigger = { always = yes }',
+                    '}',
+                ].join('\n')
+            );
 
             const result = provider.outgoingCalls({
                 item: {
@@ -269,7 +294,10 @@ describe('CallHierarchyProvider', () => {
                     kind: SymbolKind.Event,
                     uri: 'file:///mod/events/test.txt',
                     range: { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } },
-                    selectionRange: { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } },
+                    selectionRange: {
+                        start: { line: 0, character: 0 },
+                        end: { line: 0, character: 0 },
+                    },
                     data: { name: 'my_mod.0001', type: SymbolType.EVENT },
                 },
             });
@@ -280,14 +308,17 @@ describe('CallHierarchyProvider', () => {
 
     describe('edge cases', () => {
         it('should handle unresolved event targets gracefully', async () => {
-            await indexDocument('file:///mod/events/test.txt', [
-                'my_mod.0001 = {',
-                '\ttype = character_event',
-                '\timmediate = {',
-                '\t\ttrigger_event = nonexistent.9999',
-                '\t}',
-                '}',
-            ].join('\n'));
+            await indexDocument(
+                'file:///mod/events/test.txt',
+                [
+                    'my_mod.0001 = {',
+                    '\ttype = character_event',
+                    '\timmediate = {',
+                    '\t\ttrigger_event = nonexistent.9999',
+                    '\t}',
+                    '}',
+                ].join('\n')
+            );
 
             const result = provider.outgoingCalls({
                 item: {
@@ -295,35 +326,44 @@ describe('CallHierarchyProvider', () => {
                     kind: SymbolKind.Event,
                     uri: 'file:///mod/events/test.txt',
                     range: { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } },
-                    selectionRange: { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } },
+                    selectionRange: {
+                        start: { line: 0, character: 0 },
+                        end: { line: 0, character: 0 },
+                    },
                     data: { name: 'my_mod.0001', type: SymbolType.EVENT },
                 },
             });
 
             // Should still return the call, with a synthetic item
-            const unresolvedCall = result.find(r => r.to.name === 'nonexistent.9999');
+            const unresolvedCall = result.find((r) => r.to.name === 'nonexistent.9999');
             assert.ok(unresolvedCall, 'Should include unresolved target as synthetic item');
             assert.strictEqual(unresolvedCall!.to.detail, '(unresolved)');
         });
 
         it('should handle cross-file call graphs', async () => {
             // Event in file A
-            await indexDocument('file:///mod/events/a.txt', [
-                'my_mod.0001 = {',
-                '\ttype = character_event',
-                '\timmediate = {',
-                '\t\ttrigger_event = my_mod.0002',
-                '\t}',
-                '}',
-            ].join('\n'));
+            await indexDocument(
+                'file:///mod/events/a.txt',
+                [
+                    'my_mod.0001 = {',
+                    '\ttype = character_event',
+                    '\timmediate = {',
+                    '\t\ttrigger_event = my_mod.0002',
+                    '\t}',
+                    '}',
+                ].join('\n')
+            );
 
             // Event in file B
-            await indexDocument('file:///mod/events/b.txt', [
-                'my_mod.0002 = {',
-                '\ttype = character_event',
-                '\ttrigger = { always = yes }',
-                '}',
-            ].join('\n'));
+            await indexDocument(
+                'file:///mod/events/b.txt',
+                [
+                    'my_mod.0002 = {',
+                    '\ttype = character_event',
+                    '\ttrigger = { always = yes }',
+                    '}',
+                ].join('\n')
+            );
 
             // Check incoming calls to event in file B
             const incoming = provider.incomingCalls({
@@ -332,7 +372,10 @@ describe('CallHierarchyProvider', () => {
                     kind: SymbolKind.Event,
                     uri: 'file:///mod/events/b.txt',
                     range: { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } },
-                    selectionRange: { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } },
+                    selectionRange: {
+                        start: { line: 0, character: 0 },
+                        end: { line: 0, character: 0 },
+                    },
                     data: { name: 'my_mod.0002', type: SymbolType.EVENT },
                 },
             });

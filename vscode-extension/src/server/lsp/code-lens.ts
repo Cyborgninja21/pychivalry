@@ -1,6 +1,6 @@
 /**
  * Enhanced Code Lens Provider - Provides comprehensive inline actionable information
- * 
+ *
  * Features:
  * - Reference counts for symbols (events, decisions, scripted effects/triggers)
  * - Complexity metrics with visual indicators
@@ -11,16 +11,16 @@
  * - Context-specific lenses for different content types
  */
 
-import {
-    CodeLens,
-    Command,
-    Location,
-} from 'vscode-languageserver/node';
+import { CodeLens, Command, Location } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { CK3Parser, ASTNode, NodeType } from '../core/parser';
-import { DocumentIndexer, SymbolType } from '../core/indexer';
-import { EnhancedIndexer } from '../core/indexer-enhanced';
-import { LocalizationIndex } from '../core/localization-index';
+import {
+    ASTNode,
+    CK3Parser,
+    DocumentIndexer,
+    LocalizationIndex,
+    NodeType,
+    SymbolType,
+} from 'pychivalry-engine';
 
 /**
  * Code lens configuration
@@ -197,11 +197,7 @@ export class CodeLensProvider {
     /**
      * Collect code lenses from AST
      */
-    private collectCodeLenses(
-        node: ASTNode,
-        lenses: CodeLens[],
-        context: LensContext
-    ): void {
+    private collectCodeLenses(node: ASTNode, lenses: CodeLens[], context: LensContext): void {
         if (!node.children) {
             return;
         }
@@ -242,7 +238,7 @@ export class CodeLensProvider {
 
         // Find in indexer
         const symbols = context.indexer.findSymbolsByName(symbolName);
-        const locations: Location[] = symbols.map(s => ({
+        const locations: Location[] = symbols.map((s) => ({
             uri: s.uri,
             range: s.range,
         }));
@@ -256,7 +252,9 @@ export class CodeLensProvider {
         // Cache result (with size cap)
         if (context.referenceCache.size >= CodeLensProvider.MAX_REFERENCE_CACHE) {
             const firstKey = context.referenceCache.keys().next().value;
-            if (firstKey !== undefined) context.referenceCache.delete(firstKey);
+            if (firstKey !== undefined) {
+                context.referenceCache.delete(firstKey);
+            }
         }
         context.referenceCache.set(symbolName, info);
         return info;
@@ -331,7 +329,9 @@ export class CodeLensProvider {
      * Count statements in a node
      */
     private countStatements(node: ASTNode): number {
-        if (!node.children) return 0;
+        if (!node.children) {
+            return 0;
+        }
 
         let count = 0;
         for (const child of node.children) {
@@ -350,7 +350,9 @@ export class CodeLensProvider {
      * Count branches (options, conditionals)
      */
     private countBranches(node: ASTNode): number {
-        if (!node.children) return 0;
+        if (!node.children) {
+            return 0;
+        }
 
         let count = 0;
         for (const child of node.children) {
@@ -375,10 +377,12 @@ export class CodeLensProvider {
         }
 
         // Calculate stats
-        const events = context.indexer.findSymbolsByType(SymbolType.EVENT)
-            .filter(s => s.name.startsWith(namespace + '.'));
-        const decisions = context.indexer.findSymbolsByType(SymbolType.DECISION)
-            .filter(s => s.name.startsWith(namespace + '_'));
+        const events = context.indexer
+            .findSymbolsByType(SymbolType.EVENT)
+            .filter((s) => s.name.startsWith(namespace + '.'));
+        const decisions = context.indexer
+            .findSymbolsByType(SymbolType.DECISION)
+            .filter((s) => s.name.startsWith(namespace + '_'));
 
         // Localization coverage — check actual keys via LocalizationIndex
         const locSuffixes = ['.t', '.desc', '.tooltip']; // CK3 loc key suffixes
@@ -400,13 +404,15 @@ export class CodeLensProvider {
             decisionCount: decisions.length,
             localizationCoverage: locFound,
             localizationTotal: locKeys,
-            fileCount: new Set(events.map(e => e.uri)).size,
+            fileCount: new Set(events.map((e) => e.uri)).size,
         };
 
         // Cache result (with size cap)
         if (context.namespaceCache.size >= CodeLensProvider.MAX_NAMESPACE_CACHE) {
             const firstKey = context.namespaceCache.keys().next().value;
-            if (firstKey !== undefined) context.namespaceCache.delete(firstKey);
+            if (firstKey !== undefined) {
+                context.namespaceCache.delete(firstKey);
+            }
         }
         context.namespaceCache.set(namespace, stats);
         return stats;
@@ -503,7 +509,7 @@ class EventLensGenerator implements LensGenerator {
         const symbols = context.indexer.findSymbolsByName(symbolName);
         const info: ReferenceInfo = {
             count: Math.max(0, symbols.length - 1),
-            locations: symbols.map(s => ({ uri: s.uri, range: s.range })),
+            locations: symbols.map((s) => ({ uri: s.uri, range: s.range })),
             isUnused: symbols.length <= 1,
         };
 
@@ -574,10 +580,9 @@ class EventLensGenerator implements LensGenerator {
         const callers: string[] = [];
         let hasCircularRef = false;
 
-        // Use the shared CallGraph via EnhancedIndexer when available
-        const indexer = context.indexer;
-        if (indexer instanceof EnhancedIndexer) {
-            const callGraph = indexer.getCallGraph();
+        // The engine index's call graph
+        {
+            const callGraph = context.indexer.getCallGraph();
 
             // Get outgoing calls (events triggered by this event)
             const outgoing = callGraph.getOutgoingCalls(eventId);
@@ -608,8 +613,12 @@ class EventLensGenerator implements LensGenerator {
 class DecisionLensGenerator implements LensGenerator {
     canApply(node: ASTNode, context: LensContext): boolean {
         // Match decision definitions: named blocks in decision files
-        if (!node.key || node.type !== NodeType.ASSIGNMENT || !node.children) return false;
-        if (node.key.includes('.') || /^\d+$/.test(node.key)) return false;
+        if (!node.key || node.type !== NodeType.ASSIGNMENT || !node.children) {
+            return false;
+        }
+        if (node.key.includes('.') || /^\d+$/.test(node.key)) {
+            return false;
+        }
         return this.isDecisionContext(context);
     }
 
@@ -636,10 +645,7 @@ class DecisionLensGenerator implements LensGenerator {
             const effects = this.countEffects(node);
             lenses.push({
                 range: node.range,
-                command: Command.create(
-                    `${conditions} conditions, ${effects} effects`,
-                    ''
-                ),
+                command: Command.create(`${conditions} conditions, ${effects} effects`, ''),
             });
         }
 
@@ -656,7 +662,7 @@ class DecisionLensGenerator implements LensGenerator {
         const symbols = context.indexer.findSymbolsByName(symbolName);
         return {
             count: Math.max(0, symbols.length - 1),
-            locations: symbols.map(s => ({ uri: s.uri, range: s.range })),
+            locations: symbols.map((s) => ({ uri: s.uri, range: s.range })),
             isUnused: symbols.length <= 1,
         };
     }
@@ -666,8 +672,10 @@ class DecisionLensGenerator implements LensGenerator {
             return 0;
         }
         return node.children.reduce((sum, child) => {
-            const isCondition = child.key === 'is_shown' || child.key === 'is_valid' ||
-                               child.key === 'is_valid_showing_failures_only';
+            const isCondition =
+                child.key === 'is_shown' ||
+                child.key === 'is_valid' ||
+                child.key === 'is_valid_showing_failures_only';
             return sum + (isCondition ? 1 : 0) + this.countConditions(child);
         }, 0);
     }
@@ -688,8 +696,12 @@ class DecisionLensGenerator implements LensGenerator {
  */
 class ScriptedEffectLensGenerator implements LensGenerator {
     canApply(node: ASTNode, context: LensContext): boolean {
-        if (!node.key || node.type !== NodeType.ASSIGNMENT || !node.children) return false;
-        if (node.key.includes('.') || /^\d+$/.test(node.key)) return false;
+        if (!node.key || node.type !== NodeType.ASSIGNMENT || !node.children) {
+            return false;
+        }
+        if (node.key.includes('.') || /^\d+$/.test(node.key)) {
+            return false;
+        }
         // Only match if the document URI suggests scripted_effects context
         const uri = context.document.uri.toLowerCase();
         return uri.includes('scripted_effect');
@@ -723,8 +735,12 @@ class ScriptedEffectLensGenerator implements LensGenerator {
  */
 class ScriptedTriggerLensGenerator implements LensGenerator {
     canApply(node: ASTNode, context: LensContext): boolean {
-        if (!node.key || node.type !== NodeType.ASSIGNMENT || !node.children) return false;
-        if (node.key.includes('.') || /^\d+$/.test(node.key)) return false;
+        if (!node.key || node.type !== NodeType.ASSIGNMENT || !node.children) {
+            return false;
+        }
+        if (node.key.includes('.') || /^\d+$/.test(node.key)) {
+            return false;
+        }
         // Only match if the document URI suggests scripted_triggers context
         const uri = context.document.uri.toLowerCase();
         return uri.includes('scripted_trigger');
@@ -767,13 +783,12 @@ class ComplexityLensGenerator implements LensGenerator {
 
     generate(node: ASTNode): CodeLens[] {
         const lines = node.range.end.line - node.range.start.line + 1;
-        return [{
-            range: node.range,
-            command: Command.create(
-                `${lines} lines`,
-                ''
-            ),
-        }];
+        return [
+            {
+                range: node.range,
+                command: Command.create(`${lines} lines`, ''),
+            },
+        ];
     }
 }
 
@@ -793,8 +808,6 @@ class NamespaceLensGenerator implements LensGenerator {
         const lenses: CodeLens[] = [];
         const namespace = String(node.value);
 
-        // Count events in this namespace via the indexer
-        const symbols = context.indexer.findSymbolsByName(namespace);
         const eventPattern = new RegExp(`^${namespace}\\.\\d+$`);
 
         // Count events matching namespace.NNN pattern
@@ -823,28 +836,35 @@ class NamespaceLensGenerator implements LensGenerator {
  * Localization lens generator
  */
 class LocalizationLensGenerator implements LensGenerator {
-    private static readonly LOC_FIELDS = new Set(['title', 'desc', 'name', 'custom_tooltip', 'selection_tooltip']);
+    private static readonly LOC_FIELDS = new Set([
+        'title',
+        'desc',
+        'name',
+        'custom_tooltip',
+        'selection_tooltip',
+    ]);
 
     canApply(node: ASTNode, context: LensContext): boolean {
         if (!context.config.showLocalization) {
             return false;
         }
         // Match fields that reference localization keys
-        return !!(node.key && LocalizationLensGenerator.LOC_FIELDS.has(node.key) &&
-                 node.type === NodeType.ASSIGNMENT && node.value && typeof node.value === 'string');
+        return !!(
+            node.key &&
+            LocalizationLensGenerator.LOC_FIELDS.has(node.key) &&
+            node.type === NodeType.ASSIGNMENT &&
+            node.value &&
+            typeof node.value === 'string'
+        );
     }
 
-    generate(node: ASTNode, context: LensContext): CodeLens[] {
+    generate(node: ASTNode, _context: LensContext): CodeLens[] {
         const lenses: CodeLens[] = [];
         const locKey = String(node.value);
 
         lenses.push({
             range: node.range,
-            command: Command.create(
-                `loc: "${locKey}"`,
-                'ck3.findLocalization',
-                locKey
-            ),
+            command: Command.create(`loc: "${locKey}"`, 'ck3.findLocalization', locKey),
         });
 
         return lenses;

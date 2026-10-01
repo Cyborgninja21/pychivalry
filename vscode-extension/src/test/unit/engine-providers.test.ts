@@ -16,6 +16,7 @@ import { InlayHintsProvider } from '../../server/lsp/inlay-hints';
 import { SemanticTokensProvider } from '../../server/lsp/semantic-tokens';
 import { docParameters } from '../../server/lsp/keyword-docs';
 import { KEYWORD_SNIPPETS, RECORD_TEMPLATES } from '../../server/lsp/snippets';
+import { CodeLensProvider } from '../../server/lsp/code-lens';
 import * as path from 'path';
 import { Workspace } from 'pychivalry-engine';
 
@@ -158,5 +159,18 @@ describe('Providers on the engine (4.2)', () => {
             Array.from(RECORD_TEMPLATES.values()).reduce((n, list) => n + list.length, 0),
             3
         );
+    });
+});
+
+describe('Providers on the engine (4.4)', () => {
+    it('code lens: event lenses come from the engine index and call graph', async () => {
+        const { parser, index, event } = setup();
+        const lenses = await new CodeLensProvider(
+            parser,
+            index,
+            new LocalizationIndex()
+        ).provideCodeLens(event);
+        assert.ok(lenses.length > 0, 'no lenses');
+        assert.ok(index.getEvent('my_events.0001'), 'the engine index knows the CK3 event record');
     });
 });

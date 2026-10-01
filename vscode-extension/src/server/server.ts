@@ -38,11 +38,6 @@ import { pathToFileUri, fileUriToPath } from './utils/uri';
 const readFileAsync = promisify(fs.readFile);
 
 // Core imports
-import { CK3Parser, CachingParser } from './core/parser';
-import { IncrementalParser } from './core/incremental-parser';
-import { EnhancedIndexer } from './core/indexer-enhanced';
-import { WorkspaceManager } from './core/workspace';
-import { LocalizationIndex } from './core/localization-index';
 import { DataLoader } from './data/loader';
 import { ModScanner } from './data/mod-scanner';
 import { enginePlugins, localizationDiagnostics } from './plugins';
@@ -51,6 +46,7 @@ import { serverLogger } from './utils/logger';
 import {
     IncrementalParser as EngineParser,
     LocalizationIndex as EngineLocalizationIndex,
+    SymbolType,
     Workspace as EngineWorkspace,
 } from 'pychivalry-engine';
 import { bundledSpec } from './engine-host';
@@ -118,19 +114,12 @@ export class CK3LanguageServer {
     private hasDiagnosticRelatedInformationCapability = false;
 
     // Core components
-    private parser: CK3Parser;
-    /** The engine's parser (pychivalry-engine), used by the providers already migrated. */
+    /** The engine's incremental parser (pychivalry-engine). */
     private syntaxParser: EngineParser;
-    /**
-     * The engine workspace (spec + index). Until the old core modules are retired (4.4) the
-     * server indexes every document into both this index and the old EnhancedIndexer.
-     */
+    /** The engine workspace: spec package, workspace folders and the symbol index. */
     private engineWorkspace: EngineWorkspace;
-    /** Engine localization index for the migrated providers (the old one is retired in 4.4). */
+    /** Localization keys of the workspace (engine localization index). */
     private engineLocalization: EngineLocalizationIndex;
-    private indexer: EnhancedIndexer;
-    private workspaceManager: WorkspaceManager;
-    private localizationIndex: LocalizationIndex;
     private modScanner: ModScanner;
     private dataLoader: DataLoader;
 
@@ -202,13 +191,9 @@ export class CK3LanguageServer {
         this.documents = new TextDocuments(TextDocument);
 
         // Initialize core components
-        this.parser = new IncrementalParser();
         this.syntaxParser = new EngineParser(5, { spec: bundledSpec() });
         this.engineWorkspace = new EngineWorkspace(undefined, { spec: bundledSpec() });
         this.engineLocalization = new EngineLocalizationIndex();
-        this.indexer = new EnhancedIndexer();
-        this.workspaceManager = new WorkspaceManager();
-        this.localizationIndex = new LocalizationIndex();
         this.modScanner = new ModScanner();
         this.dataLoader = DataLoader.getInstance();
 
@@ -246,12 +231,16 @@ export class CK3LanguageServer {
         this.renameProvider = new RenameProvider(this.syntaxParser, this.engineWorkspace.index);
         this.semanticTokensProvider = new SemanticTokensProvider(this.syntaxParser, this.engineWorkspace);
         this.codeActionsProvider = new CodeActionsProvider(this.syntaxParser, bundledSpec());
-        this.codeLensProvider = new CodeLensProvider(this.parser, this.indexer, this.localizationIndex);
+        this.codeLensProvider = new CodeLensProvider(
+            this.syntaxParser,
+            this.engineWorkspace.index,
+            this.engineLocalization
+        );
         this.documentLinksProvider = new DocumentLinksProvider(this.syntaxParser, this.engineWorkspace.index);
         this.documentHighlightProvider = new DocumentHighlightProvider(this.syntaxParser);
         this.inlayHintsProvider = new InlayHintsProvider(this.syntaxParser, this.engineWorkspace);
         this.signatureHelpProvider = new SignatureHelpProvider(bundledSpec());
-        this.callHierarchyProvider = new CallHierarchyProvider(this.parser, this.indexer);
+        this.callHierarchyProvider = new CallHierarchyProvider(this.syntaxParser, this.engineWorkspace.index);
         this.selectionRangeProvider = new SelectionRangeProvider(this.syntaxParser);
 
         // Register handlers
@@ -467,7 +456,6 @@ export class CK3LanguageServer {
                 this.connection.sendNotification('ck3/indexLog', {
                     message: `Scanning workspace folder: ${folder.name}`
                 });
-                await this.workspaceManager.addWorkspaceFolder(folder);
                 await this.engineWorkspace.addWorkspaceFolder(folder);
             }
 
@@ -475,8 +463,7 @@ export class CK3LanguageServer {
             for (const folder of this.workspaceFolders) {
                 const folderPath = fileUriToPath(folder.uri);
                 const locPath = path.join(folderPath, 'localization');
-                const count = await this.localizationIndex.scanDirectory(locPath);
-                await this.engineLocalization.scanDirectory(locPath);
+                const count = await this.engineLocalization.scanDirectory(locPath);
                 if (count > 0) {
                     this.connection.sendNotification('ck3/indexLog', {
                         message: `Indexed ${count} localization keys`
@@ -524,13 +511,10 @@ export class CK3LanguageServer {
         }
         this.validationTimers.clear();
         this.parseCache.clear();
-        if (this.parser instanceof CachingParser) {
-            this.parser.clearContentCache();
-        }
+        this.syntaxParser.clearContentCache();
 
         // Clear indexer data for all open documents
         for (const document of this.documents.all()) {
-            this.indexer.removeDocument(document.uri);
             this.engineWorkspace.index.removeDocument(document.uri);
         }
 
@@ -549,7 +533,7 @@ export class CK3LanguageServer {
             return { ast: cached.ast, errors: cached.errors };
         }
 
-        const parsed = this.parser.parse(document.getText());
+        const parsed = this.syntaxParser.parse(document.getText());
 
         // Evict oldest entry if cache is full
         if (this.parseCache.size >= this.PARSE_CACHE_MAX_SIZE) {
@@ -590,8 +574,7 @@ export class CK3LanguageServer {
         const parsed = this.getParsed(document);
 
         // Index document with enhanced tracking (event metadata, references, loc keys)
-        await this.indexer.indexDocumentEnhanced(document.uri, parsed.ast);
-        this.indexIntoEngine(document.uri, document.getText());
+        this.engineWorkspace.index.indexSync(document.uri, parsed.ast);
 
         // Validate and send diagnostics
         await this.validateDocument(document);
@@ -605,8 +588,7 @@ export class CK3LanguageServer {
 
         // Parse and index immediately (needed for completions/hover)
         const parsed = this.getParsed(document);
-        await this.indexer.indexDocumentEnhanced(document.uri, parsed.ast);
-        this.indexIntoEngine(document.uri, document.getText());
+        this.engineWorkspace.index.indexSync(document.uri, parsed.ast);
 
         // Debounce validation to avoid firing on every keystroke
         const existing = this.validationTimers.get(document.uri);
@@ -642,7 +624,6 @@ export class CK3LanguageServer {
         this.hoverProvider.clearCache();
 
         // Remove from index
-        this.indexer.removeDocument(document.uri);
         this.engineWorkspace.index.removeDocument(document.uri);
 
         // Clear diagnostics
@@ -1311,7 +1292,7 @@ export class CK3LanguageServer {
         const allFileUris: string[] = [];
 
         for (const folder of this.workspaceFolders) {
-            const files = await this.workspaceManager.findCK3Files(folder);
+            const files = await this.engineWorkspace.findCK3Files(folder);
 
             this.connection.sendNotification('ck3/indexLog', {
                 message: `Found ${files.length} CK3 files in ${folder.name}`
@@ -1325,8 +1306,6 @@ export class CK3LanguageServer {
                     batch.map(async (file) => {
                         const content = await readFileAsync(file, 'utf-8');
                         const uri = pathToFileUri(file);
-                        const parsed = this.parser.parse(content);
-                        await this.indexer.indexDocumentEnhanced(uri, parsed.ast);
                         this.indexIntoEngine(uri, content);
                         return uri;
                     })
@@ -1352,8 +1331,7 @@ export class CK3LanguageServer {
         for (const folder of this.workspaceFolders) {
             const folderPath = fileUriToPath(folder.uri);
             const locPath = path.join(folderPath, 'localization');
-            const count = await this.localizationIndex.scanDirectory(locPath);
-            await this.engineLocalization.scanDirectory(locPath);
+            const count = await this.engineLocalization.scanDirectory(locPath);
             if (count > 0) {
                 this.connection.sendNotification('ck3/indexLog', {
                     message: `Indexed ${count} localization keys`
@@ -1399,7 +1377,7 @@ export class CK3LanguageServer {
     }
 
     private getWorkspaceStats(): any {
-        return this.indexer.getStatistics();
+        return this.engineWorkspace.index.getStatistics();
     }
 
     private getThreadingMetrics(): any {
@@ -1450,13 +1428,13 @@ export class CK3LanguageServer {
     private findOrphanedLocalization(): any {
         // Get all event-related prefixes from the enhanced indexer
         const eventPrefixes = new Set<string>();
-        const allEvents = this.indexer.findSymbolsByType('event' as any);
+        const allEvents = this.engineWorkspace.index.findSymbolsByType(SymbolType.EVENT);
         for (const event of allEvents) {
             eventPrefixes.add(event.name);
         }
 
         // Get all localization keys tracked by the enhanced indexer
-        const locKeys = this.indexer.getLocalizationKeys();
+        const locKeys = this.engineWorkspace.index.getLocalizationKeys();
 
         // Find loc keys that look like event keys but don't have matching events
         const orphaned: string[] = [];
@@ -1495,7 +1473,7 @@ export class CK3LanguageServer {
 
             chain.push({ event_id: current.id, depth: current.depth });
 
-            const triggered = this.indexer.getEventChain(current.id);
+            const triggered = this.engineWorkspace.index.getEventChain(current.id);
             for (const nextEvent of triggered) {
                 if (!visited.has(nextEvent)) {
                     queue.push({ id: nextEvent, depth: current.depth + 1 });
@@ -1512,7 +1490,7 @@ export class CK3LanguageServer {
 
     private checkDependencies(): any {
         // Get undefined references from the enhanced indexer
-        const undefinedRefs = this.indexer.getUndefinedReferences();
+        const undefinedRefs = this.engineWorkspace.index.getUndefinedReferences();
 
         const missing = undefinedRefs.map(ref => ({
             name: ref.name,
@@ -1524,7 +1502,7 @@ export class CK3LanguageServer {
         }));
 
         // Get all defined symbols as satisfied dependencies
-        const stats = this.indexer.getStatistics();
+        const stats = this.engineWorkspace.index.getStatistics();
 
         return {
             missing,
@@ -1537,7 +1515,7 @@ export class CK3LanguageServer {
         const namespace = args[0] || '';
 
         // Use enhanced indexer's namespace-aware event lookup
-        const eventMetadata = this.indexer.getEventsByNamespace(namespace);
+        const eventMetadata = this.engineWorkspace.index.getEventsByNamespace(namespace);
 
         if (eventMetadata.length > 0) {
             return {
@@ -1553,7 +1531,7 @@ export class CK3LanguageServer {
         }
 
         // Fallback to basic symbol lookup
-        const events = this.indexer.findSymbolsByType('event' as any)
+        const events = this.engineWorkspace.index.findSymbolsByType(SymbolType.EVENT)
             .filter(s => s.name.startsWith(namespace + '.'));
 
         return {
@@ -1613,7 +1591,7 @@ export class CK3LanguageServer {
         const insertLine = args.length > 2 ? parseInt(args[2]) : null;
 
         // Check if the enhanced indexer has event metadata for richer stubs
-        const eventMeta = this.indexer.getEvent(eventId);
+        const eventMeta = this.engineWorkspace.index.getEvent(eventId);
 
         let locText: string;
         let keysGenerated: string[];
@@ -1661,8 +1639,8 @@ export class CK3LanguageServer {
         const newId = args[1];
 
         // Check if event exists via enhanced indexer
-        const eventMeta = this.indexer.getEvent(oldId);
-        const eventSymbols = this.indexer.findSymbolsByName(oldId);
+        const eventMeta = this.engineWorkspace.index.getEvent(oldId);
+        const eventSymbols = this.engineWorkspace.index.findSymbolsByName(oldId);
 
         if (!eventMeta && eventSymbols.length === 0) {
             return { error: `Event '${oldId}' not found` };
