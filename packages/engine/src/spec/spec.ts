@@ -22,6 +22,7 @@ import {
     RetiredEntry,
     SchemaEntry,
     SpecPackage,
+    SpecOverlay,
 } from './types';
 import { validateSpecPackage } from './validate';
 
@@ -87,6 +88,33 @@ export class Spec {
             alternatives.length > 0 ? new RegExp(`^(?:${alternatives.join('|')})$`) : undefined;
     }
 
+    /**
+     * A new Spec with the overlays' names added to their buckets (on top of this one's).
+     * The package's own entries win; an added entry records its overlay's `source`.
+     * Directories, schema, catalogue and retired table are shared, not copied.
+     */
+    public withOverlay(...overlays: SpecOverlay[]): Spec {
+        const buckets = {} as SpecPackage['buckets'];
+        for (const bucket of BUCKETS) {
+            buckets[bucket] = { ...this.data.buckets[bucket] };
+        }
+        for (const overlay of overlays) {
+            for (const bucket of BUCKETS) {
+                const names = overlay.buckets[bucket];
+                if (!names) {
+                    continue;
+                }
+                for (const [name, entry] of Object.entries(names)) {
+                    if (!Object.prototype.hasOwnProperty.call(buckets[bucket], name)) {
+                        buckets[bucket][name] = { doc: entry.doc ?? '', source: overlay.source };
+                    }
+                }
+            }
+        }
+        const sources = overlays.map((o) => o.source).join(', ');
+        return new Spec({ ...this.data, buckets }, `${this.source} + overlay(${sources})`);
+    }
+
     /** CK3 version the package describes, e.g. "1.20.0.2". */
     public version(): string {
         return this.data.manifest.version;
@@ -101,6 +129,20 @@ export class Spec {
     public bucketsOf(name: string): Bucket[] {
         const byBucket = this.buckets.get(name);
         return byBucket ? Array.from(byBucket.keys()) : [];
+    }
+
+    /** Who provides `name` when an overlay added it (undefined for the package's own names). */
+    public sourceOf(name: string, bucket?: Bucket): string | undefined {
+        const byBucket = this.buckets.get(name);
+        if (!byBucket) {
+            return undefined;
+        }
+        for (const [b, entry] of byBucket) {
+            if ((!bucket || b === bucket) && entry.source) {
+                return entry.source;
+            }
+        }
+        return undefined;
     }
 
     /** Names registered in more than one bucket, as the package lists them. */

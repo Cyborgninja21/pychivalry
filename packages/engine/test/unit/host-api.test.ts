@@ -175,7 +175,10 @@ describe('Host API: diagnose options and plug-in context', () => {
                     return [
                         {
                             file: ctx.file,
-                            range: { start: { line: 0, character: 0 }, end: { line: 0, character: 3 } },
+                            range: {
+                                start: { line: 0, character: 0 },
+                                end: { line: 0, character: 3 },
+                            },
                             severity: 'hint',
                             code: 'TEST-1',
                             message: 'from a plug-in',
@@ -241,5 +244,49 @@ describe('Host API: index queries for the extension commands', () => {
         );
         index.removeDocument('file:///m/events/a.txt');
         assert.deepStrictEqual(index.getUndefinedReferences(), []);
+    });
+});
+
+describe('Host API: Spec.withOverlay and Workspace.useSpec', () => {
+    const overlay = {
+        source: 'Carnalitas',
+        buckets: {
+            effects: {
+                carn_sex_scene_effect_v2: { doc: 'Trigger a sex scene with popup event' },
+                add_gold: { doc: 'must not replace the engine entry' },
+            },
+            triggers: { carn_is_slave_trigger: { doc: 'Check if character is a slave' } },
+        },
+    };
+
+    it('adds names to buckets without touching the base spec or the engine entries', () => {
+        const base = defaultSpec();
+        const spec = base.withOverlay(overlay);
+        assert.ok(spec.has('carn_sex_scene_effect_v2', 'effects'));
+        assert.ok(spec.has('carn_is_slave_trigger', 'triggers'));
+        assert.ok(!spec.has('carn_is_slave_trigger', 'effects'));
+        assert.strictEqual(
+            spec.doc('carn_sex_scene_effect_v2'),
+            'Trigger a sex scene with popup event'
+        );
+        assert.strictEqual(spec.sourceOf('carn_sex_scene_effect_v2'), 'Carnalitas');
+        assert.strictEqual(spec.doc('add_gold', 'effects'), base.doc('add_gold', 'effects'));
+        assert.strictEqual(spec.sourceOf('add_gold'), undefined);
+        assert.ok(!base.has('carn_sex_scene_effect_v2', 'effects'));
+        assert.strictEqual(spec.version(), base.version());
+        assert.strictEqual(spec.schemaOf('events'), base.schemaOf('events'));
+    });
+
+    it('lets a workspace check against the overlaid spec', () => {
+        const root = path.resolve('/virtual-ck3-mod');
+        const workspace = new Workspace(root);
+        const file = path.join(root, 'events', 'o.txt');
+        const text =
+            'o.1 = {\n\ttype = character_event\n\timmediate = {\n\t\tcarn_sex_scene_effect_v2 = yes\n\t}\n}\n';
+        const before = diagnose(workspace, file, { text }).map((d) => d.code);
+        assert.ok(before.includes('unknown_effect_X'), before.join(', '));
+        workspace.useSpec(workspace.spec.withOverlay(overlay));
+        const after = diagnose(workspace, file, { text }).map((d) => d.code);
+        assert.ok(!after.includes('unknown_effect_X'), after.join(', '));
     });
 });

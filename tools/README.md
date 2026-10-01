@@ -16,7 +16,9 @@ npx ts-node tools/extract-all.ts
 npx ts-node tools/extract-all.ts --game-path "/path/to/ck3"
 ```
 
-**Extracts:** Themes, Backgrounds, Traits, Effects, Triggers, On-Actions, Scopes
+**Extracts:** Themes, Backgrounds, Traits (game content). Triggers, effects, scopes and
+on_actions are not extracted: they come from the engine's spec package
+(`packages/engine`, generated from the game executable by pdx-parser-re).
 
 ---
 
@@ -25,12 +27,8 @@ npx ts-node tools/extract-all.ts --game-path "/path/to/ck3"
 | Script | Extracts | Output |
 |--------|----------|--------|
 | `extract-traits.ts` | Character traits | `data/traits/*.yaml` |
-| `extract-effects.ts` | Game effects | `data/effects/effects.yaml` |
-| `extract-triggers.ts` | Game triggers | `data/triggers/triggers.yaml` |
-| `extract-on-actions.ts` | On-actions + scopes | `data/on_actions.yaml` |
 | `extract-themes.ts` | Event themes | `data/themes.yaml` |
 | `extract-backgrounds.ts` | Event backgrounds | `data/backgrounds.yaml` |
-| `extract-scopes.ts` | Scope accessors | `data/scopes/*.yaml` |
 
 ---
 
@@ -46,7 +44,7 @@ npx ts-node tools/extract-all.ts
 npx ts-node tools/extract-all.ts --game-path "C:/Program Files (x86)/Steam/steamapps/common/Crusader Kings III"
 
 # Extract only specific types
-npx ts-node tools/extract-all.ts --only traits,effects,triggers
+npx ts-node tools/extract-all.ts --only traits,themes
 ```
 
 ### Extract Individual Types
@@ -55,15 +53,6 @@ npx ts-node tools/extract-all.ts --only traits,effects,triggers
 # Traits
 npx ts-node tools/extract-traits.ts --game-path "/path/to/ck3"
 
-# Effects
-npx ts-node tools/extract-effects.ts --game-path "/path/to/ck3"
-
-# Triggers
-npx ts-node tools/extract-triggers.ts --game-path "/path/to/ck3"
-
-# On-Actions
-npx ts-node tools/extract-on-actions.ts --game-path "/path/to/ck3"
-
 # Themes
 npx ts-node tools/extract-themes.ts --game-path "/path/to/ck3"
 ```
@@ -71,16 +60,6 @@ npx ts-node tools/extract-themes.ts --game-path "/path/to/ck3"
 ---
 
 ## Other Tools
-
-### merge-keywords.js
-
-Merges keyword data from the `pdx-parser-re` reverse engineering project:
-
-```bash
-node tools/merge-keywords.js
-```
-
-Reads keyword lists from `../pdx-parser-re/spec/keywords/` and merges new entries into `data/` YAML files.
 
 ### Setup Scripts
 
@@ -110,15 +89,6 @@ All TypeScript extractors support these options:
 data/
 ├── themes.yaml              # Event themes
 ├── backgrounds.yaml         # Event backgrounds
-├── on_actions.yaml          # On-actions with scope tracking
-├── effects/
-│   └── effects.yaml         # All game effects with signatures
-├── triggers/
-│   └── triggers.yaml        # All game triggers with signatures
-├── scopes/                  # Scope types (15 files)
-│   ├── character.yaml
-│   ├── province.yaml
-│   └── ...
 └── traits/                  # Character traits by category
     ├── personality.yaml
     ├── education.yaml

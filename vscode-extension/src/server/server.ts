@@ -46,6 +46,7 @@ import { serverLogger } from './utils/logger';
 import {
     IncrementalParser as EngineParser,
     LocalizationIndex as EngineLocalizationIndex,
+    setDefaultSpec,
     SymbolType,
     Workspace as EngineWorkspace,
 } from 'pychivalry-engine';
@@ -209,19 +210,19 @@ export class CK3LanguageServer {
             this.syntaxParser,
             this.engineWorkspace.index,
             this.engineLocalization,
-            bundledSpec()
+            () => this.engineWorkspace.spec
         );
         this.symbolProvider = new DocumentSymbolProvider(
             this.syntaxParser,
             this.engineWorkspace.index,
-            bundledSpec()
+            () => this.engineWorkspace.spec
         );
         const extractedTraits = loadExtractedTraits();
         this.diagnosticsProvider = new DiagnosticsProvider(
             this.engineWorkspace,
             enginePlugins({
                 localization: this.engineLocalization,
-                extractedTraits: () => extractedTraits,
+                extractedTraits: () => this.knownTraits(extractedTraits),
             }),
             this.engineLocalization,
             localizationDiagnostics
@@ -230,7 +231,10 @@ export class CK3LanguageServer {
         this.foldingProvider = new FoldingRangeProvider(this.syntaxParser);
         this.renameProvider = new RenameProvider(this.syntaxParser, this.engineWorkspace.index);
         this.semanticTokensProvider = new SemanticTokensProvider(this.syntaxParser, this.engineWorkspace);
-        this.codeActionsProvider = new CodeActionsProvider(this.syntaxParser, bundledSpec());
+        this.codeActionsProvider = new CodeActionsProvider(
+            this.syntaxParser,
+            () => this.engineWorkspace.spec
+        );
         this.codeLensProvider = new CodeLensProvider(
             this.syntaxParser,
             this.engineWorkspace.index,
@@ -239,7 +243,7 @@ export class CK3LanguageServer {
         this.documentLinksProvider = new DocumentLinksProvider(this.syntaxParser, this.engineWorkspace.index);
         this.documentHighlightProvider = new DocumentHighlightProvider(this.syntaxParser);
         this.inlayHintsProvider = new InlayHintsProvider(this.syntaxParser, this.engineWorkspace);
-        this.signatureHelpProvider = new SignatureHelpProvider(bundledSpec());
+        this.signatureHelpProvider = new SignatureHelpProvider(() => this.engineWorkspace.spec);
         this.callHierarchyProvider = new CallHierarchyProvider(this.syntaxParser, this.engineWorkspace.index);
         this.selectionRangeProvider = new SelectionRangeProvider(this.syntaxParser);
 
@@ -476,6 +480,7 @@ export class CK3LanguageServer {
                 const modCount = await this.modScanner.discoverMods();
                 if (modCount > 0) {
                     await this.modScanner.extractAllModData();
+                    this.applyModOverlays();
                     this.connection.sendNotification('ck3/indexLog', {
                         message: `Discovered ${modCount} mod(s): ${this.modScanner.getDiscoveredModNames().join(', ')}`
                     });
@@ -556,6 +561,30 @@ export class CK3LanguageServer {
         });
 
         return parsed;
+    }
+
+    /**
+     * Layer the discovered mods' scripted triggers and effects (data/mods registry) over
+     * the spec package: every provider and the diagnostics read the workspace's spec.
+     */
+    private applyModOverlays(): void {
+        const overlays = this.modScanner.toOverlays();
+        if (overlays.length === 0) {
+            return;
+        }
+        const spec = bundledSpec().withOverlay(...overlays);
+        this.engineWorkspace.useSpec(spec);
+        setDefaultSpec(spec);
+        this.hoverProvider.clearCache();
+    }
+
+    /** Extracted trait data plus the discovered mods' traits (CK3800's known set). */
+    private knownTraits(extracted: ReadonlySet<string> | undefined): ReadonlySet<string> | undefined {
+        // Without extracted vanilla trait data the check does not run at all.
+        if (!extracted) {
+            return undefined;
+        }
+        return new Set([...extracted, ...this.modScanner.getAllTraits().keys()]);
     }
 
     /** Index a document into the engine workspace's index. */

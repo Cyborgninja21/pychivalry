@@ -1,19 +1,35 @@
 /**
  * Mod Scanner — discovers and extracts data from installed CK3 mods
- * 
+ *
  * Workflow:
  * 1. Load mod_registry.yaml for known mod definitions and search paths
  * 2. Scan search paths for mod directories (via *.mod descriptors or folder names)
  * 3. Identify mods by matching against registry patterns
  * 4. Extract game data (traits, triggers, effects) using extraction rules
- * 5. Provide merged mod data for completions and hover
+ * 5. Provide the mods' vocabulary as engine overlays (Spec.withOverlay): the server
+ *    layers each discovered mod's scripted triggers and effects over the spec package,
+ *    with the documentation the bundled registry (data/mods/<id>/) carries for them.
  */
 
+import * as fs from 'fs';
 import * as fsp from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';
 import { serverLogger } from '../utils/logger';
-import { DataLoader, ModDefinition } from './loader';
+import * as yaml from 'js-yaml';
+import { SpecOverlay } from 'pychivalry-engine';
+import { findDataDir } from './paths';
+
+/** A mod known to the registry (data/mods/mod_registry.yaml). */
+export interface ModDefinition {
+    id: string;
+    display_name?: string;
+    description?: string;
+    identifiers?: {
+        descriptor_patterns?: string[];
+        folder_patterns?: string[];
+    };
+}
 
 /**
  * Extracted data from a single source rule
@@ -54,6 +70,12 @@ interface ModRegistryEntry extends ModDefinition {
         folder_patterns?: string[];
         required_files?: string[];
     };
+}
+
+/** The shape of data/mods/mod_registry.yaml as read here. */
+interface RegistryFile {
+    mods?: Record<string, Omit<ModRegistryEntry, 'id'>>;
+    discovery?: { search_paths?: string[] };
 }
 
 /**
@@ -101,17 +123,23 @@ export class ModScanner {
     private discoveredMods: Map<string, DiscoveredMod> = new Map();
     private extractedData: Map<string, ModData> = new Map();
     private registryLoaded = false;
+    private dataPath: string | undefined;
 
     /**
      * Load the mod registry from the data loader's YAML
      */
     public async loadRegistry(): Promise<void> {
-        if (this.registryLoaded) return;
+        if (this.registryLoaded) {
+            return;
+        }
 
         try {
-            const dataLoader = DataLoader.getInstance();
-            const dataPath = (dataLoader as any).dataPath;
-            if (!dataPath) return;
+            const dataPath = findDataDir();
+            if (!dataPath) {
+                this.registryLoaded = true;
+                return;
+            }
+            this.dataPath = dataPath;
 
             const registryPath = path.join(dataPath, 'mods', 'mod_registry.yaml');
             let content: string;
@@ -123,12 +151,9 @@ export class ModScanner {
                 return;
             }
 
-            // Simple YAML parsing for the registry structure
-            // We rely on the DataLoader's YAML parser via js-yaml
-            let yaml: any;
+            let registry: RegistryFile | undefined;
             try {
-                const jsYaml = require('js-yaml');
-                yaml = jsYaml.load(content);
+                registry = yaml.load(content) as RegistryFile | undefined;
             } catch {
                 serverLogger.error('Failed to parse mod_registry.yaml');
                 this.registryLoaded = true;
@@ -136,9 +161,8 @@ export class ModScanner {
             }
 
             // Load mod definitions
-            if (yaml?.mods) {
-                for (const [id, info] of Object.entries(yaml.mods)) {
-                    const entry = info as any;
+            if (registry?.mods) {
+                for (const [id, entry] of Object.entries(registry.mods)) {
                     this.registry.set(id, {
                         id,
                         display_name: entry.display_name,
@@ -150,8 +174,8 @@ export class ModScanner {
             }
 
             // Load search paths with environment variable expansion
-            if (yaml?.discovery?.search_paths) {
-                for (const p of yaml.discovery.search_paths) {
+            if (registry?.discovery?.search_paths) {
+                for (const p of registry.discovery.search_paths) {
                     const expanded = this.expandPath(p);
                     if (expanded) {
                         this.searchPaths.push(expanded);
@@ -160,7 +184,9 @@ export class ModScanner {
             }
 
             this.registryLoaded = true;
-            serverLogger.log(`Mod registry loaded: ${this.registry.size} mod definitions, ${this.searchPaths.length} search paths`);
+            serverLogger.log(
+                `Mod registry loaded: ${this.registry.size} mod definitions, ${this.searchPaths.length} search paths`
+            );
         } catch (error) {
             serverLogger.error(`Failed to load mod registry: ${error}`);
             this.registryLoaded = true;
@@ -271,12 +297,14 @@ export class ModScanner {
         const folderName = path.basename(modPath).toLowerCase();
 
         for (const [id, entry] of this.registry) {
-            if (this.discoveredMods.has(id)) continue;
+            if (this.discoveredMods.has(id)) {
+                continue;
+            }
 
             // Check folder patterns
             if (entry.identifiers?.folder_patterns) {
                 const matched = entry.identifiers.folder_patterns.some(
-                    pattern => folderName === pattern.toLowerCase()
+                    (pattern) => folderName === pattern.toLowerCase()
                 );
                 if (matched) {
                     // Verify required files
@@ -287,7 +315,9 @@ export class ModScanner {
                             path: modPath,
                             registryEntry: entry,
                         });
-                        serverLogger.log(`Discovered mod: ${entry.display_name || id} at ${modPath}`);
+                        serverLogger.log(
+                            `Discovered mod: ${entry.display_name || id} at ${modPath}`
+                        );
                         return;
                     }
                 }
@@ -298,8 +328,8 @@ export class ModScanner {
                 const descriptorPath = path.join(modPath, 'descriptor.mod');
                 try {
                     const content = await fsp.readFile(descriptorPath, 'utf-8');
-                    const matched = entry.identifiers.descriptor_patterns.some(
-                        pattern => content.includes(pattern)
+                    const matched = entry.identifiers.descriptor_patterns.some((pattern) =>
+                        content.includes(pattern)
                     );
                     if (matched) {
                         this.discoveredMods.set(id, {
@@ -308,7 +338,9 @@ export class ModScanner {
                             path: modPath,
                             registryEntry: entry,
                         });
-                        serverLogger.log(`Discovered mod: ${entry.display_name || id} at ${modPath}`);
+                        serverLogger.log(
+                            `Discovered mod: ${entry.display_name || id} at ${modPath}`
+                        );
                         return;
                     }
                 } catch {
@@ -322,7 +354,9 @@ export class ModScanner {
      * Verify required files exist in a mod directory
      */
     private async verifyRequiredFiles(modPath: string, requiredFiles?: string[]): Promise<boolean> {
-        if (!requiredFiles || requiredFiles.length === 0) return true;
+        if (!requiredFiles || requiredFiles.length === 0) {
+            return true;
+        }
 
         for (const file of requiredFiles) {
             try {
@@ -350,7 +384,9 @@ export class ModScanner {
      */
     private async extractModData(mod: DiscoveredMod): Promise<void> {
         const rules = mod.registryEntry.extraction_rules;
-        if (!rules) return;
+        if (!rules) {
+            return;
+        }
 
         const data: ModData = {
             modId: mod.id,
@@ -372,11 +408,18 @@ export class ModScanner {
             await this.extractCategory(mod, rules.effects, data.effects, 'effect');
         }
         if (rules.opinion_modifiers) {
-            await this.extractCategory(mod, rules.opinion_modifiers, data.opinionModifiers, 'opinion_modifier');
+            await this.extractCategory(
+                mod,
+                rules.opinion_modifiers,
+                data.opinionModifiers,
+                'opinion_modifier'
+            );
         }
 
         this.extractedData.set(mod.id, data);
-        serverLogger.log(`Extracted data from ${mod.displayName}: ${data.traits.size} traits, ${data.triggers.size} triggers, ${data.effects.size} effects`);
+        serverLogger.log(
+            `Extracted data from ${mod.displayName}: ${data.traits.size} traits, ${data.triggers.size} triggers, ${data.effects.size} effects`
+        );
     }
 
     /**
@@ -386,7 +429,7 @@ export class ModScanner {
         mod: DiscoveredMod,
         rules: ExtractionRules,
         target: Map<string, ModDataItem>,
-        category: string
+        _category: string
     ): Promise<void> {
         // Process sources (auto-extraction from files)
         if (rules.sources) {
@@ -452,7 +495,7 @@ export class ModScanner {
             const globRegex = new RegExp(
                 '^' + filePart.replace(/\*/g, '.*').replace(/\?/g, '.') + '$'
             );
-            files = entries.filter(f => globRegex.test(f)).map(f => path.join(fullDir, f));
+            files = entries.filter((f) => globRegex.test(f)).map((f) => path.join(fullDir, f));
         } catch {
             return; // Directory doesn't exist
         }
@@ -468,7 +511,7 @@ export class ModScanner {
 
                     // Apply prefix filter
                     if (source.include_prefixes && source.include_prefixes.length > 0) {
-                        if (!source.include_prefixes.some(prefix => name.startsWith(prefix))) {
+                        if (!source.include_prefixes.some((prefix) => name.startsWith(prefix))) {
                             continue;
                         }
                     }
@@ -488,6 +531,64 @@ export class ModScanner {
                 // Skip unreadable files
             }
         }
+    }
+
+    /**
+     * The discovered mods' scripted triggers and effects as engine overlays, one per mod,
+     * documented from the extraction rules and from the registry's per-mod files
+     * (data/mods/<id>/triggers.yaml, effects.yaml) where those describe a name.
+     */
+    public toOverlays(): SpecOverlay[] {
+        const overlays: SpecOverlay[] = [];
+        for (const data of this.extractedData.values()) {
+            const docs = (kind: 'triggers' | 'effects'): Map<string, string> =>
+                this.registryDocs(data.modId, kind);
+            const bucket = (
+                items: Map<string, ModDataItem>,
+                documented: Map<string, string>
+            ): Record<string, { doc?: string }> => {
+                const out: Record<string, { doc?: string }> = {};
+                for (const [name, item] of items) {
+                    out[name] = { doc: item.description ?? documented.get(name) };
+                }
+                return out;
+            };
+            overlays.push({
+                source: data.displayName,
+                buckets: {
+                    triggers: bucket(data.triggers, docs('triggers')),
+                    effects: bucket(data.effects, docs('effects')),
+                },
+            });
+        }
+        return overlays;
+    }
+
+    /** name → description from data/mods/<modId>/<kind>.yaml (empty when absent). */
+    private registryDocs(modId: string, kind: 'triggers' | 'effects'): Map<string, string> {
+        const out = new Map<string, string>();
+        if (!this.dataPath) {
+            return out;
+        }
+        let parsed: unknown;
+        try {
+            const file = path.join(this.dataPath, 'mods', modId, `${kind}.yaml`);
+            parsed = yaml.load(fs.readFileSync(file, 'utf-8'));
+        } catch {
+            return out;
+        }
+        if (parsed && typeof parsed === 'object') {
+            for (const [name, info] of Object.entries(parsed)) {
+                const description =
+                    info && typeof info === 'object' && 'description' in info
+                        ? (info as { description?: unknown }).description
+                        : undefined;
+                if (name !== 'metadata' && typeof description === 'string') {
+                    out.set(name, description);
+                }
+            }
+        }
+        return out;
     }
 
     /**
@@ -528,8 +629,12 @@ export class ModScanner {
      */
     public getSourceMod(identifier: string): string | undefined {
         for (const data of this.extractedData.values()) {
-            if (data.traits.has(identifier) || data.triggers.has(identifier) ||
-                data.effects.has(identifier) || data.opinionModifiers.has(identifier)) {
+            if (
+                data.traits.has(identifier) ||
+                data.triggers.has(identifier) ||
+                data.effects.has(identifier) ||
+                data.opinionModifiers.has(identifier)
+            ) {
                 return data.displayName;
             }
         }
@@ -547,7 +652,7 @@ export class ModScanner {
      * Get list of discovered mod names
      */
     public getDiscoveredModNames(): string[] {
-        return Array.from(this.discoveredMods.values()).map(m => m.displayName);
+        return Array.from(this.discoveredMods.values()).map((m) => m.displayName);
     }
 
     /**

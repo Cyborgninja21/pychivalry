@@ -40,6 +40,14 @@ export function keywordMarkdown(spec: Spec, name: string, only?: Bucket[]): stri
         if (buckets.length > 1) {
             parts.push(`**As ${bucketLabel(bucket)}**`);
         }
+        const source = spec.sourceOf(name, bucket);
+        if (source) {
+            parts.push(`*Provided by the mod ${source} (registry overlay)*`);
+            if (doc) {
+                parts.push(doc);
+            }
+            continue;
+        }
         parts.push(doc ? fenced(doc) : '*(the engine registers this name without a doc string)*');
     }
     parts.push(`*CK3 ${spec.version()} engine documentation*`);

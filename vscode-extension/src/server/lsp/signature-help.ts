@@ -34,7 +34,10 @@ const SIGNATURE_BUCKETS: Bucket[] = ['effects', 'triggers', 'lists'];
  * Signature Help Provider
  */
 export class SignatureHelpProvider {
-    constructor(private spec: Spec = defaultSpec()) {}
+    constructor(
+        /** The current spec (the workspace's, with any mod overlay). */
+        private currentSpec: () => Spec = defaultSpec
+    ) {}
 
     /**
      * Provide signature help
@@ -162,10 +165,10 @@ export class SignatureHelpProvider {
     private getSignatures(command: string): SignatureInformation[] {
         const signatures: SignatureInformation[] = [];
         for (const bucket of SIGNATURE_BUCKETS) {
-            if (!this.spec.has(command, bucket)) {
+            if (!this.currentSpec().has(command, bucket)) {
                 continue;
             }
-            const doc = this.spec.doc(command, bucket);
+            const doc = this.currentSpec().doc(command, bucket);
             const params = docParameters(doc, command);
             if (params.length === 0) {
                 continue;
@@ -174,7 +177,7 @@ export class SignatureHelpProvider {
                 label: `${command} = { ${params.join(' ')} }`,
                 documentation: {
                     kind: MarkupKind.Markdown,
-                    value: `*${bucketLabel(bucket)}* — CK3 ${this.spec.version()} engine documentation\n\n\`\`\`text\n${doc ?? ''}\n\`\`\``,
+                    value: `*${bucketLabel(bucket)}* — CK3 ${this.currentSpec().version()} engine documentation\n\n\`\`\`text\n${doc ?? ''}\n\`\`\``,
                 },
                 parameters: params.map((p) => ParameterInformation.create(p)),
             });

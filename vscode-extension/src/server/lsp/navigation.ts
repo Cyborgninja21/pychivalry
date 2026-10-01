@@ -51,7 +51,8 @@ export class DefinitionProvider {
         private ck3Parser: CK3Parser,
         private symbolIndexer: DocumentIndexer,
         private localizationIndex?: LocalizationIndex,
-        private spec: Spec = defaultSpec()
+        /** The current spec (the workspace's, with any mod overlay). */
+        private currentSpec: () => Spec = defaultSpec
     ) {}
 
     /**
@@ -297,12 +298,12 @@ export class DefinitionProvider {
         }
 
         // Check if it's a known effect
-        if (this.spec.has(tokenText, 'effects')) {
+        if (this.currentSpec().has(tokenText, 'effects')) {
             return NavigationContext.EFFECT_NAME;
         }
 
         // Check if it's a known trigger
-        if (this.spec.has(tokenText, 'triggers')) {
+        if (this.currentSpec().has(tokenText, 'triggers')) {
             return NavigationContext.TRIGGER_NAME;
         }
 

@@ -13,7 +13,7 @@
 
 import { DiagnosticSeverity } from 'vscode-languageserver/node';
 import { findSimilar } from '../utils/fuzzy-match';
-import { DataLoader } from '../data/loader';
+import { defaultSpec } from 'pychivalry-engine';
 import { serverLogger } from '../utils/logger';
 
 // ---------------------------------------------------------------------------
@@ -102,7 +102,9 @@ export class CK3LogAnalyzer {
         const results: LogAnalysisResult[] = [];
         for (const line of lines) {
             const r = this.analyzeLine(line, sourceFile);
-            if (r) results.push(r);
+            if (r) {
+                results.push(r);
+            }
         }
         return results;
     }
@@ -134,20 +136,104 @@ export class CK3LogAnalyzer {
         const W = DiagnosticSeverity.Warning;
 
         const defs: Array<[string, DiagnosticSeverity, string, string, string]> = [
-            [String.raw`\[E\].*Script system error!`,         E, 'script_system_error',  'CK3 Script System Error',                              'show_error_details'],
-            [String.raw`Error:\s+(\w+)\s+effect\s+\[`,        E, 'effect_error',          "Error in effect '{0}'",                                 'suggest_similar_effect'],
-            [String.raw`Failed to read key reference:\s+([^:]+):`, W, 'missing_key_reference', "Missing key reference '{0}'",                     'check_key_definition'],
-            [String.raw`Unknown modifier\s+'([^']+)'`,        E, 'unknown_modifier',      "Unknown modifier '{0}'",                                'suggest_valid_modifiers'],
-            [String.raw`Unknown effect:?\s+['"]?(\w+)['"]?`,  E, 'unknown_effect',        "Unknown effect '{0}'",                                  'suggest_similar_effect'],
-            [String.raw`Unknown trigger:?\s+['"]?(\w+)['"]?`, E, 'unknown_trigger',       "Unknown trigger '{0}'",                                 'suggest_similar_trigger'],
-            [String.raw`Invalid scope.*from\s+(\w+)\s+to\s+(\w+)`, E, 'scope_error',      'Invalid scope navigation from {0} to {1}',              'show_valid_scopes'],
-            [String.raw`Event\s+([\w.]+)\s+not found`,        E, 'missing_event',         "Referenced event {0} doesn't exist",                    'create_event_stub'],
-            [String.raw`Missing localization key:?\s+['"]?(\w+)['"]?`, W, 'missing_localization', "Localization key '{0}' not found",              'generate_loc_entry'],
-            [String.raw`Variable\s+['"](\w+)['"].*not defined`, E, 'undefined_variable',  "Variable '{0}' used before definition",                 'add_variable_definition'],
-            [String.raw`Script execution took\s+(\d+)ms.*in event\s+([\w.]+)`, W, 'performance', 'Event {1} took {0}ms (slow execution)',          'suggest_optimization'],
-            [String.raw`Unexpected token\s+['"]([^'"]+)['"]`, E, 'syntax_error',          "Unexpected token '{0}'",                                'show_syntax_help'],
-            [String.raw`File\s+['"]([^'"]+)['"].*not found`,  E, 'missing_file',          "File '{0}' not found",                                  'create_file_stub'],
-            [String.raw`Duplicate.*definition.*['"](\w+)['"]`, W, 'duplicate_definition', "Duplicate definition of '{0}'",                         'show_other_definition'],
+            [
+                String.raw`\[E\].*Script system error!`,
+                E,
+                'script_system_error',
+                'CK3 Script System Error',
+                'show_error_details',
+            ],
+            [
+                String.raw`Error:\s+(\w+)\s+effect\s+\[`,
+                E,
+                'effect_error',
+                "Error in effect '{0}'",
+                'suggest_similar_effect',
+            ],
+            [
+                String.raw`Failed to read key reference:\s+([^:]+):`,
+                W,
+                'missing_key_reference',
+                "Missing key reference '{0}'",
+                'check_key_definition',
+            ],
+            [
+                String.raw`Unknown modifier\s+'([^']+)'`,
+                E,
+                'unknown_modifier',
+                "Unknown modifier '{0}'",
+                'suggest_valid_modifiers',
+            ],
+            [
+                String.raw`Unknown effect:?\s+['"]?(\w+)['"]?`,
+                E,
+                'unknown_effect',
+                "Unknown effect '{0}'",
+                'suggest_similar_effect',
+            ],
+            [
+                String.raw`Unknown trigger:?\s+['"]?(\w+)['"]?`,
+                E,
+                'unknown_trigger',
+                "Unknown trigger '{0}'",
+                'suggest_similar_trigger',
+            ],
+            [
+                String.raw`Invalid scope.*from\s+(\w+)\s+to\s+(\w+)`,
+                E,
+                'scope_error',
+                'Invalid scope navigation from {0} to {1}',
+                'show_valid_scopes',
+            ],
+            [
+                String.raw`Event\s+([\w.]+)\s+not found`,
+                E,
+                'missing_event',
+                "Referenced event {0} doesn't exist",
+                'create_event_stub',
+            ],
+            [
+                String.raw`Missing localization key:?\s+['"]?(\w+)['"]?`,
+                W,
+                'missing_localization',
+                "Localization key '{0}' not found",
+                'generate_loc_entry',
+            ],
+            [
+                String.raw`Variable\s+['"](\w+)['"].*not defined`,
+                E,
+                'undefined_variable',
+                "Variable '{0}' used before definition",
+                'add_variable_definition',
+            ],
+            [
+                String.raw`Script execution took\s+(\d+)ms.*in event\s+([\w.]+)`,
+                W,
+                'performance',
+                'Event {1} took {0}ms (slow execution)',
+                'suggest_optimization',
+            ],
+            [
+                String.raw`Unexpected token\s+['"]([^'"]+)['"]`,
+                E,
+                'syntax_error',
+                "Unexpected token '{0}'",
+                'show_syntax_help',
+            ],
+            [
+                String.raw`File\s+['"]([^'"]+)['"].*not found`,
+                E,
+                'missing_file',
+                "File '{0}' not found",
+                'create_file_stub',
+            ],
+            [
+                String.raw`Duplicate.*definition.*['"](\w+)['"]`,
+                W,
+                'duplicate_definition',
+                "Duplicate definition of '{0}'",
+                'show_other_definition',
+            ],
         ];
 
         for (const [regex, severity, category, template, action] of defs) {
@@ -171,7 +257,7 @@ export class CK3LogAnalyzer {
         pattern: ErrorPattern,
         match: RegExpExecArray,
         line: string,
-        sourceFile: string,
+        _sourceFile: string
     ): LogAnalysisResult {
         const groups = match.slice(1);
 
@@ -194,7 +280,9 @@ export class CK3LogAnalyzer {
 
         // Store captured groups
         groups.forEach((g, i) => {
-            if (g !== undefined) result.extractedValues[`group${i}`] = g;
+            if (g !== undefined) {
+                result.extractedValues[`group${i}`] = g;
+            }
         });
 
         // Extract source location
@@ -217,43 +305,54 @@ export class CK3LogAnalyzer {
 
     private extractLocation(line: string): { file: string; line: number; column?: number } | null {
         let m = LOC_PATTERN_1.exec(line);
-        if (m) return { file: m[1], line: parseInt(m[2], 10) };
+        if (m) {
+            return { file: m[1], line: parseInt(m[2], 10) };
+        }
 
         m = LOC_PATTERN_2.exec(line);
-        if (m) return { file: m[1].trim(), line: parseInt(m[2], 10) };
+        if (m) {
+            return { file: m[1].trim(), line: parseInt(m[2], 10) };
+        }
 
         m = LOC_PATTERN_3.exec(line);
-        if (m) return { file: m[1], line: parseInt(m[2], 10) };
+        if (m) {
+            return { file: m[1], line: parseInt(m[2], 10) };
+        }
 
         return null;
     }
 
     private generateSuggestions(pattern: ErrorPattern, groups: (string | undefined)[]): string[] {
         const value = groups[0];
-        if (!value) return [];
+        if (!value) {
+            return [];
+        }
 
         try {
-            const dataLoader = DataLoader.getInstance();
-
+            // Suggestions come from the engine's spec package (the process default, which
+            // the server sets to the bundled package with any mod overlay).
+            const spec = defaultSpec();
             if (pattern.actionType === 'suggest_similar_effect') {
-                const known = dataLoader.getEffects();
-                return findSimilar(value, known.keys(), { max: 3 });
+                return findSimilar(value, spec.names('effects'), { max: 3 });
             }
             if (pattern.actionType === 'suggest_similar_trigger') {
-                const known = dataLoader.getTriggers();
-                return findSimilar(value, known.keys(), { max: 3 });
+                return findSimilar(value, spec.names('triggers'), { max: 3 });
             }
         } catch {
-            // DataLoader might not be initialised yet — silently skip
+            // No spec package available — no suggestions
         }
 
         return [];
     }
 
     private updateStats(result: LogAnalysisResult): void {
-        if (result.severity === DiagnosticSeverity.Error) this.stats.totalErrors++;
-        else if (result.severity === DiagnosticSeverity.Warning) this.stats.totalWarnings++;
-        else this.stats.totalInfo++;
+        if (result.severity === DiagnosticSeverity.Error) {
+            this.stats.totalErrors++;
+        } else if (result.severity === DiagnosticSeverity.Warning) {
+            this.stats.totalWarnings++;
+        } else {
+            this.stats.totalInfo++;
+        }
 
         this.stats.errorsByCategory[result.category] =
             (this.stats.errorsByCategory[result.category] ?? 0) + 1;

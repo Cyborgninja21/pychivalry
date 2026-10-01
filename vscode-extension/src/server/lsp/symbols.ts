@@ -41,19 +41,20 @@ export class DocumentSymbolProvider {
         {
             title: 'Effects',
             kind: SymbolKind.Function,
-            filter: (n) => !!n.key && this.spec.has(n.key, 'effects'),
+            filter: (n) => !!n.key && this.currentSpec().has(n.key, 'effects'),
         },
         {
             title: 'Triggers',
             kind: SymbolKind.Method,
-            filter: (n) => !!n.key && this.spec.has(n.key, 'triggers'),
+            filter: (n) => !!n.key && this.currentSpec().has(n.key, 'triggers'),
         },
     ];
 
     constructor(
         private ck3Parser: CK3Parser,
         private symbolIndexer: DocumentIndexer,
-        private spec: Spec = defaultSpec()
+        /** The current spec (the workspace's, with any mod overlay). */
+        private currentSpec: () => Spec = defaultSpec
     ) {}
 
     /**
@@ -210,11 +211,11 @@ export class DocumentSymbolProvider {
         }
 
         // Effect/Trigger
-        if (this.spec.has(keyName, 'effects')) {
+        if (this.currentSpec().has(keyName, 'effects')) {
             return SymbolKind.Function;
         }
 
-        if (this.spec.has(keyName, 'triggers')) {
+        if (this.currentSpec().has(keyName, 'triggers')) {
             return SymbolKind.Method;
         }
 

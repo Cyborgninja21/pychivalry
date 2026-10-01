@@ -8,17 +8,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as yaml from 'js-yaml';
-
-/** Directories the bundled server and the tests look in for data/. */
-export function dataDirCandidates(): string[] {
-    return [
-        path.join(__dirname, 'data'),
-        path.join(__dirname, '..', 'data'),
-        path.join(__dirname, '..', '..', '..', 'data'),
-        path.join(__dirname, '..', '..', '..', '..', 'data'),
-        path.join(process.cwd(), 'data'),
-    ];
-}
+import { dataDirCandidates } from './paths';
 
 /**
  * Trait names from data/traits/*.yaml (a mapping `name: {...}` per file, or a list of

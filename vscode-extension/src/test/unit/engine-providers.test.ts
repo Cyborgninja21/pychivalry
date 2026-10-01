@@ -17,6 +17,10 @@ import { SemanticTokensProvider } from '../../server/lsp/semantic-tokens';
 import { docParameters } from '../../server/lsp/keyword-docs';
 import { KEYWORD_SNIPPETS, RECORD_TEMPLATES } from '../../server/lsp/snippets';
 import { CodeLensProvider } from '../../server/lsp/code-lens';
+import { HoverProvider } from '../../server/lsp/hover';
+import { ModScanner } from '../../server/data/mod-scanner';
+import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
 import { Workspace } from 'pychivalry-engine';
 
@@ -62,7 +66,7 @@ function names(symbols: DocumentSymbol[]): string[] {
 describe('Providers on the engine (4.1)', () => {
     it('symbols: outline classifies effects and triggers by the engine buckets', async () => {
         const { parser, index, event } = setup();
-        const provider = new DocumentSymbolProvider(parser, index, defaultSpec());
+        const provider = new DocumentSymbolProvider(parser, index, defaultSpec);
         const outline = names(await provider.buildDocumentOutline(event));
         assert.ok(outline.includes('my_events.0001'), outline.join(', '));
         assert.ok(defaultSpec().has('add_gold', 'effects'));
@@ -75,7 +79,7 @@ describe('Providers on the engine (4.1)', () => {
             parser,
             index,
             new LocalizationIndex(),
-            defaultSpec()
+            defaultSpec
         );
         const result = await provider.navigateToDefinition(event, { line: 4, character: 10 });
         assert.ok(result && result.length > 0, 'no definition found');
@@ -115,7 +119,7 @@ describe('Providers on the engine (4.2)', () => {
     });
 
     it('signature help: the signature comes from the engine doc', async () => {
-        const provider = new SignatureHelpProvider(defaultSpec());
+        const provider = new SignatureHelpProvider(defaultSpec);
         const text = 'x = {\n\ttrigger_event = {\n\t\tid = a.1\n\t\t\n\t}\n}';
         const doc = TextDocument.create('file:///mod/events/e.txt', 'ck3', 1, text);
         const help = await provider.provideSignatureHelp(doc, { line: 3, character: 2 });
@@ -172,5 +176,57 @@ describe('Providers on the engine (4.4)', () => {
         ).provideCodeLens(event);
         assert.ok(lenses.length > 0, 'no lenses');
         assert.ok(index.getEvent('my_events.0001'), 'the engine index knows the CK3 event record');
+    });
+});
+
+describe('Mod registry as an engine overlay (4.5)', () => {
+    let modsDir: string;
+
+    before(() => {
+        modsDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pych-mods-'));
+        const mod = path.join(modsDir, 'carnalitas');
+        fs.mkdirSync(path.join(mod, 'common', 'scripted_effects'), { recursive: true });
+        fs.mkdirSync(path.join(mod, 'common', 'scripted_triggers'), { recursive: true });
+        fs.writeFileSync(path.join(mod, 'descriptor.mod'), 'name="Carnalitas"\n');
+        fs.writeFileSync(
+            path.join(mod, 'common', 'scripted_effects', 'carn_sex_scene_effects.txt'),
+            'carn_sex_scene_is_vaginal_effect = {\n}\n'
+        );
+        fs.writeFileSync(
+            path.join(mod, 'common', 'scripted_triggers', 'carn_slave_triggers.txt'),
+            'carn_is_slave_trigger = {\n}\n'
+        );
+    });
+
+    after(() => {
+        fs.rmSync(modsDir, { recursive: true, force: true });
+    });
+
+    it('layers a discovered mod over the spec package, documented from data/mods', async () => {
+        const scanner = new ModScanner();
+        const count = await scanner.discoverMods([modsDir]);
+        assert.strictEqual(count, 1);
+        await scanner.extractAllModData();
+        const overlays = scanner.toOverlays();
+        assert.strictEqual(overlays.length, 1);
+        assert.strictEqual(overlays[0].source, 'Carnalitas');
+
+        const workspace = new Workspace(path.resolve('/mod'));
+        workspace.useSpec(workspace.spec.withOverlay(...overlays));
+        assert.ok(workspace.spec.has('carn_sex_scene_is_vaginal_effect', 'effects'));
+        assert.ok(workspace.spec.has('carn_is_slave_trigger', 'triggers'));
+
+        const parser = new CK3Parser({ spec: workspace.spec });
+        const text = 'a.1 = {\n\timmediate = {\n\t\tcarn_sex_scene_is_vaginal_effect = yes\n\t}\n}';
+        const doc = TextDocument.create('file:///mod/events/a.txt', 'ck3', 1, text);
+        const hover = await new HoverProvider(parser, workspace).provideHover(doc, {
+            line: 2,
+            character: 6,
+        });
+        const contents = hover?.contents;
+        const value =
+            contents && typeof contents === 'object' && 'value' in contents ? contents.value : '';
+        assert.ok(value.includes('Provided by the mod Carnalitas'), value);
+        assert.ok(value.includes('Flag sex scene as vaginal'), value);
     });
 });

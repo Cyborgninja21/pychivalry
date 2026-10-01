@@ -32,6 +32,19 @@ export type Since = (typeof SINCE_VALUES)[number];
 export interface BucketEntry {
     doc: string;
     provenance?: 'table';
+    /** Set on entries an overlay adds (Spec.withOverlay): who provides the name. */
+    source?: string;
+}
+
+/**
+ * Vocabulary layered over the engine's package, e.g. a mod's scripted effects and
+ * triggers (the extension's Carnalitas registry). Names are added to the given buckets;
+ * names the package already registers keep the package's entry.
+ */
+export interface SpecOverlay {
+    /** Who provides these names (a mod's display name); recorded on each added entry. */
+    source: string;
+    buckets: Partial<Record<Bucket, Record<string, { doc?: string }>>>;
 }
 
 export interface Manifest {

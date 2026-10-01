@@ -156,7 +156,8 @@ export class CodeActionsProvider {
 
     constructor(
         private parser: CK3Parser,
-        private spec: Spec = defaultSpec()
+        /** The current spec (the workspace's, with any mod overlay). */
+        private currentSpec: () => Spec = defaultSpec
     ) {
         this.quickFixRegistry = this.buildQuickFixRegistry();
     }
@@ -173,7 +174,7 @@ export class CodeActionsProvider {
         const parsed = this.parser.parse(document.getText());
         const context: CodeActionContext = {
             parser: this.parser,
-            spec: this.spec,
+            spec: this.currentSpec(),
             ast: parsed.ast,
         };
 
@@ -511,11 +512,11 @@ export class CodeActionsProvider {
     }
 
     private isEffectBlock(text: string): boolean {
-        return this.selectedKeys(text).some((k) => this.spec.has(k, 'effects'));
+        return this.selectedKeys(text).some((k) => this.currentSpec().has(k, 'effects'));
     }
 
     private isTriggerBlock(text: string): boolean {
-        return this.selectedKeys(text).some((k) => this.spec.has(k, 'triggers'));
+        return this.selectedKeys(text).some((k) => this.currentSpec().has(k, 'triggers'));
     }
 
     private isEmptyLineOrBlock(document: TextDocument, position: Position): boolean {

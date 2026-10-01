@@ -128,7 +128,7 @@ export function parseModDescriptor(filePath: string): ModDescriptor {
 }
 
 export class Workspace {
-    public readonly spec: Spec;
+    private currentSpec: Spec;
     /** Index of the workspace's own files. */
     public readonly index: Indexer = new Indexer();
     /** Index of the vanilla base game's callable definitions (empty without --vanilla). */
@@ -141,7 +141,7 @@ export class Workspace {
     private readonly log: (message: string) => void;
 
     constructor(root?: string, options: WorkspaceOptions = {}) {
-        this.spec = options.spec ?? defaultSpec();
+        this.currentSpec = options.spec ?? defaultSpec();
         this.vanillaRoot = options.vanilla ? path.resolve(options.vanilla) : undefined;
         this.log = options.log ?? (() => undefined);
         if (root !== undefined) {
@@ -188,6 +188,20 @@ export class Workspace {
     }
 
     // ── engine API ───────────────────────────────────────────────────────
+
+    /** The spec package (with any overlays) the workspace is checked against. */
+    public get spec(): Spec {
+        return this.currentSpec;
+    }
+
+    /**
+     * Check against another spec from now on (the same package with a mod's vocabulary
+     * overlaid, say). Parsed files are re-parsed on their next use; the index is kept.
+     */
+    public useSpec(spec: Spec): void {
+        this.currentSpec = spec;
+        this.parseCache.clear();
+    }
 
     /** Root directories of the workspace folders. */
     public roots(): string[] {
