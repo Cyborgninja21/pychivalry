@@ -473,6 +473,9 @@ export class CK3LanguageServer {
                 notify(`Scanning workspace folder: ${folder.name}`);
                 await this.workspace.addWorkspaceFolder(folder);
             }
+            // Index the workspace so that definitions in unopened files resolve
+            const indexed = await this.commands.indexWorkspace();
+            notify(`Indexed ${indexed.uris.length} files`);
             await this.commands.scanLocalization();
             try {
                 const modCount = await this.modScanner.discoverMods();

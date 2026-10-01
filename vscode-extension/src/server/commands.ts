@@ -121,17 +121,14 @@ export class ServerCommands {
     }
 
     /**
-     * Index every CK3 file of the workspace folders (in batches), rebuild the
-     * localization index, then validate every file (open or not) and publish diagnostics.
+     * Index every CK3 file of the workspace folders (read in batches of 15), so that
+     * definitions in files that are not open resolve. Returns the indexed URIs.
      */
-    public async rescanWorkspace(): Promise<Record<string, unknown>> {
+    public async indexWorkspace(): Promise<{ uris: string[]; errors: number }> {
         const { connection, workspace, parser } = this.host;
         const BATCH_SIZE = 15;
-        let filesScanned = 0;
+        const uris: string[] = [];
         let errors = 0;
-        const allFileUris: string[] = [];
-
-        connection.sendNotification('ck3/indexLog', { message: 'Starting workspace rescan...' });
         for (const folder of this.host.workspaceFolders()) {
             const files = await workspace.findCK3Files(folder);
             connection.sendNotification('ck3/indexLog', {
@@ -148,18 +145,29 @@ export class ServerCommands {
                 );
                 for (const result of results) {
                     if (result.status === 'fulfilled') {
-                        filesScanned++;
-                        allFileUris.push(result.value);
+                        uris.push(result.value);
                     } else {
                         errors++;
                         connection.console.error(`Failed to scan file: ${result.reason}`);
                     }
                 }
                 connection.sendNotification('ck3/indexLog', {
-                    message: `Indexed ${filesScanned} files...`,
+                    message: `Indexed ${uris.length} files...`,
                 });
             }
         }
+        return { uris, errors };
+    }
+
+    /**
+     * Index the workspace again, rebuild the localization index, then validate every
+     * file (open or not) and publish diagnostics.
+     */
+    public async rescanWorkspace(): Promise<Record<string, unknown>> {
+        const { connection } = this.host;
+        connection.sendNotification('ck3/indexLog', { message: 'Starting workspace rescan...' });
+        const { uris: allFileUris, errors } = await this.indexWorkspace();
+        const filesScanned = allFileUris.length;
         await this.scanLocalization();
 
         connection.sendNotification('ck3/indexLog/bulk', {
