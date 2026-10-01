@@ -9,11 +9,10 @@
  *   GAME_LOG_{CATEGORY}  (e.g. GAME_LOG_UNKNOWN_EFFECT)
  */
 
-import { Diagnostic, DiagnosticSeverity, Connection } from 'vscode-languageserver/node';
+import { Diagnostic, Connection } from 'vscode-languageserver/node';
 import * as path from 'path';
 import * as fs from 'fs';
 import { LogAnalysisResult } from './analyzer';
-import { serverLogger } from '../utils/logger';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -72,7 +71,7 @@ export class LogDiagnosticConverter {
 
         // Attach suggestions as related data
         if (result.suggestions.length > 0) {
-            (diag as any).data = {
+            diag.data = {
                 suggestions: result.suggestions,
                 category: result.category,
                 actionType: result.codeActionType,
@@ -92,10 +91,14 @@ export class LogDiagnosticConverter {
 
         for (const result of results) {
             const uri = this.resolveFileUri(result.sourceFile);
-            if (!uri) continue;
+            if (!uri) {
+                continue;
+            }
 
             const diag = this.convertToDiagnostic(result);
-            if (!diag) continue;
+            if (!diag) {
+                continue;
+            }
 
             let list = byUri.get(uri);
             if (!list) {
@@ -159,7 +162,9 @@ export class LogDiagnosticConverter {
      * workspace root.  Returns null if no valid file is found.
      */
     resolveFileUri(filePath: string | undefined): string | null {
-        if (!filePath) return null;
+        if (!filePath) {
+            return null;
+        }
 
         // Normalise separators
         const normalized = filePath.replace(/\\/g, '/');

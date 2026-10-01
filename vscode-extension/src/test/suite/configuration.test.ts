@@ -2,7 +2,7 @@ import * as assert from 'assert';
 import * as vscode from 'vscode';
 
 suite('Configuration Tests', () => {
-    let originalConfig: { [key: string]: any } = {};
+    let originalConfig: { [key: string]: unknown } = {};
 
     suiteSetup(() => {
         // Save original configuration
@@ -65,10 +65,7 @@ suite('Configuration Tests', () => {
             ];
 
             for (const setting of requiredSettings) {
-                assert.ok(
-                    config.has(setting),
-                    `Setting ${setting} should exist in configuration`
-                );
+                assert.ok(config.has(setting), `Setting ${setting} should exist in configuration`);
             }
         });
     });
@@ -125,11 +122,7 @@ suite('Configuration Tests', () => {
             const config = vscode.workspace.getConfiguration('ck3LanguageServer');
             const inspect = config.inspect('formatting.tabSize');
 
-            assert.strictEqual(
-                inspect?.defaultValue,
-                4,
-                'formatting.tabSize default should be 4'
-            );
+            assert.strictEqual(inspect?.defaultValue, 4, 'formatting.tabSize default should be 4');
         });
 
         test('inlayHints.enabled should default to true', () => {
@@ -175,7 +168,11 @@ suite('Configuration Tests', () => {
             assert.strictEqual(config.get('logLevel'), testValue, 'logLevel should update');
 
             // Restore
-            await config.update('logLevel', originalConfig.logLevel, vscode.ConfigurationTarget.Global);
+            await config.update(
+                'logLevel',
+                originalConfig.logLevel,
+                vscode.ConfigurationTarget.Global
+            );
         });
 
         test('Should update trace.server', async () => {
@@ -186,7 +183,11 @@ suite('Configuration Tests', () => {
             assert.strictEqual(config.get('trace.server'), testValue, 'trace.server should update');
 
             // Restore
-            await config.update('trace.server', originalConfig.traceServer, vscode.ConfigurationTarget.Global);
+            await config.update(
+                'trace.server',
+                originalConfig.traceServer,
+                vscode.ConfigurationTarget.Global
+            );
         });
 
         test('Should update formatting.enabled', async () => {
@@ -237,8 +238,16 @@ suite('Configuration Tests', () => {
             assert.strictEqual(config.get('trace.server'), 'messages');
 
             // Restore
-            await config.update('logLevel', originalConfig.logLevel, vscode.ConfigurationTarget.Global);
-            await config.update('trace.server', originalConfig.traceServer, vscode.ConfigurationTarget.Global);
+            await config.update(
+                'logLevel',
+                originalConfig.logLevel,
+                vscode.ConfigurationTarget.Global
+            );
+            await config.update(
+                'trace.server',
+                originalConfig.traceServer,
+                vscode.ConfigurationTarget.Global
+            );
         });
     });
 
@@ -309,7 +318,10 @@ suite('Configuration Tests', () => {
             if (inspect && inspect.defaultValue !== undefined) {
                 const value = inspect.defaultValue as number;
                 // Schema defines: minimum 100, maximum 5000
-                assert.ok(value >= 100 && value <= 5000, 'debounceDelay should be between 100 and 5000');
+                assert.ok(
+                    value >= 100 && value <= 5000,
+                    'debounceDelay should be between 100 and 5000'
+                );
             }
         });
     });
@@ -341,7 +353,11 @@ suite('Configuration Tests', () => {
             assert.ok(inspect, 'Should be able to inspect configuration');
             if (inspect) {
                 assert.ok('defaultValue' in inspect, 'Should have default value');
-                assert.notStrictEqual(inspect.defaultValue, undefined, 'Default value should be defined');
+                assert.notStrictEqual(
+                    inspect.defaultValue,
+                    undefined,
+                    'Default value should be defined'
+                );
             }
         });
     });
@@ -366,7 +382,11 @@ suite('Configuration Tests', () => {
                 assert.ok(eventFired, 'Configuration change event should fire');
 
                 // Restore
-                await config.update('logLevel', originalConfig.logLevel, vscode.ConfigurationTarget.Global);
+                await config.update(
+                    'logLevel',
+                    originalConfig.logLevel,
+                    vscode.ConfigurationTarget.Global
+                );
             } finally {
                 disposable.dispose();
             }
@@ -413,7 +433,7 @@ suite('Configuration Tests', () => {
     suite('Complex Configuration', () => {
         test('Should handle logWatcher.patterns array configuration', () => {
             const config = vscode.workspace.getConfiguration('ck3LanguageServer');
-            const patterns = config.get('logWatcher.patterns') as any[];
+            const patterns = config.get('logWatcher.patterns') as { severity?: string }[];
 
             assert.ok(Array.isArray(patterns), 'patterns should be an array');
 
@@ -433,11 +453,19 @@ suite('Configuration Tests', () => {
                 },
             ];
 
-            await config.update('logWatcher.patterns', customPatterns, vscode.ConfigurationTarget.Global);
+            await config.update(
+                'logWatcher.patterns',
+                customPatterns,
+                vscode.ConfigurationTarget.Global
+            );
 
-            const patterns = config.get('logWatcher.patterns') as any[];
+            const patterns = config.get('logWatcher.patterns') as { severity?: string }[];
             assert.strictEqual(patterns.length, 1, 'Should have one custom pattern');
-            assert.strictEqual(patterns[0].severity, 'error', 'Pattern should have correct severity');
+            assert.strictEqual(
+                patterns[0].severity,
+                'error',
+                'Pattern should have correct severity'
+            );
 
             // Restore
             await config.update('logWatcher.patterns', [], vscode.ConfigurationTarget.Global);

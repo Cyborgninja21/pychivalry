@@ -6,7 +6,6 @@ import * as assert from 'assert';
 import { levenshteinDistance, similarityRatio, findSimilar } from '../../server/utils/fuzzy-match';
 
 describe('Fuzzy Match Utilities', () => {
-
     describe('levenshteinDistance()', () => {
         it('returns 0 for identical strings', () => {
             assert.strictEqual(levenshteinDistance('hello', 'hello'), 0);
@@ -40,7 +39,7 @@ describe('Fuzzy Match Utilities', () => {
         it('is commutative', () => {
             assert.strictEqual(
                 levenshteinDistance('abc', 'xyz'),
-                levenshteinDistance('xyz', 'abc'),
+                levenshteinDistance('xyz', 'abc')
             );
         });
     });

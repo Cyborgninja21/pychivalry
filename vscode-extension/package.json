@@ -497,7 +497,7 @@
     "test:unit": "mocha ./out/test/unit/**/*.test.js",
     "test:examples": "mocha ./out/test/unit/example-mod-validation.test.js",
     "test:watch": "npm run compile-tests && mocha ./out/test/suite/**/*.test.js --watch",
-    "lint": "eslint src --ext ts",
+    "lint": "eslint src --ext ts --max-warnings=0",
     "format": "prettier --write \"src/**/*.ts\"",
     "format-check": "prettier --check \"src/**/*.ts\""
   },

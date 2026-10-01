@@ -2,7 +2,7 @@ import * as assert from 'assert';
 import * as vscode from 'vscode';
 
 suite('Command Tests', () => {
-    let extension: vscode.Extension<any> | undefined;
+    let extension: vscode.Extension<unknown> | undefined;
 
     suiteSetup(async function () {
         this.timeout(30000); // Allow time for extension activation
@@ -78,14 +78,18 @@ suite('Command Tests', () => {
 
         test('openDocumentation command should execute without error', async () => {
             await assert.doesNotReject(
-                Promise.resolve(vscode.commands.executeCommand('ck3LanguageServer.openDocumentation')),
+                Promise.resolve(
+                    vscode.commands.executeCommand('ck3LanguageServer.openDocumentation')
+                ),
                 'openDocumentation command should execute'
             );
         });
 
         test('Invalid command should reject', async () => {
             await assert.rejects(
-                Promise.resolve(vscode.commands.executeCommand('ck3LanguageServer.nonExistentCommand')),
+                Promise.resolve(
+                    vscode.commands.executeCommand('ck3LanguageServer.nonExistentCommand')
+                ),
                 'Non-existent command should reject'
             );
         });
@@ -168,7 +172,7 @@ suite('Command Tests', () => {
                 content: 'namespace = test\n\ntest.0001 = {\n\ttype = character_event\n}',
             });
 
-            const editor = await vscode.window.showTextDocument(doc);
+            await vscode.window.showTextDocument(doc);
 
             try {
                 await vscode.commands.executeCommand('ck3LanguageServer.showNamespaceEvents');
@@ -186,12 +190,10 @@ suite('Command Tests', () => {
                 content: 'namespace = test\n\ntest.0001 = {\n\ttitle = test.0001.t\n}',
             });
 
-            const editor = await vscode.window.showTextDocument(doc);
+            await vscode.window.showTextDocument(doc);
 
             try {
-                await vscode.commands.executeCommand(
-                    'ck3LanguageServer.generateLocalizationStubs'
-                );
+                await vscode.commands.executeCommand('ck3LanguageServer.generateLocalizationStubs');
                 assert.ok(true, 'generateLocalizationStubs command invoked');
             } catch (error) {
                 assert.ok(error instanceof Error);
@@ -206,7 +208,7 @@ suite('Command Tests', () => {
                 content: 'namespace = test\n\ntest.0001 = {\n\ttype = character_event\n}',
             });
 
-            const editor = await vscode.window.showTextDocument(doc);
+            await vscode.window.showTextDocument(doc);
 
             try {
                 await vscode.commands.executeCommand('ck3LanguageServer.renameEvent');

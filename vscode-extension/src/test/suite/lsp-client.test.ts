@@ -1,9 +1,8 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
-import * as path from 'path';
 
 suite('LSP Client Integration Tests', () => {
-    let extension: vscode.Extension<any> | undefined;
+    let extension: vscode.Extension<unknown> | undefined;
 
     suiteSetup(async function () {
         this.timeout(30000); // Allow time for extension and LSP activation
@@ -66,7 +65,7 @@ test.0001 = {
                 content: content,
             });
 
-            const editor = await vscode.window.showTextDocument(doc);
+            await vscode.window.showTextDocument(doc);
 
             // Wait for LSP to process the document
             await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -85,7 +84,7 @@ test.0001 = {
                 content: 'namespace = test',
             });
 
-            const editor = await vscode.window.showTextDocument(doc);
+            await vscode.window.showTextDocument(doc);
 
             // Make an edit
             const edit = new vscode.WorkspaceEdit();
@@ -275,10 +274,18 @@ test.0002 = {
                 assert.strictEqual(newLogLevel, 'debug', 'Configuration should update');
 
                 // Restore original
-                await config.update('logLevel', originalLogLevel, vscode.ConfigurationTarget.Global);
+                await config.update(
+                    'logLevel',
+                    originalLogLevel,
+                    vscode.ConfigurationTarget.Global
+                );
             } catch (error) {
                 // Restore configuration even if test fails
-                await config.update('logLevel', originalLogLevel, vscode.ConfigurationTarget.Global);
+                await config.update(
+                    'logLevel',
+                    originalLogLevel,
+                    vscode.ConfigurationTarget.Global
+                );
                 throw error;
             }
         });
@@ -296,9 +303,17 @@ test.0002 = {
                 const newTrace = config.get('trace.server');
                 assert.strictEqual(newTrace, 'verbose', 'Trace configuration should update');
 
-                await config.update('trace.server', originalTrace, vscode.ConfigurationTarget.Global);
+                await config.update(
+                    'trace.server',
+                    originalTrace,
+                    vscode.ConfigurationTarget.Global
+                );
             } catch (error) {
-                await config.update('trace.server', originalTrace, vscode.ConfigurationTarget.Global);
+                await config.update(
+                    'trace.server',
+                    originalTrace,
+                    vscode.ConfigurationTarget.Global
+                );
                 throw error;
             }
         });
