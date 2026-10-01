@@ -17,6 +17,7 @@ import * as assert from 'assert';
 import * as fs from 'fs';
 import * as path from 'path';
 import { CK3Parser } from '../../server/core/parser';
+import { DocumentIndexer } from '../../server/core/indexer';
 import { DiagnosticsEngine } from '../../server/ck3/validation/diagnostics';
 import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver-types';
 import { DataLoader } from '../../server/data/loader';
@@ -66,6 +67,7 @@ function parseLocalizationEntries(content: string, uri: string, filePath: string
 describe('Example Mod Validation', () => {
     let schemaLoader: SchemaLoader;
     let locIndex: LocalizationIndex;
+    let indexer: DocumentIndexer;
     const results: TestResult[] = [];
 
     before(async function () {
@@ -89,6 +91,33 @@ describe('Example Mod Validation', () => {
         locIndex = new LocalizationIndex();
         const mockModRoot = getMockModRoot();
         await locIndex.scanDirectory(mockModRoot);
+
+        // 4. DocumentIndexer — scan common/ subdirectories so scripted
+        //    effects, triggers, decisions, and on-actions are indexed
+        indexer = new DocumentIndexer();
+        const dirsToIndex = [
+            'common/scripted_effects',
+            'common/scripted_triggers',
+            'common/decisions',
+            'common/on_actions',
+            'common/story_cycles',
+            'common/character_interactions',
+        ];
+        const parser = new CK3Parser();
+        for (const dir of dirsToIndex) {
+            const dirPath = path.join(mockModRoot, dir);
+            if (!fs.existsSync(dirPath)) {
+                continue;
+            }
+            const files = fs.readdirSync(dirPath).filter((f) => f.endsWith('.txt'));
+            for (const file of files) {
+                const filePath = path.join(dirPath, file);
+                const content = fs.readFileSync(filePath, 'utf-8');
+                const parsed = parser.parse(content);
+                const uri = getFileUri(filePath);
+                await indexer.indexDocument(uri, parsed.ast);
+            }
+        }
     });
 
     after(() => {
@@ -134,7 +163,7 @@ describe('Example Mod Validation', () => {
                         const engine = new DiagnosticsEngine(
                             {}, // default config — all validators enabled
                             schemaLoader,
-                            undefined,
+                            indexer,
                             locIndex
                         );
                         diagnostics = await engine.collectDiagnostics(

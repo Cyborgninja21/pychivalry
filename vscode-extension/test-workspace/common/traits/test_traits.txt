@@ -2,10 +2,10 @@
 
 clever = {
 	index = 101
-	category = personality_bold
+	category = personality
 
 	opposites = {
-		slow
+		content
 	}
 
 	diplomacy = 2
@@ -30,7 +30,7 @@ clever = {
 
 brave = {
 	index = 102
-	category = personality_bold
+	category = personality
 
 	opposites = {
 		craven
@@ -54,7 +54,7 @@ brave = {
 # Trait with reference error for testing
 missing_ref_trait = {
 	index = 103
-	category = personality_bold
+	category = personality
 
 	opposites = {
 		non_existent_trait

@@ -1,0 +1,35 @@
+# ===================================================================
+# BAD MISSING LOCALIZATION KEYS
+# ===================================================================
+# This file demonstrates events referencing localization keys that
+# do NOT exist in any .yml file in the mod.
+#
+# Error Code Demonstrated:
+# - CK4100: Missing localization key
+#
+# Expected validation result: ERRORS DETECTED (CK4100 for each missing key)
+# ===================================================================
+
+# ERROR CK4100
+
+namespace = missing_loc_test
+
+# -------------------------------------------------------------------
+# ERROR CK4100: Event with non-existent localization keys
+# -------------------------------------------------------------------
+# WHAT THIS TESTS: Detection of title/desc/name referencing loc keys
+# that don't exist in any .yml localization file.
+# SHOULD FAIL: Yes - CK4100 for title, desc, and option name
+# WHY IT'S BAD: Missing localization means blank text in-game
+# HOW TO FIX: Define the keys in a localization .yml file
+# -------------------------------------------------------------------
+missing_loc_test.0001 = {
+	type = character_event
+	title = missing_loc_test.0001.t
+	desc = missing_loc_test.0001.desc
+	theme = intrigue
+
+	option = {
+		name = missing_loc_test.0001.a
+	}
+}

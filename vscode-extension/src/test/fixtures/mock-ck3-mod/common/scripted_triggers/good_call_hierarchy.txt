@@ -1,0 +1,27 @@
+# ===================================================================
+# CALL HIERARCHY — SCRIPTED TRIGGER EXAMPLES
+# ===================================================================
+# These scripted triggers are checked by events in call_hierarchy_events.txt.
+# Use Call Hierarchy (Shift+Alt+H) on a trigger name to see:
+#   Incoming: Which events/effects check this trigger
+#   Outgoing: (scripted triggers typically have no outgoing calls)
+#
+# Cross-references:
+#   is_adventure_eligible — checked by adventure.0001, adventure.0004
+#
+# Expected validation result: NO ERRORS
+# ===================================================================
+
+# -------------------------------------------------------------------
+# is_adventure_eligible
+# -------------------------------------------------------------------
+# INCOMING CALLS: adventure.0001 (trigger block), adventure.0004 (trigger block)
+# OUTGOING CALLS: (none — pure condition check)
+# -------------------------------------------------------------------
+is_adventure_eligible = {
+	is_adult = yes
+	is_alive = yes
+	is_imprisoned = no
+	NOT = { has_trait = incapable }
+	NOT = { has_character_flag = planning_adventure }
+}

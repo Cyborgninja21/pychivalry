@@ -39,7 +39,7 @@ adventure.0001 = {
 	type = character_event
 	title = adventure.0001.t
 	desc = adventure.0001.desc
-	theme = adventure
+	theme = travel
 
 	trigger = {
 		is_adult = yes

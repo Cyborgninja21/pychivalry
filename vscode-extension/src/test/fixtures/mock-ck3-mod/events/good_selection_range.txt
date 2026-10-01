@@ -1,0 +1,152 @@
+# ===================================================================
+# SELECTION RANGE — SMART EXPAND / SHRINK SELECTION
+# ===================================================================
+# This file demonstrates the Selection Range feature.
+#
+# HOW TO USE:
+#   1. Place your cursor on any token below
+#   2. Press Shift+Alt+Right to expand the selection
+#   3. Press Shift+Alt+Left  to shrink the selection
+#
+# The selection expands through meaningful CK3 script structures
+# instead of generic brace-matching.
+#
+# TRY IT: Place cursor on "yes" in the trigger below and expand.
+# Expected expansion order:
+#   yes -> is_alive = yes -> inner { } content -> limit = { ... }
+#   -> inner every_vassal content -> every_vassal = { ... }
+#   -> inner immediate content -> immediate = { ... }
+#   -> inner event content -> selection_demo.0001 = { ... }
+#   -> entire file
+
+# ===================================================================
+
+namespace = selection_demo
+
+# -------------------------------------------------------------------
+# Event 1: Deeply nested blocks
+# -------------------------------------------------------------------
+# Try expanding from values at different nesting depths.
+# Each level should be a distinct expansion step.
+# -------------------------------------------------------------------
+selection_demo.0001 = {
+	type = character_event
+	title = selection_demo.0001.t
+	desc = selection_demo.0001.desc
+	theme = realm
+
+	trigger = {
+		is_ruler = yes
+		is_alive = yes
+		age >= 16
+	}
+
+	immediate = {
+		every_vassal = {
+			limit = {
+				is_alive = yes
+				is_adult = yes
+			}
+			add_opinion = {
+				modifier = grateful_opinion
+				target = root
+				opinion = 20
+			}
+		}
+	}
+
+	# Option with nested effect block
+	option = {
+		name = selection_demo.0001.a
+		trigger = {
+			prestige >= 500
+		}
+		add_prestige = 100
+		stress_impact = {
+			ambitious = -10
+			content = 10
+		}
+	}
+
+	option = {
+		name = selection_demo.0001.b
+		add_gold = 50
+	}
+}
+
+# -------------------------------------------------------------------
+# Event 2: Comparisons and lists
+# -------------------------------------------------------------------
+# Try expanding on comparison operators (>=, <, etc.)
+# and values inside list structures.
+# -------------------------------------------------------------------
+selection_demo.0002 = {
+	type = character_event
+	title = selection_demo.0002.t
+	desc = selection_demo.0002.desc
+
+	trigger = {
+		age >= 16
+		age < 65
+		prestige >= 1000
+		NOT = { has_trait = incapable }
+	}
+
+	weight_multiplier = {
+		base = 1
+		modifier = {
+			add = 2
+			has_trait = ambitious
+		}
+		modifier = {
+			factor = 0.5
+			age >= 50
+		}
+	}
+
+	immediate = {
+		random_list = {
+			10 = {
+				add_gold = 100
+				add_prestige = 50
+			}
+			20 = {
+				add_gold = 200
+			}
+			30 = {
+				add_piety = 150
+			}
+		}
+	}
+
+	option = {
+		name = selection_demo.0002.a
+	}
+}
+
+# -------------------------------------------------------------------
+# Comment block grouping
+# -------------------------------------------------------------------
+# Selection range also groups consecutive comments.
+# Place your cursor on any of these comment lines and expand:
+# the single line selects first, then the entire comment block,
+# then the file.
+# -------------------------------------------------------------------
+
+# -------------------------------------------------------------------
+# Event 3: Simple flat structure
+# -------------------------------------------------------------------
+# Useful for testing selection on single-level assignments.
+# -------------------------------------------------------------------
+selection_demo.0003 = {
+	type = letter_event
+	title = selection_demo.0003.t
+	desc = selection_demo.0003.desc
+	sender = root
+	hidden = no
+	cooldown = { months = 6 }
+
+	option = {
+		name = selection_demo.0003.a
+	}
+}

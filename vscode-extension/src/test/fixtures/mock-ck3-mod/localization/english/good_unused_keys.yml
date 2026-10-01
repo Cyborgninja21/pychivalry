@@ -1,8 +1,8 @@
 l_english:
- # Unused Keys Examples - CK3604
+ # Unused Keys Examples
  # These keys are defined but never referenced in any script files
 
- # ERROR CK3604: These keys exist but are never used
+ # These keys exist but are not currently used
  orphaned_key_001:0 "This key is never referenced"
  orphaned_key_002:0 "Another unused key"
  forgotten_title:0 "This title was never used"

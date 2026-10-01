@@ -1,0 +1,56 @@
+# ===================================================================
+# CALL HIERARCHY — SCRIPTED EFFECT EXAMPLES
+# ===================================================================
+# These scripted effects are called by events in call_hierarchy_events.txt.
+# Use Call Hierarchy (Shift+Alt+H) on an effect name to see:
+#   Incoming: Which events invoke this effect
+#   Outgoing: What the effect does (trigger_event, other effects, etc.)
+#
+# Cross-references:
+#   grant_adventure_rewards — called by adventure.0001, adventure.0004
+#   log_adventure_progress  — called by adventure.0002
+#   setup_adventure         — called by start_adventure (decision)
+#
+# Expected validation result: NO ERRORS
+# ===================================================================
+
+# -------------------------------------------------------------------
+# grant_adventure_rewards
+# -------------------------------------------------------------------
+# INCOMING CALLS: adventure.0001 (immediate), adventure.0004 (see events)
+# OUTGOING CALLS: adventure.0004 (trigger_event inside effect)
+# -------------------------------------------------------------------
+grant_adventure_rewards = {
+	add_gold = 50
+	add_prestige = 25
+
+	# This effect also fires an event — visible as an outgoing call
+	trigger_event = adventure.0004
+}
+
+# -------------------------------------------------------------------
+# log_adventure_progress
+# -------------------------------------------------------------------
+# INCOMING CALLS: adventure.0002 (immediate)
+# OUTGOING CALLS: (none)
+# -------------------------------------------------------------------
+log_adventure_progress = {
+	add_character_modifier = {
+		modifier = adventure_progress_modifier
+		years = 1
+	}
+}
+
+# -------------------------------------------------------------------
+# setup_adventure
+# -------------------------------------------------------------------
+# INCOMING CALLS: start_adventure (decision effect)
+# OUTGOING CALLS: adventure.0001 (trigger_event)
+# -------------------------------------------------------------------
+setup_adventure = {
+	add_character_flag = planning_adventure
+	trigger_event = {
+		id = adventure.0001
+		days = 5
+	}
+}

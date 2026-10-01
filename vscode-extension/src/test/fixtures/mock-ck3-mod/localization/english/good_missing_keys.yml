@@ -1,6 +1,6 @@
 l_english:
- # Missing Keys Examples - CK3600
- # This file demonstrates missing localization key warnings
+ # Missing Keys Examples
+ # This file defines localization keys that other files can reference
 
  # These keys are defined and can be referenced
  defined_key.t:0 "This Key Exists"
@@ -10,8 +10,6 @@ l_english:
  # Common pattern - event has keys but some are missing
  partial_event.t:0 "Title Exists"
  partial_event.a:0 "Option A Exists"
- # ERROR CK3600: partial_event.desc is missing
- # ERROR CK3600: partial_event.b is missing
 
  # Keys that would trigger fuzzy matching suggestions
  my_event_title:0 "Correct Spelling"

@@ -315,6 +315,28 @@ export class DiagnosticsEngine {
     }
 
     /**
+     * Check if a name matches a user-defined scripted effect in the workspace index.
+     */
+    private isIndexedScriptedEffect(name: string): boolean {
+        if (!this.indexer) {
+            return false;
+        }
+        const symbols = this.indexer.findSymbolsByName(name);
+        return symbols.some((s) => s.type === SymbolType.SCRIPTED_EFFECT);
+    }
+
+    /**
+     * Check if a name matches a user-defined scripted trigger in the workspace index.
+     */
+    private isIndexedScriptedTrigger(name: string): boolean {
+        if (!this.indexer) {
+            return false;
+        }
+        const symbols = this.indexer.findSymbolsByName(name);
+        return symbols.some((s) => s.type === SymbolType.SCRIPTED_TRIGGER);
+    }
+
+    /**
      * Collect all diagnostics for a document
      */
     public async collectDiagnostics(
@@ -570,12 +592,16 @@ export class DiagnosticsEngine {
                         childContext = 'effect';
                     } else if (TRIGGER_CONTEXT_KEYS.has(node.key)) {
                         childContext = 'trigger';
-                    } else if (context === 'effect' && node.children && isKnownEffect(node.key) && !isListIterator(node.key)) {
+                    } else if (context === 'effect' && node.children
+                        && (isKnownEffect(node.key) || this.isIndexedScriptedEffect(node.key))
+                        && !isListIterator(node.key)) {
                         // Known compound effect with block body — children are parameters, not sub-effects
                         // e.g., add_opinion = { modifier = ... target = ... }
                         //        stress_impact = { brave = -10 content = 10 }
                         childContext = 'none';
-                    } else if (context === 'trigger' && node.children && isKnownTrigger(node.key) && !isListIterator(node.key)) {
+                    } else if (context === 'trigger' && node.children
+                        && (isKnownTrigger(node.key) || this.isIndexedScriptedTrigger(node.key))
+                        && !isListIterator(node.key)) {
                         // Known compound trigger with block body — children are parameters
                         childContext = 'none';
                     } else if (childContext === 'none') {
@@ -621,7 +647,9 @@ export class DiagnosticsEngine {
                                 });
                             }
                         } else if (!CK3Language.isEffect(node.key) && !CK3Language.isTrigger(node.key)
-                            && !isKnownTrigger(node.key)) {
+                            && !isKnownTrigger(node.key)
+                            && !this.isIndexedScriptedEffect(node.key)
+                            && !this.isIndexedScriptedTrigger(node.key)) {
                             // Not a known effect or trigger — unknown keyword in effect context
                             diagnostics.push({
                                 severity: DiagnosticSeverity.Warning,
@@ -664,7 +692,9 @@ export class DiagnosticsEngine {
                                 });
                             }
                         } else if (!CK3Language.isTrigger(node.key) && !CK3Language.isEffect(node.key)
-                            && !isKnownEffect(node.key)) {
+                            && !isKnownEffect(node.key)
+                            && !this.isIndexedScriptedTrigger(node.key)
+                            && !this.isIndexedScriptedEffect(node.key)) {
                             // Not a known trigger or effect — unknown keyword in trigger context
                             diagnostics.push({
                                 severity: DiagnosticSeverity.Warning,
@@ -1200,6 +1230,30 @@ export class DiagnosticsEngine {
                         range: child.range,
                         message: `'${locKey}' contains spaces - this should be a localization key, not literal text`,
                         code: 'LOC-001',
+                        source: 'ck3-localization',
+                    });
+                }
+
+                // Cross-file: check if loc key exists in the localization index.
+                // `name` inside a variable effect/trigger (set_variable = { name = x })
+                // or a saved scope value names a variable, not a localization key.
+                const parentKey = node.key ?? '';
+                const namesVariable = child.key === 'name'
+                    && (parentKey.includes('variable')
+                        || parentKey === 'save_scope_value_as'
+                        || parentKey === 'save_temporary_scope_value_as');
+                if (this.localizationIndex
+                    && !namesVariable
+                    && locKey
+                    && !locKey.includes(' ')
+                    && !locKey.includes('$')
+                    && !locKey.includes('[')
+                    && !this.localizationIndex.hasKey(locKey)) {
+                    diagnostics.push({
+                        severity: DiagnosticSeverity.Warning,
+                        range: child.range,
+                        message: `Missing localization key: '${locKey}'`,
+                        code: 'CK4100',
                         source: 'ck3-localization',
                     });
                 }
