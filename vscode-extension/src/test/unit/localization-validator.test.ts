@@ -3,14 +3,17 @@
  */
 
 import * as assert from 'assert';
+import * as path from 'path';
 import {
     validateLocalizationContent,
+    validateLocalizationKeys,
     DEFAULT_LOC_VALIDATION_CONFIG,
     isCharacterFunction,
     isTextFormattingCode,
     LocalizationValidationConfig,
 } from '../../server/ck3/localization/validator';
 import { LocalizationEntry } from 'pychivalry-engine';
+import { DataLoader } from '../../server/data/loader';
 
 function makeEntry(text: string, overrides: Partial<LocalizationEntry> = {}): LocalizationEntry {
     return {
@@ -175,6 +178,53 @@ describe('Localization Validator', () => {
             );
             const funcErrors = diags.filter((d) => d.code === 'LOC-002');
             assert.strictEqual(funcErrors.length, 0);
+        });
+    });
+
+    describe('key format (LOC-001)', () => {
+        it('flags keys the localization index cannot read', () => {
+            const text = [
+                'l_english:',
+                ' 123_invalid_key:0 "Leading digit"',
+                ' Invalid-Key-With-Dashes:0 "Dashes"',
+                ' Invalid Key With Spaces:0 "Spaces"',
+                ' valid_key.t:0 "Fine"',
+                ' REQUEST_FAVOR_NOTIFICATION:0 "Upper case is fine"',
+                ' no_version: "No version digits is fine"',
+                ' # comment:0 "ignored"',
+            ].join('\n');
+            const diags = validateLocalizationKeys(text);
+            assert.deepStrictEqual(
+                diags.map((d) => [d.range.start.line, d.code]),
+                [
+                    [1, 'LOC-001'],
+                    [2, 'LOC-001'],
+                    [3, 'LOC-001'],
+                ]
+            );
+        });
+    });
+
+    describe('text icons (LOC-004)', () => {
+        before(async () => {
+            const repoData = path.resolve(__dirname, '..', '..', '..', '..', 'data');
+            await DataLoader.getInstance(repoData).initialize(repoData);
+        });
+
+        it('accepts known text icons', () => {
+            const diags = validateLocalizationContent(
+                makeEntry('You receive £gold£100 and £prestige|1£50.'),
+                makeConfig()
+            );
+            assert.strictEqual(diags.filter((d) => d.code === 'LOC-004').length, 0);
+        });
+
+        it('flags unknown text icons', () => {
+            const diags = validateLocalizationContent(
+                makeEntry('Invalid £gld£ icon and £prestge£ typo'),
+                makeConfig()
+            );
+            assert.strictEqual(diags.filter((d) => d.code === 'LOC-004').length, 2);
         });
     });
 });

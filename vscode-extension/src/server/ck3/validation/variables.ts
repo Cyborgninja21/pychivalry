@@ -112,7 +112,8 @@ function collectVariableInfo(node: ASTNode): Map<string, VariableInfo> {
         if (VARIABLE_DECLARATIONS.includes(n.key || '')) {
             const varName = getVariableName(n);
             if (varName) {
-                if (!variables.has(varName)) {
+                const known = variables.get(varName);
+                if (!known) {
                     variables.set(varName, {
                         name: varName,
                         scope: currentScope,
@@ -120,6 +121,13 @@ function collectVariableInfo(node: ASTNode): Map<string, VariableInfo> {
                         usageNodes: [],
                         type: inferVariableType(n),
                     });
+                } else if (!VARIABLE_DECLARATIONS.includes(known.declarationNode.key || '')) {
+                    // Used earlier in the file (e.g. a `NOT = { has_variable = x }` guard in
+                    // `trigger`) and declared later (in `immediate`): the fire-once pattern.
+                    // The declaration anywhere in the file counts; the usages are kept.
+                    known.declarationNode = n;
+                    known.scope = currentScope;
+                    known.type = inferVariableType(n);
                 }
             }
         }

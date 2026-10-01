@@ -177,9 +177,13 @@ interface KnownFinding {
 
 /**
  * Annotations of a code that a plug-in still emits but whose annotated instance came
- * from a retired validator, keyed by mock-mod-relative path.
+ * from a retired validator or from a plug-in false positive since fixed, keyed by
+ * mock-mod-relative path.
  */
 export const RETIRED_ANNOTATIONS: Record<string, Record<string, string>> = {
+    'events/bad_scope_timing.txt': {
+        CK3701: 'the annotated instance (line 167, `has_variable = quest_started` in trigger, set in immediate) is the false positive fixed in Phase 5: the variables plug-in now counts a declaration anywhere in the file (the same pattern is valid in good_scopes.txt); the defect is the timing one, reported as CK3553 by scope-timing',
+    },
     'common/script_values/bad_script_values.txt': {
         CK3872: 'the annotated redundant has_trait check came from generic-rules.ts (retired: a heuristic, not engine behaviour); paradox-checks still emits CK3872 for always = yes',
     },

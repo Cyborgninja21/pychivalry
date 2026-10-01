@@ -46,6 +46,7 @@ import {
 } from './ck3/validation/conventions';
 import {
     validateLocalizationContent,
+    validateLocalizationKeys,
     DEFAULT_LOC_VALIDATION_CONFIG,
 } from './ck3/localization/validator';
 
@@ -233,14 +234,15 @@ export function enginePlugins(env: PluginEnvironment = {}): Plugin[] {
 
 /**
  * The localization validator (LOC-002..LOC-007) over the entries the localization index
- * holds for one file; a localization file is not CK3 script and does not go through the
- * engine pipeline.
+ * holds for one file, plus LOC-001 (key format) over the file text when it is given; a
+ * localization file is not CK3 script and does not go through the engine pipeline.
  */
 export function localizationDiagnostics(
     index: LocalizationIndex,
-    fileUri: string
+    fileUri: string,
+    text?: string
 ): LspDiagnostic[] {
-    const out: LspDiagnostic[] = [];
+    const out: LspDiagnostic[] = text !== undefined ? validateLocalizationKeys(text) : [];
     for (const entry of index.entriesOf(fileUri)) {
         out.push(...validateLocalizationContent(entry, DEFAULT_LOC_VALIDATION_CONFIG));
     }

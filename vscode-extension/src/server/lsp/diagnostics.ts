@@ -60,7 +60,11 @@ export class DiagnosticsProvider {
         private workspace: Workspace,
         private plugins: readonly Plugin[] = [],
         private localization?: LocalizationIndex,
-        private localizationValidator?: (index: LocalizationIndex, uri: string) => Diagnostic[]
+        private localizationValidator?: (
+            index: LocalizationIndex,
+            uri: string,
+            text?: string
+        ) => Diagnostic[]
     ) {}
 
     /**
@@ -95,7 +99,8 @@ export class DiagnosticsProvider {
         if (!this.localization || !this.localizationValidator) {
             return [];
         }
-        this.localization.indexText(file, document.getText());
-        return this.localizationValidator(this.localization, pathToUri(file));
+        const text = document.getText();
+        this.localization.indexText(file, text);
+        return this.localizationValidator(this.localization, pathToUri(file), text);
     }
 }

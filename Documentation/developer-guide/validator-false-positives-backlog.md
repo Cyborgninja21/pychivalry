@@ -43,6 +43,8 @@ Variable `already_fired` is used in a `NOT = { has_variable = ... }` guard in tr
 
 **Fix needed:** Update `extractVariableDefinitions()` in `variables.ts` to recognize the block form of `set_variable`.
 
+**Fixed 2026-10-01 (2.0.0, Phase 5):** the cause was ordering, not the block form: the first usage created the variable's entry and a later declaration was ignored. `collectVariableInfo()` now lets a declaration anywhere in the file replace a usage-only entry (`src/test/unit/variables.test.ts`).
+
 ---
 
 ### 4. EVENT-008 False Positive for On-Actions
@@ -86,6 +88,8 @@ The `has_trait` check inside a script value modifier is flagged as redundant. In
 Two expected localization error codes (LOC-001, LOC-004) are not produced by the content-level validator. These may require file-level or cross-reference validation.
 
 **Fix needed:** Verify which LOC codes are handled by the content validator vs the file-level validator, and ensure the test pipeline exercises both.
+
+**Fixed 2026-10-01 (2.0.0, Phase 5):** LOC-001 had no implementation; `validateLocalizationKeys()` now checks every entry line of the file text against the key shape the localization index reads. LOC-004 only knew the `@name!` form; the `£name£` text-icon form the fixture uses is now checked against the same icon data (`src/test/unit/localization-validator.test.ts`).
 
 ---
 

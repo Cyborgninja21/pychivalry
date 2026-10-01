@@ -4,13 +4,13 @@
  * Validates the *contents* of localization text (not just key existence):
  *   - Character functions ([scope.GetName], [ROOT.GetFaith], etc.)
  *   - Text formatting codes (#bold, #italic, #N, #P, #V, etc.)
- *   - Icon references (@gold_icon!, @prestige_icon!, etc.)
+ *   - Icon references (@gold_icon!, @prestige_icon!, etc.) and text icons (£gold£)
  *   - Variable substitutions ($GOLD$, $VALUE|+$, etc.)
  *   - Concept links ([concept|E])
  *   - Bracket balancing
  *
  * DIAGNOSTIC CODES:
- *   LOC-001: Invalid localization key format
+ *   LOC-001: Invalid localization key format (file-level; validateLocalizationKeys)
  *   LOC-002: Unknown character function
  *   LOC-003: Malformed text formatting code
  *   LOC-004: Invalid icon reference
@@ -267,6 +267,15 @@ const RE_FORMAT_CODE = /#[A-Za-z_!]+/g;
 /** Matches icon references: @name_icon! */
 const RE_ICON_REF = /@(\w+)!/g;
 
+/** Matches text icons: £gold£ or £gold|1£ */
+const RE_TEXT_ICON = /£(\w+)(?:\|[^£]*)?£/g;
+
+/** An entry line: indented `key:version "text"` (the version digits are optional). */
+const RE_ENTRY_LINE = /^(\s+)([^\s#"][^:"#]*?):(\d*)\s*"/;
+
+/** The key shape the localization index reads (pychivalry-engine index/localization.ts). */
+const RE_VALID_KEY = /^[a-zA-Z_][a-zA-Z0-9_.]*$/;
+
 /** Matches variable substitutions: $VAR$ or $VAR|fmt$ */
 const RE_VARIABLE = /\$([A-Z_][A-Z0-9_]*)(?:\|([^$]+))?\$/g;
 
@@ -346,6 +355,35 @@ export function validateLocalizationEntries(
     }
 
     return result;
+}
+
+/**
+ * LOC-001: entry lines whose key the localization index cannot read (spaces, dashes,
+ * a leading digit, other punctuation). Such an entry is skipped by the index, so every
+ * reference to it reports a missing key; this check points at the line itself.
+ * Works on the raw file text because the index never sees these lines.
+ */
+export function validateLocalizationKeys(text: string): Diagnostic[] {
+    const out: Diagnostic[] = [];
+    const lines = text.split(/\r?\n/);
+    for (let i = 0; i < lines.length; i++) {
+        const m = RE_ENTRY_LINE.exec(lines[i]);
+        if (!m) {
+            continue;
+        }
+        const key = m[2];
+        if (!RE_VALID_KEY.test(key)) {
+            out.push(
+                makeDiag(
+                    i,
+                    DiagnosticSeverity.Warning,
+                    `Invalid localization key '${key}': keys start with a letter or '_' and contain only letters, digits, '_' and '.'`,
+                    'LOC-001'
+                )
+            );
+        }
+    }
+    return out;
 }
 
 // ---------------------------------------------------------------------------
@@ -451,6 +489,21 @@ function validateIconReferences(text: string, line: number, out: Diagnostic[]): 
         let msg = `Unknown icon reference '@${iconName}!'`;
         if (suggestions.length > 0) {
             msg += `. Did you mean: ${suggestions.map((s) => `@${s}!`).join(', ')}?`;
+        }
+        out.push(makeDiag(line, DiagnosticSeverity.Warning, msg, 'LOC-004'));
+    }
+
+    // Text icons: £gold£, £prestige|1£ (the same icon data, names without the _icon suffix)
+    RE_TEXT_ICON.lastIndex = 0;
+    while ((match = RE_TEXT_ICON.exec(text)) !== null) {
+        const iconName = match[1];
+        if (BUILTIN_ICONS.has(`${iconName}_icon`) || isValidIcon(iconName)) {
+            continue;
+        }
+        const suggestions = suggestSimilarIcons(iconName, 3);
+        let msg = `Unknown text icon '£${iconName}£'`;
+        if (suggestions.length > 0) {
+            msg += `. Did you mean: ${suggestions.map((s) => `£${s}£`).join(', ')}?`;
         }
         out.push(makeDiag(line, DiagnosticSeverity.Warning, msg, 'LOC-004'));
     }
