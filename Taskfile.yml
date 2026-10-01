@@ -42,6 +42,13 @@ tasks:
       - task: compile
       - task: compile:tests
 
+  package:
+    desc: Build the installable VSIX (production webpack bundle + vsce) into vscode-extension/
+    dir: "{{.EXT_DIR}}"
+    deps: [engine:build]
+    cmds:
+      - npm run package
+
   watch:
     desc: Watch mode for extension rebuild
     dir: "{{.EXT_DIR}}"

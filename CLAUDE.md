@@ -86,6 +86,7 @@ the only lock file). Then use the Taskfile:
 | `task lint` / `task format:check` | Extension ESLint (`--max-warnings=0`) / Prettier check |
 | `task docs:diagnostics` / `task docs:diagnostics:check` | Regenerate / verify the diagnostics reference |
 | `task ci` | Everything CI runs except the integration tests |
+| `task package` | Build the VSIX (`npm run package` in `vscode-extension/`: production webpack bundle, then `vsce package`) |
 
 Single extension test file: `task test:<name>` (e.g. `task test:hover`), or
 `cd vscode-extension && npx mocha ./out/test/unit/<file>.test.js` after `npm run compile-tests`.

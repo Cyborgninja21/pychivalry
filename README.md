@@ -62,8 +62,8 @@ git clone https://github.com/Cyborgninja21/pychivalry.git
 cd pychivalry
 npm ci                                   # installs the workspace (engine + extension)
 npm run build                            # builds packages/engine
-cd vscode-extension && npm run package   # bundles the extension (dist/)
-npx @vscode/vsce package --no-dependencies   # writes ck3-language-support-2.0.0.vsix
+cd vscode-extension && npm run package   # webpack production build + vsce: ck3-language-support-2.0.0.vsix
+code --install-extension ck3-language-support-2.0.0.vsix
 ```
 
 To try it without packaging, open the repository in VS Code and press **F5** (Extension

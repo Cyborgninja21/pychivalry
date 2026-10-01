@@ -14,3 +14,5 @@ webpack.config.js
 .DS_Store
 *.map
 !dist/**/*.map
+TESTING.md
+test-server.js

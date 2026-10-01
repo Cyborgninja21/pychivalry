@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-10-01
+
+The language server now runs on the pychivalry engine core (`pychivalry-engine`) and the
+engine-derived CK3 1.20.0.2 spec package: diagnostics carry the game's own message ids and
+texts, hover and completion show the engine's documentation strings, and the scraped keyword
+data is gone. The full list of changes is in the repository's
+[CHANGELOG.md](https://github.com/Cyborgninja21/pychivalry/blob/main/CHANGELOG.md#200---2026-10-01).
+
+## [0.2.0] - notes kept from before 1.0.0
+
 ### Added (v0.2.0)
 
 #### Syntax Highlighting 🎨
