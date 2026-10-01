@@ -12,6 +12,7 @@ import { Hover, Position } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { CK3Parser, defaultSpec, Workspace } from 'pychivalry-engine';
 import { HoverProvider } from '../../server/lsp/hover';
+import { testUri } from './helpers/uri';
 
 function text(hover: Hover | null): string {
     assert.ok(hover, 'expected a hover');
@@ -27,7 +28,7 @@ describe('HoverProvider', () => {
         hoverProvider = new HoverProvider(parser, new Workspace(path.resolve('/test')));
     });
 
-    function createDocument(content: string, uri = 'file:///test/events/test.txt'): TextDocument {
+    function createDocument(content: string, uri = testUri('/test/events/test.txt')): TextDocument {
         return TextDocument.create(uri, 'ck3', 1, content);
     }
 
@@ -95,7 +96,7 @@ describe('HoverProvider', () => {
         it('shows the decisions schema description for "is_shown"', async () => {
             const doc = createDocument(
                 'my_decision = {\n\tis_shown = {\n\t\tis_ruler = yes\n\t}\n}',
-                'file:///test/common/decisions/d.txt'
+                testUri('/test/common/decisions/d.txt')
             );
             const value = text(await hoverProvider.provideHover(doc, Position.create(1, 3)));
             assert.ok(value.includes('Field of `common/decisions` records'), value);

@@ -8,6 +8,7 @@ import { CK3Parser, defaultSpec, Indexer, SymbolType, Workspace } from 'pychival
 import { CompletionProvider } from '../../server/lsp/completions';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { Position } from 'vscode-languageserver/node';
+import { testUri } from './helpers/uri';
 
 describe('CompletionProvider', () => {
     let parser: CK3Parser;
@@ -23,14 +24,14 @@ describe('CompletionProvider', () => {
 
     function createDocument(
         content: string,
-        uri: string = 'file:///test/events/test.txt'
+        uri: string = testUri('/test/events/test.txt')
     ): TextDocument {
         return TextDocument.create(uri, 'ck3', 1, content);
     }
 
     describe('template completions', () => {
         it('should provide template completions for empty event file', async () => {
-            const doc = createDocument('', 'file:///mod/events/test.txt');
+            const doc = createDocument('', testUri('/mod/events/test.txt'));
             const completions = await provider.provideCompletions(doc, Position.create(0, 0));
             // Templates may or may not appear depending on file context, just ensure no crash
             assert.ok(Array.isArray(completions), 'Should return an array');
@@ -38,7 +39,7 @@ describe('CompletionProvider', () => {
 
         it('should provide completions inside a block', async () => {
             const content = 'my_event.0001 = {\n\t\n}';
-            const doc = createDocument(content, 'file:///mod/events/test.txt');
+            const doc = createDocument(content, testUri('/mod/events/test.txt'));
             // Cursor inside the block on the second line
             const completions = await provider.provideCompletions(doc, Position.create(1, 1));
             assert.ok(Array.isArray(completions), 'Should return an array');
@@ -56,7 +57,7 @@ describe('CompletionProvider', () => {
                 '}',
             ].join('\n');
             const eventResult = parser.parse(eventText);
-            await indexer.indexDocument('file:///mod/events/events.txt', eventResult.ast);
+            await indexer.indexDocument(testUri('/mod/events/events.txt'), eventResult.ast);
 
             // Verify the scope was indexed
             const scopes = indexer.findSymbolsByType(SymbolType.SCOPE);
@@ -68,7 +69,7 @@ describe('CompletionProvider', () => {
 
             // Now create a document where user is typing scope:
             const content = 'scope:';
-            const doc = createDocument(content, 'file:///mod/events/test2.txt');
+            const doc = createDocument(content, testUri('/mod/events/test2.txt'));
             const completions = await provider.provideCompletions(doc, Position.create(0, 6));
 
             // Check that we get scope completions
@@ -81,11 +82,11 @@ describe('CompletionProvider', () => {
             const text1 = 'ev.1 = {\n\timmediate = {\n\t\tsave_scope_as = shared_scope\n\t}\n}';
             const text2 = 'ev.2 = {\n\timmediate = {\n\t\tsave_scope_as = shared_scope\n\t}\n}';
 
-            await indexer.indexDocument('file:///mod/events/a.txt', parser.parse(text1).ast);
-            await indexer.indexDocument('file:///mod/events/b.txt', parser.parse(text2).ast);
+            await indexer.indexDocument(testUri('/mod/events/a.txt'), parser.parse(text1).ast);
+            await indexer.indexDocument(testUri('/mod/events/b.txt'), parser.parse(text2).ast);
 
             const content = 'scope:';
-            const doc = createDocument(content, 'file:///mod/events/test.txt');
+            const doc = createDocument(content, testUri('/mod/events/test.txt'));
             const completions = await provider.provideCompletions(doc, Position.create(0, 6));
 
             const scopeCompletions = completions.filter((c) => c.label === 'shared_scope');
@@ -96,14 +97,14 @@ describe('CompletionProvider', () => {
     describe('value completions', () => {
         it('should provide completions for type = field', async () => {
             const content = 'my_event.0001 = {\n\ttype = \n}';
-            const doc = createDocument(content, 'file:///mod/events/test.txt');
+            const doc = createDocument(content, testUri('/mod/events/test.txt'));
             const completions = await provider.provideCompletions(doc, Position.create(1, 8));
             assert.ok(Array.isArray(completions), 'Should return array of completions');
         });
 
         it('should provide completions for assignment values', async () => {
             const content = 'is_ai = ';
-            const doc = createDocument(content, 'file:///mod/events/test.txt');
+            const doc = createDocument(content, testUri('/mod/events/test.txt'));
             const completions = await provider.provideCompletions(doc, Position.create(0, 8));
             assert.ok(Array.isArray(completions), 'Should return array of completions');
         });
@@ -124,7 +125,7 @@ describe('CompletionProvider', () => {
         ].join('\n');
 
         it('offers triggers, any_ iterators and structural keywords in a trigger block', async () => {
-            const doc = createDocument(EVENT, 'file:///mod/events/test.txt');
+            const doc = createDocument(EVENT, testUri('/mod/events/test.txt'));
             const labels = (await provider.provideCompletions(doc, Position.create(3, 2))).map(
                 (c) => c.label
             );
@@ -136,7 +137,7 @@ describe('CompletionProvider', () => {
         });
 
         it('offers effects and every_/random_/ordered_ iterators in an effect block', async () => {
-            const doc = createDocument(EVENT, 'file:///mod/events/test.txt');
+            const doc = createDocument(EVENT, testUri('/mod/events/test.txt'));
             const labels = (await provider.provideCompletions(doc, Position.create(6, 2))).map(
                 (c) => c.label
             );
@@ -147,7 +148,7 @@ describe('CompletionProvider', () => {
         });
 
         it('offers the directory schema fields inside a record', async () => {
-            const doc = createDocument(EVENT, 'file:///mod/events/test.txt');
+            const doc = createDocument(EVENT, testUri('/mod/events/test.txt'));
             const labels = (await provider.provideCompletions(doc, Position.create(8, 1))).map(
                 (c) => c.label
             );
@@ -158,7 +159,7 @@ describe('CompletionProvider', () => {
         });
 
         it('resolves the engine doc string verbatim', async () => {
-            const doc = createDocument(EVENT, 'file:///mod/events/test.txt');
+            const doc = createDocument(EVENT, testUri('/mod/events/test.txt'));
             const items = await provider.provideCompletions(doc, Position.create(6, 2));
             const addGold = items.find((c) => c.label === 'add_gold');
             assert.ok(addGold);

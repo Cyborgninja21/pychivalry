@@ -23,9 +23,10 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import { Workspace } from 'pychivalry-engine';
+import { testUri } from './helpers/uri';
 
-const EFFECTS_URI = 'file:///mod/common/scripted_effects/my_effects.txt';
-const EVENT_URI = 'file:///mod/events/my_events.txt';
+const EFFECTS_URI = testUri('/mod/common/scripted_effects/my_effects.txt');
+const EVENT_URI = testUri('/mod/events/my_events.txt');
 
 const EFFECTS = 'my_effect = {\n    add_gold = 10\n}\n';
 const EVENTS = [
@@ -121,7 +122,7 @@ describe('Providers on the engine (4.2)', () => {
     it('signature help: the signature comes from the engine doc', async () => {
         const provider = new SignatureHelpProvider(defaultSpec);
         const text = 'x = {\n\ttrigger_event = {\n\t\tid = a.1\n\t\t\n\t}\n}';
-        const doc = TextDocument.create('file:///mod/events/e.txt', 'ck3', 1, text);
+        const doc = TextDocument.create(testUri('/mod/events/e.txt'), 'ck3', 1, text);
         const help = await provider.provideSignatureHelp(doc, { line: 3, character: 2 });
         assert.ok(help, 'no signature');
         assert.ok(help.signatures[0].label.startsWith('trigger_event = { id'));
@@ -132,9 +133,9 @@ describe('Providers on the engine (4.2)', () => {
         const workspace = new Workspace(path.resolve('/mod'));
         const parser = new CK3Parser({ spec: workspace.spec });
         const saver = 'a.1 = {\n\timmediate = {\n\t\tsave_scope_as = my_target\n\t}\n}';
-        workspace.index.indexSync('file:///mod/events/a.txt', parser.parse(saver).ast);
+        workspace.index.indexSync(testUri('/mod/events/a.txt'), parser.parse(saver).ast);
         const text = 'a.2 = {\n\timmediate = {\n\t\tscope:my_target = { add_gold = 1 }\n\t}\n}';
-        const doc = TextDocument.create('file:///mod/events/b.txt', 'ck3', 1, text);
+        const doc = TextDocument.create(testUri('/mod/events/b.txt'), 'ck3', 1, text);
         const hints = await new InlayHintsProvider(parser, workspace).provideInlayHints(doc, {
             start: { line: 0, character: 0 },
             end: { line: 10, character: 0 },
@@ -150,7 +151,7 @@ describe('Providers on the engine (4.2)', () => {
     it('semantic tokens: classify against the spec buckets', async () => {
         const workspace = new Workspace(path.resolve('/mod'));
         const parser = new CK3Parser({ spec: workspace.spec });
-        const doc = TextDocument.create('file:///mod/events/e.txt', 'ck3', 1, EVENTS);
+        const doc = TextDocument.create(testUri('/mod/events/e.txt'), 'ck3', 1, EVENTS);
         const tokens = await new SemanticTokensProvider(parser, workspace).generateSemanticTokens(
             doc
         );
@@ -218,7 +219,7 @@ describe('Mod registry as an engine overlay (4.5)', () => {
 
         const parser = new CK3Parser({ spec: workspace.spec });
         const text = 'a.1 = {\n\timmediate = {\n\t\tcarn_sex_scene_is_vaginal_effect = yes\n\t}\n}';
-        const doc = TextDocument.create('file:///mod/events/a.txt', 'ck3', 1, text);
+        const doc = TextDocument.create(testUri('/mod/events/a.txt'), 'ck3', 1, text);
         const hover = await new HoverProvider(parser, workspace).provideHover(doc, {
             line: 2,
             character: 6,
