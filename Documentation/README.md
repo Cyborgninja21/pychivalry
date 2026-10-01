@@ -97,6 +97,10 @@ CK3-specific modding guides and templates (not PyChivalry-specific).
 |----------|-------------|
 | [Activity Template](ck3-reference/Activity_Template.md) | Complete guide to building CK3 activities |
 
+The CK3 executable analysis that used to sit here (`ck3_exe_analysis.md` / `.json`) was removed in 2.0.0: it is superseded by [pdx-parser-re](https://github.com/Cyborgninja21/pdx-parser-re), whose engine-derived spec package the engine core now bundles.
+
+Sprint reports, session summaries and other historical documents are in [archive/](archive/README.md).
+
 ---
 
 ## 📁 Folder Structure

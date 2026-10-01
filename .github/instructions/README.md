@@ -45,7 +45,7 @@ Follow the standards in .github/instructions/typescript.instructions.md to imple
 ## Related Documentation
 
 - **Workspace instructions**: `.github/copilot-instructions.md` — project overview and architecture
-- **Development guidelines**: `kanban-development-guideline.md` — full coding standards (source of truth)
+- **Development guidelines**: `CONTRIBUTING.md` (section Rules) — coding standards (source of truth; the former `kanban-development-guideline.md` is archived under `Documentation/archive/`)
 - **Project documentation**: `Documentation/` — developer guides, user guides, CK3 reference
 
 ---

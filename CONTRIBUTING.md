@@ -143,6 +143,32 @@ The pre-commit hooks will run automatically and fix most formatting issues.
 - Add docstrings to new functions and classes
 - Update examples if needed
 
+## Rules
+
+These are the still-true rules of the former `kanban-development-guideline.md` (archived under
+`Documentation/archive/`); ESLint and the pre-commit hooks enforce most of them.
+
+- **Strict TypeScript.** `strict: true`; never `any` (use `unknown` with type guards), never `var`.
+  Prefer type guards over unchecked `as` casts.
+- **Strict equality and braces.** `===`/`!==` only (`eqeqeq`); braces on every `if`/`else`/`for`/`while`
+  (`curly`).
+- **Throw `Error` objects**, never literals (`no-throw-literal`). Prefer async/await over callbacks.
+- **No `console.log` in production code.** The server logs through `server/utils/logger.ts`, the
+  client through `src/logger.ts` (VS Code output channels).
+- **Naming.** Files `kebab-case.ts`; variables and functions `camelCase`; types, interfaces and
+  classes `PascalCase`; constants `UPPER_SNAKE_CASE`.
+- **Formatting.** Prettier: print width 100, 4-space indent, single quotes, semicolons, trailing commas
+  `es5`, arrow parens always.
+- **No new runtime dependencies** without the maintainer's agreement; the engine package
+  (`packages/engine`) has none at all.
+- **Never skip the pre-commit hooks** (`--no-verify`).
+- **Documentation lives under `Documentation/`.** Exceptions: a `README.md` per package or data folder
+  and the standard root files (`README.md`, `CHANGELOG.md`, `CONTRIBUTING.md`, `SECURITY.md`,
+  `CLAUDE.md`).
+- **Error handling.** Wrap async work in try/catch; show user-facing failures with
+  `vscode.window.showErrorMessage` and log the detail to the output channel; handle a lost LSP
+  connection without crashing the client.
+
 ## Pull Request Process
 
 1. Ensure all tests pass and code is properly formatted
