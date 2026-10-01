@@ -2,7 +2,7 @@ import * as assert from 'assert';
 import * as vscode from 'vscode';
 
 suite('Diagnostics Integration Tests', () => {
-    let extension: vscode.Extension<any> | undefined;
+    let extension: vscode.Extension<unknown> | undefined;
 
     suiteSetup(async function () {
         this.timeout(30000);
@@ -66,10 +66,9 @@ test.0001 = {
                 assert.ok(firstDiag.message, 'Diagnostic should have a message');
                 assert.ok(firstDiag.range, 'Diagnostic should have a range');
                 assert.ok(
-                    [
-                        vscode.DiagnosticSeverity.Error,
-                        vscode.DiagnosticSeverity.Warning,
-                    ].includes(firstDiag.severity),
+                    [vscode.DiagnosticSeverity.Error, vscode.DiagnosticSeverity.Warning].includes(
+                        firstDiag.severity
+                    ),
                     'Diagnostic should have appropriate severity'
                 );
             }
@@ -172,13 +171,8 @@ test.0001 = {
 
             const diagnostics = vscode.languages.getDiagnostics(doc.uri);
 
-            if (diagnostics.length > 0) {
-                const errors = diagnostics.filter(
-                    (d) => d.severity === vscode.DiagnosticSeverity.Error
-                );
-                // May or may not have errors depending on LSP semantic validation
-                assert.ok(diagnostics.length >= 0, 'Diagnostic system is functioning');
-            }
+            // May or may not have errors depending on LSP semantic validation
+            assert.ok(diagnostics.length >= 0, 'Diagnostic system is functioning');
 
             await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
         });
@@ -325,7 +319,8 @@ test.0001 = {
                     );
                     assert.ok(
                         diag.range.end.line < doc.lineCount ||
-                            (diag.range.end.line === doc.lineCount && diag.range.end.character === 0),
+                            (diag.range.end.line === doc.lineCount &&
+                                diag.range.end.character === 0),
                         'Diagnostic end should be within document bounds'
                     );
                 }

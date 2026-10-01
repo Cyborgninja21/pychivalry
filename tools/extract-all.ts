@@ -9,14 +9,15 @@ interface Extractor {
     script: string;
 }
 
+/**
+ * Game-content extractors. CK3 keyword vocabulary (triggers, effects, scopes, on_actions)
+ * is no longer extracted: it comes from the engine's spec package (pychivalry-engine),
+ * generated from the game executable by pdx-parser-re.
+ */
 const EXTRACTORS: Extractor[] = [
     { name: 'traits', script: 'extract-traits.ts' },
-    { name: 'effects', script: 'extract-effects.ts' },
-    { name: 'triggers', script: 'extract-triggers.ts' },
-    { name: 'on-actions', script: 'extract-on-actions.ts' },
     { name: 'themes', script: 'extract-themes.ts' },
     { name: 'backgrounds', script: 'extract-backgrounds.ts' },
-    { name: 'scopes', script: 'extract-scopes.ts' },
 ];
 
 /**

@@ -1,6 +1,6 @@
 /**
  * Document Links Provider - Provides clickable links in documents
- * 
+ *
  * Features:
  * - File path references (localization, scripted effects, GUI files)
  * - Event ID references (clickable event links to definition)
@@ -9,10 +9,9 @@
  * - Support for various CK3 file types
  */
 
-import { DocumentLink, Range } from 'vscode-languageserver/node';
+import { DocumentLink } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { CK3Parser, ASTNode, NodeType } from '../core/parser';
-import { DocumentIndexer, SymbolType } from '../core/indexer';
+import { ASTNode, CK3Parser, DocumentIndexer, SymbolType } from 'pychivalry-engine';
 import * as path from 'path';
 import { promises as fsp } from 'fs';
 
@@ -71,39 +70,59 @@ export class DocumentLinksProvider {
                 const isValid = this.validateLinkTarget(link.target, data.type);
                 data.validated = true;
                 link.data = { ...data, valid: isValid };
-                
+
                 // If invalid, add tooltip
                 if (!isValid) {
                     link.tooltip = `Target not found: ${link.target}`;
                 }
             }
         }
-        
+
         return link;
     }
 
     /**
      * Collect document links from AST
      */
-    private async collectDocumentLinks(node: ASTNode, links: DocumentLink[], document: TextDocument): Promise<void> {
-        if (!node.children) return;
+    private async collectDocumentLinks(
+        node: ASTNode,
+        links: DocumentLink[],
+        document: TextDocument
+    ): Promise<void> {
+        if (!node.children) {
+            return;
+        }
 
         for (const child of node.children) {
             // File references (textures, icons, GUI files)
-            if (child.key === 'file' || child.key === 'icon' || child.key === 'texture' ||
-                child.key === 'gfx' || child.key === 'animation') {
+            if (
+                child.key === 'file' ||
+                child.key === 'icon' ||
+                child.key === 'texture' ||
+                child.key === 'gfx' ||
+                child.key === 'animation'
+            ) {
                 await this.addFileLink(child, links, document);
             }
 
             // Localization keys
-            if (child.key === 'name' || child.key === 'desc' || child.key === 'text' ||
-                child.key === 'title' || child.key === 'tooltip') {
+            if (
+                child.key === 'name' ||
+                child.key === 'desc' ||
+                child.key === 'text' ||
+                child.key === 'title' ||
+                child.key === 'tooltip'
+            ) {
                 await this.addLocalizationLink(child, links, document);
             }
 
             // Event references
-            if (child.key === 'id' || child.key === 'on_bi_yearly_pulse' ||
-                child.key === 'on_action' || child.key === 'trigger_event') {
+            if (
+                child.key === 'id' ||
+                child.key === 'on_bi_yearly_pulse' ||
+                child.key === 'on_action' ||
+                child.key === 'trigger_event'
+            ) {
                 await this.addEventLink(child, links, document);
             }
 
@@ -137,8 +156,14 @@ export class DocumentLinksProvider {
     /**
      * Add file path link
      */
-    private async addFileLink(node: ASTNode, links: DocumentLink[], document: TextDocument): Promise<void> {
-        if (typeof node.value !== 'string') return;
+    private async addFileLink(
+        node: ASTNode,
+        links: DocumentLink[],
+        _document: TextDocument
+    ): Promise<void> {
+        if (typeof node.value !== 'string') {
+            return;
+        }
 
         const filePath = node.value;
         let target: string | undefined;
@@ -170,15 +195,21 @@ export class DocumentLinksProvider {
             range: node.range,
             target,
             tooltip: `Open file: ${filePath}`,
-            data: { type: LinkType.FILE, path: filePath }
+            data: { type: LinkType.FILE, path: filePath },
         });
     }
 
     /**
      * Add localization key link
      */
-    private async addLocalizationLink(node: ASTNode, links: DocumentLink[], document: TextDocument): Promise<void> {
-        if (typeof node.value !== 'string') return;
+    private async addLocalizationLink(
+        node: ASTNode,
+        links: DocumentLink[],
+        _document: TextDocument
+    ): Promise<void> {
+        if (typeof node.value !== 'string') {
+            return;
+        }
 
         const key = node.value;
 
@@ -192,7 +223,7 @@ export class DocumentLinksProvider {
                 try {
                     await fsp.access(locPath);
                     const allFiles = await fsp.readdir(locPath);
-                    const files = allFiles.filter(f => f.endsWith('.yml'));
+                    const files = allFiles.filter((f) => f.endsWith('.yml'));
 
                     for (const file of files) {
                         const fullPath = path.join(locPath, file);
@@ -212,7 +243,7 @@ export class DocumentLinksProvider {
                 range: node.range,
                 target: target || `#localization:${key}`,
                 tooltip: `Localization key: ${key}`,
-                data: { type: LinkType.LOCALIZATION, key }
+                data: { type: LinkType.LOCALIZATION, key },
             });
         }
     }
@@ -220,8 +251,14 @@ export class DocumentLinksProvider {
     /**
      * Add event ID link
      */
-    private async addEventLink(node: ASTNode, links: DocumentLink[], document: TextDocument): Promise<void> {
-        if (typeof node.value !== 'string') return;
+    private async addEventLink(
+        node: ASTNode,
+        links: DocumentLink[],
+        _document: TextDocument
+    ): Promise<void> {
+        if (typeof node.value !== 'string') {
+            return;
+        }
 
         const eventId = node.value;
 
@@ -232,7 +269,7 @@ export class DocumentLinksProvider {
             // Try to find event in indexer
             if (this.indexer) {
                 const symbols = this.indexer.findSymbolsByName(eventId);
-                const eventSymbol = symbols.find(s => s.type === SymbolType.EVENT);
+                const eventSymbol = symbols.find((s) => s.type === SymbolType.EVENT);
 
                 if (eventSymbol) {
                     target = eventSymbol.uri;
@@ -247,8 +284,8 @@ export class DocumentLinksProvider {
                 try {
                     await fsp.access(eventsPath);
                     const files = await fsp.readdir(eventsPath);
-                    const eventFile = files.find(f =>
-                        f.startsWith(namespace) && f.endsWith('.txt')
+                    const eventFile = files.find(
+                        (f) => f.startsWith(namespace) && f.endsWith('.txt')
                     );
 
                     if (eventFile) {
@@ -263,7 +300,7 @@ export class DocumentLinksProvider {
                 range: node.range,
                 target: target || `#event:${eventId}`,
                 tooltip: `Go to event: ${eventId}`,
-                data: { type: LinkType.EVENT, id: eventId }
+                data: { type: LinkType.EVENT, id: eventId },
             });
         }
     }
@@ -271,8 +308,14 @@ export class DocumentLinksProvider {
     /**
      * Add scripted effect link
      */
-    private async addScriptedEffectLink(node: ASTNode, links: DocumentLink[], document: TextDocument): Promise<void> {
-        if (!node.key) return;
+    private async addScriptedEffectLink(
+        node: ASTNode,
+        links: DocumentLink[],
+        _document: TextDocument
+    ): Promise<void> {
+        if (!node.key) {
+            return;
+        }
 
         const effectName = node.key;
         let target: string | undefined;
@@ -280,7 +323,7 @@ export class DocumentLinksProvider {
         // Try to find in indexer
         if (this.indexer) {
             const symbols = this.indexer.findSymbolsByName(effectName);
-            const effectSymbol = symbols.find(s => s.type === SymbolType.SCRIPTED_EFFECT);
+            const effectSymbol = symbols.find((s) => s.type === SymbolType.SCRIPTED_EFFECT);
 
             if (effectSymbol) {
                 target = effectSymbol.uri;
@@ -294,7 +337,7 @@ export class DocumentLinksProvider {
             try {
                 await fsp.access(effectsPath);
                 const allFiles = await fsp.readdir(effectsPath);
-                const files = allFiles.filter(f => f.endsWith('.txt'));
+                const files = allFiles.filter((f) => f.endsWith('.txt'));
 
                 for (const file of files) {
                     const fullPath = path.join(effectsPath, file);
@@ -315,7 +358,7 @@ export class DocumentLinksProvider {
                 range: node.range,
                 target: target || `#scripted_effect:${effectName}`,
                 tooltip: `Go to scripted effect: ${effectName}`,
-                data: { type: LinkType.SCRIPTED_EFFECT, name: effectName }
+                data: { type: LinkType.SCRIPTED_EFFECT, name: effectName },
             });
         }
     }
@@ -323,8 +366,14 @@ export class DocumentLinksProvider {
     /**
      * Add scripted trigger link
      */
-    private async addScriptedTriggerLink(node: ASTNode, links: DocumentLink[], document: TextDocument): Promise<void> {
-        if (!node.key) return;
+    private async addScriptedTriggerLink(
+        node: ASTNode,
+        links: DocumentLink[],
+        _document: TextDocument
+    ): Promise<void> {
+        if (!node.key) {
+            return;
+        }
 
         const triggerName = node.key;
         let target: string | undefined;
@@ -332,7 +381,7 @@ export class DocumentLinksProvider {
         // Try to find in indexer
         if (this.indexer) {
             const symbols = this.indexer.findSymbolsByName(triggerName);
-            const triggerSymbol = symbols.find(s => s.type === SymbolType.SCRIPTED_TRIGGER);
+            const triggerSymbol = symbols.find((s) => s.type === SymbolType.SCRIPTED_TRIGGER);
 
             if (triggerSymbol) {
                 target = triggerSymbol.uri;
@@ -346,7 +395,7 @@ export class DocumentLinksProvider {
             try {
                 await fsp.access(triggersPath);
                 const allFiles = await fsp.readdir(triggersPath);
-                const files = allFiles.filter(f => f.endsWith('.txt'));
+                const files = allFiles.filter((f) => f.endsWith('.txt'));
 
                 for (const file of files) {
                     const fullPath = path.join(triggersPath, file);
@@ -367,7 +416,7 @@ export class DocumentLinksProvider {
                 range: node.range,
                 target: target || `#scripted_trigger:${triggerName}`,
                 tooltip: `Go to scripted trigger: ${triggerName}`,
-                data: { type: LinkType.SCRIPTED_TRIGGER, name: triggerName }
+                data: { type: LinkType.SCRIPTED_TRIGGER, name: triggerName },
             });
         }
     }
@@ -375,8 +424,10 @@ export class DocumentLinksProvider {
     /**
      * Add decision link
      */
-    private addDecisionLink(node: ASTNode, links: DocumentLink[], document: TextDocument): void {
-        if (typeof node.value !== 'string') return;
+    private addDecisionLink(node: ASTNode, links: DocumentLink[], _document: TextDocument): void {
+        if (typeof node.value !== 'string') {
+            return;
+        }
 
         const decisionName = node.value;
         let target: string | undefined;
@@ -384,8 +435,8 @@ export class DocumentLinksProvider {
         // Try to find in indexer
         if (this.indexer) {
             const symbols = this.indexer.findSymbolsByName(decisionName);
-            const decisionSymbol = symbols.find(s => s.type === SymbolType.DECISION);
-            
+            const decisionSymbol = symbols.find((s) => s.type === SymbolType.DECISION);
+
             if (decisionSymbol) {
                 target = decisionSymbol.uri;
             }
@@ -395,32 +446,34 @@ export class DocumentLinksProvider {
             range: node.range,
             target: target || `#decision:${decisionName}`,
             tooltip: `Go to decision: ${decisionName}`,
-            data: { type: LinkType.DECISION, name: decisionName }
+            data: { type: LinkType.DECISION, name: decisionName },
         });
     }
 
     /**
      * Add wiki/documentation link for known concepts
      */
-    private addWikiLink(node: ASTNode, links: DocumentLink[], document: TextDocument): void {
-        if (typeof node.value !== 'string') return;
+    private addWikiLink(node: ASTNode, links: DocumentLink[], _document: TextDocument): void {
+        if (typeof node.value !== 'string') {
+            return;
+        }
 
         const value = node.value;
-        
+
         // Map of known concepts to wiki URLs
         const wikiLinks: Record<string, string> = {
             // Scope types
-            'character': 'https://ck3.paradoxwikis.com/Scopes#Character',
-            'title': 'https://ck3.paradoxwikis.com/Scopes#Title',
-            'province': 'https://ck3.paradoxwikis.com/Scopes#Province',
-            'faith': 'https://ck3.paradoxwikis.com/Scopes#Faith',
-            'culture': 'https://ck3.paradoxwikis.com/Scopes#Culture',
-            'dynasty': 'https://ck3.paradoxwikis.com/Scopes#Dynasty',
-            
+            character: 'https://ck3.paradoxwikis.com/Scopes#Character',
+            title: 'https://ck3.paradoxwikis.com/Scopes#Title',
+            province: 'https://ck3.paradoxwikis.com/Scopes#Province',
+            faith: 'https://ck3.paradoxwikis.com/Scopes#Faith',
+            culture: 'https://ck3.paradoxwikis.com/Scopes#Culture',
+            dynasty: 'https://ck3.paradoxwikis.com/Scopes#Dynasty',
+
             // Common concepts
-            'root': 'https://ck3.paradoxwikis.com/Scopes#Root',
-            'this': 'https://ck3.paradoxwikis.com/Scopes#This',
-            'prev': 'https://ck3.paradoxwikis.com/Scopes#Prev',
+            root: 'https://ck3.paradoxwikis.com/Scopes#Root',
+            this: 'https://ck3.paradoxwikis.com/Scopes#This',
+            prev: 'https://ck3.paradoxwikis.com/Scopes#Prev',
         };
 
         const wikiUrl = wikiLinks[value.toLowerCase()];
@@ -429,7 +482,7 @@ export class DocumentLinksProvider {
                 range: node.range,
                 target: wikiUrl,
                 tooltip: `Open wiki: ${value}`,
-                data: { type: LinkType.WIKI, concept: value }
+                data: { type: LinkType.WIKI, concept: value },
             });
         }
     }
@@ -437,7 +490,7 @@ export class DocumentLinksProvider {
     /**
      * Validate link target
      */
-    private validateLinkTarget(target: string, type: LinkType): boolean {
+    private validateLinkTarget(target: string, _type: LinkType): boolean {
         // Internal links (already resolved through indexer)
         if (target.startsWith('#')) {
             return false;

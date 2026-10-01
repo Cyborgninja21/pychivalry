@@ -1,0 +1,110 @@
+{
+    "mod": "unknown_trigger",
+    "derivation": "Written by hand from the fixture's intentionally made-up keywords; not copied from a run. is_alive (line 13) is a real trigger and is not reported.",
+    "diagnostics": [
+        {
+            "file": "events/test_unknown_triggers.txt",
+            "line": 16,
+            "code": "unknown_trigger_X",
+            "severity": "error",
+            "message": "Unknown trigger 'this_trigger_does_not_exist_at_all'",
+            "why": "made-up trigger"
+        },
+        {
+            "file": "events/test_unknown_triggers.txt",
+            "line": 17,
+            "code": "unknown_trigger_X",
+            "severity": "error",
+            "message": "Unknown trigger 'completely_fake_trigger_name'",
+            "why": "made-up trigger"
+        },
+        {
+            "file": "events/test_unknown_triggers.txt",
+            "line": 18,
+            "code": "unknown_trigger_X",
+            "severity": "error",
+            "message": "Unknown trigger 'is_definitely_not_a_real_trigger'",
+            "why": "made-up trigger"
+        },
+        {
+            "file": "events/test_unknown_triggers.txt",
+            "line": 19,
+            "code": "unknown_trigger_X",
+            "severity": "error",
+            "message": "Unknown trigger 'has_nonexistent_trait_modifier'",
+            "why": "made-up trigger"
+        },
+        {
+            "file": "events/test_unknown_triggers.txt",
+            "line": 20,
+            "code": "unknown_trigger_X",
+            "severity": "error",
+            "message": "Unknown trigger 'any_made_up_scope_trigger'",
+            "why": "any_ iterator over a list that is not in the lists bucket; its body (fake_nested_trigger) is not read further, as the engine skips an unknown block"
+        },
+        {
+            "file": "events/test_unknown_triggers.txt",
+            "line": 37,
+            "code": "unknown_trigger_X",
+            "severity": "error",
+            "message": "Unknown trigger 'xyzzy_completely_random'",
+            "why": "made-up trigger"
+        },
+        {
+            "file": "events/test_unknown_triggers.txt",
+            "line": 38,
+            "code": "unknown_trigger_X",
+            "severity": "error",
+            "message": "Unknown trigger 'test_numbered_trigger_99'",
+            "why": "made-up trigger"
+        },
+        {
+            "file": "events/test_unknown_triggers.txt",
+            "line": 39,
+            "code": "unknown_trigger_X",
+            "severity": "error",
+            "message": "Unknown trigger 'UPPERCASE_TRIGGER'",
+            "why": "made-up trigger (no lower-case spelling is a trigger either)"
+        },
+        {
+            "file": "events/test_unknown_triggers.txt",
+            "line": 40,
+            "code": "unknown_trigger_X",
+            "severity": "error",
+            "message": "Unknown trigger 'MixedCase_Trigger'",
+            "why": "made-up trigger"
+        },
+        {
+            "file": "events/test_unknown_triggers.txt",
+            "line": 44,
+            "code": "unknown_trigger_X",
+            "severity": "error",
+            "message": "Unknown trigger 'fake_or_trigger_1'",
+            "why": "made-up trigger inside OR"
+        },
+        {
+            "file": "events/test_unknown_triggers.txt",
+            "line": 45,
+            "code": "unknown_trigger_X",
+            "severity": "error",
+            "message": "Unknown trigger 'fake_or_trigger_2'",
+            "why": "made-up trigger inside OR"
+        },
+        {
+            "file": "events/test_unknown_triggers.txt",
+            "line": 49,
+            "code": "unknown_trigger_X",
+            "severity": "error",
+            "message": "Unknown trigger 'fake_and_trigger_1'",
+            "why": "made-up trigger inside AND"
+        },
+        {
+            "file": "events/test_unknown_triggers.txt",
+            "line": 50,
+            "code": "unknown_trigger_X",
+            "severity": "error",
+            "message": "Unknown trigger 'fake_and_trigger_2'",
+            "why": "made-up trigger inside AND"
+        }
+    ]
+}

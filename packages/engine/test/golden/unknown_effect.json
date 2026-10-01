@@ -1,0 +1,134 @@
+{
+    "mod": "unknown_effect",
+    "derivation": "Written by hand from the fixture's intentionally made-up keywords; not copied from a run. is_alive, add_gold, hidden_effect and show_as_tooltip are real and are not reported.",
+    "diagnostics": [
+        {
+            "file": "events/test_unknown_effects.txt",
+            "line": 17,
+            "code": "unknown_effect_X",
+            "severity": "error",
+            "message": "Unknown effect 'this_effect_does_not_exist_at_all'",
+            "why": "made-up effect in immediate"
+        },
+        {
+            "file": "events/test_unknown_effects.txt",
+            "line": 18,
+            "code": "unknown_effect_X",
+            "severity": "error",
+            "message": "Unknown effect 'completely_fake_effect_name'",
+            "why": "made-up effect"
+        },
+        {
+            "file": "events/test_unknown_effects.txt",
+            "line": 19,
+            "code": "unknown_effect_X",
+            "severity": "error",
+            "message": "Unknown effect 'add_nonexistent_resource'",
+            "why": "made-up effect"
+        },
+        {
+            "file": "events/test_unknown_effects.txt",
+            "line": 20,
+            "code": "unknown_effect_X",
+            "severity": "error",
+            "message": "Unknown effect 'remove_fake_modifier'",
+            "why": "made-up effect"
+        },
+        {
+            "file": "events/test_unknown_effects.txt",
+            "line": 21,
+            "code": "unknown_effect_X",
+            "severity": "error",
+            "message": "Unknown effect 'set_imaginary_flag'",
+            "why": "made-up effect"
+        },
+        {
+            "file": "events/test_unknown_effects.txt",
+            "line": 24,
+            "code": "unknown_effect_X",
+            "severity": "error",
+            "message": "Unknown effect 'random_fake_scope'",
+            "why": "random_ iterator over a list that is not in the lists bucket; its body (limit, another_fake_nested_effect) is not read further"
+        },
+        {
+            "file": "events/test_unknown_effects.txt",
+            "line": 36,
+            "code": "unknown_effect_X",
+            "severity": "error",
+            "message": "Unknown effect 'trigger_nonexistent_event'",
+            "why": "made-up effect in an option"
+        },
+        {
+            "file": "events/test_unknown_effects.txt",
+            "line": 40,
+            "code": "unknown_effect_X",
+            "severity": "error",
+            "message": "Unknown effect 'give_fake_claim'",
+            "why": "made-up effect in an option"
+        },
+        {
+            "file": "events/test_unknown_effects.txt",
+            "line": 57,
+            "code": "unknown_effect_X",
+            "severity": "error",
+            "message": "Unknown effect 'xyzzy_random_effect'",
+            "why": "made-up effect"
+        },
+        {
+            "file": "events/test_unknown_effects.txt",
+            "line": 58,
+            "code": "unknown_effect_X",
+            "severity": "error",
+            "message": "Unknown effect 'test_numbered_effect_99'",
+            "why": "made-up effect"
+        },
+        {
+            "file": "events/test_unknown_effects.txt",
+            "line": 59,
+            "code": "unknown_effect_X",
+            "severity": "error",
+            "message": "Unknown effect 'UPPERCASE_EFFECT'",
+            "why": "made-up effect"
+        },
+        {
+            "file": "events/test_unknown_effects.txt",
+            "line": 60,
+            "code": "unknown_effect_X",
+            "severity": "error",
+            "message": "Unknown effect 'MixedCase_Effect'",
+            "why": "made-up effect"
+        },
+        {
+            "file": "events/test_unknown_effects.txt",
+            "line": 64,
+            "code": "unknown_effect_X",
+            "severity": "error",
+            "message": "Unknown effect 'fake_hidden_effect_1'",
+            "why": "made-up effect inside hidden_effect (an effect container)"
+        },
+        {
+            "file": "events/test_unknown_effects.txt",
+            "line": 65,
+            "code": "unknown_effect_X",
+            "severity": "error",
+            "message": "Unknown effect 'fake_hidden_effect_2'",
+            "why": "made-up effect inside hidden_effect; its parameter block is not read further"
+        },
+        {
+            "file": "events/test_unknown_effects.txt",
+            "line": 73,
+            "code": "unknown_effect_X",
+            "severity": "error",
+            "message": "Unknown effect 'fake_tooltip_effect'",
+            "why": "made-up effect inside show_as_tooltip"
+        },
+        {
+            "file": "events/test_unknown_effects.txt",
+            "line": 82,
+            "code": "unknown_effect_X",
+            "severity": "error",
+            "message": "Unknown effect 'add_platinum'",
+            "why": "made-up effect next to the real add_gold"
+        }
+    ]
+}

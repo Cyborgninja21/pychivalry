@@ -1,0 +1,4 @@
+# Check out text files with LF on every platform: Prettier (endOfLine "lf"), the
+# pre-commit mixed-line-ending hook and the CK3 fixtures all expect LF. Without this,
+# Windows CI checked the sources out with CRLF and the format check failed on every file.
+* text=auto eol=lf

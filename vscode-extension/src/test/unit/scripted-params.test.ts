@@ -3,8 +3,11 @@
  */
 
 import * as assert from 'assert';
-import { NodeType, ASTNode } from '../../server/core/parser';
-import { validateScriptedParameters, ScriptedBlockConfig } from '../../server/ck3/validation/scripted-blocks';
+import { NodeType, ASTNode } from 'pychivalry-engine';
+import {
+    validateScriptedParameters,
+    ScriptedBlockConfig,
+} from '../../server/ck3/validation/scripted-blocks';
 
 function makeAssignment(key: string, value: string | boolean): ASTNode {
     return {
@@ -37,12 +40,19 @@ describe('Scripted Parameter Validation', () => {
                 makeBlock('my_scripted_effect', [
                     makeBlock('if', [
                         makeBlock('limit', [makeAssignment('is_adult', 'yes')]),
-                        makeBlock('my_scripted_effect', []),  // Recursive call
+                        makeBlock('my_scripted_effect', []), // Recursive call
                     ]),
                 ]),
             ]);
-            const diags = validateScriptedParameters(root, config, 'file:///common/scripted_effects/test.txt');
-            assert.ok(diags.some(d => d.code === 'CK3956'), 'Should flag recursive call');
+            const diags = validateScriptedParameters(
+                root,
+                config,
+                'file:///common/scripted_effects/test.txt'
+            );
+            assert.ok(
+                diags.some((d) => d.code === 'CK3956'),
+                'Should flag recursive call'
+            );
         });
 
         it('should not flag non-recursive blocks', () => {
@@ -54,8 +64,12 @@ describe('Scripted Parameter Validation', () => {
                     ]),
                 ]),
             ]);
-            const diags = validateScriptedParameters(root, config, 'file:///common/scripted_effects/test.txt');
-            assert.ok(!diags.some(d => d.code === 'CK3956'));
+            const diags = validateScriptedParameters(
+                root,
+                config,
+                'file:///common/scripted_effects/test.txt'
+            );
+            assert.ok(!diags.some((d) => d.code === 'CK3956'));
         });
     });
 
@@ -63,7 +77,7 @@ describe('Scripted Parameter Validation', () => {
         it('should skip non-scripted files', () => {
             const root = makeBlock('ROOT', [
                 makeBlock('my_effect', [
-                    makeBlock('my_effect', []),  // Would be recursive if checked
+                    makeBlock('my_effect', []), // Would be recursive if checked
                 ]),
             ]);
             const diags = validateScriptedParameters(root, config, 'file:///events/test.txt');
@@ -73,20 +87,26 @@ describe('Scripted Parameter Validation', () => {
         it('should validate scripted_trigger files', () => {
             const root = makeBlock('ROOT', [
                 makeBlock('my_trigger', [
-                    makeBlock('my_trigger', []),  // Recursive
+                    makeBlock('my_trigger', []), // Recursive
                 ]),
             ]);
-            const diags = validateScriptedParameters(root, config, 'file:///common/scripted_triggers/test.txt');
-            assert.ok(diags.some(d => d.code === 'CK3956'));
+            const diags = validateScriptedParameters(
+                root,
+                config,
+                'file:///common/scripted_triggers/test.txt'
+            );
+            assert.ok(diags.some((d) => d.code === 'CK3956'));
         });
     });
 
     describe('Disabled config', () => {
         it('should return empty when disabled', () => {
-            const root = makeBlock('ROOT', [
-                makeBlock('recursive', [makeBlock('recursive', [])]),
-            ]);
-            const diags = validateScriptedParameters(root, { ...config, enabled: false }, 'file:///common/scripted_effects/test.txt');
+            const root = makeBlock('ROOT', [makeBlock('recursive', [makeBlock('recursive', [])])]);
+            const diags = validateScriptedParameters(
+                root,
+                { ...config, enabled: false },
+                'file:///common/scripted_effects/test.txt'
+            );
             assert.strictEqual(diags.length, 0);
         });
     });

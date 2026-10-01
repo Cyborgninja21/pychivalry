@@ -1,0 +1,957 @@
+{
+    "description": "Hand-written expectations for the pychivalry corpus (vscode-extension/src/test/fixtures/mock-ck3-mod, mirrored byte for byte by the numbered sections of `example mod/`). good: the engine diagnostics a good_* file must yield (empty unless the fixture itself contradicts the engine-derived truth; each such entry says why). bad: the engine diagnostics each bad_* file must at least yield, from the fixture's annotated intent; `phase4` names the intended defects the engine layers cannot see because they belong to a Phase 4 plug-in. Lines are 1-based.",
+    "good": {
+        "common/activities/good_activities.txt": {
+            "known": [
+                {
+                    "line": 4,
+                    "code": "PYCH-S003",
+                    "why": "the fixture declares `namespace = activities_good`, i.e. event content, in common/activities/, which CK3 does not load events from (and which is not itself a loaded directory: activity types live in common/activities/activity_types/)"
+                }
+            ]
+        },
+        "common/casus_belli_types/good_casus_belli.txt": {
+            "known": [
+                {
+                    "line": 5,
+                    "code": "casus_belli_X_missing_on_invalidated_desc",
+                    "why": "the three casus belli have no on_invalidated_desc; the engine reports exactly this ('Casus belli {} missing on_invalidated_desc'), and every vanilla 1.20 casus belli sets it"
+                },
+                {
+                    "line": 48,
+                    "code": "casus_belli_X_missing_on_invalidated_desc",
+                    "why": "the three casus belli have no on_invalidated_desc; the engine reports exactly this ('Casus belli {} missing on_invalidated_desc'), and every vanilla 1.20 casus belli sets it"
+                },
+                {
+                    "line": 61,
+                    "code": "casus_belli_X_missing_on_invalidated_desc",
+                    "why": "the three casus belli have no on_invalidated_desc; the engine reports exactly this ('Casus belli {} missing on_invalidated_desc'), and every vanilla 1.20 casus belli sets it"
+                }
+            ]
+        },
+        "common/modifiers/good_modifiers.txt": {
+            "known": [
+                {
+                    "line": 42,
+                    "code": "unknown_modifier_type_X_at_X",
+                    "why": "`decaying` belongs to opinion modifiers (common/opinion_modifiers/); in common/modifiers/ a record body is a modifier block and `decaying` is not a modifier type (`opinion` and `years` are accepted as the package's unconfirmed wiki-era fields)"
+                },
+                {
+                    "line": 91,
+                    "code": "unknown_modifier_type_X_at_X",
+                    "why": "`decaying` belongs to opinion modifiers (common/opinion_modifiers/); in common/modifiers/ a record body is a modifier block and `decaying` is not a modifier type (`opinion` and `years` are accepted as the package's unconfirmed wiki-era fields)"
+                },
+                {
+                    "line": 97,
+                    "code": "unknown_modifier_type_X_at_X",
+                    "why": "`decaying` belongs to opinion modifiers (common/opinion_modifiers/); in common/modifiers/ a record body is a modifier block and `decaying` is not a modifier type (`opinion` and `years` are accepted as the package's unconfirmed wiki-era fields)"
+                }
+            ]
+        },
+        "common/on_actions/good_on_actions.txt": {
+            "known": [
+                {
+                    "line": 4,
+                    "code": "PYCH-S003",
+                    "why": "event content (`namespace = on_actions_good` plus event definitions) in common/on_actions/, which is not a CK3 directory (on-actions load from common/on_action/) and never loads events"
+                }
+            ]
+        },
+        "common/schemes/good_schemes.txt": {
+            "known": [
+                {
+                    "line": 229,
+                    "code": "unknown_trigger_X",
+                    "why": "`scheme_number_of_agents` is not a trigger of CK3 1.20 (it is in none of the package's buckets)"
+                },
+                {
+                    "line": 241,
+                    "code": "unknown_trigger_X",
+                    "why": "`scheme_number_of_agents` is not a trigger of CK3 1.20 (it is in none of the package's buckets)"
+                },
+                {
+                    "line": 266,
+                    "code": "unknown_trigger_X",
+                    "why": "`scheme_number_of_agents` is not a trigger of CK3 1.20 (it is in none of the package's buckets)"
+                }
+            ]
+        },
+        "common/scripted_effects/good_scripted_blocks.txt": {
+            "known": [
+                {
+                    "line": 68,
+                    "code": "unknown_effect_X",
+                    "why": "the fixture defines a scripted trigger (is_eligible_hero_trigger) inside common/scripted_effects/, where every record body is read as an effect block, so is_adult/is_ruler/is_alive are triggers in effect context"
+                },
+                {
+                    "line": 69,
+                    "code": "unknown_effect_X",
+                    "why": "the fixture defines a scripted trigger (is_eligible_hero_trigger) inside common/scripted_effects/, where every record body is read as an effect block, so is_adult/is_ruler/is_alive are triggers in effect context"
+                },
+                {
+                    "line": 70,
+                    "code": "unknown_effect_X",
+                    "why": "the fixture defines a scripted trigger (is_eligible_hero_trigger) inside common/scripted_effects/, where every record body is read as an effect block, so is_adult/is_ruler/is_alive are triggers in effect context"
+                },
+                {
+                    "line": 77,
+                    "code": "PYCH-S003",
+                    "why": "the fixture's usage examples declare `namespace = scripted_good` and events inside common/scripted_effects/"
+                },
+                {
+                    "line": 89,
+                    "code": "unknown_effect_X",
+                    "why": "those events are records of common/scripted_effects/, so their desc/trigger/option keys are read as effects"
+                },
+                {
+                    "line": 91,
+                    "code": "unknown_effect_X",
+                    "why": "those events are records of common/scripted_effects/, so their desc/trigger/option keys are read as effects"
+                },
+                {
+                    "line": 95,
+                    "code": "unknown_effect_X",
+                    "why": "those events are records of common/scripted_effects/, so their desc/trigger/option keys are read as effects"
+                },
+                {
+                    "line": 111,
+                    "code": "unknown_effect_X",
+                    "why": "those events are records of common/scripted_effects/, so their desc/trigger/option keys are read as effects"
+                },
+                {
+                    "line": 113,
+                    "code": "unknown_effect_X",
+                    "why": "those events are records of common/scripted_effects/, so their desc/trigger/option keys are read as effects"
+                },
+                {
+                    "line": 117,
+                    "code": "unknown_effect_X",
+                    "why": "those events are records of common/scripted_effects/, so their desc/trigger/option keys are read as effects"
+                },
+                {
+                    "line": 133,
+                    "code": "unknown_effect_X",
+                    "why": "those events are records of common/scripted_effects/, so their desc/trigger/option keys are read as effects"
+                },
+                {
+                    "line": 135,
+                    "code": "unknown_effect_X",
+                    "why": "those events are records of common/scripted_effects/, so their desc/trigger/option keys are read as effects"
+                },
+                {
+                    "line": 139,
+                    "code": "unknown_effect_X",
+                    "why": "those events are records of common/scripted_effects/, so their desc/trigger/option keys are read as effects"
+                },
+                {
+                    "line": 158,
+                    "code": "unknown_effect_X",
+                    "why": "those events are records of common/scripted_effects/, so their desc/trigger/option keys are read as effects"
+                },
+                {
+                    "line": 160,
+                    "code": "unknown_effect_X",
+                    "why": "those events are records of common/scripted_effects/, so their desc/trigger/option keys are read as effects"
+                },
+                {
+                    "line": 164,
+                    "code": "unknown_effect_X",
+                    "why": "those events are records of common/scripted_effects/, so their desc/trigger/option keys are read as effects"
+                }
+            ]
+        },
+        "events/good_asset_refs.txt": {
+            "known": [
+                {
+                    "line": 13,
+                    "code": "unknown_X_in_X",
+                    "why": "`picture` is not an event field in CK3 1.20 (vanilla events use override_background etc.)"
+                },
+                {
+                    "line": 101,
+                    "code": "unknown_X_in_X",
+                    "why": "`picture` is not an event field in CK3 1.20 (vanilla events use override_background etc.)"
+                },
+                {
+                    "line": 75,
+                    "code": "unknown_X_in_X",
+                    "why": "a decision (test_decision) defined inside events/, where every record is an event: picture/is_shown/effect/ai_check_interval/ai_will_do are not event fields"
+                },
+                {
+                    "line": 79,
+                    "code": "unknown_X_in_X",
+                    "why": "a decision (test_decision) defined inside events/, where every record is an event: picture/is_shown/effect/ai_check_interval/ai_will_do are not event fields"
+                },
+                {
+                    "line": 83,
+                    "code": "unknown_X_in_X",
+                    "why": "a decision (test_decision) defined inside events/, where every record is an event: picture/is_shown/effect/ai_check_interval/ai_will_do are not event fields"
+                },
+                {
+                    "line": 87,
+                    "code": "unknown_X_in_X",
+                    "why": "a decision (test_decision) defined inside events/, where every record is an event: picture/is_shown/effect/ai_check_interval/ai_will_do are not event fields"
+                },
+                {
+                    "line": 89,
+                    "code": "unknown_X_in_X",
+                    "why": "a decision (test_decision) defined inside events/, where every record is an event: picture/is_shown/effect/ai_check_interval/ai_will_do are not event fields"
+                }
+            ]
+        },
+        "events/good_call_hierarchy.txt": {
+            "known": [
+                {
+                    "line": 46,
+                    "code": "unknown_trigger_X",
+                    "why": "`is_available` is a vanilla scripted trigger, not an engine trigger; with --vanilla <game dir> it resolves, and the corpus test runs without a game install"
+                }
+            ]
+        },
+        "events/good_style.txt": {
+            "known": [
+                {
+                    "line": 250,
+                    "code": "unknown_X_in_X",
+                    "why": "a decision (style_good_decision) defined inside events/; its fields are not event fields"
+                },
+                {
+                    "line": 253,
+                    "code": "unknown_X_in_X",
+                    "why": "a decision (style_good_decision) defined inside events/; its fields are not event fields"
+                },
+                {
+                    "line": 257,
+                    "code": "unknown_X_in_X",
+                    "why": "a decision (style_good_decision) defined inside events/; its fields are not event fields"
+                },
+                {
+                    "line": 261,
+                    "code": "unknown_X_in_X",
+                    "why": "a decision (style_good_decision) defined inside events/; its fields are not event fields"
+                },
+                {
+                    "line": 266,
+                    "code": "unknown_X_in_X",
+                    "why": "a decision (style_good_decision) defined inside events/; its fields are not event fields"
+                },
+                {
+                    "line": 268,
+                    "code": "unknown_X_in_X",
+                    "why": "a decision (style_good_decision) defined inside events/; its fields are not event fields"
+                },
+                {
+                    "line": 272,
+                    "code": "unknown_X_in_X",
+                    "why": "a decision (style_good_decision) defined inside events/; its fields are not event fields"
+                },
+                {
+                    "line": 279,
+                    "code": "unknown_X_in_X",
+                    "why": "a scripted effect (style_good_effect) defined inside events/ is read as an event, and every_vassal is not an event field"
+                }
+            ]
+        },
+        "events/good_syntax.txt": {
+            "known": [
+                {
+                    "line": 88,
+                    "code": "unknown_X_in_X",
+                    "why": "a decision (syntax_good_decision) defined inside events/; its fields are not event fields"
+                },
+                {
+                    "line": 92,
+                    "code": "unknown_X_in_X",
+                    "why": "a decision (syntax_good_decision) defined inside events/; its fields are not event fields"
+                },
+                {
+                    "line": 96,
+                    "code": "unknown_X_in_X",
+                    "why": "a decision (syntax_good_decision) defined inside events/; its fields are not event fields"
+                },
+                {
+                    "line": 100,
+                    "code": "unknown_X_in_X",
+                    "why": "a decision (syntax_good_decision) defined inside events/; its fields are not event fields"
+                },
+                {
+                    "line": 105,
+                    "code": "unknown_X_in_X",
+                    "why": "a decision (syntax_good_decision) defined inside events/; its fields are not event fields"
+                },
+                {
+                    "line": 107,
+                    "code": "unknown_X_in_X",
+                    "why": "a decision (syntax_good_decision) defined inside events/; its fields are not event fields"
+                },
+                {
+                    "line": 111,
+                    "code": "unknown_X_in_X",
+                    "why": "a decision (syntax_good_decision) defined inside events/; its fields are not event fields"
+                },
+                {
+                    "line": 124,
+                    "code": "unknown_X_in_X",
+                    "why": "a scripted effect (syntax_good_effect) defined inside events/ is read as an event"
+                }
+            ]
+        },
+        "events/good_variables.txt": {
+            "known": [
+                {
+                    "line": 146,
+                    "code": "unknown_effect_X",
+                    "why": "add_to_variable / subtract_from_variable / multiply_variable / divide_variable are not CK3 1.20 effects (the engine has change_variable with add/subtract/multiply/divide)"
+                },
+                {
+                    "line": 150,
+                    "code": "unknown_effect_X",
+                    "why": "add_to_variable / subtract_from_variable / multiply_variable / divide_variable are not CK3 1.20 effects (the engine has change_variable with add/subtract/multiply/divide)"
+                },
+                {
+                    "line": 154,
+                    "code": "unknown_effect_X",
+                    "why": "add_to_variable / subtract_from_variable / multiply_variable / divide_variable are not CK3 1.20 effects (the engine has change_variable with add/subtract/multiply/divide)"
+                },
+                {
+                    "line": 158,
+                    "code": "unknown_effect_X",
+                    "why": "add_to_variable / subtract_from_variable / multiply_variable / divide_variable are not CK3 1.20 effects (the engine has change_variable with add/subtract/multiply/divide)"
+                }
+            ]
+        }
+    },
+    "bad": {
+        "common/activities/bad_activities.txt": {
+            "expected": [],
+            "phase4": "ACT-001..ACT-005 (missing is_shown, undefined next_phase, province_filter values, trigger in lifecycle hook, duplicate phases) are activity rules; the file also sits in common/activities/, which CK3 does not load (activity types are in common/activities/activity_types/), so no directory schema applies"
+        },
+        "common/casus_belli_types/bad_casus_belli.txt": {
+            "expected": [],
+            "phase4": "CB-001 (no outcome effects) and CB-002 (unknown cost type) are casus-belli rules the package does not encode; the engine additionally reports the missing on_invalidated_desc on all six records, which the fixture does not intend"
+        },
+        "common/character_interactions/bad_interactions.txt": {
+            "expected": [
+                {
+                    "line": 208,
+                    "code": "unknown_X_in_X",
+                    "why": "HOOK-001: `on_accep` is not an interaction field"
+                },
+                {
+                    "line": 241,
+                    "code": "unknown_X_in_X",
+                    "why": "HOOK-001: `on_reject` is not an interaction field"
+                }
+            ],
+            "phase4": "INTERACT-003 (unreachable on_decline) and INTERACT-004 (missing is_shown) are interaction rules; the fixture's third HOOK-001 case, `on_completed` (line 234), is a real 1.20 interaction field (vanilla sets it), so the engine correctly accepts it"
+        },
+        "common/court_positions/bad_court_positions.txt": {
+            "expected": [],
+            "phase4": "COURT-001/COURT-002 are court-position rules; the file is in common/court_positions/, not the loaded common/court_positions/types/"
+        },
+        "common/decisions/bad_decisions.txt": {
+            "expected": [],
+            "phase4": "DECISION-001 (missing ai_check_interval) is not an engine-required field: the package marks only three fields required, none of them in decisions"
+        },
+        "common/modifiers/bad_modifiers.txt": {
+            "expected": [
+                {
+                    "line": 30,
+                    "code": "unknown_modifier_type_X_at_X",
+                    "why": "MOD-001: made-up modifier keys"
+                },
+                {
+                    "line": 31,
+                    "code": "unknown_modifier_type_X_at_X",
+                    "why": "MOD-001: made-up modifier keys"
+                },
+                {
+                    "line": 32,
+                    "code": "unknown_modifier_type_X_at_X",
+                    "why": "MOD-001: made-up modifier keys"
+                },
+                {
+                    "line": 90,
+                    "code": "unknown_modifier_type_X_at_X",
+                    "why": "MOD-001: made-up modifier keys laser_eyes, telekinesis"
+                },
+                {
+                    "line": 98,
+                    "code": "unknown_modifier_type_X_at_X",
+                    "why": "MOD-001: made-up modifier keys laser_eyes, telekinesis"
+                },
+                {
+                    "line": 108,
+                    "code": "unknown_modifier_type_X_at_X",
+                    "why": "MOD-001: typos diplomcy, martail"
+                },
+                {
+                    "line": 109,
+                    "code": "unknown_modifier_type_X_at_X",
+                    "why": "MOD-001: typos diplomcy, martail"
+                }
+            ],
+            "phase4": "MOD-002 (non-numeric values), MOD-003 (opinion modifier without opinion) and MOD-004 (range) are value rules"
+        },
+        "common/on_actions/bad_on_actions.txt": {
+            "expected": [
+                {
+                    "line": 11,
+                    "code": "PYCH-S003",
+                    "why": "EVENT-008: event content declared outside events/"
+                }
+            ],
+            "phase4": "ON_ACTION-001 (empty on_action), HOOK-001, SCOPE-006 and the other old codes are on-action and scope rules; the file is in common/on_actions/, which is not a CK3 directory (common/on_action/), so the on_action schema does not apply"
+        },
+        "common/schemes/bad_schemes.txt": {
+            "expected": [],
+            "phase4": "SCHEME-001/SCHEME-002 (skill, effects) are scheme rules; the file is in common/schemes/, not the loaded common/schemes/scheme_types/"
+        },
+        "common/script_values/bad_script_values.txt": {
+            "expected": [
+                {
+                    "line": 26,
+                    "code": "unknown_X_in_X",
+                    "why": "VALUE-003: power and sqrt are not script-value operations"
+                },
+                {
+                    "line": 71,
+                    "code": "unknown_X_in_X",
+                    "why": "VALUE-003: power and sqrt are not script-value operations"
+                },
+                {
+                    "line": 135,
+                    "code": "unknown_X_in_X",
+                    "why": "VALUE-003: power and sqrt are not script-value operations"
+                }
+            ],
+            "phase4": "VALUE-001 (unresolved references), VALUE-002 (min > max), VALUE-004 (if/else ordering), VALUE-005, VALUE-006 (round_to values) are value rules"
+        },
+        "common/scripted_effects/bad_scripted_blocks.txt": {
+            "expected": [
+                {
+                    "line": 19,
+                    "code": "PYCH-S003",
+                    "why": "EVENT-008: events declared in common/scripted_effects/"
+                }
+            ],
+            "phase4": "CK3950 (call to an undefined scripted effect) sits inside an event that is itself a record of common/scripted_effects/ and is not reached; CK3956 (recursion) is a call-graph rule"
+        },
+        "common/story_cycles/bad_story_cycles.txt": {
+            "expected": [],
+            "phase4": "STORY-002..STORY-024 are value-type and range rules"
+        },
+        "events/bad_asset_refs.txt": {
+            "expected": [],
+            "phase4": "EVENT-017 (missing asset files) needs the file system and the game's gfx tree"
+        },
+        "events/bad_control_flow.txt": {
+            "expected": [
+                {
+                    "line": 25,
+                    "code": "unknown_effect_X",
+                    "why": "CK3510/CK3511: trigger_else used inside immediate; trigger_if/trigger_else are triggers, so in an effect block the engine reports them as unknown effects"
+                },
+                {
+                    "line": 61,
+                    "code": "unknown_effect_X",
+                    "why": "CK3510/CK3511: trigger_else used inside immediate; trigger_if/trigger_else are triggers, so in an effect block the engine reports them as unknown effects"
+                },
+                {
+                    "line": 232,
+                    "code": "unknown_effect_X",
+                    "why": "CK3510/CK3511: trigger_else used inside immediate; trigger_if/trigger_else are triggers, so in an effect block the engine reports them as unknown effects"
+                },
+                {
+                    "line": 249,
+                    "code": "unknown_effect_X",
+                    "why": "CK3510/CK3511: trigger_else used inside immediate; trigger_if/trigger_else are triggers, so in an effect block the engine reports them as unknown effects"
+                },
+                {
+                    "line": 332,
+                    "code": "unknown_effect_X",
+                    "why": "CK3510/CK3511: trigger_else used inside immediate; trigger_if/trigger_else are triggers, so in an effect block the engine reports them as unknown effects"
+                }
+            ],
+            "phase4": "the ordering rules themselves (trigger_else without trigger_if, several trigger_else) are control-flow rules"
+        },
+        "events/bad_descriptions.txt": {
+            "expected": [
+                {
+                    "line": 273,
+                    "code": "unexpected_token_expected_key",
+                    "why": "CK3443: `desc =` with no value; the reader skips the newline, takes `left_portrait` as the value and then meets `= root`"
+                }
+            ],
+            "phase4": "CK3444 (literal strings instead of loc keys) and the other description rules are localization rules"
+        },
+        "events/bad_effects.txt": {
+            "expected": [
+                {
+                    "line": 40,
+                    "code": "unknown_effect_X",
+                    "why": "made-up effects"
+                },
+                {
+                    "line": 41,
+                    "code": "unknown_effect_X",
+                    "why": "made-up effects"
+                },
+                {
+                    "line": 42,
+                    "code": "unknown_effect_X",
+                    "why": "made-up effects"
+                },
+                {
+                    "line": 48,
+                    "code": "unknown_effect_X",
+                    "why": "made-up effects"
+                },
+                {
+                    "line": 49,
+                    "code": "unknown_effect_X",
+                    "why": "made-up effects"
+                },
+                {
+                    "line": 50,
+                    "code": "unknown_effect_X",
+                    "why": "made-up effects"
+                },
+                {
+                    "line": 75,
+                    "code": "unknown_effect_X",
+                    "why": "typos"
+                },
+                {
+                    "line": 76,
+                    "code": "unknown_effect_X",
+                    "why": "typos"
+                },
+                {
+                    "line": 77,
+                    "code": "unknown_effect_X",
+                    "why": "typos"
+                },
+                {
+                    "line": 78,
+                    "code": "unknown_effect_X",
+                    "why": "typos"
+                },
+                {
+                    "line": 94,
+                    "code": "unknown_effect_X",
+                    "why": "non-existent effects"
+                },
+                {
+                    "line": 95,
+                    "code": "unknown_effect_X",
+                    "why": "non-existent effects"
+                },
+                {
+                    "line": 96,
+                    "code": "unknown_effect_X",
+                    "why": "non-existent effects"
+                },
+                {
+                    "line": 97,
+                    "code": "unknown_effect_X",
+                    "why": "non-existent effects"
+                },
+                {
+                    "line": 103,
+                    "code": "unknown_effect_X",
+                    "why": "non-existent effects"
+                },
+                {
+                    "line": 120,
+                    "code": "unknown_effect_X",
+                    "why": "triggers used as effects"
+                },
+                {
+                    "line": 121,
+                    "code": "unknown_effect_X",
+                    "why": "triggers used as effects"
+                },
+                {
+                    "line": 122,
+                    "code": "unknown_effect_X",
+                    "why": "triggers used as effects"
+                },
+                {
+                    "line": 138,
+                    "code": "unknown_effect_X",
+                    "why": "made-up scope effects"
+                },
+                {
+                    "line": 139,
+                    "code": "unknown_effect_X",
+                    "why": "made-up scope effects"
+                },
+                {
+                    "line": 140,
+                    "code": "unknown_effect_X",
+                    "why": "made-up scope effects"
+                },
+                {
+                    "line": 162,
+                    "code": "unknown_effect_X",
+                    "why": "wrong trait effects"
+                },
+                {
+                    "line": 163,
+                    "code": "unknown_effect_X",
+                    "why": "wrong trait effects"
+                },
+                {
+                    "line": 164,
+                    "code": "unknown_effect_X",
+                    "why": "wrong trait effects"
+                },
+                {
+                    "line": 165,
+                    "code": "unknown_effect_X",
+                    "why": "wrong trait effects"
+                },
+                {
+                    "line": 182,
+                    "code": "unknown_effect_X",
+                    "why": "wrong resource effects"
+                },
+                {
+                    "line": 183,
+                    "code": "unknown_effect_X",
+                    "why": "wrong resource effects"
+                },
+                {
+                    "line": 184,
+                    "code": "unknown_effect_X",
+                    "why": "wrong resource effects"
+                },
+                {
+                    "line": 185,
+                    "code": "unknown_effect_X",
+                    "why": "wrong resource effects"
+                },
+                {
+                    "line": 202,
+                    "code": "unknown_effect_X",
+                    "why": "wrong event effects"
+                },
+                {
+                    "line": 203,
+                    "code": "unknown_effect_X",
+                    "why": "wrong event effects"
+                },
+                {
+                    "line": 204,
+                    "code": "unknown_effect_X",
+                    "why": "wrong event effects"
+                },
+                {
+                    "line": 221,
+                    "code": "unknown_effect_X",
+                    "why": "wrong modifier effects"
+                },
+                {
+                    "line": 222,
+                    "code": "unknown_effect_X",
+                    "why": "wrong modifier effects"
+                },
+                {
+                    "line": 223,
+                    "code": "unknown_effect_X",
+                    "why": "wrong modifier effects"
+                },
+                {
+                    "line": 239,
+                    "code": "unknown_effect_X",
+                    "why": "multiple made-up effects"
+                },
+                {
+                    "line": 240,
+                    "code": "unknown_effect_X",
+                    "why": "multiple made-up effects"
+                },
+                {
+                    "line": 241,
+                    "code": "unknown_effect_X",
+                    "why": "multiple made-up effects"
+                },
+                {
+                    "line": 242,
+                    "code": "unknown_effect_X",
+                    "why": "multiple made-up effects"
+                },
+                {
+                    "line": 247,
+                    "code": "unknown_effect_X",
+                    "why": "multiple made-up effects"
+                },
+                {
+                    "line": 248,
+                    "code": "unknown_effect_X",
+                    "why": "multiple made-up effects"
+                },
+                {
+                    "line": 249,
+                    "code": "unknown_effect_X",
+                    "why": "multiple made-up effects"
+                }
+            ],
+            "phase4": ""
+        },
+        "events/bad_event_structure.txt": {
+            "expected": [],
+            "phase4": "CONV-001..CONV-003 and EVENT-001/002/011/013 are naming and event-structure conventions"
+        },
+        "events/bad_iterators.txt": {
+            "expected": [
+                {
+                    "line": 18,
+                    "code": "unknown_trigger_X",
+                    "why": "ITER-001: add_gold inside any_vassal"
+                },
+                {
+                    "line": 42,
+                    "code": "unknown_effect_X",
+                    "why": "ITER-002: triggers inside every_vassal"
+                },
+                {
+                    "line": 43,
+                    "code": "unknown_effect_X",
+                    "why": "ITER-002: triggers inside every_vassal"
+                },
+                {
+                    "line": 117,
+                    "code": "unknown_trigger_X",
+                    "why": "ITER-001: add_prestige inside an any_ iterator"
+                },
+                {
+                    "line": 126,
+                    "code": "unknown_effect_X",
+                    "why": "ITER-002: is_ruler inside an every_ iterator"
+                },
+                {
+                    "line": 158,
+                    "code": "unknown_trigger_X",
+                    "why": "ITER-001: remove_trait inside a nested any_vassal"
+                }
+            ],
+            "phase4": "ITER-003/ITER-004 (ordered_ without order_by, position or max) are iterator rules"
+        },
+        "events/bad_missing_loc.txt": {
+            "expected": [],
+            "phase4": "CK4100 (missing localization keys) is a localization rule"
+        },
+        "events/bad_options.txt": {
+            "expected": [],
+            "phase4": "CK3420, CONV-004, EVENT-007, LOC-001 and the other option rules are conventions and localization"
+        },
+        "events/bad_portraits.txt": {
+            "expected": [
+                {
+                    "line": 14,
+                    "code": "unknown_X_in_X",
+                    "why": "CK3420: invalid portrait positions"
+                },
+                {
+                    "line": 15,
+                    "code": "unknown_X_in_X",
+                    "why": "CK3420: invalid portrait positions"
+                },
+                {
+                    "line": 16,
+                    "code": "unknown_X_in_X",
+                    "why": "CK3420: invalid portrait positions"
+                },
+                {
+                    "line": 105,
+                    "code": "unknown_X_in_X",
+                    "why": "CK3420: invalid portrait positions"
+                },
+                {
+                    "line": 106,
+                    "code": "unknown_X_in_X",
+                    "why": "CK3420: invalid portrait positions"
+                },
+                {
+                    "line": 130,
+                    "code": "unknown_X_in_X",
+                    "why": "CK3420: typos lft_portrait, rght_portrait"
+                },
+                {
+                    "line": 132,
+                    "code": "unknown_X_in_X",
+                    "why": "CK3420: typos lft_portrait, rght_portrait"
+                },
+                {
+                    "line": 221,
+                    "code": "unknown_X_in_X",
+                    "why": "CK3420: invalid positions"
+                },
+                {
+                    "line": 222,
+                    "code": "unknown_X_in_X",
+                    "why": "CK3420: invalid positions"
+                }
+            ],
+            "phase4": "CK3421 (missing character), CK3422 (animation names) and CK3430 (theme names) check values against game databases"
+        },
+        "events/bad_scope_timing.txt": {
+            "expected": [],
+            "phase4": "scope-timing rules (CK3701/3702 and the rest) are a plug-in"
+        },
+        "events/bad_scopes.txt": {
+            "expected": [
+                {
+                    "line": 49,
+                    "code": "unknown_trigger_X",
+                    "why": "SCOPE-003: `spouse` used as a link from a title; it is not a scope link at all"
+                },
+                {
+                    "line": 223,
+                    "code": "unknown_trigger_X",
+                    "why": "SCOPE-006: every_father (father is not a list)"
+                },
+                {
+                    "line": 323,
+                    "code": "unknown_trigger_X",
+                    "why": "SCOPE-006: any_liege (liege is not a list)"
+                },
+                {
+                    "line": 328,
+                    "code": "unknown_trigger_X",
+                    "why": "every_spouse in a trigger block (every_ iterators are effects)"
+                }
+            ],
+            "phase4": "CK3202 (scope:my_liege, scope:rival_character never saved, lines 115/119) is reported only when a vanilla base game is loaded; per-scope validity (age and has_trait on a title, lines 272-273) needs the package's empty scope_validity slot; CK3875/CK3977/CK5137 are style rules"
+        },
+        "events/bad_style.txt": {
+            "expected": [],
+            "phase4": "CK3330/CK3331, EVENT-013 and the indentation/naming checks are style rules"
+        },
+        "events/bad_switch.txt": {
+            "expected": [
+                {
+                    "line": 115,
+                    "code": "unexpected_token_expected_key",
+                    "why": "SWITCH-003: `trigger =` with no value; the reader takes the next case label as the value and then meets `= {`"
+                }
+            ],
+            "phase4": "SWITCH-001/002 (missing trigger, no branches) and SWITCH-003's unknown trigger name in the switch header are switch rules"
+        },
+        "events/bad_syntax.txt": {
+            "expected": [
+                {
+                    "line": 50,
+                    "code": "unexpected_token_expected_key",
+                    "why": "CK3001: extra closing brace at top level"
+                },
+                {
+                    "line": 60,
+                    "code": "expected_after_arguments",
+                    "why": "CK3002: the option block of syntax_bad.0002 (and with it the event) never closes"
+                },
+                {
+                    "line": 69,
+                    "code": "expected_after_arguments",
+                    "why": "CK3002: the option block of syntax_bad.0002 (and with it the event) never closes"
+                },
+                {
+                    "line": 141,
+                    "code": "expected_after_arguments",
+                    "why": "CK3002: incomplete event definition syntax_bad.0005"
+                }
+            ],
+            "phase4": "the later brace defects (lines 77-250) are read inside the still-open syntax_bad.0002, exactly as the game's reader would, so they surface only as unknown effects there"
+        },
+        "events/bad_traits.txt": {
+            "expected": [],
+            "phase4": "CK3800 (unknown trait names) checks values against the traits database"
+        },
+        "events/bad_triggers.txt": {
+            "expected": [
+                {
+                    "line": 47,
+                    "code": "unknown_trigger_X",
+                    "why": "CK3101: made-up triggers"
+                },
+                {
+                    "line": 48,
+                    "code": "unknown_trigger_X",
+                    "why": "CK3101: made-up triggers"
+                },
+                {
+                    "line": 49,
+                    "code": "unknown_trigger_X",
+                    "why": "CK3101: made-up triggers"
+                },
+                {
+                    "line": 73,
+                    "code": "unknown_trigger_X",
+                    "why": "CK3870/CK3102: effects inside a trigger block"
+                },
+                {
+                    "line": 74,
+                    "code": "unknown_trigger_X",
+                    "why": "CK3870/CK3102: effects inside a trigger block"
+                },
+                {
+                    "line": 75,
+                    "code": "unknown_trigger_X",
+                    "why": "CK3870/CK3102: effects inside a trigger block"
+                },
+                {
+                    "line": 105,
+                    "code": "unknown_trigger_X",
+                    "why": "CK3871: effect inside limit"
+                },
+                {
+                    "line": 214,
+                    "code": "unknown_trigger_X",
+                    "why": "CK3976: effect inside an any_ iterator"
+                },
+                {
+                    "line": 337,
+                    "code": "unknown_trigger_X",
+                    "why": "CK3101/CK3102/CK3871: unknown trigger, effect in a trigger block, effect in limit"
+                },
+                {
+                    "line": 341,
+                    "code": "unknown_trigger_X",
+                    "why": "CK3101/CK3102/CK3871: unknown trigger, effect in a trigger block, effect in limit"
+                },
+                {
+                    "line": 348,
+                    "code": "unknown_trigger_X",
+                    "why": "CK3101/CK3102/CK3871: unknown trigger, effect in a trigger block, effect in limit"
+                },
+                {
+                    "line": 374,
+                    "code": "unknown_trigger_X",
+                    "why": "CK3101/CK3102: unknown triggers and effects in a trigger block"
+                },
+                {
+                    "line": 375,
+                    "code": "unknown_trigger_X",
+                    "why": "CK3101/CK3102: unknown triggers and effects in a trigger block"
+                },
+                {
+                    "line": 376,
+                    "code": "unknown_trigger_X",
+                    "why": "CK3101/CK3102: unknown triggers and effects in a trigger block"
+                },
+                {
+                    "line": 377,
+                    "code": "unknown_trigger_X",
+                    "why": "CK3101/CK3102: unknown triggers and effects in a trigger block"
+                }
+            ],
+            "phase4": "CK3872/CK3873 (always = yes/no), CK3875/CK3977 (iterators without limit), CK5137 (exists before is_alive), CK5142 (this = comparisons) and CK3005 (NOT = yes) are style and safety rules"
+        },
+        "events/bad_variables.txt": {
+            "expected": [],
+            "phase4": "CK3701..CK3705 are variable-usage rules"
+        }
+    }
+}

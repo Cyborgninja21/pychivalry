@@ -1,0 +1,223 @@
+01_syntax/bad_syntax.txt
+  26:1  warning  PYCH-S003  '01_syntax/bad_syntax.txt' declares event content, but 01_syntax loads no script content
+  50:1  error  unexpected_token_expected_key  Unexpected token, expected 'key = {'
+  60:19  error  expected_after_arguments  Expected } after arguments
+  69:11  error  expected_after_arguments  Expected } after arguments
+  82:1  error  unknown_effect_X  Unknown effect 'syntax_bad.0003'
+  141:1  error  unknown_effect_X  Unknown effect 'syntax_bad.0005'
+  141:19  error  expected_after_arguments  Expected } after arguments
+
+01_syntax/good_syntax.txt
+  15:1  warning  PYCH-S003  '01_syntax/good_syntax.txt' declares event content, but 01_syntax loads no script content
+
+02_semantic/bad_effects.txt
+  19:1  warning  PYCH-S003  '02_semantic/bad_effects.txt' declares event content, but 02_semantic loads no script content
+  40:3  error  unknown_effect_X  Unknown effect 'give_super_powers'
+  41:3  error  unknown_effect_X  Unknown effect 'make_invincible'
+  42:3  error  unknown_effect_X  Unknown effect 'grant_immortality'
+  48:3  error  unknown_effect_X  Unknown effect 'teleport_to_location'
+  49:3  error  unknown_effect_X  Unknown effect 'summon_dragon'
+  50:3  error  unknown_effect_X  Unknown effect 'cast_spell'
+  75:3  error  unknown_effect_X  Unknown effect 'add_gld'
+  76:3  error  unknown_effect_X  Unknown effect 'add_prestge'
+  77:3  error  unknown_effect_X  Unknown effect 'add_pity'
+  78:3  error  unknown_effect_X  Unknown effect 'remove_trat'
+  94:3  error  unknown_effect_X  Unknown effect 'increase_health'
+  95:3  error  unknown_effect_X  Unknown effect 'boost_stats'
+  96:3  error  unknown_effect_X  Unknown effect 'level_up'
+  97:3  error  unknown_effect_X  Unknown effect 'gain_experience'
+  103:3  error  unknown_effect_X  Unknown effect 'multiply_gold'
+  120:3  error  unknown_effect_X  Unknown effect 'is_adult'
+  121:3  error  unknown_effect_X  Unknown effect 'is_ruler'
+  122:3  error  unknown_effect_X  Unknown effect 'age'
+  138:3  error  unknown_effect_X  Unknown effect 'change_scope_to_liege'
+  139:3  error  unknown_effect_X  Unknown effect 'switch_to_father'
+  140:3  error  unknown_effect_X  Unknown effect 'become_character'
+  162:3  error  unknown_effect_X  Unknown effect 'give_trait'
+  163:3  error  unknown_effect_X  Unknown effect 'take_trait'
+  164:3  error  unknown_effect_X  Unknown effect 'modify_trait'
+  165:3  error  unknown_effect_X  Unknown effect 'upgrade_trait'
+  182:3  error  unknown_effect_X  Unknown effect 'give_gold'
+  183:3  error  unknown_effect_X  Unknown effect 'take_gold'
+  184:3  error  unknown_effect_X  Unknown effect 'multiply_prestige'
+  185:3  error  unknown_effect_X  Unknown effect 'double_piety'
+  202:3  error  unknown_effect_X  Unknown effect 'fire_event'
+  203:3  error  unknown_effect_X  Unknown effect 'call_event'
+  204:3  error  unknown_effect_X  Unknown effect 'start_event'
+  221:3  error  unknown_effect_X  Unknown effect 'give_modifier'
+  222:3  error  unknown_effect_X  Unknown effect 'apply_buff'
+  223:3  error  unknown_effect_X  Unknown effect 'set_bonus'
+  239:3  error  unknown_effect_X  Unknown effect 'super_charge'
+  240:3  error  unknown_effect_X  Unknown effect 'activate_mode'
+  241:3  error  unknown_effect_X  Unknown effect 'enable_feature'
+  242:3  error  unknown_effect_X  Unknown effect 'unlock_ability'
+  247:3  error  unknown_effect_X  Unknown effect 'instant_win'
+  248:3  error  unknown_effect_X  Unknown effect 'god_mode'
+  249:3  error  unknown_effect_X  Unknown effect 'infinite_resources'
+
+02_semantic/bad_scopes.txt
+  30:1  warning  PYCH-S003  '02_semantic/bad_scopes.txt' declares event content, but 02_semantic loads no script content
+  49:4  error  unknown_trigger_X  Unknown trigger 'spouse'
+  223:3  error  unknown_trigger_X  Unknown trigger 'every_father'
+  272:4  error  unknown_effect_X  Unknown effect 'age'
+  273:4  error  unknown_effect_X  Unknown effect 'has_trait'
+  323:3  error  unknown_trigger_X  Unknown trigger 'any_liege'
+  328:3  error  unknown_trigger_X  Unknown trigger 'every_spouse'
+
+02_semantic/bad_triggers.txt
+  30:1  warning  PYCH-S003  '02_semantic/bad_triggers.txt' declares event content, but 02_semantic loads no script content
+  47:3  error  unknown_trigger_X  Unknown trigger 'is_super_powerful'
+  48:3  error  unknown_trigger_X  Unknown trigger 'has_magic_powers'
+  49:3  error  unknown_trigger_X  Unknown trigger 'can_fly'
+  73:3  error  unknown_trigger_X  Unknown trigger 'add_gold'
+  74:3  error  unknown_trigger_X  Unknown trigger 'add_prestige'
+  75:3  error  unknown_trigger_X  Unknown trigger 'save_scope_as'
+  105:5  error  unknown_trigger_X  Unknown trigger 'add_gold'
+  214:4  error  unknown_trigger_X  Unknown trigger 'add_gold'
+  290:1  error  unexpected_token_expected_key  Unexpected token, expected 'key = {'
+  320:1  error  unexpected_token_expected_key  Unexpected token, expected 'key = {'
+  337:3  error  unknown_trigger_X  Unknown trigger 'has_super_trait'
+  341:3  error  unknown_trigger_X  Unknown trigger 'add_gold'
+  348:5  error  unknown_trigger_X  Unknown trigger 'save_scope_as'
+  374:3  error  unknown_trigger_X  Unknown trigger 'is_mega_ruler'
+  375:3  error  unknown_trigger_X  Unknown trigger 'has_flying_ability'
+  376:3  error  unknown_trigger_X  Unknown trigger 'trigger_event'
+  377:3  error  unknown_trigger_X  Unknown trigger 'remove_trait'
+
+02_semantic/good_semantic.txt
+  19:1  warning  PYCH-S003  '02_semantic/good_semantic.txt' declares event content, but 02_semantic loads no script content
+
+03_scopes/bad_scope_timing.txt
+  29:1  warning  PYCH-S003  '03_scopes/bad_scope_timing.txt' declares event content, but 03_scopes loads no script content
+
+03_scopes/good_scopes.txt
+  17:1  warning  PYCH-S003  '03_scopes/good_scopes.txt' declares event content, but 03_scopes loads no script content
+
+04_style/bad_style.txt
+  46:1  warning  PYCH-S003  '04_style/bad_style.txt' declares event content, but 04_style loads no script content
+
+04_style/good_style.txt
+  20:1  warning  PYCH-S003  '04_style/good_style.txt' declares event content, but 04_style loads no script content
+
+05_events/bad_control_flow.txt
+  9:1  warning  PYCH-S003  '05_events/bad_control_flow.txt' declares event content, but 05_events loads no script content
+  25:3  error  unknown_effect_X  Unknown effect 'trigger_else'
+  49:3  error  unknown_effect_X  Unknown effect 'trigger_if'
+  56:3  error  unknown_effect_X  Unknown effect 'trigger_else'
+  61:3  error  unknown_effect_X  Unknown effect 'trigger_else'
+  86:3  error  unknown_effect_X  Unknown effect 'trigger_if'
+  110:3  error  unknown_effect_X  Unknown effect 'trigger_if'
+  138:3  error  unknown_effect_X  Unknown effect 'on_trigger_fail'
+  142:3  error  unknown_effect_X  Unknown effect 'trigger_if'
+  232:3  error  unknown_effect_X  Unknown effect 'trigger_else'
+  236:3  error  unknown_effect_X  Unknown effect 'trigger_if'
+  241:3  error  unknown_effect_X  Unknown effect 'trigger_if'
+  249:3  error  unknown_effect_X  Unknown effect 'trigger_else'
+  253:3  error  unknown_effect_X  Unknown effect 'trigger_else'
+  278:3  error  unknown_effect_X  Unknown effect 'trigger_if'
+  283:3  error  unknown_effect_X  Unknown effect 'trigger_if'
+  332:3  error  unknown_effect_X  Unknown effect 'trigger_else'
+  337:3  error  unknown_effect_X  Unknown effect 'trigger_if'
+
+05_events/bad_descriptions.txt
+  8:1  warning  PYCH-S003  '05_events/bad_descriptions.txt' declares event content, but 05_events loads no script content
+  273:16  error  unexpected_token_expected_key  Unexpected token, expected 'key = {'
+
+05_events/bad_event_structure.txt
+  11:1  warning  PYCH-S003  '05_events/bad_event_structure.txt' declares event content, but 05_events loads no script content
+
+05_events/bad_options.txt
+  9:1  warning  PYCH-S003  '05_events/bad_options.txt' declares event content, but 05_events loads no script content
+
+05_events/bad_portraits.txt
+  5:1  warning  PYCH-S003  '05_events/bad_portraits.txt' declares event content, but 05_events loads no script content
+
+05_events/good_events.txt
+  18:1  warning  PYCH-S003  '05_events/good_events.txt' declares event content, but 05_events loads no script content
+
+09_schemes/good_schemes.txt
+  229:5  error  unknown_trigger_X  Unknown trigger 'scheme_number_of_agents'
+  241:5  error  unknown_trigger_X  Unknown trigger 'scheme_number_of_agents'
+  266:5  error  unknown_trigger_X  Unknown trigger 'scheme_number_of_agents'
+
+10_on_actions/bad_on_actions.txt
+  11:1  warning  PYCH-S003  '10_on_actions/bad_on_actions.txt' declares event content, but 10_on_actions loads no script content
+
+10_on_actions/good_on_actions.txt
+  4:1  warning  PYCH-S003  '10_on_actions/good_on_actions.txt' declares event content, but 10_on_actions loads no script content
+
+11_assets/bad_asset_refs.txt
+  5:1  warning  PYCH-S003  '11_assets/bad_asset_refs.txt' declares event content, but 11_assets loads no script content
+
+11_assets/good_asset_refs.txt
+  4:1  warning  PYCH-S003  '11_assets/good_asset_refs.txt' declares event content, but 11_assets loads no script content
+
+13_call_hierarchy/events/call_hierarchy_events.txt
+  28:1  warning  PYCH-S003  '13_call_hierarchy/events/call_hierarchy_events.txt' declares event content, but 13_call_hierarchy/events loads no script content
+  46:3  error  unknown_trigger_X  Unknown trigger 'is_available'
+
+14_selection_range/events/selection_range_demo.txt
+  24:1  warning  PYCH-S003  '14_selection_range/events/selection_range_demo.txt' declares event content, but 14_selection_range/events loads no script content
+
+15_activities/bad_activities.txt
+  4:1  warning  PYCH-S003  '15_activities/bad_activities.txt' declares event content, but 15_activities loads no script content
+
+15_activities/good_activities.txt
+  4:1  warning  PYCH-S003  '15_activities/good_activities.txt' declares event content, but 15_activities loads no script content
+
+16_traits/bad_traits.txt
+  4:1  warning  PYCH-S003  '16_traits/bad_traits.txt' declares event content, but 16_traits loads no script content
+
+16_traits/good_traits.txt
+  4:1  warning  PYCH-S003  '16_traits/good_traits.txt' declares event content, but 16_traits loads no script content
+
+19_variables/bad_variables.txt
+  17:1  warning  PYCH-S003  '19_variables/bad_variables.txt' declares event content, but 19_variables loads no script content
+
+19_variables/good_variables.txt
+  17:1  warning  PYCH-S003  '19_variables/good_variables.txt' declares event content, but 19_variables loads no script content
+  146:3  error  unknown_effect_X  Unknown effect 'add_to_variable'
+  150:3  error  unknown_effect_X  Unknown effect 'subtract_from_variable'
+  154:3  error  unknown_effect_X  Unknown effect 'multiply_variable'
+  158:3  error  unknown_effect_X  Unknown effect 'divide_variable'
+
+20_scripted_blocks/bad_scripted_blocks.txt
+  19:1  warning  PYCH-S003  '20_scripted_blocks/bad_scripted_blocks.txt' declares event content, but 20_scripted_blocks loads no script content
+  40:3  error  unknown_effect_X  Unknown effect 'grant_epic_loot_effect'
+  45:3  error  unknown_effect_X  Unknown effect 'summon_dragon_effect'
+  63:3  error  unknown_trigger_X  Unknown trigger 'is_legendary_hero_trigger'
+  69:4  error  unknown_trigger_X  Unknown trigger 'can_cast_magic_trigger'
+  113:3  error  unknown_trigger_X  Unknown trigger 'has_power_of_gods_trigger'
+  118:3  error  unknown_effect_X  Unknown effect 'destroy_world_effect'
+  119:3  error  unknown_effect_X  Unknown effect 'broken_loop_effect'
+  141:3  error  unknown_effect_X  Unknown effect 'grant_standrd_reward_effect'
+  152:3  error  unknown_trigger_X  Unknown trigger 'is_elegible_hero_trigger'
+
+20_scripted_blocks/good_scripted_blocks.txt
+  77:1  warning  PYCH-S003  '20_scripted_blocks/good_scripted_blocks.txt' declares event content, but 20_scripted_blocks loads no script content
+  97:3  error  unknown_effect_X  Unknown effect 'grant_standard_reward_effect'
+  114:3  error  unknown_trigger_X  Unknown trigger 'is_eligible_hero_trigger'
+  141:3  error  unknown_effect_X  Unknown effect 'grant_scaled_reward_effect'
+  161:3  error  unknown_trigger_X  Unknown trigger 'is_eligible_hero_trigger'
+  166:3  error  unknown_effect_X  Unknown effect 'full_victory_reward_effect'
+
+23_switch/bad_switch.txt
+  4:1  warning  PYCH-S003  '23_switch/bad_switch.txt' declares event content, but 23_switch loads no script content
+  115:10  error  unexpected_token_expected_key  Unexpected token, expected 'key = {'
+
+23_switch/good_switch.txt
+  4:1  warning  PYCH-S003  '23_switch/good_switch.txt' declares event content, but 23_switch loads no script content
+
+24_iterators/bad_iterators.txt
+  4:1  warning  PYCH-S003  '24_iterators/bad_iterators.txt' declares event content, but 24_iterators loads no script content
+  18:4  error  unknown_trigger_X  Unknown trigger 'add_gold'
+  42:4  error  unknown_effect_X  Unknown effect 'is_ruler'
+  43:4  error  unknown_effect_X  Unknown effect 'is_alive'
+  117:4  error  unknown_trigger_X  Unknown trigger 'add_prestige'
+  126:4  error  unknown_effect_X  Unknown effect 'is_ruler'
+  158:5  error  unknown_trigger_X  Unknown trigger 'remove_trait'
+
+24_iterators/good_iterators.txt
+  4:1  warning  PYCH-S003  '24_iterators/good_iterators.txt' declares event content, but 24_iterators loads no script content
+
+54 files checked: 118 errors, 34 warnings, 0 other

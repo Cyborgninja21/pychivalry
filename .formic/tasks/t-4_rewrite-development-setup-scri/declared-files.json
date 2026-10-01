@@ -1,8 +1,0 @@
-{
-  "exclusive": [
-    "tools/setup-dev-env.sh",
-    "tools/Check-Prerequisites.ps1",
-    "tools/Install-Prerequisites.ps1"
-  ],
-  "shared": []
-}

@@ -10,9 +10,15 @@
  * Uses the two-row optimisation (O(min(m,n)) space).
  */
 export function levenshteinDistance(a: string, b: string): number {
-    if (a === b) return 0;
-    if (a.length === 0) return b.length;
-    if (b.length === 0) return a.length;
+    if (a === b) {
+        return 0;
+    }
+    if (a.length === 0) {
+        return b.length;
+    }
+    if (b.length === 0) {
+        return a.length;
+    }
 
     // Ensure `a` is the shorter string for space efficiency
     if (a.length > b.length) {
@@ -33,9 +39,9 @@ export function levenshteinDistance(a: string, b: string): number {
         for (let i = 1; i <= aLen; i++) {
             const cost = a[i - 1] === b[j - 1] ? 0 : 1;
             curr[i] = Math.min(
-                curr[i - 1] + 1,      // insertion
-                prev[i] + 1,          // deletion
-                prev[i - 1] + cost,   // substitution
+                curr[i - 1] + 1, // insertion
+                prev[i] + 1, // deletion
+                prev[i - 1] + cost // substitution
             );
         }
         [prev, curr] = [curr, prev];
@@ -50,7 +56,9 @@ export function levenshteinDistance(a: string, b: string): number {
  */
 export function similarityRatio(a: string, b: string): number {
     const maxLen = Math.max(a.length, b.length);
-    if (maxLen === 0) return 1.0;
+    if (maxLen === 0) {
+        return 1.0;
+    }
     return 1.0 - levenshteinDistance(a, b) / maxLen;
 }
 
@@ -70,7 +78,7 @@ export interface FindSimilarOptions {
 export function findSimilar(
     needle: string,
     haystack: Iterable<string>,
-    opts?: FindSimilarOptions,
+    opts?: FindSimilarOptions
 ): string[] {
     const threshold = opts?.threshold ?? 0.6;
     const max = opts?.max ?? 5;
@@ -89,5 +97,5 @@ export function findSimilar(
     }
 
     scored.sort((a, b) => b.ratio - a.ratio);
-    return scored.slice(0, max).map(s => s.original);
+    return scored.slice(0, max).map((s) => s.original);
 }

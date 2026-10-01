@@ -3,11 +3,18 @@
  * Provides rich document structure with categorization and fuzzy search
  */
 
-import { DocumentSymbol, SymbolKind, WorkspaceSymbol, SymbolInformation } from 'vscode-languageserver/node';
+import { DocumentSymbol, SymbolKind, WorkspaceSymbol, Range } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { CK3Parser, ASTNode, NodeType } from '../core/parser';
-import { DocumentIndexer, SymbolType, Symbol } from '../core/indexer';
-import { CK3Language } from '../ck3/language';
+import {
+    ASTNode,
+    CK3Parser,
+    defaultSpec,
+    DocumentIndexer,
+    NodeType,
+    Spec,
+    IndexSymbol,
+    SymbolType,
+} from 'pychivalry-engine';
 
 interface SymbolCategory {
     title: string;
@@ -19,32 +26,35 @@ interface SymbolCategory {
  * Enhanced Document Symbol Provider with hierarchical structure
  */
 export class DocumentSymbolProvider {
-    private static readonly SYMBOL_CATEGORIES: SymbolCategory[] = [
+    /** Outline categories; effects and triggers are the engine's buckets. */
+    private readonly symbolCategories: SymbolCategory[] = [
         {
             title: 'Events',
             kind: SymbolKind.Event,
-            filter: (n) => !!n.key && /^\w+\.\d+$|^\w+\.\w+$/.test(n.key)
+            filter: (n) => !!n.key && /^\w+\.\d+$|^\w+\.\w+$/.test(n.key),
         },
         {
             title: 'Decisions',
             kind: SymbolKind.Class,
-            filter: (n) => !!n.key && /^[a-z_]+_decision$/.test(n.key)
+            filter: (n) => !!n.key && /^[a-z_]+_decision$/.test(n.key),
         },
         {
             title: 'Effects',
             kind: SymbolKind.Function,
-            filter: (n) => !!n.key && CK3Language.isEffect(n.key)
+            filter: (n) => !!n.key && this.currentSpec().has(n.key, 'effects'),
         },
         {
             title: 'Triggers',
             kind: SymbolKind.Method,
-            filter: (n) => !!n.key && CK3Language.isTrigger(n.key)
+            filter: (n) => !!n.key && this.currentSpec().has(n.key, 'triggers'),
         },
     ];
 
     constructor(
         private ck3Parser: CK3Parser,
-        private symbolIndexer: DocumentIndexer
+        private symbolIndexer: DocumentIndexer,
+        /** The current spec (the workspace's, with any mod overlay). */
+        private currentSpec: () => Spec = defaultSpec
     ) {}
 
     /**
@@ -52,15 +62,12 @@ export class DocumentSymbolProvider {
      */
     public async buildDocumentOutline(doc: TextDocument): Promise<DocumentSymbol[]> {
         const parseResult = this.ck3Parser.parse(doc.getText());
-        
+
         if (!parseResult.ast.children || parseResult.ast.children.length === 0) {
             return [];
         }
 
-        const outlineSymbols = this.constructSymbolHierarchy(
-            parseResult.ast.children,
-            doc.uri
-        );
+        const outlineSymbols = this.constructSymbolHierarchy(parseResult.ast.children, doc.uri);
 
         return this.sortSymbolsByCategory(outlineSymbols);
     }
@@ -75,16 +82,16 @@ export class DocumentSymbolProvider {
 
         const fuzzyMatcher = this.createFuzzyMatcher(query.toLowerCase());
         const allSymbolsInWorkspace = this.getAllIndexedSymbols();
-        
+
         const matchedSymbols = allSymbolsInWorkspace
-            .map(sym => ({
+            .map((sym) => ({
                 symbol: sym,
-                score: fuzzyMatcher(sym.name.toLowerCase())
+                score: fuzzyMatcher(sym.name.toLowerCase()),
             }))
-            .filter(result => result.score > 0)
+            .filter((result) => result.score > 0)
             .sort((a, b) => b.score - a.score)
             .slice(0, 100) // Limit results
-            .map(result => this.convertToWorkspaceSymbol(result.symbol));
+            .map((result) => this.convertToWorkspaceSymbol(result.symbol));
 
         return matchedSymbols;
     }
@@ -94,16 +101,18 @@ export class DocumentSymbolProvider {
      */
     public async getCategorizedSymbols(doc: TextDocument): Promise<DocumentSymbol[]> {
         const parseResult = this.ck3Parser.parse(doc.getText());
-        
-        if (!parseResult.ast.children) return [];
+
+        if (!parseResult.ast.children) {
+            return [];
+        }
 
         const categoryGroups = new Map<string, DocumentSymbol[]>();
 
-        for (const category of DocumentSymbolProvider.SYMBOL_CATEGORIES) {
+        for (const category of this.symbolCategories) {
             const matchingNodes = parseResult.ast.children.filter(category.filter);
-            
+
             if (matchingNodes.length > 0) {
-                const categorySymbols = matchingNodes.map(node => 
+                const categorySymbols = matchingNodes.map((node) =>
                     this.buildDocumentSymbol(node, doc.uri)
                 );
                 categoryGroups.set(category.title, categorySymbols);
@@ -112,7 +121,7 @@ export class DocumentSymbolProvider {
 
         // Create category container symbols
         const categorizedResult: DocumentSymbol[] = [];
-        
+
         for (const [categoryTitle, symbols] of categoryGroups) {
             const containerSymbol = this.createCategoryContainer(categoryTitle, symbols);
             categorizedResult.push(containerSymbol);
@@ -124,10 +133,7 @@ export class DocumentSymbolProvider {
     /**
      * Construct hierarchical symbol tree from AST nodes
      */
-    private constructSymbolHierarchy(
-        astNodes: ASTNode[],
-        documentUri: string
-    ): DocumentSymbol[] {
+    private constructSymbolHierarchy(astNodes: ASTNode[], documentUri: string): DocumentSymbol[] {
         const hierarchyResult: DocumentSymbol[] = [];
 
         for (const astNode of astNodes) {
@@ -137,11 +143,11 @@ export class DocumentSymbolProvider {
             }
 
             const symbolNode = this.buildDocumentSymbol(astNode, documentUri);
-            
+
             // Recursively build children
             if (astNode.children && astNode.children.length > 0) {
                 const childSymbols = this.constructSymbolHierarchy(astNode.children, documentUri);
-                
+
                 if (childSymbols.length > 0) {
                     symbolNode.children = childSymbols;
                 }
@@ -156,10 +162,10 @@ export class DocumentSymbolProvider {
     /**
      * Build DocumentSymbol from AST node with rich metadata
      */
-    private buildDocumentSymbol(astNode: ASTNode, documentUri: string): DocumentSymbol {
+    private buildDocumentSymbol(astNode: ASTNode, _documentUri: string): DocumentSymbol {
         const symbolKind = this.classifySymbolKind(astNode);
         const symbolDetail = this.extractSymbolDetail(astNode);
-        
+
         const docSymbol: DocumentSymbol = {
             name: astNode.key || '(anonymous)',
             kind: symbolKind,
@@ -178,7 +184,9 @@ export class DocumentSymbolProvider {
      * Classify symbol kind based on AST node characteristics
      */
     private classifySymbolKind(astNode: ASTNode): SymbolKind {
-        if (!astNode.key) return SymbolKind.Object;
+        if (!astNode.key) {
+            return SymbolKind.Object;
+        }
 
         const keyName = astNode.key;
 
@@ -203,11 +211,11 @@ export class DocumentSymbolProvider {
         }
 
         // Effect/Trigger
-        if (CK3Language.isEffect(keyName)) {
+        if (this.currentSpec().has(keyName, 'effects')) {
             return SymbolKind.Function;
         }
-        
-        if (CK3Language.isTrigger(keyName)) {
+
+        if (this.currentSpec().has(keyName, 'triggers')) {
             return SymbolKind.Method;
         }
 
@@ -237,25 +245,27 @@ export class DocumentSymbolProvider {
      * Extract detail string for symbol (title, description, etc.)
      */
     private extractSymbolDetail(astNode: ASTNode): string | undefined {
-        if (!astNode.children) return undefined;
+        if (!astNode.children) {
+            return undefined;
+        }
 
         // Look for title field
-        const titleNode = astNode.children.find(child => child.key === 'title');
+        const titleNode = astNode.children.find((child) => child.key === 'title');
         if (titleNode && titleNode.value) {
             return `Title: ${titleNode.value}`;
         }
 
         // Look for desc field
-        const descNode = astNode.children.find(child => child.key === 'desc');
+        const descNode = astNode.children.find((child) => child.key === 'desc');
         if (descNode && descNode.value) {
             return `Desc: ${descNode.value}`;
         }
 
         // For variables, show the value
         if (astNode.key === 'set_variable' || astNode.key === 'change_variable') {
-            const nameNode = astNode.children.find(child => child.key === 'name');
-            const valueNode = astNode.children.find(child => child.key === 'value');
-            
+            const nameNode = astNode.children.find((child) => child.key === 'name');
+            const valueNode = astNode.children.find((child) => child.key === 'value');
+
             if (nameNode && valueNode) {
                 return `${nameNode.value} = ${valueNode.value}`;
             }
@@ -267,7 +277,7 @@ export class DocumentSymbolProvider {
     /**
      * Calculate selection range (the identifier part only)
      */
-    private calculateSelectionRange(astNode: ASTNode): any {
+    private calculateSelectionRange(astNode: ASTNode): Range {
         // For now, use the same as range
         // In a more advanced implementation, we'd track just the key position
         return astNode.range;
@@ -308,8 +318,10 @@ export class DocumentSymbolProvider {
 
         return symbols.sort((a, b) => {
             const kindDiff = (kindOrder[a.kind] || 999) - (kindOrder[b.kind] || 999);
-            if (kindDiff !== 0) return kindDiff;
-            
+            if (kindDiff !== 0) {
+                return kindDiff;
+            }
+
             return a.name.localeCompare(b.name);
         });
     }
@@ -347,9 +359,9 @@ export class DocumentSymbolProvider {
     /**
      * Get all symbols from indexer
      */
-    private getAllIndexedSymbols(): Symbol[] {
-        const allSymbols: Symbol[] = [];
-        
+    private getAllIndexedSymbols(): IndexSymbol[] {
+        const allSymbols: IndexSymbol[] = [];
+
         // Get symbols by each type
         const symbolTypes = [
             SymbolType.EVENT,
@@ -375,13 +387,13 @@ export class DocumentSymbolProvider {
     /**
      * Convert internal Symbol to WorkspaceSymbol
      */
-    private convertToWorkspaceSymbol(sym: Symbol): WorkspaceSymbol {
+    private convertToWorkspaceSymbol(sym: IndexSymbol): WorkspaceSymbol {
         const wsSymbol: WorkspaceSymbol = {
             name: sym.name,
             kind: this.symbolTypeToKind(sym.type),
             location: {
-                uri: sym.uri
-            }
+                uri: sym.uri,
+            },
         };
 
         if (sym.detail) {
@@ -402,6 +414,9 @@ export class DocumentSymbolProvider {
             [SymbolType.ON_ACTION]: SymbolKind.Event,
             [SymbolType.SCRIPTED_EFFECT]: SymbolKind.Function,
             [SymbolType.SCRIPTED_TRIGGER]: SymbolKind.Method,
+            [SymbolType.SCRIPTED_LIST]: SymbolKind.Array,
+            [SymbolType.SCRIPTED_MODIFIER]: SymbolKind.Field,
+            [SymbolType.MODIFIER_FORMAT]: SymbolKind.Field,
             [SymbolType.SCRIPT_VALUE]: SymbolKind.Constant,
             [SymbolType.TRAIT]: SymbolKind.EnumMember,
             [SymbolType.CULTURE]: SymbolKind.EnumMember,
@@ -437,13 +452,13 @@ export class DocumentSymbolProvider {
             kind: SymbolKind.Module,
             range: {
                 start: firstChild.range.start,
-                end: lastChild.range.end
+                end: lastChild.range.end,
             },
             selectionRange: {
                 start: firstChild.range.start,
-                end: firstChild.range.start
+                end: firstChild.range.start,
             },
-            children
+            children,
         };
     }
 }

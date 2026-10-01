@@ -1,9 +1,0 @@
-{
-  "exclusive": [
-    "README.md",
-    "vscode-extension/README.md",
-    "CONTRIBUTING.md",
-    "vscode-extension/CHANGELOG.md"
-  ],
-  "shared": []
-}

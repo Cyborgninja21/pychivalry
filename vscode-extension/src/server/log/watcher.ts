@@ -65,14 +65,10 @@ export function detectLogPath(): string | null {
             ];
             break;
         case 'darwin':
-            candidates = [
-                path.join(home, 'Documents', pdxBase),
-            ];
+            candidates = [path.join(home, 'Documents', pdxBase)];
             break;
         default: // linux
-            candidates = [
-                path.join(home, '.local/share', pdxBase),
-            ];
+            candidates = [path.join(home, '.local/share', pdxBase)];
             break;
     }
 
@@ -115,14 +111,22 @@ export class CK3LogWatcher {
     /**
      * Start watching CK3 log files
      */
-    public start(logPath?: string): { success: boolean; path?: string; watching?: string[]; message: string } {
+    public start(logPath?: string): {
+        success: boolean;
+        path?: string;
+        watching?: string[];
+        message: string;
+    } {
         if (this.running) {
             return { success: false, message: 'Log watcher is already running' };
         }
 
         const resolvedPath = logPath || detectLogPath();
         if (!resolvedPath) {
-            return { success: false, message: 'Could not detect CK3 log directory. Please set the log path manually.' };
+            return {
+                success: false,
+                message: 'Could not detect CK3 log directory. Please set the log path manually.',
+            };
         }
 
         if (!fs.existsSync(resolvedPath)) {
@@ -273,7 +277,7 @@ export class CK3LogWatcher {
             const content = fs.readFileSync(filePath, 'utf-8');
             const allLines = content.split('\n');
             const startIndex = Math.max(0, allLines.length - this.initialLineLimit);
-            const lines = allLines.slice(startIndex).filter(l => l.trim().length > 0);
+            const lines = allLines.slice(startIndex).filter((l) => l.trim().length > 0);
 
             // Set position to end of file for incremental reads
             const stat = fs.statSync(filePath);
@@ -294,7 +298,9 @@ export class CK3LogWatcher {
      */
     private startWatchingFile(filePath: string, fileName: string): void {
         fs.watchFile(filePath, { interval: this.pollInterval }, (curr, prev) => {
-            if (this.paused) return;
+            if (this.paused) {
+                return;
+            }
 
             // File was modified (size increased)
             if (curr.size > prev.size) {
@@ -337,7 +343,7 @@ export class CK3LogWatcher {
             this.filePositions.set(filePath, stat.size);
 
             const newContent = buffer.toString('utf-8');
-            return newContent.split('\n').filter(l => l.trim().length > 0);
+            return newContent.split('\n').filter((l) => l.trim().length > 0);
         } catch (err) {
             this.callbacks.onError(`Failed to read ${fileName}: ${err}`);
             return [];

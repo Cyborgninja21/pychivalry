@@ -20,10 +20,7 @@ import {
     Range,
 } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { CK3Parser } from '../core/parser';
-import { EnhancedIndexer } from '../core/indexer-enhanced';
-import { Symbol, SymbolType } from '../core/indexer';
-import { CallEdge } from '../core/call-graph';
+import { CallEdge, CK3Parser, EnhancedIndexer, IndexSymbol, SymbolType } from 'pychivalry-engine';
 
 /** Symbol types eligible for call hierarchy */
 const CALLABLE_TYPES = new Set<SymbolType>([
@@ -37,7 +34,7 @@ const CALLABLE_TYPES = new Set<SymbolType>([
 export class CallHierarchyProvider {
     constructor(
         private parser: CK3Parser,
-        private indexer: EnhancedIndexer,
+        private indexer: EnhancedIndexer
     ) {}
 
     /**
@@ -47,18 +44,24 @@ export class CallHierarchyProvider {
      */
     public prepareCallHierarchy(
         document: TextDocument,
-        params: CallHierarchyPrepareParams,
+        params: CallHierarchyPrepareParams
     ): CallHierarchyItem[] | null {
         const token = this.extractTokenAtCursor(document, params.position);
-        if (!token) return null;
+        if (!token) {
+            return null;
+        }
 
         // Look up the symbol in the index
         const symbols = this.indexer.findSymbolsByName(token);
-        if (symbols.length === 0) return null;
+        if (symbols.length === 0) {
+            return null;
+        }
 
         // Filter to callable types
-        const callableSymbol = symbols.find(s => CALLABLE_TYPES.has(s.type));
-        if (!callableSymbol) return null;
+        const callableSymbol = symbols.find((s) => CALLABLE_TYPES.has(s.type));
+        if (!callableSymbol) {
+            return null;
+        }
 
         return [this.symbolToItem(callableSymbol)];
     }
@@ -68,26 +71,28 @@ export class CallHierarchyProvider {
      *
      * Returns all symbols that call into the given item.
      */
-    public incomingCalls(
-        params: CallHierarchyIncomingCallsParams,
-    ): CallHierarchyIncomingCall[] {
+    public incomingCalls(params: CallHierarchyIncomingCallsParams): CallHierarchyIncomingCall[] {
         const symbolName = this.getSymbolName(params.item);
-        if (!symbolName) return [];
+        if (!symbolName) {
+            return [];
+        }
 
         const callGraph = this.indexer.getCallGraph();
         const edges = callGraph.getIncomingCalls(symbolName);
 
         // Group edges by caller name
-        const grouped = this.groupEdgesBy(edges, e => e.fromName);
+        const grouped = this.groupEdgesBy(edges, (e) => e.fromName);
 
         const results: CallHierarchyIncomingCall[] = [];
         for (const [callerName, callerEdges] of grouped) {
             const callerSymbol = this.resolveSymbol(callerName);
-            if (!callerSymbol) continue;
+            if (!callerSymbol) {
+                continue;
+            }
 
             results.push({
                 from: this.symbolToItem(callerSymbol),
-                fromRanges: callerEdges.map(e => e.sourceRange),
+                fromRanges: callerEdges.map((e) => e.sourceRange),
             });
         }
 
@@ -99,17 +104,17 @@ export class CallHierarchyProvider {
      *
      * Returns all symbols that the given item calls out to.
      */
-    public outgoingCalls(
-        params: CallHierarchyOutgoingCallsParams,
-    ): CallHierarchyOutgoingCall[] {
+    public outgoingCalls(params: CallHierarchyOutgoingCallsParams): CallHierarchyOutgoingCall[] {
         const symbolName = this.getSymbolName(params.item);
-        if (!symbolName) return [];
+        if (!symbolName) {
+            return [];
+        }
 
         const callGraph = this.indexer.getCallGraph();
         const edges = callGraph.getOutgoingCalls(symbolName);
 
         // Group edges by callee name
-        const grouped = this.groupEdgesBy(edges, e => e.toName);
+        const grouped = this.groupEdgesBy(edges, (e) => e.toName);
 
         const results: CallHierarchyOutgoingCall[] = [];
         for (const [calleeName, calleeEdges] of grouped) {
@@ -121,7 +126,7 @@ export class CallHierarchyProvider {
 
             results.push({
                 to: item,
-                fromRanges: calleeEdges.map(e => e.sourceRange),
+                fromRanges: calleeEdges.map((e) => e.sourceRange),
             });
         }
 
@@ -142,9 +147,9 @@ export class CallHierarchyProvider {
     }
 
     /**
-     * Convert a Symbol to a CallHierarchyItem.
+     * Convert an index symbol to a CallHierarchyItem.
      */
-    private symbolToItem(sym: Symbol): CallHierarchyItem {
+    private symbolToItem(sym: IndexSymbol): CallHierarchyItem {
         return {
             name: sym.name,
             kind: this.symbolTypeToKind(sym.type),
@@ -180,38 +185,51 @@ export class CallHierarchyProvider {
      */
     private symbolTypeToKind(type: SymbolType): SymbolKind {
         switch (type) {
-            case SymbolType.EVENT: return SymbolKind.Event;
-            case SymbolType.DECISION: return SymbolKind.Function;
-            case SymbolType.ON_ACTION: return SymbolKind.Interface;
-            case SymbolType.SCRIPTED_EFFECT: return SymbolKind.Function;
-            case SymbolType.SCRIPTED_TRIGGER: return SymbolKind.Boolean;
-            default: return SymbolKind.Variable;
+            case SymbolType.EVENT:
+                return SymbolKind.Event;
+            case SymbolType.DECISION:
+                return SymbolKind.Function;
+            case SymbolType.ON_ACTION:
+                return SymbolKind.Interface;
+            case SymbolType.SCRIPTED_EFFECT:
+                return SymbolKind.Function;
+            case SymbolType.SCRIPTED_TRIGGER:
+                return SymbolKind.Boolean;
+            default:
+                return SymbolKind.Variable;
         }
     }
 
     /**
      * Generate a detail string for a symbol.
      */
-    private getDetail(sym: Symbol): string {
+    private getDetail(sym: IndexSymbol): string {
         switch (sym.type) {
             case SymbolType.EVENT: {
                 const meta = this.indexer.getEvent(sym.name);
                 return meta ? `${meta.type} (${meta.namespace})` : 'event';
             }
-            case SymbolType.DECISION: return 'decision';
-            case SymbolType.ON_ACTION: return 'on_action';
-            case SymbolType.SCRIPTED_EFFECT: return 'scripted_effect';
-            case SymbolType.SCRIPTED_TRIGGER: return 'scripted_trigger';
-            default: return sym.type;
+            case SymbolType.DECISION:
+                return 'decision';
+            case SymbolType.ON_ACTION:
+                return 'on_action';
+            case SymbolType.SCRIPTED_EFFECT:
+                return 'scripted_effect';
+            case SymbolType.SCRIPTED_TRIGGER:
+                return 'scripted_trigger';
+            default:
+                return sym.type;
         }
     }
 
     /**
-     * Resolve a symbol name to its definition Symbol.
+     * Resolve a symbol name to its definition symbol.
      */
-    private resolveSymbol(name: string): Symbol | null {
+    private resolveSymbol(name: string): IndexSymbol | null {
         const symbols = this.indexer.findSymbolsByName(name);
-        if (symbols.length === 0) return null;
+        if (symbols.length === 0) {
+            return null;
+        }
         // Prefer the first definition found (sorted by URI for stability)
         return symbols.sort((a, b) => a.uri.localeCompare(b.uri))[0];
     }
@@ -219,7 +237,10 @@ export class CallHierarchyProvider {
     /**
      * Group call edges by a key function.
      */
-    private groupEdgesBy(edges: CallEdge[], keyFn: (e: CallEdge) => string): Map<string, CallEdge[]> {
+    private groupEdgesBy(
+        edges: CallEdge[],
+        keyFn: (e: CallEdge) => string
+    ): Map<string, CallEdge[]> {
         const groups = new Map<string, CallEdge[]>();
         for (const edge of edges) {
             const key = keyFn(edge);
@@ -235,7 +256,10 @@ export class CallHierarchyProvider {
      * Extract the identifier token at the cursor position.
      * Replicates the identifier scanning logic from DefinitionProvider.
      */
-    private extractTokenAtCursor(doc: TextDocument, pos: { line: number; character: number }): string | null {
+    private extractTokenAtCursor(
+        doc: TextDocument,
+        pos: { line: number; character: number }
+    ): string | null {
         const text = doc.getText();
         const offset = doc.offsetAt(pos);
 
@@ -252,7 +276,9 @@ export class CallHierarchyProvider {
             end++;
         }
 
-        if (start === end) return null;
+        if (start === end) {
+            return null;
+        }
         return text.substring(start, end);
     }
 

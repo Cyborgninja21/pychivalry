@@ -7,7 +7,7 @@
 
 import * as assert from 'assert';
 import { SelectionRangeProvider } from '../../server/lsp/selection-range';
-import { CK3Parser } from '../../server/core/parser';
+import { CK3Parser } from 'pychivalry-engine';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { SelectionRange, Position, Range } from 'vscode-languageserver/node';
 
@@ -41,7 +41,14 @@ describe('SelectionRangeProvider', () => {
     }
 
     /** Helper to check a range matches expected values */
-    function assertRange(range: Range, startLine: number, startChar: number, endLine: number, endChar: number, label?: string): void {
+    function assertRange(
+        range: Range,
+        startLine: number,
+        startChar: number,
+        endLine: number,
+        endChar: number,
+        label?: string
+    ): void {
         const msg = label ? ` (${label})` : '';
         assert.strictEqual(range.start.line, startLine, `start.line${msg}`);
         assert.strictEqual(range.start.character, startChar, `start.character${msg}`);
@@ -82,11 +89,7 @@ describe('SelectionRangeProvider', () => {
 
     describe('nested block', () => {
         it('should expand through block inner content and full block', () => {
-            const content = [
-                'trigger = {',
-                '\tis_alive = yes',
-                '}',
-            ].join('\n');
+            const content = ['trigger = {', '\tis_alive = yes', '}'].join('\n');
             const doc = createDocument(content);
 
             // Cursor on "yes" (line 1, char 12)
@@ -99,11 +102,7 @@ describe('SelectionRangeProvider', () => {
         });
 
         it('should include inner brace content as an expansion level', () => {
-            const content = [
-                'trigger = {',
-                '\tis_alive = yes',
-                '}',
-            ].join('\n');
+            const content = ['trigger = {', '\tis_alive = yes', '}'].join('\n');
             const doc = createDocument(content);
 
             // Cursor on "is_alive" (line 1, char 2)
@@ -112,9 +111,12 @@ describe('SelectionRangeProvider', () => {
 
             // One of the ranges should be the inner brace content
             // which starts after '{' on line 0 and ends before '}' on line 2
-            const hasInnerRange = chain.some(r =>
-                r.start.line === 0 && r.start.character === 11 &&
-                r.end.line === 2 && r.end.character === 0
+            const hasInnerRange = chain.some(
+                (r) =>
+                    r.start.line === 0 &&
+                    r.start.character === 11 &&
+                    r.end.line === 2 &&
+                    r.end.character === 0
             );
             assert.ok(hasInnerRange, 'Should have inner brace content range');
         });
@@ -137,17 +139,16 @@ describe('SelectionRangeProvider', () => {
 
             // Should have many levels: value -> assignment -> limit inner -> limit full ->
             // every_vassal inner -> every_vassal full -> root
-            assert.ok(chain.length >= 5, `Expected at least 5 levels for deep nesting, got ${chain.length}`);
+            assert.ok(
+                chain.length >= 5,
+                `Expected at least 5 levels for deep nesting, got ${chain.length}`
+            );
         });
     });
 
     describe('comparison node', () => {
         it('should expand from value to comparison to parent', () => {
-            const content = [
-                'trigger = {',
-                '\tage >= 16',
-                '}',
-            ].join('\n');
+            const content = ['trigger = {', '\tage >= 16', '}'].join('\n');
             const doc = createDocument(content);
 
             // Cursor on "16" (line 1, char 8)
@@ -178,10 +179,7 @@ describe('SelectionRangeProvider', () => {
 
     describe('comment nodes', () => {
         it('should handle cursor on a single comment', () => {
-            const content = [
-                '# This is a comment',
-                'is_alive = yes',
-            ].join('\n');
+            const content = ['# This is a comment', 'is_alive = yes'].join('\n');
             const doc = createDocument(content);
 
             // Cursor on comment (line 0, char 5)
@@ -205,9 +203,7 @@ describe('SelectionRangeProvider', () => {
             const chain = collectChain(results[0]);
 
             // Should have: single comment -> comment group -> root
-            const hasGroupRange = chain.some(r =>
-                r.start.line === 0 && r.end.line === 2
-            );
+            const hasGroupRange = chain.some((r) => r.start.line === 0 && r.end.line === 2);
             assert.ok(hasGroupRange, 'Should have comment group range spanning all 3 comments');
         });
     });
@@ -228,15 +224,12 @@ describe('SelectionRangeProvider', () => {
 
     describe('multiple positions', () => {
         it('should return a selection range for each requested position', () => {
-            const content = [
-                'is_alive = yes',
-                'age = 25',
-            ].join('\n');
+            const content = ['is_alive = yes', 'age = 25'].join('\n');
             const doc = createDocument(content);
 
             const results = provider.provideSelectionRanges(doc, [
                 pos(0, 11), // on "yes"
-                pos(1, 6),  // on "25"
+                pos(1, 6), // on "25"
             ]);
 
             assert.strictEqual(results.length, 2, 'Should return one range per position');
@@ -264,24 +257,22 @@ describe('SelectionRangeProvider', () => {
 
                 const innerStartsBefore =
                     outer.start.line < inner.start.line ||
-                    (outer.start.line === inner.start.line && outer.start.character <= inner.start.character);
+                    (outer.start.line === inner.start.line &&
+                        outer.start.character <= inner.start.character);
                 const innerEndsAfter =
                     outer.end.line > inner.end.line ||
-                    (outer.end.line === inner.end.line && outer.end.character >= inner.end.character);
+                    (outer.end.line === inner.end.line &&
+                        outer.end.character >= inner.end.character);
 
                 assert.ok(
                     innerStartsBefore && innerEndsAfter,
-                    `Range ${i} should be contained within range ${i + 1}`,
+                    `Range ${i} should be contained within range ${i + 1}`
                 );
             }
         });
 
         it('should have no duplicate ranges in the chain', () => {
-            const content = [
-                'trigger = {',
-                '\tis_alive = yes',
-                '}',
-            ].join('\n');
+            const content = ['trigger = {', '\tis_alive = yes', '}'].join('\n');
             const doc = createDocument(content);
 
             const results = provider.provideSelectionRanges(doc, [pos(1, 12)]);
@@ -291,7 +282,8 @@ describe('SelectionRangeProvider', () => {
                 for (let j = i + 1; j < chain.length; j++) {
                     const a = chain[i];
                     const b = chain[j];
-                    const same = a.start.line === b.start.line &&
+                    const same =
+                        a.start.line === b.start.line &&
                         a.start.character === b.start.character &&
                         a.end.line === b.end.line &&
                         a.end.character === b.end.character;

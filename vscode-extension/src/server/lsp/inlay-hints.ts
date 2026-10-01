@@ -1,21 +1,21 @@
 /**
- * Inlay Hints Provider - Provides inline type annotations
- * 
+ * Inlay Hints Provider - inline annotations from the engine (pychivalry-engine)
+ *
  * Features:
- * - Scope type hints (save_scope_as, save_temporary_scope_as)
- * - Chain type hints (root.primary_title → : landed_title)
- * - Parameter hints for effects/triggers
- * - Variable type hints (inferred from values)
- * - Iterator type hints (every_vassal → character)
- * - Resolve support for lazy-loading detailed hints
- * - Configuration-aware (respects VS Code settings)
+ * - Saved scopes: `save_scope_as = x` is marked as a saved scope, and a `scope:x` reference
+ *   shows where the engine index found the matching save (file and line).
+ * - Parameter names for block-form keywords, read from the engine doc string's usage example.
+ * - Variable type hints (inferred from the values set in this document).
+ *
+ * Scope *types* (`root.primary_title → landed_title`, `every_vassal → character`) are not
+ * shown: the spec package's per-keyword scope data (`scope_validity`) is empty until an
+ * oracle run fills it, and the hints do not guess.
  */
 
-import { InlayHint, InlayHintKind, Range, Position, MarkupContent, MarkupKind } from 'vscode-languageserver/node';
+import { InlayHint, InlayHintKind, MarkupKind, Range } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { CK3Parser, ASTNode, NodeType } from '../core/parser';
-import { getDataLoader } from '../data/loader';
-import { getTargetScopeType, getListResultScope, parseListIterator } from '../ck3/validation/scopes';
+import { ASTNode, CK3Parser, NodeType, SymbolType, Workspace } from 'pychivalry-engine';
+import { docParameters } from './keyword-docs';
 
 /**
  * Configuration for inlay hints
@@ -51,7 +51,10 @@ export class InlayHintsProvider {
     // Cache for variable types within document
     private variableTypes: Map<string, VariableTypeInfo> = new Map();
 
-    constructor(private parser: CK3Parser) {}
+    constructor(
+        private parser: CK3Parser,
+        private workspace: Workspace
+    ) {}
 
     /**
      * Update settings for inlay hints
@@ -63,10 +66,7 @@ export class InlayHintsProvider {
     /**
      * Provide inlay hints
      */
-    public async provideInlayHints(
-        document: TextDocument,
-        range: Range
-    ): Promise<InlayHint[]> {
+    public async provideInlayHints(document: TextDocument, range: Range): Promise<InlayHint[]> {
         const parsed = this.parser.parse(document.getText());
         const hints: InlayHint[] = [];
 
@@ -89,35 +89,30 @@ export class InlayHintsProvider {
         // Add tooltip with more detailed information
         if (hint.data && typeof hint.data === 'object') {
             const data = hint.data as { type: string; detail?: string };
-            
+
             if (data.type === 'scope' && data.detail) {
                 hint.tooltip = {
                     kind: MarkupKind.Markdown,
-                    value: `**Scope Type:** \`${data.detail}\`\n\nThis scope can be referenced later in effects and triggers.`
+                    value: `**Scope Type:** \`${data.detail}\`\n\nThis scope can be referenced later in effects and triggers.`,
                 };
             } else if (data.type === 'chain' && data.detail) {
                 hint.tooltip = {
                     kind: MarkupKind.Markdown,
-                    value: `**Result Type:** \`${data.detail}\`\n\nThis scope chain resolves to a ${data.detail} scope.`
-                };
-            } else if (data.type === 'iterator' && data.detail) {
-                hint.tooltip = {
-                    kind: MarkupKind.Markdown,
-                    value: `**Element Type:** \`${data.detail}\`\n\nEach iteration operates on a ${data.detail} scope.`
+                    value: `**Saved scope:** ${data.detail}`,
                 };
             } else if (data.type === 'variable' && data.detail) {
                 hint.tooltip = {
                     kind: MarkupKind.Markdown,
-                    value: `**Variable Type:** \`${data.detail}\`\n\nInferred from variable usage.`
+                    value: `**Variable Type:** \`${data.detail}\`\n\nInferred from variable usage.`,
                 };
             } else if (data.type === 'parameter' && data.detail) {
                 hint.tooltip = {
                     kind: MarkupKind.Markdown,
-                    value: data.detail
+                    value: data.detail,
                 };
             }
         }
-        
+
         return hint;
     }
 
@@ -125,7 +120,9 @@ export class InlayHintsProvider {
      * Collect variable types from AST (first pass)
      */
     private collectVariableTypes(node: ASTNode): void {
-        if (!node.children) return;
+        if (!node.children) {
+            return;
+        }
 
         for (const child of node.children) {
             // Detect variable assignments
@@ -147,7 +144,7 @@ export class InlayHintsProvider {
      */
     private analyzeVariableSet(node: ASTNode): void {
         let varName: string | null = null;
-        let varValue: any = null;
+        let varValue: ASTNode['value'] = undefined;
 
         if (node.children) {
             for (const child of node.children) {
@@ -174,7 +171,7 @@ export class InlayHintsProvider {
                 if (child.key === 'name' && typeof child.value === 'string') {
                     this.variableTypes.set(child.value, {
                         type: 'number',
-                        confidence: 0.9
+                        confidence: 0.9,
                     });
                 }
             }
@@ -184,7 +181,7 @@ export class InlayHintsProvider {
     /**
      * Infer variable type from value
      */
-    private inferVariableType(value: any): VariableTypeInfo {
+    private inferVariableType(value: ASTNode['value']): VariableTypeInfo {
         if (typeof value === 'number') {
             return { type: 'number', confidence: 1.0 };
         } else if (typeof value === 'boolean') {
@@ -201,7 +198,7 @@ export class InlayHintsProvider {
                 return { type: 'flag', confidence: 1.0 };
             }
         }
-        
+
         return { type: 'unknown', confidence: 0.0 };
     }
 
@@ -214,7 +211,9 @@ export class InlayHintsProvider {
         range: Range,
         document: TextDocument
     ): void {
-        if (!node.children) return;
+        if (!node.children) {
+            return;
+        }
 
         for (const child of node.children) {
             // Skip nodes outside the requested range
@@ -245,10 +244,10 @@ export class InlayHintsProvider {
                 this.addVariableHints(child, hints);
             }
 
-            // Iterator type hints
-            if (this.settings.showIteratorTypes) {
-                this.addIteratorHints(child, hints);
-            }
+            // Iterator element types (`every_vassal → character`) and scope-chain result
+            // types need each list's and link's result scope, which the spec package does
+            // not carry (its scope_validity is empty until an oracle run fills it). No type
+            // hint is shown rather than a guessed one; showIteratorTypes has no effect.
 
             // Recurse
             if (child.children) {
@@ -268,7 +267,7 @@ export class InlayHintsProvider {
                     label: ': scope',
                     kind: InlayHintKind.Type,
                     paddingLeft: true,
-                    data: { type: 'scope', detail: 'scope' }
+                    data: { type: 'scope', detail: 'scope' },
                 };
                 hints.push(hint);
             }
@@ -276,61 +275,74 @@ export class InlayHintsProvider {
     }
 
     /**
-     * Add scope chain type hints
+     * Saved-scope references: `scope:x` (as a key or a value) resolved against the engine
+     * index's saved scopes. The hint names where `x` is saved; it shows no scope type,
+     * which the spec package does not provide (empty scope_validity).
      */
     private addChainHints(node: ASTNode, hints: InlayHint[]): void {
-        if (node.type === NodeType.ASSIGNMENT && typeof node.value === 'string') {
-            const scopeType = this.inferScopeChainType(node.value);
-            
-            if (scopeType) {
-                const hint: InlayHint = {
-                    position: node.range.end,
-                    label: `: ${scopeType}`,
-                    kind: InlayHintKind.Type,
-                    paddingLeft: true,
-                    data: { type: 'chain', detail: scopeType }
-                };
-                hints.push(hint);
+        const refs: Array<{ name: string; at: ASTNode['range']['end'] }> = [];
+        if (node.key && node.key.startsWith('scope:')) {
+            refs.push({
+                name: node.key.slice(6).split('.')[0],
+                at: (node.keyRange ?? node.range).end,
+            });
+        }
+        if (typeof node.value === 'string' && node.value.startsWith('scope:')) {
+            refs.push({ name: node.value.slice(6).split('.')[0], at: node.range.end });
+        }
+        for (const ref of refs) {
+            const saved = this.workspace.index
+                .findSymbolsByName(ref.name)
+                .find((s) => s.type === SymbolType.SCOPE);
+            if (!saved) {
+                continue;
             }
+            const file = saved.uri.split('/').pop() ?? saved.uri;
+            const where = `${file}:${saved.range.start.line + 1}`;
+            hints.push({
+                position: ref.at,
+                label: ` ⇐ ${where}`,
+                kind: InlayHintKind.Type,
+                paddingLeft: true,
+                data: { type: 'chain', detail: `saved with save_scope_as in ${where}` },
+            });
         }
     }
 
     /**
-     * Add parameter name hints
+     * Parameter name hints for block-form keywords: the parameter order of the usage
+     * example in the keyword's engine doc string.
      */
     private addParameterHints(node: ASTNode, hints: InlayHint[]): void {
-        if (!node.key) return;
-
-        const dataLoader = getDataLoader();
-        const effect = dataLoader.getEffects().get(node.key);
-        const trigger = dataLoader.getTriggers().get(node.key);
-
-        const paramRecord = effect?.parameters || trigger?.parameters;
-        if (paramRecord) {
-            const params = Object.keys(paramRecord);
-
-            // Add parameter name hints for block parameters
-            if (node.children && params.length > 0) {
-                let paramIndex = 0;
-                for (const child of node.children) {
-                    if (paramIndex < params.length && child.type === NodeType.ASSIGNMENT) {
-                        // Check if parameter name is not already explicit
-                        if (child.key !== params[paramIndex]) {
-                            const hint: InlayHint = {
-                                position: child.range.start,
-                                label: `${params[paramIndex]}:`,
-                                kind: InlayHintKind.Parameter,
-                                paddingRight: true,
-                                data: {
-                                    type: 'parameter',
-                                    detail: paramRecord[params[paramIndex]] || `Parameter: ${params[paramIndex]}`
-                                }
-                            };
-                            hints.push(hint);
-                        }
-                        paramIndex++;
-                    }
+        if (!node.key || !node.children) {
+            return;
+        }
+        const spec = this.workspace.spec;
+        const bucket = spec.has(node.key, 'effects')
+            ? 'effects'
+            : spec.has(node.key, 'triggers')
+              ? 'triggers'
+              : undefined;
+        if (!bucket) {
+            return;
+        }
+        const params = docParameters(spec.doc(node.key, bucket), node.key);
+        if (params.length === 0) {
+            return;
+        }
+        let paramIndex = 0;
+        for (const child of node.children) {
+            if (paramIndex < params.length && child.type === NodeType.ASSIGNMENT) {
+                if (child.key !== params[paramIndex]) {
+                    hints.push({
+                        position: child.range.start,
+                        label: `${params[paramIndex]}:`,
+                        kind: InlayHintKind.Parameter,
+                        paddingRight: true,
+                        data: { type: 'parameter', detail: `Parameter: ${params[paramIndex]}` },
+                    });
                 }
+                paramIndex++;
             }
         }
     }
@@ -349,7 +361,7 @@ export class InlayHintsProvider {
                         label: `: ${typeInfo.type}`,
                         kind: InlayHintKind.Type,
                         paddingLeft: true,
-                        data: { type: 'variable', detail: typeInfo.type }
+                        data: { type: 'variable', detail: typeInfo.type },
                     };
                     hints.push(hint);
                 }
@@ -366,102 +378,10 @@ export class InlayHintsProvider {
                     label: `: ${typeInfo.type}`,
                     kind: InlayHintKind.Type,
                     paddingLeft: true,
-                    data: { type: 'variable', detail: typeInfo.type }
+                    data: { type: 'variable', detail: typeInfo.type },
                 };
                 hints.push(hint);
             }
         }
-    }
-
-    /**
-     * Add iterator type hints
-     */
-    private addIteratorHints(node: ASTNode, hints: InlayHint[]): void {
-        if (
-            node.key &&
-            (node.key.startsWith('every_') ||
-                node.key.startsWith('any_') ||
-                node.key.startsWith('random_') ||
-                node.key.startsWith('ordered_'))
-        ) {
-            const scopeType = this.inferIteratorType(node.key);
-            if (scopeType) {
-                const hint: InlayHint = {
-                    position: {
-                        line: node.range.start.line,
-                        character: node.range.start.character + node.key.length
-                    },
-                    label: ` → ${scopeType}`,
-                    kind: InlayHintKind.Type,
-                    paddingLeft: true,
-                    data: { type: 'iterator', detail: scopeType }
-                };
-                hints.push(hint);
-            }
-        }
-    }
-
-    /**
-     * Infer scope type from scope chain
-     */
-    private inferScopeChainType(chain: string): string | null {
-        const parts = chain.split('.');
-        if (parts.length < 2) return null;
-
-        let currentType: string | null = null;
-
-        // Start with the base scope
-        if (parts[0] === 'root' || parts[0] === 'this') {
-            // Assume character scope for root/this
-            currentType = 'character';
-        } else if (parts[0].startsWith('scope:')) {
-            // Named scope - would need context to determine type
-            return null;
-        } else {
-            return null;
-        }
-
-        // Follow the chain
-        for (let i = 1; i < parts.length; i++) {
-            const accessor = parts[i];
-            currentType = this.inferScopeType(accessor, currentType);
-            if (!currentType) return null;
-        }
-
-        return currentType;
-    }
-
-    /**
-     * Infer scope type from accessor with context
-     */
-    private inferScopeType(accessor: string, fromScope?: string | null): string | null {
-        // Use data-driven scope system instead of hardcoded maps
-        const scopeType = fromScope || 'character';
-        return getTargetScopeType(scopeType, accessor);
-    }
-
-    /**
-     * Infer scope type from iterator
-     */
-    private inferIteratorType(iterator: string): string | null {
-        // Use data-driven scope system instead of hardcoded heuristics
-        // Try resolving from character scope (most common starting point)
-        const result = getListResultScope(iterator, 'character');
-        if (result && result !== 'character') return result;
-
-        // Try from other common scope types
-        for (const scopeType of ['title', 'province', 'faith', 'culture', 'dynasty']) {
-            const r = getListResultScope(iterator, scopeType);
-            if (r && r !== scopeType) return r;
-        }
-
-        // Fallback: use the parsed list base for heuristic matching
-        const parsed = parseListIterator(iterator);
-        if (parsed) {
-            const result2 = getListResultScope(iterator, 'character');
-            if (result2) return result2;
-        }
-
-        return null;
     }
 }

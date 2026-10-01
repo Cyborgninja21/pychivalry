@@ -1,9 +1,9 @@
 /**
  * CK3 Style and Formatting Validation
- * 
+ *
  * Code quality and consistency checks focused on style, not semantics.
  * All diagnostics are warnings/info to allow users to ignore style preferences.
- * 
+ *
  * Diagnostic Codes:
  * - CK3301: Inconsistent indentation within block
  * - CK3302: Multiple block assignments on one line
@@ -26,7 +26,7 @@
  */
 
 import { Diagnostic, DiagnosticSeverity, Range, Position } from 'vscode-languageserver';
-import { ASTNode } from '../../core/parser';
+import { ASTNode } from 'pychivalry-engine';
 
 /** Event ID pattern: namespace.digits (e.g., my_mod.0001, adventure.0004) */
 const EVENT_ID_PATTERN = /^[a-zA-Z_][a-zA-Z0-9_]*\.\d+$/;
@@ -60,7 +60,7 @@ export const DEFAULT_STYLE_CONFIG: StyleConfig = {
     maxNestingDepth: 6,
     checkEmptyBlocks: true,
     checkBraceMatching: true,
-    checkScopeReferences: true
+    checkScopeReferences: true,
 };
 
 /**
@@ -92,7 +92,7 @@ export function checkIndentation(text: string, config: StyleConfig): Diagnostic[
                 severity: DiagnosticSeverity.Warning,
                 code: 'CK3303',
                 message: 'Indentation uses spaces instead of tabs (Paradox convention)',
-                source: 'ck3-style'
+                source: 'ck3-style',
             });
         }
 
@@ -106,7 +106,7 @@ export function checkIndentation(text: string, config: StyleConfig): Diagnostic[
                 severity: DiagnosticSeverity.Warning,
                 code: 'CK3301',
                 message: 'Inconsistent indentation (mixing tabs and spaces)',
-                source: 'ck3-style'
+                source: 'ck3-style',
             });
         }
     }
@@ -132,14 +132,11 @@ export function checkTrailingWhitespace(text: string, config: StyleConfig): Diag
         if (trailingWhitespace) {
             const startCol = line.length - trailingWhitespace[0].length;
             diagnostics.push({
-                range: Range.create(
-                    Position.create(i, startCol),
-                    Position.create(i, line.length)
-                ),
+                range: Range.create(Position.create(i, startCol), Position.create(i, line.length)),
                 severity: DiagnosticSeverity.Information,
                 code: 'CK3304',
                 message: 'Trailing whitespace detected',
-                source: 'ck3-style'
+                source: 'ck3-style',
             });
         }
     }
@@ -165,7 +162,7 @@ export function checkLineLength(text: string, config: StyleConfig): Diagnostic[]
                 severity: DiagnosticSeverity.Information,
                 code: 'CK3316',
                 message: `Line exceeds recommended length (${line.length} > ${config.maxLineLength} chars)`,
-                source: 'ck3-style'
+                source: 'ck3-style',
             });
         }
     }
@@ -199,7 +196,7 @@ export function checkOperatorSpacing(text: string, config: StyleConfig): Diagnos
                     severity: DiagnosticSeverity.Information,
                     code: 'CK3306',
                     message: 'Operator should have spaces around it (Paradox convention)',
-                    source: 'ck3-style'
+                    source: 'ck3-style',
                 });
             }
         }
@@ -226,7 +223,7 @@ export function checkEmptyBlocks(ast: ASTNode, config: StyleConfig): Diagnostic[
                 severity: DiagnosticSeverity.Warning,
                 code: 'CK3314',
                 message: 'Empty block detected (potential logic error)',
-                source: 'ck3-style'
+                source: 'ck3-style',
             });
         }
 
@@ -255,7 +252,7 @@ export function checkNestingDepth(ast: ASTNode, config: StyleConfig): Diagnostic
                 severity: DiagnosticSeverity.Information,
                 code: 'CK3317',
                 message: `Deeply nested blocks (depth ${depth} > ${config.maxNestingDepth})`,
-                source: 'ck3-style'
+                source: 'ck3-style',
             });
         }
 
@@ -299,7 +296,7 @@ export function checkBraceMatching(text: string, config: StyleConfig): Diagnosti
     // When no indentation is detected (e.g. synthetic test data where all
     // lines start at column 0), segmentation can't reliably distinguish
     // top-level boundaries, so we fall back to a single-pass check.
-    const hasIndentation = lines.some(l => l.startsWith('\t') || l.startsWith('  '));
+    const hasIndentation = lines.some((l) => l.startsWith('\t') || l.startsWith('  '));
 
     if (!hasIndentation) {
         return checkBracesInRange(lines, 0, lines.length);
@@ -395,14 +392,11 @@ function checkBracesInRange(lines: string[], startLine: number, endLine: number)
             } else if (char === '}') {
                 if (stack.length === 0) {
                     diagnostics.push({
-                        range: Range.create(
-                            Position.create(i, j),
-                            Position.create(i, j + 1)
-                        ),
+                        range: Range.create(Position.create(i, j), Position.create(i, j + 1)),
                         severity: DiagnosticSeverity.Error,
                         code: 'CK3331',
                         message: 'Extra closing brace (no matching "{")',
-                        source: 'ck3-style'
+                        source: 'ck3-style',
                     });
                 } else {
                     stack.pop();
@@ -421,7 +415,7 @@ function checkBracesInRange(lines: string[], startLine: number, endLine: number)
             severity: DiagnosticSeverity.Error,
             code: 'CK3330',
             message: 'Unclosed brace (missing "}")',
-            source: 'ck3-style'
+            source: 'ck3-style',
         });
     }
 
@@ -438,10 +432,23 @@ export function checkScopeReferences(ast: ASTNode, config: StyleConfig): Diagnos
 
     const diagnostics: Diagnostic[] = [];
     const knownScopes = new Set([
-        'root', 'this', 'prev', 'from', 'fromfrom',
-        'character', 'title', 'province', 'faith', 'culture',
-        'liege', 'house', 'dynasty', 'primary_title',
-        'capital_province', 'location', 'realm'
+        'root',
+        'this',
+        'prev',
+        'from',
+        'fromfrom',
+        'character',
+        'title',
+        'province',
+        'faith',
+        'culture',
+        'liege',
+        'house',
+        'dynasty',
+        'primary_title',
+        'capital_province',
+        'location',
+        'realm',
     ]);
 
     function traverse(node: ASTNode): void {
@@ -452,14 +459,18 @@ export function checkScopeReferences(ast: ASTNode, config: StyleConfig): Diagnos
                 const firstPart = parts[0];
 
                 // Check if first part looks like a scope but isn't known
-                if (firstPart && !knownScopes.has(firstPart) &&
-                    /^[a-z_]+$/.test(firstPart) && firstPart.length > 2) {
+                if (
+                    firstPart &&
+                    !knownScopes.has(firstPart) &&
+                    /^[a-z_]+$/.test(firstPart) &&
+                    firstPart.length > 2
+                ) {
                     diagnostics.push({
                         range: node.range,
                         severity: DiagnosticSeverity.Warning,
                         code: 'CK3340',
                         message: `Unknown/suspicious scope reference "${firstPart}" (possible typo)`,
-                        source: 'ck3-style'
+                        source: 'ck3-style',
                     });
                 }
 
@@ -470,7 +481,7 @@ export function checkScopeReferences(ast: ASTNode, config: StyleConfig): Diagnos
                         severity: DiagnosticSeverity.Warning,
                         code: 'CK3341',
                         message: 'Scope reference appears truncated (ends with ".")',
-                        source: 'ck3-style'
+                        source: 'ck3-style',
                     });
                 }
             }
@@ -534,15 +545,17 @@ export function autoFixStyle(text: string, config: StyleConfig): string {
     // Convert spaces to tabs if preferred
     if (config.preferTabs) {
         const lines = fixed.split('\n');
-        fixed = lines.map(line => {
-            const match = line.match(/^( +)/);
-            if (match) {
-                const spaces = match[1].length;
-                const tabs = '\t'.repeat(Math.floor(spaces / 4));
-                return tabs + line.substring(spaces);
-            }
-            return line;
-        }).join('\n');
+        fixed = lines
+            .map((line) => {
+                const match = line.match(/^( +)/);
+                if (match) {
+                    const spaces = match[1].length;
+                    const tabs = '\t'.repeat(Math.floor(spaces / 4));
+                    return tabs + line.substring(spaces);
+                }
+                return line;
+            })
+            .join('\n');
     }
 
     // Fix operator spacing

@@ -1,0 +1,381 @@
+﻿l_english:
+ # ===================================================================
+ # Fixture Localization Keys
+ # ===================================================================
+ # Auto-generated keys for all good_*.txt test fixture files.
+ # These provide localization definitions so good files produce
+ # zero CK4100 (missing localization) diagnostics.
+ # ===================================================================
+
+ # -------------------------------------------------------------------
+ # events/good_events.txt (namespace: events_good)
+ # -------------------------------------------------------------------
+ events_good.0001.t:0 "Test Event Title"
+ events_good.0001.desc:0 "Test event description text."
+ events_good.0001.a:0 "Option A"
+ events_good.0001.b:0 "Option B"
+ events_good.0002.t:0 "Conditional Description Event"
+ events_good.0002.a:0 "Accept"
+ events_good.0002.desc_brave:0 "Brave description variant."
+ events_good.0002.desc_craven:0 "Craven description variant."
+ events_good.0002.desc_default:0 "Default description variant."
+ events_good.0003.t:0 "AI Chance Event"
+ events_good.0003.desc:0 "Event with AI chance modifiers."
+ events_good.0003.a:0 "Greedy choice"
+ events_good.0003.b:0 "Generous choice"
+ events_good.0005.t:0 "Follow-Up Event"
+ events_good.0005.desc:0 "A follow-up event triggered by a hidden event."
+ events_good.0005.a:0 "Continue"
+ events_good.0006.t:0 "Multiple Portraits Event"
+ events_good.0006.desc:0 "Event demonstrating multiple portrait positions."
+ events_good.0006.a:0 "Understood"
+ events_good.0007.t:0 "Triggered Options Event"
+ events_good.0007.desc:0 "Event with conditional option triggers."
+ events_good.0007.a:0 "Spend gold"
+ events_good.0007.b:0 "Spend prestige"
+ events_good.0007.c:0 "Pray instead"
+ events_good.0008.t:0 "After Block Event"
+ events_good.0008.desc:0 "Event with an after block."
+ events_good.0008.a:0 "Take gold"
+ events_good.0008.b:0 "Take prestige"
+ events_good.0009.t:0 "Delayed Follow-Up"
+ events_good.0009.desc:0 "A delayed follow-up event."
+ events_good.0009.a:0 "Accept"
+ events_good.0010.t:0 "Letter Event"
+ events_good.0010.desc:0 "A letter event with opening text."
+ events_good.0010.opening:0 "Dear friend,"
+ events_good.0010.a:0 "Read the letter"
+ events_good.0011.t:0 "Unavailable Option Event"
+ events_good.0011.desc:0 "Event with show_as_unavailable option."
+ events_good.0011.a:0 "Expensive choice"
+ events_good.0011.b:0 "Simple prayer"
+ events_good.0012.t:0 "Random Valid Description Event"
+ events_good.0012.a:0 "Proceed"
+ events_good.0012.desc_1:0 "Random description variant one."
+ events_good.0012.desc_2:0 "Random description variant two."
+ events_good.0012.desc_3:0 "Random description variant three."
+
+ # -------------------------------------------------------------------
+ # events/good_syntax.txt (namespace: syntax_good)
+ # -------------------------------------------------------------------
+ syntax_good.0001.t:0 "Syntax Test Event"
+ syntax_good.0001.desc:0 "A simple event with proper bracket matching."
+ syntax_good.0001.a:0 "Continue"
+ syntax_good.0002.t:0 "Nested Blocks Event"
+ syntax_good.0002.desc:0 "Event with nested OR and AND blocks."
+ syntax_good.0002.a:0 "Proceed"
+ syntax_good.0003.t:0 "Complex Description Event"
+ syntax_good.0003.a:0 "Brave choice"
+ syntax_good.0003.b:0 "Default choice"
+ syntax_good.0003.desc_brave:0 "The brave description."
+ syntax_good.0003.desc_craven:0 "The craven description."
+ syntax_good.0003.desc_default:0 "The default description."
+ syntax_good_decision_desc:0 "A test decision with proper syntax."
+
+ # -------------------------------------------------------------------
+ # events/good_style.txt (namespace: style_good)
+ # -------------------------------------------------------------------
+ style_good.0001.t:0 "Style Test Event"
+ style_good.0001.desc:0 "Properly styled event."
+ style_good.0001.a:0 "Accept"
+ style_good.0001.b:0 "Decline"
+ style_good.0002.t:0 "Operator Spacing Event"
+ style_good.0002.desc:0 "Event with proper operator spacing."
+ style_good.0002.a:0 "Continue"
+ style_good.0003.t:0 "Tab Indentation Event"
+ style_good.0003.desc:0 "Event with proper tab indentation."
+ style_good.0003.a:0 "Proceed"
+ style_good.0004.t:0 "Brace Alignment Event"
+ style_good.0004.desc:0 "Event with proper closing brace alignment."
+ style_good.0004.a:0 "Accept"
+ style_good.0005.t:0 "One Statement Per Line"
+ style_good.0005.desc:0 "Event with one statement per line."
+ style_good.0005.a:0 "Continue"
+ style_good.0006.t:0 "Reasonable Line Length"
+ style_good.0006.desc:0 "Event with reasonable line length."
+ style_good.0006.a:0 "Accept"
+ style_good.0007.t:0 "Proper Nesting Depth"
+ style_good.0007.desc:0 "Event with proper nesting depth."
+ style_good.0007.a:0 "Proceed"
+ style_good.0008.t:0 "Blank Lines Between Sections"
+ style_good.0008.desc:0 "Event with blank lines between sections."
+ style_good.0008.a:0 "Accept"
+ style_good.0009.t:0 "Non-Empty Blocks"
+ style_good.0009.desc:0 "Event with non-empty blocks."
+ style_good.0009.a:0 "Continue"
+ style_good.0010.t:0 "Proper Scope References"
+ style_good.0010.desc:0 "Event with proper scope references."
+ style_good.0010.a:0 "Accept"
+ style_good_decision_desc:0 "A decision with good style formatting."
+
+ # -------------------------------------------------------------------
+ # events/good_semantic.txt (namespace: semantic_good)
+ # -------------------------------------------------------------------
+ semantic_good.0001.t:0 "Valid Triggers Event"
+ semantic_good.0001.desc:0 "Event with valid trigger keywords."
+ semantic_good.0001.a:0 "Accept"
+ semantic_good.0002.t:0 "Valid Effects Event"
+ semantic_good.0002.desc:0 "Event with valid effects and scope chains."
+ semantic_good.0002.a:0 "Continue"
+ semantic_good.0003.t:0 "Valid Scope Chains"
+ semantic_good.0003.desc:0 "Event with multi-level scope navigation."
+ semantic_good.0003.a:0 "Proceed"
+ semantic_good.0004.t:0 "Valid List Iterations"
+ semantic_good.0004.desc:0 "Event with proper iterator usage."
+ semantic_good.0004.a:0 "Accept"
+ semantic_good.0005.t:0 "Valid Saved Scopes"
+ semantic_good.0005.desc:0 "Event with proper scope saving."
+ semantic_good.0005.a:0 "Continue"
+ semantic_good.0006.t:0 "Exists Checks"
+ semantic_good.0006.desc:0 "Event with proper exists checks."
+ semantic_good.0006.a:0 "Accept"
+ semantic_good.0007.t:0 "Character Comparisons"
+ semantic_good.0007.desc:0 "Event with proper character comparisons."
+ semantic_good.0007.a:0 "Continue"
+
+ # -------------------------------------------------------------------
+ # events/good_scopes.txt (namespace: scope_timing_good)
+ # -------------------------------------------------------------------
+ scope_timing_good.0001.t:0 "Scope Timing Test"
+ scope_timing_good.0001.desc:0 "Event testing scope timing rules."
+ scope_timing_good.0001.a:0 "Accept"
+ scope_timing_good.0002.t:0 "Immediate Scope Test"
+ scope_timing_good.0002.desc:0 "Event with scopes created in immediate."
+ scope_timing_good.0002.a:0 "Continue"
+ scope_timing_good.0003.t:0 "Saved Scope in Trigger"
+ scope_timing_good.0003.a:0 "Confront rival"
+ scope_timing_good.0003.desc_alive:0 "The rival is alive."
+ scope_timing_good.0003.desc_default:0 "Default scope description."
+ scope_timing_good.0004.t:0 "Pass Scopes to Triggered Events"
+ scope_timing_good.0004.desc:0 "Event that passes scopes forward."
+ scope_timing_good.0004.a:0 "Trigger next event"
+ scope_timing_good.0005.t:0 "Received Scope Event"
+ scope_timing_good.0005.desc:0 "Event that receives scopes from caller."
+ scope_timing_good.0005.a:0 "Accept"
+ scope_timing_good.0006.t:0 "Variable Existence Check"
+ scope_timing_good.0006.desc:0 "Event checking variable existence."
+ scope_timing_good.0006.a:0 "Continue"
+ scope_timing_good.0007.t:0 "Static Scopes in Localization"
+ scope_timing_good.0007.desc:0 "Event using static scopes for localization."
+ scope_timing_good.0007.a:0 "Accept"
+ scope_timing_good.0008.t:0 "Scope Filtering in Trigger"
+ scope_timing_good.0008.desc:0 "Event with scope filtering in trigger block."
+ scope_timing_good.0008.a:0 "Proceed"
+ scope_timing_good.0009.t:0 "Portrait Scopes Event"
+ scope_timing_good.0009.desc:0 "Event with portrait scope references."
+ scope_timing_good.0009.a:0 "Accept"
+ scope_timing_good.0010.t:0 "Multiple Scope Saves"
+ scope_timing_good.0010.a:0 "Take action"
+ scope_timing_good.0010.desc_ally:0 "The ally is nearby."
+ scope_timing_good.0010.desc_rival:0 "The rival lurks."
+ scope_timing_good.0010.desc_default:0 "Default multiple scope description."
+
+ # -------------------------------------------------------------------
+ # events/good_traits.txt (namespace: traits_good)
+ # -------------------------------------------------------------------
+ traits_good.0001.t:0 "Trait Check Event"
+ traits_good.0001.desc:0 "Event testing trait checks."
+ traits_good.0001.a:0 "Become ambitious"
+ traits_good.0001.b:0 "Become humble"
+ traits_good.0002.t:0 "Trait Removal Event"
+ traits_good.0002.desc:0 "Event testing trait removal."
+ traits_good.0002.a:0 "Overcome cowardice"
+ traits_good.0002.b:0 "Remain cautious"
+ traits_good.0003.t:0 "Leveled Traits Event"
+ traits_good.0003.desc:0 "Event with leveled trait references."
+ traits_good.0003.a:0 "Beauty level 1"
+ traits_good.0003.b:0 "Beauty level 2"
+ traits_good.0003.c:0 "Beauty level 3"
+ traits_good.0004.t:0 "Sin and Virtue Event"
+ traits_good.0004.desc:0 "Event with sin and virtue trait swaps."
+ traits_good.0004.a:0 "Become chaste"
+ traits_good.0004.b:0 "Become calm"
+ traits_good.0005.t:0 "Complex Trait Interactions"
+ traits_good.0005.desc:0 "Event with complex trait checks."
+ traits_good.0005.a:0 "Arrogant ambition"
+ traits_good.0005.b:0 "Gregarious approach"
+ traits_good.0005.c:0 "Find peace"
+
+ # -------------------------------------------------------------------
+ # events/good_variables.txt (namespace: variables_good)
+ # -------------------------------------------------------------------
+ variables_good.0001.t:0 "Variable Set and Check"
+ variables_good.0001.desc:0 "Event testing standard variable pattern."
+ variables_good.0001.a:0 "Accept"
+ variables_good.0002.t:0 "Local Variables Event"
+ variables_good.0002.desc:0 "Event testing local variable usage."
+ variables_good.0002.a:0 "Continue"
+ variables_good.0003.t:0 "Global Variable Event"
+ variables_good.0003.desc:0 "Event testing global variable pattern."
+ variables_good.0003.a:0 "Accept"
+ variables_good.0004.t:0 "Variable Arithmetic Event"
+ variables_good.0004.desc:0 "Event testing variable arithmetic."
+ variables_good.0004.a:0 "Proceed"
+ variables_good.0005.t:0 "Variable List Event"
+ variables_good.0005.desc:0 "Event testing variable list pattern."
+ variables_good.0005.a:0 "Accept"
+
+ # -------------------------------------------------------------------
+ # events/good_iterators.txt (namespace: iterators_good)
+ # -------------------------------------------------------------------
+ iterators_good.0001.t:0 "Any Vassal Iterator Event"
+ iterators_good.0001.desc:0 "Event using any_vassal iterator."
+ iterators_good.0001.a:0 "Accept"
+ iterators_good.0002.t:0 "Every Vassal Iterator Event"
+ iterators_good.0002.desc:0 "Event using every_vassal iterator."
+ iterators_good.0002.a:0 "Continue"
+ iterators_good.0003.t:0 "Random Vassal Iterator Event"
+ iterators_good.0003.desc:0 "Event using random_vassal iterator."
+ iterators_good.0003.a:0 "Proceed"
+ iterators_good.0004.t:0 "Ordered Vassal Iterator Event"
+ iterators_good.0004.desc:0 "Event using ordered_vassal iterator."
+ iterators_good.0004.a:0 "Accept"
+ iterators_good.0005.t:0 "Save Temporary Scope Event"
+ iterators_good.0005.desc:0 "Event using save_temporary_scope_as."
+ iterators_good.0005.a:0 "Continue"
+
+ # -------------------------------------------------------------------
+ # events/good_switch.txt (namespace: switch_good)
+ # -------------------------------------------------------------------
+ switch_good.0001.t:0 "Switch on Trait Event"
+ switch_good.0001.desc:0 "Event with switch on has_trait."
+ switch_good.0001.a:0 "Accept"
+ switch_good.0002.t:0 "Switch on Government Event"
+ switch_good.0002.desc:0 "Event with switch on government_has_flag."
+ switch_good.0002.a:0 "Continue"
+ switch_good.0003.t:0 "Switch on Religion Event"
+ switch_good.0003.desc:0 "Event with switch on has_religion."
+ switch_good.0003.a:0 "Accept"
+ switch_good.0004.t:0 "Nested Switch Event"
+ switch_good.0004.desc:0 "Event with nested switch blocks."
+ switch_good.0004.a:0 "Proceed"
+
+ # -------------------------------------------------------------------
+ # events/good_asset_refs.txt (namespace: assets_good)
+ # -------------------------------------------------------------------
+ assets_good.0001.t:0 "Asset Reference Event"
+ assets_good.0001.desc:0 "Event with valid graphics reference."
+ assets_good.0001.a:0 "Accept"
+ assets_good.0002.t:0 "Sound Reference Event"
+ assets_good.0002.desc:0 "Event with valid sound reference."
+ assets_good.0002.a:0 "Continue"
+ assets_good.0003.t:0 "FMOD Event Path"
+ assets_good.0003.desc:0 "Event with valid FMOD event path."
+ assets_good.0003.a:0 "Accept"
+ assets_good.0004.t:0 "Multiple Asset References"
+ assets_good.0004.desc:0 "Event with multiple valid asset references."
+ assets_good.0004.a:0 "Proceed"
+ test_decision_desc:0 "A test decision with local icon reference."
+
+ # -------------------------------------------------------------------
+ # common/decisions/good_decisions.txt
+ # -------------------------------------------------------------------
+ hold_grand_feast_desc:0 "Hold a grand feast to celebrate."
+ hold_grand_feast_tooltip:0 "Spend gold to hold a grand feast."
+ grant_title_decision_desc:0 "Grant a title to a worthy vassal."
+ reform_laws_desc:0 "Reform the laws of the realm."
+ expand_realm_desc:0 "Expand our realm through conquest."
+ improve_capital_desc:0 "Improve the capital province."
+
+ # -------------------------------------------------------------------
+ # common/character_interactions/good_interactions.txt
+ # -------------------------------------------------------------------
+ request_favor_desc:0 "Request a favor from this character."
+ REQUEST_FAVOR_NOTIFICATION:0 "A favor has been requested."
+ send_gift_desc:0 "Send a gift to improve relations."
+ demand_conversion_desc:0 "Demand religious conversion."
+ grant_title_interaction_desc:0 "Grant a title to this character."
+ GRANT_TITLE_WITH_CEREMONY:0 "With ceremony"
+ GRANT_TITLE_SECRETLY:0 "Secretly"
+ arrange_marriage_interaction_desc:0 "Arrange a marriage alliance."
+
+ # -------------------------------------------------------------------
+ # common/schemes/good_schemes.txt
+ # -------------------------------------------------------------------
+ murder_scheme_desc:0 "A plot to murder the target."
+ seduce_scheme_desc:0 "A scheme to seduce the target."
+ spy_network_scheme_desc:0 "Build a spy network against the target."
+ abduct_scheme_desc:0 "A scheme to abduct the target."
+
+ # -------------------------------------------------------------------
+ # common/on_actions/good_on_actions.txt (namespace: on_actions_good)
+ # -------------------------------------------------------------------
+ on_actions_good.0001.t:0 "Birth Event"
+ on_actions_good.0001.desc:0 "An event triggered on birth."
+ on_actions_good.0001.a:0 "Accept"
+ on_actions_good.0002.t:0 "Birth Event 2"
+ on_actions_good.0002.desc:0 "A second birth event."
+ on_actions_good.0002.a:0 "Continue"
+ on_actions_good.0003.t:0 "Adult Event"
+ on_actions_good.0003.desc:0 "An event triggered on reaching adulthood."
+ on_actions_good.0003.a:0 "Accept"
+ on_actions_good.0004.t:0 "Marriage Event"
+ on_actions_good.0004.desc:0 "A random marriage event."
+ on_actions_good.0004.a:0 "Celebrate"
+ on_actions_good.0005.t:0 "Marriage Event 2"
+ on_actions_good.0005.desc:0 "A second marriage event."
+ on_actions_good.0005.a:0 "Continue"
+ on_actions_good.0006.t:0 "Marriage Event 3"
+ on_actions_good.0006.desc:0 "A third marriage event."
+ on_actions_good.0006.a:0 "Accept"
+ on_actions_good.0007.t:0 "Five Year Pulse Event"
+ on_actions_good.0007.desc:0 "Event triggered on five year pulse."
+ on_actions_good.0007.a:0 "Accept"
+ on_actions_good.0008.t:0 "Quarterly Pulse Event"
+ on_actions_good.0008.desc:0 "Event triggered on quarterly pulse."
+ on_actions_good.0008.a:0 "Continue"
+
+ # -------------------------------------------------------------------
+ # common/scripted_effects/good_scripted_blocks.txt (namespace: scripted_good)
+ # -------------------------------------------------------------------
+ scripted_good.0001.t:0 "Scripted Effect Event"
+ scripted_good.0001.desc:0 "Event using a scripted effect."
+ scripted_good.0001.a:0 "Accept"
+ scripted_good.0002.t:0 "Scripted Trigger Event"
+ scripted_good.0002.desc:0 "Event using a scripted trigger."
+ scripted_good.0002.a:0 "Continue"
+ scripted_good.0003.t:0 "Parameterized Effect Event"
+ scripted_good.0003.desc:0 "Event using parameterized scripted effect."
+ scripted_good.0003.a:0 "Accept"
+ scripted_good.0004.t:0 "Composed Effect Event"
+ scripted_good.0004.desc:0 "Event using composed scripted effect."
+ scripted_good.0004.a:0 "Proceed"
+
+ # -------------------------------------------------------------------
+ # Call Hierarchy fixtures
+ # -------------------------------------------------------------------
+
+ # events/good_call_hierarchy.txt (namespace: adventure)
+ adventure.0001.t:0 "Adventure Begins"
+ adventure.0001.desc:0 "The adventure begins here."
+ adventure.0001.a:0 "Continue the journey"
+ adventure.0001.b:0 "Take a different path"
+ adventure.0002.t:0 "Mid-Adventure"
+ adventure.0002.desc:0 "The adventure continues."
+ adventure.0002.a:0 "Press on"
+ adventure.0003.t:0 "Adventure Circles Back"
+ adventure.0003.desc:0 "The adventure loops around."
+ adventure.0003.a:0 "Return to the start"
+ adventure.0004.t:0 "Adventure Concludes"
+ adventure.0004.desc:0 "The adventure reaches its end."
+ adventure.0004.a:0 "Claim rewards"
+
+ # common/decisions/good_call_hierarchy.txt
+ start_adventure:0 "Start an Adventure"
+ start_adventure_desc:0 "Set out on a grand adventure."
+
+ # -------------------------------------------------------------------
+ # Selection Range fixtures
+ # -------------------------------------------------------------------
+
+ # events/good_selection_range.txt (namespace: selection_demo)
+ selection_demo.0001.t:0 "Selection Range Demo"
+ selection_demo.0001.desc:0 "A deeply nested event for selection testing."
+ selection_demo.0001.a:0 "Prestige option"
+ selection_demo.0001.b:0 "Gold option"
+ selection_demo.0002.t:0 "Comparisons and Lists"
+ selection_demo.0002.desc:0 "Event with comparisons and random lists."
+ selection_demo.0002.a:0 "Accept"
+ selection_demo.0003.t:0 "Simple Letter Event"
+ selection_demo.0003.desc:0 "A flat letter event structure."
+ selection_demo.0003.a:0 "Acknowledge"

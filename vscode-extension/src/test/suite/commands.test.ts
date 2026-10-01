@@ -1,8 +1,25 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 
+/**
+ * Run a command that opens a quick pick (showOutput, showMenu) and dismiss the picker, as a
+ * user pressing Escape would: such a command only settles once its picker is closed, so
+ * awaiting it in a headless host never returns.
+ */
+async function executeDismissingQuickPick(command: string): Promise<void> {
+    let settled = false;
+    const run = Promise.resolve(vscode.commands.executeCommand(command)).finally(() => {
+        settled = true;
+    });
+    for (let i = 0; i < 50 && !settled; i++) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        await vscode.commands.executeCommand('workbench.action.closeQuickOpen');
+    }
+    await run;
+}
+
 suite('Command Tests', () => {
-    let extension: vscode.Extension<any> | undefined;
+    let extension: vscode.Extension<unknown> | undefined;
 
     suiteSetup(async function () {
         this.timeout(30000); // Allow time for extension activation
@@ -71,21 +88,25 @@ suite('Command Tests', () => {
         test('showOutput command should execute without error', async () => {
             // This command just shows the output channel, should never throw
             await assert.doesNotReject(
-                Promise.resolve(vscode.commands.executeCommand('ck3LanguageServer.showOutput')),
+                executeDismissingQuickPick('ck3LanguageServer.showOutput'),
                 'showOutput command should execute'
             );
         });
 
         test('openDocumentation command should execute without error', async () => {
             await assert.doesNotReject(
-                Promise.resolve(vscode.commands.executeCommand('ck3LanguageServer.openDocumentation')),
+                Promise.resolve(
+                    vscode.commands.executeCommand('ck3LanguageServer.openDocumentation')
+                ),
                 'openDocumentation command should execute'
             );
         });
 
         test('Invalid command should reject', async () => {
             await assert.rejects(
-                Promise.resolve(vscode.commands.executeCommand('ck3LanguageServer.nonExistentCommand')),
+                Promise.resolve(
+                    vscode.commands.executeCommand('ck3LanguageServer.nonExistentCommand')
+                ),
                 'Non-existent command should reject'
             );
         });
@@ -168,7 +189,7 @@ suite('Command Tests', () => {
                 content: 'namespace = test\n\ntest.0001 = {\n\ttype = character_event\n}',
             });
 
-            const editor = await vscode.window.showTextDocument(doc);
+            await vscode.window.showTextDocument(doc);
 
             try {
                 await vscode.commands.executeCommand('ck3LanguageServer.showNamespaceEvents');
@@ -186,12 +207,10 @@ suite('Command Tests', () => {
                 content: 'namespace = test\n\ntest.0001 = {\n\ttitle = test.0001.t\n}',
             });
 
-            const editor = await vscode.window.showTextDocument(doc);
+            await vscode.window.showTextDocument(doc);
 
             try {
-                await vscode.commands.executeCommand(
-                    'ck3LanguageServer.generateLocalizationStubs'
-                );
+                await vscode.commands.executeCommand('ck3LanguageServer.generateLocalizationStubs');
                 assert.ok(true, 'generateLocalizationStubs command invoked');
             } catch (error) {
                 assert.ok(error instanceof Error);
@@ -206,7 +225,7 @@ suite('Command Tests', () => {
                 content: 'namespace = test\n\ntest.0001 = {\n\ttype = character_event\n}',
             });
 
-            const editor = await vscode.window.showTextDocument(doc);
+            await vscode.window.showTextDocument(doc);
 
             try {
                 await vscode.commands.executeCommand('ck3LanguageServer.renameEvent');
@@ -335,7 +354,7 @@ suite('Command Tests', () => {
 
             for (const cmd of commands) {
                 await assert.doesNotReject(
-                    Promise.resolve(vscode.commands.executeCommand(cmd)),
+                    executeDismissingQuickPick(cmd),
                     `Command ${cmd} should execute in sequence`
                 );
             }

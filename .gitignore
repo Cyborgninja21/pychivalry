@@ -58,3 +58,10 @@ coverage/
 
 # Claude Code
 .claude/
+
+# pychivalry-engine build outputs
+packages/engine/dist/
+packages/engine/out/
+
+# Compiled tools (tools/tsconfig.json)
+tools/dist/

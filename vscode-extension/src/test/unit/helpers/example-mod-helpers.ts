@@ -229,7 +229,9 @@ export function printSummaryTable(results: TestResult[]): void {
         const sPass = sectionResults.filter((r) => r.status === 'pass').length;
         const sFail = sectionResults.length - sPass;
         const indicator = sFail > 0 ? '✗' : '✓';
-        console.log(`║  ${indicator} ${section}: ${sPass}/${sectionResults.length}`.padEnd(51) + '║');
+        console.log(
+            `║  ${indicator} ${section}: ${sPass}/${sectionResults.length}`.padEnd(51) + '║'
+        );
     }
 
     console.log('╚══════════════════════════════════════════════════╝');

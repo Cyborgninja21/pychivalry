@@ -2,7 +2,7 @@
   "name": "ck3-language-support",
   "displayName": "Crusader Kings 3 Language Support",
   "description": "Language support for Crusader Kings 3 scripting language with LSP-powered features",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "publisher": "cyborgninja21",
   "license": "Apache-2.0",
   "repository": {
@@ -484,10 +484,11 @@
     ]
   },
   "scripts": {
-    "vscode:prepublish": "npm run package",
+    "vscode:prepublish": "npm run bundle",
     "compile": "webpack",
     "watch": "webpack --watch",
-    "package": "webpack --mode production --devtool source-map",
+    "bundle": "webpack --mode production --devtool source-map",
+    "package": "vsce package --no-dependencies",
     "compile-tests": "tsc -p . --outDir out",
     "watch-tests": "tsc -p . -w --outDir out",
     "pretest": "npm run compile-tests && npm run compile && npm run lint",
@@ -497,7 +498,7 @@
     "test:unit": "mocha ./out/test/unit/**/*.test.js",
     "test:examples": "mocha ./out/test/unit/example-mod-validation.test.js",
     "test:watch": "npm run compile-tests && mocha ./out/test/suite/**/*.test.js --watch",
-    "lint": "eslint src --ext ts",
+    "lint": "eslint src --ext ts --max-warnings=0",
     "format": "prettier --write \"src/**/*.ts\"",
     "format-check": "prettier --check \"src/**/*.ts\""
   },
@@ -508,7 +509,8 @@
     "@types/vscode": "^1.75.0",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
-    "@vscode/test-electron": "^2.3.0",
+    "@vscode/test-electron": "^3.1.0",
+    "@vscode/vsce": "^4.0.0",
     "copy-webpack-plugin": "^13.0.1",
     "eslint": "^8.0.0",
     "glob": "^10.0.0",
@@ -522,6 +524,7 @@
   "dependencies": {
     "fast-glob": "^3.3.3",
     "js-yaml": "^4.1.1",
+    "pychivalry-engine": "2.0.0",
     "vscode-languageclient": "^9.0.0",
     "vscode-languageserver": "^9.0.1",
     "vscode-languageserver-textdocument": "^1.0.12"

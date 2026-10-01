@@ -1,0 +1,41 @@
+# ===================================================================
+# CALL HIERARCHY — DECISION EXAMPLES
+# ===================================================================
+# Decisions are player-initiated actions with conditions and effects.
+# Use Call Hierarchy (Shift+Alt+H) on a decision name to see:
+#   Incoming: (decisions are triggered by player interaction, not script)
+#   Outgoing: What the decision's effect block triggers
+#
+# Cross-references:
+#   start_adventure — calls setup_adventure (scripted effect),
+#                     which in turn fires adventure.0001
+#
+# Expected validation result: NO ERRORS
+# ===================================================================
+
+# -------------------------------------------------------------------
+# start_adventure
+# -------------------------------------------------------------------
+# INCOMING CALLS: (player-initiated — no script callers)
+# OUTGOING CALLS: setup_adventure (scripted effect), adventure.0001
+#
+# The decision triggers adventure.0001 directly AND through the
+# setup_adventure scripted effect. Call Hierarchy should show both
+# outgoing paths.
+# -------------------------------------------------------------------
+start_adventure = {
+	is_shown = {
+		is_adult = yes
+		is_adventure_eligible = yes
+	}
+
+	is_valid = {
+		is_alive = yes
+		NOT = { has_character_flag = planning_adventure }
+	}
+
+	effect = {
+		setup_adventure = yes
+		trigger_event = adventure.0001
+	}
+}

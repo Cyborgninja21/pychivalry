@@ -1,6 +1,6 @@
 /**
  * Rename Provider - Provides symbol renaming
- * 
+ *
  * Features:
  * - Cross-file rename support using DocumentIndexer
  * - Rename events/decisions with all references
@@ -12,16 +12,9 @@
  * - Smart scope detection for variable renames
  */
 
-import {
-    WorkspaceEdit,
-    TextEdit,
-    Position,
-    Range,
-    PrepareRenameParams,
-} from 'vscode-languageserver/node';
+import { WorkspaceEdit, TextEdit, Position, Range } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { CK3Parser, ASTNode, NodeType } from '../core/parser';
-import { DocumentIndexer, Symbol, SymbolType } from '../core/indexer';
+import { ASTNode, CK3Parser, DocumentIndexer, NodeType, SymbolType } from 'pychivalry-engine';
 
 /**
  * Rename context information
@@ -51,11 +44,13 @@ export class RenameProvider {
         position: Position
     ): Promise<Range | { range: Range; placeholder: string } | null> {
         const word = this.getWordAtPosition(document, position);
-        if (!word) return null;
+        if (!word) {
+            return null;
+        }
 
         // Get rename context
         const context = this.getRenameContext(document, position, word);
-        
+
         if (!context.canRename) {
             // Return null to indicate rename is not possible
             return null;
@@ -63,7 +58,9 @@ export class RenameProvider {
 
         // Return the range with a placeholder for the new name
         const range = this.getWordRange(document, position);
-        if (!range) return null;
+        if (!range) {
+            return null;
+        }
 
         return {
             range,
@@ -80,7 +77,9 @@ export class RenameProvider {
         newName: string
     ): Promise<WorkspaceEdit | null> {
         const word = this.getWordAtPosition(document, position);
-        if (!word) return null;
+        if (!word) {
+            return null;
+        }
 
         // Validate new name
         if (!this.isValidName(newName)) {
@@ -89,7 +88,7 @@ export class RenameProvider {
 
         // Get rename context
         const context = this.getRenameContext(document, position, word);
-        
+
         if (!context.canRename) {
             return null;
         }
@@ -117,10 +116,10 @@ export class RenameProvider {
     ): RenameContext {
         // Check if it's a workspace symbol (event, decision, etc.)
         const symbols = this.indexer.findSymbolsByName(word);
-        
+
         if (symbols.length > 0) {
             const symbol = symbols[0];
-            
+
             // Check if it's a renameable symbol type
             const renameableTypes = [
                 SymbolType.EVENT,
@@ -129,7 +128,7 @@ export class RenameProvider {
                 SymbolType.SCRIPTED_TRIGGER,
                 SymbolType.VARIABLE,
             ];
-            
+
             if (renameableTypes.includes(symbol.type)) {
                 return {
                     symbolType: symbol.type,
@@ -189,7 +188,7 @@ export class RenameProvider {
 
         // Find all occurrences across workspace
         const symbols = this.indexer.findSymbolsByName(oldName);
-        
+
         for (const symbol of symbols) {
             if (symbol.type === symbolType) {
                 if (!changes[symbol.uri]) {
@@ -246,7 +245,7 @@ export class RenameProvider {
 
         // Find the containing block
         const block = this.findContainingBlock(parsed.ast, position);
-        
+
         if (block) {
             // Find occurrences within the block
             this.findOccurrences(block, oldName, (node) => {
@@ -268,7 +267,9 @@ export class RenameProvider {
      * Find containing block for a position
      */
     private findContainingBlock(node: ASTNode, position: Position): ASTNode | null {
-        if (!node.children) return null;
+        if (!node.children) {
+            return null;
+        }
 
         for (const child of node.children) {
             // Check if position is within this node
@@ -298,12 +299,10 @@ export class RenameProvider {
     /**
      * Find all occurrences of a name in AST
      */
-    private findOccurrences(
-        node: ASTNode,
-        name: string,
-        callback: (node: ASTNode) => void
-    ): void {
-        if (!node.children) return;
+    private findOccurrences(node: ASTNode, name: string, callback: (node: ASTNode) => void): void {
+        if (!node.children) {
+            return;
+        }
 
         for (const child of node.children) {
             // Check key
@@ -333,15 +332,13 @@ export class RenameProvider {
     /**
      * Check if word is a local variable
      */
-    private isLocalVariable(
-        document: TextDocument,
-        position: Position,
-        word: string
-    ): boolean {
+    private isLocalVariable(document: TextDocument, position: Position, word: string): boolean {
         const parsed = this.parser.parse(document.getText());
         const block = this.findContainingBlock(parsed.ast, position);
-        
-        if (!block) return false;
+
+        if (!block) {
+            return false;
+        }
 
         // Look for set_variable or change_variable with this name
         return this.hasVariableDefinition(block, word);
@@ -351,7 +348,9 @@ export class RenameProvider {
      * Check if block has variable definition
      */
     private hasVariableDefinition(node: ASTNode, varName: string): boolean {
-        if (!node.children) return false;
+        if (!node.children) {
+            return false;
+        }
 
         for (const child of node.children) {
             if (
@@ -397,20 +396,22 @@ export class RenameProvider {
     private getWordAtPosition(document: TextDocument, position: Position): string | null {
         const text = document.getText();
         const offset = document.offsetAt(position);
-        
+
         let start = offset;
         let end = offset;
-        
+
         while (start > 0 && /[a-zA-Z0-9_.:@]/.test(text[start - 1])) {
             start--;
         }
-        
+
         while (end < text.length && /[a-zA-Z0-9_.:@]/.test(text[end])) {
             end++;
         }
-        
-        if (start === end) return null;
-        
+
+        if (start === end) {
+            return null;
+        }
+
         return text.substring(start, end);
     }
 
@@ -420,20 +421,22 @@ export class RenameProvider {
     private getWordRange(document: TextDocument, position: Position): Range | null {
         const text = document.getText();
         const offset = document.offsetAt(position);
-        
+
         let start = offset;
         let end = offset;
-        
+
         while (start > 0 && /[a-zA-Z0-9_.:@]/.test(text[start - 1])) {
             start--;
         }
-        
+
         while (end < text.length && /[a-zA-Z0-9_.:@]/.test(text[end])) {
             end++;
         }
-        
-        if (start === end) return null;
-        
+
+        if (start === end) {
+            return null;
+        }
+
         return {
             start: document.positionAt(start),
             end: document.positionAt(end),

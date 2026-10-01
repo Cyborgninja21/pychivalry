@@ -6,7 +6,6 @@ import * as assert from 'assert';
 import { CK3LogAnalyzer } from '../../server/log/analyzer';
 
 describe('CK3LogAnalyzer', () => {
-
     let analyzer: CK3LogAnalyzer;
 
     beforeEach(() => {
@@ -20,7 +19,7 @@ describe('CK3LogAnalyzer', () => {
         });
 
         it('matches unknown effect pattern', () => {
-            const result = analyzer.analyzeLine("Unknown effect: add_glod", 'error.log');
+            const result = analyzer.analyzeLine('Unknown effect: add_glod', 'error.log');
             assert.ok(result, 'Should match unknown effect');
             assert.strictEqual(result!.category, 'unknown_effect');
             assert.ok(result!.message.includes('add_glod'));
@@ -33,13 +32,19 @@ describe('CK3LogAnalyzer', () => {
         });
 
         it('matches script system error', () => {
-            const result = analyzer.analyzeLine('[12:00:00][E][game.cpp:123]: Script system error!', 'error.log');
+            const result = analyzer.analyzeLine(
+                '[12:00:00][E][game.cpp:123]: Script system error!',
+                'error.log'
+            );
             assert.ok(result);
             assert.strictEqual(result!.category, 'script_system_error');
         });
 
         it('matches scope error', () => {
-            const result = analyzer.analyzeLine('Invalid scope transition from character to title', 'error.log');
+            const result = analyzer.analyzeLine(
+                'Invalid scope transition from character to title',
+                'error.log'
+            );
             assert.ok(result);
             assert.strictEqual(result!.category, 'scope_error');
         });
@@ -51,13 +56,19 @@ describe('CK3LogAnalyzer', () => {
         });
 
         it('matches missing localization', () => {
-            const result = analyzer.analyzeLine("Missing localization key: 'my_event.title'", 'game.log');
+            const result = analyzer.analyzeLine(
+                "Missing localization key: 'my_event.title'",
+                'game.log'
+            );
             assert.ok(result);
             assert.strictEqual(result!.category, 'missing_localization');
         });
 
         it('matches duplicate definition', () => {
-            const result = analyzer.analyzeLine("Duplicate scripted_effect definition 'my_effect'", 'error.log');
+            const result = analyzer.analyzeLine(
+                "Duplicate scripted_effect definition 'my_effect'",
+                'error.log'
+            );
             assert.ok(result);
             assert.strictEqual(result!.category, 'duplicate_definition');
         });
@@ -67,7 +78,7 @@ describe('CK3LogAnalyzer', () => {
         it('extracts file and line from pattern 1', () => {
             const result = analyzer.analyzeLine(
                 "Unknown effect: add_glod in file 'events/my_event.txt' line 45",
-                'error.log',
+                'error.log'
             );
             assert.ok(result);
             assert.strictEqual(result!.sourceFile, 'events/my_event.txt');
@@ -76,8 +87,8 @@ describe('CK3LogAnalyzer', () => {
 
         it('extracts file and line from pattern 3 (path:line)', () => {
             const result = analyzer.analyzeLine(
-                "Unknown effect: add_glod events/my_event.txt:99",
-                'error.log',
+                'Unknown effect: add_glod events/my_event.txt:99',
+                'error.log'
             );
             assert.ok(result);
             assert.strictEqual(result!.sourceFile, 'events/my_event.txt');
@@ -89,7 +100,7 @@ describe('CK3LogAnalyzer', () => {
         it('returns results for matching lines only', () => {
             const lines = [
                 'Normal line 1',
-                "Unknown effect: add_glod",
+                'Unknown effect: add_glod',
                 'Normal line 2',
                 'Event my_mod.0001 not found',
             ];
@@ -112,14 +123,14 @@ describe('CK3LogAnalyzer', () => {
         });
 
         it('tracks error counts by category', () => {
-            analyzer.analyzeLine("Unknown effect: foo", 'error.log');
-            analyzer.analyzeLine("Unknown effect: bar", 'error.log');
+            analyzer.analyzeLine('Unknown effect: foo', 'error.log');
+            analyzer.analyzeLine('Unknown effect: bar', 'error.log');
             const stats = analyzer.getStatistics();
             assert.strictEqual(stats.errorsByCategory['unknown_effect'], 2);
         });
 
         it('resets statistics', () => {
-            analyzer.analyzeLine("Unknown effect: foo", 'error.log');
+            analyzer.analyzeLine('Unknown effect: foo', 'error.log');
             analyzer.resetStatistics();
             const stats = analyzer.getStatistics();
             assert.strictEqual(stats.totalLinesProcessed, 0);
@@ -127,9 +138,9 @@ describe('CK3LogAnalyzer', () => {
         });
 
         it('computes most common errors', () => {
-            analyzer.analyzeLine("Unknown effect: foo", 'error.log');
-            analyzer.analyzeLine("Unknown trigger: bar", 'error.log');
-            analyzer.analyzeLine("Unknown effect: baz", 'error.log');
+            analyzer.analyzeLine('Unknown effect: foo', 'error.log');
+            analyzer.analyzeLine('Unknown trigger: bar', 'error.log');
+            analyzer.analyzeLine('Unknown effect: baz', 'error.log');
             const stats = analyzer.getStatistics();
             assert.ok(stats.mostCommonErrors.length > 0);
             assert.strictEqual(stats.mostCommonErrors[0][0], 'unknown_effect');

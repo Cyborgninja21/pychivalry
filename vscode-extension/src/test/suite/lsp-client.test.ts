@@ -1,9 +1,8 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
-import * as path from 'path';
 
 suite('LSP Client Integration Tests', () => {
-    let extension: vscode.Extension<any> | undefined;
+    let extension: vscode.Extension<unknown> | undefined;
 
     suiteSetup(async function () {
         this.timeout(30000); // Allow time for extension and LSP activation
@@ -66,7 +65,7 @@ test.0001 = {
                 content: content,
             });
 
-            const editor = await vscode.window.showTextDocument(doc);
+            await vscode.window.showTextDocument(doc);
 
             // Wait for LSP to process the document
             await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -85,7 +84,7 @@ test.0001 = {
                 content: 'namespace = test',
             });
 
-            const editor = await vscode.window.showTextDocument(doc);
+            await vscode.window.showTextDocument(doc);
 
             // Make an edit
             const edit = new vscode.WorkspaceEdit();
@@ -264,21 +263,31 @@ test.0002 = {
             this.timeout(10000);
 
             const config = vscode.workspace.getConfiguration('ck3LanguageServer');
-            const originalLogLevel = config.get('logLevel');
+            const originalLogLevel = config.inspect('logLevel')?.globalValue;
 
             try {
                 // Change configuration
                 await config.update('logLevel', 'debug', vscode.ConfigurationTarget.Global);
                 await new Promise((resolve) => setTimeout(resolve, 500));
 
-                const newLogLevel = config.get('logLevel');
+                const newLogLevel = vscode.workspace
+                    .getConfiguration('ck3LanguageServer')
+                    .get('logLevel');
                 assert.strictEqual(newLogLevel, 'debug', 'Configuration should update');
 
                 // Restore original
-                await config.update('logLevel', originalLogLevel, vscode.ConfigurationTarget.Global);
+                await config.update(
+                    'logLevel',
+                    originalLogLevel,
+                    vscode.ConfigurationTarget.Global
+                );
             } catch (error) {
                 // Restore configuration even if test fails
-                await config.update('logLevel', originalLogLevel, vscode.ConfigurationTarget.Global);
+                await config.update(
+                    'logLevel',
+                    originalLogLevel,
+                    vscode.ConfigurationTarget.Global
+                );
                 throw error;
             }
         });
@@ -287,18 +296,28 @@ test.0002 = {
             this.timeout(10000);
 
             const config = vscode.workspace.getConfiguration('ck3LanguageServer');
-            const originalTrace = config.get('trace.server');
+            const originalTrace = config.inspect('trace.server')?.globalValue;
 
             try {
                 await config.update('trace.server', 'verbose', vscode.ConfigurationTarget.Global);
                 await new Promise((resolve) => setTimeout(resolve, 500));
 
-                const newTrace = config.get('trace.server');
+                const newTrace = vscode.workspace
+                    .getConfiguration('ck3LanguageServer')
+                    .get('trace.server');
                 assert.strictEqual(newTrace, 'verbose', 'Trace configuration should update');
 
-                await config.update('trace.server', originalTrace, vscode.ConfigurationTarget.Global);
+                await config.update(
+                    'trace.server',
+                    originalTrace,
+                    vscode.ConfigurationTarget.Global
+                );
             } catch (error) {
-                await config.update('trace.server', originalTrace, vscode.ConfigurationTarget.Global);
+                await config.update(
+                    'trace.server',
+                    originalTrace,
+                    vscode.ConfigurationTarget.Global
+                );
                 throw error;
             }
         });

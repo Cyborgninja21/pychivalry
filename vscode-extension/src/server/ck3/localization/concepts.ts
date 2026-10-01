@@ -20,28 +20,36 @@ import { findSimilar } from '../../utils/fuzzy-match';
 /** Check whether `name` is a known game concept. */
 export function isValidConcept(name: string): boolean {
     const concepts = getConceptMap();
-    if (!concepts) return true; // graceful degradation
+    if (!concepts) {
+        return true;
+    } // graceful degradation
     return concepts.has(name);
 }
 
 /** Suggest similar concept names for a potential typo. */
 export function suggestSimilarConcepts(name: string, max = 5): string[] {
     const concepts = getConceptMap();
-    if (!concepts) return [];
+    if (!concepts) {
+        return [];
+    }
     return findSimilar(name, concepts.keys(), { threshold: 0.6, max });
 }
 
 /** Return the full definition for a concept, or undefined. */
 export function getConceptInfo(name: string): ConceptDefinition | undefined {
     const concepts = getConceptMap();
-    if (!concepts) return undefined;
+    if (!concepts) {
+        return undefined;
+    }
     return concepts.get(name);
 }
 
 /** Return a short markdown description suitable for hover. */
 export function getConceptDescription(name: string): string {
     const info = getConceptInfo(name);
-    if (!info) return `Unknown concept: \`${name}\``;
+    if (!info) {
+        return `Unknown concept: \`${name}\``;
+    }
 
     const lines: string[] = [`**Game Concept:** \`${name}\``];
     if (info.text) {

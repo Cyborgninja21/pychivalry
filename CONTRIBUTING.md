@@ -1,282 +1,202 @@
 # Contributing to pychivalry
 
-Thank you for your interest in contributing to pychivalry! This document provides guidelines and instructions for contributing to the project.
+Thank you for your interest in contributing. This document covers the workspace layout, the
+development workflow and the rules the code follows.
 
-## Getting Started
+## Getting started
 
 ### Prerequisites
 
-- Node.js 18 or higher
-- npm
+- Node.js 22 or newer and npm 10
 - Git
+- [Task](https://taskfile.dev/) (recommended; every command below also has an npm form)
+- [pre-commit](https://pre-commit.com/) (recommended)
 
-### Setting Up Development Environment
+### Setting up
 
-**Quick Setup (Recommended):**
-
-Run the automated setup script to install all dependencies and configure pre-commit hooks:
-```bash
-./tools/setup-dev-env.sh
-```
-
-**Manual Setup:**
-
-1. Fork and clone the repository:
 ```bash
 git clone https://github.com/YOUR_USERNAME/pychivalry.git
 cd pychivalry
+npm ci              # installs the whole npm workspace from the root package-lock.json
+pre-commit install  # optional but recommended
+task build          # engine, extension bundle, compiled tests
 ```
 
-2. Install extension dependencies:
+`./tools/setup-dev-env.sh` does the same checks and installs in one go.
+
+The repository is an **npm workspace**: run `npm ci` (or `npm install`) at the root only. The
+root `package-lock.json` is the only lock file; the engine package is linked into
+`node_modules/pychivalry-engine`, which is how the extension and the tools import it.
+
+### Pre-commit hooks
+
+The hooks fix trailing whitespace and final newlines, validate YAML and JSON, reject merge
+markers and files over 1 MB, normalize line endings to LF, and run Prettier and ESLint
+(`--max-warnings=0`) on `vscode-extension/src` and `packages/engine/{src,test}`. Prettier and
+ESLint run from the workspace's `node_modules`, so they are exactly the versions CI uses:
+install the workspace before committing.
+
 ```bash
-cd vscode-extension
-npm install
+pre-commit run --files <paths>   # the staged files
+pre-commit run --all-files       # everything (also rewrites whitespace in old documents)
 ```
 
-3. Install pre-commit hooks (recommended):
-```bash
-pre-commit install
-```
+### GitHub Copilot
 
-This will automatically run code formatters and linters before each commit, ensuring code quality and consistency.
+[`.github/copilot-instructions.md`](.github/copilot-instructions.md) carries the same guidance
+as [`CLAUDE.md`](CLAUDE.md). The prompts and agents that still match the code are under
+`.github/prompts/` and `.github/agents/`; older ones are archived in
+[`.github/archive/`](.github/archive/README.md).
 
-### Pre-commit Hooks
-
-The project uses pre-commit hooks to automatically check and format code before commits. These hooks:
-
-- Fix trailing whitespace and ensure end-of-file newlines
-- Validate YAML and JSON files
-- Check for merge conflict markers
-- Normalize line endings to LF
-- Format TypeScript files with Prettier
-- Lint TypeScript files with ESLint (`--max-warnings=0`)
-
-**Manual execution:**
-```bash
-# Run on all files
-pre-commit run --all-files
-
-# Run on staged files only
-pre-commit run
-```
-
-### GitHub Copilot Support
-
-This project is configured for GitHub Copilot to provide AI-assisted development:
-
-**Configuration files:**
-- [`.github/copilot-instructions.md`](.github/copilot-instructions.md) — Main instructions, coding standards, and guidelines
-- [`.github/prompts/`](.github/prompts/) — Custom prompts for documentation, architecture, and common tasks
-- [`.github/skills/`](.github/skills/) — Specialized skills like GitHub Actions debugging
-
-**Using Copilot with this project:**
-- Copilot automatically reads the instructions when assisting with code
-- Use `@workspace` in Copilot Chat to ask project-specific questions
-- Reference prompt files for specialized tasks (e.g., `@workspace /prompts/documentation_standard.md`)
-- Follow the established patterns for consistency
-
-See [`.github/README.md`](.github/README.md) for complete documentation on the Copilot setup.
-
-## Development Workflow
-
-### Making Changes
-
-1. Create a new branch for your feature or bugfix:
-```bash
-git checkout -b feature/your-feature-name
-```
-
-2. Make your changes to the codebase
-
-3. The pre-commit hooks will automatically run when you commit. If you want to run them manually:
-```bash
-# Format and lint all code
-pre-commit run --all-files
-
-# Or run individual tools
-cd vscode-extension
-npm run format
-npm run lint
-```
-
-4. Run tests:
-```bash
-# Unit tests (fast, no VS Code instance)
-cd vscode-extension
-npm run test:unit
-
-# Full test suite (compiles + lints + tests)
-npm test
-```
-
-Or from the workspace root using the Taskfile:
-```bash
-task test:unit
-task test
-```
-
-5. Commit your changes with a descriptive message:
-```bash
-git commit -m "feat: description of your change"
-```
-The pre-commit hooks will run automatically and fix most formatting issues.
-
-### Code Style
-
-- Follow the project TypeScript coding standards (strict mode, no `any`)
-- Use Prettier for code formatting (print width 100, 4-space indent, single quotes, semicolons)
-- Use ESLint for linting (`@typescript-eslint/recommended` rules)
-- File names: `kebab-case.ts`
-- Variables/functions: `camelCase`, types/interfaces: `PascalCase`, constants: `SCREAMING_SNAKE_CASE`
-
-### Testing
-
-- Write tests for all new features
-- Ensure all existing tests pass
-- Unit tests go in `vscode-extension/src/test/unit/`
-- Integration tests go in `vscode-extension/src/test/suite/`
-
-### Documentation
-
-- Update README.md if you add new features
-- Update CHANGELOG.md following Keep a Changelog format
-- Add docstrings to new functions and classes
-- Update examples if needed
-
-## Pull Request Process
-
-1. Ensure all tests pass and code is properly formatted
-2. Update documentation as needed
-3. Update CHANGELOG.md with your changes
-4. Push your branch to your fork
-5. Create a Pull Request with a clear description of your changes
-6. Wait for review and address any feedback
-
-### Pull Request Checklist
-
-- [ ] Tests pass (`npm test` or `task test`)
-- [ ] Pre-commit hooks pass (`pre-commit run --all-files`)
-- [ ] Code is formatted with Prettier (automatic with pre-commit)
-- [ ] No linting errors (automatic with pre-commit)
-- [ ] Documentation is updated
-- [ ] CHANGELOG.md is updated
-- [ ] Commit messages are clear and descriptive (conventional commits: `feat:`, `fix:`, `refactor:`, etc.)
-
-## Project Structure
+## Workspace layout
 
 ```
 pychivalry/
-├── vscode-extension/        # VS Code extension + embedded LSP server
-│   ├── src/
-│   │   ├── extension.ts     # Extension client entry point
-│   │   ├── server-main.ts   # Language server entry point
-│   │   ├── server/
-│   │   │   ├── core/        # Parser, indexer, workspace management
-│   │   │   ├── lsp/         # LSP feature providers (completions, hover, etc.)
-│   │   │   ├── ck3/         # CK3 game logic and validation
-│   │   │   ├── schema/      # YAML schema loading and validation
-│   │   │   ├── data/        # Data loader, directory registry
-│   │   │   ├── log/         # Game log watcher and analyzer
-│   │   │   └── utils/       # Shared utilities (logger, fuzzy match, etc.)
-│   │   └── test/
-│   │       ├── unit/        # Unit tests (Mocha)
-│   │       └── suite/       # Integration tests (VS Code test runner)
-│   ├── syntaxes/            # TextMate grammars
-│   ├── snippets/            # Code snippets
-│   ├── package.json
-│   ├── tsconfig.json
-│   └── webpack.config.js
-├── data/                    # Static YAML data files (effects, triggers, scopes, schemas)
-├── Documentation/           # Developer and user guides
-├── example mod/             # Example CK3 mod for manual testing
-└── README.md
+├── package.json, package-lock.json   npm workspace root (packages/*, vscode-extension)
+├── Taskfile.yml                      task runner entry points
+├── packages/engine/                  pychivalry-engine: the engine core (no runtime dependencies)
+│   ├── spec/                         the vendored CK3 spec package (do not edit)
+│   ├── spec.config.json              which spec package the build bundles
+│   ├── src/spec/                     spec package loader and API
+│   ├── src/syntax/                   lexer, parser, incremental parser, AST
+│   ├── src/index/                    indexer, call graph, workspace, localization index
+│   ├── src/check/                    registry, schema and scope checks
+│   ├── src/diagnostics.ts            the pipeline (parse → registry → schema → scope → plug-ins)
+│   ├── src/cli.ts                    pychivalry-engine check <modDir>
+│   ├── scripts/                      spec copy step, vanilla acceptance run
+│   └── test/                         unit, golden, corpus, CLI and acceptance tests
+├── vscode-extension/                 the VS Code extension (ck3-language-support)
+│   ├── src/extension.ts, src/client/ client: server controller, commands, output channels
+│   ├── src/server/server.ts          server wiring
+│   ├── src/server/lsp/               17 LSP providers (import only pychivalry-engine + LSP libraries)
+│   ├── src/server/plugins.ts         the engine plug-ins (surviving validators), registered once
+│   ├── src/server/ck3/validation/    the plug-ins
+│   ├── src/server/ck3/localization/  localization text validator, concepts, icons
+│   ├── src/server/data/              optional game data and the mod scanner
+│   ├── src/server/log/               game log watcher and analyzer
+│   ├── src/test/unit/                unit tests (mocha, no VS Code)
+│   ├── src/test/suite/               integration tests (VS Code Extension Development Host)
+│   └── syntaxes/, snippets/          TextMate grammars, snippets
+├── data/                             optional game content (traits, concepts, icons, animations,
+│                                     mods registry) and diagnostics.yaml (plug-in codes)
+├── tools/                            trait/theme/background extractors, gen-diagnostics-docs.ts
+├── example mod/                      numbered good_/bad_ corpus used by the tests
+└── Documentation/                    user and developer guides (archive/ for history)
 ```
 
-## Areas for Contribution
+CK3 vocabulary (triggers, effects, scopes, modifiers, directories, error texts) comes **only**
+from the spec package; see [the spec package](Documentation/developer-guide/spec-package.md)
+for how a new game version is adopted.
 
-We welcome contributions in these areas:
+## Development workflow
 
-### Language Server Features
+### Making changes
 
-- [x] Syntax validation and diagnostics
-- [x] Auto-completion for CK3 keywords and scopes
-- [x] Hover information for game concepts
-- [x] Go to definition for scripted effects/triggers
-- [ ] Find references
-- [x] Code formatting
-- [x] Symbol search
-- [ ] Rename support improvements
+1. Branch: `git checkout -b feature/your-feature-name`.
+2. Change the code. Engine changes go in `packages/engine` with tests in
+   `packages/engine/test`; editor features in `vscode-extension/src/server/lsp`; a new
+   validation rule the spec package cannot express becomes a plug-in registered in
+   `vscode-extension/src/server/plugins.ts`, and its codes go into `data/diagnostics.yaml`.
+3. Check:
 
-### CK3 Language Support
+```bash
+task ci                  # build, lint, format checks, engine tests, diagnostics-docs check, unit tests
+task test:integration    # VS Code integration tests (xvfb-run -a on headless Linux)
+task docs:diagnostics    # after changing diagnostics: regenerate the reference pages
+```
 
-- [x] Comprehensive keyword database
-- [x] Scope validation
-- [x] Effect and trigger validation
-- [x] Localization support
-- [x] Error messages and diagnostics
+npm equivalents: `npm run build`, `npm test` and `npm run lint` at the root;
+`npm run test:unit`, `npm run lint`, `npm run format-check` in `vscode-extension/`;
+`npm test`, `npm run lint`, `npm run format:check` in `packages/engine/`.
 
-### Testing & Documentation
+4. Commit with a descriptive message (conventional commits: `feat:`, `fix:`, `refactor:`,
+   `docs:`, `test:`, `chore:`); the hooks run on commit.
 
-- [ ] Increase test coverage
-- [ ] Add integration tests
-- [ ] Improve documentation
-- [ ] Add more examples
-- [ ] Create tutorials
+### Code style
 
-### VS Code Extension
+- Strict TypeScript, no `any` (see Rules below)
+- Prettier: print width 100, 4-space indent, single quotes, semicolons
+- ESLint `@typescript-eslint/recommended` with the repository's rules
+- Files `kebab-case.ts`; variables and functions `camelCase`; types `PascalCase`; constants
+  `UPPER_SNAKE_CASE`
 
-- [x] Syntax highlighting themes
-- [x] Code snippets
-- [x] Better file associations
-- [x] Configuration options
-- [ ] Additional snippet coverage
+### Testing
 
-## Bug Reports
+- Engine: `packages/engine/test/{unit,golden,corpus,cli}`; golden tests assert the game's exact
+  messages, corpus tests the expectations in `test/fixtures/corpus-expectations.json`.
+- Extension unit tests: `vscode-extension/src/test/unit/` (the example-mod test runs the engine
+  plus plug-ins over the corpus copy in `src/test/fixtures/mock-ck3-mod/`).
+- Extension integration tests: `vscode-extension/src/test/suite/`.
+- Write tests for new features and keep all suites green.
 
-When filing a bug report, please include:
+### Documentation
 
-- Node.js version
-- VS Code version
-- Extension version
-- Operating system
-- Steps to reproduce
-- Expected behavior
-- Actual behavior
-- Error messages or logs (from "CK3: Show Output Channel")
+- Update `README.md` for user-visible changes and `CHANGELOG.md` (Keep a Changelog format).
+- The diagnostics reference (`Documentation/user-guide/diagnostics/`) is generated; edit
+  `data/diagnostics.yaml` or the engine, not the pages.
 
-## Feature Requests
+## Rules
 
-Feature requests are welcome! Please provide:
+These are the still-true rules of the former `kanban-development-guideline.md` (archived under
+`Documentation/archive/`); ESLint and the pre-commit hooks enforce most of them.
 
-- Clear description of the feature
-- Use case or motivation
-- Examples if applicable
-- Any relevant CK3 documentation
+- **Strict TypeScript.** `strict: true`; never `any` (use `unknown` with type guards), never `var`.
+  Prefer type guards over unchecked `as` casts.
+- **Strict equality and braces.** `===`/`!==` only (`eqeqeq`); braces on every `if`/`else`/`for`/`while`
+  (`curly`).
+- **Throw `Error` objects**, never literals (`no-throw-literal`). Prefer async/await over callbacks.
+- **No `console.log` in production code.** The server logs through `server/utils/logger.ts`, the
+  client through `src/logger.ts` (VS Code output channels).
+- **Naming.** Files `kebab-case.ts`; variables and functions `camelCase`; types, interfaces and
+  classes `PascalCase`; constants `UPPER_SNAKE_CASE`.
+- **Formatting.** Prettier: print width 100, 4-space indent, single quotes, semicolons, trailing commas
+  `es5`, arrow parens always.
+- **No new runtime dependencies** without the maintainer's agreement; the engine package
+  (`packages/engine`) has none at all.
+- **Never skip the pre-commit hooks** (`--no-verify`).
+- **Documentation lives under `Documentation/`.** Exceptions: a `README.md` per package or data folder
+  and the standard root files (`README.md`, `CHANGELOG.md`, `CONTRIBUTING.md`, `SECURITY.md`,
+  `CLAUDE.md`).
+- **Error handling.** Wrap async work in try/catch; show user-facing failures with
+  `vscode.window.showErrorMessage` and log the detail to the output channel; handle a lost LSP
+  connection without crashing the client.
 
-## Questions?
+## Pull request process
 
-If you have questions about contributing, feel free to:
+1. All tests pass and the code is formatted (`task ci`).
+2. Documentation and `CHANGELOG.md` are updated.
+3. Push your branch and open a pull request describing the change.
+4. Address review feedback.
 
-- Open an issue for discussion
-- Check existing issues and discussions
-- Review the CK3 modding documentation
+### Checklist
 
-## Code of Conduct
+- [ ] `task ci` passes (and `task test:integration` for client or server wiring changes)
+- [ ] Pre-commit hooks pass
+- [ ] New diagnostics codes are in `data/diagnostics.yaml` and the reference is regenerated
+- [ ] Documentation and `CHANGELOG.md` are updated
+- [ ] Commit messages are clear
 
-- Be respectful and constructive
-- Welcome newcomers
-- Focus on what's best for the project
-- Show empathy towards others
+## Where to help
+
+Open issues labelled [`post-2.0`](https://github.com/Cyborgninja21/pychivalry/issues?q=is%3Aopen+label%3Apost-2.0)
+are the features and checks kept after the 2.0.0 triage
+([triage record](Documentation/developer-guide/issue-triage-2.0.0.md)). Missing CK3 names belong
+in pdx-parser-re's spec package, not in this repository.
+
+## Bug reports
+
+Please include the Node.js, VS Code and extension versions, the operating system, steps to
+reproduce, expected and actual behaviour, and the error messages or logs (from
+"CK3: Show Output Channel").
+
+## Feature requests
+
+Describe the feature, the use case, examples, and any CK3 documentation that applies.
+
+## Code of conduct
+
+Be respectful and constructive, welcome newcomers, and focus on what is best for the project.
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under the Apache License 2.0.
-
-## Recognition
-
-Contributors will be recognized in:
-- CHANGELOG.md
-- Project documentation
-- Release notes
-
-Thank you for contributing to pychivalry!
+By contributing, you agree that your contributions are licensed under the Apache License 2.0.

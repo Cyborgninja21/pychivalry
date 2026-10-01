@@ -1,470 +1,152 @@
-# CK3 Language Server Validation Reference
+# Validation pipeline
 
-This document describes all validation checks performed by the CK3 Language Server as you type. Diagnostics are organized by category with their diagnostic codes for easy reference.
-
-## Table of Contents
-
-- [1. Syntax Validation](#1-syntax-validation-ck3001-ck3002-ck3330-ck3345)
-- [2. Semantic Validation](#2-semantic-validation-ck3101-ck3103)
-- [3. Scope Validation](#3-scope-validation-ck3201-ck3203)
-- [4. Style Validation](#4-style-validation-ck33xx)
-- [5. Paradox Convention Validation](#5-paradox-convention-validation-ck35xx-ck52xx)
-- [6. Scope Timing Validation](#6-scope-timing-validation-ck3550-ck3555)
-- [Configuration](#configuration)
-
----
-
-## 1. Syntax Validation (CK3001-CK3002, CK3330-CK3345)
-
-Basic syntax checks for bracket matching and structural issues.
-
-| Code | Severity | Check | Description |
-|------|----------|-------|-------------|
-| **CK3001** | Error | Unmatched closing bracket | Detects `}` without a corresponding opening `{` |
-| **CK3002** | Error | Unclosed bracket | Detects `{` without closing `}`, with context about which block is unclosed |
-| **CK3330** | Error | Unclosed brace | More `{` than `}` in the document |
-| **CK3331** | Error | Extra closing brace | More `}` than `{` in the document |
-| **CK3332** | Error | Brace mismatch | Braces don't balance within blocks |
-| **CK3345** | Error | Merged identifier | Detects accidentally merged text (e.g., `cildanimation` instead of `child` and `animation` on separate lines) |
-
-### Parser Tokenization
-
-The parser tokenizes CK3 scripts into the following token types:
-
-- **Identifiers**: Keywords, names, scope references (e.g., `trigger`, `add_gold`, `scope:target`)
-- **Operators**: `=`, `>`, `<`, `>=`, `<=`, `!=`, `==`
-- **Strings**: Quoted text with escape handling (e.g., `"my_string"`)
-- **Numbers**: Integers and decimals, including negative numbers (e.g., `100`, `-50`, `3.14`)
-- **Braces**: `{` and `}`
-- **Comments**: Lines starting with `#`
-
----
-
-## 2. Semantic Validation (CK3101-CK3103)
-
-Validates that effects and triggers are used in the correct contexts.
-
-| Code | Severity | Check | Description |
-|------|----------|-------|-------------|
-| **CK3101** | Warning | Unknown trigger | Trigger in trigger block not recognized in known triggers or custom scripted triggers |
-| **CK3102** | Error | Effect in trigger block | Effects (state-changing commands) used where only triggers (conditions) are allowed |
-| **CK3103** | Warning | Unknown effect | Effect in effect block not recognized in known effects or custom scripted effects |
-
-### Context-Aware Validation
-
-The semantic checker tracks the current context as it traverses the AST:
-
-- **Trigger context**: Inside `trigger = { }`, `limit = { }`, `is_shown = { }`, `is_valid = { }` blocks
-- **Effect context**: Inside `effect = { }`, `immediate = { }`, `option = { }` blocks
-
-### What Gets Validated
-
-1. **Known effects and triggers**: Checked against the built-in CK3 language definitions
-2. **Custom scripted effects/triggers**: Loaded from workspace index (cross-file validation)
-3. **Effect parameters**: Validates parameters like `target`, `modifier`, `opinion`, `years` for effects like `add_opinion`
-4. **Control flow keywords**: `if`, `else_if`, `else`, `AND`, `OR`, `NOT` are allowed in any context
-
-### Example Errors
+How a CK3 script file becomes diagnostics in pychivalry 2.0.0. The same pipeline serves the
+editor (the language server) and the command line (`pychivalry-engine check`). The code
+reference for every id and code is the generated
+[diagnostics reference](../../user-guide/diagnostics/README.md).
 
 ```
-# CK3102: Effect in trigger block
-trigger = {
-    add_gold = 100  # ERROR: add_gold is an effect, not a trigger
-}
-
-# CK3101: Unknown trigger
-trigger = {
-    my_typo_trigger = yes  # WARNING: Unknown trigger
-}
+text ──► parse ──► index ──► registry ──► schema ──► scope ──► plug-ins ──► diagnostics
+         (syntax/)  (index/)  (check/registry) (check/schema) (check/scope) (extension)
 ```
 
----
-
-## 3. Scope Validation (CK3201-CK3203)
-
-Validates scope chains, saved scope references, and list iterations.
-
-| Code | Severity | Check | Description |
-|------|----------|-------|-------------|
-| **CK3201** | Error | Invalid scope chain | Validates chains like `liege.primary_title.holder` against scope definitions |
-| **CK3202** | Warning | Undefined saved scope | References to `scope:xxx` where `xxx` was never saved with `save_scope_as` |
-| **CK3203** | Warning | Invalid list base | List iteration (e.g., `every_xxx`) uses invalid base for current scope type |
-
-### Scope System Features
-
-#### Universal Links (Available in All Scopes)
-- `root` - The character who initiated the current script/event chain
-- `this` - Current scope (usually implicit)
-- `prev` - The previous scope before the last scope change
-- `from` - The scope passed from the calling context
-- `fromfrom` - The scope two levels up in the calling chain
-
-#### Scope-Specific Links
-Loaded from YAML definition files in `data/scopes/`:
-- `character.yaml` - Character scope links (liege, spouse, father, mother, etc.)
-- `title.yaml` - Title scope links (holder, de_jure_liege, etc.)
-- `province.yaml` - Province scope links (county, barony, etc.)
-
-#### Scope Chain Validation
-The validator tracks resulting scope types through chains:
-
-```
-character.liege         → character
-character.primary_title → landed_title
-landed_title.holder     → character
-```
-
-### Example Errors
-
-```
-# CK3201: Invalid scope chain
-liege.invalid_link.holder = { }  # ERROR: 'invalid_link' not valid from character scope
-
-# CK3202: Undefined saved scope
-scope:my_target = { }  # WARNING: 'my_target' never defined with save_scope_as
-
-# CK3203: Invalid list base
-every_invalid_list = { }  # WARNING: 'invalid_list' not a valid list for this scope
-```
-
----
-
-## 4. Style Validation (CK33xx)
-
-Non-semantic validation focused on code style and formatting.
-
-| Code | Severity | Check | Description |
-|------|----------|-------|-------------|
-| **CK3301** | Warning | Inconsistent indentation | Indentation doesn't match expected level |
-| **CK3302** | Warning | Multiple statements | Multiple block assignments on one line |
-| **CK3303** | Information | Spaces vs tabs | Uses spaces when tabs are preferred (Paradox convention) |
-| **CK3304** | Hint | Trailing whitespace | Whitespace at end of lines |
-| **CK3305** | Warning | Content not indented | Block content not indented relative to parent |
-| **CK3306** | Information | Operator spacing | Inconsistent spacing around `=` operator |
-| **CK3307** | Warning | Brace alignment | Closing brace doesn't match opening indentation |
-| **CK3308** | Information | Missing blank line | Missing blank line between top-level blocks |
-| **CK3314** | Hint | Empty block | Empty `key = { }` detected |
-| **CK3316** | Information | Line too long | Line exceeds 120 characters |
-| **CK3317** | Warning | Deep nesting | Block nesting exceeds 6 levels |
-| **CK3325** | Warning | Namespace position | `namespace` declaration not at top of file |
-| **CK3340** | Warning | Suspicious scope reference | Unknown `scope:xxx` with typo detection |
-| **CK3341** | Warning | Truncated scope | Very short scope name (≤2 chars) |
-
-### Style Conventions
-
-The style checker follows Paradox modding conventions:
-
-1. **Indentation**: Tabs preferred over spaces
-2. **Operator spacing**: `key = value` with spaces around `=`
-3. **Brace alignment**: Closing `}` should align with opening line
-4. **Line length**: Maximum 120 characters recommended
-5. **Nesting depth**: Maximum 6 levels recommended
-
-### Example Warnings
-
-```
-# CK3303: Spaces instead of tabs
-    trigger = { }  # INFO: Indentation uses spaces instead of tabs
-
-# CK3306: Inconsistent operator spacing
-key=value  # INFO: Use 'key = value' with spaces
-
-# CK3317: Deep nesting
-if = { if = { if = { if = { if = { if = { if = {
-    # WARNING: Deeply nested block (depth 7)
-} } } } } } }
-```
-
----
-
-## 5. Paradox Convention Validation (CK35xx-CK52xx)
-
-Validates CK3 scripts against Paradox modding conventions and common pitfalls.
-
-### Effect/Trigger Context Violations (CK38xx)
-
-| Code | Severity | Check | Description |
-|------|----------|-------|-------------|
-| **CK3870** | Error | Effect in trigger block | Effect used in trigger context |
-| **CK3871** | Error | Effect in limit block | Effect used in `limit` block |
-| **CK3872** | Information | Redundant trigger | `trigger = { always = yes }` is redundant - remove the trigger block |
-| **CK3873** | Warning | Impossible trigger | `trigger = { always = no }` makes event impossible to fire |
-
-### List Iterator Misuse (CK39xx)
-
-| Code | Severity | Check | Description |
-|------|----------|-------|-------------|
-| **CK3875** | Warning | Missing limit in random_ | `random_` iterator without `limit` - selection is completely random |
-| **CK3976** | Error | Effect in any_ | Effects in `any_*` iterators (trigger-only) |
-| **CK3977** | Information | every_ without limit | `every_*` affecting all entries without filter |
-
-### Namespace & Event ID Validation (CK34xx)
-
-| Code | Severity | Check | Description |
-|------|----------|-------|-------------|
-| **CK3400** | Error | Missing namespace | File has events but no `namespace` declaration |
-| **CK3401** | Error | Event ID mismatch | Event ID doesn't use declared namespace |
-| **CK3402** | Warning | Event ID exceeds 9999 | ID `>9999` causes buggy event calling in CK3 |
-| **CK3403** | Error | Invalid namespace characters | Namespace contains `.` or non-alphanumeric |
-| **CK3404** | Error | Duplicate event ID | Same event ID defined multiple times in file |
-| **CK3406** | Error | Invalid event ID format | Not in `namespace.number` format |
-
-### Opinion Modifier Issues (CK36xx)
-
-| Code | Severity | Check | Description |
-|------|----------|-------|-------------|
-| **CK3656** | Error | Inline opinion value | Using `opinion = X` instead of predefined modifier (CW262) |
-
-### Event Structure Validation (CK37xx)
-
-| Code | Severity | Check | Description |
-|------|----------|-------|-------------|
-| **CK3760** | Error | Missing event type | Event lacks `type = character_event` declaration |
-| **CK3763** | Warning | Event no options | Event has no `option` blocks for player interaction |
-| **CK3768** | Error | Multiple immediate blocks | Only first `immediate` block executes |
-
-### Common CK3 Gotchas (CK51xx)
-
-| Code | Severity | Check | Description |
-|------|----------|-------|-------------|
-| **CK5137** | Warning | is_alive without exists | Checking `is_alive` on scope that might not exist |
-| **CK5142** | Error | Character comparison | Using `scope:a = scope:b` instead of `scope:a = { this = scope:b }` |
-
-### Example Errors
-
-```
-# CK3400: Missing namespace
-my_mod.0001 = {
-    type = character_event  # ERROR: File has events but no namespace declaration
-}
-
-# CK3401: Namespace mismatch
-namespace = my_events
-other_namespace.0001 = {  # ERROR: Uses 'other_namespace' but declared 'my_events'
-    type = character_event
-}
-
-# CK3402: Event ID exceeds 9999
-namespace = my_events
-my_events.10001 = {  # WARNING: IDs > 9999 cause buggy event calling
-    type = character_event
-}
-
-# CK3403: Invalid namespace
-namespace = my.events  # ERROR: Contains invalid character '.'
-
-# CK3404: Duplicate event ID
-namespace = my_events
-my_events.0001 = { type = character_event }
-my_events.0001 = { type = letter_event }  # ERROR: Duplicate ID
-
-# CK3976: Effect in any_ iterator
-any_vassal = {
-    add_gold = 100  # ERROR: any_* is trigger-only; use every_* or random_*
-}
-
-# CK3656: Inline opinion value
-add_opinion = {
-    target = scope:friend
-    opinion = 50  # ERROR: Define modifier in common/opinion_modifiers/
-}
-
-# CK5142: Character comparison
-scope:actor = scope:recipient  # ERROR: Use scope:actor = { this = scope:recipient }
-```
-
----
-
-## 6. Scope Timing Validation (CK3550-CK3555)
-
-Validates the **"Golden Rule"** of CK3 event scripting: scopes created in `immediate` are NOT available in `trigger` or `desc` blocks because those blocks are evaluated BEFORE `immediate` runs.
-
-### Event Evaluation Order
-
-```
-1. trigger = { }     ← Evaluated FIRST
-2. desc = { }        ← Triggers evaluated SECOND
-3. immediate = { }   ← Runs THIRD (scopes created here)
-4. portraits         ← Displayed FOURTH (scopes now available)
-5. options           ← Rendered FIFTH (scopes available)
-```
-
-### Timing Diagnostics
-
-| Code | Severity | Check | Description |
-|------|----------|-------|-------------|
-| **CK3550** | Error | Scope in trigger from immediate | Using `scope:xxx` in `trigger` but defined in `immediate` |
-| **CK3551** | Warning | Scope in desc from immediate | Using scope in `desc` defined in `immediate` |
-| **CK3552** | Error | Scope in triggered_desc from immediate | Using scope in `triggered_desc` trigger from `immediate` |
-| **CK3553** | Error | Variable timing | Checking variable in `trigger` that's set in `immediate` |
-| **CK3554** | Warning | Temporary scope persistence | `save_temporary_scope_as` won't persist to triggered events |
-| **CK3555** | Warning | Scope not passed | Scope needed in triggered event but not passed |
-
-### Example Errors
-
-```
-my_event.0001 = {
-    trigger = {
-        scope:my_target = { is_alive = yes }  # ERROR: CK3550
-        # 'my_target' doesn't exist yet - trigger runs BEFORE immediate!
-    }
-    
-    immediate = {
-        random_courtier = {
-            save_scope_as = my_target  # Scope defined here
-        }
-    }
-    
-    option = {
-        scope:my_target = { add_gold = 100 }  # OK - options run AFTER immediate
-    }
-}
-```
-
-### Correct Pattern
-
-```
-# Pass scope from calling event:
-trigger_event = {
-    id = my_event.0001
-    saved_scope = my_target  # Pass the scope
-}
-
-# Or use variables that persist:
-immediate = {
-    set_variable = { name = has_target value = yes }
-}
-trigger = {
-    has_variable = has_target  # Variables work in triggers
-}
-```
-
----
-
-## Configuration
-
-All validation categories can be enabled/disabled through the TypeScript configuration:
-
-```typescript
-import { DiagnosticConfig, collectAllDiagnostics } from './ck3/validation/diagnostics';
-
-const config: DiagnosticConfig = {
-    styleEnabled: true,        // CK33xx checks
-    paradoxEnabled: true,      // CK35xx-CK52xx checks
-    scopeTimingEnabled: true   // CK3550-CK3555 checks
-};
-
-const diagnostics = collectAllDiagnostics(document, ast, index, config);
-```
-
-### Phase 1-3 Implementation Status
-
-**✅ Completed (61 diagnostic codes implemented):**
-
-- **Event Structure Validation**: All CK3760-CK3769 checks active
-- **Portrait Validation**: CK3420-CK3422 implemented (animation list needs expansion)
-- **Theme Validation**: CK3430 implemented (theme list needs expansion)
-- **Description Validation**: CK3440-CK3441 implemented
-- **Option Validation**: CK3450 implemented
-- **Namespace & ID Validation**: CK3400-CK3406 implemented ✅ (Phase 3 complete)
-- **All base checks**: Syntax, semantic, scope, style, timing, etc.
-
-**🔴 Not Yet Implemented (27+ planned checks):**
-
-- Trigger extensions (CK3510-CK3515) - Phase 4
-- On action validation (CK3500-CK3508) - Phase 9
-- After block validation (CK3520-CK3521) - Phase 11 (partially done)
-- Advanced desc/option checks - Phases 7-8
-- Localization validation (CK3600-CK3603) - Phase 10
-- AI chance validation (CK3610-CK3614) - Phase 12 (partially done)
-
-See [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) for detailed roadmap.
-
-### Trait Validation
-
-Trait validation requires user-extracted data:
-
-```typescript
-import { isTraitDataAvailable, isValidTrait } from './ck3/validation/traits';
-
-if (isTraitDataAvailable()) {
-    // Trait data extracted - can validate trait references
-    if (!isValidTrait('brave')) {
-        // Emit diagnostic for unknown trait
-    }
-} else {
-    // Gracefully skip trait validation
-}
-```
-
-Users extract trait data via VS Code command: **"CK3: Extract Trait Data from CK3 Installation"**
-
-See: [Enhanced Trait System](../../README.md#trait-validation-opt-in) for details on:
-- 15+ extracted property types (skills, opinions, modifiers, XP gains, costs, flags)
-- 10+ query functions for programmatic access
-- Rich tooltip display in completions
-
-### Individual Module Configurations
-
-#### Style Configuration
-```typescript
-import { StyleConfig } from './ck3/validation/style-checks';
-
-const styleConfig: StyleConfig = {
-    indentation: true,
-    preferTabs: true,
-    multipleStatements: true,
-    trailingWhitespace: true,
-    operatorSpacing: true,
-    braceAlignment: true,
-    maxLineLength: 120,
-    maxNestingDepth: 6,
-    checkEmptyBlocks: true,
-    checkNamespacePosition: true
-};
-```
-
-#### Paradox Convention Configuration
-```typescript
-import { ParadoxConfig } from './ck3/validation/paradox-checks';
-
-const paradoxConfig: ParadoxConfig = {
-    effectTriggerContext: true,
-    listIterators: true,
-    opinionModifiers: true,
-    eventStructure: true,
-    commonGotchas: true,
-    redundantTriggers: true
-};
-```
-
-#### Scope Timing Configuration
-```typescript
-import { ScopeTimingConfig } from './ck3/validation/scope-timing';
-
-const timingConfig: ScopeTimingConfig = {
-    checkTriggerBlock: true,
-    checkDescBlock: true,
-    checkTriggeredDesc: true,
-    checkVariables: true,
-    checkTemporaryScopes: true
-};
-```
-
----
-
-## Diagnostic Code Summary
-
-| Range | Category | Module |
-|-------|----------|--------|
-| CK3001-CK3002 | Syntax (brackets) | `vscode-extension/src/server/ck3/validation/diagnostics.ts` |
-| CK3101-CK3103 | Semantic (effects/triggers) | `vscode-extension/src/server/ck3/validation/diagnostics.ts` |
-| CK3201-CK3203 | Scope validation | `vscode-extension/src/server/ck3/validation/scopes.ts` |
-| CK3301-CK3345 | Style/formatting | `vscode-extension/src/server/ck3/validation/style-checks.ts` |
-| CK3400-CK3406 | Namespace & event ID validation | `vscode-extension/src/server/ck3/validation/paradox-checks.ts` |
-| CK3550-CK3555 | Scope timing | `vscode-extension/src/server/ck3/validation/scope-timing.ts` |
-| CK3656 | Opinion modifiers | `vscode-extension/src/server/ck3/validation/paradox-checks.ts` |
-| CK3760-CK3768 | Event structure | `vscode-extension/src/server/ck3/validation/events.ts` |
-| CK3870-CK3875 | Effect/trigger context | `vscode-extension/src/server/ck3/validation/paradox-checks.ts` |
-| CK3976-CK3977 | List iterators | `vscode-extension/src/server/ck3/validation/paradox-checks.ts` |
-| CK5137-CK5142 | Common gotchas | `vscode-extension/src/server/ck3/validation/paradox-checks.ts` |
+`diagnose(workspace, file, {text, uri, plugins})` in `packages/engine/src/diagnostics.ts` runs
+the stages in that order and returns the diagnostics sorted by position. Every engine
+diagnostic is `{file, range, severity, code, message, source: 'engine'}` with `code` an id of
+the spec package's error catalogue (or a listed `PYCH-` id) and `message` the catalogue's
+text with its placeholders filled. Plug-in diagnostics carry `source: 'plugin'`.
+
+## 1. Parse
+
+`syntax/lexer.ts` and `syntax/parser.ts` read the file the way the game's reader does: a
+UTF-8 BOM, `#` comments, keys, operators (`=`, `?=`, `==`, `!=`, `<`, `<=`, `>`, `>=`),
+strings, numbers, dates (`1066.1.1` stays a date), bare values in lists, `@name = value`
+constants and `@name` references, `@[ … ]` arithmetic (`syntax/expression.ts`), and scope
+chains (`scope:x.liege.primary_title` stays one chain). Newlines and comments may separate a
+key, its operator and its value.
+
+Parse errors use the game's messages:
+
+| Id | When |
+| --- | --- |
+| `expected_between_block_name_and_body` | `key { … }` among statements (the `=` is missing) |
+| `expected_between_equals_and_arguments` | an operator with no value |
+| `expected_after_arguments` | a block still open at the end of the file (reported at its `{`) |
+| `unexpected_token_expected_key` | a stray `}` or operator where a statement starts |
+| `unexpected_token_X_found_at_X_expected` | a key without `=` at top level, `?=` after a number, date or string |
+| `PYCH-P001`, `PYCH-P002` | an unterminated string; a malformed `@[ … ]` (the catalogue has no text for these) |
+
+The parser always produces a tree, so the later stages run on files with parse errors.
+
+## 2. Index
+
+The file is (re)indexed with the text being checked (`index/indexer.ts`) before any check, so
+lookups see the current content: events and namespaces, scripted effects and triggers,
+scripted lists and modifiers, script values, saved scopes, on_actions, localization keys
+(`index/localization.ts`) and the call graph (`index/call-graph.ts`). The `Workspace`
+(`index/workspace.ts`) holds one spec and one index per mod root and maps a file to its
+mod-relative path, which decides its script directory. With `--vanilla <game dir>` (CLI)
+the base game's definitions are indexed too.
+
+## 3. Registry check (`check/registry.ts`)
+
+Every key is judged against the spec package's buckets **by name and context**:
+
+- In a trigger block a key must be a trigger, in an effect block an effect. Names registered
+  in both buckets are accepted in either; workspace (and vanilla) scripted triggers, effects,
+  lists and script values are consulted before any verdict. Otherwise
+  `unknown_trigger_X` / `unknown_effect_X` with the game's text. This also catches effects in
+  trigger blocks and the reverse.
+- Iterators: `any_` is a trigger-context prefix, `every_`/`random_`/`ordered_` effect-context;
+  the base after the prefix must be in the `lists` bucket or a scripted list.
+- Keys in modifier blocks must be in the modifier table or match one of its `%s` templates
+  (`unknown_modifier_type_X_at_X`).
+- Retired keywords get `PYCH-R001` with the replacement from the package's `retired` table,
+  or `PYCH-R002` when there is none.
+
+Where a trigger or effect context opens comes from the package's per-directory schema
+(`trigger_block` / `effect_block` fields, record bodies, `holds: modifiers`), then from
+`check/contexts.ts` for positions the schema does not cover (`limit`, `if`, iterator bodies,
+`random_list`, …). The body of an unknown key is not read further. The short calibrated
+tables in `check/structural.ts` (8 structural keys, 44 iterator parameters, 7 modifier-block
+parameters) are the minimum vanilla 1.20.0.2 needs to check clean. Per-database keywords
+(`has_relation_friend`, `add_diplomacy_lifestyle_xp`) are accepted through the package's
+`keyword_templates` when the slot is a key of the template's database (see
+[the spec package](../spec-package.md)).
+
+## 4. Schema check (`check/schema.ts`)
+
+The file's directory (from its path, `Spec.directoryOf`) selects a record schema
+(`Spec.schemaOf`). Each top-level record is checked:
+
+- a field the schema does not list: `unknown_X_in_X` (warning);
+- a bare value directly in a record body: `unexpected_token_X_found_at_X_expected`;
+- a missing required field, only where the package marks it required with engine evidence
+  (three fields in 1.20.0.2), reported with the catalogue text the package cites; `PYCH-S002`
+  if a cited text were missing;
+- event content (`namespace = …`) in a directory that does not load events: `PYCH-S003`.
+
+## 5. Scope check (`check/scope.ts`)
+
+Chains that start at `root`, `this`, `prev` or `scope:x` are walked link by link against the
+`links` bucket (`failed_to_parse_data_for_event_target_link_link_X_location_X`). A `scope:name`
+that no `save_scope_as`, `save_temporary_scope_as` or `save_scope_value_as` in the file or the
+index defines is `undefined_event_target_X` (information), reported only when a base game is
+loaded (otherwise vanilla-provided scopes would be false positives).
+
+**Not checked:** whether a trigger or effect is valid in the scope it is used in. The spec
+package's `scope_validity` is empty until a `script_docs` oracle run fills it; the check slot
+(`scopeValidity`) exists.
+
+## 6. Plug-ins (the extension)
+
+`diagnose` then runs the plug-ins the host passes. The VS Code extension registers its
+surviving validators in one place, `vscode-extension/src/server/plugins.ts`; each receives the
+parsed tree, the text, the URI, the spec and the index:
+
+| Plug-in | What it encodes |
+| --- | --- |
+| scope-timing | Event evaluation order: scopes and variables created in `immediate` are not available in `trigger` or `desc` |
+| style-checks | Indentation, whitespace, line length, nesting, empty blocks, brace balance |
+| conventions | Events with options need type, title, desc; option names; if/else ordering |
+| localization-references | Literal text where a localization key belongs; keys missing from the workspace (`CK4100`) |
+| events | Event type, theme, portraits, options, namespaces |
+| paradox-checks | Paradox conventions and pitfalls: ai_chance, trigger_else, after blocks, iterators without limit, `this =` comparisons |
+| variables | Variables used but never set, set but never used, local/global and list/value mix-ups |
+| traits | Trait names, only when the optional trait data in `data/traits/` is present |
+| scripted-blocks | Calls to undefined scripted effects and triggers; recursion |
+| script-values | Script value formulas |
+| iterators | `ordered_` iterator parameters |
+| switch | `switch` blocks and their trigger |
+
+Their codes (CK3xxx, EVENT-, VALUE-, …) are listed in `data/diagnostics.yaml`; the generator
+check (`npm run docs:diagnostics:check`, run in CI) fails when a plug-in emits a code that file
+lacks. The extension maps engine severities to LSP severities, drops the style plug-in's brace
+codes on a line where the engine already reports an unbalanced brace, and caps a file at 1,000
+diagnostics.
+
+## Localization files
+
+`.yml` files are not CK3 script and skip the engine pipeline. The extension indexes them
+(`LocalizationIndex`) and runs the localization validator
+(`ck3/localization/validator.ts`): key format (`LOC-001`), character functions, formatting
+codes, `@icon!` and `£icon£` references, concept links, bracket balance and `$VARIABLE$`
+substitutions.
+
+## When validation runs (editor)
+
+On open and save a document is indexed and diagnosed at once; on change it is indexed at once
+(completions and hover need the current index) and diagnosed after a 300 ms debounce. On
+start the server indexes every workspace file so that definitions in unopened files
+resolve, but it diagnoses only open documents; `CK3: Validate Workspace`
+(`ck3.validateWorkspace`) diagnoses all files on demand. A configuration change re-validates
+the open documents.
+
+## Game log (runtime)
+
+While the game runs, the log watcher (`server/log/`) reads new lines of the game's logs
+(`error.log`, `game.log`, `exceptions.log`, `system.log`, `setup.log`), classifies them (`log/analyzer.ts`) and publishes them as diagnostics on the file
+and line they name (`log/diagnostics.ts`, source `ck3-game-log`), next to the static ones.
+Because engine diagnostics use the same catalogue texts, an `error.log` line and the
+diagnostic for the same defect read alike; `src/test/unit/log-oracle.test.ts` checks that every
+recorded `error.log` line naming a corpus file maps to an engine diagnostic with the same id.

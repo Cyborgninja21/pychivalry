@@ -1,0 +1,609 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Cyborgninja21/pdx-parser-re/spec/package/schema.json",
+  "title": "CK3 spec package",
+  "description": "One versioned bundle of the CK3 script vocabulary derived from one executable (see manifest.exe.sha256). Built by tools/python/build_spec_package.py.",
+  "type": "object",
+  "required": [
+    "package_format",
+    "manifest",
+    "buckets",
+    "modifier_templates",
+    "keyword_templates",
+    "iterator_prefixes",
+    "multi_bucket",
+    "directories",
+    "schema",
+    "errors",
+    "retired",
+    "noise_dropped",
+    "scope_validity"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "package_format": {
+      "const": 2,
+      "description": "Shape version. 2 (2026-10-01): adds keyword_templates; a format-1 loader rejects the unknown top-level key, hence the bump."
+    },
+    "manifest": {
+      "$ref": "#/$defs/manifest"
+    },
+    "buckets": {
+      "type": "object",
+      "required": [
+        "triggers",
+        "effects",
+        "links",
+        "lists",
+        "on_actions",
+        "modifiers"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "triggers": {
+          "$ref": "#/$defs/bucket"
+        },
+        "effects": {
+          "$ref": "#/$defs/bucket"
+        },
+        "links": {
+          "$ref": "#/$defs/bucket"
+        },
+        "lists": {
+          "$ref": "#/$defs/bucket"
+        },
+        "on_actions": {
+          "$ref": "#/$defs/bucket"
+        },
+        "modifiers": {
+          "$ref": "#/$defs/bucket"
+        }
+      },
+      "description": "Registered keywords per bucket. Lookups are by (name, context): a name can be in several buckets (see multi_bucket)."
+    },
+    "modifier_templates": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "pattern": "%s"
+      },
+      "description": "Exe name templates of the modifier types the engine generates per database entry at load time (e.g. stationed_%s_damage_mult). A modifier name is valid if it is in buckets.modifiers or fills one template with a key of the matching database."
+    },
+    "keyword_templates": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Triggers and effects the engine registers once per key of a database at load time (e.g. has_relation_%s per scripted relation). A name is in the template's bucket when it is the template with %s replaced by a top-level key of a file in the key database folder.",
+      "items": {
+        "$ref": "#/$defs/keywordTemplate"
+      }
+    },
+    "iterator_prefixes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "any_",
+          "every_",
+          "random_",
+          "ordered_"
+        ]
+      },
+      "description": "An iterator is one of these prefixes followed by a name of buckets.lists (never of buckets.links)."
+    },
+    "multi_bucket": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+      },
+      "additionalProperties": {
+        "type": "array",
+        "minItems": 2,
+        "items": {
+          "type": "string",
+          "enum": [
+            "triggers",
+            "effects",
+            "links",
+            "lists",
+            "on_actions",
+            "modifiers"
+          ]
+        }
+      }
+    },
+    "directories": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/directory"
+      }
+    },
+    "schema": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/schemaEntry"
+      },
+      "description": "Per-directory record schema, keyed by directory path (each key is a path in directories)."
+    },
+    "errors": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/error"
+      }
+    },
+    "retired": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/retired"
+      }
+    },
+    "noise_dropped": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/noise"
+      }
+    },
+    "scope_validity": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Reserved for per-keyword supported scopes from the game's own script_docs output (review issue S1). Empty until an oracle run fills it."
+    }
+  },
+  "$defs": {
+    "manifest": {
+      "type": "object",
+      "required": [
+        "game",
+        "version",
+        "exe",
+        "tooling",
+        "generated",
+        "sources"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "game": {
+          "const": "ck3"
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+\\.\\d+$"
+        },
+        "exe": {
+          "type": "object",
+          "required": [
+            "version",
+            "exe",
+            "bytes",
+            "sha256"
+          ],
+          "properties": {
+            "version": {
+              "type": "string"
+            },
+            "exe": {
+              "type": "string"
+            },
+            "bytes": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[0-9A-F]{64}$"
+            }
+          }
+        },
+        "tooling": {
+          "type": "object",
+          "required": [
+            "ghidra",
+            "ghidra_cli",
+            "profile",
+            "profile_sha256"
+          ]
+        },
+        "generated": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "sources": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        },
+        "source_sha256": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "description": "sha256 of each source file with CRLF normalised to LF."
+        },
+        "doc_join": {
+          "type": "string",
+          "description": "Separator used when a name has several registrar docs."
+        }
+      }
+    },
+    "bucketEntry": {
+      "type": "object",
+      "required": [
+        "doc"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "doc": {
+          "type": "string",
+          "description": "Built-in registrar documentation, verbatim (empty when none)."
+        },
+        "provenance": {
+          "const": "table",
+          "description": "Modifiers only: read from the exe's static modifier table."
+        }
+      }
+    },
+    "bucket": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/bucketEntry"
+      }
+    },
+    "directory": {
+      "type": "object",
+      "required": [
+        "path",
+        "content_type",
+        "level",
+        "since",
+        "source",
+        "present_in_vanilla"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "content_type": {
+          "type": "string"
+        },
+        "level": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "since": {
+          "type": "string",
+          "enum": [
+            "<=1.19.0.6",
+            "1.20.0.2"
+          ]
+        },
+        "source": {
+          "type": "string",
+          "enum": [
+            "scriptable_systems",
+            "exe_loader_path",
+            "snapshot"
+          ]
+        },
+        "present_in_vanilla": {
+          "type": "boolean"
+        },
+        "default_scope": {
+          "type": "string"
+        }
+      }
+    },
+    "field": {
+      "type": "object",
+      "required": [
+        "kind",
+        "provenance",
+        "usage",
+        "required",
+        "since"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "trigger_block",
+            "effect_block",
+            "value",
+            "block",
+            "list",
+            "reference",
+            "enum"
+          ]
+        },
+        "holds": {
+          "const": "modifiers"
+        },
+        "provenance": {
+          "type": "string",
+          "enum": [
+            "engine",
+            "vanilla"
+          ]
+        },
+        "usage": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "required_evidence": {
+          "type": "string"
+        },
+        "since": {
+          "type": "string",
+          "enum": [
+            "<=1.19.0.6",
+            "1.20.0.2"
+          ]
+        },
+        "description": {
+          "type": "string"
+        },
+        "wiki_kind": {
+          "type": "string"
+        },
+        "hook": {
+          "type": "boolean"
+        },
+        "note": {
+          "type": "string"
+        },
+        "fields": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/field"
+          }
+        }
+      }
+    },
+    "unconfirmed": {
+      "type": "object",
+      "required": [
+        "provenance",
+        "usage"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "provenance": {
+          "const": "wiki"
+        },
+        "usage": {
+          "const": 0
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "trigger_block",
+            "effect_block",
+            "value",
+            "block",
+            "list",
+            "reference",
+            "enum"
+          ]
+        },
+        "description": {
+          "type": "string"
+        }
+      }
+    },
+    "schemaEntry": {
+      "type": "object",
+      "required": [
+        "content_type",
+        "fields",
+        "vanilla"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "content_type": {
+          "type": "string"
+        },
+        "root_scope": {
+          "type": "string"
+        },
+        "record_body": {
+          "type": "string",
+          "enum": [
+            "trigger_block",
+            "effect_block",
+            "modifier_block"
+          ]
+        },
+        "vanilla": {
+          "type": "object",
+          "required": [
+            "files",
+            "records"
+          ],
+          "properties": {
+            "files": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "records": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
+        "wiki_seed": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "fields": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/field"
+          }
+        },
+        "unconfirmed": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/unconfirmed"
+          },
+          "description": "Fields pychivalry documents that vanilla 1.20 never sets; not part of the schema."
+        }
+      }
+    },
+    "error": {
+      "type": "object",
+      "required": [
+        "id",
+        "category",
+        "text",
+        "since",
+        "note"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_]{1,60}$"
+        },
+        "category": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        },
+        "since": {
+          "type": "string",
+          "enum": [
+            "<=1.19.0.6",
+            "1.20.0.2"
+          ]
+        },
+        "note": {
+          "type": "string"
+        }
+      }
+    },
+    "retired": {
+      "type": "object",
+      "required": [
+        "name",
+        "bucket",
+        "removed_in",
+        "replacement",
+        "note"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+        },
+        "bucket": {
+          "type": "string",
+          "enum": [
+            "triggers",
+            "effects",
+            "links",
+            "lists",
+            "on_actions",
+            "modifiers"
+          ]
+        },
+        "removed_in": {
+          "type": "string"
+        },
+        "replacement": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+          }
+        },
+        "note": {
+          "type": "string"
+        }
+      }
+    },
+    "noise": {
+      "type": "object",
+      "required": [
+        "name",
+        "bucket",
+        "reason"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "bucket": {
+          "type": "string",
+          "enum": [
+            "triggers",
+            "effects",
+            "links",
+            "lists",
+            "on_actions",
+            "modifiers"
+          ]
+        },
+        "reason": {
+          "type": "string"
+        }
+      }
+    },
+    "keywordTemplate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "template",
+        "bucket",
+        "keys",
+        "doc"
+      ],
+      "properties": {
+        "template": {
+          "type": "string",
+          "pattern": "^[a-z_]*%s[a-z_]*$",
+          "description": "name with one %s slot"
+        },
+        "bucket": {
+          "enum": [
+            "triggers",
+            "effects",
+            "links",
+            "lists"
+          ]
+        },
+        "keys": {
+          "type": "string",
+          "pattern": "^common/",
+          "description": "database folder whose top-level keys fill %s; a path in directories"
+        },
+        "doc": {
+          "type": "string",
+          "description": "the registrar's built-in documentation"
+        }
+      }
+    }
+  }
+}

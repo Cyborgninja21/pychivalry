@@ -20,7 +20,7 @@ export class CK3Logger {
     private channels: Map<LogCategory, vscode.OutputChannel> = new Map();
     private context: vscode.ExtensionContext | undefined;
 
-    constructor() { }
+    constructor() {}
 
     /**
      * Initialize the logger with the extension context.

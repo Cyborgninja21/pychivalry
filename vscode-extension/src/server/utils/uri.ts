@@ -2,7 +2,7 @@
  * URI utility functions for converting between file paths and file:// URIs.
  *
  * Replaces the various ad-hoc URI conversions that were duplicated across
- * server.ts, workspace.ts, and workspace-enhanced.ts. Those implementations
+ * server.ts and the extension's former workspace managers. Those implementations
  * had bugs: manual encodeURIComponent mangled Windows drive letter colons
  * (C: -> C%3A), and decoding only handled %20 while ignoring all other
  * percent-encoded characters.

@@ -1,82 +1,117 @@
 # Copilot Workspace Instructions
 
-This is the **ck3-language-support** repository — a VS Code extension with an embedded Language Server (LSP) for Crusader Kings 3 modding scripts. TypeScript 5.x, Apache-2.0 license.
+Guidance for GitHub Copilot in this repository. It mirrors [CLAUDE.md](../CLAUDE.md); keep the
+two in step. Per-topic standards are in [instructions/](instructions/README.md).
+
+## Project
+
+pychivalry 2.0.0: Crusader Kings III script tooling. An npm workspace with two packages:
+
+- `packages/engine` (npm `pychivalry-engine`): the engine core. Dependency-free TypeScript that
+  parses CK3 script, indexes a mod and reports the game's own diagnostics; has a CLI
+  (`pychivalry-engine check <modDir>`).
+- `vscode-extension` (`ck3-language-support`): the VS Code extension, a thin client plus a
+  language server whose providers read the engine.
+
+Node 22, npm 10, TypeScript 5, Apache-2.0. Target game version: CK3 1.20.0.2.
+
+## The rule: CK3 vocabulary comes only from the spec package
+
+Every trigger, effect, link, list, on_action, modifier, script directory, directory schema
+field, error-message text and retired keyword comes from the spec package that
+`packages/engine` bundles (`packages/engine/spec/ck3-spec-1.20.0.2.json.gz`, generated from
+the game executable by pdx-parser-re). Do not add keyword lists, YAML vocabularies or
+hard-coded name sets anywhere: query the `Spec` (`has`, `bucketsOf`, `doc`, `isIterator`,
+`isModifier`, `directoryOf`, `schemaOf`, `message`, `retired`). Missing names are fixed in
+pdx-parser-re and arrive with the next package.
+
+- Do not edit `packages/engine/spec/` (vendored, checksum-verified). Per-database keyword
+  families (`has_relation_%s`, `add_%s_xp`) come from the package's `keyword_templates`.
+- `data/` holds only optional game **content** (traits, concepts, icons, animations, the mod
+  registry in `data/mods/`) and `data/diagnostics.yaml` (the plug-in code catalogue).
+
+**Bumping the spec package version:** regenerate it in pdx-parser-re
+(`tools/python/build_spec_package.py`), copy `ck3-spec-<version>.json` (gzipped with
+`gzip -9 -n`), its `.sha256` and `schema.json` into `packages/engine/spec/`, point
+`packages/engine/spec.config.json` at them, then `task engine:test`, the vanilla acceptance
+run (`node packages/engine/scripts/vanilla-acceptance.js "<game dir>"`),
+`npm run docs:diagnostics` and `task ci`. Full procedure:
+[Documentation/developer-guide/spec-package.md](../Documentation/developer-guide/spec-package.md).
 
 ## Architecture
 
-Two webpack entry points produce separate bundles:
+**`packages/engine/src`**
 
-- `src/extension.ts` → `dist/extension.js` (VS Code extension client)
-- `src/server/server.ts` → `dist/server-main.js` (Language Server)
+| Module | Responsibility |
+| --- | --- |
+| `spec/` | Load and validate the spec package (`loadSpec`, `defaultSpec`, `Spec`, `withOverlay`, `validateSpecPackage`) |
+| `syntax/` | Lexer, parser (`CK3Parser`, `CachingParser`), `IncrementalParser`, `@[ … ]` expressions; AST with 0-based positions; parse errors carry catalogue ids |
+| `index/` | `Indexer` (symbols, events, references), `CallGraph`, `Workspace` (one spec + one index per mod root), `LocalizationIndex`, mod descriptor |
+| `check/` | `registry.ts` (unknown keyword by name and context, iterators, modifiers, retired names), `schema.ts` (directory fields, required fields, content in the wrong directory), `scope.ts` (scope chains, saved scopes), `contexts.ts`/`context.ts` (trigger vs effect context), `structural.ts` (calibrated tables) |
+| `diagnostics.ts` | `diagnose(workspace, file, {text, uri, plugins})`: parse → registry → schema → scope → plug-ins |
+| `messages.ts` | `PYCH-` package-local message ids (only where the catalogue has no text) |
+| `cli.ts` | `pychivalry-engine check <modDir> [--spec <file>] [--json] [--vanilla <dir>]` |
 
-Server subsystems under `src/server/`:
+**`vscode-extension/src`**
 
-| Directory | Responsibility |
-|-----------|---------------|
-| `core/` | Parser, incremental parser, indexer, workspace management |
-| `lsp/` | LSP feature providers (completions, hover, navigation, formatting, rename, inlay hints, code actions, code lens, folding, semantic tokens, etc.) |
-| `ck3/` | CK3 game logic, validation engine (25+ validators), localization subsystem |
-| `schema/` | YAML schema loading, validation, schema-driven completions/hover |
-| `data/` | Data loader, directory registry, mod scanner |
-| `log/` | Game log watcher, analyzer, diagnostics |
-| `utils/` | Shared utilities (fuzzy match, logger, URI handling) |
+| Path | Responsibility |
+| --- | --- |
+| `extension.ts`, `client/` | Client wiring: server controller, commands, log channels, status bar, `logger.ts` |
+| `server/server.ts` | Server wiring only: connection, documents, workspace, handlers delegate to providers |
+| `server/engine-host.ts` | Loads the bundled spec package once and makes it the engine default |
+| `server/lsp/` | 17 providers (completions, hover, navigation, symbols, semantic tokens, inlay hints, signature help, formatting, folding, rename, code actions, code lens, document links, document highlight, call hierarchy, selection range, diagnostics); each imports only `pychivalry-engine` and the LSP libraries |
+| `server/plugins.ts` | The one registry of engine plug-ins (the surviving validators) and the localization validator |
+| `server/ck3/validation/` | Plug-ins: scope-timing, style-checks, conventions, events, paradox-checks, variables, traits, scripted-blocks, script-values, iterators, switch |
+| `server/ck3/localization/` | Localization text validator, concepts, icons |
+| `server/data/` | Optional game data loader (`data/`), trait data, mod scanner (spec overlays) |
+| `server/log/` | Game `error.log` watcher, analyzer, log diagnostics |
+| `server/commands.ts` | `ck3.*` server commands |
 
-Data flow: files parsed by `core/parser.ts` → indexed by `core/indexer.ts` → validated by `ck3/validation/diagnostics.ts` (coordinator) → results surfaced through `lsp/` providers.
+Diagnostics codes: engine diagnostics use catalogue ids; plug-in codes are listed in
+`data/diagnostics.yaml` (every code a plug-in emits must be there). The reference pages in
+`Documentation/user-guide/diagnostics/` are generated: `npm run docs:diagnostics`.
 
-## Repository Structure
+## Build & test
 
-```
-vscode-extension/    All extension source, tests, build config, assets
-  src/               TypeScript source (client + embedded LSP server)
-  dist/              Webpack output (gitignored)
-  out/               Compiled tests (gitignored)
-data/                Static YAML data files (effects, triggers, scopes, schemas)
-example mod/         Example CK3 mod workspace for manual testing
-Documentation/       All project documentation
-tools/               Development and setup scripts
-.github/             CI workflows, Copilot instructions, prompt templates, agents
-```
+Run `npm ci` once at the repository root (workspace install; the root `package-lock.json` is
+the only lock file). Then use the Taskfile:
 
-## Core Principles
+| Task | What it does |
+| --- | --- |
+| `task build` | Install if needed, build the engine, webpack the extension, compile the tests |
+| `task engine:test` | Engine unit, golden, corpus and CLI tests |
+| `task engine:check` | Engine lint (`--max-warnings=0`) and Prettier check |
+| `task test:unit` | Extension unit tests (mocha, no VS Code) |
+| `task test:integration` | Extension integration tests in a VS Code instance (`xvfb-run -a` on headless Linux; unset `ELECTRON_RUN_AS_NODE` and `VSCODE_*` when running inside VS Code) |
+| `task lint` / `task format:check` | Extension ESLint (`--max-warnings=0`) / Prettier check |
+| `task docs:diagnostics` / `task docs:diagnostics:check` | Regenerate / verify the diagnostics reference |
+| `task ci` | Everything CI runs except the integration tests |
+| `task package` | Build the VSIX (`npm run package` in `vscode-extension/`: production webpack bundle, then `vsce package`) |
 
-- **Strict TypeScript.** `strict: true` in `tsconfig.json`. Never use `any` — use `unknown` with type guards.
-- **Functional composition over inheritance.** Single-responsibility modules per LSP feature.
-- **YAML-driven data.** Game content (effects, triggers, scopes, schemas) defined in `data/` YAML files, copied into the bundle at build time.
-- **Pre-commit hooks enforced.** 8 automated checks run on every commit — never skip with `--no-verify`.
-- **No new dependencies** without explicit permission.
+Single extension test file: `task test:<name>` (e.g. `task test:hover`), or
+`cd vscode-extension && npx mocha ./out/test/unit/<file>.test.js` after `npm run compile-tests`.
+The CI workflow (`.github/workflows/ci.yml`) runs the same steps on Linux, Windows and macOS for
+pushes to `main`, `develop` and `agents/**`.
 
-## Build & Test Quick Reference
+## Rules (enforced by ESLint, Prettier and pre-commit)
 
-All commands available via Taskfile (from workspace root) or npm (from `vscode-extension/`):
+The full list is in [CONTRIBUTING.md](../CONTRIBUTING.md#rules). The ones most often tripped:
 
-| Task | npm equivalent | Description |
-|------|---------------|-------------|
-| `task build` | `npm ci && npm run compile && npm run compile-tests` | Full build |
-| `task test:unit` | `npm run test:unit` | Unit tests only (fast, no VS Code) |
-| `task test` | `npm test` | Full test suite |
-| `task lint` | `npm run lint` | ESLint |
-| `task format:check` | `npm run format-check` | Prettier check |
-| `task ci` | — | Full CI pipeline (build + lint + format + unit tests) |
+- No `any` (use `unknown` and type guards), no `var`, `===` only, braces on every block.
+- No `console.log` in production code: `server/utils/logger.ts` (server), `src/logger.ts` (client).
+- No new runtime dependencies; the engine has none at all.
+- Never `--no-verify`. The pre-commit hooks run the workspace's own Prettier and ESLint, so run
+  `npm ci` first; `pre-commit run --files <paths>` checks staged files by hand.
+- Files `kebab-case.ts`; Prettier: width 100, 4 spaces, single quotes, semicolons.
 
-## Language and Tool Standards
+## Debugging the extension
 
-Detailed per-topic standards live in `.github/instructions/`:
+Open the repository in VS Code and press **F5** (Extension Development Host). Test workspaces:
+`example mod/` (the numbered good/bad corpus) and `test space/`.
 
-| Topic | Instruction file |
-|-------|-----------------|
-| TypeScript / VS Code extension | [typescript.instructions.md](instructions/typescript.instructions.md) |
-| GitHub Actions CI | [ci-cd.instructions.md](instructions/ci-cd.instructions.md) |
+## More
 
-## Forbidden Practices
-
-- No `any` type — use `unknown` with type guards
-- No `var` — use `const` (preferred) or `let`
-- No loose equality — use `===` and `!==` only
-- No missing curly braces on `if`/`else`/`for`/`while`
-- No throw literals — always `throw new Error(...)`
-- No `console.log` in production code — use the OutputChannel logger
-- No type assertions (`as`) without validation — prefer type guards
-- No callback patterns when async/await works
-- Do not remove `TODO:` or `FIXME:` comments
-- Do not skip pre-commit hooks (`--no-verify`)
-- Do not introduce new dependencies without permission
+- [README.md](../README.md): what it is, install, CLI, trait data, the known gap
+- [CONTRIBUTING.md](../CONTRIBUTING.md): workspace layout, workflow, rules
+- [Documentation/developer-guide/architecture/](../Documentation/developer-guide/architecture/): architecture flow and validation pipeline
+- [CLAUDE.md](../CLAUDE.md): the same guidance for Claude Code

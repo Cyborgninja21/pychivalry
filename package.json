@@ -1,5 +1,17 @@
 {
-  "devDependencies": {
-    "@types/js-yaml": "^4.0.9"
-  }
+    "private": true,
+    "workspaces": [
+        "packages/*",
+        "vscode-extension"
+    ],
+    "scripts": {
+        "build": "npm run build --workspace=packages/engine",
+        "test": "npm run test --workspace=packages/engine && npm run test:unit --workspace=vscode-extension",
+        "lint": "npm run lint --workspace=packages/engine && npm run lint --workspace=vscode-extension",
+        "docs:diagnostics": "tsc -p tools && node tools/dist/gen-diagnostics-docs.js",
+        "docs:diagnostics:check": "tsc -p tools && node tools/dist/gen-diagnostics-docs.js --check"
+    },
+    "devDependencies": {
+        "@types/js-yaml": "^4.0.9"
+    }
 }

@@ -9,23 +9,25 @@
  *     EVENT-005: Malformed event ID
  *     EVENT-006: Invalid dynamic description configuration
  *     EVENT-007: Invalid option configuration
- *     EVENT-008: Event file not in events/ directory
+ *     EVENT-008: retired (Phase 4): the engine's PYCH-S003 reports event content
+ *                outside events/
  *     EVENT-009: Event namespace does not match namespace declaration
  *     EVENT-010: Missing namespace declaration in event file
  *     EVENT-011: Hidden event should not have options
  *     EVENT-012: Hidden event should not have after block
  *     EVENT-013: Non-hidden event missing options
- *     EVENT-014: Event file should use .txt extension
- *     EVENT-015: Event file inside common/ instead of top-level events/
+ *     EVENT-014, EVENT-015: retired (Phase 4): the engine diagnoses only .txt script
+ *                files and reports event content under common/ with PYCH-S003
  *     EVENT-016: Namespace not defined in file (game engine warning)
- *     EVENT-017: Non-event content detected in events/ directory
- *     EVENT-018: Event content detected in non-event directory
+ *     EVENT-017: retired (Phase 4): non-event records in events/ are judged by the
+ *                events schema (unknown_X_in_X)
+ *     EVENT-018: retired (Phase 4): PYCH-S003
  *
  * Event types determine presentation style (character portrait, letter, court scene),
  * required fields, and available features. Each type has specific validation rules.
  */
 
-import { ASTNode, NodeType } from '../../core/parser';
+import { ASTNode, NodeType, Range } from 'pychivalry-engine';
 import { DataLoader } from '../../data/loader';
 
 /**
@@ -39,8 +41,8 @@ export interface Event {
     desc?: string;
     theme?: string;
     requiredFields: Set<string>;
-    portraits: Map<string, any>;
-    options: any[];
+    portraits: Map<string, unknown>;
+    options: unknown[];
 }
 
 /**
@@ -90,16 +92,41 @@ let EVENT_THEMES: Set<string> | null = null;
 
 function getEventThemes(): Set<string> {
     if (!EVENT_THEMES) {
-        const dataLoader = DataLoader.getInstance();
         // Themes would be loaded from themes.yaml if available
         // For now, return common themes
         EVENT_THEMES = new Set([
-            'default', 'diplomacy', 'intrigue', 'martial', 'stewardship',
-            'learning', 'seduction', 'temptation', 'romance', 'faith',
-            'culture', 'war', 'death', 'dread', 'dungeon', 'feast',
-            'hunt', 'travel', 'pet', 'friendly', 'unfriendly',
-            'healthcare', 'physical_health', 'mental_health', 'childhood',
-            'pregnancy', 'family', 'realm', 'vassal', 'courtier', 'liege', 'tax',
+            'default',
+            'diplomacy',
+            'intrigue',
+            'martial',
+            'stewardship',
+            'learning',
+            'seduction',
+            'temptation',
+            'romance',
+            'faith',
+            'culture',
+            'war',
+            'death',
+            'dread',
+            'dungeon',
+            'feast',
+            'hunt',
+            'travel',
+            'pet',
+            'friendly',
+            'unfriendly',
+            'healthcare',
+            'physical_health',
+            'mental_health',
+            'childhood',
+            'pregnancy',
+            'family',
+            'realm',
+            'vassal',
+            'courtier',
+            'liege',
+            'tax',
         ]);
     }
     return EVENT_THEMES;
@@ -160,7 +187,10 @@ export function isValidPortraitAnimation(animation: string): boolean {
  * Validate that an event has all required fields.
  * When hidden=true, title and desc are not required.
  */
-export function validateEventFields(event: Event, isHidden = false): { isValid: boolean; missing: string[] } {
+export function validateEventFields(
+    event: Event,
+    isHidden = false
+): { isValid: boolean; missing: string[] } {
     const required = REQUIRED_FIELDS.get(event.eventType);
     if (!required) {
         return { isValid: false, missing: [`Unknown event type: ${event.eventType}`] };
@@ -188,15 +218,22 @@ export function validateEventFields(event: Event, isHidden = false): { isValid: 
 /**
  * Validate a portrait configuration
  */
-export function validatePortraitConfiguration(portraitConfig: any): { isValid: boolean; error?: string } {
-    if (typeof portraitConfig !== 'object' || portraitConfig === null) {
+export function validatePortraitConfiguration(config: unknown): {
+    isValid: boolean;
+    error?: string;
+} {
+    if (typeof config !== 'object' || config === null) {
         return { isValid: false, error: 'Portrait configuration must be an object' };
     }
+    const portraitConfig = config as { animation?: unknown };
 
     // Check animation if specified
     if (portraitConfig.animation) {
-        if (!isValidPortraitAnimation(portraitConfig.animation)) {
-            return { isValid: false, error: `Invalid portrait animation: ${portraitConfig.animation}` };
+        if (!isValidPortraitAnimation(String(portraitConfig.animation))) {
+            return {
+                isValid: false,
+                error: `Invalid portrait animation: ${portraitConfig.animation}`,
+            };
         }
     }
 
@@ -221,20 +258,24 @@ export function parseEventId(eventId: string): { namespace?: string; number?: st
 
 /**
  * Validate a dynamic description configuration
- * 
+ *
  * Dynamic descriptions include:
  * - triggered_desc: Shows desc if trigger is true
  * - first_valid: Shows first desc where trigger is true
  * - random_valid: Shows random desc where trigger is true
  */
-export function validateDynamicDescription(descConfig: any): { isValid: boolean; error?: string } {
-    if (typeof descConfig !== 'object' || descConfig === null) {
+export function validateDynamicDescription(config: unknown): {
+    isValid: boolean;
+    error?: string;
+} {
+    if (typeof config !== 'object' || config === null) {
         return { isValid: false, error: 'Dynamic description must be an object' };
     }
+    const descConfig = config as { triggered_desc?: unknown };
 
     // triggered_desc must have both trigger and desc
     if (descConfig.triggered_desc) {
-        const triggered = descConfig.triggered_desc;
+        const triggered = descConfig.triggered_desc as { trigger?: unknown; desc?: unknown };
         if (typeof triggered !== 'object') {
             return { isValid: false, error: 'triggered_desc must be an object' };
         }
@@ -289,7 +330,11 @@ export function getThemeDescription(theme: string): string {
 /**
  * Create an Event object with validation
  */
-export function createEvent(eventId: string, eventType: string, options: Partial<Event> = {}): Event {
+export function createEvent(
+    eventId: string,
+    eventType: string,
+    options: Partial<Event> = {}
+): Event {
     if (!isValidEventType(eventType)) {
         throw new Error(`Invalid event type: ${eventType}`);
     }
@@ -314,16 +359,18 @@ export function createEvent(eventId: string, eventType: string, options: Partial
  * Options must have a 'name' field for localization.
  * Handles both plain objects and ASTNodes (checks children for name key).
  */
-export function validateOption(optionConfig: any): { isValid: boolean; error?: string } {
-    if (typeof optionConfig !== 'object' || optionConfig === null) {
+export function validateOption(config: unknown): { isValid: boolean; error?: string } {
+    if (typeof config !== 'object' || config === null) {
         return { isValid: false, error: 'Option must be an object' };
     }
+    const optionConfig = config as { name?: unknown; children?: unknown };
 
     // Check for name field — either as a direct property (plain object)
     // or as a child node with key 'name' (ASTNode)
-    const hasName = optionConfig.name ||
+    const hasName =
+        optionConfig.name ||
         (Array.isArray(optionConfig.children) &&
-         optionConfig.children.some((c: any) => c.key === 'name'));
+            (optionConfig.children as Array<{ key?: string }>).some((c) => c.key === 'name'));
 
     if (!hasName) {
         return { isValid: false, error: "Option requires 'name' field for localization" };
@@ -336,12 +383,7 @@ export function validateOption(optionConfig: any): { isValid: boolean; error?: s
  * Suggest proper event ID formats for a namespace
  */
 export function suggestEventIdFormat(namespace: string): string[] {
-    return [
-        `${namespace}.0001`,
-        `${namespace}.0010`,
-        `${namespace}.0100`,
-        `${namespace}.1000`,
-    ];
+    return [`${namespace}.0001`, `${namespace}.0010`, `${namespace}.0100`, `${namespace}.1000`];
 }
 
 /**
@@ -366,11 +408,13 @@ export function validateEventFromNode(node: ASTNode): {
     const errors: Array<{ code: string; message: string; field?: string }> = [];
 
     // Extract event ID from the key of the assignment node containing this block
-    let eventId = node.key || 'unknown';
+    const eventId = node.key || 'unknown';
 
     // Extract event type
     let eventType: string | undefined;
-    const typeChild = (node.children || []).find((c: ASTNode) => c.type === NodeType.ASSIGNMENT && c.key === 'type');
+    const typeChild = (node.children || []).find(
+        (c: ASTNode) => c.type === NodeType.ASSIGNMENT && c.key === 'type'
+    );
     if (typeChild && typeChild.value) {
         eventType = String(typeChild.value);
     }
@@ -404,12 +448,22 @@ export function validateEventFromNode(node: ASTNode): {
     // Extract other fields
     // Check both ASSIGNMENT (desc = loc_key) and BLOCK (desc = { first_valid = { ... } }) forms
     const children = node.children || [];
-    const title = children.find((c: ASTNode) => (c.type === NodeType.ASSIGNMENT || c.type === NodeType.BLOCK) && c.key === 'title')?.value;
-    const desc = children.find((c: ASTNode) => (c.type === NodeType.ASSIGNMENT || c.type === NodeType.BLOCK) && c.key === 'desc');
-    const theme = children.find((c: ASTNode) => c.type === NodeType.ASSIGNMENT && c.key === 'theme')?.value;
+    const title = children.find(
+        (c: ASTNode) =>
+            (c.type === NodeType.ASSIGNMENT || c.type === NodeType.BLOCK) && c.key === 'title'
+    )?.value;
+    const desc = children.find(
+        (c: ASTNode) =>
+            (c.type === NodeType.ASSIGNMENT || c.type === NodeType.BLOCK) && c.key === 'desc'
+    );
+    const theme = children.find(
+        (c: ASTNode) => c.type === NodeType.ASSIGNMENT && c.key === 'theme'
+    )?.value;
 
     // Check hidden flag
-    const hiddenChild = children.find((c: ASTNode) => c.type === NodeType.ASSIGNMENT && c.key === 'hidden');
+    const hiddenChild = children.find(
+        (c: ASTNode) => c.type === NodeType.ASSIGNMENT && c.key === 'hidden'
+    );
     const isHidden = hiddenChild?.value === 'yes' || hiddenChild?.value === true;
 
     const event: Event = {
@@ -427,7 +481,7 @@ export function validateEventFromNode(node: ASTNode): {
     // Validate required fields (hidden-aware)
     const validation = validateEventFields(event, isHidden);
     if (!validation.isValid) {
-        validation.missing.forEach(field => {
+        validation.missing.forEach((field) => {
             errors.push({
                 code: 'EVENT-002',
                 message: `Missing required field: ${field}`,
@@ -522,81 +576,6 @@ export function isEventFilePath(documentUri: string): boolean {
 }
 
 /**
- * CK3 event file location rules (from binary analysis + schema):
- *
- * 1. Events must be in a top-level `events/` directory (not `common/events/`)
- *    - The `scriptable_directories.yaml` registers `events` at level 1 (top-level)
- *    - Game engine: "Loaded [{}] events from '{}'"
- *
- * 2. Subdirectories within `events/` ARE supported:
- *    - `events/lifestyle/*.txt`, `events/war/*.txt`, etc.
- *    - Schema pattern: events subdirectories with .txt files
- *
- * 3. File extension MUST be `.txt`:
- *    - Schema pattern: events directory with .txt files
- *    - CK3 engine only loads `.txt` files for script content
- *
- * 4. Events in `common/` subdirectories are NOT event files:
- *    - `common/event_themes/` → theme definitions, not events
- *    - `common/event_backgrounds/` → background art paths
- *    - `common/event_pictures/` → event artwork
- *    - `common/event_2d_effects/` → visual effects
- *    - `common/event_transitions/` → transition animations
- *    - `common/combat_phase_events/` → battle event effects (not event type)
- *
- * 5. Namespace must be declared and must match event IDs:
- *    - Game engine: "Namespace '{}' used in event '{}' (file: {})
- *      is not defined in this file - it might not load properly."
- */
-
-/**
- * Comprehensive file location validation for event files.
- * Checks all CK3 engine requirements for event file placement.
- */
-export function validateEventFileLocation(
-    documentUri: string,
-    hasEventBlocks: boolean,
-): Array<{ code: string; message: string }> {
-    if (!hasEventBlocks) return [];
-
-    const normalized = documentUri.replace(/\\/g, '/').toLowerCase();
-    const errors: Array<{ code: string; message: string }> = [];
-
-    // Check 1: Is the file in ANY events/ directory?
-    const inEventsDir = normalized.includes('/events/');
-
-    if (!inEventsDir) {
-        errors.push({
-            code: 'EVENT-008',
-            message: "Event definitions not in 'events/' directory — CK3 will not load events from this location",
-        });
-        // If not in events/ at all, no point checking further location rules
-        return errors;
-    }
-
-    // Check 2: Is it in common/events/ instead of top-level events/?
-    // CK3 registers `events` at level 1 (top-level), NOT under common/
-    if (normalized.includes('/common/events/')) {
-        errors.push({
-            code: 'EVENT-015',
-            message: "Event file is in 'common/events/' — CK3 loads events from top-level 'events/' directory, not 'common/events/'",
-        });
-    }
-
-    // Check 3: File extension must be .txt
-    // Extract the actual file path from URI (strip file:// prefix and query/fragment)
-    const pathPart = normalized.replace(/^file:\/\/\/?/, '').split(/[?#]/)[0];
-    if (!pathPart.endsWith('.txt')) {
-        errors.push({
-            code: 'EVENT-014',
-            message: "Event file should use '.txt' extension — CK3 only loads '.txt' files for script content",
-        });
-    }
-
-    return errors;
-}
-
-/**
  * Validate namespace declarations in an event file.
  *
  * CK3 game engine warning (from binary):
@@ -610,24 +589,28 @@ export function validateEventFileLocation(
  */
 export function validateNamespaceDeclaration(
     rootNode: ASTNode,
-    documentUri: string,
-): Array<{ code: string; message: string; range?: any }> {
-    if (!isEventFilePath(documentUri)) return [];
+    documentUri: string
+): Array<{ code: string; message: string; range?: Range }> {
+    if (!isEventFilePath(documentUri)) {
+        return [];
+    }
 
     const children = rootNode.children || [];
     const eventPattern = /^[a-z_]+\.\d+$/;
 
     // Find event blocks
-    const eventNodes = children.filter(c => c.key && eventPattern.test(c.key) && c.children);
-    if (eventNodes.length === 0) return [];
+    const eventNodes = children.filter((c) => c.key && eventPattern.test(c.key) && c.children);
+    if (eventNodes.length === 0) {
+        return [];
+    }
 
     // Find ALL namespace declarations (a file can have multiple)
     const namespaceDecls = children.filter(
-        c => c.type === NodeType.ASSIGNMENT && c.key === 'namespace' && c.value
+        (c) => c.type === NodeType.ASSIGNMENT && c.key === 'namespace' && c.value
     );
-    const declaredNamespaces = new Set(namespaceDecls.map(d => String(d.value)));
+    const declaredNamespaces = new Set(namespaceDecls.map((d) => String(d.value)));
 
-    const errors: Array<{ code: string; message: string; range?: any }> = [];
+    const errors: Array<{ code: string; message: string; range?: Range }> = [];
 
     if (declaredNamespaces.size === 0) {
         errors.push({
@@ -661,154 +644,6 @@ export function validateNamespaceDeclaration(
                     range: eventNode.range,
                 });
             }
-        }
-    }
-
-    return errors;
-}
-
-/**
- * Content type classification for block fingerprinting.
- * Used to detect when content is placed in the wrong directory.
- */
-export type ContentType = 'event' | 'decision' | 'character_interaction' | 'on_action' | 'unknown';
-
-/** Keys that fingerprint a block as a decision */
-const DECISION_FINGERPRINTS = new Set([
-    'is_shown', 'is_valid', 'is_valid_showing_failures_only',
-]);
-
-/** Keys that fingerprint a block as a character interaction */
-const INTERACTION_FINGERPRINTS = new Set([
-    'on_accept', 'on_decline', 'category', 'can_send',
-    'send_option', 'greeting', 'notification_text',
-]);
-
-/** Keys that fingerprint a block as an on-action */
-const ON_ACTION_FINGERPRINTS = new Set([
-    'random_events', 'first_valid', 'events', 'on_actions',
-]);
-
-/** Event ID pattern: word.digits */
-const EVENT_ID_PATTERN = /^[a-zA-Z_][a-zA-Z0-9_]*\.\d+$/;
-
-/**
- * Classify what type of content a top-level block looks like
- * based on its structural fingerprint (child keys and key pattern).
- *
- * This is a heuristic — it checks for characteristic child keys
- * that distinguish events from decisions, interactions, and on-actions.
- */
-export function classifyBlockContentType(node: ASTNode): ContentType {
-    if (!node.children || node.children.length === 0) return 'unknown';
-
-    const childKeys = new Set(
-        node.children
-            .map(c => c.key)
-            .filter((k): k is string => Boolean(k))
-    );
-
-    // Events: key matches namespace.number AND has a `type` child with an event type value
-    if (node.key && EVENT_ID_PATTERN.test(node.key)) {
-        const typeChild = node.children.find(c => c.key === 'type' && c.value);
-        if (typeChild && EVENT_TYPES.has(String(typeChild.value))) {
-            return 'event';
-        }
-        // Even without a valid type, the namespace.number pattern strongly suggests event
-        return 'event';
-    }
-
-    // Decision: has is_shown, is_valid, or is_valid_showing_failures_only
-    for (const fp of DECISION_FINGERPRINTS) {
-        if (childKeys.has(fp)) return 'decision';
-    }
-
-    // Character interaction: has on_accept, on_decline, category, can_send, etc.
-    // Require at least 2 fingerprints to avoid false positives
-    let interactionScore = 0;
-    for (const fp of INTERACTION_FINGERPRINTS) {
-        if (childKeys.has(fp)) interactionScore++;
-    }
-    if (interactionScore >= 2) return 'character_interaction';
-
-    // On-action: has random_events, first_valid, events, on_actions
-    for (const fp of ON_ACTION_FINGERPRINTS) {
-        if (childKeys.has(fp)) return 'on_action';
-    }
-
-    return 'unknown';
-}
-
-/**
- * Directory-to-expected-content-type mapping.
- * Maps directory path segments to the content type they should contain.
- */
-const DIRECTORY_CONTENT_MAP: Array<{ pathSegment: string; expectedType: ContentType; label: string }> = [
-    { pathSegment: '/events/', expectedType: 'event', label: 'events/' },
-    { pathSegment: '/common/decisions/', expectedType: 'decision', label: 'common/decisions/' },
-    { pathSegment: '/common/character_interactions/', expectedType: 'character_interaction', label: 'common/character_interactions/' },
-    { pathSegment: '/common/on_actions/', expectedType: 'on_action', label: 'common/on_actions/' },
-];
-
-/** Human-readable labels for content types */
-const CONTENT_TYPE_LABELS: Record<ContentType, string> = {
-    event: 'event',
-    decision: 'decision',
-    character_interaction: 'character interaction',
-    on_action: 'on-action',
-    unknown: 'unknown',
-};
-
-/**
- * Validate that top-level blocks in a file match the expected content type
- * for the directory the file is in.
- *
- * - EVENT-017: Non-event content detected in events/ directory
- *   (e.g., a decision block with is_shown/is_valid in events/)
- * - EVENT-018: Event content detected in non-event directory
- *   (e.g., a namespace.0001 block in common/decisions/)
- */
-export function validateContentTypePlacement(
-    rootNode: ASTNode,
-    documentUri: string,
-): Array<{ code: string; message: string; range?: any }> {
-    const normalized = documentUri.replace(/\\/g, '/').toLowerCase();
-    const children = rootNode.children || [];
-    if (children.length === 0) return [];
-
-    // Determine what directory this file is in
-    let expectedType: ContentType | null = null;
-    let dirLabel = '';
-    for (const mapping of DIRECTORY_CONTENT_MAP) {
-        if (normalized.includes(mapping.pathSegment)) {
-            expectedType = mapping.expectedType;
-            dirLabel = mapping.label;
-            break;
-        }
-    }
-
-    // If we can't determine the directory type, skip validation
-    if (!expectedType) return [];
-
-    const errors: Array<{ code: string; message: string; range?: any }> = [];
-
-    // Check each top-level block (skip assignments like `namespace = X`)
-    for (const child of children) {
-        if (!child.children || child.children.length === 0) continue;
-
-        const detectedType = classifyBlockContentType(child);
-        if (detectedType === 'unknown') continue;
-
-        if (detectedType !== expectedType) {
-            const detectedLabel = CONTENT_TYPE_LABELS[detectedType];
-            const expectedLabel = CONTENT_TYPE_LABELS[expectedType];
-            const code = expectedType === 'event' ? 'EVENT-017' : 'EVENT-018';
-
-            errors.push({
-                code,
-                message: `Block '${child.key || '(unnamed)'}' looks like a ${detectedLabel} (not a ${expectedLabel}) — it is in '${dirLabel}' directory where ${expectedLabel} content is expected`,
-                range: child.range,
-            });
         }
     }
 

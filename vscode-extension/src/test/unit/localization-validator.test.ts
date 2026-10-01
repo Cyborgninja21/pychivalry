@@ -3,14 +3,17 @@
  */
 
 import * as assert from 'assert';
+import * as path from 'path';
 import {
     validateLocalizationContent,
+    validateLocalizationKeys,
     DEFAULT_LOC_VALIDATION_CONFIG,
     isCharacterFunction,
     isTextFormattingCode,
     LocalizationValidationConfig,
 } from '../../server/ck3/localization/validator';
-import { LocalizationEntry } from '../../server/core/localization-index';
+import { LocalizationEntry } from 'pychivalry-engine';
+import { DataLoader } from '../../server/data/loader';
 
 function makeEntry(text: string, overrides: Partial<LocalizationEntry> = {}): LocalizationEntry {
     return {
@@ -23,12 +26,13 @@ function makeEntry(text: string, overrides: Partial<LocalizationEntry> = {}): Lo
     };
 }
 
-function makeConfig(overrides: Partial<LocalizationValidationConfig> = {}): LocalizationValidationConfig {
+function makeConfig(
+    overrides: Partial<LocalizationValidationConfig> = {}
+): LocalizationValidationConfig {
     return { ...DEFAULT_LOC_VALIDATION_CONFIG, ...overrides };
 }
 
 describe('Localization Validator', () => {
-
     describe('isCharacterFunction()', () => {
         it('recognises GetName', () => {
             assert.ok(isCharacterFunction('GetName'));
@@ -60,12 +64,15 @@ describe('Localization Validator', () => {
     describe('bracket validation', () => {
         it('flags unbalanced brackets (LOC-005)', () => {
             const diags = validateLocalizationContent(makeEntry('[ROOT.GetName'), makeConfig());
-            assert.ok(diags.some(d => d.code === 'LOC-005'));
+            assert.ok(diags.some((d) => d.code === 'LOC-005'));
         });
 
         it('passes balanced brackets', () => {
-            const diags = validateLocalizationContent(makeEntry('[ROOT.GetName] is here'), makeConfig());
-            const bracketErrors = diags.filter(d => d.code === 'LOC-005');
+            const diags = validateLocalizationContent(
+                makeEntry('[ROOT.GetName] is here'),
+                makeConfig()
+            );
+            const bracketErrors = diags.filter((d) => d.code === 'LOC-005');
             assert.strictEqual(bracketErrors.length, 0);
         });
     });
@@ -74,46 +81,40 @@ describe('Localization Validator', () => {
         it('accepts valid function calls', () => {
             const diags = validateLocalizationContent(
                 makeEntry('[ROOT.GetName] gains gold'),
-                makeConfig(),
+                makeConfig()
             );
-            const funcErrors = diags.filter(d => d.code === 'LOC-002');
+            const funcErrors = diags.filter((d) => d.code === 'LOC-002');
             assert.strictEqual(funcErrors.length, 0);
         });
 
         it('flags unknown function names (LOC-002)', () => {
             const diags = validateLocalizationContent(
                 makeEntry('[ROOT.GetFrobnicate] fails'),
-                makeConfig(),
+                makeConfig()
             );
-            assert.ok(diags.some(d => d.code === 'LOC-002'));
+            assert.ok(diags.some((d) => d.code === 'LOC-002'));
         });
 
         it('accepts scope chains', () => {
             const diags = validateLocalizationContent(
                 makeEntry('[scope:target.GetName]'),
-                makeConfig(),
+                makeConfig()
             );
-            const funcErrors = diags.filter(d => d.code === 'LOC-002');
+            const funcErrors = diags.filter((d) => d.code === 'LOC-002');
             assert.strictEqual(funcErrors.length, 0);
         });
     });
 
     describe('formatting code validation', () => {
         it('accepts known formatting codes', () => {
-            const diags = validateLocalizationContent(
-                makeEntry('#bold text #!'),
-                makeConfig(),
-            );
-            const fmtErrors = diags.filter(d => d.code === 'LOC-003');
+            const diags = validateLocalizationContent(makeEntry('#bold text #!'), makeConfig());
+            const fmtErrors = diags.filter((d) => d.code === 'LOC-003');
             assert.strictEqual(fmtErrors.length, 0);
         });
 
         it('flags unknown formatting codes (LOC-003)', () => {
-            const diags = validateLocalizationContent(
-                makeEntry('#rainbow text'),
-                makeConfig(),
-            );
-            assert.ok(diags.some(d => d.code === 'LOC-003'));
+            const diags = validateLocalizationContent(makeEntry('#rainbow text'), makeConfig());
+            assert.ok(diags.some((d) => d.code === 'LOC-003'));
         });
     });
 
@@ -121,18 +122,18 @@ describe('Localization Validator', () => {
         it('accepts known built-in icons', () => {
             const diags = validateLocalizationContent(
                 makeEntry('Gain @gold_icon! gold'),
-                makeConfig(),
+                makeConfig()
             );
-            const iconErrors = diags.filter(d => d.code === 'LOC-004');
+            const iconErrors = diags.filter((d) => d.code === 'LOC-004');
             assert.strictEqual(iconErrors.length, 0);
         });
 
         it('flags unknown icons (LOC-004)', () => {
             const diags = validateLocalizationContent(
                 makeEntry('Gain @nonexistent_icon!'),
-                makeConfig(),
+                makeConfig()
             );
-            assert.ok(diags.some(d => d.code === 'LOC-004'));
+            assert.ok(diags.some((d) => d.code === 'LOC-004'));
         });
     });
 
@@ -140,27 +141,24 @@ describe('Localization Validator', () => {
         it('accepts valid variable references', () => {
             const diags = validateLocalizationContent(
                 makeEntry('You gain $GOLD$ coins'),
-                makeConfig(),
+                makeConfig()
             );
-            const varErrors = diags.filter(d => d.code === 'LOC-007');
+            const varErrors = diags.filter((d) => d.code === 'LOC-007');
             assert.strictEqual(varErrors.length, 0);
         });
 
         it('accepts valid format specifiers', () => {
-            const diags = validateLocalizationContent(
-                makeEntry('$VALUE|+$ change'),
-                makeConfig(),
-            );
-            const varErrors = diags.filter(d => d.code === 'LOC-007');
+            const diags = validateLocalizationContent(makeEntry('$VALUE|+$ change'), makeConfig());
+            const varErrors = diags.filter((d) => d.code === 'LOC-007');
             assert.strictEqual(varErrors.length, 0);
         });
 
         it('flags unknown format specifiers (LOC-007)', () => {
             const diags = validateLocalizationContent(
                 makeEntry('$VALUE|ZZZZ$ change'),
-                makeConfig(),
+                makeConfig()
             );
-            assert.ok(diags.some(d => d.code === 'LOC-007'));
+            assert.ok(diags.some((d) => d.code === 'LOC-007'));
         });
     });
 
@@ -168,7 +166,7 @@ describe('Localization Validator', () => {
         it('returns no diagnostics when all disabled', () => {
             const diags = validateLocalizationContent(
                 makeEntry('[ROOT.GetFrobnicate] #rainbow @bad_icon! $bad|ZZ$'),
-                makeConfig({ enabled: false }),
+                makeConfig({ enabled: false })
             );
             assert.strictEqual(diags.length, 0);
         });
@@ -176,10 +174,57 @@ describe('Localization Validator', () => {
         it('skips function checks when disabled', () => {
             const diags = validateLocalizationContent(
                 makeEntry('[ROOT.GetFrobnicate]'),
-                makeConfig({ checkFunctions: false }),
+                makeConfig({ checkFunctions: false })
             );
-            const funcErrors = diags.filter(d => d.code === 'LOC-002');
+            const funcErrors = diags.filter((d) => d.code === 'LOC-002');
             assert.strictEqual(funcErrors.length, 0);
+        });
+    });
+
+    describe('key format (LOC-001)', () => {
+        it('flags keys the localization index cannot read', () => {
+            const text = [
+                'l_english:',
+                ' 123_invalid_key:0 "Leading digit"',
+                ' Invalid-Key-With-Dashes:0 "Dashes"',
+                ' Invalid Key With Spaces:0 "Spaces"',
+                ' valid_key.t:0 "Fine"',
+                ' REQUEST_FAVOR_NOTIFICATION:0 "Upper case is fine"',
+                ' no_version: "No version digits is fine"',
+                ' # comment:0 "ignored"',
+            ].join('\n');
+            const diags = validateLocalizationKeys(text);
+            assert.deepStrictEqual(
+                diags.map((d) => [d.range.start.line, d.code]),
+                [
+                    [1, 'LOC-001'],
+                    [2, 'LOC-001'],
+                    [3, 'LOC-001'],
+                ]
+            );
+        });
+    });
+
+    describe('text icons (LOC-004)', () => {
+        before(async () => {
+            const repoData = path.resolve(__dirname, '..', '..', '..', '..', 'data');
+            await DataLoader.getInstance(repoData).initialize(repoData);
+        });
+
+        it('accepts known text icons', () => {
+            const diags = validateLocalizationContent(
+                makeEntry('You receive £gold£100 and £prestige|1£50.'),
+                makeConfig()
+            );
+            assert.strictEqual(diags.filter((d) => d.code === 'LOC-004').length, 0);
+        });
+
+        it('flags unknown text icons', () => {
+            const diags = validateLocalizationContent(
+                makeEntry('Invalid £gld£ icon and £prestge£ typo'),
+                makeConfig()
+            );
+            assert.strictEqual(diags.filter((d) => d.code === 'LOC-004').length, 2);
         });
     });
 });

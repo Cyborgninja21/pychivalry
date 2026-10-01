@@ -3,7 +3,11 @@
  */
 
 import * as assert from 'assert';
-import { DiagnosticSeverity } from 'vscode-languageserver/node';
+import {
+    Connection,
+    DiagnosticSeverity,
+    PublishDiagnosticsParams,
+} from 'vscode-languageserver/node';
 import { LogDiagnosticConverter } from '../../server/log/diagnostics';
 import { LogAnalysisResult } from '../../server/log/analyzer';
 
@@ -24,18 +28,20 @@ function makeResult(overrides: Partial<LogAnalysisResult> = {}): LogAnalysisResu
 }
 
 // Minimal mock connection for tests
-function mockConnection(): any {
-    const published: Array<{ uri: string; diagnostics: any[] }> = [];
-    return {
-        sendDiagnostics: (params: { uri: string; diagnostics: any[] }) => {
+type MockConnection = Connection & { _published: PublishDiagnosticsParams[] };
+
+function mockConnection(): MockConnection {
+    const published: PublishDiagnosticsParams[] = [];
+    const mock = {
+        sendDiagnostics: (params: PublishDiagnosticsParams) => {
             published.push(params);
         },
         _published: published,
     };
+    return mock as unknown as MockConnection;
 }
 
 describe('LogDiagnosticConverter', () => {
-
     describe('convertToDiagnostic()', () => {
         it('creates a diagnostic from a result with source location', () => {
             const conn = mockConnection();
@@ -67,8 +73,10 @@ describe('LogDiagnosticConverter', () => {
             const conn = mockConnection();
             const converter = new LogDiagnosticConverter(conn, []);
             const diag = converter.convertToDiagnostic(makeResult());
-            assert.ok((diag as any).data);
-            assert.deepStrictEqual((diag as any).data.suggestions, ['add_gold']);
+            assert.ok(diag!.data);
+            assert.deepStrictEqual((diag!.data as { suggestions: string[] }).suggestions, [
+                'add_gold',
+            ]);
         });
     });
 
@@ -85,7 +93,7 @@ describe('LogDiagnosticConverter', () => {
             converter.clearAllLogDiagnostics();
 
             // Should have sent empty diagnostics
-            const cleared = conn._published.filter((p: any) => p.diagnostics.length === 0);
+            const cleared = conn._published.filter((p) => p.diagnostics.length === 0);
             assert.ok(cleared.length > 0, 'Should send empty diagnostics');
         });
     });

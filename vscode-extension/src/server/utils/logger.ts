@@ -9,8 +9,8 @@ interface LogSink {
     error(message: string): void;
 }
 
-function formatArgs(args: any[]): string {
-    return args.map(a => typeof a === 'string' ? a : String(a)).join(' ');
+function formatArgs(args: unknown[]): string {
+    return args.map((a) => (typeof a === 'string' ? a : String(a))).join(' ');
 }
 
 class ServerLogger {
@@ -21,7 +21,7 @@ class ServerLogger {
         this.connection = conn.console;
     }
 
-    log(...args: any[]): void {
+    log(...args: unknown[]): void {
         const msg = formatArgs(args);
         if (this.connection) {
             this.connection.log(msg);
@@ -30,7 +30,7 @@ class ServerLogger {
         }
     }
 
-    warn(...args: any[]): void {
+    warn(...args: unknown[]): void {
         const msg = formatArgs(args);
         if (this.connection) {
             this.connection.warn(msg);
@@ -39,7 +39,7 @@ class ServerLogger {
         }
     }
 
-    error(...args: any[]): void {
+    error(...args: unknown[]): void {
         const msg = formatArgs(args);
         if (this.connection) {
             this.connection.error(msg);
