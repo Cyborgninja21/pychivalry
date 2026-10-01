@@ -1,7 +1,7 @@
 /**
  * Types of the CK3 spec package (pdx-parser-re `spec/package/ck3-spec-<version>.json`).
  *
- * They mirror `spec/schema.json` (package_format 1). Only the shapes the engine reads are
+ * They mirror `spec/schema.json` (package_format 2). Only the shapes the engine reads are
  * typed in detail; everything else is kept as plain data.
  */
 
@@ -123,11 +123,37 @@ export interface NoiseEntry {
     reason: string;
 }
 
+/** Buckets a keyword template may register names in (schema.json `keywordTemplate`). */
+export const KEYWORD_TEMPLATE_BUCKETS = ['triggers', 'effects', 'links', 'lists'] as const;
+export type KeywordTemplateBucket = (typeof KEYWORD_TEMPLATE_BUCKETS)[number];
+
+/**
+ * A trigger/effect family the engine registers once per key of a database at load time
+ * (`has_relation_%s` per scripted relation). (template, keys) is the identity: the same
+ * template string can be filled from two databases (`%s_perks`).
+ */
+export interface KeywordTemplate {
+    /** Name with one `%s` slot. */
+    template: string;
+    bucket: KeywordTemplateBucket;
+    /** Database folder whose top-level keys fill `%s` (a path in `directories`). */
+    keys: string;
+    /** The registrar's built-in documentation. */
+    doc: string;
+}
+
+/** A name that fills a keyword template, and the database key in its slot. */
+export interface KeywordTemplateMatch {
+    template: KeywordTemplate;
+    key: string;
+}
+
 export interface SpecPackage {
-    package_format: 1;
+    package_format: 2;
     manifest: Manifest;
     buckets: Record<Bucket, Record<string, BucketEntry>>;
     modifier_templates: string[];
+    keyword_templates: KeywordTemplate[];
     iterator_prefixes: string[];
     multi_bucket: Record<string, Bucket[]>;
     directories: DirectoryEntry[];

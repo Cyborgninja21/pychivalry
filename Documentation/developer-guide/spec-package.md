@@ -7,26 +7,27 @@ identified by its sha256, and bundled by the engine core (`packages/engine`). No
 effect, scope, modifier, directory or error text is hand-maintained in this repository.
 
 The bundled package is CK3 **1.20.0.2** (`ck3-1.20.0.2.exe`, sha256 `AE1BA6FF…E81B2D`; package
-JSON sha256 `f43f2aec…1465e1a`).
+JSON sha256 `18239875…3246673`).
 
 ## Format
 
-`package_format` 1. The package's own JSON Schema (draft 2020-12) is vendored as
+`package_format` 2 (2 adds `keyword_templates`). The package's own JSON Schema (draft 2020-12) is vendored as
 `packages/engine/spec/schema.json`; `validateSpecPackage()` in the engine checks a package
 against it at load time. Top-level keys:
 
 | Key | Content (1.20.0.2 counts) |
 | --- | --- |
-| `package_format` | Format version (1). |
+| `package_format` | Format version (2). |
 | `manifest` | Game, version, the executable's name, size and sha256, the address ranges of the token and modifier tables, the tool versions (Ghidra, ghidra-cli, the analysis profile hash), the sha256 of every source file and the generation date. |
-| `buckets` | Six keyword buckets, each a map from name to `{doc}` (the engine's own documentation string, empty where the engine has none): `triggers` 1,442, `effects` 1,011, `links` 283, `lists` 355, `on_actions` 203, `modifiers` 609 (the modifier table, entries tagged `provenance`). |
+| `buckets` | Six keyword buckets, each a map from name to `{doc}` (the engine's own documentation string, empty where the engine has none): `triggers` 1,447, `effects` 1,007, `links` 312, `lists` 377, `on_actions` 203, `modifiers` 609 (the modifier table, entries tagged `provenance`). |
 | `modifier_templates` | 79 executable name templates (`stationed_%s_damage_mult`) for modifier names generated per database entry at load time. |
+| `keyword_templates` | 13 trigger/effect families the engine registers once per key of a database at load time: `{template, bucket, keys, doc}`, e.g. `has_relation_%s` (triggers, keys `common/scripted_relations`), `add_%s_xp` (effects, keys `common/lifestyles`, filled with `diplomacy_lifestyle`). (template, keys) is the identity: `%s_perks` is listed for `common/lifestyles` and `common/dynasty_legacies`. |
 | `iterator_prefixes` | `any_`, `every_`, `random_`, `ordered_`; an iterator is a prefix plus a name in `lists` (never `links`). |
-| `multi_bucket` | 115 names registered in more than one bucket; lookups are by (name, context). |
+| `multi_bucket` | 133 names registered in more than one bucket; lookups are by (name, context). |
 | `directories` | 227 script directories: path, content type, load level, whether vanilla has files there, since which version. |
 | `schema` | Per-directory record schema for 185 directories: allowed fields with their kind (`value`, `block`, `list`, `trigger_block`, `effect_block`, `enum`, `reference`), provenance (`engine` or `vanilla` in 1.20.0.2), vanilla usage counts, and `required` only where a parser message proves the engine checks it (`required_evidence`). |
 | `errors` | The error-message catalogue: 1,967 parser and loader messages with a stable id, category, the exact text and since which version. |
-| `retired` | 11 keywords removed in this version, with the bucket, the replacement (or none) and a note. |
+| `retired` | 16 keywords removed in this version, with the bucket, the replacement (or none) and a note. |
 | `noise_dropped` | Names the string scan found that are not keywords, with the reason they were dropped. |
 | `scope_validity` | Reserved for per-keyword supported scopes; empty until a `script_docs` oracle run fills it (the known gap). |
 
@@ -43,10 +44,9 @@ against it at load time. Top-level keys:
   `message`, `retired`, `scopeValidity` and `version` (see `packages/engine/README.md`).
 - `Spec.withOverlay()` layers extra names over the package (the extension uses it for mods
   found by the mod registry in `data/mods/`); the package's own entries always win.
-- `packages/engine/src/check/supplement.ts` holds 21 names and 11 keyword templates that
-  vanilla 1.20.0.2 uses but this package lacks (string pooling in the executable hid them). It
-  is temporary: pdx-parser-re is being fixed to carry those names, and the supplement is
-  deleted when that package is adopted. Do not add to it.
+- `Workspace.keywordTemplateFor()` accepts a name that fills a `keyword_templates` entry when
+  the slot is a top-level key of a file under the template's `keys` folder in the workspace
+  or the `--vanilla` base game (any fill is accepted when no base game is loaded).
 
 ## Adopting a new CK3 version
 

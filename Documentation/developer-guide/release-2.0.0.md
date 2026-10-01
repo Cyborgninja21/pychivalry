@@ -85,3 +85,31 @@ CLI of the operator's Windows VS Code Insiders, which was not touched):
   'workspaceContains:**/descriptor.mod'`; the CK3: Index channel shows "CK3 spec package
   1.20.0.2 loaded", "Found 54 CK3 files in example mod", "Indexed 54 files", "Workspace
   initialized successfully".
+
+## Step 5.0: corrected spec package adopted
+
+The vendored package was replaced by the corrected one from pdx-parser-re (`agents/ck3-tooling`
+at 9f476ea): package JSON sha256 `18239875f2aba05e10292dd63267567d6ff58dff50d8e55df2e1df4b33246673`
+(was `f43f2aecb0b8357188515a308a8f8dd442b73bab44f90b00061be97f41465e1a`), `package_format` 2,
+13 `keyword_templates`; `src/check/supplement.ts` is deleted. Re-verified on the branch:
+
+- `task ci` exit 0: engine 314 passing, 1 pending; diagnostics reference 42 pages up to date;
+  extension unit tests 297 passing.
+- `xvfb-run -a task test:integration` (VS Code 1.140.0, VS Code host variables unset):
+  96 passing.
+- Vanilla acceptance (`node packages/engine/scripts/vanilla-acceptance.js <game dir>`, CK3
+  1.20.0.2 `common/`, `events/`, `history/`): 4,035 files, one parse error
+  (`history/characters/japanese.txt`), unchanged; registry findings 19 → 14 (the two
+  `has_required_heir_governments` and three `has_scheme_countermeasure_parameter` findings are
+  gone: both names are in the corrected triggers bucket); none added. Record:
+  `packages/engine/test/acceptance/vanilla-1.20.0.2.json`.
+- `npm run package` in `vscode-extension/`: `ck3-language-support-2.0.0.vsix` 1,499,619 bytes,
+  37 zip entries; `dist/extension.js` 372,792 bytes, `dist/server-main.js` 490,401 bytes,
+  `dist/data/engine/ck3-spec.json.gz` 323,169 bytes, `dist/data/engine/schema.json` 14,200
+  bytes, `readme.md` 5,006 bytes (the rewritten user README).
+- Installed into the same VS Code 1.140.0 build (separate `--extensions-dir`/`--user-data-dir`):
+  `cyborgninja21.ck3-language-support@2.0.0`; opening `example mod` activates it on
+  `workspaceContains:**/descriptor.mod` and the CK3: Index channel shows "CK3 spec package
+  1.20.0.2 loaded", "Found 54 CK3 files in example mod", "Indexed 54 files", "Workspace
+  initialized successfully". The bundled server answers `initialize` with
+  `serverInfo {"name":"CK3 Language Server (TypeScript)","version":"2.0.0"}`.

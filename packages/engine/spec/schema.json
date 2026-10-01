@@ -9,6 +9,7 @@
     "manifest",
     "buckets",
     "modifier_templates",
+    "keyword_templates",
     "iterator_prefixes",
     "multi_bucket",
     "directories",
@@ -21,7 +22,8 @@
   "additionalProperties": false,
   "properties": {
     "package_format": {
-      "const": 1
+      "const": 2,
+      "description": "Shape version. 2 (2026-10-01): adds keyword_templates; a format-1 loader rejects the unknown top-level key, hence the bump."
     },
     "manifest": {
       "$ref": "#/$defs/manifest"
@@ -67,6 +69,14 @@
         "pattern": "%s"
       },
       "description": "Exe name templates of the modifier types the engine generates per database entry at load time (e.g. stationed_%s_damage_mult). A modifier name is valid if it is in buckets.modifiers or fills one template with a key of the matching database."
+    },
+    "keyword_templates": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Triggers and effects the engine registers once per key of a database at load time (e.g. has_relation_%s per scripted relation). A name is in the template's bucket when it is the template with %s replaced by a top-level key of a file in the key database folder.",
+      "items": {
+        "$ref": "#/$defs/keywordTemplate"
+      }
     },
     "iterator_prefixes": {
       "type": "array",
@@ -558,6 +568,40 @@
         },
         "reason": {
           "type": "string"
+        }
+      }
+    },
+    "keywordTemplate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "template",
+        "bucket",
+        "keys",
+        "doc"
+      ],
+      "properties": {
+        "template": {
+          "type": "string",
+          "pattern": "^[a-z_]*%s[a-z_]*$",
+          "description": "name with one %s slot"
+        },
+        "bucket": {
+          "enum": [
+            "triggers",
+            "effects",
+            "links",
+            "lists"
+          ]
+        },
+        "keys": {
+          "type": "string",
+          "pattern": "^common/",
+          "description": "database folder whose top-level keys fill %s; a path in directories"
+        },
+        "doc": {
+          "type": "string",
+          "description": "the registrar's built-in documentation"
         }
       }
     }

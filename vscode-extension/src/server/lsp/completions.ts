@@ -310,8 +310,14 @@ export class CompletionProvider {
         return out;
     }
 
+    /**
+     * Links after `x.`. The package registers `root` (a chain head, in STRUCTURAL) and the
+     * boolean values `yes`/`no` as links too; none of them is offered as a chain segment.
+     */
     private links(): CompletionItem[] {
-        return this.bucketItems('links', CompletionItemKind.Reference, '1');
+        return this.bucketItems('links', CompletionItemKind.Reference, '1').filter(
+            (c) => !STRUCTURAL.has(c.label) && c.label !== 'yes' && c.label !== 'no'
+        );
     }
 
     private values(key: string): CompletionItem[] {

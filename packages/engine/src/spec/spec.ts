@@ -3,7 +3,7 @@
  *
  * One Spec per workspace, constructed once. Every lookup the checks make is O(1) on maps
  * built at load time; the modifier templates are compiled into one anchored regular
- * expression.
+ * expression, the keyword templates into one anchored expression each (templatePattern).
  */
 
 import * as crypto from 'crypto';
@@ -18,6 +18,8 @@ import {
     DirectoryEntry,
     ErrorEntry,
     IteratorMatch,
+    KeywordTemplate,
+    KeywordTemplateMatch,
     ModifierMatch,
     RetiredEntry,
     SchemaEntry,
@@ -25,6 +27,17 @@ import {
     SpecOverlay,
 } from './types';
 import { validateSpecPackage } from './validate';
+
+/**
+ * The regular-expression source of a `%s` name template: the literal parts escaped and each
+ * `%s` replaced by `slot`. Shared by the modifier and keyword template matchers.
+ */
+export function templatePattern(template: string, slot: string): string {
+    return template
+        .split('%s')
+        .map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+        .join(slot);
+}
 
 /** printf-style and fmt-style placeholders the catalogue texts use, in order of appearance. */
 const PLACEHOLDER = /%\.\*s|%[sdiuxXf]|\{\}/g;
@@ -48,6 +61,7 @@ export class Spec {
     private readonly prefixes: string[];
     private readonly templateRegex: RegExp | undefined;
     private readonly multi = new Map<string, Bucket[]>();
+    private readonly keywordTemplateRegexes: Array<{ template: KeywordTemplate; regex: RegExp }>;
     private messagePatterns: Array<{ id: string; length: number; regex: RegExp }> | undefined;
 
     constructor(data: SpecPackage, source = '<memory>') {
@@ -79,14 +93,13 @@ export class Spec {
         // Longest prefix first so 'ordered_' never loses to a shorter overlapping prefix.
         this.prefixes = [...data.iterator_prefixes].sort((a, b) => b.length - a.length);
 
-        const alternatives = data.modifier_templates.map((t) =>
-            t
-                .split('%s')
-                .map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
-                .join('[a-z0-9_]+')
-        );
+        const alternatives = data.modifier_templates.map((t) => templatePattern(t, '[a-z0-9_]+'));
         this.templateRegex =
             alternatives.length > 0 ? new RegExp(`^(?:${alternatives.join('|')})$`) : undefined;
+        this.keywordTemplateRegexes = data.keyword_templates.map((template) => ({
+            template,
+            regex: new RegExp(`^${templatePattern(template.template, '([A-Za-z0-9_]+)')}$`),
+        }));
     }
 
     /**
@@ -208,6 +221,36 @@ export class Spec {
             return 'template';
         }
         return undefined;
+    }
+
+    /** The package's keyword templates (`has_relation_%s` per scripted relation, …). */
+    public keywordTemplates(): readonly KeywordTemplate[] {
+        return this.data.keyword_templates;
+    }
+
+    /** The database folders whose top-level keys fill the keyword templates' slots. */
+    public keywordTemplateKeyDirectories(): string[] {
+        return Array.from(new Set(this.data.keyword_templates.map((t) => t.keys)));
+    }
+
+    /**
+     * Every keyword template `name` fills (optionally only those of `bucket`), with the text
+     * in its `%s` slot. Whether that text is a key of the template's database is for the
+     * caller to decide (Workspace.keywordTemplateFor); a template string listed for two
+     * databases yields one match per (template, keys).
+     */
+    public keywordTemplateMatches(name: string, bucket?: Bucket): KeywordTemplateMatch[] {
+        const out: KeywordTemplateMatch[] = [];
+        for (const { template, regex } of this.keywordTemplateRegexes) {
+            if (bucket !== undefined && template.bucket !== bucket) {
+                continue;
+            }
+            const m = regex.exec(name);
+            if (m) {
+                out.push({ template, key: m[1] });
+            }
+        }
+        return out;
     }
 
     /**

@@ -1,6 +1,6 @@
 /**
  * Structural validation of a spec package, mirroring the package's own `schema.json`
- * (package_format 1) without a third-party JSON Schema validator.
+ * (package_format 2) without a third-party JSON Schema validator.
  *
  * The checks are the ones the engine relies on: every required key is present with the
  * right type, enumerations hold only known values, and cross references the loader
@@ -8,7 +8,14 @@
  * is rejected with every problem listed, not just the first.
  */
 
-import { BUCKETS, Bucket, FIELD_KINDS, SINCE_VALUES, SpecPackage } from './types';
+import {
+    BUCKETS,
+    Bucket,
+    FIELD_KINDS,
+    KEYWORD_TEMPLATE_BUCKETS,
+    SINCE_VALUES,
+    SpecPackage,
+} from './types';
 
 export class SpecValidationError extends Error {
     public readonly problems: string[];
@@ -42,6 +49,8 @@ const BUCKET_SET: ReadonlySet<string> = new Set(BUCKETS);
 const KIND_SET: ReadonlySet<string> = new Set(FIELD_KINDS);
 const SINCE_SET: ReadonlySet<string> = new Set(SINCE_VALUES);
 const ITERATOR_PREFIXES: ReadonlySet<string> = new Set(['any_', 'every_', 'random_', 'ordered_']);
+const KEYWORD_TEMPLATE_BUCKET_SET: ReadonlySet<string> = new Set(KEYWORD_TEMPLATE_BUCKETS);
+const KEYWORD_TEMPLATE = /^[a-z_]*%s[a-z_]*$/;
 const DIRECTORY_SOURCES: ReadonlySet<string> = new Set([
     'scriptable_systems',
     'exe_loader_path',
@@ -53,6 +62,7 @@ const TOP_LEVEL_KEYS = [
     'manifest',
     'buckets',
     'modifier_templates',
+    'keyword_templates',
     'iterator_prefixes',
     'multi_bucket',
     'directories',
@@ -277,6 +287,38 @@ function checkSchema(c: Checker, s: Json, directoryPaths: ReadonlySet<string>): 
     }
 }
 
+function checkKeywordTemplates(c: Checker, k: Json, directoryPaths: ReadonlySet<string>): void {
+    if (!Array.isArray(k) || k.length === 0) {
+        c.fail('keyword_templates', 'expected a non-empty array');
+        return;
+    }
+    const seen = new Set<string>();
+    k.forEach((t: Json, i: number) => {
+        const where = `keyword_templates[${i}]`;
+        if (!isObject(t)) {
+            c.fail(where, 'expected an object');
+            return;
+        }
+        c.requireKeys(where, t, ['template', 'bucket', 'keys', 'doc']);
+        c.onlyKeys(where, t, ['template', 'bucket', 'keys', 'doc']);
+        c.string(`${where}.template`, t.template, KEYWORD_TEMPLATE);
+        c.oneOf(`${where}.bucket`, t.bucket, KEYWORD_TEMPLATE_BUCKET_SET);
+        c.string(`${where}.keys`, t.keys, /^common\//);
+        c.string(`${where}.doc`, t.doc);
+        if (isString(t.keys) && !directoryPaths.has(t.keys)) {
+            c.fail(`${where}.keys`, `'${t.keys}' is not a path in directories`);
+        }
+        if (isString(t.template) && isString(t.keys) && isString(t.bucket)) {
+            // (template, keys) is the identity; one bucket per pair.
+            const id = `${t.template} ${t.keys} ${t.bucket}`;
+            if (seen.has(id)) {
+                c.fail(where, `duplicate template '${t.template}' for '${t.keys}'`);
+            }
+            seen.add(id);
+        }
+    });
+}
+
 /**
  * Validate parsed JSON as a spec package. Throws SpecValidationError listing every
  * problem; returns the data typed as SpecPackage when it passes.
@@ -288,8 +330,8 @@ export function validateSpecPackage(data: unknown): SpecPackage {
     }
     c.requireKeys('root', data, TOP_LEVEL_KEYS);
     c.onlyKeys('root', data, TOP_LEVEL_KEYS);
-    if (data.package_format !== 1) {
-        c.fail('package_format', 'expected 1');
+    if (data.package_format !== 2) {
+        c.fail('package_format', 'expected 2');
     }
     checkManifest(c, data.manifest);
     checkBuckets(c, data.buckets);
@@ -371,6 +413,7 @@ export function validateSpecPackage(data: unknown): SpecPackage {
     }
 
     checkSchema(c, data.schema, directoryPaths);
+    checkKeywordTemplates(c, data.keyword_templates, directoryPaths);
 
     if (!Array.isArray(data.errors) || data.errors.length === 0) {
         c.fail('errors', 'expected a non-empty array');

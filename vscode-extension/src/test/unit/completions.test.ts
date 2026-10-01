@@ -7,7 +7,7 @@ import * as path from 'path';
 import { CK3Parser, defaultSpec, Indexer, SymbolType, Workspace } from 'pychivalry-engine';
 import { CompletionProvider } from '../../server/lsp/completions';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { Position } from 'vscode-languageserver/node';
+import { CompletionItemKind, Position } from 'vscode-languageserver/node';
 import { testUri } from './helpers/uri';
 
 describe('CompletionProvider', () => {
@@ -169,6 +169,33 @@ describe('CompletionProvider', () => {
                     ? resolved.documentation
                     : (resolved.documentation?.value ?? '');
             assert.ok(value.includes(defaultSpec().doc('add_gold', 'effects') ?? '<none>'));
+        });
+    });
+
+    describe('links and booleans', () => {
+        it('offers links after x. but not root, yes or no', async () => {
+            const doc = createDocument('t.1 = {\n\ttrigger = {\n\t\tscope:actor.\n\t}\n}');
+            const labels = (await provider.provideCompletions(doc, Position.create(2, 14))).map(
+                (c) => c.label
+            );
+            assert.ok(labels.includes('liege'));
+            assert.ok(labels.includes('compare_value'));
+            for (const name of ['root', 'yes', 'no']) {
+                assert.ok(!labels.includes(name), name);
+            }
+        });
+
+        it('offers yes/no once each, as boolean values', async () => {
+            const doc = createDocument('t.1 = {\n\ttrigger = {\n\t\tis_alive = \n\t}\n}');
+            const items = await provider.provideCompletions(doc, Position.create(2, 13));
+            const booleans = items.filter((c) => c.label === 'yes' || c.label === 'no');
+            assert.deepStrictEqual(
+                booleans.map((c) => [c.label, c.kind]),
+                [
+                    ['yes', CompletionItemKind.Constant],
+                    ['no', CompletionItemKind.Constant],
+                ]
+            );
         });
     });
 

@@ -69,8 +69,9 @@ Where a trigger or effect context opens comes from the package's per-directory s
 `check/contexts.ts` for positions the schema does not cover (`limit`, `if`, iterator bodies,
 `random_list`, …). The body of an unknown key is not read further. The short calibrated
 tables in `check/structural.ts` (8 structural keys, 44 iterator parameters, 7 modifier-block
-parameters) are the minimum vanilla 1.20.0.2 needs to check clean; `check/supplement.ts`
-holds 21 names and 11 templates the 1.20.0.2 package lacks (temporary, see
+parameters) are the minimum vanilla 1.20.0.2 needs to check clean. Per-database keywords
+(`has_relation_friend`, `add_diplomacy_lifestyle_xp`) are accepted through the package's
+`keyword_templates` when the slot is a key of the template's database (see
 [the spec package](../spec-package.md)).
 
 ## 4. Schema check (`check/schema.ts`)

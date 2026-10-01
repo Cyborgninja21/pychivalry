@@ -7,7 +7,7 @@
  * 1. Parses every .txt under common/, events/ and history/ and records the file count, the
  *    parse time and every parse error.
  * 2. Loads the same tree as a workspace and runs the registry, schema and scope checks over
- *    it (the calibration of src/check/structural.ts, contexts.ts and supplement.ts),
+ *    it (the calibration of src/check/structural.ts and contexts.ts),
  *    recording the count per catalogue id and every error-level diagnostic.
  * Writes the record as JSON (default test/acceptance/vanilla-<spec version>.json). Paths in
  * the record are relative to the game directory; no game text is copied into it.

@@ -48,10 +48,10 @@ describe('Spec loader', () => {
             modifiers: spec.names('modifiers').length,
         };
         assert.deepStrictEqual(sizes, {
-            triggers: 1442,
-            effects: 1011,
-            links: 283,
-            lists: 355,
+            triggers: 1447,
+            effects: 1007,
+            links: 312,
+            lists: 377,
             on_actions: 203,
             modifiers: 609,
         });
@@ -81,7 +81,7 @@ describe('Spec loader', () => {
             assert.fail('vendored package is not an object');
         }
         delete broken.retired;
-        Object.assign(broken, { package_format: 2 });
+        Object.assign(broken, { package_format: 1 });
         try {
             validateSpecPackage(broken);
             assert.fail('expected a validation error');
@@ -131,6 +131,48 @@ describe('Spec loader', () => {
             assert.strictEqual(spec.isModifier('stationed_heavy_infantry_damage_mult'), 'template');
             assert.strictEqual(spec.isModifier('mountains_advantage'), 'template');
             assert.strictEqual(spec.isModifier('not_a_modifier_at_all_mult_x'), undefined);
+        });
+
+        it('keyword templates: (template, keys) is the identity', () => {
+            assert.strictEqual(spec.data.package_format, 2);
+            assert.strictEqual(spec.keywordTemplates().length, 13);
+            assert.deepStrictEqual(spec.keywordTemplateKeyDirectories().sort(), [
+                'common/dynasty_legacies',
+                'common/lifestyles',
+                'common/scripted_relations',
+            ]);
+            const relation = spec.keywordTemplateMatches('has_relation_friend', 'triggers');
+            assert.deepStrictEqual(
+                relation.map((m) => [m.template.template, m.template.keys, m.key]),
+                [['has_relation_%s', 'common/scripted_relations', 'friend']]
+            );
+            assert.deepStrictEqual(
+                spec.keywordTemplateMatches('has_relation_friend', 'effects'),
+                []
+            );
+            const perks = spec.keywordTemplateMatches('diplomacy_lifestyle_perks', 'triggers');
+            assert.deepStrictEqual(perks.map((m) => [m.template.keys, m.key]).sort(), [
+                ['common/dynasty_legacies', 'diplomacy_lifestyle'],
+                ['common/lifestyles', 'diplomacy_lifestyle'],
+            ]);
+            assert.deepStrictEqual(
+                spec
+                    .keywordTemplateMatches('add_diplomacy_lifestyle_xp', 'effects')
+                    .map((m) => m.key),
+                ['diplomacy_lifestyle']
+            );
+        });
+
+        it('the recovered names are in their buckets', () => {
+            for (const name of ['age', 'always', 'has_activity_intent']) {
+                assert.ok(spec.has(name, 'triggers'), name);
+            }
+            for (const name of ['secret_owner', 'real_father', 'root', 'yes', 'no']) {
+                assert.ok(spec.has(name, 'links'), name);
+            }
+            for (const name of ['trait', 'tenet', 'doctrine', 'decision']) {
+                assert.ok(spec.has(name, 'lists'), name);
+            }
         });
 
         it('directoryOf uses the longest matching directory', () => {

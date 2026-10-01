@@ -231,6 +231,105 @@ describe('DiagnosticsEngine', () => {
             );
         });
 
+        describe('keyword templates', () => {
+            const baseGame = (): Workspace =>
+                new Workspace(VIRTUAL_ROOT, {
+                    vanilla: path.join(
+                        packageRoot(),
+                        'test',
+                        'fixtures',
+                        'engine-test-mods',
+                        'unknown_effect'
+                    ),
+                });
+            const run = (
+                ws: Workspace,
+                text: string,
+                others: Record<string, string>
+            ): Diagnostic[] => {
+                for (const [file, content] of Object.entries(others)) {
+                    ws.indexFile(path.join(VIRTUAL_ROOT, file), content);
+                }
+                return diagnose(ws, path.join(VIRTUAL_ROOT, 'events/test.txt'), { text });
+            };
+            const relations = {
+                'common/scripted_relations/r.txt': 'friend = { opposites = { rival } }',
+            };
+
+            it('has_relation_friend is accepted when the workspace defines friend', () => {
+                const diags = run(
+                    baseGame(),
+                    event(
+                        ['has_relation_friend = root', 'num_of_relation_friend > 1'],
+                        ['set_relation_friend = root', 'remove_relation_friend = root']
+                    ),
+                    relations
+                );
+                assert.deepStrictEqual(diags, []);
+            });
+
+            it('a fill that is not a key of the database is unknown with a base game', () => {
+                const diags = run(
+                    baseGame(),
+                    event(['has_relation_not_a_relation_xyz = root'], ['add_gold = 1']),
+                    relations
+                );
+                assert.deepStrictEqual(
+                    diags.map((d) => d.message),
+                    ["Unknown trigger 'has_relation_not_a_relation_xyz'"]
+                );
+            });
+
+            it('(template, keys) is the identity: %s_perks from two databases', () => {
+                const diags = run(
+                    baseGame(),
+                    event(
+                        [
+                            'diplomacy_lifestyle_perks > 1',
+                            'kin_legacy_track_perks > 1',
+                            'kin_legacy_track_xp > 1',
+                        ],
+                        ['add_diplomacy_lifestyle_xp = 10', 'add_kin_legacy_track_xp = 10']
+                    ),
+                    {
+                        'common/lifestyles/l.txt': 'diplomacy_lifestyle = { }',
+                        'common/dynasty_legacies/d.txt': 'kin_legacy_track = { }',
+                    }
+                );
+                // %s_xp and add_%s_xp are filled from common/lifestyles only.
+                assert.deepStrictEqual(
+                    diags.map((d) => d.message),
+                    [
+                        "Unknown trigger 'kin_legacy_track_xp'",
+                        "Unknown effect 'add_kin_legacy_track_xp'",
+                    ]
+                );
+            });
+
+            it('without a base game any fill is accepted (the vanilla keys are unknown)', () => {
+                const diags = check(
+                    event(['has_relation_friend = root'], ['add_intrigue_lifestyle_xp = 5'])
+                );
+                assert.deepStrictEqual(diags, []);
+            });
+        });
+
+        it('yes/no as values and root as a chain head are not reported as links', () => {
+            const diags = check(
+                event(
+                    [
+                        'always = yes',
+                        'is_alive = no',
+                        'root = { is_alive = yes }',
+                        'root.father = { is_alive = yes }',
+                        'scope:x.root = { is_alive = yes }',
+                    ],
+                    ['root = { add_gold = 1 }', 'save_scope_as = x']
+                )
+            );
+            assert.deepStrictEqual(diags, []);
+        });
+
         it('modifier blocks: static table, templates, unknown names', () => {
             const text = [
                 'my_trait = {',

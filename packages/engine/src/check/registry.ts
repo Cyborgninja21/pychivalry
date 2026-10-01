@@ -31,7 +31,6 @@ import {
     VALUE_FIELDS,
 } from './contexts';
 import { ChildContext, ITERATOR_PARAMS, MODIFIER_BLOCK_PARAMS, STRUCTURAL } from './structural';
-import { supplementHas } from './supplement';
 import { CheckInput, Diagnostic, Severity } from './types';
 
 export type Context = 'trigger' | 'effect';
@@ -362,11 +361,12 @@ class RegistryWalker {
             }
             return;
         }
-        if (spec.has(key, 'links') || supplementHas(key, 'links')) {
+        if (spec.has(key, 'links') || workspace.keywordTemplateFor(key, 'links')) {
             this.descend(node, 'same', ctx);
             return;
         }
-        if (supplementHas(key, bucket)) {
+        if (workspace.keywordTemplateFor(key, bucket)) {
+            // A per-database keyword (`has_relation_friend`, `add_diplomacy_lifestyle_xp`).
             this.descend(node, 'none', ctx);
             return;
         }
@@ -474,11 +474,11 @@ class RegistryWalker {
         return this.input.spec.schemaOf('events')?.fields.option?.fields;
     }
 
-    /** An iterator base: a registered list, a supplement list or a scripted list. */
+    /** An iterator base: a registered list, a templated list or a scripted list. */
     private isList(base: string): boolean {
         return (
             this.input.spec.has(base, 'lists') ||
-            supplementHas(base, 'lists') ||
+            this.input.workspace.keywordTemplateFor(base, 'lists') !== undefined ||
             this.input.workspace.isDefined(base, SymbolType.SCRIPTED_LIST)
         );
     }

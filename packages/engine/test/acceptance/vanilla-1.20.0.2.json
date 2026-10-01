@@ -13,7 +13,7 @@
         "files": 4035,
         "filesWithBom": 3363,
         "errors": 1,
-        "milliseconds": 4379,
+        "milliseconds": 5042,
         "errorList": [
             {
                 "file": "history/characters/japanese.txt",
@@ -25,31 +25,19 @@
         ]
     },
     "checks": {
-        "milliseconds": 17804,
+        "milliseconds": 27231,
         "countsBySeverityAndCode": {
             "information undefined_event_target_X": 10522,
-            "error unknown_trigger_X": 15,
+            "error unknown_trigger_X": 10,
             "error unknown_effect_X": 4
         },
-        "errors": 19,
+        "errors": 14,
         "errorList": [
             {
                 "file": "common/decisions/00_major_decisions_east_europe.txt",
                 "line": 384,
                 "code": "unknown_trigger_X",
                 "message": "Unknown trigger 'filter'"
-            },
-            {
-                "file": "common/laws/01_title_succession_laws.txt",
-                "line": 267,
-                "code": "unknown_trigger_X",
-                "message": "Unknown trigger 'has_required_heir_governments'"
-            },
-            {
-                "file": "common/script_values/00_scheme_values.txt",
-                "line": 2285,
-                "code": "unknown_trigger_X",
-                "message": "Unknown trigger 'has_scheme_countermeasure_parameter'"
             },
             {
                 "file": "common/scripted_effects/00_laamp_effects.txt",
@@ -62,12 +50,6 @@
                 "line": 614,
                 "code": "unknown_trigger_X",
                 "message": "Unknown trigger 'is_eminent'"
-            },
-            {
-                "file": "common/scripted_effects/00_realm_effects.txt",
-                "line": 93,
-                "code": "unknown_trigger_X",
-                "message": "Unknown trigger 'has_required_heir_governments'"
             },
             {
                 "file": "common/scripted_effects/00_relation_effects.txt",
@@ -116,18 +98,6 @@
                 "line": 807,
                 "code": "unknown_trigger_X",
                 "message": "Unknown trigger 'secret_is_blackmailable_weak_hook_trigger'"
-            },
-            {
-                "file": "common/scripted_triggers/00_scheme_triggers.txt",
-                "line": 808,
-                "code": "unknown_trigger_X",
-                "message": "Unknown trigger 'has_scheme_countermeasure_parameter'"
-            },
-            {
-                "file": "common/scripted_triggers/00_scheme_triggers.txt",
-                "line": 831,
-                "code": "unknown_trigger_X",
-                "message": "Unknown trigger 'has_scheme_countermeasure_parameter'"
             },
             {
                 "file": "events/artifacts/historical_artifacts_events.txt",

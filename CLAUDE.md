@@ -24,9 +24,8 @@ hard-coded name sets anywhere: query the `Spec` (`has`, `bucketsOf`, `doc`, `isI
 `isModifier`, `directoryOf`, `schemaOf`, `message`, `retired`). Missing names are fixed in
 pdx-parser-re and arrive with the next package.
 
-- Do not edit `packages/engine/spec/` (vendored, checksum-verified) or
-  `packages/engine/src/check/supplement.ts` (21 names and 11 templates the 1.20.0.2 package
-  lacks; deleted when the fixed package is adopted; never add to it).
+- Do not edit `packages/engine/spec/` (vendored, checksum-verified). Per-database keyword
+  families (`has_relation_%s`, `add_%s_xp`) come from the package's `keyword_templates`.
 - `data/` holds only optional game **content** (traits, concepts, icons, animations, the mod
   registry in `data/mods/`) and `data/diagnostics.yaml` (the plug-in code catalogue).
 
@@ -47,7 +46,7 @@ run (`node packages/engine/scripts/vanilla-acceptance.js "<game dir>"`),
 | `spec/` | Load and validate the spec package (`loadSpec`, `defaultSpec`, `Spec`, `withOverlay`, `validateSpecPackage`) |
 | `syntax/` | Lexer, parser (`CK3Parser`, `CachingParser`), `IncrementalParser`, `@[ … ]` expressions; AST with 0-based positions; parse errors carry catalogue ids |
 | `index/` | `Indexer` (symbols, events, references), `CallGraph`, `Workspace` (one spec + one index per mod root), `LocalizationIndex`, mod descriptor |
-| `check/` | `registry.ts` (unknown keyword by name and context, iterators, modifiers, retired names), `schema.ts` (directory fields, required fields, content in the wrong directory), `scope.ts` (scope chains, saved scopes), `contexts.ts`/`context.ts` (trigger vs effect context), `structural.ts` (calibrated tables), `supplement.ts` (temporary) |
+| `check/` | `registry.ts` (unknown keyword by name and context, iterators, modifiers, retired names), `schema.ts` (directory fields, required fields, content in the wrong directory), `scope.ts` (scope chains, saved scopes), `contexts.ts`/`context.ts` (trigger vs effect context), `structural.ts` (calibrated tables) |
 | `diagnostics.ts` | `diagnose(workspace, file, {text, uri, plugins})`: parse → registry → schema → scope → plug-ins |
 | `messages.ts` | `PYCH-` package-local message ids (only where the catalogue has no text) |
 | `cli.ts` | `pychivalry-engine check <modDir> [--spec <file>] [--json] [--vanilla <dir>]` |

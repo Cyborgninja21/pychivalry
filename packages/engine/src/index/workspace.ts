@@ -13,6 +13,7 @@ import * as path from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 
 import { defaultSpec, Spec } from '../spec/spec';
+import { Bucket, KeywordTemplateMatch } from '../spec/types';
 import { ParsedDocument } from '../syntax/ast';
 import { CK3Parser } from '../syntax/parser';
 import { Indexer } from './indexer';
@@ -40,7 +41,11 @@ export interface WorkspaceOptions {
     log?: (message: string) => void;
 }
 
-/** Vanilla directories whose definitions a mod can call by name. */
+/**
+ * Vanilla directories whose definitions a mod can call by name. The databases that fill the
+ * spec package's keyword templates (common/scripted_relations, common/lifestyles …) are
+ * indexed as well (Spec.keywordTemplateKeyDirectories).
+ */
 const VANILLA_INDEXED_DIRS = [
     'common/scripted_effects',
     'common/scripted_triggers',
@@ -263,7 +268,11 @@ export class Workspace {
     }
 
     private loadVanilla(root: string): void {
-        for (const dir of VANILLA_INDEXED_DIRS) {
+        const dirs = new Set([
+            ...VANILLA_INDEXED_DIRS,
+            ...this.spec.keywordTemplateKeyDirectories(),
+        ]);
+        for (const dir of dirs) {
             const files: string[] = [];
             walkFiles(path.join(root, ...dir.split('/')), (n) => n.endsWith('.txt'), files);
             for (const file of files) {
@@ -277,6 +286,39 @@ export class Workspace {
     /** Is `name` defined with one of `types` in the workspace or the vanilla base game? */
     public isDefined(name: string, ...types: SymbolType[]): boolean {
         return this.index.hasSymbol(name, ...types) || this.vanillaIndex.hasSymbol(name, ...types);
+    }
+
+    /**
+     * Is `name` a record key (a top-level key) of a file under `directory` (e.g.
+     * 'common/scripted_relations') in the workspace or the vanilla base game?
+     */
+    public isDatabaseKey(name: string, directory: string): boolean {
+        const marker = `/${directory}/`;
+        const nested: ReadonlySet<SymbolType> = new Set([SymbolType.SCOPE, SymbolType.VARIABLE]);
+        const found = (index: Indexer): boolean =>
+            index
+                .findSymbolsByName(name)
+                .some((s) => !nested.has(s.type) && s.uri.includes(marker));
+        return found(this.index) || found(this.vanillaIndex);
+    }
+
+    /**
+     * The keyword template `name` fills in `bucket` (`has_relation_friend` →
+     * `has_relation_%s` with key `friend`), when its slot holds a key of the template's
+     * database defined in the workspace or the vanilla base game. Without a vanilla base
+     * game the vanilla keys are unknown, so any fill of a template is accepted then (the
+     * first match is returned), as `scope:` names are only judged with one loaded.
+     */
+    public keywordTemplateFor(name: string, bucket: Bucket): KeywordTemplateMatch | undefined {
+        const matches = this.spec.keywordTemplateMatches(name, bucket);
+        if (matches.length === 0) {
+            return undefined;
+        }
+        const defined = matches.find((m) => this.isDatabaseKey(m.key, m.template.keys));
+        if (defined) {
+            return defined;
+        }
+        return this.vanillaRoot === undefined ? matches[0] : undefined;
     }
 }
 

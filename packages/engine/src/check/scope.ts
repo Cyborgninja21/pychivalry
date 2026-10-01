@@ -22,7 +22,6 @@ import { Spec } from '../spec/spec';
 import { ASTNode, NodeType, ScopeChain } from '../syntax/ast';
 import { SymbolType } from '../index/symbols';
 import { messageText } from '../messages';
-import { supplementHas } from './supplement';
 import { CheckInput, Diagnostic, Severity } from './types';
 
 /** Scope references that are not links: the top scope and the current one. */
@@ -102,11 +101,11 @@ class ScopeChecker {
     }
 
     private isLink(name: string): boolean {
-        const { spec } = this.input;
+        const { spec, workspace } = this.input;
         const lower = name.toLowerCase();
         return (
             spec.has(name, 'links') ||
-            supplementHas(name, 'links') ||
+            workspace.keywordTemplateFor(name, 'links') !== undefined ||
             SCOPE_HEADS.has(lower) ||
             spec.has(lower, 'links')
         );
@@ -117,7 +116,7 @@ class ScopeChecker {
         const { spec, workspace } = this.input;
         return (
             spec.has(name, 'triggers') ||
-            supplementHas(name, 'triggers') ||
+            workspace.keywordTemplateFor(name, 'triggers') !== undefined ||
             workspace.isDefined(name, SymbolType.SCRIPT_VALUE)
         );
     }

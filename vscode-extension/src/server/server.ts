@@ -66,6 +66,7 @@ import { InlayHintsProvider } from './lsp/inlay-hints';
 import { SignatureHelpProvider } from './lsp/signature-help';
 import { CallHierarchyProvider } from './lsp/call-hierarchy';
 import { SelectionRangeProvider } from './lsp/selection-range';
+import { extensionVersion } from './version';
 
 /** Server settings pulled from the client (ck3LanguageServer.*). */
 export interface ServerConfig {
@@ -432,7 +433,7 @@ export class CK3LanguageServer {
                 workspaceSymbolProvider: true,
                 executeCommandProvider: { commands: SERVER_COMMANDS },
             },
-            serverInfo: { name: 'CK3 Language Server (TypeScript)', version: '1.1.0' },
+            serverInfo: { name: 'CK3 Language Server (TypeScript)', version: extensionVersion() },
         };
     }
 

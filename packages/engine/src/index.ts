@@ -32,7 +32,6 @@ export type { BlockContext, PositionContext } from './check/context';
 export { checkSchema } from './check/schema';
 export { checkScope, scopeValidity } from './check/scope';
 export { STRUCTURAL, ITERATOR_PARAMS, MODIFIER_BLOCK_PARAMS } from './check/structural';
-export { KEYWORD_TEMPLATES, SPEC_GAPS } from './check/supplement';
 export type { CheckInput } from './check/types';
 
 export { PYCH_MESSAGES, messageText } from './messages';
