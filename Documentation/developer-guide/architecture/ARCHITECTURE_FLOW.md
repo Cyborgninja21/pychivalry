@@ -1,6 +1,6 @@
 # Architecture and flow
 
-pychivalry 2.0.0 is layered: a generated **spec package** describes CK3 1.20.0.2; the
+pychivalry 2.1.0 is layered: a generated **spec package** describes CK3 1.20.0.2; the
 **engine core** (`packages/engine`, `pychivalry-engine`) parses, indexes and checks scripts
 against it; the **VS Code extension** (`vscode-extension`) is a thin client plus a language
 server whose providers and plug-ins sit on the engine. The engine has no dependency on VS Code
@@ -27,14 +27,15 @@ or the LSP libraries and also runs as a CLI. The validation stages are in
 One JSON file per game version, generated from the executable by pdx-parser-re: six keyword
 buckets with the engine's documentation strings, modifier templates, iterator prefixes,
 227 directories with 185 per-directory schemas, the 1,967-message error catalogue, the
-retired-keyword table, and an empty `scope_validity` slot. The engine vendors it gzipped under
+retired-keyword table, and (format 3) the game's own scope documentation: `scope_validity`
+per keyword and the 72 `scope_types`. The engine vendors it gzipped under
 `packages/engine/spec/`; `spec.config.json` names it; the build verifies its sha256.
 
 ### Engine core (`packages/engine/src`)
 
 | Module | Role |
 | --- | --- |
-| `spec/` | `loadSpec`/`defaultSpec` give a `Spec`: `has(name, bucket)`, `bucketsOf`, `doc`, `isIterator`, `listBase`, `isModifier`, `directoryOf`, `schemaOf`, `message(id, …args)`, `retired`, `scopeValidity`, `version`; `withOverlay` layers extra names (mods) over it; `validateSpecPackage` checks a package against its JSON Schema |
+| `spec/` | `loadSpec`/`defaultSpec` give a `Spec`: `has(name, bucket)`, `bucketsOf`, `doc`, `isIterator`, `listBase`, `isModifier`, `directoryOf`, `schemaOf`, `message(id, …args)`, `retired`, `scopeValidity`, `linkForms`, `listElementType`, `scopeTypes`, `version`; `withOverlay` layers extra names (mods) over it; `validateSpecPackage` checks a package against its JSON Schema |
 | `syntax/` | `Lexer`, `CK3Parser`, `CachingParser` (bounded content cache), `IncrementalParser`, `parseExpression`; the AST (`ASTNode`, 0-based ranges, key/value kinds, scope chains) |
 | `index/` | `Indexer` (symbols, events, namespaces, references, saved scopes, the names each file mentions and `dependentsOf(uri)`), `CallGraph` (events, scripted effects/triggers, on_actions), `Workspace` (mod roots, mod-relative paths, the spec and index of a workspace, the base game via `vanilla`/`useVanilla`), `WorkspaceValidator` (`scheduler.ts`: background validation), `LocalizationIndex`, mod descriptor parsing |
 | `check/` | Registry, schema and scope checks plus the context tracker that decides trigger vs effect context |

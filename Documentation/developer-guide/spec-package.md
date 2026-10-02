@@ -7,20 +7,22 @@ identified by its sha256, and bundled by the engine core (`packages/engine`). No
 effect, scope, modifier, directory or error text is hand-maintained in this repository.
 
 The bundled package is CK3 **1.20.0.2** (`ck3-1.20.0.2.exe`, sha256 `AE1BA6FF…E81B2D`; package
-JSON sha256 `18239875…3246673`).
+JSON sha256 `129f67f6…c79c08cbb`, package format 3). Per-keyword scope validity and the scope
+types come from the game itself: the `script_docs` console command run in that build
+(pdx-parser-re `research/oracle/1.20.0.2/`, with its provenance).
 
 ## Format
 
-`package_format` 2 (2 adds `keyword_templates`). The package's own JSON Schema (draft 2020-12) is vendored as
+`package_format` 3 (2 added `keyword_templates`; 3 fills `scope_validity` and adds `scope_types`). The package's own JSON Schema (draft 2020-12) is vendored as
 `packages/engine/spec/schema.json`; `validateSpecPackage()` in the engine checks a package
 against it at load time. Top-level keys:
 
 | Key | Content (1.20.0.2 counts) |
 | --- | --- |
-| `package_format` | Format version (2). |
+| `package_format` | Format version (3). The engine accepts only 3. |
 | `manifest` | Game, version, the executable's name, size and sha256, the address ranges of the token and modifier tables, the tool versions (Ghidra, ghidra-cli, the analysis profile hash), the sha256 of every source file and the generation date. |
-| `buckets` | Six keyword buckets, each a map from name to `{doc}` (the engine's own documentation string, empty where the engine has none): `triggers` 1,447, `effects` 1,007, `links` 312, `lists` 377, `on_actions` 203, `modifiers` 609 (the modifier table, entries tagged `provenance`). |
-| `modifier_templates` | 79 executable name templates (`stationed_%s_damage_mult`) for modifier names generated per database entry at load time. |
+| `buckets` | Six keyword buckets, each a map from name to `{doc}` (the engine's own documentation string, empty where the engine has none): `triggers` 1,447, `effects` 1,007, `links` 312, `lists` 377, `on_actions` 217, `modifiers` 609 (the modifier table, entries tagged `provenance`). |
+| `modifier_templates` | 94 name templates (`stationed_%s_damage_mult`) for modifier names generated per database entry at load time: the 79 executable templates `common/modifier_definition_formats` attests, plus 15 the game's `script_docs` documents that none of them generates (`$VASSAL_STANCE$_ai_boldness` as `%s_ai_boldness`). |
 | `keyword_templates` | 13 trigger/effect families the engine registers once per key of a database at load time: `{template, bucket, keys, doc}`, e.g. `has_relation_%s` (triggers, keys `common/scripted_relations`), `add_%s_xp` (effects, keys `common/lifestyles`, filled with `diplomacy_lifestyle`). (template, keys) is the identity: `%s_perks` is listed for `common/lifestyles` and `common/dynasty_legacies`. |
 | `iterator_prefixes` | `any_`, `every_`, `random_`, `ordered_`; an iterator is a prefix plus a name in `lists` (never `links`). |
 | `multi_bucket` | 133 names registered in more than one bucket; lookups are by (name, context). |
@@ -29,7 +31,8 @@ against it at load time. Top-level keys:
 | `errors` | The error-message catalogue: 1,967 parser and loader messages with a stable id, category, the exact text and since which version. |
 | `retired` | 16 keywords removed in this version, with the bucket, the replacement (or none) and a note. |
 | `noise_dropped` | Names the string scan found that are not keywords, with the reason they were dropped. |
-| `scope_validity` | Reserved for per-keyword supported scopes; empty until a `script_docs` oracle run fills it (the known gap). |
+| `scope_validity` | The game's own scope documentation (`script_docs`), per bucket and name: `triggers` 1,935 and `effects` 2,127 (`supported_scopes`, `supported_targets`, `description`, triggers' `traits`; the list iterators and the per-key names of keyword templates included), `links` 311 names with their `forms` (327: `supported_scopes` = Input Scopes, `supported_targets` = Output Scopes, `requires_data`, `global_link`, `wild_card`), `lists` 377 by base (the any_ iterator's scopes, the element type, the iterator names), `on_actions` 930 (`supported_scopes` = the expected scope, `from_code`). `["none"]` means the keyword declares no scope requirement and is never reported. |
+| `scope_types` | The 72 scope types the game names (`none` excluded): per type the links whose output it is, the lists that iterate it, the on_actions that expect it, how many triggers and effects support it, and its index in the executable's scope-type table. |
 
 ## How the engine uses it
 
@@ -41,7 +44,10 @@ against it at load time. Top-level keys:
   webpack build copies that to `vscode-extension/dist/data/engine/`.
 - At run time `loadSpec()` / `defaultSpec()` give one `Spec` object per workspace with `has`,
   `bucketsOf`, `doc`, `isIterator`, `listBase`, `isModifier`, `directoryOf`, `schemaOf`,
-  `message`, `retired`, `scopeValidity` and `version` (see `packages/engine/README.md`).
+  `message`, `retired`, `scopeValidity(name, bucket)`, `onActionScope`, `linkForms`,
+  `listElementType`, `scopeTypes`, `isScopeType`, `scopeType` and `version` (see
+  `packages/engine/README.md`). The scope resolver (`resolveScopes`) and the scope check read
+  `scope_validity` and `scope_types` only through these.
 - `Spec.withOverlay()` layers extra names over the package (the extension uses it for mods
   found by the mod registry in `data/mods/`); the package's own entries always win.
 - `Workspace.keywordTemplateFor()` accepts a name that fills a `keyword_templates` entry when
@@ -80,8 +86,11 @@ Then, in this repository:
    `spec.config.json` straight at the uncompressed JSON in a pdx-parser-re checkout.
 5. `task engine:test` (unit, golden, corpus and CLI tests), then the vanilla acceptance run
    against the new game files: `node packages/engine/scripts/vanilla-acceptance.js "<game dir>"`
-   (every vanilla `.txt` under `common/`, `events/` and `history/` must parse and check clean;
-   its record is `packages/engine/test/acceptance/vanilla-<version>.json`).
+   (every vanilla `.txt` under `common/`, `events/` and `history/` must parse and check clean,
+   with zero scope findings; its record is `packages/engine/test/acceptance/vanilla-<version>.json`,
+   whose `scope` section counts the keyword uses and link steps the scope check judged).
+   For a new game version the `script_docs` logs are re-captured first (pdx-parser-re
+   `research/oracle/<version>/`, `tools/python/oracle_import.py`).
 6. Update the version strings that name the package (`packages/engine/README.md`, the root
    README, `Documentation/developer-guide/spec-package.md`), regenerate the diagnostics
    reference (`npm run docs:diagnostics`), run `task ci`, and note the adoption in

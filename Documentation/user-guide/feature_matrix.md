@@ -1,6 +1,6 @@
 # Feature matrix
 
-The language server's providers in pychivalry 2.0.0 and what each one does. There are 17
+The language server's providers in pychivalry 2.1.0 and what each one does. There are 17
 provider modules in `vscode-extension/src/server/lsp/`; every one imports only
 `pychivalry-engine` (spec package, parser, index, diagnostics) and the LSP libraries.
 `keyword-docs.ts` and `snippets.ts` in the same folder are shared helpers, not providers.
@@ -15,7 +15,7 @@ named.
 | 2 | `completions.ts` | completion, completionItem/resolve | Trigger block: triggers, `any_` iterators, structural keys; effect block: effects, `every_`/`random_`/`ordered_` iterators, structural keys; inside a record: the directory schema's fields; workspace symbols (events, scripted effects/triggers, saved scopes); documentation is the engine's doc string. | engine |
 | 3 | `hover.ts` | hover | Keywords: the engine doc string verbatim with its bucket (both buckets for the names that are trigger and effect); iterators: their list; record fields: the directory schema entry; events, scripted effects/triggers, saved scopes and localization keys: the index entry. | engine |
 | 4 | `signature-help.ts` | signatureHelp | Parameters of block-form keywords, from the usage example in the engine doc string. | engine; **limited**: only keywords whose doc string has a usage example |
-| 5 | `inlay-hints.ts` | inlayHint, inlayHint/resolve | Saved scopes (`save_scope_as`) and where a `scope:x` reference was saved, from the index. | engine; **limited**: no scope types (the package's `scope_validity` is empty) |
+| 5 | `inlay-hints.ts` | inlayHint, inlayHint/resolve | Scope types from the engine resolver: after each chain step, on iterators and on `save_scope_as`; where a `scope:x` reference was saved, from the index. | engine (`resolveScopes`) |
 | 6 | `semantic-tokens.ts` | semanticTokens/full, semanticTokens/range | Keys classified by bucket (effects, triggers, links, iterators, structural operators), with trigger/effect context from the engine. | engine |
 | 7 | `navigation.ts` | definition, declaration, typeDefinition, implementation, references | Definitions and references of events, scripted effects and triggers, saved scopes and localization keys, across files. | engine (index) |
 | 8 | `symbols.ts` | documentSymbol, workspace/symbol | Document outline by record type; fuzzy workspace symbol search. | engine (index) |

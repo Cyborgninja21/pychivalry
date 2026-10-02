@@ -9,7 +9,7 @@
 pychivalry checks CK3 mod scripts against the game's own vocabulary and error messages, taken
 from the game executable rather than from wiki pages or scraped lists. It ships as a VS Code
 extension (a language server with completion, hover, navigation, formatting and diagnostics)
-and as a command-line checker for whole mod folders. Version 2.0.0 targets CK3 1.20.0.2.
+and as a command-line checker for whole mod folders. Version 2.1.0 targets CK3 1.20.0.2.
 
 ## How it is built
 
@@ -52,8 +52,8 @@ triggers and effects are layered over the spec package when the mod is found.
 ## Install
 
 From a release VSIX: in VS Code, **Extensions → … → Install from VSIX…** and pick
-`ck3-language-support-2.0.0.vsix`, or run
-`code --install-extension ck3-language-support-2.0.0.vsix`.
+`ck3-language-support-2.1.0.vsix`, or run
+`code --install-extension ck3-language-support-2.1.0.vsix`.
 
 From source (Node.js 22 and npm 10):
 
@@ -62,8 +62,8 @@ git clone https://github.com/Cyborgninja21/pychivalry.git
 cd pychivalry
 npm ci                                   # installs the workspace (engine + extension)
 npm run build                            # builds packages/engine
-cd vscode-extension && npm run package   # webpack production build + vsce: ck3-language-support-2.0.0.vsix
-code --install-extension ck3-language-support-2.0.0.vsix
+cd vscode-extension && npm run package   # webpack production build + vsce: ck3-language-support-2.1.0.vsix
+code --install-extension ck3-language-support-2.1.0.vsix
 ```
 
 To try it without packaging, open the repository in VS Code and press **F5** (Extension
@@ -102,16 +102,25 @@ YAML files in `data/traits/` to turn the check off; everything else works withou
 Extracted data is Paradox Interactive's content: keep it for personal use. The extension's
 former extraction commands now only show a notice; the script above replaces them.
 
-## Known gap: per-keyword scope validity
+## Scope validity
 
-pychivalry checks scope **structure**: chains such as `root.liege.primary_title` are resolved
-link by link, `scope:` names must be saved somewhere, iterator prefixes must match a list.
-It does **not** yet check whether a trigger or effect is valid in the scope it is used in
-("`is_landed` is not a valid trigger in a title scope"). That information is not in the
-game executable's tables; it comes from the game's own `script_docs` output, which has not
-been captured for 1.20.0.2. The spec package has the slot (`scope_validity`, empty today),
-so a future package fills it without a code change. Inlay hints therefore show saved-scope
-names, not scope types.
+pychivalry checks scope **structure** (chains such as `root.liege.primary_title` are resolved
+link by link, `scope:` names must be saved somewhere, iterator prefixes must match a list) and,
+since 2.1, whether a trigger, effect or link is valid in the scope it is used in, with the
+game's own messages: `Wrong scope for trigger: landed_title, expected character`, `Wrong scope
+for effect: …`, `Trying to use liege link on an invalid scope province`. The data is the game's
+own documentation: the `script_docs` console command, run in CK3 1.20.0.2 with `-debug_mode`,
+lists every trigger, effect and event target with the scopes it supports, and the spec package
+(format 3) carries it as `scope_validity` and `scope_types`.
+
+The engine infers the scope type of `root` (the directory's root scope, an event's
+`scope = …`, an on_action's documented scope), `this`, `prev`, `scope:x` (from its one save
+site) and each link of a chain, and judges a keyword only when every input is known. It
+stays silent where it cannot know: scripted triggers and effects (they run in the caller's
+scope), parameter blocks, keywords the game documents as `Supported Scopes: none`, and four
+directories whose root scope the wiki-era data gets wrong (story cycles, factions, casus belli
+types, buildings). On the 4,035 vanilla files it reports nothing. Inlay hints show the inferred
+types: after each chain step, on iterators and on `save_scope_as`.
 
 ## Whole-mod diagnostics
 
