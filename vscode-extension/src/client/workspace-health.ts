@@ -282,3 +282,46 @@ export function parentFolderUris(uri: string, roots: readonly string[] = []): st
     }
     return out;
 }
+
+// ── status bar (#84) ────────────────────────────────────────────────────
+
+/** The health item's text: totals, with a spinner and done/total while a pass runs. */
+export function statusBarText(s: HealthSummary): string {
+    const counts = `$(error) ${s.errors} $(warning) ${s.warnings}`;
+    return s.state === 'running' ? `$(sync~spin) ${s.done}/${s.total} ${counts}` : counts;
+}
+
+/** Background colour id following the worst severity (undefined = default). */
+export function statusBarBackground(
+    s: HealthSummary
+): 'statusBarItem.errorBackground' | 'statusBarItem.warningBackground' | undefined {
+    if (s.errors > 0) {
+        return 'statusBarItem.errorBackground';
+    }
+    if (s.warnings > 0) {
+        return 'statusBarItem.warningBackground';
+    }
+    return undefined;
+}
+
+/** Tooltip lines: counts, files affected, the last full pass, the running pass. */
+export function statusBarTooltip(
+    s: HealthSummary,
+    formatTime: (ms: number) => string = (ms) => new Date(ms).toLocaleTimeString()
+): string {
+    const lines = [
+        `CK3 workspace: ${s.errors} errors, ${s.warnings} warnings, ${s.information} information`,
+        `Files with errors or warnings: ${s.filesAffected}`,
+        s.lastFullPassAt !== undefined
+            ? `Last full validation: ${formatTime(s.lastFullPassAt)}`
+            : 'No full validation yet',
+    ];
+    if (s.state === 'running') {
+        lines.push(`Validating: ${s.done}/${s.total} files`);
+    }
+    if (s.limited) {
+        lines.push('Only open files are validated (above backgroundValidation.fileLimit)');
+    }
+    lines.push('Click to open the Problems panel');
+    return lines.join('\n');
+}

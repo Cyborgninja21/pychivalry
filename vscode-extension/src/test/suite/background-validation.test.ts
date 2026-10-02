@@ -73,6 +73,14 @@ suite('Background validation', () => {
         assert.strictEqual(api.decorations.provideFileDecoration(readme), undefined);
     });
 
+    test('the status bar shows the workspace totals once idle (#84)', () => {
+        const summary = api.health.summary();
+        assert.strictEqual(
+            api.healthStatusBar.text,
+            `$(error) ${summary.errors} $(warning) ${summary.warnings}`
+        );
+    });
+
     test('the run state reached idle with every file done', () => {
         const state = api.health.lastState;
         assert.ok(state, 'a state event arrived');

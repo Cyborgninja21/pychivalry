@@ -6,7 +6,7 @@
  */
 
 import * as vscode from 'vscode';
-import { CK3StatusBar } from './statusBar';
+import { CK3HealthStatusBar, CK3StatusBar } from './statusBar';
 import { logger } from './logger';
 import { registerCommands } from './client/commands';
 import { createLogChannels, disposeLogChannels } from './client/log-channels';
@@ -22,6 +22,8 @@ export interface CK3ExtensionApi {
     activatedAt: number;
     /** The Explorer decoration provider (#87). */
     decorations: CK3FileDecorationProvider;
+    /** The workspace health status bar item (#84). */
+    healthStatusBar: CK3HealthStatusBar;
 }
 
 let controller: ServerController | undefined;
@@ -33,9 +35,11 @@ export async function activate(context: vscode.ExtensionContext): Promise<CK3Ext
     // Keys are VS Code's own spelling of a URI, so decorations find them by uri.toString().
     const health = new WorkspaceHealth((uri) => vscode.Uri.parse(uri).toString());
     const decorations = new CK3FileDecorationProvider(health);
+    const healthStatusBar = new CK3HealthStatusBar(health);
     context.subscriptions.push(
         decorations,
-        vscode.window.registerFileDecorationProvider(decorations)
+        vscode.window.registerFileDecorationProvider(decorations),
+        healthStatusBar
     );
     const statusBar = new CK3StatusBar();
     context.subscriptions.push(statusBar);
@@ -96,7 +100,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<CK3Ext
     );
 
     logger.logServer('CK3 Language Server extension activated');
-    return { health, activatedAt, decorations };
+    return { health, activatedAt, decorations, healthStatusBar };
 }
 
 export async function deactivate(): Promise<void> {

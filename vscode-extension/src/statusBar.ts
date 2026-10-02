@@ -1,4 +1,10 @@
 import * as vscode from 'vscode';
+import {
+    statusBarBackground,
+    statusBarText,
+    statusBarTooltip,
+    WorkspaceHealth,
+} from './client/workspace-health';
 
 export type ServerState = 'starting' | 'running' | 'stopped' | 'error';
 
@@ -52,5 +58,46 @@ export class CK3StatusBar {
 
     dispose(): void {
         this.statusBarItem.dispose();
+    }
+}
+
+/**
+ * The workspace health item (#84), next to the server item: error and warning totals of
+ * the whole workspace from background validation, a spinner with done/total while a pass
+ * runs, the colour of the worst severity. Click opens the Problems panel (VS Code has no
+ * public API to set its filter, so it opens unfiltered).
+ */
+export class CK3HealthStatusBar implements vscode.Disposable {
+    private readonly item: vscode.StatusBarItem;
+    private readonly subscription: { dispose(): void };
+
+    constructor(private readonly health: WorkspaceHealth) {
+        this.item = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 99);
+        this.item.command = 'workbench.action.problems.focus';
+        this.subscription = health.onDidChange(() => this.update());
+        this.update();
+    }
+
+    /** The text shown now (for tests). */
+    public get text(): string {
+        return this.item.text;
+    }
+
+    private update(): void {
+        const summary = this.health.summary();
+        if (summary.state === 'unknown' && this.health.keys().length === 0) {
+            this.item.hide();
+            return;
+        }
+        this.item.text = statusBarText(summary);
+        this.item.tooltip = statusBarTooltip(summary);
+        const background = statusBarBackground(summary);
+        this.item.backgroundColor = background ? new vscode.ThemeColor(background) : undefined;
+        this.item.show();
+    }
+
+    public dispose(): void {
+        this.subscription.dispose();
+        this.item.dispose();
     }
 }
