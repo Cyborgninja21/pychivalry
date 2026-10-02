@@ -174,6 +174,50 @@ function childKeys(node: ASTNode): string[] {
     return keys;
 }
 
+/** Options of an index. */
+export interface IndexerOptions {
+    /**
+     * Record the names each file mentions (keys, values and their segments), the basis of
+     * dependentsOf(). On by default; off for an index nobody asks for dependents (the
+     * vanilla base game's).
+     */
+    trackMentions?: boolean;
+}
+
+const WHOLE_TOKEN_SPLIT = /[^A-Za-z0-9_.]+/;
+const SEGMENT_SPLIT = /[^A-Za-z0-9_]+/;
+const NUMERIC = /^[0-9.]+$/;
+
+/**
+ * The names a key or value mentions: the token itself, its parts between operators and
+ * prefixes (`scope:actor` → `actor`, keeping dotted event ids whole) and its dot segments
+ * (`root.my_list` → `my_list`). Numbers are left out.
+ */
+function mentionedNames(token: string, out: Set<string>): void {
+    out.add(token);
+    for (const part of token.split(WHOLE_TOKEN_SPLIT)) {
+        if (part !== '' && !NUMERIC.test(part)) {
+            out.add(part);
+        }
+    }
+    for (const part of token.split(SEGMENT_SPLIT)) {
+        if (part !== '' && !NUMERIC.test(part)) {
+            out.add(part);
+        }
+    }
+}
+
+/**
+ * Is a symbol a definition other files can depend on? Event namespaces are not, nor are the
+ * other top-level keys of an event file that are not event records (its namespace line).
+ */
+function isDependencyDefinition(symbol: IndexSymbol): boolean {
+    if (symbol.type === SymbolType.NAMESPACE) {
+        return false;
+    }
+    return symbol.type !== SymbolType.EVENT || EVENT_RECORD_ID.test(symbol.name);
+}
+
 function traverse(node: ASTNode, callback: (node: ASTNode) => void): void {
     callback(node);
     for (const child of node.children ?? []) {
@@ -195,6 +239,14 @@ export class Indexer {
     /** References to names without a definition when they were indexed. */
     private unresolved: Map<string, ReferenceLocation[]> = new Map();
     private callGraph: CallGraph = new CallGraph(this);
+    /** Names each file mentions (uri → names) and the reverse (name → uris). */
+    private mentionsByUri: Map<string, Set<string>> = new Map();
+    private mentionIndex: Map<string, Set<string>> = new Map();
+    private readonly trackMentions: boolean;
+
+    constructor(options: IndexerOptions = {}) {
+        this.trackMentions = options.trackMentions ?? true;
+    }
 
     /**
      * Index a document's symbols (asynchronous signature kept for the extension's callers).
@@ -222,6 +274,9 @@ export class Indexer {
         this.extractEventMetadata(uri, ast);
         this.extractReferences(uri, ast);
         this.callGraph.buildFromAST(uri, ast);
+        if (this.trackMentions) {
+            this.extractMentions(uri, ast);
+        }
     }
 
     /**
@@ -237,6 +292,84 @@ export class Indexer {
             this.symbols.delete(uri);
         }
         this.clearEnhancedData(uri);
+        this.clearMentions(uri);
+    }
+
+    private extractMentions(uri: string, ast: ASTNode): void {
+        const names = new Set<string>();
+        traverse(ast, (node) => {
+            if (node.key) {
+                mentionedNames(node.key, names);
+            }
+            if (typeof node.value === 'string' && node.value !== '') {
+                mentionedNames(node.value, names);
+            }
+        });
+        this.mentionsByUri.set(uri, names);
+        for (const name of names) {
+            let uris = this.mentionIndex.get(name);
+            if (!uris) {
+                uris = new Set();
+                this.mentionIndex.set(name, uris);
+            }
+            uris.add(uri);
+        }
+    }
+
+    private clearMentions(uri: string): void {
+        const names = this.mentionsByUri.get(uri);
+        if (!names) {
+            return;
+        }
+        for (const name of names) {
+            const uris = this.mentionIndex.get(name);
+            if (uris) {
+                uris.delete(uri);
+                if (uris.size === 0) {
+                    this.mentionIndex.delete(name);
+                }
+            }
+        }
+        this.mentionsByUri.delete(uri);
+    }
+
+    /**
+     * The files whose diagnostics may change when `uri` changes: every other indexed file
+     * that mentions a name `uri` defines (a scripted effect or trigger it calls, an event it
+     * fires, a saved scope it reads, a script value, a list ...), plus the reference and
+     * call-graph sites of those names. `extraNames` adds names the file defined before
+     * its last edit, so that callers of a definition that was just removed are included.
+     * Event namespaces (and an event file's namespace line) are not counted as
+     * definitions. Sorted.
+     */
+    public dependentsOf(uri: string, extraNames: Iterable<string> = []): string[] {
+        const names = new Set<string>(extraNames);
+        for (const symbol of this.getDocumentSymbols(uri)) {
+            if (isDependencyDefinition(symbol)) {
+                names.add(symbol.name);
+            }
+        }
+        const out = new Set<string>();
+        for (const name of names) {
+            for (const other of this.mentionIndex.get(name) ?? []) {
+                out.add(other);
+            }
+            for (const location of this.references.get(name)?.locations ?? []) {
+                out.add(location.uri);
+            }
+            for (const edge of this.callGraph.getIncomingCalls(name)) {
+                out.add(edge.sourceUri);
+            }
+        }
+        out.delete(uri);
+        return Array.from(out).sort();
+    }
+
+    /** Names a file defines (its symbols except event namespaces), for dependentsOf(). */
+    public definedNames(uri: string): string[] {
+        return this.getDocumentSymbols(uri)
+            .filter(isDependencyDefinition)
+            .map((s) => s.name);
     }
 
     private removeFrom<K>(map: Map<K, IndexSymbol[]>, key: K, uri: string): void {
@@ -295,6 +428,8 @@ export class Indexer {
         this.eventsByNamespace.clear();
         this.references.clear();
         this.unresolved.clear();
+        this.mentionsByUri.clear();
+        this.mentionIndex.clear();
     }
 
     /** Find symbols by name */

@@ -137,7 +137,7 @@ export class Workspace {
     /** Index of the workspace's own files. */
     public readonly index: Indexer = new Indexer();
     /** Index of the vanilla base game's callable definitions (empty without --vanilla). */
-    public readonly vanillaIndex: Indexer = new Indexer();
+    public readonly vanillaIndex: Indexer = new Indexer({ trackMentions: false });
     private currentVanillaRoot: string | undefined;
 
     private readonly workspaceFolders = new Map<string, WorkspaceFolder>();

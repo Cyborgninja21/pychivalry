@@ -365,4 +365,54 @@ describe('DocumentIndexer', () => {
             assert.ok(indexer.findSymbolsByName('my_mod.0099').length > 0);
         });
     });
+
+    describe('dependentsOf()', () => {
+        const effects = 'file:///mod/common/scripted_effects/fx.txt';
+        const a = 'file:///mod/events/a.txt';
+        const b = 'file:///mod/events/b.txt';
+        const c = 'file:///mod/events/c.txt';
+        const saver = 'file:///mod/events/saver.txt';
+        const reader = 'file:///mod/events/reader.txt';
+
+        beforeEach(async () => {
+            await parseAndIndex(effects, 'fx_one = { add_gold = 1 }\nfx_two = { }');
+            await parseAndIndex(a, 'namespace = a\na.1 = { immediate = { fx_one = yes } }');
+            await parseAndIndex(b, 'namespace = b\nb.1 = { immediate = { fx_two = yes } }');
+            await parseAndIndex(c, 'namespace = c\nc.1 = { immediate = { add_gold = 1 } }');
+            await parseAndIndex(saver, 's.1 = { immediate = { save_scope_as = my_saved } }');
+            await parseAndIndex(
+                reader,
+                'r.1 = { trigger = { scope:my_saved = { is_adult = yes } } }'
+            );
+        });
+
+        it('lists the files that mention a name the file defines, not the file itself', () => {
+            assert.deepStrictEqual(indexer.dependentsOf(effects), [a, b]);
+            assert.deepStrictEqual(indexer.dependentsOf(c), []);
+        });
+
+        it('follows scope:name reads of a saved scope', () => {
+            assert.deepStrictEqual(indexer.dependentsOf(saver), [reader]);
+        });
+
+        it('counts the event ids a file defines, not its namespace', async () => {
+            await parseAndIndex(
+                'file:///mod/events/caller.txt',
+                'namespace = a\nx.1 = { immediate = { trigger_event = a.1 } }'
+            );
+            assert.deepStrictEqual(indexer.dependentsOf(a), ['file:///mod/events/caller.txt']);
+        });
+
+        it('includes callers of names given as previously defined', async () => {
+            await parseAndIndex(effects, 'fx_three = { }');
+            assert.deepStrictEqual(indexer.dependentsOf(effects), []);
+            assert.deepStrictEqual(indexer.dependentsOf(effects, ['fx_one']), [a]);
+            assert.deepStrictEqual(indexer.definedNames(effects), ['fx_three']);
+        });
+
+        it('forgets a removed document', () => {
+            indexer.removeDocument(a);
+            assert.deepStrictEqual(indexer.dependentsOf(effects), [b]);
+        });
+    });
 });

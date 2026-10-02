@@ -24,6 +24,14 @@ export {
 } from './index/workspace';
 export type { ModDescriptor, WorkspaceFolder, WorkspaceOptions } from './index/workspace';
 export { LocalizationIndex, isLocalizationFile } from './index/localization';
+export { WorkspaceValidator } from './index/scheduler';
+export type {
+    ValidationProgress,
+    ValidationState,
+    ValidatorSettings,
+    ValidatorStats,
+    WorkspaceValidatorOptions,
+} from './index/scheduler';
 export type { LocalizationEntry } from './index/localization';
 
 export { checkRegistry, blockContexts } from './check/registry';
