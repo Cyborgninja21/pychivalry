@@ -395,7 +395,9 @@ export class CK3LanguageServer {
         );
         c.languages.inlayHint.on((p: InlayHintParams) =>
             doc(p.textDocument.uri, 'Inlay hint', [] as InlayHint[], (d) =>
-                this.inlayHints.provideInlayHints(d, p.range)
+                this.config.inlayHints.enabled
+                    ? this.inlayHints.provideInlayHints(d, p.range)
+                    : Promise.resolve([] as InlayHint[])
             )
         );
         c.languages.inlayHint.resolve((hint) =>
@@ -763,6 +765,7 @@ export class CK3LanguageServer {
                 logWatcher: merge(this.config.logWatcher, s.logWatcher),
             };
         }
+        this.inlayHints.updateSettings(this.config.inlayHints);
     }
 
     private async onDidChangeConfiguration(): Promise<void> {

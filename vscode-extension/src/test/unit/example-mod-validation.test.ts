@@ -108,8 +108,8 @@ export const CODE_CHANGES: Record<string, CodeChange> = {
         why: 'invalid scope chain: the engine scope check walks chains link by link',
     },
     'SCOPE-006': {
-        now: [],
-        why: 'list base valid in another scope type: per-keyword scope validity is the accepted gap (empty scope_validity); unknown list bases are unknown_trigger_X/unknown_effect_X',
+        now: ['wrong_scope_for_trigger_X_expected_X', 'wrong_scope_for_effect_X_expected_X'],
+        why: "iterator used in a scope its list does not support: the engine's scope check, on the game's own scope_validity (2.1); unknown list bases are unknown_trigger_X/unknown_effect_X",
     },
     'SCOPE-007': {
         now: [],

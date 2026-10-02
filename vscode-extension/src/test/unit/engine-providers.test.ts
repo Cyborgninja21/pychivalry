@@ -129,7 +129,7 @@ describe('Providers on the engine (4.2)', () => {
         assert.strictEqual(help.activeParameter, 1);
     });
 
-    it('inlay hints: a scope:x reference names where x is saved (no scope type)', async () => {
+    it('inlay hints: a scope:x reference names where x is saved (its type is unknown there)', async () => {
         const workspace = new Workspace(path.resolve('/mod'));
         const parser = new CK3Parser({ spec: workspace.spec });
         const saver = 'a.1 = {\n\timmediate = {\n\t\tsave_scope_as = my_target\n\t}\n}';
@@ -146,6 +146,46 @@ describe('Providers on the engine (4.2)', () => {
             labels.join(', ')
         );
         assert.ok(!labels.some((l) => l.includes('character')), 'no guessed scope types');
+    });
+
+    it('inlay hints: scope types after chain steps, on iterators and saved scopes', async () => {
+        const workspace = new Workspace(path.resolve('/mod'));
+        const parser = new CK3Parser({ spec: workspace.spec });
+        const text = [
+            'a.3 = {',
+            '\ttype = character_event',
+            '\timmediate = {',
+            '\t\troot.primary_title.holder = { add_gold = 1 }',
+            '\t\tevery_held_title = { save_scope_as = t }',
+            '\t}',
+            '}',
+        ].join('\n');
+        const doc = TextDocument.create(testUri('/mod/events/c.txt'), 'ck3', 1, text);
+        const provider = new InlayHintsProvider(parser, workspace);
+        const range = { start: { line: 0, character: 0 }, end: { line: 10, character: 0 } };
+        const at = (hints: Awaited<ReturnType<typeof provider.provideInlayHints>>) =>
+            hints.map((h) => `${h.position.line}:${h.position.character}${String(h.label)}`);
+        const all = at(await provider.provideInlayHints(doc, range));
+        // root: character, .primary_title: landed_title, .holder: character
+        assert.ok(all.includes('3:6: character'), all.join(' | '));
+        assert.ok(all.includes('3:20: landed_title'), all.join(' | '));
+        assert.ok(all.includes('3:27: character'), all.join(' | '));
+        // the iterator's element type and the type save_scope_as saves
+        assert.ok(all.includes('4:18: landed_title'), all.join(' | '));
+        assert.ok(
+            all.some(
+                (h) =>
+                    h.startsWith('4:') && h.endsWith(': landed_title') && h !== '4:18: landed_title'
+            ),
+            all.join(' | ')
+        );
+        provider.updateSettings({
+            showChainTypes: false,
+            showIteratorTypes: false,
+            showScopeTypes: false,
+        });
+        const none = at(await provider.provideInlayHints(doc, range));
+        assert.ok(!none.some((h) => /character|landed_title/.test(h)), none.join(' | '));
     });
 
     it('semantic tokens: classify against the spec buckets', async () => {
