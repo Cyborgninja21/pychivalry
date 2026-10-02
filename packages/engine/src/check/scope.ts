@@ -1,7 +1,19 @@
 /**
- * Scope structure checks. Per-keyword scope validity is not checked: the spec package's
- * scope_validity is empty until an oracle run fills it (review issue S1); `scopeValidity`
- * exposes that slot so the check can be added without a redesign.
+ * Scope checks: structure, and per-keyword scope validity from the game's own `script_docs`
+ * documentation (spec package format 3, `scope_validity`), on the scope types the resolver
+ * (scope-types.ts) infers.
+ *
+ *   wrong_scope_for_trigger_X_expected_X   (error) a trigger used where the current scope
+ *   wrong_scope_for_effect_X_expected_X    type is not among its supported scopes; the
+ *                              game prints the same text ("Wrong scope for trigger:
+ *                              landed_title, expected character").
+ *   trying_to_use_X_link_on_an_invalid_scope_X   (error) a link (`liege = { }`, a chain step)
+ *                              whose input scopes do not include the current scope type.
+ *
+ *   Never reported when any input is unknown: the current type is unknown (scripted
+ *   triggers and effects, parameter blocks, untyped saved scopes …), the keyword's
+ *   supported scopes are `none` (it declares no requirement) or empty, or the game does not
+ *   document the keyword.
  *
  *   undefined_event_target_X   (information) `scope:name` with no save_scope_as /
  *                              save_temporary_scope_as / save_scope_value_as for that name
@@ -19,17 +31,26 @@
  */
 
 import { Spec } from '../spec/spec';
+import { ScopeRecord } from '../spec/types';
 import { ASTNode, NodeType, ScopeChain } from '../syntax/ast';
 import { SymbolType } from '../index/symbols';
 import { messageText } from '../messages';
+import { CONTAINERS } from './contexts';
+import { fieldFor } from './registry';
+import { ChainResolution, ScopeResolution, resolveScopes } from './scope-types';
+import { ITERATOR_PARAMS } from './structural';
 import { CheckInput, Diagnostic, Severity } from './types';
 
 /** Scope references that are not links: the top scope and the current one. */
 const SCOPE_HEADS: ReadonlySet<string> = new Set(['root', 'this', 'prev']);
 
-/** Supported scopes of a keyword from the package (always undefined in 1.20.0.2). */
-export function scopeValidity(spec: Spec, name: string): unknown {
-    return spec.scopeValidity(name);
+/** Supported scopes of a trigger or effect, as the game documents them (or undefined). */
+export function scopeValidity(
+    spec: Spec,
+    name: string,
+    bucket: 'triggers' | 'effects' | 'lists' | 'on_actions'
+): ScopeRecord | undefined {
+    return spec.scopeValidity(name, bucket) ?? spec.scopeValidity(name.toLowerCase(), bucket);
 }
 
 function savedScopeNames(ast: ASTNode): Set<string> {
@@ -84,6 +105,104 @@ class ScopeChecker {
 
     public run(): void {
         this.visit(this.input.ast);
+        this.checkTypes(resolveScopes(this.input));
+    }
+
+    // ── per-keyword scope validity and link inputs ──────────────────────
+
+    private checkTypes(res: ScopeResolution): void {
+        const inContext = new Set<ASTNode>();
+        for (const [nodes, ctx] of res.contexts) {
+            if (ctx.kind !== 'trigger' && ctx.kind !== 'effect') {
+                continue;
+            }
+            const owner = res.owners.get(nodes);
+            for (const node of nodes) {
+                inContext.add(node);
+                this.checkKeyword(node, ctx.kind, ctx.fields, owner, res);
+            }
+        }
+        // Only chains read as triggers/effects/links are judged: a chain that is the value of
+        // an iterator parameter or of a scripted effect's argument is evaluated elsewhere.
+        for (const [node, chain] of res.keyChains) {
+            if (inContext.has(node)) {
+                this.reportMismatches(chain, node.keyRange ?? node.range);
+            }
+        }
+        for (const [node, chain] of res.valueChains) {
+            if (inContext.has(node) && !(node.key && ITERATOR_PARAMS.has(node.key))) {
+                this.reportMismatches(chain, node.valueRange ?? node.range);
+            }
+        }
+    }
+
+    private reportMismatches(chain: ChainResolution, range: ASTNode['range']): void {
+        for (const step of chain.steps) {
+            if (step.mismatch) {
+                this.report(range, 'error', 'trying_to_use_X_link_on_an_invalid_scope_X', [
+                    step.mismatch.link,
+                    step.mismatch.on,
+                ]);
+            }
+        }
+    }
+
+    private checkKeyword(
+        node: ASTNode,
+        ctx: 'trigger' | 'effect',
+        fields: Parameters<typeof fieldFor>[0],
+        owner: ASTNode | undefined,
+        res: ScopeResolution
+    ): void {
+        const key = node.key;
+        if (
+            !key ||
+            node.type === NodeType.COMMENT ||
+            node.type === NodeType.VALUE ||
+            node.keyChain ||
+            (node.keyKind !== undefined && node.keyKind !== 'identifier') ||
+            key.includes('$')
+        ) {
+            return;
+        }
+        const current = res.nodeFrames.get(node)?.this;
+        if (current === undefined) {
+            return;
+        }
+        const { spec } = this.input;
+        const name = key.toLowerCase();
+        // Parameters and fields of the enclosing block are not keywords here.
+        if (ITERATOR_PARAMS.has(key) || fieldFor(fields, key)) {
+            return;
+        }
+        if (owner?.key && CONTAINERS.get(owner.key)?.params?.has(key)) {
+            return;
+        }
+        // A link used as a block switches scope (checked as a link, not as a keyword).
+        if (
+            node.children &&
+            (spec.has(key, 'links') || spec.has(name, 'links')) &&
+            !CONTAINERS.has(key)
+        ) {
+            return;
+        }
+        const bucket = ctx === 'trigger' ? 'triggers' : 'effects';
+        const doc = scopeValidity(spec, key, bucket);
+        if (!doc) {
+            return;
+        }
+        const scopes = doc.supported_scopes;
+        if (scopes.length === 0 || scopes.includes('none') || scopes.includes(current)) {
+            return;
+        }
+        this.report(
+            node.keyRange ?? node.range,
+            'error',
+            ctx === 'trigger'
+                ? 'wrong_scope_for_trigger_X_expected_X'
+                : 'wrong_scope_for_effect_X_expected_X',
+            [current, scopes.join(', ')]
+        );
     }
 
     private visit(node: ASTNode): void {

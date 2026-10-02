@@ -39,6 +39,19 @@ export { contextAt } from './check/context';
 export type { BlockContext, PositionContext } from './check/context';
 export { checkSchema } from './check/schema';
 export { checkScope, scopeValidity } from './check/scope';
+export {
+    resolveScopes,
+    linkStep,
+    ROOT_SCOPE_CONTRADICTED,
+    FIELDS_OUTSIDE_ROOT,
+} from './check/scope-types';
+export type {
+    ScopeFrame,
+    ScopeResolution,
+    ChainResolution,
+    ChainStep,
+    LinkMismatch,
+} from './check/scope-types';
 export { STRUCTURAL, ITERATOR_PARAMS, MODIFIER_BLOCK_PARAMS } from './check/structural';
 export type { CheckInput } from './check/types';
 
