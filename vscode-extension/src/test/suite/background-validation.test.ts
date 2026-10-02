@@ -61,6 +61,18 @@ suite('Background validation', () => {
         assert.ok(counts && counts.errors > 0, 'the client counts match the published result');
     });
 
+    test('the Explorer decoration of the never-opened file shows its errors (#87)', () => {
+        const counts = api.health.countsOf(target.toString());
+        assert.ok(counts);
+        const decoration = api.decorations.provideFileDecoration(target);
+        assert.ok(decoration, 'a decoration for events/test_events.txt');
+        assert.strictEqual(decoration.badge, counts.errors > 9 ? '9+' : String(counts.errors));
+        assert.strictEqual(decoration.color?.id, 'list.errorForeground');
+        assert.strictEqual(decoration.propagate, true);
+        const readme = vscode.Uri.joinPath(target, '..', '..', 'README.md');
+        assert.strictEqual(api.decorations.provideFileDecoration(readme), undefined);
+    });
+
     test('the run state reached idle with every file done', () => {
         const state = api.health.lastState;
         assert.ok(state, 'a state event arrived');

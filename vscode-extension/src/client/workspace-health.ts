@@ -209,3 +209,76 @@ export class WorkspaceHealth {
         }
     }
 }
+
+// ── file decorations (#87) ──────────────────────────────────────────────
+
+/** What a file's Explorer decoration shows; undefined = no decoration. */
+export interface DecorationSpec {
+    /** Count of the highest severity present, at most two characters (`9+` above nine). */
+    badge: string;
+    /** Theme colour id: list.errorForeground (errors) or list.warningForeground. */
+    color: 'list.errorForeground' | 'list.warningForeground';
+    tooltip: string;
+}
+
+/** A count as a decoration badge: VS Code shows at most two characters. */
+export function badgeText(count: number): string {
+    return count > 9 ? '9+' : String(count);
+}
+
+export function countsTooltip(counts: Counts): string {
+    const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
+    return `CK3: ${plural(counts.errors, 'error')}, ${plural(counts.warnings, 'warning')}, ${counts.information} information`;
+}
+
+/**
+ * The decoration of a file: a badge with the count of the highest severity present and its
+ * colour; nothing for a clean or information-only file.
+ */
+export function decorationFor(counts: Counts | undefined): DecorationSpec | undefined {
+    if (!counts) {
+        return undefined;
+    }
+    if (counts.errors > 0) {
+        return {
+            badge: badgeText(counts.errors),
+            color: 'list.errorForeground',
+            tooltip: countsTooltip(counts),
+        };
+    }
+    if (counts.warnings > 0) {
+        return {
+            badge: badgeText(counts.warnings),
+            color: 'list.warningForeground',
+            tooltip: countsTooltip(counts),
+        };
+    }
+    return undefined;
+}
+
+/**
+ * The folders above a file URI, nearest first, up to and including `root` (a workspace
+ * folder URI) when the file is under it, else up to the file system root.
+ */
+export function parentFolderUris(uri: string, roots: readonly string[] = []): string[] {
+    const match = /^([a-z][a-z0-9+.-]*:\/\/[^/]*)(\/.*)$/i.exec(uri);
+    if (!match) {
+        return [];
+    }
+    const [, authority, filePath] = match;
+    const root = roots
+        .map((r) => r.replace(/\/+$/, ''))
+        .filter((r) => uri.startsWith(`${r}/`))
+        .sort((a, b) => b.length - a.length)[0];
+    const out: string[] = [];
+    let current = filePath.replace(/\/+$/, '');
+    for (let slash = current.lastIndexOf('/'); slash > 0; slash = current.lastIndexOf('/')) {
+        current = current.slice(0, slash);
+        const folder = `${authority}${current}`;
+        out.push(folder);
+        if (folder === root) {
+            break;
+        }
+    }
+    return out;
+}
