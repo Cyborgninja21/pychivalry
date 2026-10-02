@@ -57,6 +57,7 @@ suite('Configuration Tests', () => {
                 'trace.server',
                 'logLevel',
                 'enable',
+                'gamePath',
                 'formatting.enabled',
                 'formatting.insertSpaces',
                 'formatting.tabSize',

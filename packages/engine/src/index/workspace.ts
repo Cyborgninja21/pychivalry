@@ -138,7 +138,7 @@ export class Workspace {
     public readonly index: Indexer = new Indexer();
     /** Index of the vanilla base game's callable definitions (empty without --vanilla). */
     public readonly vanillaIndex: Indexer = new Indexer();
-    public readonly vanillaRoot: string | undefined;
+    private currentVanillaRoot: string | undefined;
 
     private readonly workspaceFolders = new Map<string, WorkspaceFolder>();
     private readonly modDescriptors = new Map<string, ModDescriptor>();
@@ -147,7 +147,7 @@ export class Workspace {
 
     constructor(root?: string, options: WorkspaceOptions = {}) {
         this.currentSpec = options.spec ?? defaultSpec();
-        this.vanillaRoot = options.vanilla ? path.resolve(options.vanilla) : undefined;
+        this.currentVanillaRoot = options.vanilla ? path.resolve(options.vanilla) : undefined;
         this.log = options.log ?? (() => undefined);
         if (root !== undefined) {
             const resolved = path.resolve(root);
@@ -206,6 +206,54 @@ export class Workspace {
     public useSpec(spec: Spec): void {
         this.currentSpec = spec;
         this.parseCache.clear();
+    }
+
+    /**
+     * The vanilla game directory used as the base game (undefined without one). Set by the
+     * `vanilla` option or by useVanilla(); with it, names the base game does not define are
+     * judged strictly.
+     */
+    public get vanillaRoot(): string | undefined {
+        return this.currentVanillaRoot;
+    }
+
+    /**
+     * Use another vanilla game directory as the base game (or none), keeping this instance
+     * (hosts hand it to many providers). The vanilla definitions are read asynchronously,
+     * yielding to the event loop every `yieldEvery` files, so a host stays responsive while
+     * a slow disk is read. Until the load finishes the workspace runs without a base game
+     * (vanillaRoot is undefined), so a half-read base game never produces strict findings.
+     */
+    public async useVanilla(
+        root: string | undefined,
+        options: { yieldEvery?: number } = {}
+    ): Promise<{ files: number; milliseconds: number }> {
+        const started = Date.now();
+        this.currentVanillaRoot = undefined;
+        this.vanillaIndex.clear();
+        if (root === undefined) {
+            return { files: 0, milliseconds: 0 };
+        }
+        const resolved = path.resolve(root);
+        const yieldEvery = Math.max(1, options.yieldEvery ?? 20);
+        let files = 0;
+        for (const file of this.vanillaFiles(resolved)) {
+            let text: string;
+            try {
+                text = await fs.promises.readFile(file, 'utf-8');
+            } catch (error) {
+                this.log(`Failed to read ${file}: ${String(error)}`);
+                continue;
+            }
+            const parser = new CK3Parser({ spec: this.spec, file });
+            this.vanillaIndex.indexSync(pathToUri(file), parser.parse(text).ast);
+            files++;
+            if (files % yieldEvery === 0) {
+                await new Promise<void>((resolve) => setImmediate(resolve));
+            }
+        }
+        this.currentVanillaRoot = resolved;
+        return { files, milliseconds: Date.now() - started };
     }
 
     /** Root directories of the workspace folders. */
@@ -267,19 +315,24 @@ export class Workspace {
         return this;
     }
 
-    private loadVanilla(root: string): void {
+    /** The vanilla files whose definitions are indexed (VANILLA_INDEXED_DIRS + template keys). */
+    private vanillaFiles(root: string): string[] {
         const dirs = new Set([
             ...VANILLA_INDEXED_DIRS,
             ...this.spec.keywordTemplateKeyDirectories(),
         ]);
+        const files: string[] = [];
         for (const dir of dirs) {
-            const files: string[] = [];
             walkFiles(path.join(root, ...dir.split('/')), (n) => n.endsWith('.txt'), files);
-            for (const file of files) {
-                const parser = new CK3Parser({ spec: this.spec, file });
-                const parsed = parser.parse(fs.readFileSync(file, 'utf-8'));
-                this.vanillaIndex.indexSync(pathToUri(file), parsed.ast);
-            }
+        }
+        return files;
+    }
+
+    private loadVanilla(root: string): void {
+        for (const file of this.vanillaFiles(root)) {
+            const parser = new CK3Parser({ spec: this.spec, file });
+            const parsed = parser.parse(fs.readFileSync(file, 'utf-8'));
+            this.vanillaIndex.indexSync(pathToUri(file), parsed.ast);
         }
     }
 

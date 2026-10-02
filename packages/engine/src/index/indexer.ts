@@ -283,6 +283,20 @@ export class Indexer {
         this.callGraph.clearDocument(uri);
     }
 
+    /** Remove every document from the index. */
+    public clear(): void {
+        for (const uri of Array.from(this.symbols.keys())) {
+            this.removeDocument(uri);
+        }
+        this.symbols.clear();
+        this.nameIndex.clear();
+        this.typeIndex.clear();
+        this.events.clear();
+        this.eventsByNamespace.clear();
+        this.references.clear();
+        this.unresolved.clear();
+    }
+
     /** Find symbols by name */
     public findSymbolsByName(name: string): IndexSymbol[] {
         return this.nameIndex.get(name) || [];

@@ -338,6 +338,12 @@
             "default": true,
             "description": "Enable/disable the CK3 language server",
             "scope": "resource"
+          },
+          "ck3LanguageServer.gamePath": {
+            "type": "string",
+            "default": "",
+            "markdownDescription": "The CK3 `game` directory, the one holding `common/`, `events/` and `history/` (for example `C:\\Program Files (x86)\\Steam\\steamapps\\common\\Crusader Kings III\\game`). The mod is checked against this base game, so the vanilla scripted triggers, effects, lists, modifiers and script values it calls are known. When empty, the Steam default install locations are tried once; when none holds `common/`, the mod is checked without a base game and every vanilla scripted name it calls is reported as unknown.",
+            "scope": "machine-overridable"
           }
         }
       },

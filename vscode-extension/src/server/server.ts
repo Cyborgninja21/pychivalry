@@ -41,6 +41,7 @@ import { TextDocument } from 'vscode-languageserver-textdocument';
 import { IncrementalParser, LocalizationIndex, setDefaultSpec, Workspace } from 'pychivalry-engine';
 
 import { bundledSpec } from './engine-host';
+import { resolveGamePath } from './game-path';
 import { enginePlugins, localizationDiagnostics } from './plugins';
 import { ServerCommands, SERVER_COMMANDS } from './commands';
 import { LogWatcherController } from './log/controller';
@@ -71,6 +72,8 @@ import { extensionVersion } from './version';
 /** Server settings pulled from the client (ck3LanguageServer.*). */
 export interface ServerConfig {
     logLevel: 'debug' | 'info' | 'warning' | 'error';
+    /** The CK3 `game` directory (holding common/, events/, history/); empty = Steam defaults. */
+    gamePath: string;
     formatting: { enabled: boolean; insertSpaces: boolean; tabSize: number };
     inlayHints: {
         enabled: boolean;
@@ -91,6 +94,7 @@ export interface ServerConfig {
 
 const DEFAULT_CONFIG: ServerConfig = {
     logLevel: 'info',
+    gamePath: '',
     formatting: { enabled: true, insertSpaces: false, tabSize: 4 },
     inlayHints: {
         enabled: true,
@@ -123,6 +127,9 @@ export class CK3LanguageServer {
     private hasConfigurationCapability = false;
     private hasWorkspaceFolderCapability = false;
     private config: ServerConfig = DEFAULT_CONFIG;
+    /** The game path setting the base game was last loaded for (undefined: not yet). */
+    private loadedGamePath: string | undefined;
+    private initialized = false;
     private validationTimers = new Map<string, NodeJS.Timeout>();
     private readonly VALIDATION_DEBOUNCE_MS = 300;
 
@@ -477,6 +484,8 @@ export class CK3LanguageServer {
             // Index the workspace so that definitions in unopened files resolve
             const indexed = await this.commands.indexWorkspace();
             notify(`Indexed ${indexed.uris.length} files`);
+            await this.readConfiguration();
+            await this.loadBaseGame();
             await this.commands.scanLocalization();
             try {
                 const modCount = await this.modScanner.discoverMods();
@@ -490,10 +499,50 @@ export class CK3LanguageServer {
             } catch (error) {
                 this.connection.console.error(`Mod discovery failed: ${error}`);
             }
+            this.initialized = true;
             notify('Workspace initialized successfully');
             this.connection.console.log('Workspace initialized successfully');
         } catch (error) {
             this.connection.console.error(`Failed to initialize workspace: ${error}`);
+        }
+    }
+
+    /**
+     * Load the CK3 base game (vanilla scripted triggers, effects, lists, modifiers, script
+     * values, on_actions and keyword-template databases) from the gamePath setting or the
+     * Steam default locations, into the workspace every provider already holds. Logged
+     * through ck3/indexLog with its duration.
+     */
+    private async loadBaseGame(): Promise<void> {
+        const notify = (message: string) =>
+            this.connection.sendNotification('ck3/indexLog', { message });
+        const setting = this.config.gamePath;
+        this.loadedGamePath = setting;
+        const resolved = resolveGamePath(setting);
+        if (resolved.error) {
+            this.connection.console.error(resolved.error);
+            notify(resolved.error);
+        }
+        if (resolved.path === undefined) {
+            if (!resolved.error) {
+                notify(
+                    `No CK3 game directory found (tried ${resolved.tried.join(', ')}); set ck3LanguageServer.gamePath to check against the base game`
+                );
+            }
+            await this.workspace.useVanilla(undefined);
+            return;
+        }
+        const from = resolved.source === 'setting' ? 'ck3LanguageServer.gamePath' : 'Steam default';
+        notify(`Loading the CK3 base game from ${resolved.path} (${from})...`);
+        try {
+            const loaded = await this.workspace.useVanilla(resolved.path);
+            notify(
+                `Base game loaded: ${loaded.files} files from ${resolved.path} in ${loaded.milliseconds} ms`
+            );
+        } catch (error) {
+            this.connection.console.error(`Failed to load the base game: ${error}`);
+            notify(`Failed to load the base game from ${resolved.path}: ${error}`);
+            await this.workspace.useVanilla(undefined);
         }
     }
 
@@ -584,19 +633,34 @@ export class CK3LanguageServer {
         }
     }
 
+    /** Read the ck3LanguageServer settings from the client (unset keys keep their value). */
+    private async readConfiguration(): Promise<void> {
+        if (!this.hasConfigurationCapability) {
+            return;
+        }
+        let settings: unknown;
+        try {
+            settings = await this.connection.workspace.getConfiguration('ck3LanguageServer');
+        } catch (error) {
+            this.connection.console.error(`Failed to read the settings: ${error}`);
+            return;
+        }
+        if (settings && typeof settings === 'object') {
+            const s = settings as Partial<Record<keyof ServerConfig, unknown>>;
+            this.config = {
+                logLevel: (s.logLevel as ServerConfig['logLevel']) ?? this.config.logLevel,
+                gamePath: typeof s.gamePath === 'string' ? s.gamePath : this.config.gamePath,
+                formatting: merge(this.config.formatting, s.formatting),
+                inlayHints: merge(this.config.inlayHints, s.inlayHints),
+                logWatcher: merge(this.config.logWatcher, s.logWatcher),
+            };
+        }
+    }
+
     private async onDidChangeConfiguration(): Promise<void> {
-        if (this.hasConfigurationCapability) {
-            const settings: unknown =
-                await this.connection.workspace.getConfiguration('ck3LanguageServer');
-            if (settings && typeof settings === 'object') {
-                const s = settings as Partial<Record<keyof ServerConfig, unknown>>;
-                this.config = {
-                    logLevel: (s.logLevel as ServerConfig['logLevel']) ?? this.config.logLevel,
-                    formatting: merge(this.config.formatting, s.formatting),
-                    inlayHints: merge(this.config.inlayHints, s.inlayHints),
-                    logWatcher: merge(this.config.logWatcher, s.logWatcher),
-                };
-            }
+        await this.readConfiguration();
+        if (this.initialized && this.config.gamePath !== this.loadedGamePath) {
+            await this.loadBaseGame();
         }
         for (const document of this.documents.all()) {
             await this.validateDocument(document);
