@@ -52,7 +52,7 @@ describe('Spec loader', () => {
             effects: 1007,
             links: 312,
             lists: 377,
-            on_actions: 203,
+            on_actions: 217,
             modifiers: 609,
         });
     });
@@ -134,7 +134,7 @@ describe('Spec loader', () => {
         });
 
         it('keyword templates: (template, keys) is the identity', () => {
-            assert.strictEqual(spec.data.package_format, 2);
+            assert.strictEqual(spec.data.package_format, 3);
             assert.strictEqual(spec.keywordTemplates().length, 13);
             assert.deepStrictEqual(spec.keywordTemplateKeyDirectories().sort(), [
                 'common/dynasty_legacies',
@@ -218,9 +218,27 @@ describe('Spec loader', () => {
             assert.strictEqual(spec.retired('add_gold'), undefined);
         });
 
-        it('scopeValidity reads the (empty) slot', () => {
-            assert.deepStrictEqual(spec.data.scope_validity, {});
-            assert.strictEqual(spec.scopeValidity('is_alive'), undefined);
+        it('scope validity and scope types from the game (format 3)', () => {
+            assert.deepStrictEqual(spec.scopeValidity('is_alive', 'triggers')?.supported_scopes, [
+                'character',
+            ]);
+            assert.strictEqual(spec.scopeValidity('is_alive', 'effects'), undefined);
+            assert.deepStrictEqual(spec.scopeValidity('always', 'triggers')?.supported_scopes, [
+                'none',
+            ]);
+            assert.strictEqual(spec.listElementType('held_title'), 'landed_title');
+            assert.strictEqual(spec.listElementType('in_list'), undefined);
+            const faith = spec.linkForms('faith') ?? [];
+            assert.deepStrictEqual(
+                faith.map((f) => f.requires_data),
+                [true, false]
+            );
+            assert.strictEqual(spec.isScopeType('landed_title'), true);
+            assert.strictEqual(spec.isScopeType('title'), false);
+            assert.strictEqual(spec.isScopeType('none'), false);
+            assert.strictEqual(spec.scopeTypes().length, 72);
+            assert.deepStrictEqual(spec.scopeType('faith')?.links.includes('faith'), true);
+            assert.strictEqual(spec.onActionScope('yearly_playable_pulse')?.from_code, true);
         });
     });
 });

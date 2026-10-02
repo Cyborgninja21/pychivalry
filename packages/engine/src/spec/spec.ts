@@ -20,9 +20,13 @@ import {
     IteratorMatch,
     KeywordTemplate,
     KeywordTemplateMatch,
+    LinkForm,
+    OnActionScopeRecord,
     ModifierMatch,
     RetiredEntry,
     SchemaEntry,
+    ScopeRecord,
+    ScopeTypeEntry,
     SpecPackage,
     SpecOverlay,
 } from './types';
@@ -336,13 +340,51 @@ export class Spec {
     }
 
     /**
-     * Per-keyword supported scopes. The package's scope_validity is empty until an oracle
-     * run fills it (review issue S1), so this returns undefined for every name today.
+     * Scope validity of a trigger, effect, list (by base name) or on_action, as the game's
+     * own `script_docs` output documents it (package format 3). Undefined when the game
+     * does not document the name in that bucket.
      */
-    public scopeValidity(name: string): unknown {
-        return Object.prototype.hasOwnProperty.call(this.data.scope_validity, name)
-            ? this.data.scope_validity[name]
+    public scopeValidity(
+        name: string,
+        bucket: 'triggers' | 'effects' | 'lists' | 'on_actions'
+    ): ScopeRecord | undefined {
+        const records: Record<string, ScopeRecord> = this.data.scope_validity[bucket];
+        return Object.prototype.hasOwnProperty.call(records, name) ? records[name] : undefined;
+    }
+
+    /** The expected scope of an on_action and whether the engine fires it, or undefined. */
+    public onActionScope(name: string): OnActionScopeRecord | undefined {
+        const records = this.data.scope_validity.on_actions;
+        return Object.prototype.hasOwnProperty.call(records, name) ? records[name] : undefined;
+    }
+
+    /** The forms of an event target (link) the game documents, or undefined. */
+    public linkForms(name: string): readonly LinkForm[] | undefined {
+        const links = this.data.scope_validity.links;
+        return Object.prototype.hasOwnProperty.call(links, name) ? links[name].forms : undefined;
+    }
+
+    /** Element type of the list `base` (any_/every_/random_/ordered_ + base), when single. */
+    public listElementType(base: string): string | undefined {
+        const record = this.scopeValidity(base, 'lists');
+        return record && record.supported_targets.length === 1
+            ? record.supported_targets[0]
             : undefined;
+    }
+
+    /** Every scope type the game names (package `scope_types`), sorted. */
+    public scopeTypes(): string[] {
+        return Object.keys(this.data.scope_types).sort();
+    }
+
+    /** Is `name` a scope type of the game? (`none` is not.) */
+    public isScopeType(name: string): boolean {
+        return Object.prototype.hasOwnProperty.call(this.data.scope_types, name);
+    }
+
+    /** The package entry of one scope type: the links producing it, lists iterating it, … */
+    public scopeType(name: string): ScopeTypeEntry | undefined {
+        return this.isScopeType(name) ? this.data.scope_types[name] : undefined;
     }
 }
 

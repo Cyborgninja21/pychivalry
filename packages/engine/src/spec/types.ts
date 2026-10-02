@@ -1,7 +1,7 @@
 /**
  * Types of the CK3 spec package (pdx-parser-re `spec/package/ck3-spec-<version>.json`).
  *
- * They mirror `spec/schema.json` (package_format 2). Only the shapes the engine reads are
+ * They mirror `spec/schema.json` (package_format 3). Only the shapes the engine reads are
  * typed in detail; everything else is kept as plain data.
  */
 
@@ -148,8 +148,77 @@ export interface KeywordTemplateMatch {
     key: string;
 }
 
+/**
+ * Scope validity of one trigger, effect, list or on_action, from the game's own `script_docs`
+ * output (package format 3). Scope types are written as the game prints them; `['none']`
+ * means the keyword declares no scope requirement (never a reason to report), `[]` that the
+ * log gives none.
+ */
+export interface ScopeRecord {
+    /** Scope types the keyword may be used in (lists: the any_ iterator's; on_actions: the expected scope). */
+    supported_scopes: string[];
+    /** Scope types of the keyword's target (lists: the element type). */
+    supported_targets: string[];
+    /** The description the game's log prints. */
+    description: string;
+    /** Triggers: the comparison traits the log prints (`<, <=, =, !=, >, >=`, `yes/no`). */
+    traits?: string;
+}
+
+/** One form of an event target (link): the global one taking data or the scoped one. */
+export interface LinkForm extends ScopeRecord {
+    /** Input Scopes in the log (empty for global links). */
+    supported_scopes: string[];
+    /** Output Scopes in the log. */
+    supported_targets: string[];
+    requires_data: boolean;
+    global_link: boolean;
+    wild_card: boolean;
+}
+
+export interface LinkScopeRecord {
+    forms: LinkForm[];
+}
+
+export interface ListScopeRecord extends ScopeRecord {
+    /** The iterator names the game documents for the list (any_x, every_x, …). */
+    iterators: string[];
+    /** True when every iterator form has the same supported scopes and targets. */
+    forms_agree: boolean;
+}
+
+export interface OnActionScopeRecord extends ScopeRecord {
+    /** True for the on_actions the engine fires; false for vanilla's script on_actions. */
+    from_code: boolean;
+}
+
+export interface ScopeValidity {
+    triggers: Record<string, ScopeRecord>;
+    effects: Record<string, ScopeRecord>;
+    links: Record<string, LinkScopeRecord>;
+    lists: Record<string, ListScopeRecord>;
+    on_actions: Record<string, OnActionScopeRecord>;
+}
+
+/** One scope type of the game (package `scope_types`). */
+export interface ScopeTypeEntry {
+    /** Links whose output is this type. */
+    links: string[];
+    /** Lists whose elements are this type. */
+    lists: string[];
+    /** on_actions whose expected scope is this type. */
+    on_actions: string[];
+    /** How many triggers / effects support it. */
+    triggers: number;
+    effects: number;
+    input_of_links: number;
+    named_as: string[];
+    /** Index in the executable's scope-type table, when it has one. */
+    binary_index: number | null;
+}
+
 export interface SpecPackage {
-    package_format: 2;
+    package_format: 3;
     manifest: Manifest;
     buckets: Record<Bucket, Record<string, BucketEntry>>;
     modifier_templates: string[];
@@ -161,7 +230,8 @@ export interface SpecPackage {
     errors: ErrorEntry[];
     retired: RetiredEntry[];
     noise_dropped: NoiseEntry[];
-    scope_validity: Record<string, unknown>;
+    scope_validity: ScopeValidity;
+    scope_types: Record<string, ScopeTypeEntry>;
 }
 
 export interface IteratorMatch {

@@ -1,6 +1,6 @@
 /**
  * Structural validation of a spec package, mirroring the package's own `schema.json`
- * (package_format 2) without a third-party JSON Schema validator.
+ * (package_format 3) without a third-party JSON Schema validator.
  *
  * The checks are the ones the engine relies on: every required key is present with the
  * right type, enumerations hold only known values, and cross references the loader
@@ -71,7 +71,11 @@ const TOP_LEVEL_KEYS = [
     'retired',
     'noise_dropped',
     'scope_validity',
+    'scope_types',
 ];
+
+const SCOPE_BUCKETS = ['triggers', 'effects', 'links', 'lists', 'on_actions'] as const;
+const SCOPE_NAME = /^[a-z_]+$/;
 
 class Checker {
     public readonly problems: string[] = [];
@@ -330,8 +334,8 @@ export function validateSpecPackage(data: unknown): SpecPackage {
     }
     c.requireKeys('root', data, TOP_LEVEL_KEYS);
     c.onlyKeys('root', data, TOP_LEVEL_KEYS);
-    if (data.package_format !== 2) {
-        c.fail('package_format', 'expected 2');
+    if (data.package_format !== 3) {
+        c.fail('package_format', 'expected 3');
     }
     checkManifest(c, data.manifest);
     checkBuckets(c, data.buckets);
@@ -472,15 +476,94 @@ export function validateSpecPackage(data: unknown): SpecPackage {
         });
     }
 
-    if (!isObject(data.scope_validity)) {
-        c.fail('scope_validity', 'expected an object');
-    }
+    checkScopeValidity(c, data.scope_validity);
+    checkScopeTypes(c, data.scope_types);
 
     if (c.problems.length > 0) {
         throw new SpecValidationError(c.problems);
     }
     // Every key and type the engine reads was checked above.
     return data as unknown as SpecPackage;
+}
+
+function checkScopeList(c: Checker, where: string, v: Json): void {
+    if (!isStringArray(v)) {
+        c.fail(where, 'expected an array of scope type names');
+    } else {
+        v.forEach((s, i) => c.string(`${where}[${i}]`, s, SCOPE_NAME));
+    }
+}
+
+function checkScopeRecord(c: Checker, where: string, r: Json, extra: string[]): void {
+    if (!isObject(r)) {
+        c.fail(where, 'expected an object');
+        return;
+    }
+    c.requireKeys(where, r, ['supported_scopes', 'supported_targets', 'description']);
+    checkScopeList(c, `${where}.supported_scopes`, r.supported_scopes);
+    checkScopeList(c, `${where}.supported_targets`, r.supported_targets);
+    c.string(`${where}.description`, r.description);
+    for (const key of extra) {
+        if (key in r && typeof r[key] !== 'boolean') {
+            c.fail(`${where}.${key}`, 'expected a boolean');
+        }
+    }
+}
+
+/** scope_validity: per bucket and name, the game's documented scopes (format 3). */
+function checkScopeValidity(c: Checker, sv: Json): void {
+    if (!isObject(sv)) {
+        c.fail('scope_validity', 'expected an object');
+        return;
+    }
+    c.requireKeys('scope_validity', sv, [...SCOPE_BUCKETS]);
+    c.onlyKeys('scope_validity', sv, [...SCOPE_BUCKETS]);
+    for (const bucket of SCOPE_BUCKETS) {
+        const records = sv[bucket];
+        if (!isObject(records)) {
+            c.fail(`scope_validity.${bucket}`, 'expected an object');
+            continue;
+        }
+        for (const [name, r] of Object.entries(records)) {
+            const where = `scope_validity.${bucket}.${name}`;
+            if (bucket !== 'links') {
+                checkScopeRecord(c, where, r, ['from_code', 'forms_agree']);
+                continue;
+            }
+            if (!isObject(r) || !Array.isArray(r.forms) || r.forms.length === 0) {
+                c.fail(where, 'expected { forms: [...] }');
+                continue;
+            }
+            r.forms.forEach((f: Json, i: number) =>
+                checkScopeRecord(c, `${where}.forms[${i}]`, f, [
+                    'requires_data',
+                    'global_link',
+                    'wild_card',
+                ])
+            );
+        }
+    }
+}
+
+/** scope_types: every scope type the game names, with what produces and iterates it. */
+function checkScopeTypes(c: Checker, st: Json): void {
+    if (!isObject(st) || Object.keys(st).length === 0) {
+        c.fail('scope_types', 'expected a non-empty object');
+        return;
+    }
+    for (const [name, entry] of Object.entries(st)) {
+        const where = `scope_types.${name}`;
+        c.string(`${where} (name)`, name, SCOPE_NAME);
+        if (!isObject(entry)) {
+            c.fail(where, 'expected an object');
+            continue;
+        }
+        for (const key of ['links', 'lists', 'on_actions']) {
+            if (!isStringArray(entry[key])) {
+                c.fail(`${where}.${key}`, 'expected an array of strings');
+            }
+        }
+    }
 }
 
 export function isBucket(name: string): name is Bucket {
