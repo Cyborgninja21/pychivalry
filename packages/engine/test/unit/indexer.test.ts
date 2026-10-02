@@ -3,7 +3,9 @@
  */
 
 import * as assert from 'assert';
-import { DocumentIndexer, SymbolType } from '../../src/index/indexer';
+import * as path from 'path';
+import { DocumentIndexer, SymbolType, symbolTypeForPath } from '../../src/index/indexer';
+import { Workspace } from '../../src/index/workspace';
 import { CK3Parser } from '../../src/syntax/parser';
 
 describe('DocumentIndexer', () => {
@@ -413,6 +415,53 @@ describe('DocumentIndexer', () => {
         it('forgets a removed document', () => {
             indexer.removeDocument(a);
             assert.deepStrictEqual(indexer.dependentsOf(effects), [b]);
+        });
+    });
+
+    describe('file kind from the mod-relative path (issue #90)', () => {
+        const effect = 'my_effect = { add_gold = 1 }';
+        const event = 'namespace = e\ne.1 = { type = character_event }';
+        for (const root of ['/x/viet-events', '/x/events/mymod']) {
+            it(`a mod rooted at ${root}/ classifies by its own directories`, () => {
+                const ws = new Workspace(root);
+                ws.indexFile(path.join(root, 'common/scripted_effects/a.txt'), effect);
+                ws.indexFile(path.join(root, 'events/a.txt'), event);
+                const fx = ws.index.findSymbolsByName('my_effect');
+                assert.deepStrictEqual(
+                    fx.map((s) => s.type),
+                    [SymbolType.SCRIPTED_EFFECT]
+                );
+                assert.ok(ws.isDefined('my_effect', SymbolType.SCRIPTED_EFFECT));
+                assert.deepStrictEqual(
+                    ws.index.findSymbolsByName('e.1').map((s) => s.type),
+                    [SymbolType.EVENT]
+                );
+            });
+        }
+
+        it('anchors the patterns to whole path segments', () => {
+            assert.strictEqual(
+                symbolTypeForPath('common/scripted_effects/a.txt'),
+                SymbolType.SCRIPTED_EFFECT
+            );
+            assert.strictEqual(symbolTypeForPath('events/a.txt'), SymbolType.EVENT);
+            assert.strictEqual(symbolTypeForPath('more_events/a.txt'), SymbolType.GENERIC);
+            assert.strictEqual(
+                symbolTypeForPath('common/decision_group_types/a.txt'),
+                SymbolType.DECISION_GROUP_TYPE
+            );
+            assert.strictEqual(symbolTypeForPath('common/decisions/a.txt'), SymbolType.DECISION);
+            assert.strictEqual(symbolTypeForPath('common\\on_action\\a.txt'), SymbolType.ON_ACTION);
+        });
+
+        it('without a resolver the URI path is used, anchored', () => {
+            const plain = new DocumentIndexer();
+            const ast = new CK3Parser().parse(effect).ast;
+            plain.indexSync('file:///x/viet-events/common/scripted_effects/a.txt', ast);
+            assert.deepStrictEqual(
+                plain.findSymbolsByName('my_effect').map((s) => s.type),
+                [SymbolType.SCRIPTED_EFFECT]
+            );
         });
     });
 });

@@ -135,9 +135,19 @@ export function parseModDescriptor(filePath: string): ModDescriptor {
 export class Workspace {
     private currentSpec: Spec;
     /** Index of the workspace's own files. */
-    public readonly index: Indexer = new Indexer();
+    public readonly index: Indexer = new Indexer({
+        relativePath: (uri) => this.relativeToRoots(uriToPath(uri), this.roots()),
+    });
     /** Index of the vanilla base game's callable definitions (empty without --vanilla). */
-    public readonly vanillaIndex: Indexer = new Indexer({ trackMentions: false });
+    public readonly vanillaIndex: Indexer = new Indexer({
+        trackMentions: false,
+        relativePath: (uri) =>
+            this.vanillaIndexRoot === undefined
+                ? undefined
+                : this.relativeToRoots(uriToPath(uri), [this.vanillaIndexRoot]),
+    });
+    /** The game directory the vanilla index was (or is being) read from. */
+    private vanillaIndexRoot: string | undefined;
     private currentVanillaRoot: string | undefined;
 
     private readonly workspaceFolders = new Map<string, WorkspaceFolder>();
@@ -235,6 +245,7 @@ export class Workspace {
             return { files: 0, milliseconds: 0 };
         }
         const resolved = path.resolve(root);
+        this.vanillaIndexRoot = resolved;
         const yieldEvery = Math.max(1, options.yieldEvery ?? 20);
         let files = 0;
         for (const file of this.vanillaFiles(resolved)) {
@@ -268,6 +279,24 @@ export class Workspace {
             walkFiles(root, (name) => name.toLowerCase().endsWith('.txt'), files);
         }
         return files;
+    }
+
+    /**
+     * Path of `file` relative to the deepest of `roots` that contains it ('/' separators),
+     * or undefined when none does.
+     */
+    private relativeToRoots(file: string, roots: string[]): string | undefined {
+        const absolute = path.resolve(file);
+        let best: string | undefined;
+        for (const root of roots) {
+            const rel = path.relative(root, absolute);
+            if (!rel.startsWith('..') && !path.isAbsolute(rel)) {
+                if (best === undefined || rel.length < best.length) {
+                    best = rel;
+                }
+            }
+        }
+        return best === undefined ? undefined : best.split(path.sep).join('/');
     }
 
     /** Path of `file` relative to the workspace root that contains it, with '/' separators. */
@@ -329,6 +358,7 @@ export class Workspace {
     }
 
     private loadVanilla(root: string): void {
+        this.vanillaIndexRoot = path.resolve(root);
         for (const file of this.vanillaFiles(root)) {
             const parser = new CK3Parser({ spec: this.spec, file });
             const parsed = parser.parse(fs.readFileSync(file, 'utf-8'));

@@ -107,39 +107,55 @@ interface FileKind {
     type: SymbolType;
 }
 
-/** Directory patterns → symbol type of the file's top-level keys (first match wins). */
+/**
+ * Directory patterns → symbol type of the file's top-level keys (first match wins). Each is
+ * anchored to whole path segments and tested against the mod-relative path, so a mod folder
+ * (or a folder above it) named `viet-events` or `events` does not make every file an event
+ * file (issue #90). decision_group_types comes before decisions.
+ */
 const FILE_KINDS: FileKind[] = [
-    { test: /events?\//, type: SymbolType.EVENT },
-    { test: /decisions?\//, type: SymbolType.DECISION },
-    { test: /character_interactions?\//, type: SymbolType.CHARACTER_INTERACTION },
-    { test: /on_actions?\//, type: SymbolType.ON_ACTION },
-    { test: /story_cycles?\//, type: SymbolType.STORY_CYCLE },
-    { test: /activities\//, type: SymbolType.ACTIVITY },
-    { test: /schemes\//, type: SymbolType.SCHEME },
-    { test: /scripted_effects\//, type: SymbolType.SCRIPTED_EFFECT },
-    { test: /scripted_triggers\//, type: SymbolType.SCRIPTED_TRIGGER },
-    { test: /scripted_lists\//, type: SymbolType.SCRIPTED_LIST },
-    { test: /scripted_modifiers\//, type: SymbolType.SCRIPTED_MODIFIER },
-    { test: /modifier_definition_formats\//, type: SymbolType.MODIFIER_FORMAT },
-    { test: /scripted_guis?\//, type: SymbolType.SCRIPTED_GUI },
-    { test: /decision_group_types?\//, type: SymbolType.DECISION_GROUP_TYPE },
-    { test: /script_values?\//, type: SymbolType.SCRIPT_VALUE },
-    { test: /common\/traits?\//, type: SymbolType.TRAIT },
-    { test: /common\/modifiers?\//, type: SymbolType.MODIFIER },
-    { test: /opinion_modifiers?\//, type: SymbolType.OPINION_MODIFIER },
+    { test: /(^|\/)decision_group_types?\//, type: SymbolType.DECISION_GROUP_TYPE },
+    { test: /(^|\/)events?\//, type: SymbolType.EVENT },
+    { test: /(^|\/)decisions?\//, type: SymbolType.DECISION },
+    { test: /(^|\/)character_interactions?\//, type: SymbolType.CHARACTER_INTERACTION },
+    { test: /(^|\/)on_actions?\//, type: SymbolType.ON_ACTION },
+    { test: /(^|\/)story_cycles?\//, type: SymbolType.STORY_CYCLE },
+    { test: /(^|\/)activities\//, type: SymbolType.ACTIVITY },
+    { test: /(^|\/)schemes\//, type: SymbolType.SCHEME },
+    { test: /(^|\/)scripted_effects\//, type: SymbolType.SCRIPTED_EFFECT },
+    { test: /(^|\/)scripted_triggers\//, type: SymbolType.SCRIPTED_TRIGGER },
+    { test: /(^|\/)scripted_lists\//, type: SymbolType.SCRIPTED_LIST },
+    { test: /(^|\/)scripted_modifiers\//, type: SymbolType.SCRIPTED_MODIFIER },
+    { test: /(^|\/)modifier_definition_formats\//, type: SymbolType.MODIFIER_FORMAT },
+    { test: /(^|\/)scripted_guis?\//, type: SymbolType.SCRIPTED_GUI },
+    { test: /(^|\/)script_values?\//, type: SymbolType.SCRIPT_VALUE },
+    { test: /(^|\/)common\/traits?\//, type: SymbolType.TRAIT },
+    { test: /(^|\/)common\/modifiers?\//, type: SymbolType.MODIFIER },
+    { test: /(^|\/)opinion_modifiers?\//, type: SymbolType.OPINION_MODIFIER },
 ];
 
-function symbolTypeForUri(uri: string): SymbolType {
-    // decision_group_types must not be read as decisions: test the specific pattern first.
-    if (/decision_group_types?\//.test(uri)) {
-        return SymbolType.DECISION_GROUP_TYPE;
-    }
+/** The symbol type of a file's top-level keys from its (mod-relative) path. */
+export function symbolTypeForPath(relativePath: string): SymbolType {
+    const normalized = relativePath.replace(/\\/g, '/');
     for (const kind of FILE_KINDS) {
-        if (kind.test.test(uri)) {
+        if (kind.test.test(normalized)) {
             return kind.type;
         }
     }
     return SymbolType.GENERIC;
+}
+
+/** The path part of a URI (decoded), or the string itself when it is not a URI. */
+function uriPath(uri: string): string {
+    const match = /^[a-z][a-z0-9+.-]*:\/\/[^/]*(\/.*)$/i.exec(uri);
+    if (!match) {
+        return uri;
+    }
+    try {
+        return decodeURIComponent(match[1]);
+    } catch {
+        return match[1];
+    }
 }
 
 function pushTo<K, V>(map: Map<K, V[]>, key: K, value: V): void {
@@ -182,6 +198,11 @@ export interface IndexerOptions {
      * vanilla base game's).
      */
     trackMentions?: boolean;
+    /**
+     * The path of a document relative to its mod (or game) root, used to classify its
+     * top-level keys by directory. Undefined (or no resolver) falls back to the URI's path.
+     */
+    relativePath?: (uri: string) => string | undefined;
 }
 
 const WHOLE_TOKEN_SPLIT = /[^A-Za-z0-9_.]+/;
@@ -243,9 +264,22 @@ export class Indexer {
     private mentionsByUri: Map<string, Set<string>> = new Map();
     private mentionIndex: Map<string, Set<string>> = new Map();
     private readonly trackMentions: boolean;
+    private readonly relativePath: ((uri: string) => string | undefined) | undefined;
 
     constructor(options: IndexerOptions = {}) {
         this.trackMentions = options.trackMentions ?? true;
+        this.relativePath = options.relativePath;
+    }
+
+    /** The symbol type of a document's top-level keys (by its mod-relative directory). */
+    public fileTypeOf(uri: string): SymbolType {
+        let rel: string | undefined;
+        try {
+            rel = this.relativePath?.(uri);
+        } catch {
+            rel = undefined;
+        }
+        return symbolTypeForPath(rel ?? uriPath(uri));
     }
 
     /**
@@ -558,7 +592,7 @@ export class Indexer {
         if (!ast.children) {
             return symbols;
         }
-        const fileType = symbolTypeForUri(uri);
+        const fileType = this.fileTypeOf(uri);
 
         for (const node of ast.children) {
             if (node.type === NodeType.COMMENT || node.type === NodeType.VALUE) {
