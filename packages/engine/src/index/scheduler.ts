@@ -76,7 +76,7 @@ export interface WorkspaceValidatorOptions<T> {
     onError?: (file: string, error: unknown) => void;
     /** Files read ahead at once (default 5). */
     concurrency?: number;
-    /** Above this many files only open files are validated unless forced (default 2000). */
+    /** Above this many files only open files are validated unless forced (default 3000). */
     fileLimit?: number;
     /** Background validation on or off (default true). */
     enabled?: boolean;
@@ -116,7 +116,7 @@ export class WorkspaceValidator<T = Diagnostic[]> {
     ) {
         this.settings = {
             concurrency: Math.max(1, options.concurrency ?? 5),
-            fileLimit: options.fileLimit ?? 2000,
+            fileLimit: options.fileLimit ?? 3000,
             enabled: options.enabled ?? true,
         };
     }

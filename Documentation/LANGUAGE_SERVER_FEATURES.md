@@ -489,7 +489,7 @@ ANSI color support for game log output.
 | `ck3LanguageServer.gamePath` | string | "" | CK3 `game` directory used as the base game (empty: Steam defaults) |
 | `ck3LanguageServer.backgroundValidation.enabled` | boolean | true | Validate the whole workspace in the background |
 | `ck3LanguageServer.backgroundValidation.concurrency` | number | 5 | Files read ahead at once |
-| `ck3LanguageServer.backgroundValidation.fileLimit` | number | 2000 | Above this many files only open files are validated unless forced |
+| `ck3LanguageServer.backgroundValidation.fileLimit` | number | 3000 | Above this many files only open files are validated unless forced |
 
 ---
 

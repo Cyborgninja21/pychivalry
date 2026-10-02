@@ -426,7 +426,7 @@
           },
           "ck3LanguageServer.backgroundValidation.fileLimit": {
             "type": "number",
-            "default": 2000,
+            "default": 3000,
             "minimum": 0,
             "description": "Above this many files only open files are validated in the background. Run 'CK3: Validate Workspace' to validate every file anyway, or raise the limit.",
             "scope": "resource"

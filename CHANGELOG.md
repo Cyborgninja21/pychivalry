@@ -24,7 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   saved file defines. **CK3: Validate Workspace** now forces a full pass with a cancellable
   progress notification (LSP `window/workDoneProgress`) and returns `{ files, errors,
   warnings, information, milliseconds }`; `ck3.getWorkspaceStats` adds the pass state.
-  Settings `backgroundValidation.enabled`, `.concurrency`, `.fileLimit`. Engine:
+  Settings `backgroundValidation.enabled` (true), `.concurrency` (5), `.fileLimit` (3000; above it only open files unless a pass is forced). Engine:
   `WorkspaceValidator` (`index/scheduler.ts`), an incremental, cancellable scheduler that
   yields to the event loop after every file, and `Indexer.dependentsOf(uri)`.
 - **Explorer file decorations** (#87): a badge with the count of a file's worst severity and

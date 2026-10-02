@@ -66,11 +66,9 @@ async function runCorpus(extensionDevelopmentPath: string): Promise<void> {
             console.log(`Real-mod corpus: ${slug} skipped (not in ${corpus})`);
             continue;
         }
+        // Shipped defaults except the game path: the record is what a modder gets.
         const dataDir = userDataDir({
             'ck3LanguageServer.gamePath': process.env.CK3_GAME_PATH ?? '',
-            // The largest mod (RICE, 1,313 script + 777 localization files) is above the
-            // default ceiling of 2000; the acceptance run validates every file.
-            'ck3LanguageServer.backgroundValidation.fileLimit': 100000,
         });
         try {
             console.log(`Real-mod corpus: ${slug}`);

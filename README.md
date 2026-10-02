@@ -143,7 +143,7 @@ The extension checks the whole mod, not only the open files:
   `~/Library/Application Support/Steam/steamapps/common/Crusader Kings III/game`). Which one
   was used, and how long it took to read, is logged in the **CK3: Index** channel.
 
-Big mods: above `backgroundValidation.fileLimit` files (2000 by default) only open files are
+Big mods: above `backgroundValidation.fileLimit` files (3000 by default) only open files are
 validated in the background, and a one-time message says so; run **CK3: Validate Workspace**
 or raise the limit. Measured on five published mods, the largest (RICE, 1,313 script and 777
 localization files) takes about 93 s to its first full result at under 700 MB
@@ -162,7 +162,7 @@ localization files) takes about 93 s to its first full result at under 700 MB
 | `gamePath` | empty (Steam defaults) | The CK3 `game` directory used as the base game |
 | `backgroundValidation.enabled` | `true` | Validate the whole workspace in the background |
 | `backgroundValidation.concurrency` | `5` | Files read ahead at once (diagnosis is one file at a time) |
-| `backgroundValidation.fileLimit` | `2000` | Above this many files only open files are validated unless forced |
+| `backgroundValidation.fileLimit` | `3000` | Above this many files only open files are validated unless forced |
 
 Diagnostics are documented in the generated [diagnostics reference](Documentation/user-guide/diagnostics/README.md).
 

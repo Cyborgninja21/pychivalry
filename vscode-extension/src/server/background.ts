@@ -39,7 +39,7 @@ export interface BackgroundSettings {
 export const DEFAULT_BACKGROUND: BackgroundSettings = {
     enabled: true,
     concurrency: 5,
-    fileLimit: 2000,
+    fileLimit: 3000,
 };
 
 /** Per-file counts sent with every publish. */
