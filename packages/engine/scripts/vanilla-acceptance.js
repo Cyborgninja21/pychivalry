@@ -97,12 +97,13 @@ for (const file of workspace.scriptFiles()) {
         uri: engine.pathToUri(file),
         ast: workspace.parse(file).ast,
     };
+    const contexts = new Map();
     const ds = [
-        ...engine.checkRegistry(input),
+        ...engine.checkRegistry(input, contexts),
         ...engine.checkSchema(input),
-        ...engine.checkScope(input),
+        ...engine.checkScope(input, contexts),
     ];
-    const res = engine.resolveScopes(input);
+    const res = engine.resolveScopes(input, contexts);
     for (const [nodes, ctx] of res.contexts) {
         if (ctx.kind !== 'trigger' && ctx.kind !== 'effect') {
             continue;

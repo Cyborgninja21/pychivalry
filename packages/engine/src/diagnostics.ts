@@ -15,7 +15,7 @@ import { Indexer } from './index/indexer';
 import { pathToUri, Workspace } from './index/workspace';
 import { Spec } from './spec/spec';
 import { ASTNode, ParseError } from './syntax/ast';
-import { checkRegistry } from './check/registry';
+import { BlockContext, checkRegistry } from './check/registry';
 import { checkSchema } from './check/schema';
 import { checkScope } from './check/scope';
 import { CheckInput, Diagnostic } from './check/types';
@@ -103,7 +103,13 @@ export function diagnose(
         ast: parsed.ast,
     };
     const diagnostics: Diagnostic[] = parsed.errors.map((e) => parseErrorToDiagnostic(rel, e));
-    diagnostics.push(...checkRegistry(input), ...checkSchema(input), ...checkScope(input));
+    // The registry's reading of every block is recorded once and reused by the scope check.
+    const contexts = new Map<ASTNode[], BlockContext>();
+    diagnostics.push(
+        ...checkRegistry(input, contexts),
+        ...checkSchema(input),
+        ...checkScope(input, contexts)
+    );
 
     const plugins = [...registeredPlugins, ...(options.plugins ?? [])];
     for (const plugin of plugins) {

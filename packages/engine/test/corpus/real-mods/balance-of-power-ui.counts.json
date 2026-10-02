@@ -7,7 +7,7 @@
     },
     "spec": {
         "version": "1.20.0.2",
-        "sha256": "18239875f2aba05e10292dd63267567d6ff58dff50d8e55df2e1df4b33246673"
+        "sha256": "129f67f6acb2292f10ca9e45cb2720831e447601027f54e0a7be680c79c08cbb"
     },
     "engine": {
         "mod": {
@@ -18,16 +18,16 @@
         },
         "spec": {
             "version": "1.20.0.2",
-            "sha256": "18239875f2aba05e10292dd63267567d6ff58dff50d8e55df2e1df4b33246673"
+            "sha256": "129f67f6acb2292f10ca9e45cb2720831e447601027f54e0a7be680c79c08cbb"
         },
         "command": "node packages/engine/scripts/corpus-acceptance.js <corpus dir> <game dir> balance-of-power-ui",
         "equivalentCli": "node packages/engine/dist/cli.js check <corpus dir>/balance-of-power-ui --vanilla <game dir>",
         "files": 5,
-        "milliseconds": 3907,
-        "loadMilliseconds": 3901,
-        "maxRssKb": 210376,
+        "milliseconds": 14806,
+        "loadMilliseconds": 14785,
+        "maxRssKb": 210464,
         "longestFile": {
-            "milliseconds": 3.5,
+            "milliseconds": 13,
             "file": "common/script_values/svals_bop.txt"
         },
         "bySeverity": {
@@ -62,21 +62,21 @@
         "filesValidated": 12,
         "filesWithFindings": 5,
         "filesAtCap": [],
-        "timeToFirstFullResultMs": 4156,
-        "serverUptimeAtFirstFullResultMs": 4127,
-        "backgroundPassMs": 17,
-        "peakServerRssKb": 217700,
-        "serverVmHwmKb": 217700,
+        "timeToFirstFullResultMs": 18014,
+        "serverUptimeAtFirstFullResultMs": 17945,
+        "backgroundPassMs": 38,
+        "peakServerRssKb": 258688,
+        "serverVmHwmKb": 258688,
         "longestFile": {
-            "milliseconds": 7.8,
+            "milliseconds": 17.3,
             "file": "common/script_values/svals_bop.txt"
         },
         "longestScriptFile": {
-            "milliseconds": 7.7,
+            "milliseconds": 17.2,
             "file": "common/script_values/svals_bop.txt"
         },
         "longestLocalizationFile": {
-            "milliseconds": 0.3,
+            "milliseconds": 0.6,
             "file": "localization/english/bop_l_english.yml"
         },
         "bySeverity": {

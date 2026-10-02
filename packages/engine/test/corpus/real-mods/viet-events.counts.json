@@ -7,7 +7,7 @@
     },
     "spec": {
         "version": "1.20.0.2",
-        "sha256": "18239875f2aba05e10292dd63267567d6ff58dff50d8e55df2e1df4b33246673"
+        "sha256": "129f67f6acb2292f10ca9e45cb2720831e447601027f54e0a7be680c79c08cbb"
     },
     "engine": {
         "mod": {
@@ -18,16 +18,16 @@
         },
         "spec": {
             "version": "1.20.0.2",
-            "sha256": "18239875f2aba05e10292dd63267567d6ff58dff50d8e55df2e1df4b33246673"
+            "sha256": "129f67f6acb2292f10ca9e45cb2720831e447601027f54e0a7be680c79c08cbb"
         },
         "command": "node packages/engine/scripts/corpus-acceptance.js <corpus dir> <game dir> viet-events",
         "equivalentCli": "node packages/engine/dist/cli.js check <corpus dir>/viet-events --vanilla <game dir>",
         "files": 67,
-        "milliseconds": 4582,
-        "loadMilliseconds": 4344,
-        "maxRssKb": 406776,
+        "milliseconds": 17466,
+        "loadMilliseconds": 16724,
+        "maxRssKb": 428232,
         "longestFile": {
-            "milliseconds": 52.4,
+            "milliseconds": 206.2,
             "file": "events/VIET_events_basic.txt"
         },
         "bySeverity": {
@@ -84,22 +84,22 @@
             "events/VIET_events_county.txt",
             "events/VIET_events_old.txt"
         ],
-        "timeToFirstFullResultMs": 12319,
-        "serverUptimeAtFirstFullResultMs": 12258,
-        "backgroundPassMs": 981,
-        "peakServerRssKb": 372108,
-        "serverVmHwmKb": 372108,
+        "timeToFirstFullResultMs": 28587,
+        "serverUptimeAtFirstFullResultMs": 28523,
+        "backgroundPassMs": 2102,
+        "peakServerRssKb": 416088,
+        "serverVmHwmKb": 416088,
         "longestFile": {
-            "milliseconds": 141.9,
+            "milliseconds": 303.2,
             "file": "events/VIET_events_basic.txt"
         },
         "longestScriptFile": {
-            "milliseconds": 141.8,
+            "milliseconds": 302.5,
             "file": "events/VIET_events_basic.txt"
         },
         "longestLocalizationFile": {
-            "milliseconds": 7.6,
-            "file": "localization/french/viet_events_l_french.yml"
+            "milliseconds": 18.3,
+            "file": "localization/korean/viet_events_l_korean.yml"
         },
         "bySeverity": {
             "error": 12,

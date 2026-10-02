@@ -7,7 +7,7 @@
     },
     "spec": {
         "version": "1.20.0.2",
-        "sha256": "18239875f2aba05e10292dd63267567d6ff58dff50d8e55df2e1df4b33246673"
+        "sha256": "129f67f6acb2292f10ca9e45cb2720831e447601027f54e0a7be680c79c08cbb"
     },
     "engine": {
         "mod": {
@@ -18,17 +18,17 @@
         },
         "spec": {
             "version": "1.20.0.2",
-            "sha256": "18239875f2aba05e10292dd63267567d6ff58dff50d8e55df2e1df4b33246673"
+            "sha256": "129f67f6acb2292f10ca9e45cb2720831e447601027f54e0a7be680c79c08cbb"
         },
         "command": "node packages/engine/scripts/corpus-acceptance.js <corpus dir> <game dir> rice",
         "equivalentCli": "node packages/engine/dist/cli.js check <corpus dir>/rice --vanilla <game dir>",
         "files": 1313,
-        "milliseconds": 8255,
-        "loadMilliseconds": 5630,
-        "maxRssKb": 904868,
+        "milliseconds": 27744,
+        "loadMilliseconds": 20406,
+        "maxRssKb": 959772,
         "longestFile": {
-            "milliseconds": 40.9,
-            "file": "events/RICE_tarim_basin_events.txt"
+            "milliseconds": 166.4,
+            "file": "events/RICE_north_atlantic_events.txt"
         },
         "bySeverity": {
             "error": 92,
@@ -841,22 +841,22 @@
             "localization/russian/rice_north_atlantic_l_russian.yml",
             "localization/russian/rice_sri_lanka_l_russian.yml"
         ],
-        "timeToFirstFullResultMs": 20648,
-        "serverUptimeAtFirstFullResultMs": 20592,
-        "backgroundPassMs": 8810,
-        "peakServerRssKb": 720824,
-        "serverVmHwmKb": 720824,
+        "timeToFirstFullResultMs": 58141,
+        "serverUptimeAtFirstFullResultMs": 58077,
+        "backgroundPassMs": 20591,
+        "peakServerRssKb": 715324,
+        "serverVmHwmKb": 715324,
         "longestFile": {
-            "milliseconds": 172.3,
-            "file": "localization/french/rice_nubia_l_french.yml"
+            "milliseconds": 386.5,
+            "file": "localization/german/rice_nubia_l_german.yml"
         },
         "longestScriptFile": {
-            "milliseconds": 71.9,
+            "milliseconds": 172.1,
             "file": "events/RICE_north_atlantic_events.txt"
         },
         "longestLocalizationFile": {
-            "milliseconds": 172.2,
-            "file": "localization/french/rice_nubia_l_french.yml"
+            "milliseconds": 386.4,
+            "file": "localization/german/rice_nubia_l_german.yml"
         },
         "bySeverity": {
             "error": 438,

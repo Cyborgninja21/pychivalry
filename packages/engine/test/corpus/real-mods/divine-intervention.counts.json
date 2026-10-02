@@ -7,7 +7,7 @@
     },
     "spec": {
         "version": "1.20.0.2",
-        "sha256": "18239875f2aba05e10292dd63267567d6ff58dff50d8e55df2e1df4b33246673"
+        "sha256": "129f67f6acb2292f10ca9e45cb2720831e447601027f54e0a7be680c79c08cbb"
     },
     "engine": {
         "mod": {
@@ -18,16 +18,16 @@
         },
         "spec": {
             "version": "1.20.0.2",
-            "sha256": "18239875f2aba05e10292dd63267567d6ff58dff50d8e55df2e1df4b33246673"
+            "sha256": "129f67f6acb2292f10ca9e45cb2720831e447601027f54e0a7be680c79c08cbb"
         },
         "command": "node packages/engine/scripts/corpus-acceptance.js <corpus dir> <game dir> divine-intervention",
         "equivalentCli": "node packages/engine/dist/cli.js check <corpus dir>/divine-intervention --vanilla <game dir>",
         "files": 80,
-        "milliseconds": 4513,
-        "loadMilliseconds": 4177,
-        "maxRssKb": 438112,
+        "milliseconds": 16911,
+        "loadMilliseconds": 15839,
+        "maxRssKb": 463084,
         "longestFile": {
-            "milliseconds": 99.1,
+            "milliseconds": 336.6,
             "file": "common/scripted_guis/DI_modifiers_sgui.txt"
         },
         "bySeverity": {
@@ -77,21 +77,21 @@
             "common/scripted_guis/DI_title_manager_sgui.txt",
             "events/DI_error_suppression.txt"
         ],
-        "timeToFirstFullResultMs": 4908,
-        "serverUptimeAtFirstFullResultMs": 4868,
-        "backgroundPassMs": 810,
-        "peakServerRssKb": 380888,
-        "serverVmHwmKb": 380888,
+        "timeToFirstFullResultMs": 22486,
+        "serverUptimeAtFirstFullResultMs": 22400,
+        "backgroundPassMs": 2019,
+        "peakServerRssKb": 330328,
+        "serverVmHwmKb": 330328,
         "longestFile": {
-            "milliseconds": 197.3,
+            "milliseconds": 595.4,
             "file": "common/scripted_guis/DI_modifiers_sgui.txt"
         },
         "longestScriptFile": {
-            "milliseconds": 197.3,
+            "milliseconds": 595.2,
             "file": "common/scripted_guis/DI_modifiers_sgui.txt"
         },
         "longestLocalizationFile": {
-            "milliseconds": 1.3,
+            "milliseconds": 2.6,
             "file": "localization/french/gui/DI_l_french.yml"
         },
         "bySeverity": {

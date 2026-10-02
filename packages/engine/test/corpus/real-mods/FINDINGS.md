@@ -14,6 +14,12 @@ every scripted effect and trigger of the mod was indexed as an event. Files are 
 by their path inside the mod with segment-anchored patterns; VIET Events has 1 error, the real
 defect below.
 
+**The 2.1 scope check adds no finding.** Re-recorded 2026-10-02 with spec package format 3 and
+the scope check (`wrong_scope_for_trigger_X_expected_X`, `wrong_scope_for_effect_X_expected_X`,
+`trying_to_use_X_link_on_an_invalid_scope_X`): on both paths and all five mods the counts per
+code and every error are identical to the Phase 1 records, so there is no new finding to
+classify and no new issue.
+
 ## Summary
 
 | Mod | Engine path errors | Editor path errors |

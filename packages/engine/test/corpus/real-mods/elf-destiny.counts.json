@@ -7,7 +7,7 @@
     },
     "spec": {
         "version": "1.20.0.2",
-        "sha256": "18239875f2aba05e10292dd63267567d6ff58dff50d8e55df2e1df4b33246673"
+        "sha256": "129f67f6acb2292f10ca9e45cb2720831e447601027f54e0a7be680c79c08cbb"
     },
     "engine": {
         "mod": {
@@ -18,16 +18,16 @@
         },
         "spec": {
             "version": "1.20.0.2",
-            "sha256": "18239875f2aba05e10292dd63267567d6ff58dff50d8e55df2e1df4b33246673"
+            "sha256": "129f67f6acb2292f10ca9e45cb2720831e447601027f54e0a7be680c79c08cbb"
         },
         "command": "node packages/engine/scripts/corpus-acceptance.js <corpus dir> <game dir> elf-destiny",
         "equivalentCli": "node packages/engine/dist/cli.js check <corpus dir>/elf-destiny --vanilla <game dir>",
         "files": 553,
-        "milliseconds": 5034,
-        "loadMilliseconds": 4399,
-        "maxRssKb": 456704,
+        "milliseconds": 18912,
+        "loadMilliseconds": 17172,
+        "maxRssKb": 568444,
         "longestFile": {
-            "milliseconds": 16.2,
+            "milliseconds": 43.7,
             "file": "common/genes/01_genes_morph.txt"
         },
         "bySeverity": {
@@ -222,22 +222,22 @@
             "events/wolf_invader_events.txt",
             "gfx/portraits/portrait_modifiers/elf_characters.txt"
         ],
-        "timeToFirstFullResultMs": 9955,
-        "serverUptimeAtFirstFullResultMs": 7130,
-        "backgroundPassMs": 2505,
-        "peakServerRssKb": 316596,
-        "serverVmHwmKb": 316596,
+        "timeToFirstFullResultMs": 24706,
+        "serverUptimeAtFirstFullResultMs": 24620,
+        "backgroundPassMs": 5801,
+        "peakServerRssKb": 388664,
+        "serverVmHwmKb": 388664,
         "longestFile": {
-            "milliseconds": 258.7,
-            "file": "localization/korean/aeluran/aeluran_regency_l_korean.yml"
+            "milliseconds": 539.9,
+            "file": "localization/english/aeluran/aeluran_regency_l_english.yml"
         },
         "longestScriptFile": {
-            "milliseconds": 53.6,
+            "milliseconds": 142.1,
             "file": "common/genes/01_genes_morph.txt"
         },
         "longestLocalizationFile": {
-            "milliseconds": 258.6,
-            "file": "localization/korean/aeluran/aeluran_regency_l_korean.yml"
+            "milliseconds": 539.8,
+            "file": "localization/english/aeluran/aeluran_regency_l_english.yml"
         },
         "bySeverity": {
             "error": 338,

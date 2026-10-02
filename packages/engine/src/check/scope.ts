@@ -36,7 +36,7 @@ import { ASTNode, NodeType, ScopeChain } from '../syntax/ast';
 import { SymbolType } from '../index/symbols';
 import { messageText } from '../messages';
 import { CONTAINERS } from './contexts';
-import { fieldFor } from './registry';
+import { BlockContext, fieldFor } from './registry';
 import { ChainResolution, ScopeResolution, resolveScopes } from './scope-types';
 import { ITERATOR_PARAMS } from './structural';
 import { CheckInput, Diagnostic, Severity } from './types';
@@ -83,7 +83,10 @@ class ScopeChecker {
     public readonly diagnostics: Diagnostic[] = [];
     private readonly saved: Set<string>;
 
-    constructor(private readonly input: CheckInput) {
+    constructor(
+        private readonly input: CheckInput,
+        private readonly contexts?: Map<ASTNode[], BlockContext>
+    ) {
         this.saved = savedScopeNames(input.ast);
     }
 
@@ -105,7 +108,7 @@ class ScopeChecker {
 
     public run(): void {
         this.visit(this.input.ast);
-        this.checkTypes(resolveScopes(this.input));
+        this.checkTypes(resolveScopes(this.input, this.contexts));
     }
 
     // ── per-keyword scope validity and link inputs ──────────────────────
@@ -290,8 +293,11 @@ class ScopeChecker {
 }
 
 /** Run the scope structure checks on one parsed file. */
-export function checkScope(input: CheckInput): Diagnostic[] {
-    const checker = new ScopeChecker(input);
+export function checkScope(
+    input: CheckInput,
+    contexts?: Map<ASTNode[], BlockContext>
+): Diagnostic[] {
+    const checker = new ScopeChecker(input, contexts);
     checker.run();
     return checker.diagnostics;
 }

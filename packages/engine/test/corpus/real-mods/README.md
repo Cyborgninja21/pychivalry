@@ -97,6 +97,14 @@ than 172.3 ms. Before the localization validator's suggestion work was bounded, 
 took 92.7 s and one file (`localization/polish/rice_north_atlantic_l_polish.yml`, 1,962
 findings) took 4.6 to 9.0 s; measured alone, that file's diagnosis went from 6,883 ms to 104 ms.
 
+**Re-recorded for 2.1 (scope check).** The records now in this folder were made with the 2.1
+engine on the same box later the same day, when it was markedly slower: the 2.0 engine
+(`2cc5efa`), re-measured back to back on the vanilla files, took 75.8 s and 78.5 s for the checks
+that the budget run above measured at 27.2 s. Against that control the 2.1 engine took 82.4 s
+(the scope check shares the registry's block reading; about 6 to 8 % more), and the corpus
+timings in the records scale the same way (RICE first full result 58.1 s). Counts per code and
+errors are identical to the Phase 1 records on both paths.
+
 **The 1000-per-file cap.** The diagnostics provider publishes at most 1000 diagnostics per file
 (sorted by position), and with the plug-ins several big files reach it (14 files in Divine
 Intervention, 22 in Elf Destiny, 25 in RICE, 4 in VIET Events: `filesAtCap`). Outside those
