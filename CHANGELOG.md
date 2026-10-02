@@ -7,6 +7,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### 2.1.0 (in progress): whole-mod diagnostics in the editor
+
+#### Added
+
+- **The base game** (`ck3LanguageServer.gamePath`, machine-overridable): the server checks the
+  mod against the CK3 `game` directory, so the vanilla scripted triggers, effects, lists,
+  modifiers and script values a mod calls are known. When the setting is empty the Steam
+  default locations are tried once; an invalid path is logged and the server runs without a
+  base game. The base game is read asynchronously after indexing and its duration logged.
+  Engine: `Workspace.useVanilla(root)`.
+- **Background validation** (#86): every script and localization file is validated after
+  start-up and published as ordinary diagnostics, so unopened files appear in the Problems
+  panel; files changed on disk are re-validated (file watchers for `.txt`, `.gui`, `.gfx`,
+  `.asset` and `localization/**/*.yml`), and a save re-validates the files that use what the
+  saved file defines. **CK3: Validate Workspace** now forces a full pass with a cancellable
+  progress notification (LSP `window/workDoneProgress`) and returns `{ files, errors,
+  warnings, information, milliseconds }`; `ck3.getWorkspaceStats` adds the pass state.
+  Settings `backgroundValidation.enabled`, `.concurrency`, `.fileLimit`. Engine:
+  `WorkspaceValidator` (`index/scheduler.ts`), an incremental, cancellable scheduler that
+  yields to the event loop after every file, and `Indexer.dependentsOf(uri)`.
+- **Explorer file decorations** (#87): a badge with the count of a file's worst severity and
+  its colour, propagated to folders.
+- **Status-bar health summary** (#84): workspace error and warning totals, a spinner with
+  progress while a pass runs, click opens the Problems panel (unfiltered: VS Code has no
+  public API to set its filter).
+- **Real-mod corpus acceptance**: five published mods recorded on the engine path
+  (`packages/engine/scripts/corpus-acceptance.js`) and in the Extension Development Host
+  (`CK3_CORPUS=… task test:integration`), every error finding classified
+  (`packages/engine/test/corpus/real-mods/`); the false positives found there are issues
+  #90 to #97.
+
+#### Changed
+
+- **Closing a file no longer clears its diagnostics or drops it from the index**: its last
+  result stays in the Problems panel until background validation checks it again, from disk.
+- **Restarting the server no longer starts a second client** three seconds later: a deliberate
+  stop was handled as a crash.
+
 ## [2.0.0] - 2026-10-01
 
 pychivalry is re-architected around an engine core that reads one generated description of

@@ -113,6 +113,42 @@ been captured for 1.20.0.2. The spec package has the slot (`scope_validity`, emp
 so a future package fills it without a code change. Inlay hints therefore show saved-scope
 names, not scope types.
 
+## Whole-mod diagnostics
+
+The extension checks the whole mod, not only the open files:
+
+- **Background validation.** After start-up every script (`.txt`) and localization file of the
+  workspace is validated in the background, one file at a time so the editor stays
+  responsive; the results appear in the Problems panel for unopened files too. A file changed
+  on disk is re-validated; when a file is saved, the files that use what it defines (its
+  scripted effects and triggers, events, saved scopes, script values …) are re-validated with
+  it. A closed file keeps its last result until it is validated again. **CK3: Validate
+  Workspace** runs a full pass now, with a cancellable progress notification, and reports the
+  counts. GUI files (`.gui`, `.gfx`, `.asset`) are indexed but not validated.
+- **Explorer decorations.** A file with errors or warnings shows the count of its worst
+  severity as a badge (`9+` above nine) in the error or warning colour; folders take the
+  colour of what is inside them.
+- **Status bar.** Next to the server item: the workspace's error and warning totals
+  (`$(error) 3 $(warning) 12`), a spinner with `done/total` while a pass runs, a tooltip with
+  the information count, the files affected and the time of the last full pass. Clicking it
+  opens the Problems panel. VS Code has no public API to set the Problems panel's filter, so it
+  opens unfiltered; type `ck3` in its filter box to see only pychivalry's findings.
+- **The base game.** Mods call the base game's scripted triggers, effects, lists and script
+  values; without the game they are all reported as unknown. Set `ck3LanguageServer.gamePath`
+  to the CK3 `game` directory (the one holding `common/`, `events/` and `history/`); when it
+  is empty the Steam default locations are tried once (Windows `C:\Program Files
+  (x86)\Steam\steamapps\common\Crusader Kings III\game`, Linux
+  `~/.steam/steam/steamapps/common/Crusader Kings III/game` and
+  `~/.local/share/Steam/steamapps/common/Crusader Kings III/game`, macOS
+  `~/Library/Application Support/Steam/steamapps/common/Crusader Kings III/game`). Which one
+  was used, and how long it took to read, is logged in the **CK3: Index** channel.
+
+Big mods: above `backgroundValidation.fileLimit` files (2000 by default) only open files are
+validated in the background, and a one-time message says so; run **CK3: Validate Workspace**
+or raise the limit. Measured on five published mods, the largest (RICE, 1,313 script and 777
+localization files) takes about 93 s to its first full result at under 700 MB
+([corpus records](packages/engine/test/corpus/real-mods/README.md)).
+
 ## Configuration
 
 | Setting (`ck3LanguageServer.*`) | Default | Description |
@@ -123,6 +159,10 @@ names, not scope types.
 | `formatting.enabled`, `formatting.insertSpaces`, `formatting.tabSize` | `true`, `false`, `4` | Formatter |
 | `inlayHints.enabled` | `true` | Inlay hints |
 | `logWatcher.enabled`, `logWatcher.autoStart`, `logWatcher.logPath` | `true`, `false`, auto | Game log watcher |
+| `gamePath` | empty (Steam defaults) | The CK3 `game` directory used as the base game |
+| `backgroundValidation.enabled` | `true` | Validate the whole workspace in the background |
+| `backgroundValidation.concurrency` | `5` | Files read ahead at once (diagnosis is one file at a time) |
+| `backgroundValidation.fileLimit` | `2000` | Above this many files only open files are validated unless forced |
 
 Diagnostics are documented in the generated [diagnostics reference](Documentation/user-guide/diagnostics/README.md).
 

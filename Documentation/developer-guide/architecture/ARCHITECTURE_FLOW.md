@@ -36,7 +36,7 @@ retired-keyword table, and an empty `scope_validity` slot. The engine vendors it
 | --- | --- |
 | `spec/` | `loadSpec`/`defaultSpec` give a `Spec`: `has(name, bucket)`, `bucketsOf`, `doc`, `isIterator`, `listBase`, `isModifier`, `directoryOf`, `schemaOf`, `message(id, …args)`, `retired`, `scopeValidity`, `version`; `withOverlay` layers extra names (mods) over it; `validateSpecPackage` checks a package against its JSON Schema |
 | `syntax/` | `Lexer`, `CK3Parser`, `CachingParser` (bounded content cache), `IncrementalParser`, `parseExpression`; the AST (`ASTNode`, 0-based ranges, key/value kinds, scope chains) |
-| `index/` | `Indexer` (symbols, events, namespaces, references, saved scopes), `CallGraph` (events, scripted effects/triggers, on_actions), `Workspace` (mod roots, mod-relative paths, the spec and index of a workspace), `LocalizationIndex`, mod descriptor parsing |
+| `index/` | `Indexer` (symbols, events, namespaces, references, saved scopes, the names each file mentions and `dependentsOf(uri)`), `CallGraph` (events, scripted effects/triggers, on_actions), `Workspace` (mod roots, mod-relative paths, the spec and index of a workspace, the base game via `vanilla`/`useVanilla`), `WorkspaceValidator` (`scheduler.ts`: background validation), `LocalizationIndex`, mod descriptor parsing |
 | `check/` | Registry, schema and scope checks plus the context tracker that decides trigger vs effect context |
 | `diagnostics.ts` | `diagnose` / `diagnoseWorkspace`: parse → registry → schema → scope → plug-ins |
 | `messages.ts` | The few package-local `PYCH-` messages |
@@ -62,6 +62,10 @@ tests against pdx-parser-re's test mods (exact game messages), corpus tests over
   and runs the mod scanner, whose registry (`data/mods/`) turns discovered mods into spec
   overlays.
 - `log/` watches the game's log files and publishes their errors as diagnostics.
+- `background.ts` runs background validation: the engine's `WorkspaceValidator` with the
+  diagnostics provider as its per-file step, publishing each result and its counts
+  (`ck3/workspaceDiagnostics`) and reporting forced passes through `window/workDoneProgress`.
+- `game-path.ts` resolves the base game directory (setting, then Steam defaults).
 - `commands.ts` implements the `ck3.*` server commands (validate or rescan the workspace,
   statistics, namespace events, localization stubs, orphaned localization, rename event, …).
 
@@ -70,7 +74,9 @@ tests against pdx-parser-re's test mods (exact game messages), corpus tests over
 `extension.ts` starts the server (`client/server-controller.ts`), registers the
 `ck3LanguageServer.*` commands (`client/commands.ts`), routes server notifications to output
 channels (`client/log-channels.ts`, `logger.ts`) and shows the server state in the status bar
-(`statusBar.ts`).
+(`statusBar.ts`). `client/workspace-health.ts` keeps the per-file counts and pass state from
+`ck3/workspaceDiagnostics`; the Explorer decorations (`client/file-decorations.ts`) and the
+health status-bar item (`statusBar.ts` `CK3HealthStatusBar`) read it.
 
 ## Flows
 
@@ -87,14 +93,37 @@ channels (`client/log-channels.ts`, `logger.ts`) and shows the server state in t
    folder is added to the engine `Workspace`, every script file is indexed (definitions in
    unopened files resolve), localization files are indexed, and the mod scanner looks for
    known mods; found mods become a spec overlay (`Spec.withOverlay`) that every provider and
-   the diagnostics then read. Progress goes to the **CK3: Index** channel.
+   the diagnostics then read. Between indexing and localization the base game is read
+   (`gamePath` or the Steam defaults, `Workspace.useVanilla`, asynchronous). Progress goes to
+   the **CK3: Index** channel.
+4. Background validation starts: every script and localization file is diagnosed (see below).
 
 ### Editing a document
 
-- **Open / save:** index the text, run the diagnostics provider, publish.
+- **Open:** index the text, run the diagnostics provider, publish.
+- **Save:** the same, then the files that depend on it are queued for background validation.
 - **Change:** re-index at once (completion, hover and navigation read the index), diagnose
   after a 300 ms debounce.
-- **Close:** drop the document from the index and clear its diagnostics.
+- **Close:** re-read the file from disk into the index and queue it; its last diagnostics stay
+  until then.
+- **On disk** (`workspace/didChangeWatchedFiles`): created or changed files are re-indexed and
+  queued with their dependents; deleted files leave the index and their diagnostics are
+  cleared.
+
+### Background validation
+
+`WorkspaceValidator` (`packages/engine/src/index/scheduler.ts`) holds a queue of files. After
+`start()` it queues every file once; `invalidate(file)` re-queues one file and
+`invalidateWithDependents(file)` also queues every file that mentions a name the file defines
+now or defined at its last validation (`Indexer.dependentsOf`); invalidations go ahead of the
+rest of a running pass. It reads `concurrency` files ahead, then diagnoses them one at a time
+with a `setImmediate` yield after each, so the server answers requests between files;
+`cancel()` stops before the next file and `start()` resumes. Above `fileLimit` files only open
+files are queued unless a pass is forced. The server's `background.ts` gives it the
+diagnostics provider as its per-file step (open files use the editor's text), publishes every
+result with `sendDiagnostics` and sends `ck3/workspaceDiagnostics` with the file's counts and
+the pass state (`running`/`idle`, `done`/`total`, duration, peak memory), which the client's
+decorations and status bar read.
 
 The diagnostics provider sends script files through the engine's `diagnose` with the
 extension's plug-ins and maps the results to LSP diagnostics (source `ck3-engine` or

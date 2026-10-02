@@ -29,13 +29,20 @@ named.
 | 16 | `folding.ts` | foldingRange | Blocks, comment runs, multi-line lists. | parser |
 | 17 | `selection-range.ts` | selectionRange | Smart expand/shrink through value, assignment, block contents, block. | parser |
 
+Whole-mod features (2.1), outside the per-request providers:
+
+| Feature | Where | What it does | Status |
+| --- | --- | --- | --- |
+| Background diagnostics (#86) | `server/background.ts` + the engine's `WorkspaceValidator` | Every script and localization file validated after start-up, on change on disk, and with its dependents on save; published through the same diagnostics provider as open files; **CK3: Validate Workspace** forces a pass with progress and cancel | engine; **limited**: `.gui`/`.gfx`/`.asset` not validated; above `backgroundValidation.fileLimit` only open files unless forced |
+| Explorer file decorations (#87) | `client/file-decorations.ts` | Badge with the count of a file's worst severity (`9+` above nine), error or warning colour, folder roll-up | engine (diagnostics stream) |
+| Status-bar health summary (#84) | `statusBar.ts` (`CK3HealthStatusBar`) | Workspace error and warning totals, spinner with `done/total` during a pass, tooltip with information count, files affected and last full pass; click opens the Problems panel | engine (diagnostics stream); **limited**: the Problems panel opens unfiltered (no public API for its filter) |
+
 ## Not provided
 
 Requests a modder might expect that the server does not answer, all tracked as issues kept
-for after 2.0.0: color swatches for GUI colors (#79), on-type formatting (#80), a mod-structure
-tree view (#83), diagnostic counts in the status bar (#84), workspace-wide background
-diagnostics (#86, today `CK3: Validate Workspace` runs them on demand), and Explorer file
-decorations (#87).
+for after 2.0.0: color swatches for GUI colors (#79), on-type formatting (#80) and a
+mod-structure tree view (#83). Diagnostic counts in the status bar (#84), workspace-wide
+background diagnostics (#86) and Explorer file decorations (#87) arrive in 2.1 (above).
 
 ## File types
 
