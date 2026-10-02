@@ -29,6 +29,10 @@ export interface StateEvent {
     pid?: number;
     longestFileMs?: number;
     longestFile?: string;
+    longestScriptFileMs?: number;
+    longestScriptFile?: string;
+    longestLocalizationFileMs?: number;
+    longestLocalizationFile?: string;
     filesValidated?: number;
 }
 
@@ -87,6 +91,7 @@ export class WorkspaceHealth {
     private stateEvent: StateEvent | undefined;
     private lastFullPassAt: number | undefined;
     private firstFull: StateEvent | undefined;
+    private firstFullAt: number | undefined;
     private readonly fullWaiters: Array<(event: StateEvent) => void> = [];
 
     constructor(
@@ -122,6 +127,7 @@ export class WorkspaceHealth {
                 this.firstFull === undefined
             ) {
                 this.firstFull = message;
+                this.firstFullAt = this.now();
                 for (const resolve of this.fullWaiters.splice(0)) {
                     resolve(message);
                 }
@@ -139,6 +145,7 @@ export class WorkspaceHealth {
         this.files.clear();
         this.stateEvent = undefined;
         this.firstFull = undefined;
+        this.firstFullAt = undefined;
         this.lastFullPassAt = undefined;
         if (keys.length > 0) {
             this.fire({ kind: 'files', keys });
@@ -181,6 +188,11 @@ export class WorkspaceHealth {
     /** The last run state event from the server. */
     public get lastState(): StateEvent | undefined {
         return this.stateEvent;
+    }
+
+    /** When the current server's first full pass arrived (client clock), if it has. */
+    public get firstFullResultAt(): number | undefined {
+        return this.firstFullAt;
     }
 
     /** Resolves with the idle event of the (current) server's first full pass. */

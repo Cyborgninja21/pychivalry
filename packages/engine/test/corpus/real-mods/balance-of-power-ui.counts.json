@@ -1,0 +1,132 @@
+{
+    "mod": {
+        "slug": "balance-of-power-ui",
+        "workshop_id": "3157042775",
+        "name": "Balance of Power UI",
+        "supported_version": "1.*.*"
+    },
+    "spec": {
+        "version": "1.20.0.2",
+        "sha256": "18239875f2aba05e10292dd63267567d6ff58dff50d8e55df2e1df4b33246673"
+    },
+    "engine": {
+        "mod": {
+            "slug": "balance-of-power-ui",
+            "workshop_id": "3157042775",
+            "name": "Balance of Power UI",
+            "supported_version": "1.*.*"
+        },
+        "spec": {
+            "version": "1.20.0.2",
+            "sha256": "18239875f2aba05e10292dd63267567d6ff58dff50d8e55df2e1df4b33246673"
+        },
+        "command": "node packages/engine/scripts/corpus-acceptance.js <corpus dir> <game dir> balance-of-power-ui",
+        "equivalentCli": "node packages/engine/dist/cli.js check <corpus dir>/balance-of-power-ui --vanilla <game dir>",
+        "files": 5,
+        "milliseconds": 3690,
+        "loadMilliseconds": 3684,
+        "maxRssKb": 218252,
+        "longestFile": {
+            "milliseconds": 3.2,
+            "file": "common/script_values/svals_bop.txt"
+        },
+        "bySeverity": {
+            "error": 0,
+            "warning": 0,
+            "information": 1,
+            "hint": 0
+        },
+        "counts": {
+            "undefined_event_target_X": {
+                "severity": "information",
+                "count": 1
+            }
+        },
+        "errors": []
+    },
+    "editor": {
+        "command": "CK3_CORPUS=<corpus dir> CK3_GAME_PATH=<game dir> xvfb-run -a task test:integration (mod balance-of-power-ui)",
+        "vscodeVersion": "1.140.0",
+        "settings": {
+            "gamePath": "<game dir>",
+            "backgroundValidation": {
+                "enabled": true,
+                "concurrency": 5,
+                "fileLimit": 100000
+            }
+        },
+        "sources": [
+            "ck3-engine",
+            "ck3-plugin"
+        ],
+        "filesValidated": 12,
+        "filesWithFindings": 5,
+        "filesAtCap": [],
+        "timeToFirstFullResultMs": 3686,
+        "serverUptimeAtFirstFullResultMs": 3631,
+        "backgroundPassMs": 17,
+        "peakServerRssKb": 217208,
+        "serverVmHwmKb": 217208,
+        "longestFile": {
+            "milliseconds": 8.2,
+            "file": "common/script_values/svals_bop.txt"
+        },
+        "longestScriptFile": {
+            "milliseconds": 8.2,
+            "file": "common/script_values/svals_bop.txt"
+        },
+        "longestLocalizationFile": {
+            "milliseconds": 0.2,
+            "file": "localization/english/bop_l_english.yml"
+        },
+        "bySeverity": {
+            "error": 0,
+            "warning": 312,
+            "information": 15,
+            "hint": 15
+        },
+        "counts": {
+            "CK3301": {
+                "severity": "warning",
+                "count": 36
+            },
+            "CK3303": {
+                "severity": "warning",
+                "count": 274
+            },
+            "CK3316": {
+                "severity": "information",
+                "count": 1
+            },
+            "CK3317": {
+                "severity": "information",
+                "count": 7
+            },
+            "CK3701": {
+                "severity": "warning",
+                "count": 1
+            },
+            "CK3702": {
+                "severity": "hint",
+                "count": 15
+            },
+            "CK3977": {
+                "severity": "information",
+                "count": 2
+            },
+            "CK4100": {
+                "severity": "warning",
+                "count": 1
+            },
+            "ITER-004": {
+                "severity": "information",
+                "count": 4
+            },
+            "undefined_event_target_X": {
+                "severity": "information",
+                "count": 1
+            }
+        },
+        "errors": []
+    }
+}

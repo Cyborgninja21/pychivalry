@@ -65,6 +65,11 @@ export interface StateEvent {
     pid?: number;
     longestFileMs?: number;
     longestFile?: string;
+    /** The longest diagnosis of a script (.txt) file and of a localization file. */
+    longestScriptFileMs?: number;
+    longestScriptFile?: string;
+    longestLocalizationFileMs?: number;
+    longestLocalizationFile?: string;
     filesValidated?: number;
 }
 
@@ -138,6 +143,10 @@ export class BackgroundValidation {
     private firstFullResultMs: number | undefined;
     private reporter: WorkDoneProgressReporter | undefined;
     private started = false;
+    private readonly longest = {
+        script: { ms: 0, file: undefined as string | undefined },
+        localization: { ms: 0, file: undefined as string | undefined },
+    };
 
     constructor(private readonly host: BackgroundHost) {
         this.validator = new WorkspaceValidator<Diagnostic[]>(host.workspace, {
@@ -148,7 +157,7 @@ export class BackgroundValidation {
             fileOf: fileUriToPath,
             read: async (file) =>
                 this.openDocument(file)?.getText() ?? fs.promises.readFile(file, 'utf-8'),
-            diagnose: (_file, uri, text) => host.diagnose(uri, text),
+            diagnose: (file, uri, text) => this.timed(file, () => host.diagnose(uri, text)),
             publish: (_rel, uri, diagnostics) => this.publish(uri, diagnostics),
             onProgress: (progress) => this.onProgress(progress),
             onError: (file, error) =>
@@ -309,6 +318,18 @@ export class BackgroundValidation {
 
     // ── internals ───────────────────────────────────────────────────────
 
+    /** Run one file's diagnosis and keep the longest per kind (script, localization). */
+    private timed(file: string, run: () => Diagnostic[]): Diagnostic[] {
+        const started = process.hrtime.bigint();
+        const result = run();
+        const ms = Number(process.hrtime.bigint() - started) / 1e6;
+        const kind = isLocalizationFile(path.basename(file)) ? 'localization' : 'script';
+        if (ms > this.longest[kind].ms) {
+            this.longest[kind] = { ms, file: this.host.workspace.relativePath(file) };
+        }
+        return result;
+    }
+
     /** Every script and localization file of the workspace folders. */
     private files(): string[] {
         const files = this.host.workspace.scriptFiles();
@@ -378,6 +399,10 @@ export class BackgroundValidation {
             pid: process.pid,
             longestFileMs: Math.round(stats.longestFileMilliseconds * 10) / 10,
             longestFile: stats.longestFile,
+            longestScriptFileMs: Math.round(this.longest.script.ms * 10) / 10,
+            longestScriptFile: this.longest.script.file,
+            longestLocalizationFileMs: Math.round(this.longest.localization.ms * 10) / 10,
+            longestLocalizationFile: this.longest.localization.file,
             filesValidated: stats.filesValidated,
         };
         void this.host.connection.sendNotification(WORKSPACE_DIAGNOSTICS, event);
