@@ -4,7 +4,11 @@
  */
 
 import * as vscode from 'vscode';
-import { LanguageClient } from 'vscode-languageclient/node';
+import {
+    ExecuteCommandRequest,
+    LanguageClient,
+    WorkDoneProgress,
+} from 'vscode-languageclient/node';
 import { logger, LogCategory } from '../logger';
 import { getLogChannel } from './log-channels';
 
@@ -35,6 +39,71 @@ function notify(message: string): void {
 
 const DEPRECATED_EXTRACTION =
     'This command has been replaced by the built-in TypeScript language server. Game data is bundled with the extension.';
+
+/** ck3.validateWorkspace's result (server/background.ts). */
+export interface ValidateWorkspaceResult {
+    files: number;
+    errors: number;
+    warnings: number;
+    information: number;
+    milliseconds: number;
+    cancelled: boolean;
+}
+
+/** The information message shown when a forced validation pass ends. */
+export function validationSummary(r: ValidateWorkspaceResult): string {
+    const seconds = (r.milliseconds / 1000).toFixed(1);
+    const counts = `${r.errors} errors, ${r.warnings} warnings, ${r.information} information`;
+    return r.cancelled
+        ? `CK3 validation cancelled after ${r.files} files (${seconds} s): ${counts} so far`
+        : `CK3 workspace validated: ${r.files} files in ${seconds} s: ${counts}`;
+}
+
+/**
+ * Run ck3.validateWorkspace with a cancellable progress notification. The server reports
+ * through LSP window/workDoneProgress on the token sent with the request; cancelling the
+ * notification cancels the request, which cancels the server's pass.
+ */
+async function validateWorkspaceWithProgress(
+    client: LanguageClient
+): Promise<ValidateWorkspaceResult | 'cancelled'> {
+    const token = `ck3-validate-${Date.now()}`;
+    return vscode.window.withProgress(
+        {
+            location: vscode.ProgressLocation.Notification,
+            title: 'CK3: validating the workspace',
+            cancellable: true,
+        },
+        async (progress, cancel) => {
+            let reported = 0;
+            const listener = client.onProgress(WorkDoneProgress.type, token, (value) => {
+                if (value.kind === 'end') {
+                    return;
+                }
+                const percentage = value.percentage ?? reported;
+                progress.report({
+                    message: value.message,
+                    increment: Math.max(0, percentage - reported),
+                });
+                reported = Math.max(reported, percentage);
+            });
+            try {
+                return (await client.sendRequest(
+                    ExecuteCommandRequest.type,
+                    { command: 'ck3.validateWorkspace', arguments: [], workDoneToken: token },
+                    cancel
+                )) as ValidateWorkspaceResult;
+            } catch (error) {
+                if (cancel.isCancellationRequested) {
+                    return 'cancelled';
+                }
+                throw error;
+            } finally {
+                listener.dispose();
+            }
+        }
+    );
+}
 
 export function registerCommands(context: vscode.ExtensionContext, host: CommandHost): void {
     /** Send ck3.<command> to the server; undefined (after an error message) on failure. */
@@ -78,10 +147,25 @@ export function registerCommands(context: vscode.ExtensionContext, host: Command
         },
 
         validateWorkspace: async () => {
-            const result = await server('ck3.validateWorkspace', 'Validation failed');
-            if (result !== undefined) {
+            const client = host.getClient();
+            if (!client) {
+                vscode.window.showErrorMessage(NOT_RUNNING);
+                return undefined;
+            }
+            try {
+                const result = await validateWorkspaceWithProgress(client);
+                if (result === 'cancelled') {
+                    notify('CK3 workspace validation cancelled');
+                    return undefined;
+                }
                 logger.logCommand(`Validation result: ${JSON.stringify(result, null, 2)}`);
                 logger.showChannel(LogCategory.Commands);
+                notify(validationSummary(result));
+                return result;
+            } catch (error) {
+                const message = error instanceof Error ? error.message : String(error);
+                vscode.window.showErrorMessage(`Validation failed: ${message}`);
+                return undefined;
             }
         },
 

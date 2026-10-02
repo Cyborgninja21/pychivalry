@@ -163,7 +163,7 @@ export class WorkspaceValidator<T = Diagnostic[]> {
         if (!this.settings.enabled) {
             return;
         }
-        this.queueFiles([file]);
+        this.queueFiles([file], true);
         this.kick();
     }
 
@@ -181,8 +181,7 @@ export class WorkspaceValidator<T = Diagnostic[]> {
             .dependentsOf(uri, this.definedBefore.get(key) ?? [])
             .map((u) => path.resolve(this.fileOf(u)))
             .filter((f) => this.accepts(f));
-        this.queueFiles([key]);
-        this.queueFiles(dependents);
+        this.queueFiles([key, ...dependents], true);
         this.kick();
     }
 
@@ -267,14 +266,25 @@ export class WorkspaceValidator<T = Diagnostic[]> {
         this.queueFiles(files);
     }
 
-    /** Queue files; while limited (above fileLimit, not forced) only open ones. */
-    private queueFiles(files: string[]): void {
+    /**
+     * Queue files; while limited (above fileLimit, not forced) only open ones. `front` puts
+     * them ahead of what is queued (an edit is more urgent than the rest of a full pass).
+     */
+    private queueFiles(files: string[], front = false): void {
         const isOpen = this.options.isOpen ?? (() => false);
-        for (const file of files) {
-            const key = path.resolve(file);
-            if (!this.limitedNow || isOpen(key)) {
+        const accepted = files
+            .map((file) => path.resolve(file))
+            .filter((key) => !this.limitedNow || isOpen(key));
+        if (front && this.queue.size > 0) {
+            const rest = Array.from(this.queue);
+            this.queue.clear();
+            for (const key of [...accepted, ...rest]) {
                 this.queue.add(key);
             }
+            return;
+        }
+        for (const key of accepted) {
+            this.queue.add(key);
         }
     }
 

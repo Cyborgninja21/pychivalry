@@ -11,12 +11,24 @@ import { logger } from './logger';
 import { registerCommands } from './client/commands';
 import { createLogChannels, disposeLogChannels } from './client/log-channels';
 import { ServerController } from './client/server-controller';
+import { WorkspaceHealth } from './client/workspace-health';
+
+/** What activate() returns (vscode.extensions.getExtension(...).exports), for tests. */
+export interface CK3ExtensionApi {
+    /** The workspace's diagnostics as the client sees them (ck3/workspaceDiagnostics). */
+    health: WorkspaceHealth;
+    /** When activate() started (ms since epoch). */
+    activatedAt: number;
+}
 
 let controller: ServerController | undefined;
 let restartDebounceTimer: NodeJS.Timeout | undefined;
 
-export async function activate(context: vscode.ExtensionContext): Promise<void> {
+export async function activate(context: vscode.ExtensionContext): Promise<CK3ExtensionApi> {
+    const activatedAt = Date.now();
     logger.initialize(context);
+    // Keys are VS Code's own spelling of a URI, so decorations find them by uri.toString().
+    const health = new WorkspaceHealth((uri) => vscode.Uri.parse(uri).toString());
     const statusBar = new CK3StatusBar();
     context.subscriptions.push(statusBar);
 
@@ -32,7 +44,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     // Pre-create the log watcher channels so that they appear in the Output menu
     createLogChannels();
 
-    const server = new ServerController(context, statusBar);
+    const server = new ServerController(context, statusBar, health);
     controller = server;
     registerCommands(context, {
         getClient: () => server.getClient(),
@@ -76,6 +88,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     );
 
     logger.logServer('CK3 Language Server extension activated');
+    return { health, activatedAt };
 }
 
 export async function deactivate(): Promise<void> {

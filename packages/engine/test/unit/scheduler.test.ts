@@ -223,6 +223,26 @@ describe('WorkspaceValidator', () => {
         );
     });
 
+    it('an invalidated file goes ahead of the rest of a running pass', async () => {
+        const order: string[] = [];
+        const ref: { h?: Harness } = {};
+        const h = make({
+            concurrency: 1,
+            onPublish: (rel, count) => {
+                order.push(rel);
+                if (count === 1) {
+                    ref.h?.validator.invalidate(ref.h.abs('events/d.txt'));
+                }
+            },
+        });
+        ref.h = h;
+        h.ws.load();
+        h.validator.start();
+        await h.validator.whenIdle();
+        assert.strictEqual(order[1], 'events/d.txt');
+        assert.strictEqual(order.length, ALL.length);
+    });
+
     it('cancel() stops before the next file and start() resumes from the queue', async () => {
         const ref: { validator?: WorkspaceValidator } = {};
         const h = make({
