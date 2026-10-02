@@ -23,11 +23,11 @@
         "command": "node packages/engine/scripts/corpus-acceptance.js <corpus dir> <game dir> divine-intervention",
         "equivalentCli": "node packages/engine/dist/cli.js check <corpus dir>/divine-intervention --vanilla <game dir>",
         "files": 80,
-        "milliseconds": 4679,
-        "loadMilliseconds": 4338,
-        "maxRssKb": 434012,
+        "milliseconds": 4513,
+        "loadMilliseconds": 4177,
+        "maxRssKb": 438112,
         "longestFile": {
-            "milliseconds": 101,
+            "milliseconds": 99.1,
             "file": "common/scripted_guis/DI_modifiers_sgui.txt"
         },
         "bySeverity": {
@@ -52,7 +52,7 @@
             "backgroundValidation": {
                 "enabled": true,
                 "concurrency": 5,
-                "fileLimit": 100000
+                "fileLimit": 3000
             }
         },
         "sources": [
@@ -77,21 +77,21 @@
             "common/scripted_guis/DI_title_manager_sgui.txt",
             "events/DI_error_suppression.txt"
         ],
-        "timeToFirstFullResultMs": 5025,
-        "serverUptimeAtFirstFullResultMs": 4969,
-        "backgroundPassMs": 751,
-        "peakServerRssKb": 376328,
-        "serverVmHwmKb": 376328,
+        "timeToFirstFullResultMs": 4908,
+        "serverUptimeAtFirstFullResultMs": 4868,
+        "backgroundPassMs": 810,
+        "peakServerRssKb": 380888,
+        "serverVmHwmKb": 380888,
         "longestFile": {
-            "milliseconds": 195,
+            "milliseconds": 197.3,
             "file": "common/scripted_guis/DI_modifiers_sgui.txt"
         },
         "longestScriptFile": {
-            "milliseconds": 194.9,
+            "milliseconds": 197.3,
             "file": "common/scripted_guis/DI_modifiers_sgui.txt"
         },
         "longestLocalizationFile": {
-            "milliseconds": 0.8,
+            "milliseconds": 1.3,
             "file": "localization/french/gui/DI_l_french.yml"
         },
         "bySeverity": {

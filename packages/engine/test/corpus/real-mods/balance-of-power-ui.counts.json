@@ -23,11 +23,11 @@
         "command": "node packages/engine/scripts/corpus-acceptance.js <corpus dir> <game dir> balance-of-power-ui",
         "equivalentCli": "node packages/engine/dist/cli.js check <corpus dir>/balance-of-power-ui --vanilla <game dir>",
         "files": 5,
-        "milliseconds": 3690,
-        "loadMilliseconds": 3684,
-        "maxRssKb": 218252,
+        "milliseconds": 3907,
+        "loadMilliseconds": 3901,
+        "maxRssKb": 210376,
         "longestFile": {
-            "milliseconds": 3.2,
+            "milliseconds": 3.5,
             "file": "common/script_values/svals_bop.txt"
         },
         "bySeverity": {
@@ -52,7 +52,7 @@
             "backgroundValidation": {
                 "enabled": true,
                 "concurrency": 5,
-                "fileLimit": 100000
+                "fileLimit": 3000
             }
         },
         "sources": [
@@ -62,21 +62,21 @@
         "filesValidated": 12,
         "filesWithFindings": 5,
         "filesAtCap": [],
-        "timeToFirstFullResultMs": 3686,
-        "serverUptimeAtFirstFullResultMs": 3631,
+        "timeToFirstFullResultMs": 4156,
+        "serverUptimeAtFirstFullResultMs": 4127,
         "backgroundPassMs": 17,
-        "peakServerRssKb": 217208,
-        "serverVmHwmKb": 217208,
+        "peakServerRssKb": 217700,
+        "serverVmHwmKb": 217700,
         "longestFile": {
-            "milliseconds": 8.2,
+            "milliseconds": 7.8,
             "file": "common/script_values/svals_bop.txt"
         },
         "longestScriptFile": {
-            "milliseconds": 8.2,
+            "milliseconds": 7.7,
             "file": "common/script_values/svals_bop.txt"
         },
         "longestLocalizationFile": {
-            "milliseconds": 0.2,
+            "milliseconds": 0.3,
             "file": "localization/english/bop_l_english.yml"
         },
         "bySeverity": {

@@ -7,6 +7,13 @@ defect is wrong against CK3 1.20.0.2, the game reports it, and the message is th
 catalogue text (the game's own). A false positive is the tool being wrong and has a GitHub
 issue (labels `post-2.0`, `false-positive`). Nothing in the corpus was edited.
 
+**Fixed: issue [#90](https://github.com/Cyborgninja21/pychivalry/issues/90).** The first
+recording reported 1,751 errors on VIET Events (1,750 false positives): a file's kind was judged
+from its absolute path, so the corpus folder `viet-events/` matched the `events/` pattern and
+every scripted effect and trigger of the mod was indexed as an event. Files are now classified
+by their path inside the mod with segment-anchored patterns; VIET Events has 1 error, the real
+defect below.
+
 ## Summary
 
 | Mod | Engine path errors | Editor path errors |
@@ -15,7 +22,7 @@ issue (labels `post-2.0`, `false-positive`). Nothing in the corpus was edited.
 | divine-intervention | 0 | 8: false positives #91 (5), #92 (3) |
 | elf-destiny | 15 real defects | 338: the same 15 real defects; false positives #93 (164), #92 (92), #91 (29), #95 (29), #94 (7), #96 (2) |
 | rice | 92 real defects | 438: the same 92 real defects; false positives #91 (222), #95 (49), #93 (38), #92 (33), #94 (3), #97 (1) |
-| viet-events | 1,751: 1 real defect, 1,750 false positives #90 | 1,101: 1 real defect, false positives #90 (1,089), #91 (11) |
+| viet-events | 1 real defect | 12: the same real defect; false positives #91 (11) |
 
 ## Real defects
 
@@ -35,7 +42,6 @@ issue (labels `post-2.0`, `false-positive`). Nothing in the corpus was edited.
 
 | Issue | Path | Code | Cause | Count | Example |
 | --- | --- | --- | --- | ---: | --- |
-| [#90](https://github.com/Cyborgninja21/pychivalry/issues/90) | engine (both) | unknown_effect_X, unknown_trigger_X | a file's kind is judged from its absolute path; the folder `viet-events/` matches the `events/` pattern, so every definition of the mod is indexed as an event. The same files in a folder named `mod2227658180` give 1 error (the real defect above) | 1,750 engine / 1,089 editor | VIET `common/character_interactions/VIET_character_interactions.txt:60` Unknown effect 'VIET_huge_prestige_gain_effect' |
 | [#91](https://github.com/Cyborgninja21/pychivalry/issues/91) | plug-in paradox-checks | CK5142 | `liege = root`, `employer = scope:x` … are the ordinary comparison form (1,475 uses in the base game) | 267 | RICE `common/scripted_effects/RICE_manichean_effects.txt:329` |
 | [#92](https://github.com/Cyborgninja21/pychivalry/issues/92) | plug-in paradox-checks | CK3873 | `trigger = { always = no }` disables content on purpose (167 uses in the base game) | 128 | RICE `common/buildings/RICE_harran_buildings.txt:12` |
 | [#93](https://github.com/Cyborgninja21/pychivalry/issues/93) | plug-in scripted-blocks | CK3950, CK3951 | colour values `rgb { }` / `hsv { }` read as scripted effect and trigger calls | 202 | Elf Destiny `common/coat_of_arms/coat_of_arms/coa_elf_test_template.txt:4` |

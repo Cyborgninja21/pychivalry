@@ -23,11 +23,11 @@
         "command": "node packages/engine/scripts/corpus-acceptance.js <corpus dir> <game dir> rice",
         "equivalentCli": "node packages/engine/dist/cli.js check <corpus dir>/rice --vanilla <game dir>",
         "files": 1313,
-        "milliseconds": 7918,
-        "loadMilliseconds": 5264,
-        "maxRssKb": 905580,
+        "milliseconds": 8255,
+        "loadMilliseconds": 5630,
+        "maxRssKb": 904868,
         "longestFile": {
-            "milliseconds": 59.4,
+            "milliseconds": 40.9,
             "file": "events/RICE_tarim_basin_events.txt"
         },
         "bySeverity": {
@@ -805,7 +805,7 @@
             "backgroundValidation": {
                 "enabled": true,
                 "concurrency": 5,
-                "fileLimit": 100000
+                "fileLimit": 3000
             }
         },
         "sources": [
@@ -841,22 +841,22 @@
             "localization/russian/rice_north_atlantic_l_russian.yml",
             "localization/russian/rice_sri_lanka_l_russian.yml"
         ],
-        "timeToFirstFullResultMs": 92662,
-        "serverUptimeAtFirstFullResultMs": 85646,
-        "backgroundPassMs": 78831,
-        "peakServerRssKb": 703860,
-        "serverVmHwmKb": 703860,
+        "timeToFirstFullResultMs": 20648,
+        "serverUptimeAtFirstFullResultMs": 20592,
+        "backgroundPassMs": 8810,
+        "peakServerRssKb": 720824,
+        "serverVmHwmKb": 720824,
         "longestFile": {
-            "milliseconds": 4561.4,
-            "file": "localization/polish/rice_north_atlantic_l_polish.yml"
+            "milliseconds": 172.3,
+            "file": "localization/french/rice_nubia_l_french.yml"
         },
         "longestScriptFile": {
-            "milliseconds": 67.7,
+            "milliseconds": 71.9,
             "file": "events/RICE_north_atlantic_events.txt"
         },
         "longestLocalizationFile": {
-            "milliseconds": 4561.3,
-            "file": "localization/polish/rice_north_atlantic_l_polish.yml"
+            "milliseconds": 172.2,
+            "file": "localization/french/rice_nubia_l_french.yml"
         },
         "bySeverity": {
             "error": 438,

@@ -23,11 +23,11 @@
         "command": "node packages/engine/scripts/corpus-acceptance.js <corpus dir> <game dir> elf-destiny",
         "equivalentCli": "node packages/engine/dist/cli.js check <corpus dir>/elf-destiny --vanilla <game dir>",
         "files": 553,
-        "milliseconds": 4931,
-        "loadMilliseconds": 4307,
-        "maxRssKb": 519040,
+        "milliseconds": 5034,
+        "loadMilliseconds": 4399,
+        "maxRssKb": 456704,
         "longestFile": {
-            "milliseconds": 16.8,
+            "milliseconds": 16.2,
             "file": "common/genes/01_genes_morph.txt"
         },
         "bySeverity": {
@@ -189,7 +189,7 @@
             "backgroundValidation": {
                 "enabled": true,
                 "concurrency": 5,
-                "fileLimit": 100000
+                "fileLimit": 3000
             }
         },
         "sources": [
@@ -222,22 +222,22 @@
             "events/wolf_invader_events.txt",
             "gfx/portraits/portrait_modifiers/elf_characters.txt"
         ],
-        "timeToFirstFullResultMs": 9495,
-        "serverUptimeAtFirstFullResultMs": 9463,
-        "backgroundPassMs": 5165,
-        "peakServerRssKb": 361176,
-        "serverVmHwmKb": 361176,
+        "timeToFirstFullResultMs": 9955,
+        "serverUptimeAtFirstFullResultMs": 7130,
+        "backgroundPassMs": 2505,
+        "peakServerRssKb": 316596,
+        "serverVmHwmKb": 316596,
         "longestFile": {
-            "milliseconds": 717.1,
-            "file": "localization/english/aeluran/aeluran_regency_l_english.yml"
+            "milliseconds": 258.7,
+            "file": "localization/korean/aeluran/aeluran_regency_l_korean.yml"
         },
         "longestScriptFile": {
-            "milliseconds": 50,
+            "milliseconds": 53.6,
             "file": "common/genes/01_genes_morph.txt"
         },
         "longestLocalizationFile": {
-            "milliseconds": 717,
-            "file": "localization/english/aeluran/aeluran_regency_l_english.yml"
+            "milliseconds": 258.6,
+            "file": "localization/korean/aeluran/aeluran_regency_l_korean.yml"
         },
         "bySeverity": {
             "error": 338,

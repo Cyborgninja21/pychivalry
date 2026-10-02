@@ -35,8 +35,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Real-mod corpus acceptance**: five published mods recorded on the engine path
   (`packages/engine/scripts/corpus-acceptance.js`) and in the Extension Development Host
   (`CK3_CORPUS=… task test:integration`), every error finding classified
-  (`packages/engine/test/corpus/real-mods/`); the false positives found there are issues
-  #90 to #97.
+  (`packages/engine/test/corpus/real-mods/`); the plug-in false positives found there are
+  issues #91 to #97.
+
+#### Fixed
+
+- **A mod folder named like a script directory no longer turns every file into that kind**
+  (#90): a file's kind (event, decision, scripted effect …) was judged by unanchored patterns
+  on its absolute path, so a mod in `viet-events/` had every scripted effect and trigger
+  indexed as an event and reported unknown where called (1,751 errors on VIET Events, now 1).
+  Files are classified by their path inside the mod, with patterns anchored to whole
+  segments (`Indexer` takes a `relativePath` resolver; `Workspace` supplies it).
+- **Localization suggestions no longer stall the server**: the "Did you mean" work is bounded
+  (length pre-check and early exit in the edit distance, suggestions reused per name, at most
+  100 distinct names per kind per file); the slowest RICE localization file went from 6.9 s
+  to 0.1 s.
 
 #### Changed
 

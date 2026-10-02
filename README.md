@@ -146,7 +146,8 @@ The extension checks the whole mod, not only the open files:
 Big mods: above `backgroundValidation.fileLimit` files (3000 by default) only open files are
 validated in the background, and a one-time message says so; run **CK3: Validate Workspace**
 or raise the limit. Measured on five published mods, the largest (RICE, 1,313 script and 777
-localization files) takes about 93 s to its first full result at under 700 MB
+localization files) takes about 21 s to its first full result at about 700 MB, no single file
+holding the server for more than 0.2 s
 ([corpus records](packages/engine/test/corpus/real-mods/README.md)).
 
 ## Configuration

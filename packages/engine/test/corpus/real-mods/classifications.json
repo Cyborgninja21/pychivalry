@@ -9,20 +9,6 @@
             "reason": "VIET_misc_effects.txt:307 calls ek_character_setup_effect, defined neither by the mod nor by the 1.20.0.2 base game (an Elder Kings compatibility hook)"
         },
         {
-            "mod": "viet-events",
-            "code": "unknown_effect_X",
-            "classification": "false-positive",
-            "issue": 90,
-            "reason": "the mod folder name 'viet-events' matches the events/ directory pattern, so the mod's own scripted effects are indexed as events (issue #90); the same files in a folder named mod2227658180 report only the ek_character_setup_effect error"
-        },
-        {
-            "mod": "viet-events",
-            "code": "unknown_trigger_X",
-            "classification": "false-positive",
-            "issue": 90,
-            "reason": "the mod folder name 'viet-events' matches the events/ directory pattern, so the mod's own scripted triggers are indexed as events (issue #90)"
-        },
-        {
             "mod": "*",
             "code": "unknown_effect_X",
             "message": "'destroy_landless_title_no_dlc_effect'",
