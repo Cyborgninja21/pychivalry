@@ -3,7 +3,9 @@
  */
 
 import * as assert from 'assert';
-import { DocumentIndexer, SymbolType } from '../../src/index/indexer';
+import * as path from 'path';
+import { DocumentIndexer, SymbolType, symbolTypeForPath } from '../../src/index/indexer';
+import { Workspace } from '../../src/index/workspace';
 import { CK3Parser } from '../../src/syntax/parser';
 
 describe('DocumentIndexer', () => {
@@ -363,6 +365,103 @@ describe('DocumentIndexer', () => {
 
             assert.strictEqual(indexer.findSymbolsByName('my_mod.0001').length, 0);
             assert.ok(indexer.findSymbolsByName('my_mod.0099').length > 0);
+        });
+    });
+
+    describe('dependentsOf()', () => {
+        const effects = 'file:///mod/common/scripted_effects/fx.txt';
+        const a = 'file:///mod/events/a.txt';
+        const b = 'file:///mod/events/b.txt';
+        const c = 'file:///mod/events/c.txt';
+        const saver = 'file:///mod/events/saver.txt';
+        const reader = 'file:///mod/events/reader.txt';
+
+        beforeEach(async () => {
+            await parseAndIndex(effects, 'fx_one = { add_gold = 1 }\nfx_two = { }');
+            await parseAndIndex(a, 'namespace = a\na.1 = { immediate = { fx_one = yes } }');
+            await parseAndIndex(b, 'namespace = b\nb.1 = { immediate = { fx_two = yes } }');
+            await parseAndIndex(c, 'namespace = c\nc.1 = { immediate = { add_gold = 1 } }');
+            await parseAndIndex(saver, 's.1 = { immediate = { save_scope_as = my_saved } }');
+            await parseAndIndex(
+                reader,
+                'r.1 = { trigger = { scope:my_saved = { is_adult = yes } } }'
+            );
+        });
+
+        it('lists the files that mention a name the file defines, not the file itself', () => {
+            assert.deepStrictEqual(indexer.dependentsOf(effects), [a, b]);
+            assert.deepStrictEqual(indexer.dependentsOf(c), []);
+        });
+
+        it('follows scope:name reads of a saved scope', () => {
+            assert.deepStrictEqual(indexer.dependentsOf(saver), [reader]);
+        });
+
+        it('counts the event ids a file defines, not its namespace', async () => {
+            await parseAndIndex(
+                'file:///mod/events/caller.txt',
+                'namespace = a\nx.1 = { immediate = { trigger_event = a.1 } }'
+            );
+            assert.deepStrictEqual(indexer.dependentsOf(a), ['file:///mod/events/caller.txt']);
+        });
+
+        it('includes callers of names given as previously defined', async () => {
+            await parseAndIndex(effects, 'fx_three = { }');
+            assert.deepStrictEqual(indexer.dependentsOf(effects), []);
+            assert.deepStrictEqual(indexer.dependentsOf(effects, ['fx_one']), [a]);
+            assert.deepStrictEqual(indexer.definedNames(effects), ['fx_three']);
+        });
+
+        it('forgets a removed document', () => {
+            indexer.removeDocument(a);
+            assert.deepStrictEqual(indexer.dependentsOf(effects), [b]);
+        });
+    });
+
+    describe('file kind from the mod-relative path (issue #90)', () => {
+        const effect = 'my_effect = { add_gold = 1 }';
+        const event = 'namespace = e\ne.1 = { type = character_event }';
+        for (const root of ['/x/viet-events', '/x/events/mymod']) {
+            it(`a mod rooted at ${root}/ classifies by its own directories`, () => {
+                const ws = new Workspace(root);
+                ws.indexFile(path.join(root, 'common/scripted_effects/a.txt'), effect);
+                ws.indexFile(path.join(root, 'events/a.txt'), event);
+                const fx = ws.index.findSymbolsByName('my_effect');
+                assert.deepStrictEqual(
+                    fx.map((s) => s.type),
+                    [SymbolType.SCRIPTED_EFFECT]
+                );
+                assert.ok(ws.isDefined('my_effect', SymbolType.SCRIPTED_EFFECT));
+                assert.deepStrictEqual(
+                    ws.index.findSymbolsByName('e.1').map((s) => s.type),
+                    [SymbolType.EVENT]
+                );
+            });
+        }
+
+        it('anchors the patterns to whole path segments', () => {
+            assert.strictEqual(
+                symbolTypeForPath('common/scripted_effects/a.txt'),
+                SymbolType.SCRIPTED_EFFECT
+            );
+            assert.strictEqual(symbolTypeForPath('events/a.txt'), SymbolType.EVENT);
+            assert.strictEqual(symbolTypeForPath('more_events/a.txt'), SymbolType.GENERIC);
+            assert.strictEqual(
+                symbolTypeForPath('common/decision_group_types/a.txt'),
+                SymbolType.DECISION_GROUP_TYPE
+            );
+            assert.strictEqual(symbolTypeForPath('common/decisions/a.txt'), SymbolType.DECISION);
+            assert.strictEqual(symbolTypeForPath('common\\on_action\\a.txt'), SymbolType.ON_ACTION);
+        });
+
+        it('without a resolver the URI path is used, anchored', () => {
+            const plain = new DocumentIndexer();
+            const ast = new CK3Parser().parse(effect).ast;
+            plain.indexSync('file:///x/viet-events/common/scripted_effects/a.txt', ast);
+            assert.deepStrictEqual(
+                plain.findSymbolsByName('my_effect').map((s) => s.type),
+                [SymbolType.SCRIPTED_EFFECT]
+            );
         });
     });
 });

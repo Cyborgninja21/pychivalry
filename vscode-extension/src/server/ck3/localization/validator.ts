@@ -286,13 +286,46 @@ const RE_CONCEPT_LINK = /\[(\w+)\|(\w+)\]/g;
 // Public entry point
 // ---------------------------------------------------------------------------
 
+/** Fuzzy suggestions computed per kind (icon, concept) in one file at most. */
+export const SUGGESTIONS_PER_KIND_PER_FILE = 100;
+
+/**
+ * Bounds the "Did you mean" work of one validation (one file): a suggestion for a name
+ * already seen is reused (the same unknown name repeats hundreds of times in a big file),
+ * and after `perKind` distinct names of one kind the diagnostic is emitted without one.
+ */
+export class SuggestionBudget {
+    private readonly memo = new Map<string, string[]>();
+    private readonly used = new Map<string, number>();
+
+    constructor(private readonly perKind: number = SUGGESTIONS_PER_KIND_PER_FILE) {}
+
+    public suggest(kind: string, name: string, compute: () => string[]): string[] {
+        const key = `${kind}\u0000${name}`;
+        const known = this.memo.get(key);
+        if (known) {
+            return known;
+        }
+        const used = this.used.get(kind) ?? 0;
+        if (used >= this.perKind) {
+            return [];
+        }
+        this.used.set(kind, used + 1);
+        const suggestions = compute();
+        this.memo.set(key, suggestions);
+        return suggestions;
+    }
+}
+
 /**
  * Validate the content of a single localization entry.
- * Returns diagnostics anchored to the entry's line.
+ * Returns diagnostics anchored to the entry's line. Pass one `budget` for every entry of a
+ * file to bound its suggestion work.
  */
 export function validateLocalizationContent(
     entry: LocalizationEntry,
-    config: LocalizationValidationConfig
+    config: LocalizationValidationConfig,
+    budget: SuggestionBudget = new SuggestionBudget()
 ): Diagnostic[] {
     if (!config.enabled) {
         return [];
@@ -317,7 +350,7 @@ export function validateLocalizationContent(
 
     // Icon references
     if (config.checkIcons) {
-        validateIconReferences(text, line, diagnostics);
+        validateIconReferences(text, line, diagnostics, budget);
     }
 
     // Variable substitutions
@@ -327,7 +360,7 @@ export function validateLocalizationContent(
 
     // Concept links
     if (config.checkConcepts) {
-        validateConceptLinks(text, line, diagnostics);
+        validateConceptLinks(text, line, diagnostics, budget);
     }
 
     return diagnostics;
@@ -341,9 +374,15 @@ export function validateLocalizationEntries(
     config: LocalizationValidationConfig
 ): Map<string, Diagnostic[]> {
     const result = new Map<string, Diagnostic[]>();
+    const budgets = new Map<string, SuggestionBudget>();
 
     for (const entry of entries) {
-        const diags = validateLocalizationContent(entry, config);
+        let budget = budgets.get(entry.fileUri);
+        if (!budget) {
+            budget = new SuggestionBudget();
+            budgets.set(entry.fileUri, budget);
+        }
+        const diags = validateLocalizationContent(entry, config, budget);
         if (diags.length === 0) {
             continue;
         }
@@ -468,7 +507,12 @@ function validateFormattingCodes(text: string, line: number, out: Diagnostic[]):
     }
 }
 
-function validateIconReferences(text: string, line: number, out: Diagnostic[]): void {
+function validateIconReferences(
+    text: string,
+    line: number,
+    out: Diagnostic[],
+    budget: SuggestionBudget
+): void {
     let match: RegExpExecArray | null;
     RE_ICON_REF.lastIndex = 0;
     while ((match = RE_ICON_REF.exec(text)) !== null) {
@@ -485,7 +529,9 @@ function validateIconReferences(text: string, line: number, out: Diagnostic[]): 
         }
 
         // Unknown icon — suggest similar
-        const suggestions = suggestSimilarIcons(iconName, 3);
+        const suggestions = budget.suggest('icon', iconName, () =>
+            suggestSimilarIcons(iconName, 3)
+        );
         let msg = `Unknown icon reference '@${iconName}!'`;
         if (suggestions.length > 0) {
             msg += `. Did you mean: ${suggestions.map((s) => `@${s}!`).join(', ')}?`;
@@ -500,7 +546,9 @@ function validateIconReferences(text: string, line: number, out: Diagnostic[]): 
         if (BUILTIN_ICONS.has(`${iconName}_icon`) || isValidIcon(iconName)) {
             continue;
         }
-        const suggestions = suggestSimilarIcons(iconName, 3);
+        const suggestions = budget.suggest('icon', iconName, () =>
+            suggestSimilarIcons(iconName, 3)
+        );
         let msg = `Unknown text icon '£${iconName}£'`;
         if (suggestions.length > 0) {
             msg += `. Did you mean: ${suggestions.map((s) => `£${s}£`).join(', ')}?`;
@@ -542,7 +590,12 @@ function validateVariableSubstitutions(text: string, line: number, out: Diagnost
     }
 }
 
-function validateConceptLinks(text: string, line: number, out: Diagnostic[]): void {
+function validateConceptLinks(
+    text: string,
+    line: number,
+    out: Diagnostic[],
+    budget: SuggestionBudget
+): void {
     let match: RegExpExecArray | null;
     RE_CONCEPT_LINK.lastIndex = 0;
     while ((match = RE_CONCEPT_LINK.exec(text)) !== null) {
@@ -550,7 +603,9 @@ function validateConceptLinks(text: string, line: number, out: Diagnostic[]): vo
         // match[2] is the context marker (E, etc.)
 
         if (!isValidConcept(conceptName)) {
-            const suggestions = suggestSimilarConcepts(conceptName, 3);
+            const suggestions = budget.suggest('concept', conceptName, () =>
+                suggestSimilarConcepts(conceptName, 3)
+            );
             let msg = `Unknown concept '${conceptName}'`;
             if (suggestions.length > 0) {
                 msg += `. Did you mean: ${suggestions.join(', ')}?`;

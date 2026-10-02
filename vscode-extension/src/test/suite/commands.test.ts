@@ -173,7 +173,8 @@ suite('Command Tests', () => {
             assert.strictEqual(editor.document.languageId, 'ck3');
 
             try {
-                await vscode.commands.executeCommand('ck3LanguageServer.generateEventTemplate');
+                // The command asks for input: dismiss its input boxes.
+                await executeDismissingQuickPick('ck3LanguageServer.generateEventTemplate');
                 assert.ok(true, 'generateEventTemplate command invoked');
             } catch (error) {
                 // May fail if LSP not available, but should be invocable
@@ -192,7 +193,8 @@ suite('Command Tests', () => {
             await vscode.window.showTextDocument(doc);
 
             try {
-                await vscode.commands.executeCommand('ck3LanguageServer.showNamespaceEvents');
+                // The command asks for input: dismiss its input boxes.
+                await executeDismissingQuickPick('ck3LanguageServer.showNamespaceEvents');
                 assert.ok(true, 'showNamespaceEvents command invoked');
             } catch (error) {
                 assert.ok(error instanceof Error);
@@ -210,7 +212,8 @@ suite('Command Tests', () => {
             await vscode.window.showTextDocument(doc);
 
             try {
-                await vscode.commands.executeCommand('ck3LanguageServer.generateLocalizationStubs');
+                // The command asks for input: dismiss its input boxes.
+                await executeDismissingQuickPick('ck3LanguageServer.generateLocalizationStubs');
                 assert.ok(true, 'generateLocalizationStubs command invoked');
             } catch (error) {
                 assert.ok(error instanceof Error);
@@ -228,7 +231,8 @@ suite('Command Tests', () => {
             await vscode.window.showTextDocument(doc);
 
             try {
-                await vscode.commands.executeCommand('ck3LanguageServer.renameEvent');
+                // The command asks for input: dismiss its input boxes.
+                await executeDismissingQuickPick('ck3LanguageServer.renameEvent');
                 assert.ok(true, 'renameEvent command invoked');
             } catch (error) {
                 assert.ok(error instanceof Error);

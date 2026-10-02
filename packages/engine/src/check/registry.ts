@@ -550,9 +550,15 @@ class RegistryWalker {
     }
 }
 
-/** Run the registry checks on one parsed file. */
-export function checkRegistry(input: CheckInput): Diagnostic[] {
-    const walker = new RegistryWalker(input);
+/**
+ * Run the registry checks on one parsed file. When `trace` is given it is filled with the
+ * reading of every block (as blockContexts returns it), so the scope check can reuse it.
+ */
+export function checkRegistry(
+    input: CheckInput,
+    trace?: Map<ASTNode[], BlockContext>
+): Diagnostic[] {
+    const walker = new RegistryWalker(input, trace);
     walker.run();
     return walker.diagnostics;
 }

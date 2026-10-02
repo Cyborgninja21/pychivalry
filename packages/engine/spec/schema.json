@@ -17,13 +17,14 @@
     "errors",
     "retired",
     "noise_dropped",
-    "scope_validity"
+    "scope_validity",
+    "scope_types"
   ],
   "additionalProperties": false,
   "properties": {
     "package_format": {
-      "const": 2,
-      "description": "Shape version. 2 (2026-10-01): adds keyword_templates; a format-1 loader rejects the unknown top-level key, hence the bump."
+      "const": 3,
+      "description": "Shape version. 2 (2026-10-01): adds keyword_templates. 3 (2026-10-02): scope_validity filled from the game's own script_docs output and the new top-level scope_types; a format-2 loader rejects the unknown top-level key, hence the bump."
     },
     "manifest": {
       "$ref": "#/$defs/manifest"
@@ -68,7 +69,7 @@
         "type": "string",
         "pattern": "%s"
       },
-      "description": "Exe name templates of the modifier types the engine generates per database entry at load time (e.g. stationed_%s_damage_mult). A modifier name is valid if it is in buckets.modifiers or fills one template with a key of the matching database."
+      "description": "Name templates of the modifier types the engine generates per database entry at load time (e.g. stationed_%s_damage_mult): the exe templates the game's modifier_definition_formats attest, plus (format 3) the template tags the game documents in script_docs' modifiers.log ($PLACEHOLDER$ written as %s) that none of them generates. A modifier name is valid if it is in buckets.modifiers or fills one template with a key of the matching database."
     },
     "keyword_templates": {
       "type": "array",
@@ -147,8 +148,59 @@
     },
     "scope_validity": {
       "type": "object",
+      "required": [
+        "triggers",
+        "effects",
+        "links",
+        "lists",
+        "on_actions"
+      ],
       "additionalProperties": false,
-      "description": "Reserved for per-keyword supported scopes from the game's own script_docs output (review issue S1). Empty until an oracle run fills it."
+      "description": "Per-keyword scope validity from the game's own script_docs output (research/oracle/<version>/, imported by tools/python/oracle_import.py), per bucket and name. Every trigger, effect and event target the game documents is here, including the list iterators (any_/every_/random_/ordered_) and the per-key names of keyword templates; lists are keyed by base, on_actions include the game's script on_actions (from_code false).",
+      "properties": {
+        "triggers": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/scopeRecord"
+          }
+        },
+        "effects": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/scopeRecord"
+          }
+        },
+        "links": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/linkRecord"
+          },
+          "description": "Event targets. A name can have two forms: a global one taking data (faith:catholic) and a scoped one (x.faith)."
+        },
+        "lists": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/listRecord"
+          }
+        },
+        "on_actions": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/onActionRecord"
+          }
+        }
+      }
+    },
+    "scope_types": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {
+        "pattern": "^[a-z_]+$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/scopeType"
+      },
+      "description": "Every scope type the game's script_docs output names (none excluded), with the links whose output produces it, the lists that iterate it, the on_actions that expect it, how many triggers and effects support it and its index in the binary's scope-type table (registrar walk) when it has one."
     }
   },
   "$defs": {
@@ -602,6 +654,200 @@
         "doc": {
           "type": "string",
           "description": "the registrar's built-in documentation"
+        }
+      }
+    },
+    "scopeRecord": {
+      "type": "object",
+      "required": [
+        "supported_scopes",
+        "supported_targets",
+        "description"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "supported_scopes": {
+          "$ref": "#/$defs/scopeList",
+          "description": "Scope types as the game prints them; [\"none\"] = the keyword declares no scope requirement (the game's scope check does not apply; never report); [] = the log gives none."
+        },
+        "supported_targets": {
+          "$ref": "#/$defs/scopeList"
+        },
+        "description": {
+          "type": "string"
+        },
+        "traits": {
+          "type": "string"
+        }
+      }
+    },
+    "scopeList": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z_]+$"
+      }
+    },
+    "linkRecord": {
+      "type": "object",
+      "required": [
+        "forms"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "forms": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "supported_scopes",
+              "supported_targets",
+              "requires_data",
+              "global_link",
+              "wild_card",
+              "description"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "supported_scopes": {
+                "$ref": "#/$defs/scopeList",
+                "description": "Input Scopes"
+              },
+              "supported_targets": {
+                "$ref": "#/$defs/scopeList",
+                "description": "Output Scopes"
+              },
+              "requires_data": {
+                "type": "boolean"
+              },
+              "global_link": {
+                "type": "boolean"
+              },
+              "wild_card": {
+                "type": "boolean"
+              },
+              "description": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "listRecord": {
+      "type": "object",
+      "required": [
+        "supported_scopes",
+        "supported_targets",
+        "description",
+        "iterators",
+        "forms_agree"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "supported_scopes": {
+          "$ref": "#/$defs/scopeList",
+          "description": "scopes the any_ iterator is valid in"
+        },
+        "supported_targets": {
+          "$ref": "#/$defs/scopeList",
+          "description": "element type"
+        },
+        "description": {
+          "type": "string"
+        },
+        "iterators": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "forms_agree": {
+          "type": "boolean"
+        }
+      }
+    },
+    "onActionRecord": {
+      "type": "object",
+      "required": [
+        "supported_scopes",
+        "supported_targets",
+        "description",
+        "from_code"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "supported_scopes": {
+          "$ref": "#/$defs/scopeList",
+          "description": "Expected Scope"
+        },
+        "supported_targets": {
+          "$ref": "#/$defs/scopeList"
+        },
+        "description": {
+          "type": "string"
+        },
+        "from_code": {
+          "type": "boolean"
+        }
+      }
+    },
+    "scopeType": {
+      "type": "object",
+      "required": [
+        "links",
+        "lists",
+        "on_actions",
+        "triggers",
+        "effects",
+        "input_of_links",
+        "named_as",
+        "binary_index"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "links": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "lists": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "on_actions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "triggers": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "effects": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "input_of_links": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "named_as": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "binary_index": {
+          "type": [
+            "integer",
+            "null"
+          ]
         }
       }
     }

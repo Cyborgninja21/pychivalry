@@ -24,6 +24,14 @@ export {
 } from './index/workspace';
 export type { ModDescriptor, WorkspaceFolder, WorkspaceOptions } from './index/workspace';
 export { LocalizationIndex, isLocalizationFile } from './index/localization';
+export { WorkspaceValidator } from './index/scheduler';
+export type {
+    ValidationProgress,
+    ValidationState,
+    ValidatorSettings,
+    ValidatorStats,
+    WorkspaceValidatorOptions,
+} from './index/scheduler';
 export type { LocalizationEntry } from './index/localization';
 
 export { checkRegistry, blockContexts } from './check/registry';
@@ -31,6 +39,19 @@ export { contextAt } from './check/context';
 export type { BlockContext, PositionContext } from './check/context';
 export { checkSchema } from './check/schema';
 export { checkScope, scopeValidity } from './check/scope';
+export {
+    resolveScopes,
+    linkStep,
+    ROOT_SCOPE_CONTRADICTED,
+    FIELDS_OUTSIDE_ROOT,
+} from './check/scope-types';
+export type {
+    ScopeFrame,
+    ScopeResolution,
+    ChainResolution,
+    ChainStep,
+    LinkMismatch,
+} from './check/scope-types';
 export { STRUCTURAL, ITERATOR_PARAMS, MODIFIER_BLOCK_PARAMS } from './check/structural';
 export type { CheckInput } from './check/types';
 

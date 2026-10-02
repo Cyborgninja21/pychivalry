@@ -41,7 +41,10 @@ the spec package does not carry it yet.
 | `PYCH-S003` | schema | warning | `'%s' declares %s content, but %s loads %s content` |
 | `unknown_X_in_X` | schema | warning | `Unknown {} in {}` |
 | `failed_to_parse_data_for_event_target_link_link_X_location_X` | scope | error | `Failed to parse data for event target link. Link: %s, location: %s` |
+| `trying_to_use_X_link_on_an_invalid_scope_X` | scope | error | `Trying to use %s link on an invalid scope %s` |
 | `undefined_event_target_X` | scope | information | `Undefined event target '%s'` |
+| `wrong_scope_for_effect_X_expected_X` | scope | error | `Wrong scope for effect: %s, expected %s` |
+| `wrong_scope_for_trigger_X_expected_X` | scope | error | `Wrong scope for trigger: %s, expected %s` |
 
 An unknown keyword in a trigger or effect block, or a field unknown to a directory
 schema, is reported with the catalogue text the game uses for it; the full catalogue
@@ -83,7 +86,7 @@ is below.
 | [File not found](catalogue-file-not-found.md) | 3 | 0 |
 | [Invalid flag](catalogue-invalid-flag.md) | 12 | 0 |
 | [Invalid format](catalogue-invalid-format.md) | 7 | 0 |
-| [Invalid value](catalogue-invalid-value.md) | 926 | 1 |
+| [Invalid value](catalogue-invalid-value.md) | 926 | 3 |
 | [Missing](catalogue-missing.md) | 35 | 4 |
 | [Missing key](catalogue-missing-key.md) | 3 | 0 |
 | [Other](catalogue-other.md) | 812 | 0 |
@@ -94,7 +97,7 @@ is below.
 | [Unknown effect](catalogue-unknown-effect.md) | 3 | 1 |
 | [Unknown keyword](catalogue-unknown-keyword.md) | 1 | 0 |
 | [Unknown modifier](catalogue-unknown-modifier.md) | 4 | 1 |
-| [Unknown scope](catalogue-unknown-scope.md) | 3 | 0 |
+| [Unknown scope](catalogue-unknown-scope.md) | 3 | 1 |
 | [Unknown trigger](catalogue-unknown-trigger.md) | 2 | 1 |
 | [Unknown type](catalogue-unknown-type.md) | 4 | 0 |
 

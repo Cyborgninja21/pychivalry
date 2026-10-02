@@ -2,7 +2,7 @@
   "name": "ck3-language-support",
   "displayName": "Crusader Kings 3 Language Support",
   "description": "Language support for Crusader Kings 3 scripting language with LSP-powered features",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "publisher": "cyborgninja21",
   "license": "Apache-2.0",
   "repository": {
@@ -338,6 +338,12 @@
             "default": true,
             "description": "Enable/disable the CK3 language server",
             "scope": "resource"
+          },
+          "ck3LanguageServer.gamePath": {
+            "type": "string",
+            "default": "",
+            "markdownDescription": "The CK3 `game` directory, the one holding `common/`, `events/` and `history/` (for example `C:\\Program Files (x86)\\Steam\\steamapps\\common\\Crusader Kings III\\game`). The mod is checked against this base game, so the vanilla scripted triggers, effects, lists, modifiers and script values it calls are known. When empty, the Steam default install locations are tried once; when none holds `common/`, the mod is checked without a base game and every vanilla scripted name it calls is reported as unknown.",
+            "scope": "machine-overridable"
           }
         }
       },
@@ -397,6 +403,32 @@
             "minimum": 1,
             "maximum": 10,
             "description": "Maximum number of inlay hints to show per line",
+            "scope": "resource"
+          }
+        }
+      },
+      {
+        "title": "Background Validation",
+        "properties": {
+          "ck3LanguageServer.backgroundValidation.enabled": {
+            "type": "boolean",
+            "default": true,
+            "description": "Validate every script and localization file of the workspace in the background after startup, re-validate files changed on disk and, on save, the files that use what the saved file defines. Results appear in the Problems panel for unopened files too, in the Explorer badges and in the status bar.",
+            "scope": "resource"
+          },
+          "ck3LanguageServer.backgroundValidation.concurrency": {
+            "type": "number",
+            "default": 5,
+            "minimum": 1,
+            "maximum": 50,
+            "description": "Files read ahead at once by background validation. Files are diagnosed one at a time with a pause after each, so the editor stays responsive.",
+            "scope": "resource"
+          },
+          "ck3LanguageServer.backgroundValidation.fileLimit": {
+            "type": "number",
+            "default": 3000,
+            "minimum": 0,
+            "description": "Above this many files only open files are validated in the background. Run 'CK3: Validate Workspace' to validate every file anyway, or raise the limit.",
             "scope": "resource"
           }
         }
@@ -524,7 +556,7 @@
   "dependencies": {
     "fast-glob": "^3.3.3",
     "js-yaml": "^4.1.1",
-    "pychivalry-engine": "2.0.0",
+    "pychivalry-engine": "2.1.0",
     "vscode-languageclient": "^9.0.0",
     "vscode-languageserver": "^9.0.1",
     "vscode-languageserver-textdocument": "^1.0.12"

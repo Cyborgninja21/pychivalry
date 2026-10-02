@@ -4,7 +4,7 @@
 
 926 messages of category `invalid_value` in the error catalogue of the CK3 1.20.0.2
 spec package. These are the game's own texts, as `error.log` prints them; `%s`, `{}`
-and `$X$` mark the values the game fills in. 1 of them is also reported by the
+and `$X$` mark the values the game fills in. 3 of them are also reported by the
 engine core in the editor (column "pychivalry"); the others are listed so that a line of
 `error.log` can be looked up.
 
@@ -923,9 +923,9 @@ engine core in the editor (column "pychivalry"); the others are listed so that a
 | `winningside_ecombatside_invalid_2` | `_WinningSide == ECombatSide::Invalid` | <=1.19.0.6 |  |
 | `writing_zero_length_unknown_chunk` | `Writing zero-length unknown chunk` | <=1.19.0.6 |  |
 | `wrong_number_of_parameters_expected_time_offset_base_variati` | ` Wrong number of parameters! expected: "time_offset = { base variation }" or "time_offset = base" in file  ` | <=1.19.0.6 |  |
-| `wrong_scope_for_effect_X_expected_X` | `Wrong scope for effect: %s, expected %s` | <=1.19.0.6 |  |
+| `wrong_scope_for_effect_X_expected_X` | `Wrong scope for effect: %s, expected %s` | <=1.19.0.6 | scope, error |
 | `wrong_scope_for_trigger_for_compare_trigger_X_X_expected_X` | `Wrong scope for trigger for compare trigger '%s': %s, expected %s` | <=1.19.0.6 |  |
-| `wrong_scope_for_trigger_X_expected_X` | `Wrong scope for trigger: %s, expected %s` | <=1.19.0.6 |  |
+| `wrong_scope_for_trigger_X_expected_X` | `Wrong scope for trigger: %s, expected %s` | <=1.19.0.6 | scope, error |
 | `X_has_fewer_lod_meshes_than_expected` | `%s : has fewer LOD meshes than expected!` | <=1.19.0.6 |  |
 | `X_ids_are_not_in_order_expected_id_X_but_got_X` | `[{}] Ids are not in order. Expected id {} but got [{}].` | <=1.19.0.6 |  |
 | `X_internal_id_X_type_unknown` | `'%s' (Internal ID: '%u' - Type: 'unknown' )` | <=1.19.0.6 |  |

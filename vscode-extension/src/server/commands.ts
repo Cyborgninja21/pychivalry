@@ -6,11 +6,19 @@
 
 import * as path from 'path';
 import { promises as fsp } from 'fs';
-import { Connection, Diagnostic, TextDocuments, WorkspaceFolder } from 'vscode-languageserver/node';
+import {
+    CancellationToken,
+    Connection,
+    Diagnostic,
+    TextDocuments,
+    WorkDoneProgressReporter,
+    WorkspaceFolder,
+} from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { CK3Parser, LocalizationIndex, SymbolType, Workspace } from 'pychivalry-engine';
 import { fileUriToPath, pathToFileUri } from './utils/uri';
 import { LogWatcherController } from './log/controller';
+import { BackgroundValidation, ValidateWorkspaceResult } from './background';
 
 /** Every command the server advertises in executeCommandProvider. */
 export const SERVER_COMMANDS = [
@@ -44,22 +52,38 @@ export interface CommandHost {
     workspaceFolders: () => WorkspaceFolder[];
     diagnose: (document: TextDocument) => Promise<Diagnostic[]>;
     publish: (document: TextDocument) => Promise<void>;
+    /** Publish diagnostics (and their counts) for a URI, open or not. */
+    publishUri: (uri: string, diagnostics: Diagnostic[]) => void;
+    background: BackgroundValidation;
     log: LogWatcherController;
 }
 
 type Args = unknown[];
 
+/** The request context of a command: cancellation and client-initiated progress. */
+export interface CommandContext {
+    token?: CancellationToken;
+    workDoneProgress?: WorkDoneProgressReporter;
+}
+
 export class ServerCommands {
     constructor(private host: CommandHost) {}
 
-    public async execute(command: string, args: Args): Promise<unknown> {
+    public async execute(
+        command: string,
+        args: Args,
+        context: CommandContext = {}
+    ): Promise<unknown> {
         switch (command) {
             case 'ck3.validateWorkspace':
-                return this.validateWorkspace();
+                return this.validateWorkspace(context);
             case 'ck3.rescanWorkspace':
                 return this.rescanWorkspace();
             case 'ck3.getWorkspaceStats':
-                return this.host.workspace.index.getStatistics();
+                return {
+                    ...this.host.workspace.index.getStatistics(),
+                    backgroundValidation: this.host.background.statistics(),
+                };
             case 'ck3.getThreadingMetrics':
                 // Single-threaded event-loop model — all requests are handled sequentially
                 return {
@@ -102,22 +126,13 @@ export class ServerCommands {
         }
     }
 
-    private async validateWorkspace(): Promise<{
-        success: boolean;
-        errors: number;
-        warnings: number;
-    }> {
-        const count = { errors: 0, warnings: 0 };
-        for (const document of this.host.documents.all()) {
-            for (const d of await this.host.diagnose(document)) {
-                if (d.severity === 1) {
-                    count.errors++;
-                } else if (d.severity === 2) {
-                    count.warnings++;
-                }
-            }
-        }
-        return { success: true, ...count };
+    /**
+     * Force a full background pass now (every file, above the file limit too) and return
+     * the workspace totals once it is idle. Progress goes to the client's work-done token;
+     * cancelling the request cancels the pass.
+     */
+    private validateWorkspace(context: CommandContext): Promise<ValidateWorkspaceResult> {
+        return this.host.background.validateWorkspace(context.token, context.workDoneProgress);
     }
 
     /**
@@ -180,15 +195,20 @@ export class ServerCommands {
         for (const document of this.host.documents.all()) {
             await this.host.publish(document);
         }
-        // Workspace-wide diagnostics, not just for the open files
-        const openUris = new Set(this.host.documents.all().map((d) => d.uri));
-        for (const uri of allFileUris.filter((u) => !openUris.has(u))) {
-            try {
-                const content = await fsp.readFile(fileUriToPath(uri), 'utf-8');
-                const doc = TextDocument.create(uri, 'ck3', 0, content);
-                connection.sendDiagnostics({ uri, diagnostics: await this.host.diagnose(doc) });
-            } catch (error) {
-                connection.console.error(`Failed to validate ${uri}: ${error}`);
+        if (this.host.background.enabled) {
+            // Workspace-wide diagnostics come from a background pass.
+            this.host.background.restart();
+        } else {
+            // Background validation off: every file once, now (the 2.0 behaviour).
+            const openUris = new Set(this.host.documents.all().map((d) => d.uri));
+            for (const uri of allFileUris.filter((u) => !openUris.has(u))) {
+                try {
+                    const content = await fsp.readFile(fileUriToPath(uri), 'utf-8');
+                    const doc = TextDocument.create(uri, 'ck3', 0, content);
+                    this.host.publishUri(uri, await this.host.diagnose(doc));
+                } catch (error) {
+                    connection.console.error(`Failed to validate ${uri}: ${error}`);
+                }
             }
         }
 

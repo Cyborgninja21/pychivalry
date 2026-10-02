@@ -1,0 +1,118 @@
+{
+    "about": "Classification of every error-severity finding on the real-mod corpus, engine path and editor path (scripts/corpus-acceptance.js and the extension's corpus suite merge it into <slug>.counts.json; the first matching rule wins; mod '*' = any mod). real-defect = the script is wrong against CK3 1.20.0.2 and the game reports it; false-positive = the tool is wrong, tracked by the GitHub issue. Explained in FINDINGS.md.",
+    "rules": [
+        {
+            "mod": "viet-events",
+            "code": "unknown_effect_X",
+            "message": "'ek_character_setup_effect'",
+            "classification": "real-defect",
+            "reason": "VIET_misc_effects.txt:307 calls ek_character_setup_effect, defined neither by the mod nor by the 1.20.0.2 base game (an Elder Kings compatibility hook)"
+        },
+        {
+            "mod": "*",
+            "code": "unknown_effect_X",
+            "message": "'destroy_landless_title_no_dlc_effect'",
+            "classification": "real-defect",
+            "reason": "history/titles calls destroy_landless_title_no_dlc_effect, which the 1.20.0.2 base game no longer defines (no destroy_landless_title* name exists in game/common or game/history)"
+        },
+        {
+            "mod": "*",
+            "code": "unknown_effect_X",
+            "message": "'destroy_landless_title_no_tgp_dlc_effect'",
+            "classification": "real-defect",
+            "reason": "history/titles calls destroy_landless_title_no_tgp_dlc_effect, which the 1.20.0.2 base game no longer defines"
+        },
+        {
+            "mod": "elf-destiny",
+            "code": "unknown_trigger_X",
+            "message": "'trait_is_shunned_or_criminal_in_faith_trigger'",
+            "classification": "real-defect",
+            "reason": "an override of a vanilla scheme file still calls the pre-1.20 name; 1.20.0.2 defines trait_is_shunned_or_criminal_in_rite_trigger (faith -> rite)"
+        },
+        {
+            "mod": "elf-destiny",
+            "code": "unknown_trigger_X",
+            "message": "'is_widget_open'",
+            "classification": "real-defect",
+            "reason": "the trigger is is_widgetid_open in 1.20.0.2 (game/common/trigger_localization/00_debug_triggers.txt: 'is_widgetid_open ... re-uses the old is_widget_open localization'); the spec package has is_widgetid_open"
+        },
+        {
+            "mod": "elf-destiny",
+            "code": "unexpected_token_expected_key",
+            "file": "common/scripted_effects/entrance_scheme_scripted_effects.txt",
+            "line": 661,
+            "classification": "real-defect",
+            "reason": "the file ends with an unmatched closing brace (brace depth goes negative on its last line, 661)"
+        },
+        {
+            "mod": "rice",
+            "code": "PYCH-R001",
+            "message": "'faith_creation_piety_cost_mult'",
+            "classification": "real-defect",
+            "reason": "the modifier was renamed in 1.20.0.2 (rite_creation_piety_cost_mult, used by the base game's buildings); RICE declares supported_version 1.19.*"
+        },
+        {
+            "mod": "rice",
+            "code": "unknown_modifier_type_X_at_X",
+            "message": "'Fertility'",
+            "classification": "real-defect",
+            "reason": "modifier names are case-sensitive; the character modifier is fertility, 'Fertility' is not a modifier type"
+        },
+        {
+            "mod": "*",
+            "code": "CK5142",
+            "classification": "false-positive",
+            "issue": 91,
+            "reason": "<character link> = <character> is the ordinary comparison form; the 1.20.0.2 base game writes it 1,475 times (issue #91)"
+        },
+        {
+            "mod": "*",
+            "code": "CK3873",
+            "classification": "false-positive",
+            "issue": 92,
+            "reason": "trigger = { always = no } disables content on purpose; the base game writes it 167 times and the game reports nothing (issue #92)"
+        },
+        {
+            "mod": "*",
+            "code": "CK3950",
+            "classification": "false-positive",
+            "issue": 93,
+            "reason": "colour values rgb { } / hsv { } read as scripted effect calls (issue #93)"
+        },
+        {
+            "mod": "*",
+            "code": "CK3951",
+            "classification": "false-positive",
+            "issue": 93,
+            "reason": "colour values rgb { } / hsv { } read as scripted trigger calls (issue #93)"
+        },
+        {
+            "mod": "*",
+            "code": "CK3420",
+            "classification": "false-positive",
+            "issue": 94,
+            "reason": "every key ending in _portrait is checked (gfx accessories and cameras, a decision name) and highlight_portrait is not known (issue #94)"
+        },
+        {
+            "mod": "*",
+            "code": "CK3552",
+            "classification": "false-positive",
+            "issue": 95,
+            "reason": "triggered_desc triggers are evaluated when the window is shown, after immediate; 864 vanilla events read immediate-saved scopes there (issue #95)"
+        },
+        {
+            "mod": "*",
+            "code": "CK3550",
+            "classification": "false-positive",
+            "issue": 96,
+            "reason": "the scope is saved earlier inside the same trigger (issue #96)"
+        },
+        {
+            "mod": "*",
+            "code": "CK3553",
+            "classification": "false-positive",
+            "issue": 97,
+            "reason": "the variable is set by an earlier firing of the event, the intended pattern (issue #97)"
+        }
+    ]
+}

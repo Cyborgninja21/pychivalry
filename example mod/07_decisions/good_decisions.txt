@@ -213,7 +213,7 @@ improve_capital = {
 
 	is_valid = {
 		gold >= 150
-		capital_province = {
+		capital_county = {
 			development_level < 20
 		}
 	}
@@ -224,7 +224,7 @@ improve_capital = {
 
 	effect = {
 		remove_short_term_gold = 150
-		capital_province = {
+		capital_county = {
 			change_development_level = 1
 		}
 		add_prestige = 25

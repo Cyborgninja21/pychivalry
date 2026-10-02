@@ -9,7 +9,7 @@
 pychivalry checks CK3 mod scripts against the game's own vocabulary and error messages, taken
 from the game executable rather than from wiki pages or scraped lists. It ships as a VS Code
 extension (a language server with completion, hover, navigation, formatting and diagnostics)
-and as a command-line checker for whole mod folders. Version 2.0.0 targets CK3 1.20.0.2.
+and as a command-line checker for whole mod folders. Version 2.1.0 targets CK3 1.20.0.2.
 
 ## How it is built
 
@@ -52,8 +52,8 @@ triggers and effects are layered over the spec package when the mod is found.
 ## Install
 
 From a release VSIX: in VS Code, **Extensions → … → Install from VSIX…** and pick
-`ck3-language-support-2.0.0.vsix`, or run
-`code --install-extension ck3-language-support-2.0.0.vsix`.
+`ck3-language-support-2.1.0.vsix`, or run
+`code --install-extension ck3-language-support-2.1.0.vsix`.
 
 From source (Node.js 22 and npm 10):
 
@@ -62,8 +62,8 @@ git clone https://github.com/Cyborgninja21/pychivalry.git
 cd pychivalry
 npm ci                                   # installs the workspace (engine + extension)
 npm run build                            # builds packages/engine
-cd vscode-extension && npm run package   # webpack production build + vsce: ck3-language-support-2.0.0.vsix
-code --install-extension ck3-language-support-2.0.0.vsix
+cd vscode-extension && npm run package   # webpack production build + vsce: ck3-language-support-2.1.0.vsix
+code --install-extension ck3-language-support-2.1.0.vsix
 ```
 
 To try it without packaging, open the repository in VS Code and press **F5** (Extension
@@ -102,16 +102,62 @@ YAML files in `data/traits/` to turn the check off; everything else works withou
 Extracted data is Paradox Interactive's content: keep it for personal use. The extension's
 former extraction commands now only show a notice; the script above replaces them.
 
-## Known gap: per-keyword scope validity
+## Scope validity
 
-pychivalry checks scope **structure**: chains such as `root.liege.primary_title` are resolved
-link by link, `scope:` names must be saved somewhere, iterator prefixes must match a list.
-It does **not** yet check whether a trigger or effect is valid in the scope it is used in
-("`is_landed` is not a valid trigger in a title scope"). That information is not in the
-game executable's tables; it comes from the game's own `script_docs` output, which has not
-been captured for 1.20.0.2. The spec package has the slot (`scope_validity`, empty today),
-so a future package fills it without a code change. Inlay hints therefore show saved-scope
-names, not scope types.
+pychivalry checks scope **structure** (chains such as `root.liege.primary_title` are resolved
+link by link, `scope:` names must be saved somewhere, iterator prefixes must match a list) and,
+since 2.1, whether a trigger, effect or link is valid in the scope it is used in, with the
+game's own messages: `Wrong scope for trigger: landed_title, expected character`, `Wrong scope
+for effect: …`, `Trying to use liege link on an invalid scope province`. The data is the game's
+own documentation: the `script_docs` console command, run in CK3 1.20.0.2 with `-debug_mode`,
+lists every trigger, effect and event target with the scopes it supports, and the spec package
+(format 3) carries it as `scope_validity` and `scope_types`.
+
+The engine infers the scope type of `root` (the directory's root scope, an event's
+`scope = …`, an on_action's documented scope), `this`, `prev`, `scope:x` (from its one save
+site) and each link of a chain, and judges a keyword only when every input is known. It
+stays silent where it cannot know: scripted triggers and effects (they run in the caller's
+scope), parameter blocks, keywords the game documents as `Supported Scopes: none`, and four
+directories whose root scope the wiki-era data gets wrong (story cycles, factions, casus belli
+types, buildings). On the 4,035 vanilla files it reports nothing. Inlay hints show the inferred
+types: after each chain step, on iterators and on `save_scope_as`.
+
+## Whole-mod diagnostics
+
+The extension checks the whole mod, not only the open files:
+
+- **Background validation.** After start-up every script (`.txt`) and localization file of the
+  workspace is validated in the background, one file at a time so the editor stays
+  responsive; the results appear in the Problems panel for unopened files too. A file changed
+  on disk is re-validated; when a file is saved, the files that use what it defines (its
+  scripted effects and triggers, events, saved scopes, script values …) are re-validated with
+  it. A closed file keeps its last result until it is validated again. **CK3: Validate
+  Workspace** runs a full pass now, with a cancellable progress notification, and reports the
+  counts. GUI files (`.gui`, `.gfx`, `.asset`) are indexed but not validated.
+- **Explorer decorations.** A file with errors or warnings shows the count of its worst
+  severity as a badge (`9+` above nine) in the error or warning colour; folders take the
+  colour of what is inside them.
+- **Status bar.** Next to the server item: the workspace's error and warning totals
+  (`$(error) 3 $(warning) 12`), a spinner with `done/total` while a pass runs, a tooltip with
+  the information count, the files affected and the time of the last full pass. Clicking it
+  opens the Problems panel. VS Code has no public API to set the Problems panel's filter, so it
+  opens unfiltered; type `ck3` in its filter box to see only pychivalry's findings.
+- **The base game.** Mods call the base game's scripted triggers, effects, lists and script
+  values; without the game they are all reported as unknown. Set `ck3LanguageServer.gamePath`
+  to the CK3 `game` directory (the one holding `common/`, `events/` and `history/`); when it
+  is empty the Steam default locations are tried once (Windows `C:\Program Files
+  (x86)\Steam\steamapps\common\Crusader Kings III\game`, Linux
+  `~/.steam/steam/steamapps/common/Crusader Kings III/game` and
+  `~/.local/share/Steam/steamapps/common/Crusader Kings III/game`, macOS
+  `~/Library/Application Support/Steam/steamapps/common/Crusader Kings III/game`). Which one
+  was used, and how long it took to read, is logged in the **CK3: Index** channel.
+
+Big mods: above `backgroundValidation.fileLimit` files (3000 by default) only open files are
+validated in the background, and a one-time message says so; run **CK3: Validate Workspace**
+or raise the limit. Measured on five published mods, the largest (RICE, 1,313 script and 777
+localization files) takes about 21 s to its first full result at about 700 MB, no single file
+holding the server for more than 0.2 s
+([corpus records](packages/engine/test/corpus/real-mods/README.md)).
 
 ## Configuration
 
@@ -123,6 +169,10 @@ names, not scope types.
 | `formatting.enabled`, `formatting.insertSpaces`, `formatting.tabSize` | `true`, `false`, `4` | Formatter |
 | `inlayHints.enabled` | `true` | Inlay hints |
 | `logWatcher.enabled`, `logWatcher.autoStart`, `logWatcher.logPath` | `true`, `false`, auto | Game log watcher |
+| `gamePath` | empty (Steam defaults) | The CK3 `game` directory used as the base game |
+| `backgroundValidation.enabled` | `true` | Validate the whole workspace in the background |
+| `backgroundValidation.concurrency` | `5` | Files read ahead at once (diagnosis is one file at a time) |
+| `backgroundValidation.fileLimit` | `3000` | Above this many files only open files are validated unless forced |
 
 Diagnostics are documented in the generated [diagnostics reference](Documentation/user-guide/diagnostics/README.md).
 

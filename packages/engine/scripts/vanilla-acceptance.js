@@ -9,6 +9,9 @@
  * 2. Loads the same tree as a workspace and runs the registry, schema and scope checks over
  *    it (the calibration of src/check/structural.ts and contexts.ts),
  *    recording the count per catalogue id and every error-level diagnostic.
+ * 3. Records how much of vanilla the scope check could judge: trigger/effect keyword uses in a
+ *    block whose scope type the resolver knows (and how many of them have documented,
+ *    non-`none` supported scopes), and link steps taken from a known scope type.
  * Writes the record as JSON (default test/acceptance/vanilla-<spec version>.json). Paths in
  * the record are relative to the game directory; no game text is copied into it.
  */
@@ -29,9 +32,9 @@ const out =
     path.join(__dirname, '..', 'test', 'acceptance', `vanilla-${spec.version()}.json`);
 
 function walk(dir, acc) {
-    for (const entry of fs.readdirSync(dir, { withFileTypes: true }).sort((a, b) =>
-        a.name < b.name ? -1 : a.name > b.name ? 1 : 0
-    )) {
+    for (const entry of fs
+        .readdirSync(dir, { withFileTypes: true })
+        .sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0))) {
         const full = path.join(dir, entry.name);
         if (entry.isDirectory()) {
             walk(full, acc);
@@ -75,6 +78,13 @@ const checkStart = process.hrtime.bigint();
 const workspace = new engine.Workspace(gameDir, { spec, vanilla: gameDir }).load();
 const byCode = {};
 const errorDiagnostics = [];
+const scope = {
+    keywordUses: 0,
+    keywordUsesKnownScope: 0,
+    keywordUsesJudged: 0,
+    linkStepsJudged: 0,
+};
+const byType = {};
 for (const file of workspace.scriptFiles()) {
     const rel = workspace.relativePath(file);
     if (!/^(common|events|history)\//.test(rel)) {
@@ -87,11 +97,50 @@ for (const file of workspace.scriptFiles()) {
         uri: engine.pathToUri(file),
         ast: workspace.parse(file).ast,
     };
+    const contexts = new Map();
     const ds = [
-        ...engine.checkRegistry(input),
+        ...engine.checkRegistry(input, contexts),
         ...engine.checkSchema(input),
-        ...engine.checkScope(input),
+        ...engine.checkScope(input, contexts),
     ];
+    const res = engine.resolveScopes(input, contexts);
+    for (const [nodes, ctx] of res.contexts) {
+        if (ctx.kind !== 'trigger' && ctx.kind !== 'effect') {
+            continue;
+        }
+        const bucket = ctx.kind === 'trigger' ? 'triggers' : 'effects';
+        for (const node of nodes) {
+            if (
+                !node.key ||
+                node.keyChain ||
+                !(spec.has(node.key, bucket) || spec.isIterator(node.key))
+            ) {
+                continue;
+            }
+            scope.keywordUses++;
+            const current = res.nodeFrames.get(node)?.this;
+            if (current === undefined) {
+                continue;
+            }
+            scope.keywordUsesKnownScope++;
+            byType[current] = (byType[current] || 0) + 1;
+            const doc = spec.scopeValidity(node.key, bucket);
+            if (doc && doc.supported_scopes.length > 0 && !doc.supported_scopes.includes('none')) {
+                scope.keywordUsesJudged++;
+            }
+        }
+    }
+    for (const map of [res.keyChains, res.valueChains]) {
+        for (const chain of map.values()) {
+            let prev = undefined;
+            chain.steps.forEach((step, i) => {
+                if (i > 0 && prev !== undefined && (step.type !== undefined || step.mismatch)) {
+                    scope.linkStepsJudged++;
+                }
+                prev = step.type;
+            });
+        }
+    }
     for (const d of ds) {
         const key = `${d.severity} ${d.code}`;
         byCode[key] = (byCode[key] || 0) + 1;
@@ -123,6 +172,19 @@ const record = {
         countsBySeverityAndCode: byCode,
         errors: errorDiagnostics.length,
         errorList: errorDiagnostics,
+    },
+    scope: {
+        ...scope,
+        keywordUsesByKnownScopeType: Object.fromEntries(
+            Object.entries(byType).sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1))
+        ),
+        findings: errorDiagnostics.filter((d) =>
+            [
+                'wrong_scope_for_trigger_X_expected_X',
+                'wrong_scope_for_effect_X_expected_X',
+                'trying_to_use_X_link_on_an_invalid_scope_X',
+            ].includes(d.code)
+        ).length,
     },
 };
 fs.mkdirSync(path.dirname(out), { recursive: true });

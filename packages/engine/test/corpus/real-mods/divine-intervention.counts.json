@@ -1,0 +1,272 @@
+{
+    "mod": {
+        "slug": "divine-intervention",
+        "workshop_id": "2986538297",
+        "name": "Divine Intervention Cheat Menu",
+        "supported_version": "1.20.0.2"
+    },
+    "spec": {
+        "version": "1.20.0.2",
+        "sha256": "129f67f6acb2292f10ca9e45cb2720831e447601027f54e0a7be680c79c08cbb"
+    },
+    "engine": {
+        "mod": {
+            "slug": "divine-intervention",
+            "workshop_id": "2986538297",
+            "name": "Divine Intervention Cheat Menu",
+            "supported_version": "1.20.0.2"
+        },
+        "spec": {
+            "version": "1.20.0.2",
+            "sha256": "129f67f6acb2292f10ca9e45cb2720831e447601027f54e0a7be680c79c08cbb"
+        },
+        "command": "node packages/engine/scripts/corpus-acceptance.js <corpus dir> <game dir> divine-intervention",
+        "equivalentCli": "node packages/engine/dist/cli.js check <corpus dir>/divine-intervention --vanilla <game dir>",
+        "files": 80,
+        "milliseconds": 16911,
+        "loadMilliseconds": 15839,
+        "maxRssKb": 463084,
+        "longestFile": {
+            "milliseconds": 336.6,
+            "file": "common/scripted_guis/DI_modifiers_sgui.txt"
+        },
+        "bySeverity": {
+            "error": 0,
+            "warning": 0,
+            "information": 305,
+            "hint": 0
+        },
+        "counts": {
+            "undefined_event_target_X": {
+                "severity": "information",
+                "count": 305
+            }
+        },
+        "errors": []
+    },
+    "editor": {
+        "command": "CK3_CORPUS=<corpus dir> CK3_GAME_PATH=<game dir> xvfb-run -a task test:integration (mod divine-intervention)",
+        "vscodeVersion": "1.140.0",
+        "settings": {
+            "gamePath": "<game dir>",
+            "backgroundValidation": {
+                "enabled": true,
+                "concurrency": 5,
+                "fileLimit": 3000
+            }
+        },
+        "sources": [
+            "ck3-engine",
+            "ck3-plugin"
+        ],
+        "filesValidated": 170,
+        "filesWithFindings": 75,
+        "filesAtCap": [
+            "common/character_interactions/DI_character_interaction.txt",
+            "common/customizable_localization/DI_diplomacy_custom_loc.txt",
+            "common/modifiers/DI_modifiers.txt",
+            "common/scripted_effects/DI_generated_court_position_profiles.txt",
+            "common/scripted_effects/DI_modifiers_effects.txt",
+            "common/scripted_guis/DI_char_editor_present_sgui.txt",
+            "common/scripted_guis/DI_char_spawner_sgui.txt",
+            "common/scripted_guis/DI_character_stats_batch_sgui.txt",
+            "common/scripted_guis/DI_cultural_editor_pillars_sgui.txt",
+            "common/scripted_guis/DI_diplomacy_sgui.txt",
+            "common/scripted_guis/DI_modifiers_sgui.txt",
+            "common/scripted_guis/DI_title_manager_buildings_sgui.txt",
+            "common/scripted_guis/DI_title_manager_sgui.txt",
+            "events/DI_error_suppression.txt"
+        ],
+        "timeToFirstFullResultMs": 22486,
+        "serverUptimeAtFirstFullResultMs": 22400,
+        "backgroundPassMs": 2019,
+        "peakServerRssKb": 330328,
+        "serverVmHwmKb": 330328,
+        "longestFile": {
+            "milliseconds": 595.4,
+            "file": "common/scripted_guis/DI_modifiers_sgui.txt"
+        },
+        "longestScriptFile": {
+            "milliseconds": 595.2,
+            "file": "common/scripted_guis/DI_modifiers_sgui.txt"
+        },
+        "longestLocalizationFile": {
+            "milliseconds": 2.6,
+            "file": "localization/french/gui/DI_l_french.yml"
+        },
+        "bySeverity": {
+            "error": 8,
+            "warning": 23065,
+            "information": 2279,
+            "hint": 77
+        },
+        "counts": {
+            "CK3303": {
+                "severity": "warning",
+                "count": 22676
+            },
+            "CK3304": {
+                "severity": "information",
+                "count": 139
+            },
+            "CK3306": {
+                "severity": "information",
+                "count": 13
+            },
+            "CK3314": {
+                "severity": "warning",
+                "count": 4
+            },
+            "CK3316": {
+                "severity": "information",
+                "count": 134
+            },
+            "CK3317": {
+                "severity": "information",
+                "count": 1527
+            },
+            "CK3656": {
+                "severity": "information",
+                "count": 4
+            },
+            "CK3701": {
+                "severity": "warning",
+                "count": 57
+            },
+            "CK3702": {
+                "severity": "hint",
+                "count": 77
+            },
+            "CK3800": {
+                "severity": "warning",
+                "count": 23
+            },
+            "CK3872": {
+                "severity": "information",
+                "count": 6
+            },
+            "CK3873": {
+                "severity": "error",
+                "count": 3
+            },
+            "CK3875": {
+                "severity": "information",
+                "count": 24
+            },
+            "CK3977": {
+                "severity": "information",
+                "count": 170
+            },
+            "CK4100": {
+                "severity": "warning",
+                "count": 294
+            },
+            "CK5137": {
+                "severity": "information",
+                "count": 91
+            },
+            "CK5142": {
+                "severity": "error",
+                "count": 5
+            },
+            "ITER-004": {
+                "severity": "information",
+                "count": 2
+            },
+            "LOC-001": {
+                "severity": "warning",
+                "count": 1
+            },
+            "SWITCH-003": {
+                "severity": "warning",
+                "count": 10
+            },
+            "undefined_event_target_X": {
+                "severity": "information",
+                "count": 169
+            }
+        },
+        "errors": [
+            {
+                "file": "common/character_interactions/DI_character_interaction.txt",
+                "line": 954,
+                "code": "CK5142",
+                "message": "Invalid character comparison 'liege = scope:actor'. Use 'liege = { this = scope:actor }' to compare characters.",
+                "source": "ck3-plugin",
+                "classification": "false-positive",
+                "issue": 91,
+                "reason": "<character link> = <character> is the ordinary comparison form; the 1.20.0.2 base game writes it 1,475 times (issue #91)"
+            },
+            {
+                "file": "common/customizable_localization/DI_diplomacy_custom_loc.txt",
+                "line": 459,
+                "code": "CK3873",
+                "message": "Impossible 'always = no' trigger. This code will never execute.",
+                "source": "ck3-plugin",
+                "classification": "false-positive",
+                "issue": 92,
+                "reason": "trigger = { always = no } disables content on purpose; the base game writes it 167 times and the game reports nothing (issue #92)"
+            },
+            {
+                "file": "common/scripted_effects/DI_char_spawner_effects.txt",
+                "line": 565,
+                "code": "CK5142",
+                "message": "Invalid character comparison 'employer = scope:target'. Use 'employer = { this = scope:target }' to compare characters.",
+                "source": "ck3-plugin",
+                "classification": "false-positive",
+                "issue": 91,
+                "reason": "<character link> = <character> is the ordinary comparison form; the 1.20.0.2 base game writes it 1,475 times (issue #91)"
+            },
+            {
+                "file": "common/scripted_effects/DI_char_spawner_effects.txt",
+                "line": 628,
+                "code": "CK5142",
+                "message": "Invalid character comparison 'employer = scope:target'. Use 'employer = { this = scope:target }' to compare characters.",
+                "source": "ck3-plugin",
+                "classification": "false-positive",
+                "issue": 91,
+                "reason": "<character link> = <character> is the ordinary comparison form; the 1.20.0.2 base game writes it 1,475 times (issue #91)"
+            },
+            {
+                "file": "common/scripted_effects/DI_char_spawner_effects.txt",
+                "line": 709,
+                "code": "CK5142",
+                "message": "Invalid character comparison 'employer = scope:target'. Use 'employer = { this = scope:target }' to compare characters.",
+                "source": "ck3-plugin",
+                "classification": "false-positive",
+                "issue": 91,
+                "reason": "<character link> = <character> is the ordinary comparison form; the 1.20.0.2 base game writes it 1,475 times (issue #91)"
+            },
+            {
+                "file": "common/scripted_guis/DI_misc_sgui.txt",
+                "line": 568,
+                "code": "CK5142",
+                "message": "Invalid character comparison 'liege = root'. Use 'liege = { this = root }' to compare characters.",
+                "source": "ck3-plugin",
+                "classification": "false-positive",
+                "issue": 91,
+                "reason": "<character link> = <character> is the ordinary comparison form; the 1.20.0.2 base game writes it 1,475 times (issue #91)"
+            },
+            {
+                "file": "common/scripted_triggers/DI_generated_court_position_employment.txt",
+                "line": 248,
+                "code": "CK3873",
+                "message": "Impossible 'always = no' trigger. This code will never execute.",
+                "source": "ck3-plugin",
+                "classification": "false-positive",
+                "issue": 92,
+                "reason": "trigger = { always = no } disables content on purpose; the base game writes it 167 times and the game reports nothing (issue #92)"
+            },
+            {
+                "file": "common/scripted_triggers/DI_generated_court_position_employment.txt",
+                "line": 285,
+                "code": "CK3873",
+                "message": "Impossible 'always = no' trigger. This code will never execute.",
+                "source": "ck3-plugin",
+                "classification": "false-positive",
+                "issue": 92,
+                "reason": "trigger = { always = no } disables content on purpose; the base game writes it 167 times and the game reports nothing (issue #92)"
+            }
+        ]
+    }
+}

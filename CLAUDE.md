@@ -4,7 +4,7 @@ Guidance for Claude Code (claude.ai/code) working in this repository.
 
 ## Project
 
-pychivalry 2.0.0: Crusader Kings III script tooling. An npm workspace with two packages:
+pychivalry 2.1.0: Crusader Kings III script tooling. An npm workspace with two packages:
 
 - `packages/engine` (npm `pychivalry-engine`): the engine core. Dependency-free TypeScript that
   parses CK3 script, indexes a mod and reports the game's own diagnostics; has a CLI
@@ -45,7 +45,7 @@ run (`node packages/engine/scripts/vanilla-acceptance.js "<game dir>"`),
 | --- | --- |
 | `spec/` | Load and validate the spec package (`loadSpec`, `defaultSpec`, `Spec`, `withOverlay`, `validateSpecPackage`) |
 | `syntax/` | Lexer, parser (`CK3Parser`, `CachingParser`), `IncrementalParser`, `@[ … ]` expressions; AST with 0-based positions; parse errors carry catalogue ids |
-| `index/` | `Indexer` (symbols, events, references), `CallGraph`, `Workspace` (one spec + one index per mod root), `LocalizationIndex`, mod descriptor |
+| `index/` | `Indexer` (symbols, events, references, `dependentsOf`), `CallGraph`, `Workspace` (one spec + one index per mod root, base game via `useVanilla`), `WorkspaceValidator` (`scheduler.ts`, background validation), `LocalizationIndex`, mod descriptor |
 | `check/` | `registry.ts` (unknown keyword by name and context, iterators, modifiers, retired names), `schema.ts` (directory fields, required fields, content in the wrong directory), `scope.ts` (scope chains, saved scopes), `contexts.ts`/`context.ts` (trigger vs effect context), `structural.ts` (calibrated tables) |
 | `diagnostics.ts` | `diagnose(workspace, file, {text, uri, plugins})`: parse → registry → schema → scope → plug-ins |
 | `messages.ts` | `PYCH-` package-local message ids (only where the catalogue has no text) |

@@ -2,19 +2,31 @@
  * Inlay Hints Provider - inline annotations from the engine (pychivalry-engine)
  *
  * Features:
- * - Saved scopes: `save_scope_as = x` is marked as a saved scope, and a `scope:x` reference
- *   shows where the engine index found the matching save (file and line).
+ * - Scope types from the engine's resolver (`resolveScopes`, on the game's own `script_docs`
+ *   data in the spec package): the type after each step of a scope chain
+ *   (`root.primary_title.holder` → `: character` `: landed_title` `: character`, setting
+ *   showChainTypes), the element type of an iterator (`every_vassal: character`,
+ *   showIteratorTypes) and the type a `save_scope_as` saves (showScopeTypes). A step whose
+ *   type the resolver does not know gets no hint: nothing is guessed.
+ * - Saved scopes: a `scope:x` reference shows where the engine index found the matching save
+ *   (file and line).
  * - Parameter names for block-form keywords, read from the engine doc string's usage example.
  * - Variable type hints (inferred from the values set in this document).
- *
- * Scope *types* (`root.primary_title → landed_title`, `every_vassal → character`) are not
- * shown: the spec package's per-keyword scope data (`scope_validity`) is empty until an
- * oracle run fills it, and the hints do not guess.
  */
 
 import { InlayHint, InlayHintKind, MarkupKind, Range } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { ASTNode, CK3Parser, NodeType, SymbolType, Workspace } from 'pychivalry-engine';
+import {
+    ASTNode,
+    ChainResolution,
+    CK3Parser,
+    NodeType,
+    resolveScopes,
+    ScopeResolution,
+    SymbolType,
+    uriToPath,
+    Workspace,
+} from 'pychivalry-engine';
 import { docParameters } from './keyword-docs';
 
 /**
@@ -51,6 +63,9 @@ export class InlayHintsProvider {
     // Cache for variable types within document
     private variableTypes: Map<string, VariableTypeInfo> = new Map();
 
+    // Scope types of the document being hinted (undefined when resolution failed)
+    private scopes: ScopeResolution | undefined;
+
     constructor(
         private parser: CK3Parser,
         private workspace: Workspace
@@ -75,11 +90,28 @@ export class InlayHintsProvider {
 
         // First pass: collect variable type information
         this.collectVariableTypes(parsed.ast);
+        this.scopes = this.resolve(document, parsed.ast);
 
         // Second pass: collect hints
         this.collectInlayHints(parsed.ast, hints, range, document);
 
         return hints;
+    }
+
+    /** The engine's scope types for the document, or undefined. */
+    private resolve(document: TextDocument, ast: ASTNode): ScopeResolution | undefined {
+        const { showScopeTypes, showChainTypes, showIteratorTypes } = this.settings;
+        if (!showScopeTypes && !showChainTypes && !showIteratorTypes) {
+            return undefined;
+        }
+        const file = uriToPath(document.uri);
+        return resolveScopes({
+            spec: this.workspace.spec,
+            workspace: this.workspace,
+            file: this.workspace.relativePath(file),
+            uri: document.uri,
+            ast,
+        });
     }
 
     /**
@@ -94,6 +126,11 @@ export class InlayHintsProvider {
                 hint.tooltip = {
                     kind: MarkupKind.Markdown,
                     value: `**Scope Type:** \`${data.detail}\`\n\nThis scope can be referenced later in effects and triggers.`,
+                };
+            } else if (data.type === 'scope-type' && data.detail) {
+                hint.tooltip = {
+                    kind: MarkupKind.Markdown,
+                    value: `**Scope type:** \`${data.detail}\`\n\nFrom the game's own scope documentation (\`script_docs\`).`,
                 };
             } else if (data.type === 'chain' && data.detail) {
                 hint.tooltip = {
@@ -244,10 +281,15 @@ export class InlayHintsProvider {
                 this.addVariableHints(child, hints);
             }
 
-            // Iterator element types (`every_vassal → character`) and scope-chain result
-            // types need each list's and link's result scope, which the spec package does
-            // not carry (its scope_validity is empty until an oracle run fills it). No type
-            // hint is shown rather than a guessed one; showIteratorTypes has no effect.
+            // Iterator element types (`every_vassal: character`)
+            if (this.settings.showIteratorTypes) {
+                this.addIteratorHints(child, hints);
+            }
+
+            // Scope type after each step of a chain (`root.primary_title: landed_title`)
+            if (this.settings.showChainTypes) {
+                this.addChainTypeHints(child, hints);
+            }
 
             // Recurse
             if (child.children) {
@@ -257,27 +299,77 @@ export class InlayHintsProvider {
     }
 
     /**
-     * Add scope type hints
+     * Saved scopes: `save_scope_as = x` shows the type it saves (the scope type where it is
+     * written), or `scope` when the resolver does not know it.
      */
     private addScopeHints(node: ASTNode, hints: InlayHint[]): void {
         if (node.key === 'save_scope_as' || node.key === 'save_temporary_scope_as') {
             if (typeof node.value === 'string') {
+                const type = this.scopes?.nodeFrames.get(node)?.this ?? 'scope';
                 const hint: InlayHint = {
                     position: node.range.end,
-                    label: ': scope',
+                    label: `: ${type}`,
                     kind: InlayHintKind.Type,
                     paddingLeft: true,
-                    data: { type: 'scope', detail: 'scope' },
+                    data: { type: 'scope', detail: type },
                 };
                 hints.push(hint);
             }
         }
     }
 
+    /** Iterators: the element type of the list (`every_held_title: landed_title`). */
+    private addIteratorHints(node: ASTNode, hints: InlayHint[]): void {
+        const element = this.scopes?.iterators.get(node);
+        if (element === undefined) {
+            return;
+        }
+        hints.push({
+            position: (node.keyRange ?? node.range).end,
+            label: `: ${element}`,
+            kind: InlayHintKind.Type,
+            paddingLeft: true,
+            data: { type: 'scope-type', detail: element },
+        });
+    }
+
+    /** The type after each step of a key or value chain, where the resolver knows it. */
+    private addChainTypeHints(node: ASTNode, hints: InlayHint[]): void {
+        const key = this.scopes?.keyChains.get(node);
+        if (key && node.key) {
+            this.pushStepHints(key, (node.keyRange ?? node.range).start, hints);
+        }
+        const value = this.scopes?.valueChains.get(node);
+        if (value && node.valueRange) {
+            this.pushStepHints(value, node.valueRange.start, hints);
+        }
+    }
+
+    private pushStepHints(
+        chain: ChainResolution,
+        start: ASTNode['range']['start'],
+        hints: InlayHint[]
+    ): void {
+        let offset = 0;
+        chain.steps.forEach((step, i) => {
+            offset += step.segment.length + (i > 0 ? 1 : 0);
+            if (step.type === undefined) {
+                return;
+            }
+            hints.push({
+                position: { line: start.line, character: start.character + offset },
+                label: `: ${step.type}`,
+                kind: InlayHintKind.Type,
+                paddingLeft: false,
+                data: { type: 'scope-type', detail: step.type },
+            });
+        });
+    }
+
     /**
      * Saved-scope references: `scope:x` (as a key or a value) resolved against the engine
-     * index's saved scopes. The hint names where `x` is saved; it shows no scope type,
-     * which the spec package does not provide (empty scope_validity).
+     * index's saved scopes. The hint names where `x` is saved (its type, when the resolver
+     * knows it, is the chain type hint).
      */
     private addChainHints(node: ASTNode, hints: InlayHint[]): void {
         const refs: Array<{ name: string; at: ASTNode['range']['end'] }> = [];

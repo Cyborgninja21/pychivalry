@@ -14,19 +14,23 @@ import {
 import { CK3StatusBar } from '../statusBar';
 import { logger, LogCategory } from '../logger';
 import { registerLogNotifications } from './log-channels';
+import { WorkspaceHealth } from './workspace-health';
 
 const MAX_CRASH_RESTARTS = 3;
 const CRASH_STABLE_WINDOW_MS = 60000;
 
 export class ServerController {
     private client: LanguageClient | undefined;
+    /** The crash watcher of the running client (disposed before a deliberate stop). */
+    private crashWatch: vscode.Disposable | undefined;
     private restartInProgress = false;
     private crashCount = 0;
     private lastStableTimestamp = Date.now();
 
     constructor(
         private context: vscode.ExtensionContext,
-        private statusBar: CK3StatusBar
+        private statusBar: CK3StatusBar,
+        private health?: WorkspaceHealth
     ) {}
 
     /** The running client, if any. */
@@ -87,7 +91,12 @@ export class ServerController {
                 { scheme: 'file', pattern: '**/*.{txt,gui,gfx,asset}' },
             ],
             synchronize: {
-                fileEvents: vscode.workspace.createFileSystemWatcher('**/*.{txt,gui,gfx,asset}'),
+                // workspace/didChangeWatchedFiles: files created, changed or deleted on disk
+                // are re-indexed and re-validated in the background.
+                fileEvents: [
+                    vscode.workspace.createFileSystemWatcher('**/*.{txt,gui,gfx,asset}'),
+                    vscode.workspace.createFileSystemWatcher('**/localization/**/*.yml'),
+                ],
             },
             outputChannel: logger.getChannel(LogCategory.Server),
             traceOutputChannel: logger.getChannel(LogCategory.Trace),
@@ -107,6 +116,12 @@ export class ServerController {
                     : traceLevel === 'verbose'
                       ? Trace.Verbose
                       : Trace.Off
+            );
+
+            // Background validation results (file decorations, status bar).
+            this.health?.reset();
+            client.onNotification('ck3/workspaceDiagnostics', (message: unknown) =>
+                this.health?.apply(message)
             );
 
             logger.logServer('Starting language client...');
@@ -136,7 +151,7 @@ export class ServerController {
 
             this.lastStableTimestamp = Date.now();
             this.crashCount = 0;
-            client.onDidChangeState((event) => {
+            this.crashWatch = client.onDidChangeState((event) => {
                 if (event.oldState === State.Running && event.newState === State.Stopped) {
                     this.onCrash();
                 }
@@ -198,6 +213,10 @@ export class ServerController {
         if (!this.client) {
             return;
         }
+        // A deliberate stop is not a crash: without this, restart() started a second
+        // client 3 s later through onCrash(), next to the one it had just started.
+        this.crashWatch?.dispose();
+        this.crashWatch = undefined;
         this.statusBar.updateState('stopped');
         logger.logServer('Stopping language client...');
         try {

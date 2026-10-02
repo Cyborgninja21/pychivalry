@@ -107,39 +107,55 @@ interface FileKind {
     type: SymbolType;
 }
 
-/** Directory patterns → symbol type of the file's top-level keys (first match wins). */
+/**
+ * Directory patterns → symbol type of the file's top-level keys (first match wins). Each is
+ * anchored to whole path segments and tested against the mod-relative path, so a mod folder
+ * (or a folder above it) named `viet-events` or `events` does not make every file an event
+ * file (issue #90). decision_group_types comes before decisions.
+ */
 const FILE_KINDS: FileKind[] = [
-    { test: /events?\//, type: SymbolType.EVENT },
-    { test: /decisions?\//, type: SymbolType.DECISION },
-    { test: /character_interactions?\//, type: SymbolType.CHARACTER_INTERACTION },
-    { test: /on_actions?\//, type: SymbolType.ON_ACTION },
-    { test: /story_cycles?\//, type: SymbolType.STORY_CYCLE },
-    { test: /activities\//, type: SymbolType.ACTIVITY },
-    { test: /schemes\//, type: SymbolType.SCHEME },
-    { test: /scripted_effects\//, type: SymbolType.SCRIPTED_EFFECT },
-    { test: /scripted_triggers\//, type: SymbolType.SCRIPTED_TRIGGER },
-    { test: /scripted_lists\//, type: SymbolType.SCRIPTED_LIST },
-    { test: /scripted_modifiers\//, type: SymbolType.SCRIPTED_MODIFIER },
-    { test: /modifier_definition_formats\//, type: SymbolType.MODIFIER_FORMAT },
-    { test: /scripted_guis?\//, type: SymbolType.SCRIPTED_GUI },
-    { test: /decision_group_types?\//, type: SymbolType.DECISION_GROUP_TYPE },
-    { test: /script_values?\//, type: SymbolType.SCRIPT_VALUE },
-    { test: /common\/traits?\//, type: SymbolType.TRAIT },
-    { test: /common\/modifiers?\//, type: SymbolType.MODIFIER },
-    { test: /opinion_modifiers?\//, type: SymbolType.OPINION_MODIFIER },
+    { test: /(^|\/)decision_group_types?\//, type: SymbolType.DECISION_GROUP_TYPE },
+    { test: /(^|\/)events?\//, type: SymbolType.EVENT },
+    { test: /(^|\/)decisions?\//, type: SymbolType.DECISION },
+    { test: /(^|\/)character_interactions?\//, type: SymbolType.CHARACTER_INTERACTION },
+    { test: /(^|\/)on_actions?\//, type: SymbolType.ON_ACTION },
+    { test: /(^|\/)story_cycles?\//, type: SymbolType.STORY_CYCLE },
+    { test: /(^|\/)activities\//, type: SymbolType.ACTIVITY },
+    { test: /(^|\/)schemes\//, type: SymbolType.SCHEME },
+    { test: /(^|\/)scripted_effects\//, type: SymbolType.SCRIPTED_EFFECT },
+    { test: /(^|\/)scripted_triggers\//, type: SymbolType.SCRIPTED_TRIGGER },
+    { test: /(^|\/)scripted_lists\//, type: SymbolType.SCRIPTED_LIST },
+    { test: /(^|\/)scripted_modifiers\//, type: SymbolType.SCRIPTED_MODIFIER },
+    { test: /(^|\/)modifier_definition_formats\//, type: SymbolType.MODIFIER_FORMAT },
+    { test: /(^|\/)scripted_guis?\//, type: SymbolType.SCRIPTED_GUI },
+    { test: /(^|\/)script_values?\//, type: SymbolType.SCRIPT_VALUE },
+    { test: /(^|\/)common\/traits?\//, type: SymbolType.TRAIT },
+    { test: /(^|\/)common\/modifiers?\//, type: SymbolType.MODIFIER },
+    { test: /(^|\/)opinion_modifiers?\//, type: SymbolType.OPINION_MODIFIER },
 ];
 
-function symbolTypeForUri(uri: string): SymbolType {
-    // decision_group_types must not be read as decisions: test the specific pattern first.
-    if (/decision_group_types?\//.test(uri)) {
-        return SymbolType.DECISION_GROUP_TYPE;
-    }
+/** The symbol type of a file's top-level keys from its (mod-relative) path. */
+export function symbolTypeForPath(relativePath: string): SymbolType {
+    const normalized = relativePath.replace(/\\/g, '/');
     for (const kind of FILE_KINDS) {
-        if (kind.test.test(uri)) {
+        if (kind.test.test(normalized)) {
             return kind.type;
         }
     }
     return SymbolType.GENERIC;
+}
+
+/** The path part of a URI (decoded), or the string itself when it is not a URI. */
+function uriPath(uri: string): string {
+    const match = /^[a-z][a-z0-9+.-]*:\/\/[^/]*(\/.*)$/i.exec(uri);
+    if (!match) {
+        return uri;
+    }
+    try {
+        return decodeURIComponent(match[1]);
+    } catch {
+        return match[1];
+    }
 }
 
 function pushTo<K, V>(map: Map<K, V[]>, key: K, value: V): void {
@@ -174,6 +190,55 @@ function childKeys(node: ASTNode): string[] {
     return keys;
 }
 
+/** Options of an index. */
+export interface IndexerOptions {
+    /**
+     * Record the names each file mentions (keys, values and their segments), the basis of
+     * dependentsOf(). On by default; off for an index nobody asks for dependents (the
+     * vanilla base game's).
+     */
+    trackMentions?: boolean;
+    /**
+     * The path of a document relative to its mod (or game) root, used to classify its
+     * top-level keys by directory. Undefined (or no resolver) falls back to the URI's path.
+     */
+    relativePath?: (uri: string) => string | undefined;
+}
+
+const WHOLE_TOKEN_SPLIT = /[^A-Za-z0-9_.]+/;
+const SEGMENT_SPLIT = /[^A-Za-z0-9_]+/;
+const NUMERIC = /^[0-9.]+$/;
+
+/**
+ * The names a key or value mentions: the token itself, its parts between operators and
+ * prefixes (`scope:actor` → `actor`, keeping dotted event ids whole) and its dot segments
+ * (`root.my_list` → `my_list`). Numbers are left out.
+ */
+function mentionedNames(token: string, out: Set<string>): void {
+    out.add(token);
+    for (const part of token.split(WHOLE_TOKEN_SPLIT)) {
+        if (part !== '' && !NUMERIC.test(part)) {
+            out.add(part);
+        }
+    }
+    for (const part of token.split(SEGMENT_SPLIT)) {
+        if (part !== '' && !NUMERIC.test(part)) {
+            out.add(part);
+        }
+    }
+}
+
+/**
+ * Is a symbol a definition other files can depend on? Event namespaces are not, nor are the
+ * other top-level keys of an event file that are not event records (its namespace line).
+ */
+function isDependencyDefinition(symbol: IndexSymbol): boolean {
+    if (symbol.type === SymbolType.NAMESPACE) {
+        return false;
+    }
+    return symbol.type !== SymbolType.EVENT || EVENT_RECORD_ID.test(symbol.name);
+}
+
 function traverse(node: ASTNode, callback: (node: ASTNode) => void): void {
     callback(node);
     for (const child of node.children ?? []) {
@@ -195,6 +260,27 @@ export class Indexer {
     /** References to names without a definition when they were indexed. */
     private unresolved: Map<string, ReferenceLocation[]> = new Map();
     private callGraph: CallGraph = new CallGraph(this);
+    /** Names each file mentions (uri → names) and the reverse (name → uris). */
+    private mentionsByUri: Map<string, Set<string>> = new Map();
+    private mentionIndex: Map<string, Set<string>> = new Map();
+    private readonly trackMentions: boolean;
+    private readonly relativePath: ((uri: string) => string | undefined) | undefined;
+
+    constructor(options: IndexerOptions = {}) {
+        this.trackMentions = options.trackMentions ?? true;
+        this.relativePath = options.relativePath;
+    }
+
+    /** The symbol type of a document's top-level keys (by its mod-relative directory). */
+    public fileTypeOf(uri: string): SymbolType {
+        let rel: string | undefined;
+        try {
+            rel = this.relativePath?.(uri);
+        } catch {
+            rel = undefined;
+        }
+        return symbolTypeForPath(rel ?? uriPath(uri));
+    }
 
     /**
      * Index a document's symbols (asynchronous signature kept for the extension's callers).
@@ -222,6 +308,9 @@ export class Indexer {
         this.extractEventMetadata(uri, ast);
         this.extractReferences(uri, ast);
         this.callGraph.buildFromAST(uri, ast);
+        if (this.trackMentions) {
+            this.extractMentions(uri, ast);
+        }
     }
 
     /**
@@ -237,6 +326,84 @@ export class Indexer {
             this.symbols.delete(uri);
         }
         this.clearEnhancedData(uri);
+        this.clearMentions(uri);
+    }
+
+    private extractMentions(uri: string, ast: ASTNode): void {
+        const names = new Set<string>();
+        traverse(ast, (node) => {
+            if (node.key) {
+                mentionedNames(node.key, names);
+            }
+            if (typeof node.value === 'string' && node.value !== '') {
+                mentionedNames(node.value, names);
+            }
+        });
+        this.mentionsByUri.set(uri, names);
+        for (const name of names) {
+            let uris = this.mentionIndex.get(name);
+            if (!uris) {
+                uris = new Set();
+                this.mentionIndex.set(name, uris);
+            }
+            uris.add(uri);
+        }
+    }
+
+    private clearMentions(uri: string): void {
+        const names = this.mentionsByUri.get(uri);
+        if (!names) {
+            return;
+        }
+        for (const name of names) {
+            const uris = this.mentionIndex.get(name);
+            if (uris) {
+                uris.delete(uri);
+                if (uris.size === 0) {
+                    this.mentionIndex.delete(name);
+                }
+            }
+        }
+        this.mentionsByUri.delete(uri);
+    }
+
+    /**
+     * The files whose diagnostics may change when `uri` changes: every other indexed file
+     * that mentions a name `uri` defines (a scripted effect or trigger it calls, an event it
+     * fires, a saved scope it reads, a script value, a list ...), plus the reference and
+     * call-graph sites of those names. `extraNames` adds names the file defined before
+     * its last edit, so that callers of a definition that was just removed are included.
+     * Event namespaces (and an event file's namespace line) are not counted as
+     * definitions. Sorted.
+     */
+    public dependentsOf(uri: string, extraNames: Iterable<string> = []): string[] {
+        const names = new Set<string>(extraNames);
+        for (const symbol of this.getDocumentSymbols(uri)) {
+            if (isDependencyDefinition(symbol)) {
+                names.add(symbol.name);
+            }
+        }
+        const out = new Set<string>();
+        for (const name of names) {
+            for (const other of this.mentionIndex.get(name) ?? []) {
+                out.add(other);
+            }
+            for (const location of this.references.get(name)?.locations ?? []) {
+                out.add(location.uri);
+            }
+            for (const edge of this.callGraph.getIncomingCalls(name)) {
+                out.add(edge.sourceUri);
+            }
+        }
+        out.delete(uri);
+        return Array.from(out).sort();
+    }
+
+    /** Names a file defines (its symbols except event namespaces), for dependentsOf(). */
+    public definedNames(uri: string): string[] {
+        return this.getDocumentSymbols(uri)
+            .filter(isDependencyDefinition)
+            .map((s) => s.name);
     }
 
     private removeFrom<K>(map: Map<K, IndexSymbol[]>, key: K, uri: string): void {
@@ -281,6 +448,22 @@ export class Indexer {
             }
         }
         this.callGraph.clearDocument(uri);
+    }
+
+    /** Remove every document from the index. */
+    public clear(): void {
+        for (const uri of Array.from(this.symbols.keys())) {
+            this.removeDocument(uri);
+        }
+        this.symbols.clear();
+        this.nameIndex.clear();
+        this.typeIndex.clear();
+        this.events.clear();
+        this.eventsByNamespace.clear();
+        this.references.clear();
+        this.unresolved.clear();
+        this.mentionsByUri.clear();
+        this.mentionIndex.clear();
     }
 
     /** Find symbols by name */
@@ -409,7 +592,7 @@ export class Indexer {
         if (!ast.children) {
             return symbols;
         }
-        const fileType = symbolTypeForUri(uri);
+        const fileType = this.fileTypeOf(uri);
 
         for (const node of ast.children) {
             if (node.type === NodeType.COMMENT || node.type === NodeType.VALUE) {

@@ -1,6 +1,6 @@
 # Validation pipeline
 
-How a CK3 script file becomes diagnostics in pychivalry 2.0.0. The same pipeline serves the
+How a CK3 script file becomes diagnostics in pychivalry 2.1.0. The same pipeline serves the
 editor (the language server) and the command line (`pychivalry-engine check`). The code
 reference for every id and code is the generated
 [diagnostics reference](../../user-guide/diagnostics/README.md).
@@ -94,9 +94,15 @@ that no `save_scope_as`, `save_temporary_scope_as` or `save_scope_value_as` in t
 index defines is `undefined_event_target_X` (information), reported only when a base game is
 loaded (otherwise vanilla-provided scopes would be false positives).
 
-**Not checked:** whether a trigger or effect is valid in the scope it is used in. The spec
-package's `scope_validity` is empty until a `script_docs` oracle run fills it; the check slot
-(`scopeValidity`) exists.
+**Scope validity** (2.1): `check/scope-types.ts` infers the scope type of every block (root
+from the directory, an event's `scope = …` or an on_action's documented scope; iterators give
+their list's element type, links and chains their output type; `scope:x` the type at its only
+save site; anything else unknown) from the package's `scope_validity` and `scope_types`, the
+game's own `script_docs` documentation. A trigger or effect whose supported scopes do not
+include the current type is `wrong_scope_for_trigger_X_expected_X` /
+`wrong_scope_for_effect_X_expected_X`; a link step outside its input scopes is
+`trying_to_use_X_link_on_an_invalid_scope_X` (all errors). Nothing is reported when the
+current type is unknown or the keyword's scopes are `none`. Vanilla 1.20.0.2 checks clean.
 
 ## 6. Plug-ins (the extension)
 

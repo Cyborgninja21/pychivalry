@@ -4,7 +4,7 @@
 
 3 messages of category `unknown_scope` in the error catalogue of the CK3 1.20.0.2
 spec package. These are the game's own texts, as `error.log` prints them; `%s`, `{}`
-and `$X$` mark the values the game fills in. 0 of them are also reported by the
+and `$X$` mark the values the game fills in. 1 of them is also reported by the
 engine core in the editor (column "pychivalry"); the others are listed so that a line of
 `error.log` can be looked up.
 
@@ -12,4 +12,4 @@ engine core in the editor (column "pychivalry"); the others are listed so that a
 | --- | --- | --- | --- |
 | `invalid_scope_type_X` | `Invalid scope type %s` | <=1.19.0.6 |  |
 | `invalid_scope_types_for_event_target_link_link_X_at_X` | `Invalid scope types for event target link, link: %s at %s` | <=1.19.0.6 |  |
-| `trying_to_use_X_link_on_an_invalid_scope_X` | `Trying to use %s link on an invalid scope %s` | <=1.19.0.6 |  |
+| `trying_to_use_X_link_on_an_invalid_scope_X` | `Trying to use %s link on an invalid scope %s` | <=1.19.0.6 | scope, error |

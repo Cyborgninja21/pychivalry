@@ -18,6 +18,8 @@ import {
     Connection,
     createConnection,
     DidChangeConfigurationNotification,
+    DidChangeWatchedFilesParams,
+    FileChangeType,
     DocumentFormattingParams,
     DocumentLink,
     DocumentRangeFormattingParams,
@@ -37,10 +39,27 @@ import {
     WorkspaceFolder,
     WorkspaceSymbolParams,
 } from 'vscode-languageserver/node';
+import * as path from 'path';
+import { promises as fsp } from 'fs';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { IncrementalParser, LocalizationIndex, setDefaultSpec, Workspace } from 'pychivalry-engine';
+import {
+    IncrementalParser,
+    isLocalizationFile,
+    LocalizationIndex,
+    pathToUri,
+    setDefaultSpec,
+    Workspace,
+} from 'pychivalry-engine';
 
 import { bundledSpec } from './engine-host';
+import { resolveGamePath } from './game-path';
+import {
+    BackgroundSettings,
+    BackgroundValidation,
+    DEFAULT_BACKGROUND,
+    isBackgroundFile,
+} from './background';
+import { fileUriToPath, pathToFileUri } from './utils/uri';
 import { enginePlugins, localizationDiagnostics } from './plugins';
 import { ServerCommands, SERVER_COMMANDS } from './commands';
 import { LogWatcherController } from './log/controller';
@@ -71,6 +90,9 @@ import { extensionVersion } from './version';
 /** Server settings pulled from the client (ck3LanguageServer.*). */
 export interface ServerConfig {
     logLevel: 'debug' | 'info' | 'warning' | 'error';
+    /** The CK3 `game` directory (holding common/, events/, history/); empty = Steam defaults. */
+    gamePath: string;
+    backgroundValidation: BackgroundSettings;
     formatting: { enabled: boolean; insertSpaces: boolean; tabSize: number };
     inlayHints: {
         enabled: boolean;
@@ -91,6 +113,8 @@ export interface ServerConfig {
 
 const DEFAULT_CONFIG: ServerConfig = {
     logLevel: 'info',
+    gamePath: '',
+    backgroundValidation: { ...DEFAULT_BACKGROUND },
     formatting: { enabled: true, insertSpaces: false, tabSize: 4 },
     inlayHints: {
         enabled: true,
@@ -123,6 +147,9 @@ export class CK3LanguageServer {
     private hasConfigurationCapability = false;
     private hasWorkspaceFolderCapability = false;
     private config: ServerConfig = DEFAULT_CONFIG;
+    /** The game path setting the base game was last loaded for (undefined: not yet). */
+    private loadedGamePath: string | undefined;
+    private initialized = false;
     private validationTimers = new Map<string, NodeJS.Timeout>();
     private readonly VALIDATION_DEBOUNCE_MS = 300;
 
@@ -170,6 +197,13 @@ export class CK3LanguageServer {
     private callHierarchy = new CallHierarchyProvider(this.parser, this.workspace.index);
     private selectionRange = new SelectionRangeProvider(this.parser);
 
+    private background = new BackgroundValidation({
+        connection: this.connection,
+        documents: this.documents,
+        workspace: this.workspace,
+        diagnose: (uri, text) => this.diagnostics.diagnoseText(uri, text),
+    });
+
     private log = new LogWatcherController(
         this.connection,
         () => this.workspaceFolders.map((f) => f.uri.replace('file://', '')),
@@ -184,6 +218,8 @@ export class CK3LanguageServer {
         workspaceFolders: () => this.workspaceFolders,
         diagnose: (document) => this.diagnostics.provideDiagnostics(document),
         publish: (document) => this.validateDocument(document),
+        publishUri: (uri, diagnostics) => this.background.publish(uri, diagnostics),
+        background: this.background,
         log: this.log,
     });
 
@@ -241,8 +277,9 @@ export class CK3LanguageServer {
         this.documents.onDidOpen((e) => this.onDidOpen(e.document));
         this.documents.onDidChangeContent((e) => this.onDidChange(e.document));
         this.documents.onDidClose((e) => this.onDidClose(e.document));
-        this.documents.onDidSave((e) => this.validateDocument(e.document));
+        this.documents.onDidSave((e) => this.onDidSave(e.document));
         c.onDidChangeConfiguration(() => this.onDidChangeConfiguration());
+        c.onDidChangeWatchedFiles((p) => this.onDidChangeWatchedFiles(p));
 
         c.onCompletion((p: TextDocumentPositionParams) =>
             doc(p.textDocument.uri, 'Completion', [] as CompletionItem[], (d) =>
@@ -358,7 +395,9 @@ export class CK3LanguageServer {
         );
         c.languages.inlayHint.on((p: InlayHintParams) =>
             doc(p.textDocument.uri, 'Inlay hint', [] as InlayHint[], (d) =>
-                this.inlayHints.provideInlayHints(d, p.range)
+                this.config.inlayHints.enabled
+                    ? this.inlayHints.provideInlayHints(d, p.range)
+                    : Promise.resolve([] as InlayHint[])
             )
         );
         c.languages.inlayHint.resolve((hint) =>
@@ -385,9 +424,12 @@ export class CK3LanguageServer {
             )
         );
 
-        c.onExecuteCommand((p: ExecuteCommandParams) => {
+        c.onExecuteCommand((p: ExecuteCommandParams, token, workDoneProgress) => {
             c.console.log(`Executing command: ${p.command}`);
-            return this.commands.execute(p.command, p.arguments ?? []);
+            return this.commands.execute(p.command, p.arguments ?? [], {
+                token,
+                workDoneProgress,
+            });
         });
 
         this.documents.listen(c);
@@ -477,6 +519,8 @@ export class CK3LanguageServer {
             // Index the workspace so that definitions in unopened files resolve
             const indexed = await this.commands.indexWorkspace();
             notify(`Indexed ${indexed.uris.length} files`);
+            await this.readConfiguration();
+            await this.loadBaseGame();
             await this.commands.scanLocalization();
             try {
                 const modCount = await this.modScanner.discoverMods();
@@ -490,10 +534,52 @@ export class CK3LanguageServer {
             } catch (error) {
                 this.connection.console.error(`Mod discovery failed: ${error}`);
             }
+            this.initialized = true;
             notify('Workspace initialized successfully');
             this.connection.console.log('Workspace initialized successfully');
+            this.background.configure(this.config.backgroundValidation);
+            this.background.start();
         } catch (error) {
             this.connection.console.error(`Failed to initialize workspace: ${error}`);
+        }
+    }
+
+    /**
+     * Load the CK3 base game (vanilla scripted triggers, effects, lists, modifiers, script
+     * values, on_actions and keyword-template databases) from the gamePath setting or the
+     * Steam default locations, into the workspace every provider already holds. Logged
+     * through ck3/indexLog with its duration.
+     */
+    private async loadBaseGame(): Promise<void> {
+        const notify = (message: string) =>
+            this.connection.sendNotification('ck3/indexLog', { message });
+        const setting = this.config.gamePath;
+        this.loadedGamePath = setting;
+        const resolved = resolveGamePath(setting);
+        if (resolved.error) {
+            this.connection.console.error(resolved.error);
+            notify(resolved.error);
+        }
+        if (resolved.path === undefined) {
+            if (!resolved.error) {
+                notify(
+                    `No CK3 game directory found (tried ${resolved.tried.join(', ')}); set ck3LanguageServer.gamePath to check against the base game`
+                );
+            }
+            await this.workspace.useVanilla(undefined);
+            return;
+        }
+        const from = resolved.source === 'setting' ? 'ck3LanguageServer.gamePath' : 'Steam default';
+        notify(`Loading the CK3 base game from ${resolved.path} (${from})...`);
+        try {
+            const loaded = await this.workspace.useVanilla(resolved.path);
+            notify(
+                `Base game loaded: ${loaded.files} files from ${resolved.path} in ${loaded.milliseconds} ms`
+            );
+        } catch (error) {
+            this.connection.console.error(`Failed to load the base game: ${error}`);
+            notify(`Failed to load the base game from ${resolved.path}: ${error}`);
+            await this.workspace.useVanilla(undefined);
         }
     }
 
@@ -523,6 +609,7 @@ export class CK3LanguageServer {
     private onShutdown(): void {
         this.connection.console.log('CK3 Language Server shutting down');
         this.log.dispose();
+        this.background.stop();
         for (const timer of this.validationTimers.values()) {
             clearTimeout(timer);
         }
@@ -536,6 +623,53 @@ export class CK3LanguageServer {
 
     private index(document: TextDocument): void {
         this.workspace.index.indexSync(document.uri, this.parser.parse(document.getText()).ast);
+    }
+
+    private async onDidSave(document: TextDocument): Promise<void> {
+        await this.validateDocument(document);
+        // Files that use what the saved file defines are checked again in the background.
+        this.background.saved(fileUriToPath(document.uri));
+    }
+
+    /** Files created, changed or deleted on disk (the client's file watchers). */
+    private async onDidChangeWatchedFiles(params: DidChangeWatchedFilesParams): Promise<void> {
+        for (const change of params.changes) {
+            if (!change.uri.startsWith('file:')) {
+                continue;
+            }
+            const file = fileUriToPath(change.uri);
+            const uri = pathToFileUri(file);
+            const open = this.documents
+                .all()
+                .some((d) => path.resolve(fileUriToPath(d.uri)) === path.resolve(file));
+            try {
+                if (change.type === FileChangeType.Deleted) {
+                    this.workspace.index.removeDocument(uri);
+                    this.workspace.index.removeDocument(change.uri);
+                    this.localization.clearFile(pathToUri(file));
+                    this.background.removed(file, change.uri);
+                    continue;
+                }
+                if (open) {
+                    // The editor's text is what is checked while the file is open.
+                    continue;
+                }
+                if (!isBackgroundFile(file) && !/\.(gui|gfx|asset)$/i.test(file)) {
+                    continue;
+                }
+                const text = await fsp.readFile(file, 'utf-8');
+                if (isLocalizationFile(path.basename(file))) {
+                    this.localization.indexText(file, text);
+                } else {
+                    this.workspace.index.indexSync(uri, this.parser.parse(text).ast);
+                }
+                if (isBackgroundFile(file)) {
+                    this.background.changed(file, true);
+                }
+            } catch (error) {
+                this.connection.console.error(`File change ${change.uri}: ${error}`);
+            }
+        }
     }
 
     private async onDidOpen(document: TextDocument): Promise<void> {
@@ -571,31 +705,76 @@ export class CK3LanguageServer {
             this.validationTimers.delete(document.uri);
         }
         this.hover.clearCache();
-        this.workspace.index.removeDocument(document.uri);
-        this.connection.sendDiagnostics({ uri: document.uri, diagnostics: [] });
+        // The file stays in the index and its last result stays published: it is read from
+        // disk again (the editor's unsaved text is gone) and re-validated in the background.
+        const file = fileUriToPath(document.uri);
+        void fsp.readFile(file, 'utf-8').then(
+            (text) => {
+                if (this.documents.get(document.uri)) {
+                    return;
+                }
+                if (!isLocalizationFile(path.basename(file))) {
+                    this.workspace.index.removeDocument(document.uri);
+                    this.workspace.index.indexSync(
+                        pathToFileUri(file),
+                        this.parser.parse(text).ast
+                    );
+                } else {
+                    this.localization.indexText(file, text);
+                }
+                this.background.changed(file);
+            },
+            () => {
+                // Gone from disk: the watcher's delete event clears it.
+            }
+        );
     }
 
     private async validateDocument(document: TextDocument): Promise<void> {
         try {
             const diagnostics = await this.diagnostics.provideDiagnostics(document);
-            this.connection.sendDiagnostics({ uri: document.uri, diagnostics });
+            this.background.publish(document.uri, diagnostics);
         } catch (error) {
             this.connection.console.error(`Validation error: ${error}`);
         }
     }
 
+    /** Read the ck3LanguageServer settings from the client (unset keys keep their value). */
+    private async readConfiguration(): Promise<void> {
+        if (!this.hasConfigurationCapability) {
+            return;
+        }
+        let settings: unknown;
+        try {
+            settings = await this.connection.workspace.getConfiguration('ck3LanguageServer');
+        } catch (error) {
+            this.connection.console.error(`Failed to read the settings: ${error}`);
+            return;
+        }
+        if (settings && typeof settings === 'object') {
+            const s = settings as Partial<Record<keyof ServerConfig, unknown>>;
+            this.config = {
+                logLevel: (s.logLevel as ServerConfig['logLevel']) ?? this.config.logLevel,
+                gamePath: typeof s.gamePath === 'string' ? s.gamePath : this.config.gamePath,
+                backgroundValidation: merge(
+                    this.config.backgroundValidation,
+                    s.backgroundValidation
+                ),
+                formatting: merge(this.config.formatting, s.formatting),
+                inlayHints: merge(this.config.inlayHints, s.inlayHints),
+                logWatcher: merge(this.config.logWatcher, s.logWatcher),
+            };
+        }
+        this.inlayHints.updateSettings(this.config.inlayHints);
+    }
+
     private async onDidChangeConfiguration(): Promise<void> {
-        if (this.hasConfigurationCapability) {
-            const settings: unknown =
-                await this.connection.workspace.getConfiguration('ck3LanguageServer');
-            if (settings && typeof settings === 'object') {
-                const s = settings as Partial<Record<keyof ServerConfig, unknown>>;
-                this.config = {
-                    logLevel: (s.logLevel as ServerConfig['logLevel']) ?? this.config.logLevel,
-                    formatting: merge(this.config.formatting, s.formatting),
-                    inlayHints: merge(this.config.inlayHints, s.inlayHints),
-                    logWatcher: merge(this.config.logWatcher, s.logWatcher),
-                };
+        await this.readConfiguration();
+        if (this.initialized) {
+            this.background.configure(this.config.backgroundValidation);
+            if (this.config.gamePath !== this.loadedGamePath) {
+                await this.loadBaseGame();
+                this.background.restart();
             }
         }
         for (const document of this.documents.all()) {

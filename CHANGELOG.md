@@ -7,6 +7,121 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-10-02
+
+Whole-mod diagnostics in the editor, and scope validity from the game itself. Headlines:
+
+- **Background validation of the whole mod** (#86), **Explorer file decorations** (#87) and a
+  **status-bar health summary** (#84); the base game (`ck3LanguageServer.gamePath`) is read
+  so vanilla definitions are known.
+- **Spec package format 3**: per-keyword scope validity and the full list of 72 scope types,
+  imported from the game's own `script_docs` output (CK3 1.20.0.2, vanilla, run 2026-10-02).
+- **New scope check** with the game's messages: `Wrong scope for trigger: %s, expected %s`,
+  `Wrong scope for effect: %s, expected %s`, `Trying to use %s link on an invalid scope %s`.
+  Zero findings on the 4,035 vanilla files.
+- **Typed inlay hints**: the scope type after each chain step, on iterators and on
+  `save_scope_as`.
+- Fixes for #90 (a mod folder named like a script directory) and a localization-suggestion
+  stall.
+
+### Scope validity (spec package format 3)
+
+#### Added
+
+- **Spec package format 3** (pdx-parser-re): `scope_validity` is filled from the game's own
+  documentation, the `script_docs` console command run in CK3 1.20.0.2 with `-debug_mode`
+  (vanilla plus the owned DLCs, no mods; logs and provenance in pdx-parser-re
+  `research/oracle/1.20.0.2/`): per trigger (1,935), effect (2,127), event target / link (311
+  names, 327 forms), list (377) and on_action (930) the supported scopes, supported targets
+  and the game's description; the new top-level `scope_types` lists the 72 scope types the
+  game names, with the links that produce each, the lists that iterate it and the on_actions
+  that expect it. `Supported Scopes: none` means the keyword declares no scope requirement.
+  The same logs checked every derived keyword bucket (0 unexplained differences); the
+  package gains the 14 engine on_actions without an `on_` prefix (`yearly_playable_pulse`,
+  `three_year_pool_pulse`, …: on_actions 203 → 217), the lower-case
+  `situation_top_phase_days_until_end_date`, and 15 modifier templates the game documents
+  (`$VASSAL_STANCE$_ai_boldness`, `$GOVERNMENT_TYPE$_herd_contribution_add`, …: 79 → 94).
+  Package sha256 `129f67f6acb2292f10ca9e45cb2720831e447601027f54e0a7be680c79c08cbb`.
+- **Scope-type inference** (engine `resolveScopes`, `check/scope-types.ts`): the type of
+  `root` (the directory's root scope, an event's `scope = …`, an on_action's documented
+  expected scope), `this`, `prev`, `scope:x` (the type at its only save site in the record)
+  and each step of a chain, from the game's link input/output scopes and list element types.
+  Unknown stays unknown: scripted triggers and effects, parameter blocks and anything the
+  package does not document are never judged. Four directories whose wiki-era root scope
+  vanilla contradicts (story cycles, factions, casus belli types, buildings) and the
+  interaction pickers (`can_be_picked*`) have an unknown root.
+- **Scope check** (`check/scope.ts`, severity error, the game's catalogue texts):
+  `wrong_scope_for_trigger_X_expected_X` and `wrong_scope_for_effect_X_expected_X` for a
+  trigger or effect (iterators included) used where the current scope type is not among its
+  supported scopes, `trying_to_use_X_link_on_an_invalid_scope_X` for a link or chain step
+  whose input scopes do not include the current type. Vanilla 1.20.0.2: 0 findings over
+  91,576 judged keyword uses and 17,834 judged link steps; the five corpus mods: 0 new
+  findings.
+- **Typed inlay hints**: with `inlayHints.showChainTypes` the type after each step of a scope
+  chain, with `showIteratorTypes` an iterator's element type, with `showScopeTypes` the type
+  a `save_scope_as` saves; the settings (and `inlayHints.enabled`) are now read by the
+  server.
+- `Spec` accessors: `scopeValidity(name, bucket)`, `onActionScope`, `linkForms`,
+  `listElementType`, `scopeTypes`, `isScopeType`, `scopeType`.
+
+#### Changed
+
+- The engine accepts only package format 3 (format 2 is rejected).
+- The good-decision fixtures (`example mod/07_decisions`, `test space`, the mock mod) used
+  `development_level` and `change_development_level` on `capital_province`; both are county
+  (landed_title) keywords, now `capital_county`.
+
+### Whole-mod diagnostics in the editor
+
+#### Added
+
+- **The base game** (`ck3LanguageServer.gamePath`, machine-overridable): the server checks the
+  mod against the CK3 `game` directory, so the vanilla scripted triggers, effects, lists,
+  modifiers and script values a mod calls are known. When the setting is empty the Steam
+  default locations are tried once; an invalid path is logged and the server runs without a
+  base game. The base game is read asynchronously after indexing and its duration logged.
+  Engine: `Workspace.useVanilla(root)`.
+- **Background validation** (#86): every script and localization file is validated after
+  start-up and published as ordinary diagnostics, so unopened files appear in the Problems
+  panel; files changed on disk are re-validated (file watchers for `.txt`, `.gui`, `.gfx`,
+  `.asset` and `localization/**/*.yml`), and a save re-validates the files that use what the
+  saved file defines. **CK3: Validate Workspace** now forces a full pass with a cancellable
+  progress notification (LSP `window/workDoneProgress`) and returns `{ files, errors,
+  warnings, information, milliseconds }`; `ck3.getWorkspaceStats` adds the pass state.
+  Settings `backgroundValidation.enabled` (true), `.concurrency` (5), `.fileLimit` (3000; above it only open files unless a pass is forced). Engine:
+  `WorkspaceValidator` (`index/scheduler.ts`), an incremental, cancellable scheduler that
+  yields to the event loop after every file, and `Indexer.dependentsOf(uri)`.
+- **Explorer file decorations** (#87): a badge with the count of a file's worst severity and
+  its colour, propagated to folders.
+- **Status-bar health summary** (#84): workspace error and warning totals, a spinner with
+  progress while a pass runs, click opens the Problems panel (unfiltered: VS Code has no
+  public API to set its filter).
+- **Real-mod corpus acceptance**: five published mods recorded on the engine path
+  (`packages/engine/scripts/corpus-acceptance.js`) and in the Extension Development Host
+  (`CK3_CORPUS=… task test:integration`), every error finding classified
+  (`packages/engine/test/corpus/real-mods/`); the plug-in false positives found there are
+  issues #91 to #97.
+
+#### Fixed
+
+- **A mod folder named like a script directory no longer turns every file into that kind**
+  (#90): a file's kind (event, decision, scripted effect …) was judged by unanchored patterns
+  on its absolute path, so a mod in `viet-events/` had every scripted effect and trigger
+  indexed as an event and reported unknown where called (1,751 errors on VIET Events, now 1).
+  Files are classified by their path inside the mod, with patterns anchored to whole
+  segments (`Indexer` takes a `relativePath` resolver; `Workspace` supplies it).
+- **Localization suggestions no longer stall the server**: the "Did you mean" work is bounded
+  (length pre-check and early exit in the edit distance, suggestions reused per name, at most
+  100 distinct names per kind per file); the slowest RICE localization file went from 6.9 s
+  to 0.1 s.
+
+#### Changed
+
+- **Closing a file no longer clears its diagnostics or drops it from the index**: its last
+  result stays in the Problems panel until background validation checks it again, from disk.
+- **Restarting the server no longer starts a second client** three seconds later: a deliberate
+  stop was handled as a crash.
+
 ## [2.0.0] - 2026-10-01
 
 pychivalry is re-architected around an engine core that reads one generated description of

@@ -809,9 +809,34 @@
                     "why": "SCOPE-003: `spouse` used as a link from a title; it is not a scope link at all"
                 },
                 {
+                    "line": 70,
+                    "code": "trying_to_use_X_link_on_an_invalid_scope_X",
+                    "why": "SCOPE-001: `duchy` link from a character (its input scope is landed_title)"
+                },
+                {
+                    "line": 91,
+                    "code": "trying_to_use_X_link_on_an_invalid_scope_X",
+                    "why": "SCOPE-001: `liege` link from a province (its input scope is character)"
+                },
+                {
+                    "line": 177,
+                    "code": "wrong_scope_for_trigger_X_expected_X",
+                    "why": "SCOPE-006: any_vassal in a landed_title scope (supported: character)"
+                },
+                {
+                    "line": 202,
+                    "code": "wrong_scope_for_effect_X_expected_X",
+                    "why": "SCOPE-006: every_courtier in a province scope (supported: character)"
+                },
+                {
                     "line": 223,
                     "code": "unknown_trigger_X",
                     "why": "SCOPE-006: every_father (father is not a list)"
+                },
+                {
+                    "line": 244,
+                    "code": "trying_to_use_X_link_on_an_invalid_scope_X",
+                    "why": "SCOPE-001: `capital_county` link from a landed_title (its input scope is character)"
                 },
                 {
                     "line": 323,
@@ -824,7 +849,7 @@
                     "why": "every_spouse in a trigger block (every_ iterators are effects)"
                 }
             ],
-            "phase4": "CK3202 (scope:my_liege, scope:rival_character never saved, lines 115/119) is reported only when a vanilla base game is loaded; per-scope validity (age and has_trait on a title, lines 272-273) needs the package's empty scope_validity slot; CK3875/CK3977/CK5137 are style rules"
+            "phase4": "CK3202 (scope:my_liege, scope:rival_character never saved, lines 115/119) is reported only when a vanilla base game is loaded; age and has_trait on a title (lines 272-273) are triggers in an effect block, reported as unknown_effect_X; CK3875/CK3977/CK5137 are style rules"
         },
         "events/bad_style.txt": {
             "expected": [],

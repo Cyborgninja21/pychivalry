@@ -5,6 +5,7 @@
 import * as assert from 'assert';
 import * as path from 'path';
 import {
+    SuggestionBudget,
     validateLocalizationContent,
     validateLocalizationKeys,
     DEFAULT_LOC_VALIDATION_CONFIG,
@@ -225,6 +226,38 @@ describe('Localization Validator', () => {
                 makeConfig()
             );
             assert.strictEqual(diags.filter((d) => d.code === 'LOC-004').length, 2);
+        });
+    });
+
+    describe('suggestion budget', () => {
+        it('memoises a name and caps distinct suggestions per kind', () => {
+            const budget = new SuggestionBudget(2);
+            let computed = 0;
+            const compute = (): string[] => {
+                computed++;
+                return ['x'];
+            };
+            assert.deepStrictEqual(budget.suggest('icon', 'a', compute), ['x']);
+            assert.deepStrictEqual(budget.suggest('icon', 'a', compute), ['x']);
+            assert.deepStrictEqual(budget.suggest('icon', 'b', compute), ['x']);
+            // Third distinct icon: over the cap, no suggestion, nothing computed.
+            assert.deepStrictEqual(budget.suggest('icon', 'c', compute), []);
+            // Another kind has its own allowance; a memoised name still answers.
+            assert.deepStrictEqual(budget.suggest('concept', 'c', compute), ['x']);
+            assert.deepStrictEqual(budget.suggest('icon', 'a', compute), ['x']);
+            assert.strictEqual(computed, 3);
+        });
+
+        it('over the cap the diagnostic is still emitted, without a suggestion', () => {
+            const budget = new SuggestionBudget(0);
+            const diags = validateLocalizationContent(
+                makeEntry('Invalid £gld£ icon'),
+                makeConfig(),
+                budget
+            );
+            const loc = diags.filter((d) => d.code === 'LOC-004');
+            assert.strictEqual(loc.length, 1);
+            assert.ok(!loc[0].message.includes('Did you mean'));
         });
     });
 });

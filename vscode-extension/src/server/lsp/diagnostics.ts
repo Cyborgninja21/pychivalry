@@ -71,16 +71,24 @@ export class DiagnosticsProvider {
      * Provide diagnostics for a document
      */
     public async provideDiagnostics(document: TextDocument): Promise<Diagnostic[]> {
-        const file = uriToPath(document.uri);
+        return this.diagnoseText(document.uri, document.getText());
+    }
+
+    /**
+     * Diagnose a file's text, synchronously (the background validator diagnoses unopened
+     * files through here, so they get exactly what an open file gets).
+     */
+    public diagnoseText(uri: string, text: string): Diagnostic[] {
+        const file = uriToPath(uri);
         // Any .yml is localization (CK3 loads only *_l_<language>.yml, but the editor may
         // open others); it is never parsed as CK3 script.
         if (isLocalizationFile(path.basename(file)) || file.toLowerCase().endsWith('.yml')) {
-            return this.localizationDiagnostics(document, file);
+            return this.localizationDiagnostics(text, file);
         }
 
         const results = diagnose(this.workspace, file, {
-            text: document.getText(),
-            uri: document.uri,
+            text,
+            uri,
             plugins: this.plugins,
         });
 
@@ -95,11 +103,10 @@ export class DiagnosticsProvider {
         return kept.slice(0, MAX_DIAGNOSTICS).map(toLsp);
     }
 
-    private localizationDiagnostics(document: TextDocument, file: string): Diagnostic[] {
+    private localizationDiagnostics(text: string, file: string): Diagnostic[] {
         if (!this.localization || !this.localizationValidator) {
             return [];
         }
-        const text = document.getText();
         this.localization.indexText(file, text);
         return this.localizationValidator(this.localization, pathToUri(file), text);
     }

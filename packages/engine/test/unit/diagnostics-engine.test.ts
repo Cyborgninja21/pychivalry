@@ -286,7 +286,8 @@ describe('DiagnosticsEngine', () => {
                     event(
                         [
                             'diplomacy_lifestyle_perks > 1',
-                            'kin_legacy_track_perks > 1',
+                            // dynasty legacy perks are a dynasty trigger (the game's scope data)
+                            'dynasty = { kin_legacy_track_perks > 1 }',
                             'kin_legacy_track_xp > 1',
                         ],
                         ['add_diplomacy_lifestyle_xp = 10', 'add_kin_legacy_track_xp = 10']
