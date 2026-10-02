@@ -8,10 +8,18 @@
 /**
  * Compute the Levenshtein edit distance between two strings.
  * Uses the two-row optimisation (O(min(m,n)) space).
+ *
+ * With `maxDistance`, the work is bounded: as soon as the distance is known to exceed it
+ * (the lengths differ by more, or a whole row of the table is above it) `maxDistance + 1`
+ * is returned instead of the exact distance.
  */
-export function levenshteinDistance(a: string, b: string): number {
+export function levenshteinDistance(a: string, b: string, maxDistance?: number): number {
     if (a === b) {
         return 0;
+    }
+    const bound = maxDistance === undefined ? Infinity : Math.max(0, maxDistance);
+    if (Math.abs(a.length - b.length) > bound) {
+        return bound + 1;
     }
     if (a.length === 0) {
         return b.length;
@@ -36,6 +44,7 @@ export function levenshteinDistance(a: string, b: string): number {
 
     for (let j = 1; j <= bLen; j++) {
         curr[0] = j;
+        let rowMin = curr[0];
         for (let i = 1; i <= aLen; i++) {
             const cost = a[i - 1] === b[j - 1] ? 0 : 1;
             curr[i] = Math.min(
@@ -43,11 +52,18 @@ export function levenshteinDistance(a: string, b: string): number {
                 prev[i] + 1, // deletion
                 prev[i - 1] + cost // substitution
             );
+            if (curr[i] < rowMin) {
+                rowMin = curr[i];
+            }
+        }
+        if (rowMin > bound) {
+            // Every path through this row already costs more than the bound.
+            return bound + 1;
         }
         [prev, curr] = [curr, prev];
     }
 
-    return prev[aLen];
+    return Math.min(prev[aLen], bound + 1);
 }
 
 /**
@@ -90,7 +106,24 @@ export function findSimilar(
 
     for (const candidate of haystack) {
         const normalizedCandidate = ignoreCase ? candidate.toLowerCase() : candidate;
-        const ratio = similarityRatio(normalizedNeedle, normalizedCandidate);
+        const maxLen = Math.max(normalizedNeedle.length, normalizedCandidate.length);
+        if (maxLen === 0) {
+            if (threshold <= 1) {
+                scored.push({ original: candidate, ratio: 1 });
+            }
+            continue;
+        }
+        // ratio >= threshold  <=>  distance <= (1 - threshold) * maxLen: candidates whose
+        // length alone puts them past that are skipped, the rest are computed with that bound.
+        const maxDistance = Math.floor((1 - threshold) * maxLen + 1e-9);
+        if (Math.abs(normalizedNeedle.length - normalizedCandidate.length) > maxDistance) {
+            continue;
+        }
+        const distance = levenshteinDistance(normalizedNeedle, normalizedCandidate, maxDistance);
+        if (distance > maxDistance) {
+            continue;
+        }
+        const ratio = 1.0 - distance / maxLen;
         if (ratio >= threshold) {
             scored.push({ original: candidate, ratio });
         }

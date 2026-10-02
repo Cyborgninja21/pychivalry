@@ -88,4 +88,45 @@ describe('Fuzzy Match Utilities', () => {
             assert.ok(results.length <= 1);
         });
     });
+
+    describe('bounded distance (threshold path)', () => {
+        it('returns maxDistance + 1 once the distance is known to exceed the bound', () => {
+            // Length difference alone is over the bound: no table is computed.
+            assert.strictEqual(levenshteinDistance('a', 'abcdefgh', 2), 3);
+            // A whole row above the bound: early exit.
+            assert.strictEqual(levenshteinDistance('kitten', 'sitting', 1), 2);
+            assert.strictEqual(levenshteinDistance('abcdef', 'uvwxyz', 2), 3);
+            // Within the bound: the exact distance.
+            assert.strictEqual(levenshteinDistance('kitten', 'sitting', 3), 3);
+            assert.strictEqual(levenshteinDistance('cat', 'cut', 5), 1);
+            assert.strictEqual(levenshteinDistance('same', 'same', 0), 0);
+        });
+
+        it('findSimilar returns the same matches as the unbounded ratio', () => {
+            const haystack = [
+                'add_gold',
+                'add_prestige',
+                'remove_gold',
+                'add_piety',
+                'gold',
+                'a_very_long_candidate_name_that_is_far_off',
+                '',
+            ];
+            for (const needle of ['add_glod', 'gold', 'add_pres', 'x', 'remove_glod']) {
+                for (const threshold of [0.3, 0.5, 0.6, 0.8]) {
+                    const expected = haystack
+                        .map((c) => ({ c, r: similarityRatio(needle, c) }))
+                        .filter((x) => x.r >= threshold)
+                        .sort((a, b) => b.r - a.r)
+                        .slice(0, 5)
+                        .map((x) => x.c);
+                    assert.deepStrictEqual(
+                        findSimilar(needle, haystack, { threshold }),
+                        expected,
+                        `${needle} @ ${threshold}`
+                    );
+                }
+            }
+        });
+    });
 });

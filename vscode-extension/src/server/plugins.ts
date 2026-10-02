@@ -45,6 +45,7 @@ import {
     validateLocalizationReferences,
 } from './ck3/validation/conventions';
 import {
+    SuggestionBudget,
     validateLocalizationContent,
     validateLocalizationKeys,
     DEFAULT_LOC_VALIDATION_CONFIG,
@@ -243,8 +244,10 @@ export function localizationDiagnostics(
     text?: string
 ): LspDiagnostic[] {
     const out: LspDiagnostic[] = text !== undefined ? validateLocalizationKeys(text) : [];
+    // One suggestion budget per file: a file never spends seconds on "Did you mean".
+    const budget = new SuggestionBudget();
     for (const entry of index.entriesOf(fileUri)) {
-        out.push(...validateLocalizationContent(entry, DEFAULT_LOC_VALIDATION_CONFIG));
+        out.push(...validateLocalizationContent(entry, DEFAULT_LOC_VALIDATION_CONFIG, budget));
     }
     return out;
 }
