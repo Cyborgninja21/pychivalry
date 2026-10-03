@@ -1,0 +1,493 @@
+{
+  "generated": "node tools/color-scan.js <game dir> <corpus dir>",
+  "files": {
+    "game": 5830,
+    "corpus:balance-of-power-ui": 7,
+    "corpus:divine-intervention": 154,
+    "corpus:elf-destiny": 610,
+    "corpus:rice": 1382,
+    "corpus:viet-events": 67
+  },
+  "table": {
+    "game|gui": {
+      "bare-unit": 489,
+      "bare-byte": 8,
+      "bare-other": 2,
+      "rgb": 0,
+      "hsv": 0,
+      "hsv360": 0,
+      "hex": 0,
+      "named": 0
+    },
+    "game|txt": {
+      "bare-unit": 1285,
+      "bare-byte": 17809,
+      "bare-other": 0,
+      "rgb": 77,
+      "hsv": 997,
+      "hsv360": 1,
+      "hex": 9,
+      "named": 16531
+    },
+    "corpus:balance-of-power-ui|gui": {
+      "bare-unit": 2,
+      "bare-byte": 0,
+      "bare-other": 0,
+      "rgb": 0,
+      "hsv": 0,
+      "hsv360": 0,
+      "hex": 0,
+      "named": 0
+    },
+    "corpus:divine-intervention|txt": {
+      "bare-unit": 17,
+      "bare-byte": 0,
+      "bare-other": 0,
+      "rgb": 0,
+      "hsv": 0,
+      "hsv360": 0,
+      "hex": 0,
+      "named": 0
+    },
+    "corpus:divine-intervention|gui": {
+      "bare-unit": 19,
+      "bare-byte": 0,
+      "bare-other": 0,
+      "rgb": 0,
+      "hsv": 0,
+      "hsv360": 0,
+      "hex": 0,
+      "named": 0
+    },
+    "corpus:elf-destiny|txt": {
+      "bare-unit": 14,
+      "bare-byte": 236,
+      "bare-other": 0,
+      "rgb": 107,
+      "hsv": 1,
+      "hsv360": 0,
+      "hex": 0,
+      "named": 320
+    },
+    "corpus:elf-destiny|gui": {
+      "bare-unit": 99,
+      "bare-byte": 0,
+      "bare-other": 0,
+      "rgb": 0,
+      "hsv": 0,
+      "hsv360": 0,
+      "hex": 0,
+      "named": 0
+    },
+    "corpus:rice|txt": {
+      "bare-unit": 58,
+      "bare-byte": 486,
+      "bare-other": 0,
+      "rgb": 18,
+      "hsv": 1,
+      "hsv360": 0,
+      "hex": 0,
+      "named": 474
+    },
+    "corpus:rice|gui": {
+      "bare-unit": 14,
+      "bare-byte": 0,
+      "bare-other": 0,
+      "rgb": 0,
+      "hsv": 0,
+      "hsv360": 0,
+      "hex": 0,
+      "named": 0
+    },
+    "corpus:viet-events|txt": {
+      "bare-unit": 0,
+      "bare-byte": 0,
+      "bare-other": 0,
+      "rgb": 0,
+      "hsv": 0,
+      "hsv360": 0,
+      "hex": 0,
+      "named": 4
+    }
+  },
+  "namedColourDefinitions": {
+    "names": 122,
+    "byNotation": {
+      "bare-unit": 78,
+      "bare-byte": 14,
+      "bare-other": 0,
+      "rgb": 0,
+      "hsv": 29,
+      "hsv360": 1,
+      "hex": 0,
+      "named": 0
+    }
+  },
+  "ranges": {
+    "bare-unit": {
+      "count": 1997,
+      "inRange": 1991,
+      "arity": {
+        "3": 1318,
+        "4": 679
+      },
+      "min": [
+        0,
+        0,
+        0,
+        0.1
+      ],
+      "max": [
+        1,
+        1,
+        1,
+        2
+      ],
+      "alphaAboveOne": 6,
+      "integerOnly": 48,
+      "decimals": {
+        "0": 48,
+        "1": 572,
+        "2": 457,
+        "3": 34,
+        "4": 1,
+        "6": 885
+      }
+    },
+    "bare-byte": {
+      "count": 18539,
+      "inRange": 18539,
+      "arity": {
+        "3": 18531,
+        "4": 8
+      },
+      "min": [
+        0,
+        0,
+        0,
+        0.8
+      ],
+      "max": [
+        255,
+        255,
+        255,
+        0.8
+      ],
+      "alphaAboveOne": 0,
+      "integerOnly": 18531,
+      "decimals": {
+        "0": 18531,
+        "1": 8
+      }
+    },
+    "bare-other": {
+      "count": 2,
+      "inRange": 0,
+      "arity": {
+        "4": 2
+      },
+      "min": [
+        1.77,
+        1.77,
+        1.8,
+        1
+      ],
+      "max": [
+        1.77,
+        1.77,
+        1.8,
+        1
+      ],
+      "alphaAboveOne": 0,
+      "integerOnly": 0,
+      "decimals": {
+        "2": 2
+      }
+    },
+    "rgb": {
+      "count": 202,
+      "inRange": 202,
+      "arity": {
+        "3": 202
+      },
+      "min": [
+        0,
+        0,
+        0
+      ],
+      "max": [
+        255,
+        255,
+        255
+      ],
+      "alphaAboveOne": 0,
+      "integerOnly": 202,
+      "decimals": {
+        "0": 202
+      }
+    },
+    "hsv": {
+      "count": 999,
+      "inRange": 595,
+      "arity": {
+        "3": 995,
+        "4": 4
+      },
+      "min": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "max": [
+        29,
+        1,
+        12,
+        0
+      ],
+      "alphaAboveOne": 0,
+      "integerOnly": 26,
+      "decimals": {
+        "0": 26,
+        "1": 289,
+        "2": 658,
+        "3": 26
+      }
+    },
+    "hsv360": {
+      "count": 1,
+      "inRange": 1,
+      "arity": {
+        "3": 1
+      },
+      "min": [
+        21,
+        74,
+        45
+      ],
+      "max": [
+        21,
+        74,
+        45
+      ],
+      "alphaAboveOne": 0,
+      "integerOnly": 1,
+      "decimals": {
+        "0": 1
+      }
+    },
+    "hex": {
+      "count": 9,
+      "inRange": 9,
+      "arity": {},
+      "min": [],
+      "max": [],
+      "alphaAboveOne": 0,
+      "integerOnly": 0,
+      "decimals": {}
+    },
+    "named": {
+      "count": 17329,
+      "inRange": 17329,
+      "arity": {},
+      "min": [],
+      "max": [],
+      "alphaAboveOne": 0,
+      "integerOnly": 0,
+      "decimals": {}
+    }
+  },
+  "examples": {
+    "bare-unit": "tintcolor = { 0 0 0 0.6 }",
+    "bare-byte": "tintcolor = { 200 20 0 0.8 }",
+    "bare-other": "color = { 1.77 1.77 1.80 1 }",
+    "hsv": "levels_min = hsv { 0 0 0 }",
+    "hex": "fog_color = hex { 50779b }",
+    "named": "color1 = blue",
+    "rgb": "color1 = rgb { 201 166 138 }",
+    "hsv360": "brown = hsv360 { 021 074 045 }"
+  },
+  "writtenForms": {
+    "hsv": 999,
+    "hex": 9,
+    "rgb": 202,
+    "hsv360": 1
+  },
+  "colourKeys": [
+    {
+      "key": "ambient_neg_x",
+      "rule": 1,
+      "prefixed": 2,
+      "lists": 0,
+      "occurrences": 2
+    },
+    {
+      "key": "ambient_neg_y",
+      "rule": 1,
+      "prefixed": 2,
+      "lists": 0,
+      "occurrences": 2
+    },
+    {
+      "key": "ambient_neg_z",
+      "rule": 1,
+      "prefixed": 2,
+      "lists": 0,
+      "occurrences": 2
+    },
+    {
+      "key": "ambient_pos_x",
+      "rule": 1,
+      "prefixed": 2,
+      "lists": 0,
+      "occurrences": 2
+    },
+    {
+      "key": "ambient_pos_y",
+      "rule": 1,
+      "prefixed": 2,
+      "lists": 0,
+      "occurrences": 2
+    },
+    {
+      "key": "ambient_pos_z",
+      "rule": 1,
+      "prefixed": 2,
+      "lists": 0,
+      "occurrences": 2
+    },
+    {
+      "key": "color",
+      "rule": 1,
+      "prefixed": 887,
+      "lists": 20182,
+      "occurrences": 21693
+    },
+    {
+      "key": "color1",
+      "rule": 1,
+      "prefixed": 116,
+      "lists": 16,
+      "occurrences": 10228
+    },
+    {
+      "key": "color2",
+      "rule": 1,
+      "prefixed": 62,
+      "lists": 6,
+      "occurrences": 7859
+    },
+    {
+      "key": "color3",
+      "rule": 1,
+      "prefixed": 17,
+      "lists": 1,
+      "occurrences": 1867
+    },
+    {
+      "key": "fog_color",
+      "rule": 1,
+      "prefixed": 11,
+      "lists": 0,
+      "occurrences": 11
+    },
+    {
+      "key": "fontcolor",
+      "rule": 2,
+      "prefixed": 0,
+      "lists": 19,
+      "occurrences": 20
+    },
+    {
+      "key": "fonttintcolor",
+      "rule": 2,
+      "prefixed": 0,
+      "lists": 3,
+      "occurrences": 405
+    },
+    {
+      "key": "levels_max",
+      "rule": 1,
+      "prefixed": 11,
+      "lists": 0,
+      "occurrences": 11
+    },
+    {
+      "key": "levels_min",
+      "rule": 1,
+      "prefixed": 11,
+      "lists": 0,
+      "occurrences": 11
+    },
+    {
+      "key": "map_color",
+      "rule": 1,
+      "prefixed": 18,
+      "lists": 66,
+      "occurrences": 84
+    },
+    {
+      "key": "shadow_ambient_neg_x",
+      "rule": 1,
+      "prefixed": 2,
+      "lists": 0,
+      "occurrences": 2
+    },
+    {
+      "key": "shadow_ambient_neg_y",
+      "rule": 1,
+      "prefixed": 2,
+      "lists": 0,
+      "occurrences": 2
+    },
+    {
+      "key": "shadow_ambient_neg_z",
+      "rule": 1,
+      "prefixed": 2,
+      "lists": 0,
+      "occurrences": 2
+    },
+    {
+      "key": "shadow_ambient_pos_x",
+      "rule": 1,
+      "prefixed": 2,
+      "lists": 0,
+      "occurrences": 2
+    },
+    {
+      "key": "shadow_ambient_pos_y",
+      "rule": 1,
+      "prefixed": 2,
+      "lists": 0,
+      "occurrences": 2
+    },
+    {
+      "key": "shadow_ambient_pos_z",
+      "rule": 1,
+      "prefixed": 2,
+      "lists": 0,
+      "occurrences": 2
+    },
+    {
+      "key": "sun_color",
+      "rule": 1,
+      "prefixed": 11,
+      "lists": 0,
+      "occurrences": 11
+    },
+    {
+      "key": "tintcolor",
+      "rule": 2,
+      "prefixed": 0,
+      "lists": 150,
+      "occurrences": 213
+    },
+    {
+      "key": "travel_danger_color",
+      "rule": 1,
+      "prefixed": 13,
+      "lists": 3,
+      "occurrences": 16
+    }
+  ]
+}

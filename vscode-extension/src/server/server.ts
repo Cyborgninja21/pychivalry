@@ -14,12 +14,14 @@ import {
     CodeActionParams,
     CodeLens,
     CodeLensParams,
+    ColorPresentationParams,
     CompletionItem,
     Connection,
     createConnection,
     DidChangeConfigurationNotification,
     DidChangeWatchedFilesParams,
     FileChangeType,
+    DocumentColorParams,
     DocumentFormattingParams,
     DocumentLink,
     DocumentRangeFormattingParams,
@@ -91,6 +93,7 @@ import { InlayHintsProvider } from './lsp/inlay-hints';
 import { SignatureHelpProvider } from './lsp/signature-help';
 import { CallHierarchyProvider } from './lsp/call-hierarchy';
 import { SelectionRangeProvider } from './lsp/selection-range';
+import { ColorProvider } from './lsp/color-provider';
 import { extensionVersion } from './version';
 
 /** Server settings pulled from the client (ck3LanguageServer.*). */
@@ -222,6 +225,7 @@ export class CK3LanguageServer {
     private signatureHelp = new SignatureHelpProvider(this.currentSpec);
     private callHierarchy = new CallHierarchyProvider(this.parser, this.workspace.index);
     private selectionRange = new SelectionRangeProvider(this.parser);
+    private colors = new ColorProvider(this.parser);
 
     private background = new BackgroundValidation({
         connection: this.connection,
@@ -434,6 +438,16 @@ export class CK3LanguageServer {
                 this.signatureHelp.provideSignatureHelp(d, p.position)
             )
         );
+        c.onDocumentColor((p: DocumentColorParams) =>
+            doc(p.textDocument.uri, 'Document colors', [], (d) =>
+                this.colors.provideDocumentColors(d)
+            )
+        );
+        c.onColorPresentation((p: ColorPresentationParams) =>
+            doc(p.textDocument.uri, 'Color presentations', [], (d) =>
+                this.colors.provideColorPresentations(d, p.color, p.range)
+            )
+        );
         c.languages.callHierarchy.onPrepare((p: CallHierarchyPrepareParams) =>
             doc(p.textDocument.uri, 'Call hierarchy prepare', null, (d) =>
                 this.callHierarchy.prepareCallHierarchy(d, p)
@@ -498,6 +512,7 @@ export class CK3LanguageServer {
                 inlayHintProvider: { resolveProvider: true },
                 callHierarchyProvider: true,
                 selectionRangeProvider: true,
+                colorProvider: true,
                 workspaceSymbolProvider: true,
                 executeCommandProvider: { commands: SERVER_COMMANDS },
             },
@@ -547,6 +562,7 @@ export class CK3LanguageServer {
             notify(`Indexed ${indexed.uris.length} files`);
             await this.readConfiguration();
             await this.loadBaseGame();
+            await this.loadNamedColors();
             await this.commands.scanLocalization();
             try {
                 const modCount = await this.modScanner.discoverMods();
@@ -632,6 +648,22 @@ export class CK3LanguageServer {
         }
     }
 
+    /**
+     * The named colours (common/named_colors) of the base game and the workspace's mods, for
+     * the colour provider's `color1 = white` swatches. Mods load after the base game.
+     */
+    private async loadNamedColors(): Promise<void> {
+        const roots = [
+            ...(this.workspace.vanillaRoot ? [this.workspace.vanillaRoot] : []),
+            ...this.workspace.roots(),
+        ];
+        try {
+            await this.colors.named.load(roots, this.parser);
+        } catch (error) {
+            this.connection.console.error(`Failed to load the named colours: ${error}`);
+        }
+    }
+
     /** Extracted trait data plus the discovered mods' traits (CK3800's known set). */
     private knownTraits(): ReadonlySet<string> | undefined {
         // Without extracted vanilla trait data the check does not run at all.
@@ -669,11 +701,13 @@ export class CK3LanguageServer {
     /** Files created, changed or deleted on disk (the client's file watchers). */
     private async onDidChangeWatchedFiles(params: DidChangeWatchedFilesParams): Promise<void> {
         let graphicsChanged = false;
+        let namedColorsChanged = false;
         for (const change of params.changes) {
             if (!change.uri.startsWith('file:')) {
                 continue;
             }
             const file = fileUriToPath(change.uri);
+            namedColorsChanged ||= /[\\/]common[\\/]named_colors[\\/]/i.test(file);
             if (change.type !== FileChangeType.Changed) {
                 // A file or folder appeared or went: the graphics check lists again.
                 this.graphicsCache.invalidate(file);
@@ -713,6 +747,9 @@ export class CK3LanguageServer {
             } catch (error) {
                 this.connection.console.error(`File change ${change.uri}: ${error}`);
             }
+        }
+        if (namedColorsChanged) {
+            await this.loadNamedColors();
         }
         if (graphicsChanged && this.config.graphics.enabled) {
             // GFX001 of the open files follows the files on disk.
@@ -826,6 +863,7 @@ export class CK3LanguageServer {
             this.background.configure(this.config.backgroundValidation);
             if (this.config.gamePath !== this.loadedGamePath) {
                 await this.loadBaseGame();
+                await this.loadNamedColors();
                 this.background.restart();
             } else if (this.config.graphics.enabled !== graphicsWas) {
                 this.background.restart();
