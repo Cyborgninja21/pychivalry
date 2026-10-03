@@ -353,19 +353,25 @@
           "ck3LanguageServer.formatting.enabled": {
             "type": "boolean",
             "default": true,
-            "description": "Enable document formatting for CK3 files",
+            "description": "Enable document, range and on-type formatting for CK3 files",
+            "scope": "resource"
+          },
+          "ck3LanguageServer.formatting.onTypeEnabled": {
+            "type": "boolean",
+            "default": true,
+            "description": "Format as you type: indent a new line to its block depth after Enter, align a closing brace with the line that opened its block, and pad '=' (needs editor.formatOnType, which the extension turns on for CK3 files)",
             "scope": "resource"
           },
           "ck3LanguageServer.formatting.insertSpaces": {
             "type": "boolean",
             "default": false,
-            "description": "Use spaces instead of tabs for indentation (Paradox convention uses tabs)",
+            "description": "Indent with spaces instead of tabs, in document, range and on-type formatting (Paradox convention uses tabs)",
             "scope": "resource"
           },
           "ck3LanguageServer.formatting.tabSize": {
             "type": "number",
             "default": 4,
-            "description": "Number of spaces per tab (for display purposes)",
+            "description": "Spaces per indentation level when insertSpaces is on",
             "scope": "resource"
           }
         }
@@ -524,7 +530,12 @@
           }
         }
       }
-    ]
+    ],
+    "configurationDefaults": {
+      "[ck3]": {
+        "editor.formatOnType": true
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run bundle",

@@ -63,6 +63,7 @@ suite('Configuration Tests', () => {
                 'backgroundValidation.fileLimit',
                 'graphics.enabled',
                 'formatting.enabled',
+                'formatting.onTypeEnabled',
                 'formatting.insertSpaces',
                 'formatting.tabSize',
                 'inlayHints.enabled',
@@ -131,6 +132,20 @@ suite('Configuration Tests', () => {
                 true,
                 'formatting.enabled default should be true'
             );
+        });
+
+        test('formatting.onTypeEnabled should default to true', () => {
+            const inspect = vscode.workspace
+                .getConfiguration('ck3LanguageServer')
+                .inspect('formatting.onTypeEnabled');
+            assert.strictEqual(inspect?.defaultValue, true);
+        });
+
+        test('editor.formatOnType defaults to true for CK3 files', () => {
+            const inspect = vscode.workspace
+                .getConfiguration('editor', { languageId: 'ck3' })
+                .inspect('formatOnType');
+            assert.strictEqual(inspect?.defaultLanguageValue, true);
         });
 
         test('formatting.insertSpaces should default to false', () => {

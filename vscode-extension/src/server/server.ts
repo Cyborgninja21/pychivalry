@@ -24,6 +24,8 @@ import {
     DocumentColorParams,
     DocumentFormattingParams,
     DocumentLink,
+    DocumentOnTypeFormattingParams,
+    FormattingOptions,
     DocumentRangeFormattingParams,
     ExecuteCommandParams,
     InitializeParams,
@@ -94,6 +96,7 @@ import { SignatureHelpProvider } from './lsp/signature-help';
 import { CallHierarchyProvider } from './lsp/call-hierarchy';
 import { SelectionRangeProvider } from './lsp/selection-range';
 import { ColorProvider } from './lsp/color-provider';
+import { OnTypeFormattingProvider, ON_TYPE_TRIGGERS } from './lsp/on-type-formatting';
 import { extensionVersion } from './version';
 
 /** Server settings pulled from the client (ck3LanguageServer.*). */
@@ -104,7 +107,13 @@ export interface ServerConfig {
     backgroundValidation: BackgroundSettings;
     /** GFX001, graphics files that do not exist (reported only with the base game known). */
     graphics: { enabled: boolean };
-    formatting: { enabled: boolean; insertSpaces: boolean; tabSize: number };
+    /** Document, range and on-type formatting (insertSpaces/tabSize shared by all three). */
+    formatting: {
+        enabled: boolean;
+        onTypeEnabled: boolean;
+        insertSpaces: boolean;
+        tabSize: number;
+    };
     inlayHints: {
         enabled: boolean;
         showScopeTypes: boolean;
@@ -127,7 +136,7 @@ const DEFAULT_CONFIG: ServerConfig = {
     gamePath: '',
     backgroundValidation: { ...DEFAULT_BACKGROUND },
     graphics: { enabled: true },
-    formatting: { enabled: true, insertSpaces: false, tabSize: 4 },
+    formatting: { enabled: true, onTypeEnabled: true, insertSpaces: false, tabSize: 4 },
     inlayHints: {
         enabled: true,
         showScopeTypes: true,
@@ -226,6 +235,7 @@ export class CK3LanguageServer {
     private callHierarchy = new CallHierarchyProvider(this.parser, this.workspace.index);
     private selectionRange = new SelectionRangeProvider(this.parser);
     private colors = new ColorProvider(this.parser);
+    private onType = new OnTypeFormattingProvider();
 
     private background = new BackgroundValidation({
         connection: this.connection,
@@ -279,6 +289,19 @@ export class CK3LanguageServer {
                 this.connection.console.error(`${name} error: ${error}`);
                 return fallback;
             });
+    }
+
+    /**
+     * Indentation for document, range and on-type formatting: the
+     * ck3LanguageServer.formatting insertSpaces/tabSize settings (Paradox files use tabs), so
+     * that the three always agree whatever the editor's own indentation is.
+     */
+    private formattingOptions(options: FormattingOptions): FormattingOptions {
+        return {
+            ...options,
+            insertSpaces: this.config.formatting.insertSpaces,
+            tabSize: this.config.formatting.tabSize,
+        };
     }
 
     /** Run a document-less handler; errors are logged and yield the fallback. */
@@ -357,12 +380,28 @@ export class CK3LanguageServer {
         );
         c.onDocumentFormatting((p: DocumentFormattingParams) =>
             doc(p.textDocument.uri, 'Formatting', [], (d) =>
-                this.formatting.formatDocument(d, p.options)
+                this.config.formatting.enabled
+                    ? this.formatting.formatDocument(d, this.formattingOptions(p.options))
+                    : []
             )
         );
         c.onDocumentRangeFormatting((p: DocumentRangeFormattingParams) =>
             doc(p.textDocument.uri, 'Range formatting', [], (d) =>
-                this.formatting.formatRange(d, p.range, p.options)
+                this.config.formatting.enabled
+                    ? this.formatting.formatRange(d, p.range, this.formattingOptions(p.options))
+                    : []
+            )
+        );
+        c.onDocumentOnTypeFormatting((p: DocumentOnTypeFormattingParams) =>
+            doc(p.textDocument.uri, 'On-type formatting', [], (d) =>
+                this.config.formatting.enabled && this.config.formatting.onTypeEnabled
+                    ? this.onType.provideOnTypeFormattingEdits(
+                          d,
+                          p.position,
+                          p.ch,
+                          this.formattingOptions(p.options)
+                      )
+                    : []
             )
         );
         c.onFoldingRanges((p) =>
@@ -497,6 +536,10 @@ export class CK3LanguageServer {
                 documentSymbolProvider: true,
                 documentFormattingProvider: true,
                 documentRangeFormattingProvider: true,
+                documentOnTypeFormattingProvider: {
+                    firstTriggerCharacter: ON_TYPE_TRIGGERS.first,
+                    moreTriggerCharacter: ON_TYPE_TRIGGERS.more,
+                },
                 renameProvider: { prepareProvider: true },
                 foldingRangeProvider: true,
                 semanticTokensProvider: {
