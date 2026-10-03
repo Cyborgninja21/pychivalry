@@ -19,7 +19,8 @@
  *     non-hidden event without desc, CK3766 several after blocks, CK3767 empty event, CK3768
  *     several immediate blocks, CK3769 non-hidden event without portraits, CK3450 option
  *     without name, CK3421 portrait without character, CK3422 unknown portrait animation
- *     (the optional extracted animation data), CK3520 after block in a hidden event, CK3521
+ *     (against the workspace's and the base game's gfx/portraits/portrait_animations; silent
+ *     without the base game), CK3520 after block in a hidden event, CK3521
  *     after block in an event without options, CK3522 (hint) an after block that only cleans
  *     up (issue #19). Issue #19's CK3523 (a trigger in an after block) is not a plug-in code:
  *     `after` is effect context in the events schema, and the engine's registry reports a
@@ -67,7 +68,7 @@
 
 import { ASTNode, NodeType } from 'pychivalry-engine';
 import { Diagnostic, DiagnosticSeverity, Range } from 'vscode-languageserver';
-import { isValidPortraitAnimation, isValidPortraitPosition } from './events';
+import { isValidPortraitPosition } from './events';
 import {
     childrenWithKey,
     eventsOf,
@@ -121,6 +122,12 @@ export interface ParadoxKnowledge {
      * game is unknown: CK3431 is then silent.
      */
     isKnownBackground?: (name: string) => boolean;
+    /**
+     * Is the portrait animation defined (the base game's and the workspace's
+     * gfx/portraits/portrait_animations)? Undefined while the base game is unknown: CK3422 is
+     * then silent.
+     */
+    isKnownAnimation?: (name: string) => boolean;
     /** The background a theme always shows first (CK3433), when known. */
     themeDefaultBackground?: (theme: string) => string | undefined;
 }
@@ -156,7 +163,7 @@ export function checkRedundantTriggers(node: ASTNode): Diagnostic[] {
         } else if (child.value === false || child.value === 'no') {
             out.push(
                 diag(
-                    "'always = no' is never true: the content is switched off (the usual way to disable it on purpose).",
+                    `${CONVENTION}'always = no' is never true: the content is switched off (the usual way to disable it on purpose).`,
                     child.range,
                     DiagnosticSeverity.Hint,
                     'CK3873'
@@ -258,7 +265,8 @@ export function checkOpinionModifiers(node: ASTNode): Diagnostic[] {
 export function checkEventStructure(
     event: ASTNode,
     config: ParadoxConfig,
-    isEffect?: (name: string) => boolean
+    isEffect?: (name: string) => boolean,
+    isKnownAnimation?: (name: string) => boolean
 ): Diagnostic[] {
     const out: Diagnostic[] = [];
     const children = event.children ?? [];
@@ -367,11 +375,13 @@ export function checkEventStructure(
                 if (
                     n.key === 'animation' &&
                     typeof n.value === 'string' &&
-                    !isValidPortraitAnimation(n.value)
+                    /^[A-Za-z_][A-Za-z0-9_]*$/.test(n.value) &&
+                    isKnownAnimation !== undefined &&
+                    !isKnownAnimation(n.value)
                 ) {
                     out.push(
                         diag(
-                            `${CONVENTION}animation '${n.value}' is not in the extracted animation data.`,
+                            `${CONVENTION}animation '${n.value}' is defined neither in the workspace's nor in the base game's gfx/portraits/portrait_animations.`,
                             n.range,
                             INFO,
                             'CK3422'
@@ -768,7 +778,14 @@ export function validateParadoxConventions(
     }
     if (isEventFile(knowledge.file ?? 'events/')) {
         for (const event of eventsOf(node)) {
-            out.push(...checkEventStructure(event, config, knowledge.isEffect));
+            out.push(
+                ...checkEventStructure(
+                    event,
+                    config,
+                    knowledge.isEffect,
+                    knowledge.isKnownAnimation
+                )
+            );
             out.push(...checkTheme(event, knowledge));
             if (config.descValidation) {
                 out.push(...checkMissingTitle(event));

@@ -257,6 +257,22 @@ export function extensionPlugins(env: PluginEnvironment = {}): NamedPlugin[] {
                         return workspaceBackgrounds.has(name);
                     };
                 }
+                let isKnownAnimation: ((name: string) => boolean) | undefined;
+                if (base?.portraitAnimations) {
+                    const animations = base.portraitAnimations;
+                    let workspaceAnimations: Set<string> | undefined;
+                    isKnownAnimation = (name) => {
+                        if (animations.has(name)) {
+                            return true;
+                        }
+                        workspaceAnimations ??= workspaceKeysIn(
+                            env.workspace,
+                            index,
+                            'gfx/portraits/portrait_animations'
+                        );
+                        return workspaceAnimations.has(name);
+                    };
+                }
                 const themes = base?.eventThemes;
                 let workspaceThemeKeys: Set<string> | undefined;
                 return validateParadoxConventions(ast, DEFAULT_PARADOX_CONFIG, {
@@ -264,6 +280,7 @@ export function extensionPlugins(env: PluginEnvironment = {}): NamedPlugin[] {
                     isKnownTheme,
                     isEffect: (name) => spec.has(name, 'effects'),
                     isKnownBackground,
+                    isKnownAnimation,
                     // A theme the workspace redefines may show another background.
                     themeDefaultBackground: themes
                         ? (theme) => {

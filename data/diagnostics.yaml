@@ -309,8 +309,13 @@ diagnostics:
     CK3422:
         plugin: paradox-checks
         severity: information
-        message: A portrait animation that is not in the optional extracted animation data.
-        evidence: Convention (the extracted data is not the game's complete animation list).
+        message: >-
+            A portrait animation defined neither in the workspace's nor in the base game's
+            gfx/portraits/portrait_animations (reported only while the base game is known).
+        evidence: >-
+            Convention (no catalogue message for an unknown animation name). Until 2.1 it was
+            judged against the optional extracted data, and through a bug (the animation set
+            was read as an object) never reported; EVENT-004 is merged into it.
     CK3423:
         plugin: paradox-checks
         severity: information

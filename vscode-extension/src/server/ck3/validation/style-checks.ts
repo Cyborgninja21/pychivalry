@@ -398,7 +398,7 @@ function checkBracesInRange(lines: string[], startLine: number, endLine: number)
                         severity: DiagnosticSeverity.Information,
                         code: 'CK3331',
                         message:
-                            'Probable location of an extra closing brace (no matching "{" in this top-level block); the engine reports the parse error',
+                            'Convention: probable line of an extra closing brace (no matching "{" in this top-level block); the engine reports the parse error',
                         source: 'ck3-style',
                     });
                 } else {
@@ -418,7 +418,7 @@ function checkBracesInRange(lines: string[], startLine: number, endLine: number)
             severity: DiagnosticSeverity.Information,
             code: 'CK3330',
             message:
-                'Probable location of an unclosed brace (no matching "}" in this top-level block); the engine reports the parse error',
+                'Convention: probable line of an unclosed brace (no matching "}" in this top-level block); the engine reports the parse error',
             source: 'ck3-style',
         });
     }

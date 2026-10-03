@@ -10,7 +10,7 @@ Source: `vscode-extension/src/server/ck3/validation/paradox-checks.ts`.
 | --- | --- | --- | --- |
 | `CK3005` | information | A logical operator (AND, OR, NOT, NOR, NAND) with a scalar value instead of a block. | Convention (no catalogue message; the engine does not report it). |
 | `CK3421` | information | A portrait block has no character field. | Convention. |
-| `CK3422` | information | A portrait animation that is not in the optional extracted animation data. | Convention (the extracted data is not the game's complete animation list). |
+| `CK3422` | information | A portrait animation defined neither in the workspace's nor in the base game's gfx/portraits/portrait_animations (reported only while the base game is known). | Convention (no catalogue message for an unknown animation name). Until 2.1 it was judged against the optional extracted data, and through a bug (the animation set was read as an object) never reported; EVENT-004 is merged into it. |
 | `CK3423` | information | A triggered_animation of an event portrait has no trigger. | Convention (issue |
 | `CK3424` | information | A triggered_animation of an event portrait has neither animation nor scripted_animation. | Convention (issue |
 | `CK3425` | information | A triggered_outfit of an event portrait has no trigger. | Convention (issue |

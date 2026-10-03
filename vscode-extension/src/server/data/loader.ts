@@ -112,16 +112,19 @@ export class DataLoader {
         return dir ? path.join(dir, rel) : undefined;
     }
 
-    /** Portrait animation names (data/animations.yaml, a YAML list). */
+    /** Portrait animation names (data/animations.yaml: a YAML list, or a mapping keyed by name). */
     public getAnimations(): Set<string> {
         if (!this.animationsCache) {
             this.animationsCache = new Set();
             const file = this.file('animations.yaml');
             const data = file ? readYaml(file) : undefined;
-            if (Array.isArray(data)) {
-                for (const anim of data) {
-                    this.animationsCache.add(String(anim));
-                }
+            const names = Array.isArray(data)
+                ? data
+                : data && typeof data === 'object'
+                  ? Object.keys(data as Record<string, unknown>)
+                  : [];
+            for (const anim of names) {
+                this.animationsCache.add(String(anim));
             }
             if (this.animationsCache.size === 0) {
                 FALLBACK_ANIMATIONS.forEach((a) => this.animationsCache?.add(a));

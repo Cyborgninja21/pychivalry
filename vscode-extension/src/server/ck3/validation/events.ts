@@ -54,7 +54,7 @@ let PORTRAIT_ANIMATIONS: Set<string> | null = null;
 
 function getPortraitAnimations(): Set<string> {
     if (!PORTRAIT_ANIMATIONS) {
-        PORTRAIT_ANIMATIONS = new Set(Object.keys(DataLoader.getInstance().getAnimations()));
+        PORTRAIT_ANIMATIONS = new Set(DataLoader.getInstance().getAnimations());
     }
     return PORTRAIT_ANIMATIONS;
 }

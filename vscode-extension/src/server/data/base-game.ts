@@ -1,7 +1,7 @@
 /**
  * What the plug-ins read from the CK3 base game itself (the `game/` directory that
  * `ck3LanguageServer.gamePath` resolved): the localization keys, the event theme and event
- * background databases and the trait database.
+ * background databases, the trait database and the portrait animations.
  *
  * Plug-ins that need this knowledge to prove a finding (CK4100 a missing localization key,
  * CK3430 an unknown theme, CK3431 an unknown background, CK3800 an unknown trait) report
@@ -75,7 +75,7 @@ export function readEventThemes(root: string): Map<string, EventTheme> {
     return themes;
 }
 
-/** Keys of a database directory under `common/` (event_backgrounds, traits …). */
+/** Keys of a database directory (`common/event_backgrounds`, `gfx/portraits/portrait_animations` …). */
 export function readDatabaseKeys(root: string, dir: string): Set<string> {
     return new Set(definitions(path.join(root, ...dir.split('/'))).map((n) => n.key!));
 }
@@ -123,6 +123,8 @@ export class BaseGameData {
     public eventThemes: ReadonlyMap<string, EventTheme> | undefined;
     public eventBackgrounds: ReadonlySet<string> | undefined;
     public traits: ReadonlySet<string> | undefined;
+    /** Portrait animation names (`gfx/portraits/portrait_animations/*.txt` top-level keys). */
+    public portraitAnimations: ReadonlySet<string> | undefined;
 
     constructor(public readonly root: string) {}
 
@@ -152,6 +154,8 @@ export class BaseGameData {
         this.eventBackgrounds = backgrounds.size > 0 ? backgrounds : undefined;
         const traits = readTraits(this.root);
         this.traits = traits.size > 0 ? traits : undefined;
+        const animations = readDatabaseKeys(this.root, 'gfx/portraits/portrait_animations');
+        this.portraitAnimations = animations.size > 0 ? animations : undefined;
         return this;
     }
 }
