@@ -7,7 +7,9 @@
 # diagnostics-reference check (tools/gen-diagnostics-docs.ts --check), the
 # extension's unit tests, and the extension's integration tests in a VS Code
 # Extension Development Host. `task ci` runs the same steps locally except the
-# integration run (`task test:integration`, which needs a display).
+# integration run (`task test:integration`, which needs a display). The vsix-smoke job
+# then tests the packaged VSIX as installed, and the dev:link build (`task test:vsix`,
+# `task test:dev-link`).
 # =============================================================================
 
 name: CI
@@ -92,3 +94,73 @@ jobs:
         if: runner.os != 'Linux'
         working-directory: vscode-extension
         run: npm test
+
+  # The shipped extension (#39): package the VSIX, install it with --install-extension into
+  # a clean VS Code, open example mod/ and assert activation, an engine diagnostic, a hover
+  # and the CK3 Explorer's data (src/test/vsix). Then the same suite against the development
+  # build linked by tools/dev-link.js into a used extensions folder (task dev:link, #35).
+  vsix-smoke:
+    needs: build-and-test
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install workspace dependencies
+        run: npm ci
+
+      - name: Build engine package
+        working-directory: packages/engine
+        run: npm run build
+
+      - name: Package the VSIX
+        working-directory: vscode-extension
+        run: npm run package
+
+      - name: Compile extension tests
+        working-directory: vscode-extension
+        run: npm run compile-tests
+
+      - name: VSIX smoke suite (Linux)
+        if: runner.os == 'Linux'
+        working-directory: vscode-extension
+        run: xvfb-run -a npm run test:vsix
+
+      - name: VSIX smoke suite (macOS/Windows)
+        if: runner.os != 'Linux'
+        working-directory: vscode-extension
+        run: npm run test:vsix
+
+      - name: Compile extension (development bundle for dev:link)
+        working-directory: vscode-extension
+        run: npm run compile
+
+      - name: Linked development build smoke suite (Linux)
+        if: runner.os == 'Linux'
+        working-directory: vscode-extension
+        run: xvfb-run -a npm run test:dev-link
+
+      - name: Linked development build smoke suite (macOS/Windows)
+        if: runner.os != 'Linux'
+        working-directory: vscode-extension
+        run: npm run test:dev-link
+
+      - name: Upload the VSIX
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ck3-language-support-vsix
+          path: vscode-extension/*.vsix
+          if-no-files-found: error

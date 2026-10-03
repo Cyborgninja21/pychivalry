@@ -115,6 +115,62 @@ server in watch/debug mode" is now the TypeScript server, which webpack bundles 
 watch as the client (`dist/server-main.js`), and its engine in `tsc --watch`; debugging the
 server is in [debugging.md](Documentation/developer-guide/debugging.md).
 
+### The development build in your main VS Code (`task dev:link`)
+
+To use the extension you are developing in the VS Code you work in (not only in the
+Extension Development Host), link it into that instance's extensions folder:
+
+```bash
+task dev:link           # build, then link vscode-extension/ into every VS Code extensions folder found
+task dev:link:status    # per folder: linked or not, and which other copies are installed
+task dev:unlink         # remove the link (and only it)
+task dev:link DIR=~/.vscode-server-insiders/extensions   # one folder
+```
+
+`tools/dev-link.js` creates `cyborgninja21.ck3-language-support-dev` (a symbolic link; a
+junction on Windows) pointing at `vscode-extension/` in each folder that exists: VS Code and
+VS Code Insiders installed locally (`~/.vscode/extensions`, `~/.vscode-insiders/extensions`)
+and the remote server's folders used under WSL, SSH and dev containers
+(`~/.vscode-server/extensions`, `~/.vscode-server-insiders/extensions`). Run it where the
+extension host runs: under WSL that is inside WSL (the Windows client runs this extension on
+the WSL server), on Windows or macOS on that machine. VS Code lists a folder's extensions
+from its `extensions.json` once that file exists and does not look for new folders, so the
+script also adds the link's entry there (the entry VS Code writes itself), and unlink removes
+it. Then run **Developer: Reload Window** in each window; reload again after every rebuild
+(`task dev` keeps the build current).
+
+Risks, and what the script does about them:
+
+- **One copy per folder.** If the Marketplace version or an installed VSIX is in a folder,
+  link refuses for that folder and names the copy; uninstall it first
+  (`code --uninstall-extension cyborgninja21.ck3-language-support`).
+- **Your editor runs the development build.** A broken build is a broken extension in the
+  window you work in, with your real settings and workspaces; unlink to go back.
+- **Auto-update.** The link has the Marketplace extension's identity: with extension
+  auto-update on, VS Code may replace it by a newer published version. Turn auto-update off
+  for it while linked.
+- **A running server keeps its list.** If a reload does not show the extension (remote
+  server under WSL or SSH), close every window of that server, or run **Remote: Kill VS Code
+  Server on Host**, and reconnect.
+
+### Testing the shipped extension (`task test:vsix`)
+
+`task test:vsix` packages the VSIX, installs it with `code --install-extension` into a clean
+VS Code (empty extensions and user-data folders, a downloaded VS Code under
+`vscode-extension/.vscode-test/`), opens `example mod/` and asserts that the extension is the
+installed copy (not the development path) at the package version and activates, that
+`01_syntax/bad_syntax.txt` gets the engine's `unexpected_token_expected_key` error on line 50,
+that a hover answers on `is_adult`, and that the CK3 Explorer shows the `adventure` events.
+`task test:dev-link` runs the same tests on the development build linked by `dev:link` into
+an extensions folder that already has an `extensions.json`. Use `xvfb-run -a` on headless
+Linux. CI runs both on Linux, Windows and macOS (job `vsix-smoke`) after the build and
+uploads the VSIX; this replaces the by-hand VSIX check of earlier release cuts.
+
+Issues #35 and #39 asked for the test suite to run in the main instance. A test run needs a
+VS Code the test runner starts and controls, so the suites run in a separate, clean VS Code;
+what the issues wanted from it, the extension tested as installed rather than from the
+development path, and automatically on every push, is what the two suites above do.
+
 ### Making changes
 
 1. Branch: `git checkout -b feature/your-feature-name`.

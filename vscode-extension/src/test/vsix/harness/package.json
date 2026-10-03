@@ -1,0 +1,11 @@
+{
+    "name": "ck3-smoke-harness",
+    "displayName": "CK3 smoke-suite harness",
+    "description": "Empty Extension Development Host for the VSIX smoke suite (src/test/vsix/runVsix.ts): it contributes nothing, so the CK3 extension under test is the installed or linked copy.",
+    "version": "0.0.0",
+    "publisher": "pychivalry-tests",
+    "private": true,
+    "engines": {
+        "vscode": "^1.75.0"
+    }
+}

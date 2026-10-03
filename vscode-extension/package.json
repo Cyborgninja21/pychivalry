@@ -586,6 +586,8 @@
     "test:quick": "npm run compile-tests && node ./out/test/runTest.js",
     "test:unit": "mocha ./out/test/unit/**/*.test.js",
     "test:examples": "mocha ./out/test/unit/example-mod-validation.test.js",
+    "test:vsix": "node ./out/test/vsix/runVsix.js",
+    "test:dev-link": "node ./out/test/vsix/runVsix.js --linked",
     "test:watch": "mocha \"./out/test/unit/**/*.test.js\" --watch --watch-files \"out/**/*.js,../packages/engine/dist/**/*.js\" --enable-source-maps --timeout 15000",
     "lint": "eslint src --ext ts --max-warnings=0",
     "format": "prettier --write \"src/**/*.ts\"",

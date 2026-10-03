@@ -85,6 +85,8 @@ the only lock file). Then use the Taskfile:
 | `task test:integration` | Extension integration tests in a VS Code instance (`xvfb-run -a` on headless Linux; unset `ELECTRON_RUN_AS_NODE` and `VSCODE_*` when running inside VS Code) |
 | `task lint` / `task format:check` | Extension ESLint (`--max-warnings=0`) / Prettier check |
 | `task docs:diagnostics` / `task docs:diagnostics:check` | Regenerate / verify the diagnostics reference |
+| `task test:vsix` / `task test:dev-link` | Package the VSIX, install it into a clean VS Code and run the smoke suite on `example mod/` (`src/test/vsix`); the same on the `dev:link` build |
+| `task dev:link` / `task dev:unlink` | Link the development build into your VS Code extensions folders (main instance, local or remote server); refuses over a Marketplace/VSIX install |
 | `task ci` | Everything CI runs except the integration tests |
 | `task package` | Build the VSIX (`npm run package` in `vscode-extension/`: production webpack bundle, then `vsce package`) |
 

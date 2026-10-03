@@ -91,6 +91,24 @@ tasks:
     cmds:
       - npm run watch
 
+  # ─── The development build in the main VS Code instance (#35) ───
+
+  dev:link:
+    desc: "Link the development build into your VS Code extensions folders (stable, Insiders, remote server under WSL/SSH; DIR=<folder> for one); refuses when the Marketplace/VSIX version is installed there. Then: Developer: Reload Window"
+    deps: [compile]
+    cmds:
+      - node tools/dev-link.js link {{if .DIR}}--dir "{{.DIR}}"{{end}}
+
+  dev:unlink:
+    desc: "Remove the dev:link link (and only it) from your VS Code extensions folders (DIR=<folder> for one)"
+    cmds:
+      - node tools/dev-link.js unlink {{if .DIR}}--dir "{{.DIR}}"{{end}}
+
+  dev:link:status:
+    desc: "Show, per VS Code extensions folder, whether the development build is linked and which other copies are installed"
+    cmds:
+      - node tools/dev-link.js status {{if .DIR}}--dir "{{.DIR}}"{{end}}
+
   # ─── Engine core (packages/engine) ──────────────────────────────
 
   engine:build:
@@ -146,6 +164,23 @@ tasks:
     dir: "{{.EXT_DIR}}"
     cmds:
       - npm run test:integration
+
+  test:vsix:
+    desc: "VSIX smoke suite (#39): package, install the VSIX into a clean VS Code with --install-extension, open example mod/, assert activation, a diagnostic, a hover and the CK3 Explorer (xvfb-run -a on headless Linux)"
+    dir: "{{.EXT_DIR}}"
+    deps: [engine:build]
+    cmds:
+      - npm run package
+      - npm run compile-tests
+      - npm run test:vsix
+
+  test:dev-link:
+    desc: "The same smoke suite against the development build linked by dev:link into a clean extensions folder (#35)"
+    dir: "{{.EXT_DIR}}"
+    cmds:
+      - task: compile
+      - npm run compile-tests
+      - npm run test:dev-link
 
   test:examples:
     desc: Run example mod validation tests only
