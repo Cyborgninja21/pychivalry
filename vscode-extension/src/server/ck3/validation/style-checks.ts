@@ -1,8 +1,10 @@
 /**
  * CK3 Style and Formatting Validation
  *
- * Code quality and consistency checks focused on style, not semantics.
- * All diagnostics are warnings/info to allow users to ignore style preferences.
+ * Code quality and consistency checks focused on style, not semantics. The game prints
+ * nothing for any of them, so the style codes are hints (2.2 evidence audit); the brace
+ * codes are information: the engine's parser reports an unbalanced brace with the game's
+ * own message, these only point at the probable line.
  *
  * Diagnostic Codes:
  * - CK3301: Inconsistent indentation within block
@@ -20,16 +22,16 @@
  * - CK3330: Unclosed brace
  * - CK3331: Extra closing brace
  * - CK3332: Brace mismatch in block
- * - CK3340: Unknown/suspicious scope reference
- * - CK3341: Scope reference appears truncated
+ * Removed in 2.2: CK3340 (unknown or suspicious scope reference: the first segment was
+ * judged against 17 hard-coded names; the engine's scope check reports an unknown chain
+ * segment with the game's message, failed_to_parse_data_for_event_target_link_link_X_location_X,
+ * and all 425 corpus findings were valid links) and CK3341 (truncated reference `root.`:
+ * the engine's registry reports it as unknown_trigger_X / unknown_effect_X).
  * - CK3345: Identifier contains merged text
  */
 
 import { Diagnostic, DiagnosticSeverity, Range, Position } from 'vscode-languageserver';
 import { ASTNode } from 'pychivalry-engine';
-
-/** Event ID pattern: namespace.digits (e.g., my_mod.0001, adventure.0004) */
-const EVENT_ID_PATTERN = /^[a-zA-Z_][a-zA-Z0-9_]*\.\d+$/;
 
 /**
  * Style validation configuration
@@ -44,7 +46,6 @@ export interface StyleConfig {
     maxNestingDepth: number;
     checkEmptyBlocks: boolean;
     checkBraceMatching: boolean;
-    checkScopeReferences: boolean;
 }
 
 /**
@@ -60,7 +61,6 @@ export const DEFAULT_STYLE_CONFIG: StyleConfig = {
     maxNestingDepth: 6,
     checkEmptyBlocks: true,
     checkBraceMatching: true,
-    checkScopeReferences: true,
 };
 
 /**
@@ -89,9 +89,10 @@ export function checkIndentation(text: string, config: StyleConfig): Diagnostic[
                     Position.create(i, 0),
                     Position.create(i, leadingWhitespace.length)
                 ),
-                severity: DiagnosticSeverity.Warning,
+                severity: DiagnosticSeverity.Hint,
                 code: 'CK3303',
-                message: 'Indentation uses spaces instead of tabs (Paradox convention)',
+                message:
+                    'Convention (style): indentation uses spaces instead of tabs (Paradox convention)',
                 source: 'ck3-style',
             });
         }
@@ -103,9 +104,9 @@ export function checkIndentation(text: string, config: StyleConfig): Diagnostic[
                     Position.create(i, 0),
                     Position.create(i, leadingWhitespace.length)
                 ),
-                severity: DiagnosticSeverity.Warning,
+                severity: DiagnosticSeverity.Hint,
                 code: 'CK3301',
-                message: 'Inconsistent indentation (mixing tabs and spaces)',
+                message: 'Convention (style): indentation mixes tabs and spaces',
                 source: 'ck3-style',
             });
         }
@@ -133,9 +134,9 @@ export function checkTrailingWhitespace(text: string, config: StyleConfig): Diag
             const startCol = line.length - trailingWhitespace[0].length;
             diagnostics.push({
                 range: Range.create(Position.create(i, startCol), Position.create(i, line.length)),
-                severity: DiagnosticSeverity.Information,
+                severity: DiagnosticSeverity.Hint,
                 code: 'CK3304',
-                message: 'Trailing whitespace detected',
+                message: 'Convention (style): trailing whitespace',
                 source: 'ck3-style',
             });
         }
@@ -159,9 +160,9 @@ export function checkLineLength(text: string, config: StyleConfig): Diagnostic[]
                     Position.create(i, config.maxLineLength),
                     Position.create(i, line.length)
                 ),
-                severity: DiagnosticSeverity.Information,
+                severity: DiagnosticSeverity.Hint,
                 code: 'CK3316',
-                message: `Line exceeds recommended length (${line.length} > ${config.maxLineLength} chars)`,
+                message: `Convention (style): line longer than ${config.maxLineLength} characters (${line.length})`,
                 source: 'ck3-style',
             });
         }
@@ -193,9 +194,10 @@ export function checkOperatorSpacing(text: string, config: StyleConfig): Diagnos
                         Position.create(i, match.index),
                         Position.create(i, match.index + match[0].length)
                     ),
-                    severity: DiagnosticSeverity.Information,
+                    severity: DiagnosticSeverity.Hint,
                     code: 'CK3306',
-                    message: 'Operator should have spaces around it (Paradox convention)',
+                    message:
+                        'Convention (style): no spaces around the operator (Paradox convention)',
                     source: 'ck3-style',
                 });
             }
@@ -220,9 +222,9 @@ export function checkEmptyBlocks(ast: ASTNode, config: StyleConfig): Diagnostic[
         if (node.type === 'BLOCK' && (!node.children || node.children.length === 0)) {
             diagnostics.push({
                 range: node.range,
-                severity: DiagnosticSeverity.Warning,
+                severity: DiagnosticSeverity.Hint,
                 code: 'CK3314',
-                message: 'Empty block detected (potential logic error)',
+                message: 'Convention (style): empty block',
                 source: 'ck3-style',
             });
         }
@@ -249,9 +251,9 @@ export function checkNestingDepth(ast: ASTNode, config: StyleConfig): Diagnostic
         if (depth > config.maxNestingDepth) {
             diagnostics.push({
                 range: node.range,
-                severity: DiagnosticSeverity.Information,
+                severity: DiagnosticSeverity.Hint,
                 code: 'CK3317',
-                message: `Deeply nested blocks (depth ${depth} > ${config.maxNestingDepth})`,
+                message: `Convention (style): blocks nested deeper than ${config.maxNestingDepth} (depth ${depth})`,
                 source: 'ck3-style',
             });
         }
@@ -393,9 +395,10 @@ function checkBracesInRange(lines: string[], startLine: number, endLine: number)
                 if (stack.length === 0) {
                     diagnostics.push({
                         range: Range.create(Position.create(i, j), Position.create(i, j + 1)),
-                        severity: DiagnosticSeverity.Error,
+                        severity: DiagnosticSeverity.Information,
                         code: 'CK3331',
-                        message: 'Extra closing brace (no matching "{")',
+                        message:
+                            'Convention: probable line of an extra closing brace (no matching "{" in this top-level block); the engine reports the parse error',
                         source: 'ck3-style',
                     });
                 } else {
@@ -412,89 +415,14 @@ function checkBracesInRange(lines: string[], startLine: number, endLine: number)
                 Position.create(brace.line, brace.col),
                 Position.create(brace.line, brace.col + 1)
             ),
-            severity: DiagnosticSeverity.Error,
+            severity: DiagnosticSeverity.Information,
             code: 'CK3330',
-            message: 'Unclosed brace (missing "}")',
+            message:
+                'Convention: probable line of an unclosed brace (no matching "}" in this top-level block); the engine reports the parse error',
             source: 'ck3-style',
         });
     }
 
-    return diagnostics;
-}
-
-/**
- * Check for suspicious scope references (possible typos)
- */
-export function checkScopeReferences(ast: ASTNode, config: StyleConfig): Diagnostic[] {
-    if (!config.checkScopeReferences) {
-        return [];
-    }
-
-    const diagnostics: Diagnostic[] = [];
-    const knownScopes = new Set([
-        'root',
-        'this',
-        'prev',
-        'from',
-        'fromfrom',
-        'character',
-        'title',
-        'province',
-        'faith',
-        'culture',
-        'liege',
-        'house',
-        'dynasty',
-        'primary_title',
-        'capital_province',
-        'location',
-        'realm',
-    ]);
-
-    function traverse(node: ASTNode): void {
-        if (node.key && node.key.includes('.')) {
-            // Skip event IDs (namespace.digits) — these are identifiers, not scope references
-            if (!EVENT_ID_PATTERN.test(node.key)) {
-                const parts = node.key.split('.');
-                const firstPart = parts[0];
-
-                // Check if first part looks like a scope but isn't known
-                if (
-                    firstPart &&
-                    !knownScopes.has(firstPart) &&
-                    /^[a-z_]+$/.test(firstPart) &&
-                    firstPart.length > 2
-                ) {
-                    diagnostics.push({
-                        range: node.range,
-                        severity: DiagnosticSeverity.Warning,
-                        code: 'CK3340',
-                        message: `Unknown/suspicious scope reference "${firstPart}" (possible typo)`,
-                        source: 'ck3-style',
-                    });
-                }
-
-                // Check for truncated references (ending with .)
-                if (node.key.endsWith('.')) {
-                    diagnostics.push({
-                        range: node.range,
-                        severity: DiagnosticSeverity.Warning,
-                        code: 'CK3341',
-                        message: 'Scope reference appears truncated (ends with ".")',
-                        source: 'ck3-style',
-                    });
-                }
-            }
-        }
-
-        if (node.children) {
-            for (const child of node.children) {
-                traverse(child);
-            }
-        }
-    }
-
-    traverse(ast);
     return diagnostics;
 }
 
@@ -525,7 +453,6 @@ export function validateStyle(
     // AST-based checks
     diagnostics.push(...checkEmptyBlocks(ast, config));
     diagnostics.push(...checkNestingDepth(ast, config));
-    diagnostics.push(...checkScopeReferences(ast, config));
 
     return diagnostics;
 }

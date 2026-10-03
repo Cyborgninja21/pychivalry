@@ -2,13 +2,13 @@
 
 # Plug-in: variables
 
-Variables declared, used, scoped and typed consistently within a file.
+Variables read but set nowhere, set but read nowhere, read in another namespace than they are set in, or used as a list and as a value. Ordinary and global variables are judged across the workspace index and the base game's indexed script (only while the base game is known); local variables in their file.
 
 Source: `vscode-extension/src/server/ck3/validation/variables.ts`.
 
-| Code | Severity | Meaning |
-| --- | --- | --- |
-| `CK3701` | warning | A variable is used but never set in the file. |
-| `CK3702` | hint | A variable is set but never used in the file. |
-| `CK3703` | error | A local variable accessed as global, or a global variable accessed as local. |
-| `CK3705` | warning | A variable used both as a list and as a value. |
+| Code | Severity | Meaning | Evidence |
+| --- | --- | --- | --- |
+| `CK3701` | information | A variable is read but set nowhere in the workspace or the base game's indexed script (ordinary and global variables; reported only while the base game is known), or a local variable is read but not set in its file. | Convention: the base game's events, GUI and localization can also set variables and are not indexed, so the absence cannot be proved. |
+| `CK3702` | hint | A variable is set but read nowhere in the workspace's or the base game's script (local variables in their file). | Convention (GUI and localization may read it). |
+| `CK3703` | information | A variable read in one namespace (var, local_var, global_var) and set only in another. | Convention. |
+| `CK3705` | information | A variable used both as a list and as a value in one file. | Convention. |

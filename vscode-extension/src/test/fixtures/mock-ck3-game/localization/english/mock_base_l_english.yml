@@ -1,0 +1,3 @@
+﻿l_english:
+ mock_base_game_key:0 "A key the mock base game defines"
+ mock_base_game_key_no_version: "A key written without a version number"

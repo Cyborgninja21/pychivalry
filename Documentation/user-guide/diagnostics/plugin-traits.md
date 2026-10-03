@@ -2,10 +2,10 @@
 
 # Plug-in: traits
 
-Trait names in has_trait, add_trait and remove_trait. Runs only when the optional extracted trait data (data/traits/) is present; workspace traits count as known.
+Trait names in has_trait, add_trait, remove_trait and the trait field of history/characters and create_character, against the base game's common/traits (trait keys, group and group_equivalence names), the workspace's traits and the optional extracted data. Runs only while the base game's traits are known.
 
 Source: `vscode-extension/src/server/ck3/validation/traits.ts`.
 
-| Code | Severity | Meaning |
-| --- | --- | --- |
-| `CK3800` | warning | Unknown trait (not in the extracted trait data or the workspace's traits). |
+| Code | Severity | Meaning | Evidence |
+| --- | --- | --- | --- |
+| `CK3800` | warning | A trait defined neither in the base game's nor in the workspace's common/traits (nor the extracted data); reported only while the base game's traits are known. | The game logs an unknown trait (catalogue unknown_trait_X_in_event_at_X, "Unknown trait {}, in event at {}", and invalid_trait_name). |

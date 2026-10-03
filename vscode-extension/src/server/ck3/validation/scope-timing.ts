@@ -1,598 +1,447 @@
 /**
- * CK3 Scope Timing Validation - The Golden Rule of Event Scripting
+ * Scope timing: when an event's blocks run, and which saved scopes and variables exist then.
  *
- * DIAGNOSTIC CODES:
- *     CK3550: Scope used in trigger but defined in immediate
- *     CK3551: Scope used in desc but defined in immediate
- *     CK3552: Scope used in triggered_desc trigger but defined in immediate
- *     CK3553: Variable checked before being set
- *     CK3554: Temporary scope used across events (lost between events)
- *     CK3555: Scope needed in triggered event but not passed
- *     CK3560: Scope used in desc localization but defined in immediate
- *     CK3561: Scope used in title localization but defined in immediate
- *     CK3562: Scope may be used in desc block but defined in immediate
+ * Evaluation order of a CK3 1.20 event (corrected in 2.2, issue #95):
+ *     1. trigger              evaluated before the event fires
+ *     2. immediate            runs when the event fires
+ *     3. the window           title, desc (with its triggered_desc triggers), portraits and
+ *                             options are evaluated when the window is shown, after immediate:
+ *                             the base game saves scopes in immediate for its descriptions
+ *                             (864 vanilla events read an immediate-saved scope in a desc
+ *                             triggered_desc trigger, first birth.9002 `scope:suggester`)
+ *     4. the chosen option    its effects run when the player or the AI picks it
+ *     5. after                runs after the option
  *
- * THE GOLDEN RULE:
- *     Event Evaluation Order:
- *     1. trigger = { }         ← Evaluated FIRST (pre-display)
- *     2. desc = { }            ← Evaluated SECOND (pre-display)
- *        triggered_desc        ← Triggers evaluated here too
- *     3. immediate = { }       ← Runs THIRD (execution begins)
- *     4. portraits             ← Displayed FOURTH (immediate done)
- *     5. options               ← Rendered FIFTH (user choice)
+ * None of these rules has engine evidence (no error-catalogue message, schema field or
+ * oracle entry; a scope can also arrive from the calling event), so every code here is a
+ * convention at information severity.
  *
- *     Scopes created in immediate (step 3) are NOT available in steps 1-2!
- *
- * COMMON VIOLATIONS:
- *     Example 1: Scope in Trigger (CK3550)
- *     ```
- *     my_event = {
- *         trigger = {
- *             scope:saved_target = { is_alive = yes }  # ❌ CK3550
- *         }
- *         immediate = {
- *             save_scope_as = saved_target             # Created here
- *         }
- *     }
- *     ```
- *     Fix: Move save_scope_as before immediate, or remove from trigger.
- *
- *     Example 2: Scope in Triggered Desc (CK3552)
- *     ```
- *     my_event = {
- *         desc = {
- *             triggered_desc = {
- *                 trigger = { scope:enemy = { exists = yes } }  # ❌ CK3552
- *             }
- *         }
- *         immediate = {
- *             save_scope_as = enemy              # Created here
- *         }
- *     }
- *     ```
- *     Fix: Pass scope via trigger_event or create in parent event.
+ * DIAGNOSTIC CODES (all information, conventions):
+ *     CK3550: a scope read in `trigger` is saved in `immediate` (which runs later) and not
+ *             earlier in the trigger itself (issue #96); the calling event may pass it
+ *     CK3551: a scope read in `desc` that this event saves only in an option or `after`
+ *             (after the window is shown)
+ *     CK3552: the same in a `triggered_desc` trigger of `desc` (issue #95: scopes saved in
+ *             immediate are available there)
+ *     CK3553: a local variable checked in `trigger` is set in `immediate`; local variables
+ *             do not outlive the effect that sets them. Ordinary and global variables persist
+ *             and are not reported (issue #97: an earlier firing set it)
+ *     CK3554: a temporary scope passed to a triggered event (it does not persist)
+ *     CK3560: the desc localization text reads a scope this event saves only in an option or
+ *             `after` (the localization half of #60, on the corrected order of #95: a scope
+ *             saved in immediate is available to the desc text and is not reported)
+ *     CK3561: the same for the title localization text
+ *     CK3563: trigger guard (#60): `immediate` saves a scope from a `random_` iterator, an
+ *             option uses it and `trigger` has no `any_` iterator over the same list (the list
+ *             base from the spec package), so the scope can be unset when nothing matches
  */
 
 import { Diagnostic, DiagnosticSeverity, Range } from 'vscode-languageserver';
-import { ASTNode } from 'pychivalry-engine';
+import { ASTNode, LocalizationIndex, Spec } from 'pychivalry-engine';
+import { childrenWithKey, eventsOf, isEventFile, walk } from './event-helpers';
 
-/**
- * Configuration for scope timing checks
- */
 export interface ScopeTimingConfig {
     checkTriggerBlock: boolean;
     checkDescBlock: boolean;
     checkTriggeredDesc: boolean;
     checkVariables: boolean;
     checkTemporaryScopes: boolean;
+    checkLocalization: boolean;
+    checkTriggerGuard: boolean;
 }
 
-/**
- * Default configuration - all checks enabled
- */
 export const DEFAULT_SCOPE_TIMING_CONFIG: ScopeTimingConfig = {
     checkTriggerBlock: true,
     checkDescBlock: true,
     checkTriggeredDesc: true,
     checkVariables: true,
     checkTemporaryScopes: true,
+    checkLocalization: true,
+    checkTriggerGuard: true,
 };
 
-/**
- * Create a scope timing diagnostic
- */
-function createTimingDiagnostic(
-    message: string,
-    range: Range,
-    code: string,
-    severity: DiagnosticSeverity = DiagnosticSeverity.Error
-): Diagnostic {
+const CONVENTION = 'Convention: ';
+
+function info(message: string, range: Range, code: string): Diagnostic {
     return {
-        message,
-        severity,
+        message: CONVENTION + message,
+        severity: DiagnosticSeverity.Information,
         range,
         code,
         source: 'ck3-ls-timing',
     };
 }
 
-/**
- * Extract all scope:xxx references from a node and its children
- * Returns set of scope names (without 'scope:' prefix)
- */
-function extractScopeReferences(node: ASTNode): Set<string> {
-    const scopes = new Set<string>();
-
-    // Check the node key
-    if (node.key?.startsWith('scope:')) {
-        scopes.add(node.key.substring(6)); // Remove 'scope:' prefix
+/** The name a node saves as a scope (save_scope_as, save_temporary_scope_as, *_value_as). */
+function savedName(node: ASTNode): string | undefined {
+    if (
+        (node.key === 'save_scope_as' || node.key === 'save_temporary_scope_as') &&
+        typeof node.value === 'string'
+    ) {
+        return node.value;
     }
-
-    // Check the node value if it's a string
-    if (typeof node.value === 'string' && node.value.startsWith('scope:')) {
-        scopes.add(node.value.substring(6));
+    if (
+        (node.key === 'save_scope_value_as' || node.key === 'save_temporary_scope_value_as') &&
+        node.children
+    ) {
+        const name = node.children.find((c) => c.key === 'name');
+        return name && typeof name.value === 'string' ? name.value : undefined;
     }
-
-    // Recurse into children
-    for (const child of node.children || []) {
-        const childScopes = extractScopeReferences(child);
-        childScopes.forEach((s) => scopes.add(s));
-    }
-
-    return scopes;
+    return undefined;
 }
 
-/**
- * Extract scope names defined via save_scope_as in a node and its children
- * Returns set of scope names that are defined
- */
-function extractScopeDefinitions(node: ASTNode): Set<string> {
-    const scopes = new Set<string>();
-
-    if (node.key === 'save_scope_as' && typeof node.value === 'string') {
-        scopes.add(node.value);
+function savedNames(nodes: ASTNode[]): Set<string> {
+    const names = new Set<string>();
+    for (const node of nodes) {
+        walk(node, (n) => {
+            const name = savedName(n);
+            if (name) {
+                names.add(name);
+            }
+        });
     }
-
-    for (const child of node.children || []) {
-        const childScopes = extractScopeDefinitions(child);
-        childScopes.forEach((s) => scopes.add(s));
-    }
-
-    return scopes;
+    return names;
 }
 
-/**
- * Extract temporary scope names defined via save_temporary_scope_as
- * Returns set of temporary scope names
- */
-function extractTemporaryScopeDefinitions(node: ASTNode): Set<string> {
-    const scopes = new Set<string>();
-
-    if (node.key === 'save_temporary_scope_as' && typeof node.value === 'string') {
-        scopes.add(node.value);
-    }
-
-    for (const child of node.children || []) {
-        const childScopes = extractTemporaryScopeDefinitions(child);
-        childScopes.forEach((s) => scopes.add(s));
-    }
-
-    return scopes;
-}
-
-/**
- * Extract variable references (var:xxx, has_variable = xxx)
- * Returns set of variable names referenced
- */
-function extractVariableReferences(node: ASTNode): Set<string> {
-    const variables = new Set<string>();
-
-    // Check for var: prefix
-    if (node.key?.startsWith('var:')) {
-        variables.add(node.key.substring(4));
-    }
-    if (typeof node.value === 'string' && node.value.startsWith('var:')) {
-        variables.add(node.value.substring(4));
-    }
-
-    // Check for has_variable
-    // Note: has_variable checks for EXISTENCE, not value.
-    // Using has_variable in trigger with set_variable in immediate is a valid
-    // "fire once" pattern (NOT = { has_variable = X } / set_variable = X).
-    // Only flag var: references as problematic timing, not existence checks.
-    // if (node.key === 'has_variable' && typeof node.value === 'string') {
-    //     variables.add(node.value);
-    // }
-
-    for (const child of node.children || []) {
-        const childVars = extractVariableReferences(child);
-        childVars.forEach((v) => variables.add(v));
-    }
-
-    return variables;
-}
-
-/**
- * Extract variable names defined via set_variable
- * Returns set of variable names that are defined
- */
-function extractVariableDefinitions(node: ASTNode): Set<string> {
-    const variables = new Set<string>();
-
-    if (node.key === 'set_variable') {
-        for (const child of node.children || []) {
-            if (child.key === 'name' && typeof child.value === 'string') {
-                variables.add(child.value);
+/** `scope:name` references of a key or value (the first chain segment). */
+function scopeRefs(node: ASTNode): string[] {
+    const out: string[] = [];
+    for (const text of [node.key, typeof node.value === 'string' ? node.value : undefined]) {
+        if (text) {
+            const m = /^scope:([A-Za-z0-9_]+)/.exec(text);
+            if (m) {
+                out.push(m[1]);
             }
         }
     }
-
-    for (const child of node.children || []) {
-        const childVars = extractVariableDefinitions(child);
-        childVars.forEach((v) => variables.add(v));
-    }
-
-    return variables;
+    return out;
 }
 
-/**
- * Find all child nodes with a specific key
- */
-function findNodesWithKey(node: ASTNode, key: string): ASTNode[] {
-    const results: ASTNode[] = [];
-
-    if (node.key === key) {
-        results.push(node);
-    }
-
-    for (const child of node.children || []) {
-        results.push(...findNodesWithKey(child, key));
-    }
-
-    return results;
+/** Every `scope:name` read under `root`, with its node. */
+function scopeReads(root: ASTNode): Array<{ name: string; node: ASTNode }> {
+    const out: Array<{ name: string; node: ASTNode }> = [];
+    walk(root, (n) => {
+        for (const name of scopeRefs(n)) {
+            out.push({ name, node: n });
+        }
+    });
+    return out;
 }
 
-/**
- * Find all nodes that reference a specific scope
- */
-function findScopeReferenceNodes(node: ASTNode, scopeName: string): ASTNode[] {
-    const results: ASTNode[] = [];
-    const target = `scope:${scopeName}`;
-
-    if (node.key === target) {
-        results.push(node);
-    }
-    if (typeof node.value === 'string' && node.value === target) {
-        results.push(node);
-    }
-
-    for (const child of node.children || []) {
-        results.push(...findScopeReferenceNodes(child, scopeName));
-    }
-
-    return results;
+/** Scopes this event saves only after its window is shown (options and `after`). */
+function savedAfterDisplay(event: ASTNode): Set<string> {
+    const early = savedNames([
+        ...childrenWithKey(event, 'trigger'),
+        ...childrenWithKey(event, 'immediate'),
+    ]);
+    const late = savedNames([
+        ...childrenWithKey(event, 'option'),
+        ...childrenWithKey(event, 'after'),
+    ]);
+    return new Set([...late].filter((n) => !early.has(n)));
 }
 
-/**
- * Check a single event for scope timing issues (CK3550-CK3552)
- *
- * Detects:
- * - CK3550: Scope used in trigger but defined in immediate
- * - CK3551: Scope used in desc but defined in immediate
- * - CK3552: Scope used in triggered_desc trigger but defined in immediate
- */
-export function checkEventScopeTiming(
-    eventNode: ASTNode,
-    config: ScopeTimingConfig = DEFAULT_SCOPE_TIMING_CONFIG
-): Diagnostic[] {
-    const diagnostics: Diagnostic[] = [];
-
-    // Find the key blocks
-    const triggerBlocks = (eventNode.children || []).filter((c: ASTNode) => c.key === 'trigger');
-    const descBlocks = (eventNode.children || []).filter((c: ASTNode) => c.key === 'desc');
-    const immediateBlocks = (eventNode.children || []).filter(
-        (c: ASTNode) => c.key === 'immediate'
-    );
-
-    // Extract scopes defined in immediate
-    const scopesInImmediate = new Set<string>();
-    for (const immBlock of immediateBlocks) {
-        const scopes = extractScopeDefinitions(immBlock);
-        scopes.forEach((s) => scopesInImmediate.add(s));
+/** CK3550: scope read in trigger, saved in immediate, not saved before in the trigger. */
+function checkTrigger(event: ASTNode, out: Diagnostic[]): void {
+    const immediate = savedNames(childrenWithKey(event, 'immediate'));
+    if (immediate.size === 0) {
+        return;
     }
-
-    // If no scopes defined in immediate, nothing to check
-    if (scopesInImmediate.size === 0) {
-        return diagnostics;
-    }
-
-    // CK3550: Check trigger blocks for scope references
-    if (config.checkTriggerBlock) {
-        for (const triggerBlock of triggerBlocks) {
-            const scopesUsed = extractScopeReferences(triggerBlock);
-
-            // Find scopes that are used in trigger but defined in immediate
-            const problematic = new Set([...scopesUsed].filter((s) => scopesInImmediate.has(s)));
-
-            for (const scopeName of problematic) {
-                // Find the specific node for better error location
-                const refNodes = findScopeReferenceNodes(triggerBlock, scopeName);
-                for (const refNode of refNodes) {
-                    diagnostics.push(
-                        createTimingDiagnostic(
-                            `Scope 'scope:${scopeName}' used in trigger block but defined in immediate. Trigger evaluates BEFORE immediate runs. Pass scope from calling event or use variable check instead.`,
-                            refNode.range,
+    for (const trigger of childrenWithKey(event, 'trigger')) {
+        // Document order: a save earlier in the trigger makes the scope available (#96).
+        const savedSoFar = new Set<string>();
+        walk(trigger, (n) => {
+            for (const name of scopeRefs(n)) {
+                if (immediate.has(name) && !savedSoFar.has(name)) {
+                    out.push(
+                        info(
+                            `scope '${name}' is read in the trigger but saved in immediate, which runs after the trigger is evaluated; it exists only if the calling event passes it.`,
+                            n.range,
                             'CK3550'
                         )
                     );
                 }
             }
-        }
+            const saved = savedName(n);
+            if (saved) {
+                savedSoFar.add(saved);
+            }
+        });
     }
+}
 
-    // CK3551/CK3552: Check desc blocks
-    if (config.checkDescBlock || config.checkTriggeredDesc) {
-        for (const descBlock of descBlocks) {
-            // Check for direct scope references in desc
-            const scopesUsed = extractScopeReferences(descBlock);
-
-            // Handle triggered_desc specially
-            const triggeredDescs = findNodesWithKey(descBlock, 'triggered_desc');
-
-            if (config.checkTriggeredDesc) {
-                for (const td of triggeredDescs) {
-                    // Find trigger inside triggered_desc
-                    const tdTriggers = (td.children || []).filter(
-                        (c: ASTNode) => c.key === 'trigger'
-                    );
-                    for (const tdTrigger of tdTriggers) {
-                        const tdScopes = extractScopeReferences(tdTrigger);
-                        const problematic = new Set(
-                            [...tdScopes].filter((s) => scopesInImmediate.has(s))
-                        );
-
-                        for (const scopeName of problematic) {
-                            const refNodes = findScopeReferenceNodes(tdTrigger, scopeName);
-                            for (const refNode of refNodes) {
-                                diagnostics.push(
-                                    createTimingDiagnostic(
-                                        `Scope 'scope:${scopeName}' used in triggered_desc trigger but defined in immediate. triggered_desc triggers evaluate BEFORE immediate. Use variable check or pass scope from calling event.`,
-                                        refNode.range,
-                                        'CK3552'
-                                    )
-                                );
-                            }
-                        }
-                    }
+/** CK3551 / CK3552: desc reads of scopes saved only in options or after. */
+function checkDesc(event: ASTNode, config: ScopeTimingConfig, out: Diagnostic[]): void {
+    const late = savedAfterDisplay(event);
+    if (late.size === 0) {
+        return;
+    }
+    for (const desc of childrenWithKey(event, 'desc')) {
+        const inTdTrigger = new Set<ASTNode>();
+        walk(desc, (n) => {
+            if (n.key === 'triggered_desc') {
+                for (const t of childrenWithKey(n, 'trigger')) {
+                    walk(t, (m) => inTdTrigger.add(m));
                 }
             }
-
-            // Check other desc scope references (CK3551)
-            if (config.checkDescBlock) {
-                const problematic = new Set(
-                    [...scopesUsed].filter((s) => scopesInImmediate.has(s))
+        });
+        for (const { name, node } of scopeReads(desc)) {
+            if (!late.has(name)) {
+                continue;
+            }
+            const inTrigger = inTdTrigger.has(node);
+            if (inTrigger && config.checkTriggeredDesc) {
+                out.push(
+                    info(
+                        `scope '${name}' is read in a triggered_desc trigger but this event saves it only in an option or after, which run after the window is shown.`,
+                        node.range,
+                        'CK3552'
+                    )
                 );
-
-                // Exclude scopes that were already reported in triggered_desc
-                const alreadyReported = new Set<string>();
-                for (const td of triggeredDescs) {
-                    const tdTriggers = (td.children || []).filter(
-                        (c: ASTNode) => c.key === 'trigger'
-                    );
-                    for (const tdTrigger of tdTriggers) {
-                        const tdScopes = extractScopeReferences(tdTrigger);
-                        tdScopes.forEach((s) => alreadyReported.add(s));
-                    }
-                }
-
-                for (const scopeName of problematic) {
-                    if (alreadyReported.has(scopeName)) {
-                        continue;
-                    }
-
-                    const refNodes = findScopeReferenceNodes(descBlock, scopeName);
-                    for (const refNode of refNodes) {
-                        // Check if this is inside a triggered_desc trigger (already handled)
-                        let isInTdTrigger = false;
-                        for (const td of triggeredDescs) {
-                            const tdTriggers = (td.children || []).filter(
-                                (c: ASTNode) => c.key === 'trigger'
-                            );
-                            for (const tdTrigger of tdTriggers) {
-                                if (findScopeReferenceNodes(tdTrigger, scopeName).length > 0) {
-                                    isInTdTrigger = true;
-                                    break;
-                                }
-                            }
-                        }
-
-                        if (!isInTdTrigger) {
-                            diagnostics.push(
-                                createTimingDiagnostic(
-                                    `Scope 'scope:${scopeName}' used in desc block but defined in immediate. Desc may evaluate BEFORE immediate. Consider using triggered_desc with variable checks.`,
-                                    refNode.range,
-                                    'CK3551',
-                                    DiagnosticSeverity.Warning
-                                )
-                            );
-                        }
-                    }
-                }
+            } else if (!inTrigger && config.checkDescBlock) {
+                out.push(
+                    info(
+                        `scope '${name}' is read in desc but this event saves it only in an option or after, which run after the window is shown.`,
+                        node.range,
+                        'CK3551'
+                    )
+                );
             }
         }
     }
-
-    return diagnostics;
 }
 
-/**
- * Check event for variable timing issues (CK3553)
- *
- * Detects variables checked in trigger but set in immediate
- */
-export function checkEventVariableTiming(
-    eventNode: ASTNode,
-    config: ScopeTimingConfig = DEFAULT_SCOPE_TIMING_CONFIG
-): Diagnostic[] {
-    if (!config.checkVariables) {
-        return [];
+/** CK3553: local variable checked in trigger, set in immediate. */
+function checkVariables(event: ASTNode, out: Diagnostic[]): void {
+    const setInImmediate = new Set<string>();
+    for (const imm of childrenWithKey(event, 'immediate')) {
+        walk(imm, (n) => {
+            if (n.key === 'set_local_variable') {
+                const name =
+                    typeof n.value === 'string'
+                        ? n.value
+                        : (n.children ?? []).find((c) => c.key === 'name')?.value;
+                if (typeof name === 'string') {
+                    setInImmediate.add(name);
+                }
+            }
+        });
     }
-
-    const diagnostics: Diagnostic[] = [];
-
-    // Find the key blocks
-    const triggerBlocks = (eventNode.children || []).filter((c: ASTNode) => c.key === 'trigger');
-    const immediateBlocks = (eventNode.children || []).filter(
-        (c: ASTNode) => c.key === 'immediate'
-    );
-
-    // Extract variables defined in immediate
-    const varsInImmediate = new Set<string>();
-    for (const immBlock of immediateBlocks) {
-        const vars = extractVariableDefinitions(immBlock);
-        vars.forEach((v) => varsInImmediate.add(v));
+    if (setInImmediate.size === 0) {
+        return;
     }
-
-    // If no variables defined in immediate, nothing to check
-    if (varsInImmediate.size === 0) {
-        return diagnostics;
+    for (const trigger of childrenWithKey(event, 'trigger')) {
+        walk(trigger, (n) => {
+            const names: string[] = [];
+            if (n.key === 'has_local_variable' && typeof n.value === 'string') {
+                names.push(n.value);
+            }
+            for (const text of [n.key, typeof n.value === 'string' ? n.value : undefined]) {
+                const m = text ? /(?:^|\.)local_var:([A-Za-z0-9_]+)/.exec(text) : null;
+                if (m) {
+                    names.push(m[1]);
+                }
+            }
+            for (const name of names) {
+                if (setInImmediate.has(name)) {
+                    out.push(
+                        info(
+                            `local variable '${name}' is checked in the trigger but set in immediate; local variables do not outlive the effect that sets them.`,
+                            n.range,
+                            'CK3553'
+                        )
+                    );
+                }
+            }
+        });
     }
+}
 
-    // Check trigger blocks for variable references
-    for (const triggerBlock of triggerBlocks) {
-        const varsUsed = extractVariableReferences(triggerBlock);
-
-        // Find variables that are used in trigger but defined in immediate
-        const problematic = new Set([...varsUsed].filter((v) => varsInImmediate.has(v)));
-
-        for (const varName of problematic) {
-            diagnostics.push(
-                createTimingDiagnostic(
-                    `Variable '${varName}' checked in trigger but set in immediate. Trigger evaluates BEFORE immediate runs. Set variable in parent event or before usage.`,
-                    triggerBlock.range,
-                    'CK3553'
-                )
-            );
+/** CK3554: a temporary scope handed to trigger_event. */
+function checkTemporaryScopes(event: ASTNode, out: Diagnostic[]): void {
+    const temporary = new Set<string>();
+    walk(event, (n) => {
+        if (n.key === 'save_temporary_scope_as' && typeof n.value === 'string') {
+            temporary.add(n.value);
         }
+    });
+    if (temporary.size === 0) {
+        return;
     }
-
-    return diagnostics;
-}
-
-/**
- * Check event for temporary scope leakage (CK3554)
- *
- * Detects temporary scopes that won't persist across events
- */
-export function checkTemporaryScopeLeakage(
-    eventNode: ASTNode,
-    config: ScopeTimingConfig = DEFAULT_SCOPE_TIMING_CONFIG
-): Diagnostic[] {
-    if (!config.checkTemporaryScopes) {
-        return [];
-    }
-
-    const diagnostics: Diagnostic[] = [];
-
-    // Find temporary scopes defined in the event
-    const tempScopes = extractTemporaryScopeDefinitions(eventNode);
-
-    // Check if any trigger_event calls try to pass these temporary scopes
-    const triggerEventNodes = findNodesWithKey(eventNode, 'trigger_event');
-
-    for (const triggerEvent of triggerEventNodes) {
-        // Check for scope parameter passing
-        for (const child of triggerEvent.children || []) {
+    walk(event, (n) => {
+        if (n.key !== 'trigger_event') {
+            return;
+        }
+        for (const child of n.children ?? []) {
             if (child.key === 'scope' && typeof child.value === 'string') {
-                // Check if this is a temporary scope
-                const scopeRef = child.value.startsWith('scope:')
-                    ? child.value.substring(6)
-                    : child.value;
-
-                if (tempScopes.has(scopeRef)) {
-                    diagnostics.push(
-                        createTimingDiagnostic(
-                            `Temporary scope '${scopeRef}' is passed to triggered event but will not persist. Use save_scope_as instead of save_temporary_scope_as if scope needs to cross event boundaries.`,
+                const ref = child.value.replace(/^scope:/, '');
+                if (temporary.has(ref)) {
+                    out.push(
+                        info(
+                            `temporary scope '${ref}' is passed to a triggered event but does not persist across events; use save_scope_as.`,
                             child.range,
-                            'CK3554',
-                            DiagnosticSeverity.Warning
+                            'CK3554'
                         )
                     );
                 }
             }
         }
+    });
+}
+
+/** Localization keys a title or desc block names (plain keys and dynamic descriptions). */
+function locKeysOf(block: ASTNode): string[] {
+    const keys: string[] = [];
+    walk(block, (n) => {
+        if (
+            (n === block || n.key === 'desc' || n.key === 'text') &&
+            typeof n.value === 'string' &&
+            /^[A-Za-z_][A-Za-z0-9_.]*$/.test(n.value)
+        ) {
+            keys.push(n.value);
+        }
+    });
+    return keys;
+}
+
+/**
+ * Saved-scope names a localization text reads: `[name.GetFirstName]`, `[name|E]` and
+ * `[SCOPE.sC('name')…]` (the first segment of a bracket expression; ROOT, THIS and the
+ * other capitalised data types are not saved scopes).
+ */
+export function locScopeNames(text: string): Set<string> {
+    const names = new Set<string>();
+    for (const m of text.matchAll(/\[([a-z_][A-Za-z0-9_]*)[.|\]]/g)) {
+        names.add(m[1]);
     }
-
-    return diagnostics;
+    for (const m of text.matchAll(/SCOPE\.s[A-Za-z]*\('([A-Za-z0-9_]+)'\)/g)) {
+        names.add(m[1]);
+    }
+    return names;
 }
 
-/**
- * Main validation function - checks all scope timing issues in an event
- *
- * Returns diagnostics for:
- * - CK3550-CK3552: Scope timing violations
- * - CK3553: Variable timing violations
- * - CK3554: Temporary scope leakage
- */
-export function validateScopeTiming(
-    eventNode: ASTNode,
-    config: ScopeTimingConfig = DEFAULT_SCOPE_TIMING_CONFIG
-): Diagnostic[] {
-    const diagnostics: Diagnostic[] = [];
-
-    // Check scope timing (CK3550-CK3552)
-    diagnostics.push(...checkEventScopeTiming(eventNode, config));
-
-    // Check variable timing (CK3553)
-    diagnostics.push(...checkEventVariableTiming(eventNode, config));
-
-    // Check temporary scope leakage (CK3554)
-    diagnostics.push(...checkTemporaryScopeLeakage(eventNode, config));
-
-    return diagnostics;
+/** CK3560 / CK3561: desc and title texts that read scopes saved only after display. */
+function checkLocalization(
+    event: ASTNode,
+    localization: LocalizationIndex | undefined,
+    out: Diagnostic[]
+): void {
+    if (!localization) {
+        return;
+    }
+    const late = savedAfterDisplay(event);
+    if (late.size === 0) {
+        return;
+    }
+    for (const [field, code] of [
+        ['desc', 'CK3560'],
+        ['title', 'CK3561'],
+    ] as const) {
+        for (const block of childrenWithKey(event, field)) {
+            for (const key of locKeysOf(block)) {
+                const entry = localization.findLocalization(key);
+                if (!entry) {
+                    continue;
+                }
+                for (const name of locScopeNames(entry.text)) {
+                    if (late.has(name)) {
+                        out.push(
+                            info(
+                                `the ${field} text '${key}' reads scope '${name}', which this event saves only in an option or after, after the window is shown.`,
+                                block.range,
+                                code
+                            )
+                        );
+                    }
+                }
+            }
+        }
+    }
 }
 
-/**
- * Validate scope timing for all events in a document
- */
+/** The list base of an iterator key (`random_courtier` → `courtier`), from the spec. */
+function listBaseOf(key: string, prefix: string, spec?: Spec): string | undefined {
+    if (!key.startsWith(prefix)) {
+        return undefined;
+    }
+    if (spec) {
+        const match = spec.isIterator(key);
+        return match && match.prefix === prefix ? match.base : undefined;
+    }
+    return key.slice(prefix.length);
+}
+
+/** CK3563: a random_ iterator saves the scope in immediate with no any_ guard in trigger. */
+function checkTriggerGuard(event: ASTNode, out: Diagnostic[], spec?: Spec): void {
+    const trigger = childrenWithKey(event, 'trigger');
+    const guarded = new Set<string>();
+    for (const t of trigger) {
+        walk(t, (n) => {
+            const base = n.key ? listBaseOf(n.key, 'any_', spec) : undefined;
+            if (base) {
+                guarded.add(base);
+            }
+        });
+    }
+    const usedInOptions = new Set<string>();
+    for (const option of childrenWithKey(event, 'option')) {
+        for (const { name } of scopeReads(option)) {
+            usedInOptions.add(name);
+        }
+    }
+    for (const imm of childrenWithKey(event, 'immediate')) {
+        walk(imm, (n) => {
+            const list = n.key ? listBaseOf(n.key, 'random_', spec) : undefined;
+            if (!list || !n.children) {
+                return;
+            }
+            for (const child of n.children) {
+                const name = savedName(child);
+                if (name && usedInOptions.has(name) && !guarded.has(list)) {
+                    out.push(
+                        info(
+                            `scope '${name}' is saved from ${n.key} in immediate and used in an option, but the trigger has no any_${list} check: when nothing matches, the scope is unset.`,
+                            n.range,
+                            'CK3563'
+                        )
+                    );
+                }
+            }
+        });
+    }
+}
+
+/** Scope timing for every event of an events/ file. */
 export function validateDocumentScopeTiming(
     rootNode: ASTNode,
-    config: ScopeTimingConfig = DEFAULT_SCOPE_TIMING_CONFIG
+    config: ScopeTimingConfig = DEFAULT_SCOPE_TIMING_CONFIG,
+    file = 'events/',
+    localization?: LocalizationIndex,
+    spec?: Spec
 ): Diagnostic[] {
-    const diagnostics: Diagnostic[] = [];
-
-    // Find all event nodes (they have keys like namespace.number)
-    function isEventNode(node: ASTNode): boolean {
-        return node.key ? /^[a-z_]+\.\d+$/.test(node.key) : false;
+    if (!isEventFile(file)) {
+        return [];
     }
-
-    function findEvents(node: ASTNode): ASTNode[] {
-        const events: ASTNode[] = [];
-
-        if (isEventNode(node)) {
-            events.push(node);
+    const out: Diagnostic[] = [];
+    for (const event of eventsOf(rootNode)) {
+        if (config.checkTriggerBlock) {
+            checkTrigger(event, out);
         }
-
-        for (const child of node.children || []) {
-            events.push(...findEvents(child));
+        if (config.checkDescBlock || config.checkTriggeredDesc) {
+            checkDesc(event, config, out);
         }
-
-        return events;
+        if (config.checkVariables) {
+            checkVariables(event, out);
+        }
+        if (config.checkTemporaryScopes) {
+            checkTemporaryScopes(event, out);
+        }
+        if (config.checkLocalization) {
+            checkLocalization(event, localization, out);
+        }
+        if (config.checkTriggerGuard) {
+            checkTriggerGuard(event, out, spec);
+        }
     }
-
-    const events = findEvents(rootNode);
-
-    for (const event of events) {
-        diagnostics.push(...validateScopeTiming(event, config));
-    }
-
-    return diagnostics;
-}
-
-/**
- * Get a description for a scope timing diagnostic code
- */
-export function getScopeTimingDiagnosticDescription(code: string): string {
-    switch (code) {
-        case 'CK3550':
-            return 'Scope used in trigger but defined in immediate block. Trigger evaluates BEFORE immediate runs.';
-        case 'CK3551':
-            return 'Scope used in desc block but defined in immediate. Desc may evaluate BEFORE immediate runs.';
-        case 'CK3552':
-            return 'Scope used in triggered_desc trigger but defined in immediate. Triggered triggers evaluate BEFORE immediate runs.';
-        case 'CK3553':
-            return 'Variable checked before being set. Variable is set in immediate but checked in trigger.';
-        case 'CK3554':
-            return 'Temporary scope passed to another event. Temporary scopes do not persist across events.';
-        case 'CK3555':
-            return 'Scope needed in triggered event but not passed. Add scope parameter to trigger_event call.';
-        case 'CK3560':
-            return 'Scope used in desc localization but defined in immediate. Desc localization evaluates BEFORE immediate runs.';
-        case 'CK3561':
-            return 'Scope used in title localization but defined in immediate. Title localization evaluates BEFORE immediate runs.';
-        case 'CK3562':
-            return 'Scope may be used in desc block but defined in immediate. Consider triggered_desc with variable checks.';
-        default:
-            return 'Scope timing violation detected.';
-    }
+    return out;
 }

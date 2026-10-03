@@ -4,11 +4,11 @@
  *
  * Every script file (.txt) and localization file of the workspace is diagnosed in the
  * background after startup through the same DiagnosticsProvider path as an open file (the
- * plug-ins and the 1000-per-file cap apply), and published with sendDiagnostics, so the
- * Problems panel covers unopened files. Each publish also sends `ck3/workspaceDiagnostics`
- * with the file's counts, and the run sends `{ state, done, total }` events, for the
- * client's file decorations and status bar. ck3.validateWorkspace forces a full pass and
- * reports it through window/workDoneProgress.
+ * plug-ins and the 1000-per-file cap, most severe first, apply), and published with
+ * sendDiagnostics, so the Problems panel covers unopened files. Each publish also sends
+ * `ck3/workspaceDiagnostics` with the file's counts, and the run sends
+ * `{ state, done, total }` events, for the client's file decorations and status bar.
+ * ck3.validateWorkspace forces a full pass and reports it through window/workDoneProgress.
  */
 
 import * as fs from 'fs';

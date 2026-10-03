@@ -53,13 +53,25 @@ describe('Script Values Validation', () => {
     });
 
     describe('formula validation', () => {
-        it('flags unknown formula operation (VALUE-003)', () => {
-            const ast = parseAST('script_values = { my_value = { value = 10 frobnicate = 5 } }');
-            const diags = validateScriptValues(ast, makeConfig());
-            assert.ok(
-                diags.some((d) => d.code === 'VALUE-003'),
-                'Should flag unknown operation'
+        it('no longer judges formula keys or fixed values by hand-made lists (VALUE-001/003 removed)', () => {
+            const ast = parseAST(
+                'script_values = { my_value = { value = 10 frobnicate = 5 } other = some_script_value }'
             );
+            const diags = validateScriptValues(ast, makeConfig());
+            assert.ok(!diags.some((d) => d.code === 'VALUE-003' || d.code === 'VALUE-001'));
+        });
+
+        it('keeps VALUE-002 an error (catalogue evidence) and VALUE-004/006 information', () => {
+            const range = validateScriptValues(
+                parseAST('script_values = { r = { min = 5 max = 1 } }'),
+                makeConfig()
+            );
+            assert.strictEqual(range.find((d) => d.code === 'VALUE-002')?.severity, 1);
+            const round = validateScriptValues(
+                parseAST('script_values = { v = { value = 1 round_to = -1 } }'),
+                makeConfig()
+            );
+            assert.strictEqual(round.find((d) => d.code === 'VALUE-006')?.severity, 3);
         });
 
         it('passes valid formula', () => {

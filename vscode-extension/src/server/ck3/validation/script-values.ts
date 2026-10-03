@@ -4,13 +4,23 @@
  * Validates script_value blocks: fixed numbers, ranges (min/max),
  * and formula values with arithmetic operations and conditionals.
  *
+ * The checks run on the definitions inside a `script_values = { … }` block (as the
+ * validator has always been wired; the definitions of a common/script_values file are
+ * top-level keys and are not reached).
+ *
  * DIAGNOSTIC CODES:
- *   VALUE-001: Invalid script value type
- *   VALUE-002: Invalid range (min > max)
- *   VALUE-003: Unknown formula operation
- *   VALUE-004: Invalid conditional structure (else_if after else)
- *   VALUE-005: Missing value in arithmetic formula
- *   VALUE-006: Invalid round_to parameter (must be positive)
+ *   VALUE-002 (error): a range whose minimum is above its maximum; the game prints
+ *              "min value in range directive is larger than the max value" (catalogue
+ *              min_value_in_range_directive_is_larger_than_the_max_value_un)
+ *   VALUE-004 (information, convention): else_if after else, else_if without if, several else
+ *   VALUE-005 (information, convention): arithmetic without an explicit value
+ *   VALUE-006 (information, convention): round_to not positive
+ *
+ * Removed in 2.2: VALUE-001 (a fixed value naming something outside 11 hard-coded game values)
+ * and VALUE-003 (a formula key outside 13 hard-coded operations): both judged script against
+ * hand-made name lists (a script value may name any script value, and a formula may hold
+ * limits, iterators and saved values); the engine's registry check judges every key against
+ * the spec package.
  */
 
 import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver/node';
@@ -63,21 +73,6 @@ const CONDITIONAL_KEYWORDS = new Set(['if', 'else_if', 'else']);
 
 /** Arithmetic operations that typically require a base value */
 const ARITHMETIC_OPS = new Set(['add', 'subtract', 'multiply', 'divide', 'modulo']);
-
-/** Common game value references that can appear as the value= target */
-const COMMON_VALUE_REFERENCES = new Set([
-    'gold',
-    'prestige',
-    'piety',
-    'age',
-    'max_military_strength',
-    'realm_size',
-    'num_of_vassals',
-    'num_of_powerful_vassals',
-    'short_term_gold',
-    'monthly_character_income',
-    'monthly_character_expenses',
-]);
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -158,25 +153,8 @@ function validateSingleScriptValue(
         return;
     }
 
-    // --- Fixed value: key = <number> or key = <reference> ---
+    // A fixed value (key = <number> or a reference) has nothing to check here.
     if (node.type === NodeType.ASSIGNMENT) {
-        if (
-            node.value !== undefined &&
-            typeof node.value === 'string' &&
-            !isNumber(node.value) &&
-            !COMMON_VALUE_REFERENCES.has(node.value) &&
-            !node.value.startsWith('scope:') &&
-            !node.value.startsWith('@')
-        ) {
-            // VALUE-001: unrecognized script value reference
-            out.push({
-                severity: DiagnosticSeverity.Warning,
-                range: node.range,
-                message: `Unrecognized script value reference: '${node.value}'`,
-                code: 'VALUE-001',
-                source: 'ck3-values',
-            });
-        }
         return;
     }
 
@@ -292,17 +270,6 @@ function validateFormula(node: ASTNode, out: Diagnostic[]): void {
             continue;
         }
 
-        // Check for unknown operations
-        if (!FORMULA_OPERATIONS.has(key) && !CONDITIONAL_KEYWORDS.has(key)) {
-            out.push({
-                severity: DiagnosticSeverity.Warning,
-                range: child.range,
-                message: `Unknown formula operation: '${key}'`,
-                code: 'VALUE-003',
-                source: 'ck3-values',
-            });
-        }
-
         if (ARITHMETIC_OPS.has(key)) {
             hasArithmeticOp = true;
         }
@@ -313,9 +280,9 @@ function validateFormula(node: ASTNode, out: Diagnostic[]): void {
                 const v = toNumber(child.value);
                 if (v <= 0) {
                     out.push({
-                        severity: DiagnosticSeverity.Error,
+                        severity: DiagnosticSeverity.Information,
                         range: child.range,
-                        message: `round_to parameter must be a positive number (got ${v})`,
+                        message: `Convention: round_to should be a positive number (got ${v})`,
                         code: 'VALUE-006',
                         source: 'ck3-values',
                     });
@@ -329,8 +296,7 @@ function validateFormula(node: ASTNode, out: Diagnostic[]): void {
         out.push({
             severity: DiagnosticSeverity.Information,
             range: node.range,
-            message:
-                'Formula uses arithmetic operations without an explicit value — implicit 0 will be used',
+            message: 'Convention: arithmetic without an explicit value; the formula starts from 0',
             code: 'VALUE-005',
             source: 'ck3-values',
         });
@@ -363,18 +329,18 @@ function validateConditionals(node: ASTNode, out: Diagnostic[]): void {
         } else if (key === 'else_if') {
             if (hasElse) {
                 out.push({
-                    severity: DiagnosticSeverity.Error,
+                    severity: DiagnosticSeverity.Information,
                     range: child.range,
-                    message: 'else_if cannot follow else',
+                    message: 'Convention: else_if after else',
                     code: 'VALUE-004',
                     source: 'ck3-values',
                 });
             }
             if (!hasIf) {
                 out.push({
-                    severity: DiagnosticSeverity.Error,
+                    severity: DiagnosticSeverity.Information,
                     range: child.range,
-                    message: 'else_if must follow an if block',
+                    message: 'Convention: else_if without a preceding if',
                     code: 'VALUE-004',
                     source: 'ck3-values',
                 });
@@ -382,9 +348,9 @@ function validateConditionals(node: ASTNode, out: Diagnostic[]): void {
         } else if (key === 'else') {
             if (hasElse) {
                 out.push({
-                    severity: DiagnosticSeverity.Error,
+                    severity: DiagnosticSeverity.Information,
                     range: child.range,
-                    message: 'Multiple else blocks are not allowed',
+                    message: 'Convention: several else blocks',
                     code: 'VALUE-004',
                     source: 'ck3-values',
                 });

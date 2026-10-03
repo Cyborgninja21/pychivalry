@@ -4,7 +4,13 @@
 
 import * as assert from 'assert';
 import * as path from 'path';
-import { DocumentIndexer, SymbolType, symbolTypeForPath } from '../../src/index/indexer';
+import {
+    DocumentIndexer,
+    Indexer,
+    SymbolType,
+    symbolTypeForPath,
+    variableUsesOf,
+} from '../../src/index/indexer';
 import { Workspace } from '../../src/index/workspace';
 import { CK3Parser } from '../../src/syntax/parser';
 
@@ -462,6 +468,42 @@ describe('DocumentIndexer', () => {
                 plain.findSymbolsByName('my_effect').map((s) => s.type),
                 [SymbolType.SCRIPTED_EFFECT]
             );
+        });
+    });
+
+    describe('variable uses (2.2, for the variables plug-in)', () => {
+        it('records keyword uses and var:/local_var:/global_var: references', () => {
+            const ast = new CK3Parser().parse(
+                [
+                    'e = {',
+                    '    set_variable = { name = a value = 1 }',
+                    '    set_global_variable = g',
+                    '    if = { limit = { has_local_variable = l  exists = scope:x.var:chain } }',
+                    '    add_gold = global_var:money',
+                    '    remove_variable = var_$PARAM$',
+                    '    if = { limit = { exists = var:offer_$DEITY$ } }',
+                    '}',
+                ].join('\n')
+            ).ast;
+            assert.deepStrictEqual([...variableUsesOf(ast)].sort(), [
+                'global_var:|money',
+                'has_local_variable|l',
+                'set_global_variable|g',
+                'set_variable|a',
+                'var:|chain',
+            ]);
+        });
+
+        it('counts uses across files and forgets a removed file', () => {
+            const index = new Indexer();
+            const parser = new CK3Parser();
+            index.indexSync('file:///a.txt', parser.parse('e = { set_variable = shared }').ast);
+            index.indexSync('file:///b.txt', parser.parse('f = { set_variable = shared }').ast);
+            assert.ok(index.hasVariableUse('set_variable|shared'));
+            index.removeDocument('file:///a.txt');
+            assert.ok(index.hasVariableUse('set_variable|shared'));
+            index.removeDocument('file:///b.txt');
+            assert.ok(!index.hasVariableUse('set_variable|shared'));
         });
     });
 });

@@ -1,0 +1,4 @@
+# A stand-in for the base game's trait database (CK3800 runs only when it is known).
+mock_base_trait = {
+	group = mock_base_trait_group
+}

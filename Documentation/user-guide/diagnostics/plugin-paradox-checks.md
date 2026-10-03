@@ -2,39 +2,44 @@
 
 # Plug-in: paradox-checks
 
-Paradox conventions and common pitfalls that parse and resolve but misbehave in game: event structure, ai_chance, trigger_else, after blocks, portraits, iterators without limit.
+Paradox conventions and common pitfalls that parse and resolve but misbehave in game: event structure (on every event of an events/ file), ai_chance, trigger_else, after blocks, portraits, iterators without limit; and the event theme, checked against the workspace's and the base game's common/event_themes.
 
 Source: `vscode-extension/src/server/ck3/validation/paradox-checks.ts`.
 
-| Code | Severity | Meaning |
-| --- | --- | --- |
-| `CK3005` | error | A logical operator (AND, OR, NOT, NOR, NAND) with a scalar value instead of a block. |
-| `CK3420` | error | Invalid portrait position. |
-| `CK3421` | warning | A portrait block has no character field. |
-| `CK3422` | warning | Unknown portrait animation. |
-| `CK3430` | warning | Unknown event theme. |
-| `CK3450` | warning | An option has no name field for its localization. |
-| `CK3510` | error | trigger_else without a preceding trigger_if has no effect. |
-| `CK3511` | warning | Several trigger_else blocks; only the first one executes. |
-| `CK3520` | warning | An after block in a hidden event has no effect. |
-| `CK3521` | information | An after block in an event without options is unnecessary. |
-| `CK3610` | warning | Negative base in ai_chance; the AI never selects the option. |
-| `CK3611` | information | ai_chance base above 100 is clamped to 100. |
-| `CK3612` | information | ai_chance base = 0; the AI never selects the option (ai_accept = no may be meant). |
-| `CK3614` | warning | An ai_chance modifier without a trigger applies unconditionally. |
-| `CK3656` | information | An inline opinion value in add_opinion or reverse_add_opinion; define an opinion modifier in common/opinion_modifiers and reference it by name. |
-| `CK3760` | error | An event has no type declaration. |
-| `CK3761` | error | Invalid event type. |
-| `CK3762` | warning | A hidden event has options. |
-| `CK3763` | warning | An event has no options. |
-| `CK3764` | error | A non-hidden event has no desc. |
-| `CK3766` | warning | Several after blocks in one event. |
-| `CK3767` | error | An empty event. |
-| `CK3768` | error | Several immediate blocks in one event. |
-| `CK3769` | information | A non-hidden event has no portraits. |
-| `CK3872` | information | Redundant trigger = { always = yes }. |
-| `CK3873` | error | Impossible trigger = { always = no }. |
-| `CK3875` | information | A random_ iterator without a limit. |
-| `CK3977` | information | An every_ iterator without a limit affects every matching element. |
-| `CK5137` | information | is_alive on a scope without an exists check first. |
-| `CK5142` | error | A character comparison written as `link = root` (or prev, this, scope:x); compare with `link = { this = root }`. |
+| Code | Severity | Meaning | Evidence |
+| --- | --- | --- | --- |
+| `CK3005` | information | A logical operator (AND, OR, NOT, NOR, NAND) with a scalar value instead of a block. | Convention (no catalogue message; the engine does not report it). |
+| `CK3421` | information | A portrait block has no character field. | Convention. |
+| `CK3422` | information | A portrait animation defined neither in the workspace's nor in the base game's gfx/portraits/portrait_animations (reported only while the base game is known). | Convention (no catalogue message for an unknown animation name). Until 2.1 it was judged against the optional extracted data, and through a bug (the animation set was read as an object) never reported; EVENT-004 is merged into it. |
+| `CK3423` | information | A triggered_animation of an event portrait has no trigger. | Convention (issue |
+| `CK3424` | information | A triggered_animation of an event portrait has neither animation nor scripted_animation. | Convention (issue |
+| `CK3425` | information | A triggered_outfit of an event portrait has no trigger. | Convention (issue |
+| `CK3426` | information | A portrait position is given more than once in one event. | Convention (issue |
+| `CK3430` | warning | An event theme defined neither in the workspace's nor in the base game's common/event_themes (reported only while the base game is known). | The theme is a key of the event_themes database; the game cannot read an unknown key (catalogue failed_to_read_key_reference_X_from_database_X, "Failed to read key reference %s from database %s"). EVENT-003 (the same check against 32 hard-coded names) is merged into it. |
+| `CK3431` | warning | An override_background reference defined neither in the workspace's nor in the base game's common/event_backgrounds (reported only while the base game is known). | Issue #28. The reference is a key of the event_backgrounds database; the game cannot read an unknown key (catalogue failed_to_read_key_reference_X_from_database_X). The issue's CK3432 (override_environment) is no event field, reported by the engine's schema check (unknown_X_in_X); CK3434 (override_icon) is GFX001's check of reference paths; CK3435 (override_sound) has nothing to check against (game/sound/GUIDs.txt lists events under other paths than the event:/SFX/… references the game's events use). |
+| `CK3433` | information | An untriggered override_background equal to the background the event's theme always shows first. | Convention (issue |
+| `CK3450` | information | An event option has no name field for its localization. | Convention. CONV-004 and EVENT-007 (the same check) are merged into it. |
+| `CK3510` | information | trigger_else without a preceding trigger_if. | Convention. |
+| `CK3511` | information | Several trigger_else blocks; only the first applies. | Convention. |
+| `CK3520` | information | An after block in a hidden event (a hidden event shows no options; its effects belong in immediate). | Convention (issue #19; the evaluation order of scope-timing: after runs once the chosen option has run). EVENT-012 (the same check) is merged into it. |
+| `CK3521` | information | An after block in an event without options. | Convention (issue |
+| `CK3522` | hint | An after block that only cleans up (every entry a remove_ or clear_ effect of the spec package). | Convention (issue #19). The issue's CK3523 (a trigger in an after block) is not a plug-in code: after is effect context in the events schema, and the engine's registry reports a trigger there with the game's message (unknown_effect_X). |
+| `CK3610` | information | Negative base in ai_chance. | Convention. |
+| `CK3611` | information | The ai_chance total is zero whatever applies (base 0 and no modifier that can add weight, or an unconditional factor = 0): the AI never picks the option. | Convention (issue #21). Until 2.1 CK3611 meant "ai_chance base above 100 is clamped to 100", removed in 2.2 as false: ai_chance is a relative weight (the 1.20.0.2 events and common directories hold 640 bases above 100 among 16,865 ai_chance blocks). The 2.1 CK3612 (base = 0) is merged into this code: a base of 0 is never picked only when no modifier adds weight (333 of the base game's 1,288 base = 0 blocks have one). |
+| `CK3612` | information | The ai_chance total can be negative (base plus every negative add is below zero). | Convention (issue #22). Until 2.1 CK3612 meant "ai_chance base = 0", merged into CK3611. |
+| `CK3613` | hint | An option of a non-hidden event with several options has neither ai_chance nor ai_will_select. | Convention (issue |
+| `CK3614` | information | An ai_chance modifier without a trigger applies unconditionally. | Convention. |
+| `CK3656` | information | An inline opinion value in add_opinion or reverse_add_opinion; define an opinion modifier in common/opinion_modifiers and reference it by name. | Convention. |
+| `CK3762` | information | A hidden event has options. | Convention. EVENT-011 (the same check) is merged into it. |
+| `CK3763` | information | A non-hidden event has no options. | Convention. EVENT-013 (the same check) is merged into it. |
+| `CK3764` | information | A non-hidden event has no desc. | Convention (desc is an optional field of the events schema). CONV-003 (the same check) is merged into it. |
+| `CK3765` (renamed from `CONV-002`) | information | A non-hidden event has no title. | Convention (issue #25; title is an optional field of the events schema). CONV-002 (an event with options and no title) is merged into it. |
+| `CK3766` | information | Several after blocks in one event. | Convention. |
+| `CK3767` | information | An empty event. | Convention. |
+| `CK3768` | information | Several immediate blocks in one event. | Convention. |
+| `CK3769` | information | A non-hidden event has no portraits. | Convention. |
+| `CK3872` | information | Redundant always = yes. | Convention. |
+| `CK3873` | hint | always = no; the block is switched off (the usual way to disable content on purpose). | Convention. Before 2.2 an error; the base game writes trigger = { always = no } 167 times and the game reports nothing (issue #92). |
+| `CK3875` | information | A random_ iterator without a limit. | Convention. |
+| `CK3977` | information | An every_ iterator without a limit affects every matching element. | Convention. |
+| `CK5137` | information | is_alive on a scope without an exists check first. | Convention. |

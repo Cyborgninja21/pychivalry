@@ -1,6 +1,6 @@
 # Architecture and flow
 
-pychivalry 2.1.0 is layered: a generated **spec package** describes CK3 1.20.0.2; the
+pychivalry 2.2.0 is layered: a generated **spec package** describes CK3 1.20.0.2; the
 **engine core** (`packages/engine`, `pychivalry-engine`) parses, indexes and checks scripts
 against it; the **VS Code extension** (`vscode-extension`) is a thin client plus a language
 server whose providers and plug-ins sit on the engine. The engine has no dependency on VS Code

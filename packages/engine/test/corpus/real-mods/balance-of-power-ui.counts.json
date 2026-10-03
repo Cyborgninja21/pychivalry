@@ -62,61 +62,53 @@
         "filesValidated": 12,
         "filesWithFindings": 5,
         "filesAtCap": [],
-        "timeToFirstFullResultMs": 18014,
-        "serverUptimeAtFirstFullResultMs": 17945,
-        "backgroundPassMs": 38,
-        "peakServerRssKb": 258688,
-        "serverVmHwmKb": 258688,
+        "timeToFirstFullResultMs": 35001,
+        "serverUptimeAtFirstFullResultMs": 33975,
+        "backgroundPassMs": 117,
+        "peakServerRssKb": 276708,
+        "serverVmHwmKb": 276708,
         "longestFile": {
-            "milliseconds": 17.3,
+            "milliseconds": 82.3,
             "file": "common/script_values/svals_bop.txt"
         },
         "longestScriptFile": {
-            "milliseconds": 17.2,
+            "milliseconds": 82.1,
             "file": "common/script_values/svals_bop.txt"
         },
         "longestLocalizationFile": {
-            "milliseconds": 0.6,
+            "milliseconds": 2,
             "file": "localization/english/bop_l_english.yml"
         },
         "bySeverity": {
             "error": 0,
-            "warning": 312,
-            "information": 15,
-            "hint": 15
+            "warning": 0,
+            "information": 7,
+            "hint": 331
         },
         "counts": {
             "CK3301": {
-                "severity": "warning",
+                "severity": "hint",
                 "count": 36
             },
             "CK3303": {
-                "severity": "warning",
+                "severity": "hint",
                 "count": 274
             },
             "CK3316": {
-                "severity": "information",
+                "severity": "hint",
                 "count": 1
             },
             "CK3317": {
-                "severity": "information",
+                "severity": "hint",
                 "count": 7
-            },
-            "CK3701": {
-                "severity": "warning",
-                "count": 1
             },
             "CK3702": {
                 "severity": "hint",
-                "count": 15
+                "count": 13
             },
             "CK3977": {
                 "severity": "information",
                 "count": 2
-            },
-            "CK4100": {
-                "severity": "warning",
-                "count": 1
             },
             "ITER-004": {
                 "severity": "information",

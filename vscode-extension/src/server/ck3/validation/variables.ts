@@ -1,397 +1,290 @@
 /**
- * Variables Validation Module
+ * Variables (engine plug-in): variables read but set nowhere, set but read nowhere, read in
+ * another namespace than they are set in, and used both as a list and as a value.
  *
- * Validates variable usage in CK3 scripts:
- * - Variable declarations (set_variable, set_local_variable, etc.)
- * - Variable references
- * - Variable scope validity
- * - Variable type consistency
+ * Which keywords set and which read a variable comes from the spec package (the effects and
+ * triggers whose names contain `variable`), plus the `var:`, `local_var:` and `global_var:`
+ * references. Ordinary, global and dead-character variables persist, so they are judged
+ * across the workspace index and the base game's indexed directories (the engine Indexer's
+ * variable uses), not one file: CK3701 and CK3702 report only while the base game is loaded
+ * (without it a variable the base game sets or reads is unknown). Local variables live for one
+ * effect execution and are judged in their file.
  *
- * Diagnostic Codes:
- * - CK3700: Variable used before declaration
- * - CK3701: Variable never declared but used
- * - CK3702: Variable declared but never used
- * - CK3703: Variable scope mismatch
- * - CK3704: Invalid variable name
- * - CK3705: Variable type mismatch
- * - CK3706: Variable value out of range
+ * None of these has engine evidence (a variable can also be set by the base game's events,
+ * which are not indexed, by GUI or by localization), so all are conventions:
+ *     CK3701 (information) a variable read but set nowhere in the workspace or the base game
+ *     CK3702 (hint)        a variable set but read nowhere in script
+ *     CK3703 (information) a variable read in one namespace (var / local_var / global_var) and
+ *                          set only in another
+ *     CK3705 (information) a variable used both as a list and as a value in the file
  */
 
 import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver';
-import { ASTNode } from 'pychivalry-engine';
+import { ASTNode, Indexer, Spec, variableUsesOf } from 'pychivalry-engine';
 
-export interface VariableInfo {
-    name: string;
-    scope: string;
-    declarationNode: ASTNode;
-    usageNodes: ASTNode[];
-    type?: 'flag' | 'value' | 'list';
-    value?: unknown;
-}
+type Kind = 'var' | 'local' | 'global' | 'dead';
 
 export interface VariablesConfig {
-    /** Enable variable validation */
     enabled: boolean;
-    /** Check for unused variables */
     checkUnused: boolean;
-    /** Check for undeclared variables */
     checkUndeclared: boolean;
-    /** Check variable scope validity */
     checkScope: boolean;
-    /** Check variable type consistency */
     checkTypes: boolean;
 }
 
-/**
- * Variable declaration effects
- */
-const VARIABLE_DECLARATIONS = [
-    'set_variable',
-    'set_local_variable',
-    'set_global_variable',
-    'change_variable',
-    'add_to_variable',
-    'subtract_from_variable',
-    'multiply_variable',
-    'divide_variable',
-];
+/** What the plug-in knows beyond the file. */
+export interface VariableKnowledge {
+    spec: Spec;
+    /** The workspace index and, when loaded, the base game's. */
+    indexes: Indexer[];
+    /** Is a base game loaded (CK3701/CK3702 need it)? */
+    baseGameKnown: boolean;
+}
 
-/**
- * Variable usage triggers
- */
-const VARIABLE_CHECKS = [
-    'has_variable',
-    'has_local_variable',
-    'has_global_variable',
-    'variable_value',
-    'check_variable',
-];
+const PREFIX_KIND: Record<string, Kind> = {
+    'var:': 'var',
+    'local_var:': 'local',
+    'global_var:': 'global',
+};
 
-/**
- * Validate variables in a document
- */
-export function validateVariables(node: ASTNode, config: VariablesConfig): Diagnostic[] {
+function kindOfKey(key: string): Kind {
+    if (key.includes('global_variable')) {
+        return 'global';
+    }
+    if (key.includes('local_variable')) {
+        return 'local';
+    }
+    if (key.includes('dead_character_variable')) {
+        return 'dead';
+    }
+    return 'var';
+}
+
+interface Classified {
+    setters: Map<Kind, string[]>;
+    listSetters: Set<string>;
+    valueSetters: Set<string>;
+    readers: Map<Kind, string[]>;
+}
+
+const classifiedBySpec = new WeakMap<Spec, Classified>();
+
+/** The variable keywords of the spec package, by role and namespace. */
+function classify(spec: Spec): Classified {
+    const cached = classifiedBySpec.get(spec);
+    if (cached) {
+        return cached;
+    }
+    const c: Classified = {
+        setters: new Map(),
+        listSetters: new Set(),
+        valueSetters: new Set(),
+        readers: new Map(),
+    };
+    for (const name of spec.names('effects')) {
+        if (!name.includes('variable') || /^(remove|clear)_/.test(name)) {
+            continue;
+        }
+        const kind = kindOfKey(name);
+        c.setters.set(kind, [...(c.setters.get(kind) ?? []), name]);
+        (name.includes('_list') ? c.listSetters : c.valueSetters).add(name);
+    }
+    for (const name of spec.names('triggers')) {
+        if (!name.includes('variable') || name.includes('income')) {
+            continue;
+        }
+        const kind = kindOfKey(name);
+        c.readers.set(kind, [...(c.readers.get(kind) ?? []), name]);
+    }
+    classifiedBySpec.set(spec, c);
+    return c;
+}
+
+interface Use {
+    kind: Kind;
+    name: string;
+    node: ASTNode;
+}
+
+/** Variable reads and sets of the file, with their nodes. */
+function fileUses(ast: ASTNode, c: Classified): { reads: Use[]; sets: Use[] } {
+    const reads: Use[] = [];
+    const sets: Use[] = [];
+    const visit = (node: ASTNode): void => {
+        if (node.key && node.key.includes('variable')) {
+            const name =
+                typeof node.value === 'string'
+                    ? node.value
+                    : (node.children ?? []).find((ch) => ch.key === 'name')?.value;
+            if (typeof name === 'string' && /^[A-Za-z0-9_]+$/.test(name)) {
+                const kind = kindOfKey(node.key);
+                if ((c.setters.get(kind) ?? []).includes(node.key)) {
+                    sets.push({ kind, name, node });
+                } else if ((c.readers.get(kind) ?? []).includes(node.key)) {
+                    reads.push({ kind, name, node });
+                }
+            }
+        }
+        for (const text of [node.key, typeof node.value === 'string' ? node.value : undefined]) {
+            if (text && text.includes('var:')) {
+                for (const m of text.matchAll(
+                    /(?:^|[.\s=<>!])((?:local_|global_)?var:)([A-Za-z0-9_$]+)/g
+                )) {
+                    // A name built from a parameter (`var:offer_$DEITY$`) is not one variable.
+                    if (!m[2].includes('$')) {
+                        reads.push({ kind: PREFIX_KIND[m[1]], name: m[2], node });
+                    }
+                }
+            }
+        }
+        for (const child of node.children ?? []) {
+            visit(child);
+        }
+    };
+    visit(ast);
+    return { reads, sets };
+}
+
+/** Is the variable set (kind, name) in the file or one of the indexes? */
+function isSet(
+    kind: Kind,
+    name: string,
+    c: Classified,
+    local: Set<string>,
+    k: VariableKnowledge
+): boolean {
+    if (local.has(`${kind}|${name}`)) {
+        return true;
+    }
+    return (c.setters.get(kind) ?? []).some((key) =>
+        k.indexes.some((index) => index.hasVariableUse(`${key}|${name}`))
+    );
+}
+
+/** Is the variable read (kind, name) in one of the indexes (`variable = x` counts for any)? */
+function isReadAnywhere(kind: Kind, name: string, c: Classified, k: VariableKnowledge): boolean {
+    const prefix = Object.entries(PREFIX_KIND).find(([, v]) => v === kind)?.[0];
+    const uses = [
+        ...(c.readers.get(kind) ?? []).map((key) => `${key}|${name}`),
+        `variable|${name}`,
+        ...(prefix ? [`${prefix}|${name}`] : []),
+    ];
+    return uses.some((use) => k.indexes.some((index) => index.hasVariableUse(use)));
+}
+
+export function validateVariables(
+    node: ASTNode,
+    config: VariablesConfig,
+    knowledge: VariableKnowledge
+): Diagnostic[] {
     if (!config.enabled) {
         return [];
     }
+    const c = classify(knowledge.spec);
+    const { reads, sets } = fileUses(node, c);
+    const setHere = new Set(sets.map((s) => `${s.kind}|${s.name}`));
+    const readHere = new Set(reads.map((r) => `${r.kind}|${r.name}`));
+    const out: Diagnostic[] = [];
+    const reported = new Set<string>();
+    const kinds: Kind[] = ['var', 'local', 'global', 'dead'];
 
-    const diagnostics: Diagnostic[] = [];
-    const variables = collectVariableInfo(node);
-
-    // Check for usage before declaration
-    if (config.checkUndeclared) {
-        diagnostics.push(...checkUndeclaredVariables(variables));
-    }
-
-    // Check for unused variables
-    if (config.checkUnused) {
-        diagnostics.push(...checkUnusedVariables(variables));
-    }
-
-    // Check variable scope validity
-    if (config.checkScope) {
-        diagnostics.push(...checkVariableScopes(node, variables));
-    }
-
-    // Check variable types
-    if (config.checkTypes) {
-        diagnostics.push(...checkVariableTypes(variables));
-    }
-
-    return diagnostics;
-}
-
-/**
- * Collect all variable declarations and usages
- */
-function collectVariableInfo(node: ASTNode): Map<string, VariableInfo> {
-    const variables = new Map<string, VariableInfo>();
-
-    function traverse(n: ASTNode, currentScope: string = 'root') {
-        // Check for variable declarations
-        if (VARIABLE_DECLARATIONS.includes(n.key || '')) {
-            const varName = getVariableName(n);
-            if (varName) {
-                const known = variables.get(varName);
-                if (!known) {
-                    variables.set(varName, {
-                        name: varName,
-                        scope: currentScope,
-                        declarationNode: n,
-                        usageNodes: [],
-                        type: inferVariableType(n),
-                    });
-                } else if (!VARIABLE_DECLARATIONS.includes(known.declarationNode.key || '')) {
-                    // Used earlier in the file (e.g. a `NOT = { has_variable = x }` guard in
-                    // `trigger`) and declared later (in `immediate`): the fire-once pattern.
-                    // The declaration anywhere in the file counts; the usages are kept.
-                    known.declarationNode = n;
-                    known.scope = currentScope;
-                    known.type = inferVariableType(n);
-                }
-            }
+    for (const read of reads) {
+        const id = `${read.kind}|${read.name}`;
+        if (reported.has(id)) {
+            continue;
         }
-
-        // Check for variable usages
-        if (VARIABLE_CHECKS.includes(n.key || '')) {
-            const varName = getVariableName(n);
-            if (varName) {
-                if (!variables.has(varName)) {
-                    // Usage before declaration
-                    variables.set(varName, {
-                        name: varName,
-                        scope: currentScope,
-                        declarationNode: n, // First usage
-                        usageNodes: [n],
-                        type: 'value',
-                    });
-                } else {
-                    variables.get(varName)!.usageNodes.push(n);
-                }
-            }
+        const crossFile = read.kind !== 'local';
+        if (crossFile && !knowledge.baseGameKnown) {
+            continue;
         }
-
-        // Track scope changes
-        let newScope = currentScope;
-        if (n.key === 'every_' || n.key?.startsWith('any_') || n.key?.startsWith('random_')) {
-            newScope = n.key;
+        const setSameKind = crossFile
+            ? isSet(read.kind, read.name, c, setHere, knowledge)
+            : setHere.has(id);
+        if (setSameKind) {
+            continue;
         }
-
-        // Traverse children
-        if (n.children) {
-            n.children.forEach((child: ASTNode) => traverse(child, newScope));
-        }
-    }
-
-    traverse(node);
-    return variables;
-}
-
-/**
- * Get variable name from a node
- */
-function getVariableName(node: ASTNode): string | null {
-    // Direct value (e.g., set_variable = my_var)
-    if (typeof node.value === 'string') {
-        return node.value;
-    }
-
-    // Block form (e.g., set_variable = { name = my_var })
-    if (node.children) {
-        const nameNode = node.children.find((c: ASTNode) => c.key === 'name');
-        if (nameNode && typeof nameNode.value === 'string') {
-            return nameNode.value;
-        }
-    }
-
-    return null;
-}
-
-/**
- * Infer variable type from declaration
- */
-function inferVariableType(node: ASTNode): 'flag' | 'value' | 'list' {
-    // Flags are typically set without values
-    if (node.key === 'set_variable' && !node.children) {
-        return 'flag';
-    }
-
-    // Check for value assignment
-    if (node.children) {
-        const valueNode = node.children.find((c: ASTNode) => c.key === 'value');
-        if (valueNode) {
-            if (Array.isArray(valueNode.value)) {
-                return 'list';
-            }
-            return 'value';
-        }
-    }
-
-    return 'value'; // Default
-}
-
-/**
- * Check for undeclared variables
- */
-function checkUndeclaredVariables(variables: Map<string, VariableInfo>): Diagnostic[] {
-    const diagnostics: Diagnostic[] = [];
-
-    for (const [name, info] of variables) {
-        // Variable used but never declared with set_variable
-        const isDeclared = VARIABLE_DECLARATIONS.includes(info.declarationNode.key || '');
-
-        if (!isDeclared && info.usageNodes.length > 0) {
-            diagnostics.push({
-                severity: DiagnosticSeverity.Warning,
-                range: info.usageNodes[0].range,
-                message: `Variable "${name}" used but never declared`,
+        reported.add(id);
+        const otherKind = kinds.find(
+            (k) =>
+                k !== read.kind &&
+                (setHere.has(`${k}|${read.name}`) ||
+                    (knowledge.baseGameKnown && isSet(k, read.name, c, setHere, knowledge)))
+        );
+        if (otherKind && config.checkScope) {
+            out.push({
+                severity: DiagnosticSeverity.Information,
+                range: read.node.range,
+                message: `Convention: variable '${read.name}' is read as a ${read.kind} variable but set only as a ${otherKind} variable (a different variable)`,
+                code: 'CK3703',
+                source: 'ck3-lsp',
+            });
+        } else if (!otherKind && config.checkUndeclared) {
+            out.push({
+                severity: DiagnosticSeverity.Information,
+                range: read.node.range,
+                message: crossFile
+                    ? `Convention: variable '${read.name}' is read but set nowhere in the workspace or the base game's indexed script`
+                    : `Convention: local variable '${read.name}' is read but not set in this file`,
                 code: 'CK3701',
                 source: 'ck3-lsp',
             });
         }
     }
 
-    return diagnostics;
-}
-
-/**
- * Check for unused variables
- */
-function checkUnusedVariables(variables: Map<string, VariableInfo>): Diagnostic[] {
-    const diagnostics: Diagnostic[] = [];
-
-    for (const [name, info] of variables) {
-        const isDeclared = VARIABLE_DECLARATIONS.includes(info.declarationNode.key || '');
-
-        if (isDeclared && info.usageNodes.length === 0) {
-            diagnostics.push({
+    if (config.checkUnused) {
+        for (const set of sets) {
+            const id = `${set.kind}|${set.name}`;
+            if (reported.has(id) || readHere.has(id)) {
+                continue;
+            }
+            const crossFile = set.kind !== 'local';
+            if (
+                crossFile &&
+                (!knowledge.baseGameKnown || isReadAnywhere(set.kind, set.name, c, knowledge))
+            ) {
+                continue;
+            }
+            reported.add(id);
+            out.push({
                 severity: DiagnosticSeverity.Hint,
-                range: info.declarationNode.range,
-                message: `Variable "${name}" declared but never used`,
+                range: set.node.range,
+                message: crossFile
+                    ? `Convention: variable '${set.name}' is set but read nowhere in the workspace's or the base game's script`
+                    : `Convention: local variable '${set.name}' is set but not read in this file`,
                 code: 'CK3702',
                 source: 'ck3-lsp',
             });
         }
     }
 
-    return diagnostics;
-}
-
-/**
- * Check variable scope validity
- */
-function checkVariableScopes(
-    rootNode: ASTNode,
-    variables: Map<string, VariableInfo>
-): Diagnostic[] {
-    const diagnostics: Diagnostic[] = [];
-
-    // Check for local vs global variable mismatches
-    for (const [name, info] of variables) {
-        const isLocal = info.declarationNode.key?.includes('local');
-        const isGlobal = info.declarationNode.key?.includes('global');
-
-        for (const usage of info.usageNodes) {
-            const usageIsLocal = usage.key?.includes('local');
-            const usageIsGlobal = usage.key?.includes('global');
-
-            if (isLocal && usageIsGlobal) {
-                diagnostics.push({
-                    severity: DiagnosticSeverity.Error,
-                    range: usage.range,
-                    message: `Variable "${name}" is local but accessed as global`,
-                    code: 'CK3703',
-                    source: 'ck3-lsp',
-                });
-            } else if (isGlobal && usageIsLocal) {
-                diagnostics.push({
-                    severity: DiagnosticSeverity.Error,
-                    range: usage.range,
-                    message: `Variable "${name}" is global but accessed as local`,
-                    code: 'CK3703',
+    if (config.checkTypes) {
+        const asList = new Set(
+            sets.filter((s) => c.listSetters.has(s.node.key!)).map((s) => s.name)
+        );
+        for (const set of sets) {
+            if (
+                c.valueSetters.has(set.node.key!) &&
+                asList.has(set.name) &&
+                !reported.has(`list|${set.name}`)
+            ) {
+                reported.add(`list|${set.name}`);
+                out.push({
+                    severity: DiagnosticSeverity.Information,
+                    range: set.node.range,
+                    message: `Convention: variable '${set.name}' is used both as a list and as a value in this file`,
+                    code: 'CK3705',
                     source: 'ck3-lsp',
                 });
             }
         }
     }
-
-    return diagnostics;
+    return out;
 }
 
-/**
- * Check variable type consistency
- */
-function checkVariableTypes(variables: Map<string, VariableInfo>): Diagnostic[] {
-    const diagnostics: Diagnostic[] = [];
+/** The variable uses of a file as the engine Indexer records them (for tests). */
+export { variableUsesOf };
 
-    for (const [name, info] of variables) {
-        // Check if variable is used as different types
-        const usedAsList = info.usageNodes.some(
-            (n) => n.key === 'any_in_list' || n.key === 'ordered_in_list'
-        );
-        const usedAsValue = info.usageNodes.some(
-            (n) => n.key === 'variable_value' || n.key?.includes('compare')
-        );
-
-        if (usedAsList && usedAsValue) {
-            diagnostics.push({
-                severity: DiagnosticSeverity.Warning,
-                range: info.declarationNode.range,
-                message: `Variable "${name}" used as both list and value`,
-                code: 'CK3705',
-                source: 'ck3-lsp',
-            });
-        }
-    }
-
-    return diagnostics;
-}
-
-/**
- * Validate variable name format
- */
+/** Variable names hold only letters, digits and underscores, and do not start with a digit. */
 export function isValidVariableName(name: string): boolean {
-    // Variable names should be alphanumeric with underscores
-    // Should not start with a number
-    const validPattern = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
-    return validPattern.test(name);
-}
-
-/**
- * Validate variable value range
- */
-export function isValidVariableValue(value: unknown, type: 'flag' | 'value' | 'list'): boolean {
-    if (type === 'flag') {
-        // Flags are boolean
-        return typeof value === 'boolean';
-    } else if (type === 'value') {
-        // Values should be numbers
-        return typeof value === 'number' && !isNaN(value);
-    } else if (type === 'list') {
-        // Lists should be arrays
-        return Array.isArray(value);
-    }
-    return false;
-}
-
-/**
- * Get variable diagnostic description
- */
-export function getVariableDiagnosticDescription(code: string): string {
-    const descriptions: Record<string, string> = {
-        CK3700: 'Variable used before declaration. Declare the variable with set_variable first.',
-        CK3701: 'Variable never declared but used. Use set_variable to create the variable.',
-        CK3702: 'Variable declared but never used. Consider removing this unused variable.',
-        CK3703: 'Variable scope mismatch. Local and global variables cannot be mixed.',
-        CK3704: 'Invalid variable name. Use alphanumeric characters and underscores only.',
-        CK3705: 'Variable type mismatch. A variable is used as both a list and a value.',
-        CK3706: 'Variable value out of range. Check the value constraints.',
-    };
-
-    return descriptions[code] || 'Variable validation error';
-}
-
-/**
- * Suggest variable name corrections
- */
-export function suggestVariableName(name: string): string[] {
-    const suggestions: string[] = [];
-
-    // Convert to snake_case
-    const snakeCase = name
-        .replace(/([A-Z])/g, '_$1')
-        .toLowerCase()
-        .replace(/^_/, '');
-
-    if (snakeCase !== name) {
-        suggestions.push(snakeCase);
-    }
-
-    // Remove invalid characters
-    const cleaned = name.replace(/[^a-zA-Z0-9_]/g, '_');
-    if (cleaned !== name) {
-        suggestions.push(cleaned);
-    }
-
-    return suggestions;
+    return /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name);
 }

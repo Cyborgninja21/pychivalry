@@ -2,7 +2,7 @@
   "name": "ck3-language-support",
   "displayName": "Crusader Kings 3 Language Support",
   "description": "Language support for Crusader Kings 3 scripting language with LSP-powered features",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "publisher": "cyborgninja21",
   "license": "Apache-2.0",
   "repository": {
@@ -434,6 +434,17 @@
         }
       },
       {
+        "title": "Graphics Files",
+        "properties": {
+          "ck3LanguageServer.graphics.enabled": {
+            "type": "boolean",
+            "default": true,
+            "markdownDescription": "Report references to graphics files (`.dds`, `.png`, `.tga`) that exist neither in the workspace mods nor in the base game's `game/` and `game/dlc/*` folders (GFX001), before the game shows a pink or black checkerboard. Paths are compared case-insensitively. Nothing is reported while no base game is known (`ck3LanguageServer.gamePath`): without it a miss cannot be proven.",
+            "scope": "resource"
+          }
+        }
+      },
+      {
         "title": "Game Log Watcher",
         "properties": {
           "ck3LanguageServer.logWatcher.enabled": {
@@ -556,7 +567,7 @@
   "dependencies": {
     "fast-glob": "^3.3.3",
     "js-yaml": "^4.1.1",
-    "pychivalry-engine": "2.1.0",
+    "pychivalry-engine": "2.2.0",
     "vscode-languageclient": "^9.0.0",
     "vscode-languageserver": "^9.0.1",
     "vscode-languageserver-textdocument": "^1.0.12"

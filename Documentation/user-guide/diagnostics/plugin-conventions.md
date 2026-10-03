@@ -2,16 +2,12 @@
 
 # Plug-in: conventions
 
-Event conventions (CONV) and if/else ordering (COND).
+if/else ordering (COND), as information. (The event conventions CONV-001 to CONV-004 were retired or merged into paradox-checks in 2.2.)
 
 Source: `vscode-extension/src/server/ck3/validation/conventions.ts`.
 
-| Code | Severity | Meaning |
-| --- | --- | --- |
-| `COND-001` | warning | if, else_if, trigger_if or trigger_else_if without a limit. |
-| `COND-002` | warning | else or trigger_else with a limit (it is ignored). |
-| `COND-003` | warning | else or trigger_else without a preceding if. |
-| `CONV-001` | warning | An event with options has no type. |
-| `CONV-002` | warning | An event with options has no title. |
-| `CONV-003` | information | An event with options has no desc. |
-| `CONV-004` | warning | An option block has no name. |
+| Code | Severity | Meaning | Evidence |
+| --- | --- | --- | --- |
+| `COND-001` | information | if, else_if, trigger_if or trigger_else_if without a limit. | Convention. |
+| `COND-002` | information | else or trigger_else with a limit. | Convention. |
+| `COND-003` | information | else or trigger_else without a preceding if. | Convention. |

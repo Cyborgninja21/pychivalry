@@ -9,7 +9,11 @@ import * as path from 'path';
 
 import { contextAt } from '../../src/check/context';
 import { diagnose, PluginContext } from '../../src/diagnostics';
-import { isLocalizationFile, LocalizationIndex } from '../../src/index/localization';
+import {
+    isLocalizationFile,
+    LocalizationIndex,
+    localizationKeysOf,
+} from '../../src/index/localization';
 import { pathToUri, Workspace } from '../../src/index/workspace';
 import { Indexer, SymbolType } from '../../src/index/indexer';
 import { CK3Parser } from '../../src/syntax/parser';
@@ -56,11 +60,17 @@ describe('Host API: LocalizationIndex', () => {
         assert.ok(!isLocalizationFile('notes.yml'));
     });
 
-    it('indexes keys with a version number, skips the BOM and other yml files', async () => {
+    it('indexes keys with and without a version number, skips the BOM and other yml files', async () => {
+        // The version number is optional: the 1.20.0.2 base game's localization/english writes
+        // 135,037 entries as `key: "text"` (2.1 skipped them, issue CK4100 noise on the corpus).
         const index = new LocalizationIndex();
         const count = await index.scanDirectory(dir);
-        assert.strictEqual(count, 2);
-        assert.deepStrictEqual(index.getKeys().sort(), ['my_event.0001.a', 'my_event.0001.t']);
+        assert.strictEqual(count, 3);
+        assert.deepStrictEqual(index.getKeys().sort(), [
+            'my_event.0001.a',
+            'my_event.0001.desc',
+            'my_event.0001.t',
+        ]);
         const entry = index.findLocalization('my_event.0001.t');
         const file = path.join(dir, 'english', 'test_l_english.yml');
         assert.deepStrictEqual(entry, {
@@ -72,8 +82,14 @@ describe('Host API: LocalizationIndex', () => {
         });
         assert.deepStrictEqual(
             index.entriesOf(pathToUri(file)).map((e) => e.key),
-            ['my_event.0001.t', 'my_event.0001.a']
+            ['my_event.0001.t', 'my_event.0001.desc', 'my_event.0001.a']
         );
+    });
+
+    it('reads entries with a trailing comment and CRLF line ends (localizationKeysOf)', () => {
+        const text =
+            'l_english:\r\n key_a:0 "A" # a comment\r\n key_b: "B"\r\nkey_c:0 "no indent"\r\n';
+        assert.deepStrictEqual(localizationKeysOf(text), ['key_a', 'key_b']);
     });
 
     it('replaces a file on re-index and clears it', () => {

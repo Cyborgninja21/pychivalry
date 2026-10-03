@@ -2,14 +2,17 @@
 
 # Plug-in: scope-timing
 
-The event evaluation order: trigger and desc are evaluated before immediate runs, so scopes and variables created in immediate are not available there.
+The event evaluation order: trigger, then immediate, then the window (title, desc and its triggered_desc triggers, portraits, options), then the chosen option, then after. Scopes saved in immediate are available to the window; scopes saved in an option or in after are not. All codes are conventions (information).
 
 Source: `vscode-extension/src/server/ck3/validation/scope-timing.ts`.
 
-| Code | Severity | Meaning |
-| --- | --- | --- |
-| `CK3550` | error | A scope used in the trigger block is saved in immediate, which runs after the trigger is evaluated. |
-| `CK3551` | warning | A scope used in the desc block is saved in immediate; desc may be evaluated before immediate runs. |
-| `CK3552` | error | A scope used in a triggered_desc trigger is saved in immediate, which runs after those triggers. |
-| `CK3553` | error | A variable checked in the trigger block is set in immediate, which runs after the trigger is evaluated. |
-| `CK3554` | warning | A temporary scope (save_temporary_scope_as) is passed to a triggered event; it does not persist across events. |
+| Code | Severity | Meaning | Evidence |
+| --- | --- | --- | --- |
+| `CK3550` | information | A scope read in the trigger block is saved in immediate (which runs after the trigger is evaluated) and not earlier in the trigger itself; it exists only if the calling event passes it. | Convention. Not reported when the trigger saves the scope before reading it (issue |
+| `CK3551` | information | A scope read in desc is saved by the event only in an option or in after, which run after the window is shown. | Convention. Before 2.2 it reported scopes saved in immediate, which the window can read (issue #95). |
+| `CK3552` | information | A scope read in a triggered_desc trigger is saved by the event only in an option or in after. | Convention. Before 2.2 an error for scopes saved in immediate: the window is evaluated after immediate, and 864 vanilla events read an immediate-saved scope in a triggered_desc trigger (issue #95). |
+| `CK3553` | information | A local variable checked in the trigger block is set in immediate; local variables do not outlive the effect that sets them. | Convention. Before 2.2 an error for any variable: ordinary and global variables persist, and checking one an earlier firing set is the intended pattern (issue #97). |
+| `CK3554` | information | A temporary scope (save_temporary_scope_as) is passed to a triggered event; it does not persist across events. | Convention. |
+| `CK3560` | information | The desc localization text reads a saved scope ([name.GetFirstName], [SCOPE.sC('name')]) that the event saves only in an option or in after, after the window is shown. | Convention (issue #60, the localization half, on the corrected evaluation order of #95: a scope saved in immediate is available to the text and is not reported). Needs the localization index; keys without an entry are not judged. |
+| `CK3561` | information | The title localization text reads a saved scope that the event saves only in an option or in after. | Convention (issue |
+| `CK3563` | information | Trigger guard: immediate saves a scope from a random_ iterator, an option uses it, and the trigger has no any_ iterator over the same list, so the scope can be unset when nothing matches. | Convention (issue |

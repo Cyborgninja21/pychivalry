@@ -6,8 +6,8 @@ switch blocks.
 
 Source: `vscode-extension/src/server/ck3/validation/switch-validation.ts`.
 
-| Code | Severity | Meaning |
-| --- | --- | --- |
-| `SWITCH-001` | error | A switch block has no trigger field. |
-| `SWITCH-002` | warning | A switch block has no branch values. |
-| `SWITCH-003` | warning | The switch trigger names no trigger of the spec package and no workspace scripted trigger. |
+| Code | Severity | Meaning | Evidence |
+| --- | --- | --- | --- |
+| `SWITCH-001` | information | A switch block has no trigger field. | Convention. |
+| `SWITCH-002` | information | A switch block has no branch values. | Convention. |
+| `SWITCH-003` | warning | The switch trigger names no trigger of the spec package and no scripted trigger of the workspace or the base game (reported only while the base game is known). | The game logs an unknown trigger (catalogue unknown_trigger_X, "Unknown trigger '%s'"). |

@@ -285,7 +285,7 @@ This directory contains comprehensive examples demonstrating all PyChivalry vali
 - **ON_ACTION-002**: Empty events list → `10_on_actions/bad_on_actions.txt`
 
 ### Assets
-- **GFX001**: Missing graphics file reference → `11_assets/bad_asset_refs.txt`
+- **GFX001**: Missing graphics file reference → `vscode-extension/src/test/fixtures/mock-ck3-mod/events/bad_graphics.txt` (reported only with a base game known; the `picture =` paths of `11_assets/bad_asset_refs.txt` use a key the check does not read)
 - **SND001**: Missing sound file reference → `11_assets/bad_asset_refs.txt`
 - **SND002**: Invalid music event path format → `11_assets/bad_asset_refs.txt`
 

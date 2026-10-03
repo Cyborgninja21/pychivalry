@@ -704,6 +704,10 @@
             "expected": [],
             "phase4": "CONV-001..CONV-003 and EVENT-001/002/011/013 are naming and event-structure conventions"
         },
+        "events/bad_graphics.txt": {
+            "expected": [],
+            "phase4": "GFX001 (two graphics files that exist nowhere) is the graphics plug-in's, which needs the file system and the base game; the fixture is PR #56's, kept as written, so the engine also reports its graphics keys where CK3 does not read them (background and icon in an event, icon in an option), which the fixture does not intend"
+        },
         "events/bad_iterators.txt": {
             "expected": [
                 {

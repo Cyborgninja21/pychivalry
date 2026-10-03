@@ -7,9 +7,13 @@
  * - Branch values should be valid for the trigger type
  *
  * DIAGNOSTIC CODES:
- *     SWITCH-001: switch block missing 'trigger' field
- *     SWITCH-002: switch block has no branch values
- *     SWITCH-003: unknown trigger reference in switch
+ *     SWITCH-001 (information, convention): switch block without a 'trigger' field
+ *     SWITCH-002 (information, convention): switch block without branch values
+ *     SWITCH-003 (warning): the header names no trigger of the spec package and no scripted
+ *                trigger of the workspace or the base game (the game's "Unknown trigger '%s'",
+ *                catalogue unknown_trigger_X); only plain names are judged (not
+ *                `scope:x.var:y` or `$PARAM$` headers), and only while the base game is
+ *                loaded (its scripted triggers are otherwise unknown)
  *
  * Kept as an engine plug-in: the engine reads `switch` as a container (its `trigger`
  * parameter and case blocks) but does not check that the header names a trigger or that
@@ -95,9 +99,9 @@ function validateSwitchBlock(
 
     if (!hasTrigger) {
         diagnostics.push({
-            severity: DiagnosticSeverity.Error,
+            severity: DiagnosticSeverity.Information,
             range: node.range,
-            message: "Switch block is missing required 'trigger' field",
+            message: "Convention: switch block without a 'trigger' field",
             code: 'SWITCH-001',
             source: 'ck3-switch',
         });
@@ -105,16 +109,16 @@ function validateSwitchBlock(
 
     if (branchCount === 0) {
         diagnostics.push({
-            severity: DiagnosticSeverity.Warning,
+            severity: DiagnosticSeverity.Information,
             range: node.range,
-            message: 'Switch block has no branch values',
+            message: 'Convention: switch block without branch values',
             code: 'SWITCH-002',
             source: 'ck3-switch',
         });
     }
 
     // Validate trigger reference exists
-    if (triggerValue && config.isTrigger) {
+    if (triggerValue && config.isTrigger && /^[A-Za-z_][A-Za-z0-9_]*$/.test(triggerValue)) {
         if (!config.isTrigger(triggerValue)) {
             diagnostics.push({
                 severity: DiagnosticSeverity.Warning,

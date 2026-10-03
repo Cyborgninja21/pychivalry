@@ -246,6 +246,47 @@ function traverse(node: ASTNode, callback: (node: ASTNode) => void): void {
     }
 }
 
+/** `var:x`, `local_var:x`, `global_var:x` anywhere in a key or value (chains included). */
+const VARIABLE_PREFIX_RE = /(?:^|[.\s=<>!])((?:local_|global_)?var):([A-Za-z0-9_$]+)/g;
+
+/**
+ * The variable uses of one file: `<key>|<name>` for every node whose key names a variable
+ * keyword (any key containing `variable`, with the name as its value or its `name` child)
+ * and `<prefix>|<name>` for every `var:`, `local_var:` and `global_var:` reference. Which
+ * keys set and which read a variable is decided by the caller from the spec package.
+ */
+export function variableUsesOf(ast: ASTNode): Set<string> {
+    const uses = new Set<string>();
+    const scan = (text: string): void => {
+        VARIABLE_PREFIX_RE.lastIndex = 0;
+        let m: RegExpExecArray | null;
+        while ((m = VARIABLE_PREFIX_RE.exec(text)) !== null) {
+            // A name built from a parameter (`var:offer_$DEITY$`) is not one variable.
+            if (!m[2].includes('$')) {
+                uses.add(`${m[1]}:|${m[2]}`);
+            }
+        }
+    };
+    traverse(ast, (node) => {
+        if (node.key) {
+            if (node.key.includes('variable')) {
+                const name =
+                    typeof node.value === 'string' ? node.value : findChildValue(node, 'name');
+                if (name && /^[A-Za-z0-9_]+$/.test(name)) {
+                    uses.add(`${node.key}|${name}`);
+                }
+            }
+            if (node.key.includes('var:')) {
+                scan(node.key);
+            }
+        }
+        if (typeof node.value === 'string' && node.value.includes('var:')) {
+            scan(node.value);
+        }
+    });
+    return uses;
+}
+
 /**
  * Workspace-wide symbol index
  */
@@ -260,6 +301,9 @@ export class Indexer {
     /** References to names without a definition when they were indexed. */
     private unresolved: Map<string, ReferenceLocation[]> = new Map();
     private callGraph: CallGraph = new CallGraph(this);
+    /** Variable uses per file (variableUsesOf) and their counts over the index. */
+    private variableUsesByUri: Map<string, Set<string>> = new Map();
+    private variableUseCounts: Map<string, number> = new Map();
     /** Names each file mentions (uri → names) and the reverse (name → uris). */
     private mentionsByUri: Map<string, Set<string>> = new Map();
     private mentionIndex: Map<string, Set<string>> = new Map();
@@ -311,6 +355,13 @@ export class Indexer {
         if (this.trackMentions) {
             this.extractMentions(uri, ast);
         }
+        const uses = variableUsesOf(ast);
+        if (uses.size > 0) {
+            this.variableUsesByUri.set(uri, uses);
+            for (const use of uses) {
+                this.variableUseCounts.set(use, (this.variableUseCounts.get(use) ?? 0) + 1);
+            }
+        }
     }
 
     /**
@@ -327,6 +378,26 @@ export class Indexer {
         }
         this.clearEnhancedData(uri);
         this.clearMentions(uri);
+        const uses = this.variableUsesByUri.get(uri);
+        if (uses) {
+            for (const use of uses) {
+                const n = (this.variableUseCounts.get(use) ?? 0) - 1;
+                if (n > 0) {
+                    this.variableUseCounts.set(use, n);
+                } else {
+                    this.variableUseCounts.delete(use);
+                }
+            }
+            this.variableUsesByUri.delete(uri);
+        }
+    }
+
+    /**
+     * Is the variable use `<key>|<name>` (see variableUsesOf) in any indexed file? For a
+     * plug-in that judges variables across the workspace instead of one file.
+     */
+    public hasVariableUse(use: string): boolean {
+        return this.variableUseCounts.has(use);
     }
 
     private extractMentions(uri: string, ast: ASTNode): void {
@@ -464,6 +535,8 @@ export class Indexer {
         this.unresolved.clear();
         this.mentionsByUri.clear();
         this.mentionIndex.clear();
+        this.variableUsesByUri.clear();
+        this.variableUseCounts.clear();
     }
 
     /** Find symbols by name */

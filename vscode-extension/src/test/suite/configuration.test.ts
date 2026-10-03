@@ -61,6 +61,7 @@ suite('Configuration Tests', () => {
                 'backgroundValidation.enabled',
                 'backgroundValidation.concurrency',
                 'backgroundValidation.fileLimit',
+                'graphics.enabled',
                 'formatting.enabled',
                 'formatting.insertSpaces',
                 'formatting.tabSize',
@@ -90,6 +91,17 @@ suite('Configuration Tests', () => {
             const inspect = config.inspect('enable');
 
             assert.strictEqual(inspect?.defaultValue, true, 'enable default should be true');
+        });
+
+        test('graphics.enabled should default to true', () => {
+            const inspect = vscode.workspace
+                .getConfiguration('ck3LanguageServer')
+                .inspect('graphics.enabled');
+            assert.strictEqual(
+                inspect?.defaultValue,
+                true,
+                'graphics.enabled default should be true'
+            );
         });
 
         test('logLevel should default to "info"', () => {

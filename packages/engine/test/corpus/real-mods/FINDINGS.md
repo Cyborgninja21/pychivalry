@@ -20,7 +20,168 @@ the scope check (`wrong_scope_for_trigger_X_expected_X`, `wrong_scope_for_effect
 code and every error are identical to the Phase 1 records, so there is no new finding to
 classify and no new issue.
 
-## Summary
+**The graphics-file check (GFX001, post-2.0 Phase 3).** Re-recorded on the editor path
+2026-10-03 with the base game set (`CK3_GAME_PATH` = the 1.20.0.2 `game` directory): the records
+change only by `GFX001` entries (warnings, so the error tables below are unchanged; the engine
+path has no plug-ins and is unchanged). Each reference is looked up, case-insensitively, in the
+mod root, then `game/`, then the 22 `game/dlc/<dlc>/` folders of the install (24 roots).
+
+| Mod | GFX001 (editor path) |
+| --- | ---: |
+| balance-of-power-ui | 0 |
+| divine-intervention | 0 |
+| elf-destiny | 0 |
+| rice | 3 |
+| viet-events | 0 |
+
+All three are real missing files (the same `RICE_consecrate_holy_well` decision, culture-gated
+`picture` blocks). Looked for in `rice/`, `game/` and every `game/dlc/*` folder: found in none.
+The mod has each file under `gfx/interface/illustrations/decisions/` and its other decisions
+reference them there (`RICE_chios_decisions.txt:71`, `RICE_khuzestan_decisions.txt:389`, …);
+these three point at `event_scenes/` instead, so the game shows no picture for them.
+
+| Mod | File:line | Referenced path | Looked in | Classification |
+| --- | --- | --- | --- | --- |
+| rice | `common/decisions/RICE_mayo_decisions.txt:425` | `gfx/interface/illustrations/event_scenes/decision_erect_homer_monument.dds` | `rice/`, `game/`, `game/dlc/dlc001_preorder` … `dlc030_ce3` (22): absent; exists as `rice/gfx/interface/illustrations/decisions/decision_erect_homer_monument.dds` | real missing file (wrong folder) |
+| rice | `common/decisions/RICE_mayo_decisions.txt:431` | `gfx/interface/illustrations/event_scenes/decision_visit_western_oasis_springs.dds` | the same 24 roots: absent; exists as `rice/gfx/interface/illustrations/decisions/decision_visit_western_oasis_springs.dds` | real missing file (wrong folder) |
+| rice | `common/decisions/RICE_mayo_decisions.txt:437` | `gfx/interface/illustrations/event_scenes/decision_RICE_east_asian_garden.dds` | the same 24 roots: absent; exists as `rice/gfx/interface/illustrations/decisions/decision_RICE_east_asian_garden.dds` | real missing file (wrong folder) |
+
+No false positive, so no new issue.
+
+## 2.2.0: the release records (post-2.0 Phase 4, step 4.7)
+
+The records in this folder are the 2.2.0 build's (2026-10-03), base game set. Errors and
+warnings are the same as after step 4.0: **every error-severity editor finding is a real
+defect** (0 / 0 / 15 / 92 / 1, the engine path's list, classified below) and the warnings are
+the engine's `unknown_X_in_X` (1,582) plus CK3800 (6), CK4100 (3) and GFX001 (3), each
+evidence-backed (table in the step 4.0 section).
+
+**The per-file cap keeps the most severe first (2.2 fix-up).** The provider publishes at most
+1,000 diagnostics per file. Until this fix it kept the first 1,000 by position, so in a long
+file full of style hints an error near the end would not be published (none was on this
+corpus: the editor's errors already equalled the engine's). A capped file now keeps errors,
+then warnings, information and hints, and the corpus suite compares the editor's errors with
+the engine's in capped files too. Re-recorded with the fix, errors are unchanged and in the
+capped files hints give way to more severe findings, error / warning / information / hint:
+
+| Mod | Files at cap | Before the fix | After the fix | Change |
+| --- | ---: | --- | --- | --- |
+| balance-of-power-ui | 0 | 0 / 0 / 7 / 331 | 0 / 0 / 7 / 331 | none |
+| divine-intervention | 14 | 0 / 0 / 468 / 24,547 | 0 / 0 / 1,441 / 23,574 | +973 information, -973 hints |
+| elf-destiny | 22 | 15 / 500 / 1,585 / 47,729 | 15 / 501 / 1,779 / 47,534 | +1 warning (unknown_X_in_X), +194 information, -195 hints |
+| rice | 23 | 92 / 1,064 / 2,968 / 145,819 | 92 / 1,064 / 3,618 / 145,169 | +650 information, -650 hints |
+| viet-events | 5 | 1 / 29 / 635 / 10,428 | 1 / 29 / 929 / 10,134 | +294 information, -294 hints |
+
+The per-code counts in the table below are the records before this fix; the codes that move
+are the information codes of capped files (CK3977, CK3875, undefined_event_target_X, CK3656,
+CK5137, CK3563 …) up and the style hints (CK3303, CK3317, CK3304 …) down by the same totals. Every change since 2.1, by code, summed over
+the five mods (editor path):
+
+| Code | 2.1 | 2.2.0 | Why |
+| --- | ---: | ---: | --- |
+| CK5142 (error) | 267 | 0 | removed, #91 |
+| CK3873 | 128 (error) | 128 (hint) | `always = no` is deliberate, #92 |
+| CK3950, CK3951 (error) | 202 | 0 | removed, #93 |
+| CK3420 (error) | 10 | 0 | removed, #94 |
+| CK3552 | 78 (error) | 12 (information) | corrected evaluation order, #95 |
+| CK3550 | 2 (error) | 4 (information) | a scope saved earlier in the trigger is fine, #96; the rest are conventions |
+| CK3553 (error) | 1 | 0 | only local variables, #97 |
+| CK4100 (warning) | 7,622 | 3 | real localization fields only; the base game's keys; `key: "text"` entries read |
+| CK3430 + EVENT-003 (warnings) | 2,880 | 0 | one code, against the workspace's and the base game's themes |
+| CK3340 (warning) | 425 | 0 | merged into the engine's chain check |
+| CK3800 (warning) | 155 | 6 | trait groups known; traditions are not traits |
+| EVENT-002 (warning) | 172 | 0 | `type` is optional |
+| CONV-002 (warning) | 44 | 0 | renamed CK3765 (43, information): every non-hidden event without title |
+| LOC-001 (warning) | 31 | 0 | literal script-value `desc` labels are not localization fields; the script-file code is CK4101 |
+| CK3701 | 716 (warning) | 276 (information) | judged across the workspace and the base game |
+| CK3702 (hint) | 876 | 88 | the same |
+| ITER-003 | 22 (warning) | 22 (information) | convention |
+| COND-001 / COND-002 / COND-003 | 10 / 5 / 2 (warning) | 10 / 5 / 2 (information) | conventions |
+| CK3511, CK3450, CONV-001, CONV-004, SWITCH-003, CK3341 | 3, 1, 9, 1, 13, 1 (warning) | 3, 1 (information), 0, 0, 0, 0 | conventions; CONV-001 removed (type optional), CONV-004 merged into CK3450, SWITCH-003 judged only against plain trigger names with the base game's scripted triggers, CK3341 merged into the engine |
+| CK3301, CK3303, CK3314 (warnings); CK3304, CK3306, CK3316, CK3317 (information) | 20,392, 79,302, 2,163; 36,094, 34,845, 3,675, 48,465 | 20,427, 79,525, 2,164; 35,988, 34,904, 3,672, 48,626 (all hints) | style; the counts move only through the 1000-per-file cap |
+| CK3612, CK3611 (information) | 14, 2 (base = 0, base above 100) | 11, 11 | new meanings: total can be negative (#22), total always zero (#21) |
+| CK3613, CK3563, CK3433, CK3522, CK3422 | (new) | 3,321 hint, 108, 14, 11 hint, 16 | #23, #60, #28, #19; CK3422 never reported before 2.2 |
+| CK3769, CK3762, CK3763, CK3764 (information) | 0 | 123, 2, 1, 1 | the event checks now run on every event |
+| CONV-003 (information) | 2 | 0 | merged into CK3764 |
+| CK3703 (information) | 0 | 3 | judged across the workspace (a variable read in one namespace and set only in another) |
+| CK3875, CK5137, CK3656 (information); undefined_event_target_X (engine) | 2,009, 442, 269; 1,428 | 2,017, 443, 266; 1,429 | unchanged checks; the counts move only through the 1000-per-file cap |
+
+Unchanged counts: CK3977 (665), CK3872 (130), ITER-004 (45), GFX001 (3) and the engine's other
+codes. Total findings 245,310 → 236,218.
+
+## 2.2: the plug-in false positives are fixed (post-2.0 Phase 4, step 4.0)
+
+Re-recorded on the editor path 2026-10-03 after the evidence audit of the plug-in catalogue
+([diagnostics-evidence.md](../../../../../Documentation/developer-guide/diagnostics-evidence.md)).
+The engine path is unchanged. **Every error-severity editor finding is now a real defect the
+engine path proves:** 0 / 0 / 15 / 92 / 1 (balance-of-power-ui, divine-intervention,
+elf-destiny, rice, viet-events), the same list as the engine path's, classified in the tables
+below. All seven false positives are fixed, each pinned by its corpus case in
+`vscode-extension/src/test/unit/plugin-false-positives.test.ts`:
+
+| Issue | Code | Fix | Editor errors before → after |
+| --- | --- | --- | --- |
+| [#91](https://github.com/Cyborgninja21/pychivalry/issues/91) | CK5142 | removed: `liege = root` is the ordinary comparison | 267 → 0 |
+| [#92](https://github.com/Cyborgninja21/pychivalry/issues/92) | CK3873 | a hint: `always = no` switches content off on purpose | 128 → 0 (128 hints) |
+| [#93](https://github.com/Cyborgninja21/pychivalry/issues/93) | CK3950, CK3951 | removed: only tagged colour values reached them; undefined calls are the engine's unknown_effect_X / unknown_trigger_X | 202 → 0 |
+| [#94](https://github.com/Cyborgninja21/pychivalry/issues/94) | CK3420 | removed: an unknown event field is the engine schema check's unknown_X_in_X | 10 → 0 |
+| [#95](https://github.com/Cyborgninja21/pychivalry/issues/95) | CK3552 | the window is evaluated after immediate; reports (information) only scopes saved in an option or after | 78 → 0 (12 information) |
+| [#96](https://github.com/Cyborgninja21/pychivalry/issues/96) | CK3550 | a scope saved earlier in the trigger is available; information | 2 → 0 (4 information) |
+| [#97](https://github.com/Cyborgninja21/pychivalry/issues/97) | CK3553 | variables persist; only local variables are reported (information) | 1 → 0 |
+
+**Warnings left, and why each is evidence-backed.** The plug-ins leave three warning classes
+on the corpus, each a catalogue message of the game and each checked by hand against the mod
+and the 1.20.0.2 base game; the engine's own `unknown_X_in_X` (1,581 at step 4.0, a field the directory
+schema does not list) is unchanged.
+
+| Code | Count | Evidence | Findings |
+| --- | ---: | --- | --- |
+| CK3800 | 6 (elf-destiny) | `unknown_trait_X_in_event_at_X` | `trait = pillager` in `history/characters/dark_elf_tinder_characters.txt` (lines 99, 146, 193, 250, 297, 344): no `pillager` trait or trait group in the mod's or the base game's `common/traits` |
+| CK4100 | 3 (elf-destiny) | `unknown_loc_key_X` | `events/elf_destiny_debug_menu.txt:713`, `:714`, `:727` name `elf_destiny_debug_menu.023.title`, `.desc`, `.culture`: in no localization file of the mod or the base game |
+| GFX001 | 3 (rice) | `failed_to_load_texture_X_file_not_found` | the three `RICE_mayo_decisions.txt` pictures below (Phase 3) |
+
+What went away besides the false positives: CK4100 (7,622 → 3) reads only real localization
+fields (gene names in ethnicities, script-value breakdown labels and trigger_localization keys
+were read as keys) and the base game's 297,792 English keys, and the localization index now
+reads `key: "text"` entries without a version number (65,842 of them in the corpus' own
+localization); CK3430 / EVENT-003 (2,880 → 0) judge a theme against the workspace's and the
+base game's `common/event_themes` instead of 32 hard-coded names (VIET's own themes and
+vanilla themes such as `feast_activity` were reported); CK3340 (425 → 0) was merged into the
+engine's chain check; CK3800 (155 → 6) knows trait groups (`has_trait = lunatic`, the
+group_equivalence the base game itself uses 542 times) and culture traditions are no longer
+read as traits; EVENT-002 (172 → 0, a missing `type`, which is optional); CK3701 (716 → 276)
+and CK3702 (876 → 88) look across the workspace and the base game, and are information and
+hint. Style codes are hints. Counts per code before and after: the audit table of
+diagnostics-evidence.md.
+
+## 2.2: the new codes of steps 4.1 to 4.4, and the quick-fix ranking (step 4.5)
+
+Re-recorded on the editor path after step 4.4 (2026-10-03). Errors and warnings are unchanged
+from step 4.0 (errors 0 / 0 / 15 / 92 / 1, the same warning classes); the new codes are all
+conventions at information or hint severity, summed over the five mods:
+
+| Code | Severity | Count | What |
+| --- | --- | ---: | --- |
+| CK3613 | hint | 3,321 | an option of a several-option event without ai_chance or ai_will_select (#23) |
+| CK3563 | information | 108 | trigger guard: a random_ save used by an option without an any_ check (#60) |
+| CK3765 | information | 43 | a non-hidden event without title (#25; CONV-002's 44 were events with options) |
+| CK3433 | information | 14 | an override_background equal to the theme's own background (#28) |
+| CK3611 | information | 11 | an ai_chance total that is always zero (#21) |
+| CK3612 | information | 11 | an ai_chance total that can be negative (#22) |
+| CK3522 | hint | 11 | an after block that only cleans up (#19) |
+
+CK3423 to CK3426, CK3431, CK3560 and CK3561 report nothing on the corpus (every background
+reference exists, no desc or title text reads a scope saved only in an option).
+
+**The ten most frequent plug-in codes** on these records (step 4.5, issue #85), with the quick
+fix each has: CK3303 79,525 (indentation to tabs), CK3317 48,627 (none: reducing nesting means
+extracting blocks, a design choice), CK3304 35,989 (remove trailing whitespace), CK3306 34,904
+(spaces around the operator), CK3301 20,427 (indentation to tabs), CK3316 3,672 (none: where to
+break a line is a judgement), CK3613 3,321 (add `ai_chance = { base = 100 }`), CK3314 2,164
+(remove the empty block), CK3875 2,017 and CK3977 665 (none: the filter of an iterator is the
+author's decision; an inserted empty limit would change nothing).
+
+## Summary (2.1 records)
 
 | Mod | Engine path errors | Editor path errors |
 | --- | --- | --- |

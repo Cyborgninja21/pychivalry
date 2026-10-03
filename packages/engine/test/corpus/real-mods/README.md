@@ -54,8 +54,8 @@ node packages/engine/scripts/corpus-acceptance.js /home/cwallace/ck3-corpus "<CK
 Editor path (the integration suite, then one Extension Development Host per mod with the mod as
 the workspace folder, `ck3LanguageServer.gamePath` = `CK3_GAME_PATH` and every other setting
 at its shipped default; writes the `editor` record and fails if a finding is not classified or
-if the editor's own engine errors differ from the engine path outside the files the provider
-caps):
+if the editor's own engine errors differ from the engine path, in any file, capped files
+included):
 
 ```
 cd vscode-extension
@@ -105,8 +105,30 @@ that the budget run above measured at 27.2 s. Against that control the 2.1 engin
 timings in the records scale the same way (RICE first full result 58.1 s). Counts per code and
 errors are identical to the Phase 1 records on both paths.
 
-**The 1000-per-file cap.** The diagnostics provider publishes at most 1000 diagnostics per file
-(sorted by position), and with the plug-ins several big files reach it (14 files in Divine
-Intervention, 22 in Elf Destiny, 25 in RICE, 4 in VIET Events: `filesAtCap`). Outside those
-files the editor's `ck3-engine` error findings are identical, file, line and code, to the engine
-path's (asserted by the corpus suite).
+**Re-recorded for the graphics check (Phase 3).** The `editor` records were made again on
+2026-10-03 with the `graphics` plug-in (GFX001); counts per code, `bySeverity` and every error
+are identical to the 2.1 records except RICE's 3 `GFX001` warnings (classified in
+[FINDINGS.md](FINDINGS.md)); only the timing fields differ otherwise.
+
+**Re-recorded for 2.2 (Phase 4, the evidence audit).** The `editor` records were made again on
+2026-10-03 after each step of Phase 4 that changes what the plug-ins report; the `engine`
+records are unchanged. The error-severity editor findings are now exactly the engine path's
+real defects, and the changes per code are explained in [FINDINGS.md](FINDINGS.md) and in the
+audit table of `Documentation/developer-guide/diagnostics-evidence.md`.
+
+**2.2.0 (step 4.7).** The records in this folder were made last with the 2.2.0 build
+(2026-10-03). Editor time to first full result and server peak RSS: balance-of-power-ui 13.0 s
+/ 308 MB, divine-intervention 13.1 s / 342 MB, elf-destiny 18.8 s / 396 MB, rice 34.7 s /
+733 MB, viet-events 18.3 s / 446 MB; the longest single file held the server 284.4 ms
+(`rice/common/decisions/RICE_mayo_decisions.txt`). Against the Phase 1 budget (RICE 20.6 s at
+704 MB) the server now also reads, once at start-up, the base game's English localization keys
+(297,792), event themes and backgrounds, portrait animations and traits for the plug-ins; the
+box's load varies between runs (the run after step 4.4, with nearly the same code, took RICE 86.4 s).
+
+**The 1000-per-file cap.** The diagnostics provider publishes at most 1000 diagnostics per file,
+and with the plug-ins several big files reach it (`filesAtCap`). Since 2.2 a file over the cap
+keeps its most severe findings first (errors, then warnings, information, hints, by position
+within a severity) and publishes them in position order; until then it kept the first 1000 by
+position, so an error at the end of a long file full of style hints was not published. The
+editor's `ck3-engine` error findings are identical, file, line and code, to the engine path's
+in every file, capped ones included (asserted by the corpus suite).

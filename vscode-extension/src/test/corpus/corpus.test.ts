@@ -222,20 +222,17 @@ suite('Real-mod corpus (editor path)', () => {
             []
         );
 
-        // The editor shows the engine's own error findings exactly as the engine path does,
-        // except in files whose diagnostics the provider caps at 1000 per file.
+        // The editor shows the engine's own error findings exactly as the engine path does, in
+        // every file: a file over the per-file cap keeps its errors first (2.2), so capped
+        // files are compared too.
         const engineErrors: Array<{ file: string; line: number; code: string }> | undefined =
             existing.engine?.errors;
         if (engineErrors) {
-            const capped = new Set(filesAtCap);
             const key = (e: { file: string; line: number; code: string }) =>
                 `${e.file}:${e.line}:${e.code}`;
-            const fromEngine = engineErrors
-                .filter((e) => !capped.has(e.file))
-                .map(key)
-                .sort();
+            const fromEngine = engineErrors.map(key).sort();
             const fromEditor = errors
-                .filter((e) => e.source === 'ck3-engine' && !capped.has(e.file))
+                .filter((e) => e.source === 'ck3-engine')
                 .map(key)
                 .sort();
             assert.deepStrictEqual(fromEditor, fromEngine);

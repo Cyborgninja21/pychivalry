@@ -1,6 +1,6 @@
 {
     "name": "pychivalry-engine",
-    "version": "2.1.0",
+    "version": "2.2.0",
     "description": "CK3 script engine core: parser, registry, schema and scope checks driven by the engine-derived spec package",
     "license": "Apache-2.0",
     "repository": {

@@ -2,12 +2,12 @@
 
 # Plug-in: localization-references
 
-Localization keys referenced from script: literal text where a key belongs, and keys missing from the workspace's localization files.
+Localization keys referenced from script (an event's title, desc and opening, an option's name, a decision's title, desc, selection_tooltip and confirm_text, any custom_tooltip): literal text where a key belongs, and keys defined neither in the workspace's localization files nor in the base game's (only while the base game is known, ck3LanguageServer.gamePath).
 
 Source: `vscode-extension/src/server/ck3/validation/conventions.ts`.
 
-| Code | Severity | Meaning |
-| --- | --- | --- |
-| `CK4100` | warning | A localization key referenced from script is not defined in the workspace's localization files. |
-| `LOC-001` | warning | In script files, a title, desc or name value contains spaces (literal text where a localization key belongs). In localization files, an entry key the localization index cannot read (it starts with a digit, or contains spaces, dashes or other punctuation). |
-| `LOC-002` | warning | In script files, a tooltip value contains spaces (literal text where a localization key belongs). In localization files, an unknown character function such as [ROOT.Char.GetNam]. |
+| Code | Severity | Meaning | Evidence |
+| --- | --- | --- | --- |
+| `CK4100` | warning | A localization key referenced from script is defined neither in the workspace's localization files nor in the base game's (reported only while the base game is known). | The game logs the missing key: catalogue unknown_loc_key_X ("Unknown loc key %s") and game/events/_events.info ("Missing localization keys are logged as errors"). |
+| `CK4101` (renamed from `LOC-001`) | warning | A localization field of a script file (an event's title, desc or opening, an option's name, a decision's title or desc) holds literal text with spaces. | The game reads the text as a key and logs it missing (catalogue unknown_loc_key_X, "Unknown loc key %s"; game/events/_events.info: "Missing localization keys are logged as errors"); a key with spaces cannot be defined. LOC-001 until 2.1, renamed because LOC-001 means an unreadable key in localization files. |
+| `CK4102` (renamed from `LOC-002`) | warning | A custom_tooltip of a script file holds literal text with spaces. | As CK4101. LOC-002 until 2.1, renamed because LOC-002 means an unknown character function in localization files. |

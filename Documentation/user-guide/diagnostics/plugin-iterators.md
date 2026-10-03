@@ -6,7 +6,7 @@ ordered_ iterator parameters.
 
 Source: `vscode-extension/src/server/ck3/validation/iterators.ts`.
 
-| Code | Severity | Meaning |
-| --- | --- | --- |
-| `ITER-003` | warning | An ordered_ iterator without order_by. |
-| `ITER-004` | information | An ordered_ iterator without position or max. |
+| Code | Severity | Meaning | Evidence |
+| --- | --- | --- | --- |
+| `ITER-003` | information | An ordered_ iterator without order_by. | Convention (every vanilla ordered_ iterator has one; no catalogue message). |
+| `ITER-004` | information | An ordered_ iterator without position or max. | Convention. |
