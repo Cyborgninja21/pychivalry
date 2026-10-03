@@ -220,13 +220,14 @@ export function registerLogNotifications(client: LanguageClient): void {
     client.onNotification('ck3/logWatcherPaused', () => logger.logServer('Log watcher paused'));
     client.onNotification('ck3/logWatcherResumed', () => logger.logServer('Log watcher resumed'));
 
-    // Workspace scanning and indexing output
+    // Workspace scanning and indexing output (CK3: Index). The handlers are registered right
+    // after start(): the server sends its first ck3/indexLog only once it has received the
+    // `initialized` notification, which start() sends before it resolves. Verified by the
+    // integration test index-channel.test.ts (#59).
     client.onNotification('ck3/indexLog', (params: { message: string }) => {
-        logger.logServer(`[Index notification received] ${params.message}`);
         logger.logIndex(params.message);
     });
     client.onNotification('ck3/indexLog/bulk', (params: { lines: string[] }) => {
-        logger.logServer(`[Index bulk notification received] ${params.lines.length} lines`);
         logger.appendIndexLines(params.lines);
     });
 }

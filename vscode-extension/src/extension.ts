@@ -7,7 +7,7 @@
 
 import * as vscode from 'vscode';
 import { CK3HealthStatusBar, CK3StatusBar } from './statusBar';
-import { logger } from './logger';
+import { CK3Logger, logger } from './logger';
 import { registerCommands } from './client/commands';
 import { createLogChannels, disposeLogChannels } from './client/log-channels';
 import { ServerController } from './client/server-controller';
@@ -27,6 +27,8 @@ export interface CK3ExtensionApi {
     healthStatusBar: CK3HealthStatusBar;
     /** The CK3 Explorer view's data provider (#83). */
     modExplorer: ModExplorerProvider;
+    /** The recent lines of the CK3 output channels (#59): `lines(LogCategory.Index)`. */
+    logs: Pick<CK3Logger, 'lines'>;
 }
 
 let controller: ServerController | undefined;
@@ -109,7 +111,14 @@ export async function activate(context: vscode.ExtensionContext): Promise<CK3Ext
     modExplorer.refresh();
 
     logger.logServer('CK3 Language Server extension activated');
-    return { health, activatedAt, decorations, healthStatusBar, modExplorer };
+    return {
+        health,
+        activatedAt,
+        decorations,
+        healthStatusBar,
+        modExplorer,
+        logs: { lines: (category) => logger.lines(category) },
+    };
 }
 
 export async function deactivate(): Promise<void> {
