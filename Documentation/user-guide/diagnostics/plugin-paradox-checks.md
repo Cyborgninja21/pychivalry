@@ -18,8 +18,9 @@ Source: `vscode-extension/src/server/ck3/validation/paradox-checks.ts`.
 | `CK3520` | information | An after block in a hidden event (after runs after an option, and a hidden event shows none). | Convention. EVENT-012 (the same check) is merged into it. |
 | `CK3521` | information | An after block in an event without options. | Convention. |
 | `CK3610` | information | Negative base in ai_chance. | Convention. |
-| `CK3611` | information | ai_chance base above 100 is clamped to 100. | Convention. |
-| `CK3612` | information | ai_chance base = 0; the AI never selects the option (ai_accept = no may be meant). | Convention. |
+| `CK3611` | information | The ai_chance total is zero whatever applies (base 0 and no modifier that can add weight, or an unconditional factor = 0): the AI never picks the option. | Convention (issue #21). Until 2.1 CK3611 meant "ai_chance base above 100 is clamped to 100", removed in 2.2 as false: ai_chance is a relative weight (the 1.20.0.2 events and common directories hold 640 bases above 100 among 16,865 ai_chance blocks). The 2.1 CK3612 (base = 0) is merged into this code: a base of 0 is never picked only when no modifier adds weight (333 of the base game's 1,288 base = 0 blocks have one). |
+| `CK3612` | information | The ai_chance total can be negative (base plus every negative add is below zero). | Convention (issue #22). Until 2.1 CK3612 meant "ai_chance base = 0", merged into CK3611. |
+| `CK3613` | hint | An option of a non-hidden event with several options has neither ai_chance nor ai_will_select. | Convention (issue |
 | `CK3614` | information | An ai_chance modifier without a trigger applies unconditionally. | Convention. |
 | `CK3656` | information | An inline opinion value in add_opinion or reverse_add_opinion; define an opinion modifier in common/opinion_modifiers and reference it by name. | Convention. |
 | `CK3762` | information | A hidden event has options. | Convention. EVENT-011 (the same check) is merged into it. |

@@ -16,6 +16,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `game/dlc/<dlc>/` folder is a warning, once per path and file. Case-insensitive on every
   platform, with a directory cache the file watcher invalidates; silent while no base game is
   known. Setting `ck3LanguageServer.graphics.enabled` (default `true`).
+- **ai_chance totals** (#21, #22, #23): `CK3611` an ai_chance total that is zero whatever
+  applies (base 0 and no modifier that adds weight, or an unconditional `factor = 0`) and
+  `CK3612` a total that can be negative (base plus every negative `add` below zero), both
+  information; `CK3613` an option of a non-hidden event with several options without
+  `ai_chance` or `ai_will_select`, a hint.
+
+### Changed: renumbered and removed codes
+
+- `CK3611` and `CK3612` change meaning. The 2.1 `CK3611` ("ai_chance base above 100 is
+  clamped to 100") is removed: it is false, ai_chance is a relative weight (the base game
+  writes 640 bases above 100). The 2.1 `CK3612` ("ai_chance base = 0, the AI never selects the
+  option") is merged into the new `CK3611`: a base of 0 is never picked only when no modifier
+  adds weight (333 of the base game's 1,288 `base = 0` blocks have one).
 
 ## [2.1.0] - 2026-10-02
 

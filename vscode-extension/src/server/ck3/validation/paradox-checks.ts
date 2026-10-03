@@ -25,8 +25,13 @@
  *                          base game's common/event_themes: the game cannot read the
  *                          database key (catalogue failed_to_read_key_reference_X_from_database_X);
  *                          silent while the base game is unknown
- *   ai_chance (information): CK3610 negative base, CK3611 old (base above 100), CK3612 old
- *     (base = 0), CK3614 a modifier without a trigger
+ *   ai_chance (2.2, issues #21-#23): CK3610 negative base, CK3611 total always zero, CK3612
+ *     total can be negative, CK3614 a modifier without a trigger (information); CK3613 an
+ *     option without ai_chance (hint). Before 2.2, CK3611 was "base above 100 is clamped to
+ *     100" (removed: false, ai_chance is a relative weight; the 1.20.0.2 events and common
+ *     directories hold 640 bases above 100 among 16,865 ai_chance blocks) and CK3612 "base =
+ *     0, the AI never picks the option" (merged into CK3611: of the base game's 1,288 blocks
+ *     with base = 0, 333 have a modifier that adds weight)
  *   trigger_else ordering (information): CK3510 trigger_else without trigger_if, CK3511
  *     several trigger_else blocks
  *
@@ -44,7 +49,14 @@
 import { ASTNode, NodeType } from 'pychivalry-engine';
 import { Diagnostic, DiagnosticSeverity, Range } from 'vscode-languageserver';
 import { isValidPortraitAnimation, isValidPortraitPosition } from './events';
-import { childrenWithKey, eventsOf, isEventFile, isHiddenEvent, walk } from './event-helpers';
+import {
+    childrenWithKey,
+    eventsOf,
+    isEventFile,
+    isHiddenEvent,
+    numberValue,
+    walk,
+} from './event-helpers';
 
 export interface ParadoxConfig {
     effectTriggerContext: boolean;
@@ -397,59 +409,122 @@ function aiChanceBlocks(node: ASTNode): ASTNode[] {
     return out;
 }
 
-/** CK3610, CK3611 (old), CK3612 (old), CK3614. */
+/** A modifier's `add`: its numeric value, or undefined when it is not a plain number. */
+function addValue(modifier: ASTNode): { present: boolean; value?: number } {
+    const add = (modifier.children ?? []).find((c) => c.key === 'add');
+    if (!add) {
+        return { present: false };
+    }
+    const value = numberValue(add);
+    return { present: true, value };
+}
+
+/**
+ * ai_chance (all information or hint, conventions: no error-catalogue message):
+ *     CK3610 a negative base
+ *     CK3611 the total is zero whatever applies: base 0 and no modifier that can add weight,
+ *            or an unconditional `factor = 0` (issue #21)
+ *     CK3612 the total can be negative: base plus every negative `add` is below zero
+ *            (issue #22); a negative base is CK3610
+ *     CK3614 a modifier without a trigger applies unconditionally
+ * The totals are judged only when every entry of the block is `base` or a `modifier` with
+ * plain numbers (opinion_modifier, compare_modifier, scripted modifiers and script-value
+ * adds can add anything).
+ */
 export function checkAiChance(node: ASTNode): Diagnostic[] {
     const out: Diagnostic[] = [];
     for (const block of aiChanceBlocks(node)) {
-        for (const child of block.children ?? []) {
-            if (child.key === 'base' && child.value !== null && child.value !== undefined) {
-                const value = Number(child.value);
-                if (!isNaN(value) && value < 0) {
-                    out.push(
-                        diag(
-                            `${CONVENTION}negative ai_chance base (${value}).`,
-                            child.range,
-                            INFO,
-                            'CK3610'
-                        )
-                    );
-                }
-                if (!isNaN(value) && value > 100) {
-                    out.push(
-                        diag(
-                            `ai_chance base ${value} > 100 is clamped to 100`,
-                            child.range,
-                            INFO,
-                            'CK3611'
-                        )
-                    );
-                }
-                if (!isNaN(value) && value === 0) {
-                    out.push(
-                        diag(
-                            `ai_chance base = 0 - AI will never select this option. Consider using 'ai_accept = no' instead.`,
-                            child.range,
-                            INFO,
-                            'CK3612'
-                        )
-                    );
-                }
-            }
-            if (child.key === 'modifier') {
-                const hasCondition = (child.children ?? []).some(
-                    (c) => c.key !== 'factor' && c.key !== 'add' && c.key !== 'multiply'
+        const children = (block.children ?? []).filter((c) => c.type !== NodeType.COMMENT);
+        const baseNode = children.find((c) => c.key === 'base');
+        const base = numberValue(baseNode);
+        const modifiers = children.filter((c) => c.key === 'modifier');
+        if (base !== undefined && base < 0) {
+            out.push(
+                diag(
+                    `${CONVENTION}negative ai_chance base (${base}).`,
+                    baseNode!.range,
+                    INFO,
+                    'CK3610'
+                )
+            );
+        }
+        for (const modifier of modifiers) {
+            const hasCondition = (modifier.children ?? []).some(
+                (c) => c.key !== 'factor' && c.key !== 'add' && c.key !== 'multiply'
+            );
+            if (!hasCondition) {
+                out.push(
+                    diag(
+                        `${CONVENTION}ai_chance modifier without a trigger applies unconditionally; fold it into base.`,
+                        modifier.range,
+                        INFO,
+                        'CK3614'
+                    )
                 );
-                if (!hasCondition) {
-                    out.push(
-                        diag(
-                            `${CONVENTION}ai_chance modifier without a trigger applies unconditionally; fold it into base.`,
-                            child.range,
-                            INFO,
-                            'CK3614'
-                        )
-                    );
-                }
             }
+        }
+        const plain = children.every((c) => c.key === 'base' || c.key === 'modifier');
+        if (!plain || base === undefined) {
+            continue;
+        }
+        const adds = modifiers.map(addValue).filter((a) => a.present);
+        const unconditionalZero = modifiers.some(
+            (m) =>
+                (m.children ?? []).every((c) => c.key === 'factor' || c.key === 'multiply') &&
+                (m.children ?? []).some(
+                    (c) => (c.key === 'factor' || c.key === 'multiply') && numberValue(c) === 0
+                )
+        );
+        const mayAdd = adds.some((a) => a.value === undefined || a.value > 0);
+        if (unconditionalZero || (base === 0 && !mayAdd)) {
+            out.push(
+                diag(
+                    `${CONVENTION}the ai_chance total is zero whatever applies (${unconditionalZero ? 'an unconditional factor = 0' : 'base = 0 and no modifier adds weight'}): the AI never picks this option.`,
+                    block.range,
+                    INFO,
+                    'CK3611'
+                )
+            );
+            continue;
+        }
+        if (base >= 0 && adds.every((a) => a.value !== undefined)) {
+            const lowest = base + adds.reduce((sum, a) => sum + Math.min(0, a.value!), 0);
+            if (lowest < 0) {
+                out.push(
+                    diag(
+                        `${CONVENTION}the ai_chance total can be negative (base ${base} plus the negative adds is ${lowest}).`,
+                        block.range,
+                        INFO,
+                        'CK3612'
+                    )
+                );
+            }
+        }
+    }
+    return out;
+}
+
+/**
+ * CK3613 (hint, convention, issue #23): an option of a non-hidden event with several options
+ * has neither ai_chance nor ai_will_select, so the AI weighs it by default.
+ */
+export function checkMissingAiChance(event: ASTNode): Diagnostic[] {
+    const options = childrenWithKey(event, 'option');
+    if (isHiddenEvent(event) || options.length < 2) {
+        return [];
+    }
+    const out: Diagnostic[] = [];
+    for (const option of options) {
+        const keys = new Set((option.children ?? []).map((c) => c.key));
+        if (!keys.has('ai_chance') && !keys.has('ai_will_select')) {
+            out.push(
+                diag(
+                    `${CONVENTION}option without ai_chance or ai_will_select; the AI weighs it by default.`,
+                    option.range,
+                    DiagnosticSeverity.Hint,
+                    'CK3613'
+                )
+            );
         }
     }
     return out;
@@ -513,6 +588,9 @@ export function validateParadoxConventions(
         for (const event of eventsOf(node)) {
             out.push(...checkEventStructure(event, config));
             out.push(...checkTheme(event, knowledge));
+            if (config.aiChanceValidation) {
+                out.push(...checkMissingAiChance(event));
+            }
         }
     }
     if (config.aiChanceValidation) {

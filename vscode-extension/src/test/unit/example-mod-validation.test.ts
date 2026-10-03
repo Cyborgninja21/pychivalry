@@ -227,6 +227,10 @@ export const RETIRED_ANNOTATIONS: Record<string, Record<string, string>> = {
     'events/bad_variables.txt': {
         CK3701: 'read but never set: judged across the workspace and the base game since 2.2, so it reports only with a base game loaded',
     },
+    'events/bad_options.txt': {
+        CK3611: 'the annotated instance (line 322, base = 250 "capped at 100%") was removed in 2.2: ai_chance is a relative weight, nothing is capped; CK3611 now means a total that is always zero, which the base = 0 block at line 349 is',
+        CK3612: 'the annotated instance (line 349, base = 0) is the 2.2 CK3611 (a total that is always zero); CK3612 now means a total that can be negative (issue #22)',
+    },
     'events/bad_event_structure.txt': {
         'EVENT-002':
             'the annotated instance is an event without type: type is optional (game/events/_events.info); EVENT-002 now reports a letter_event without sender',
