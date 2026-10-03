@@ -11,7 +11,7 @@ pychivalry reports two kinds of diagnostics.
   engine's own, for conditions the catalogue has no text for.
 - **Plug-in diagnostics** (source `ck3-plugin`, or `ck3-localization` in `.yml` files)
   come from the extension's validators that encode behaviour the spec package does not
-  describe (event timing, style, conventions). 83 codes in 14 plug-ins.
+  describe (event timing, style, conventions). 85 codes in 14 plug-ins.
 
 The engine runs parse, registry, schema and scope checks in that order, then the
 plug-ins; see the [validation pipeline](../../developer-guide/architecture/VALIDATION.md).

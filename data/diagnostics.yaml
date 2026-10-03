@@ -16,9 +16,9 @@
 # (what the diagnostic means), evidence (why the severity: the engine evidence that allows an
 # error or a warning, or "Convention" and the reason there is none; the evidence rule and the
 # 2.2 audit of every code are in Documentation/developer-guide/diagnostics-evidence.md) and,
-# for a code that replaced another, renamed_from. LOC-001 and LOC-002 mean different things
-# in script files (localization-references) and in localization files (localization); both
-# are listed.
+# for a code that replaced another, renamed_from. Until 2.1, LOC-001 and LOC-002 meant
+# different things in script files and in localization files; since 2.2 the script-file
+# checks are CK4101 and CK4102 and LOC-001/LOC-002 are the localization-file checks only.
 version: "2.2"
 
 plugins:
@@ -240,30 +240,25 @@ diagnostics:
         message: else or trigger_else without a preceding if.
         evidence: Convention.
 
-    # localization-references (script files) and localization (.yml files)
-    LOC-001:
-        plugin: localization-references, localization
+    # localization-references (script files)
+    CK4101:
+        plugin: localization-references
         severity: warning
+        renamed_from: LOC-001
         message: >-
-            In script files (warning), a localization field (an event's title, desc or opening,
-            an option's name, a decision's title or desc) holds literal text with spaces. In
-            localization files (information), an entry key the localization index cannot read
-            (it starts with a digit, or contains spaces, dashes or other punctuation).
+            A localization field of a script file (an event's title, desc or opening, an
+            option's name, a decision's title or desc) holds literal text with spaces.
         evidence: >-
-            Script files: the game reads the text as a key and logs it missing (catalogue
-            unknown_loc_key_X, "Unknown loc key %s"; game/events/_events.info: "Missing
-            localization keys are logged as errors"); a key with spaces cannot be defined.
-            Localization files: convention.
-    LOC-002:
-        plugin: localization-references, localization
+            The game reads the text as a key and logs it missing (catalogue unknown_loc_key_X,
+            "Unknown loc key %s"; game/events/_events.info: "Missing localization keys are
+            logged as errors"); a key with spaces cannot be defined. LOC-001 until 2.1, renamed
+            because LOC-001 means an unreadable key in localization files.
+    CK4102:
+        plugin: localization-references
         severity: warning
-        message: >-
-            In script files (warning), a custom_tooltip holds literal text with spaces. In
-            localization files (information), a character function outside the hand-made
-            function list, such as [ROOT.Char.GetNam].
-        evidence: >-
-            Script files: as LOC-001. Localization files: convention (the function list is not
-            the game's own data).
+        renamed_from: LOC-002
+        message: A custom_tooltip of a script file holds literal text with spaces.
+        evidence: As CK4101. LOC-002 until 2.1, renamed because LOC-002 means an unknown character function in localization files.
     CK4100:
         plugin: localization-references
         severity: warning
@@ -624,6 +619,18 @@ diagnostics:
             texture %s - file not found").
 
     # localization (.yml files)
+    LOC-001:
+        plugin: localization
+        severity: information
+        message: >-
+            An entry key the localization index cannot read (it starts with a digit, or contains
+            spaces, dashes or other punctuation).
+        evidence: Convention (the game's own reading of such a key is not in the error catalogue). Localization files only since 2.2; the script-file check is CK4101.
+    LOC-002:
+        plugin: localization
+        severity: information
+        message: A character function outside the hand-made function list, such as [ROOT.Char.GetNam].
+        evidence: Convention (the function list is not the game's own data). Localization files only since 2.2; the script-file check is CK4102.
     LOC-003:
         plugin: localization
         severity: information

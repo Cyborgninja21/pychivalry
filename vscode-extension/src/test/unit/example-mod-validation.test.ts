@@ -231,7 +231,13 @@ export const RETIRED_ANNOTATIONS: Record<string, Record<string, string>> = {
     'events/bad_variables.txt': {
         CK3701: 'read but never set: judged across the workspace and the base game since 2.2, so it reports only with a base game loaded',
     },
+    'events/bad_descriptions.txt': {
+        'LOC-001':
+            'renamed CK4101 in script files (2.2; LOC-001 is the .yml key-format code only); the file reports CK4101',
+    },
     'events/bad_options.txt': {
+        'LOC-001':
+            'renamed CK4101 in script files (2.2; LOC-001 is the .yml key-format code only); the file reports CK4101',
         CK3611: 'the annotated instance (line 322, base = 250 "capped at 100%") was removed in 2.2: ai_chance is a relative weight, nothing is capped; CK3611 now means a total that is always zero, which the base = 0 block at line 349 is',
         CK3612: 'the annotated instance (line 349, base = 0) is the 2.2 CK3611 (a total that is always zero); CK3612 now means a total that can be negative (issue #22)',
     },

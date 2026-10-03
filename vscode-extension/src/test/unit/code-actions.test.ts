@@ -79,14 +79,31 @@ describe('Quick fixes (#85)', () => {
         );
     });
 
-    it('CK4100 and LOC-001: a localization stub for the key, not for the whole field', async () => {
+    it('CK4100, CK4101 and CK4102: a localization stub for the key, not for the whole field', async () => {
         const text = 'e.1 = {\n\ttitle = e.1.t\n}\n';
         const [fix] = await fixes(text, 'CK4100', range(1, 1, 1, 14));
         assert.strictEqual(fix.command?.command, 'ck3.generateLocalization');
         assert.deepStrictEqual(fix.command?.arguments, ['e.1.t']);
         const literal = 'e.1 = {\n\tdesc = "Some text"\n}\n';
-        const [fix2] = await fixes(literal, 'LOC-001', range(1, 1, 1, 19));
+        const [fix2] = await fixes(literal, 'CK4101', range(1, 1, 1, 19));
         assert.deepStrictEqual(fix2.command?.arguments, ['Some text']);
+        const tooltip = 'e = {\n\tcustom_tooltip = "Hello there"\n}\n';
+        const [fix3] = await fixes(tooltip, 'CK4102', range(1, 1, 1, 31));
+        assert.deepStrictEqual(fix3.command?.arguments, ['Hello there']);
+    });
+
+    it('LOC-001 (.yml): the unreadable key is renamed to a readable one', async () => {
+        const text = 'l_english:\n my-event 1.t:0 "Title"\n 2nd_key: "x"\n';
+        const [fix] = await fixes(text, 'LOC-001', range(1, 0, 1, 99));
+        assert.strictEqual(
+            apply(text, fix),
+            'l_english:\n my_event_1.t:0 "Title"\n 2nd_key: "x"\n'
+        );
+        const [fix2] = await fixes(text, 'LOC-001', range(2, 0, 2, 99));
+        assert.strictEqual(
+            apply(text, fix2),
+            'l_english:\n my-event 1.t:0 "Title"\n _2nd_key: "x"\n'
+        );
     });
 
     it('unknown_effect_X / unknown_trigger_X: create the definition', async () => {

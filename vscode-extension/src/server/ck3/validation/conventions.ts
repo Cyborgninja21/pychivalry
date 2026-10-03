@@ -10,8 +10,9 @@
  *     COND-001: if / else_if / trigger_if / trigger_else_if without limit (information)
  *     COND-002: else / trigger_else with a limit (information)
  *     COND-003: else / trigger_else without a preceding if (information)
- *     LOC-001: a localization field holds literal text with spaces (warning)
- *     LOC-002: a custom_tooltip holds literal text (warning)
+ *     CK4101: a localization field holds literal text with spaces (warning; LOC-001 until
+ *             2.1, renamed in 2.2 because LOC-001 means something else in .yml files)
+ *     CK4102: a custom_tooltip holds literal text (warning; LOC-002 until 2.1)
  *     CK4100: a localization key defined neither in the workspace nor in the base game
  *             (warning; silent without the base game's localization)
  */
@@ -27,7 +28,7 @@ export function validateConditionalBlocks(node: ASTNode): Diagnostic[] {
     return diagnostics;
 }
 
-/** Localization-reference checks: LOC-001, LOC-002 and (with the base game's keys) CK4100. */
+/** Localization-reference checks: CK4101, CK4102 and (with the base game's keys) CK4100. */
 export function validateLocalizationReferences(
     node: ASTNode,
     knowledge: LocalizationKnowledge = {}
@@ -153,7 +154,7 @@ export interface LocalizationKnowledge {
     file?: string;
 }
 
-/** custom_tooltip values found by localizationValueNodes (LOC-002 instead of LOC-001). */
+/** custom_tooltip values found by localizationValueNodes (CK4102 instead of CK4101). */
 const TOOLTIP_VALUES = new WeakSet<ASTNode>();
 
 /** Dynamic-description fields (game/events/_events.info, Dynamic Description Appendix). */
@@ -232,7 +233,7 @@ export function localizationValueNodes(ast: ASTNode, file: string): ASTNode[] {
 }
 
 /**
- * LOC-001 / LOC-002: literal text where a localization key belongs (warning: the game looks
+ * CK4101 / CK4102: literal text where a localization key belongs (warning: the game looks
  * the text up as a key and logs it missing, catalogue `unknown_loc_key_X`). CK4100: a key
  * defined neither in the workspace's localization files nor in the base game's (warning, same
  * evidence; silent without the base game's keys).
@@ -253,7 +254,7 @@ function checkLocalizationKeys(
                 message: tooltip
                     ? `Tooltip value '${value}' contains spaces: the game reads it as a localization key ('Unknown loc key')`
                     : `'${value}' contains spaces: the game reads it as a localization key ('Unknown loc key'), not as text`,
-                code: tooltip ? 'LOC-002' : 'LOC-001',
+                code: tooltip ? 'CK4102' : 'CK4101',
                 source: 'ck3-localization',
             });
             continue;

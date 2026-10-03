@@ -207,8 +207,13 @@ export class CodeActionsProvider {
             ['unknown_effect_X', this.fixUndefinedReference.bind(this)],
             ['unknown_trigger_X', this.fixUndefinedReference.bind(this)],
             ['PYCH-R001', this.fixRetiredKeyword.bind(this)],
-            ['LOC-001', this.fixMissingLocalization.bind(this)],
+            // Script files: literal text where a key belongs (CK4101/CK4102, LOC-001/LOC-002
+            // until 2.1) and a missing key (CK4100) get a localization stub.
+            ['CK4101', this.fixMissingLocalization.bind(this)],
+            ['CK4102', this.fixMissingLocalization.bind(this)],
             ['CK4100', this.fixMissingLocalization.bind(this)],
+            // Localization files: an entry key the index cannot read (LOC-001).
+            ['LOC-001', this.fixLocalizationKeyFormat.bind(this)],
             ['CK3303', this.fixIndentation.bind(this)],
             ['CK3306', this.fixSpacing.bind(this)],
             // 2.2 (#85): the most frequent plug-in codes on the real-mod corpus that have a
@@ -519,6 +524,52 @@ export class CodeActionsProvider {
                 .withKind(CodeActionKind.QuickFix)
                 .withDiagnostic(diag)
                 .withEdit({ changes: { [doc.uri]: [{ range: diag.range, newText: fixed }] } })
+                .build(),
+        ];
+    }
+
+    /**
+     * LOC-001 (a .yml entry key the localization index cannot read): replace every character
+     * a key may not hold with `_`, and prefix `_` to a key that starts with a digit. The
+     * entry was unreadable, so no working reference to it can break.
+     */
+    private fixLocalizationKeyFormat(
+        doc: TextDocument,
+        diag: Diagnostic,
+        _ctx: CodeActionContext
+    ): CodeAction[] {
+        const lineNo = diag.range.start.line;
+        const line = this.lineText(doc, lineNo);
+        const m = /^(\s+)([^\s#"][^:"#]*?):/.exec(line);
+        if (!m) {
+            return [];
+        }
+        const key = m[2];
+        let fixed = key.trim().replace(/[^A-Za-z0-9_.]+/g, '_');
+        if (/^[0-9.]/.test(fixed)) {
+            fixed = `_${fixed}`;
+        }
+        if (fixed === key) {
+            return [];
+        }
+        const start = m[1].length;
+        return [
+            new CodeActionBuilder(`Rename the key to '${fixed}'`)
+                .withKind(CodeActionKind.QuickFix)
+                .withDiagnostic(diag)
+                .withEdit({
+                    changes: {
+                        [doc.uri]: [
+                            {
+                                range: {
+                                    start: { line: lineNo, character: start },
+                                    end: { line: lineNo, character: start + key.length },
+                                },
+                                newText: fixed,
+                            },
+                        ],
+                    },
+                })
                 .build(),
         ];
     }

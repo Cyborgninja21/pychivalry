@@ -9,7 +9,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import { diagnose, Diagnostic, LocalizationIndex, Workspace } from 'pychivalry-engine';
-import { enginePlugins } from '../../server/plugins';
+import { enginePlugins, localizationDiagnostics } from '../../server/plugins';
 
 let root: string;
 let workspace: Workspace;
@@ -351,6 +351,52 @@ describe('Scope timing, the localization half and the trigger guard (#60)', () =
         assert.deepStrictEqual(
             codesAt(event(true)).filter(([c]) => c === 'CK3563'),
             []
+        );
+    });
+});
+
+describe('LOC split (2.2): CK4101/CK4102 in script files, LOC-001/LOC-002 in .yml files', () => {
+    let dir: string;
+    before(() => {
+        dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pych-loc-split-'));
+    });
+    after(() => fs.rmSync(dir, { recursive: true, force: true }));
+
+    it('script files report CK4101 / CK4102 (warnings), never LOC-001 / LOC-002', () => {
+        const file = path.join(dir, 'events', 'loc.txt');
+        fs.mkdirSync(path.dirname(file), { recursive: true });
+        const text = [
+            'namespace = loc',
+            'loc.1 = {',
+            '\ttitle = "Some literal title"',
+            '\tdesc = loc.1.desc',
+            '\tleft_portrait = root',
+            '\toption = { name = loc.1.a custom_tooltip = "Literal tooltip text" }',
+            '}',
+        ].join('\n');
+        fs.writeFileSync(file, text);
+        const ws = new Workspace(dir).load();
+        const found = diagnose(ws, file, {
+            text,
+            plugins: enginePlugins({ localization: new LocalizationIndex(), workspace: ws }),
+        })
+            .filter((d) => d.source === 'plugin' && /^(CK410[12]|LOC-)/.test(d.code))
+            .map((d) => [d.code, d.severity, d.range.start.line]);
+        assert.deepStrictEqual(found, [
+            ['CK4101', 'warning', 2],
+            ['CK4102', 'warning', 5],
+        ]);
+    });
+
+    it('.yml files report LOC-001 (information) for a key the index cannot read', () => {
+        const diags = localizationDiagnostics(
+            new LocalizationIndex(),
+            'file:///x_l_english.yml',
+            'l_english:\n bad key:0 "x"\n'
+        );
+        assert.deepStrictEqual(
+            diags.map((d) => [d.code, d.severity]),
+            [['LOC-001', 3]]
         );
     });
 });

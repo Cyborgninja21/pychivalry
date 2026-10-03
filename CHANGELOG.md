@@ -54,6 +54,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed: renumbered and removed codes
 
+- `LOC-001` and `LOC-002` are split: in script files they are now `CK4101` (a localization
+  field holds literal text) and `CK4102` (a `custom_tooltip` holds literal text), both
+  warnings with the localization-stub quick fix; `LOC-001` (a key the localization index
+  cannot read, with a rename-the-key quick fix) and `LOC-002` (an unknown character function)
+  are the `.yml` codes only, both information.
 - `CONV-002` is renamed `CK3765` (issue #25; every non-hidden event, not only those with
   options).
 - `CK3611` and `CK3612` change meaning. The 2.1 `CK3611` ("ai_chance base above 100 is

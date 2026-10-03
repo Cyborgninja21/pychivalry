@@ -381,7 +381,8 @@ export function enginePlugins(env: PluginEnvironment = {}): Plugin[] {
 
 /**
  * The localization validator (LOC-002..LOC-007) over the entries the localization index
- * holds for one file, plus LOC-001 (key format) over the file text when it is given; a
+ * holds for one file, plus LOC-001 (key format) over the file text when it is given (LOC-001
+ * and LOC-002 are the .yml codes only since 2.2; the script-file checks are CK4101/CK4102); a
  * localization file is not CK3 script and does not go through the engine pipeline.
  */
 export function localizationDiagnostics(
