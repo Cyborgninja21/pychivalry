@@ -48,6 +48,47 @@ these three point at `event_scenes/` instead, so the game shows no picture for t
 
 No false positive, so no new issue.
 
+## 2.2.0: the release records (post-2.0 Phase 4, step 4.7)
+
+The records in this folder are the 2.2.0 build's (2026-10-03), base game set. Errors and
+warnings are the same as after step 4.0: **every error-severity editor finding is a real
+defect** (0 / 0 / 15 / 92 / 1, the engine path's list, classified below) and the warnings are
+the engine's `unknown_X_in_X` (1,581) plus CK3800 (6), CK4100 (3) and GFX001 (3), each
+evidence-backed (table in the step 4.0 section). Every change since 2.1, by code, summed over
+the five mods (editor path):
+
+| Code | 2.1 | 2.2.0 | Why |
+| --- | ---: | ---: | --- |
+| CK5142 (error) | 267 | 0 | removed, #91 |
+| CK3873 | 128 (error) | 128 (hint) | `always = no` is deliberate, #92 |
+| CK3950, CK3951 (error) | 202 | 0 | removed, #93 |
+| CK3420 (error) | 10 | 0 | removed, #94 |
+| CK3552 | 78 (error) | 12 (information) | corrected evaluation order, #95 |
+| CK3550 | 2 (error) | 4 (information) | a scope saved earlier in the trigger is fine, #96; the rest are conventions |
+| CK3553 (error) | 1 | 0 | only local variables, #97 |
+| CK4100 (warning) | 7,622 | 3 | real localization fields only; the base game's keys; `key: "text"` entries read |
+| CK3430 + EVENT-003 (warnings) | 2,880 | 0 | one code, against the workspace's and the base game's themes |
+| CK3340 (warning) | 425 | 0 | merged into the engine's chain check |
+| CK3800 (warning) | 155 | 6 | trait groups known; traditions are not traits |
+| EVENT-002 (warning) | 172 | 0 | `type` is optional |
+| CONV-002 (warning) | 44 | 0 | renamed CK3765 (43, information): every non-hidden event without title |
+| LOC-001 (warning) | 31 | 0 | literal script-value `desc` labels are not localization fields; the script-file code is CK4101 |
+| CK3701 | 716 (warning) | 276 (information) | judged across the workspace and the base game |
+| CK3702 (hint) | 876 | 88 | the same |
+| ITER-003 | 22 (warning) | 22 (information) | convention |
+| COND-001 / COND-002 / COND-003 | 10 / 5 / 2 (warning) | 10 / 5 / 2 (information) | conventions |
+| CK3511, CK3450, CONV-001, CONV-004, SWITCH-003, CK3341 | 3, 1, 9, 1, 13, 1 (warning) | 3, 1 (information), 0, 0, 0, 0 | conventions; CONV-001 removed (type optional), CONV-004 merged into CK3450, SWITCH-003 judged only against plain trigger names with the base game's scripted triggers, CK3341 merged into the engine |
+| CK3301, CK3303, CK3314 (warnings); CK3304, CK3306, CK3316, CK3317 (information) | 20,392, 79,302, 2,163; 36,094, 34,845, 3,675, 48,465 | 20,427, 79,525, 2,164; 35,988, 34,904, 3,672, 48,626 (all hints) | style; the counts move only through the 1000-per-file cap |
+| CK3612, CK3611 (information) | 14, 2 (base = 0, base above 100) | 11, 11 | new meanings: total can be negative (#22), total always zero (#21) |
+| CK3613, CK3563, CK3433, CK3522, CK3422 | (new) | 3,321 hint, 108, 14, 11 hint, 16 | #23, #60, #28, #19; CK3422 never reported before 2.2 |
+| CK3769, CK3762, CK3763, CK3764 (information) | 0 | 123, 2, 1, 1 | the event checks now run on every event |
+| CONV-003 (information) | 2 | 0 | merged into CK3764 |
+| CK3703 (information) | 0 | 3 | judged across the workspace (a variable read in one namespace and set only in another) |
+| CK3875, CK5137, CK3656 (information); undefined_event_target_X (engine) | 2,009, 442, 269; 1,428 | 2,017, 443, 266; 1,429 | unchanged checks; the counts move only through the 1000-per-file cap |
+
+Unchanged counts: CK3977 (665), CK3872 (130), ITER-004 (45), GFX001 (3) and the engine's other
+codes. Total findings 245,310 → 236,218.
+
 ## 2.2: the plug-in false positives are fixed (post-2.0 Phase 4, step 4.0)
 
 Re-recorded on the editor path 2026-10-03 after the evidence audit of the plug-in catalogue

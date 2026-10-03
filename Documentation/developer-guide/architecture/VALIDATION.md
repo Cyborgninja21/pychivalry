@@ -1,6 +1,6 @@
 # Validation pipeline
 
-How a CK3 script file becomes diagnostics in pychivalry 2.1.0. The same pipeline serves the
+How a CK3 script file becomes diagnostics in pychivalry 2.2.0. The same pipeline serves the
 editor (the language server) and the command line (`pychivalry-engine check`). The code
 reference for every id and code is the generated
 [diagnostics reference](../../user-guide/diagnostics/README.md).
@@ -112,19 +112,28 @@ parsed tree, the text, the URI, the spec and the index:
 
 | Plug-in | What it encodes |
 | --- | --- |
-| scope-timing | Event evaluation order: scopes and variables created in `immediate` are not available in `trigger` or `desc` |
-| style-checks | Indentation, whitespace, line length, nesting, empty blocks, brace balance |
-| conventions | Events with options need type, title, desc; option names; if/else ordering |
-| localization-references | Literal text where a localization key belongs; keys missing from the workspace (`CK4100`) |
-| events | Event type, theme, portraits, options, namespaces |
-| paradox-checks | Paradox conventions and pitfalls: ai_chance, trigger_else, after blocks, iterators without limit, `this =` comparisons |
-| variables | Variables used but never set, set but never used, local/global and list/value mix-ups |
-| traits | Trait names, only when the optional trait data in `data/traits/` is present |
-| scripted-blocks | Calls to undefined scripted effects and triggers; recursion |
-| script-values | Script value formulas |
+| scope-timing | Event evaluation order (trigger, immediate, the window, the chosen option, after): scopes read before they are saved, the localization half (desc/title texts) and the trigger guard |
+| style-checks | Indentation, whitespace, line length, nesting, empty blocks (hints), brace balance |
+| conventions | if/else ordering |
+| localization-references | Literal text where a localization key belongs (`CK4101`, `CK4102`); keys defined neither in the workspace nor in the base game (`CK4100`) |
+| events | Event type, letter sender, namespace declaration |
+| paradox-checks | Event structure, title, portraits, theme and background overrides, ai_chance, after blocks, trigger_else, iterators without limit |
+| variables | Variables read but set nowhere, set but read nowhere (across the workspace and the base game), namespace and list/value mix-ups |
+| traits | Trait names against the base game's and the workspace's traits |
+| scripted-blocks | Recursion |
+| script-values | Script value ranges, conditionals, rounding |
 | iterators | `ordered_` iterator parameters |
 | switch | `switch` blocks and their trigger |
 | graphics | Graphics files (`.dds`, `.png`, `.tga`) that exist in no workspace mod and not in the base game (`GFX001`, below) |
+
+Since 2.2 a plug-in code is an error or a warning only with engine evidence (a message of the
+spec package's error catalogue, a `required` schema field, an oracle entry or a reproduced
+in-game error); without it the code is a convention at information or hint severity, and a
+check that needs knowledge it does not have (the base game's localization, themes,
+backgrounds, traits, the workspace index) reports nothing without it. The audit of every code
+is [diagnostics-evidence.md](../diagnostics-evidence.md); the plug-ins read the base game
+through `server/data/base-game.ts` (`BaseGameData`) and the workspace through
+`PluginEnvironment.workspace`.
 
 Their codes (CK3xxx, EVENT-, VALUE-, …) are listed in `data/diagnostics.yaml`; the generator
 check (`npm run docs:diagnostics:check`, run in CI) fails when a plug-in emits a code that file

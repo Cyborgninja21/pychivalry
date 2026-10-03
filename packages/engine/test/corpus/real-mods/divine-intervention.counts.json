@@ -77,21 +77,21 @@
             "common/scripted_guis/DI_title_manager_sgui.txt",
             "events/DI_error_suppression.txt"
         ],
-        "timeToFirstFullResultMs": 41530,
-        "serverUptimeAtFirstFullResultMs": 40127,
-        "backgroundPassMs": 2092,
-        "peakServerRssKb": 427204,
-        "serverVmHwmKb": 427204,
+        "timeToFirstFullResultMs": 13129,
+        "serverUptimeAtFirstFullResultMs": 13096,
+        "backgroundPassMs": 849,
+        "peakServerRssKb": 350576,
+        "serverVmHwmKb": 350576,
         "longestFile": {
-            "milliseconds": 492.9,
+            "milliseconds": 223.9,
             "file": "common/scripted_guis/DI_modifiers_sgui.txt"
         },
         "longestScriptFile": {
-            "milliseconds": 492.6,
+            "milliseconds": 223.8,
             "file": "common/scripted_guis/DI_modifiers_sgui.txt"
         },
         "longestLocalizationFile": {
-            "milliseconds": 10.2,
+            "milliseconds": 4.2,
             "file": "localization/french/gui/DI_l_french.yml"
         },
         "bySeverity": {

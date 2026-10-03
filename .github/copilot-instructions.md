@@ -5,7 +5,7 @@ two in step. Per-topic standards are in [instructions/](instructions/README.md).
 
 ## Project
 
-pychivalry 2.1.0: Crusader Kings III script tooling. An npm workspace with two packages:
+pychivalry 2.2.0: Crusader Kings III script tooling. An npm workspace with two packages:
 
 - `packages/engine` (npm `pychivalry-engine`): the engine core. Dependency-free TypeScript that
   parses CK3 script, indexes a mod and reports the game's own diagnostics; has a CLI

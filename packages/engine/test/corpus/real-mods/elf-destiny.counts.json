@@ -222,27 +222,27 @@
             "events/wolf_invader_events.txt",
             "gfx/portraits/portrait_modifiers/elf_characters.txt"
         ],
-        "timeToFirstFullResultMs": 45940,
-        "serverUptimeAtFirstFullResultMs": 44464,
-        "backgroundPassMs": 7118,
-        "peakServerRssKb": 353720,
-        "serverVmHwmKb": 353720,
+        "timeToFirstFullResultMs": 18809,
+        "serverUptimeAtFirstFullResultMs": 17042,
+        "backgroundPassMs": 3527,
+        "peakServerRssKb": 405344,
+        "serverVmHwmKb": 405344,
         "longestFile": {
-            "milliseconds": 503.8,
+            "milliseconds": 246.4,
             "file": "localization/english/aeluran/aeluran_regency_l_english.yml"
         },
         "longestScriptFile": {
-            "milliseconds": 161.1,
-            "file": "common/activities/activity_types/aeluran_matchmaking.txt"
+            "milliseconds": 50.5,
+            "file": "common/genes/01_genes_morph.txt"
         },
         "longestLocalizationFile": {
-            "milliseconds": 503.6,
+            "milliseconds": 246.4,
             "file": "localization/english/aeluran/aeluran_regency_l_english.yml"
         },
         "bySeverity": {
             "error": 15,
             "warning": 500,
-            "information": 1575,
+            "information": 1585,
             "hint": 47729
         },
         "counts": {
@@ -273,6 +273,10 @@
             "CK3317": {
                 "severity": "hint",
                 "count": 10200
+            },
+            "CK3422": {
+                "severity": "information",
+                "count": 10
             },
             "CK3433": {
                 "severity": "information",

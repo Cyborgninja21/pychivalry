@@ -839,28 +839,28 @@
             "localization/russian/rice_north_atlantic_l_russian.yml",
             "localization/russian/rice_sri_lanka_l_russian.yml"
         ],
-        "timeToFirstFullResultMs": 86428,
-        "serverUptimeAtFirstFullResultMs": 83361,
-        "backgroundPassMs": 26428,
-        "peakServerRssKb": 761576,
-        "serverVmHwmKb": 761576,
+        "timeToFirstFullResultMs": 34651,
+        "serverUptimeAtFirstFullResultMs": 33207,
+        "backgroundPassMs": 12388,
+        "peakServerRssKb": 750792,
+        "serverVmHwmKb": 750792,
         "longestFile": {
-            "milliseconds": 887.6,
+            "milliseconds": 284.5,
             "file": "common/decisions/RICE_mayo_decisions.txt"
         },
         "longestScriptFile": {
-            "milliseconds": 887.5,
+            "milliseconds": 284.4,
             "file": "common/decisions/RICE_mayo_decisions.txt"
         },
         "longestLocalizationFile": {
-            "milliseconds": 450.9,
-            "file": "localization/japanese/rice_nubia_l_japanese.yml"
+            "milliseconds": 198.7,
+            "file": "localization/french/rice_nubia_l_french.yml"
         },
         "bySeverity": {
             "error": 92,
             "warning": 1064,
-            "information": 2964,
-            "hint": 145821
+            "information": 2968,
+            "hint": 145819
         },
         "counts": {
             "CK3301": {
@@ -873,7 +873,7 @@
             },
             "CK3304": {
                 "severity": "hint",
-                "count": 25105
+                "count": 25104
             },
             "CK3306": {
                 "severity": "hint",
@@ -889,7 +889,11 @@
             },
             "CK3317": {
                 "severity": "hint",
-                "count": 34816
+                "count": 34815
+            },
+            "CK3422": {
+                "severity": "information",
+                "count": 4
             },
             "CK3433": {
                 "severity": "information",

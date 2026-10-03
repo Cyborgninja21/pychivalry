@@ -116,6 +116,15 @@ records are unchanged. The error-severity editor findings are now exactly the en
 real defects, and the changes per code are explained in [FINDINGS.md](FINDINGS.md) and in the
 audit table of `Documentation/developer-guide/diagnostics-evidence.md`.
 
+**2.2.0 (step 4.7).** The records in this folder were made last with the 2.2.0 build
+(2026-10-03). Editor time to first full result and server peak RSS: balance-of-power-ui 13.0 s
+/ 308 MB, divine-intervention 13.1 s / 342 MB, elf-destiny 18.8 s / 396 MB, rice 34.7 s /
+733 MB, viet-events 18.3 s / 446 MB; the longest single file held the server 284.4 ms
+(`rice/common/decisions/RICE_mayo_decisions.txt`). Against the Phase 1 budget (RICE 20.6 s at
+704 MB) the server now also reads, once at start-up, the base game's English localization keys
+(297,792), event themes and backgrounds, portrait animations and traits for the plug-ins; the
+box's load varies between runs (the run after step 4.4, with nearly the same code, took RICE 86.4 s).
+
 **The 1000-per-file cap.** The diagnostics provider publishes at most 1000 diagnostics per file
 (sorted by position), and with the plug-ins several big files reach it (14 files in Divine
 Intervention, 22 in Elf Destiny, 25 in RICE, 4 in VIET Events: `filesAtCap`). Outside those

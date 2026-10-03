@@ -43,11 +43,12 @@ with "Convention" at error or warning severity. The generated reference pages
 | Knowledge | Where it comes from | Codes that need it (silent without it) |
 | --- | --- | --- |
 | The base game's localization keys | `game/localization/english/**/*.yml` (about 297,000 keys in 1.20.0.2), read once by `BaseGameData` when `ck3LanguageServer.gamePath` resolved a game | CK4100 |
-| Event themes and backgrounds | `game/common/event_themes`, `game/common/event_backgrounds` plus the workspace's top-level keys in the same directories | CK3430 (and CK3431, CK3433 from 4.3) |
+| Event themes and backgrounds | `game/common/event_themes` (with each theme's first untriggered background), `game/common/event_backgrounds` plus the workspace's top-level keys in the same directories | CK3430, CK3431, CK3433 |
+| Portrait animations | `game/gfx/portraits/portrait_animations` (302 in 1.20.0.2) plus the workspace's keys there | CK3422 |
 | Traits | `game/common/traits` (keys, `group`, `group_equivalence`) plus the workspace's traits and trait groups and the optional extracted data | CK3800 |
 | Variables across files | the engine Indexer's variable uses (`hasVariableUse`) of the workspace and of the base game's indexed directories | CK3701, CK3702 (ordinary and global variables) |
 | Scripted triggers of the base game | the engine's vanilla index | SWITCH-003 |
-| The workspace's localization files | the LocalizationIndex, which since 2.2 also reads `key: "text"` entries without a version number (135,037 such entries in the base game's English files) and entries with a trailing comment | CK4100, LOC-001, LOC-002 |
+| The workspace's localization files | the LocalizationIndex, which since 2.2 also reads `key: "text"` entries without a version number (135,037 such entries in the base game's English files) and entries with a trailing comment | CK4100, CK4101, CK4102, CK3560, CK3561 |
 
 ## The audit of the 2.1 catalogue
 
@@ -57,7 +58,8 @@ the measured file is the reference here.) The table lists all 76 codes that were
 warning, with the evidence that decides their severity now. "Before" and "after" are the
 editor-path corpus counts summed over the five mods
 (`packages/engine/test/corpus/real-mods/<slug>.counts.json`, `editor.counts`): before = the
-2.1 records at `aabeda2`, after = the records of this commit.
+2.1 records at `aabeda2`, after = the 2.2.0 records (step 4.7). The LOC-001 / LOC-002 rows count
+the renamed CK4101 / CK4102 with them.
 
 ### Summary
 
@@ -76,24 +78,27 @@ CK3340, CK3341, CK3420 (into the engine's checks); CK5142, CK3760, CONV-001 (fal
 CK3951, VALUE-001, VALUE-003 (cannot be made right); EVENT-005, EVENT-006 (never reported);
 CK3761, CONV-004, EVENT-003, EVENT-004, EVENT-007, EVENT-009, EVENT-011, EVENT-012, EVENT-013
 (merged into the code that reports the same thing). The catalogue went from 94 codes to 72 (1
-error, 8 warning, 54 information, 9 hint) before the new codes of steps 4.1 to 4.6.
+error, 8 warning, 54 information, 9 hint) before the new codes of steps 4.1 to 4.6; with them
+(below) it holds 85 codes: 1 error (VALUE-002), 9 warnings (CK3430, CK3431, CK3800, CK4100,
+CK4101, CK4102, GFX001, LOC-005, SWITCH-003), 64 information, 11 hints.
 
 ### Corpus totals by severity (editor path, base game set)
 
-| Mod | Before: error / warning / information / hint | After 4.0: error / warning / information / hint | Engine-path errors (real defects) |
-| --- | --- | --- | ---: |
-| balance-of-power-ui | 0 / 312 / 15 / 15 | 0 / 0 / 7 / 331 | 0 |
-| divine-intervention | 8 / 23,065 / 2,279 / 77 | 0 / 0 / 468 / 24,547 | 0 |
-| elf-destiny | 338 / 25,511 / 24,602 / 427 | 15 / 500 / 1,546 / 47,117 | 15 |
-| rice | 438 / 65,327 / 91,811 / 347 | 92 / 1,064 / 2,945 / 144,752 | 92 |
-| viet-events | 12 / 1,338 / 9,378 / 10 | 1 / 29 / 613 / 9,829 | 1 |
+| Mod | 2.1: error / warning / information / hint | After step 4.0 | 2.2.0 (step 4.7) | Engine-path errors (real defects) |
+| --- | --- | --- | --- | ---: |
+| balance-of-power-ui | 0 / 312 / 15 / 15 | 0 / 0 / 7 / 331 | 0 / 0 / 7 / 331 | 0 |
+| divine-intervention | 8 / 23,065 / 2,279 / 77 | 0 / 0 / 468 / 24,547 | 0 / 0 / 468 / 24,547 | 0 |
+| elf-destiny | 338 / 25,511 / 24,602 / 427 | 15 / 500 / 1,546 / 47,117 | 15 / 500 / 1,585 / 47,729 | 15 |
+| rice | 438 / 65,327 / 91,811 / 347 | 92 / 1,064 / 2,945 / 144,752 | 92 / 1,064 / 2,968 / 145,819 | 92 |
+| viet-events | 12 / 1,338 / 9,378 / 10 | 1 / 29 / 613 / 9,829 | 1 / 29 / 635 / 10,428 | 1 |
 
 Every error-severity editor finding is now a real defect the engine path proves (0 / 15 / 92 /
 1 on the four script mods). The warnings left are the engine's schema check (`unknown_X_in_X`,
 1,581) and three evidence-backed plug-in classes: CK3800 (6), CK4100 (3) and GFX001 (3), each
 listed with its reason in `packages/engine/test/corpus/real-mods/FINDINGS.md`. Totals went
-from 245,310 findings to 233,856; most of the rest are style hints (CK3303 79,559, CK3317
-49,058, CK3304 36,571, CK3306 34,904, CK3301 20,427). Style counts rose slightly (CK3303 79,302
+from 245,310 findings to 233,856 after step 4.0 and 236,218 in 2.2.0 (the new codes of steps
+4.1 to 4.4 add information and hints only); most are style hints (2.2.0: CK3303 79,525, CK3317
+48,626, CK3304 35,988, CK3306 34,904, CK3301 20,427). Style counts rose slightly (CK3303 79,302
 to 79,559) because of the 1000-diagnostics-per-file cap: files at the cap now fill it with
 findings that removed codes used to push out.
 
@@ -103,7 +108,7 @@ findings that removed codes used to push out.
 | --- | --- | --- | --- | --- | --- | ---: | ---: |
 | `CK3005` | paradox-checks | A logical operator (AND, OR, NOT, NOR, NAND) with a scalar value instead of a block. | error | Convention (no catalogue message; the engine does not report it). | information | 0 | 0 |
 | `CK3301` | style-checks | Inconsistent indentation within a block. | warning | Convention (style). | hint | 20,392 | 20,427 |
-| `CK3303` | style-checks | Indentation uses spaces instead of tabs. | warning | Convention (style; Paradox's own files indent with tabs). | hint | 79,302 | 79,559 |
+| `CK3303` | style-checks | Indentation uses spaces instead of tabs. | warning | Convention (style; Paradox's own files indent with tabs). | hint | 79,302 | 79,525 |
 | `CK3314` | style-checks | Empty block. | warning | Convention (style; the base game writes empty blocks on purpose). | hint | 2,163 | 2,164 |
 | `CK3330` | style-checks | Unclosed brace (dropped where the engine reports the brace on the same line). | error | The engine's parse error, with the game's message, is the evidence and is reported by the engine; this code only points at the probable line, from a per-top-level-block heuristic. | information | 0 | 0 |
 | `CK3331` | style-checks | Extra closing brace (dropped where the engine reports the brace on the same line). | error | As CK3330. | information | 0 | 0 |
@@ -111,12 +116,12 @@ findings that removed codes used to push out.
 | `CK3341` | style-checks | Scope reference appears truncated. | warning | Merged into the engine: a truncated reference (`root. = …`) is reported by the engine's registry as unknown_trigger_X / unknown_effect_X with the game's message. | removed | 1 | 0 |
 | `CK3420` | paradox-checks | Invalid portrait position. | error | Merged into the engine (issue #94): every key ending in _portrait was checked (portrait cameras and accessories, decisions); an unknown event field is reported by the engine's schema check, unknown_X_in_X, and highlight_portrait is an option field. | removed | 10 | 0 |
 | `CK3421` | paradox-checks | A portrait block has no character field. | warning | Convention. | information | 0 | 0 |
-| `CK3422` | paradox-checks | Unknown portrait animation. | warning | Convention (the extracted data is not the game's complete animation list). | information | 0 | 0 |
+| `CK3422` | paradox-checks | Unknown portrait animation. | warning | Convention (no catalogue message for an unknown animation name). Until 2.1 it was judged against the optional extracted data, and through a bug (the animation set was read as an object) never reported; EVENT-004 is merged into it. | information | 0 | 16 |
 | `CK3430` | paradox-checks | Unknown event theme. | warning | The theme is a key of the event_themes database; the game cannot read an unknown key (catalogue failed_to_read_key_reference_X_from_database_X, "Failed to read key reference %s from database %s"). EVENT-003 (the same check against 32 hard-coded names) is merged into it. | warning | 1,688 | 0 |
 | `CK3450` | paradox-checks | An option has no name field for its localization. | warning | Convention. CONV-004 and EVENT-007 (the same check) are merged into it. | information | 1 | 1 |
 | `CK3510` | paradox-checks | trigger_else without a preceding trigger_if has no effect. | error | Convention. | information | 0 | 0 |
 | `CK3511` | paradox-checks | Several trigger_else blocks; only the first one executes. | warning | Convention. | information | 3 | 3 |
-| `CK3520` | paradox-checks | An after block in a hidden event has no effect. | warning | Convention. EVENT-012 (the same check) is merged into it. | information | 0 | 0 |
+| `CK3520` | paradox-checks | An after block in a hidden event has no effect. | warning | Convention (issue #19; the evaluation order of scope-timing: after runs once the chosen option has run). EVENT-012 (the same check) is merged into it. | information | 0 | 0 |
 | `CK3550` | scope-timing | A scope used in the trigger block is saved in immediate, which runs after the trigger is evaluated. | error | Convention. Not reported when the trigger saves the scope before reading it (issue | information | 2 | 4 |
 | `CK3551` | scope-timing | A scope used in the desc block is saved in immediate; desc may be evaluated before immediate runs. | warning | Convention. Before 2.2 it reported scopes saved in immediate, which the window can read (issue #95). | information | 0 | 0 |
 | `CK3552` | scope-timing | A scope used in a triggered_desc trigger is saved in immediate, which runs after those triggers. | error | Convention. Before 2.2 an error for scopes saved in immediate: the window is evaluated after immediate, and 864 vanilla events read an immediate-saved scope in a triggered_desc trigger (issue #95). | information | 78 | 12 |
@@ -146,7 +151,7 @@ findings that removed codes used to push out.
 | `COND-002` | conventions | else or trigger_else with a limit (it is ignored). | warning | Convention. | information | 5 | 5 |
 | `COND-003` | conventions | else or trigger_else without a preceding if. | warning | Convention. | information | 2 | 2 |
 | `CONV-001` | conventions | An event with options has no type. | warning | False: `type` is optional and defaults to character_event (game/events/_events.info). | removed | 9 | 0 |
-| `CONV-002` | conventions | An event with options has no title. | warning | Convention (title is an optional field of the events schema). | information | 44 | 44 |
+| `CONV-002` | conventions | An event with options has no title. | warning | Renamed CK3765 in step 4.3 (issue #25: every non-hidden event without title, not only those with options); a convention, title is an optional field of the events schema. | information (renamed CK3765) | 44 | 43 |
 | `CONV-004` | conventions | An option block has no name. | warning | Merged into CK3450 (the same check: an option without name). | removed | 1 | 0 |
 | `EVENT-001` | events | Invalid event type. | warning | Convention (the four types of game/events/_events.info, the only ones the 1.20.0.2 base game uses). | information | 0 | 0 |
 | `EVENT-002` | events | An event is missing a required field. | warning | Convention (game/events/_events.info "sender = X | information | 172 | 0 |
@@ -163,8 +168,8 @@ findings that removed codes used to push out.
 | `EVENT-016` | events | An event uses a namespace that is not declared in its file (the game's own warning). | warning | Convention under the evidence rule: the game prints "Namespace '{}' used in event '{}' (file: {}) is not defined in this file - it might not load properly.", a string of the 1.20.0.2 executable that the spec package's error catalogue does not hold. | information | 0 | 0 |
 | `GFX001` | graphics | Graphics file not found: a .dds, .png or .tga path that exists in no workspace mod, not in the base game's game/ and not in any game/dlc/<dlc>/ folder. | warning | The game logs it (catalogue failed_to_load_texture_X_file_not_found, "Failed to load texture %s - file not found"). | warning | 3 | 3 |
 | `ITER-003` | iterators | An ordered_ iterator without order_by. | warning | Convention (every vanilla ordered_ iterator has one; no catalogue message). | information | 22 | 22 |
-| `LOC-001` | localization-references, localization | In script files, a title, desc or name value contains spaces (literal text where a localization key belongs). In localization files, an entry key the localization index cannot read (it starts with a digit, or contains spaces, dashes or other punctuation). | warning | Script files: the game reads the text as a key and logs it missing (catalogue unknown_loc_key_X, "Unknown loc key %s"; game/events/_events.info: "Missing localization keys are logged as errors"); a key with spaces cannot be defined. Localization files: convention. | warning | 31 | 0 |
-| `LOC-002` | localization-references, localization | In script files, a tooltip value contains spaces (literal text where a localization key belongs). In localization files, an unknown character function such as [ROOT.Char.GetNam]. | warning | Script files: as LOC-001. Localization files: convention (the function list is not the game's own data). | warning | 0 | 0 |
+| `LOC-001` | localization-references, localization | In script files, a title, desc or name value contains spaces (literal text where a localization key belongs). In localization files, an entry key the localization index cannot read (it starts with a digit, or contains spaces, dashes or other punctuation). | warning | Split (step 4.6). Script files: renamed CK4101, The game reads the text as a key and logs it missing (catalogue unknown_loc_key_X, "Unknown loc key %s"; game/events/_events.info: "Missing localization keys are logged as errors"); a key with spaces cannot be defined. LOC-001 until 2.1, renamed because LOC-001 means an unreadable key in localization files. Localization files: Convention (the game's own reading of such a key is not in the error catalogue). Localization files only since 2.2; the script-file check is CK4101. | warning as CK4101 (script files); information (.yml) | 31 | 0 |
+| `LOC-002` | localization-references, localization | In script files, a tooltip value contains spaces (literal text where a localization key belongs). In localization files, an unknown character function such as [ROOT.Char.GetNam]. | warning | Split (step 4.6). Script files: renamed CK4102, As CK4101. LOC-002 until 2.1, renamed because LOC-002 means an unknown character function in localization files. Localization files: Convention (the function list is not the game's own data). Localization files only since 2.2; the script-file check is CK4102. | warning as CK4102 (script files); information (.yml) | 0 | 0 |
 | `LOC-004` | localization | Unknown icon reference (@name! or £name£). | warning | Convention (the extracted icon data is not complete). | information | 0 | 0 |
 | `LOC-005` | localization | Unbalanced brackets in localization text. | warning | The game prints "Loc key `{}`: Unexpected extra `[` at position {} - file `{}`" (catalogue loc_key_X_unexpected_extra_at_position_X_file_X, and _2 for `]`). | warning | 0 | 0 |
 | `LOC-006` | localization | Unknown concept in a [concept\|E] link. | warning | Convention (the extracted concept data is not complete). | information | 0 | 0 |
@@ -177,3 +182,27 @@ findings that removed codes used to push out.
 | `VALUE-003` | script-values | Unknown formula operation. | warning | A hand-made name list: formula keys outside 13 hard-coded operations were reported, while a formula holds limits, iterators and saved values; the engine registry judges every key against the spec package. | removed | 0 | 0 |
 | `VALUE-004` | script-values | Invalid conditional structure (else_if after else). | error | Convention. | information | 0 | 0 |
 | `VALUE-006` | script-values | Invalid round_to parameter (it must be positive). | error | Convention. | information | 0 | 0 |
+
+## The codes added or renamed in 2.2 (steps 4.1 to 4.6)
+
+Each has a test, a catalogue entry with its evidence and a row in the generated reference.
+
+| Code | Step and issue | Severity | Evidence |
+| --- | --- | --- | --- |
+| CK3611 | 4.1, #21: the ai_chance total is zero whatever applies | information | Convention. The 2.1 CK3611 ("base above 100 is clamped to 100") is removed as false (640 bases above 100 among the base game's 16,865 ai_chance blocks); the 2.1 CK3612 (base = 0) is merged here (333 of the base game's 1,288 base = 0 blocks have a modifier that adds weight) |
+| CK3612 | 4.1, #22: the total can be negative | information | Convention |
+| CK3613 | 4.1, #23: an option of a several-option event without ai_chance or ai_will_select | hint | Convention (both fields optional) |
+| CK3522 | 4.2, #19: an after block that only cleans up | hint | Convention. CK3520 / CK3521 (after in a hidden event / without options) now run on every event. The issue's CK3523 (a trigger in after) is the engine registry's unknown_effect_X, so no plug-in code |
+| CK3765 (renamed from CONV-002) | 4.3, #25: a non-hidden event without title | information | Convention (title is optional in the events schema) |
+| CK3423, CK3424, CK3425, CK3426 | 4.3, #27: triggered_animation without trigger / without animation, triggered_outfit without trigger, a portrait position given twice | information | Convention (the events schema marks no portrait field required) |
+| CK3431 | 4.3, #28: an override_background reference defined neither in the workspace nor in the base game | warning | Catalogue failed_to_read_key_reference_X_from_database_X (a database key the game cannot read); silent without the base game |
+| CK3433 | 4.3, #28: an override equal to the background the theme always shows first | information | Convention (redundant, not wrong) |
+| CK3560, CK3561 | 4.4, #60: a desc / title localization text reads a scope the event saves only in an option or after | information | Convention, on the corrected evaluation order of #95 |
+| CK3563 | 4.4, #60: trigger guard, a random_ save used by an option without an any_ check | information | Convention |
+| CK4101 (renamed from LOC-001), CK4102 (renamed from LOC-002) | 4.6: the script-file halves of LOC-001 / LOC-002 | warning | Catalogue unknown_loc_key_X; LOC-001 / LOC-002 are now the .yml codes only (information) |
+
+Not implemented, with the reason: #28's CK3432 (`override_environment` is no event field; the
+engine's schema check reports it as unknown_X_in_X), CK3434 (`override_icon` references are
+paths, checked by GFX001) and CK3435 (`override_sound`: game/sound/GUIDs.txt lists sound
+events under other paths than the `event:/SFX/…` references the game's events use, so there
+is nothing to check against).

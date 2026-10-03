@@ -1,6 +1,6 @@
 # Feature matrix
 
-The language server's providers in pychivalry 2.1.0 and what each one does. There are 17
+The language server's providers in pychivalry 2.2.0 and what each one does. There are 17
 provider modules in `vscode-extension/src/server/lsp/`; every one imports only
 `pychivalry-engine` (spec package, parser, index, diagnostics) and the LSP libraries.
 `keyword-docs.ts` and `snippets.ts` in the same folder are shared helpers, not providers.
@@ -11,7 +11,7 @@ named.
 
 | # | Provider (`lsp/`) | LSP requests | What it does | Status |
 | --- | --- | --- | --- | --- |
-| 1 | `diagnostics.ts` | publishDiagnostics | Script files: the engine pipeline (parse, registry, schema, scope) then the extension's plug-ins; `.yml` files: the localization validator. See the [diagnostics reference](diagnostics/README.md). | engine; **limited**: no per-keyword scope validity |
+| 1 | `diagnostics.ts` | publishDiagnostics | Script files: the engine pipeline (parse, registry, schema, scope) then the extension's plug-ins; `.yml` files: the localization validator. Plug-in errors and warnings need engine evidence, the rest are conventions at information or hint (2.2, [evidence rule](../developer-guide/diagnostics-evidence.md)). See the [diagnostics reference](diagnostics/README.md). | engine; **limited**: the plug-in checks that need the base game (localization keys, themes, backgrounds, traits, variables across the mod) are silent without `ck3LanguageServer.gamePath` |
 | 2 | `completions.ts` | completion, completionItem/resolve | Trigger block: triggers, `any_` iterators, structural keys; effect block: effects, `every_`/`random_`/`ordered_` iterators, structural keys; inside a record: the directory schema's fields; workspace symbols (events, scripted effects/triggers, saved scopes); documentation is the engine's doc string. | engine |
 | 3 | `hover.ts` | hover | Keywords: the engine doc string verbatim with its bucket (both buckets for the names that are trigger and effect); iterators: their list; record fields: the directory schema entry; events, scripted effects/triggers, saved scopes and localization keys: the index entry. | engine |
 | 4 | `signature-help.ts` | signatureHelp | Parameters of block-form keywords, from the usage example in the engine doc string. | engine; **limited**: only keywords whose doc string has a usage example |
@@ -21,7 +21,7 @@ named.
 | 8 | `symbols.ts` | documentSymbol, workspace/symbol | Document outline by record type; fuzzy workspace symbol search. | engine (index) |
 | 9 | `call-hierarchy.ts` | prepareCallHierarchy, incomingCalls, outgoingCalls | Event chains and scripted effect/trigger calls from the engine's call graph. | engine (call graph) |
 | 10 | `code-lens.ts` | codeLens, codeLens/resolve | Reference counts, complexity indicators and event-chain information above records. | engine (index, call graph) |
-| 11 | `code-actions.ts` | codeAction | Quick fixes keyed by engine and plug-in codes (retired keyword to its replacement, create a missing scripted effect or trigger, localization stub for `CK4100`, style fixes); extract-to-scripted-effect/trigger refactorings that judge keys by bucket. | engine; **limited**: quick fixes for a subset of codes (issue #85) |
+| 11 | `code-actions.ts` | codeAction | Quick fixes keyed by engine and plug-in codes: retired keyword to its replacement (`PYCH-R001`), create a missing scripted effect or trigger (`unknown_effect_X`, `unknown_trigger_X`), localization stub (`CK4100`, `CK4101`, `CK4102`), localization key format (`LOC-001`), indentation to tabs (`CK3303`, `CK3301`), operator spacing (`CK3306`), trailing whitespace (`CK3304`), remove an empty block (`CK3314`), add `ai_chance` (`CK3613`); extract-to-scripted-effect/trigger refactorings that judge keys by bucket. | engine; **limited**: quick fixes where a mechanical fix exists (the ten most frequent plug-in codes on the real-mod corpus were measured for 2.2, issue #85) |
 | 12 | `rename.ts` | prepareRename, rename | Events, scripted effects and triggers, variables and localization keys across files. | engine (index) |
 | 13 | `document-links.ts` | documentLink, documentLink/resolve | Clickable file paths (GFX, GUI, localization) and event ids. | parser + index |
 | 14 | `document-highlight.ts` | documentHighlight | Occurrences of the symbol under the cursor, read and write. | parser |

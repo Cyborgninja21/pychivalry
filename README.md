@@ -9,7 +9,7 @@
 pychivalry checks CK3 mod scripts against the game's own vocabulary and error messages, taken
 from the game executable rather than from wiki pages or scraped lists. It ships as a VS Code
 extension (a language server with completion, hover, navigation, formatting and diagnostics)
-and as a command-line checker for whole mod folders. Version 2.1.0 targets CK3 1.20.0.2.
+and as a command-line checker for whole mod folders. Version 2.2.0 targets CK3 1.20.0.2.
 
 ## How it is built
 
@@ -41,8 +41,14 @@ code lens, document links, document highlights, call hierarchy, selection ranges
 diagnostics) to the engine: providers read the spec package, parser and index; diagnostics
 run the engine pipeline followed by the extension's plug-ins, the surviving validators that
 encode game behaviour the spec package does not describe (event evaluation order, script
-values, variables, style, Paradox conventions, localization text). The server also watches
-the game's `error.log` while you test and maps its lines to the same diagnostics.
+values, variables, style, Paradox conventions, localization text). Since 2.2 a plug-in
+diagnostic is an error or a warning only with engine evidence (a message of the game's error
+catalogue: a missing localization key, an unknown trait, theme or background, a missing
+graphics file …); everything else is a convention at information or hint severity, and a
+check that needs the base game stays silent without it
+([the evidence rule](Documentation/developer-guide/diagnostics-evidence.md)). The server
+also watches the game's `error.log` while you test and maps its lines to the same
+diagnostics.
 
 **Optional game content** (`data/`). Data that is game content rather than script vocabulary
 stays separate and optional: trait lists, game concepts and icons for localization
@@ -52,8 +58,8 @@ triggers and effects are layered over the spec package when the mod is found.
 ## Install
 
 From a release VSIX: in VS Code, **Extensions → … → Install from VSIX…** and pick
-`ck3-language-support-2.1.0.vsix`, or run
-`code --install-extension ck3-language-support-2.1.0.vsix`.
+`ck3-language-support-2.2.0.vsix`, or run
+`code --install-extension ck3-language-support-2.2.0.vsix`.
 
 From source (Node.js 22 and npm 10):
 
@@ -62,8 +68,8 @@ git clone https://github.com/Cyborgninja21/pychivalry.git
 cd pychivalry
 npm ci                                   # installs the workspace (engine + extension)
 npm run build                            # builds packages/engine
-cd vscode-extension && npm run package   # webpack production build + vsce: ck3-language-support-2.1.0.vsix
-code --install-extension ck3-language-support-2.1.0.vsix
+cd vscode-extension && npm run package   # webpack production build + vsce: ck3-language-support-2.2.0.vsix
+code --install-extension ck3-language-support-2.2.0.vsix
 ```
 
 To try it without packaging, open the repository in VS Code and press **F5** (Extension
@@ -88,17 +94,19 @@ was reported, 2 on a usage error. Run it from the repository after `npm ci && np
 
 ## Trait data (optional)
 
-Trait names (`has_trait`, `add_trait`, `remove_trait`) are checked only when trait data is
-present in `data/traits/`. The repository carries a copy extracted from the game; to refresh
-it from your own installation after a patch:
+Trait names (`has_trait`, `add_trait`, `remove_trait`, the `trait` of character history and
+`create_character`) are checked (`CK3800`) against the base game's `common/traits` (traits and
+their groups) when the base game is known, plus the workspace's traits and the trait data in
+`data/traits/`, which also drives trait completion and hover. The repository carries a copy
+extracted from the game; to refresh it from your own installation after a patch:
 
 ```bash
 npx ts-node tools/extract-traits.ts --game-path "/path/to/Crusader Kings III"
 ```
 
-(`ts-node` is not a dependency of the repository; `npx` fetches it.) With the data present,
-unknown traits get `CK3800` with suggestions, and trait names complete and hover. Delete the
-YAML files in `data/traits/` to turn the check off; everything else works without them.
+(`ts-node` is not a dependency of the repository; `npx` fetches it.) Without the base game
+`CK3800` does not run: the extracted data alone is not complete enough to prove a name
+missing.
 Extracted data is Paradox Interactive's content: keep it for personal use. The extension's
 former extraction commands now only show a notice; the script above replaces them.
 
@@ -150,13 +158,20 @@ The extension checks the whole mod, not only the open files:
   `~/.steam/steam/steamapps/common/Crusader Kings III/game` and
   `~/.local/share/Steam/steamapps/common/Crusader Kings III/game`, macOS
   `~/Library/Application Support/Steam/steamapps/common/Crusader Kings III/game`). Which one
-  was used, and how long it took to read, is logged in the **CK3: Index** channel.
+  was used, and how long it took to read, is logged in the **CK3: Index** channel. The
+  plug-ins also read the base game's English localization keys, event themes and
+  backgrounds, portrait animations and traits from it; the checks that need them (`CK4100`
+  missing localization key, `CK3430` theme, `CK3431` background, `CK3422` animation, `CK3800`
+  trait, `SWITCH-003`, `CK3701`/`CK3702` variables across the mod) report nothing while no
+  base game is known.
 
 Big mods: above `backgroundValidation.fileLimit` files (3000 by default) only open files are
 validated in the background, and a one-time message says so; run **CK3: Validate Workspace**
 or raise the limit. Measured on five published mods, the largest (RICE, 1,313 script and 777
-localization files) takes about 21 s to its first full result at about 700 MB, no single file
-holding the server for more than 0.2 s
+localization files) took about 21 s to its first full result at about 700 MB in 2.1; in 2.2,
+which also reads the base game's localization keys, themes, backgrounds, animations and traits
+for the plug-ins, it takes about 35 s at about 730 MB server peak on the same box, no single
+file holding the server for more than 0.3 s
 ([corpus records](packages/engine/test/corpus/real-mods/README.md)).
 
 ## Configuration

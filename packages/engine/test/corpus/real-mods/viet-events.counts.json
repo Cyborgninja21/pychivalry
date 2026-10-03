@@ -85,27 +85,27 @@
             "events/VIET_events_county_old.txt",
             "events/VIET_events_old.txt"
         ],
-        "timeToFirstFullResultMs": 49612,
-        "serverUptimeAtFirstFullResultMs": 48046,
-        "backgroundPassMs": 2613,
-        "peakServerRssKb": 406404,
-        "serverVmHwmKb": 406404,
+        "timeToFirstFullResultMs": 18284,
+        "serverUptimeAtFirstFullResultMs": 16813,
+        "backgroundPassMs": 1072,
+        "peakServerRssKb": 457044,
+        "serverVmHwmKb": 457044,
         "longestFile": {
-            "milliseconds": 351.6,
+            "milliseconds": 148.1,
             "file": "events/VIET_events_basic.txt"
         },
         "longestScriptFile": {
-            "milliseconds": 351.5,
+            "milliseconds": 148,
             "file": "events/VIET_events_basic.txt"
         },
         "longestLocalizationFile": {
-            "milliseconds": 21.6,
-            "file": "localization/english/viet_events_l_english.yml"
+            "milliseconds": 7.8,
+            "file": "localization/french/viet_events_l_french.yml"
         },
         "bySeverity": {
             "error": 1,
             "warning": 29,
-            "information": 633,
+            "information": 635,
             "hint": 10428
         },
         "counts": {
@@ -136,6 +136,10 @@
             "CK3317": {
                 "severity": "hint",
                 "count": 2073
+            },
+            "CK3422": {
+                "severity": "information",
+                "count": 2
             },
             "CK3433": {
                 "severity": "information",

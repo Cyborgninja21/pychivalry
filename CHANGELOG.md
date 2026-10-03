@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.0] - 2026-10-03
+
+Diagnostics you can trust, and the validation rules the backlog asked for. Headlines:
+
+- **Every plug-in error and warning is backed by the game** (post-2.0 Phase 4). A plug-in
+  diagnostic is an error or a warning only with engine evidence: a message of the game's error
+  catalogue, a required schema field, an oracle entry or a reproduced in-game error. Without it
+  the check is a convention at information (semantic advice) or hint (style), says so in its
+  message, and is listed with its reason; checks that need the base game stay silent without
+  it. The catalogue carries the evidence of every code and the docs generator refuses a
+  convention at error or warning. The audit of every 2.1 code:
+  [diagnostics-evidence.md](Documentation/developer-guide/diagnostics-evidence.md).
+- **On five published mods the Problems panel now shows only real defects at error severity**:
+  0 / 0 / 15 / 92 / 1 errors (balance-of-power-ui, divine-intervention, elf-destiny, rice,
+  viet-events), the engine path's list, against 0 / 8 / 338 / 438 / 12 in 2.1; warnings went
+  from 115,553 to 1,593 (the engine's schema check, 1,581, and 12 evidence-backed plug-in
+  findings).
+- **The graphics-file check (GFX001)** (Phase 3, PR #56 rebuilt).
+- **New rules** for ai_chance, after blocks, events, portraits, backgrounds and scope timing
+  (#19, #21-#23, #25, #27, #28, #60), and **quick fixes** for the most frequent codes (#85).
+
 ### Added
 
 - **Graphics-file check (GFX001)**, rebuilt from PR #56 as an extension plug-in (`graphics`): a
@@ -21,12 +42,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `CK3612` a total that can be negative (base plus every negative `add` below zero), both
   information; `CK3613` an option of a non-hidden event with several options without
   `ai_chance` or `ai_will_select`, a hint.
-
 - **after blocks** (#19): the after checks run on every event (`CK3520` after in a hidden
   event, `CK3521` after in an event without options, information) and `CK3522` an after block
   that only cleans up (hint). A trigger inside `after` (the issue's CK3523) is reported by the
   engine's registry with the game's message (`unknown_effect_X`), so it is no plug-in code.
-
 - **Events** (#25, #27, #28): `CK3765` a non-hidden event without title (information;
   CONV-002 merged into it); `CK3423`/`CK3424` a portrait `triggered_animation` without
   trigger / without animation, `CK3425` a `triggered_outfit` without trigger, `CK3426` a
@@ -37,14 +56,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   is no event field; the engine's schema check reports it), CK3434 (`override_icon`
   references are paths, checked by GFX001), CK3435 (`override_sound`: nothing to check
   against).
-
 - **Scope timing** (#60): `CK3560`/`CK3561`, a desc / title localization text that reads a
   saved scope the event saves only in an option or in `after` (after the window is shown);
   `CK3563`, the trigger guard: a scope saved from a `random_` iterator in `immediate` and used
   by an option, with no `any_` check of the same list in `trigger`. All information. The
   evaluation order is corrected (#95): the window (title, desc and its `triggered_desc`
   triggers) is evaluated after `immediate`.
-
 - **Quick fixes for the most frequent plug-in codes** (#85), measured on the regenerated
   real-mod corpus records: trailing whitespace (`CK3304`), mixed indentation to tabs
   (`CK3301`, with `CK3303`), remove an empty block (`CK3314`), add `ai_chance = { base = 100 }`
@@ -52,7 +69,60 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   without limit) have no mechanical fix. The localization-stub fix now passes the key, not the
   whole `field = key` text.
 
-### Changed: renumbered and removed codes
+### Changed: severities (the evidence audit)
+
+Of the 76 codes that were errors or warnings in 2.1, one stays an error, eight stay warnings,
+46 become information or hints and 21 are removed or merged (table per code, with corpus counts
+before and after, in diagnostics-evidence.md):
+
+| 2.1 severity | Now error | Now warning | Now information | Now hint | Removed or merged |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| error | 1 | 0 | 14 | 1 | 6 |
+| warning | 0 | 8 | 28 | 3 | 15 |
+
+- Kept, with the catalogue message that backs them: `VALUE-002` (error), `CK4100`, `CK4101`,
+  `CK4102` (the script-file `LOC-001`/`LOC-002`), `CK3430`, `CK3800`, `SWITCH-003`, `GFX001`,
+  `LOC-005` (warnings); `CK3431` is new at warning.
+- Style codes (`CK3301`, `CK3303`, `CK3304`, `CK3306`, `CK3314`, `CK3316`, `CK3317`) are
+  hints; every other plug-in code is information or a hint with a `Convention:` message.
+- The plug-ins read the base game: its English localization keys (`CK4100`), event themes and
+  backgrounds (`CK3430`, `CK3431`, `CK3433`), portrait animations (`CK3422`), traits and trait
+  groups (`CK3800`) and scripted triggers (`SWITCH-003`); `CK3701`/`CK3702` judge variables across the workspace and the base
+  game (the engine Indexer's new variable uses). The localization index reads `key: "text"`
+  entries without a version number (135,037 in the base game's English files) and entries
+  with a trailing comment.
+- The event checks of paradox-checks run on every event (they saw only the file root); the
+  events plug-in reports per code severity on `events/` files and accepts namespaces with
+  capitals and digits.
+
+### Fixed: false positives found on the real-mod corpus
+
+- `CK5142` removed: `liege = root`, `employer = scope:x` is the ordinary comparison form
+  (#91).
+- `CK3873` (`trigger = { always = no }`) is a hint, not an error (#92).
+- `CK3950`/`CK3951` removed: they reported colour values `rgb { }`/`hsv { }` and never a real
+  call; undefined scripted effects and triggers are the engine registry's (#93).
+- `CK3420` removed: every key ending in `_portrait` was checked; an unknown event field is the
+  engine schema check's `unknown_X_in_X` (#94).
+- `CK3552`/`CK3551` follow the corrected evaluation order: a scope saved in `immediate` is
+  available to the desc (#95).
+- `CK3550` accepts a scope saved earlier in the same trigger (#96).
+- `CK3553` reports local variables only: ordinary variables persist across firings (#97).
+- `CK4100` reads only real localization fields (not gene names, script-value breakdown labels
+  or trigger_localization keys) and the base game's keys: 7,622 corpus findings to 3.
+- `CK3430` and `EVENT-003` (one code now) read the workspace's and the base game's themes
+  instead of 32 hard-coded names: 2,880 corpus findings to 0.
+- `CK3800` knows trait groups (`has_trait = lunatic`) and no longer reads culture traditions as
+  traits: 155 to 6.
+- `CK3422` (unknown portrait animation) never reported: the animation set was read as an
+  object. It now judges against the workspace's and the base game's
+  `gfx/portraits/portrait_animations` (information, silent without the base game), and the
+  data loader reads `data/animations.yaml` as the mapping it is (animation completion and
+  hover get its 251 names instead of an 18-name fallback).
+- One test per catalogue code (`catalogue-severities.test.ts`): every plug-in code is triggered
+  and checked against its catalogue severity and its "Convention" wording.
+
+### Changed: renamed, merged and removed codes
 
 - `LOC-001` and `LOC-002` are split: in script files they are now `CK4101` (a localization
   field holds literal text) and `CK4102` (a `custom_tooltip` holds literal text), both
@@ -66,6 +136,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   writes 640 bases above 100). The 2.1 `CK3612` ("ai_chance base = 0, the AI never selects the
   option") is merged into the new `CK3611`: a base of 0 is never picked only when no modifier
   adds weight (333 of the base game's 1,288 `base = 0` blocks have one).
+
+- Merged into the code that reports the same thing: `CONV-003` into `CK3764`, `CONV-004` and
+  `EVENT-007` into `CK3450`, `EVENT-003` into `CK3430`, `EVENT-004` into `CK3422`, `EVENT-009`
+  into `EVENT-016`, `EVENT-011`/`EVENT-012`/`EVENT-013` into `CK3762`/`CK3520`/`CK3763`,
+  `CK3761` into `EVENT-001`; `CK3340` and `CK3341` into the engine's scope and registry checks.
+- Removed: `CK3760` and `CONV-001` (`type` is optional, game/events/_events.info),
+  `EVENT-005` and `EVENT-006` (never reported), `VALUE-001` and `VALUE-003` (hand-made name
+  lists; the engine registry judges keys against the spec package), and the ones above.
 
 ## [2.1.0] - 2026-10-02
 
