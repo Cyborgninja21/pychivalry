@@ -84,22 +84,22 @@
             "events/VIET_events_county.txt",
             "events/VIET_events_old.txt"
         ],
-        "timeToFirstFullResultMs": 28587,
-        "serverUptimeAtFirstFullResultMs": 28523,
-        "backgroundPassMs": 2102,
-        "peakServerRssKb": 416088,
-        "serverVmHwmKb": 416088,
+        "timeToFirstFullResultMs": 11756,
+        "serverUptimeAtFirstFullResultMs": 10026,
+        "backgroundPassMs": 1351,
+        "peakServerRssKb": 426364,
+        "serverVmHwmKb": 426364,
         "longestFile": {
-            "milliseconds": 303.2,
+            "milliseconds": 165.4,
             "file": "events/VIET_events_basic.txt"
         },
         "longestScriptFile": {
-            "milliseconds": 302.5,
+            "milliseconds": 165.3,
             "file": "events/VIET_events_basic.txt"
         },
         "longestLocalizationFile": {
-            "milliseconds": 18.3,
-            "file": "localization/korean/viet_events_l_korean.yml"
+            "milliseconds": 10.6,
+            "file": "localization/french/viet_events_l_french.yml"
         },
         "bySeverity": {
             "error": 12,

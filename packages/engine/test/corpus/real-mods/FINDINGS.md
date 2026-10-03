@@ -20,6 +20,34 @@ the scope check (`wrong_scope_for_trigger_X_expected_X`, `wrong_scope_for_effect
 code and every error are identical to the Phase 1 records, so there is no new finding to
 classify and no new issue.
 
+**The graphics-file check (GFX001, post-2.0 Phase 3).** Re-recorded on the editor path
+2026-10-03 with the base game set (`CK3_GAME_PATH` = the 1.20.0.2 `game` directory): the records
+change only by `GFX001` entries (warnings, so the error tables below are unchanged; the engine
+path has no plug-ins and is unchanged). Each reference is looked up, case-insensitively, in the
+mod root, then `game/`, then the 22 `game/dlc/<dlc>/` folders of the install (24 roots).
+
+| Mod | GFX001 (editor path) |
+| --- | ---: |
+| balance-of-power-ui | 0 |
+| divine-intervention | 0 |
+| elf-destiny | 0 |
+| rice | 3 |
+| viet-events | 0 |
+
+All three are real missing files (the same `RICE_consecrate_holy_well` decision, culture-gated
+`picture` blocks). Looked for in `rice/`, `game/` and every `game/dlc/*` folder: found in none.
+The mod has each file under `gfx/interface/illustrations/decisions/` and its other decisions
+reference them there (`RICE_chios_decisions.txt:71`, `RICE_khuzestan_decisions.txt:389`, …);
+these three point at `event_scenes/` instead, so the game shows no picture for them.
+
+| Mod | File:line | Referenced path | Looked in | Classification |
+| --- | --- | --- | --- | --- |
+| rice | `common/decisions/RICE_mayo_decisions.txt:425` | `gfx/interface/illustrations/event_scenes/decision_erect_homer_monument.dds` | `rice/`, `game/`, `game/dlc/dlc001_preorder` … `dlc030_ce3` (22): absent; exists as `rice/gfx/interface/illustrations/decisions/decision_erect_homer_monument.dds` | real missing file (wrong folder) |
+| rice | `common/decisions/RICE_mayo_decisions.txt:431` | `gfx/interface/illustrations/event_scenes/decision_visit_western_oasis_springs.dds` | the same 24 roots: absent; exists as `rice/gfx/interface/illustrations/decisions/decision_visit_western_oasis_springs.dds` | real missing file (wrong folder) |
+| rice | `common/decisions/RICE_mayo_decisions.txt:437` | `gfx/interface/illustrations/event_scenes/decision_RICE_east_asian_garden.dds` | the same 24 roots: absent; exists as `rice/gfx/interface/illustrations/decisions/decision_RICE_east_asian_garden.dds` | real missing file (wrong folder) |
+
+No false positive, so no new issue.
+
 ## Summary
 
 | Mod | Engine path errors | Editor path errors |

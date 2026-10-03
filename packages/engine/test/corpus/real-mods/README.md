@@ -105,6 +105,11 @@ that the budget run above measured at 27.2 s. Against that control the 2.1 engin
 timings in the records scale the same way (RICE first full result 58.1 s). Counts per code and
 errors are identical to the Phase 1 records on both paths.
 
+**Re-recorded for the graphics check (Phase 3).** The `editor` records were made again on
+2026-10-03 with the `graphics` plug-in (GFX001); counts per code, `bySeverity` and every error
+are identical to the 2.1 records except RICE's 3 `GFX001` warnings (classified in
+[FINDINGS.md](FINDINGS.md)); only the timing fields differ otherwise.
+
 **The 1000-per-file cap.** The diagnostics provider publishes at most 1000 diagnostics per file
 (sorted by position), and with the plug-ins several big files reach it (14 files in Divine
 Intervention, 22 in Elf Destiny, 25 in RICE, 4 in VIET Events: `filesAtCap`). Outside those

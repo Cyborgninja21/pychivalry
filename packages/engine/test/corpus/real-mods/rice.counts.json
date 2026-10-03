@@ -841,26 +841,26 @@
             "localization/russian/rice_north_atlantic_l_russian.yml",
             "localization/russian/rice_sri_lanka_l_russian.yml"
         ],
-        "timeToFirstFullResultMs": 58141,
-        "serverUptimeAtFirstFullResultMs": 58077,
-        "backgroundPassMs": 20591,
-        "peakServerRssKb": 715324,
-        "serverVmHwmKb": 715324,
+        "timeToFirstFullResultMs": 23655,
+        "serverUptimeAtFirstFullResultMs": 23624,
+        "backgroundPassMs": 10348,
+        "peakServerRssKb": 708632,
+        "serverVmHwmKb": 708632,
         "longestFile": {
-            "milliseconds": 386.5,
-            "file": "localization/german/rice_nubia_l_german.yml"
+            "milliseconds": 190.5,
+            "file": "localization/japanese/rice_nubia_l_japanese.yml"
         },
         "longestScriptFile": {
-            "milliseconds": 172.1,
-            "file": "events/RICE_north_atlantic_events.txt"
+            "milliseconds": 179.1,
+            "file": "common/decisions/RICE_mayo_decisions.txt"
         },
         "longestLocalizationFile": {
-            "milliseconds": 386.4,
-            "file": "localization/german/rice_nubia_l_german.yml"
+            "milliseconds": 190.4,
+            "file": "localization/japanese/rice_nubia_l_japanese.yml"
         },
         "bySeverity": {
             "error": 438,
-            "warning": 65324,
+            "warning": 65327,
             "information": 91811,
             "hint": 347
         },
@@ -1004,6 +1004,10 @@
             "EVENT-003": {
                 "severity": "warning",
                 "count": 981
+            },
+            "GFX001": {
+                "severity": "warning",
+                "count": 3
             },
             "ITER-003": {
                 "severity": "warning",

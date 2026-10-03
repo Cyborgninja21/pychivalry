@@ -222,22 +222,22 @@
             "events/wolf_invader_events.txt",
             "gfx/portraits/portrait_modifiers/elf_characters.txt"
         ],
-        "timeToFirstFullResultMs": 24706,
-        "serverUptimeAtFirstFullResultMs": 24620,
-        "backgroundPassMs": 5801,
-        "peakServerRssKb": 388664,
-        "serverVmHwmKb": 388664,
+        "timeToFirstFullResultMs": 8609,
+        "serverUptimeAtFirstFullResultMs": 8562,
+        "backgroundPassMs": 2766,
+        "peakServerRssKb": 379556,
+        "serverVmHwmKb": 379556,
         "longestFile": {
-            "milliseconds": 539.9,
-            "file": "localization/english/aeluran/aeluran_regency_l_english.yml"
+            "milliseconds": 245.6,
+            "file": "localization/korean/aeluran/aeluran_regency_l_korean.yml"
         },
         "longestScriptFile": {
-            "milliseconds": 142.1,
+            "milliseconds": 61.1,
             "file": "common/genes/01_genes_morph.txt"
         },
         "longestLocalizationFile": {
-            "milliseconds": 539.8,
-            "file": "localization/english/aeluran/aeluran_regency_l_english.yml"
+            "milliseconds": 245.2,
+            "file": "localization/korean/aeluran/aeluran_regency_l_korean.yml"
         },
         "bySeverity": {
             "error": 338,
