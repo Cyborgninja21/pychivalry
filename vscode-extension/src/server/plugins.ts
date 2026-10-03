@@ -221,7 +221,7 @@ export function extensionPlugins(env: PluginEnvironment = {}): NamedPlugin[] {
         },
         {
             name: 'paradox-checks',
-            run: wrap(({ ast, file, index }) => {
+            run: wrap(({ ast, file, index, spec }) => {
                 const base = baseGameOf(env);
                 let isKnownTheme: ((theme: string) => boolean) | undefined;
                 if (base?.eventThemes) {
@@ -242,6 +242,7 @@ export function extensionPlugins(env: PluginEnvironment = {}): NamedPlugin[] {
                 return validateParadoxConventions(ast, DEFAULT_PARADOX_CONFIG, {
                     file,
                     isKnownTheme,
+                    isEffect: (name) => spec.has(name, 'effects'),
                 });
             }),
         },

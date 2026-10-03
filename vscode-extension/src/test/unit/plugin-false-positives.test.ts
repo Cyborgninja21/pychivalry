@@ -235,3 +235,37 @@ describe('Plug-in false positives of the real-mod corpus (#91-#97)', () => {
         assert.strictEqual(local[0].severity, 'information');
     });
 });
+
+describe('After blocks (#19): CK3523 is the engine registry check', () => {
+    let dir: string;
+    before(() => {
+        dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pych-after-'));
+    });
+    after(() => fs.rmSync(dir, { recursive: true, force: true }));
+
+    it('a trigger in an after block is reported by the engine (unknown_effect_X), not a plug-in', () => {
+        const file = path.join(dir, 'events', 'after.txt');
+        fs.mkdirSync(path.dirname(file), { recursive: true });
+        const text = [
+            'namespace = my_event',
+            'my_event.3 = {',
+            '\ttitle = my_event.3.t',
+            '\tdesc = my_event.3.desc',
+            '\tleft_portrait = root',
+            '\toption = { name = my_event.3.a }',
+            '\tafter = { is_adult = yes }',
+            '}',
+        ].join('\n');
+        fs.writeFileSync(file, text);
+        const ws = new Workspace(dir).load();
+        const diags = diagnose(ws, file, {
+            text,
+            plugins: enginePlugins({ localization: new LocalizationIndex(), workspace: ws }),
+        });
+        const atAfter = diags.filter((d) => d.range.start.line === 6);
+        assert.deepStrictEqual(
+            atAfter.map((d) => [d.code, d.source ?? 'engine']),
+            [['unknown_effect_X', 'engine']]
+        );
+    });
+});

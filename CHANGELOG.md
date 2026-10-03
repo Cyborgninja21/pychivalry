@@ -22,6 +22,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   information; `CK3613` an option of a non-hidden event with several options without
   `ai_chance` or `ai_will_select`, a hint.
 
+- **after blocks** (#19): the after checks run on every event (`CK3520` after in a hidden
+  event, `CK3521` after in an event without options, information) and `CK3522` an after block
+  that only cleans up (hint). A trigger inside `after` (the issue's CK3523) is reported by the
+  engine's registry with the game's message (`unknown_effect_X`), so it is no plug-in code.
+
 ### Changed: renumbered and removed codes
 
 - `CK3611` and `CK3612` change meaning. The 2.1 `CK3611` ("ai_chance base above 100 is

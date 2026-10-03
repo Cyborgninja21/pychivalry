@@ -11,7 +11,7 @@ pychivalry reports two kinds of diagnostics.
   engine's own, for conditions the catalogue has no text for.
 - **Plug-in diagnostics** (source `ck3-plugin`, or `ck3-localization` in `.yml` files)
   come from the extension's validators that encode behaviour the spec package does not
-  describe (event timing, style, conventions). 73 codes in 14 plug-ins.
+  describe (event timing, style, conventions). 74 codes in 14 plug-ins.
 
 The engine runs parse, registry, schema and scope checks in that order, then the
 plug-ins; see the [validation pipeline](../../developer-guide/architecture/VALIDATION.md).
@@ -59,7 +59,7 @@ is below.
 | [conventions](plugin-conventions.md) | 4 | Event conventions (CONV) and if/else ordering (COND), as information. |
 | [localization-references](plugin-localization-references.md) | 3 | Localization keys referenced from script (an event's title, desc and opening, an option's name, a decision's title, desc, selection_tooltip and confirm_text, any custom_tooltip): literal text where a key belongs, and keys defined neither in the workspace's localization files nor in the base game's (only while the base game is known, ck3LanguageServer.gamePath). |
 | [events](plugin-events.md) | 4 | Event records of events/ files: type, letter sender, namespace declaration, against the game's own events documentation (game/events/_events.info); information. |
-| [paradox-checks](plugin-paradox-checks.md) | 27 | Paradox conventions and common pitfalls that parse and resolve but misbehave in game: event structure (on every event of an events/ file), ai_chance, trigger_else, after blocks, portraits, iterators without limit; and the event theme, checked against the workspace's and the base game's common/event_themes. |
+| [paradox-checks](plugin-paradox-checks.md) | 28 | Paradox conventions and common pitfalls that parse and resolve but misbehave in game: event structure (on every event of an events/ file), ai_chance, trigger_else, after blocks, portraits, iterators without limit; and the event theme, checked against the workspace's and the base game's common/event_themes. |
 | [variables](plugin-variables.md) | 4 | Variables read but set nowhere, set but read nowhere, read in another namespace than they are set in, or used as a list and as a value. Ordinary and global variables are judged across the workspace index and the base game's indexed script (only while the base game is known); local variables in their file. |
 | [traits](plugin-traits.md) | 1 | Trait names in has_trait, add_trait, remove_trait and the trait field of history/characters and create_character, against the base game's common/traits (trait keys, group and group_equivalence names), the workspace's traits and the optional extracted data. Runs only while the base game's traits are known. |
 | [scripted-blocks](plugin-scripted-blocks.md) | 1 | Recursion: a scripted effect or trigger that calls itself. (Undefined scripted effects and triggers are the engine registry's unknown_effect_X / unknown_trigger_X.) |

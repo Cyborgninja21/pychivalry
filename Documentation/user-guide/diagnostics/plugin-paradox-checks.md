@@ -15,8 +15,9 @@ Source: `vscode-extension/src/server/ck3/validation/paradox-checks.ts`.
 | `CK3450` | information | An event option has no name field for its localization. | Convention. CONV-004 and EVENT-007 (the same check) are merged into it. |
 | `CK3510` | information | trigger_else without a preceding trigger_if. | Convention. |
 | `CK3511` | information | Several trigger_else blocks; only the first applies. | Convention. |
-| `CK3520` | information | An after block in a hidden event (after runs after an option, and a hidden event shows none). | Convention. EVENT-012 (the same check) is merged into it. |
-| `CK3521` | information | An after block in an event without options. | Convention. |
+| `CK3520` | information | An after block in a hidden event (a hidden event shows no options; its effects belong in immediate). | Convention (issue #19; the evaluation order of scope-timing: after runs once the chosen option has run). EVENT-012 (the same check) is merged into it. |
+| `CK3521` | information | An after block in an event without options. | Convention (issue |
+| `CK3522` | hint | An after block that only cleans up (every entry a remove_ or clear_ effect of the spec package). | Convention (issue #19). The issue's CK3523 (a trigger in an after block) is not a plug-in code: after is effect context in the events schema, and the engine's registry reports a trigger there with the game's message (unknown_effect_X). |
 | `CK3610` | information | Negative base in ai_chance. | Convention. |
 | `CK3611` | information | The ai_chance total is zero whatever applies (base 0 and no modifier that can add weight, or an unconditional factor = 0): the AI never picks the option. | Convention (issue #21). Until 2.1 CK3611 meant "ai_chance base above 100 is clamped to 100", removed in 2.2 as false: ai_chance is a relative weight (the 1.20.0.2 events and common directories hold 640 bases above 100 among 16,865 ai_chance blocks). The 2.1 CK3612 (base = 0) is merged into this code: a base of 0 is never picked only when no modifier adds weight (333 of the base game's 1,288 base = 0 blocks have one). |
 | `CK3612` | information | The ai_chance total can be negative (base plus every negative add is below zero). | Convention (issue #22). Until 2.1 CK3612 meant "ai_chance base = 0", merged into CK3611. |

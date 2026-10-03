@@ -112,3 +112,39 @@ describe('paradox-checks: ai_chance (#21-#23)', () => {
         assert.ok(!codes.includes('CK3613'));
     });
 });
+
+describe('paradox-checks: after blocks (#19)', () => {
+    const run = (text: string) =>
+        validateParadoxConventions(parse(text), undefined, {
+            file: 'events/a.txt',
+            isEffect: (name) => name === 'remove_variable' || name === 'clear_saved_scope',
+        });
+
+    it('CK3520: an after block in a hidden event (information)', () => {
+        const d = run(
+            'a.1 = { hidden = yes immediate = { add_gold = 1 } after = { add_gold = 1 } }'
+        );
+        const found = d.filter((x) => x.code === 'CK3520');
+        assert.strictEqual(found.length, 1);
+        assert.strictEqual(found[0].severity, DiagnosticSeverity.Information);
+    });
+
+    it('CK3521: an after block in an event without options (information)', () => {
+        const d = run('a.2 = { title = t desc = d left_portrait = root after = { add_gold = 1 } }');
+        assert.ok(d.some((x) => x.code === 'CK3521'));
+    });
+
+    it('CK3522: an after block that only cleans up (hint), not one with other effects', () => {
+        const cleanup = run(
+            'a.3 = { title = t desc = d left_portrait = root option = { name = o } after = { remove_variable = x clear_saved_scope = y } }'
+        );
+        assert.deepStrictEqual(
+            cleanup.filter((x) => x.code === 'CK3522').map((x) => x.severity),
+            [DiagnosticSeverity.Hint]
+        );
+        const mixed = run(
+            'a.4 = { title = t desc = d left_portrait = root option = { name = o } after = { remove_variable = x add_gold = 5 } }'
+        );
+        assert.ok(!mixed.some((x) => x.code === 'CK3522'));
+    });
+});

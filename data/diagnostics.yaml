@@ -324,13 +324,23 @@ diagnostics:
     CK3520:
         plugin: paradox-checks
         severity: information
-        message: An after block in a hidden event (after runs after an option, and a hidden event shows none).
-        evidence: Convention. EVENT-012 (the same check) is merged into it.
+        message: An after block in a hidden event (a hidden event shows no options; its effects belong in immediate).
+        evidence: >-
+            Convention (issue #19; the evaluation order of scope-timing: after runs once the
+            chosen option has run). EVENT-012 (the same check) is merged into it.
     CK3521:
         plugin: paradox-checks
         severity: information
         message: An after block in an event without options.
-        evidence: Convention.
+        evidence: Convention (issue #19; after runs once the chosen option has run).
+    CK3522:
+        plugin: paradox-checks
+        severity: hint
+        message: An after block that only cleans up (every entry a remove_ or clear_ effect of the spec package).
+        evidence: >-
+            Convention (issue #19). The issue's CK3523 (a trigger in an after block) is not a
+            plug-in code: after is effect context in the events schema, and the engine's
+            registry reports a trigger there with the game's message (unknown_effect_X).
     CK3610:
         plugin: paradox-checks
         severity: information

@@ -20,7 +20,12 @@
  *     several immediate blocks, CK3769 non-hidden event without portraits, CK3450 option
  *     without name, CK3421 portrait without character, CK3422 unknown portrait animation
  *     (the optional extracted animation data), CK3520 after block in a hidden event, CK3521
- *     after block in an event without options
+ *     after block in an event without options, CK3522 (hint) an after block that only cleans
+ *     up (issue #19). Issue #19's CK3523 (a trigger in an after block) is not a plug-in code:
+ *     `after` is effect context in the events schema, and the engine's registry reports a
+ *     trigger there with the game's own message (unknown_effect_X). The evaluation order
+ *     behind the after checks (after runs once the chosen option has run; a hidden event
+ *     shows no options) is documented in scope-timing.ts.
  *     CK3430 (warning)     an event theme defined neither in the workspace's nor in the
  *                          base game's common/event_themes: the game cannot read the
  *                          database key (catalogue failed_to_read_key_reference_X_from_database_X);
@@ -95,6 +100,8 @@ export interface ParadoxKnowledge {
      * unknown: CK3430 is then silent.
      */
     isKnownTheme?: (theme: string) => boolean;
+    /** Is the name an effect of the spec package (CK3522)? */
+    isEffect?: (name: string) => boolean;
 }
 
 function diag(
@@ -227,7 +234,11 @@ export function checkOpinionModifiers(node: ASTNode): Diagnostic[] {
 }
 
 /** Event structure checks on one event (CK3762-CK3769, CK3450, CK3520, CK3521). */
-export function checkEventStructure(event: ASTNode, config: ParadoxConfig): Diagnostic[] {
+export function checkEventStructure(
+    event: ASTNode,
+    config: ParadoxConfig,
+    isEffect?: (name: string) => boolean
+): Diagnostic[] {
     const out: Diagnostic[] = [];
     const children = event.children ?? [];
     if (children.length === 0) {
@@ -350,10 +361,32 @@ export function checkEventStructure(event: ASTNode, config: ParadoxConfig): Diag
         }
     }
     if (config.afterBlockValidation && afters.length > 0) {
+        // CK3522: an after block that only cleans up (every entry a remove_/clear_ effect).
+        for (const after of afters) {
+            const entries = (after.children ?? []).filter((c) => c.type !== NodeType.COMMENT);
+            if (
+                entries.length > 0 &&
+                entries.every(
+                    (c) =>
+                        c.key !== undefined &&
+                        /^(remove|clear)_/.test(c.key) &&
+                        (isEffect?.(c.key) ?? true)
+                )
+            ) {
+                out.push(
+                    diag(
+                        `${CONVENTION}after block only cleans up (${entries.map((c) => c.key).join(', ')}), the usual use of after: it runs once the chosen option has run.`,
+                        after.range,
+                        DiagnosticSeverity.Hint,
+                        'CK3522'
+                    )
+                );
+            }
+        }
         if (hidden) {
             out.push(
                 diag(
-                    `${CONVENTION}after block in hidden event '${event.key}': it runs after an option is chosen, and a hidden event shows none.`,
+                    `${CONVENTION}after block in hidden event '${event.key}': a hidden event shows no options, so its effects belong in immediate.`,
                     afters[0].range,
                     INFO,
                     'CK3520'
@@ -586,7 +619,7 @@ export function validateParadoxConventions(
     }
     if (isEventFile(knowledge.file ?? 'events/')) {
         for (const event of eventsOf(node)) {
-            out.push(...checkEventStructure(event, config));
+            out.push(...checkEventStructure(event, config, knowledge.isEffect));
             out.push(...checkTheme(event, knowledge));
             if (config.aiChanceValidation) {
                 out.push(...checkMissingAiChance(event));
