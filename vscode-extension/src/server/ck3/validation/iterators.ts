@@ -2,8 +2,9 @@
  * Ordered-iterator requirement validation (engine plug-in)
  *
  * DIAGNOSTIC CODES:
- *     ITER-003: ordered_* block missing order_by
- *     ITER-004: ordered_* block missing position/max (information)
+ *     ITER-003: ordered_* block missing order_by (information, convention: every vanilla
+ *               ordered_ iterator has one, but no error-catalogue message says so)
+ *     ITER-004: ordered_* block missing position/max (information, convention)
  *
  * Retired in Phase 4: ITER-001 (effect inside an any_ iterator) and ITER-002 (every_
  * block without effects). The engine's registry check judges every key of an iterator
@@ -74,9 +75,9 @@ function validateOrderedIterator(node: ASTNode, diagnostics: Diagnostic[]): void
 
     if (!hasOrderBy) {
         diagnostics.push({
-            severity: DiagnosticSeverity.Warning,
+            severity: DiagnosticSeverity.Information,
             range: node.range,
-            message: `'${node.key}' is missing required 'order_by' field`,
+            message: `Convention: '${node.key}' has no 'order_by' field`,
             code: 'ITER-003',
             source: 'ck3-iterators',
         });
@@ -86,7 +87,7 @@ function validateOrderedIterator(node: ASTNode, diagnostics: Diagnostic[]): void
         diagnostics.push({
             severity: DiagnosticSeverity.Information,
             range: node.range,
-            message: `'${node.key}' has no 'position' or 'max' field - consider adding one to limit iteration`,
+            message: `Convention: '${node.key}' has no 'position' or 'max' field`,
             code: 'ITER-004',
             source: 'ck3-iterators',
         });

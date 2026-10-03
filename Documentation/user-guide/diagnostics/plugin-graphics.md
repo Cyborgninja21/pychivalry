@@ -6,6 +6,6 @@ Graphics files that do not exist. The values of icon, texture, sprite, backgroun
 
 Source: `vscode-extension/src/server/ck3/validation/graphics.ts`.
 
-| Code | Severity | Meaning |
-| --- | --- | --- |
-| `GFX001` | warning | Graphics file not found: a .dds, .png or .tga path that exists in no workspace mod, not in the base game's game/ and not in any game/dlc/<dlc>/ folder. |
+| Code | Severity | Meaning | Evidence |
+| --- | --- | --- | --- |
+| `GFX001` | warning | Graphics file not found: a .dds, .png or .tga path that exists in no workspace mod, not in the base game's game/ and not in any game/dlc/<dlc>/ folder. | The game logs it (catalogue failed_to_load_texture_X_file_not_found, "Failed to load texture %s - file not found"). |

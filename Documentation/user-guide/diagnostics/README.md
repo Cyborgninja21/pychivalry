@@ -11,7 +11,7 @@ pychivalry reports two kinds of diagnostics.
   engine's own, for conditions the catalogue has no text for.
 - **Plug-in diagnostics** (source `ck3-plugin`, or `ck3-localization` in `.yml` files)
   come from the extension's validators that encode behaviour the spec package does not
-  describe (event timing, style, conventions). 94 codes in 14 plug-ins.
+  describe (event timing, style, conventions). 72 codes in 14 plug-ins.
 
 The engine runs parse, registry, schema and scope checks in that order, then the
 plug-ins; see the [validation pipeline](../../developer-guide/architecture/VALIDATION.md).
@@ -54,16 +54,16 @@ is below.
 
 | Page | Codes | What it checks |
 | --- | --- | --- |
-| [scope-timing](plugin-scope-timing.md) | 5 | The event evaluation order: trigger and desc are evaluated before immediate runs, so scopes and variables created in immediate are not available there. |
-| [style-checks](plugin-style-checks.md) | 11 | Formatting and brace style. Where the engine reports an unbalanced brace on a line, this plug-in's own brace codes (CK3330, CK3331) on that line are dropped. |
-| [conventions](plugin-conventions.md) | 7 | Event conventions (CONV) and if/else ordering (COND). |
-| [localization-references](plugin-localization-references.md) | 3 | Localization keys referenced from script: literal text where a key belongs, and keys missing from the workspace's localization files. |
-| [events](plugin-events.md) | 13 | Event records: type, theme, portraits, options, namespaces. Reported as warnings. |
-| [paradox-checks](plugin-paradox-checks.md) | 30 | Paradox conventions and common pitfalls that parse and resolve but misbehave in game: event structure, ai_chance, trigger_else, after blocks, portraits, iterators without limit. |
-| [variables](plugin-variables.md) | 4 | Variables declared, used, scoped and typed consistently within a file. |
-| [traits](plugin-traits.md) | 1 | Trait names in has_trait, add_trait and remove_trait. Runs only when the optional extracted trait data (data/traits/) is present; workspace traits count as known. |
-| [scripted-blocks](plugin-scripted-blocks.md) | 3 | Calls to scripted effects and triggers, and recursion between them. |
-| [script-values](plugin-script-values.md) | 6 | Script value formulas in common/script_values. |
+| [scope-timing](plugin-scope-timing.md) | 5 | The event evaluation order: trigger, then immediate, then the window (title, desc and its triggered_desc triggers, portraits, options), then the chosen option, then after. Scopes saved in immediate are available to the window; scopes saved in an option or in after are not. All codes are conventions (information). |
+| [style-checks](plugin-style-checks.md) | 9 | Formatting and brace style, as hints (the game prints nothing for style). Where the engine reports an unbalanced brace on a line, this plug-in's own brace codes (CK3330, CK3331) on that line are dropped; elsewhere they point at the probable line of a brace the engine's parse error reports. |
+| [conventions](plugin-conventions.md) | 4 | Event conventions (CONV) and if/else ordering (COND), as information. |
+| [localization-references](plugin-localization-references.md) | 3 | Localization keys referenced from script (an event's title, desc and opening, an option's name, a decision's title, desc, selection_tooltip and confirm_text, any custom_tooltip): literal text where a key belongs, and keys defined neither in the workspace's localization files nor in the base game's (only while the base game is known, ck3LanguageServer.gamePath). |
+| [events](plugin-events.md) | 4 | Event records of events/ files: type, letter sender, namespace declaration, against the game's own events documentation (game/events/_events.info); information. |
+| [paradox-checks](plugin-paradox-checks.md) | 26 | Paradox conventions and common pitfalls that parse and resolve but misbehave in game: event structure (on every event of an events/ file), ai_chance, trigger_else, after blocks, portraits, iterators without limit; and the event theme, checked against the workspace's and the base game's common/event_themes. |
+| [variables](plugin-variables.md) | 4 | Variables read but set nowhere, set but read nowhere, read in another namespace than they are set in, or used as a list and as a value. Ordinary and global variables are judged across the workspace index and the base game's indexed script (only while the base game is known); local variables in their file. |
+| [traits](plugin-traits.md) | 1 | Trait names in has_trait, add_trait, remove_trait and the trait field of history/characters and create_character, against the base game's common/traits (trait keys, group and group_equivalence names), the workspace's traits and the optional extracted data. Runs only while the base game's traits are known. |
+| [scripted-blocks](plugin-scripted-blocks.md) | 1 | Recursion: a scripted effect or trigger that calls itself. (Undefined scripted effects and triggers are the engine registry's unknown_effect_X / unknown_trigger_X.) |
+| [script-values](plugin-script-values.md) | 4 | Script value ranges, conditionals and rounding, inside a `script_values = { … }` block. |
 | [iterators](plugin-iterators.md) | 2 | ordered_ iterator parameters. |
 | [switch](plugin-switch.md) | 3 | switch blocks. |
 | [graphics](plugin-graphics.md) | 1 | Graphics files that do not exist. The values of icon, texture, sprite, background, portrait_texture, reference, activity_window_background, background_texture and icon_texture that are paths (with a '/') to a .dds, .png or .tga file are looked up, case-insensitively, in the workspace mods, then the base game's game/ and every game/dlc/<dlc>/ folder; one warning per missing path and file, on its first reference. Bare names, bare file names and $VARIABLE$ paths are not checked, and nothing is reported while no base game is known (ck3LanguageServer.gamePath). Switched off with ck3LanguageServer.graphics.enabled. |

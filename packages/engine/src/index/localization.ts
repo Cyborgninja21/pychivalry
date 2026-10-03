@@ -21,11 +21,33 @@ export interface LocalizationEntry {
     line: number;
 }
 
-/** `key:0 "text"`, with any indentation and an optional version number. */
-const ENTRY_RE = /^\s+([a-zA-Z_][a-zA-Z0-9_.]*):(\d+)\s+"(.*)"\s*$/;
+/**
+ * `key:0 "text"` or `key: "text"`, with any indentation, an optional version number and an
+ * optional trailing comment. The version number is optional in the game's own files: the
+ * 1.20.0.2 `localization/english` folder writes 135,037 entries without one (`key: "text"`)
+ * next to 162,755 with one; before 2.2 such entries were not indexed at all.
+ */
+const ENTRY_RE = /^\s+([a-zA-Z_][a-zA-Z0-9_.]*):(\d*)\s*"(.*)"\s*(?:#[^\r\n]*)?\s*$/;
 
 const LOCALIZATION_FILE_RE =
     /_l_(english|german|french|spanish|russian|korean|simp_chinese|braz_por|polish|japanese)\.yml$/i;
+
+/**
+ * The entry keys of one localization file's text, in line order (the keys indexText would
+ * index), without keeping the texts: for hosts that only need to know which keys exist (the
+ * base game's localization, about 300,000 entries in 1.20.0.2).
+ */
+export function localizationKeysOf(content: string): string[] {
+    const text = content.charCodeAt(0) === 0xfeff ? content.slice(1) : content;
+    const keys: string[] = [];
+    for (const line of text.split('\n')) {
+        const match = ENTRY_RE.exec(line);
+        if (match) {
+            keys.push(match[1]);
+        }
+    }
+    return keys;
+}
 
 /** Is `filename` a CK3 localization file name? */
 export function isLocalizationFile(filename: string): boolean {

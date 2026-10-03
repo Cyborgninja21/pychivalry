@@ -14,28 +14,30 @@
 import { Diagnostic as LspDiagnostic, DiagnosticSeverity } from 'vscode-languageserver/node';
 import {
     Diagnostic,
+    Indexer,
     LocalizationIndex,
     Plugin,
     PluginContext,
     Severity,
     SymbolType,
+    uriToPath,
+    Workspace,
 } from 'pychivalry-engine';
+import { BaseGameData, workspaceTraitNames } from './data/base-game';
 import {
     validateDocumentScopeTiming,
     DEFAULT_SCOPE_TIMING_CONFIG,
 } from './ck3/validation/scope-timing';
 import { validateScriptValues, DEFAULT_SCRIPT_VALUES_CONFIG } from './ck3/validation/script-values';
 import { validateVariables } from './ck3/validation/variables';
-import {
-    validateScriptedBlocks,
-    validateScriptedParameters,
-} from './ck3/validation/scripted-blocks';
+import { validateScriptedParameters } from './ck3/validation/scripted-blocks';
 import { validateStyle, DEFAULT_STYLE_CONFIG } from './ck3/validation/style-checks';
 import {
     validateParadoxConventions,
     DEFAULT_PARADOX_CONFIG,
 } from './ck3/validation/paradox-checks';
 import { validateEventFromNode, validateNamespaceDeclaration } from './ck3/validation/events';
+import { eventsOf, isEventFile } from './ck3/validation/event-helpers';
 import { validateTraits } from './ck3/validation/traits';
 import { validateIterators, DEFAULT_ITERATOR_CONFIG } from './ck3/validation/iterators';
 import { validateSwitch } from './ck3/validation/switch-validation';
@@ -56,7 +58,10 @@ import {
 export interface PluginEnvironment {
     /** Localization keys of the workspace (CK4100 and the localization validator). */
     localization?: LocalizationIndex;
-    /** Trait names from the optional extracted data (CK3800 runs only when present). */
+    /**
+     * Trait names from the optional extracted data and the discovered mods, added to the base
+     * game's trait database for CK3800 (which runs only when the base game's traits are known).
+     */
     extractedTraits?: () => ReadonlySet<string> | undefined;
     /**
      * Where graphics paths are looked up (GFX001): the workspace mod roots, then the base
@@ -64,6 +69,56 @@ export interface PluginEnvironment {
      * check is switched off (ck3LanguageServer.graphics.enabled).
      */
     graphics?: () => GraphicsResolver | undefined;
+    /**
+     * The workspace (its relative paths and the base game's index): the plug-ins that judge
+     * names across the workspace (variables, themes, switch headers) read it.
+     */
+    workspace?: Workspace;
+    /**
+     * What the base game defines (localization keys, event themes and backgrounds, traits),
+     * once loaded; undefined while no base game is known, and then the checks that need it
+     * (CK4100, CK3430, CK3800, CK3701, CK3702, SWITCH-003) report nothing.
+     */
+    baseGame?: () => BaseGameData | undefined;
+}
+
+/** Top-level keys the workspace defines under a mod-relative directory (`common/traits`). */
+export function workspaceKeysIn(
+    workspace: Workspace | undefined,
+    index: Indexer,
+    dir: string
+): Set<string> {
+    const keys = new Set<string>();
+    const prefix = dir.endsWith('/') ? dir : `${dir}/`;
+    for (const uri of index.getIndexedUris()) {
+        let rel: string;
+        try {
+            rel = (workspace ? workspace.relativePath(uriToPath(uri)) : uriToPath(uri)).replace(
+                /\\/g,
+                '/'
+            );
+        } catch {
+            continue;
+        }
+        if (!rel.toLowerCase().startsWith(prefix)) {
+            continue;
+        }
+        for (const symbol of index.getDocumentSymbols(uri)) {
+            if (
+                symbol.type !== SymbolType.SCOPE &&
+                symbol.type !== SymbolType.VARIABLE &&
+                symbol.type !== SymbolType.NAMESPACE
+            ) {
+                keys.add(symbol.name);
+            }
+        }
+    }
+    return keys;
+}
+
+/** The base game's data when it is loaded for the workspace's current game directory. */
+function baseGameOf(env: PluginEnvironment): BaseGameData | undefined {
+    return env.baseGame?.();
 }
 
 const SEVERITY: Record<number, Severity> = {
@@ -103,7 +158,9 @@ export function extensionPlugins(env: PluginEnvironment = {}): NamedPlugin[] {
     return [
         {
             name: 'scope-timing',
-            run: wrap(({ ast }) => validateDocumentScopeTiming(ast, DEFAULT_SCOPE_TIMING_CONFIG)),
+            run: wrap(({ ast, file }) =>
+                validateDocumentScopeTiming(ast, DEFAULT_SCOPE_TIMING_CONFIG, file)
+            ),
         },
         {
             name: 'style-checks',
@@ -118,31 +175,37 @@ export function extensionPlugins(env: PluginEnvironment = {}): NamedPlugin[] {
         },
         {
             name: 'localization-references',
-            run: wrap(({ ast }) => validateLocalizationReferences(ast, env.localization)),
+            run: wrap(({ ast, file }) =>
+                validateLocalizationReferences(ast, {
+                    localization: env.localization,
+                    baseKeys: baseGameOf(env)?.localizationKeys,
+                    file,
+                })
+            ),
         },
         {
             name: 'events',
-            run: wrap(({ ast, uri }) => {
+            run: wrap(({ ast, uri, file }) => {
+                if (!isEventFile(file)) {
+                    return [];
+                }
                 const out: LspDiagnostic[] = [];
-                let hasEvents = false;
-                for (const child of ast.children ?? []) {
-                    if (child.key && /^[a-z_]+\.\d+$/.test(child.key) && child.children) {
-                        hasEvents = true;
-                        for (const err of validateEventFromNode(child).errors) {
-                            out.push({
-                                severity: DiagnosticSeverity.Warning,
-                                range: child.range,
-                                message: err.message,
-                                code: err.code,
-                                source: 'ck3-event',
-                            });
-                        }
+                const events = eventsOf(ast);
+                for (const event of events) {
+                    for (const err of validateEventFromNode(event).errors) {
+                        out.push({
+                            severity: DiagnosticSeverity.Information,
+                            range: err.range ?? event.range,
+                            message: err.message,
+                            code: err.code,
+                            source: 'ck3-event',
+                        });
                     }
                 }
-                if (hasEvents) {
+                if (events.length > 0) {
                     for (const err of validateNamespaceDeclaration(ast, uri)) {
                         out.push({
-                            severity: DiagnosticSeverity.Warning,
+                            severity: DiagnosticSeverity.Information,
                             range: err.range ?? {
                                 start: { line: 0, character: 0 },
                                 end: { line: 0, character: 0 },
@@ -158,30 +221,68 @@ export function extensionPlugins(env: PluginEnvironment = {}): NamedPlugin[] {
         },
         {
             name: 'paradox-checks',
-            run: wrap(({ ast }) => validateParadoxConventions(ast, DEFAULT_PARADOX_CONFIG)),
+            run: wrap(({ ast, file, index }) => {
+                const base = baseGameOf(env);
+                let isKnownTheme: ((theme: string) => boolean) | undefined;
+                if (base?.eventThemes) {
+                    const themes = base.eventThemes;
+                    let workspaceThemes: Set<string> | undefined;
+                    isKnownTheme = (theme) => {
+                        if (themes.has(theme)) {
+                            return true;
+                        }
+                        workspaceThemes ??= workspaceKeysIn(
+                            env.workspace,
+                            index,
+                            'common/event_themes'
+                        );
+                        return workspaceThemes.has(theme);
+                    };
+                }
+                return validateParadoxConventions(ast, DEFAULT_PARADOX_CONFIG, {
+                    file,
+                    isKnownTheme,
+                });
+            }),
         },
         {
             name: 'variables',
-            run: wrap(({ ast }) =>
-                validateVariables(ast, {
-                    enabled: true,
-                    checkUnused: true,
-                    checkUndeclared: true,
-                    checkScope: true,
-                    checkTypes: true,
-                })
-            ),
+            run: wrap(({ ast, spec, index }) => {
+                const vanilla = env.workspace?.vanillaRoot ? env.workspace.vanillaIndex : undefined;
+                return validateVariables(
+                    ast,
+                    {
+                        enabled: true,
+                        checkUnused: true,
+                        checkUndeclared: true,
+                        checkScope: true,
+                        checkTypes: true,
+                    },
+                    {
+                        spec,
+                        indexes: vanilla ? [index, vanilla] : [index],
+                        baseGameKnown: vanilla !== undefined,
+                    }
+                );
+            }),
         },
         {
             name: 'traits',
-            run: wrap(({ ast, index }) => {
-                const extracted = env.extractedTraits?.();
-                if (!extracted) {
+            run: wrap(({ ast, index, file, spec }) => {
+                const baseTraits = baseGameOf(env)?.traits;
+                if (!baseTraits) {
                     return [];
                 }
-                const knownTraits = new Set(extracted);
+                const knownTraits = new Set(baseTraits);
+                for (const name of env.extractedTraits?.() ?? []) {
+                    knownTraits.add(name);
+                }
                 for (const symbol of index.findSymbolsByType(SymbolType.TRAIT)) {
                     knownTraits.add(symbol.name);
+                }
+                // The workspace's trait groups (`group = x`, `group_equivalence = x`).
+                for (const name of workspaceTraitNames(env.workspace?.roots() ?? [])) {
+                    knownTraits.add(name);
                 }
                 return validateTraits(ast, {
                     enabled: true,
@@ -189,29 +290,20 @@ export function extensionPlugins(env: PluginEnvironment = {}): NamedPlugin[] {
                     checkCompatibility: false,
                     checkOpposites: false,
                     knownTraits,
+                    file,
+                    isScopeLink: (name) => spec.has(name, 'links'),
                 });
             }),
         },
         {
             name: 'scripted-blocks',
-            run: wrap(({ ast, index, uri }) => [
-                ...validateScriptedBlocks(ast, {
-                    enabled: true,
-                    checkEffects: true,
-                    checkTriggers: true,
-                    knownScriptedEffects: new Set(
-                        index.findSymbolsByType(SymbolType.SCRIPTED_EFFECT).map((s) => s.name)
-                    ),
-                    knownScriptedTriggers: new Set(
-                        index.findSymbolsByType(SymbolType.SCRIPTED_TRIGGER).map((s) => s.name)
-                    ),
-                }),
-                ...validateScriptedParameters(
+            run: wrap(({ ast, uri }) =>
+                validateScriptedParameters(
                     ast,
                     { enabled: true, checkEffects: true, checkTriggers: true },
                     uri
-                ),
-            ]),
+                )
+            ),
         },
         {
             name: 'script-values',
@@ -223,14 +315,19 @@ export function extensionPlugins(env: PluginEnvironment = {}): NamedPlugin[] {
         },
         {
             name: 'switch',
-            run: wrap(({ ast, spec, index }) =>
-                validateSwitch(ast, {
+            run: wrap(({ ast, spec, index }) => {
+                // Without the base game its scripted triggers are unknown: no SWITCH-003.
+                const vanilla = env.workspace?.vanillaRoot ? env.workspace.vanillaIndex : undefined;
+                return validateSwitch(ast, {
                     enabled: true,
-                    isTrigger: (name) =>
-                        spec.has(name, 'triggers') ||
-                        index.hasSymbol(name, SymbolType.SCRIPTED_TRIGGER),
-                })
-            ),
+                    isTrigger: vanilla
+                        ? (name) =>
+                              spec.has(name, 'triggers') ||
+                              index.hasSymbol(name, SymbolType.SCRIPTED_TRIGGER) ||
+                              vanilla.hasSymbol(name, SymbolType.SCRIPTED_TRIGGER)
+                        : undefined,
+                });
+            }),
         },
         {
             name: 'graphics',

@@ -11,13 +11,12 @@ import {
     checkEmptyBlocks,
     checkNestingDepth,
     checkBraceMatching,
-    checkScopeReferences,
     validateStyle,
     autoFixStyle,
     DEFAULT_STYLE_CONFIG,
     StyleConfig,
 } from '../../server/ck3/validation/style-checks';
-import { CK3Parser, ASTNode, NodeType } from 'pychivalry-engine';
+import { CK3Parser, ASTNode } from 'pychivalry-engine';
 
 function makeConfig(overrides: Partial<StyleConfig> = {}): StyleConfig {
     return { ...DEFAULT_STYLE_CONFIG, ...overrides };
@@ -203,69 +202,22 @@ describe('Style Checks', () => {
         });
     });
 
-    describe('checkScopeReferences()', () => {
-        it('should flag unknown scope references', () => {
-            const ast = parseAST('unknown_scope.something = yes');
-            const diags = checkScopeReferences(ast, makeConfig());
-            const scopeFlags = diags.filter((d) => d.code === 'CK3340');
-            assert.ok(scopeFlags.length > 0, 'Should flag unknown scope reference');
+    describe('2.2 evidence audit', () => {
+        it('reports the style codes as hints and the brace codes as information', () => {
+            const text = 'a = {\n  b=c \n\tx = {}\n';
+            const diags = validateStyle(parseAST(text), text, makeConfig());
+            const sev = (code: string) => diags.find((d) => d.code === code)?.severity;
+            for (const code of ['CK3303', 'CK3304', 'CK3306', 'CK3314']) {
+                assert.strictEqual(sev(code), 4, `${code} is a hint`);
+            }
+            const braces = validateStyle(parseAST('a = {'), 'a = {', makeConfig());
+            assert.strictEqual(braces.find((d) => d.code === 'CK3330')?.severity, 3);
         });
 
-        it('should not flag known scope references', () => {
-            const ast = parseAST('root.primary_title = yes');
-            const diags = checkScopeReferences(ast, makeConfig());
-            const scopeFlags = diags.filter((d) => d.code === 'CK3340');
-            assert.strictEqual(scopeFlags.length, 0);
-        });
-
-        it('should flag truncated scope references', () => {
-            // This requires a key ending with '.', which the parser may or may not produce
-            // Depending on parser behavior, this may need adjustment
-            const ast: ASTNode = {
-                type: NodeType.ROOT,
-                range: { start: { line: 0, character: 0 }, end: { line: 0, character: 10 } },
-                children: [
-                    {
-                        type: NodeType.ASSIGNMENT,
-                        key: 'root.',
-                        value: 'yes',
-                        range: {
-                            start: { line: 0, character: 0 },
-                            end: { line: 0, character: 10 },
-                        },
-                    },
-                ],
-            };
-            const diags = checkScopeReferences(ast, makeConfig());
-            assert.ok(diags.some((d) => d.code === 'CK3341'));
-        });
-
-        it('should not flag event IDs as scope references', () => {
-            const ast = parseAST('adventure.0004 = { type = character_event }');
-            const diags = checkScopeReferences(ast, makeConfig());
-            const scopeFlags = diags.filter((d) => d.code === 'CK3340');
-            assert.strictEqual(
-                scopeFlags.length,
-                0,
-                'Event ID should not be flagged as unknown scope'
-            );
-        });
-
-        it('should not flag event IDs with underscores as scope references', () => {
-            const ast = parseAST('my_mod_namespace.0042 = { type = character_event }');
-            const diags = checkScopeReferences(ast, makeConfig());
-            const scopeFlags = diags.filter((d) => d.code === 'CK3340');
-            assert.strictEqual(
-                scopeFlags.length,
-                0,
-                'Event ID with underscores should not be flagged'
-            );
-        });
-
-        it('should return empty when disabled', () => {
-            const ast = parseAST('unknown_scope.something = yes');
-            const diags = checkScopeReferences(ast, makeConfig({ checkScopeReferences: false }));
-            assert.strictEqual(diags.length, 0);
+        it('no longer emits CK3340 / CK3341 (the engine scope and registry checks own them)', () => {
+            const text = 'domicile.owner = { is_alive = yes }\nroot. = yes\n';
+            const codes = validateStyle(parseAST(text), text, makeConfig()).map((d) => d.code);
+            assert.ok(!codes.includes('CK3340') && !codes.includes('CK3341'));
         });
     });
 

@@ -9,14 +9,18 @@
  *   - Concept links ([concept|E])
  *   - Bracket balancing
  *
- * DIAGNOSTIC CODES:
- *   LOC-001: Invalid localization key format (file-level; validateLocalizationKeys)
- *   LOC-002: Unknown character function
- *   LOC-003: Malformed text formatting code
- *   LOC-004: Invalid icon reference
- *   LOC-005: Unclosed brackets in localization text
- *   LOC-006: Unknown concept reference
- *   LOC-007: Invalid variable substitution syntax
+ * DIAGNOSTIC CODES (2.2 evidence audit):
+ *   LOC-001 (information): a key the localization index cannot read (file-level;
+ *            validateLocalizationKeys)
+ *   LOC-002 (information): a character function outside the hand-made function list
+ *   LOC-003 (information): an unknown text formatting code
+ *   LOC-004 (information): an icon outside the optional extracted icon data
+ *   LOC-005 (warning): unbalanced brackets; the game prints "Loc key `{}`: Unexpected extra
+ *            `[`" (catalogue loc_key_X_unexpected_extra_at_position_X_file_X)
+ *   LOC-006 (information): a concept outside the optional extracted concept data
+ *   LOC-007 (information): a malformed $VARIABLE$ substitution
+ *   Only LOC-005 has engine evidence; the others are conventions (their name lists are not the
+ *   game's own data and are incomplete).
  */
 
 import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver/node';
@@ -415,7 +419,7 @@ export function validateLocalizationKeys(text: string): Diagnostic[] {
             out.push(
                 makeDiag(
                     i,
-                    DiagnosticSeverity.Warning,
+                    DiagnosticSeverity.Information,
                     `Invalid localization key '${key}': keys start with a letter or '_' and contain only letters, digits, '_' and '.'`,
                     'LOC-001'
                 )
@@ -462,7 +466,7 @@ function validateCharacterFunctions(text: string, line: number, out: Diagnostic[
             out.push(
                 makeDiag(
                     line,
-                    DiagnosticSeverity.Warning,
+                    DiagnosticSeverity.Information,
                     `Unknown character function '${funcName}' in localization`,
                     'LOC-002'
                 )
@@ -536,7 +540,7 @@ function validateIconReferences(
         if (suggestions.length > 0) {
             msg += `. Did you mean: ${suggestions.map((s) => `@${s}!`).join(', ')}?`;
         }
-        out.push(makeDiag(line, DiagnosticSeverity.Warning, msg, 'LOC-004'));
+        out.push(makeDiag(line, DiagnosticSeverity.Information, msg, 'LOC-004'));
     }
 
     // Text icons: £gold£, £prestige|1£ (the same icon data, names without the _icon suffix)
@@ -553,7 +557,7 @@ function validateIconReferences(
         if (suggestions.length > 0) {
             msg += `. Did you mean: ${suggestions.map((s) => `£${s}£`).join(', ')}?`;
         }
-        out.push(makeDiag(line, DiagnosticSeverity.Warning, msg, 'LOC-004'));
+        out.push(makeDiag(line, DiagnosticSeverity.Information, msg, 'LOC-004'));
     }
 }
 
@@ -569,7 +573,7 @@ function validateVariableSubstitutions(text: string, line: number, out: Diagnost
             out.push(
                 makeDiag(
                     line,
-                    DiagnosticSeverity.Warning,
+                    DiagnosticSeverity.Information,
                     `Invalid variable name '${varName}' — must be UPPER_SNAKE_CASE`,
                     'LOC-007'
                 )
@@ -581,7 +585,7 @@ function validateVariableSubstitutions(text: string, line: number, out: Diagnost
             out.push(
                 makeDiag(
                     line,
-                    DiagnosticSeverity.Warning,
+                    DiagnosticSeverity.Information,
                     `Unknown variable format specifier '|${formatSpec}' for $${varName}$`,
                     'LOC-007'
                 )
@@ -610,7 +614,7 @@ function validateConceptLinks(
             if (suggestions.length > 0) {
                 msg += `. Did you mean: ${suggestions.join(', ')}?`;
             }
-            out.push(makeDiag(line, DiagnosticSeverity.Warning, msg, 'LOC-006'));
+            out.push(makeDiag(line, DiagnosticSeverity.Information, msg, 'LOC-006'));
         }
     }
 }
@@ -660,7 +664,11 @@ function makeDiag(
             start: { line, character: 0 },
             end: { line, character: Number.MAX_SAFE_INTEGER },
         },
-        message,
+        // Codes without engine evidence are conventions (2.2 evidence audit).
+        message:
+            severity === DiagnosticSeverity.Warning || severity === DiagnosticSeverity.Error
+                ? message
+                : `Convention: ${message}`,
         code,
         source: 'ck3-localization',
     };

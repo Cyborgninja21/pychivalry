@@ -1,0 +1,8 @@
+# Seven themes of the 1.20.0.2 base game that the mock mod's events use (CK3430).
+diplomacy = { background = { reference = throne_room } }
+intrigue = { background = { reference = study } }
+learning = { background = { reference = study } }
+martial = { background = { reference = army_camp } }
+realm = { background = { reference = throne_room } }
+stewardship = { background = { reference = throne_room } }
+travel = { background = { reference = terrain } }

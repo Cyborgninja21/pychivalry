@@ -1,0 +1,237 @@
+/**
+ * The plug-in false positives found on the real-mod corpus (issues #91 to #97), each pinned by
+ * the corpus case the issue names (an excerpt of the published mod's file, at the same
+ * mod-relative path), run through the whole plug-in list the way the editor runs it.
+ */
+
+import * as assert from 'assert';
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
+import { diagnose, Diagnostic, LocalizationIndex, Workspace } from 'pychivalry-engine';
+import { enginePlugins } from '../../server/plugins';
+
+let root: string;
+let workspace: Workspace;
+
+function run(rel: string, text: string): Diagnostic[] {
+    const file = path.join(root, ...rel.split('/'));
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, text);
+    const plugins = enginePlugins({ localization: new LocalizationIndex(), workspace });
+    return diagnose(workspace, file, { text, plugins }).filter((d) => d.source === 'plugin');
+}
+
+function codes(diags: Diagnostic[]): string[] {
+    return diags.map((d) => d.code);
+}
+
+function errors(diags: Diagnostic[]): Diagnostic[] {
+    return diags.filter((d) => d.severity === 'error');
+}
+
+describe('Plug-in false positives of the real-mod corpus (#91-#97)', () => {
+    before(() => {
+        root = fs.mkdtempSync(path.join(os.tmpdir(), 'pych-fp-'));
+        workspace = new Workspace(root).load();
+    });
+
+    after(() => {
+        fs.rmSync(root, { recursive: true, force: true });
+    });
+
+    it('#91 CK5142: `employer = root` in create_character and `liege = root` are not reported', () => {
+        // RICE common/scripted_effects/RICE_manichean_effects.txt:329
+        const text = [
+            'RICE_manichean_create_archegos_effect = {',
+            '\thidden_effect = {',
+            '\t\tcreate_character = {',
+            '\t\t\tgender = male',
+            '\t\t\temployer = root',
+            '\t\t\tsave_scope_as = new_archegos',
+            '\t\t}',
+            '\t}',
+            '\tif = { limit = { scope:new_archegos = { liege = root } } }',
+            '}',
+        ].join('\n');
+        const diags = run('common/scripted_effects/RICE_manichean_effects.txt', text);
+        assert.ok(!codes(diags).includes('CK5142'));
+        assert.deepStrictEqual(errors(diags), []);
+    });
+
+    it('#92 CK3873: `always = no` (content switched off) is a hint, not an error', () => {
+        // RICE common/buildings/RICE_harran_buildings.txt:12
+        const text = [
+            'RICE_harran_temple_of_the_moon = {',
+            '\tcan_construct_potential = {',
+            '\t\tbarony = title:b_tall_mahra',
+            '\t\talways = no',
+            '\t}',
+            '}',
+        ].join('\n');
+        const diags = run('common/buildings/RICE_harran_buildings.txt', text);
+        const always = diags.filter((d) => d.code === 'CK3873');
+        assert.strictEqual(always.length, 1);
+        assert.strictEqual(always[0].severity, 'hint');
+        assert.deepStrictEqual(errors(diags), []);
+    });
+
+    it('#93 CK3950/CK3951: colour values rgb { } / hsv { } are not scripted calls', () => {
+        // Elf Destiny common/coat_of_arms/coat_of_arms/coa_elf_test_template.txt:4
+        const text = [
+            'template = {',
+            '\taeluran_a ={',
+            '\t\tpattern="pattern_vertical_stripes_02.dds"',
+            '\t\tcolor1=rgb { 144 143 143 }',
+            '\t\tcolor2=hsv { 0.1 0.2 0.3 }',
+            '\t}',
+            '}',
+        ].join('\n');
+        const diags = run('common/coat_of_arms/coat_of_arms/coa_elf_test_template.txt', text);
+        assert.ok(!codes(diags).includes('CK3950'));
+        assert.ok(!codes(diags).includes('CK3951'));
+        assert.deepStrictEqual(errors(diags), []);
+    });
+
+    it('#94 CK3420: portrait cameras and highlight_portrait are not portrait positions', () => {
+        // Elf Destiny gfx/portraits/cameras/elf_dest_portrait_cameras.txt:27
+        const camera = [
+            'face_away_right_portrait = {',
+            '\tcamera = {',
+            '\t\tposition_node = { default = camera_torso_look_at }',
+            '\t}',
+            '}',
+        ].join('\n');
+        // Elf Destiny events/aeluran/aeluran_matchmaking_events.txt:1062
+        const event = [
+            'namespace = aeluran_matchmaking',
+            'aeluran_matchmaking.0025 = {',
+            '\ttype = character_event',
+            '\ttitle = aeluran_matchmaking.0025.t',
+            '\tdesc = aeluran_matchmaking.0025.desc',
+            '\tleft_portrait = root',
+            '\toption = {',
+            '\t\tname = aeluran_matchmaking.0025.option_1',
+            '\t\thighlight_portrait = scope:left_portrait_match_final',
+            '\t}',
+            '}',
+        ].join('\n');
+        const a = run('gfx/portraits/cameras/elf_dest_portrait_cameras.txt', camera);
+        const b = run('events/aeluran/aeluran_matchmaking_events.txt', event);
+        assert.ok(!codes([...a, ...b]).includes('CK3420'));
+        assert.deepStrictEqual(errors([...a, ...b]), []);
+    });
+
+    it('#95 CK3552: a triggered_desc trigger may read a scope immediate saves', () => {
+        // RICE events/RICE_socotra_events.txt:821 (socotra.0010)
+        const event = (saveIn: 'immediate' | 'option') =>
+            [
+                'namespace = socotra',
+                'socotra.0010 = {',
+                '\ttype = character_event',
+                '\ttitle = socotra.0010.t',
+                '\tdesc = {',
+                '\t\tfirst_valid = {',
+                '\t\t\ttriggered_desc = {',
+                '\t\t\t\ttrigger = {',
+                '\t\t\t\t\tscope:scope_RICE_socotran_spawn_runaway_slave = { is_female = yes }',
+                '\t\t\t\t}',
+                '\t\t\t\tdesc = socotra.0010.desc.f',
+                '\t\t\t}',
+                '\t\t\tdesc = socotra.0010.desc',
+                '\t\t}',
+                '\t}',
+                '\tleft_portrait = root',
+                saveIn === 'immediate'
+                    ? '\timmediate = { random_courtier = { save_scope_as = scope_RICE_socotran_spawn_runaway_slave } }'
+                    : '\timmediate = { add_prestige = 1 }',
+                '\toption = {',
+                '\t\tname = socotra.0010.a',
+                saveIn === 'option'
+                    ? '\t\trandom_courtier = { save_scope_as = scope_RICE_socotran_spawn_runaway_slave }'
+                    : '\t\tadd_gold = 1',
+                '\t}',
+                '}',
+            ].join('\n');
+        const immediate = run('events/RICE_socotra_events.txt', event('immediate'));
+        assert.ok(!codes(immediate).includes('CK3552'), 'immediate runs before the window');
+        assert.deepStrictEqual(errors(immediate), []);
+        // Saved only in an option: the window is shown before the option runs.
+        const late = run('events/RICE_socotra_events.txt', event('option')).filter(
+            (d) => d.code === 'CK3552'
+        );
+        assert.strictEqual(late.length, 1);
+        assert.strictEqual(late[0].severity, 'information');
+    });
+
+    it('#96 CK3550: a scope saved earlier in the same trigger is available', () => {
+        // Elf Destiny events/aeluran/aeluran_advisor_task_events.txt:696 and :702
+        const event = (order: 'save-first' | 'read-first') =>
+            [
+                'namespace = aeluran_advisor_task',
+                'aeluran_advisor_task.0302 = {',
+                '\ttype = character_event',
+                '\ttitle = aeluran_advisor_task.0302.t',
+                '\tdesc = aeluran_advisor_task.0302.desc',
+                '\tleft_portrait = root',
+                '\ttrigger = {',
+                '\t\tany_held_title = {',
+                order === 'read-first'
+                    ? '\t\t\troot = { NOT = { has_claim_on = scope:duchy } }'
+                    : '\t\t\tsave_temporary_scope_as = duchy',
+                order === 'read-first'
+                    ? '\t\t\tsave_temporary_scope_as = duchy'
+                    : '\t\t\troot = { NOT = { has_claim_on = scope:duchy } }',
+                '\t\t}',
+                '\t}',
+                '\timmediate = { random_held_title = { save_scope_as = duchy } }',
+                '\toption = { name = aeluran_advisor_task.0302.a }',
+                '}',
+            ].join('\n');
+        const saved = run('events/aeluran/aeluran_advisor_task_events.txt', event('save-first'));
+        assert.ok(!codes(saved).includes('CK3550'));
+        assert.deepStrictEqual(errors(saved), []);
+        const early = run('events/aeluran/aeluran_advisor_task_events.txt', event('read-first'));
+        const found = early.filter((d) => d.code === 'CK3550');
+        assert.strictEqual(found.length, 1);
+        assert.strictEqual(found[0].severity, 'information');
+    });
+
+    it('#97 CK3553: a variable set by an earlier firing may be checked in the trigger', () => {
+        // RICE events/RICE_sicily_events.txt:922 (sicily.0016)
+        const event = (local: boolean) =>
+            [
+                'namespace = sicily',
+                'sicily.0016 = {',
+                '\ttype = character_event',
+                '\ttitle = sicily.0016.t',
+                '\tdesc = sicily.0016.desc',
+                '\tleft_portrait = root',
+                '\ttrigger = {',
+                '\t\tany_held_title = {',
+                local
+                    ? '\t\t\tNOT = { exists = local_var:RICE_had_siculo_arabic_county_conversion }'
+                    : '\t\t\tNOT = { exists = var:RICE_had_siculo_arabic_county_conversion }',
+                '\t\t}',
+                '\t}',
+                '\timmediate = {',
+                '\t\trandom_held_title = {',
+                local
+                    ? '\t\t\tset_local_variable = RICE_had_siculo_arabic_county_conversion'
+                    : '\t\t\tset_variable = RICE_had_siculo_arabic_county_conversion',
+                '\t\t}',
+                '\t}',
+                '\toption = { name = sicily.0016.a }',
+                '}',
+            ].join('\n');
+        const persistent = run('events/RICE_sicily_events.txt', event(false));
+        assert.ok(!codes(persistent).includes('CK3553'));
+        assert.deepStrictEqual(errors(persistent), []);
+        // A local variable does not outlive the effect that sets it.
+        const local = run('events/RICE_sicily_events.txt', event(true)).filter(
+            (d) => d.code === 'CK3553'
+        );
+        assert.strictEqual(local.length, 1);
+        assert.strictEqual(local[0].severity, 'information');
+    });
+});

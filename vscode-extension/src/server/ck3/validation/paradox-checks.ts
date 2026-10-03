@@ -1,47 +1,51 @@
 /**
- * Paradox Convention Validation - CK3-Specific Best Practices
+ * Paradox conventions: CK3-specific pitfalls that are syntactically valid (engine plug-in).
+ *
+ * Severity follows the evidence rule of the 2.2 audit
+ * (Documentation/developer-guide/diagnostics-evidence.md): a warning or error needs engine
+ * evidence; every other check is a convention at information (semantic advice) or hint.
  *
  * DIAGNOSTIC CODES:
- *     CK3872: Redundant trigger = { always = yes }
- *     CK3873: Impossible trigger = { always = no }
- *     CK3875: Missing limit in random_ iterator
- *     CK3977: every_ without limit (can be expensive)
- *     CK3760: Event missing type declaration
- *     CK3761: Invalid event type
- *     CK3762: Hidden event with options
- *     CK3763: Event with no options
- *     CK3764: Non-hidden event missing desc
- *     CK3766: Multiple after blocks
- *     CK3768: Multiple immediate blocks
- *     CK5137: is_alive without exists check
- *     CK5142: `this = ` comparisons, CK3005: logical operator with a scalar value
- *   folded in from the former paradox-checks-extended.ts:
- *     CK3656 (inline opinion values), CK3761/CK3764/CK3767/CK3769 (event type, desc,
- *     empty event, portraits), CK3450 (option name), CK3420/CK3421/CK3422 (portrait
- *     position, character, animation), CK3430 (theme), CK3520/CK3521 (after blocks),
- *     CK3610/CK3611/CK3612/CK3614 (ai_chance), CK3510/CK3511 (trigger_else ordering)
+ *     CK3005 (information) a logical operator (AND, OR, NOT, NOR, NAND) with a scalar value
+ *     CK3872 (information) redundant `always = yes`
+ *     CK3873 (hint)        `always = no`: the block is disabled, the usual way to switch
+ *                          content off (issue #92; 167 uses in the base game)
+ *     CK3875 (information) a random_ iterator without a limit
+ *     CK3977 (information) an every_ iterator without a limit
+ *     CK5137 (information) is_alive without an exists check
+ *     CK3656 (information) an inline opinion value in add_opinion
+ *   per event of an events/ file (information):
+ *     CK3762 hidden event with options, CK3763 non-hidden event without options, CK3764
+ *     non-hidden event without desc, CK3766 several after blocks, CK3767 empty event, CK3768
+ *     several immediate blocks, CK3769 non-hidden event without portraits, CK3450 option
+ *     without name, CK3421 portrait without character, CK3422 unknown portrait animation
+ *     (the optional extracted animation data), CK3520 after block in a hidden event, CK3521
+ *     after block in an event without options
+ *     CK3430 (warning)     an event theme defined neither in the workspace's nor in the
+ *                          base game's common/event_themes: the game cannot read the
+ *                          database key (catalogue failed_to_read_key_reference_X_from_database_X);
+ *                          silent while the base game is unknown
+ *   ai_chance (information): CK3610 negative base, CK3611 old (base above 100), CK3612 old
+ *     (base = 0), CK3614 a modifier without a trigger
+ *   trigger_else ordering (information): CK3510 trigger_else without trigger_if, CK3511
+ *     several trigger_else blocks
  *
- * Retired in Phase 4 because the engine's registry check reports the same defect with
- * the game's own message (unknown_trigger_X / unknown_effect_X): CK3870 and CK3871
- * (effect in a trigger or limit block) and CK3976 (effect in an any_ iterator).
+ * Removed in 2.2: CK5142 (`liege = root` is the ordinary comparison form, 1,475 uses in the
+ * base game; issue #91), CK3420 (invalid portrait position: every key ending in `_portrait`
+ * was checked; an unknown event field is reported by the engine's schema check, unknown_X_in_X;
+ * issue #94), CK3760 (event without type: `type` is optional, game/events/_events.info) and
+ * CK3761 (invalid event type: events EVENT-001). The event checks used to run on the file's
+ * root node only and so never reported; they now run on every event.
  *
- * This module validates scripts against Paradox modding conventions
- * and catches common pitfalls that are syntactically valid but
- * semantically incorrect or likely to cause runtime bugs.
+ * Retired in Phase 4: CK3870, CK3871, CK3976 (the engine's registry reports the same defect
+ * with the game's own message, unknown_trigger_X / unknown_effect_X).
  */
 
 import { ASTNode, NodeType } from 'pychivalry-engine';
 import { Diagnostic, DiagnosticSeverity, Range } from 'vscode-languageserver';
-import {
-    isValidEventType,
-    isValidTheme,
-    isValidPortraitPosition,
-    isValidPortraitAnimation,
-} from './events';
+import { isValidPortraitAnimation, isValidPortraitPosition } from './events';
+import { childrenWithKey, eventsOf, isEventFile, isHiddenEvent, walk } from './event-helpers';
 
-/**
- * Configuration for Paradox convention checks
- */
 export interface ParadoxConfig {
     effectTriggerContext: boolean;
     listIterators: boolean;
@@ -56,9 +60,6 @@ export interface ParadoxConfig {
     afterBlockValidation: boolean;
 }
 
-/**
- * Default configuration with all checks enabled
- */
 export const DEFAULT_PARADOX_CONFIG: ParadoxConfig = {
     effectTriggerContext: true,
     listIterators: true,
@@ -73,1133 +74,452 @@ export const DEFAULT_PARADOX_CONFIG: ParadoxConfig = {
     afterBlockValidation: true,
 };
 
-/**
- * Check for redundant or impossible trigger conditions
- * DIAGNOSTIC: CK3872, CK3873
- */
-export function checkRedundantTriggers(node: ASTNode): Diagnostic[] {
-    const diagnostics: Diagnostic[] = [];
-    const children = node.children || [];
-
-    for (const child of children) {
-        // Check for always = yes (redundant)
-        // Parser converts 'yes' to boolean true, 'no' to boolean false
-        if (child.key === 'always' && (child.value === true || child.value === 'yes')) {
-            diagnostics.push({
-                range: child.range,
-                severity: DiagnosticSeverity.Information,
-                code: 'CK3872',
-                source: 'ck3-lsp',
-                message:
-                    "Redundant 'always = yes' trigger. This is always true and can be removed.",
-            });
-        }
-
-        // Check for always = no (impossible)
-        if (child.key === 'always' && (child.value === false || child.value === 'no')) {
-            diagnostics.push({
-                range: child.range,
-                severity: DiagnosticSeverity.Error,
-                code: 'CK3873',
-                source: 'ck3-lsp',
-                message: "Impossible 'always = no' trigger. This code will never execute.",
-            });
-        }
-
-        // Recursively check nested blocks
-        if (child.type === NodeType.BLOCK) {
-            diagnostics.push(...checkRedundantTriggers(child));
-        }
-    }
-
-    return diagnostics;
+/** What the checks know beyond the file. */
+export interface ParadoxKnowledge {
+    /** Mod-relative path (event checks run on events/ files only). */
+    file?: string;
+    /**
+     * Is the theme defined (workspace or base game)? Undefined while the base game is
+     * unknown: CK3430 is then silent.
+     */
+    isKnownTheme?: (theme: string) => boolean;
 }
 
-/**
- * Check list iterator misuse
- * DIAGNOSTIC: CK3875, CK3977
- */
-export function checkListIteratorMisuse(node: ASTNode): Diagnostic[] {
-    const diagnostics: Diagnostic[] = [];
-    const children = node.children || [];
-
-    for (const child of children) {
-        if (!child.key) {
-            continue;
-        }
-
-        // Check for random_ without limit
-        if (child.key.startsWith('random_') && child.type === NodeType.BLOCK) {
-            const blockChildren = child.children || [];
-            const hasLimit = blockChildren.some((c) => c.key === 'limit');
-            if (!hasLimit) {
-                diagnostics.push({
-                    range: child.range,
-                    severity: DiagnosticSeverity.Information,
-                    code: 'CK3875',
-                    source: 'ck3-lsp',
-                    message: `random_ iterator without limit. Consider adding limit = { ... } to filter candidates.`,
-                });
-            }
-        }
-
-        // Check for every_ without limit (performance warning)
-        if (child.key.startsWith('every_') && child.type === NodeType.BLOCK) {
-            const blockChildren = child.children || [];
-            const hasLimit = blockChildren.some((c) => c.key === 'limit');
-            if (!hasLimit) {
-                diagnostics.push({
-                    range: child.range,
-                    severity: DiagnosticSeverity.Information,
-                    code: 'CK3977',
-                    source: 'ck3-lsp',
-                    message: `every_ iterator without limit affects ALL matching elements. Consider adding limit = { ... } for better performance.`,
-                });
-            }
-        }
-
-        // Recursively check nested blocks
-        if (child.type === NodeType.BLOCK) {
-            diagnostics.push(...checkListIteratorMisuse(child));
-        }
-    }
-
-    return diagnostics;
-}
-
-/**
- * Check event structure issues
- * DIAGNOSTIC: CK3760, CK3761, CK3762, CK3763, CK3764, CK3766, CK3768
- */
-export function checkEventStructure(node: ASTNode): Diagnostic[] {
-    const diagnostics: Diagnostic[] = [];
-    const children = node.children || [];
-
-    // Check for type declaration
-    const typeNode = children.find((c) => c.key === 'type');
-    if (!typeNode) {
-        diagnostics.push({
-            range: node.range,
-            severity: DiagnosticSeverity.Error,
-            code: 'CK3760',
-            source: 'ck3-lsp',
-            message: 'Event is missing type declaration (character_event, letter_event, etc.)',
-        });
-        return diagnostics; // Can't check further without type
-    }
-
-    // Validate event type
-    const validTypes = [
-        'character_event',
-        'letter_event',
-        'court_event',
-        'duel_event',
-        'feast_event',
-        'story_cycle',
-    ];
-    const eventType = String(typeNode.value);
-    if (!validTypes.includes(eventType)) {
-        diagnostics.push({
-            range: typeNode.range,
-            severity: DiagnosticSeverity.Error,
-            code: 'CK3761',
-            source: 'ck3-lsp',
-            message: `Invalid event type '${eventType}'. Valid types: ${validTypes.join(', ')}`,
-        });
-    }
-
-    // Check for hidden events with options
-    const isHidden = children.some((c) => c.key === 'hidden' && c.value === 'yes');
-    const optionNodes = children.filter((c) => c.key === 'option');
-
-    if (isHidden && optionNodes.length > 0) {
-        diagnostics.push({
-            range: optionNodes[0].range,
-            severity: DiagnosticSeverity.Warning,
-            code: 'CK3762',
-            source: 'ck3-lsp',
-            message: 'Hidden event has option blocks. Options are ignored in hidden events.',
-        });
-    }
-
-    // Check for non-hidden events without options
-    if (!isHidden && optionNodes.length === 0) {
-        diagnostics.push({
-            range: node.range,
-            severity: DiagnosticSeverity.Warning,
-            code: 'CK3763',
-            source: 'ck3-lsp',
-            message: 'Event has no option blocks. Players need choices to interact with events.',
-        });
-    }
-
-    // Check for non-hidden events missing desc
-    const descNode = children.find((c) => c.key === 'desc');
-    if (!isHidden && !descNode) {
-        diagnostics.push({
-            range: node.range,
-            severity: DiagnosticSeverity.Error,
-            code: 'CK3764',
-            source: 'ck3-lsp',
-            message: 'Non-hidden event is missing desc field.',
-        });
-    }
-
-    // Check for multiple after blocks
-    const afterNodes = children.filter((c) => c.key === 'after');
-    if (afterNodes.length > 1) {
-        for (let i = 1; i < afterNodes.length; i++) {
-            diagnostics.push({
-                range: afterNodes[i].range,
-                severity: DiagnosticSeverity.Warning,
-                code: 'CK3766',
-                source: 'ck3-lsp',
-                message: 'Multiple after blocks detected. Only the first after block will execute.',
-            });
-        }
-    }
-
-    // Check for multiple immediate blocks
-    const immediateNodes = children.filter((c) => c.key === 'immediate');
-    if (immediateNodes.length > 1) {
-        for (let i = 1; i < immediateNodes.length; i++) {
-            diagnostics.push({
-                range: immediateNodes[i].range,
-                severity: DiagnosticSeverity.Error,
-                code: 'CK3768',
-                source: 'ck3-lsp',
-                message:
-                    'Multiple immediate blocks detected. Only one immediate block is allowed per event.',
-            });
-        }
-    }
-
-    return diagnostics;
-}
-
-/**
- * Check for common CK3 gotchas
- * DIAGNOSTIC: CK5137, CK5142
- */
-export function checkCommonGotchas(node: ASTNode): Diagnostic[] {
-    const diagnostics: Diagnostic[] = [];
-    const children = node.children || [];
-
-    for (const child of children) {
-        // Check for is_alive without exists check
-        if (child.key === 'is_alive') {
-            // This is a simplified check - in reality we'd need to track scope chain
-            // to see if there's a protective exists check
-            diagnostics.push({
-                range: child.range,
-                severity: DiagnosticSeverity.Information,
-                code: 'CK5137',
-                source: 'ck3-lsp',
-                message:
-                    "Using 'is_alive' without an 'exists' check may crash if the target doesn't exist. Consider wrapping in exists = { ... }.",
-            });
-        }
-
-        // Check for character comparison with = instead of 'this ='  (CK5142)
-        // e.g., 'liege = root' should be 'liege = { this = root }'
-        // Scope links used as simple assignments with another scope name as the value
-        if (child.key && child.type !== NodeType.BLOCK && typeof child.value === 'string') {
-            const scopeLinks = [
-                'liege',
-                'father',
-                'mother',
-                'spouse',
-                'primary_heir',
-                'killer',
-                'guardian',
-                'host',
-                'employer',
-                'court_owner',
-                'betrothed',
-            ];
-            const scopeValues = ['root', 'prev', 'from', 'fromfrom', 'this'];
-            if (
-                scopeLinks.includes(child.key) &&
-                (scopeValues.includes(child.value) || child.value.startsWith('scope:'))
-            ) {
-                diagnostics.push({
-                    range: child.range,
-                    severity: DiagnosticSeverity.Error,
-                    code: 'CK5142',
-                    source: 'ck3-lsp',
-                    message: `Invalid character comparison '${child.key} = ${child.value}'. Use '${child.key} = { this = ${child.value} }' to compare characters.`,
-                });
-            }
-        }
-
-        // Recursively check nested blocks
-        if (child.type === NodeType.BLOCK) {
-            diagnostics.push(...checkCommonGotchas(child));
-        }
-    }
-
-    return diagnostics;
-}
-
-/**
- * Validate all Paradox conventions for a node
- */
-export function validateParadoxConventions(
-    node: ASTNode,
-    config: ParadoxConfig = DEFAULT_PARADOX_CONFIG
-): Diagnostic[] {
-    const diagnostics: Diagnostic[] = [];
-
-    // Effect/trigger context checks
-    if (config.effectTriggerContext) {
-        // Walk recursively to find trigger and limit blocks at any depth
-        const walkForTriggerContext = (n: ASTNode) => {
-            const children = n.children || [];
-            for (const child of children) {
-                // Check logical operators without block value (CK3005)
-                if (
-                    child.key &&
-                    ['NOT', 'OR', 'AND', 'NOR', 'NAND'].includes(child.key) &&
-                    child.type !== NodeType.BLOCK
-                ) {
-                    diagnostics.push({
-                        range: child.range,
-                        severity: DiagnosticSeverity.Error,
-                        code: 'CK3005',
-                        source: 'ck3-lsp',
-                        message: `Logical operator '${child.key}' requires a block value { ... }, not a scalar.`,
-                    });
-                }
-                if (child.type === NodeType.BLOCK) {
-                    walkForTriggerContext(child);
-                }
-            }
-        };
-        walkForTriggerContext(node);
-
-        // Check for redundant triggers
-        diagnostics.push(...checkRedundantTriggers(node));
-    }
-
-    // List iterator checks
-    if (config.listIterators) {
-        diagnostics.push(...checkListIteratorMisuse(node));
-    }
-
-    // Event structure checks
-    if (config.eventStructure) {
-        // Check if this looks like an event (has type field)
-        const children = node.children || [];
-        if (children.some((c) => c.key === 'type')) {
-            diagnostics.push(...checkEventStructure(node));
-        }
-    }
-
-    // Common gotchas
-    if (config.commonGotchas) {
-        diagnostics.push(...checkCommonGotchas(node));
-    }
-
-    // Event, option, portrait, theme, after-block, ai_chance and trigger_else checks
-    diagnostics.push(...validateExtendedParadoxConventions(node, config));
-
-    return diagnostics;
-}
-
-// ── Folded in from paradox-checks-extended.ts ─────────────────────────────
-
-function createDiagnostic(
+function diag(
     message: string,
     range: Range,
     severity: DiagnosticSeverity,
     code: string
 ): Diagnostic {
-    return {
-        message,
-        range,
-        severity,
-        code,
-        source: 'ck3-paradox',
-    };
+    return { message, range, severity, code, source: 'ck3-paradox' };
 }
 
-/**
- * Check for inline opinion modifiers (CK3656)
- * Inline opinion values should be replaced with predefined opinion modifiers
- */
-export function checkOpinionModifiers(
-    node: ASTNode,
-    config: Partial<ParadoxConfig> = {}
-): Diagnostic[] {
-    if (!config.opinionModifiers) {
-        return [];
-    }
+const INFO = DiagnosticSeverity.Information;
+const CONVENTION = 'Convention: ';
 
-    const diagnostics: Diagnostic[] = [];
-
-    function walk(n: ASTNode): void {
-        // Check for add_opinion or reverse_add_opinion with inline opinion value
-        if (n.key === 'add_opinion' || n.key === 'reverse_add_opinion') {
-            for (const child of n.children || []) {
-                if (child.key === 'opinion') {
-                    // Inline opinion value detected
-                    diagnostics.push(
-                        createDiagnostic(
-                            `Inline opinion value in ${n.key}. Define opinion modifier in common/opinion_modifiers/ and reference by name with 'modifier = your_modifier_name'.`,
-                            n.range,
-                            DiagnosticSeverity.Information,
-                            'CK3656'
-                        )
-                    );
-                    break;
-                }
-            }
+/** CK3872 / CK3873. */
+export function checkRedundantTriggers(node: ASTNode): Diagnostic[] {
+    const out: Diagnostic[] = [];
+    walk(node, (child) => {
+        if (child.key !== 'always') {
+            return;
         }
-
-        for (const child of n.children || []) {
-            walk(child);
+        if (child.value === true || child.value === 'yes') {
+            out.push(
+                diag(
+                    `${CONVENTION}'always = yes' is always true and can be removed.`,
+                    child.range,
+                    INFO,
+                    'CK3872'
+                )
+            );
+        } else if (child.value === false || child.value === 'no') {
+            out.push(
+                diag(
+                    "'always = no' is never true: the content is switched off (the usual way to disable it on purpose).",
+                    child.range,
+                    DiagnosticSeverity.Hint,
+                    'CK3873'
+                )
+            );
         }
-    }
-
-    walk(node);
-    return diagnostics;
+    });
+    return out;
 }
 
-/**
- * Check for invalid event type (CK3761)
- */
-export function checkEventTypeValid(
-    node: ASTNode,
-    config: Partial<ParadoxConfig> = {}
-): Diagnostic[] {
-    if (!config.eventStructure) {
-        return [];
-    }
-
-    const diagnostics: Diagnostic[] = [];
-
-    // Check if this is an event node (namespace.number format)
-    if (node.key && node.key.includes('.') && (node.children || []).length > 0) {
-        for (const child of node.children || []) {
-            if (child.key === 'type' && child.value) {
-                const eventType = String(child.value);
-                if (!isValidEventType(eventType)) {
-                    const validTypes = [
-                        'character_event',
-                        'letter_event',
-                        'toast_event',
-                        'fullscreen_event',
-                        'duel_event',
-                        'story_event',
-                    ];
-                    diagnostics.push(
-                        createDiagnostic(
-                            `Invalid event type '${eventType}'. Valid types: ${validTypes.join(', ')}`,
-                            child.range,
-                            DiagnosticSeverity.Error,
-                            'CK3761'
-                        )
-                    );
-                }
-            }
+/** CK3875 / CK3977. */
+export function checkListIteratorMisuse(node: ASTNode): Diagnostic[] {
+    const out: Diagnostic[] = [];
+    walk(node, (child) => {
+        if (!child.key || child.type !== NodeType.BLOCK) {
+            return;
         }
-    }
-
-    return diagnostics;
+        const hasLimit = (child.children ?? []).some((c) => c.key === 'limit');
+        if (hasLimit) {
+            return;
+        }
+        if (child.key.startsWith('random_')) {
+            out.push(
+                diag(
+                    `${CONVENTION}random_ iterator without a limit; consider limit = { … } to filter candidates.`,
+                    child.range,
+                    INFO,
+                    'CK3875'
+                )
+            );
+        } else if (child.key.startsWith('every_')) {
+            out.push(
+                diag(
+                    `${CONVENTION}every_ iterator without a limit affects every matching element.`,
+                    child.range,
+                    INFO,
+                    'CK3977'
+                )
+            );
+        }
+    });
+    return out;
 }
 
-/**
- * Check for missing desc in non-hidden events (CK3764)
- */
-export function checkEventHasDesc(
-    node: ASTNode,
-    config: Partial<ParadoxConfig> = {}
-): Diagnostic[] {
-    if (!config.eventStructure) {
-        return [];
-    }
-
-    const diagnostics: Diagnostic[] = [];
-
-    // Check if this is an event node
-    if (node.key && node.key.includes('.') && (node.children || []).length > 0) {
-        const parts = node.key.split('.');
-        if (parts.length === 2 && /^\d+$/.test(parts[1])) {
-            // This is an event
-            let hasDesc = false;
-            let isHidden = false;
-
-            for (const child of node.children || []) {
-                if (child.key === 'desc') {
-                    hasDesc = true;
-                } else if (
-                    child.key === 'hidden' &&
-                    (child.value === 'yes' || child.value === true)
-                ) {
-                    isHidden = true;
-                }
-            }
-
-            if (!hasDesc && !isHidden) {
-                diagnostics.push(
-                    createDiagnostic(
-                        `Event '${node.key}' is missing 'desc' field. Events need descriptions for players to understand what's happening.`,
-                        node.range,
-                        DiagnosticSeverity.Warning,
-                        'CK3764'
-                    )
-                );
-            }
+/** CK3005 and CK5137. */
+export function checkCommonGotchas(node: ASTNode): Diagnostic[] {
+    const out: Diagnostic[] = [];
+    walk(node, (child) => {
+        if (child.key === 'is_alive') {
+            out.push(
+                diag(
+                    `${CONVENTION}'is_alive' on a scope that may not exist; check exists first.`,
+                    child.range,
+                    INFO,
+                    'CK5137'
+                )
+            );
         }
-    }
-
-    return diagnostics;
+        if (
+            child.key &&
+            ['NOT', 'OR', 'AND', 'NOR', 'NAND'].includes(child.key) &&
+            child.type !== NodeType.BLOCK
+        ) {
+            out.push(
+                diag(
+                    `${CONVENTION}logical operator '${child.key}' takes a block { … }, not a scalar.`,
+                    child.range,
+                    INFO,
+                    'CK3005'
+                )
+            );
+        }
+    });
+    return out;
 }
 
-/**
- * Check for options missing name field (CK3450)
- */
-export function checkOptionHasName(
-    node: ASTNode,
-    config: Partial<ParadoxConfig> = {}
-): Diagnostic[] {
-    if (!config.optionValidation) {
-        return [];
+/** CK3656. */
+export function checkOpinionModifiers(node: ASTNode): Diagnostic[] {
+    const out: Diagnostic[] = [];
+    walk(node, (n) => {
+        if (
+            (n.key === 'add_opinion' || n.key === 'reverse_add_opinion') &&
+            (n.children ?? []).some((c) => c.key === 'opinion')
+        ) {
+            out.push(
+                diag(
+                    `${CONVENTION}inline opinion value in ${n.key}; define an opinion modifier in common/opinion_modifiers/ and reference it with 'modifier = …'.`,
+                    n.range,
+                    INFO,
+                    'CK3656'
+                )
+            );
+        }
+    });
+    return out;
+}
+
+/** Event structure checks on one event (CK3762-CK3769, CK3450, CK3520, CK3521). */
+export function checkEventStructure(event: ASTNode, config: ParadoxConfig): Diagnostic[] {
+    const out: Diagnostic[] = [];
+    const children = event.children ?? [];
+    if (children.length === 0) {
+        if (config.eventStructure) {
+            out.push(
+                diag(`${CONVENTION}event '${event.key}' is empty.`, event.range, INFO, 'CK3767')
+            );
+        }
+        return out;
     }
-
-    const diagnostics: Diagnostic[] = [];
-
-    function checkOptionNode(n: ASTNode): void {
-        if (n.key === 'option' && (n.children || []).length > 0) {
-            const hasName = (n.children || []).some((child) => child.key === 'name');
-            if (!hasName) {
-                diagnostics.push(
-                    createDiagnostic(
-                        `Option is missing 'name' field for localization`,
-                        n.range,
-                        DiagnosticSeverity.Warning,
+    const hidden = isHiddenEvent(event);
+    const options = childrenWithKey(event, 'option');
+    const afters = childrenWithKey(event, 'after');
+    if (config.eventStructure) {
+        if (hidden && options.length > 0) {
+            out.push(
+                diag(
+                    `${CONVENTION}hidden event '${event.key}' has options; no window is shown for a hidden event.`,
+                    options[0].range,
+                    INFO,
+                    'CK3762'
+                )
+            );
+        }
+        if (!hidden && options.length === 0) {
+            out.push(
+                diag(
+                    `${CONVENTION}event '${event.key}' is not hidden and has no options.`,
+                    event.range,
+                    INFO,
+                    'CK3763'
+                )
+            );
+        }
+        for (const extra of afters.slice(1)) {
+            out.push(
+                diag(`${CONVENTION}several after blocks in one event.`, extra.range, INFO, 'CK3766')
+            );
+        }
+        for (const extra of childrenWithKey(event, 'immediate').slice(1)) {
+            out.push(
+                diag(
+                    `${CONVENTION}several immediate blocks in one event.`,
+                    extra.range,
+                    INFO,
+                    'CK3768'
+                )
+            );
+        }
+    }
+    if (config.descValidation && !hidden && !children.some((c) => c.key === 'desc')) {
+        out.push(
+            diag(
+                `${CONVENTION}event '${event.key}' is not hidden and has no desc.`,
+                event.range,
+                INFO,
+                'CK3764'
+            )
+        );
+    }
+    if (config.optionValidation) {
+        for (const option of options) {
+            if (
+                (option.children ?? []).length > 0 &&
+                !option.children!.some((c) => c.key === 'name')
+            ) {
+                out.push(
+                    diag(
+                        `${CONVENTION}option without a 'name' for its localization.`,
+                        option.range,
+                        INFO,
                         'CK3450'
                     )
                 );
             }
         }
-
-        for (const child of n.children || []) {
-            checkOptionNode(child);
+    }
+    if (config.portraitValidation) {
+        const portraits = children.filter((c) => c.key && isValidPortraitPosition(c.key));
+        if (!hidden && portraits.length === 0) {
+            out.push(
+                diag(
+                    `${CONVENTION}event '${event.key}' is not hidden and shows no portrait.`,
+                    event.range,
+                    INFO,
+                    'CK3769'
+                )
+            );
         }
-    }
-
-    checkOptionNode(node);
-    return diagnostics;
-}
-
-/**
- * Check for invalid portrait position (CK3420)
- */
-export function checkPortraitPosition(
-    node: ASTNode,
-    config: Partial<ParadoxConfig> = {}
-): Diagnostic[] {
-    if (!config.portraitValidation) {
-        return [];
-    }
-
-    const diagnostics: Diagnostic[] = [];
-
-    function walk(n: ASTNode): void {
-        if (n.key && n.key.endsWith('_portrait')) {
-            if (!isValidPortraitPosition(n.key)) {
-                const validPositions = [
-                    'left_portrait',
-                    'right_portrait',
-                    'lower_left_portrait',
-                    'lower_center_portrait',
-                    'lower_right_portrait',
-                ];
-                diagnostics.push(
-                    createDiagnostic(
-                        `Invalid portrait position '${n.key}'. Valid positions: ${validPositions.join(', ')}`,
-                        n.range,
-                        DiagnosticSeverity.Error,
-                        'CK3420'
-                    )
-                );
-            }
-        }
-
-        for (const child of n.children || []) {
-            walk(child);
-        }
-    }
-
-    walk(node);
-    return diagnostics;
-}
-
-/**
- * Check that portrait blocks have character field (CK3421)
- */
-export function checkPortraitHasCharacter(
-    node: ASTNode,
-    config: Partial<ParadoxConfig> = {}
-): Diagnostic[] {
-    if (!config.portraitValidation) {
-        return [];
-    }
-
-    const diagnostics: Diagnostic[] = [];
-
-    function walk(n: ASTNode): void {
-        if (n.key && isValidPortraitPosition(n.key)) {
-            const hasCharacter = (n.children || []).some((child) => child.key === 'character');
-            if (!hasCharacter && (n.children || []).length > 0) {
-                diagnostics.push(
-                    createDiagnostic(
-                        `Portrait '${n.key}' is missing required 'character' field`,
-                        n.range,
-                        DiagnosticSeverity.Warning,
+        for (const portrait of portraits) {
+            if (
+                (portrait.children ?? []).length > 0 &&
+                !portrait.children!.some((c) => c.key === 'character')
+            ) {
+                out.push(
+                    diag(
+                        `${CONVENTION}portrait '${portrait.key}' has no 'character'.`,
+                        portrait.range,
+                        INFO,
                         'CK3421'
                     )
                 );
             }
-        }
-
-        for (const child of n.children || []) {
-            walk(child);
-        }
-    }
-
-    walk(node);
-    return diagnostics;
-}
-
-/**
- * Check for invalid animation names (CK3422)
- */
-export function checkAnimationValid(
-    node: ASTNode,
-    config: Partial<ParadoxConfig> = {}
-): Diagnostic[] {
-    if (!config.portraitValidation) {
-        return [];
-    }
-
-    const diagnostics: Diagnostic[] = [];
-
-    function walk(n: ASTNode): void {
-        if (n.key === 'animation' && n.value) {
-            const animation = String(n.value);
-            if (!isValidPortraitAnimation(animation)) {
-                diagnostics.push(
-                    createDiagnostic(
-                        `Invalid animation '${animation}'. Check valid animations in game files.`,
-                        n.range,
-                        DiagnosticSeverity.Warning,
-                        'CK3422'
-                    )
-                );
-            }
-        }
-
-        for (const child of n.children || []) {
-            walk(child);
+            walk(portrait, (n) => {
+                if (
+                    n.key === 'animation' &&
+                    typeof n.value === 'string' &&
+                    !isValidPortraitAnimation(n.value)
+                ) {
+                    out.push(
+                        diag(
+                            `${CONVENTION}animation '${n.value}' is not in the extracted animation data.`,
+                            n.range,
+                            INFO,
+                            'CK3422'
+                        )
+                    );
+                }
+            });
         }
     }
-
-    walk(node);
-    return diagnostics;
-}
-
-/**
- * Check for invalid theme names (CK3430)
- */
-export function checkThemeValid(node: ASTNode, config: Partial<ParadoxConfig> = {}): Diagnostic[] {
-    if (!config.eventStructure) {
-        return [];
-    }
-
-    const diagnostics: Diagnostic[] = [];
-
-    function walk(n: ASTNode): void {
-        if (n.key === 'theme' && n.value) {
-            const theme = String(n.value);
-            if (!isValidTheme(theme)) {
-                diagnostics.push(
-                    createDiagnostic(
-                        `Invalid theme '${theme}'. Check valid themes in game files.`,
-                        n.range,
-                        DiagnosticSeverity.Warning,
-                        'CK3430'
-                    )
-                );
-            }
-        }
-
-        for (const child of n.children || []) {
-            walk(child);
-        }
-    }
-
-    walk(node);
-    return diagnostics;
-}
-
-/**
- * Check for after block in hidden event (CK3520)
- */
-export function checkAfterBlockInHiddenEvent(
-    node: ASTNode,
-    config: Partial<ParadoxConfig> = {}
-): Diagnostic[] {
-    if (!config.afterBlockValidation) {
-        return [];
-    }
-
-    const diagnostics: Diagnostic[] = [];
-
-    // Check if this is an event node
-    if (node.key && node.key.includes('.') && (node.children || []).length > 0) {
-        let isHidden = false;
-        let hasAfter = false;
-        let afterNode: ASTNode | null = null;
-
-        for (const child of node.children || []) {
-            if (child.key === 'hidden' && (child.value === 'yes' || child.value === true)) {
-                isHidden = true;
-            } else if (child.key === 'after') {
-                hasAfter = true;
-                afterNode = child;
-            }
-        }
-
-        if (isHidden && hasAfter && afterNode) {
-            diagnostics.push(
-                createDiagnostic(
-                    `'after' block in hidden event '${node.key}' has no effect (hidden events don't display options)`,
-                    afterNode.range,
-                    DiagnosticSeverity.Warning,
+    if (config.afterBlockValidation && afters.length > 0) {
+        if (hidden) {
+            out.push(
+                diag(
+                    `${CONVENTION}after block in hidden event '${event.key}': it runs after an option is chosen, and a hidden event shows none.`,
+                    afters[0].range,
+                    INFO,
                     'CK3520'
                 )
             );
-        }
-    }
-
-    return diagnostics;
-}
-
-/**
- * Check for after block without options (CK3521)
- */
-export function checkAfterBlockWithoutOptions(
-    node: ASTNode,
-    config: Partial<ParadoxConfig> = {}
-): Diagnostic[] {
-    if (!config.afterBlockValidation) {
-        return [];
-    }
-
-    const diagnostics: Diagnostic[] = [];
-
-    // Check if this is an event node
-    if (node.key && node.key.includes('.') && (node.children || []).length > 0) {
-        let hasOptions = false;
-        let hasAfter = false;
-        let afterNode: ASTNode | null = null;
-
-        for (const child of node.children || []) {
-            if (child.key === 'option') {
-                hasOptions = true;
-            } else if (child.key === 'after') {
-                hasAfter = true;
-                afterNode = child;
-            }
-        }
-
-        if (hasAfter && !hasOptions && afterNode) {
-            diagnostics.push(
-                createDiagnostic(
-                    `'after' block without options is unnecessary (options trigger the after block)`,
-                    afterNode.range,
-                    DiagnosticSeverity.Information,
+        } else if (options.length === 0) {
+            out.push(
+                diag(
+                    `${CONVENTION}after block in an event without options; it runs after an option.`,
+                    afters[0].range,
+                    INFO,
                     'CK3521'
                 )
             );
         }
     }
-
-    return diagnostics;
+    return out;
 }
 
-/**
- * Check for negative base ai_chance (CK3610)
- */
-export function checkAiChanceNegative(
-    node: ASTNode,
-    config: Partial<ParadoxConfig> = {}
-): Diagnostic[] {
-    if (!config.aiChanceValidation) {
+/** CK3430: the event's theme is defined neither in the workspace nor in the base game. */
+export function checkTheme(event: ASTNode, knowledge: ParadoxKnowledge): Diagnostic[] {
+    const isKnown = knowledge.isKnownTheme;
+    if (!isKnown) {
         return [];
     }
-
-    const diagnostics: Diagnostic[] = [];
-
-    function walk(n: ASTNode): void {
-        if (n.key === 'ai_chance') {
-            for (const child of n.children || []) {
-                if (child.key === 'base' && child.value !== null && child.value !== undefined) {
-                    const value = Number(child.value);
-                    if (!isNaN(value) && value < 0) {
-                        diagnostics.push(
-                            createDiagnostic(
-                                `Negative base ai_chance (${value}) - AI will never select this option`,
-                                child.range,
-                                DiagnosticSeverity.Warning,
-                                'CK3610'
-                            )
-                        );
-                    }
-                }
-            }
-        }
-
-        for (const child of n.children || []) {
-            walk(child);
+    const out: Diagnostic[] = [];
+    for (const theme of childrenWithKey(event, 'theme')) {
+        if (
+            typeof theme.value === 'string' &&
+            !theme.value.includes('$') &&
+            !isKnown(theme.value)
+        ) {
+            out.push(
+                diag(
+                    `Unknown event theme '${theme.value}': defined neither in the workspace's nor in the base game's common/event_themes`,
+                    theme.range,
+                    DiagnosticSeverity.Warning,
+                    'CK3430'
+                )
+            );
         }
     }
-
-    walk(node);
-    return diagnostics;
+    return out;
 }
 
-/**
- * Check for ai_chance > 100 (CK3611)
- */
-export function checkAiChanceOver100(
-    node: ASTNode,
-    config: Partial<ParadoxConfig> = {}
-): Diagnostic[] {
-    if (!config.aiChanceValidation) {
-        return [];
-    }
-
-    const diagnostics: Diagnostic[] = [];
-
-    function walk(n: ASTNode): void {
-        if (n.key === 'ai_chance') {
-            for (const child of n.children || []) {
-                if (child.key === 'base' && child.value !== null && child.value !== undefined) {
-                    const value = Number(child.value);
-                    if (!isNaN(value) && value > 100) {
-                        diagnostics.push(
-                            createDiagnostic(
-                                `ai_chance base ${value} > 100 is clamped to 100`,
-                                child.range,
-                                DiagnosticSeverity.Information,
-                                'CK3611'
-                            )
-                        );
-                    }
-                }
-            }
+function aiChanceBlocks(node: ASTNode): ASTNode[] {
+    const out: ASTNode[] = [];
+    walk(node, (n) => {
+        if (n.key === 'ai_chance' && n.children) {
+            out.push(n);
         }
-
-        for (const child of n.children || []) {
-            walk(child);
-        }
-    }
-
-    walk(node);
-    return diagnostics;
+    });
+    return out;
 }
 
-/**
- * Check for ai_chance = 0 (CK3612)
- */
-export function checkAiChanceZero(
-    node: ASTNode,
-    config: Partial<ParadoxConfig> = {}
-): Diagnostic[] {
-    if (!config.aiChanceValidation) {
-        return [];
-    }
-
-    const diagnostics: Diagnostic[] = [];
-
-    function walk(n: ASTNode): void {
-        if (n.key === 'ai_chance') {
-            for (const child of n.children || []) {
-                if (child.key === 'base' && child.value !== null && child.value !== undefined) {
-                    const value = Number(child.value);
-                    if (!isNaN(value) && value === 0) {
-                        diagnostics.push(
-                            createDiagnostic(
-                                `ai_chance base = 0 - AI will never select this option. Consider using 'ai_accept = no' instead.`,
-                                child.range,
-                                DiagnosticSeverity.Information,
-                                'CK3612'
-                            )
-                        );
-                    }
-                }
-            }
-        }
-
-        for (const child of n.children || []) {
-            walk(child);
-        }
-    }
-
-    walk(node);
-    return diagnostics;
-}
-
-/**
- * Check for ai_chance modifier without trigger (CK3614)
- */
-export function checkAiChanceModifierWithoutTrigger(
-    node: ASTNode,
-    config: Partial<ParadoxConfig> = {}
-): Diagnostic[] {
-    if (!config.aiChanceValidation) {
-        return [];
-    }
-
-    const diagnostics: Diagnostic[] = [];
-
-    function walk(n: ASTNode): void {
-        if (n.key === 'ai_chance') {
-            for (const child of n.children || []) {
-                if (child.key === 'modifier') {
-                    const hasCondition = (child.children || []).some(
-                        (c) => c.key !== 'factor' && c.key !== 'add' && c.key !== 'multiply'
+/** CK3610, CK3611 (old), CK3612 (old), CK3614. */
+export function checkAiChance(node: ASTNode): Diagnostic[] {
+    const out: Diagnostic[] = [];
+    for (const block of aiChanceBlocks(node)) {
+        for (const child of block.children ?? []) {
+            if (child.key === 'base' && child.value !== null && child.value !== undefined) {
+                const value = Number(child.value);
+                if (!isNaN(value) && value < 0) {
+                    out.push(
+                        diag(
+                            `${CONVENTION}negative ai_chance base (${value}).`,
+                            child.range,
+                            INFO,
+                            'CK3610'
+                        )
                     );
-
-                    if (!hasCondition) {
-                        diagnostics.push(
-                            createDiagnostic(
-                                `ai_chance modifier without trigger applies unconditionally - move to base value instead`,
-                                child.range,
-                                DiagnosticSeverity.Warning,
-                                'CK3614'
-                            )
-                        );
-                    }
+                }
+                if (!isNaN(value) && value > 100) {
+                    out.push(
+                        diag(
+                            `ai_chance base ${value} > 100 is clamped to 100`,
+                            child.range,
+                            INFO,
+                            'CK3611'
+                        )
+                    );
+                }
+                if (!isNaN(value) && value === 0) {
+                    out.push(
+                        diag(
+                            `ai_chance base = 0 - AI will never select this option. Consider using 'ai_accept = no' instead.`,
+                            child.range,
+                            INFO,
+                            'CK3612'
+                        )
+                    );
+                }
+            }
+            if (child.key === 'modifier') {
+                const hasCondition = (child.children ?? []).some(
+                    (c) => c.key !== 'factor' && c.key !== 'add' && c.key !== 'multiply'
+                );
+                if (!hasCondition) {
+                    out.push(
+                        diag(
+                            `${CONVENTION}ai_chance modifier without a trigger applies unconditionally; fold it into base.`,
+                            child.range,
+                            INFO,
+                            'CK3614'
+                        )
+                    );
                 }
             }
         }
-
-        for (const child of n.children || []) {
-            walk(child);
-        }
     }
-
-    walk(node);
-    return diagnostics;
+    return out;
 }
 
-/**
- * Check for trigger_else without trigger_if (CK3510)
- */
-export function checkTriggerElseWithoutIf(
-    node: ASTNode,
-    config: Partial<ParadoxConfig> = {}
-): Diagnostic[] {
-    if (!config.triggerValidation) {
-        return [];
-    }
-
-    const diagnostics: Diagnostic[] = [];
-
-    function walk(n: ASTNode): void {
-        let hasTriggerIf = false;
-        const triggerElseNodes: ASTNode[] = [];
-
-        for (const child of n.children || []) {
-            if (child.key === 'trigger_if') {
-                hasTriggerIf = true;
-            } else if (child.key === 'trigger_else') {
-                triggerElseNodes.push(child);
-            }
+/** CK3510 / CK3511. */
+export function checkTriggerElse(node: ASTNode): Diagnostic[] {
+    const out: Diagnostic[] = [];
+    walk(node, (n) => {
+        const children = n.children ?? [];
+        const elses = children.filter((c) => c.key === 'trigger_else');
+        if (elses.length === 0) {
+            return;
         }
-
-        if (triggerElseNodes.length > 0 && !hasTriggerIf) {
-            for (const elseNode of triggerElseNodes) {
-                diagnostics.push(
-                    createDiagnostic(
-                        `'trigger_else' without preceding 'trigger_if' has no effect`,
-                        elseNode.range,
-                        DiagnosticSeverity.Error,
+        if (!children.some((c) => c.key === 'trigger_if')) {
+            for (const e of elses) {
+                out.push(
+                    diag(
+                        `${CONVENTION}'trigger_else' without a preceding 'trigger_if'.`,
+                        e.range,
+                        INFO,
                         'CK3510'
                     )
                 );
             }
         }
-
-        for (const child of n.children || []) {
-            walk(child);
-        }
-    }
-
-    walk(node);
-    return diagnostics;
-}
-
-/**
- * Check for multiple trigger_else blocks (CK3511)
- */
-export function checkMultipleTriggerElse(
-    node: ASTNode,
-    config: Partial<ParadoxConfig> = {}
-): Diagnostic[] {
-    if (!config.triggerValidation) {
-        return [];
-    }
-
-    const diagnostics: Diagnostic[] = [];
-
-    function walk(n: ASTNode): void {
-        const triggerElseNodes: ASTNode[] = [];
-
-        for (const child of n.children || []) {
-            if (child.key === 'trigger_else') {
-                triggerElseNodes.push(child);
-            }
-        }
-
-        if (triggerElseNodes.length > 1) {
-            for (let i = 1; i < triggerElseNodes.length; i++) {
-                diagnostics.push(
-                    createDiagnostic(
-                        `Multiple 'trigger_else' blocks - only the first executes`,
-                        triggerElseNodes[i].range,
-                        DiagnosticSeverity.Warning,
-                        'CK3511'
-                    )
-                );
-            }
-        }
-
-        for (const child of n.children || []) {
-            walk(child);
-        }
-    }
-
-    walk(node);
-    return diagnostics;
-}
-
-/**
- * Check for empty event (CK3767)
- */
-export function checkEmptyEvent(node: ASTNode, config: Partial<ParadoxConfig> = {}): Diagnostic[] {
-    if (!config.eventStructure) {
-        return [];
-    }
-
-    const diagnostics: Diagnostic[] = [];
-
-    // Check if this is an event node
-    if (node.key && node.key && node.key.includes('.') && (node.children || []).length === 0) {
-        const parts = node.key.split('.');
-        if (parts.length === 2 && /^\d+$/.test(parts[1])) {
-            diagnostics.push(
-                createDiagnostic(
-                    `Event '${node.key}' is empty - events need content`,
-                    node.range,
-                    DiagnosticSeverity.Error,
-                    'CK3767'
+        for (const e of elses.slice(1)) {
+            out.push(
+                diag(
+                    `${CONVENTION}several 'trigger_else' blocks; only the first applies.`,
+                    e.range,
+                    INFO,
+                    'CK3511'
                 )
             );
         }
-    }
-
-    return diagnostics;
+    });
+    return out;
 }
 
-/**
- * Check for non-hidden event with no portraits (CK3769)
- */
-export function checkEventHasPortraits(
+/** Every Paradox convention check on a file. */
+export function validateParadoxConventions(
     node: ASTNode,
-    config: Partial<ParadoxConfig> = {}
+    config: ParadoxConfig = DEFAULT_PARADOX_CONFIG,
+    knowledge: ParadoxKnowledge = {}
 ): Diagnostic[] {
-    if (!config.portraitValidation) {
-        return [];
+    const out: Diagnostic[] = [];
+    if (config.effectTriggerContext) {
+        out.push(...checkRedundantTriggers(node));
     }
-
-    const diagnostics: Diagnostic[] = [];
-
-    // Check if this is an event node
-    if (node.key && node.key && node.key.includes('.') && (node.children || []).length > 0) {
-        const parts = node.key.split('.');
-        if (parts.length === 2 && /^\d+$/.test(parts[1])) {
-            let isHidden = false;
-            let hasPortrait = false;
-
-            for (const child of node.children || []) {
-                if (child.key === 'hidden' && (child.value === 'yes' || child.value === true)) {
-                    isHidden = true;
-                } else if (child.key && child.key.endsWith('_portrait')) {
-                    hasPortrait = true;
-                }
-            }
-
-            if (!isHidden && !hasPortrait) {
-                diagnostics.push(
-                    createDiagnostic(
-                        `Non-hidden event '${node.key}' has no portraits - events should show relevant characters`,
-                        node.range,
-                        DiagnosticSeverity.Information,
-                        'CK3769'
-                    )
-                );
-            }
+    if (config.listIterators) {
+        out.push(...checkListIteratorMisuse(node));
+    }
+    if (config.commonGotchas) {
+        out.push(...checkCommonGotchas(node));
+    }
+    if (config.opinionModifiers) {
+        out.push(...checkOpinionModifiers(node));
+    }
+    if (isEventFile(knowledge.file ?? 'events/')) {
+        for (const event of eventsOf(node)) {
+            out.push(...checkEventStructure(event, config));
+            out.push(...checkTheme(event, knowledge));
         }
     }
-
-    return diagnostics;
-}
-
-/**
- * Validate all extended Paradox conventions on an AST node
- */
-export function validateExtendedParadoxConventions(
-    node: ASTNode,
-    config: Partial<ParadoxConfig> = {}
-): Diagnostic[] {
-    const allDiagnostics: Diagnostic[] = [];
-
-    // Opinion and event structure checks
-    allDiagnostics.push(...checkOpinionModifiers(node, config));
-    allDiagnostics.push(...checkEventTypeValid(node, config));
-    allDiagnostics.push(...checkEventHasDesc(node, config));
-    allDiagnostics.push(...checkEmptyEvent(node, config));
-
-    // Option checks
-    allDiagnostics.push(...checkOptionHasName(node, config));
-
-    // Portrait checks
-    allDiagnostics.push(...checkPortraitPosition(node, config));
-    allDiagnostics.push(...checkPortraitHasCharacter(node, config));
-    allDiagnostics.push(...checkAnimationValid(node, config));
-    allDiagnostics.push(...checkEventHasPortraits(node, config));
-
-    // Theme checks
-    allDiagnostics.push(...checkThemeValid(node, config));
-
-    // After block checks
-    allDiagnostics.push(...checkAfterBlockInHiddenEvent(node, config));
-    allDiagnostics.push(...checkAfterBlockWithoutOptions(node, config));
-
-    // AI chance checks
-    allDiagnostics.push(...checkAiChanceNegative(node, config));
-    allDiagnostics.push(...checkAiChanceOver100(node, config));
-    allDiagnostics.push(...checkAiChanceZero(node, config));
-    allDiagnostics.push(...checkAiChanceModifierWithoutTrigger(node, config));
-
-    // Trigger checks
-    allDiagnostics.push(...checkTriggerElseWithoutIf(node, config));
-    allDiagnostics.push(...checkMultipleTriggerElse(node, config));
-
-    return allDiagnostics;
+    if (config.aiChanceValidation) {
+        out.push(...checkAiChance(node));
+    }
+    if (config.triggerValidation) {
+        out.push(...checkTriggerElse(node));
+    }
+    return out;
 }

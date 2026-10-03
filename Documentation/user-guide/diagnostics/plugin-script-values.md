@@ -2,15 +2,13 @@
 
 # Plug-in: script-values
 
-Script value formulas in common/script_values.
+Script value ranges, conditionals and rounding, inside a `script_values = { … }` block.
 
 Source: `vscode-extension/src/server/ck3/validation/script-values.ts`.
 
-| Code | Severity | Meaning |
-| --- | --- | --- |
-| `VALUE-001` | warning | Invalid script value type. |
-| `VALUE-002` | error | Invalid range (min greater than max). |
-| `VALUE-003` | warning | Unknown formula operation. |
-| `VALUE-004` | error | Invalid conditional structure (else_if after else). |
-| `VALUE-005` | information | An arithmetic operation without a value. |
-| `VALUE-006` | error | Invalid round_to parameter (it must be positive). |
+| Code | Severity | Meaning | Evidence |
+| --- | --- | --- | --- |
+| `VALUE-002` | error | Invalid range (min greater than max). | The game prints "min value in range directive is larger than the max value" (catalogue min_value_in_range_directive_is_larger_than_the_max_value_un). |
+| `VALUE-004` | information | Conditional structure out of order (else_if after else, else_if without if, several else). | Convention. |
+| `VALUE-005` | information | An arithmetic operation without a value. | Convention. |
+| `VALUE-006` | information | round_to is not positive. | Convention. |

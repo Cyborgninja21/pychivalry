@@ -1,4 +1,4 @@
-# Diagnostic codes of the extension's plug-ins (pychivalry 2.0.0)
+# Diagnostic codes of the extension's plug-ins (pychivalry 2.2.0)
 #
 # The engine core (packages/engine) reports its own diagnostics with the ids and texts of the
 # spec package's error catalogue (plus a few package-local PYCH- ids); those are documented
@@ -13,53 +13,76 @@
 # or when the generated pages are out of date.
 #
 # Per code: plugin (a plugins key), severity (error | warning | information | hint), message
-# (what the diagnostic means). LOC-001 and LOC-002 mean different things in script files
-# (localization-references) and in localization files (localization); both are listed.
-version: "2.0"
+# (what the diagnostic means), evidence (why the severity: the engine evidence that allows an
+# error or a warning, or "Convention" and the reason there is none; the evidence rule and the
+# 2.2 audit of every code are in Documentation/developer-guide/diagnostics-evidence.md) and,
+# for a code that replaced another, renamed_from. LOC-001 and LOC-002 mean different things
+# in script files (localization-references) and in localization files (localization); both
+# are listed.
+version: "2.2"
 
 plugins:
     scope-timing:
         source: vscode-extension/src/server/ck3/validation/scope-timing.ts
         description: >-
-            The event evaluation order: trigger and desc are evaluated before immediate runs,
-            so scopes and variables created in immediate are not available there.
+            The event evaluation order: trigger, then immediate, then the window (title, desc
+            and its triggered_desc triggers, portraits, options), then the chosen option, then
+            after. Scopes saved in immediate are available to the window; scopes saved in an
+            option or in after are not. All codes are conventions (information).
     style-checks:
         source: vscode-extension/src/server/ck3/validation/style-checks.ts
         description: >-
-            Formatting and brace style. Where the engine reports an unbalanced brace on a line,
-            this plug-in's own brace codes (CK3330, CK3331) on that line are dropped.
+            Formatting and brace style, as hints (the game prints nothing for style). Where the
+            engine reports an unbalanced brace on a line, this plug-in's own brace codes
+            (CK3330, CK3331) on that line are dropped; elsewhere they point at the probable line
+            of a brace the engine's parse error reports.
     conventions:
         source: vscode-extension/src/server/ck3/validation/conventions.ts
-        description: Event conventions (CONV) and if/else ordering (COND).
+        description: Event conventions (CONV) and if/else ordering (COND), as information.
     localization-references:
         source: vscode-extension/src/server/ck3/validation/conventions.ts
         description: >-
-            Localization keys referenced from script: literal text where a key belongs, and
-            keys missing from the workspace's localization files.
+            Localization keys referenced from script (an event's title, desc and opening, an
+            option's name, a decision's title, desc, selection_tooltip and confirm_text, any
+            custom_tooltip): literal text where a key belongs, and keys defined neither in the
+            workspace's localization files nor in the base game's (only while the base game is
+            known, ck3LanguageServer.gamePath).
     events:
         source: vscode-extension/src/server/ck3/validation/events.ts
         description: >-
-            Event records: type, theme, portraits, options, namespaces. Reported as warnings.
+            Event records of events/ files: type, letter sender, namespace declaration, against
+            the game's own events documentation (game/events/_events.info); information.
     paradox-checks:
         source: vscode-extension/src/server/ck3/validation/paradox-checks.ts
         description: >-
             Paradox conventions and common pitfalls that parse and resolve but misbehave in
-            game: event structure, ai_chance, trigger_else, after blocks, portraits, iterators
-            without limit.
+            game: event structure (on every event of an events/ file), ai_chance, trigger_else,
+            after blocks, portraits, iterators without limit; and the event theme, checked
+            against the workspace's and the base game's common/event_themes.
     variables:
         source: vscode-extension/src/server/ck3/validation/variables.ts
-        description: Variables declared, used, scoped and typed consistently within a file.
+        description: >-
+            Variables read but set nowhere, set but read nowhere, read in another namespace than
+            they are set in, or used as a list and as a value. Ordinary and global variables
+            are judged across the workspace index and the base game's indexed script (only while
+            the base game is known); local variables in their file.
     traits:
         source: vscode-extension/src/server/ck3/validation/traits.ts
         description: >-
-            Trait names in has_trait, add_trait and remove_trait. Runs only when the optional
-            extracted trait data (data/traits/) is present; workspace traits count as known.
+            Trait names in has_trait, add_trait, remove_trait and the trait field of
+            history/characters and create_character, against the base game's common/traits
+            (trait keys, group and group_equivalence names), the workspace's traits and the
+            optional extracted data. Runs only while the base game's traits are known.
     scripted-blocks:
         source: vscode-extension/src/server/ck3/validation/scripted-blocks.ts
-        description: Calls to scripted effects and triggers, and recursion between them.
+        description: >-
+            Recursion: a scripted effect or trigger that calls itself. (Undefined scripted
+            effects and triggers are the engine registry's unknown_effect_X / unknown_trigger_X.)
     script-values:
         source: vscode-extension/src/server/ck3/validation/script-values.ts
-        description: Script value formulas in common/script_values.
+        description: >-
+            Script value ranges, conditionals and rounding, inside a `script_values = { … }`
+            block.
     iterators:
         source: vscode-extension/src/server/ck3/validation/iterators.ts
         description: ordered_ iterator parameters.
@@ -84,389 +107,417 @@ plugins:
             icons, concepts, brackets and $VARIABLE$ substitutions. Not an engine plug-in:
             localization is not CK3 script.
 
+
 diagnostics:
-    # scope-timing
+    # scope-timing (conventions: the evaluation order has no error-catalogue message, schema
+    # field or oracle entry, and a scope can also arrive from the calling event)
     CK3550:
         plugin: scope-timing
-        severity: error
-        message: A scope used in the trigger block is saved in immediate, which runs after the trigger is evaluated.
+        severity: information
+        message: >-
+            A scope read in the trigger block is saved in immediate (which runs after the
+            trigger is evaluated) and not earlier in the trigger itself; it exists only if the
+            calling event passes it.
+        evidence: Convention. Not reported when the trigger saves the scope before reading it (issue #96).
     CK3551:
         plugin: scope-timing
-        severity: warning
-        message: A scope used in the desc block is saved in immediate; desc may be evaluated before immediate runs.
+        severity: information
+        message: A scope read in desc is saved by the event only in an option or in after, which run after the window is shown.
+        evidence: >-
+            Convention. Before 2.2 it reported scopes saved in immediate, which the window can
+            read (issue #95).
     CK3552:
         plugin: scope-timing
-        severity: error
-        message: A scope used in a triggered_desc trigger is saved in immediate, which runs after those triggers.
+        severity: information
+        message: A scope read in a triggered_desc trigger is saved by the event only in an option or in after.
+        evidence: >-
+            Convention. Before 2.2 an error for scopes saved in immediate: the window is
+            evaluated after immediate, and 864 vanilla events read an immediate-saved scope in a
+            triggered_desc trigger (issue #95).
     CK3553:
         plugin: scope-timing
-        severity: error
-        message: A variable checked in the trigger block is set in immediate, which runs after the trigger is evaluated.
+        severity: information
+        message: A local variable checked in the trigger block is set in immediate; local variables do not outlive the effect that sets them.
+        evidence: >-
+            Convention. Before 2.2 an error for any variable: ordinary and global variables
+            persist, and checking one an earlier firing set is the intended pattern (issue #97).
     CK3554:
         plugin: scope-timing
-        severity: warning
+        severity: information
         message: A temporary scope (save_temporary_scope_as) is passed to a triggered event; it does not persist across events.
+        evidence: Convention.
 
-    # style-checks
+    # style-checks (style: the game prints nothing)
     CK3301:
         plugin: style-checks
-        severity: warning
-        message: Inconsistent indentation within a block.
+        severity: hint
+        message: Indentation mixes tabs and spaces.
+        evidence: Convention (style).
     CK3303:
         plugin: style-checks
-        severity: warning
+        severity: hint
         message: Indentation uses spaces instead of tabs.
+        evidence: Convention (style; Paradox's own files indent with tabs).
     CK3304:
         plugin: style-checks
-        severity: information
+        severity: hint
         message: Trailing whitespace.
+        evidence: Convention (style).
     CK3306:
         plugin: style-checks
-        severity: information
-        message: Inconsistent spacing around an operator.
+        severity: hint
+        message: No spaces around an operator.
+        evidence: Convention (style).
     CK3314:
         plugin: style-checks
-        severity: warning
+        severity: hint
         message: Empty block.
+        evidence: Convention (style; the base game writes empty blocks on purpose).
     CK3316:
         plugin: style-checks
-        severity: information
+        severity: hint
         message: Line longer than the recommended length (120 characters).
+        evidence: Convention (style).
     CK3317:
         plugin: style-checks
-        severity: information
+        severity: hint
         message: Blocks nested deeper than the recommended depth (6).
+        evidence: Convention (style).
     CK3330:
         plugin: style-checks
-        severity: error
-        message: Unclosed brace (dropped where the engine reports the brace on the same line).
+        severity: information
+        message: Probable line of an unclosed brace (dropped where the engine reports the brace on the same line).
+        evidence: >-
+            The engine's parse error, with the game's message, is the evidence and is reported
+            by the engine; this code only points at the probable line, from a per-top-level-block
+            heuristic.
     CK3331:
         plugin: style-checks
-        severity: error
-        message: Extra closing brace (dropped where the engine reports the brace on the same line).
-    CK3340:
-        plugin: style-checks
-        severity: warning
-        message: Unknown or suspicious scope reference (possible typo).
-    CK3341:
-        plugin: style-checks
-        severity: warning
-        message: Scope reference appears truncated.
+        severity: information
+        message: Probable line of an extra closing brace (dropped where the engine reports the brace on the same line).
+        evidence: As CK3330.
 
     # conventions
-    CONV-001:
-        plugin: conventions
-        severity: warning
-        message: An event with options has no type.
     CONV-002:
         plugin: conventions
-        severity: warning
-        message: An event with options has no title.
-    CONV-003:
-        plugin: conventions
         severity: information
-        message: An event with options has no desc.
-    CONV-004:
-        plugin: conventions
-        severity: warning
-        message: An option block has no name.
+        message: An event with options has no title.
+        evidence: Convention (title is an optional field of the events schema).
     COND-001:
         plugin: conventions
-        severity: warning
+        severity: information
         message: if, else_if, trigger_if or trigger_else_if without a limit.
+        evidence: Convention.
     COND-002:
         plugin: conventions
-        severity: warning
-        message: else or trigger_else with a limit (it is ignored).
+        severity: information
+        message: else or trigger_else with a limit.
+        evidence: Convention.
     COND-003:
         plugin: conventions
-        severity: warning
+        severity: information
         message: else or trigger_else without a preceding if.
+        evidence: Convention.
 
     # localization-references (script files) and localization (.yml files)
     LOC-001:
         plugin: localization-references, localization
         severity: warning
         message: >-
-            In script files, a title, desc or name value contains spaces (literal text where a
-            localization key belongs). In localization files, an entry key the localization
-            index cannot read (it starts with a digit, or contains spaces, dashes or other
-            punctuation).
+            In script files (warning), a localization field (an event's title, desc or opening,
+            an option's name, a decision's title or desc) holds literal text with spaces. In
+            localization files (information), an entry key the localization index cannot read
+            (it starts with a digit, or contains spaces, dashes or other punctuation).
+        evidence: >-
+            Script files: the game reads the text as a key and logs it missing (catalogue
+            unknown_loc_key_X, "Unknown loc key %s"; game/events/_events.info: "Missing
+            localization keys are logged as errors"); a key with spaces cannot be defined.
+            Localization files: convention.
     LOC-002:
         plugin: localization-references, localization
         severity: warning
         message: >-
-            In script files, a tooltip value contains spaces (literal text where a localization
-            key belongs). In localization files, an unknown character function such as
-            [ROOT.Char.GetNam].
+            In script files (warning), a custom_tooltip holds literal text with spaces. In
+            localization files (information), a character function outside the hand-made
+            function list, such as [ROOT.Char.GetNam].
+        evidence: >-
+            Script files: as LOC-001. Localization files: convention (the function list is not
+            the game's own data).
     CK4100:
         plugin: localization-references
         severity: warning
-        message: A localization key referenced from script is not defined in the workspace's localization files.
+        message: >-
+            A localization key referenced from script is defined neither in the workspace's
+            localization files nor in the base game's (reported only while the base game is
+            known).
+        evidence: >-
+            The game logs the missing key: catalogue unknown_loc_key_X ("Unknown loc key %s")
+            and game/events/_events.info ("Missing localization keys are logged as errors").
 
-    # events
+    # events (game/events/_events.info; conventions: no catalogue message, no required field)
     EVENT-001:
         plugin: events
-        severity: warning
-        message: Invalid event type.
+        severity: information
+        message: An event type the game's events documentation does not list (character_event, letter_event, court_event, activity_event).
+        evidence: Convention (the four types of game/events/_events.info, the only ones the 1.20.0.2 base game uses).
     EVENT-002:
         plugin: events
-        severity: warning
-        message: An event is missing a required field.
-    EVENT-003:
-        plugin: events
-        severity: warning
-        message: Invalid event theme.
-    EVENT-004:
-        plugin: events
-        severity: warning
-        message: Invalid portrait position or animation.
-    EVENT-005:
-        plugin: events
-        severity: warning
-        message: Malformed event id (expected namespace.number).
-    EVENT-006:
-        plugin: events
-        severity: warning
-        message: Invalid dynamic description (first_valid, random_valid, triggered_desc).
-    EVENT-007:
-        plugin: events
-        severity: warning
-        message: Invalid option configuration.
-    EVENT-009:
-        plugin: events
-        severity: warning
-        message: An event id does not match the file's namespace declaration.
+        severity: information
+        message: A letter_event without sender.
+        evidence: Convention (game/events/_events.info "sender = X # required for letter events"; no catalogue message).
     EVENT-010:
         plugin: events
-        severity: warning
-        message: An event file has no namespace declaration.
-    EVENT-011:
-        plugin: events
-        severity: warning
-        message: A hidden event has options.
-    EVENT-012:
-        plugin: events
-        severity: warning
-        message: A hidden event has an after block.
-    EVENT-013:
-        plugin: events
-        severity: warning
-        message: A non-hidden event has no options.
+        severity: information
+        message: An events/ file with events and no namespace declaration.
+        evidence: As EVENT-016.
     EVENT-016:
         plugin: events
-        severity: warning
-        message: An event uses a namespace that is not declared in its file (the game's own warning).
+        severity: information
+        message: An event uses a namespace that is not declared in its file.
+        evidence: >-
+            Convention under the evidence rule: the game prints "Namespace '{}' used in event
+            '{}' (file: {}) is not defined in this file - it might not load properly.", a string
+            of the 1.20.0.2 executable that the spec package's error catalogue does not hold.
 
     # paradox-checks
     CK3005:
         plugin: paradox-checks
-        severity: error
+        severity: information
         message: A logical operator (AND, OR, NOT, NOR, NAND) with a scalar value instead of a block.
-    CK3420:
-        plugin: paradox-checks
-        severity: error
-        message: Invalid portrait position.
+        evidence: Convention (no catalogue message; the engine does not report it).
     CK3421:
         plugin: paradox-checks
-        severity: warning
+        severity: information
         message: A portrait block has no character field.
+        evidence: Convention.
     CK3422:
         plugin: paradox-checks
-        severity: warning
-        message: Unknown portrait animation.
+        severity: information
+        message: A portrait animation that is not in the optional extracted animation data.
+        evidence: Convention (the extracted data is not the game's complete animation list).
     CK3430:
         plugin: paradox-checks
         severity: warning
-        message: Unknown event theme.
+        message: >-
+            An event theme defined neither in the workspace's nor in the base game's
+            common/event_themes (reported only while the base game is known).
+        evidence: >-
+            The theme is a key of the event_themes database; the game cannot read an unknown
+            key (catalogue failed_to_read_key_reference_X_from_database_X, "Failed to read key
+            reference %s from database %s"). EVENT-003 (the same check against 32 hard-coded
+            names) is merged into it.
     CK3450:
         plugin: paradox-checks
-        severity: warning
-        message: An option has no name field for its localization.
+        severity: information
+        message: An event option has no name field for its localization.
+        evidence: Convention. CONV-004 and EVENT-007 (the same check) are merged into it.
     CK3510:
         plugin: paradox-checks
-        severity: error
-        message: trigger_else without a preceding trigger_if has no effect.
+        severity: information
+        message: trigger_else without a preceding trigger_if.
+        evidence: Convention.
     CK3511:
         plugin: paradox-checks
-        severity: warning
-        message: Several trigger_else blocks; only the first one executes.
+        severity: information
+        message: Several trigger_else blocks; only the first applies.
+        evidence: Convention.
     CK3520:
         plugin: paradox-checks
-        severity: warning
-        message: An after block in a hidden event has no effect.
+        severity: information
+        message: An after block in a hidden event (after runs after an option, and a hidden event shows none).
+        evidence: Convention. EVENT-012 (the same check) is merged into it.
     CK3521:
         plugin: paradox-checks
         severity: information
-        message: An after block in an event without options is unnecessary.
+        message: An after block in an event without options.
+        evidence: Convention.
     CK3610:
         plugin: paradox-checks
-        severity: warning
-        message: Negative base in ai_chance; the AI never selects the option.
+        severity: information
+        message: Negative base in ai_chance.
+        evidence: Convention.
     CK3611:
         plugin: paradox-checks
         severity: information
         message: ai_chance base above 100 is clamped to 100.
+        evidence: Convention.
     CK3612:
         plugin: paradox-checks
         severity: information
         message: ai_chance base = 0; the AI never selects the option (ai_accept = no may be meant).
+        evidence: Convention.
     CK3614:
         plugin: paradox-checks
-        severity: warning
+        severity: information
         message: An ai_chance modifier without a trigger applies unconditionally.
+        evidence: Convention.
     CK3656:
         plugin: paradox-checks
         severity: information
         message: An inline opinion value in add_opinion or reverse_add_opinion; define an opinion modifier in common/opinion_modifiers and reference it by name.
-    CK3760:
-        plugin: paradox-checks
-        severity: error
-        message: An event has no type declaration.
-    CK3761:
-        plugin: paradox-checks
-        severity: error
-        message: Invalid event type.
+        evidence: Convention.
     CK3762:
         plugin: paradox-checks
-        severity: warning
+        severity: information
         message: A hidden event has options.
+        evidence: Convention. EVENT-011 (the same check) is merged into it.
     CK3763:
         plugin: paradox-checks
-        severity: warning
-        message: An event has no options.
+        severity: information
+        message: A non-hidden event has no options.
+        evidence: Convention. EVENT-013 (the same check) is merged into it.
     CK3764:
         plugin: paradox-checks
-        severity: error
+        severity: information
         message: A non-hidden event has no desc.
+        evidence: Convention (desc is an optional field of the events schema). CONV-003 (the same check) is merged into it.
     CK3766:
         plugin: paradox-checks
-        severity: warning
+        severity: information
         message: Several after blocks in one event.
+        evidence: Convention.
     CK3767:
         plugin: paradox-checks
-        severity: error
+        severity: information
         message: An empty event.
+        evidence: Convention.
     CK3768:
         plugin: paradox-checks
-        severity: error
+        severity: information
         message: Several immediate blocks in one event.
+        evidence: Convention.
     CK3769:
         plugin: paradox-checks
         severity: information
         message: A non-hidden event has no portraits.
+        evidence: Convention.
     CK3872:
         plugin: paradox-checks
         severity: information
-        message: Redundant trigger = { always = yes }.
+        message: Redundant always = yes.
+        evidence: Convention.
     CK3873:
         plugin: paradox-checks
-        severity: error
-        message: Impossible trigger = { always = no }.
+        severity: hint
+        message: always = no; the block is switched off (the usual way to disable content on purpose).
+        evidence: >-
+            Convention. Before 2.2 an error; the base game writes trigger = { always = no } 167
+            times and the game reports nothing (issue #92).
     CK3875:
         plugin: paradox-checks
         severity: information
         message: A random_ iterator without a limit.
+        evidence: Convention.
     CK3977:
         plugin: paradox-checks
         severity: information
         message: An every_ iterator without a limit affects every matching element.
+        evidence: Convention.
     CK5137:
         plugin: paradox-checks
         severity: information
         message: is_alive on a scope without an exists check first.
-    CK5142:
-        plugin: paradox-checks
-        severity: error
-        message: A character comparison written as `link = root` (or prev, this, scope:x); compare with `link = { this = root }`.
+        evidence: Convention.
 
     # variables
     CK3701:
         plugin: variables
-        severity: warning
-        message: A variable is used but never set in the file.
+        severity: information
+        message: >-
+            A variable is read but set nowhere in the workspace or the base game's indexed script
+            (ordinary and global variables; reported only while the base game is known), or a
+            local variable is read but not set in its file.
+        evidence: >-
+            Convention: the base game's events, GUI and localization can also set variables and
+            are not indexed, so the absence cannot be proved.
     CK3702:
         plugin: variables
         severity: hint
-        message: A variable is set but never used in the file.
+        message: A variable is set but read nowhere in the workspace's or the base game's script (local variables in their file).
+        evidence: Convention (GUI and localization may read it).
     CK3703:
         plugin: variables
-        severity: error
-        message: A local variable accessed as global, or a global variable accessed as local.
+        severity: information
+        message: A variable read in one namespace (var, local_var, global_var) and set only in another.
+        evidence: Convention.
     CK3705:
         plugin: variables
-        severity: warning
-        message: A variable used both as a list and as a value.
+        severity: information
+        message: A variable used both as a list and as a value in one file.
+        evidence: Convention.
 
     # traits
     CK3800:
         plugin: traits
         severity: warning
-        message: Unknown trait (not in the extracted trait data or the workspace's traits).
+        message: >-
+            A trait defined neither in the base game's nor in the workspace's common/traits (nor
+            the extracted data); reported only while the base game's traits are known.
+        evidence: >-
+            The game logs an unknown trait (catalogue unknown_trait_X_in_event_at_X, "Unknown
+            trait {}, in event at {}", and invalid_trait_name).
 
     # scripted-blocks
-    CK3950:
-        plugin: scripted-blocks
-        severity: error
-        message: Call to an undefined scripted effect.
-    CK3951:
-        plugin: scripted-blocks
-        severity: error
-        message: Call to an undefined scripted trigger.
     CK3956:
         plugin: scripted-blocks
-        severity: warning
-        message: Recursive scripted effect or trigger call.
+        severity: information
+        message: A scripted effect or trigger calls itself.
+        evidence: Convention (no catalogue message for recursion).
 
     # script-values
-    VALUE-001:
-        plugin: script-values
-        severity: warning
-        message: Invalid script value type.
     VALUE-002:
         plugin: script-values
         severity: error
         message: Invalid range (min greater than max).
-    VALUE-003:
-        plugin: script-values
-        severity: warning
-        message: Unknown formula operation.
+        evidence: >-
+            The game prints "min value in range directive is larger than the max value"
+            (catalogue min_value_in_range_directive_is_larger_than_the_max_value_un).
     VALUE-004:
         plugin: script-values
-        severity: error
-        message: Invalid conditional structure (else_if after else).
+        severity: information
+        message: Conditional structure out of order (else_if after else, else_if without if, several else).
+        evidence: Convention.
     VALUE-005:
         plugin: script-values
         severity: information
         message: An arithmetic operation without a value.
+        evidence: Convention.
     VALUE-006:
         plugin: script-values
-        severity: error
-        message: Invalid round_to parameter (it must be positive).
+        severity: information
+        message: round_to is not positive.
+        evidence: Convention.
 
     # iterators
     ITER-003:
         plugin: iterators
-        severity: warning
+        severity: information
         message: An ordered_ iterator without order_by.
+        evidence: Convention (every vanilla ordered_ iterator has one; no catalogue message).
     ITER-004:
         plugin: iterators
         severity: information
         message: An ordered_ iterator without position or max.
+        evidence: Convention.
 
     # switch
     SWITCH-001:
         plugin: switch
-        severity: error
+        severity: information
         message: A switch block has no trigger field.
+        evidence: Convention.
     SWITCH-002:
         plugin: switch
-        severity: warning
+        severity: information
         message: A switch block has no branch values.
+        evidence: Convention.
     SWITCH-003:
         plugin: switch
         severity: warning
-        message: The switch trigger names no trigger of the spec package and no workspace scripted trigger.
+        message: >-
+            The switch trigger names no trigger of the spec package and no scripted trigger of
+            the workspace or the base game (reported only while the base game is known).
+        evidence: The game logs an unknown trigger (catalogue unknown_trigger_X, "Unknown trigger '%s'").
 
     # graphics
     GFX001:
@@ -475,25 +526,35 @@ diagnostics:
         message: >-
             Graphics file not found: a .dds, .png or .tga path that exists in no workspace mod,
             not in the base game's game/ and not in any game/dlc/<dlc>/ folder.
+        evidence: >-
+            The game logs it (catalogue failed_to_load_texture_X_file_not_found, "Failed to load
+            texture %s - file not found").
 
     # localization (.yml files)
     LOC-003:
         plugin: localization
         severity: information
         message: Unknown text formatting code (#bold, #P, #color_red, ...).
+        evidence: Convention (the formatting-code list is not the game's own data).
     LOC-004:
         plugin: localization
-        severity: warning
-        message: Unknown icon reference (@name! or £name£).
+        severity: information
+        message: An icon reference (@name! or £name£) outside the optional extracted icon data.
+        evidence: Convention (the extracted icon data is not complete).
     LOC-005:
         plugin: localization
         severity: warning
         message: Unbalanced brackets in localization text.
+        evidence: >-
+            The game prints "Loc key `{}`: Unexpected extra `[` at position {} - file `{}`"
+            (catalogue loc_key_X_unexpected_extra_at_position_X_file_X, and _2 for `]`).
     LOC-006:
         plugin: localization
-        severity: warning
-        message: Unknown concept in a [concept|E] link.
+        severity: information
+        message: A concept in a [concept|E] link outside the optional extracted concept data.
+        evidence: Convention (the extracted concept data is not complete).
     LOC-007:
         plugin: localization
-        severity: warning
+        severity: information
         message: Invalid $VARIABLE$ substitution (name or format specifier).
+        evidence: Convention.

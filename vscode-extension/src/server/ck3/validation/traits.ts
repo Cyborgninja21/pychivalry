@@ -1,117 +1,88 @@
 /**
- * Traits Validation Module
+ * Traits (engine plug-in): CK3800, a trait name defined neither in the workspace's nor in the
+ * base game's common/traits.
  *
- * Validates trait references and definitions:
- * - Trait existence
- * - Trait compatibility
- * - Trait opposites
- * - Trait requirements
- *
- * Diagnostic Codes:
- * - CK3800: Unknown trait reference
- *
- * Kept as an engine plug-in only while trait data is present: traits are game content,
- * not engine vocabulary, so the known set is the optional user-extracted data/traits/
- * plus the workspace's own trait definitions (the plug-in supplies both). Without that
- * data the check does not run. CK3801-CK3804 were documented but never emitted.
+ * Evidence: the game logs an unknown trait (catalogue `unknown_trait_X_in_event_at_X`,
+ * "Unknown trait {}, in event at {}", and `invalid_trait_name`), so the code is a warning.
+ * The known set is the base game's trait database (trait keys and their `group` names) plus
+ * the workspace's own traits and the discovered mods' traits; without the base game's trait
+ * database the check does not run (the extracted data/traits alone is not complete enough to
+ * prove a name missing). Only the keywords whose value is a trait are read: add_trait,
+ * remove_trait, has_trait and the `trait = x` field of history/characters and of
+ * create_character; `trait = x` elsewhere names other things (culture traditions in
+ * `dlc_tradition`, UI markers on event options …). CK3801-CK3804 were documented but never
+ * emitted.
  */
 
 import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver';
 import { ASTNode } from 'pychivalry-engine';
-
-export interface TraitInfo {
-    name: string;
-    group?: string;
-    opposites: string[];
-    compatible: string[];
-    node: ASTNode;
-}
 
 export interface TraitsConfig {
     enabled: boolean;
     checkExistence: boolean;
     checkCompatibility: boolean;
     checkOpposites: boolean;
-    knownTraits?: Set<string>;
+    /** Known traits; undefined (the base game's traits are unknown): nothing is reported. */
+    knownTraits?: ReadonlySet<string>;
+    /** Mod-relative path of the file (history/characters reads `trait = x`). */
+    file?: string;
+    /** Is the value a scope reference (a spec link such as `liege`)? Not a trait then. */
+    isScopeLink?: (name: string) => boolean;
 }
 
-/**
- * Validate trait references in document
- */
-export function validateTraits(node: ASTNode, config: TraitsConfig): Diagnostic[] {
-    if (!config.enabled) {
-        return [];
-    }
+/** The scope references that are not links (as the engine's scope check reads them). */
+const SCOPE_HEADS = new Set(['root', 'this', 'prev']);
 
-    const diagnostics: Diagnostic[] = [];
-    const traitRefs = collectTraitReferences(node);
+const TRAIT_KEYWORDS = new Set(['add_trait', 'remove_trait', 'has_trait']);
 
-    for (const ref of traitRefs) {
-        if (config.checkExistence) {
-            const existsDiags = checkTraitExists(ref, config.knownTraits);
-            diagnostics.push(...existsDiags);
-        }
-    }
-
-    return diagnostics;
-}
-
-/**
- * Collect trait references from AST
- */
-function collectTraitReferences(node: ASTNode): ASTNode[] {
+/** Trait references: nodes whose value names a trait. */
+function collectTraitReferences(node: ASTNode, file: string): ASTNode[] {
     const refs: ASTNode[] = [];
-
-    function traverse(n: ASTNode): void {
-        if (n.key === 'trait' || n.key === 'add_trait' || n.key === 'remove_trait') {
+    const characterHistory = /^history\/characters\//i.test(file.replace(/\\/g, '/'));
+    const visit = (n: ASTNode, parentKey: string | undefined, depth: number): void => {
+        if (n.key && TRAIT_KEYWORDS.has(n.key)) {
+            refs.push(n);
+        } else if (
+            n.key === 'trait' &&
+            (parentKey === 'create_character' || (characterHistory && depth <= 3))
+        ) {
             refs.push(n);
         }
-
-        if (n.children) {
-            n.children.forEach((child: ASTNode) => traverse(child));
+        for (const child of n.children ?? []) {
+            visit(child, n.key, depth + 1);
         }
-    }
-
-    traverse(node);
+    };
+    visit(node, undefined, 0);
     return refs;
 }
 
-/**
- * Check if trait exists
- */
-function checkTraitExists(node: ASTNode, knownTraits?: Set<string>): Diagnostic[] {
-    if (!knownTraits || !node.value) {
+export function validateTraits(node: ASTNode, config: TraitsConfig): Diagnostic[] {
+    if (!config.enabled || !config.checkExistence || !config.knownTraits) {
         return [];
     }
-
-    const traitName = String(node.value);
-
-    if (!knownTraits.has(traitName)) {
-        return [
-            {
-                severity: DiagnosticSeverity.Warning,
-                range: node.range,
-                message: `Unknown trait: "${traitName}"`,
-                code: 'CK3800',
-                source: 'ck3-lsp',
-            },
-        ];
+    const known = config.knownTraits;
+    const out: Diagnostic[] = [];
+    for (const ref of collectTraitReferences(node, config.file ?? '')) {
+        if (typeof ref.value !== 'string') {
+            continue;
+        }
+        const name = ref.value;
+        // Saved scopes, parameters and other non-names are not trait keys.
+        if (
+            !/^[A-Za-z_][A-Za-z0-9_]*$/.test(name) ||
+            known.has(name) ||
+            SCOPE_HEADS.has(name.toLowerCase()) ||
+            config.isScopeLink?.(name)
+        ) {
+            continue;
+        }
+        out.push({
+            severity: DiagnosticSeverity.Warning,
+            range: ref.range,
+            message: `Unknown trait '${name}': defined neither in the workspace's nor in the base game's common/traits`,
+            code: 'CK3800',
+            source: 'ck3-lsp',
+        });
     }
-
-    return [];
-}
-
-/**
- * Get trait diagnostic description
- */
-export function getTraitDiagnosticDescription(code: string): string {
-    const descriptions: Record<string, string> = {
-        CK3800: 'Unknown trait reference. The trait is not defined in trait files.',
-        CK3801: 'Incompatible traits. These traits cannot exist together.',
-        CK3802: 'Trait already defined. Duplicate trait definition.',
-        CK3803: 'Missing trait opposite. Define opposite trait relationship.',
-        CK3804: 'Invalid trait group. The trait group does not exist.',
-    };
-
-    return descriptions[code] || 'Trait validation error';
+    return out;
 }

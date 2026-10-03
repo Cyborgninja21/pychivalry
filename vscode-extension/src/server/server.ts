@@ -71,6 +71,7 @@ import { LogWatcherController } from './log/controller';
 import { DataLoader } from './data/loader';
 import { ModScanner } from './data/mod-scanner';
 import { loadExtractedTraits } from './data/traits';
+import { BaseGameData } from './data/base-game';
 import { serverLogger } from './utils/logger';
 
 import { CompletionProvider } from './lsp/completions';
@@ -168,6 +169,8 @@ export class CK3LanguageServer {
     private modScanner = new ModScanner();
     private extractedTraits = loadExtractedTraits();
     private currentSpec = () => this.workspace.spec;
+    /** The base game's localization keys, themes, backgrounds and traits (plug-in knowledge). */
+    private baseGame: BaseGameData | undefined;
     /** Directory listings for the graphics check, dropped by the file watcher's events. */
     private graphicsCache = new DirectoryCache();
 
@@ -190,6 +193,11 @@ export class CK3LanguageServer {
         enginePlugins({
             localization: this.localization,
             extractedTraits: () => this.knownTraits(),
+            workspace: this.workspace,
+            baseGame: () =>
+                this.baseGame && this.baseGame.root === this.workspace.vanillaRoot
+                    ? this.baseGame
+                    : undefined,
             graphics: () =>
                 this.config.graphics.enabled
                     ? createGraphicsResolver(
@@ -585,6 +593,7 @@ export class CK3LanguageServer {
                 );
             }
             await this.workspace.useVanilla(undefined);
+            this.baseGame = undefined;
             return;
         }
         const from = resolved.source === 'setting' ? 'ck3LanguageServer.gamePath' : 'Steam default';
@@ -594,10 +603,18 @@ export class CK3LanguageServer {
             notify(
                 `Base game loaded: ${loaded.files} files from ${resolved.path} in ${loaded.milliseconds} ms`
             );
+            const started = Date.now();
+            const root = this.workspace.vanillaRoot ?? resolved.path;
+            const data = await new BaseGameData(root).load();
+            this.baseGame = data;
+            notify(
+                `Base game data for the plug-ins: ${data.localizationKeys?.size ?? 0} localization keys, ${data.eventThemes?.size ?? 0} event themes, ${data.eventBackgrounds?.size ?? 0} event backgrounds, ${data.traits?.size ?? 0} traits (${Date.now() - started} ms)`
+            );
         } catch (error) {
             this.connection.console.error(`Failed to load the base game: ${error}`);
             notify(`Failed to load the base game from ${resolved.path}: ${error}`);
             await this.workspace.useVanilla(undefined);
+            this.baseGame = undefined;
         }
     }
 

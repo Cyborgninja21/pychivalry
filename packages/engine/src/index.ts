@@ -23,7 +23,7 @@ export {
     uriToPath,
 } from './index/workspace';
 export type { ModDescriptor, WorkspaceFolder, WorkspaceOptions } from './index/workspace';
-export { LocalizationIndex, isLocalizationFile } from './index/localization';
+export { LocalizationIndex, isLocalizationFile, localizationKeysOf } from './index/localization';
 export { WorkspaceValidator } from './index/scheduler';
 export type {
     ValidationProgress,

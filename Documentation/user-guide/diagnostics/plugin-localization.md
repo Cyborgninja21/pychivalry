@@ -6,12 +6,12 @@ Localization files (.yml): key format, character functions, formatting codes, ic
 
 Source: `vscode-extension/src/server/ck3/localization/validator.ts`.
 
-| Code | Severity | Meaning |
-| --- | --- | --- |
-| `LOC-001` | warning | In script files, a title, desc or name value contains spaces (literal text where a localization key belongs). In localization files, an entry key the localization index cannot read (it starts with a digit, or contains spaces, dashes or other punctuation). |
-| `LOC-002` | warning | In script files, a tooltip value contains spaces (literal text where a localization key belongs). In localization files, an unknown character function such as [ROOT.Char.GetNam]. |
-| `LOC-003` | information | Unknown text formatting code (#bold, |
-| `LOC-004` | warning | Unknown icon reference (@name! or £name£). |
-| `LOC-005` | warning | Unbalanced brackets in localization text. |
-| `LOC-006` | warning | Unknown concept in a [concept\|E] link. |
-| `LOC-007` | warning | Invalid $VARIABLE$ substitution (name or format specifier). |
+| Code | Severity | Meaning | Evidence |
+| --- | --- | --- | --- |
+| `LOC-001` | warning | In script files (warning), a localization field (an event's title, desc or opening, an option's name, a decision's title or desc) holds literal text with spaces. In localization files (information), an entry key the localization index cannot read (it starts with a digit, or contains spaces, dashes or other punctuation). | Script files: the game reads the text as a key and logs it missing (catalogue unknown_loc_key_X, "Unknown loc key %s"; game/events/_events.info: "Missing localization keys are logged as errors"); a key with spaces cannot be defined. Localization files: convention. |
+| `LOC-002` | warning | In script files (warning), a custom_tooltip holds literal text with spaces. In localization files (information), a character function outside the hand-made function list, such as [ROOT.Char.GetNam]. | Script files: as LOC-001. Localization files: convention (the function list is not the game's own data). |
+| `LOC-003` | information | Unknown text formatting code (#bold, | Convention (the formatting-code list is not the game's own data). |
+| `LOC-004` | information | An icon reference (@name! or £name£) outside the optional extracted icon data. | Convention (the extracted icon data is not complete). |
+| `LOC-005` | warning | Unbalanced brackets in localization text. | The game prints "Loc key `{}`: Unexpected extra `[` at position {} - file `{}`" (catalogue loc_key_X_unexpected_extra_at_position_X_file_X, and _2 for `]`). |
+| `LOC-006` | information | A concept in a [concept\|E] link outside the optional extracted concept data. | Convention (the extracted concept data is not complete). |
+| `LOC-007` | information | Invalid $VARIABLE$ substitution (name or format specifier). | Convention. |

@@ -2,12 +2,10 @@
 
 # Plug-in: scripted-blocks
 
-Calls to scripted effects and triggers, and recursion between them.
+Recursion: a scripted effect or trigger that calls itself. (Undefined scripted effects and triggers are the engine registry's unknown_effect_X / unknown_trigger_X.)
 
 Source: `vscode-extension/src/server/ck3/validation/scripted-blocks.ts`.
 
-| Code | Severity | Meaning |
-| --- | --- | --- |
-| `CK3950` | error | Call to an undefined scripted effect. |
-| `CK3951` | error | Call to an undefined scripted trigger. |
-| `CK3956` | warning | Recursive scripted effect or trigger call. |
+| Code | Severity | Meaning | Evidence |
+| --- | --- | --- | --- |
+| `CK3956` | information | A scripted effect or trigger calls itself. | Convention (no catalogue message for recursion). |

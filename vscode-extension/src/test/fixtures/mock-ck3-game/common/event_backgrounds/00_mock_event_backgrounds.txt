@@ -1,0 +1,5 @@
+# Event backgrounds of the 1.20.0.2 base game that the mock themes reference.
+throne_room = { background = { reference = "gfx/interface/illustrations/event_scenes/throne_room.dds" } }
+study = { background = { reference = "gfx/interface/illustrations/event_scenes/study.dds" } }
+army_camp = { background = { reference = "gfx/interface/illustrations/event_scenes/army_camp.dds" } }
+terrain = { background = { reference = "gfx/interface/illustrations/event_scenes/terrain.dds" } }

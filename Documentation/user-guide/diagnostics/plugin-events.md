@@ -2,22 +2,13 @@
 
 # Plug-in: events
 
-Event records: type, theme, portraits, options, namespaces. Reported as warnings.
+Event records of events/ files: type, letter sender, namespace declaration, against the game's own events documentation (game/events/_events.info); information.
 
 Source: `vscode-extension/src/server/ck3/validation/events.ts`.
 
-| Code | Severity | Meaning |
-| --- | --- | --- |
-| `EVENT-001` | warning | Invalid event type. |
-| `EVENT-002` | warning | An event is missing a required field. |
-| `EVENT-003` | warning | Invalid event theme. |
-| `EVENT-004` | warning | Invalid portrait position or animation. |
-| `EVENT-005` | warning | Malformed event id (expected namespace.number). |
-| `EVENT-006` | warning | Invalid dynamic description (first_valid, random_valid, triggered_desc). |
-| `EVENT-007` | warning | Invalid option configuration. |
-| `EVENT-009` | warning | An event id does not match the file's namespace declaration. |
-| `EVENT-010` | warning | An event file has no namespace declaration. |
-| `EVENT-011` | warning | A hidden event has options. |
-| `EVENT-012` | warning | A hidden event has an after block. |
-| `EVENT-013` | warning | A non-hidden event has no options. |
-| `EVENT-016` | warning | An event uses a namespace that is not declared in its file (the game's own warning). |
+| Code | Severity | Meaning | Evidence |
+| --- | --- | --- | --- |
+| `EVENT-001` | information | An event type the game's events documentation does not list (character_event, letter_event, court_event, activity_event). | Convention (the four types of game/events/_events.info, the only ones the 1.20.0.2 base game uses). |
+| `EVENT-002` | information | A letter_event without sender. | Convention (game/events/_events.info "sender = X |
+| `EVENT-010` | information | An events/ file with events and no namespace declaration. | As EVENT-016. |
+| `EVENT-016` | information | An event uses a namespace that is not declared in its file. | Convention under the evidence rule: the game prints "Namespace '{}' used in event '{}' (file: {}) is not defined in this file - it might not load properly.", a string of the 1.20.0.2 executable that the spec package's error catalogue does not hold. |

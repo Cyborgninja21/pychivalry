@@ -2,20 +2,18 @@
 
 # Plug-in: style-checks
 
-Formatting and brace style. Where the engine reports an unbalanced brace on a line, this plug-in's own brace codes (CK3330, CK3331) on that line are dropped.
+Formatting and brace style, as hints (the game prints nothing for style). Where the engine reports an unbalanced brace on a line, this plug-in's own brace codes (CK3330, CK3331) on that line are dropped; elsewhere they point at the probable line of a brace the engine's parse error reports.
 
 Source: `vscode-extension/src/server/ck3/validation/style-checks.ts`.
 
-| Code | Severity | Meaning |
-| --- | --- | --- |
-| `CK3301` | warning | Inconsistent indentation within a block. |
-| `CK3303` | warning | Indentation uses spaces instead of tabs. |
-| `CK3304` | information | Trailing whitespace. |
-| `CK3306` | information | Inconsistent spacing around an operator. |
-| `CK3314` | warning | Empty block. |
-| `CK3316` | information | Line longer than the recommended length (120 characters). |
-| `CK3317` | information | Blocks nested deeper than the recommended depth (6). |
-| `CK3330` | error | Unclosed brace (dropped where the engine reports the brace on the same line). |
-| `CK3331` | error | Extra closing brace (dropped where the engine reports the brace on the same line). |
-| `CK3340` | warning | Unknown or suspicious scope reference (possible typo). |
-| `CK3341` | warning | Scope reference appears truncated. |
+| Code | Severity | Meaning | Evidence |
+| --- | --- | --- | --- |
+| `CK3301` | hint | Indentation mixes tabs and spaces. | Convention (style). |
+| `CK3303` | hint | Indentation uses spaces instead of tabs. | Convention (style; Paradox's own files indent with tabs). |
+| `CK3304` | hint | Trailing whitespace. | Convention (style). |
+| `CK3306` | hint | No spaces around an operator. | Convention (style). |
+| `CK3314` | hint | Empty block. | Convention (style; the base game writes empty blocks on purpose). |
+| `CK3316` | hint | Line longer than the recommended length (120 characters). | Convention (style). |
+| `CK3317` | hint | Blocks nested deeper than the recommended depth (6). | Convention (style). |
+| `CK3330` | information | Probable line of an unclosed brace (dropped where the engine reports the brace on the same line). | The engine's parse error, with the game's message, is the evidence and is reported by the engine; this code only points at the probable line, from a per-top-level-block heuristic. |
+| `CK3331` | information | Probable line of an extra closing brace (dropped where the engine reports the brace on the same line). | As CK3330. |
