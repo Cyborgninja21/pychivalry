@@ -66,6 +66,17 @@ plugins:
     switch:
         source: vscode-extension/src/server/ck3/validation/switch-validation.ts
         description: switch blocks.
+    graphics:
+        source: vscode-extension/src/server/ck3/validation/graphics.ts
+        description: >-
+            Graphics files that do not exist. The values of icon, texture, sprite, background,
+            portrait_texture, reference, activity_window_background, background_texture and
+            icon_texture that are paths (with a '/') to a .dds, .png or .tga file are looked up,
+            case-insensitively, in the workspace mods, then the base game's game/ and every
+            game/dlc/<dlc>/ folder; one warning per missing path and file, on its first
+            reference. Bare names, bare file names and $VARIABLE$ paths are not checked, and
+            nothing is reported while no base game is known (ck3LanguageServer.gamePath).
+            Switched off with ck3LanguageServer.graphics.enabled.
     localization:
         source: vscode-extension/src/server/ck3/localization/validator.ts
         description: >-
@@ -456,6 +467,14 @@ diagnostics:
         plugin: switch
         severity: warning
         message: The switch trigger names no trigger of the spec package and no workspace scripted trigger.
+
+    # graphics
+    GFX001:
+        plugin: graphics
+        severity: warning
+        message: >-
+            Graphics file not found: a .dds, .png or .tga path that exists in no workspace mod,
+            not in the base game's game/ and not in any game/dlc/<dlc>/ folder.
 
     # localization (.yml files)
     LOC-003:

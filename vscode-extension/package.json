@@ -434,6 +434,17 @@
         }
       },
       {
+        "title": "Graphics Files",
+        "properties": {
+          "ck3LanguageServer.graphics.enabled": {
+            "type": "boolean",
+            "default": true,
+            "markdownDescription": "Report references to graphics files (`.dds`, `.png`, `.tga`) that exist neither in the workspace mods nor in the base game's `game/` and `game/dlc/*` folders (GFX001), before the game shows a pink or black checkerboard. Paths are compared case-insensitively. Nothing is reported while no base game is known (`ck3LanguageServer.gamePath`): without it a miss cannot be proven.",
+            "scope": "resource"
+          }
+        }
+      },
+      {
         "title": "Game Log Watcher",
         "properties": {
           "ck3LanguageServer.logWatcher.enabled": {

@@ -11,7 +11,7 @@ pychivalry reports two kinds of diagnostics.
   engine's own, for conditions the catalogue has no text for.
 - **Plug-in diagnostics** (source `ck3-plugin`, or `ck3-localization` in `.yml` files)
   come from the extension's validators that encode behaviour the spec package does not
-  describe (event timing, style, conventions). 93 codes in 13 plug-ins.
+  describe (event timing, style, conventions). 94 codes in 14 plug-ins.
 
 The engine runs parse, registry, schema and scope checks in that order, then the
 plug-ins; see the [validation pipeline](../../developer-guide/architecture/VALIDATION.md).
@@ -66,6 +66,7 @@ is below.
 | [script-values](plugin-script-values.md) | 6 | Script value formulas in common/script_values. |
 | [iterators](plugin-iterators.md) | 2 | ordered_ iterator parameters. |
 | [switch](plugin-switch.md) | 3 | switch blocks. |
+| [graphics](plugin-graphics.md) | 1 | Graphics files that do not exist. The values of icon, texture, sprite, background, portrait_texture, reference, activity_window_background, background_texture and icon_texture that are paths (with a '/') to a .dds, .png or .tga file are looked up, case-insensitively, in the workspace mods, then the base game's game/ and every game/dlc/<dlc>/ folder; one warning per missing path and file, on its first reference. Bare names, bare file names and $VARIABLE$ paths are not checked, and nothing is reported while no base game is known (ck3LanguageServer.gamePath). Switched off with ck3LanguageServer.graphics.enabled. |
 | [localization](plugin-localization.md) | 7 | Localization files (.yml): key format, character functions, formatting codes, icons, concepts, brackets and $VARIABLE$ substitutions. Not an engine plug-in: localization is not CK3 script. |
 
 ## Engine catalogue by category

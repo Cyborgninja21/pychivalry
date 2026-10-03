@@ -39,6 +39,7 @@ import { validateEventFromNode, validateNamespaceDeclaration } from './ck3/valid
 import { validateTraits } from './ck3/validation/traits';
 import { validateIterators, DEFAULT_ITERATOR_CONFIG } from './ck3/validation/iterators';
 import { validateSwitch } from './ck3/validation/switch-validation';
+import { GraphicsResolver, validateGraphics } from './ck3/validation/graphics';
 import {
     validateConditionalBlocks,
     validateConventions,
@@ -57,6 +58,12 @@ export interface PluginEnvironment {
     localization?: LocalizationIndex;
     /** Trait names from the optional extracted data (CK3800 runs only when present). */
     extractedTraits?: () => ReadonlySet<string> | undefined;
+    /**
+     * Where graphics paths are looked up (GFX001): the workspace mod roots, then the base
+     * game's `game/` and `game/dlc/*` when known. Undefined, or returning undefined, when the
+     * check is switched off (ck3LanguageServer.graphics.enabled).
+     */
+    graphics?: () => GraphicsResolver | undefined;
 }
 
 const SEVERITY: Record<number, Severity> = {
@@ -224,6 +231,13 @@ export function extensionPlugins(env: PluginEnvironment = {}): NamedPlugin[] {
                         index.hasSymbol(name, SymbolType.SCRIPTED_TRIGGER),
                 })
             ),
+        },
+        {
+            name: 'graphics',
+            run: wrap(({ ast }) => {
+                const resolver = env.graphics?.();
+                return resolver ? validateGraphics(ast, resolver) : [];
+            }),
         },
     ];
 }

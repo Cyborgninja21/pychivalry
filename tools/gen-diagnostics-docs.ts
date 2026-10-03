@@ -186,7 +186,7 @@ function emittedPluginCodes(): Set<string> {
             if (isCommentLine(line) || /^\s*case\s/.test(line)) {
                 continue;
             }
-            for (const m of line.matchAll(/'((?:CK[0-9]{4})|(?:[A-Z]+-[0-9]{3}))'/g)) {
+            for (const m of line.matchAll(/'((?:CK[0-9]{4})|(?:[A-Z]+-?[0-9]{3}))'/g)) {
                 codes.add(m[1]);
             }
         }

@@ -96,6 +96,8 @@ export class ServerController {
                 fileEvents: [
                     vscode.workspace.createFileSystemWatcher('**/*.{txt,gui,gfx,asset}'),
                     vscode.workspace.createFileSystemWatcher('**/localization/**/*.yml'),
+                    // Graphics files created or deleted (the GFX001 check's directory cache).
+                    vscode.workspace.createFileSystemWatcher('**/*.{dds,png,tga}'),
                 ],
             },
             outputChannel: logger.getChannel(LogCategory.Server),

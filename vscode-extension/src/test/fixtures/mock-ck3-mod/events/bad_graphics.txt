@@ -1,0 +1,58 @@
+# Bad graphics file references
+# Demonstrates GFX001 (ported from pychivalry PR #56's events/test_gfx_validation.txt).
+# Checked against the mock base game (src/test/fixtures/mock-ck3-game): without a base game
+# nothing is reported, since a miss cannot be proven.
+
+namespace = test_gfx
+
+# Event with missing graphics
+test_gfx.0001 = {
+	type = character_event
+	title = test_gfx.0001.t
+	desc = test_gfx.0001.desc
+
+	# This background file does NOT exist
+	# ERROR: GFX001
+	background = "gfx/interface/backgrounds/missing_background.dds"
+
+	option = {
+		name = test_gfx.0001.a
+		# This icon file does NOT exist
+		# ERROR: GFX001
+		icon = "gfx/interface/icons/missing_icon.dds"
+	}
+
+	option = {
+		name = test_gfx.0001.b
+		# The same missing file again: reported once per file, at its first reference
+		icon = "gfx/interface/icons/missing_icon.dds"
+	}
+}
+
+# Event with existing graphics and non-path values (no warning)
+test_gfx.0002 = {
+	type = character_event
+	title = test_gfx.0002.t
+	desc = test_gfx.0002.desc
+
+	# A bare name is a key into another database, not a file
+	icon = standard_character_event
+
+	option = {
+		name = test_gfx.0002.a
+		# In the base game's game/ folder
+		icon = "gfx/interface/icons/mock_base_icon.dds"
+	}
+
+	option = {
+		name = test_gfx.0002.b
+		# In a game/dlc/<dlc>/ folder, written in another case
+		icon = "GFX/Interface/Icons/Mock_DLC_Icon.DDS"
+	}
+
+	option = {
+		name = test_gfx.0002.c
+		# Filled in at run time
+		icon = "gfx/interface/icons/$ICON$.dds"
+	}
+}

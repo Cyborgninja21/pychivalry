@@ -32,6 +32,7 @@ import { DiagnosticsProvider } from '../../server/lsp/diagnostics';
 import { enginePlugins, localizationDiagnostics } from '../../server/plugins';
 import { loadExtractedTraits } from '../../server/data/traits';
 import { DataLoader } from '../../server/data/loader';
+import { createGraphicsResolver, DirectoryCache } from '../../server/ck3/validation/graphics';
 import {
     discoverExampleFiles,
     getMockModRoot,
@@ -201,6 +202,23 @@ export const KNOWN_PLUGIN_FINDINGS: Record<string, KnownFinding[]> = {
             why: 'the nested switch header `trigger = has_education_trait` names no trigger of the 1.20.0.2 spec package (the name came from the scraped trigger list) and no workspace scripted trigger; vanilla scripted triggers were not checked (no game data on this box)',
         },
     ],
+    'common/schemes/good_schemes.txt': [
+        {
+            line: 8,
+            code: 'GFX001',
+            why: '`gfx/interface/icons/schemes/murder.dds`: the icon path is not a 1.20.0.2 file: game/gfx/interface/icons/schemes/ and no game/dlc/*/ folder has it (the vanilla scheme icons are gfx/interface/icons/scheme_types/icon_scheme_*.dds); checked against the mock base game here, against the real one by hand',
+        },
+        {
+            line: 93,
+            code: 'GFX001',
+            why: '`gfx/interface/icons/schemes/spy_network.dds`: the icon path is not a 1.20.0.2 file: game/gfx/interface/icons/schemes/ and no game/dlc/*/ folder has it (the vanilla scheme icons are gfx/interface/icons/scheme_types/icon_scheme_*.dds); checked against the mock base game here, against the real one by hand',
+        },
+        {
+            line: 191,
+            code: 'GFX001',
+            why: '`gfx/interface/icons/schemes/abduct.dds`: the icon path is not a 1.20.0.2 file: game/gfx/interface/icons/schemes/ and no game/dlc/*/ folder has it (the vanilla scheme icons are gfx/interface/icons/scheme_types/icon_scheme_*.dds); checked against the mock base game here, against the real one by hand',
+        },
+    ],
     'events/good_traits.txt': [
         {
             line: 210,
@@ -269,9 +287,16 @@ describe('Example Mod Validation', () => {
         // Concepts and icons (localization validator) are optional game data in data/.
         await DataLoader.getInstance(repoData).initialize(repoData);
         const traits = loadExtractedTraits(repoData);
+        // GFX001 needs a base game: the mock one (src/test/fixtures/mock-ck3-game).
+        const mockGame = path.resolve(mockModRoot, '..', 'mock-ck3-game');
+        const graphics = createGraphicsResolver([mockModRoot], mockGame, new DirectoryCache());
         provider = new DiagnosticsProvider(
             workspace,
-            enginePlugins({ localization, extractedTraits: () => traits }),
+            enginePlugins({
+                localization,
+                extractedTraits: () => traits,
+                graphics: () => graphics,
+            }),
             localization,
             localizationDiagnostics
         );

@@ -61,6 +61,11 @@ import {
 } from './background';
 import { fileUriToPath, pathToFileUri } from './utils/uri';
 import { enginePlugins, localizationDiagnostics } from './plugins';
+import {
+    createGraphicsResolver,
+    DirectoryCache,
+    GRAPHICS_EXTENSIONS,
+} from './ck3/validation/graphics';
 import { ServerCommands, SERVER_COMMANDS } from './commands';
 import { LogWatcherController } from './log/controller';
 import { DataLoader } from './data/loader';
@@ -93,6 +98,8 @@ export interface ServerConfig {
     /** The CK3 `game` directory (holding common/, events/, history/); empty = Steam defaults. */
     gamePath: string;
     backgroundValidation: BackgroundSettings;
+    /** GFX001, graphics files that do not exist (reported only with the base game known). */
+    graphics: { enabled: boolean };
     formatting: { enabled: boolean; insertSpaces: boolean; tabSize: number };
     inlayHints: {
         enabled: boolean;
@@ -115,6 +122,7 @@ const DEFAULT_CONFIG: ServerConfig = {
     logLevel: 'info',
     gamePath: '',
     backgroundValidation: { ...DEFAULT_BACKGROUND },
+    graphics: { enabled: true },
     formatting: { enabled: true, insertSpaces: false, tabSize: 4 },
     inlayHints: {
         enabled: true,
@@ -160,6 +168,8 @@ export class CK3LanguageServer {
     private modScanner = new ModScanner();
     private extractedTraits = loadExtractedTraits();
     private currentSpec = () => this.workspace.spec;
+    /** Directory listings for the graphics check, dropped by the file watcher's events. */
+    private graphicsCache = new DirectoryCache();
 
     // Providers
     private completion = new CompletionProvider(this.parser, this.workspace);
@@ -180,6 +190,14 @@ export class CK3LanguageServer {
         enginePlugins({
             localization: this.localization,
             extractedTraits: () => this.knownTraits(),
+            graphics: () =>
+                this.config.graphics.enabled
+                    ? createGraphicsResolver(
+                          this.workspace.roots(),
+                          this.workspace.vanillaRoot,
+                          this.graphicsCache
+                      )
+                    : undefined,
         }),
         this.localization,
         localizationDiagnostics
@@ -633,11 +651,20 @@ export class CK3LanguageServer {
 
     /** Files created, changed or deleted on disk (the client's file watchers). */
     private async onDidChangeWatchedFiles(params: DidChangeWatchedFilesParams): Promise<void> {
+        let graphicsChanged = false;
         for (const change of params.changes) {
             if (!change.uri.startsWith('file:')) {
                 continue;
             }
             const file = fileUriToPath(change.uri);
+            if (change.type !== FileChangeType.Changed) {
+                // A file or folder appeared or went: the graphics check lists again.
+                this.graphicsCache.invalidate(file);
+            }
+            if (GRAPHICS_EXTENSIONS.some((ext) => file.toLowerCase().endsWith(ext))) {
+                graphicsChanged ||= change.type !== FileChangeType.Changed;
+                continue;
+            }
             const uri = pathToFileUri(file);
             const open = this.documents
                 .all()
@@ -668,6 +695,12 @@ export class CK3LanguageServer {
                 }
             } catch (error) {
                 this.connection.console.error(`File change ${change.uri}: ${error}`);
+            }
+        }
+        if (graphicsChanged && this.config.graphics.enabled) {
+            // GFX001 of the open files follows the files on disk.
+            for (const document of this.documents.all()) {
+                await this.validateDocument(document);
             }
         }
     }
@@ -760,6 +793,7 @@ export class CK3LanguageServer {
                     this.config.backgroundValidation,
                     s.backgroundValidation
                 ),
+                graphics: merge(this.config.graphics, s.graphics),
                 formatting: merge(this.config.formatting, s.formatting),
                 inlayHints: merge(this.config.inlayHints, s.inlayHints),
                 logWatcher: merge(this.config.logWatcher, s.logWatcher),
@@ -769,11 +803,14 @@ export class CK3LanguageServer {
     }
 
     private async onDidChangeConfiguration(): Promise<void> {
+        const graphicsWas = this.config.graphics.enabled;
         await this.readConfiguration();
         if (this.initialized) {
             this.background.configure(this.config.backgroundValidation);
             if (this.config.gamePath !== this.loadedGamePath) {
                 await this.loadBaseGame();
+                this.background.restart();
+            } else if (this.config.graphics.enabled !== graphicsWas) {
                 this.background.restart();
             }
         }
