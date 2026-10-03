@@ -38,7 +38,9 @@ plugins:
             of a brace the engine's parse error reports.
     conventions:
         source: vscode-extension/src/server/ck3/validation/conventions.ts
-        description: Event conventions (CONV) and if/else ordering (COND), as information.
+        description: >-
+            if/else ordering (COND), as information. (The event conventions CONV-001 to CONV-004
+            were retired or merged into paradox-checks in 2.2.)
     localization-references:
         source: vscode-extension/src/server/ck3/validation/conventions.ts
         description: >-
@@ -198,11 +200,6 @@ diagnostics:
         evidence: As CK3330.
 
     # conventions
-    CONV-002:
-        plugin: conventions
-        severity: information
-        message: An event with options has no title.
-        evidence: Convention (title is an optional field of the events schema).
     COND-001:
         plugin: conventions
         severity: information
@@ -295,6 +292,26 @@ diagnostics:
         severity: information
         message: A portrait animation that is not in the optional extracted animation data.
         evidence: Convention (the extracted data is not the game's complete animation list).
+    CK3423:
+        plugin: paradox-checks
+        severity: information
+        message: A triggered_animation of an event portrait has no trigger.
+        evidence: Convention (issue #27; game/events/_events.info; the events schema marks no portrait field required).
+    CK3424:
+        plugin: paradox-checks
+        severity: information
+        message: A triggered_animation of an event portrait has neither animation nor scripted_animation.
+        evidence: Convention (issue #27; as CK3423).
+    CK3425:
+        plugin: paradox-checks
+        severity: information
+        message: A triggered_outfit of an event portrait has no trigger.
+        evidence: Convention (issue #27; as CK3423).
+    CK3426:
+        plugin: paradox-checks
+        severity: information
+        message: A portrait position is given more than once in one event.
+        evidence: Convention (issue #27).
     CK3430:
         plugin: paradox-checks
         severity: warning
@@ -306,6 +323,25 @@ diagnostics:
             key (catalogue failed_to_read_key_reference_X_from_database_X, "Failed to read key
             reference %s from database %s"). EVENT-003 (the same check against 32 hard-coded
             names) is merged into it.
+    CK3431:
+        plugin: paradox-checks
+        severity: warning
+        message: >-
+            An override_background reference defined neither in the workspace's nor in the base
+            game's common/event_backgrounds (reported only while the base game is known).
+        evidence: >-
+            Issue #28. The reference is a key of the event_backgrounds database; the game cannot
+            read an unknown key (catalogue failed_to_read_key_reference_X_from_database_X).
+            The issue's CK3432 (override_environment) is no event field, reported by the
+            engine's schema check (unknown_X_in_X); CK3434 (override_icon) is GFX001's check of
+            reference paths; CK3435 (override_sound) has nothing to check against
+            (game/sound/GUIDs.txt lists events under other paths than the event:/SFX/…
+            references the game's events use).
+    CK3433:
+        plugin: paradox-checks
+        severity: information
+        message: An untriggered override_background equal to the background the event's theme always shows first.
+        evidence: Convention (issue #28; redundant, not wrong).
     CK3450:
         plugin: paradox-checks
         severity: information
@@ -396,6 +432,14 @@ diagnostics:
         severity: information
         message: A non-hidden event has no desc.
         evidence: Convention (desc is an optional field of the events schema). CONV-003 (the same check) is merged into it.
+    CK3765:
+        plugin: paradox-checks
+        severity: information
+        renamed_from: CONV-002
+        message: A non-hidden event has no title.
+        evidence: >-
+            Convention (issue #25; title is an optional field of the events schema). CONV-002
+            (an event with options and no title) is merged into it.
     CK3766:
         plugin: paradox-checks
         severity: information

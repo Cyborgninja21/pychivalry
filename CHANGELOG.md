@@ -27,8 +27,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   that only cleans up (hint). A trigger inside `after` (the issue's CK3523) is reported by the
   engine's registry with the game's message (`unknown_effect_X`), so it is no plug-in code.
 
+- **Events** (#25, #27, #28): `CK3765` a non-hidden event without title (information;
+  CONV-002 merged into it); `CK3423`/`CK3424` a portrait `triggered_animation` without
+  trigger / without animation, `CK3425` a `triggered_outfit` without trigger, `CK3426` a
+  portrait position given twice (information); `CK3431` an `override_background` reference
+  defined neither in the workspace's nor in the base game's `common/event_backgrounds`
+  (warning, silent without the base game) and `CK3433` an override equal to the theme's own
+  background (information). Not implemented, with the reason: CK3432 (`override_environment`
+  is no event field; the engine's schema check reports it), CK3434 (`override_icon`
+  references are paths, checked by GFX001), CK3435 (`override_sound`: nothing to check
+  against).
+
 ### Changed: renumbered and removed codes
 
+- `CONV-002` is renamed `CK3765` (issue #25; every non-hidden event, not only those with
+  options).
 - `CK3611` and `CK3612` change meaning. The 2.1 `CK3611` ("ai_chance base above 100 is
   clamped to 100") is removed: it is false, ai_chance is a relative weight (the base game
   writes 640 bases above 100). The 2.1 `CK3612` ("ai_chance base = 0, the AI never selects the

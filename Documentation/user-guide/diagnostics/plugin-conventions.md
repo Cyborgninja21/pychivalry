@@ -2,7 +2,7 @@
 
 # Plug-in: conventions
 
-Event conventions (CONV) and if/else ordering (COND), as information.
+if/else ordering (COND), as information. (The event conventions CONV-001 to CONV-004 were retired or merged into paradox-checks in 2.2.)
 
 Source: `vscode-extension/src/server/ck3/validation/conventions.ts`.
 
@@ -11,4 +11,3 @@ Source: `vscode-extension/src/server/ck3/validation/conventions.ts`.
 | `COND-001` | information | if, else_if, trigger_if or trigger_else_if without a limit. | Convention. |
 | `COND-002` | information | else or trigger_else with a limit. | Convention. |
 | `COND-003` | information | else or trigger_else without a preceding if. | Convention. |
-| `CONV-002` | information | An event with options has no title. | Convention (title is an optional field of the events schema). |

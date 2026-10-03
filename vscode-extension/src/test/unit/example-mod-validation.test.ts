@@ -182,6 +182,10 @@ export const CODE_CHANGES: Record<string, CodeChange> = {
         now: [],
         why: 'event without type: type is optional and defaults to character_event (game/events/_events.info)',
     },
+    'CONV-002': {
+        now: ['CK3765'],
+        why: 'event without title: merged into paradox-checks CK3765 (issue #25), which judges every non-hidden event',
+    },
     'CONV-003': {
         now: ['CK3764'],
         why: 'event without desc: one code kept, paradox-checks CK3764',

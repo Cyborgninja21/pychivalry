@@ -7,7 +7,6 @@
  * game/events/_events.info: "Missing localization keys are logged as errors").
  *
  * DIAGNOSTIC CODES:
- *     CONV-002: event with options and no title (information)
  *     COND-001: if / else_if / trigger_if / trigger_else_if without limit (information)
  *     COND-002: else / trigger_else with a limit (information)
  *     COND-003: else / trigger_else without a preceding if (information)
@@ -20,13 +19,6 @@
 import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver/node';
 import { ASTNode, LocalizationIndex } from 'pychivalry-engine';
 import { eventsOf, walk } from './event-helpers';
-
-/** Convention checks: CONV-002. */
-export function validateConventions(node: ASTNode): Diagnostic[] {
-    const diagnostics: Diagnostic[] = [];
-    checkCK3Conventions(node, diagnostics);
-    return diagnostics;
-}
 
 /** Control-flow ordering checks: COND-001..COND-003. */
 export function validateConditionalBlocks(node: ASTNode): Diagnostic[] {
@@ -45,32 +37,13 @@ export function validateLocalizationReferences(
     return diagnostics;
 }
 
-/**
- * CONV-002 on every event that has options (information, convention: `title` is an optional
- * field of the events schema).
- *
+/*
  * Retired in 2.2: CONV-001 (event without `type`: the game's events documentation,
  * game/events/_events.info, says `type` is optional and defaults to character_event),
- * CONV-003 (event without `desc`: the same check as paradox-checks CK3764, one code kept) and
- * CONV-004 (option without `name`: the same check as paradox-checks CK3450, one code kept).
+ * CONV-002 (event with options and no title: merged into paradox-checks CK3765, issue #25),
+ * CONV-003 (event without `desc`: the same check as paradox-checks CK3764) and CONV-004
+ * (option without `name`: the same check as paradox-checks CK3450).
  */
-function checkCK3Conventions(node: ASTNode, diagnostics: Diagnostic[]): void {
-    for (const event of eventsOf(node)) {
-        const children = event.children ?? [];
-        if (!children.some((c) => c.key === 'option')) {
-            continue;
-        }
-        if (!children.some((c) => c.key === 'title')) {
-            diagnostics.push({
-                severity: DiagnosticSeverity.Information,
-                range: event.range,
-                message: `Convention: event '${event.key}' has options but no 'title'`,
-                code: 'CONV-002',
-                source: 'ck3-convention',
-            });
-        }
-    }
-}
 
 function walkConditionalBlocks(node: ASTNode, diagnostics: Diagnostic[]): void {
     if (!node.children) {

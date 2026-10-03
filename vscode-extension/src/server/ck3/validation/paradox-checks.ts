@@ -26,6 +26,20 @@
  *     trigger there with the game's own message (unknown_effect_X). The evaluation order
  *     behind the after checks (after runs once the chosen option has run; a hidden event
  *     shows no options) is documented in scope-timing.ts.
+ *     CK3765 (information) a non-hidden event without title (issue #25; CONV-002 merged in)
+ *     CK3423, CK3424, CK3425, CK3426 (information) triggered_animation without trigger or
+ *     animation, triggered_outfit without trigger, a portrait position given twice (issue
+ *     #27; game/events/_events.info; the events schema marks none of these required)
+ *     CK3431 (warning)     an override_background reference defined neither in the
+ *                          workspace's nor in the base game's common/event_backgrounds
+ *                          (catalogue failed_to_read_key_reference_X_from_database_X; silent
+ *                          while the base game is unknown); CK3433 (information) an override
+ *                          equal to the background the theme always shows (issue #28). Issue
+ *                          #28's CK3432 (override_environment) is no event field (the engine's
+ *                          schema check reports it, unknown_X_in_X); CK3434 (override_icon) is
+ *                          GFX001's `reference` path check; CK3435 (override_sound) has no
+ *                          source to check against (game/sound/GUIDs.txt names banks under
+ *                          other paths than the event:/SFX/… references events use)
  *     CK3430 (warning)     an event theme defined neither in the workspace's nor in the
  *                          base game's common/event_themes: the game cannot read the
  *                          database key (catalogue failed_to_read_key_reference_X_from_database_X);
@@ -102,6 +116,13 @@ export interface ParadoxKnowledge {
     isKnownTheme?: (theme: string) => boolean;
     /** Is the name an effect of the spec package (CK3522)? */
     isEffect?: (name: string) => boolean;
+    /**
+     * Is the event background defined (workspace or base game)? Undefined while the base
+     * game is unknown: CK3431 is then silent.
+     */
+    isKnownBackground?: (name: string) => boolean;
+    /** The background a theme always shows first (CK3433), when known. */
+    themeDefaultBackground?: (theme: string) => string | undefined;
 }
 
 function diag(
@@ -432,6 +453,134 @@ export function checkTheme(event: ASTNode, knowledge: ParadoxKnowledge): Diagnos
     return out;
 }
 
+/** CK3765 (information, convention, issue #25): a non-hidden event without a title. */
+export function checkMissingTitle(event: ASTNode): Diagnostic[] {
+    if (isHiddenEvent(event) || (event.children ?? []).length === 0) {
+        return [];
+    }
+    if ((event.children ?? []).some((c) => c.key === 'title')) {
+        return [];
+    }
+    return [
+        diag(
+            `${CONVENTION}event '${event.key}' is not hidden and has no 'title'.`,
+            event.range,
+            INFO,
+            'CK3765'
+        ),
+    ];
+}
+
+/**
+ * Portrait extensions (information, conventions, issue #27; game/events/_events.info):
+ *     CK3423 a triggered_animation without trigger
+ *     CK3424 a triggered_animation without animation or scripted_animation
+ *     CK3425 a triggered_outfit without trigger
+ *     CK3426 a portrait position given twice in one event
+ */
+export function checkPortraitExtensions(event: ASTNode): Diagnostic[] {
+    const out: Diagnostic[] = [];
+    const seen = new Set<string>();
+    for (const portrait of (event.children ?? []).filter(
+        (c) => c.key !== undefined && isValidPortraitPosition(c.key)
+    )) {
+        if (seen.has(portrait.key!)) {
+            out.push(
+                diag(
+                    `${CONVENTION}portrait position '${portrait.key}' is given more than once in this event.`,
+                    portrait.range,
+                    INFO,
+                    'CK3426'
+                )
+            );
+        }
+        seen.add(portrait.key!);
+        for (const ta of childrenWithKey(portrait, 'triggered_animation')) {
+            const keys = new Set((ta.children ?? []).map((c) => c.key));
+            if (!keys.has('trigger')) {
+                out.push(
+                    diag(
+                        `${CONVENTION}triggered_animation without a trigger.`,
+                        ta.range,
+                        INFO,
+                        'CK3423'
+                    )
+                );
+            }
+            if (!keys.has('animation') && !keys.has('scripted_animation')) {
+                out.push(
+                    diag(
+                        `${CONVENTION}triggered_animation without an animation or scripted_animation.`,
+                        ta.range,
+                        INFO,
+                        'CK3424'
+                    )
+                );
+            }
+        }
+        for (const to of childrenWithKey(portrait, 'triggered_outfit')) {
+            if (!(to.children ?? []).some((c) => c.key === 'trigger')) {
+                out.push(
+                    diag(
+                        `${CONVENTION}triggered_outfit without a trigger.`,
+                        to.range,
+                        INFO,
+                        'CK3425'
+                    )
+                );
+            }
+        }
+    }
+    return out;
+}
+
+/**
+ * Background overrides (issue #28):
+ *     CK3431 (warning) an override_background reference defined neither in the workspace's
+ *            nor in the base game's common/event_backgrounds (catalogue
+ *            failed_to_read_key_reference_X_from_database_X); silent while unknown
+ *     CK3433 (information) an untriggered override_background that is the background the
+ *            theme always shows first (redundant)
+ */
+export function checkBackgrounds(event: ASTNode, knowledge: ParadoxKnowledge): Diagnostic[] {
+    const out: Diagnostic[] = [];
+    const theme = childrenWithKey(event, 'theme').find((t) => typeof t.value === 'string');
+    const themeDefault =
+        theme && knowledge.themeDefaultBackground
+            ? knowledge.themeDefaultBackground(String(theme.value))
+            : undefined;
+    for (const override of childrenWithKey(event, 'override_background')) {
+        const ref = (override.children ?? []).find((c) => c.key === 'reference');
+        if (!ref || typeof ref.value !== 'string' || ref.value.includes('$')) {
+            continue;
+        }
+        const name = ref.value;
+        if (knowledge.isKnownBackground && !knowledge.isKnownBackground(name)) {
+            out.push(
+                diag(
+                    `Unknown event background '${name}': defined neither in the workspace's nor in the base game's common/event_backgrounds`,
+                    ref.range,
+                    DiagnosticSeverity.Warning,
+                    'CK3431'
+                )
+            );
+            continue;
+        }
+        const triggered = (override.children ?? []).some((c) => c.key === 'trigger');
+        if (!triggered && themeDefault === name) {
+            out.push(
+                diag(
+                    `${CONVENTION}override_background '${name}' is already the default background of theme '${String(theme!.value)}'.`,
+                    override.range,
+                    INFO,
+                    'CK3433'
+                )
+            );
+        }
+    }
+    return out;
+}
+
 function aiChanceBlocks(node: ASTNode): ASTNode[] {
     const out: ASTNode[] = [];
     walk(node, (n) => {
@@ -621,6 +770,13 @@ export function validateParadoxConventions(
         for (const event of eventsOf(node)) {
             out.push(...checkEventStructure(event, config, knowledge.isEffect));
             out.push(...checkTheme(event, knowledge));
+            if (config.descValidation) {
+                out.push(...checkMissingTitle(event));
+            }
+            if (config.portraitValidation) {
+                out.push(...checkPortraitExtensions(event));
+            }
+            out.push(...checkBackgrounds(event, knowledge));
             if (config.aiChanceValidation) {
                 out.push(...checkMissingAiChance(event));
             }

@@ -44,7 +44,6 @@ import { validateSwitch } from './ck3/validation/switch-validation';
 import { GraphicsResolver, validateGraphics } from './ck3/validation/graphics';
 import {
     validateConditionalBlocks,
-    validateConventions,
     validateLocalizationReferences,
 } from './ck3/validation/conventions';
 import {
@@ -168,10 +167,7 @@ export function extensionPlugins(env: PluginEnvironment = {}): NamedPlugin[] {
         },
         {
             name: 'conventions',
-            run: wrap(({ ast }) => [
-                ...validateConventions(ast),
-                ...validateConditionalBlocks(ast),
-            ]),
+            run: wrap(({ ast }) => validateConditionalBlocks(ast)),
         },
         {
             name: 'localization-references',
@@ -239,10 +235,37 @@ export function extensionPlugins(env: PluginEnvironment = {}): NamedPlugin[] {
                         return workspaceThemes.has(theme);
                     };
                 }
+                let isKnownBackground: ((name: string) => boolean) | undefined;
+                if (base?.eventBackgrounds) {
+                    const backgrounds = base.eventBackgrounds;
+                    let workspaceBackgrounds: Set<string> | undefined;
+                    isKnownBackground = (name) => {
+                        if (backgrounds.has(name)) {
+                            return true;
+                        }
+                        workspaceBackgrounds ??= workspaceKeysIn(
+                            env.workspace,
+                            index,
+                            'common/event_backgrounds'
+                        );
+                        return workspaceBackgrounds.has(name);
+                    };
+                }
+                const themes = base?.eventThemes;
                 return validateParadoxConventions(ast, DEFAULT_PARADOX_CONFIG, {
                     file,
                     isKnownTheme,
                     isEffect: (name) => spec.has(name, 'effects'),
+                    isKnownBackground,
+                    // A theme the workspace redefines may show another background.
+                    themeDefaultBackground: themes
+                        ? (theme) =>
+                              workspaceKeysIn(env.workspace, index, 'common/event_themes').has(
+                                  theme
+                              )
+                                  ? undefined
+                                  : themes.get(theme)?.defaultBackground
+                        : undefined,
                 });
             }),
         },

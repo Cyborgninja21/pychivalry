@@ -14,11 +14,15 @@ import { promises as fsp } from 'fs';
 import * as path from 'path';
 import { ASTNode, CK3Parser, localizationKeysOf } from 'pychivalry-engine';
 
-/** An event theme: its name and the backgrounds it shows when no trigger applies. */
+/** An event theme: its name and the background it always shows first. */
 export interface EventTheme {
     name: string;
-    /** `background = { reference = x }` entries of the theme that have no trigger. */
-    defaultBackgrounds: string[];
+    /**
+     * The reference of the theme's first `background` entry when that entry has no trigger:
+     * the background the theme always shows (backgrounds are tried in order, the first that
+     * fits is used). Undefined when the first entry is triggered.
+     */
+    defaultBackground?: string;
 }
 
 /** The `.txt` files of one directory (not recursive), sorted; empty when it is missing. */
@@ -63,15 +67,10 @@ function stringChild(node: ASTNode, key: string): string | undefined {
 export function readEventThemes(root: string): Map<string, EventTheme> {
     const themes = new Map<string, EventTheme>();
     for (const node of definitions(path.join(root, 'common', 'event_themes'))) {
-        const defaultBackgrounds: string[] = [];
-        for (const bg of (node.children ?? []).filter((c) => c.key === 'background')) {
-            const hasTrigger = (bg.children ?? []).some((c) => c.key === 'trigger');
-            const ref = stringChild(bg, 'reference');
-            if (ref && !hasTrigger) {
-                defaultBackgrounds.push(ref);
-            }
-        }
-        themes.set(node.key!, { name: node.key!, defaultBackgrounds });
+        const first = (node.children ?? []).find((c) => c.key === 'background');
+        const triggered = (first?.children ?? []).some((c) => c.key === 'trigger');
+        const defaultBackground = first && !triggered ? stringChild(first, 'reference') : undefined;
+        themes.set(node.key!, { name: node.key!, defaultBackground });
     }
     return themes;
 }

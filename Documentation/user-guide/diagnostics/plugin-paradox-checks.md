@@ -11,7 +11,13 @@ Source: `vscode-extension/src/server/ck3/validation/paradox-checks.ts`.
 | `CK3005` | information | A logical operator (AND, OR, NOT, NOR, NAND) with a scalar value instead of a block. | Convention (no catalogue message; the engine does not report it). |
 | `CK3421` | information | A portrait block has no character field. | Convention. |
 | `CK3422` | information | A portrait animation that is not in the optional extracted animation data. | Convention (the extracted data is not the game's complete animation list). |
+| `CK3423` | information | A triggered_animation of an event portrait has no trigger. | Convention (issue |
+| `CK3424` | information | A triggered_animation of an event portrait has neither animation nor scripted_animation. | Convention (issue |
+| `CK3425` | information | A triggered_outfit of an event portrait has no trigger. | Convention (issue |
+| `CK3426` | information | A portrait position is given more than once in one event. | Convention (issue |
 | `CK3430` | warning | An event theme defined neither in the workspace's nor in the base game's common/event_themes (reported only while the base game is known). | The theme is a key of the event_themes database; the game cannot read an unknown key (catalogue failed_to_read_key_reference_X_from_database_X, "Failed to read key reference %s from database %s"). EVENT-003 (the same check against 32 hard-coded names) is merged into it. |
+| `CK3431` | warning | An override_background reference defined neither in the workspace's nor in the base game's common/event_backgrounds (reported only while the base game is known). | Issue #28. The reference is a key of the event_backgrounds database; the game cannot read an unknown key (catalogue failed_to_read_key_reference_X_from_database_X). The issue's CK3432 (override_environment) is no event field, reported by the engine's schema check (unknown_X_in_X); CK3434 (override_icon) is GFX001's check of reference paths; CK3435 (override_sound) has nothing to check against (game/sound/GUIDs.txt lists events under other paths than the event:/SFX/… references the game's events use). |
+| `CK3433` | information | An untriggered override_background equal to the background the event's theme always shows first. | Convention (issue |
 | `CK3450` | information | An event option has no name field for its localization. | Convention. CONV-004 and EVENT-007 (the same check) are merged into it. |
 | `CK3510` | information | trigger_else without a preceding trigger_if. | Convention. |
 | `CK3511` | information | Several trigger_else blocks; only the first applies. | Convention. |
@@ -27,6 +33,7 @@ Source: `vscode-extension/src/server/ck3/validation/paradox-checks.ts`.
 | `CK3762` | information | A hidden event has options. | Convention. EVENT-011 (the same check) is merged into it. |
 | `CK3763` | information | A non-hidden event has no options. | Convention. EVENT-013 (the same check) is merged into it. |
 | `CK3764` | information | A non-hidden event has no desc. | Convention (desc is an optional field of the events schema). CONV-003 (the same check) is merged into it. |
+| `CK3765` (renamed from `CONV-002`) | information | A non-hidden event has no title. | Convention (issue #25; title is an optional field of the events schema). CONV-002 (an event with options and no title) is merged into it. |
 | `CK3766` | information | Several after blocks in one event. | Convention. |
 | `CK3767` | information | An empty event. | Convention. |
 | `CK3768` | information | Several immediate blocks in one event. | Convention. |
