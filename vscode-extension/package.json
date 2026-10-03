@@ -211,8 +211,28 @@
         "command": "ck3LanguageServer.showLogStatistics",
         "title": "Show Game Log Statistics",
         "category": "CK3"
+      },
+      {
+        "command": "ck3LanguageServer.refreshModExplorer",
+        "title": "Refresh CK3 Explorer",
+        "category": "CK3",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "ck3LanguageServer.revealModItem",
+        "title": "Reveal Definition",
+        "category": "CK3"
       }
     ],
+    "views": {
+      "explorer": [
+        {
+          "id": "ck3.modExplorer",
+          "name": "CK3 Explorer",
+          "when": "ck3.modExplorer.enabled"
+        }
+      ]
+    },
     "menus": {
       "commandPalette": [
         {
@@ -294,6 +314,21 @@
         {
           "command": "ck3LanguageServer.showLogStatistics",
           "when": "true"
+        },
+        {
+          "command": "ck3LanguageServer.refreshModExplorer",
+          "when": "ck3.modExplorer.enabled"
+        },
+        {
+          "command": "ck3LanguageServer.revealModItem",
+          "when": "false"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "ck3LanguageServer.refreshModExplorer",
+          "when": "view == ck3.modExplorer",
+          "group": "navigation"
         }
       ]
     },

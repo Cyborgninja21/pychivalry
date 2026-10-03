@@ -97,6 +97,12 @@ import { CallHierarchyProvider } from './lsp/call-hierarchy';
 import { SelectionRangeProvider } from './lsp/selection-range';
 import { ColorProvider } from './lsp/color-provider';
 import { OnTypeFormattingProvider, ON_TYPE_TRIGGERS } from './lsp/on-type-formatting';
+import {
+    ModStructure,
+    ModStructureParams,
+    MOD_STRUCTURE_CHANGED,
+    MOD_STRUCTURE_REQUEST,
+} from './lsp/mod-structure';
 import { extensionVersion } from './version';
 
 /** Server settings pulled from the client (ck3LanguageServer.*). */
@@ -236,6 +242,7 @@ export class CK3LanguageServer {
     private selectionRange = new SelectionRangeProvider(this.parser);
     private colors = new ColorProvider(this.parser);
     private onType = new OnTypeFormattingProvider();
+    private structure = new ModStructure(this.workspace.index, this.localization);
 
     private background = new BackgroundValidation({
         connection: this.connection,
@@ -503,6 +510,10 @@ export class CK3LanguageServer {
             )
         );
 
+        c.onRequest(MOD_STRUCTURE_REQUEST, (p: ModStructureParams | undefined) =>
+            this.guarded('Mod structure', [], () => this.structure.build(p ?? {}))
+        );
+
         c.onExecuteCommand((p: ExecuteCommandParams, token, workDoneProgress) => {
             c.console.log(`Executing command: ${p.command}`);
             return this.commands.execute(p.command, p.arguments ?? [], {
@@ -581,6 +592,7 @@ export class CK3LanguageServer {
                     this.workspace.removeWorkspaceFolder(folder.uri);
                 }
                 await this.commands.rescanWorkspace();
+                this.structureChanged();
             });
         }
         await this.initializeWorkspace();
@@ -620,6 +632,7 @@ export class CK3LanguageServer {
                 this.connection.console.error(`Mod discovery failed: ${error}`);
             }
             this.initialized = true;
+            this.structureChanged();
             notify('Workspace initialized successfully');
             this.connection.console.log('Workspace initialized successfully');
             this.background.configure(this.config.backgroundValidation);
@@ -735,7 +748,13 @@ export class CK3LanguageServer {
         this.workspace.index.indexSync(document.uri, this.parser.parse(document.getText()).ast);
     }
 
+    /** Tell the client that the index changed (the CK3 Explorer view refreshes). */
+    private structureChanged(): void {
+        void this.connection.sendNotification(MOD_STRUCTURE_CHANGED, {});
+    }
+
     private async onDidSave(document: TextDocument): Promise<void> {
+        this.structureChanged();
         await this.validateDocument(document);
         // Files that use what the saved file defines are checked again in the background.
         this.background.saved(fileUriToPath(document.uri));
@@ -793,6 +812,9 @@ export class CK3LanguageServer {
         }
         if (namedColorsChanged) {
             await this.loadNamedColors();
+        }
+        if (params.changes.length > 0) {
+            this.structureChanged();
         }
         if (graphicsChanged && this.config.graphics.enabled) {
             // GFX001 of the open files follows the files on disk.
@@ -853,6 +875,7 @@ export class CK3LanguageServer {
                     this.localization.indexText(file, text);
                 }
                 this.background.changed(file);
+                this.structureChanged();
             },
             () => {
                 // Gone from disk: the watcher's delete event clears it.

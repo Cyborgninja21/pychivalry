@@ -30,7 +30,9 @@ export class ServerController {
     constructor(
         private context: vscode.ExtensionContext,
         private statusBar: CK3StatusBar,
-        private health?: WorkspaceHealth
+        private health?: WorkspaceHealth,
+        /** Called on the server's ck3/modStructureChanged (the CK3 Explorer view). */
+        private onStructureChanged?: () => void
     ) {}
 
     /** The running client, if any. */
@@ -125,6 +127,7 @@ export class ServerController {
             client.onNotification('ck3/workspaceDiagnostics', (message: unknown) =>
                 this.health?.apply(message)
             );
+            client.onNotification('ck3/modStructureChanged', () => this.onStructureChanged?.());
 
             logger.logServer('Starting language client...');
             logger.logDebug(`Client ID: ck3LanguageServer`);
