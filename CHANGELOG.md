@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Graphics-file check (GFX001)**, rebuilt from PR #56 as an extension plug-in (`graphics`): a
+  `.dds`, `.png` or `.tga` path under `icon`, `texture`, `sprite`, `background`,
+  `portrait_texture`, `reference`, `activity_window_background`, `background_texture` or
+  `icon_texture` that exists in no workspace mod, not in the base game's `game/` and not in any
+  `game/dlc/<dlc>/` folder is a warning, once per path and file. Case-insensitive on every
+  platform, with a directory cache the file watcher invalidates; silent while no base game is
+  known. Setting `ck3LanguageServer.graphics.enabled` (default `true`).
+
 ## [2.1.0] - 2026-10-02
 
 Whole-mod diagnostics in the editor, and scope validity from the game itself. Headlines:

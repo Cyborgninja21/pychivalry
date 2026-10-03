@@ -60,7 +60,7 @@ run (`node packages/engine/scripts/vanilla-acceptance.js "<game dir>"`),
 | `server/engine-host.ts` | Loads the bundled spec package once and makes it the engine default |
 | `server/lsp/` | 17 providers (completions, hover, navigation, symbols, semantic tokens, inlay hints, signature help, formatting, folding, rename, code actions, code lens, document links, document highlight, call hierarchy, selection range, diagnostics); each imports only `pychivalry-engine` and the LSP libraries |
 | `server/plugins.ts` | The one registry of engine plug-ins (the surviving validators) and the localization validator |
-| `server/ck3/validation/` | Plug-ins: scope-timing, style-checks, conventions, events, paradox-checks, variables, traits, scripted-blocks, script-values, iterators, switch |
+| `server/ck3/validation/` | Plug-ins: scope-timing, style-checks, conventions, events, paradox-checks, variables, traits, scripted-blocks, script-values, iterators, switch, graphics |
 | `server/ck3/localization/` | Localization text validator, concepts, icons |
 | `server/data/` | Optional game data loader (`data/`), trait data, mod scanner (spec overlays) |
 | `server/log/` | Game `error.log` watcher, analyzer, log diagnostics |

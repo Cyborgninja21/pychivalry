@@ -124,12 +124,98 @@ parsed tree, the text, the URI, the spec and the index:
 | script-values | Script value formulas |
 | iterators | `ordered_` iterator parameters |
 | switch | `switch` blocks and their trigger |
+| graphics | Graphics files (`.dds`, `.png`, `.tga`) that exist in no workspace mod and not in the base game (`GFX001`, below) |
 
 Their codes (CK3xxx, EVENT-, VALUE-, …) are listed in `data/diagnostics.yaml`; the generator
 check (`npm run docs:diagnostics:check`, run in CI) fails when a plug-in emits a code that file
 lacks. The extension maps engine severities to LSP severities, drops the style plug-in's brace
 codes on a line where the engine already reports an unbalanced brace, and caps a file at 1,000
 diagnostics.
+
+### Graphics files (GFX001)
+
+A texture the game cannot find shows as a pink or black checkerboard. The `graphics` plug-in
+(`ck3/validation/graphics.ts`, rebuilt from pychivalry PR #56's Python `gfx_validator.py`)
+reports such a reference in the editor as `GFX001` (warning,
+`Graphics file not found: "<path>"`). It is an extension plug-in, not an engine check, because
+it reads the file system.
+
+**Patterns.** The value of one of nine keys, wherever it appears:
+
+```
+icon = "gfx/interface/icons/my_icon.dds"
+texture = "gfx/interface/textures/my_texture.dds"
+sprite = "gfx/interface/sprites/my_sprite.dds"
+background = "gfx/interface/backgrounds/my_background.dds"
+portrait_texture = "gfx/portraits/my_texture.dds"
+reference = "gfx/interface/illustrations/decisions/my_decision.dds"
+activity_window_background = "gfx/interface/activities/my_activity.dds"
+background_texture = "gfx/interface/my_background.dds"
+icon_texture = "gfx/interface/icons/my_icon_texture.dds"
+```
+
+**Extensions.** `.dds` (DirectDraw Surface, the game's main format), `.png` and `.tga`, in any
+case. Any other extension, or none, is not checked.
+
+**What is not a path.** A value counts only when it looks like a content path: at least one
+`/` (or `\`, read as `/`) and one of the three extensions. Skipped: bare names
+(`icon = standard_character_event` is a key into another database), bare file names
+(`icon = "death_unknown.dds"` is resolved by its database against a folder of its own),
+values with `$VARIABLE$` placeholders or `[...]` expressions, absolute paths and paths with
+`..` segments. A leading `./` is dropped. `gfx/portraits/...` paths are files like any other.
+
+**Resolution order.** The game reads a path relative to a content root and searches the mods
+of the playset, then the base game, whose roots are `game/` and every `game/dlc/<dlc>/` folder
+(DLC graphics live under `game/dlc/dlc004_ep1/gfx/...`, not under `game/gfx/`). The plug-in
+searches, in order:
+
+1. the workspace folders (the mod roots of `Workspace.roots()`);
+2. the base game's `game/` directory (`ck3LanguageServer.gamePath`, or the Steam default);
+3. every `game/dlc/<dlc>/` folder, in name order.
+
+The existence test is case-insensitive on every platform (CK3 runs on Windows, and most mods
+are written there): each path segment is matched against a listing of its directory, read once
+and cached. The server drops a directory's listing (and the listings above and below it) when
+the file watcher reports a file created or deleted under it (the client watches
+`**/*.{dds,png,tga}`), and re-validates the open documents.
+
+**Without the base game nothing is reported.** A path missing from the workspace mods may be
+the base game's, a DLC's, or another mod's of the player's playset; without the base game the
+miss cannot be proven, so the check stays silent until `ck3LanguageServer.gamePath` (or a Steam
+default) gives one. With it, a path found nowhere in the workspace mods, `game/` or `game/dlc/*`
+is reported. Files only another mod of the playset provides are reported too: open that mod as
+a second workspace folder to make them known.
+
+**De-duplication.** One warning per distinct missing path per file (compared
+case-insensitively), on the value of its first reference; later references of the same path
+get none.
+
+**Example.**
+
+```
+my_activity = {
+    activity_window_background = "gfx/interface/activities/placeholder.dds"   # GFX001 if absent
+    phases = {
+        phase_1 = { icon = "gfx/interface/icons/activity_phase_1.dds" }        # found: nothing
+    }
+}
+
+my_decision = {
+    picture = { reference = "gfx/interface/illustrations/decisions/decision_misc.dds" }  # base game: nothing
+}
+
+my_event.0001 = {
+    option = {
+        icon = "gfx/interface/icons/missing_icon.dds"   # GFX001
+        icon = "gfx/interface/icons/missing_icon.dds"   # same path again: no second warning
+        icon = standard_character_event                 # a database key: not checked
+    }
+}
+```
+
+The setting `ck3LanguageServer.graphics.enabled` (default `true`) switches the check off. The
+document-links provider still turns these paths into links; its "Target not found" tooltip
+and `GFX001` now agree.
 
 ## Localization files
 

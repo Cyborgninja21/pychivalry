@@ -173,6 +173,7 @@ holding the server for more than 0.2 s
 | `backgroundValidation.enabled` | `true` | Validate the whole workspace in the background |
 | `backgroundValidation.concurrency` | `5` | Files read ahead at once (diagnosis is one file at a time) |
 | `backgroundValidation.fileLimit` | `3000` | Above this many files only open files are validated unless forced |
+| `graphics.enabled` | `true` | Report graphics files that exist in no mod and not in the base game (GFX001; needs the base game) |
 
 Diagnostics are documented in the generated [diagnostics reference](Documentation/user-guide/diagnostics/README.md).
 
