@@ -110,6 +110,12 @@ errors are identical to the Phase 1 records on both paths.
 are identical to the 2.1 records except RICE's 3 `GFX001` warnings (classified in
 [FINDINGS.md](FINDINGS.md)); only the timing fields differ otherwise.
 
+**Re-recorded for 2.2 (Phase 4, the evidence audit).** The `editor` records were made again on
+2026-10-03 after each step of Phase 4 that changes what the plug-ins report; the `engine`
+records are unchanged. The error-severity editor findings are now exactly the engine path's
+real defects, and the changes per code are explained in [FINDINGS.md](FINDINGS.md) and in the
+audit table of `Documentation/developer-guide/diagnostics-evidence.md`.
+
 **The 1000-per-file cap.** The diagnostics provider publishes at most 1000 diagnostics per file
 (sorted by position), and with the plug-ins several big files reach it (14 files in Divine
 Intervention, 22 in Elf Destiny, 25 in RICE, 4 in VIET Events: `filesAtCap`). Outside those

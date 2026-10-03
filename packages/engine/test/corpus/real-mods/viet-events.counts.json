@@ -84,81 +84,69 @@
             "events/VIET_events_county.txt",
             "events/VIET_events_old.txt"
         ],
-        "timeToFirstFullResultMs": 11756,
-        "serverUptimeAtFirstFullResultMs": 10026,
-        "backgroundPassMs": 1351,
-        "peakServerRssKb": 426364,
-        "serverVmHwmKb": 426364,
+        "timeToFirstFullResultMs": 48491,
+        "serverUptimeAtFirstFullResultMs": 46781,
+        "backgroundPassMs": 2395,
+        "peakServerRssKb": 431484,
+        "serverVmHwmKb": 431484,
         "longestFile": {
-            "milliseconds": 165.4,
+            "milliseconds": 311.8,
             "file": "events/VIET_events_basic.txt"
         },
         "longestScriptFile": {
-            "milliseconds": 165.3,
+            "milliseconds": 311.7,
             "file": "events/VIET_events_basic.txt"
         },
         "longestLocalizationFile": {
-            "milliseconds": 10.6,
-            "file": "localization/french/viet_events_l_french.yml"
+            "milliseconds": 82.9,
+            "file": "localization/english/viet_artifacts_l_english.yml"
         },
         "bySeverity": {
-            "error": 12,
-            "warning": 1338,
-            "information": 9378,
-            "hint": 10
+            "error": 1,
+            "warning": 29,
+            "information": 613,
+            "hint": 9829
         },
         "counts": {
             "CK3301": {
-                "severity": "warning",
+                "severity": "hint",
                 "count": 12
             },
             "CK3303": {
-                "severity": "warning",
-                "count": 522
+                "severity": "hint",
+                "count": 526
             },
             "CK3304": {
-                "severity": "information",
-                "count": 6252
+                "severity": "hint",
+                "count": 6397
             },
             "CK3306": {
-                "severity": "information",
+                "severity": "hint",
                 "count": 236
             },
             "CK3314": {
-                "severity": "warning",
+                "severity": "hint",
                 "count": 281
             },
             "CK3316": {
-                "severity": "information",
+                "severity": "hint",
                 "count": 133
             },
             "CK3317": {
-                "severity": "information",
-                "count": 2202
-            },
-            "CK3340": {
-                "severity": "warning",
-                "count": 4
-            },
-            "CK3430": {
-                "severity": "warning",
-                "count": 450
+                "severity": "hint",
+                "count": 2244
             },
             "CK3656": {
                 "severity": "information",
                 "count": 75
             },
             "CK3701": {
-                "severity": "warning",
-                "count": 5
+                "severity": "information",
+                "count": 1
             },
-            "CK3702": {
-                "severity": "hint",
-                "count": 10
-            },
-            "CK3800": {
-                "severity": "warning",
-                "count": 7
+            "CK3769": {
+                "severity": "information",
+                "count": 40
             },
             "CK3872": {
                 "severity": "information",
@@ -166,35 +154,27 @@
             },
             "CK3875": {
                 "severity": "information",
-                "count": 397
+                "count": 399
             },
             "CK3977": {
                 "severity": "information",
-                "count": 44
-            },
-            "CK4100": {
-                "severity": "warning",
-                "count": 16
+                "count": 45
             },
             "CK5137": {
                 "severity": "information",
                 "count": 13
             },
-            "CK5142": {
-                "severity": "error",
-                "count": 11
-            },
             "COND-001": {
-                "severity": "warning",
+                "severity": "information",
                 "count": 6
             },
             "CONV-002": {
-                "severity": "warning",
+                "severity": "information",
                 "count": 6
             },
             "undefined_event_target_X": {
                 "severity": "information",
-                "count": 22
+                "count": 24
             },
             "unknown_X_in_X": {
                 "severity": "warning",
@@ -207,56 +187,6 @@
         },
         "errors": [
             {
-                "file": "common/activities/activity_types/VIET_ancient_stone_monument_examination.txt",
-                "line": 295,
-                "code": "CK5142",
-                "message": "Invalid character comparison 'host = scope:host'. Use 'host = { this = scope:host }' to compare characters.",
-                "source": "ck3-plugin",
-                "classification": "false-positive",
-                "issue": 91,
-                "reason": "<character link> = <character> is the ordinary comparison form; the 1.20.0.2 base game writes it 1,475 times (issue #91)"
-            },
-            {
-                "file": "common/activities/activity_types/VIET_burial_mound_visit.txt",
-                "line": 374,
-                "code": "CK5142",
-                "message": "Invalid character comparison 'host = scope:host'. Use 'host = { this = scope:host }' to compare characters.",
-                "source": "ck3-plugin",
-                "classification": "false-positive",
-                "issue": 91,
-                "reason": "<character link> = <character> is the ordinary comparison form; the 1.20.0.2 base game writes it 1,475 times (issue #91)"
-            },
-            {
-                "file": "common/activities/activity_types/VIET_ghost_town_investigation.txt",
-                "line": 368,
-                "code": "CK5142",
-                "message": "Invalid character comparison 'host = scope:host'. Use 'host = { this = scope:host }' to compare characters.",
-                "source": "ck3-plugin",
-                "classification": "false-positive",
-                "issue": 91,
-                "reason": "<character link> = <character> is the ordinary comparison form; the 1.20.0.2 base game writes it 1,475 times (issue #91)"
-            },
-            {
-                "file": "common/activities/activity_types/VIET_giant_shade_tree_visit.txt",
-                "line": 295,
-                "code": "CK5142",
-                "message": "Invalid character comparison 'host = scope:host'. Use 'host = { this = scope:host }' to compare characters.",
-                "source": "ck3-plugin",
-                "classification": "false-positive",
-                "issue": 91,
-                "reason": "<character link> = <character> is the ordinary comparison form; the 1.20.0.2 base game writes it 1,475 times (issue #91)"
-            },
-            {
-                "file": "common/activities/activity_types/VIET_view_flower_meadows_in_bloom.txt",
-                "line": 294,
-                "code": "CK5142",
-                "message": "Invalid character comparison 'host = scope:host'. Use 'host = { this = scope:host }' to compare characters.",
-                "source": "ck3-plugin",
-                "classification": "false-positive",
-                "issue": 91,
-                "reason": "<character link> = <character> is the ordinary comparison form; the 1.20.0.2 base game writes it 1,475 times (issue #91)"
-            },
-            {
                 "file": "common/scripted_effects/VIET_misc_effects.txt",
                 "line": 307,
                 "code": "unknown_effect_X",
@@ -264,66 +194,6 @@
                 "source": "ck3-engine",
                 "classification": "real-defect",
                 "reason": "VIET_misc_effects.txt:307 calls ek_character_setup_effect, defined neither by the mod nor by the 1.20.0.2 base game (an Elder Kings compatibility hook)"
-            },
-            {
-                "file": "events/VIET_events_county.txt",
-                "line": 1889,
-                "code": "CK5142",
-                "message": "Invalid character comparison 'betrothed = root'. Use 'betrothed = { this = root }' to compare characters.",
-                "source": "ck3-plugin",
-                "classification": "false-positive",
-                "issue": 91,
-                "reason": "<character link> = <character> is the ordinary comparison form; the 1.20.0.2 base game writes it 1,475 times (issue #91)"
-            },
-            {
-                "file": "events/VIET_events_county.txt",
-                "line": 1909,
-                "code": "CK5142",
-                "message": "Invalid character comparison 'betrothed = root'. Use 'betrothed = { this = root }' to compare characters.",
-                "source": "ck3-plugin",
-                "classification": "false-positive",
-                "issue": 91,
-                "reason": "<character link> = <character> is the ordinary comparison form; the 1.20.0.2 base game writes it 1,475 times (issue #91)"
-            },
-            {
-                "file": "events/VIET_events_county.txt",
-                "line": 1932,
-                "code": "CK5142",
-                "message": "Invalid character comparison 'betrothed = root'. Use 'betrothed = { this = root }' to compare characters.",
-                "source": "ck3-plugin",
-                "classification": "false-positive",
-                "issue": 91,
-                "reason": "<character link> = <character> is the ordinary comparison form; the 1.20.0.2 base game writes it 1,475 times (issue #91)"
-            },
-            {
-                "file": "events/VIET_events_county.txt",
-                "line": 1950,
-                "code": "CK5142",
-                "message": "Invalid character comparison 'betrothed = root'. Use 'betrothed = { this = root }' to compare characters.",
-                "source": "ck3-plugin",
-                "classification": "false-positive",
-                "issue": 91,
-                "reason": "<character link> = <character> is the ordinary comparison form; the 1.20.0.2 base game writes it 1,475 times (issue #91)"
-            },
-            {
-                "file": "events/VIET_events_court.txt",
-                "line": 468,
-                "code": "CK5142",
-                "message": "Invalid character comparison 'killer = root'. Use 'killer = { this = root }' to compare characters.",
-                "source": "ck3-plugin",
-                "classification": "false-positive",
-                "issue": 91,
-                "reason": "<character link> = <character> is the ordinary comparison form; the 1.20.0.2 base game writes it 1,475 times (issue #91)"
-            },
-            {
-                "file": "events/VIET_events_court.txt",
-                "line": 1117,
-                "code": "CK5142",
-                "message": "Invalid character comparison 'employer = scope:neighbor'. Use 'employer = { this = scope:neighbor }' to compare characters.",
-                "source": "ck3-plugin",
-                "classification": "false-positive",
-                "issue": 91,
-                "reason": "<character link> = <character> is the ordinary comparison form; the 1.20.0.2 base game writes it 1,475 times (issue #91)"
             }
         ]
     }

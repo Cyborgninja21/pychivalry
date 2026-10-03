@@ -1,5 +1,5 @@
 {
-    "about": "Classification of every error-severity finding on the real-mod corpus, engine path and editor path (scripts/corpus-acceptance.js and the extension's corpus suite merge it into <slug>.counts.json; the first matching rule wins; mod '*' = any mod). real-defect = the script is wrong against CK3 1.20.0.2 and the game reports it; false-positive = the tool is wrong, tracked by the GitHub issue. Explained in FINDINGS.md.",
+    "about": "Classification of every error-severity finding on the real-mod corpus, engine path and editor path (scripts/corpus-acceptance.js and the extension's corpus suite merge it into <slug>.counts.json; the first matching rule wins; mod '*' = any mod). real-defect = the script is wrong against CK3 1.20.0.2 and the game reports it; false-positive = the tool is wrong, tracked by the GitHub issue. Explained in FINDINGS.md. The false-positive rules of issues #91-#97 were removed in 2.2 with the fixes; FINDINGS.md keeps their history.",
     "rules": [
         {
             "mod": "viet-events",
@@ -57,62 +57,6 @@
             "message": "'Fertility'",
             "classification": "real-defect",
             "reason": "modifier names are case-sensitive; the character modifier is fertility, 'Fertility' is not a modifier type"
-        },
-        {
-            "mod": "*",
-            "code": "CK5142",
-            "classification": "false-positive",
-            "issue": 91,
-            "reason": "<character link> = <character> is the ordinary comparison form; the 1.20.0.2 base game writes it 1,475 times (issue #91)"
-        },
-        {
-            "mod": "*",
-            "code": "CK3873",
-            "classification": "false-positive",
-            "issue": 92,
-            "reason": "trigger = { always = no } disables content on purpose; the base game writes it 167 times and the game reports nothing (issue #92)"
-        },
-        {
-            "mod": "*",
-            "code": "CK3950",
-            "classification": "false-positive",
-            "issue": 93,
-            "reason": "colour values rgb { } / hsv { } read as scripted effect calls (issue #93)"
-        },
-        {
-            "mod": "*",
-            "code": "CK3951",
-            "classification": "false-positive",
-            "issue": 93,
-            "reason": "colour values rgb { } / hsv { } read as scripted trigger calls (issue #93)"
-        },
-        {
-            "mod": "*",
-            "code": "CK3420",
-            "classification": "false-positive",
-            "issue": 94,
-            "reason": "every key ending in _portrait is checked (gfx accessories and cameras, a decision name) and highlight_portrait is not known (issue #94)"
-        },
-        {
-            "mod": "*",
-            "code": "CK3552",
-            "classification": "false-positive",
-            "issue": 95,
-            "reason": "triggered_desc triggers are evaluated when the window is shown, after immediate; 864 vanilla events read immediate-saved scopes there (issue #95)"
-        },
-        {
-            "mod": "*",
-            "code": "CK3550",
-            "classification": "false-positive",
-            "issue": 96,
-            "reason": "the scope is saved earlier inside the same trigger (issue #96)"
-        },
-        {
-            "mod": "*",
-            "code": "CK3553",
-            "classification": "false-positive",
-            "issue": 97,
-            "reason": "the variable is set by an earlier firing of the event, the intended pattern (issue #97)"
         }
     ]
 }

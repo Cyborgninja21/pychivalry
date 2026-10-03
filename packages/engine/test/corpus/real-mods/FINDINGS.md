@@ -48,7 +48,52 @@ these three point at `event_scenes/` instead, so the game shows no picture for t
 
 No false positive, so no new issue.
 
-## Summary
+## 2.2: the plug-in false positives are fixed (post-2.0 Phase 4, step 4.0)
+
+Re-recorded on the editor path 2026-10-03 after the evidence audit of the plug-in catalogue
+([diagnostics-evidence.md](../../../../../Documentation/developer-guide/diagnostics-evidence.md)).
+The engine path is unchanged. **Every error-severity editor finding is now a real defect the
+engine path proves:** 0 / 0 / 15 / 92 / 1 (balance-of-power-ui, divine-intervention,
+elf-destiny, rice, viet-events), the same list as the engine path's, classified in the tables
+below. All seven false positives are fixed, each pinned by its corpus case in
+`vscode-extension/src/test/unit/plugin-false-positives.test.ts`:
+
+| Issue | Code | Fix | Editor errors before → after |
+| --- | --- | --- | --- |
+| [#91](https://github.com/Cyborgninja21/pychivalry/issues/91) | CK5142 | removed: `liege = root` is the ordinary comparison | 267 → 0 |
+| [#92](https://github.com/Cyborgninja21/pychivalry/issues/92) | CK3873 | a hint: `always = no` switches content off on purpose | 128 → 0 (128 hints) |
+| [#93](https://github.com/Cyborgninja21/pychivalry/issues/93) | CK3950, CK3951 | removed: only tagged colour values reached them; undefined calls are the engine's unknown_effect_X / unknown_trigger_X | 202 → 0 |
+| [#94](https://github.com/Cyborgninja21/pychivalry/issues/94) | CK3420 | removed: an unknown event field is the engine schema check's unknown_X_in_X | 10 → 0 |
+| [#95](https://github.com/Cyborgninja21/pychivalry/issues/95) | CK3552 | the window is evaluated after immediate; reports (information) only scopes saved in an option or after | 78 → 0 (12 information) |
+| [#96](https://github.com/Cyborgninja21/pychivalry/issues/96) | CK3550 | a scope saved earlier in the trigger is available; information | 2 → 0 (4 information) |
+| [#97](https://github.com/Cyborgninja21/pychivalry/issues/97) | CK3553 | variables persist; only local variables are reported (information) | 1 → 0 |
+
+**Warnings left, and why each is evidence-backed.** The plug-ins leave three warning classes
+on the corpus, each a catalogue message of the game and each checked by hand against the mod
+and the 1.20.0.2 base game; the engine's own `unknown_X_in_X` (1,581, a field the directory
+schema does not list) is unchanged.
+
+| Code | Count | Evidence | Findings |
+| --- | ---: | --- | --- |
+| CK3800 | 6 (elf-destiny) | `unknown_trait_X_in_event_at_X` | `trait = pillager` in `history/characters/dark_elf_tinder_characters.txt` (lines 99, 146, 193, 250, 297, 344): no `pillager` trait or trait group in the mod's or the base game's `common/traits` |
+| CK4100 | 3 (elf-destiny) | `unknown_loc_key_X` | `events/elf_destiny_debug_menu.txt:713`, `:714`, `:727` name `elf_destiny_debug_menu.023.title`, `.desc`, `.culture`: in no localization file of the mod or the base game |
+| GFX001 | 3 (rice) | `failed_to_load_texture_X_file_not_found` | the three `RICE_mayo_decisions.txt` pictures below (Phase 3) |
+
+What went away besides the false positives: CK4100 (7,622 → 3) reads only real localization
+fields (gene names in ethnicities, script-value breakdown labels and trigger_localization keys
+were read as keys) and the base game's 297,792 English keys, and the localization index now
+reads `key: "text"` entries without a version number (65,842 of them in the corpus' own
+localization); CK3430 / EVENT-003 (2,880 → 0) judge a theme against the workspace's and the
+base game's `common/event_themes` instead of 32 hard-coded names (VIET's own themes and
+vanilla themes such as `feast_activity` were reported); CK3340 (425 → 0) was merged into the
+engine's chain check; CK3800 (155 → 6) knows trait groups (`has_trait = lunatic`, the
+group_equivalence the base game itself uses 542 times) and culture traditions are no longer
+read as traits; EVENT-002 (172 → 0, a missing `type`, which is optional); CK3701 (716 → 276)
+and CK3702 (876 → 88) look across the workspace and the base game, and are information and
+hint. Style codes are hints. Counts per code before and after: the audit table of
+diagnostics-evidence.md.
+
+## Summary (2.1 records)
 
 | Mod | Engine path errors | Editor path errors |
 | --- | --- | --- |
