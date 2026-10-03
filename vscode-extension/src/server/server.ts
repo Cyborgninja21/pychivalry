@@ -76,6 +76,7 @@ import { DataLoader } from './data/loader';
 import { ModScanner } from './data/mod-scanner';
 import { loadExtractedTraits } from './data/traits';
 import { BaseGameData } from './data/base-game';
+import { readNamedColorTexts } from './data/named-colors';
 import { serverLogger } from './utils/logger';
 
 import { CompletionProvider } from './lsp/completions';
@@ -714,7 +715,7 @@ export class CK3LanguageServer {
             ...this.workspace.roots(),
         ];
         try {
-            await this.colors.named.load(roots, this.parser);
+            this.colors.named.load(await readNamedColorTexts(roots), this.parser);
         } catch (error) {
             this.connection.console.error(`Failed to load the named colours: ${error}`);
         }

@@ -26,8 +26,6 @@
  * parser reports errors on). Both read the same notations.
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
 import { Color, ColorInformation, ColorPresentation, Range } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import {
@@ -395,32 +393,16 @@ export class NamedColorTable {
     }
 
     /**
-     * Load `<root>/common/named_colors/*.txt` of every root, base game first (`roots` in
-     * load order: later roots override earlier ones). Returns the number of names.
+     * Replace the table with the definitions of named-colour files' texts, in load order
+     * (base game first: later texts override earlier ones; server/data/named-colors.ts
+     * reads them). Returns the number of names.
      */
-    public async load(roots: string[], parser: Pick<CK3Parser, 'parse'>): Promise<number> {
-        const colors = new Map<string, Color>();
-        const previous = this.colors;
-        this.colors = colors;
-        try {
-            for (const root of roots) {
-                const dir = path.join(root, 'common', 'named_colors');
-                let names: string[];
-                try {
-                    names = (await fs.promises.readdir(dir)).filter((n) => /\.txt$/i.test(n));
-                } catch {
-                    continue;
-                }
-                for (const name of names.sort()) {
-                    const text = await fs.promises.readFile(path.join(dir, name), 'utf-8');
-                    this.addText(text, parser);
-                }
-            }
-        } catch (error) {
-            this.colors = previous;
-            throw error;
+    public load(texts: string[], parser: Pick<CK3Parser, 'parse'>): number {
+        this.colors = new Map();
+        for (const text of texts) {
+            this.addText(text, parser);
         }
-        return colors.size;
+        return this.colors.size;
     }
 }
 

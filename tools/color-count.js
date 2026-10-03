@@ -22,6 +22,9 @@ const { ColorProvider } = require(
     path.join(root, 'vscode-extension', 'out', 'server', 'lsp', 'color-provider.js')
 );
 const { CK3Parser, pathToUri } = require(path.join(root, 'packages', 'engine'));
+const { readNamedColorTexts } = require(
+    path.join(root, 'vscode-extension', 'out', 'server', 'data', 'named-colors.js')
+);
 
 function walk(dir, extensions, out) {
     for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -56,7 +59,7 @@ async function main() {
     const parser = new CK3Parser();
     const provider = new ColorProvider(parser);
     if (game) {
-        await provider.named.load([game], parser);
+        provider.named.load(await readNamedColorTexts([game]), parser);
     }
     const result = {
         dir,
