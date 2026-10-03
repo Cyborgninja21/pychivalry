@@ -55,10 +55,7 @@
                 "fileLimit": 3000
             }
         },
-        "sources": [
-            "ck3-engine",
-            "ck3-plugin"
-        ],
+        "sources": ["ck3-engine", "ck3-plugin"],
         "filesValidated": 12,
         "filesWithFindings": 5,
         "filesAtCap": [],
@@ -120,5 +117,46 @@
             }
         },
         "errors": []
+    },
+    "features": {
+        "colors": {
+            "file": "gui/00_bop_types.gui",
+            "guiAndGfxFiles": 2,
+            "candidatesTried": 1,
+            "values": 2,
+            "first": "{ 1 1 0.5 1 }"
+        },
+        "onType": {
+            "file": "common/script_values/svals_bop.txt",
+            "line": 2,
+            "typed": "Enter at the end of a line ending in {",
+            "edits": [
+                {
+                    "line": 2,
+                    "newText": "\"\\t\""
+                }
+            ],
+            "newLineIndentation": "\"\\t\"",
+            "blockFirstLineIndentation": "\"\\t\"",
+            "agrees": true
+        },
+        "tree": {
+            "categories": {
+                "Scripted Effects": 1,
+                "Scripted Triggers": 1,
+                "Script Values": 17,
+                "Localization": 7
+            },
+            "topRequestMs": 3,
+            "wholeTreeMs": 15,
+            "nodes": 37,
+            "reveal": {
+                "item": "bop_refresh_effect",
+                "category": "scripted_effects",
+                "file": "common/scripted_effects/bop_effects.txt",
+                "line": 1,
+                "ok": true
+            }
+        }
     }
 }

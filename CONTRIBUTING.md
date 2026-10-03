@@ -68,7 +68,7 @@ pychivalry/
 ├── vscode-extension/                 the VS Code extension (ck3-language-support)
 │   ├── src/extension.ts, src/client/ client: server controller, commands, output channels
 │   ├── src/server/server.ts          server wiring
-│   ├── src/server/lsp/               17 LSP providers (import only pychivalry-engine + LSP libraries)
+│   ├── src/server/lsp/               20 LSP providers (import only pychivalry-engine + LSP libraries)
 │   ├── src/server/plugins.ts         the engine plug-ins (surviving validators), registered once
 │   ├── src/server/ck3/validation/    the plug-ins
 │   ├── src/server/ck3/localization/  localization text validator, concepts, icons

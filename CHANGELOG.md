@@ -7,6 +7,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+Release 2.3.0 in progress: editor features (post-2.0 Phase 5).
+
+### Added
+
+- **Colour swatches and a colour picker** (#79) on CK3 colour values in `.gui`, `.gfx`,
+  `.asset` and script files. The notations, their ranges and the keys a bare list is a colour
+  under come from a scan of the CK3 1.20 base game and the real-mod corpus
+  ([color-notations.md](Documentation/developer-guide/color-notations.md),
+  `tools/color-scan.js`): bare `{ r g b }` / `{ r g b a }` lists, 0..1 or 0..255 by their own
+  values (a byte list's alpha is 0..1), `rgb { }` (0..255), `hsv { }` (0..1), `hsv360 { }`
+  (degrees and percentages), `hex { rrggbb }`, and names of `common/named_colors` colours
+  (`color1 = white`, resolved against the base game and the workspace). Hex strings occur
+  zero times and are not read; values outside the ranges (overbright lists, HSV light
+  intensities above 1) get no swatch. Bare lists and names count under 25 colour keys derived
+  from the scan (`server/data/color-keys.json`; the DNA palette keys `hair_color`, `eye_color`,
+  `skin_color` are not colours). The picker writes the value back in its own notation and
+  spelling first, then the alternatives the file kind uses, keeping alpha. GUI files the engine
+  parser reports errors on are read from the lexer's tokens; on the base game's `gui/` that
+  path finds 447 values in 327 files and the tree path 44 in 89, and the two agree on every
+  file that parses.
+- **On-type formatting** (#80): Enter indents the new line to its block depth (one level
+  deeper after `{`), a `}` typed first on a line takes the indentation of the line that opened
+  its block, and `=` after a key is padded (`key = value`), as the formatter writes it. Strings,
+  comments and `@[ ]` expressions are never edited; when the depth cannot be determined there
+  is no edit. A file typed this way is what the formatter makes of it (unit-tested on four
+  fixtures with tabs and with spaces). New setting `ck3LanguageServer.formatting.onTypeEnabled`
+  (default `true`); the extension turns `editor.formatOnType` on for CK3 files.
+- **CK3 Explorer view** (#83) in the Explorer: the mod's events by namespace (with their
+  type), decisions, character interactions, scripted effects and triggers, script values,
+  on-actions and localization keys per language, each category with its count, empty ones
+  hidden. Built from the server's `ck3/modStructure` request on the engine index (no file walk,
+  no parsing), one level at a time; clicking an item opens its definition
+  (`CK3: Reveal Definition`); the view refreshes when the index changes, when a background
+  pass ends and from its title-bar button (`CK3: Refresh CK3 Explorer`).
+- Engine: `LocalizationIndex.files()` (each indexed localization file with its language and
+  key count) and `localizationLanguageOf()`.
+- Integration tests for the three features in the Extension Development Host, and a smoke
+  test per real-mod corpus mod recorded under `features` in
+  `packages/engine/test/corpus/real-mods/<slug>.counts.json` (colours in a GUI file, an Enter
+  typed and indented, the CK3 Explorer's counts, request times and one reveal); on RICE the
+  top-level structure request answered in 6 ms and the whole tree (5,100 nodes) in 126 ms.
+
+### Changed
+
+- Document and range formatting read `ck3LanguageServer.formatting.insertSpaces`,
+  `formatting.tabSize` and `formatting.enabled` (declared but not read before: the editor's
+  own indentation settings were used), so that document, range and on-type formatting always
+  agree. The default stays tabs, the Paradox convention.
+
 ## [2.2.0] - 2026-10-03
 
 Diagnostics you can trust, and the validation rules the backlog asked for. Headlines:

@@ -55,10 +55,10 @@ run (`node packages/engine/scripts/vanilla-acceptance.js "<game dir>"`),
 
 | Path | Responsibility |
 | --- | --- |
-| `extension.ts`, `client/` | Client wiring: server controller, commands, log channels, status bar, `logger.ts` |
+| `extension.ts`, `client/` | Client wiring: server controller, commands, log channels, status bar, Explorer decorations, the CK3 Explorer view (`mod-explorer.ts`), `logger.ts` |
 | `server/server.ts` | Server wiring only: connection, documents, workspace, handlers delegate to providers |
 | `server/engine-host.ts` | Loads the bundled spec package once and makes it the engine default |
-| `server/lsp/` | 17 providers (completions, hover, navigation, symbols, semantic tokens, inlay hints, signature help, formatting, folding, rename, code actions, code lens, document links, document highlight, call hierarchy, selection range, diagnostics); each imports only `pychivalry-engine` and the LSP libraries |
+| `server/lsp/` | 20 providers (completions, hover, navigation, symbols, semantic tokens, inlay hints, signature help, formatting, on-type formatting, folding, rename, code actions, code lens, document links, document highlight, call hierarchy, selection range, colours, mod structure, diagnostics); each imports only `pychivalry-engine` and the LSP libraries (the colour provider also its generated key list, `server/data/color-keys.json`) |
 | `server/plugins.ts` | The one registry of engine plug-ins (the surviving validators) and the localization validator |
 | `server/ck3/validation/` | Plug-ins: scope-timing, style-checks, conventions, events, paradox-checks, variables, traits, scripted-blocks, script-values, iterators, switch, graphics |
 | `server/ck3/localization/` | Localization text validator, concepts, icons |

@@ -1,0 +1,14 @@
+types ColorWindows {
+	type color_window = window {
+		size = { 400 300 }
+		tintcolor = { 1 0.5 0.1 0.8 }
+		text_single = {
+			text = "[GetName]"
+			fontcolor = { 0.9 0.9 0 1 }
+		}
+		icon = {
+			color = { 200 20 0 0.8 }
+			position = { 10 20 30 }
+		}
+	}
+}

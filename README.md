@@ -8,7 +8,8 @@
 
 pychivalry checks CK3 mod scripts against the game's own vocabulary and error messages, taken
 from the game executable rather than from wiki pages or scraped lists. It ships as a VS Code
-extension (a language server with completion, hover, navigation, formatting and diagnostics)
+extension (a language server with completion, hover, navigation, formatting, colour swatches,
+a mod-structure view and diagnostics)
 and as a command-line checker for whole mod folders. Version 2.2.0 targets CK3 1.20.0.2.
 
 ## How it is built
@@ -35,10 +36,10 @@ directory does not have, the few required fields the engine enforces) and the sc
 catalogue's, so a problem in the editor reads like the line `error.log` would show.
 
 **The VS Code extension** (`vscode-extension`). A thin client and a language server. The
-server wires 17 LSP providers (completions, hover, definitions and references, symbols,
-semantic tokens, inlay hints, signature help, formatting, folding, rename, code actions,
-code lens, document links, document highlights, call hierarchy, selection ranges and
-diagnostics) to the engine: providers read the spec package, parser and index; diagnostics
+server wires 20 providers (completions, hover, definitions and references, symbols,
+semantic tokens, inlay hints, signature help, formatting and on-type formatting, folding,
+rename, code actions, code lens, document links, document highlights, call hierarchy,
+selection ranges, colours, the mod structure and diagnostics) to the engine: providers read the spec package, parser and index; diagnostics
 run the engine pipeline followed by the extension's plug-ins, the surviving validators that
 encode game behaviour the spec package does not describe (event evaluation order, script
 values, variables, style, Paradox conventions, localization text). Since 2.2 a plug-in
@@ -174,6 +175,30 @@ for the plug-ins, it takes about 35 s at about 730 MB server peak on the same bo
 file holding the server for more than 0.3 s
 ([corpus records](packages/engine/test/corpus/real-mods/README.md)).
 
+## Editor features
+
+- **Colour swatches and picker.** Colour values show a swatch; clicking it opens VS Code's
+  colour picker, and the picked colour is written back in the notation the value was written
+  in (then the alternatives the file kind uses, keeping alpha). Read: bare `{ r g b }` and
+  `{ r g b a }` lists (0..1, or 0..255 when the values say so), `rgb { }`, `hsv { }`,
+  `hsv360 { }`, `hex { rrggbb }` and named colours (`color1 = white`, from the base game's and
+  the mod's `common/named_colors`). A bare list is a colour only under a colour key
+  (`color`, `tintcolor`, `fontcolor`, `map_color` …); the notations, ranges and keys come from
+  a scan of the base game and five published mods
+  ([the evidence](Documentation/developer-guide/color-notations.md)). GUI files, which the
+  engine parser does not fully accept, are read token by token.
+- **On-type formatting.** Enter indents the new line to its block depth, a `}` typed first on
+  a line lines up with the line that opened its block, and `=` after a key gets its spaces; a
+  file typed this way is what **Format Document** makes of it. Indentation follows
+  `formatting.insertSpaces`/`formatting.tabSize` (tabs by default); the extension turns
+  `editor.formatOnType` on for CK3 files, and `formatting.onTypeEnabled` switches it off.
+- **CK3 Explorer.** A view in the Explorer side bar with the mod's events by namespace (with
+  their type), decisions, character interactions, scripted effects and triggers, script
+  values, on-actions and localization keys per language, each with its count; clicking an
+  item opens its definition. It reads the language server's index (no extra file reading),
+  loads one level at a time and refreshes when files change, after a background pass and from
+  its refresh button.
+
 ## Configuration
 
 | Setting (`ck3LanguageServer.*`) | Default | Description |
@@ -181,7 +206,8 @@ file holding the server for more than 0.3 s
 | `enable` | `true` | Enable the language server |
 | `trace.server` | `off` | LSP trace (`messages`, `verbose`) |
 | `logLevel` | `info` | Server log level |
-| `formatting.enabled`, `formatting.insertSpaces`, `formatting.tabSize` | `true`, `false`, `4` | Formatter |
+| `formatting.enabled`, `formatting.insertSpaces`, `formatting.tabSize` | `true`, `false`, `4` | Document, range and on-type formatting (tabs, or `tabSize` spaces with `insertSpaces`) |
+| `formatting.onTypeEnabled` | `true` | Format as you type (Enter, `}`, `=`); needs `editor.formatOnType`, on by default for CK3 files |
 | `inlayHints.enabled` | `true` | Inlay hints |
 | `logWatcher.enabled`, `logWatcher.autoStart`, `logWatcher.logPath` | `true`, `false`, auto | Game log watcher |
 | `gamePath` | empty (Steam defaults) | The CK3 `game` directory used as the base game |

@@ -72,10 +72,7 @@
                 "fileLimit": 3000
             }
         },
-        "sources": [
-            "ck3-engine",
-            "ck3-plugin"
-        ],
+        "sources": ["ck3-engine", "ck3-plugin"],
         "filesValidated": 211,
         "filesWithFindings": 65,
         "filesAtCap": [
@@ -225,5 +222,44 @@
                 "reason": "VIET_misc_effects.txt:307 calls ek_character_setup_effect, defined neither by the mod nor by the 1.20.0.2 base game (an Elder Kings compatibility hook)"
             }
         ]
+    },
+    "features": {
+        "colors": null,
+        "onType": {
+            "file": "common/activities/activity_types/VIET_ancient_stone_monument_examination.txt",
+            "line": 2,
+            "typed": "Enter at the end of a line ending in {",
+            "edits": [
+                {
+                    "line": 2,
+                    "newText": "\"\\t\""
+                }
+            ],
+            "newLineIndentation": "\"\\t\"",
+            "blockFirstLineIndentation": "\"\\t\"",
+            "agrees": true
+        },
+        "tree": {
+            "categories": {
+                "Events": 1288,
+                "Decisions": 23,
+                "Character Interactions": 2,
+                "Scripted Effects": 97,
+                "Scripted Triggers": 34,
+                "Script Values": 3,
+                "On-Actions": 34,
+                "Localization": 80122
+            },
+            "topRequestMs": 3,
+            "wholeTreeMs": 44,
+            "nodes": 1644,
+            "reveal": {
+                "item": "VIET_decision_add_more_dovecotes",
+                "category": "decisions",
+                "file": "common/decisions/VIET_county_decisions.txt",
+                "line": 409,
+                "ok": true
+            }
+        }
     }
 }

@@ -808,10 +808,7 @@
                 "fileLimit": 3000
             }
         },
-        "sources": [
-            "ck3-engine",
-            "ck3-plugin"
-        ],
+        "sources": ["ck3-engine", "ck3-plugin"],
         "filesValidated": 2090,
         "filesWithFindings": 1262,
         "filesAtCap": [
@@ -1846,5 +1843,50 @@
                 "reason": "history/titles calls destroy_landless_title_no_dlc_effect, which the 1.20.0.2 base game no longer defines (no destroy_landless_title* name exists in game/common or game/history)"
             }
         ]
+    },
+    "features": {
+        "colors": {
+            "file": "gui/decision_view_widgets/decision_view_widget_RICE_galicia_cantiga_decision.gui",
+            "guiAndGfxFiles": 67,
+            "candidatesTried": 1,
+            "values": 1,
+            "first": "{ 0.96 0.96 0.86 0.4 }"
+        },
+        "onType": {
+            "file": "common/activities/activity_types/RICE_aachen_pilgrimage.txt",
+            "line": 2,
+            "typed": "Enter at the end of a line ending in {",
+            "edits": [
+                {
+                    "line": 2,
+                    "newText": "\"\\t\""
+                }
+            ],
+            "newLineIndentation": "\"\\t\"",
+            "blockFirstLineIndentation": "\"\\t\"",
+            "agrees": true
+        },
+        "tree": {
+            "categories": {
+                "Events": 2166,
+                "Decisions": 292,
+                "Character Interactions": 25,
+                "Scripted Effects": 904,
+                "Scripted Triggers": 185,
+                "Script Values": 604,
+                "On-Actions": 116,
+                "Localization": 389048
+            },
+            "topRequestMs": 6,
+            "wholeTreeMs": 126,
+            "nodes": 5100,
+            "reveal": {
+                "item": "RICE_SEA_harvest_rare_tropical_goods_decision",
+                "category": "decisions",
+                "file": "common/decisions/RICE_aslian_decisions.txt",
+                "line": 5,
+                "ok": true
+            }
+        }
     }
 }

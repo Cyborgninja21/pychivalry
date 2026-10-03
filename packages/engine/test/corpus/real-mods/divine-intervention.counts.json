@@ -55,10 +55,7 @@
                 "fileLimit": 3000
             }
         },
-        "sources": [
-            "ck3-engine",
-            "ck3-plugin"
-        ],
+        "sources": ["ck3-engine", "ck3-plugin"],
         "filesValidated": 170,
         "filesWithFindings": 73,
         "filesAtCap": [
@@ -167,5 +164,49 @@
             }
         },
         "errors": []
+    },
+    "features": {
+        "colors": {
+            "file": "gui/DI_button.gui",
+            "guiAndGfxFiles": 74,
+            "candidatesTried": 1,
+            "values": 4,
+            "first": "{ 0.12 0.08 0.04 1 }"
+        },
+        "onType": {
+            "file": "common/character_interaction_categories/00_character_interaction_categories.txt",
+            "line": 8,
+            "typed": "Enter at the end of a line ending in {",
+            "edits": [
+                {
+                    "line": 8,
+                    "newText": "\"\\t\""
+                }
+            ],
+            "newLineIndentation": "\"\\t\"",
+            "blockFirstLineIndentation": "\"\\t\"",
+            "agrees": true
+        },
+        "tree": {
+            "categories": {
+                "Events": 5,
+                "Character Interactions": 80,
+                "Scripted Effects": 119,
+                "Scripted Triggers": 44,
+                "Script Values": 45,
+                "On-Actions": 8,
+                "Localization": 11307
+            },
+            "topRequestMs": 3,
+            "wholeTreeMs": 30,
+            "nodes": 408,
+            "reveal": {
+                "item": "DI_abdicate",
+                "category": "character_interactions",
+                "file": "common/character_interactions/DI_character_interaction.txt",
+                "line": 5046,
+                "ok": true
+            }
+        }
     }
 }
