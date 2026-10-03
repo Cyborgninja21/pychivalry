@@ -108,8 +108,13 @@ The full list is in [CONTRIBUTING.md](CONTRIBUTING.md#rules). The ones most ofte
 
 ## Debugging the extension
 
-Open the repository in VS Code and press **F5** (Extension Development Host). Test workspaces:
-`example mod/` (the numbered good/bad corpus) and `test space/`.
+Open the repository in VS Code and press **F5** (Extension Development Host; **🎯 Extension - Dev
+Mode** keeps the engine and the bundles in watch mode). The language server listens for a
+debugger on port 6009 there (**🔌 Attach to Language Server**, or the compound **🎯 Extension +
+Server**). Test workspaces: `example mod/` (the numbered good/bad corpus) and `test space/`.
+Every launch configuration, the main-instance and VSIX routes, and where each log goes:
+[Documentation/developer-guide/debugging.md](Documentation/developer-guide/debugging.md);
+`task dev:launch-check` starts every configuration once.
 
 ## More
 

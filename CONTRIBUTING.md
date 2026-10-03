@@ -171,6 +171,14 @@ VS Code the test runner starts and controls, so the suites run in a separate, cl
 what the issues wanted from it, the extension tested as installed rather than from the
 development path, and automatically on every push, is what the two suites above do.
 
+### Debugging
+
+[Documentation/developer-guide/debugging.md](Documentation/developer-guide/debugging.md):
+every launch configuration (the Extension Development Host, the language server's inspector on
+port 6009 and its attach, the main instance through `dev:link`, an installed VSIX, the engine
+and extension tests, the corpus suites), where each log goes, and the traps of WSL and VS Code
+terminals. `task dev:launch-check` starts every configuration once outside VS Code.
+
 ### Making changes
 
 1. Branch: `git checkout -b feature/your-feature-name`.

@@ -109,6 +109,11 @@ tasks:
     cmds:
       - node tools/dev-link.js status {{if .DIR}}--dir "{{.DIR}}"{{end}}
 
+  dev:launch-check:
+    desc: "Start every .vscode/launch.json configuration once outside VS Code (preLaunchTasks, launches, attaches) and report each; ONLY=<text> for some (xvfb-run -a on headless Linux)"
+    cmds:
+      - node tools/launch-check.js {{if .ONLY}}--only "{{.ONLY}}"{{end}}
+
   # ─── Engine core (packages/engine) ──────────────────────────────
 
   engine:build:

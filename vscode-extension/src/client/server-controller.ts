@@ -17,6 +17,13 @@ import { registerLogNotifications } from './log-channels';
 import { WorkspaceHealth } from './workspace-health';
 
 const MAX_CRASH_RESTARTS = 3;
+/** The server's inspector port in the Extension Development Host (CK3_SERVER_INSPECT_PORT overrides). */
+export const DEFAULT_SERVER_INSPECT_PORT = 6009;
+
+function serverInspectPort(): number {
+    const port = Number(process.env.CK3_SERVER_INSPECT_PORT);
+    return Number.isInteger(port) && port > 0 ? port : DEFAULT_SERVER_INSPECT_PORT;
+}
 const CRASH_STABLE_WINDOW_MS = 60000;
 
 export class ServerController {
@@ -82,10 +89,19 @@ export class ServerController {
         // The TypeScript server runs as a Node.js process
         const serverModule = this.context.asAbsolutePath('dist/server-main.js');
         logger.logServer(`Using TypeScript server at: ${serverModule}`);
+        const env = { ...process.env, LOG_LEVEL: logLevel };
+        // When the extension host itself runs under a debugger (the Extension Development
+        // Host started with F5), vscode-languageclient starts the server with `debug`: a
+        // Node inspector on SERVER_INSPECT_PORT (launch.json "Attach to Language Server").
+        // Otherwise `run`, without an inspector (Documentation/developer-guide/debugging.md
+        // shows how to attach to the server of an installed or linked extension).
         const serverOptions: ServerOptions = {
-            module: serverModule,
-            transport: 0, // TransportKind.stdio
-            options: { env: { ...process.env, LOG_LEVEL: logLevel } },
+            run: { module: serverModule, transport: 0 /* TransportKind.stdio */, options: { env } },
+            debug: {
+                module: serverModule,
+                transport: 0,
+                options: { env, execArgv: ['--nolazy', `--inspect=${serverInspectPort()}`] },
+            },
         };
         const clientOptions: LanguageClientOptions = {
             documentSelector: [

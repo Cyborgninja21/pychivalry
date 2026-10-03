@@ -1,23 +1,24 @@
 {
+  // Launch and attach configurations for pychivalry. What each one is for, and how to debug
+  // the client, the server, the engine and the tests: Documentation/developer-guide/debugging.md.
+  // `task dev:launch-check` starts every configuration below once, outside VS Code.
   "version": "0.2.0",
   "configurations": [
-    // ── Extension Host ─────────────────────────────────────────────
+    // ── Extension Development Host ────────────────────────────────
     {
-      "name": "🎯 Extension - Full Rebuild",
+      "name": "🎯 Extension - Dev Mode",
+      // Dev Mode (#36): the engine in tsc --watch and both bundles in webpack --watch
+      // (task "Dev Mode", same as `task dev`); the host opens once both builds finished.
+      // The language server starts with an inspector on port 6009 (attach below).
       "type": "extensionHost",
       "request": "launch",
       "args": [
         "--extensionDevelopmentPath=${workspaceFolder}/vscode-extension",
         "${workspaceFolder}/example mod"
       ],
-      "outFiles": [
-        "${workspaceFolder}/vscode-extension/dist/**/*.js"
-      ],
-      "preLaunchTask": "Build Extension (Install + Compile)",
-      "presentation": {
-        "group": "1-extension",
-        "order": 1
-      }
+      "outFiles": ["${workspaceFolder}/vscode-extension/dist/**/*.js"],
+      "preLaunchTask": "Dev Mode",
+      "presentation": { "group": "1-extension", "order": 1 }
     },
     {
       "name": "🎯 Extension - Quick Compile",
@@ -27,233 +28,115 @@
         "--extensionDevelopmentPath=${workspaceFolder}/vscode-extension",
         "${workspaceFolder}/example mod"
       ],
-      "outFiles": [
-        "${workspaceFolder}/vscode-extension/dist/**/*.js"
-      ],
+      "outFiles": ["${workspaceFolder}/vscode-extension/dist/**/*.js"],
       "preLaunchTask": "npm: compile",
-      "presentation": {
-        "group": "1-extension",
-        "order": 2
-      }
+      "presentation": { "group": "1-extension", "order": 2 }
     },
     {
-      // Dev Mode (#36): the engine in tsc --watch and both bundles in webpack --watch
-      // (task "Dev Mode", same as `task dev`); the host opens once both builds finished.
-      "name": "🎯 Extension - Dev Mode",
+      "name": "🎯 Extension - Full Rebuild",
       "type": "extensionHost",
       "request": "launch",
       "args": [
         "--extensionDevelopmentPath=${workspaceFolder}/vscode-extension",
         "${workspaceFolder}/example mod"
       ],
-      "outFiles": [
-        "${workspaceFolder}/vscode-extension/dist/**/*.js"
-      ],
-      "preLaunchTask": "Dev Mode",
-      "presentation": {
-        "group": "1-extension",
-        "order": 3
-      }
+      "outFiles": ["${workspaceFolder}/vscode-extension/dist/**/*.js"],
+      "preLaunchTask": "Build Extension (Install + Compile)",
+      "presentation": { "group": "1-extension", "order": 3 }
     },
-    // ── Unit Tests ─────────────────────────────────────────────────
+    // ── Attach ───────────────────────────────────────────────────
+    {
+      // The language server of the Extension Development Host (any launch above): it runs
+      // with --inspect=6009 there (CK3_SERVER_INSPECT_PORT overrides). `restart` re-attaches
+      // after "CK3: Restart Language Server".
+      "name": "🔌 Attach to Language Server (Development Host)",
+      "type": "node",
+      "request": "attach",
+      "port": 6009,
+      "restart": true,
+      "timeout": 30000,
+      "outFiles": ["${workspaceFolder}/vscode-extension/dist/**/*.js"],
+      "presentation": { "group": "4-attach", "order": 1 }
+    },
+    {
+      // The language server of an installed (VSIX) or linked (task dev:link) extension in
+      // your main VS Code: open its inspector first (kill -USR1 <pid> on Linux/macOS,
+      // node -e "process._debugProcess(<pid>)" on Windows), then attach on 9229.
+      "name": "🔌 Attach to Language Server (main instance, 9229)",
+      "type": "node",
+      "request": "attach",
+      "port": 9229,
+      "timeout": 30000,
+      "outFiles": ["${workspaceFolder}/vscode-extension/dist/**/*.js"],
+      "presentation": { "group": "4-attach", "order": 2 }
+    },
+    {
+      // The extension host of a VS Code started with --inspect-extensions=5870 (the client
+      // side of an installed or linked extension in a main instance).
+      "name": "🔌 Attach to Extension Host (main instance, 5870)",
+      "type": "node",
+      "request": "attach",
+      "port": 5870,
+      "timeout": 30000,
+      "outFiles": ["${workspaceFolder}/vscode-extension/dist/**/*.js"],
+      "presentation": { "group": "4-attach", "order": 3 }
+    },
+    // ── Extension tests ──────────────────────────────────────────
     {
       "name": "🧪 Unit Tests - All",
       "type": "node",
       "request": "launch",
-      "program": "${workspaceFolder}/vscode-extension/node_modules/mocha/bin/_mocha",
-      "args": [
-        "${workspaceFolder}/vscode-extension/out/test/unit/**/*.test.js",
-        "--timeout",
-        "15000"
-      ],
+      "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+      "args": ["${workspaceFolder}/vscode-extension/out/test/unit/**/*.test.js", "--timeout", "15000"],
       "cwd": "${workspaceFolder}/vscode-extension",
-      "outFiles": [
-        "${workspaceFolder}/vscode-extension/out/**/*.js"
-      ],
+      "outFiles": ["${workspaceFolder}/vscode-extension/out/**/*.js"],
       "preLaunchTask": "Compile Tests",
       "console": "integratedTerminal",
-      "presentation": {
-        "group": "2-tests",
-        "order": 1
-      }
+      "presentation": { "group": "2-tests", "order": 1 }
     },
     {
+      // Open a unit test (vscode-extension/src/test/unit/<name>.test.ts) and start this.
       "name": "🧪 Unit Tests - Current File",
       "type": "node",
       "request": "launch",
-      "program": "${workspaceFolder}/vscode-extension/node_modules/mocha/bin/_mocha",
+      "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
       "args": [
-        "${file}",
+        "${workspaceFolder}/vscode-extension/out/test/unit/${fileBasenameNoExtension}.js",
         "--timeout",
         "15000"
       ],
       "cwd": "${workspaceFolder}/vscode-extension",
-      "outFiles": [
-        "${workspaceFolder}/vscode-extension/out/**/*.js"
-      ],
+      "outFiles": ["${workspaceFolder}/vscode-extension/out/**/*.js"],
       "preLaunchTask": "Compile Tests",
       "console": "integratedTerminal",
-      "presentation": {
-        "group": "2-tests",
-        "order": 2
-      }
+      "presentation": { "group": "2-tests", "order": 2 }
     },
     {
       "name": "🧪 Example Mod Validation Tests",
       "type": "node",
       "request": "launch",
-      "program": "${workspaceFolder}/vscode-extension/node_modules/mocha/bin/_mocha",
+      "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
       "args": [
         "${workspaceFolder}/vscode-extension/out/test/unit/example-mod-validation.test.js",
         "--timeout",
         "15000"
       ],
       "cwd": "${workspaceFolder}/vscode-extension",
-      "outFiles": [
-        "${workspaceFolder}/vscode-extension/out/**/*.js"
-      ],
+      "outFiles": ["${workspaceFolder}/vscode-extension/out/**/*.js"],
       "preLaunchTask": "Compile Tests",
       "console": "integratedTerminal",
-      "presentation": {
-        "group": "2-tests",
-        "order": 3
-      }
-    },
-    // ── Test Groups (debug a related set of tests) ───────────────
-    {
-      "name": "🔬 Core Tests (parser, indexer, cache)",
-      "type": "node",
-      "request": "launch",
-      "program": "${workspaceFolder}/vscode-extension/node_modules/mocha/bin/_mocha",
-      "args": [
-        "${workspaceFolder}/vscode-extension/out/test/unit/parser.test.js",
-        "${workspaceFolder}/vscode-extension/out/test/unit/incremental-parser.test.js",
-        "${workspaceFolder}/vscode-extension/out/test/unit/parse-cache.test.js",
-        "${workspaceFolder}/vscode-extension/out/test/unit/indexer.test.js",
-        "--timeout",
-        "15000"
-      ],
-      "cwd": "${workspaceFolder}/vscode-extension",
-      "outFiles": [
-        "${workspaceFolder}/vscode-extension/out/**/*.js"
-      ],
-      "preLaunchTask": "Compile Tests",
-      "console": "integratedTerminal",
-      "presentation": {
-        "group": "3-groups",
-        "order": 1
-      }
+      "presentation": { "group": "2-tests", "order": 3 }
     },
     {
-      "name": "🔬 LSP Tests (completions, hover, navigation)",
-      "type": "node",
-      "request": "launch",
-      "program": "${workspaceFolder}/vscode-extension/node_modules/mocha/bin/_mocha",
-      "args": [
-        "${workspaceFolder}/vscode-extension/out/test/unit/completions.test.js",
-        "${workspaceFolder}/vscode-extension/out/test/unit/hover.test.js",
-        "${workspaceFolder}/vscode-extension/out/test/unit/selection-range.test.js",
-        "${workspaceFolder}/vscode-extension/out/test/unit/call-hierarchy.test.js",
-        "${workspaceFolder}/vscode-extension/out/test/unit/call-graph.test.js",
-        "${workspaceFolder}/vscode-extension/out/test/unit/fuzzy-match.test.js",
-        "--timeout",
-        "15000"
-      ],
-      "cwd": "${workspaceFolder}/vscode-extension",
-      "outFiles": [
-        "${workspaceFolder}/vscode-extension/out/**/*.js"
-      ],
-      "preLaunchTask": "Compile Tests",
-      "console": "integratedTerminal",
-      "presentation": {
-        "group": "3-groups",
-        "order": 2
-      }
-    },
-    {
-      "name": "🔬 Validation Tests (diagnostics, scopes, modifiers)",
-      "type": "node",
-      "request": "launch",
-      "program": "${workspaceFolder}/vscode-extension/node_modules/mocha/bin/_mocha",
-      "args": [
-        "${workspaceFolder}/vscode-extension/out/test/unit/diagnostics-engine.test.js",
-        "${workspaceFolder}/vscode-extension/out/test/unit/style-checks.test.js",
-        "${workspaceFolder}/vscode-extension/out/test/unit/scopes.test.js",
-        "${workspaceFolder}/vscode-extension/out/test/unit/script-values.test.js",
-        "${workspaceFolder}/vscode-extension/out/test/unit/scripted-params.test.js",
-        "${workspaceFolder}/vscode-extension/out/test/unit/modifiers.test.js",
-        "${workspaceFolder}/vscode-extension/out/test/unit/schema-conditions.test.js",
-        "${workspaceFolder}/vscode-extension/out/test/unit/localization-validator.test.js",
-        "--timeout",
-        "15000"
-      ],
-      "cwd": "${workspaceFolder}/vscode-extension",
-      "outFiles": [
-        "${workspaceFolder}/vscode-extension/out/**/*.js"
-      ],
-      "preLaunchTask": "Compile Tests",
-      "console": "integratedTerminal",
-      "presentation": {
-        "group": "3-groups",
-        "order": 3
-      }
-    },
-    {
-      "name": "🔬 CK3 Game Logic Tests (events, decisions, schemes)",
-      "type": "node",
-      "request": "launch",
-      "program": "${workspaceFolder}/vscode-extension/node_modules/mocha/bin/_mocha",
-      "args": [
-        "${workspaceFolder}/vscode-extension/out/test/unit/events.test.js",
-        "${workspaceFolder}/vscode-extension/out/test/unit/on-actions.test.js",
-        "${workspaceFolder}/vscode-extension/out/test/unit/schemes.test.js",
-        "${workspaceFolder}/vscode-extension/out/test/unit/casus-belli.test.js",
-        "${workspaceFolder}/vscode-extension/out/test/unit/court-positions.test.js",
-        "${workspaceFolder}/vscode-extension/out/test/unit/language.test.js",
-        "--timeout",
-        "15000"
-      ],
-      "cwd": "${workspaceFolder}/vscode-extension",
-      "outFiles": [
-        "${workspaceFolder}/vscode-extension/out/**/*.js"
-      ],
-      "preLaunchTask": "Compile Tests",
-      "console": "integratedTerminal",
-      "presentation": {
-        "group": "3-groups",
-        "order": 4
-      }
-    },
-    {
-      "name": "🔬 Log Analysis Tests (analyzer, diagnostics)",
-      "type": "node",
-      "request": "launch",
-      "program": "${workspaceFolder}/vscode-extension/node_modules/mocha/bin/_mocha",
-      "args": [
-        "${workspaceFolder}/vscode-extension/out/test/unit/log-analyzer.test.js",
-        "${workspaceFolder}/vscode-extension/out/test/unit/log-diagnostics.test.js",
-        "--timeout",
-        "15000"
-      ],
-      "cwd": "${workspaceFolder}/vscode-extension",
-      "outFiles": [
-        "${workspaceFolder}/vscode-extension/out/**/*.js"
-      ],
-      "preLaunchTask": "Compile Tests",
-      "console": "integratedTerminal",
-      "presentation": {
-        "group": "3-groups",
-        "order": 5
-      }
-    },
-    // ── Integration Tests ──────────────────────────────────────────
-    {
+      // The integration suite (src/test/suite) in an Extension Development Host on
+      // test-workspace/; breakpoints in the tests and in the client both bind.
       "name": "🧪 Integration Tests",
       "type": "extensionHost",
       "request": "launch",
       "args": [
         "--extensionDevelopmentPath=${workspaceFolder}/vscode-extension",
         "--extensionTestsPath=${workspaceFolder}/vscode-extension/out/test/suite",
+        "--disable-extensions",
         "${workspaceFolder}/vscode-extension/test-workspace"
       ],
       "outFiles": [
@@ -261,10 +144,109 @@
         "${workspaceFolder}/vscode-extension/dist/**/*.js"
       ],
       "preLaunchTask": "Build Extension (Install + Compile)",
-      "presentation": {
-        "group": "2-tests",
-        "order": 4
-      }
+      "presentation": { "group": "2-tests", "order": 4 }
+    },
+    {
+      // The editor-path corpus suite for one mod (src/test/corpus): the mod is the workspace,
+      // its editor record is written to packages/engine/test/corpus/real-mods/. Needs the
+      // corpus folder (not committed) and the CK3 game directory, which "Corpus Profile"
+      // writes as ck3LanguageServer.gamePath into a profile of its own (not yours).
+      "name": "🧪 Corpus Suite - one mod (editor path)",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}/vscode-extension",
+        "--extensionTestsPath=${workspaceFolder}/vscode-extension/out/test/corpus/index",
+        "--disable-extensions",
+        "--user-data-dir=${workspaceFolder}/vscode-extension/.vscode-test/corpus-profile",
+        "${input:corpusDir}/${input:corpusSlug}"
+      ],
+      "env": {
+        "CK3_CORPUS_SLUG": "${input:corpusSlug}",
+        "CK3_CORPUS_OUT": "${workspaceFolder}/packages/engine/test/corpus/real-mods"
+      },
+      "outFiles": [
+        "${workspaceFolder}/vscode-extension/out/**/*.js",
+        "${workspaceFolder}/vscode-extension/dist/**/*.js"
+      ],
+      "preLaunchTask": "Corpus: Build + Profile",
+      "presentation": { "group": "2-tests", "order": 5 }
+    },
+    // ── Engine tests ─────────────────────────────────────────────
+    {
+      "name": "🧪 Engine Tests - All",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+      "args": ["--timeout", "60000", "${workspaceFolder}/packages/engine/out/test/**/*.test.js"],
+      "cwd": "${workspaceFolder}/packages/engine",
+      "outFiles": ["${workspaceFolder}/packages/engine/out/**/*.js"],
+      "preLaunchTask": "Build Engine Tests",
+      "console": "integratedTerminal",
+      "presentation": { "group": "3-engine", "order": 1 }
+    },
+    {
+      // Open an engine test (packages/engine/test/<folder>/<name>.test.ts) and start this.
+      "name": "🧪 Engine Tests - Current File",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+      "args": [
+        "--timeout",
+        "60000",
+        "${workspaceFolder}/packages/engine/out/test/**/${fileBasenameNoExtension}.js"
+      ],
+      "cwd": "${workspaceFolder}/packages/engine",
+      "outFiles": ["${workspaceFolder}/packages/engine/out/**/*.js"],
+      "preLaunchTask": "Build Engine Tests",
+      "console": "integratedTerminal",
+      "presentation": { "group": "3-engine", "order": 2 }
+    },
+    {
+      // The engine-path corpus run for one mod (scripts/corpus-acceptance.js), the CLI's
+      // `check <mod> --vanilla <game>` per mod in a child process; writes the engine record.
+      "name": "🧪 Corpus Suite - one mod (engine path)",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/packages/engine/scripts/corpus-acceptance.js",
+      "args": ["${input:corpusDir}", "${input:gameDir}", "${input:corpusSlug}"],
+      "cwd": "${workspaceFolder}/packages/engine",
+      "autoAttachChildProcesses": true,
+      "outFiles": ["${workspaceFolder}/packages/engine/dist/**/*.js"],
+      "preLaunchTask": "Build Engine",
+      "console": "integratedTerminal",
+      "presentation": { "group": "3-engine", "order": 3 }
+    }
+  ],
+  "compounds": [
+    {
+      // The Extension Development Host in Dev Mode and the debugger on its language server:
+      // client and server breakpoints in one session.
+      "name": "🎯 Extension + Server (Dev Mode)",
+      "configurations": ["🎯 Extension - Dev Mode", "🔌 Attach to Language Server (Development Host)"],
+      "stopAll": true,
+      "presentation": { "group": "1-extension", "order": 0 }
+    }
+  ],
+  "inputs": [
+    {
+      "id": "corpusDir",
+      "type": "promptString",
+      "description": "The real-mod corpus folder (one sub-folder per mod slug)",
+      "default": "/home/cwallace/ck3-corpus"
+    },
+    {
+      "id": "corpusSlug",
+      "type": "pickString",
+      "description": "The corpus mod",
+      "options": ["balance-of-power-ui", "divine-intervention", "elf-destiny", "rice", "viet-events"],
+      "default": "viet-events"
+    },
+    {
+      "id": "gameDir",
+      "type": "promptString",
+      "description": "The CK3 game directory (…/Crusader Kings III/game)",
+      "default": "/mnt/c/Program Files (x86)/Steam/steamapps/common/Crusader Kings III/game"
     }
   ]
 }

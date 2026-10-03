@@ -29,6 +29,18 @@
       "presentation": { "reveal": "silent", "panel": "dedicated" }
     },
     {
+      // The engine and its tests (packages/engine/out), for the engine test launches.
+      "label": "Build Engine Tests",
+      "type": "shell",
+      "command": "npm run build && npm run build:test",
+      "options": { "cwd": "${workspaceFolder}/packages/engine" },
+      "problemMatcher": {
+        "base": "$tsc",
+        "fileLocation": ["relative", "${workspaceFolder}/packages/engine"]
+      },
+      "presentation": { "reveal": "silent", "panel": "dedicated" }
+    },
+    {
       "label": "npm: compile",
       "type": "npm",
       "script": "compile",
@@ -169,6 +181,22 @@
       "dependsOn": ["Build Engine", "Dev Mode + Unit Tests: watchers"],
       "problemMatcher": []
     },
+    // ── Corpus suite (editor path) ───────────────────────────────
+    {
+      // A VS Code profile under vscode-extension/.vscode-test/corpus-profile whose only
+      // setting is ck3LanguageServer.gamePath (the corpus records are made with the base game).
+      "label": "Corpus Profile",
+      "type": "shell",
+      "command": "node tools/corpus-profile.js \"${input:gameDir}\"",
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Corpus: Build + Profile",
+      "dependsOrder": "sequence",
+      "dependsOn": ["Build Extension (Install + Compile)", "Corpus Profile"],
+      "problemMatcher": []
+    },
     // ── Tests ────────────────────────────────────────────────────
     {
       "label": "Run Unit Tests",
@@ -230,6 +258,14 @@
       "path": "vscode-extension/",
       "problemMatcher": [],
       "presentation": { "reveal": "always", "panel": "dedicated" }
+    }
+  ],
+  "inputs": [
+    {
+      "id": "gameDir",
+      "type": "promptString",
+      "description": "The CK3 game directory (…/Crusader Kings III/game)",
+      "default": "/mnt/c/Program Files (x86)/Steam/steamapps/common/Crusader Kings III/game"
     }
   ]
 }
