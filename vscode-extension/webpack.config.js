@@ -1,6 +1,46 @@
 const path = require('path');
 const CopyPlugin = require('copy-webpack-plugin');
 
+/**
+ * Watch-mode markers for VS Code's background problem matcher (.vscode/tasks.json,
+ * "extension: watch"): `[watch] build started` when the first of the bundles starts a
+ * (re)build and `[watch] build finished` once every bundle has finished, so the Dev Mode
+ * launch waits for both. Silent outside watch mode. One instance is shared by all
+ * configurations; `expected` is their number.
+ */
+class WatchMarkers {
+    constructor(expected) {
+        this.expected = expected;
+        this.state = new Map(); // compiler name -> 'running' | 'idle'
+    }
+
+    busy() {
+        return Array.from(this.state.values()).some((s) => s === 'running');
+    }
+
+    apply(compiler) {
+        const name = compiler.options.output.filename;
+        compiler.hooks.watchRun.tap('WatchMarkers', () => {
+            if (!this.busy()) {
+                process.stdout.write('[watch] build started\n');
+            }
+            this.state.set(name, 'running');
+        });
+        const finish = () => {
+            if (!compiler.watchMode) {
+                return;
+            }
+            this.state.set(name, 'idle');
+            if (this.state.size === this.expected && !this.busy()) {
+                process.stdout.write('[watch] build finished\n');
+            }
+        };
+        compiler.hooks.done.tap('WatchMarkers', finish);
+        compiler.hooks.failed.tap('WatchMarkers', finish);
+    }
+}
+const watchMarkers = new WatchMarkers(2);
+
 module.exports = [
     // Extension configuration
     {
@@ -17,6 +57,7 @@ module.exports = [
         externals: {
             vscode: 'commonjs vscode'
         },
+        plugins: [watchMarkers],
         resolve: {
             extensions: ['.ts', '.js']
         },
@@ -69,6 +110,7 @@ module.exports = [
             ]
         },
         plugins: [
+            watchMarkers,
             new CopyPlugin({
                 patterns: [
                     // Optional game-content data read at runtime (server/data/*): animation

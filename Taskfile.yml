@@ -49,9 +49,45 @@ tasks:
     cmds:
       - npm run package
 
+  # ─── Dev Mode (#36) ─────────────────────────────────────────────
+  # `task dev` keeps everything current while developing: the engine (tsc --watch, after
+  # copying the spec package into dist/data) and the extension bundle (webpack --watch,
+  # which rebuilds when the engine's dist/ changes). `task dev:tests` adds the unit tests
+  # in watch mode. In VS Code the same is the "Dev Mode" task and launch configuration.
+
+  dev:
+    desc: "Dev Mode: engine tsc --watch + extension webpack --watch, in parallel (Ctrl+C stops both)"
+    deps: [install]
+    cmds:
+      # One engine build first: the extension's ts-loader does not recover when it starts
+      # before the engine's type declarations exist (a fresh clone).
+      - task: engine:build
+      - task: dev:watchers
+
+  dev:watchers:
+    internal: true
+    deps: [engine:watch, watch]
+
+  dev:tests:
+    desc: "Dev Mode plus the extension's unit tests in watch mode (tsc --watch on the tests, mocha --watch)"
+    deps: [install]
+    cmds:
+      - task: compile:tests
+      - task: dev:watchers:tests
+
+  dev:watchers:tests:
+    internal: true
+    deps: [engine:watch, watch, test:watch:compile, test:watch]
+
   watch:
-    desc: Watch mode for extension rebuild
+    desc: Watch mode for the extension bundle only (webpack --watch; picks up a rebuilt engine dist/)
     dir: "{{.EXT_DIR}}"
+    cmds:
+      - npm run watch
+
+  engine:watch:
+    desc: Watch mode for the engine only (copies the spec package, then tsc --watch)
+    dir: packages/engine
     cmds:
       - npm run watch
 
@@ -125,10 +161,16 @@ tasks:
       - npm run test:quick
 
   test:watch:
-    desc: Watch and re-run tests on changes
+    desc: "Re-run the extension's unit tests when out/ or the engine's dist/ changes (mocha --watch; needs compiled tests: task compile:tests, or use task dev:tests)"
     dir: "{{.EXT_DIR}}"
     cmds:
       - npm run test:watch
+
+  test:watch:compile:
+    internal: true
+    dir: "{{.EXT_DIR}}"
+    cmds:
+      - npm run watch-tests
 
   # ─── Test Groups (run related test files together) ─────────────
 

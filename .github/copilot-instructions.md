@@ -79,6 +79,7 @@ the only lock file). Then use the Taskfile:
 | Task | What it does |
 | --- | --- |
 | `task build` | Install if needed, build the engine, webpack the extension, compile the tests |
+| `task dev` / `task dev:tests` | Dev Mode: engine `tsc --watch` + extension `webpack --watch` in parallel (plus the unit tests in watch mode); VS Code task and launch configuration **Dev Mode** |
 | `task engine:test` | Engine unit, golden, corpus and CLI tests |
 | `task engine:check` | Engine lint (`--max-warnings=0`) and Prettier check |
 | `task test:unit` | Extension unit tests (mocha, no VS Code) |

@@ -16,7 +16,8 @@ repos:
       - id: check-added-large-files
         args: [--maxkb=1000]
       - id: check-json
-        exclude: ^(vscode-extension/syntaxes/|examples/|plan docs/)
+        # .vscode/*.json are JSON with comments (VS Code's format), not JSON.
+        exclude: ^(vscode-extension/syntaxes/|examples/|plan docs/|\.vscode/)
       - id: check-merge-conflict
       - id: mixed-line-ending
         args: [--fix=lf]

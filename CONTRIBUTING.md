@@ -90,6 +90,31 @@ for how a new game version is adopted.
 
 ## Development workflow
 
+### Dev Mode: everything current while you edit
+
+The extension bundles the **built** engine (`packages/engine/dist`), so an engine change
+reaches the editor only after the engine is rebuilt and the bundle is rebuilt on top of it.
+Dev Mode keeps both current:
+
+| Terminal | VS Code | What runs |
+| --- | --- | --- |
+| `task dev` | task **Dev Mode** | one engine build, then in parallel: the engine in `tsc --watch` (after copying the spec package into `dist/data`) and the extension and server bundles in `webpack --watch`, which rebuild when the engine's `dist/` changes |
+| `task dev:tests` | task **Dev Mode + Unit Tests** | the same plus the extension's unit tests: `tsc --watch` on the tests and `mocha --watch`, re-run when `out/` or the engine's `dist/` changes |
+| | launch **🎯 Extension - Dev Mode** (F5) | starts **Dev Mode**, waits until both bundles report a finished build, then opens the Extension Development Host on `example mod/` |
+
+The VS Code tasks have problem matchers: TypeScript errors of the engine, of the bundles
+(ts-loader's `[tsl] ERROR in …`) and failing unit tests (at the failing line of the
+`.test.ts` file) appear in the Problems view, and the background tasks report "ready" when
+the build has finished, which is what the launch configuration waits for. After a rebuild,
+reload the Extension Development Host (**Developer: Reload Window**, `Ctrl+R` in that window)
+to load the new bundle. `task watch` (bundle only) and `task engine:watch` (engine only) run
+one side alone.
+
+Issue #36 was written for the Python language server that 2.0.0 removed: its "Python LSP
+server in watch/debug mode" is now the TypeScript server, which webpack bundles in the same
+watch as the client (`dist/server-main.js`), and its engine in `tsc --watch`; debugging the
+server is in [debugging.md](Documentation/developer-guide/debugging.md).
+
 ### Making changes
 
 1. Branch: `git checkout -b feature/your-feature-name`.

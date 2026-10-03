@@ -1,100 +1,175 @@
 {
+  // Tasks for developing pychivalry in VS Code. The Taskfile (Taskfile.yml) has the same
+  // entry points for the terminal; these use npm directly so that Task is not required.
+  // Debugging guide: Documentation/developer-guide/debugging.md.
   "version": "2.0.0",
   "tasks": [
     // ── Install & Build ──────────────────────────────────────────
     {
-      "label": "Install Extension Dependencies",
-      "type": "npm",
-      "script": "install",
-      "path": "vscode-extension/",
+      // The npm workspace is installed from the root lock file only (packages/engine +
+      // vscode-extension); never `npm install` inside vscode-extension/.
+      "label": "Install Workspace (npm ci)",
+      "type": "shell",
+      "command": "npm ci",
+      "options": { "cwd": "${workspaceFolder}" },
       "problemMatcher": [],
-      "presentation": {
-        "reveal": "always",
-        "panel": "shared",
-        "showReuseMessage": false
-      }
+      "presentation": { "reveal": "always", "panel": "shared", "showReuseMessage": false }
     },
     {
-      "label": "Build Extension (Install + Compile)",
-      "dependsOrder": "sequence",
-      "dependsOn": [
-        "Install Extension Dependencies",
-        "npm: compile"
-      ],
-      "problemMatcher": []
+      // The extension bundles the BUILT engine (packages/engine/dist), so the engine is
+      // built before webpack runs.
+      "label": "Build Engine",
+      "type": "npm",
+      "script": "build",
+      "path": "packages/engine/",
+      "problemMatcher": {
+        "base": "$tsc",
+        "fileLocation": ["relative", "${workspaceFolder}/packages/engine"]
+      },
+      "presentation": { "reveal": "silent", "panel": "dedicated" }
     },
     {
       "label": "npm: compile",
       "type": "npm",
       "script": "compile",
       "path": "vscode-extension/",
-      "problemMatcher": "$tsc",
-      "presentation": {
-        "reveal": "silent",
-        "panel": "dedicated"
+      "dependsOn": ["Build Engine"],
+      "problemMatcher": {
+        "owner": "ck3-webpack",
+        "source": "webpack",
+        "fileLocation": "absolute",
+        "pattern": [
+          { "regexp": "^\\[tsl\\] (ERROR|WARNING) in (.*)\\((\\d+),(\\d+)\\)$", "severity": 1, "file": 2, "line": 3, "column": 4 },
+          { "regexp": "^\\s*(TS\\d+:.*)$", "message": 1 }
+        ]
       },
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      }
+      "presentation": { "reveal": "silent", "panel": "dedicated" },
+      "group": { "kind": "build", "isDefault": true }
+    },
+    {
+      "label": "Build Extension (Install + Compile)",
+      "dependsOrder": "sequence",
+      "dependsOn": ["Install Workspace (npm ci)", "npm: compile", "Compile Tests"],
+      "problemMatcher": []
     },
     {
       "label": "Compile Tests",
       "type": "npm",
       "script": "compile-tests",
       "path": "vscode-extension/",
-      "problemMatcher": "$tsc",
-      "presentation": {
-        "reveal": "silent",
-        "panel": "dedicated"
-      }
+      "problemMatcher": {
+        "base": "$tsc",
+        "fileLocation": ["relative", "${workspaceFolder}/vscode-extension"]
+      },
+      "presentation": { "reveal": "silent", "panel": "dedicated" }
+    },
+    // ── Dev Mode (#36): everything current while you edit ───────
+    {
+      // tsc --watch on packages/engine (after copying the spec package into dist/data).
+      "label": "engine: watch",
+      "type": "npm",
+      "script": "watch",
+      "path": "packages/engine/",
+      "isBackground": true,
+      "problemMatcher": {
+        "base": "$tsc-watch",
+        "fileLocation": ["relative", "${workspaceFolder}/packages/engine"]
+      },
+      "presentation": { "reveal": "never", "panel": "dedicated", "group": "dev" }
     },
     {
-      "label": "npm: watch",
+      // webpack --watch on the extension and server bundles; it rebuilds when the engine's
+      // dist/ changes, so an engine edit reaches the bundle without another step.
+      "label": "extension: watch",
       "type": "npm",
       "script": "watch",
       "path": "vscode-extension/",
       "isBackground": true,
       "problemMatcher": {
-        "base": "$tsc-watch",
+        "owner": "ck3-webpack",
+        "source": "webpack",
+        "fileLocation": "absolute",
+        "pattern": [
+          { "regexp": "^\\[tsl\\] (ERROR|WARNING) in (.*)\\((\\d+),(\\d+)\\)$", "severity": 1, "file": 2, "line": 3, "column": 4 },
+          { "regexp": "^\\s*(TS\\d+:.*)$", "message": 1 }
+        ],
         "background": {
           "activeOnStart": true,
-          "beginsPattern": "^\\s*\\d{1,2}:\\d{1,2}:\\d{1,2}(?: AM| PM)? - File change detected\\. Starting incremental compilation\\.\\.\\.",
-          "endsPattern": "^\\s*\\d{1,2}:\\d{1,2}:\\d{1,2}(?: AM| PM)? - (?:Compilation complete\\.|Found \\d+ errors?\\. Watching for file changes\\.)"
+          "beginsPattern": "^\\[watch\\] build started$",
+          "endsPattern": "^\\[watch\\] build finished$"
         }
       },
-      "presentation": {
-        "reveal": "never",
-        "panel": "dedicated"
-      }
+      "presentation": { "reveal": "never", "panel": "dedicated", "group": "dev" }
+    },
+    {
+      // tsc --watch on the extension's tests (out/), for the unit-test watcher below.
+      "label": "tests: compile watch",
+      "type": "npm",
+      "script": "watch-tests",
+      "path": "vscode-extension/",
+      "isBackground": true,
+      "problemMatcher": {
+        "base": "$tsc-watch",
+        "fileLocation": ["relative", "${workspaceFolder}/vscode-extension"]
+      },
+      "presentation": { "reveal": "never", "panel": "dedicated", "group": "dev" }
+    },
+    {
+      // mocha --watch on the extension's unit tests: re-runs when out/ or the engine's dist/
+      // changes. A failing test is reported at the failing line of its .test.ts file.
+      "label": "tests: unit watch",
+      "type": "npm",
+      "script": "test:watch",
+      "path": "vscode-extension/",
+      "isBackground": true,
+      "dependsOn": ["Compile Tests"],
+      "problemMatcher": {
+        "owner": "mocha",
+        "source": "mocha",
+        "fileLocation": ["relative", "${workspaceFolder}/vscode-extension"],
+        "pattern": {
+          "regexp": "^\\s+at (?:async )?Context\\.<anonymous> \\((.+\\.test\\.ts):(\\d+):(\\d+)\\)$",
+          "file": 1,
+          "line": 2,
+          "column": 3,
+          "message": 0
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^\\s*$",
+          "endsPattern": "\\[mocha\\] waiting for changes"
+        }
+      },
+      "presentation": { "reveal": "always", "panel": "dedicated", "group": "dev" }
+    },
+    {
+      "label": "Dev Mode: watchers",
+      "dependsOn": ["engine: watch", "extension: watch"],
+      "problemMatcher": []
+    },
+    {
+      // The one compound task: one engine build (ts-loader does not recover when it starts
+      // before the engine's type declarations exist), then the engine and the extension
+      // bundle in watch mode. The "Dev Mode" launch configuration starts the Extension
+      // Development Host on top of it once both report a finished build. Same as `task dev`.
+      "label": "Dev Mode",
+      "dependsOrder": "sequence",
+      "dependsOn": ["Build Engine", "Dev Mode: watchers"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Dev Mode + Unit Tests: watchers",
+      "dependsOn": ["engine: watch", "extension: watch", "tests: compile watch", "tests: unit watch"],
+      "problemMatcher": []
+    },
+    {
+      // Dev Mode plus the extension's unit tests in watch mode. Same as `task dev:tests`.
+      "label": "Dev Mode + Unit Tests",
+      "dependsOrder": "sequence",
+      "dependsOn": ["Build Engine", "Dev Mode + Unit Tests: watchers"],
+      "problemMatcher": []
     },
     // ── Tests ────────────────────────────────────────────────────
-    {
-      "label": "Run Extension Tests",
-      "type": "npm",
-      "script": "test",
-      "path": "vscode-extension/",
-      "problemMatcher": [],
-      "presentation": {
-        "reveal": "always",
-        "panel": "dedicated"
-      },
-      "group": {
-        "kind": "test",
-        "isDefault": true
-      }
-    },
-    {
-      "label": "Run Extension Tests (Quick)",
-      "type": "npm",
-      "script": "test:quick",
-      "path": "vscode-extension/",
-      "problemMatcher": [],
-      "presentation": {
-        "reveal": "always",
-        "panel": "dedicated"
-      }
-    },
     {
       "label": "Run Unit Tests",
       "type": "npm",
@@ -102,10 +177,17 @@
       "path": "vscode-extension/",
       "dependsOn": ["Compile Tests"],
       "problemMatcher": [],
-      "presentation": {
-        "reveal": "always",
-        "panel": "dedicated"
-      }
+      "presentation": { "reveal": "always", "panel": "dedicated" },
+      "group": { "kind": "test", "isDefault": true }
+    },
+    {
+      // The integration suite in a downloaded VS Code (add xvfb-run -a on headless Linux).
+      "label": "Run Integration Tests",
+      "type": "npm",
+      "script": "test:integration",
+      "path": "vscode-extension/",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated" }
     },
     {
       "label": "Run Example Mod Validation Tests",
@@ -114,98 +196,15 @@
       "path": "vscode-extension/",
       "dependsOn": ["Compile Tests"],
       "problemMatcher": [],
-      "presentation": {
-        "reveal": "always",
-        "panel": "dedicated"
-      }
-    },
-    // ── Test Groups ─────────────────────────────────────────────
-    {
-      "label": "Run Core Tests (parser, indexer, cache)",
-      "type": "shell",
-      "command": "npx mocha ./out/test/unit/parser.test.js ./out/test/unit/incremental-parser.test.js ./out/test/unit/parse-cache.test.js ./out/test/unit/indexer.test.js --timeout 15000",
-      "options": { "cwd": "${workspaceFolder}/vscode-extension" },
-      "dependsOn": ["Compile Tests"],
-      "problemMatcher": [],
-      "presentation": {
-        "reveal": "always",
-        "panel": "dedicated"
-      }
+      "presentation": { "reveal": "always", "panel": "dedicated" }
     },
     {
-      "label": "Run LSP Tests (completions, hover, navigation)",
-      "type": "shell",
-      "command": "npx mocha ./out/test/unit/completions.test.js ./out/test/unit/hover.test.js ./out/test/unit/selection-range.test.js ./out/test/unit/call-hierarchy.test.js ./out/test/unit/call-graph.test.js ./out/test/unit/fuzzy-match.test.js --timeout 15000",
-      "options": { "cwd": "${workspaceFolder}/vscode-extension" },
-      "dependsOn": ["Compile Tests"],
-      "problemMatcher": [],
-      "presentation": {
-        "reveal": "always",
-        "panel": "dedicated"
-      }
-    },
-    {
-      "label": "Run Validation Tests (diagnostics, scopes, modifiers)",
-      "type": "shell",
-      "command": "npx mocha ./out/test/unit/diagnostics-engine.test.js ./out/test/unit/style-checks.test.js ./out/test/unit/scopes.test.js ./out/test/unit/script-values.test.js ./out/test/unit/scripted-params.test.js ./out/test/unit/modifiers.test.js ./out/test/unit/schema-conditions.test.js ./out/test/unit/localization-validator.test.js --timeout 15000",
-      "options": { "cwd": "${workspaceFolder}/vscode-extension" },
-      "dependsOn": ["Compile Tests"],
-      "problemMatcher": [],
-      "presentation": {
-        "reveal": "always",
-        "panel": "dedicated"
-      }
-    },
-    {
-      "label": "Run CK3 Game Logic Tests (events, decisions, schemes)",
-      "type": "shell",
-      "command": "npx mocha ./out/test/unit/events.test.js ./out/test/unit/on-actions.test.js ./out/test/unit/schemes.test.js ./out/test/unit/casus-belli.test.js ./out/test/unit/court-positions.test.js ./out/test/unit/language.test.js --timeout 15000",
-      "options": { "cwd": "${workspaceFolder}/vscode-extension" },
-      "dependsOn": ["Compile Tests"],
-      "problemMatcher": [],
-      "presentation": {
-        "reveal": "always",
-        "panel": "dedicated"
-      }
-    },
-    {
-      "label": "Run Log Analysis Tests (analyzer, diagnostics)",
-      "type": "shell",
-      "command": "npx mocha ./out/test/unit/log-analyzer.test.js ./out/test/unit/log-diagnostics.test.js --timeout 15000",
-      "options": { "cwd": "${workspaceFolder}/vscode-extension" },
-      "dependsOn": ["Compile Tests"],
-      "problemMatcher": [],
-      "presentation": {
-        "reveal": "always",
-        "panel": "dedicated"
-      }
-    },
-    {
-      "label": "Watch Extension Tests",
+      "label": "Run Engine Tests",
       "type": "npm",
-      "script": "test:watch",
-      "path": "vscode-extension/",
-      "isBackground": true,
-      "problemMatcher": {
-        "owner": "mocha",
-        "pattern": [
-          {
-            "regexp": ".",
-            "file": 1,
-            "location": 2,
-            "message": 3
-          }
-        ],
-        "background": {
-          "activeOnStart": true,
-          "beginsPattern": "^.*starting.*$",
-          "endsPattern": "^.*tests complete.*$"
-        }
-      },
-      "presentation": {
-        "reveal": "always",
-        "panel": "dedicated"
-      }
+      "script": "test",
+      "path": "packages/engine/",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated" }
     },
     // ── Code Quality ─────────────────────────────────────────────
     {
@@ -214,10 +213,7 @@
       "script": "lint",
       "path": "vscode-extension/",
       "problemMatcher": "$eslint-stylish",
-      "presentation": {
-        "reveal": "always",
-        "panel": "dedicated"
-      }
+      "presentation": { "reveal": "always", "panel": "dedicated" }
     },
     {
       "label": "Format Check",
@@ -225,10 +221,7 @@
       "script": "format-check",
       "path": "vscode-extension/",
       "problemMatcher": [],
-      "presentation": {
-        "reveal": "always",
-        "panel": "dedicated"
-      }
+      "presentation": { "reveal": "always", "panel": "dedicated" }
     },
     {
       "label": "Format",
@@ -236,10 +229,7 @@
       "script": "format",
       "path": "vscode-extension/",
       "problemMatcher": [],
-      "presentation": {
-        "reveal": "always",
-        "panel": "dedicated"
-      }
+      "presentation": { "reveal": "always", "panel": "dedicated" }
     }
   ]
 }

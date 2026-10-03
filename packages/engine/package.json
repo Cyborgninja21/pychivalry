@@ -22,6 +22,8 @@
     },
     "scripts": {
         "build": "tsc -p tsconfig.json && node scripts/copy-spec.js",
+        "prewatch": "node scripts/copy-spec.js",
+        "watch": "tsc -p tsconfig.json --watch --preserveWatchOutput",
         "build:test": "tsc -p tsconfig.test.json",
         "test": "npm run build && npm run build:test && mocha --timeout 60000 \"out/test/**/*.test.js\"",
         "lint": "eslint src test --ext ts --max-warnings=0",

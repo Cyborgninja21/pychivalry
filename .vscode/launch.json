@@ -37,7 +37,9 @@
       }
     },
     {
-      "name": "🎯 Extension - Watch Mode",
+      // Dev Mode (#36): the engine in tsc --watch and both bundles in webpack --watch
+      // (task "Dev Mode", same as `task dev`); the host opens once both builds finished.
+      "name": "🎯 Extension - Dev Mode",
       "type": "extensionHost",
       "request": "launch",
       "args": [
@@ -47,7 +49,7 @@
       "outFiles": [
         "${workspaceFolder}/vscode-extension/dist/**/*.js"
       ],
-      "preLaunchTask": "npm: watch",
+      "preLaunchTask": "Dev Mode",
       "presentation": {
         "group": "1-extension",
         "order": 3
