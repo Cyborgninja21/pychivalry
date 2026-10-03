@@ -197,7 +197,7 @@
             "ck3-plugin"
         ],
         "filesValidated": 906,
-        "filesWithFindings": 421,
+        "filesWithFindings": 422,
         "filesAtCap": [
             "common/activities/activity_types/entrance_feast.txt",
             "common/coat_of_arms/coat_of_arms/elf_title_coa.txt",
@@ -222,28 +222,28 @@
             "events/wolf_invader_events.txt",
             "gfx/portraits/portrait_modifiers/elf_characters.txt"
         ],
-        "timeToFirstFullResultMs": 17314,
-        "serverUptimeAtFirstFullResultMs": 16075,
-        "backgroundPassMs": 3311,
-        "peakServerRssKb": 399032,
-        "serverVmHwmKb": 399032,
+        "timeToFirstFullResultMs": 45940,
+        "serverUptimeAtFirstFullResultMs": 44464,
+        "backgroundPassMs": 7118,
+        "peakServerRssKb": 353720,
+        "serverVmHwmKb": 353720,
         "longestFile": {
-            "milliseconds": 256.8,
+            "milliseconds": 503.8,
             "file": "localization/english/aeluran/aeluran_regency_l_english.yml"
         },
         "longestScriptFile": {
-            "milliseconds": 51.5,
-            "file": "common/genes/01_genes_morph.txt"
+            "milliseconds": 161.1,
+            "file": "common/activities/activity_types/aeluran_matchmaking.txt"
         },
         "longestLocalizationFile": {
-            "milliseconds": 256.8,
+            "milliseconds": 503.6,
             "file": "localization/english/aeluran/aeluran_regency_l_english.yml"
         },
         "bySeverity": {
             "error": 15,
             "warning": 500,
-            "information": 1546,
-            "hint": 47117
+            "information": 1575,
+            "hint": 47729
         },
         "counts": {
             "CK3301": {
@@ -252,11 +252,11 @@
             },
             "CK3303": {
                 "severity": "hint",
-                "count": 21649
+                "count": 21632
             },
             "CK3304": {
                 "severity": "hint",
-                "count": 4812
+                "count": 4808
             },
             "CK3306": {
                 "severity": "hint",
@@ -272,7 +272,11 @@
             },
             "CK3317": {
                 "severity": "hint",
-                "count": 10215
+                "count": 10200
+            },
+            "CK3433": {
+                "severity": "information",
+                "count": 8
             },
             "CK3450": {
                 "severity": "information",
@@ -286,9 +290,21 @@
                 "severity": "information",
                 "count": 12
             },
-            "CK3612": {
+            "CK3563": {
+                "severity": "information",
+                "count": 21
+            },
+            "CK3611": {
                 "severity": "information",
                 "count": 5
+            },
+            "CK3612": {
+                "severity": "information",
+                "count": 1
+            },
+            "CK3613": {
+                "severity": "hint",
+                "count": 648
             },
             "CK3656": {
                 "severity": "information",
@@ -317,6 +333,10 @@
             "CK3764": {
                 "severity": "information",
                 "count": 1
+            },
+            "CK3765": {
+                "severity": "information",
+                "count": 9
             },
             "CK3769": {
                 "severity": "information",
@@ -353,10 +373,6 @@
             "COND-001": {
                 "severity": "information",
                 "count": 1
-            },
-            "CONV-002": {
-                "severity": "information",
-                "count": 10
             },
             "ITER-003": {
                 "severity": "information",

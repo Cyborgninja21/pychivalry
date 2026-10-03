@@ -211,6 +211,12 @@ export class CodeActionsProvider {
             ['CK4100', this.fixMissingLocalization.bind(this)],
             ['CK3303', this.fixIndentation.bind(this)],
             ['CK3306', this.fixSpacing.bind(this)],
+            // 2.2 (#85): the most frequent plug-in codes on the real-mod corpus that have a
+            // mechanical fix (Documentation/developer-guide/diagnostics-evidence.md).
+            ['CK3304', this.fixTrailingWhitespace.bind(this)],
+            ['CK3301', this.fixIndentation.bind(this)],
+            ['CK3314', this.fixEmptyBlock.bind(this)],
+            ['CK3613', this.fixMissingAiChance.bind(this)],
         ]);
     }
 
@@ -439,7 +445,11 @@ export class CodeActionsProvider {
         diag: Diagnostic,
         _ctx: CodeActionContext
     ): CodeAction[] {
-        const key = doc.getText(diag.range);
+        // The diagnostic covers `field = key`: the key is the value (unquoted).
+        const text = doc.getText(diag.range);
+        const key = (text.includes('=') ? text.slice(text.indexOf('=') + 1) : text)
+            .trim()
+            .replace(/^"(.*)"$/, '$1');
 
         return [
             new CodeActionBuilder(`Generate localization stub for '${key}'`)
@@ -459,11 +469,22 @@ export class CodeActionsProvider {
         diag: Diagnostic,
         _ctx: CodeActionContext
     ): CodeAction[] {
-        const line = doc.getText({
-            start: { line: diag.range.start.line, character: 0 },
-            end: { line: diag.range.start.line, character: 100 },
+        const line = this.lineText(doc, diag.range.start.line);
+        // Leading whitespace to tabs: a tab stays a tab, four spaces become one (CK3303 spaces,
+        // CK3301 tabs and spaces mixed).
+        const fixed = line.replace(/^[ \t]+/, (lead) => {
+            let tabs = 0;
+            let spaces = 0;
+            for (const ch of lead) {
+                if (ch === '\t') {
+                    tabs += 1 + Math.floor(spaces / 4);
+                    spaces = 0;
+                } else {
+                    spaces++;
+                }
+            }
+            return '\t'.repeat(tabs + Math.round(spaces / 4));
         });
-        const fixed = line.replace(/^ +/, (spaces) => '\t'.repeat(Math.floor(spaces.length / 4)));
 
         return [
             new CodeActionBuilder('Fix indentation (use tabs)')
@@ -502,9 +523,121 @@ export class CodeActionsProvider {
         ];
     }
 
+    /** CK3304: remove the trailing whitespace of the line. */
+    private fixTrailingWhitespace(
+        doc: TextDocument,
+        diag: Diagnostic,
+        _ctx: CodeActionContext
+    ): CodeAction[] {
+        const lineNo = diag.range.start.line;
+        const line = this.lineText(doc, lineNo);
+        const trimmed = line.replace(/[ \t]+$/, '');
+        if (trimmed === line) {
+            return [];
+        }
+        return [
+            new CodeActionBuilder('Remove trailing whitespace')
+                .withKind(CodeActionKind.QuickFix)
+                .withDiagnostic(diag)
+                .withEdit({
+                    changes: {
+                        [doc.uri]: [
+                            {
+                                range: {
+                                    start: { line: lineNo, character: trimmed.length },
+                                    end: { line: lineNo, character: line.length },
+                                },
+                                newText: '',
+                            },
+                        ],
+                    },
+                })
+                .isPreferred()
+                .build(),
+        ];
+    }
+
+    /**
+     * CK3314: remove the empty block `key = { }` (the whole line when nothing else is on it).
+     */
+    private fixEmptyBlock(
+        doc: TextDocument,
+        diag: Diagnostic,
+        _ctx: CodeActionContext
+    ): CodeAction[] {
+        const start = diag.range.start;
+        const end = diag.range.end;
+        const before = this.lineText(doc, start.line).slice(0, start.character);
+        const after = this.lineText(doc, end.line).slice(end.character);
+        const wholeLines = before.trim() === '' && after.trim() === '';
+        const range = wholeLines
+            ? {
+                  start: { line: start.line, character: 0 },
+                  end: { line: end.line + 1, character: 0 },
+              }
+            : diag.range;
+        return [
+            new CodeActionBuilder('Remove the empty block')
+                .withKind(CodeActionKind.QuickFix)
+                .withDiagnostic(diag)
+                .withEdit({ changes: { [doc.uri]: [{ range, newText: '' }] } })
+                .build(),
+        ];
+    }
+
+    /**
+     * CK3613: add `ai_chance = { base = 100 }` before the option's closing brace (100 is the
+     * base the base game's events use most: 7,401 of 15,651 ai_chance bases in 1.20.0.2).
+     */
+    private fixMissingAiChance(
+        doc: TextDocument,
+        diag: Diagnostic,
+        _ctx: CodeActionContext
+    ): CodeAction[] {
+        const end = diag.range.end;
+        const closing = this.lineText(doc, end.line);
+        const indent = /^[ \t]*/.exec(this.lineText(doc, diag.range.start.line))?.[0] ?? '';
+        const braceAt = end.character - 1;
+        if (closing[braceAt] !== '}') {
+            return [];
+        }
+        const ownLine = closing.slice(0, braceAt).trim() === '';
+        const insert = ownLine
+            ? { line: end.line, character: 0, text: `${indent}\tai_chance = { base = 100 }\n` }
+            : { line: end.line, character: braceAt, text: 'ai_chance = { base = 100 } ' };
+        return [
+            new CodeActionBuilder('Add ai_chance = { base = 100 }')
+                .withKind(CodeActionKind.QuickFix)
+                .withDiagnostic(diag)
+                .withEdit({
+                    changes: {
+                        [doc.uri]: [
+                            {
+                                range: {
+                                    start: { line: insert.line, character: insert.character },
+                                    end: { line: insert.line, character: insert.character },
+                                },
+                                newText: insert.text,
+                            },
+                        ],
+                    },
+                })
+                .build(),
+        ];
+    }
+
     // ============================================================================
     // Helper Methods
     // ============================================================================
+
+    /** The text of one line, without its line break. */
+    private lineText(doc: TextDocument, line: number): string {
+        const text = doc.getText({
+            start: { line, character: 0 },
+            end: { line: line + 1, character: 0 },
+        });
+        return text.replace(/\r?\n$/, '');
+    }
 
     /** Keys of the selected text (`key =`, `key ?=`, `key {`). */
     private selectedKeys(text: string): string[] {

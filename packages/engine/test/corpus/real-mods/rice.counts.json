@@ -839,28 +839,28 @@
             "localization/russian/rice_north_atlantic_l_russian.yml",
             "localization/russian/rice_sri_lanka_l_russian.yml"
         ],
-        "timeToFirstFullResultMs": 40704,
-        "serverUptimeAtFirstFullResultMs": 39454,
-        "backgroundPassMs": 17662,
-        "peakServerRssKb": 699824,
-        "serverVmHwmKb": 699824,
+        "timeToFirstFullResultMs": 86428,
+        "serverUptimeAtFirstFullResultMs": 83361,
+        "backgroundPassMs": 26428,
+        "peakServerRssKb": 761576,
+        "serverVmHwmKb": 761576,
         "longestFile": {
-            "milliseconds": 934.7,
-            "file": "localization/french/rice_pamir_l_french.yml"
+            "milliseconds": 887.6,
+            "file": "common/decisions/RICE_mayo_decisions.txt"
         },
         "longestScriptFile": {
-            "milliseconds": 196,
+            "milliseconds": 887.5,
             "file": "common/decisions/RICE_mayo_decisions.txt"
         },
         "longestLocalizationFile": {
-            "milliseconds": 934.3,
-            "file": "localization/french/rice_pamir_l_french.yml"
+            "milliseconds": 450.9,
+            "file": "localization/japanese/rice_nubia_l_japanese.yml"
         },
         "bySeverity": {
             "error": 92,
             "warning": 1064,
-            "information": 2945,
-            "hint": 144752
+            "information": 2964,
+            "hint": 145821
         },
         "counts": {
             "CK3301": {
@@ -873,7 +873,7 @@
             },
             "CK3304": {
                 "severity": "hint",
-                "count": 25223
+                "count": 25105
             },
             "CK3306": {
                 "severity": "hint",
@@ -885,27 +885,43 @@
             },
             "CK3316": {
                 "severity": "hint",
-                "count": 2121
+                "count": 2120
             },
             "CK3317": {
                 "severity": "hint",
-                "count": 35061
+                "count": 34816
+            },
+            "CK3433": {
+                "severity": "information",
+                "count": 1
             },
             "CK3511": {
                 "severity": "information",
                 "count": 3
             },
+            "CK3522": {
+                "severity": "hint",
+                "count": 6
+            },
+            "CK3563": {
+                "severity": "information",
+                "count": 41
+            },
             "CK3611": {
                 "severity": "information",
-                "count": 2
+                "count": 6
             },
             "CK3612": {
                 "severity": "information",
-                "count": 9
+                "count": 7
+            },
+            "CK3613": {
+                "severity": "hint",
+                "count": 1427
             },
             "CK3656": {
                 "severity": "information",
-                "count": 188
+                "count": 183
             },
             "CK3701": {
                 "severity": "information",
@@ -918,6 +934,10 @@
             "CK3703": {
                 "severity": "information",
                 "count": 2
+            },
+            "CK3765": {
+                "severity": "information",
+                "count": 28
             },
             "CK3769": {
                 "severity": "information",
@@ -933,11 +953,11 @@
             },
             "CK3875": {
                 "severity": "information",
-                "count": 1304
+                "count": 1289
             },
             "CK3977": {
                 "severity": "information",
-                "count": 383
+                "count": 381
             },
             "CK5137": {
                 "severity": "information",
@@ -954,10 +974,6 @@
             "COND-003": {
                 "severity": "information",
                 "count": 2
-            },
-            "CONV-002": {
-                "severity": "information",
-                "count": 28
             },
             "GFX001": {
                 "severity": "warning",
@@ -977,7 +993,7 @@
             },
             "undefined_event_target_X": {
                 "severity": "information",
-                "count": 581
+                "count": 578
             },
             "unknown_X_in_X": {
                 "severity": "warning",

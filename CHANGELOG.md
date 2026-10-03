@@ -45,6 +45,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   evaluation order is corrected (#95): the window (title, desc and its `triggered_desc`
   triggers) is evaluated after `immediate`.
 
+- **Quick fixes for the most frequent plug-in codes** (#85), measured on the regenerated
+  real-mod corpus records: trailing whitespace (`CK3304`), mixed indentation to tabs
+  (`CK3301`, with `CK3303`), remove an empty block (`CK3314`), add `ai_chance = { base = 100 }`
+  (`CK3613`). `CK3317` (nesting), `CK3316` (line length), `CK3875` and `CK3977` (iterators
+  without limit) have no mechanical fix. The localization-stub fix now passes the key, not the
+  whole `field = key` text.
+
 ### Changed: renumbered and removed codes
 
 - `CONV-002` is renamed `CK3765` (issue #25; every non-hidden event, not only those with

@@ -93,6 +93,33 @@ and CK3702 (876 → 88) look across the workspace and the base game, and are inf
 hint. Style codes are hints. Counts per code before and after: the audit table of
 diagnostics-evidence.md.
 
+## 2.2: the new codes of steps 4.1 to 4.4, and the quick-fix ranking (step 4.5)
+
+Re-recorded on the editor path after step 4.4 (2026-10-03). Errors and warnings are unchanged
+from step 4.0 (errors 0 / 0 / 15 / 92 / 1, the same warning classes); the new codes are all
+conventions at information or hint severity, summed over the five mods:
+
+| Code | Severity | Count | What |
+| --- | --- | ---: | --- |
+| CK3613 | hint | 3,321 | an option of a several-option event without ai_chance or ai_will_select (#23) |
+| CK3563 | information | 108 | trigger guard: a random_ save used by an option without an any_ check (#60) |
+| CK3765 | information | 43 | a non-hidden event without title (#25; CONV-002's 44 were events with options) |
+| CK3433 | information | 14 | an override_background equal to the theme's own background (#28) |
+| CK3611 | information | 11 | an ai_chance total that is always zero (#21) |
+| CK3612 | information | 11 | an ai_chance total that can be negative (#22) |
+| CK3522 | hint | 11 | an after block that only cleans up (#19) |
+
+CK3423 to CK3426, CK3431, CK3560 and CK3561 report nothing on the corpus (every background
+reference exists, no desc or title text reads a scope saved only in an option).
+
+**The ten most frequent plug-in codes** on these records (step 4.5, issue #85), with the quick
+fix each has: CK3303 79,525 (indentation to tabs), CK3317 48,627 (none: reducing nesting means
+extracting blocks, a design choice), CK3304 35,989 (remove trailing whitespace), CK3306 34,904
+(spaces around the operator), CK3301 20,427 (indentation to tabs), CK3316 3,672 (none: where to
+break a line is a judgement), CK3613 3,321 (add `ai_chance = { base = 100 }`), CK3314 2,164
+(remove the empty block), CK3875 2,017 and CK3977 665 (none: the filter of an iterator is the
+author's decision; an inserted empty limit would change nothing).
+
 ## Summary (2.1 records)
 
 | Mod | Engine path errors | Editor path errors |
