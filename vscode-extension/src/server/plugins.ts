@@ -157,8 +157,14 @@ export function extensionPlugins(env: PluginEnvironment = {}): NamedPlugin[] {
     return [
         {
             name: 'scope-timing',
-            run: wrap(({ ast, file }) =>
-                validateDocumentScopeTiming(ast, DEFAULT_SCOPE_TIMING_CONFIG, file)
+            run: wrap(({ ast, file, spec }) =>
+                validateDocumentScopeTiming(
+                    ast,
+                    DEFAULT_SCOPE_TIMING_CONFIG,
+                    file,
+                    env.localization,
+                    spec
+                )
             ),
         },
         {
@@ -252,6 +258,7 @@ export function extensionPlugins(env: PluginEnvironment = {}): NamedPlugin[] {
                     };
                 }
                 const themes = base?.eventThemes;
+                let workspaceThemeKeys: Set<string> | undefined;
                 return validateParadoxConventions(ast, DEFAULT_PARADOX_CONFIG, {
                     file,
                     isKnownTheme,
@@ -259,12 +266,16 @@ export function extensionPlugins(env: PluginEnvironment = {}): NamedPlugin[] {
                     isKnownBackground,
                     // A theme the workspace redefines may show another background.
                     themeDefaultBackground: themes
-                        ? (theme) =>
-                              workspaceKeysIn(env.workspace, index, 'common/event_themes').has(
-                                  theme
-                              )
+                        ? (theme) => {
+                              workspaceThemeKeys ??= workspaceKeysIn(
+                                  env.workspace,
+                                  index,
+                                  'common/event_themes'
+                              );
+                              return workspaceThemeKeys.has(theme)
                                   ? undefined
-                                  : themes.get(theme)?.defaultBackground
+                                  : themes.get(theme)?.defaultBackground;
+                          }
                         : undefined,
                 });
             }),

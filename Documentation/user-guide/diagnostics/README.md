@@ -11,7 +11,7 @@ pychivalry reports two kinds of diagnostics.
   engine's own, for conditions the catalogue has no text for.
 - **Plug-in diagnostics** (source `ck3-plugin`, or `ck3-localization` in `.yml` files)
   come from the extension's validators that encode behaviour the spec package does not
-  describe (event timing, style, conventions). 80 codes in 14 plug-ins.
+  describe (event timing, style, conventions). 83 codes in 14 plug-ins.
 
 The engine runs parse, registry, schema and scope checks in that order, then the
 plug-ins; see the [validation pipeline](../../developer-guide/architecture/VALIDATION.md).
@@ -54,7 +54,7 @@ is below.
 
 | Page | Codes | What it checks |
 | --- | --- | --- |
-| [scope-timing](plugin-scope-timing.md) | 5 | The event evaluation order: trigger, then immediate, then the window (title, desc and its triggered_desc triggers, portraits, options), then the chosen option, then after. Scopes saved in immediate are available to the window; scopes saved in an option or in after are not. All codes are conventions (information). |
+| [scope-timing](plugin-scope-timing.md) | 8 | The event evaluation order: trigger, then immediate, then the window (title, desc and its triggered_desc triggers, portraits, options), then the chosen option, then after. Scopes saved in immediate are available to the window; scopes saved in an option or in after are not. All codes are conventions (information). |
 | [style-checks](plugin-style-checks.md) | 9 | Formatting and brace style, as hints (the game prints nothing for style). Where the engine reports an unbalanced brace on a line, this plug-in's own brace codes (CK3330, CK3331) on that line are dropped; elsewhere they point at the probable line of a brace the engine's parse error reports. |
 | [conventions](plugin-conventions.md) | 3 | if/else ordering (COND), as information. (The event conventions CONV-001 to CONV-004 were retired or merged into paradox-checks in 2.2.) |
 | [localization-references](plugin-localization-references.md) | 3 | Localization keys referenced from script (an event's title, desc and opening, an option's name, a decision's title, desc, selection_tooltip and confirm_text, any custom_tooltip): literal text where a key belongs, and keys defined neither in the workspace's localization files nor in the base game's (only while the base game is known, ck3LanguageServer.gamePath). |

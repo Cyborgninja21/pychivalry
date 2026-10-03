@@ -27,10 +27,17 @@
  *             do not outlive the effect that sets them. Ordinary and global variables persist
  *             and are not reported (issue #97: an earlier firing set it)
  *     CK3554: a temporary scope passed to a triggered event (it does not persist)
+ *     CK3560: the desc localization text reads a scope this event saves only in an option or
+ *             `after` (the localization half of #60, on the corrected order of #95: a scope
+ *             saved in immediate is available to the desc text and is not reported)
+ *     CK3561: the same for the title localization text
+ *     CK3563: trigger guard (#60): `immediate` saves a scope from a `random_` iterator, an
+ *             option uses it and `trigger` has no `any_` iterator over the same list (the list
+ *             base from the spec package), so the scope can be unset when nothing matches
  */
 
 import { Diagnostic, DiagnosticSeverity, Range } from 'vscode-languageserver';
-import { ASTNode } from 'pychivalry-engine';
+import { ASTNode, LocalizationIndex, Spec } from 'pychivalry-engine';
 import { childrenWithKey, eventsOf, isEventFile, walk } from './event-helpers';
 
 export interface ScopeTimingConfig {
@@ -39,6 +46,8 @@ export interface ScopeTimingConfig {
     checkTriggeredDesc: boolean;
     checkVariables: boolean;
     checkTemporaryScopes: boolean;
+    checkLocalization: boolean;
+    checkTriggerGuard: boolean;
 }
 
 export const DEFAULT_SCOPE_TIMING_CONFIG: ScopeTimingConfig = {
@@ -47,6 +56,8 @@ export const DEFAULT_SCOPE_TIMING_CONFIG: ScopeTimingConfig = {
     checkTriggeredDesc: true,
     checkVariables: true,
     checkTemporaryScopes: true,
+    checkLocalization: true,
+    checkTriggerGuard: true,
 };
 
 const CONVENTION = 'Convention: ';
@@ -278,11 +289,135 @@ function checkTemporaryScopes(event: ASTNode, out: Diagnostic[]): void {
     });
 }
 
+/** Localization keys a title or desc block names (plain keys and dynamic descriptions). */
+function locKeysOf(block: ASTNode): string[] {
+    const keys: string[] = [];
+    walk(block, (n) => {
+        if (
+            (n === block || n.key === 'desc' || n.key === 'text') &&
+            typeof n.value === 'string' &&
+            /^[A-Za-z_][A-Za-z0-9_.]*$/.test(n.value)
+        ) {
+            keys.push(n.value);
+        }
+    });
+    return keys;
+}
+
+/**
+ * Saved-scope names a localization text reads: `[name.GetFirstName]`, `[name|E]` and
+ * `[SCOPE.sC('name')…]` (the first segment of a bracket expression; ROOT, THIS and the
+ * other capitalised data types are not saved scopes).
+ */
+export function locScopeNames(text: string): Set<string> {
+    const names = new Set<string>();
+    for (const m of text.matchAll(/\[([a-z_][A-Za-z0-9_]*)[.|\]]/g)) {
+        names.add(m[1]);
+    }
+    for (const m of text.matchAll(/SCOPE\.s[A-Za-z]*\('([A-Za-z0-9_]+)'\)/g)) {
+        names.add(m[1]);
+    }
+    return names;
+}
+
+/** CK3560 / CK3561: desc and title texts that read scopes saved only after display. */
+function checkLocalization(
+    event: ASTNode,
+    localization: LocalizationIndex | undefined,
+    out: Diagnostic[]
+): void {
+    if (!localization) {
+        return;
+    }
+    const late = savedAfterDisplay(event);
+    if (late.size === 0) {
+        return;
+    }
+    for (const [field, code] of [
+        ['desc', 'CK3560'],
+        ['title', 'CK3561'],
+    ] as const) {
+        for (const block of childrenWithKey(event, field)) {
+            for (const key of locKeysOf(block)) {
+                const entry = localization.findLocalization(key);
+                if (!entry) {
+                    continue;
+                }
+                for (const name of locScopeNames(entry.text)) {
+                    if (late.has(name)) {
+                        out.push(
+                            info(
+                                `the ${field} text '${key}' reads scope '${name}', which this event saves only in an option or after, after the window is shown.`,
+                                block.range,
+                                code
+                            )
+                        );
+                    }
+                }
+            }
+        }
+    }
+}
+
+/** The list base of an iterator key (`random_courtier` → `courtier`), from the spec. */
+function listBaseOf(key: string, prefix: string, spec?: Spec): string | undefined {
+    if (!key.startsWith(prefix)) {
+        return undefined;
+    }
+    if (spec) {
+        const match = spec.isIterator(key);
+        return match && match.prefix === prefix ? match.base : undefined;
+    }
+    return key.slice(prefix.length);
+}
+
+/** CK3563: a random_ iterator saves the scope in immediate with no any_ guard in trigger. */
+function checkTriggerGuard(event: ASTNode, out: Diagnostic[], spec?: Spec): void {
+    const trigger = childrenWithKey(event, 'trigger');
+    const guarded = new Set<string>();
+    for (const t of trigger) {
+        walk(t, (n) => {
+            const base = n.key ? listBaseOf(n.key, 'any_', spec) : undefined;
+            if (base) {
+                guarded.add(base);
+            }
+        });
+    }
+    const usedInOptions = new Set<string>();
+    for (const option of childrenWithKey(event, 'option')) {
+        for (const { name } of scopeReads(option)) {
+            usedInOptions.add(name);
+        }
+    }
+    for (const imm of childrenWithKey(event, 'immediate')) {
+        walk(imm, (n) => {
+            const list = n.key ? listBaseOf(n.key, 'random_', spec) : undefined;
+            if (!list || !n.children) {
+                return;
+            }
+            for (const child of n.children) {
+                const name = savedName(child);
+                if (name && usedInOptions.has(name) && !guarded.has(list)) {
+                    out.push(
+                        info(
+                            `scope '${name}' is saved from ${n.key} in immediate and used in an option, but the trigger has no any_${list} check: when nothing matches, the scope is unset.`,
+                            n.range,
+                            'CK3563'
+                        )
+                    );
+                }
+            }
+        });
+    }
+}
+
 /** Scope timing for every event of an events/ file. */
 export function validateDocumentScopeTiming(
     rootNode: ASTNode,
     config: ScopeTimingConfig = DEFAULT_SCOPE_TIMING_CONFIG,
-    file = 'events/'
+    file = 'events/',
+    localization?: LocalizationIndex,
+    spec?: Spec
 ): Diagnostic[] {
     if (!isEventFile(file)) {
         return [];
@@ -300,6 +435,12 @@ export function validateDocumentScopeTiming(
         }
         if (config.checkTemporaryScopes) {
             checkTemporaryScopes(event, out);
+        }
+        if (config.checkLocalization) {
+            checkLocalization(event, localization, out);
+        }
+        if (config.checkTriggerGuard) {
+            checkTriggerGuard(event, out, spec);
         }
     }
     return out;

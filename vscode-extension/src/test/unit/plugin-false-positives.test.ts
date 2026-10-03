@@ -269,3 +269,88 @@ describe('After blocks (#19): CK3523 is the engine registry check', () => {
         );
     });
 });
+
+describe('Scope timing, the localization half and the trigger guard (#60)', () => {
+    let dir: string;
+    let ws: Workspace;
+    const loc = new LocalizationIndex();
+
+    before(() => {
+        dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pych-timing-'));
+        ws = new Workspace(dir).load();
+        loc.indexText(
+            path.join(dir, 'localization', 'english', 'timing_l_english.yml'),
+            [
+                'l_english:',
+                ' timing.1.t: "Meeting [rival.GetFirstName]"',
+                ' timing.1.desc:0 "[friend.GetFirstName] and [SCOPE.sC(\'guest\').GetName] arrive."',
+                ' timing.1.a: "Fine"',
+            ].join('\n')
+        );
+    });
+    after(() => fs.rmSync(dir, { recursive: true, force: true }));
+
+    function codesAt(text: string): Array<[string, string]> {
+        const file = path.join(dir, 'events', 'timing.txt');
+        fs.mkdirSync(path.dirname(file), { recursive: true });
+        fs.writeFileSync(file, text);
+        return diagnose(ws, file, {
+            text,
+            plugins: enginePlugins({ localization: loc, workspace: ws }),
+        })
+            .filter((d) => d.source === 'plugin' && /^CK35[56]/.test(d.code))
+            .map((d) => [d.code, d.severity]);
+    }
+
+    it('CK3560 / CK3561: desc and title texts read scopes saved only in an option (information)', () => {
+        const text = [
+            'namespace = timing',
+            'timing.1 = {',
+            '\ttitle = timing.1.t',
+            '\tdesc = timing.1.desc',
+            '\tleft_portrait = root',
+            '\timmediate = { random_courtier = { save_scope_as = friend } }',
+            '\toption = {',
+            '\t\tname = timing.1.a',
+            '\t\trandom_courtier = { save_scope_as = rival }',
+            '\t\trandom_courtier = { save_scope_as = guest }',
+            '\t}',
+            '}',
+        ].join('\n');
+        const found = codesAt(text);
+        // friend is saved in immediate: the window can read it (#95), no finding for it.
+        assert.deepStrictEqual(
+            found.filter(([c]) => c === 'CK3560'),
+            [['CK3560', 'information']]
+        );
+        assert.deepStrictEqual(
+            found.filter(([c]) => c === 'CK3561'),
+            [['CK3561', 'information']]
+        );
+    });
+
+    it('CK3563: a random_ save used by an option without an any_ guard (information)', () => {
+        const event = (guard: boolean) =>
+            [
+                'namespace = timing',
+                'timing.2 = {',
+                '\ttitle = timing.1.t',
+                '\tdesc = timing.1.desc',
+                '\tleft_portrait = root',
+                guard
+                    ? '\ttrigger = { any_courtier = { is_adult = yes } }'
+                    : '\ttrigger = { is_adult = yes }',
+                '\timmediate = { random_courtier = { save_scope_as = helper } }',
+                '\toption = { name = timing.1.a scope:helper = { add_gold = 5 } }',
+                '}',
+            ].join('\n');
+        assert.deepStrictEqual(
+            codesAt(event(false)).filter(([c]) => c === 'CK3563'),
+            [['CK3563', 'information']]
+        );
+        assert.deepStrictEqual(
+            codesAt(event(true)).filter(([c]) => c === 'CK3563'),
+            []
+        );
+    });
+});

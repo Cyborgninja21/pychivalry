@@ -148,6 +148,30 @@ diagnostics:
         severity: information
         message: A temporary scope (save_temporary_scope_as) is passed to a triggered event; it does not persist across events.
         evidence: Convention.
+    CK3560:
+        plugin: scope-timing
+        severity: information
+        message: >-
+            The desc localization text reads a saved scope ([name.GetFirstName],
+            [SCOPE.sC('name')]) that the event saves only in an option or in after, after the
+            window is shown.
+        evidence: >-
+            Convention (issue #60, the localization half, on the corrected evaluation order of
+            #95: a scope saved in immediate is available to the text and is not reported).
+            Needs the localization index; keys without an entry are not judged.
+    CK3561:
+        plugin: scope-timing
+        severity: information
+        message: The title localization text reads a saved scope that the event saves only in an option or in after.
+        evidence: Convention (issue #60; as CK3560).
+    CK3563:
+        plugin: scope-timing
+        severity: information
+        message: >-
+            Trigger guard: immediate saves a scope from a random_ iterator, an option uses it,
+            and the trigger has no any_ iterator over the same list, so the scope can be unset
+            when nothing matches.
+        evidence: Convention (issue #60, the secondary check; the list base comes from the spec package's iterators).
 
     # style-checks (style: the game prints nothing)
     CK3301:

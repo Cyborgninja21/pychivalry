@@ -38,6 +38,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   references are paths, checked by GFX001), CK3435 (`override_sound`: nothing to check
   against).
 
+- **Scope timing** (#60): `CK3560`/`CK3561`, a desc / title localization text that reads a
+  saved scope the event saves only in an option or in `after` (after the window is shown);
+  `CK3563`, the trigger guard: a scope saved from a `random_` iterator in `immediate` and used
+  by an option, with no `any_` check of the same list in `trigger`. All information. The
+  evaluation order is corrected (#95): the window (title, desc and its `triggered_desc`
+  triggers) is evaluated after `immediate`.
+
 ### Changed: renumbered and removed codes
 
 - `CONV-002` is renamed `CK3765` (issue #25; every non-hidden event, not only those with
