@@ -139,7 +139,9 @@ Their codes (CK3xxx, EVENT-, VALUE-, …) are listed in `data/diagnostics.yaml`;
 check (`npm run docs:diagnostics:check`, run in CI) fails when a plug-in emits a code that file
 lacks. The extension maps engine severities to LSP severities, drops the style plug-in's brace
 codes on a line where the engine already reports an unbalanced brace, and caps a file at 1,000
-diagnostics.
+diagnostics: over the cap the most severe are kept (errors, then warnings, information, hints,
+by position within a severity) and published in position order, for script and localization
+files alike.
 
 ### Graphics files (GFX001)
 

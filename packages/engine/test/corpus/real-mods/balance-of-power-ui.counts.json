@@ -62,21 +62,21 @@
         "filesValidated": 12,
         "filesWithFindings": 5,
         "filesAtCap": [],
-        "timeToFirstFullResultMs": 12969,
-        "serverUptimeAtFirstFullResultMs": 11676,
-        "backgroundPassMs": 26,
-        "peakServerRssKb": 315648,
-        "serverVmHwmKb": 315648,
+        "timeToFirstFullResultMs": 35001,
+        "serverUptimeAtFirstFullResultMs": 33975,
+        "backgroundPassMs": 117,
+        "peakServerRssKb": 276708,
+        "serverVmHwmKb": 276708,
         "longestFile": {
-            "milliseconds": 16.9,
+            "milliseconds": 82.3,
             "file": "common/script_values/svals_bop.txt"
         },
         "longestScriptFile": {
-            "milliseconds": 16.8,
+            "milliseconds": 82.1,
             "file": "common/script_values/svals_bop.txt"
         },
         "longestLocalizationFile": {
-            "milliseconds": 0.7,
+            "milliseconds": 2,
             "file": "localization/english/bop_l_english.yml"
         },
         "bySeverity": {

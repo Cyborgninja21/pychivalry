@@ -84,17 +84,17 @@ CK4101, CK4102, GFX001, LOC-005, SWITCH-003), 64 information, 11 hints.
 
 ### Corpus totals by severity (editor path, base game set)
 
-| Mod | 2.1: error / warning / information / hint | After step 4.0 | 2.2.0 (step 4.7) | Engine-path errors (real defects) |
+| Mod | 2.1: error / warning / information / hint | After step 4.0 | 2.2.0 (step 4.7, cap fix-up) | Engine-path errors (real defects) |
 | --- | --- | --- | --- | ---: |
 | balance-of-power-ui | 0 / 312 / 15 / 15 | 0 / 0 / 7 / 331 | 0 / 0 / 7 / 331 | 0 |
-| divine-intervention | 8 / 23,065 / 2,279 / 77 | 0 / 0 / 468 / 24,547 | 0 / 0 / 468 / 24,547 | 0 |
-| elf-destiny | 338 / 25,511 / 24,602 / 427 | 15 / 500 / 1,546 / 47,117 | 15 / 500 / 1,585 / 47,729 | 15 |
-| rice | 438 / 65,327 / 91,811 / 347 | 92 / 1,064 / 2,945 / 144,752 | 92 / 1,064 / 2,968 / 145,819 | 92 |
-| viet-events | 12 / 1,338 / 9,378 / 10 | 1 / 29 / 613 / 9,829 | 1 / 29 / 635 / 10,428 | 1 |
+| divine-intervention | 8 / 23,065 / 2,279 / 77 | 0 / 0 / 468 / 24,547 | 0 / 0 / 1,441 / 23,574 | 0 |
+| elf-destiny | 338 / 25,511 / 24,602 / 427 | 15 / 500 / 1,546 / 47,117 | 15 / 501 / 1,779 / 47,534 | 15 |
+| rice | 438 / 65,327 / 91,811 / 347 | 92 / 1,064 / 2,945 / 144,752 | 92 / 1,064 / 3,618 / 145,169 | 92 |
+| viet-events | 12 / 1,338 / 9,378 / 10 | 1 / 29 / 613 / 9,829 | 1 / 29 / 929 / 10,134 | 1 |
 
 Every error-severity editor finding is now a real defect the engine path proves (0 / 15 / 92 /
 1 on the four script mods). The warnings left are the engine's schema check (`unknown_X_in_X`,
-1,581) and three evidence-backed plug-in classes: CK3800 (6), CK4100 (3) and GFX001 (3), each
+1,581 after step 4.0, 1,582 in 2.2.0 once the per-file cap keeps the most severe findings first) and three evidence-backed plug-in classes: CK3800 (6), CK4100 (3) and GFX001 (3), each
 listed with its reason in `packages/engine/test/corpus/real-mods/FINDINGS.md`. Totals went
 from 245,310 findings to 233,856 after step 4.0 and 236,218 in 2.2.0 (the new codes of steps
 4.1 to 4.4 add information and hints only); most are style hints (2.2.0: CK3303 79,525, CK3317

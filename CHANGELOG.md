@@ -22,7 +22,7 @@ Diagnostics you can trust, and the validation rules the backlog asked for. Headl
 - **On five published mods the Problems panel now shows only real defects at error severity**:
   0 / 0 / 15 / 92 / 1 errors (balance-of-power-ui, divine-intervention, elf-destiny, rice,
   viet-events), the engine path's list, against 0 / 8 / 338 / 438 / 12 in 2.1; warnings went
-  from 115,553 to 1,593 (the engine's schema check, 1,581, and 12 evidence-backed plug-in
+  from 115,553 to 1,594 (the engine's schema check, 1,582, and 12 evidence-backed plug-in
   findings).
 - **The graphics-file check (GFX001)** (Phase 3, PR #56 rebuilt).
 - **New rules** for ai_chance, after blocks, events, portraits, backgrounds and scope timing
@@ -119,6 +119,13 @@ before and after, in diagnostics-evidence.md):
   `gfx/portraits/portrait_animations` (information, silent without the base game), and the
   data loader reads `data/animations.yaml` as the mapping it is (animation completion and
   hover get its 251 names instead of an 18-name fallback).
+- The 1,000-diagnostics-per-file cap kept the first 1,000 by position whatever their severity,
+  so an error at the end of a long file full of style hints was never published. A file over
+  the cap now keeps errors first, then warnings, information and hints (by position within a
+  severity) and publishes them in position order; script and localization files alike. The
+  corpus suite now compares the editor's errors with the engine's in capped files too. On the
+  corpus no error was hidden; in the capped files 2,112 hints give way to 2,111 information
+  findings and one engine warning (Elf Destiny).
 - One test per catalogue code (`catalogue-severities.test.ts`): every plug-in code is triggered
   and checked against its catalogue severity and its "Convention" wording.
 

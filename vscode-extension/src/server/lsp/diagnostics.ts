@@ -39,7 +39,31 @@ const BRACE_PARSE_ERRORS = new Set([
 /** The style plug-in's brace checks, superseded by an engine parse error on the same line. */
 const STYLE_BRACE_CODES = new Set(['CK3330', 'CK3331']);
 
-const MAX_DIAGNOSTICS = 1000;
+/** At most this many diagnostics are published per file. */
+export const MAX_DIAGNOSTICS = 1000;
+
+function comparePosition(a: Diagnostic, b: Diagnostic): number {
+    return (
+        a.range.start.line - b.range.start.line || a.range.start.character - b.range.start.character
+    );
+}
+
+/**
+ * The diagnostics published for a file: all of them in position order when they fit under
+ * the cap; otherwise the most severe first (errors, then warnings, information, hints, by
+ * position within a severity) up to the cap, published in position order. A file full of
+ * style hints never hides an error at its end (2.2).
+ */
+export function capDiagnostics(diagnostics: Diagnostic[], max = MAX_DIAGNOSTICS): Diagnostic[] {
+    if (diagnostics.length <= max) {
+        return diagnostics;
+    }
+    const rank = (d: Diagnostic) => d.severity ?? DiagnosticSeverity.Error;
+    return [...diagnostics]
+        .sort((a, b) => rank(a) - rank(b) || comparePosition(a, b))
+        .slice(0, max)
+        .sort(comparePosition);
+}
 
 /** An engine diagnostic as an LSP diagnostic (source ck3-engine or ck3-plugin). */
 export function toLsp(d: EngineDiagnostic): Diagnostic {
@@ -100,7 +124,7 @@ export class DiagnosticsProvider {
         const kept = results.filter(
             (d) => !(STYLE_BRACE_CODES.has(d.code) && braceLines.has(d.range.start.line))
         );
-        return kept.slice(0, MAX_DIAGNOSTICS).map(toLsp);
+        return capDiagnostics(kept.map(toLsp));
     }
 
     private localizationDiagnostics(text: string, file: string): Diagnostic[] {
@@ -108,6 +132,6 @@ export class DiagnosticsProvider {
             return [];
         }
         this.localization.indexText(file, text);
-        return this.localizationValidator(this.localization, pathToUri(file), text);
+        return capDiagnostics(this.localizationValidator(this.localization, pathToUri(file), text));
     }
 }

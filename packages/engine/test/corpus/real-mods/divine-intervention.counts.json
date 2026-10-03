@@ -77,33 +77,33 @@
             "common/scripted_guis/DI_title_manager_sgui.txt",
             "events/DI_error_suppression.txt"
         ],
-        "timeToFirstFullResultMs": 13129,
-        "serverUptimeAtFirstFullResultMs": 13096,
-        "backgroundPassMs": 849,
-        "peakServerRssKb": 350576,
-        "serverVmHwmKb": 350576,
+        "timeToFirstFullResultMs": 26842,
+        "serverUptimeAtFirstFullResultMs": 25818,
+        "backgroundPassMs": 1929,
+        "peakServerRssKb": 326836,
+        "serverVmHwmKb": 326836,
         "longestFile": {
-            "milliseconds": 223.9,
+            "milliseconds": 423.3,
             "file": "common/scripted_guis/DI_modifiers_sgui.txt"
         },
         "longestScriptFile": {
-            "milliseconds": 223.8,
+            "milliseconds": 423.1,
             "file": "common/scripted_guis/DI_modifiers_sgui.txt"
         },
         "longestLocalizationFile": {
-            "milliseconds": 4.2,
+            "milliseconds": 11.6,
             "file": "localization/french/gui/DI_l_french.yml"
         },
         "bySeverity": {
             "error": 0,
             "warning": 0,
-            "information": 468,
-            "hint": 24547
+            "information": 1441,
+            "hint": 23574
         },
         "counts": {
             "CK3303": {
                 "severity": "hint",
-                "count": 22708
+                "count": 21948
             },
             "CK3304": {
                 "severity": "hint",
@@ -115,7 +115,7 @@
             },
             "CK3314": {
                 "severity": "hint",
-                "count": 4
+                "count": 3
             },
             "CK3316": {
                 "severity": "hint",
@@ -123,15 +123,15 @@
             },
             "CK3317": {
                 "severity": "hint",
-                "count": 1531
+                "count": 1319
             },
             "CK3656": {
                 "severity": "information",
-                "count": 4
+                "count": 11
             },
             "CK3701": {
                 "severity": "information",
-                "count": 2
+                "count": 3
             },
             "CK3702": {
                 "severity": "hint",
@@ -139,7 +139,7 @@
             },
             "CK3872": {
                 "severity": "information",
-                "count": 6
+                "count": 9
             },
             "CK3873": {
                 "severity": "hint",
@@ -147,23 +147,23 @@
             },
             "CK3875": {
                 "severity": "information",
-                "count": 24
+                "count": 52
             },
             "CK3977": {
                 "severity": "information",
-                "count": 170
+                "count": 943
             },
             "CK5137": {
                 "severity": "information",
-                "count": 91
+                "count": 111
             },
             "ITER-004": {
                 "severity": "information",
-                "count": 2
+                "count": 7
             },
             "undefined_event_target_X": {
                 "severity": "information",
-                "count": 169
+                "count": 305
             }
         },
         "errors": []

@@ -85,28 +85,28 @@
             "events/VIET_events_county_old.txt",
             "events/VIET_events_old.txt"
         ],
-        "timeToFirstFullResultMs": 18284,
-        "serverUptimeAtFirstFullResultMs": 16813,
-        "backgroundPassMs": 1072,
-        "peakServerRssKb": 457044,
-        "serverVmHwmKb": 457044,
+        "timeToFirstFullResultMs": 51951,
+        "serverUptimeAtFirstFullResultMs": 50658,
+        "backgroundPassMs": 2371,
+        "peakServerRssKb": 399008,
+        "serverVmHwmKb": 399008,
         "longestFile": {
-            "milliseconds": 148.1,
+            "milliseconds": 345.8,
             "file": "events/VIET_events_basic.txt"
         },
         "longestScriptFile": {
-            "milliseconds": 148,
+            "milliseconds": 345.7,
             "file": "events/VIET_events_basic.txt"
         },
         "longestLocalizationFile": {
-            "milliseconds": 7.8,
-            "file": "localization/french/viet_events_l_french.yml"
+            "milliseconds": 17.9,
+            "file": "localization/english/viet_events_l_english.yml"
         },
         "bySeverity": {
             "error": 1,
             "warning": 29,
-            "information": 635,
-            "hint": 10428
+            "information": 929,
+            "hint": 10134
         },
         "counts": {
             "CK3301": {
@@ -115,11 +115,11 @@
             },
             "CK3303": {
                 "severity": "hint",
-                "count": 509
+                "count": 505
             },
             "CK3304": {
                 "severity": "hint",
-                "count": 5937
+                "count": 5801
             },
             "CK3306": {
                 "severity": "hint",
@@ -135,35 +135,35 @@
             },
             "CK3317": {
                 "severity": "hint",
-                "count": 2073
+                "count": 1978
             },
             "CK3422": {
                 "severity": "information",
-                "count": 2
+                "count": 3
             },
             "CK3433": {
                 "severity": "information",
-                "count": 5
+                "count": 11
             },
             "CK3522": {
                 "severity": "hint",
-                "count": 5
+                "count": 4
             },
             "CK3563": {
                 "severity": "information",
-                "count": 46
+                "count": 93
             },
             "CK3612": {
                 "severity": "information",
-                "count": 3
+                "count": 8
             },
             "CK3613": {
                 "severity": "hint",
-                "count": 1246
+                "count": 1188
             },
             "CK3656": {
                 "severity": "information",
-                "count": 68
+                "count": 141
             },
             "CK3701": {
                 "severity": "information",
@@ -175,7 +175,7 @@
             },
             "CK3769": {
                 "severity": "information",
-                "count": 29
+                "count": 41
             },
             "CK3872": {
                 "severity": "information",
@@ -183,11 +183,11 @@
             },
             "CK3875": {
                 "severity": "information",
-                "count": 387
+                "count": 495
             },
             "CK3977": {
                 "severity": "information",
-                "count": 44
+                "count": 59
             },
             "CK5137": {
                 "severity": "information",
@@ -197,9 +197,13 @@
                 "severity": "information",
                 "count": 6
             },
+            "ITER-003": {
+                "severity": "information",
+                "count": 2
+            },
             "undefined_event_target_X": {
                 "severity": "information",
-                "count": 21
+                "count": 46
             },
             "unknown_X_in_X": {
                 "severity": "warning",

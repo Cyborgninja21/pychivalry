@@ -839,28 +839,28 @@
             "localization/russian/rice_north_atlantic_l_russian.yml",
             "localization/russian/rice_sri_lanka_l_russian.yml"
         ],
-        "timeToFirstFullResultMs": 34651,
-        "serverUptimeAtFirstFullResultMs": 33207,
-        "backgroundPassMs": 12388,
-        "peakServerRssKb": 750792,
-        "serverVmHwmKb": 750792,
+        "timeToFirstFullResultMs": 84129,
+        "serverUptimeAtFirstFullResultMs": 81755,
+        "backgroundPassMs": 24308,
+        "peakServerRssKb": 748268,
+        "serverVmHwmKb": 748268,
         "longestFile": {
-            "milliseconds": 284.5,
+            "milliseconds": 648.3,
             "file": "common/decisions/RICE_mayo_decisions.txt"
         },
         "longestScriptFile": {
-            "milliseconds": 284.4,
+            "milliseconds": 648.1,
             "file": "common/decisions/RICE_mayo_decisions.txt"
         },
         "longestLocalizationFile": {
-            "milliseconds": 198.7,
-            "file": "localization/french/rice_nubia_l_french.yml"
+            "milliseconds": 403.3,
+            "file": "localization/japanese/rice_nubia_l_japanese.yml"
         },
         "bySeverity": {
             "error": 92,
             "warning": 1064,
-            "information": 2968,
-            "hint": 145819
+            "information": 3618,
+            "hint": 145169
         },
         "counts": {
             "CK3301": {
@@ -873,7 +873,7 @@
             },
             "CK3304": {
                 "severity": "hint",
-                "count": 25104
+                "count": 25020
             },
             "CK3306": {
                 "severity": "hint",
@@ -881,15 +881,15 @@
             },
             "CK3314": {
                 "severity": "hint",
-                "count": 993
+                "count": 989
             },
             "CK3316": {
                 "severity": "hint",
-                "count": 2120
+                "count": 2117
             },
             "CK3317": {
                 "severity": "hint",
-                "count": 34815
+                "count": 34281
             },
             "CK3422": {
                 "severity": "information",
@@ -897,7 +897,7 @@
             },
             "CK3433": {
                 "severity": "information",
-                "count": 1
+                "count": 3
             },
             "CK3511": {
                 "severity": "information",
@@ -907,9 +907,13 @@
                 "severity": "hint",
                 "count": 6
             },
+            "CK3550": {
+                "severity": "information",
+                "count": 1
+            },
             "CK3563": {
                 "severity": "information",
-                "count": 41
+                "count": 62
             },
             "CK3611": {
                 "severity": "information",
@@ -921,19 +925,19 @@
             },
             "CK3613": {
                 "severity": "hint",
-                "count": 1427
+                "count": 1403
             },
             "CK3656": {
                 "severity": "information",
-                "count": 183
+                "count": 272
             },
             "CK3701": {
                 "severity": "information",
-                "count": 46
+                "count": 49
             },
             "CK3702": {
                 "severity": "hint",
-                "count": 24
+                "count": 23
             },
             "CK3703": {
                 "severity": "information",
@@ -941,11 +945,11 @@
             },
             "CK3765": {
                 "severity": "information",
-                "count": 28
+                "count": 34
             },
             "CK3769": {
                 "severity": "information",
-                "count": 71
+                "count": 88
             },
             "CK3872": {
                 "severity": "information",
@@ -957,19 +961,19 @@
             },
             "CK3875": {
                 "severity": "information",
-                "count": 1289
+                "count": 1598
             },
             "CK3977": {
                 "severity": "information",
-                "count": 381
+                "count": 390
             },
             "CK5137": {
                 "severity": "information",
-                "count": 213
+                "count": 237
             },
             "COND-001": {
                 "severity": "information",
-                "count": 3
+                "count": 4
             },
             "COND-002": {
                 "severity": "information",
@@ -985,11 +989,11 @@
             },
             "ITER-003": {
                 "severity": "information",
-                "count": 19
+                "count": 38
             },
             "ITER-004": {
                 "severity": "information",
-                "count": 26
+                "count": 44
             },
             "PYCH-R001": {
                 "severity": "error",
@@ -997,7 +1001,7 @@
             },
             "undefined_event_target_X": {
                 "severity": "information",
-                "count": 578
+                "count": 709
             },
             "unknown_X_in_X": {
                 "severity": "warning",

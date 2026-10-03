@@ -53,8 +53,28 @@ No false positive, so no new issue.
 The records in this folder are the 2.2.0 build's (2026-10-03), base game set. Errors and
 warnings are the same as after step 4.0: **every error-severity editor finding is a real
 defect** (0 / 0 / 15 / 92 / 1, the engine path's list, classified below) and the warnings are
-the engine's `unknown_X_in_X` (1,581) plus CK3800 (6), CK4100 (3) and GFX001 (3), each
-evidence-backed (table in the step 4.0 section). Every change since 2.1, by code, summed over
+the engine's `unknown_X_in_X` (1,582) plus CK3800 (6), CK4100 (3) and GFX001 (3), each
+evidence-backed (table in the step 4.0 section).
+
+**The per-file cap keeps the most severe first (2.2 fix-up).** The provider publishes at most
+1,000 diagnostics per file. Until this fix it kept the first 1,000 by position, so in a long
+file full of style hints an error near the end would not be published (none was on this
+corpus: the editor's errors already equalled the engine's). A capped file now keeps errors,
+then warnings, information and hints, and the corpus suite compares the editor's errors with
+the engine's in capped files too. Re-recorded with the fix, errors are unchanged and in the
+capped files hints give way to more severe findings, error / warning / information / hint:
+
+| Mod | Files at cap | Before the fix | After the fix | Change |
+| --- | ---: | --- | --- | --- |
+| balance-of-power-ui | 0 | 0 / 0 / 7 / 331 | 0 / 0 / 7 / 331 | none |
+| divine-intervention | 14 | 0 / 0 / 468 / 24,547 | 0 / 0 / 1,441 / 23,574 | +973 information, -973 hints |
+| elf-destiny | 22 | 15 / 500 / 1,585 / 47,729 | 15 / 501 / 1,779 / 47,534 | +1 warning (unknown_X_in_X), +194 information, -195 hints |
+| rice | 23 | 92 / 1,064 / 2,968 / 145,819 | 92 / 1,064 / 3,618 / 145,169 | +650 information, -650 hints |
+| viet-events | 5 | 1 / 29 / 635 / 10,428 | 1 / 29 / 929 / 10,134 | +294 information, -294 hints |
+
+The per-code counts in the table below are the records before this fix; the codes that move
+are the information codes of capped files (CK3977, CK3875, undefined_event_target_X, CK3656,
+CK5137, CK3563 …) up and the style hints (CK3303, CK3317, CK3304 …) down by the same totals. Every change since 2.1, by code, summed over
 the five mods (editor path):
 
 | Code | 2.1 | 2.2.0 | Why |
@@ -111,7 +131,7 @@ below. All seven false positives are fixed, each pinned by its corpus case in
 
 **Warnings left, and why each is evidence-backed.** The plug-ins leave three warning classes
 on the corpus, each a catalogue message of the game and each checked by hand against the mod
-and the 1.20.0.2 base game; the engine's own `unknown_X_in_X` (1,581, a field the directory
+and the 1.20.0.2 base game; the engine's own `unknown_X_in_X` (1,581 at step 4.0, a field the directory
 schema does not list) is unchanged.
 
 | Code | Count | Evidence | Findings |

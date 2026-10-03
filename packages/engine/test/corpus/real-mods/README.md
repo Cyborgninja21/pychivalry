@@ -54,8 +54,8 @@ node packages/engine/scripts/corpus-acceptance.js /home/cwallace/ck3-corpus "<CK
 Editor path (the integration suite, then one Extension Development Host per mod with the mod as
 the workspace folder, `ck3LanguageServer.gamePath` = `CK3_GAME_PATH` and every other setting
 at its shipped default; writes the `editor` record and fails if a finding is not classified or
-if the editor's own engine errors differ from the engine path outside the files the provider
-caps):
+if the editor's own engine errors differ from the engine path, in any file, capped files
+included):
 
 ```
 cd vscode-extension
@@ -125,8 +125,10 @@ audit table of `Documentation/developer-guide/diagnostics-evidence.md`.
 (297,792), event themes and backgrounds, portrait animations and traits for the plug-ins; the
 box's load varies between runs (the run after step 4.4, with nearly the same code, took RICE 86.4 s).
 
-**The 1000-per-file cap.** The diagnostics provider publishes at most 1000 diagnostics per file
-(sorted by position), and with the plug-ins several big files reach it (14 files in Divine
-Intervention, 22 in Elf Destiny, 25 in RICE, 4 in VIET Events: `filesAtCap`). Outside those
-files the editor's `ck3-engine` error findings are identical, file, line and code, to the engine
-path's (asserted by the corpus suite).
+**The 1000-per-file cap.** The diagnostics provider publishes at most 1000 diagnostics per file,
+and with the plug-ins several big files reach it (`filesAtCap`). Since 2.2 a file over the cap
+keeps its most severe findings first (errors, then warnings, information, hints, by position
+within a severity) and publishes them in position order; until then it kept the first 1000 by
+position, so an error at the end of a long file full of style hints was not published. The
+editor's `ck3-engine` error findings are identical, file, line and code, to the engine path's
+in every file, capped ones included (asserted by the corpus suite).
