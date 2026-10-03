@@ -8,9 +8,13 @@ training_regimen = {
 			name = training_start_date
 			value = current_date
 		}
-		add_character_modifier = {
-			modifier = in_training
-			years = 5
+		# The story cycle's own scope is the story (vanilla: on_setup runs story effects and
+		# story_owner); character effects go through its owner.
+		story_owner = {
+			add_character_modifier = {
+				modifier = in_training
+				years = 5
+			}
 		}
 	}
 
@@ -26,8 +30,8 @@ training_regimen = {
 
 	on_owner_death = {
 		if = {
-			limit = { exists = primary_heir }
-			primary_heir = {
+			limit = { exists = story_owner.primary_heir }
+			story_owner.primary_heir = {
 				scope:story = {
 					make_story_owner = prev
 				}

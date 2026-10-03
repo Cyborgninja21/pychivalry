@@ -7,7 +7,7 @@
     },
     "spec": {
         "version": "1.20.0.2",
-        "sha256": "129f67f6acb2292f10ca9e45cb2720831e447601027f54e0a7be680c79c08cbb"
+        "sha256": "a9959bf9d650fe793ffd3ee60eb6589b8cb6eaaaae778ce84b58fdc535f2eeb6"
     },
     "engine": {
         "mod": {
@@ -18,16 +18,16 @@
         },
         "spec": {
             "version": "1.20.0.2",
-            "sha256": "129f67f6acb2292f10ca9e45cb2720831e447601027f54e0a7be680c79c08cbb"
+            "sha256": "a9959bf9d650fe793ffd3ee60eb6589b8cb6eaaaae778ce84b58fdc535f2eeb6"
         },
         "command": "node packages/engine/scripts/corpus-acceptance.js <corpus dir> <game dir> viet-events",
         "equivalentCli": "node packages/engine/dist/cli.js check <corpus dir>/viet-events --vanilla <game dir>",
         "files": 67,
-        "milliseconds": 17466,
-        "loadMilliseconds": 16724,
-        "maxRssKb": 428232,
+        "milliseconds": 5268,
+        "loadMilliseconds": 4887,
+        "maxRssKb": 461376,
         "longestFile": {
-            "milliseconds": 206.2,
+            "milliseconds": 108.2,
             "file": "events/VIET_events_basic.txt"
         },
         "bySeverity": {
@@ -82,21 +82,21 @@
             "events/VIET_events_county_old.txt",
             "events/VIET_events_old.txt"
         ],
-        "timeToFirstFullResultMs": 51951,
-        "serverUptimeAtFirstFullResultMs": 50658,
-        "backgroundPassMs": 2371,
-        "peakServerRssKb": 399008,
-        "serverVmHwmKb": 399008,
+        "timeToFirstFullResultMs": 26398,
+        "serverUptimeAtFirstFullResultMs": 24702,
+        "backgroundPassMs": 1144,
+        "peakServerRssKb": 437968,
+        "serverVmHwmKb": 437968,
         "longestFile": {
-            "milliseconds": 345.8,
+            "milliseconds": 159.8,
             "file": "events/VIET_events_basic.txt"
         },
         "longestScriptFile": {
-            "milliseconds": 345.7,
+            "milliseconds": 159.8,
             "file": "events/VIET_events_basic.txt"
         },
         "longestLocalizationFile": {
-            "milliseconds": 17.9,
+            "milliseconds": 6.7,
             "file": "localization/english/viet_events_l_english.yml"
         },
         "bySeverity": {
@@ -250,8 +250,8 @@
                 "On-Actions": 34,
                 "Localization": 80122
             },
-            "topRequestMs": 3,
-            "wholeTreeMs": 44,
+            "topRequestMs": 10,
+            "wholeTreeMs": 48,
             "nodes": 1644,
             "reveal": {
                 "item": "VIET_decision_add_more_dovecotes",

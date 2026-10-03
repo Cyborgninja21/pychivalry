@@ -20,7 +20,7 @@ generated file: the spec package (`ck3-spec-1.20.0.2.json`), produced by
 given version (identified by its sha256). It holds the six keyword buckets (triggers,
 effects, links, lists, on_actions and the modifier table, each with the engine's own
 documentation string), the script directories and their per-directory field schema, the
-game's error-message catalogue (1,967 messages) and the table of keywords retired between
+game's error-message catalogue (1,968 messages) and the table of keywords retired between
 versions. The engine bundles a checksum-verified copy; nothing else in the repository holds
 CK3 vocabulary. See [the spec package](Documentation/developer-guide/spec-package.md).
 
@@ -120,7 +120,9 @@ game's own messages: `Wrong scope for trigger: landed_title, expected character`
 for effect: …`, `Trying to use liege link on an invalid scope province`. The data is the game's
 own documentation: the `script_docs` console command, run in CK3 1.20.0.2 with `-debug_mode`,
 lists every trigger, effect and event target with the scopes it supports, and the spec package
-(format 3) carries it as `scope_validity` and `scope_types`.
+carries it as `scope_validity` and `scope_types` (format 3); since 2.3 (format 4) it also says
+which record fields the game evaluates in another scope than the record's root (a faction's
+`can_character_join` runs on the character), measured on vanilla.
 
 The engine infers the scope type of `root` (the directory's root scope, an event's
 `scope = …`, an on_action's documented scope), `this`, `prev`, `scope:x` (from its one save

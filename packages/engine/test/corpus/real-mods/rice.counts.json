@@ -7,7 +7,7 @@
     },
     "spec": {
         "version": "1.20.0.2",
-        "sha256": "129f67f6acb2292f10ca9e45cb2720831e447601027f54e0a7be680c79c08cbb"
+        "sha256": "a9959bf9d650fe793ffd3ee60eb6589b8cb6eaaaae778ce84b58fdc535f2eeb6"
     },
     "engine": {
         "mod": {
@@ -18,16 +18,16 @@
         },
         "spec": {
             "version": "1.20.0.2",
-            "sha256": "129f67f6acb2292f10ca9e45cb2720831e447601027f54e0a7be680c79c08cbb"
+            "sha256": "a9959bf9d650fe793ffd3ee60eb6589b8cb6eaaaae778ce84b58fdc535f2eeb6"
         },
         "command": "node packages/engine/scripts/corpus-acceptance.js <corpus dir> <game dir> rice",
         "equivalentCli": "node packages/engine/dist/cli.js check <corpus dir>/rice --vanilla <game dir>",
         "files": 1313,
-        "milliseconds": 27744,
-        "loadMilliseconds": 20406,
-        "maxRssKb": 959772,
+        "milliseconds": 9892,
+        "loadMilliseconds": 6475,
+        "maxRssKb": 975664,
         "longestFile": {
-            "milliseconds": 166.4,
+            "milliseconds": 81.6,
             "file": "events/RICE_north_atlantic_events.txt"
         },
         "bySeverity": {
@@ -836,22 +836,22 @@
             "localization/russian/rice_north_atlantic_l_russian.yml",
             "localization/russian/rice_sri_lanka_l_russian.yml"
         ],
-        "timeToFirstFullResultMs": 84129,
-        "serverUptimeAtFirstFullResultMs": 81755,
-        "backgroundPassMs": 24308,
-        "peakServerRssKb": 748268,
-        "serverVmHwmKb": 748268,
+        "timeToFirstFullResultMs": 33556,
+        "serverUptimeAtFirstFullResultMs": 31849,
+        "backgroundPassMs": 13179,
+        "peakServerRssKb": 745048,
+        "serverVmHwmKb": 745048,
         "longestFile": {
-            "milliseconds": 648.3,
+            "milliseconds": 234.6,
             "file": "common/decisions/RICE_mayo_decisions.txt"
         },
         "longestScriptFile": {
-            "milliseconds": 648.1,
+            "milliseconds": 234.6,
             "file": "common/decisions/RICE_mayo_decisions.txt"
         },
         "longestLocalizationFile": {
-            "milliseconds": 403.3,
-            "file": "localization/japanese/rice_nubia_l_japanese.yml"
+            "milliseconds": 193.4,
+            "file": "localization/russian/rice_nubia_l_russian.yml"
         },
         "bySeverity": {
             "error": 92,
@@ -1877,8 +1877,8 @@
                 "On-Actions": 116,
                 "Localization": 389048
             },
-            "topRequestMs": 6,
-            "wholeTreeMs": 126,
+            "topRequestMs": 3,
+            "wholeTreeMs": 69,
             "nodes": 5100,
             "reveal": {
                 "item": "RICE_SEA_harvest_rare_tropical_goods_decision",

@@ -26,7 +26,7 @@ or the LSP libraries and also runs as a CLI. The validation stages are in
 
 One JSON file per game version, generated from the executable by pdx-parser-re: six keyword
 buckets with the engine's documentation strings, modifier templates, iterator prefixes,
-227 directories with 185 per-directory schemas, the 1,967-message error catalogue, the
+227 directories with 185 per-directory schemas, the 1,968-message error catalogue, the
 retired-keyword table, and (format 3) the game's own scope documentation: `scope_validity`
 per keyword and the 72 `scope_types`. The engine vendors it gzipped under
 `packages/engine/spec/`; `spec.config.json` names it; the build verifies its sha256.

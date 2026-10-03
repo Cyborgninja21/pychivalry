@@ -6,7 +6,7 @@
  */
 
 import * as assert from 'assert';
-import { NodeType, ASTNode } from 'pychivalry-engine';
+import { NodeType, ASTNode, defaultSpec } from 'pychivalry-engine';
 import {
     EVENT_TYPES,
     PORTRAIT_POSITIONS,
@@ -224,6 +224,17 @@ describe('Event Validation', () => {
             assert.deepStrictEqual(
                 errors.map((e) => e.code),
                 ['EVENT-016']
+            );
+            // A warning since 2.3: the spec package's catalogue holds the game's message.
+            assert.strictEqual(errors[0].severity, 'warning');
+            assert.strictEqual(
+                defaultSpec().message(
+                    'namespace_X_used_in_event_X_file_X_is_not_defined_in_this_fi',
+                    'other_mod',
+                    'other_mod.0001',
+                    'events/test.txt'
+                ),
+                "Namespace 'other_mod' used in event 'other_mod.0001' (file: events/test.txt) is not defined in this file - it might not load properly."
             );
         });
 

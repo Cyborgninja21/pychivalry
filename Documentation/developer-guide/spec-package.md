@@ -7,19 +7,22 @@ identified by its sha256, and bundled by the engine core (`packages/engine`). No
 effect, scope, modifier, directory or error text is hand-maintained in this repository.
 
 The bundled package is CK3 **1.20.0.2** (`ck3-1.20.0.2.exe`, sha256 `AE1BA6FF…E81B2D`; package
-JSON sha256 `129f67f6…c79c08cbb`, package format 3). Per-keyword scope validity and the scope
+JSON sha256 `a9959bf9…dc535f2eeb6`, package format 4). Per-keyword scope validity and the scope
 types come from the game itself: the `script_docs` console command run in that build
-(pdx-parser-re `research/oracle/1.20.0.2/`, with its provenance).
+(pdx-parser-re `research/oracle/1.20.0.2/`, with its provenance). Since format 4 the schema
+also says which record fields the game evaluates in another scope than the record's root,
+measured on vanilla (pdx-parser-re `research/analysis/ROOT_SCOPES_1.20.0.2.md`).
 
 ## Format
 
-`package_format` 3 (2 added `keyword_templates`; 3 fills `scope_validity` and adds `scope_types`). The package's own JSON Schema (draft 2020-12) is vendored as
+`package_format` 4 (2 added `keyword_templates`; 3 fills `scope_validity` and adds `scope_types`;
+4 adds the schema fields' `scope` and `scope_evidence` and the provenance `corpus`). The package's own JSON Schema (draft 2020-12) is vendored as
 `packages/engine/spec/schema.json`; `validateSpecPackage()` in the engine checks a package
 against it at load time. Top-level keys:
 
 | Key | Content (1.20.0.2 counts) |
 | --- | --- |
-| `package_format` | Format version (3). The engine accepts only 3. |
+| `package_format` | Format version (4). The engine accepts only 4. |
 | `manifest` | Game, version, the executable's name, size and sha256, the address ranges of the token and modifier tables, the tool versions (Ghidra, ghidra-cli, the analysis profile hash), the sha256 of every source file and the generation date. |
 | `buckets` | Six keyword buckets, each a map from name to `{doc}` (the engine's own documentation string, empty where the engine has none): `triggers` 1,447, `effects` 1,007, `links` 312, `lists` 377, `on_actions` 217, `modifiers` 609 (the modifier table, entries tagged `provenance`). |
 | `modifier_templates` | 94 name templates (`stationed_%s_damage_mult`) for modifier names generated per database entry at load time: the 79 executable templates `common/modifier_definition_formats` attests, plus 15 the game's `script_docs` documents that none of them generates (`$VASSAL_STANCE$_ai_boldness` as `%s_ai_boldness`). |
@@ -27,8 +30,8 @@ against it at load time. Top-level keys:
 | `iterator_prefixes` | `any_`, `every_`, `random_`, `ordered_`; an iterator is a prefix plus a name in `lists` (never `links`). |
 | `multi_bucket` | 133 names registered in more than one bucket; lookups are by (name, context). |
 | `directories` | 227 script directories: path, content type, load level, whether vanilla has files there, since which version. |
-| `schema` | Per-directory record schema for 185 directories: allowed fields with their kind (`value`, `block`, `list`, `trigger_block`, `effect_block`, `enum`, `reference`), provenance (`engine` or `vanilla` in 1.20.0.2), vanilla usage counts, and `required` only where a parser message proves the engine checks it (`required_evidence`). |
-| `errors` | The error-message catalogue: 1,967 parser and loader messages with a stable id, category, the exact text and since which version. |
+| `schema` | Per-directory record schema for 185 directories: allowed fields with their kind (`value`, `block`, `list`, `trigger_block`, `effect_block`, `enum`, `reference`), provenance (`engine` or `vanilla` in 1.20.0.2; `corpus` for one wiki-era field the real-mod corpus sets and vanilla never does), usage counts, `required` only where a parser message proves the engine checks it (`required_evidence`), and `scope` (format 4) on the 24 fields the game evaluates in another scope than the record's root (factions' `can_character_join` runs on the character, casus belli `on_victory` and `on_invalidated` on the casus belli, buildings' `cost` on the builder, the interaction's `can_be_picked_title` on the title), measured on vanilla. The 251 wiki-era fields neither vanilla nor the corpus sets stay under `unconfirmed`, documented as possibly unused (pdx-parser-re `spec/schema/UNCONFIRMED_FIELDS.md`); nothing is removed from the spec. |
+| `errors` | The error-message catalogue: 1,968 parser and loader messages with a stable id, category, the exact text and since which version. |
 | `retired` | 16 keywords removed in this version, with the bucket, the replacement (or none) and a note. |
 | `noise_dropped` | Names the string scan found that are not keywords, with the reason they were dropped. |
 | `scope_validity` | The game's own scope documentation (`script_docs`), per bucket and name: `triggers` 1,935 and `effects` 2,127 (`supported_scopes`, `supported_targets`, `description`, triggers' `traits`; the list iterators and the per-key names of keyword templates included), `links` 311 names with their `forms` (327: `supported_scopes` = Input Scopes, `supported_targets` = Output Scopes, `requires_data`, `global_link`, `wild_card`), `lists` 377 by base (the any_ iterator's scopes, the element type, the iterator names), `on_actions` 930 (`supported_scopes` = the expected scope, `from_code`). `["none"]` means the keyword declares no scope requirement and is never reported. |

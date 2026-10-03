@@ -7,7 +7,7 @@
     },
     "spec": {
         "version": "1.20.0.2",
-        "sha256": "129f67f6acb2292f10ca9e45cb2720831e447601027f54e0a7be680c79c08cbb"
+        "sha256": "a9959bf9d650fe793ffd3ee60eb6589b8cb6eaaaae778ce84b58fdc535f2eeb6"
     },
     "engine": {
         "mod": {
@@ -18,16 +18,16 @@
         },
         "spec": {
             "version": "1.20.0.2",
-            "sha256": "129f67f6acb2292f10ca9e45cb2720831e447601027f54e0a7be680c79c08cbb"
+            "sha256": "a9959bf9d650fe793ffd3ee60eb6589b8cb6eaaaae778ce84b58fdc535f2eeb6"
         },
         "command": "node packages/engine/scripts/corpus-acceptance.js <corpus dir> <game dir> elf-destiny",
         "equivalentCli": "node packages/engine/dist/cli.js check <corpus dir>/elf-destiny --vanilla <game dir>",
         "files": 553,
-        "milliseconds": 18912,
-        "loadMilliseconds": 17172,
-        "maxRssKb": 568444,
+        "milliseconds": 6104,
+        "loadMilliseconds": 5234,
+        "maxRssKb": 580552,
         "longestFile": {
-            "milliseconds": 43.7,
+            "milliseconds": 22.9,
             "file": "common/genes/01_genes_morph.txt"
         },
         "bySeverity": {
@@ -219,22 +219,22 @@
             "events/wolf_invader_events.txt",
             "gfx/portraits/portrait_modifiers/elf_characters.txt"
         ],
-        "timeToFirstFullResultMs": 50331,
-        "serverUptimeAtFirstFullResultMs": 48098,
-        "backgroundPassMs": 8634,
-        "peakServerRssKb": 400840,
-        "serverVmHwmKb": 400840,
+        "timeToFirstFullResultMs": 22267,
+        "serverUptimeAtFirstFullResultMs": 20726,
+        "backgroundPassMs": 3706,
+        "peakServerRssKb": 408828,
+        "serverVmHwmKb": 408828,
         "longestFile": {
-            "milliseconds": 525.5,
-            "file": "localization/english/aeluran/aeluran_regency_l_english.yml"
+            "milliseconds": 251.9,
+            "file": "localization/korean/aeluran/aeluran_regency_l_korean.yml"
         },
         "longestScriptFile": {
-            "milliseconds": 167.5,
-            "file": "common/event_themes/elf_destiny_misc_event_themes.txt"
+            "milliseconds": 69.7,
+            "file": "common/genes/01_genes_morph.txt"
         },
         "longestLocalizationFile": {
-            "milliseconds": 525.4,
-            "file": "localization/english/aeluran/aeluran_regency_l_english.yml"
+            "milliseconds": 251.9,
+            "file": "localization/korean/aeluran/aeluran_regency_l_korean.yml"
         },
         "bySeverity": {
             "error": 15,
@@ -575,8 +575,8 @@
                 "On-Actions": 159,
                 "Localization": 11740
             },
-            "topRequestMs": 5,
-            "wholeTreeMs": 95,
+            "topRequestMs": 2,
+            "wholeTreeMs": 36,
             "nodes": 2210,
             "reveal": {
                 "item": "adopt_ancient_egyptian_culture_decision",

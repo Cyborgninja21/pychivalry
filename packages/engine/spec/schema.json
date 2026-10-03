@@ -23,8 +23,8 @@
   "additionalProperties": false,
   "properties": {
     "package_format": {
-      "const": 3,
-      "description": "Shape version. 2 (2026-10-01): adds keyword_templates. 3 (2026-10-02): scope_validity filled from the game's own script_docs output and the new top-level scope_types; a format-2 loader rejects the unknown top-level key, hence the bump."
+      "const": 4,
+      "description": "Shape version. 2 (2026-10-01): adds keyword_templates. 3 (2026-10-02): scope_validity filled from the game's own script_docs output and the new top-level scope_types; a format-2 loader rejects the unknown top-level key, hence the bump. 4 (2026-10-03, post-2.0 Phase 6): schema fields may carry `scope` (the scope types the game evaluates the field in when they are not the record's root, measured on vanilla) and `scope_evidence`, and `provenance: corpus` for an unconfirmed wiki field the real-mod corpus sets; a format-3 loader rejects both (fields are closed, provenance an enum), hence the bump."
     },
     "manifest": {
       "$ref": "#/$defs/manifest"
@@ -386,7 +386,8 @@
           "type": "string",
           "enum": [
             "engine",
-            "vanilla"
+            "vanilla",
+            "corpus"
           ]
         },
         "usage": {
@@ -417,6 +418,19 @@
         },
         "note": {
           "type": "string"
+        },
+        "scope": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "The scope types the game evaluates this field in, when they are not the record's root (format 4): every documented use at the field's level in vanilla accepts each of them. One type: the field's scope; several: the evidence does not decide between them."
+        },
+        "scope_evidence": {
+          "type": "string",
+          "description": "How the scope was measured (uses counted, the record's root)."
         },
         "fields": {
           "type": "object",

@@ -9,7 +9,7 @@
  * the engine (no plug-ins) diagnoses every script file of <corpus dir>/<slug> with the
  * game directory as the base game (the CLI's `check <modDir> --vanilla <game dir>`), in a
  * child process of its own so that its peak memory is the mod's alone. The record goes
- * under the `engine` key of test/corpus/real-mods/<slug>.counts.json (an `editor` key
+ * under the `engine` key of test/corpus/real-mods/<slug>.counts.json (the `editor` and `features` keys
  * written by the extension's corpus suite is kept): the mod, the spec package, the
  * command, the file count, the wall time (workspace load + base game + every file), the
  * peak RSS, the longest single-file diagnosis, the count per catalogue id with its
@@ -193,8 +193,12 @@ function main() {
                 errors: classify(slug, result.errors),
             },
         };
-        if (existing.editor) {
-            record.editor = existing.editor;
+        // Keep what the extension's corpus suite wrote (the `editor` record and the 2.3
+        // `features` smoke results); 2.3 Phase 5 to 6 dropped `features` here.
+        for (const key of ['editor', 'features']) {
+            if (existing[key]) {
+                record[key] = existing[key];
+            }
         }
         fs.writeFileSync(outFile, `${JSON.stringify(record, null, 4)}\n`);
         const unclassified = record.engine.errors.filter(

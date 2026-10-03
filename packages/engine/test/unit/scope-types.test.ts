@@ -1,6 +1,6 @@
 /**
  * Scope-type inference (check/scope-types.ts) and the per-keyword scope check (check/scope.ts),
- * on the game's own `script_docs` data in the spec package (format 3).
+ * on the game's own `script_docs` data in the spec package (format 3; field scopes format 4).
  */
 
 import * as assert from 'assert';
@@ -92,14 +92,84 @@ describe('Scope-type inference', () => {
             assert.strictEqual(thisAt(r, 'always', 1), undefined);
         });
 
-        it('scripted effects and directories whose seed scope vanilla contradicts: unknown', () => {
+        it('scripted effects: unknown; story cycles: the story (package format 4, measured on vanilla)', () => {
             const se = resolve('my_effect = {\n\tadd_gold = 1\n}', 'common/scripted_effects/e.txt');
             assert.strictEqual(thisAt(se, 'add_gold'), undefined);
             const sc = resolve(
                 'my_story = {\n\ton_setup = { add_gold = 1 }\n}',
                 'common/story_cycles/s.txt'
             );
-            assert.strictEqual(thisAt(sc, 'add_gold'), undefined);
+            assert.strictEqual(thisAt(sc, 'add_gold'), 'story');
+        });
+
+        it("a callback inside a keyword's parameter block has its own root (unknown)", () => {
+            const r = resolve(
+                [
+                    'my_story = {',
+                    '\teffect_group = {',
+                    '\t\ttriggered_effect = {',
+                    '\t\t\teffect = {',
+                    '\t\t\t\tstory_owner = {',
+                    '\t\t\t\t\tai_start_best_war = {',
+                    '\t\t\t\t\t\tis_valid = { root = { has_treasury = yes } }',
+                    '\t\t\t\t\t}',
+                    '\t\t\t\t}',
+                    '\t\t\t}',
+                    '\t\t}',
+                    '\t}',
+                    '}',
+                ].join('\n'),
+                'common/story_cycles/s.txt'
+            );
+            const war = find(r.ast, 'ai_start_best_war');
+            assert.strictEqual(r.res.frames.get(war.children ?? [])?.root, 'story');
+            const valid = find(r.ast, 'is_valid');
+            assert.strictEqual(r.res.frames.get(valid.children ?? [])?.root, undefined);
+            assert.strictEqual(thisAt(r, 'has_treasury'), undefined);
+        });
+
+        it('record fields the package gives a scope run there; root and prev unknown', () => {
+            const f = resolve(
+                [
+                    'my_faction = {',
+                    '\tis_valid = { exists = faction_leader }',
+                    '\tcan_character_join = { is_adult = yes }',
+                    '\tcan_county_join = { holder = { is_adult = yes } }',
+                    '\tcounty_power = { always = yes }',
+                    '}',
+                ].join('\n'),
+                'common/factions/f.txt'
+            );
+            assert.strictEqual(thisAt(f, 'exists'), 'faction');
+            assert.strictEqual(thisAt(f, 'is_adult', 0), 'character');
+            const join = find(f.ast, 'can_character_join');
+            assert.deepStrictEqual(f.res.frames.get(join.children ?? []), { this: 'character' });
+            assert.strictEqual(thisAt(f, 'holder'), 'landed_title');
+            assert.strictEqual(thisAt(f, 'is_adult', 1), 'character');
+            // county_power: the evidence names three types, so the field's scope is unknown.
+            assert.strictEqual(thisAt(f, 'always'), undefined);
+            const cb = resolve(
+                'my_cb = {\n\tallowed_for_character = { is_adult = yes }\n\ton_victory = { war = { } }\n}',
+                'common/casus_belli_types/c.txt'
+            );
+            assert.strictEqual(thisAt(cb, 'is_adult'), 'character');
+            assert.strictEqual(thisAt(cb, 'war'), 'casus_belli');
+        });
+
+        it('interaction pickers: the title picker is a landed_title, the artifact picker unknown', () => {
+            const r = resolve(
+                [
+                    'my_interaction = {',
+                    '\tcan_be_picked = { is_adult = yes }',
+                    '\tcan_be_picked_title = { tier = 3 }',
+                    '\tcan_be_picked_artifact = { always = yes }',
+                    '}',
+                ].join('\n'),
+                'common/character_interactions/i.txt'
+            );
+            assert.strictEqual(thisAt(r, 'is_adult'), 'character');
+            assert.strictEqual(thisAt(r, 'tier'), 'landed_title');
+            assert.strictEqual(thisAt(r, 'always'), undefined);
         });
     });
 

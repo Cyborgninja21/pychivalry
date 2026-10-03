@@ -7,7 +7,7 @@
     },
     "spec": {
         "version": "1.20.0.2",
-        "sha256": "129f67f6acb2292f10ca9e45cb2720831e447601027f54e0a7be680c79c08cbb"
+        "sha256": "a9959bf9d650fe793ffd3ee60eb6589b8cb6eaaaae778ce84b58fdc535f2eeb6"
     },
     "engine": {
         "mod": {
@@ -18,16 +18,16 @@
         },
         "spec": {
             "version": "1.20.0.2",
-            "sha256": "129f67f6acb2292f10ca9e45cb2720831e447601027f54e0a7be680c79c08cbb"
+            "sha256": "a9959bf9d650fe793ffd3ee60eb6589b8cb6eaaaae778ce84b58fdc535f2eeb6"
         },
         "command": "node packages/engine/scripts/corpus-acceptance.js <corpus dir> <game dir> divine-intervention",
         "equivalentCli": "node packages/engine/dist/cli.js check <corpus dir>/divine-intervention --vanilla <game dir>",
         "files": 80,
-        "milliseconds": 16911,
-        "loadMilliseconds": 15839,
-        "maxRssKb": 463084,
+        "milliseconds": 5427,
+        "loadMilliseconds": 4950,
+        "maxRssKb": 431092,
         "longestFile": {
-            "milliseconds": 336.6,
+            "milliseconds": 153.6,
             "file": "common/scripted_guis/DI_modifiers_sgui.txt"
         },
         "bySeverity": {
@@ -74,21 +74,21 @@
             "common/scripted_guis/DI_title_manager_sgui.txt",
             "events/DI_error_suppression.txt"
         ],
-        "timeToFirstFullResultMs": 26842,
-        "serverUptimeAtFirstFullResultMs": 25818,
-        "backgroundPassMs": 1929,
-        "peakServerRssKb": 326836,
-        "serverVmHwmKb": 326836,
+        "timeToFirstFullResultMs": 15616,
+        "serverUptimeAtFirstFullResultMs": 13817,
+        "backgroundPassMs": 1014,
+        "peakServerRssKb": 400136,
+        "serverVmHwmKb": 400136,
         "longestFile": {
-            "milliseconds": 423.3,
+            "milliseconds": 241.6,
             "file": "common/scripted_guis/DI_modifiers_sgui.txt"
         },
         "longestScriptFile": {
-            "milliseconds": 423.1,
+            "milliseconds": 241.5,
             "file": "common/scripted_guis/DI_modifiers_sgui.txt"
         },
         "longestLocalizationFile": {
-            "milliseconds": 11.6,
+            "milliseconds": 4.6,
             "file": "localization/french/gui/DI_l_french.yml"
         },
         "bySeverity": {
@@ -197,8 +197,8 @@
                 "On-Actions": 8,
                 "Localization": 11307
             },
-            "topRequestMs": 3,
-            "wholeTreeMs": 30,
+            "topRequestMs": 2,
+            "wholeTreeMs": 13,
             "nodes": 408,
             "reveal": {
                 "item": "DI_abdicate",

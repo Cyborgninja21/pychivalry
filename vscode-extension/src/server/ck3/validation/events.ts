@@ -2,19 +2,21 @@
  * CK3 events: type, required parts and the namespace declaration (engine plug-in).
  *
  * The reference is the game's own events documentation, game/events/_events.info (1.20.0.2).
- * None of these rules has engine evidence (no error-catalogue message, no `required` field in
- * the events schema), so every code is a convention at information severity (2.2 evidence
- * audit).
+ * Only EVENT-016 has engine evidence (the game's namespace warning, in the spec package's error
+ * catalogue since 2.3: namespace_X_used_in_event_X_file_X_is_not_defined_in_this_fi), so it is a
+ * warning; the others have none (no error-catalogue message, no `required` field in the events
+ * schema) and are conventions at information severity (2.2 evidence audit).
  *
- * DIAGNOSTIC CODES (information):
+ * DIAGNOSTIC CODES (EVENT-016 warning, the others information):
  *     EVENT-001: event type not one the documentation lists (character_event, letter_event,
  *                court_event, activity_event; the 1.20.0.2 base game uses exactly these four)
  *     EVENT-002: a letter_event without `sender` ("required for letter events")
  *     EVENT-010: an events/ file with events and no `namespace = …` declaration
  *     EVENT-016: an event whose namespace the file does not declare. The game prints
  *                "Namespace '{}' used in event '{}' (file: {}) is not defined in this file -
- *                it might not load properly." (a string of the 1.20.0.2 executable that the
- *                spec package's error catalogue does not hold, hence still a convention)
+ *                it might not load properly." (catalogue
+ *                namespace_X_used_in_event_X_file_X_is_not_defined_in_this_fi; until 2.2 the
+ *                catalogue lacked it and the code was a convention)
  *
  * Retired in 2.2 (each merged into the code that reports the same thing, or removed):
  *     EVENT-002 for a missing `type` (optional, defaults to character_event) or a missing
@@ -94,6 +96,8 @@ export interface EventFinding {
     code: string;
     message: string;
     range?: Range;
+    /** Absent: information (a convention). */
+    severity?: 'warning';
 }
 
 /** EVENT-001 and EVENT-002 on one event block. */
@@ -163,8 +167,9 @@ export function validateNamespaceDeclaration(
         if (namespace && !declared.has(namespace)) {
             errors.push({
                 code: 'EVENT-016',
-                message: `Convention: namespace '${namespace}' used in event '${eventNode.key}' is not defined in this file - it might not load properly (the game's warning)`,
+                message: `Namespace '${namespace}' used in event '${eventNode.key}' is not defined in this file - it might not load properly`,
                 range: eventNode.range,
+                severity: 'warning',
             });
         }
     }
