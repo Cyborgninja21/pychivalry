@@ -1,7 +1,6 @@
 # Feature matrix
 
-The language server's providers in pychivalry 2.2.0 plus the 2.3 editor features (unreleased)
-and what each one does. There are 20 provider modules in `vscode-extension/src/server/lsp/`;
+The language server's providers in pychivalry 2.3.0 and what each one does. There are 20 provider modules in `vscode-extension/src/server/lsp/`;
 every one imports only `pychivalry-engine` (spec package, parser, index, diagnostics) and the
 LSP libraries (the colour provider also reads its generated key list,
 `server/data/color-keys.json`).
@@ -13,7 +12,7 @@ named.
 
 | # | Provider (`lsp/`) | LSP requests | What it does | Status |
 | --- | --- | --- | --- | --- |
-| 1 | `diagnostics.ts` | publishDiagnostics | Script files: the engine pipeline (parse, registry, schema, scope) then the extension's plug-ins; `.yml` files: the localization validator. Plug-in errors and warnings need engine evidence, the rest are conventions at information or hint (2.2, [evidence rule](../developer-guide/diagnostics-evidence.md)). See the [diagnostics reference](diagnostics/README.md). | engine; **limited**: the plug-in checks that need the base game (localization keys, themes, backgrounds, traits, variables across the mod) are silent without `ck3LanguageServer.gamePath` |
+| 1 | `diagnostics.ts` | publishDiagnostics | Script files: the engine pipeline (parse, registry, schema, scope; since 2.3 the scope check also knows the record fields the game evaluates in another scope than the record, from the spec package) then the extension's plug-ins; `.yml` files: the localization validator. Plug-in errors and warnings need engine evidence, the rest are conventions at information or hint (2.2, [evidence rule](../developer-guide/diagnostics-evidence.md)). See the [diagnostics reference](diagnostics/README.md). | engine; **limited**: the plug-in checks that need the base game (localization keys, themes, backgrounds, traits, variables across the mod) are silent without `ck3LanguageServer.gamePath` |
 | 2 | `completions.ts` | completion, completionItem/resolve | Trigger block: triggers, `any_` iterators, structural keys; effect block: effects, `every_`/`random_`/`ordered_` iterators, structural keys; inside a record: the directory schema's fields; workspace symbols (events, scripted effects/triggers, saved scopes); documentation is the engine's doc string. | engine |
 | 3 | `hover.ts` | hover | Keywords: the engine doc string verbatim with its bucket (both buckets for the names that are trigger and effect); iterators: their list; record fields: the directory schema entry; events, scripted effects/triggers, saved scopes and localization keys: the index entry. | engine |
 | 4 | `signature-help.ts` | signatureHelp | Parameters of block-form keywords, from the usage example in the engine doc string. | engine; **limited**: only keywords whose doc string has a usage example |
@@ -42,7 +41,7 @@ Whole-mod features (2.1), outside the per-request providers:
 | Explorer file decorations (#87) | `client/file-decorations.ts` | Badge with the count of a file's worst severity (`9+` above nine), error or warning colour, folder roll-up | engine (diagnostics stream) |
 | Status-bar health summary (#84) | `statusBar.ts` (`CK3HealthStatusBar`) | Workspace error and warning totals, spinner with `done/total` during a pass, tooltip with information count, files affected and last full pass; click opens the Problems panel | engine (diagnostics stream); **limited**: the Problems panel opens unfiltered (no public API for its filter) |
 
-Editor features (2.3, unreleased), outside the per-request providers:
+Editor features (2.3), outside the per-request providers:
 
 | Feature | Where | What it does | Status |
 | --- | --- | --- | --- |

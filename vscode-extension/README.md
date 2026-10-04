@@ -3,7 +3,7 @@
 **Crusader Kings III script tooling that reports what the game itself would report.**
 
 This extension checks CK3 mod scripts against the game's own vocabulary and error messages,
-taken from the game executable rather than from wiki pages or scraped lists. Version 2.0.0
+taken from the game executable rather than from wiki pages or scraped lists. Version 2.3.0
 targets CK3 1.20.0.2.
 
 ## What it does
@@ -38,10 +38,10 @@ Supported files: CK3 script (`.txt`), `.gui`, `.gfx`, `.asset` and localization 
 ## Install
 
 In VS Code, open **Extensions**, choose **… → Install from VSIX…** and pick
-`ck3-language-support-2.0.0.vsix`, or run:
+`ck3-language-support-2.3.0.vsix`, or run:
 
 ```bash
-code --install-extension ck3-language-support-2.0.0.vsix
+code --install-extension ck3-language-support-2.3.0.vsix
 ```
 
 Then open your mod folder. The language server is part of the extension; nothing else needs

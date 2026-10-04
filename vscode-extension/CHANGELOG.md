@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.0] - 2026-10-03
+
+Colour swatches and picker, on-type formatting, the CK3 Explorer view, the spec package's
+measured record-field scopes (format 4) and EVENT-016 at warning severity. Releases 2.1.0 and
+2.2.0 are described in the repository's changelog, as is this one in full:
+[CHANGELOG.md](https://github.com/Cyborgninja21/pychivalry/blob/main/CHANGELOG.md#230---2026-10-03).
+
 ## [2.0.0] - 2026-10-01
 
 The language server now runs on the pychivalry engine core (`pychivalry-engine`) and the

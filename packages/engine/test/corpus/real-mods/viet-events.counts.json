@@ -82,22 +82,22 @@
             "events/VIET_events_county_old.txt",
             "events/VIET_events_old.txt"
         ],
-        "timeToFirstFullResultMs": 26398,
-        "serverUptimeAtFirstFullResultMs": 24702,
-        "backgroundPassMs": 1144,
-        "peakServerRssKb": 437968,
-        "serverVmHwmKb": 437968,
+        "timeToFirstFullResultMs": 20840,
+        "serverUptimeAtFirstFullResultMs": 19065,
+        "backgroundPassMs": 1209,
+        "peakServerRssKb": 441624,
+        "serverVmHwmKb": 441624,
         "longestFile": {
-            "milliseconds": 159.8,
+            "milliseconds": 156.9,
             "file": "events/VIET_events_basic.txt"
         },
         "longestScriptFile": {
-            "milliseconds": 159.8,
+            "milliseconds": 156.8,
             "file": "events/VIET_events_basic.txt"
         },
         "longestLocalizationFile": {
-            "milliseconds": 6.7,
-            "file": "localization/english/viet_events_l_english.yml"
+            "milliseconds": 9,
+            "file": "localization/korean/viet_events_l_korean.yml"
         },
         "bySeverity": {
             "error": 1,
@@ -250,8 +250,8 @@
                 "On-Actions": 34,
                 "Localization": 80122
             },
-            "topRequestMs": 10,
-            "wholeTreeMs": 48,
+            "topRequestMs": 2,
+            "wholeTreeMs": 23,
             "nodes": 1644,
             "reveal": {
                 "item": "VIET_decision_add_more_dovecotes",

@@ -219,21 +219,21 @@
             "events/wolf_invader_events.txt",
             "gfx/portraits/portrait_modifiers/elf_characters.txt"
         ],
-        "timeToFirstFullResultMs": 22267,
-        "serverUptimeAtFirstFullResultMs": 20726,
-        "backgroundPassMs": 3706,
-        "peakServerRssKb": 408828,
-        "serverVmHwmKb": 408828,
+        "timeToFirstFullResultMs": 21019,
+        "serverUptimeAtFirstFullResultMs": 19272,
+        "backgroundPassMs": 3848,
+        "peakServerRssKb": 410268,
+        "serverVmHwmKb": 410268,
         "longestFile": {
-            "milliseconds": 251.9,
+            "milliseconds": 263.3,
             "file": "localization/korean/aeluran/aeluran_regency_l_korean.yml"
         },
         "longestScriptFile": {
-            "milliseconds": 69.7,
+            "milliseconds": 64.6,
             "file": "common/genes/01_genes_morph.txt"
         },
         "longestLocalizationFile": {
-            "milliseconds": 251.9,
+            "milliseconds": 263.2,
             "file": "localization/korean/aeluran/aeluran_regency_l_korean.yml"
         },
         "bySeverity": {
@@ -576,7 +576,7 @@
                 "Localization": 11740
             },
             "topRequestMs": 2,
-            "wholeTreeMs": 36,
+            "wholeTreeMs": 60,
             "nodes": 2210,
             "reveal": {
                 "item": "adopt_ancient_egyptian_culture_decision",

@@ -74,21 +74,21 @@
             "common/scripted_guis/DI_title_manager_sgui.txt",
             "events/DI_error_suppression.txt"
         ],
-        "timeToFirstFullResultMs": 15616,
-        "serverUptimeAtFirstFullResultMs": 13817,
-        "backgroundPassMs": 1014,
-        "peakServerRssKb": 400136,
-        "serverVmHwmKb": 400136,
+        "timeToFirstFullResultMs": 14751,
+        "serverUptimeAtFirstFullResultMs": 14709,
+        "backgroundPassMs": 968,
+        "peakServerRssKb": 396792,
+        "serverVmHwmKb": 396792,
         "longestFile": {
-            "milliseconds": 241.6,
+            "milliseconds": 237.9,
             "file": "common/scripted_guis/DI_modifiers_sgui.txt"
         },
         "longestScriptFile": {
-            "milliseconds": 241.5,
+            "milliseconds": 237.9,
             "file": "common/scripted_guis/DI_modifiers_sgui.txt"
         },
         "longestLocalizationFile": {
-            "milliseconds": 4.6,
+            "milliseconds": 5.2,
             "file": "localization/french/gui/DI_l_french.yml"
         },
         "bySeverity": {
@@ -198,7 +198,7 @@
                 "Localization": 11307
             },
             "topRequestMs": 2,
-            "wholeTreeMs": 13,
+            "wholeTreeMs": 12,
             "nodes": 408,
             "reveal": {
                 "item": "DI_abdicate",

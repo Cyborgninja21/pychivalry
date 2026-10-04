@@ -7,7 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-Release 2.3.0 in progress: editor features (post-2.0 Phase 5).
+## [2.3.0] - 2026-10-03
+
+Editor features, and developing pychivalry made fast and documented. Headlines:
+
+- **Colour swatches and picker, on-type formatting and the CK3 Explorer view** (#79, #80,
+  #83; post-2.0 Phase 5).
+- **The spec package knows where record fields run** (format 4, pdx-parser-re): story cycles
+  run in the `story` scope, and 24 record fields the game evaluates in another scope than their
+  record (a faction's `can_character_join` on the character, a casus belli's `on_victory` on
+  the casus belli, a building's `cost` on the builder …) carry that scope, measured on the base
+  game. The engine's exception tables (four directories, three interaction pickers) are down
+  to one picker, kept with the reason; the scope check now judges 93,665 keyword uses in the
+  base game (2.2: 91,580) with 0 findings.
+- **EVENT-016 is a warning**: the game's namespace warning is now in the spec package's error
+  catalogue.
+- **Developer experience** (#35, #36, #38, #39, #59; post-2.0 Phase 6): Dev Mode, the
+  development build in your own VS Code, a smoke suite on the shipped VSIX in CI on three
+  hosts, a debugging guide whose every launch configuration is checked by a task.
 
 ### Added
 
@@ -49,12 +66,64 @@ Release 2.3.0 in progress: editor features (post-2.0 Phase 5).
   typed and indented, the CK3 Explorer's counts, request times and one reveal); on RICE the
   top-level structure request answered in 6 ms and the whole tree (5,100 nodes) in 126 ms.
 
+- **Dev Mode** (#36): `task dev` and the VS Code task and launch configuration **Dev Mode**
+  run the engine in `tsc --watch` and both webpack bundles in `--watch`, so an engine edit
+  reaches the language server bundle without another step; `task dev:tests` adds the unit
+  tests in watch mode. Problem matchers report TypeScript errors of the engine and of the
+  bundles and failing unit tests, and tell the launch when both bundles have finished.
+  Issue #36's Python parts are gone with 2.0.0 (the server is TypeScript, bundled in the same
+  watch).
+- **`task dev:link` / `task dev:unlink`** (#35): the development build in your own VS Code,
+  stable or Insiders, local or on the remote server (WSL, SSH), by a link from the extensions
+  folder; refuses where the Marketplace or a VSIX copy is installed; registers the link in the
+  folder's `extensions.json`, which VS Code reads instead of scanning once the file exists.
+- **VSIX smoke suite** (#39): `task test:vsix` packages the extension, installs the VSIX into
+  a clean VS Code with `--install-extension` and asserts on `example mod/` that the installed
+  copy activates at the package version, that a known-bad file gets the engine's error, that a
+  hover answers and that the CK3 Explorer has data; `task test:dev-link` runs the same tests on
+  the linked development build. CI job `vsix-smoke` runs both on Linux, Windows and macOS after
+  the build and uploads the VSIX. It replaces the by-hand VSIX check of the release cuts.
+- **Debugging guide** (#38): [debugging.md](Documentation/developer-guide/debugging.md), every
+  launch configuration (the Extension Development Host, the language server's inspector on
+  port 6009 and its attach, the main instance and an installed VSIX, the engine and extension
+  tests, both corpus suites), where each log goes, the WSL and VS Code terminal traps.
+  `task dev:launch-check` starts every configuration once outside VS Code and attaches like a
+  debugger. The language server starts with an inspector when the extension host runs under a
+  debugger (`CK3_SERVER_INSPECT_PORT` overrides 6009).
+- **CK3: Index** (#59): an integration test proves the channel receives the server's indexing
+  messages on start-up and on **CK3: Rescan Workspace**; it was never broken on the TypeScript
+  server (the issue's race was the Python server's). The extension's API returns the recent
+  lines of its output channels (`logs.lines(category)`) for tests.
+
 ### Changed
 
+- **Spec package format 4** (sha256 `a9959bf9…`): record fields carry `scope` where the game
+  evaluates them in another scope than the record's root; `common/story_cycles` has the root
+  `story`; one wiki-era field the real-mod corpus sets (`months` in opinion modifiers) is a
+  field with `provenance: corpus`, the other 251 stay documented as possibly unused (nothing is
+  removed from the spec); the error catalogue has 1,968 messages (the event-namespace warning
+  added). The measurements ran on the local base game, which Steam updated to 1.20.0.3 on
+  2026-10-03; the package still describes 1.20.0.2. The engine accepts format 4 only. In the scope check, a block inside a keyword's
+  parameter block (a callback such as `ai_start_best_war`'s `is_valid`, which the game runs
+  with scopes of its own) has its root unknown.
+- **EVENT-016** (an event whose namespace its file does not declare) is a warning, with the
+  game's message; it was a convention at information while the catalogue lacked the message.
 - Document and range formatting read `ck3LanguageServer.formatting.insertSpaces`,
   `formatting.tabSize` and `formatting.enabled` (declared but not read before: the editor's
   own indentation settings were used), so that document, range and on-type formatting always
   agree. The default stays tabs, the Paradox convention.
+
+### Fixed
+
+- `.vscode/launch.json`: the unit-test configurations pointed at
+  `vscode-extension/node_modules/mocha` (the workspace hoists it to the root) and at test files
+  that moved to the engine in 2.0; "Current File" passed the `.ts` file to mocha; the watch
+  launch used a `tsc` problem matcher on webpack output and never reported ready.
+- `npm run test:watch` ran the integration suite outside VS Code; it runs the unit tests.
+- The "good" story-cycle fixtures ran character effects in the story's own scope, which the
+  game reports; they go through `story_owner`.
+- `corpus-acceptance.js` dropped the `features` record when it rewrote a corpus record.
+- The temporary "[Index notification received]" copies in **CK3: Server** are removed.
 
 ## [2.2.0] - 2026-10-03
 

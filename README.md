@@ -10,7 +10,7 @@ pychivalry checks CK3 mod scripts against the game's own vocabulary and error me
 from the game executable rather than from wiki pages or scraped lists. It ships as a VS Code
 extension (a language server with completion, hover, navigation, formatting, colour swatches,
 a mod-structure view and diagnostics)
-and as a command-line checker for whole mod folders. Version 2.2.0 targets CK3 1.20.0.2.
+and as a command-line checker for whole mod folders. Version 2.3.0 targets CK3 1.20.0.2.
 
 ## How it is built
 
@@ -59,8 +59,8 @@ triggers and effects are layered over the spec package when the mod is found.
 ## Install
 
 From a release VSIX: in VS Code, **Extensions → … → Install from VSIX…** and pick
-`ck3-language-support-2.2.0.vsix`, or run
-`code --install-extension ck3-language-support-2.2.0.vsix`.
+`ck3-language-support-2.3.0.vsix`, or run
+`code --install-extension ck3-language-support-2.3.0.vsix`.
 
 From source (Node.js 22 and npm 10):
 
@@ -69,8 +69,8 @@ git clone https://github.com/Cyborgninja21/pychivalry.git
 cd pychivalry
 npm ci                                   # installs the workspace (engine + extension)
 npm run build                            # builds packages/engine
-cd vscode-extension && npm run package   # webpack production build + vsce: ck3-language-support-2.2.0.vsix
-code --install-extension ck3-language-support-2.2.0.vsix
+cd vscode-extension && npm run package   # webpack production build + vsce: ck3-language-support-2.3.0.vsix
+code --install-extension ck3-language-support-2.3.0.vsix
 ```
 
 To try it without packaging, open the repository in VS Code and press **F5** (Extension
@@ -224,9 +224,17 @@ Diagnostics are documented in the generated [diagnostics reference](Documentatio
 
 ```bash
 npm ci                 # once, at the repository root
+task dev               # Dev Mode: engine tsc --watch + extension webpack --watch (dev:tests adds the unit tests)
 task ci                # build, lint, format check, engine tests, diagnostics-docs check, unit tests
 task test:integration  # VS Code integration tests (needs a display; use xvfb-run on Linux)
+task test:vsix         # package the VSIX, install it into a clean VS Code, run the smoke suite
+task dev:link          # use the development build in your own VS Code (dev:unlink removes it)
 ```
+
+In VS Code, **🎯 Extension - Dev Mode** (F5) starts the Extension Development Host on top of
+Dev Mode, and the language server listens for a debugger on port 6009 there. Every launch
+configuration, debugging in your main VS Code and against an installed VSIX, and where each
+log goes: [debugging.md](Documentation/developer-guide/debugging.md).
 
 [CONTRIBUTING.md](CONTRIBUTING.md) has the workspace layout and the rules;
 [CLAUDE.md](CLAUDE.md) is the short architecture brief; the

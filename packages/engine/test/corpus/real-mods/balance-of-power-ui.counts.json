@@ -59,21 +59,21 @@
         "filesValidated": 12,
         "filesWithFindings": 5,
         "filesAtCap": [],
-        "timeToFirstFullResultMs": 13208,
-        "serverUptimeAtFirstFullResultMs": 13174,
-        "backgroundPassMs": 29,
-        "peakServerRssKb": 274344,
-        "serverVmHwmKb": 274344,
+        "timeToFirstFullResultMs": 14135,
+        "serverUptimeAtFirstFullResultMs": 14102,
+        "backgroundPassMs": 31,
+        "peakServerRssKb": 299712,
+        "serverVmHwmKb": 299712,
         "longestFile": {
-            "milliseconds": 18.8,
+            "milliseconds": 19.8,
             "file": "common/script_values/svals_bop.txt"
         },
         "longestScriptFile": {
-            "milliseconds": 18.7,
+            "milliseconds": 19.7,
             "file": "common/script_values/svals_bop.txt"
         },
         "longestLocalizationFile": {
-            "milliseconds": 0.6,
+            "milliseconds": 1.2,
             "file": "localization/english/bop_l_english.yml"
         },
         "bySeverity": {
@@ -147,8 +147,8 @@
                 "Script Values": 17,
                 "Localization": 7
             },
-            "topRequestMs": 2,
-            "wholeTreeMs": 6,
+            "topRequestMs": 1,
+            "wholeTreeMs": 7,
             "nodes": 37,
             "reveal": {
                 "item": "bop_refresh_effect",

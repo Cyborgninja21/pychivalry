@@ -4,7 +4,7 @@ Guidance for Claude Code (claude.ai/code) working in this repository.
 
 ## Project
 
-pychivalry 2.2.0: Crusader Kings III script tooling. An npm workspace with two packages:
+pychivalry 2.3.0: Crusader Kings III script tooling. An npm workspace with two packages:
 
 - `packages/engine` (npm `pychivalry-engine`): the engine core. Dependency-free TypeScript that
   parses CK3 script, indexes a mod and reports the game's own diagnostics; has a CLI
