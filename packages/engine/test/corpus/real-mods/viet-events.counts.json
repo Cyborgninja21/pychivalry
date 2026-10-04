@@ -20,14 +20,19 @@
             "version": "1.20.0.2",
             "sha256": "a9959bf9d650fe793ffd3ee60eb6589b8cb6eaaaae778ce84b58fdc535f2eeb6"
         },
+        "game": {
+            "version": "1.20.0.3",
+            "exe_sha256": "94b55397abb687a3dcd436805a5d885e6be90fa6c693feb44a9e3bbeeade02a6",
+            "matches_spec_exe": false
+        },
         "command": "node packages/engine/scripts/corpus-acceptance.js <corpus dir> <game dir> viet-events",
         "equivalentCli": "node packages/engine/dist/cli.js check <corpus dir>/viet-events --vanilla <game dir>",
         "files": 67,
-        "milliseconds": 5268,
-        "loadMilliseconds": 4887,
-        "maxRssKb": 461376,
+        "milliseconds": 5804,
+        "loadMilliseconds": 5440,
+        "maxRssKb": 462220,
         "longestFile": {
-            "milliseconds": 108.2,
+            "milliseconds": 102.5,
             "file": "events/VIET_events_basic.txt"
         },
         "bySeverity": {
@@ -64,6 +69,11 @@
     "editor": {
         "command": "CK3_CORPUS=<corpus dir> CK3_GAME_PATH=<game dir> xvfb-run -a task test:integration (mod viet-events)",
         "vscodeVersion": "1.140.0",
+        "game": {
+            "version": "1.20.0.3",
+            "exe_sha256": "94b55397abb687a3dcd436805a5d885e6be90fa6c693feb44a9e3bbeeade02a6",
+            "matches_spec_exe": false
+        },
         "settings": {
             "gamePath": "<game dir>",
             "backgroundValidation": {
@@ -82,22 +92,22 @@
             "events/VIET_events_county_old.txt",
             "events/VIET_events_old.txt"
         ],
-        "timeToFirstFullResultMs": 20840,
-        "serverUptimeAtFirstFullResultMs": 19065,
-        "backgroundPassMs": 1209,
-        "peakServerRssKb": 441624,
-        "serverVmHwmKb": 441624,
+        "timeToFirstFullResultMs": 15685,
+        "serverUptimeAtFirstFullResultMs": 15644,
+        "backgroundPassMs": 1077,
+        "peakServerRssKb": 455464,
+        "serverVmHwmKb": 455464,
         "longestFile": {
-            "milliseconds": 156.9,
+            "milliseconds": 161.8,
             "file": "events/VIET_events_basic.txt"
         },
         "longestScriptFile": {
-            "milliseconds": 156.8,
+            "milliseconds": 161.7,
             "file": "events/VIET_events_basic.txt"
         },
         "longestLocalizationFile": {
-            "milliseconds": 9,
-            "file": "localization/korean/viet_events_l_korean.yml"
+            "milliseconds": 7.5,
+            "file": "localization/french/viet_events_l_french.yml"
         },
         "bySeverity": {
             "error": 1,
@@ -250,7 +260,7 @@
                 "On-Actions": 34,
                 "Localization": 80122
             },
-            "topRequestMs": 2,
+            "topRequestMs": 1,
             "wholeTreeMs": 23,
             "nodes": 1644,
             "reveal": {

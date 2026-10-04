@@ -20,14 +20,19 @@
             "version": "1.20.0.2",
             "sha256": "a9959bf9d650fe793ffd3ee60eb6589b8cb6eaaaae778ce84b58fdc535f2eeb6"
         },
+        "game": {
+            "version": "1.20.0.3",
+            "exe_sha256": "94b55397abb687a3dcd436805a5d885e6be90fa6c693feb44a9e3bbeeade02a6",
+            "matches_spec_exe": false
+        },
         "command": "node packages/engine/scripts/corpus-acceptance.js <corpus dir> <game dir> elf-destiny",
         "equivalentCli": "node packages/engine/dist/cli.js check <corpus dir>/elf-destiny --vanilla <game dir>",
         "files": 553,
-        "milliseconds": 6104,
-        "loadMilliseconds": 5234,
-        "maxRssKb": 580552,
+        "milliseconds": 6283,
+        "loadMilliseconds": 5358,
+        "maxRssKb": 582472,
         "longestFile": {
-            "milliseconds": 22.9,
+            "milliseconds": 24.9,
             "file": "common/genes/01_genes_morph.txt"
         },
         "bySeverity": {
@@ -184,6 +189,11 @@
     "editor": {
         "command": "CK3_CORPUS=<corpus dir> CK3_GAME_PATH=<game dir> xvfb-run -a task test:integration (mod elf-destiny)",
         "vscodeVersion": "1.140.0",
+        "game": {
+            "version": "1.20.0.3",
+            "exe_sha256": "94b55397abb687a3dcd436805a5d885e6be90fa6c693feb44a9e3bbeeade02a6",
+            "matches_spec_exe": false
+        },
         "settings": {
             "gamePath": "<game dir>",
             "backgroundValidation": {
@@ -219,21 +229,21 @@
             "events/wolf_invader_events.txt",
             "gfx/portraits/portrait_modifiers/elf_characters.txt"
         ],
-        "timeToFirstFullResultMs": 21019,
-        "serverUptimeAtFirstFullResultMs": 19272,
-        "backgroundPassMs": 3848,
-        "peakServerRssKb": 410268,
-        "serverVmHwmKb": 410268,
+        "timeToFirstFullResultMs": 15407,
+        "serverUptimeAtFirstFullResultMs": 15373,
+        "backgroundPassMs": 3376,
+        "peakServerRssKb": 399004,
+        "serverVmHwmKb": 399004,
         "longestFile": {
-            "milliseconds": 263.3,
+            "milliseconds": 258.7,
             "file": "localization/korean/aeluran/aeluran_regency_l_korean.yml"
         },
         "longestScriptFile": {
-            "milliseconds": 64.6,
+            "milliseconds": 56.3,
             "file": "common/genes/01_genes_morph.txt"
         },
         "longestLocalizationFile": {
-            "milliseconds": 263.2,
+            "milliseconds": 258.7,
             "file": "localization/korean/aeluran/aeluran_regency_l_korean.yml"
         },
         "bySeverity": {
@@ -576,7 +586,7 @@
                 "Localization": 11740
             },
             "topRequestMs": 2,
-            "wholeTreeMs": 60,
+            "wholeTreeMs": 39,
             "nodes": 2210,
             "reveal": {
                 "item": "adopt_ancient_egyptian_culture_decision",

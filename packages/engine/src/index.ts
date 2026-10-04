@@ -61,5 +61,7 @@ export { STRUCTURAL, ITERATOR_PARAMS, MODIFIER_BLOCK_PARAMS } from './check/stru
 export type { CheckInput } from './check/types';
 
 export { PYCH_MESSAGES, messageText } from './messages';
+export { gameInfo } from './game-info';
+export type { GameInfo } from './game-info';
 export { diagnose, diagnoseWorkspace, registerPlugin, registeredPluginCount } from './diagnostics';
 export type { Diagnostic, Severity, Plugin, PluginContext, DiagnoseOptions } from './diagnostics';

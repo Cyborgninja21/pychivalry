@@ -17,6 +17,7 @@ import * as assert from 'assert';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import { defaultSpec, gameInfo } from 'pychivalry-engine';
 import type { CK3ExtensionApi } from '../../extension';
 
 const SOURCES = new Set(['ck3-engine', 'ck3-plugin']);
@@ -187,6 +188,11 @@ suite('Real-mod corpus (editor path)', () => {
         const record = {
             command: `CK3_CORPUS=<corpus dir> CK3_GAME_PATH=<game dir> xvfb-run -a task test:integration (mod ${slug})`,
             vscodeVersion: vscode.version,
+            // The base game the server loaded (it can be another build than the spec's exe).
+            game: gameInfo(
+                config.get<string>('gamePath') || undefined,
+                defaultSpec().data.manifest.exe.sha256
+            ),
             settings: {
                 gamePath: config.get<string>('gamePath') ? '<game dir>' : '',
                 backgroundValidation: {

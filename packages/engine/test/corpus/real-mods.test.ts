@@ -11,6 +11,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 import { packageRoot } from '../../src/spec/spec';
+import { assertGameRecord } from '../helpers/game-record';
 
 const DIR = path.join(packageRoot(), 'test', 'corpus', 'real-mods');
 const SLUGS = ['balance-of-power-ui', 'divine-intervention', 'elf-destiny', 'rice', 'viet-events'];
@@ -43,6 +44,11 @@ describe('Real-mod corpus records', () => {
         describe(slug, () => {
             const record = load(slug);
             for (const key of ['engine', 'editor']) {
+                it(`${key} path: says which base game it loaded`, () => {
+                    const r = record[key] as Record<string, unknown> | undefined;
+                    assert.ok(r, `${key} record present`);
+                    assertGameRecord(`${slug} ${key}`, r.game);
+                });
                 it(`${key} path: counts add up and every error is classified`, () => {
                     const r = record[key] as PathRecord | undefined;
                     assert.ok(r, `${key} record present`);

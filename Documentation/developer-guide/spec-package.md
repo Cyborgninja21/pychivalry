@@ -12,6 +12,7 @@ types come from the game itself: the `script_docs` console command run in that b
 (pdx-parser-re `research/oracle/1.20.0.2/`, with its provenance). Since format 4 the schema
 also says which record fields the game evaluates in another scope than the record's root,
 measured on vanilla (pdx-parser-re `research/analysis/ROOT_SCOPES_1.20.0.2.md`).
+The spec is derived from the CK3 1.20.0.2 executable, but the 2.3.0 acceptance and corpus records were measured against the 1.20.0.3 game files (Steam updated the install on 2026-10-03; every record's `game` field gives the version, the executable's sha256 and `matches_spec_exe: false`), 21 game files differ, and on the unchanged 2.2.0 engine the difference is one `undefined_event_target_X` finding and four judged keyword uses, with zero scope findings either way.
 
 ## Format
 

@@ -17,6 +17,8 @@ every error-severity finding (file relative to the mod, 1-based line, code, mess
 classification (`real-defect` or `false-positive` with the GitHub issue), from
 [`classifications.json`](classifications.json), explained in [FINDINGS.md](FINDINGS.md).
 
+**Which game.** The spec is derived from the CK3 1.20.0.2 executable, but the 2.3.0 acceptance and corpus records were measured against the 1.20.0.3 game files (Steam updated the install on 2026-10-03; every record's `game` field gives the version, the executable's sha256 and `matches_spec_exe: false`), 21 game files differ, and on the unchanged 2.2.0 engine the difference is one `undefined_event_target_X` finding and four judged keyword uses, with zero scope findings either way.
+
 ## The corpus
 
 Never committed. Five Steam Workshop mods copied on 2026-10-02 from the local workshop cache

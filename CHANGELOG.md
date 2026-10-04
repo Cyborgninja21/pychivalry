@@ -102,8 +102,9 @@ Editor features, and developing pychivalry made fast and documented. Headlines:
   `story`; one wiki-era field the real-mod corpus sets (`months` in opinion modifiers) is a
   field with `provenance: corpus`, the other 251 stay documented as possibly unused (nothing is
   removed from the spec); the error catalogue has 1,968 messages (the event-namespace warning
-  added). The measurements ran on the local base game, which Steam updated to 1.20.0.3 on
-  2026-10-03; the package still describes 1.20.0.2. The engine accepts format 4 only. In the scope check, a block inside a keyword's
+  added). The engine accepts format 4 only.
+- **Records say which game they were run against**: the vanilla acceptance and corpus records
+  carry `game` (`version`, the executable's `exe_sha256`, `matches_spec_exe`). The spec is derived from the CK3 1.20.0.2 executable, but the 2.3.0 acceptance and corpus records were measured against the 1.20.0.3 game files (Steam updated the install on 2026-10-03; every record's `game` field gives the version, the executable's sha256 and `matches_spec_exe: false`), 21 game files differ, and on the unchanged 2.2.0 engine the difference is one `undefined_event_target_X` finding and four judged keyword uses, with zero scope findings either way. In the scope check, a block inside a keyword's
   parameter block (a callback such as `ai_start_best_war`'s `is_valid`, which the game runs
   with scopes of its own) has its root unknown.
 - **EVENT-016** (an event whose namespace its file does not declare) is a warning, with the

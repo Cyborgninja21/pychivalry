@@ -20,14 +20,19 @@
             "version": "1.20.0.2",
             "sha256": "a9959bf9d650fe793ffd3ee60eb6589b8cb6eaaaae778ce84b58fdc535f2eeb6"
         },
+        "game": {
+            "version": "1.20.0.3",
+            "exe_sha256": "94b55397abb687a3dcd436805a5d885e6be90fa6c693feb44a9e3bbeeade02a6",
+            "matches_spec_exe": false
+        },
         "command": "node packages/engine/scripts/corpus-acceptance.js <corpus dir> <game dir> balance-of-power-ui",
         "equivalentCli": "node packages/engine/dist/cli.js check <corpus dir>/balance-of-power-ui --vanilla <game dir>",
         "files": 5,
-        "milliseconds": 4553,
-        "loadMilliseconds": 4544,
-        "maxRssKb": 242520,
+        "milliseconds": 4204,
+        "loadMilliseconds": 4195,
+        "maxRssKb": 259092,
         "longestFile": {
-            "milliseconds": 5.5,
+            "milliseconds": 5.7,
             "file": "common/script_values/svals_bop.txt"
         },
         "bySeverity": {
@@ -47,6 +52,11 @@
     "editor": {
         "command": "CK3_CORPUS=<corpus dir> CK3_GAME_PATH=<game dir> xvfb-run -a task test:integration (mod balance-of-power-ui)",
         "vscodeVersion": "1.140.0",
+        "game": {
+            "version": "1.20.0.3",
+            "exe_sha256": "94b55397abb687a3dcd436805a5d885e6be90fa6c693feb44a9e3bbeeade02a6",
+            "matches_spec_exe": false
+        },
         "settings": {
             "gamePath": "<game dir>",
             "backgroundValidation": {
@@ -59,21 +69,21 @@
         "filesValidated": 12,
         "filesWithFindings": 5,
         "filesAtCap": [],
-        "timeToFirstFullResultMs": 14135,
-        "serverUptimeAtFirstFullResultMs": 14102,
-        "backgroundPassMs": 31,
-        "peakServerRssKb": 299712,
-        "serverVmHwmKb": 299712,
+        "timeToFirstFullResultMs": 7366,
+        "serverUptimeAtFirstFullResultMs": 7333,
+        "backgroundPassMs": 24,
+        "peakServerRssKb": 294620,
+        "serverVmHwmKb": 294620,
         "longestFile": {
-            "milliseconds": 19.8,
+            "milliseconds": 14,
             "file": "common/script_values/svals_bop.txt"
         },
         "longestScriptFile": {
-            "milliseconds": 19.7,
+            "milliseconds": 13.9,
             "file": "common/script_values/svals_bop.txt"
         },
         "longestLocalizationFile": {
-            "milliseconds": 1.2,
+            "milliseconds": 0.7,
             "file": "localization/english/bop_l_english.yml"
         },
         "bySeverity": {

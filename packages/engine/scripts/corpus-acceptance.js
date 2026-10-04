@@ -187,6 +187,8 @@ function main() {
             engine: {
                 mod,
                 spec,
+                // The base game the run loaded (it can be another build than the spec's exe).
+                game: engine.gameInfo(game, engine.defaultSpec().data.manifest.exe.sha256),
                 command: `node packages/engine/scripts/corpus-acceptance.js <corpus dir> <game dir> ${slug}`,
                 equivalentCli: `node packages/engine/dist/cli.js check <corpus dir>/${slug} --vanilla <game dir>`,
                 ...result,

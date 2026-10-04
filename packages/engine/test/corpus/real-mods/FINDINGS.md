@@ -66,7 +66,7 @@ the severity totals, every error and the `features` smoke results (timings aside
 too. No mod of the corpus has an EVENT-016 finding, so the
 severity change moves nothing here. No new finding, so no new classification and no new issue.
 
-**The base game is 1.20.0.3.** Steam updated the local install on 2026-10-03 at 13:48, the day
+**The base game is 1.20.0.3.** The spec is derived from the CK3 1.20.0.2 executable, but the 2.3.0 acceptance and corpus records were measured against the 1.20.0.3 game files (Steam updated the install on 2026-10-03; every record's `game` field gives the version, the executable's sha256 and `matches_spec_exe: false`), 21 game files differ, and on the unchanged 2.2.0 engine the difference is one `undefined_event_target_X` finding and four judged keyword uses, with zero scope findings either way. Steam updated the local install on 2026-10-03 at 13:48, the day
 these records were made: `binaries/ck3.exe` (sha256 `94B55397…02A6`, the same size as 1.20.0.2)
 and 21 files under `game/` (nine `settings_l_*.yml`, the English trigger localization, and
 eleven script files: `common/character_interactions/00_grant_titles_interaction.txt`,

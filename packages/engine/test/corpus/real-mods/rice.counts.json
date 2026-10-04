@@ -20,14 +20,19 @@
             "version": "1.20.0.2",
             "sha256": "a9959bf9d650fe793ffd3ee60eb6589b8cb6eaaaae778ce84b58fdc535f2eeb6"
         },
+        "game": {
+            "version": "1.20.0.3",
+            "exe_sha256": "94b55397abb687a3dcd436805a5d885e6be90fa6c693feb44a9e3bbeeade02a6",
+            "matches_spec_exe": false
+        },
         "command": "node packages/engine/scripts/corpus-acceptance.js <corpus dir> <game dir> rice",
         "equivalentCli": "node packages/engine/dist/cli.js check <corpus dir>/rice --vanilla <game dir>",
         "files": 1313,
-        "milliseconds": 9892,
-        "loadMilliseconds": 6475,
-        "maxRssKb": 975664,
+        "milliseconds": 10411,
+        "loadMilliseconds": 6320,
+        "maxRssKb": 971680,
         "longestFile": {
-            "milliseconds": 81.6,
+            "milliseconds": 69.6,
             "file": "events/RICE_north_atlantic_events.txt"
         },
         "bySeverity": {
@@ -800,6 +805,11 @@
     "editor": {
         "command": "CK3_CORPUS=<corpus dir> CK3_GAME_PATH=<game dir> xvfb-run -a task test:integration (mod rice)",
         "vscodeVersion": "1.140.0",
+        "game": {
+            "version": "1.20.0.3",
+            "exe_sha256": "94b55397abb687a3dcd436805a5d885e6be90fa6c693feb44a9e3bbeeade02a6",
+            "matches_spec_exe": false
+        },
         "settings": {
             "gamePath": "<game dir>",
             "backgroundValidation": {
@@ -836,22 +846,22 @@
             "localization/russian/rice_north_atlantic_l_russian.yml",
             "localization/russian/rice_sri_lanka_l_russian.yml"
         ],
-        "timeToFirstFullResultMs": 44100,
-        "serverUptimeAtFirstFullResultMs": 42368,
-        "backgroundPassMs": 11755,
-        "peakServerRssKb": 770556,
-        "serverVmHwmKb": 770556,
+        "timeToFirstFullResultMs": 32833,
+        "serverUptimeAtFirstFullResultMs": 31022,
+        "backgroundPassMs": 11624,
+        "peakServerRssKb": 745212,
+        "serverVmHwmKb": 745212,
         "longestFile": {
-            "milliseconds": 232.9,
+            "milliseconds": 197.7,
             "file": "common/decisions/RICE_mayo_decisions.txt"
         },
         "longestScriptFile": {
-            "milliseconds": 232.9,
+            "milliseconds": 197.7,
             "file": "common/decisions/RICE_mayo_decisions.txt"
         },
         "longestLocalizationFile": {
-            "milliseconds": 204.6,
-            "file": "localization/french/rice_nubia_l_french.yml"
+            "milliseconds": 193.2,
+            "file": "localization/polish/rice_nubia_l_polish.yml"
         },
         "bySeverity": {
             "error": 92,
@@ -1877,8 +1887,8 @@
                 "On-Actions": 116,
                 "Localization": 389048
             },
-            "topRequestMs": 3,
-            "wholeTreeMs": 68,
+            "topRequestMs": 4,
+            "wholeTreeMs": 79,
             "nodes": 5100,
             "reveal": {
                 "item": "RICE_SEA_harvest_rare_tropical_goods_decision",

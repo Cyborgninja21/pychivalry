@@ -20,14 +20,19 @@
             "version": "1.20.0.2",
             "sha256": "a9959bf9d650fe793ffd3ee60eb6589b8cb6eaaaae778ce84b58fdc535f2eeb6"
         },
+        "game": {
+            "version": "1.20.0.3",
+            "exe_sha256": "94b55397abb687a3dcd436805a5d885e6be90fa6c693feb44a9e3bbeeade02a6",
+            "matches_spec_exe": false
+        },
         "command": "node packages/engine/scripts/corpus-acceptance.js <corpus dir> <game dir> divine-intervention",
         "equivalentCli": "node packages/engine/dist/cli.js check <corpus dir>/divine-intervention --vanilla <game dir>",
         "files": 80,
-        "milliseconds": 5427,
-        "loadMilliseconds": 4950,
-        "maxRssKb": 431092,
+        "milliseconds": 5388,
+        "loadMilliseconds": 4874,
+        "maxRssKb": 472868,
         "longestFile": {
-            "milliseconds": 153.6,
+            "milliseconds": 164.6,
             "file": "common/scripted_guis/DI_modifiers_sgui.txt"
         },
         "bySeverity": {
@@ -47,6 +52,11 @@
     "editor": {
         "command": "CK3_CORPUS=<corpus dir> CK3_GAME_PATH=<game dir> xvfb-run -a task test:integration (mod divine-intervention)",
         "vscodeVersion": "1.140.0",
+        "game": {
+            "version": "1.20.0.3",
+            "exe_sha256": "94b55397abb687a3dcd436805a5d885e6be90fa6c693feb44a9e3bbeeade02a6",
+            "matches_spec_exe": false
+        },
         "settings": {
             "gamePath": "<game dir>",
             "backgroundValidation": {
@@ -74,21 +84,21 @@
             "common/scripted_guis/DI_title_manager_sgui.txt",
             "events/DI_error_suppression.txt"
         ],
-        "timeToFirstFullResultMs": 14751,
-        "serverUptimeAtFirstFullResultMs": 14709,
-        "backgroundPassMs": 968,
-        "peakServerRssKb": 396792,
-        "serverVmHwmKb": 396792,
+        "timeToFirstFullResultMs": 12391,
+        "serverUptimeAtFirstFullResultMs": 10618,
+        "backgroundPassMs": 903,
+        "peakServerRssKb": 402120,
+        "serverVmHwmKb": 402120,
         "longestFile": {
-            "milliseconds": 237.9,
+            "milliseconds": 238.3,
             "file": "common/scripted_guis/DI_modifiers_sgui.txt"
         },
         "longestScriptFile": {
-            "milliseconds": 237.9,
+            "milliseconds": 238.3,
             "file": "common/scripted_guis/DI_modifiers_sgui.txt"
         },
         "longestLocalizationFile": {
-            "milliseconds": 5.2,
+            "milliseconds": 4.8,
             "file": "localization/french/gui/DI_l_french.yml"
         },
         "bySeverity": {
@@ -198,7 +208,7 @@
                 "Localization": 11307
             },
             "topRequestMs": 2,
-            "wholeTreeMs": 12,
+            "wholeTreeMs": 13,
             "nodes": 408,
             "reveal": {
                 "item": "DI_abdicate",
