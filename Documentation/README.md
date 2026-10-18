@@ -49,6 +49,7 @@ Documentation for PyChivalry contributors.
 
 | Document | Description |
 |----------|-------------|
+| [Debugging](developer-guide/debugging.md) | Every launch configuration: the Extension Development Host, the server's inspector, the main instance (`dev:link`), an installed VSIX, the tests; where each log goes |
 | [Spec Package](developer-guide/spec-package.md) | The generated CK3 vocabulary package and how a new game version is adopted |
 | [Issue Triage 2.0.0](developer-guide/issue-triage-2.0.0.md) | The 2.0.0 triage of the open issues |
 | [Test Suites](developer-guide/Test%20Suites.md) | Test organization, coverage, and how to run tests (1.x layout) |

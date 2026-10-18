@@ -4,6 +4,8 @@
  * package (format 3), which carries the game's own `script_docs` documentation:
  *
  *   root         the directory schema's `root_scope` (or the directory's `default_scope`);
+ *                a record field the schema gives a `scope` (format 4) runs in that type instead,
+ *                with root and prev unknown;
  *                for events the event's own `scope = <type>` field when it has one; for
  *                on_actions the expected scope the game documents for that on_action.
  *                Scripted triggers and effects, script values and every other directory:
@@ -15,7 +17,9 @@
  *                  `root`, `prev`, `this` blocks         that frame's type
  *                  control flow (limit, AND, if, random_list cases, ...)  unchanged
  *                  anything else (a keyword's parameter block, a scripted effect's
- *                  arguments, nested record fields)          unknown
+ *                  arguments, nested record fields)          unknown (root kept; a block
+ *                  inside a keyword's parameter block has root unknown too: the game runs
+ *                  such callbacks with scopes of its own)
  *   prev         the scope before the last scope change (unknown after an unknown change)
  *   scope:x      the type at its save site (`save_scope_as = x`), when the workspace index and
  *                the base game together hold exactly one save of `x` and it is in the same
@@ -27,6 +31,7 @@
  */
 
 import { Spec } from '../spec/spec';
+import { SchemaEntry } from '../spec/types';
 import { ASTNode, NodeType, ScopeChain } from '../syntax/ast';
 import { SymbolType } from '../index/symbols';
 import { BlockContext, blockContexts } from './registry';
@@ -86,39 +91,26 @@ export interface ScopeResolution {
 const UNKNOWN: ScopeFrame = {};
 
 /**
- * Directories whose package root scope (`root_scope` / `default_scope`, a seed from the wiki
- * era, not engine-derived) vanilla 1.20.0.2 contradicts: their records hold fields the game
- * evaluates in other scopes. Their root is unknown. Calibrated on vanilla like the tables in
- * structural.ts; each entry is the evidence.
+ * Directories whose package root scope (`root_scope` / `default_scope`) vanilla 1.20
+ * contradicts and the package has not corrected: their root is unknown. Empty since spec
+ * package format 4: the four wiki-era seeds this table held in 2.1 and 2.2 (story_cycles,
+ * factions, casus_belli_types, buildings) are measured on vanilla in pdx-parser-re
+ * (research/analysis/ROOT_SCOPES_1.20.0.2.md): story_cycles has the root `story`, and the
+ * fields the game evaluates in another scope carry `scope` (see fieldFrame below).
  */
-export const ROOT_SCOPE_CONTRADICTED: ReadonlyMap<string, string> = new Map([
-    [
-        'common/story_cycles',
-        'the seed says character, but vanilla applies `story_owner` (input: story) at the record root 160 times and story effects (supported: story) 56 times: the root is the story',
-    ],
-    [
-        'common/factions',
-        'the seed says faction, but fields such as can_character_join / can_character_create_ui run character triggers and links (liege, holder, faith …) 42 + 76 times',
-    ],
-    [
-        'common/casus_belli_types',
-        'the seed says character, but on_victory/on_defeat … run casus_belli effects and the `war` link (input: casus_belli) 49 times',
-    ],
-    [
-        'common/buildings',
-        'the seed says province, but the cost blocks (rebuild_cost, cost) are evaluated on the builder: vanilla compares the character trigger `gold` there 10 times',
-    ],
-]);
+export const ROOT_SCOPE_CONTRADICTED: ReadonlyMap<string, string> = new Map();
 
 /**
- * Record fields evaluated in another scope than the record's root (vanilla 1.20.0.2):
- * interaction pickers run on the candidate title / artifact / character.
+ * Record fields evaluated in another scope than the record's root that the package does not
+ * describe. Their bodies are unknown. Since format 4 the package gives `can_be_picked_title`
+ * its scope (landed_title) and `can_be_picked` needs none (its candidate is a character, the
+ * root's type: 38 documented uses in vanilla, all character). `can_be_picked_artifact` stays:
+ * its candidate is an artifact, but vanilla's 5 files use no keyword whose scopes the game
+ * documents at the field's level, so the measurement gives it no scope and the record's
+ * root (character) would be wrong there.
  */
 export const FIELDS_OUTSIDE_ROOT: ReadonlyMap<string, ReadonlySet<string>> = new Map([
-    [
-        'common/character_interactions',
-        new Set(['can_be_picked', 'can_be_picked_title', 'can_be_picked_artifact']),
-    ],
+    ['common/character_interactions', new Set(['can_be_picked_artifact'])],
 ]);
 
 /** Logical operators and filters: their bodies keep the scope. */
@@ -177,6 +169,15 @@ class Resolver {
     private readonly result: ScopeResolution;
     private record: ASTNode | undefined;
     private outsideRoot: ReadonlySet<string> | undefined;
+    /**
+     * Frames of a keyword's parameter block (`ai_start_best_war = { … }`). A block inside one
+     * (a callback such as `is_valid` or `on_success`) is run by the game with scopes of its
+     * own: `ai_start_best_war`'s documentation says its is_valid is "called with scopes: root -
+     * Current AI character", not the caller's root. So its root is unknown.
+     */
+    private readonly parameterFrames = new WeakSet<ScopeFrame>();
+    /** The record fields of the file's directory schema (their measured `scope`). */
+    private recordFields: SchemaEntry['fields'] | undefined;
     /** Save sites seen in this walk: record → name → types at the sites. */
     public readonly saveSites = new Map<ASTNode, Map<string, Array<string | undefined>>>();
 
@@ -208,6 +209,7 @@ class Resolver {
             }
             this.record = record;
             this.outsideRoot = directory ? FIELDS_OUTSIDE_ROOT.get(directory.path) : undefined;
+            this.recordFields = schema?.fields;
             const root = this.rootOf(
                 record,
                 directory?.path,
@@ -272,15 +274,36 @@ class Resolver {
             }
             this.result.owners.set(node.children, node);
             const outside = recordBody && node.key !== undefined && this.outsideRoot?.has(node.key);
+            const measured =
+                recordBody && node.key !== undefined ? this.fieldFrame(node.key) : undefined;
             const child = outside
                 ? {}
-                : inContext
-                  ? this.childInContext(node, frame)
-                  : recordBody || !node.key
-                    ? frame
-                    : { root: frame.root };
+                : measured !== undefined
+                  ? measured
+                  : inContext
+                    ? this.childInContext(node, frame)
+                    : recordBody || !node.key
+                      ? frame
+                      : this.parameterFrames.has(frame)
+                        ? {}
+                        : { root: frame.root };
             this.walk(node.children, child, false);
         }
+    }
+
+    /**
+     * The frame of a record field the package says the game evaluates in another scope than
+     * the record's root (`scope`, spec format 4): `this` is that type when the evidence names
+     * one, unknown when it names several; `root` and `prev` are unknown there. Undefined for
+     * every other field.
+     */
+    private fieldFrame(key: string): ScopeFrame | undefined {
+        const field = this.recordFields?.[key];
+        if (!field?.scope) {
+            return undefined;
+        }
+        const type = single(field.scope);
+        return type !== undefined && this.spec.isScopeType(type) ? { this: type } : {};
     }
 
     private noteSave(name: string, type: string | undefined): void {
@@ -299,7 +322,10 @@ class Resolver {
 
     /** The frame of the body of `node`, a block inside a trigger or effect block. */
     private childInContext(node: ASTNode, frame: ScopeFrame): ScopeFrame {
-        const unknown: ScopeFrame = { root: frame.root };
+        // A keyword's parameter block keeps the root (`target = root` there is the caller's
+        // root); a block inside a parameter block has its root unknown (parameterFrames).
+        const unknown: ScopeFrame = this.parameterFrames.has(frame) ? {} : { root: frame.root };
+        this.parameterFrames.add(unknown);
         const key = node.key;
         if (!key) {
             return frame;

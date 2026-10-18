@@ -14,14 +14,18 @@ import {
     CodeActionParams,
     CodeLens,
     CodeLensParams,
+    ColorPresentationParams,
     CompletionItem,
     Connection,
     createConnection,
     DidChangeConfigurationNotification,
     DidChangeWatchedFilesParams,
     FileChangeType,
+    DocumentColorParams,
     DocumentFormattingParams,
     DocumentLink,
+    DocumentOnTypeFormattingParams,
+    FormattingOptions,
     DocumentRangeFormattingParams,
     ExecuteCommandParams,
     InitializeParams,
@@ -72,6 +76,7 @@ import { DataLoader } from './data/loader';
 import { ModScanner } from './data/mod-scanner';
 import { loadExtractedTraits } from './data/traits';
 import { BaseGameData } from './data/base-game';
+import { readNamedColorTexts } from './data/named-colors';
 import { serverLogger } from './utils/logger';
 
 import { CompletionProvider } from './lsp/completions';
@@ -91,6 +96,14 @@ import { InlayHintsProvider } from './lsp/inlay-hints';
 import { SignatureHelpProvider } from './lsp/signature-help';
 import { CallHierarchyProvider } from './lsp/call-hierarchy';
 import { SelectionRangeProvider } from './lsp/selection-range';
+import { ColorProvider } from './lsp/color-provider';
+import { OnTypeFormattingProvider, ON_TYPE_TRIGGERS } from './lsp/on-type-formatting';
+import {
+    ModStructure,
+    ModStructureParams,
+    MOD_STRUCTURE_CHANGED,
+    MOD_STRUCTURE_REQUEST,
+} from './lsp/mod-structure';
 import { extensionVersion } from './version';
 
 /** Server settings pulled from the client (ck3LanguageServer.*). */
@@ -101,7 +114,13 @@ export interface ServerConfig {
     backgroundValidation: BackgroundSettings;
     /** GFX001, graphics files that do not exist (reported only with the base game known). */
     graphics: { enabled: boolean };
-    formatting: { enabled: boolean; insertSpaces: boolean; tabSize: number };
+    /** Document, range and on-type formatting (insertSpaces/tabSize shared by all three). */
+    formatting: {
+        enabled: boolean;
+        onTypeEnabled: boolean;
+        insertSpaces: boolean;
+        tabSize: number;
+    };
     inlayHints: {
         enabled: boolean;
         showScopeTypes: boolean;
@@ -124,7 +143,7 @@ const DEFAULT_CONFIG: ServerConfig = {
     gamePath: '',
     backgroundValidation: { ...DEFAULT_BACKGROUND },
     graphics: { enabled: true },
-    formatting: { enabled: true, insertSpaces: false, tabSize: 4 },
+    formatting: { enabled: true, onTypeEnabled: true, insertSpaces: false, tabSize: 4 },
     inlayHints: {
         enabled: true,
         showScopeTypes: true,
@@ -222,6 +241,9 @@ export class CK3LanguageServer {
     private signatureHelp = new SignatureHelpProvider(this.currentSpec);
     private callHierarchy = new CallHierarchyProvider(this.parser, this.workspace.index);
     private selectionRange = new SelectionRangeProvider(this.parser);
+    private colors = new ColorProvider(this.parser);
+    private onType = new OnTypeFormattingProvider();
+    private structure = new ModStructure(this.workspace.index, this.localization);
 
     private background = new BackgroundValidation({
         connection: this.connection,
@@ -275,6 +297,19 @@ export class CK3LanguageServer {
                 this.connection.console.error(`${name} error: ${error}`);
                 return fallback;
             });
+    }
+
+    /**
+     * Indentation for document, range and on-type formatting: the
+     * ck3LanguageServer.formatting insertSpaces/tabSize settings (Paradox files use tabs), so
+     * that the three always agree whatever the editor's own indentation is.
+     */
+    private formattingOptions(options: FormattingOptions): FormattingOptions {
+        return {
+            ...options,
+            insertSpaces: this.config.formatting.insertSpaces,
+            tabSize: this.config.formatting.tabSize,
+        };
     }
 
     /** Run a document-less handler; errors are logged and yield the fallback. */
@@ -353,12 +388,28 @@ export class CK3LanguageServer {
         );
         c.onDocumentFormatting((p: DocumentFormattingParams) =>
             doc(p.textDocument.uri, 'Formatting', [], (d) =>
-                this.formatting.formatDocument(d, p.options)
+                this.config.formatting.enabled
+                    ? this.formatting.formatDocument(d, this.formattingOptions(p.options))
+                    : []
             )
         );
         c.onDocumentRangeFormatting((p: DocumentRangeFormattingParams) =>
             doc(p.textDocument.uri, 'Range formatting', [], (d) =>
-                this.formatting.formatRange(d, p.range, p.options)
+                this.config.formatting.enabled
+                    ? this.formatting.formatRange(d, p.range, this.formattingOptions(p.options))
+                    : []
+            )
+        );
+        c.onDocumentOnTypeFormatting((p: DocumentOnTypeFormattingParams) =>
+            doc(p.textDocument.uri, 'On-type formatting', [], (d) =>
+                this.config.formatting.enabled && this.config.formatting.onTypeEnabled
+                    ? this.onType.provideOnTypeFormattingEdits(
+                          d,
+                          p.position,
+                          p.ch,
+                          this.formattingOptions(p.options)
+                      )
+                    : []
             )
         );
         c.onFoldingRanges((p) =>
@@ -434,6 +485,16 @@ export class CK3LanguageServer {
                 this.signatureHelp.provideSignatureHelp(d, p.position)
             )
         );
+        c.onDocumentColor((p: DocumentColorParams) =>
+            doc(p.textDocument.uri, 'Document colors', [], (d) =>
+                this.colors.provideDocumentColors(d)
+            )
+        );
+        c.onColorPresentation((p: ColorPresentationParams) =>
+            doc(p.textDocument.uri, 'Color presentations', [], (d) =>
+                this.colors.provideColorPresentations(d, p.color, p.range)
+            )
+        );
         c.languages.callHierarchy.onPrepare((p: CallHierarchyPrepareParams) =>
             doc(p.textDocument.uri, 'Call hierarchy prepare', null, (d) =>
                 this.callHierarchy.prepareCallHierarchy(d, p)
@@ -448,6 +509,10 @@ export class CK3LanguageServer {
             this.guarded('Call hierarchy outgoing calls', [], () =>
                 this.callHierarchy.outgoingCalls(p)
             )
+        );
+
+        c.onRequest(MOD_STRUCTURE_REQUEST, (p: ModStructureParams | undefined) =>
+            this.guarded('Mod structure', [], () => this.structure.build(p ?? {}))
         );
 
         c.onExecuteCommand((p: ExecuteCommandParams, token, workDoneProgress) => {
@@ -483,6 +548,10 @@ export class CK3LanguageServer {
                 documentSymbolProvider: true,
                 documentFormattingProvider: true,
                 documentRangeFormattingProvider: true,
+                documentOnTypeFormattingProvider: {
+                    firstTriggerCharacter: ON_TYPE_TRIGGERS.first,
+                    moreTriggerCharacter: ON_TYPE_TRIGGERS.more,
+                },
                 renameProvider: { prepareProvider: true },
                 foldingRangeProvider: true,
                 semanticTokensProvider: {
@@ -498,6 +567,7 @@ export class CK3LanguageServer {
                 inlayHintProvider: { resolveProvider: true },
                 callHierarchyProvider: true,
                 selectionRangeProvider: true,
+                colorProvider: true,
                 workspaceSymbolProvider: true,
                 executeCommandProvider: { commands: SERVER_COMMANDS },
             },
@@ -523,6 +593,7 @@ export class CK3LanguageServer {
                     this.workspace.removeWorkspaceFolder(folder.uri);
                 }
                 await this.commands.rescanWorkspace();
+                this.structureChanged();
             });
         }
         await this.initializeWorkspace();
@@ -547,6 +618,7 @@ export class CK3LanguageServer {
             notify(`Indexed ${indexed.uris.length} files`);
             await this.readConfiguration();
             await this.loadBaseGame();
+            await this.loadNamedColors();
             await this.commands.scanLocalization();
             try {
                 const modCount = await this.modScanner.discoverMods();
@@ -561,6 +633,7 @@ export class CK3LanguageServer {
                 this.connection.console.error(`Mod discovery failed: ${error}`);
             }
             this.initialized = true;
+            this.structureChanged();
             notify('Workspace initialized successfully');
             this.connection.console.log('Workspace initialized successfully');
             this.background.configure(this.config.backgroundValidation);
@@ -632,6 +705,22 @@ export class CK3LanguageServer {
         }
     }
 
+    /**
+     * The named colours (common/named_colors) of the base game and the workspace's mods, for
+     * the colour provider's `color1 = white` swatches. Mods load after the base game.
+     */
+    private async loadNamedColors(): Promise<void> {
+        const roots = [
+            ...(this.workspace.vanillaRoot ? [this.workspace.vanillaRoot] : []),
+            ...this.workspace.roots(),
+        ];
+        try {
+            this.colors.named.load(await readNamedColorTexts(roots), this.parser);
+        } catch (error) {
+            this.connection.console.error(`Failed to load the named colours: ${error}`);
+        }
+    }
+
     /** Extracted trait data plus the discovered mods' traits (CK3800's known set). */
     private knownTraits(): ReadonlySet<string> | undefined {
         // Without extracted vanilla trait data the check does not run at all.
@@ -660,7 +749,13 @@ export class CK3LanguageServer {
         this.workspace.index.indexSync(document.uri, this.parser.parse(document.getText()).ast);
     }
 
+    /** Tell the client that the index changed (the CK3 Explorer view refreshes). */
+    private structureChanged(): void {
+        void this.connection.sendNotification(MOD_STRUCTURE_CHANGED, {});
+    }
+
     private async onDidSave(document: TextDocument): Promise<void> {
+        this.structureChanged();
         await this.validateDocument(document);
         // Files that use what the saved file defines are checked again in the background.
         this.background.saved(fileUriToPath(document.uri));
@@ -669,11 +764,13 @@ export class CK3LanguageServer {
     /** Files created, changed or deleted on disk (the client's file watchers). */
     private async onDidChangeWatchedFiles(params: DidChangeWatchedFilesParams): Promise<void> {
         let graphicsChanged = false;
+        let namedColorsChanged = false;
         for (const change of params.changes) {
             if (!change.uri.startsWith('file:')) {
                 continue;
             }
             const file = fileUriToPath(change.uri);
+            namedColorsChanged ||= /[\\/]common[\\/]named_colors[\\/]/i.test(file);
             if (change.type !== FileChangeType.Changed) {
                 // A file or folder appeared or went: the graphics check lists again.
                 this.graphicsCache.invalidate(file);
@@ -713,6 +810,12 @@ export class CK3LanguageServer {
             } catch (error) {
                 this.connection.console.error(`File change ${change.uri}: ${error}`);
             }
+        }
+        if (namedColorsChanged) {
+            await this.loadNamedColors();
+        }
+        if (params.changes.length > 0) {
+            this.structureChanged();
         }
         if (graphicsChanged && this.config.graphics.enabled) {
             // GFX001 of the open files follows the files on disk.
@@ -773,6 +876,7 @@ export class CK3LanguageServer {
                     this.localization.indexText(file, text);
                 }
                 this.background.changed(file);
+                this.structureChanged();
             },
             () => {
                 // Gone from disk: the watcher's delete event clears it.
@@ -826,6 +930,7 @@ export class CK3LanguageServer {
             this.background.configure(this.config.backgroundValidation);
             if (this.config.gamePath !== this.loadedGamePath) {
                 await this.loadBaseGame();
+                await this.loadNamedColors();
                 this.background.restart();
             } else if (this.config.graphics.enabled !== graphicsWas) {
                 this.background.restart();

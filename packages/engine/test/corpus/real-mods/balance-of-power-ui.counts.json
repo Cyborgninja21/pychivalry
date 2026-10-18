@@ -7,7 +7,7 @@
     },
     "spec": {
         "version": "1.20.0.2",
-        "sha256": "129f67f6acb2292f10ca9e45cb2720831e447601027f54e0a7be680c79c08cbb"
+        "sha256": "a9959bf9d650fe793ffd3ee60eb6589b8cb6eaaaae778ce84b58fdc535f2eeb6"
     },
     "engine": {
         "mod": {
@@ -18,16 +18,16 @@
         },
         "spec": {
             "version": "1.20.0.2",
-            "sha256": "129f67f6acb2292f10ca9e45cb2720831e447601027f54e0a7be680c79c08cbb"
+            "sha256": "a9959bf9d650fe793ffd3ee60eb6589b8cb6eaaaae778ce84b58fdc535f2eeb6"
         },
         "command": "node packages/engine/scripts/corpus-acceptance.js <corpus dir> <game dir> balance-of-power-ui",
         "equivalentCli": "node packages/engine/dist/cli.js check <corpus dir>/balance-of-power-ui --vanilla <game dir>",
         "files": 5,
-        "milliseconds": 14806,
-        "loadMilliseconds": 14785,
-        "maxRssKb": 210464,
+        "milliseconds": 4553,
+        "loadMilliseconds": 4544,
+        "maxRssKb": 242520,
         "longestFile": {
-            "milliseconds": 13,
+            "milliseconds": 5.5,
             "file": "common/script_values/svals_bop.txt"
         },
         "bySeverity": {
@@ -62,21 +62,21 @@
         "filesValidated": 12,
         "filesWithFindings": 5,
         "filesAtCap": [],
-        "timeToFirstFullResultMs": 35001,
-        "serverUptimeAtFirstFullResultMs": 33975,
-        "backgroundPassMs": 117,
-        "peakServerRssKb": 276708,
-        "serverVmHwmKb": 276708,
+        "timeToFirstFullResultMs": 11701,
+        "serverUptimeAtFirstFullResultMs": 11659,
+        "backgroundPassMs": 31,
+        "peakServerRssKb": 296832,
+        "serverVmHwmKb": 296832,
         "longestFile": {
-            "milliseconds": 82.3,
+            "milliseconds": 17,
             "file": "common/script_values/svals_bop.txt"
         },
         "longestScriptFile": {
-            "milliseconds": 82.1,
+            "milliseconds": 16.9,
             "file": "common/script_values/svals_bop.txt"
         },
         "longestLocalizationFile": {
-            "milliseconds": 2,
+            "milliseconds": 1.3,
             "file": "localization/english/bop_l_english.yml"
         },
         "bySeverity": {
@@ -120,5 +120,46 @@
             }
         },
         "errors": []
+    },
+    "features": {
+        "colors": {
+            "file": "gui/00_bop_types.gui",
+            "guiAndGfxFiles": 2,
+            "candidatesTried": 1,
+            "values": 2,
+            "first": "{ 1 1 0.5 1 }"
+        },
+        "onType": {
+            "file": "common/script_values/svals_bop.txt",
+            "line": 2,
+            "typed": "Enter at the end of a line ending in {",
+            "edits": [
+                {
+                    "line": 2,
+                    "newText": "\"\\t\""
+                }
+            ],
+            "newLineIndentation": "\"\\t\"",
+            "blockFirstLineIndentation": "\"\\t\"",
+            "agrees": true
+        },
+        "tree": {
+            "categories": {
+                "Scripted Effects": 1,
+                "Scripted Triggers": 1,
+                "Script Values": 17,
+                "Localization": 7
+            },
+            "topRequestMs": 1,
+            "wholeTreeMs": 9,
+            "nodes": 37,
+            "reveal": {
+                "item": "bop_refresh_effect",
+                "category": "scripted_effects",
+                "file": "common/scripted_effects/bop_effects.txt",
+                "line": 1,
+                "ok": true
+            }
+        }
     }
 }

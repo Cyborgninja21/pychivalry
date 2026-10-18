@@ -2,7 +2,7 @@
   "name": "ck3-language-support",
   "displayName": "Crusader Kings 3 Language Support",
   "description": "Language support for Crusader Kings 3 scripting language with LSP-powered features",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "publisher": "cyborgninja21",
   "license": "Apache-2.0",
   "repository": {
@@ -211,8 +211,28 @@
         "command": "ck3LanguageServer.showLogStatistics",
         "title": "Show Game Log Statistics",
         "category": "CK3"
+      },
+      {
+        "command": "ck3LanguageServer.refreshModExplorer",
+        "title": "Refresh CK3 Explorer",
+        "category": "CK3",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "ck3LanguageServer.revealModItem",
+        "title": "Reveal Definition",
+        "category": "CK3"
       }
     ],
+    "views": {
+      "explorer": [
+        {
+          "id": "ck3.modExplorer",
+          "name": "CK3 Explorer",
+          "when": "ck3.modExplorer.enabled"
+        }
+      ]
+    },
     "menus": {
       "commandPalette": [
         {
@@ -294,6 +314,21 @@
         {
           "command": "ck3LanguageServer.showLogStatistics",
           "when": "true"
+        },
+        {
+          "command": "ck3LanguageServer.refreshModExplorer",
+          "when": "ck3.modExplorer.enabled"
+        },
+        {
+          "command": "ck3LanguageServer.revealModItem",
+          "when": "false"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "ck3LanguageServer.refreshModExplorer",
+          "when": "view == ck3.modExplorer",
+          "group": "navigation"
         }
       ]
     },
@@ -353,19 +388,25 @@
           "ck3LanguageServer.formatting.enabled": {
             "type": "boolean",
             "default": true,
-            "description": "Enable document formatting for CK3 files",
+            "description": "Enable document, range and on-type formatting for CK3 files",
+            "scope": "resource"
+          },
+          "ck3LanguageServer.formatting.onTypeEnabled": {
+            "type": "boolean",
+            "default": true,
+            "description": "Format as you type: indent a new line to its block depth after Enter, align a closing brace with the line that opened its block, and pad '=' (needs editor.formatOnType, which the extension turns on for CK3 files)",
             "scope": "resource"
           },
           "ck3LanguageServer.formatting.insertSpaces": {
             "type": "boolean",
             "default": false,
-            "description": "Use spaces instead of tabs for indentation (Paradox convention uses tabs)",
+            "description": "Indent with spaces instead of tabs, in document, range and on-type formatting (Paradox convention uses tabs)",
             "scope": "resource"
           },
           "ck3LanguageServer.formatting.tabSize": {
             "type": "number",
             "default": 4,
-            "description": "Number of spaces per tab (for display purposes)",
+            "description": "Spaces per indentation level when insertSpaces is on",
             "scope": "resource"
           }
         }
@@ -524,7 +565,12 @@
           }
         }
       }
-    ]
+    ],
+    "configurationDefaults": {
+      "[ck3]": {
+        "editor.formatOnType": true
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run bundle",
@@ -533,14 +579,16 @@
     "bundle": "webpack --mode production --devtool source-map",
     "package": "vsce package --no-dependencies",
     "compile-tests": "tsc -p . --outDir out",
-    "watch-tests": "tsc -p . -w --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out --preserveWatchOutput",
     "pretest": "npm run compile-tests && npm run compile && npm run lint",
     "test": "node ./out/test/runTest.js",
     "test:integration": "npm run pretest && node ./out/test/runTest.js",
     "test:quick": "npm run compile-tests && node ./out/test/runTest.js",
     "test:unit": "mocha ./out/test/unit/**/*.test.js",
     "test:examples": "mocha ./out/test/unit/example-mod-validation.test.js",
-    "test:watch": "npm run compile-tests && mocha ./out/test/suite/**/*.test.js --watch",
+    "test:vsix": "node ./out/test/vsix/runVsix.js",
+    "test:dev-link": "node ./out/test/vsix/runVsix.js --linked",
+    "test:watch": "mocha \"./out/test/unit/**/*.test.js\" --watch --watch-files \"out/**/*.js,../packages/engine/dist/**/*.js\" --enable-source-maps --timeout 15000",
     "lint": "eslint src --ext ts --max-warnings=0",
     "format": "prettier --write \"src/**/*.ts\"",
     "format-check": "prettier --check \"src/**/*.ts\""
@@ -567,7 +615,7 @@
   "dependencies": {
     "fast-glob": "^3.3.3",
     "js-yaml": "^4.1.1",
-    "pychivalry-engine": "2.2.0",
+    "pychivalry-engine": "2.3.0",
     "vscode-languageclient": "^9.0.0",
     "vscode-languageserver": "^9.0.1",
     "vscode-languageserver-textdocument": "^1.0.12"

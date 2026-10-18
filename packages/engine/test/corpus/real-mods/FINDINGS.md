@@ -48,6 +48,46 @@ these three point at `event_scenes/` instead, so the game shows no picture for t
 
 No false positive, so no new issue.
 
+## 2.3: spec package format 4, the schema review (post-2.0 Phase 6, step 6.5)
+
+The records were re-made 2026-10-03 with the format-4 spec package (sha256 `a9959bf9…`):
+the four directory roots and the interaction pickers that 2.1 and 2.2 handled with an
+exception table in the engine are now in the package (story cycles run in the `story` scope;
+24 record fields carry the scope the game evaluates them in, measured on vanilla, pdx-parser-re
+`research/analysis/ROOT_SCOPES_1.20.0.2.md`), the engine reads them, and a block inside a
+keyword's parameter block has its root unknown (`ai_start_best_war`'s callbacks are "called
+with scopes: root - Current AI character"). EVENT-016 is a warning (the game's namespace
+warning is in the catalogue).
+
+**No change by code on either path.** Engine path: on all five mods the counts per code and
+every error are identical to the 2.2.0 records (only the spec sha256, the timings and the peak
+memory differ). Editor path (base game set, the integration run with `CK3_CORPUS`): the counts per code,
+the severity totals, every error and the `features` smoke results (timings aside) are identical
+too. No mod of the corpus has an EVENT-016 finding, so the
+severity change moves nothing here. No new finding, so no new classification and no new issue.
+
+**The base game is 1.20.0.3.** Steam updated the local install on 2026-10-03 at 13:48, the day
+these records were made: `binaries/ck3.exe` (sha256 `94B55397…02A6`, the same size as 1.20.0.2)
+and 21 files under `game/` (nine `settings_l_*.yml`, the English trigger localization, and
+eleven script files: `common/character_interactions/00_grant_titles_interaction.txt`,
+`common/on_action/game_start.txt` and `religion_on_actions.txt`,
+`common/scripted_triggers/00_religious_triggers.txt`,
+`common/trigger_localization/00_character_triggers.txt`, `common/scripted_effects/pam_effects.txt`,
+`common/task_contracts/laamp_transport_contracts.txt`, `events/dlc/ep3/ep3_frankokratia_events.txt`,
+`common/activities/activity_types/pilgrimage.txt`,
+`common/religion/rite_types/01_christian_heresy_rite_types.txt`,
+`common/religion/doctrine_types/20_doctrines.txt`). The spec package still describes 1.20.0.2.
+On the 2.2.0 engine and package, the update alone changed the vanilla acceptance record by
+one `undefined_event_target_X` (10,522 to 10,523) and 22 keyword uses, 4 judged uses and 2
+judged link steps, with 0 scope findings either way.
+
+**Vanilla acceptance (format 4, the 1.20.0.3 game).** 0 scope findings over 93,665 judged
+keyword uses (2.2.0: 91,580) and 17,312 judged link steps (2.2.0: 17,836). More uses are judged
+because story cycles, factions, casus belli types and buildings now have known roots and
+fields; fewer link steps because a callback inside a keyword's parameter block no longer
+inherits the caller's root. The 14 errors are the same 14 (10 unknown_trigger_X, 4
+unknown_effect_X) as in 2.2.0.
+
 ## 2.2.0: the release records (post-2.0 Phase 4, step 4.7)
 
 The records in this folder are the 2.2.0 build's (2026-10-03), base game set. Errors and

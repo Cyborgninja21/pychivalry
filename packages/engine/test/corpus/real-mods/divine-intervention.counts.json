@@ -7,7 +7,7 @@
     },
     "spec": {
         "version": "1.20.0.2",
-        "sha256": "129f67f6acb2292f10ca9e45cb2720831e447601027f54e0a7be680c79c08cbb"
+        "sha256": "a9959bf9d650fe793ffd3ee60eb6589b8cb6eaaaae778ce84b58fdc535f2eeb6"
     },
     "engine": {
         "mod": {
@@ -18,16 +18,16 @@
         },
         "spec": {
             "version": "1.20.0.2",
-            "sha256": "129f67f6acb2292f10ca9e45cb2720831e447601027f54e0a7be680c79c08cbb"
+            "sha256": "a9959bf9d650fe793ffd3ee60eb6589b8cb6eaaaae778ce84b58fdc535f2eeb6"
         },
         "command": "node packages/engine/scripts/corpus-acceptance.js <corpus dir> <game dir> divine-intervention",
         "equivalentCli": "node packages/engine/dist/cli.js check <corpus dir>/divine-intervention --vanilla <game dir>",
         "files": 80,
-        "milliseconds": 16911,
-        "loadMilliseconds": 15839,
-        "maxRssKb": 463084,
+        "milliseconds": 5427,
+        "loadMilliseconds": 4950,
+        "maxRssKb": 431092,
         "longestFile": {
-            "milliseconds": 336.6,
+            "milliseconds": 153.6,
             "file": "common/scripted_guis/DI_modifiers_sgui.txt"
         },
         "bySeverity": {
@@ -77,21 +77,21 @@
             "common/scripted_guis/DI_title_manager_sgui.txt",
             "events/DI_error_suppression.txt"
         ],
-        "timeToFirstFullResultMs": 26842,
-        "serverUptimeAtFirstFullResultMs": 25818,
-        "backgroundPassMs": 1929,
-        "peakServerRssKb": 326836,
-        "serverVmHwmKb": 326836,
+        "timeToFirstFullResultMs": 20028,
+        "serverUptimeAtFirstFullResultMs": 17407,
+        "backgroundPassMs": 3876,
+        "peakServerRssKb": 409256,
+        "serverVmHwmKb": 409256,
         "longestFile": {
-            "milliseconds": 423.3,
+            "milliseconds": 308.5,
             "file": "common/scripted_guis/DI_modifiers_sgui.txt"
         },
         "longestScriptFile": {
-            "milliseconds": 423.1,
+            "milliseconds": 308.4,
             "file": "common/scripted_guis/DI_modifiers_sgui.txt"
         },
         "longestLocalizationFile": {
-            "milliseconds": 11.6,
+            "milliseconds": 6.5,
             "file": "localization/french/gui/DI_l_french.yml"
         },
         "bySeverity": {
@@ -167,5 +167,49 @@
             }
         },
         "errors": []
+    },
+    "features": {
+        "colors": {
+            "file": "gui/DI_button.gui",
+            "guiAndGfxFiles": 74,
+            "candidatesTried": 1,
+            "values": 4,
+            "first": "{ 0.12 0.08 0.04 1 }"
+        },
+        "onType": {
+            "file": "common/character_interaction_categories/00_character_interaction_categories.txt",
+            "line": 8,
+            "typed": "Enter at the end of a line ending in {",
+            "edits": [
+                {
+                    "line": 8,
+                    "newText": "\"\\t\""
+                }
+            ],
+            "newLineIndentation": "\"\\t\"",
+            "blockFirstLineIndentation": "\"\\t\"",
+            "agrees": true
+        },
+        "tree": {
+            "categories": {
+                "Events": 5,
+                "Character Interactions": 80,
+                "Scripted Effects": 119,
+                "Scripted Triggers": 44,
+                "Script Values": 45,
+                "On-Actions": 8,
+                "Localization": 11307
+            },
+            "topRequestMs": 2,
+            "wholeTreeMs": 17,
+            "nodes": 408,
+            "reveal": {
+                "item": "DI_abdicate",
+                "category": "character_interactions",
+                "file": "common/character_interactions/DI_character_interaction.txt",
+                "line": 5046,
+                "ok": true
+            }
+        }
     }
 }

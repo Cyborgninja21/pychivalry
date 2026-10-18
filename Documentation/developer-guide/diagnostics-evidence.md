@@ -32,9 +32,12 @@ with "Convention" at error or warning severity. The generated reference pages
   `character_event`; `sender` required for letter events; "Missing localization keys are
   logged as errors"): it decides what is *false* (CONV-001, CK3760) and what a convention
   says, but it is not one of the four classes above.
-- Strings of the 1.20.0.2 executable that the spec package's catalogue does not hold (the
-  namespace warning of EVENT-016): a gap of the catalogue extraction, to be fixed in
-  pdx-parser-re; until then the code stays a convention.
+- Strings of the executable that the spec package's catalogue does not hold: a gap of the
+  catalogue extraction, fixed in pdx-parser-re, not here. The one 2.2 left open, the namespace
+  warning of EVENT-016, is in the catalogue since 2.3 (id
+  `namespace_X_used_in_event_X_file_X_is_not_defined_in_this_fi`, found verbatim in the
+  archived string dump and in the executable at file offset `0x4937da0`: pdx-parser-re
+  `research/errors/messages_supplement_1.20.0.2.tsv`), so EVENT-016 is a warning.
 - Usage counts in the base game: they prove a false positive (1,475 `liege = root`, 167
   `always = no`, 864 immediate-saved scopes read in a desc trigger), never a defect.
 
@@ -161,11 +164,11 @@ findings that removed codes used to push out.
 | `EVENT-006` | events | Invalid dynamic description (first_valid, random_valid, triggered_desc). | warning | Never reported: the check read plain-object fields (`config.triggered_desc`) that an AST node does not have. | removed | 0 | 0 |
 | `EVENT-007` | events | Invalid option configuration. | warning | Merged into CK3450 (an option without name). | removed | 0 | 0 |
 | `EVENT-009` | events | An event id does not match the file's namespace declaration. | warning | Merged into EVENT-016 (the same game message, for one declared namespace instead of several). | removed | 0 | 0 |
-| `EVENT-010` | events | An event file has no namespace declaration. | warning | As EVENT-016. | information | 0 | 0 |
+| `EVENT-010` | events | An event file has no namespace declaration. | warning | Convention. Left at information in 2.3: only EVENT-016 was re-judged, and whether the game prints the same warning when a file declares no namespace at all was not verified. | information | 0 | 0 |
 | `EVENT-011` | events | A hidden event has options. | warning | Merged into CK3762 (a hidden event with options). | removed | 0 | 0 |
 | `EVENT-012` | events | A hidden event has an after block. | warning | Merged into CK3520 (an after block in a hidden event). | removed | 0 | 0 |
 | `EVENT-013` | events | A non-hidden event has no options. | warning | Merged into CK3763 (a non-hidden event without options). | removed | 0 | 0 |
-| `EVENT-016` | events | An event uses a namespace that is not declared in its file (the game's own warning). | warning | Convention under the evidence rule: the game prints "Namespace '{}' used in event '{}' (file: {}) is not defined in this file - it might not load properly.", a string of the 1.20.0.2 executable that the spec package's error catalogue does not hold. | information | 0 | 0 |
+| `EVENT-016` | events | An event uses a namespace that is not declared in its file (the game's own warning). | warning | The game prints "Namespace '{}' used in event '{}' (file: {}) is not defined in this file - it might not load properly."; in 2.2 a string of the executable the catalogue did not hold, so information; since 2.3 in the catalogue (namespace_X_used_in_event_X_file_X_is_not_defined_in_this_fi), so **warning** (2.3). | warning (2.3; information in 2.2) | 0 | 0 |
 | `GFX001` | graphics | Graphics file not found: a .dds, .png or .tga path that exists in no workspace mod, not in the base game's game/ and not in any game/dlc/<dlc>/ folder. | warning | The game logs it (catalogue failed_to_load_texture_X_file_not_found, "Failed to load texture %s - file not found"). | warning | 3 | 3 |
 | `ITER-003` | iterators | An ordered_ iterator without order_by. | warning | Convention (every vanilla ordered_ iterator has one; no catalogue message). | information | 22 | 22 |
 | `LOC-001` | localization-references, localization | In script files, a title, desc or name value contains spaces (literal text where a localization key belongs). In localization files, an entry key the localization index cannot read (it starts with a digit, or contains spaces, dashes or other punctuation). | warning | Split (step 4.6). Script files: renamed CK4101, The game reads the text as a key and logs it missing (catalogue unknown_loc_key_X, "Unknown loc key %s"; game/events/_events.info: "Missing localization keys are logged as errors"); a key with spaces cannot be defined. LOC-001 until 2.1, renamed because LOC-001 means an unreadable key in localization files. Localization files: Convention (the game's own reading of such a key is not in the error catalogue). Localization files only since 2.2; the script-file check is CK4101. | warning as CK4101 (script files); information (.yml) | 31 | 0 |

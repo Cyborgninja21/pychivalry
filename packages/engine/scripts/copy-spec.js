@@ -42,5 +42,9 @@ fs.writeFileSync(
 );
 fs.copyFileSync(shaPath, path.join(out, 'ck3-spec.sha256'));
 fs.copyFileSync(schemaPath, path.join(out, 'schema.json'));
-fs.chmodSync(path.join(root, 'dist', 'cli.js'), 0o755);
+// The CLI is executable once tsc has emitted it (`npm run watch` copies before the first emit).
+const cli = path.join(root, 'dist', 'cli.js');
+if (fs.existsSync(cli)) {
+    fs.chmodSync(cli, 0o755);
+}
 process.stdout.write(`copy-spec: ${path.relative(root, specPath)} -> dist/data (sha256 ${actual})\n`);

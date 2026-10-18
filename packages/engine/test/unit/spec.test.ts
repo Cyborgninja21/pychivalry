@@ -134,7 +134,7 @@ describe('Spec loader', () => {
         });
 
         it('keyword templates: (template, keys) is the identity', () => {
-            assert.strictEqual(spec.data.package_format, 3);
+            assert.strictEqual(spec.data.package_format, 4);
             assert.strictEqual(spec.keywordTemplates().length, 13);
             assert.deepStrictEqual(spec.keywordTemplateKeyDirectories().sort(), [
                 'common/dynasty_legacies',

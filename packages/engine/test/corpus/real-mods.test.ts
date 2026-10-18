@@ -63,6 +63,30 @@ describe('Real-mod corpus records', () => {
                     }
                 });
             }
+            it('records the editor features smoke (2.3: colours, on-type, CK3 Explorer)', () => {
+                const features = record.features as
+                    | {
+                          colors: { values: number } | null;
+                          onType: { edits: unknown[] } | null;
+                          tree: {
+                              categories: Record<string, number>;
+                              topRequestMs: number;
+                              reveal: { ok: boolean } | null;
+                          };
+                      }
+                    | undefined;
+                assert.ok(features, 'features record present');
+                if (features.colors) {
+                    assert.ok(features.colors.values > 0, 'colour values found');
+                }
+                assert.ok(features.onType && Array.isArray(features.onType.edits));
+                assert.ok(Object.keys(features.tree.categories).length > 0);
+                for (const count of Object.values(features.tree.categories)) {
+                    assert.ok(count > 0, 'empty categories are hidden');
+                }
+                assert.ok(typeof features.tree.topRequestMs === 'number');
+                assert.strictEqual(features.tree.reveal?.ok, true);
+            });
             it('records the editor-path budget (time to first full result, peak RSS)', () => {
                 const editor = record.editor as Record<string, unknown>;
                 assert.ok(typeof editor.timeToFirstFullResultMs === 'number');

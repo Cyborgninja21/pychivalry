@@ -265,6 +265,27 @@ Full document and range-based formatting.
 - Line length enforcement
 - Smart indentation
 - Empty line preservation
+- Indentation from `ck3LanguageServer.formatting.insertSpaces`/`tabSize` (tabs by default);
+  `formatting.enabled` switches document, range and on-type formatting off (2.3)
+
+### On-type formatting (2.3, #80)
+
+`lsp/on-type-formatting.ts`, `textDocument/onTypeFormatting` with the triggers Enter, `}` and
+`=`:
+
+- **Enter**: the new line is indented to the block depth at its start (one level deeper after
+  `{`, the same level otherwise, one less when it starts with `}`); a line left with only
+  white space is emptied, as the formatter writes empty lines.
+- **`}`** typed first on a line: indented like the line that opened its block.
+- **`=`** (also completing `==`, `!=`, `<=`, `>=`, `?=`) after a key: a space before, and one
+  after when text follows, because the formatter pads operators by default.
+
+Braces, strings and comments are read with the engine lexer: nothing inside a string, a
+comment or an `@[ ]` expression is edited, and no edit is returned when the depth cannot be
+determined (an unmatched `}`, Enter inside a string). A file typed this way is exactly what
+the formatter makes of it (unit-tested on four fixtures, tabs and spaces). Setting
+`formatting.onTypeEnabled` (default `true`); the extension sets `editor.formatOnType` to
+`true` for CK3 files (`configurationDefaults`).
 
 ---
 
@@ -453,6 +474,8 @@ Real-time monitoring of CK3 game log files during play.
 | `ck3.extractAllData` | Extract all game data |
 | `ck3.discoverMods` | Discover installed mods |
 | `ck3.openDocumentation` | Open documentation |
+| `ck3LanguageServer.refreshModExplorer` | Refresh the CK3 Explorer view (its title-bar button) |
+| `ck3LanguageServer.revealModItem` | Open a CK3 Explorer item's definition (run by clicking the item) |
 
 ---
 
@@ -472,9 +495,10 @@ ANSI color support for game log output.
 | `ck3LanguageServer.enable` | boolean | true | Enable/disable the language server |
 | `ck3LanguageServer.trace` | string | "off" | LSP trace level |
 | `ck3LanguageServer.logLevel` | string | "info" | Server log level |
-| `ck3LanguageServer.formatting.enabled` | boolean | true | Enable formatting |
-| `ck3LanguageServer.formatting.insertSpaces` | boolean | false | Spaces instead of tabs |
-| `ck3LanguageServer.formatting.tabSize` | number | 4 | Tab size |
+| `ck3LanguageServer.formatting.enabled` | boolean | true | Enable document, range and on-type formatting |
+| `ck3LanguageServer.formatting.onTypeEnabled` | boolean | true | Format as you type (Enter, `}`, `=`); needs `editor.formatOnType`, which the extension turns on for CK3 files |
+| `ck3LanguageServer.formatting.insertSpaces` | boolean | false | Indent with spaces instead of tabs (all formatting) |
+| `ck3LanguageServer.formatting.tabSize` | number | 4 | Spaces per indentation level with `insertSpaces` |
 | `ck3LanguageServer.inlayHints.enabled` | boolean | true | Enable inlay hints |
 | `ck3LanguageServer.inlayHints.showScopeTypes` | boolean | true | Show scope type hints |
 | `ck3LanguageServer.inlayHints.showChainTypes` | boolean | true | Show chain type hints |
@@ -491,6 +515,50 @@ ANSI color support for game log output.
 | `ck3LanguageServer.backgroundValidation.concurrency` | number | 5 | Files read ahead at once |
 | `ck3LanguageServer.backgroundValidation.fileLimit` | number | 3000 | Above this many files only open files are validated unless forced |
 | `ck3LanguageServer.graphics.enabled` | boolean | true | Report graphics files that exist in no mod and not in the base game (GFX001; needs the base game) |
+
+---
+
+## 26. Colour Provider (2.3, #79)
+
+`lsp/color-provider.ts`, `textDocument/documentColor` and `textDocument/colorPresentation`:
+a swatch on every colour value and VS Code's colour picker. Notations and ranges, decided
+from a scan of the base game and the real-mod corpus
+([color-notations.md](developer-guide/color-notations.md)):
+
+| Notation | Example | Range |
+|----------|---------|-------|
+| bare 0..1 list | `color = { 0.8 0.2 0.2 }`, `tintcolor = { 0 0 0 0.6 }` | r g b a in 0..1 |
+| bare 0..255 list | `color = { 161 67 0 }`, `tintcolor = { 200 20 0 0.8 }` | r g b integers 0..255 (one above 1), alpha 0..1 |
+| `rgb` | `color1 = rgb { 201 166 138 }` | three integers 0..255 |
+| `hsv` | `color = hsv { 0.58 0.8 0.4 }` | h s v (a) in 0..1 |
+| `hsv360` | `brown = hsv360{ 021 074 045 }` | h 0..360, s v 0..100 |
+| `hex` | `fog_color = hex{ 50779b }` | six hexadecimal digits |
+| named | `color1 = white` | a colour of `common/named_colors` (base game and workspace) |
+
+A prefixed value is a colour under any key; a bare list or a name only under one of the 25
+colour keys the scan derived (`server/data/color-keys.json`) or as an entry of a named-colour
+file's `colors` block. Files that parse are read from the engine's tree, files with parse
+errors (most GUI files) from the engine lexer's tokens; both read the same notations. The
+picker writes the value back in its own notation and spelling first (prefix, gap before `{`,
+number of components, decimal places, zero padding), then the alternatives of the file kind
+(`.gui`: bare 0..1 lists; other files: byte lists, 0..1 lists, `hsv`, `rgb`), leaving out
+notations that cannot hold the colour's alpha.
+
+---
+
+## 27. CK3 Explorer view (2.3, #83)
+
+A tree view (`ck3.modExplorer`, **CK3 Explorer**) in the Explorer container, shown when the
+workspace holds a `descriptor.mod` or CK3 files. Top-level categories with their counts:
+Events (grouped by namespace, each event with its type), Decisions, Character Interactions,
+Scripted Effects, Scripted Triggers, Script Values, On-Actions and Localization (keys per
+language, then per file); empty categories are hidden. The data comes from the server's
+`ck3/modStructure` request (`lsp/mod-structure.ts`), answered from the engine index and the
+localization index without parsing, one level per request (categories; a category's items or
+groups; a group's items). Clicking an item opens its definition
+(`ck3LanguageServer.revealModItem`). The view refreshes, debounced 500 ms, on the server's
+`ck3/modStructureChanged` notification (first index, files changed on disk, saves, closes),
+when a background validation pass goes idle, and from its refresh button.
 
 ---
 

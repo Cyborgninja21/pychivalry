@@ -7,7 +7,7 @@
     },
     "spec": {
         "version": "1.20.0.2",
-        "sha256": "129f67f6acb2292f10ca9e45cb2720831e447601027f54e0a7be680c79c08cbb"
+        "sha256": "a9959bf9d650fe793ffd3ee60eb6589b8cb6eaaaae778ce84b58fdc535f2eeb6"
     },
     "engine": {
         "mod": {
@@ -18,16 +18,16 @@
         },
         "spec": {
             "version": "1.20.0.2",
-            "sha256": "129f67f6acb2292f10ca9e45cb2720831e447601027f54e0a7be680c79c08cbb"
+            "sha256": "a9959bf9d650fe793ffd3ee60eb6589b8cb6eaaaae778ce84b58fdc535f2eeb6"
         },
         "command": "node packages/engine/scripts/corpus-acceptance.js <corpus dir> <game dir> elf-destiny",
         "equivalentCli": "node packages/engine/dist/cli.js check <corpus dir>/elf-destiny --vanilla <game dir>",
         "files": 553,
-        "milliseconds": 18912,
-        "loadMilliseconds": 17172,
-        "maxRssKb": 568444,
+        "milliseconds": 6104,
+        "loadMilliseconds": 5234,
+        "maxRssKb": 580552,
         "longestFile": {
-            "milliseconds": 43.7,
+            "milliseconds": 22.9,
             "file": "common/genes/01_genes_morph.txt"
         },
         "bySeverity": {
@@ -222,21 +222,21 @@
             "events/wolf_invader_events.txt",
             "gfx/portraits/portrait_modifiers/elf_characters.txt"
         ],
-        "timeToFirstFullResultMs": 50331,
-        "serverUptimeAtFirstFullResultMs": 48098,
-        "backgroundPassMs": 8634,
-        "peakServerRssKb": 400840,
-        "serverVmHwmKb": 400840,
+        "timeToFirstFullResultMs": 28154,
+        "serverUptimeAtFirstFullResultMs": 26356,
+        "backgroundPassMs": 9649,
+        "peakServerRssKb": 391188,
+        "serverVmHwmKb": 391188,
         "longestFile": {
-            "milliseconds": 525.5,
+            "milliseconds": 492.4,
             "file": "localization/english/aeluran/aeluran_regency_l_english.yml"
         },
         "longestScriptFile": {
-            "milliseconds": 167.5,
-            "file": "common/event_themes/elf_destiny_misc_event_themes.txt"
+            "milliseconds": 117.2,
+            "file": "events/birth_events.txt"
         },
         "longestLocalizationFile": {
-            "milliseconds": 525.4,
+            "milliseconds": 492.3,
             "file": "localization/english/aeluran/aeluran_regency_l_english.yml"
         },
         "bySeverity": {
@@ -544,5 +544,50 @@
                 "reason": "history/titles calls destroy_landless_title_no_dlc_effect, which the 1.20.0.2 base game no longer defines (no destroy_landless_title* name exists in game/common or game/history)"
             }
         ]
+    },
+    "features": {
+        "colors": {
+            "file": "gui/OVERRIDES_types_2.gui",
+            "guiAndGfxFiles": 48,
+            "candidatesTried": 1,
+            "values": 1,
+            "first": "{ 0.5 0 1 1 }"
+        },
+        "onType": {
+            "file": "common/activities/activity_types/aeluran_matchmaking.txt",
+            "line": 2,
+            "typed": "Enter at the end of a line ending in {",
+            "edits": [
+                {
+                    "line": 2,
+                    "newText": "\"\\t\""
+                }
+            ],
+            "newLineIndentation": "\"\\t\"",
+            "blockFirstLineIndentation": "\"\\t\"",
+            "agrees": true
+        },
+        "tree": {
+            "categories": {
+                "Events": 392,
+                "Decisions": 25,
+                "Character Interactions": 22,
+                "Scripted Effects": 415,
+                "Scripted Triggers": 274,
+                "Script Values": 526,
+                "On-Actions": 159,
+                "Localization": 11740
+            },
+            "topRequestMs": 1,
+            "wholeTreeMs": 47,
+            "nodes": 2210,
+            "reveal": {
+                "item": "adopt_ancient_egyptian_culture_decision",
+                "category": "decisions",
+                "file": "common/decisions/elf_dest_beaut_enh_decisions.txt",
+                "line": 97,
+                "ok": true
+            }
+        }
     }
 }

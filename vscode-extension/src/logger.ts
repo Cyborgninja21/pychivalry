@@ -16,9 +16,14 @@ export enum LogCategory {
  * Multi-channel logger for the CK3 Language Server extension.
  * Routes messages to appropriate output channels for better debugging.
  */
+/** How many recent lines per channel the logger keeps for `lines()`. */
+const HISTORY_LIMIT = 2000;
+
 export class CK3Logger {
     private channels: Map<LogCategory, vscode.OutputChannel> = new Map();
     private context: vscode.ExtensionContext | undefined;
+    /** The most recent lines written to each channel (what the channel shows, oldest first). */
+    private history: Map<LogCategory, string[]> = new Map();
 
     constructor() {}
 
@@ -103,8 +108,31 @@ export class CK3Logger {
         const channel = this.channels.get(category);
         if (channel) {
             const timestamp = new Date().toISOString().substring(11, 23);
-            channel.appendLine(`[${timestamp}] ${message}`);
+            this.write(category, channel, `[${timestamp}] ${message}`);
         }
+    }
+
+    /** Append one line to a channel and remember it. */
+    private write(category: LogCategory, channel: vscode.OutputChannel, line: string): void {
+        channel.appendLine(line);
+        let lines = this.history.get(category);
+        if (!lines) {
+            lines = [];
+            this.history.set(category, lines);
+        }
+        lines.push(line);
+        if (lines.length > HISTORY_LIMIT) {
+            lines.splice(0, lines.length - HISTORY_LIMIT);
+        }
+    }
+
+    /**
+     * The most recent lines (at most 2,000) written to a channel, oldest first, as the
+     * channel shows them. An output channel cannot be read back through the VS Code API;
+     * the integration tests read the CK3: Index channel through this (#59).
+     */
+    lines(category: LogCategory): readonly string[] {
+        return this.history.get(category) ?? [];
     }
 
     /**
@@ -157,7 +185,7 @@ export class CK3Logger {
     appendIndexLines(lines: string[]): void {
         const channel = this.channels.get(LogCategory.Index);
         if (channel) {
-            lines.forEach((line) => channel.appendLine(line));
+            lines.forEach((line) => this.write(LogCategory.Index, channel, line));
         }
     }
 
@@ -167,7 +195,7 @@ export class CK3Logger {
     appendLine(category: LogCategory, message: string): void {
         const channel = this.channels.get(category);
         if (channel) {
-            channel.appendLine(message);
+            this.write(category, channel, message);
         }
     }
 
@@ -177,7 +205,7 @@ export class CK3Logger {
     appendCommandLines(lines: string[]): void {
         const channel = this.channels.get(LogCategory.Commands);
         if (channel) {
-            lines.forEach((line) => channel.appendLine(line));
+            lines.forEach((line) => this.write(LogCategory.Commands, channel, line));
         }
     }
 

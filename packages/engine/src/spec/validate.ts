@@ -1,6 +1,6 @@
 /**
  * Structural validation of a spec package, mirroring the package's own `schema.json`
- * (package_format 3) without a third-party JSON Schema validator.
+ * (package_format 4) without a third-party JSON Schema validator.
  *
  * The checks are the ones the engine relies on: every required key is present with the
  * right type, enumerations hold only known values, and cross references the loader
@@ -210,10 +210,18 @@ function checkField(c: Checker, where: string, f: Json): void {
         'wiki_kind',
         'hook',
         'note',
+        'scope',
+        'scope_evidence',
         'fields',
     ]);
     c.oneOf(`${where}.kind`, f.kind, KIND_SET);
-    c.oneOf(`${where}.provenance`, f.provenance, new Set(['engine', 'vanilla']));
+    c.oneOf(`${where}.provenance`, f.provenance, new Set(['engine', 'vanilla', 'corpus']));
+    if ('scope' in f && (!isStringArray(f.scope) || f.scope.length === 0)) {
+        c.fail(`${where}.scope`, 'expected a non-empty array of scope types');
+    }
+    if ('scope_evidence' in f && !isString(f.scope_evidence)) {
+        c.fail(`${where}.scope_evidence`, 'expected a string');
+    }
     c.oneOf(`${where}.since`, f.since, SINCE_SET);
     if (typeof f.usage !== 'number' || f.usage < 0) {
         c.fail(`${where}.usage`, 'expected a non-negative integer');
@@ -334,8 +342,8 @@ export function validateSpecPackage(data: unknown): SpecPackage {
     }
     c.requireKeys('root', data, TOP_LEVEL_KEYS);
     c.onlyKeys('root', data, TOP_LEVEL_KEYS);
-    if (data.package_format !== 3) {
-        c.fail('package_format', 'expected 3');
+    if (data.package_format !== 4) {
+        c.fail('package_format', 'expected 4');
     }
     checkManifest(c, data.manifest);
     checkBuckets(c, data.buckets);

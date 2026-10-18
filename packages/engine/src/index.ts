@@ -23,7 +23,12 @@ export {
     uriToPath,
 } from './index/workspace';
 export type { ModDescriptor, WorkspaceFolder, WorkspaceOptions } from './index/workspace';
-export { LocalizationIndex, isLocalizationFile, localizationKeysOf } from './index/localization';
+export {
+    LocalizationIndex,
+    isLocalizationFile,
+    localizationKeysOf,
+    localizationLanguageOf,
+} from './index/localization';
 export { WorkspaceValidator } from './index/scheduler';
 export type {
     ValidationProgress,
@@ -32,7 +37,7 @@ export type {
     ValidatorStats,
     WorkspaceValidatorOptions,
 } from './index/scheduler';
-export type { LocalizationEntry } from './index/localization';
+export type { LocalizationEntry, LocalizationFileInfo } from './index/localization';
 
 export { checkRegistry, blockContexts } from './check/registry';
 export { contextAt } from './check/context';

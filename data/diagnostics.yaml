@@ -285,15 +285,22 @@ diagnostics:
         plugin: events
         severity: information
         message: An events/ file with events and no namespace declaration.
-        evidence: As EVENT-016.
+        evidence: >-
+            Convention. The game's namespace warning (catalogue
+            namespace_X_used_in_event_X_file_X_is_not_defined_in_this_fi, EVENT-016) names an
+            event whose namespace the file does not declare; a file that declares none is left
+            at information in 2.3 (only EVENT-016's severity was re-judged).
     EVENT-016:
         plugin: events
-        severity: information
+        severity: warning
         message: An event uses a namespace that is not declared in its file.
         evidence: >-
-            Convention under the evidence rule: the game prints "Namespace '{}' used in event
-            '{}' (file: {}) is not defined in this file - it might not load properly.", a string
-            of the 1.20.0.2 executable that the spec package's error catalogue does not hold.
+            The game prints "Namespace '{}' used in event '{}' (file: {}) is not defined in this
+            file - it might not load properly." (catalogue
+            namespace_X_used_in_event_X_file_X_is_not_defined_in_this_fi, added to the spec
+            package's catalogue in 2.3 from the executable's strings: pdx-parser-re
+            research/errors/messages_supplement_1.20.0.2.tsv). Information until 2.2, when the
+            catalogue lacked the message.
 
     # paradox-checks
     CK3005:

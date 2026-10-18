@@ -3,7 +3,7 @@
 **Crusader Kings III script tooling that reports what the game itself would report.**
 
 This extension checks CK3 mod scripts against the game's own vocabulary and error messages,
-taken from the game executable rather than from wiki pages or scraped lists. Version 2.0.0
+taken from the game executable rather than from wiki pages or scraped lists. Version 2.3.0
 targets CK3 1.20.0.2.
 
 ## What it does
@@ -21,6 +21,11 @@ targets CK3 1.20.0.2.
   and directory fields; hover and signature help with the game's own documentation strings;
   go to definition, references, document and workspace symbols, rename, call hierarchy,
   semantic highlighting, inlay hints, folding, formatting, code actions and code lenses.
+- **Colours, typing, structure.** Colour swatches and the colour picker on colour values
+  (`{ r g b }`, `rgb { }`, `hsv { }`, `hsv360 { }`, `hex { }`, named colours); indentation as
+  you type (Enter, `}`, `=`) that matches the formatter; a **CK3 Explorer** view in the
+  Explorer with the mod's events by namespace, decisions, interactions, scripted effects and
+  triggers, script values, on-actions and localization keys, each opening its definition.
 - **Mod-aware checks.** Event evaluation order, script values, variables, Paradox
   conventions, style and localization keys and text, plus the scripted triggers and effects
   of popular mods (Carnalitas) when the mod is found.
@@ -33,10 +38,10 @@ Supported files: CK3 script (`.txt`), `.gui`, `.gfx`, `.asset` and localization 
 ## Install
 
 In VS Code, open **Extensions**, choose **… → Install from VSIX…** and pick
-`ck3-language-support-2.0.0.vsix`, or run:
+`ck3-language-support-2.3.0.vsix`, or run:
 
 ```bash
-code --install-extension ck3-language-support-2.0.0.vsix
+code --install-extension ck3-language-support-2.3.0.vsix
 ```
 
 Then open your mod folder. The language server is part of the extension; nothing else needs
@@ -76,7 +81,8 @@ hints therefore show saved-scope names, not scope types.
 | `enable` | `true` | Enable the language server |
 | `trace.server` | `off` | LSP trace (`messages`, `verbose`) |
 | `logLevel` | `info` | Server log level |
-| `formatting.enabled`, `formatting.insertSpaces`, `formatting.tabSize` | `true`, `false`, `4` | Formatter |
+| `formatting.enabled`, `formatting.insertSpaces`, `formatting.tabSize` | `true`, `false`, `4` | Document, range and on-type formatting (tabs, or `tabSize` spaces) |
+| `formatting.onTypeEnabled` | `true` | Format as you type (`editor.formatOnType` is on for CK3 files) |
 | `inlayHints.enabled` | `true` | Inlay hints |
 | `logWatcher.enabled`, `logWatcher.autoStart`, `logWatcher.logPath` | `true`, `false`, auto | Game log watcher |
 

@@ -8,8 +8,9 @@
 
 pychivalry checks CK3 mod scripts against the game's own vocabulary and error messages, taken
 from the game executable rather than from wiki pages or scraped lists. It ships as a VS Code
-extension (a language server with completion, hover, navigation, formatting and diagnostics)
-and as a command-line checker for whole mod folders. Version 2.2.0 targets CK3 1.20.0.2.
+extension (a language server with completion, hover, navigation, formatting, colour swatches,
+a mod-structure view and diagnostics)
+and as a command-line checker for whole mod folders. Version 2.3.0 targets CK3 1.20.0.2.
 
 ## How it is built
 
@@ -19,7 +20,7 @@ generated file: the spec package (`ck3-spec-1.20.0.2.json`), produced by
 given version (identified by its sha256). It holds the six keyword buckets (triggers,
 effects, links, lists, on_actions and the modifier table, each with the engine's own
 documentation string), the script directories and their per-directory field schema, the
-game's error-message catalogue (1,967 messages) and the table of keywords retired between
+game's error-message catalogue (1,968 messages) and the table of keywords retired between
 versions. The engine bundles a checksum-verified copy; nothing else in the repository holds
 CK3 vocabulary. See [the spec package](Documentation/developer-guide/spec-package.md).
 
@@ -35,10 +36,10 @@ directory does not have, the few required fields the engine enforces) and the sc
 catalogue's, so a problem in the editor reads like the line `error.log` would show.
 
 **The VS Code extension** (`vscode-extension`). A thin client and a language server. The
-server wires 17 LSP providers (completions, hover, definitions and references, symbols,
-semantic tokens, inlay hints, signature help, formatting, folding, rename, code actions,
-code lens, document links, document highlights, call hierarchy, selection ranges and
-diagnostics) to the engine: providers read the spec package, parser and index; diagnostics
+server wires 20 providers (completions, hover, definitions and references, symbols,
+semantic tokens, inlay hints, signature help, formatting and on-type formatting, folding,
+rename, code actions, code lens, document links, document highlights, call hierarchy,
+selection ranges, colours, the mod structure and diagnostics) to the engine: providers read the spec package, parser and index; diagnostics
 run the engine pipeline followed by the extension's plug-ins, the surviving validators that
 encode game behaviour the spec package does not describe (event evaluation order, script
 values, variables, style, Paradox conventions, localization text). Since 2.2 a plug-in
@@ -58,8 +59,8 @@ triggers and effects are layered over the spec package when the mod is found.
 ## Install
 
 From a release VSIX: in VS Code, **Extensions → … → Install from VSIX…** and pick
-`ck3-language-support-2.2.0.vsix`, or run
-`code --install-extension ck3-language-support-2.2.0.vsix`.
+`ck3-language-support-2.3.0.vsix`, or run
+`code --install-extension ck3-language-support-2.3.0.vsix`.
 
 From source (Node.js 22 and npm 10):
 
@@ -68,8 +69,8 @@ git clone https://github.com/Cyborgninja21/pychivalry.git
 cd pychivalry
 npm ci                                   # installs the workspace (engine + extension)
 npm run build                            # builds packages/engine
-cd vscode-extension && npm run package   # webpack production build + vsce: ck3-language-support-2.2.0.vsix
-code --install-extension ck3-language-support-2.2.0.vsix
+cd vscode-extension && npm run package   # webpack production build + vsce: ck3-language-support-2.3.0.vsix
+code --install-extension ck3-language-support-2.3.0.vsix
 ```
 
 To try it without packaging, open the repository in VS Code and press **F5** (Extension
@@ -119,7 +120,9 @@ game's own messages: `Wrong scope for trigger: landed_title, expected character`
 for effect: …`, `Trying to use liege link on an invalid scope province`. The data is the game's
 own documentation: the `script_docs` console command, run in CK3 1.20.0.2 with `-debug_mode`,
 lists every trigger, effect and event target with the scopes it supports, and the spec package
-(format 3) carries it as `scope_validity` and `scope_types`.
+carries it as `scope_validity` and `scope_types` (format 3); since 2.3 (format 4) it also says
+which record fields the game evaluates in another scope than the record's root (a faction's
+`can_character_join` runs on the character), measured on vanilla.
 
 The engine infers the scope type of `root` (the directory's root scope, an event's
 `scope = …`, an on_action's documented scope), `this`, `prev`, `scope:x` (from its one save
@@ -174,6 +177,30 @@ for the plug-ins, it takes about 35 s at about 730 MB server peak on the same bo
 file holding the server for more than 0.3 s
 ([corpus records](packages/engine/test/corpus/real-mods/README.md)).
 
+## Editor features
+
+- **Colour swatches and picker.** Colour values show a swatch; clicking it opens VS Code's
+  colour picker, and the picked colour is written back in the notation the value was written
+  in (then the alternatives the file kind uses, keeping alpha). Read: bare `{ r g b }` and
+  `{ r g b a }` lists (0..1, or 0..255 when the values say so), `rgb { }`, `hsv { }`,
+  `hsv360 { }`, `hex { rrggbb }` and named colours (`color1 = white`, from the base game's and
+  the mod's `common/named_colors`). A bare list is a colour only under a colour key
+  (`color`, `tintcolor`, `fontcolor`, `map_color` …); the notations, ranges and keys come from
+  a scan of the base game and five published mods
+  ([the evidence](Documentation/developer-guide/color-notations.md)). GUI files, which the
+  engine parser does not fully accept, are read token by token.
+- **On-type formatting.** Enter indents the new line to its block depth, a `}` typed first on
+  a line lines up with the line that opened its block, and `=` after a key gets its spaces; a
+  file typed this way is what **Format Document** makes of it. Indentation follows
+  `formatting.insertSpaces`/`formatting.tabSize` (tabs by default); the extension turns
+  `editor.formatOnType` on for CK3 files, and `formatting.onTypeEnabled` switches it off.
+- **CK3 Explorer.** A view in the Explorer side bar with the mod's events by namespace (with
+  their type), decisions, character interactions, scripted effects and triggers, script
+  values, on-actions and localization keys per language, each with its count; clicking an
+  item opens its definition. It reads the language server's index (no extra file reading),
+  loads one level at a time and refreshes when files change, after a background pass and from
+  its refresh button.
+
 ## Configuration
 
 | Setting (`ck3LanguageServer.*`) | Default | Description |
@@ -181,7 +208,8 @@ file holding the server for more than 0.3 s
 | `enable` | `true` | Enable the language server |
 | `trace.server` | `off` | LSP trace (`messages`, `verbose`) |
 | `logLevel` | `info` | Server log level |
-| `formatting.enabled`, `formatting.insertSpaces`, `formatting.tabSize` | `true`, `false`, `4` | Formatter |
+| `formatting.enabled`, `formatting.insertSpaces`, `formatting.tabSize` | `true`, `false`, `4` | Document, range and on-type formatting (tabs, or `tabSize` spaces with `insertSpaces`) |
+| `formatting.onTypeEnabled` | `true` | Format as you type (Enter, `}`, `=`); needs `editor.formatOnType`, on by default for CK3 files |
 | `inlayHints.enabled` | `true` | Inlay hints |
 | `logWatcher.enabled`, `logWatcher.autoStart`, `logWatcher.logPath` | `true`, `false`, auto | Game log watcher |
 | `gamePath` | empty (Steam defaults) | The CK3 `game` directory used as the base game |
@@ -196,9 +224,17 @@ Diagnostics are documented in the generated [diagnostics reference](Documentatio
 
 ```bash
 npm ci                 # once, at the repository root
+task dev               # Dev Mode: engine tsc --watch + extension webpack --watch (dev:tests adds the unit tests)
 task ci                # build, lint, format check, engine tests, diagnostics-docs check, unit tests
 task test:integration  # VS Code integration tests (needs a display; use xvfb-run on Linux)
+task test:vsix         # package the VSIX, install it into a clean VS Code, run the smoke suite
+task dev:link          # use the development build in your own VS Code (dev:unlink removes it)
 ```
+
+In VS Code, **🎯 Extension - Dev Mode** (F5) starts the Extension Development Host on top of
+Dev Mode, and the language server listens for a debugger on port 6009 there. Every launch
+configuration, debugging in your main VS Code and against an installed VSIX, and where each
+log goes: [debugging.md](Documentation/developer-guide/debugging.md).
 
 [CONTRIBUTING.md](CONTRIBUTING.md) has the workspace layout and the rules;
 [CLAUDE.md](CLAUDE.md) is the short architecture brief; the

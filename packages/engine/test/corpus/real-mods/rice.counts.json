@@ -7,7 +7,7 @@
     },
     "spec": {
         "version": "1.20.0.2",
-        "sha256": "129f67f6acb2292f10ca9e45cb2720831e447601027f54e0a7be680c79c08cbb"
+        "sha256": "a9959bf9d650fe793ffd3ee60eb6589b8cb6eaaaae778ce84b58fdc535f2eeb6"
     },
     "engine": {
         "mod": {
@@ -18,16 +18,16 @@
         },
         "spec": {
             "version": "1.20.0.2",
-            "sha256": "129f67f6acb2292f10ca9e45cb2720831e447601027f54e0a7be680c79c08cbb"
+            "sha256": "a9959bf9d650fe793ffd3ee60eb6589b8cb6eaaaae778ce84b58fdc535f2eeb6"
         },
         "command": "node packages/engine/scripts/corpus-acceptance.js <corpus dir> <game dir> rice",
         "equivalentCli": "node packages/engine/dist/cli.js check <corpus dir>/rice --vanilla <game dir>",
         "files": 1313,
-        "milliseconds": 27744,
-        "loadMilliseconds": 20406,
-        "maxRssKb": 959772,
+        "milliseconds": 9892,
+        "loadMilliseconds": 6475,
+        "maxRssKb": 975664,
         "longestFile": {
-            "milliseconds": 166.4,
+            "milliseconds": 81.6,
             "file": "events/RICE_north_atlantic_events.txt"
         },
         "bySeverity": {
@@ -839,22 +839,22 @@
             "localization/russian/rice_north_atlantic_l_russian.yml",
             "localization/russian/rice_sri_lanka_l_russian.yml"
         ],
-        "timeToFirstFullResultMs": 84129,
-        "serverUptimeAtFirstFullResultMs": 81755,
-        "backgroundPassMs": 24308,
-        "peakServerRssKb": 748268,
-        "serverVmHwmKb": 748268,
+        "timeToFirstFullResultMs": 42875,
+        "serverUptimeAtFirstFullResultMs": 41073,
+        "backgroundPassMs": 14895,
+        "peakServerRssKb": 725904,
+        "serverVmHwmKb": 725904,
         "longestFile": {
-            "milliseconds": 648.3,
+            "milliseconds": 282.8,
             "file": "common/decisions/RICE_mayo_decisions.txt"
         },
         "longestScriptFile": {
-            "milliseconds": 648.1,
+            "milliseconds": 282.8,
             "file": "common/decisions/RICE_mayo_decisions.txt"
         },
         "longestLocalizationFile": {
-            "milliseconds": 403.3,
-            "file": "localization/japanese/rice_nubia_l_japanese.yml"
+            "milliseconds": 266.1,
+            "file": "localization/english/rice_nubia_l_english.yml"
         },
         "bySeverity": {
             "error": 92,
@@ -1846,5 +1846,50 @@
                 "reason": "history/titles calls destroy_landless_title_no_dlc_effect, which the 1.20.0.2 base game no longer defines (no destroy_landless_title* name exists in game/common or game/history)"
             }
         ]
+    },
+    "features": {
+        "colors": {
+            "file": "gui/decision_view_widgets/decision_view_widget_RICE_galicia_cantiga_decision.gui",
+            "guiAndGfxFiles": 67,
+            "candidatesTried": 1,
+            "values": 1,
+            "first": "{ 0.96 0.96 0.86 0.4 }"
+        },
+        "onType": {
+            "file": "common/activities/activity_types/RICE_aachen_pilgrimage.txt",
+            "line": 2,
+            "typed": "Enter at the end of a line ending in {",
+            "edits": [
+                {
+                    "line": 2,
+                    "newText": "\"\\t\""
+                }
+            ],
+            "newLineIndentation": "\"\\t\"",
+            "blockFirstLineIndentation": "\"\\t\"",
+            "agrees": true
+        },
+        "tree": {
+            "categories": {
+                "Events": 2166,
+                "Decisions": 292,
+                "Character Interactions": 25,
+                "Scripted Effects": 904,
+                "Scripted Triggers": 185,
+                "Script Values": 604,
+                "On-Actions": 116,
+                "Localization": 389048
+            },
+            "topRequestMs": 4,
+            "wholeTreeMs": 116,
+            "nodes": 5100,
+            "reveal": {
+                "item": "RICE_SEA_harvest_rare_tropical_goods_decision",
+                "category": "decisions",
+                "file": "common/decisions/RICE_aslian_decisions.txt",
+                "line": 5,
+                "ok": true
+            }
+        }
     }
 }

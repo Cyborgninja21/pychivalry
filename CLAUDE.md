@@ -4,7 +4,7 @@ Guidance for Claude Code (claude.ai/code) working in this repository.
 
 ## Project
 
-pychivalry 2.2.0: Crusader Kings III script tooling. An npm workspace with two packages:
+pychivalry 2.3.0: Crusader Kings III script tooling. An npm workspace with two packages:
 
 - `packages/engine` (npm `pychivalry-engine`): the engine core. Dependency-free TypeScript that
   parses CK3 script, indexes a mod and reports the game's own diagnostics; has a CLI
@@ -55,10 +55,10 @@ run (`node packages/engine/scripts/vanilla-acceptance.js "<game dir>"`),
 
 | Path | Responsibility |
 | --- | --- |
-| `extension.ts`, `client/` | Client wiring: server controller, commands, log channels, status bar, `logger.ts` |
+| `extension.ts`, `client/` | Client wiring: server controller, commands, log channels, status bar, Explorer decorations, the CK3 Explorer view (`mod-explorer.ts`), `logger.ts` |
 | `server/server.ts` | Server wiring only: connection, documents, workspace, handlers delegate to providers |
 | `server/engine-host.ts` | Loads the bundled spec package once and makes it the engine default |
-| `server/lsp/` | 17 providers (completions, hover, navigation, symbols, semantic tokens, inlay hints, signature help, formatting, folding, rename, code actions, code lens, document links, document highlight, call hierarchy, selection range, diagnostics); each imports only `pychivalry-engine` and the LSP libraries |
+| `server/lsp/` | 20 providers (completions, hover, navigation, symbols, semantic tokens, inlay hints, signature help, formatting, on-type formatting, folding, rename, code actions, code lens, document links, document highlight, call hierarchy, selection range, colours, mod structure, diagnostics); each imports only `pychivalry-engine` and the LSP libraries (the colour provider also its generated key list, `server/data/color-keys.json`) |
 | `server/plugins.ts` | The one registry of engine plug-ins (the surviving validators) and the localization validator |
 | `server/ck3/validation/` | Plug-ins: scope-timing, style-checks, conventions, events, paradox-checks, variables, traits, scripted-blocks, script-values, iterators, switch, graphics |
 | `server/ck3/localization/` | Localization text validator, concepts, icons |
@@ -78,12 +78,15 @@ the only lock file). Then use the Taskfile:
 | Task | What it does |
 | --- | --- |
 | `task build` | Install if needed, build the engine, webpack the extension, compile the tests |
+| `task dev` / `task dev:tests` | Dev Mode: engine `tsc --watch` + extension `webpack --watch` in parallel (plus the unit tests in watch mode); VS Code task and launch configuration **Dev Mode** |
 | `task engine:test` | Engine unit, golden, corpus and CLI tests |
 | `task engine:check` | Engine lint (`--max-warnings=0`) and Prettier check |
 | `task test:unit` | Extension unit tests (mocha, no VS Code) |
 | `task test:integration` | Extension integration tests in a VS Code instance (`xvfb-run -a` on headless Linux; unset `ELECTRON_RUN_AS_NODE` and `VSCODE_*` when running inside VS Code) |
 | `task lint` / `task format:check` | Extension ESLint (`--max-warnings=0`) / Prettier check |
 | `task docs:diagnostics` / `task docs:diagnostics:check` | Regenerate / verify the diagnostics reference |
+| `task test:vsix` / `task test:dev-link` | Package the VSIX, install it into a clean VS Code and run the smoke suite on `example mod/` (`src/test/vsix`); the same on the `dev:link` build |
+| `task dev:link` / `task dev:unlink` | Link the development build into your VS Code extensions folders (main instance, local or remote server); refuses over a Marketplace/VSIX install |
 | `task ci` | Everything CI runs except the integration tests |
 | `task package` | Build the VSIX (`npm run package` in `vscode-extension/`: production webpack bundle, then `vsce package`) |
 
@@ -105,8 +108,13 @@ The full list is in [CONTRIBUTING.md](CONTRIBUTING.md#rules). The ones most ofte
 
 ## Debugging the extension
 
-Open the repository in VS Code and press **F5** (Extension Development Host). Test workspaces:
-`example mod/` (the numbered good/bad corpus) and `test space/`.
+Open the repository in VS Code and press **F5** (Extension Development Host; **🎯 Extension - Dev
+Mode** keeps the engine and the bundles in watch mode). The language server listens for a
+debugger on port 6009 there (**🔌 Attach to Language Server**, or the compound **🎯 Extension +
+Server**). Test workspaces: `example mod/` (the numbered good/bad corpus) and `test space/`.
+Every launch configuration, the main-instance and VSIX routes, and where each log goes:
+[Documentation/developer-guide/debugging.md](Documentation/developer-guide/debugging.md);
+`task dev:launch-check` starts every configuration once.
 
 ## More
 

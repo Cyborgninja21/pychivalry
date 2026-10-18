@@ -58,6 +58,8 @@ suite('Command Tests', () => {
             'ck3LanguageServer.resumeLogWatcher',
             'ck3LanguageServer.clearGameLogs',
             'ck3LanguageServer.showLogStatistics',
+            'ck3LanguageServer.refreshModExplorer',
+            'ck3LanguageServer.revealModItem',
         ];
 
         test('All commands should be registered', async () => {

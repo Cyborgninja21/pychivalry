@@ -49,11 +49,70 @@ tasks:
     cmds:
       - npm run package
 
+  # ─── Dev Mode (#36) ─────────────────────────────────────────────
+  # `task dev` keeps everything current while developing: the engine (tsc --watch, after
+  # copying the spec package into dist/data) and the extension bundle (webpack --watch,
+  # which rebuilds when the engine's dist/ changes). `task dev:tests` adds the unit tests
+  # in watch mode. In VS Code the same is the "Dev Mode" task and launch configuration.
+
+  dev:
+    desc: "Dev Mode: engine tsc --watch + extension webpack --watch, in parallel (Ctrl+C stops both)"
+    deps: [install]
+    cmds:
+      # One engine build first: the extension's ts-loader does not recover when it starts
+      # before the engine's type declarations exist (a fresh clone).
+      - task: engine:build
+      - task: dev:watchers
+
+  dev:watchers:
+    internal: true
+    deps: [engine:watch, watch]
+
+  dev:tests:
+    desc: "Dev Mode plus the extension's unit tests in watch mode (tsc --watch on the tests, mocha --watch)"
+    deps: [install]
+    cmds:
+      - task: compile:tests
+      - task: dev:watchers:tests
+
+  dev:watchers:tests:
+    internal: true
+    deps: [engine:watch, watch, test:watch:compile, test:watch]
+
   watch:
-    desc: Watch mode for extension rebuild
+    desc: Watch mode for the extension bundle only (webpack --watch; picks up a rebuilt engine dist/)
     dir: "{{.EXT_DIR}}"
     cmds:
       - npm run watch
+
+  engine:watch:
+    desc: Watch mode for the engine only (copies the spec package, then tsc --watch)
+    dir: packages/engine
+    cmds:
+      - npm run watch
+
+  # ─── The development build in the main VS Code instance (#35) ───
+
+  dev:link:
+    desc: "Link the development build into your VS Code extensions folders (stable, Insiders, remote server under WSL/SSH; DIR=<folder> for one); refuses when the Marketplace/VSIX version is installed there. Then: Developer: Reload Window"
+    deps: [compile]
+    cmds:
+      - node tools/dev-link.js link {{if .DIR}}--dir "{{.DIR}}"{{end}}
+
+  dev:unlink:
+    desc: "Remove the dev:link link (and only it) from your VS Code extensions folders (DIR=<folder> for one)"
+    cmds:
+      - node tools/dev-link.js unlink {{if .DIR}}--dir "{{.DIR}}"{{end}}
+
+  dev:link:status:
+    desc: "Show, per VS Code extensions folder, whether the development build is linked and which other copies are installed"
+    cmds:
+      - node tools/dev-link.js status {{if .DIR}}--dir "{{.DIR}}"{{end}}
+
+  dev:launch-check:
+    desc: "Start every .vscode/launch.json configuration once outside VS Code (preLaunchTasks, launches, attaches) and report each; ONLY=<text> for some (xvfb-run -a on headless Linux)"
+    cmds:
+      - node tools/launch-check.js {{if .ONLY}}--only "{{.ONLY}}"{{end}}
 
   # ─── Engine core (packages/engine) ──────────────────────────────
 
@@ -111,6 +170,23 @@ tasks:
     cmds:
       - npm run test:integration
 
+  test:vsix:
+    desc: "VSIX smoke suite (#39): package, install the VSIX into a clean VS Code with --install-extension, open example mod/, assert activation, a diagnostic, a hover and the CK3 Explorer (xvfb-run -a on headless Linux)"
+    dir: "{{.EXT_DIR}}"
+    deps: [engine:build]
+    cmds:
+      - npm run package
+      - npm run compile-tests
+      - npm run test:vsix
+
+  test:dev-link:
+    desc: "The same smoke suite against the development build linked by dev:link into a clean extensions folder (#35)"
+    dir: "{{.EXT_DIR}}"
+    cmds:
+      - task: compile
+      - npm run compile-tests
+      - npm run test:dev-link
+
   test:examples:
     desc: Run example mod validation tests only
     dir: "{{.EXT_DIR}}"
@@ -125,10 +201,16 @@ tasks:
       - npm run test:quick
 
   test:watch:
-    desc: Watch and re-run tests on changes
+    desc: "Re-run the extension's unit tests when out/ or the engine's dist/ changes (mocha --watch; needs compiled tests: task compile:tests, or use task dev:tests)"
     dir: "{{.EXT_DIR}}"
     cmds:
       - npm run test:watch
+
+  test:watch:compile:
+    internal: true
+    dir: "{{.EXT_DIR}}"
+    cmds:
+      - npm run watch-tests
 
   # ─── Test Groups (run related test files together) ─────────────
 

@@ -7,12 +7,13 @@
 
 import * as vscode from 'vscode';
 import { CK3HealthStatusBar, CK3StatusBar } from './statusBar';
-import { logger } from './logger';
+import { CK3Logger, logger } from './logger';
 import { registerCommands } from './client/commands';
 import { createLogChannels, disposeLogChannels } from './client/log-channels';
 import { ServerController } from './client/server-controller';
 import { WorkspaceHealth } from './client/workspace-health';
 import { CK3FileDecorationProvider } from './client/file-decorations';
+import { ModExplorerProvider, registerModExplorer } from './client/mod-explorer';
 
 /** What activate() returns (vscode.extensions.getExtension(...).exports), for tests. */
 export interface CK3ExtensionApi {
@@ -24,6 +25,10 @@ export interface CK3ExtensionApi {
     decorations: CK3FileDecorationProvider;
     /** The workspace health status bar item (#84). */
     healthStatusBar: CK3HealthStatusBar;
+    /** The CK3 Explorer view's data provider (#83). */
+    modExplorer: ModExplorerProvider;
+    /** The recent lines of the CK3 output channels (#59): `lines(LogCategory.Index)`. */
+    logs: Pick<CK3Logger, 'lines'>;
 }
 
 let controller: ServerController | undefined;
@@ -56,8 +61,11 @@ export async function activate(context: vscode.ExtensionContext): Promise<CK3Ext
     // Pre-create the log watcher channels so that they appear in the Output menu
     createLogChannels();
 
-    const server = new ServerController(context, statusBar, health);
+    // The server's ck3/modStructureChanged refreshes the CK3 Explorer view (#83); the
+    // callback only runs once the client has started, after the view is registered.
+    const server = new ServerController(context, statusBar, health, () => modExplorer.refresh());
     controller = server;
+    const modExplorer = registerModExplorer(context, () => server.getClient(), health);
     registerCommands(context, {
         getClient: () => server.getClient(),
         restart: async () => {
@@ -99,8 +107,18 @@ export async function activate(context: vscode.ExtensionContext): Promise<CK3Ext
         })
     );
 
+    // The client is running now: show what the index already holds.
+    modExplorer.refresh();
+
     logger.logServer('CK3 Language Server extension activated');
-    return { health, activatedAt, decorations, healthStatusBar };
+    return {
+        health,
+        activatedAt,
+        decorations,
+        healthStatusBar,
+        modExplorer,
+        logs: { lines: (category) => logger.lines(category) },
+    };
 }
 
 export async function deactivate(): Promise<void> {

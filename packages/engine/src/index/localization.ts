@@ -54,6 +54,19 @@ export function isLocalizationFile(filename: string): boolean {
     return LOCALIZATION_FILE_RE.test(filename);
 }
 
+/** The language of a localization file name (`events_l_english.yml` → `english`). */
+export function localizationLanguageOf(filename: string): string | undefined {
+    const match = LOCALIZATION_FILE_RE.exec(filename);
+    return match ? match[1].toLowerCase() : undefined;
+}
+
+/** One indexed localization file: its URI, language and the number of keys it defines. */
+export interface LocalizationFileInfo {
+    uri: string;
+    language: string | undefined;
+    keys: number;
+}
+
 export class LocalizationIndex {
     /** key → entry */
     private entries = new Map<string, LocalizationEntry>();
@@ -128,6 +141,19 @@ export class LocalizationIndex {
             }
         }
         return out.sort((a, b) => a.line - b.line);
+    }
+
+    /**
+     * Every indexed file with its language (from the file name) and the number of keys it
+     * defines, counted per file: a key defined in two files (two languages) counts in both.
+     */
+    public files(): LocalizationFileInfo[] {
+        const out: LocalizationFileInfo[] = [];
+        for (const [uri, keys] of this.fileKeys) {
+            const name = decodeURIComponent(uri.slice(uri.lastIndexOf('/') + 1));
+            out.push({ uri, language: localizationLanguageOf(name), keys: keys.size });
+        }
+        return out;
     }
 
     public get size(): number {
