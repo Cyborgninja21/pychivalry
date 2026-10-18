@@ -72,7 +72,10 @@
                 "fileLimit": 3000
             }
         },
-        "sources": ["ck3-engine", "ck3-plugin"],
+        "sources": [
+            "ck3-engine",
+            "ck3-plugin"
+        ],
         "filesValidated": 211,
         "filesWithFindings": 65,
         "filesAtCap": [
@@ -82,22 +85,22 @@
             "events/VIET_events_county_old.txt",
             "events/VIET_events_old.txt"
         ],
-        "timeToFirstFullResultMs": 20840,
-        "serverUptimeAtFirstFullResultMs": 19065,
-        "backgroundPassMs": 1209,
-        "peakServerRssKb": 441624,
-        "serverVmHwmKb": 441624,
+        "timeToFirstFullResultMs": 19312,
+        "serverUptimeAtFirstFullResultMs": 17508,
+        "backgroundPassMs": 1097,
+        "peakServerRssKb": 453292,
+        "serverVmHwmKb": 453292,
         "longestFile": {
-            "milliseconds": 156.9,
+            "milliseconds": 162.9,
             "file": "events/VIET_events_basic.txt"
         },
         "longestScriptFile": {
-            "milliseconds": 156.8,
+            "milliseconds": 162.8,
             "file": "events/VIET_events_basic.txt"
         },
         "longestLocalizationFile": {
-            "milliseconds": 9,
-            "file": "localization/korean/viet_events_l_korean.yml"
+            "milliseconds": 7.2,
+            "file": "localization/french/viet_events_l_french.yml"
         },
         "bySeverity": {
             "error": 1,
@@ -251,7 +254,7 @@
                 "Localization": 80122
             },
             "topRequestMs": 2,
-            "wholeTreeMs": 23,
+            "wholeTreeMs": 27,
             "nodes": 1644,
             "reveal": {
                 "item": "VIET_decision_add_more_dovecotes",

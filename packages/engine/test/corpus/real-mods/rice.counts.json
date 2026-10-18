@@ -808,7 +808,10 @@
                 "fileLimit": 3000
             }
         },
-        "sources": ["ck3-engine", "ck3-plugin"],
+        "sources": [
+            "ck3-engine",
+            "ck3-plugin"
+        ],
         "filesValidated": 2090,
         "filesWithFindings": 1262,
         "filesAtCap": [
@@ -836,22 +839,22 @@
             "localization/russian/rice_north_atlantic_l_russian.yml",
             "localization/russian/rice_sri_lanka_l_russian.yml"
         ],
-        "timeToFirstFullResultMs": 44100,
-        "serverUptimeAtFirstFullResultMs": 42368,
-        "backgroundPassMs": 11755,
-        "peakServerRssKb": 770556,
-        "serverVmHwmKb": 770556,
+        "timeToFirstFullResultMs": 42875,
+        "serverUptimeAtFirstFullResultMs": 41073,
+        "backgroundPassMs": 14895,
+        "peakServerRssKb": 725904,
+        "serverVmHwmKb": 725904,
         "longestFile": {
-            "milliseconds": 232.9,
+            "milliseconds": 282.8,
             "file": "common/decisions/RICE_mayo_decisions.txt"
         },
         "longestScriptFile": {
-            "milliseconds": 232.9,
+            "milliseconds": 282.8,
             "file": "common/decisions/RICE_mayo_decisions.txt"
         },
         "longestLocalizationFile": {
-            "milliseconds": 204.6,
-            "file": "localization/french/rice_nubia_l_french.yml"
+            "milliseconds": 266.1,
+            "file": "localization/english/rice_nubia_l_english.yml"
         },
         "bySeverity": {
             "error": 92,
@@ -1877,8 +1880,8 @@
                 "On-Actions": 116,
                 "Localization": 389048
             },
-            "topRequestMs": 3,
-            "wholeTreeMs": 68,
+            "topRequestMs": 4,
+            "wholeTreeMs": 116,
             "nodes": 5100,
             "reveal": {
                 "item": "RICE_SEA_harvest_rare_tropical_goods_decision",

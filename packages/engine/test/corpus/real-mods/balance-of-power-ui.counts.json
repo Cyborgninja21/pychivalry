@@ -55,25 +55,28 @@
                 "fileLimit": 3000
             }
         },
-        "sources": ["ck3-engine", "ck3-plugin"],
+        "sources": [
+            "ck3-engine",
+            "ck3-plugin"
+        ],
         "filesValidated": 12,
         "filesWithFindings": 5,
         "filesAtCap": [],
-        "timeToFirstFullResultMs": 14135,
-        "serverUptimeAtFirstFullResultMs": 14102,
+        "timeToFirstFullResultMs": 11701,
+        "serverUptimeAtFirstFullResultMs": 11659,
         "backgroundPassMs": 31,
-        "peakServerRssKb": 299712,
-        "serverVmHwmKb": 299712,
+        "peakServerRssKb": 296832,
+        "serverVmHwmKb": 296832,
         "longestFile": {
-            "milliseconds": 19.8,
+            "milliseconds": 17,
             "file": "common/script_values/svals_bop.txt"
         },
         "longestScriptFile": {
-            "milliseconds": 19.7,
+            "milliseconds": 16.9,
             "file": "common/script_values/svals_bop.txt"
         },
         "longestLocalizationFile": {
-            "milliseconds": 1.2,
+            "milliseconds": 1.3,
             "file": "localization/english/bop_l_english.yml"
         },
         "bySeverity": {
@@ -148,7 +151,7 @@
                 "Localization": 7
             },
             "topRequestMs": 1,
-            "wholeTreeMs": 7,
+            "wholeTreeMs": 9,
             "nodes": 37,
             "reveal": {
                 "item": "bop_refresh_effect",

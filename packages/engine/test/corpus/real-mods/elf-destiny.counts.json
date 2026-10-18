@@ -192,7 +192,10 @@
                 "fileLimit": 3000
             }
         },
-        "sources": ["ck3-engine", "ck3-plugin"],
+        "sources": [
+            "ck3-engine",
+            "ck3-plugin"
+        ],
         "filesValidated": 906,
         "filesWithFindings": 422,
         "filesAtCap": [
@@ -219,22 +222,22 @@
             "events/wolf_invader_events.txt",
             "gfx/portraits/portrait_modifiers/elf_characters.txt"
         ],
-        "timeToFirstFullResultMs": 21019,
-        "serverUptimeAtFirstFullResultMs": 19272,
-        "backgroundPassMs": 3848,
-        "peakServerRssKb": 410268,
-        "serverVmHwmKb": 410268,
+        "timeToFirstFullResultMs": 28154,
+        "serverUptimeAtFirstFullResultMs": 26356,
+        "backgroundPassMs": 9649,
+        "peakServerRssKb": 391188,
+        "serverVmHwmKb": 391188,
         "longestFile": {
-            "milliseconds": 263.3,
-            "file": "localization/korean/aeluran/aeluran_regency_l_korean.yml"
+            "milliseconds": 492.4,
+            "file": "localization/english/aeluran/aeluran_regency_l_english.yml"
         },
         "longestScriptFile": {
-            "milliseconds": 64.6,
-            "file": "common/genes/01_genes_morph.txt"
+            "milliseconds": 117.2,
+            "file": "events/birth_events.txt"
         },
         "longestLocalizationFile": {
-            "milliseconds": 263.2,
-            "file": "localization/korean/aeluran/aeluran_regency_l_korean.yml"
+            "milliseconds": 492.3,
+            "file": "localization/english/aeluran/aeluran_regency_l_english.yml"
         },
         "bySeverity": {
             "error": 15,
@@ -575,8 +578,8 @@
                 "On-Actions": 159,
                 "Localization": 11740
             },
-            "topRequestMs": 2,
-            "wholeTreeMs": 60,
+            "topRequestMs": 1,
+            "wholeTreeMs": 47,
             "nodes": 2210,
             "reveal": {
                 "item": "adopt_ancient_egyptian_culture_decision",

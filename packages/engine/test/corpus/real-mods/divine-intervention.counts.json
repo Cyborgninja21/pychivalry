@@ -55,7 +55,10 @@
                 "fileLimit": 3000
             }
         },
-        "sources": ["ck3-engine", "ck3-plugin"],
+        "sources": [
+            "ck3-engine",
+            "ck3-plugin"
+        ],
         "filesValidated": 170,
         "filesWithFindings": 73,
         "filesAtCap": [
@@ -74,21 +77,21 @@
             "common/scripted_guis/DI_title_manager_sgui.txt",
             "events/DI_error_suppression.txt"
         ],
-        "timeToFirstFullResultMs": 14751,
-        "serverUptimeAtFirstFullResultMs": 14709,
-        "backgroundPassMs": 968,
-        "peakServerRssKb": 396792,
-        "serverVmHwmKb": 396792,
+        "timeToFirstFullResultMs": 20028,
+        "serverUptimeAtFirstFullResultMs": 17407,
+        "backgroundPassMs": 3876,
+        "peakServerRssKb": 409256,
+        "serverVmHwmKb": 409256,
         "longestFile": {
-            "milliseconds": 237.9,
+            "milliseconds": 308.5,
             "file": "common/scripted_guis/DI_modifiers_sgui.txt"
         },
         "longestScriptFile": {
-            "milliseconds": 237.9,
+            "milliseconds": 308.4,
             "file": "common/scripted_guis/DI_modifiers_sgui.txt"
         },
         "longestLocalizationFile": {
-            "milliseconds": 5.2,
+            "milliseconds": 6.5,
             "file": "localization/french/gui/DI_l_french.yml"
         },
         "bySeverity": {
@@ -198,7 +201,7 @@
                 "Localization": 11307
             },
             "topRequestMs": 2,
-            "wholeTreeMs": 12,
+            "wholeTreeMs": 17,
             "nodes": 408,
             "reveal": {
                 "item": "DI_abdicate",
