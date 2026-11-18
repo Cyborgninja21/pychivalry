@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **The test suites run when started from inside VS Code** (a terminal, a task or an agent;
+  #39). The integration, corpus, VSIX and dev-link runners (`src/test/runTest.ts`,
+  `src/test/vsix/runVsix.ts`) unset `ELECTRON_RUN_AS_NODE` and every `VSCODE_*` variable for
+  the VS Code they start (`src/test/launch-env.ts`, the rule of `cleanEnv` in
+  `tools/launch-check.js`): the downloaded VS Code no longer starts as plain Node and fails
+  with "Cannot find module …", and no longer inherits the launching instance's variables. The
+  manual `env -u` workaround is gone from CLAUDE.md, the debugging guide and the corpus README.
+
 ## [2.3.0] - 2026-10-03
 
 Editor features, and developing pychivalry made fast and documented. Headlines:

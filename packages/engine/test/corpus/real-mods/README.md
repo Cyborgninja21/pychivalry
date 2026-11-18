@@ -62,11 +62,10 @@ cd vscode-extension
 CK3_CORPUS=/home/cwallace/ck3-corpus CK3_GAME_PATH="<CK3>/game" xvfb-run -a task test:integration
 ```
 
-When launched from a VS Code terminal, run the integration and corpus suites with
-`ELECTRON_RUN_AS_NODE` and every `VSCODE_*` variable unset (for example
-`env -u ELECTRON_RUN_AS_NODE $(env | grep -oE '^VSCODE_[A-Z_]+' | sed 's/^/-u /') xvfb-run -a task test:integration`);
-otherwise the downloaded VS Code runs as Node and fails with "Cannot find module
-.../test-workspace". `CK3_CORPUS_SLUGS=rice,viet-events` restricts the run. Without `CK3_CORPUS`, or with a folder
+Launched from a VS Code terminal, task or agent, the same command works as is: the runner
+unsets `ELECTRON_RUN_AS_NODE` and every `VSCODE_*` variable for the VS Code it starts
+(`vscode-extension/src/test/launch-env.ts`), which otherwise runs as Node and fails with
+"Cannot find module .../test-workspace". `CK3_CORPUS_SLUGS=rice,viet-events` restricts the run. Without `CK3_CORPUS`, or with a folder
 that does not exist, the corpus suite is skipped, so CI is unaffected. The record files are
 checked by `packages/engine/test/corpus/real-mods.test.ts` (part of `task engine:test`).
 

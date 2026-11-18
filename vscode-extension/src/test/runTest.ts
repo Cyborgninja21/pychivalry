@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import { runTests } from '@vscode/test-electron';
+import { launchingInstanceVariables } from './launch-env';
 
 /** The real-mod corpus (post-2.0 Phase 1): the mods the editor-path record covers. */
 const CORPUS_SLUGS = [
@@ -75,7 +76,11 @@ async function runCorpus(extensionDevelopmentPath: string): Promise<void> {
             await runTests({
                 extensionDevelopmentPath,
                 extensionTestsPath: path.resolve(__dirname, './corpus/index'),
-                extensionTestsEnv: { CK3_CORPUS_SLUG: slug, CK3_CORPUS_OUT: out },
+                extensionTestsEnv: {
+                    ...launchingInstanceVariables(),
+                    CK3_CORPUS_SLUG: slug,
+                    CK3_CORPUS_OUT: out,
+                },
                 launchArgs: [
                     modDir,
                     '--disable-extensions',
@@ -104,6 +109,7 @@ async function main() {
         await runTests({
             extensionDevelopmentPath,
             extensionTestsPath,
+            extensionTestsEnv: launchingInstanceVariables(),
             launchArgs: [
                 testWorkspacePath,
                 '--disable-extensions', // Disable other extensions for clean testing
