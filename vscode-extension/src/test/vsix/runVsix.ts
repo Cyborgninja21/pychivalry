@@ -16,8 +16,9 @@
  *   node out/test/vsix/runVsix.js [--linked] [--vsix <file>]
  *
  * CK3_VSIX names the VSIX (default: ck3-language-support-<package.json version>.vsix).
- * On headless Linux run it under `xvfb-run -a`; from a VS Code terminal unset
- * ELECTRON_RUN_AS_NODE and the VSCODE_* variables first (see the corpus README).
+ * On headless Linux run it under `xvfb-run -a`. It unsets ELECTRON_RUN_AS_NODE and the
+ * VSCODE_* variables for the VS Code it starts (../launch-env.ts), so it also runs from a
+ * terminal, task or agent inside VS Code.
  */
 
 import * as cp from 'child_process';
@@ -25,6 +26,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import { runTests, runVSCodeCommand } from '@vscode/test-electron';
+import { launchingInstanceVariables } from '../launch-env';
 
 const EXTENSION_ROOT = path.resolve(__dirname, '../../../');
 const REPO_ROOT = path.resolve(EXTENSION_ROOT, '..');
@@ -53,7 +55,11 @@ async function main(): Promise<void> {
     const userDataDir = path.join(tmp, 'user-data');
     fs.mkdirSync(extensionsDir);
     fs.mkdirSync(userDataDir);
-    const spawnEnv = { ...process.env, DONT_PROMPT_WSL_INSTALL: '1' };
+    const spawnEnv = {
+        ...process.env,
+        ...launchingInstanceVariables(),
+        DONT_PROMPT_WSL_INSTALL: '1',
+    };
     try {
         if (linked) {
             // A folder VS Code has used holds an extensions.json, and VS Code then lists only
@@ -101,6 +107,7 @@ async function main(): Promise<void> {
             extensionDevelopmentPath: path.join(EXTENSION_ROOT, 'src', 'test', 'vsix', 'harness'),
             extensionTestsPath: path.resolve(__dirname, './index'),
             extensionTestsEnv: {
+                ...launchingInstanceVariables(),
                 CK3_SMOKE_MODE: linked ? 'linked' : 'vsix',
                 CK3_SMOKE_EXTENSIONS_DIR: extensionsDir,
                 CK3_SMOKE_DEV_PATH: EXTENSION_ROOT,

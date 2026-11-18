@@ -115,11 +115,12 @@ Channel** opens the channels. The repository's `.vscode/settings.json` sets `log
 
 ## Traps
 
-- **Running the VS Code test hosts from a VS Code terminal.** That terminal exports
-  `ELECTRON_RUN_AS_NODE` and `VSCODE_*` variables; the downloaded VS Code then runs as Node
-  and fails ("Cannot find module …/test-workspace"). Unset them first:
-  `env -u ELECTRON_RUN_AS_NODE $(env | grep -oE '^VSCODE_[A-Z_]+' | sed 's/^/-u /') xvfb-run -a task test:integration`
-  (the [real-mods README](../../packages/engine/test/corpus/real-mods/README.md) records this).
+- **Running the VS Code test hosts from a VS Code terminal.** A terminal, task or agent
+  started from VS Code can export `ELECTRON_RUN_AS_NODE` and `VSCODE_*` variables; with them
+  the downloaded VS Code would run as Node and fail ("Cannot find module …/test-workspace").
+  The runners unset them for the VS Code they start (`vscode-extension/src/test/launch-env.ts`
+  for the integration, corpus and smoke suites, `cleanEnv` in `tools/launch-check.js`), so
+  nothing needs unsetting by hand.
 - **Headless Linux and WSL.** The integration, corpus, smoke and launch-check runs need a
   display: `xvfb-run -a`. The Linux `code` CLI asks under WSL whether to continue; the test
   runners set `DONT_PROMPT_WSL_INSTALL=1`.

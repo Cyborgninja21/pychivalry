@@ -83,7 +83,7 @@ the only lock file). Then use the Taskfile:
 | `task engine:test` | Engine unit, golden, corpus and CLI tests |
 | `task engine:check` | Engine lint (`--max-warnings=0`) and Prettier check |
 | `task test:unit` | Extension unit tests (mocha, no VS Code) |
-| `task test:integration` | Extension integration tests in a VS Code instance (`xvfb-run -a` on headless Linux; unset `ELECTRON_RUN_AS_NODE` and `VSCODE_*` when running inside VS Code) |
+| `task test:integration` | Extension integration tests in a VS Code instance (`xvfb-run -a` on headless Linux; the runners unset `ELECTRON_RUN_AS_NODE` and `VSCODE_*` themselves, so it also runs inside VS Code) |
 | `task lint` / `task format:check` | Extension ESLint (`--max-warnings=0`) / Prettier check |
 | `task docs:diagnostics` / `task docs:diagnostics:check` | Regenerate / verify the diagnostics reference |
 | `task test:vsix` / `task test:dev-link` | Package the VSIX, install it into a clean VS Code and run the smoke suite on `example mod/` (`src/test/vsix`); the same on the `dev:link` build |
