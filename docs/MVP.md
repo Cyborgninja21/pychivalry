@@ -1,6 +1,6 @@
 # pychivalry: MVP
 
-Status: draft for review, 2026-11-21. Nothing in this document is built yet.
+Status: draft, 2026-11-21, with the seven opening decisions answered. Nothing in this document is built yet.
 
 ## What pychivalry is
 
@@ -20,6 +20,13 @@ lives unchanged in `legacy/`.
 | AI | AI first, in four senses (see [AI first](#ai-first)). |
 | Source of truth | The reverse-engineered spec package from `pdx-parser-re`. Vocabulary is never scraped from the wiki or from game files. |
 | Derived names | A name the derivation produced is never dropped because the game's own documentation omits it. The doubt is documented instead. |
+| Identity | A new extension, named `pychivalry`, starting at 1.0.0. It does not update `ck3-language-support` 2.x in place; people on 2.3.0 install the new one by hand. |
+| Spec delivery | The built spec package is a file committed in this repository with its checksum. `pdx-parser-re` stays private. |
+| Game versions | One game version at a time: the current one. |
+| Game-file suites | The base-game and real-mod suites run on a private, self-hosted runner on a machine that has the game files. Public CI runs everything else. |
+| VS Code floor | Recent editors only: new enough for chat participants and language-model tools. No fallback mode for older editors. |
+| Authoring bar | The authoring loop has a round limit of 5. Its pass-rate target is set after the first scored run. |
+| CI | A new root workflow arrives with the repository skeleton (build step 1). Until then nothing runs, and `legacy/` is not re-tested. |
 
 ## Principles
 
@@ -171,22 +178,23 @@ named above.
 
 The MVP is done when all of these hold, each proved by a suite in the repository.
 
-1. **Base game.** Every script file of the base game parses, with no finding other than the
+1. **Base game** (private runner). Every script file of the base game parses, with no finding other than the
    game's own known typos. The scope check judges every keyword use in the base game with zero
    findings. (2.3.0 reached this on 93,665 uses; the new core must match it.)
-2. **Real mods.** On the five-mod corpus used for 2.3.0, the error list equals the list of
+2. **Real mods** (private runner). On the five-mod corpus used for 2.3.0, the error list equals the list of
    real defects: no false errors, none missed.
 3. **Same answers everywhere.** For the same mod, the editor, the command line and the agent
    server report the same findings. One test compares all three.
 4. **Agent use.** An agent with only the MCP server can find and fix a planted set of defects
    in a test mod, scored automatically.
 5. **Authoring.** For a fixed set of content requests, the authoring loop ends with zero
-   checker errors within its round limit. A scored run records the pass rate; the target is
-   set once the first run exists.
+   checker errors within 5 rounds. A scored run records the pass rate; the target is set once
+   the first run exists.
 6. **Speed.** Budgets for a single-file check, a whole-mod first pass and server start are
    written into a benchmark suite and enforced in CI. The numbers are set from the 2.3.0
    measurements in `legacy/`, as "no slower than".
-7. **Development needs no human.** `task ci` passes from a clean clone with no display.
+7. **Development needs no human.** `task ci` passes from a clean clone with no display and no
+   game files; the two game-file suites are the only ones that need the private runner.
 
 ## Legacy
 
@@ -199,7 +207,8 @@ code meets the definition of done.
 
 Each step ends with its suite passing; the next does not start before that.
 
-1. Repository skeleton: workspace layout, `task ci`, `AGENTS.md`, the spec package wired in.
+1. Repository skeleton: workspace layout, `task ci`, the root CI workflow, `AGENTS.md`, the
+   spec package committed with its checksum, the private runner registered.
 2. Parser, with the base-game parse suite.
 3. Workspace index.
 4. Engine checks and lookup, with the base-game and real-mod suites.
@@ -208,16 +217,16 @@ Each step ends with its suite passing; the next does not start before that.
 7. Language server and the thin VS Code extension, with the same-answers test.
 8. Formatter and fix data, quick fixes.
 9. Authoring loop, chat participant and language-model tools, with the scored authoring run.
-10. Benchmarks enforced, `legacy/` removed, first release of the new line.
+10. Benchmarks enforced, `legacy/` removed, release 1.0.0 of `pychivalry`.
 
 ## Open decisions
 
-| # | Question | Why it matters |
+The seven opening decisions were answered on 2026-11-21 and are in
+[Decisions already made](#decisions-already-made). What remains is settled inside the build:
+
+| # | Question | Settled when |
 | --- | --- | --- |
-| 1 | Does the new line keep the name and extension identity `ck3-language-support`, and is the first release 3.0.0? | Existing installs either update in place or need a new install. |
-| 2 | How does the spec package arrive: a published npm package, a file committed into this repo, or a git submodule of `pdx-parser-re` (which is private)? | The repo is public and must build for anyone from a clean clone. |
-| 3 | One supported game version at a time, or several side by side? | Several needs a spec package per version and a way to pick one per mod. |
-| 4 | Where do the base-game and corpus suites run? They need game files that cannot be in a public repo. | CI on GitHub cannot hold the game; a private runner or recorded results are the options. |
-| 5 | Minimum VS Code version. Chat participants and language-model tools need a far newer editor than the `1.75` the old extension supported. | Sets who can install it. |
-| 6 | Round limit and scoring for the authoring loop, and which models the scored run uses. | Defines what "the authoring loop works" means. |
-| 7 | Is CI turned back on at the root now, or when step 1 lands? | The workflow moved into `legacy/` and no longer runs. |
+| 1 | Which machine hosts the private runner. | Build step 1. |
+| 2 | The exact minimum VS Code version. | Build step 9, from what the chat and tool interfaces need. |
+| 3 | The authoring loop's pass-rate target, and which models the scored run uses. | After the first scored run in build step 9. |
+| 4 | What happens to the `ck3-language-support` 2.x listing and its users when 1.0.0 ships. | Before release 1.0.0. |
