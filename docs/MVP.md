@@ -5,6 +5,8 @@ has been checked against real data: the spec package, the 2.3.0 code and its rec
 installed today, and the current VS Code, Claude Code and GitHub documentation. Nothing in this
 document is built yet.
 
+The build plan, step by step, is in [PLAN.md](PLAN.md).
+
 ## What pychivalry is
 
 pychivalry tells a Crusader Kings 3 modder, and any AI agent working on a mod, what the game
