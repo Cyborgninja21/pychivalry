@@ -1,0 +1,120 @@
+{
+    "record_format": 1,
+    "suite": "baseline:speed",
+    "command": "LEGACY_BUILD=<legacy build> CK3_GAME_PATH=<game dir> CK3_CORPUS=<corpus dir> BASELINE_PARTS=base-game BASELINE_RUNS=6 BASELINE_NODE_HEAP=8192 task baseline:speed",
+    "made_at": "2026-11-21T21:15:42.760Z",
+    "tool": {
+        "name": "pychivalry",
+        "version": "2.3.0",
+        "commit": "3874ebf8a3c7e3defad35bb673a7ad618d6dcf67",
+        "dirty": true
+    },
+    "machine": {
+        "os": "linux",
+        "arch": "x64",
+        "logical_cpus": 16,
+        "memory_gib": 62,
+        "node": "v22.23.4"
+    },
+    "game": {
+        "build": "1.21.0.3",
+        "manifest_sha256": "83004e2f80b5db245db9ecb9cc88a927fd520875e34ec899f49f2921ebf3c235",
+        "files": 55608,
+        "content_hashed_files": 17388
+    },
+    "spec": {
+        "version": "1.20.0.2",
+        "sha256": "a9959bf9d650fe793ffd3ee60eb6589b8cb6eaaaae778ce84b58fdc535f2eeb6",
+        "package_format": 4
+    },
+    "corpus": null,
+    "notes": [
+        "Release 2.3.0 (the v2.3.0 tree, identical to legacy/), built from an export of legacy/ outside the repository by task baseline:prepare, run with its own spec package (1.20.0.2, format 4) on the current game build. Its spec predates that build, so it reports many unknown-name findings; only the timings and memory are recorded here, not the findings.",
+        "Each series is one first run and then the later runs, one process at a time. \"first\" is the first run of the series in a fresh process; it is not a cold start: the operating system file cache could not be dropped, and the base game and corpus files had already been read (by the corpus copy, the manifest hashing and earlier series), so they were most likely cached. \"later\" gives the median, minimum, maximum and spread (maximum minus minimum) of the remaining runs, and every value.",
+        "The machine was in ordinary use while the runs were made; other processes were running. context.load_average_1m is the one-minute load average just before each run.",
+        "The script ran with the Node flag --max-old-space-size=8192 and was otherwise unchanged: with Node's default heap limit (about 4 GiB here) it ran out of memory on this game build during its check phase.",
+        "parse_ms parses every .txt file under common/, events/ and history/; check_ms then loads the same tree as a workspace and runs the registry, schema and scope checks on it. peak_rss_kib is the peak resident memory of the whole process, read at exit."
+    ],
+    "results": {
+        "series": [
+            {
+                "name": "base game: parse common/, events/, history/, then check them",
+                "method": "vanilla-acceptance",
+                "mod": null,
+                "runs": 6,
+                "measures": {
+                    "parse_ms": {
+                        "unit": "ms",
+                        "first": 7024,
+                        "later": {
+                            "n": 5,
+                            "median": 7147,
+                            "min": 6206,
+                            "max": 7990,
+                            "spread": 1784,
+                            "values": [
+                                7211,
+                                6206,
+                                7147,
+                                6740,
+                                7990
+                            ]
+                        }
+                    },
+                    "check_ms": {
+                        "unit": "ms",
+                        "first": 76545,
+                        "later": {
+                            "n": 5,
+                            "median": 69911,
+                            "min": 67148,
+                            "max": 108018,
+                            "spread": 40870,
+                            "values": [
+                                67148,
+                                69331,
+                                108018,
+                                71423,
+                                69911
+                            ]
+                        }
+                    },
+                    "peak_rss_kib": {
+                        "unit": "KiB",
+                        "first": 5916556,
+                        "later": {
+                            "n": 5,
+                            "median": 6001508,
+                            "min": 5919048,
+                            "max": 6053820,
+                            "spread": 134772,
+                            "values": [
+                                6001508,
+                                6053820,
+                                6024204,
+                                5962228,
+                                5919048
+                            ]
+                        }
+                    }
+                },
+                "context": {
+                    "script_files_parsed": [
+                        4482
+                    ],
+                    "node_flags": [
+                        "--max-old-space-size=8192"
+                    ],
+                    "load_average_1m": [
+                        4.38,
+                        5.04,
+                        5.23,
+                        4.84,
+                        12.59,
+                        7.6
+                    ]
+                }
+            }
+        ]
+    }
+}

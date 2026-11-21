@@ -127,7 +127,7 @@ tasks:
       - cd "$LEGACY_BUILD" && task install && task build
 
   baseline:speed:
-    desc: 'Time release 2.3.0 (LEGACY_BUILD, CK3_GAME_PATH, CK3_CORPUS; BASELINE_PARTS, BASELINE_RUNS); writes records/baseline-2.3.0/'
+    desc: 'Time release 2.3.0 (LEGACY_BUILD, CK3_GAME_PATH, CK3_CORPUS; BASELINE_PARTS, BASELINE_RUNS, BASELINE_NODE_HEAP); writes records/baseline-2.3.0/'
     deps: [build]
     cmds:
       - node tools/dist/cli.js baseline speed

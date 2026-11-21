@@ -41,6 +41,11 @@ export interface BaselineEnv extends SuiteEnv {
     BASELINE_RUNS?: string | undefined;
     /** Comma-separated parts to run; default all. */
     BASELINE_PARTS?: string | undefined;
+    /**
+     * V8 heap limit in MiB for the base-game run (`--max-old-space-size`); unset keeps Node's
+     * default. 2.3.0's vanilla script needs more than the default on the 1.21 game.
+     */
+    BASELINE_NODE_HEAP?: string | undefined;
 }
 
 interface Measure {
@@ -299,7 +304,25 @@ function modSeries(
     };
 }
 
-function baseGameSeries(root: string, legacyDir: string, game: string, runs: number): Series {
+/** The Node flags for the base-game run: the heap limit, when `BASELINE_NODE_HEAP` sets one. */
+function heapFlags(env: BaselineEnv): string[] {
+    const heap = env.BASELINE_NODE_HEAP?.trim();
+    if (heap === undefined || heap === '') {
+        return [];
+    }
+    if (!/^[1-9][0-9]*$/.test(heap)) {
+        throw new CommandError('BASELINE_NODE_HEAP must be a whole number of MiB', EXIT.usage);
+    }
+    return [`--max-old-space-size=${heap}`];
+}
+
+function baseGameSeries(
+    root: string,
+    legacyDir: string,
+    game: string,
+    runs: number,
+    nodeFlags: readonly string[],
+): Series {
     const work = path.join(legacyDir, '.baseline');
     mkdirSync(work, { recursive: true });
     const preload = pathToFileURL(path.join(root, 'tools', 'dist', 'rusage-preload.js')).href;
@@ -316,6 +339,7 @@ function baseGameSeries(root: string, legacyDir: string, game: string, runs: num
         const result = spawnSync(
             process.execPath,
             [
+                ...nodeFlags,
                 '--import',
                 preload,
                 path.join('packages', 'engine', 'scripts', 'vanilla-acceptance.js'),
@@ -358,7 +382,11 @@ function baseGameSeries(root: string, legacyDir: string, game: string, runs: num
             check_ms: measure('ms', check),
             peak_rss_kib: measure('KiB', rss),
         },
-        context: { script_files_parsed: [...new Set(files)], load_average_1m: loadAverage },
+        context: {
+            script_files_parsed: [...new Set(files)],
+            node_flags: nodeFlags,
+            load_average_1m: loadAverage,
+        },
     };
 }
 
@@ -485,7 +513,7 @@ export function runSpeedBaseline(root: string, env: BaselineEnv): string[] {
         const record: SuiteRecord = {
             record_format: 1,
             suite: 'baseline:speed',
-            command: `LEGACY_BUILD=<legacy build> CK3_GAME_PATH=<game dir> CK3_CORPUS=<corpus dir> BASELINE_PARTS=${part} BASELINE_RUNS=${String(runs)} task baseline:speed`,
+            command: `LEGACY_BUILD=<legacy build> CK3_GAME_PATH=<game dir> CK3_CORPUS=<corpus dir> BASELINE_PARTS=${part} BASELINE_RUNS=${String(runs)}${part === 'base-game' && env.BASELINE_NODE_HEAP ? ` BASELINE_NODE_HEAP=${env.BASELINE_NODE_HEAP}` : ''} task baseline:speed`,
             made_at: now(),
             tool,
             machine: machineInfo(),
@@ -513,7 +541,13 @@ export function runSpeedBaseline(root: string, env: BaselineEnv): string[] {
     }
     if (parts.includes('base-game')) {
         process.stdout.write('baseline: base game (vanilla-acceptance.js)\n');
-        write('base-game', [baseGameSeries(root, legacy, game, runs)], null, [
+        const nodeFlags = heapFlags(env);
+        write('base-game', [baseGameSeries(root, legacy, game, runs, nodeFlags)], null, [
+            ...(nodeFlags.length > 0
+                ? [
+                      `The script ran with the Node flag ${nodeFlags.join(' ')} and was otherwise unchanged: with Node's default heap limit (about 4 GiB here) it ran out of memory on this game build during its check phase.`,
+                  ]
+                : []),
             'parse_ms parses every .txt file under common/, events/ and history/; check_ms then loads the same tree as a workspace and runs the registry, schema and scope checks on it. peak_rss_kib is the peak resident memory of the whole process, read at exit.',
         ]);
     }
