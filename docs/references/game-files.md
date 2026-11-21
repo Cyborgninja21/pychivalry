@@ -43,9 +43,24 @@ MVP.md, settled by the spec work.
 
 ## Load-path settings
 
-The game's settings list which folders it loads and in what order. They bear on the override
-rules: which file wins when a mod and the game, or two mods, define the same thing. Build
-step 3 establishes those rules and writes them in `docs/overrides.md`.
+`paths.settings` and `paths_checksummed.settings` in the game folder name the folders some
+systems load (`gfx/map/borders`, `music/music_player_categories`, `map_data` and so on). They
+say nothing about overriding or load order: build step 3 read them for that and found nothing
+([overrides.md](../overrides.md)).
+
+## The install's folders
+
+Checked 2026-11-21 on game 1.21.0.3. The install folder holds three folders in the same layout:
+`game/` (the folder `CK3_GAME_PATH` names), `jomini/` (500 files) and `clausewitz/` (603 files).
+`jomini/` holds script and localization the game folder does not, such as six files of
+`common/defines/jomini/`; 56 of its files, and 18 of `clausewitz/`'s, also exist at the same
+relative path under `game/`, almost always changed. How the game ranks the three is rule 3 of
+[overrides.md](../overrides.md).
+
+Each DLC is a folder `game/dlc/<pack>/` with a descriptor `<pack>.dlc` (`name`, `path`,
+`steam_id`, `affects_checksum`, `checksum` and others), whose `path` names that folder. On
+1.21.0.3 the 23 packs hold files only under `gfx/`, `music/` and `sound/`, besides the
+descriptor and a thumbnail.
 
 ## The game's checksum manifest
 
@@ -58,8 +73,16 @@ size ([records/README.md](../../records/README.md)).
 The Linux build of the game keeps its class names, about 6,100 of which name triggers or
 effects. It is a second binary to cross-check derived names against.
 
+It also keeps message texts the spec's catalogue does not carry, each near the path of the
+source file that holds it. Build step 3 read them with `strings` on 2026-11-21 (game 1.21.0.3)
+for the override rules: the generic database's `Overriding entry '{}' for database '{}' in
+'{}'`, the localization reader's duplicate-key messages and its `/replace/` folder, and the
+descriptor key `replace_path`. They are quoted in [overrides.md](../overrides.md#the-evidence).
+A message text shows the game has the behaviour it reports, not when the message fires.
+
 ## Workshop mods
 
 Each mod carries a `descriptor.mod` with its name, its workshop id (`remote_file_id`) and the
 game version it supports. The corpus manifest is built from those
-([records/corpus/README.md](../../records/corpus/README.md)).
+([records/corpus/README.md](../../records/corpus/README.md)). None of the five uses
+`replace_path` (checked 2026-11-21).

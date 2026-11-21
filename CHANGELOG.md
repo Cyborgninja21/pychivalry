@@ -59,8 +59,20 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   `fixtures/mods/`: one per recovery path, text cut off mid-edit, 2.3.0's `broken_syntax` mod,
   and a file that is not valid UTF-8.
 
+- Build step 3, item 3.1 ([docs/PLAN.md](docs/PLAN.md)): `docs/overrides.md`, the game's
+  override rules, from the game's own evidence: the executable's messages, Paradox's `.info`
+  files, the install's layout and DLC descriptors, and a scan of the base game's files. Each
+  rule is marked settled or open; each open rule has the in-game experiment that would settle
+  it, written as probe mods for the analysis machine.
+
 ### Changed
 
+- Two layouts are supported with equal weight: VS Code on the game's computer, and on another
+  computer on the local network. Linux and Windows are supported equally (the owner's
+  decisions of 2026-11-21).
+- The override rules are data: a table in the spec package read out of the executable, with a
+  neutral index until it arrives. Build step 3 is re-planned on that
+  ([docs/PLAN.md](docs/PLAN.md), items 3.1a, 3.6 and 3.6a).
 - The Windows-1252 fallback reads only the bytes that are not valid UTF-8; a file that mixes
   both encodings now reads all its letters correctly (the owner's decision of 2026-11-21).
 - The plan's environment table no longer states paths from the machine that runs the suites.
@@ -74,3 +86,8 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
 - Item 1.6: the 1.21 spec package in format 5 (step 0), and whether it is committed
   compressed or raw (an owner decision).
 - Item 1.11: the result baselines, which need the 1.21 spec in format 4 (step 0).
+- Step 3 stopped after item 3.1: six override rules are open (the order files are read in,
+  whole-record or field-by-field replacement, the install's `game/` against `jomini/` copies,
+  localization duplicates and the `replace` folder, `replace_path`, letter case in paths) and
+  need the experiments in `docs/overrides.md`, run on the analysis machine on the owner's word.
+  Items 3.2 to 3.10 wait on them.

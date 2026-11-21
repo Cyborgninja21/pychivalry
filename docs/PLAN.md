@@ -1,6 +1,6 @@
 # pychivalry: build plan
 
-Status: plan for approval, 2026-11-21. Step 1 is built and step 2 is in review; the Progress table says what is open.
+Status: plan for approval, 2026-11-21. Steps 1 and 2 are built and merged; step 3 has stopped after item 3.1 on rules that need an in-game test. The Progress table says what is open.
 
 This is the "how" for the rebuild. The "what" and the "why" are in [MVP.md](MVP.md): the
 decisions, the scope, the tests each feature needs and the definition of done. Where the two
@@ -21,8 +21,8 @@ disagree, MVP.md is right and this plan is fixed.
 | --- | --- | --- | --- |
 | 0 | Spec work, in `pdx-parser-re` | It produces it | In progress, another agent |
 | 1 | Repository skeleton | Two items only (1.6, 1.11) | Built and merged (pull requests #114 and #115). Open, waiting on step 0: 1.6 (the committed spec is the 1.20.0.2 stand-in until the 1.21 format 5 package; compressed or raw still to decide) and 1.11 (the result baselines; the speed baselines are done) |
-| 2 | Parser | No | Built, in review as pull request #116. Item 2.6's public codes are left to item 4.1, which maps the syntax finding identifiers to them |
-| 3 | Workspace index | No; a stand-in folder list is enough | Not started |
+| 2 | Parser | No | Built and merged (pull request #116). Item 2.6's public codes are left to item 4.1, which maps the syntax finding identifiers to them |
+| 3 | Workspace index | No for the index; the override rules table comes from step 0 | Item 3.1 is done and merged (pull request #118): `docs/overrides.md` states what the game's files settle and what they leave open. Items 3.2 to 3.10 are not started. They wait on the owner's read of this revised plan and on open question 10 of MVP.md (how the second layout reaches the game's files) |
 | 4 | Engine checks and lookup | Yes, from item 4.2 on | Not started |
 | 5 | Command line | Through step 4 | Not started |
 | 6 | Agent server | Through step 4 | Not started |
@@ -179,6 +179,7 @@ These names are the ones 2.3.0 used, so its scripts and records stay comparable.
 | The data-types dump | After the MVP: localization bracket checks |
 | The GUI vocabulary | After the MVP: GUI checks |
 | Real error logs from the analysis machine | Item 11.1 |
+| The override rules, as a table: each rule, its evidence, the platforms it holds on (Windows and Linux both analysed) | Items 3.2 and 3.6. Until it arrives, the rules [overrides.md](overrides.md) marks settled are carried as a stand-in table |
 
 **The contract.** The format 5 layout is the table "Format 5" in that plan. The spec reader in
 item 4.2 is written against it. If the other agent changes the layout, that plan is updated
@@ -348,18 +349,35 @@ replaced paths, no DLC precedence. All of this step beyond the basics is new wor
 
 **Work items.**
 
-- 3.1 `docs/overrides.md`: the game's override rules, established before any code. Sources, in
-  order: the spec work, the game's `paths.settings` and mod descriptor files, Paradox's `.info`
-  files, and a small in-game experiment on the analysis machine if those leave a question open. It covers:
-  a later file overriding an earlier one, whole-record against field-by-field replacement,
-  `replace_path`, DLC folders, and the order files load in.
-- 3.2 A fixture mod and a fixture game stub that exercise every rule in `overrides.md`.
+- 3.1 `docs/overrides.md`: the game's override rules, established before any code, from the
+  game's own files: `paths.settings`, mod descriptor files, Paradox's `.info` files, the
+  executable's message texts and what the base game's files depend on. It covers a later file
+  overriding an earlier one, whole-record against field-by-field replacement, `replace_path`,
+  DLC folders, the install's three folders, localization, letter case, and the order files load
+  in. Each rule is marked settled or open. **Done.** Six rules are open.
+- 3.1a The override rules as data. The rules are a table, never code: each row names the rule,
+  the folders it applies to, what wins, its evidence, and the platforms it holds on. The table
+  comes in the spec package from step 0, which reads the open rules out of the Windows and
+  Linux executables. Until it arrives, a stand-in table under `spec/` carries only the rules
+  overrides.md marks settled. The core reads the table; it holds no rule of its own.
+- 3.2 A fixture mod and a fixture game stub that exercise every rule in `overrides.md`. For a
+  settled rule the fixture states the winner. For an open rule it states both definitions and
+  that no winner is given.
 - 3.3 What a definition is, per folder: the record's key, taken from the spec's folder list and
   record schemas. Events, scripted effects and triggers, script values, on-actions, decisions,
   interactions, traits, modifiers, localization keys, and every other folder the spec lists.
 - 3.4 References: every use of a defined name, with its position.
 - 3.5 The base-game index: every folder the spec lists, not seven.
-- 3.6 Layering: mod over base game over DLC, by the rules of `overrides.md`.
+- 3.6 Layering, neutral by default. The index records every definition with the layer it came
+  from (the install's folders, a DLC, the mod), its file's relative path and its place in the
+  file. It names a winner only where the rules table has a rule for that folder and platform.
+  Where the table has none, the index answers "defined more than once, winner not known", and
+  a check or lookup that depends on the winner stays silent. Nothing is guessed. When the
+  table gains a rule, the answer changes with no change to the code.
+- 3.6a Both layouts (MVP.md, "Where the game is"). The game folder may be on the local disk or
+  on another computer. The index and its cache are tested with the game folder reached both
+  ways, give the same answers, and the time for each is in the record. How the second layout
+  reaches the files is open question 10 of MVP.md and is decided before item 3.5.
 - 3.7 Incremental update: a changed file updates its own entries and marks the files that use
   the names it defines.
 - 3.8 The on-disk cache of the base-game index: keyed by the spec checksum and a hash of the
@@ -376,13 +394,28 @@ replaced paths, no DLC precedence. All of this step beyond the basics is new wor
 **Done when.**
 
 1. On the fixture mod, every definition and use is found and none is invented.
-2. Overrides resolve as `overrides.md` says, on every fixture case.
+2. Overrides resolve as the rules table says on every fixture case; with a rule missing, both
+   definitions are reported and no winner is given. The step is complete for the rules the
+   table holds; each rule step 0 adds later is covered by its fixture with no code change.
 3. A reloaded cache answers exactly as a fresh index; changing the spec or the game manifest
    forces a rebuild.
-4. Indexing the whole base game is timed and the figure is in a record.
+4. Indexing the whole base game is timed and the figure is in a record, for the game folder on
+   the local disk and reached from another computer.
 
 **Not yet known.** The override rules themselves (open question 1 in MVP.md). How much memory
 a whole-base-game index takes; 2.3.0's partial index peaked near 1 GB on the largest mod.
+
+**Found** (item 3.1, [overrides.md](overrides.md)): the game's own files settle that a mod's file
+replaces the base-game file at the same relative path, whole; that a file is identified by its
+whole relative path; the rules of events and character history (override priorities), of
+on-actions (declarations add up), of defines (field by field) and of container keys; and that
+on game 1.21.0.3 no DLC file collides with the base game. They do not settle the order files
+are read in, whether a key defined again replaces the whole record, which of the install's
+`game/` and `jomini/` copies is used, localization's duplicate keys and `replace` folder,
+`replace_path`, or the letter case of paths. Each of those has an in-game experiment in
+overrides.md; by the owner's decision of 2026-11-21 they are not run for now, and the open rules
+are read out of the executable by step 0 instead (item 3.1a). The base game spans three folders of the install: `jomini/` and `clausewitz/`
+beside `game/` hold script and localization too.
 
 ---
 
@@ -864,7 +897,7 @@ five test mods.
 | When | Decision |
 | --- | --- |
 | Item 1.6 | The spec package committed compressed or raw. |
-| Item 3.1 | Sign-off on the override rules, if an in-game experiment is needed to settle them. |
+| Before item 3.5 | How pychivalry reaches the game's files when the game is on another computer on the local network (open question 10 of MVP.md). |
 | Item 4.1 | Sign-off on the check inventory and the code scheme. |
 | Item 6.11 | The target for the agent-use run. |
 | Item 7.1 | Only if a harness cannot be reached as designed. |

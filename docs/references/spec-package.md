@@ -19,12 +19,13 @@ about it, checked 2026-11-21:
 
 ## What format 5 adds
 
-The 1.21 derivation keeps all of the above and adds twelve things, listed with their sources in
+The 1.21 derivation keeps all of the above and adds thirteen things, listed with their sources in
 [MVP.md](../MVP.md#what-the-121-spec-adds): the tables release 2.3.0 kept in code, a value type
 per field, observed values, how often each field is set, the wiki descriptions marked as such,
 which fields hold a localization key, a cleaned error catalogue, a structured "what it takes"
 for triggers and effects, where each modifier may be used, Paradox's documentation files, the
-data types usable in localization and GUI, and a measured GUI vocabulary.
+data types usable in localization and GUI, a measured GUI vocabulary, and the override rules
+read out of the Windows and Linux executables.
 
 Every fact in format 5 records which source it came from, so a check can tell game evidence
 from a hint.

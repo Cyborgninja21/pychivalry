@@ -3,8 +3,9 @@
 Status: draft, 2026-11-21. Decisions are answered, the scope is confirmed, and every build step
 has been checked against real data: the spec package, the 2.3.0 code and its records, the game
 installed today, and the current VS Code, Claude Code and GitHub documentation. Build step 1,
-the repository skeleton, is built, and build step 2, the parser, is built and in review;
-nothing else in this document is yet.
+the repository skeleton, and build step 2, the parser, are built; build step 3 has written the
+override rules the game's files settle, and is re-planned so that the rest arrive as data from
+the spec work; nothing else in this document is built yet.
 
 The build plan, step by step, is in [PLAN.md](PLAN.md).
 
@@ -31,7 +32,7 @@ lives unchanged in `legacy/`.
 | Spec version | The spec is re-derived for the current game, 1.21, before building starts. The existing spec is for 1.20.0.2. |
 | Hand-kept tables | The tables 2.3.0 kept in code (about 100 entries: iterator parameters, structural keywords, block names) move into the spec package as a new format, with their evidence. The core holds none. |
 | Grounding | Everything is grounded in the game: its executable, its files, its own documentation and its own output. Community tools and the wiki may supply a hint or an idea for a rule, and nothing rests on them alone. |
-| Spec additions | The 1.21 spec keeps every part of the current package and adds twelve things (see [What the 1.21 spec adds](#what-the-121-spec-adds)). |
+| Spec additions | The 1.21 spec keeps every part of the current package and adds thirteen things (see [What the 1.21 spec adds](#what-the-121-spec-adds)). |
 | Game dumps | The game's documentation dumps run on the analysis machine only, started with the game's own command-line option for running a console command, not by injecting keystrokes. |
 | Community tools | ck3-tiger and the CWTools rule files may be evaluated, and a rule or its logic taken where it proves true against the game. Neither is a source of vocabulary or a basis for a finding. |
 | Presentation data | Outline rules, snippets, field order and inline hints return as pychivalry's own data, in a separate file in this repository. It is never used to raise an error. |
@@ -47,7 +48,9 @@ lives unchanged in `legacy/`.
 | Authoring order | The authoring skill is built straight after the formatter, at build step 9. |
 | GUI and GFX | Parse, index and navigate. Checks and lookup against a GUI vocabulary are after the MVP; the 1.21 spec work starts collecting that vocabulary. |
 | Game patches | After 1.21, the spec is re-derived on the owner's word. Until then pychivalry reports the version mismatch and keeps working. Nothing runs unattended on the analysis machine. |
-| Platforms | Linux and Windows are supported and tested. macOS is untested. |
+| Platforms | Linux and Windows are supported equally and both are tested. A behaviour of the game that differs between them, the letter case of file paths for one, is settled for both; nothing is left unverified on one of them. macOS is untested. |
+| Layouts | pychivalry is built for two layouts, given equal weight: VS Code on the same computer as the game, and VS Code on another computer on the local network. Neither is the exception (see [Where the game is](#where-the-game-is)). |
+| Override rules | The rules by which one definition replaces another are data, not code: a table in the spec package, each rule with its evidence and the platforms it holds on, read out of the game executable by the spec work. The index records every definition and picks a winner only where the table has a rule. Where it has none, pychivalry says nothing that depends on the winner. |
 | VS Code only | pychivalry is always used through VS Code. The command line and the agent server ship inside the extension and are never installed separately. Nothing is published to npm. |
 | Marketplace | Not in the MVP. 1.0.0 ships as a downloadable file on GitHub, which means no automatic updates for its users. |
 | CI | A new root workflow arrives with the repository skeleton (build step 1). Until then nothing runs, and `legacy/` is not re-tested. |
@@ -169,6 +172,30 @@ Rules that keep it honest:
 - The spec package is read at start. The core contains no keyword lists; a table the checks
   need comes from the spec package or from the user's installed game.
 
+### Where the game is
+
+pychivalry reads the user's installed game: its files for the names the game defines, and later
+its error log. It is built for two layouts, and neither is the exception:
+
+| Layout | VS Code | The game | What must hold |
+| --- | --- | --- | --- |
+| One computer | On the computer that has the game | The same computer | pychivalry finds the game in any Steam library and reads it from the local disk. |
+| Two computers | On another computer on the local network | A different computer | pychivalry reads the same game files and the same error log although they are not on its own disk, gives the same findings as in the first layout, and stays fast enough to use. |
+
+Linux and Windows are supported equally in both: either computer may run either system, so a
+mod edited on Linux may be checked against a game installed on Windows, and the reverse.
+
+What follows for the build:
+
+- **Every feature's suite states which layout it ran in**, and the features that read the game
+  (the index, lookup, game-log analysis, the in-game load) are tested in both.
+- **The index cache lives beside the editor, not beside the game,** and is keyed by the game's
+  build and file manifest, so reading a game across the network is paid for once.
+- **Paths are never assumed to be local or in one letter case.** A game folder may be a network
+  path, and the two computers may disagree about letter case.
+- **How the second layout reaches the game's files** is not decided: a shared folder, the
+  editor's own remote mode, or a small helper on the game's computer. It is open question 10.
+
 ## The spec package
 
 Facts about the existing package, format 4, for game 1.20.0.2 (7.1 MB uncompressed):
@@ -205,6 +232,7 @@ derivation brings that knowledge back, measured from the game where it can be:
 | Paradox's own documentation files | 214 `.info` files shipped in the game folders, describing records field by field with value types, the scope each block receives, and defaults | The best source for value types, descriptions and scopes; ranks above the wiki. |
 | Functions usable in localization and GUI | The game's data-types dump, never yet captured | Checking the bracket commands in localization; part of a GUI vocabulary. |
 | A measured GUI vocabulary | The base game's 441 GUI files, which use about 2,000 distinct block names | Widget types and properties with usage counts, where today there is nothing. |
+| The override rules | The executable, Windows and Linux: the code behind its "overriding entry" message, its file listing and sorting, `replace_path`, the localization reader and its path lookups. [overrides.md](overrides.md) lists the rules needed and what the game's files already settle | Knowing which of two definitions is in force, on both platforms, without a list of rules in the code. |
 
 The same derivation also emits the 1.21 spec in the current format, so 2.3.0 can run on it for
 the baselines.
@@ -497,7 +525,7 @@ test is extended in every step from 7 onward that adds a feature.
 
 **Step 0, before anything is built here: spec work.** It happens in `pdx-parser-re`, on the
 owner's word. Derive the spec for game 1.21 in a new package format that keeps every current
-part and adds the twelve additions listed in [What the 1.21 spec adds](#what-the-121-spec-adds).
+part and adds the thirteen additions listed in [What the 1.21 spec adds](#what-the-121-spec-adds).
 Also emit the 1.21 spec in the current format, so 2.3.0 can run on it for the baselines. The
 executable analysis needs the analysis machine; the parts that only read game files may run wherever the
 1.21 files are.
@@ -557,7 +585,7 @@ Each is settled by evidence inside the build, not by a choice.
 
 | # | Question | Settled when |
 | --- | --- | --- |
-| 1 | The game's override rules: load order, replaced paths, DLC precedence. Neither 2.3.0 nor its documents state them. | Build step 3, from the spec work or an in-game test. |
+| 1 | The game's override rules: load order, replaced paths, DLC precedence. Neither 2.3.0 nor its documents state them. | Partly answered in [overrides.md](overrides.md) from the game's own files. The rest is read out of the executable by the spec work, for Windows and Linux, and arrives as a table in the spec package. The in-game experiments written in overrides.md stay as a cross-check and are not run for now. |
 | 2 | Whether the game reports, at load, a defect in content that never runs. | Build step 11, with the planted-defect mod. |
 | 3 | The real format of the error log, when it is cleared, and what debug mode adds. | Build step 11, from captured logs. |
 | 8 | Whether the game's command-line option for running a console command produces the documentation dumps unattended. | Step 0, on the analysis machine. |
@@ -566,3 +594,4 @@ Each is settled by evidence inside the build, not by a choice.
 | 5 | The targets for the scored agent and authoring runs. | After the first scored runs, in build steps 6 and 9. |
 | 6 | Whether the spec package is committed compressed or raw. | Build step 1. |
 | 7 | What happens to the `ck3-language-support` 2.x listing and its users when 1.0.0 ships. | Before release 1.0.0. |
+| 10 | How pychivalry reaches the game's files and error log when the game is on another computer on the local network: a shared folder, VS Code's remote mode, or a helper on the game's computer. | An owner decision, before item 3.5 of the build plan. |
