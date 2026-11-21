@@ -20,7 +20,7 @@ disagree, MVP.md is right and this plan is fixed.
 | Step | Name | Needs the 1.21 spec | State |
 | --- | --- | --- | --- |
 | 0 | Spec work, in `pdx-parser-re` | It produces it | In progress, another agent |
-| 1 | Repository skeleton | Two items only (1.6, 1.11) | Built, in review (branch `agents/step-1-skeleton`). Open, waiting on step 0: 1.6 (the committed spec is the 1.20.0.2 stand-in until the 1.21 format 5 package; compressed or raw still to decide) and 1.11 (the result baselines; the speed baselines are done) |
+| 1 | Repository skeleton | Two items only (1.6, 1.11) | Built, in review (pull request #114). Open, waiting on step 0: 1.6 (the committed spec is the 1.20.0.2 stand-in until the 1.21 format 5 package; compressed or raw still to decide) and 1.11 (the result baselines; the speed baselines are done) |
 | 2 | Parser | No | Not started |
 | 3 | Workspace index | No; a stand-in folder list is enough | Not started |
 | 4 | Engine checks and lookup | Yes, from item 4.2 on | Not started |
