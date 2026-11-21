@@ -41,6 +41,7 @@ written down instead.
 | ck3-tiger and the CWTools rule files | Ideas for rules | A rule in the check inventory, once it proves true against the game | Not until its licence is established | [community-tools.md](community-tools.md) |
 | Release 2.3.0 | Tests, fixtures, records, lessons, the behaviour to match | Test data carried over; baselines | Tests, fixtures and records, yes. Code, never | [release-2.3.0.md](release-2.3.0.md) |
 | VS Code, Claude Code and the Model Context Protocol documentation | How the extension, the agent server and the skills must be built | Design choices in MVP.md and PLAN.md | Facts only | [editors-and-agents.md](editors-and-agents.md) |
+| The language-server protocol and the WHATWG Encoding Standard | How positions are counted and lines end; how invalid UTF-8 is replaced, and what Windows-1252 decodes to | The parser's position model and its decoding ([encoding.md](../encoding.md)) | Facts only | [editors-and-agents.md](editors-and-agents.md#text-and-positions) |
 
 ## How to add a reference
 

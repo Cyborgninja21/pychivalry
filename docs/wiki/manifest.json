@@ -17,6 +17,7 @@
             "page": "Reference-Editors-And-Agents",
             "source": "docs/references/editors-and-agents.md"
         },
+        { "page": "What-The-Parser-Reads", "source": "docs/encoding.md" },
         { "page": "Test-Data", "source": "docs/test-data.md" },
         { "page": "Decision-Log", "source": "docs/decisions.md" }
     ],
@@ -35,6 +36,7 @@
                 "Reference-Editors-And-Agents"
             ]
         },
+        { "heading": "The game's behaviour", "pages": ["What-The-Parser-Reads"] },
         { "heading": "Project", "pages": ["Test-Data", "Decision-Log"] }
     ]
 }

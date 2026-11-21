@@ -1,0 +1,10 @@
+namespace fixture
+
+fixture.0001 = {
+	type = character_event
+}
+
+stray words here
+fixture.0002 = {
+	type = character_event
+}

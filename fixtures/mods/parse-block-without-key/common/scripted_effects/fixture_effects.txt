@@ -1,0 +1,11 @@
+fixture_effect = {
+	add_gold = 10
+}
+
+{
+	add_prestige = 10
+}
+
+fixture_other_effect = {
+	add_piety = 10
+}

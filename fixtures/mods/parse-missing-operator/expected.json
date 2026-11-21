@@ -1,0 +1,23 @@
+{
+    "files": {
+        "events/fixture_events.txt": {
+            "findings": [
+                {
+                    "id": "syntax/missing-operator",
+                    "severity": "error",
+                    "line": 1,
+                    "column": 11,
+                    "message": "Unexpected token 'fixture' found at 'events/fixture_events.txt:1', '=' expected"
+                },
+                {
+                    "id": "syntax/missing-operator",
+                    "severity": "error",
+                    "line": 7,
+                    "column": 7,
+                    "message": "Unexpected token 'words' found at 'events/fixture_events.txt:7', '=' expected"
+                }
+            ],
+            "tree": "namespace fixture fixture.0001 = { type = character_event } stray words here fixture.0002 = { type = character_event }"
+        }
+    }
+}

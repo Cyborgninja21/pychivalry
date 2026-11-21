@@ -1,0 +1,9 @@
+namespace = fixture
+
+fixture.0001 = {
+	type = character_event
+	title = "Unclosed title
+	option = {
+		name = fixture.0001.a
+	}
+}

@@ -1,0 +1,108 @@
+import assert from 'node:assert/strict';
+import { test } from 'node:test';
+import {
+    catalogueFromSpec,
+    fillPlaceholders,
+    FINDING_KINDS,
+    findingMessage,
+    placeholderCount,
+    severityOf,
+    type FindingId,
+} from './findings.js';
+import { parse } from './parser.js';
+import { committedCatalogue, committedSpecPackage } from './testing.js';
+
+const ids = Object.keys(FINDING_KINDS) as FindingId[];
+
+test('every catalogue entry a finding names is in the committed spec, with its placeholders', () => {
+    const catalogue = committedCatalogue();
+    for (const id of ids) {
+        const kind = FINDING_KINDS[id];
+        if (kind.catalogue === null) {
+            continue;
+        }
+        const text = catalogue.get(kind.catalogue);
+        assert.ok(text !== undefined, `${id}: ${kind.catalogue} is not in the spec's catalogue`);
+        assert.equal(placeholderCount(text), kind.slots.length, `${id}: placeholders`);
+    }
+});
+
+test('the catalogue entries are those of the expected categories in the spec', () => {
+    const spec = committedSpecPackage() as { errors: { id: string; category: string }[] };
+    const category = new Map(spec.errors.map((e) => [e.id, e.category]));
+    assert.equal(category.get('expected_after_arguments'), 'expected_brace_close');
+    assert.equal(category.get('expected_between_equals_and_arguments'), 'expected_brace_open');
+    assert.equal(category.get('expected_between_block_name_and_body'), 'expected_equals');
+    assert.equal(category.get('unexpected_token_expected_key'), 'unexpected_token');
+    assert.equal(category.get('unexpected_token_X_found_at_X_expected'), 'unexpected_token');
+});
+
+test('a finding with a catalogue message is an error; one without is information', () => {
+    for (const id of ids) {
+        const expected = FINDING_KINDS[id].catalogue === null ? 'information' : 'error';
+        assert.equal(severityOf(id), expected, id);
+    }
+});
+
+test("a finding carries the catalogue's text as evidence when the catalogue is supplied", () => {
+    const [withText] = parse('a = {', { catalogue: committedCatalogue() }).findings;
+    assert.deepEqual(withText?.evidence, {
+        kind: 'catalogue',
+        id: 'expected_after_arguments',
+        text: 'Expected } after arguments',
+    });
+    const without = parse('a = {').findings[0];
+    assert.ok(without !== undefined);
+    assert.deepEqual(without.evidence, {
+        kind: 'catalogue',
+        id: 'expected_after_arguments',
+        text: null,
+    });
+    assert.equal(
+        findingMessage(without),
+        'expected_after_arguments (the catalogue was not supplied)',
+    );
+});
+
+test('a message names the place as <file>:<line>, or line <n> without a file', () => {
+    const [finding] = parse('\n\ntitle text', { catalogue: committedCatalogue() }).findings;
+    assert.ok(finding !== undefined);
+    assert.equal(
+        findingMessage(finding, { file: 'events/a.txt' }),
+        "Unexpected token 'text' found at 'events/a.txt:3', '=' expected",
+    );
+    assert.equal(
+        findingMessage(finding),
+        "Unexpected token 'text' found at 'line 3', '=' expected",
+    );
+});
+
+test('placeholders: printf conversions and {}; %% is a percent sign', () => {
+    assert.equal(placeholderCount("Unexpected token '%s' found at '%s', '=' expected"), 2);
+    assert.equal(placeholderCount("Event '{}' expected scope '{}', but got '{}'"), 3);
+    assert.equal(placeholderCount("Data error in loc string '%.*s' %d%% %I64d"), 3);
+    assert.equal(fillPlaceholders('%s and {} at %d%%', ['a', 'b']), 'a and b at %');
+});
+
+test('the catalogue is read from a package and ignores what is not an entry', () => {
+    const catalogue = catalogueFromSpec({
+        errors: [{ id: 'a', text: 'A' }, { id: 1, text: 'B' }, null, { id: 'c' }, 'd'],
+    });
+    assert.deepEqual([...catalogue], [['a', 'A']]);
+    assert.equal(catalogueFromSpec(null).size, 0);
+    assert.equal(catalogueFromSpec({ errors: 'no' }).size, 0);
+    assert.ok(committedCatalogue().size > 1000);
+});
+
+test('every finding is in the structured shape: id, severity, offsets, range, args, evidence', () => {
+    const [finding] = parse('a = "open').findings;
+    assert.deepEqual(Object.keys(finding ?? {}).sort(), [
+        'args',
+        'end',
+        'evidence',
+        'id',
+        'range',
+        'severity',
+        'start',
+    ]);
+});

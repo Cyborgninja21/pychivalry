@@ -1,6 +1,6 @@
 # pychivalry: build plan
 
-Status: plan for approval, 2026-11-21. Step 1 is built; the Progress table says what is open.
+Status: plan for approval, 2026-11-21. Step 1 is built and step 2 is in review; the Progress table says what is open.
 
 This is the "how" for the rebuild. The "what" and the "why" are in [MVP.md](MVP.md): the
 decisions, the scope, the tests each feature needs and the definition of done. Where the two
@@ -21,7 +21,7 @@ disagree, MVP.md is right and this plan is fixed.
 | --- | --- | --- | --- |
 | 0 | Spec work, in `pdx-parser-re` | It produces it | In progress, another agent |
 | 1 | Repository skeleton | Two items only (1.6, 1.11) | Built and merged (pull requests #114 and #115). Open, waiting on step 0: 1.6 (the committed spec is the 1.20.0.2 stand-in until the 1.21 format 5 package; compressed or raw still to decide) and 1.11 (the result baselines; the speed baselines are done) |
-| 2 | Parser | No | Not started |
+| 2 | Parser | No | Built, in review as pull request #116. Item 2.6's public codes are left to item 4.1, which maps the syntax finding identifiers to them |
 | 3 | Workspace index | No; a stand-in folder list is enough | Not started |
 | 4 | Engine checks and lookup | Yes, from item 4.2 on | Not started |
 | 5 | Command line | Through step 4 | Not started |
@@ -327,6 +327,12 @@ base game.
 `common`, `events` and `history` hold script the parser should read (2.3.0 covered those three
 only; `gfx` has 272 `.txt` files).
 
+**Found** (build step 2, [encoding.md](encoding.md)): 27 of the base game's 20,530 text files
+are not valid UTF-8, 25 of them title histories with Windows-1252 letters in comments; the
+owner decided what happens to them (decision 38). Beyond the three, `gfx`, `map_data`,
+`music`, `sound`, `dlc`, `data_binding` and `content_source/map_objects` hold script: 4,854
+files in all, each with the evidence for it.
+
 ---
 
 ## Step 3: workspace index
@@ -394,7 +400,10 @@ about a name.
   it. Sources: 2.3.0's engine codes (about 14 from the catalogue, 6 of its own), its plug-in
   catalogue of 85 codes, the audit record, and for advice only the 38 required-field flags and
   89 rule codes of the pre-2.0 schema files. The code naming scheme is fixed here; codes are
-  permanent. ck3-tiger and the CWTools rule files are looked at here for rules worth taking,
+  permanent. The syntax findings of step 2 already have stable identifiers and catalogue
+  evidence ([encoding.md](encoding.md#what-the-parser-reports)); this item gives each its code,
+  and confirms or changes the information severity of the three that have no catalogue
+  message. ck3-tiger and the CWTools rule files are looked at here for rules worth taking,
   each proved against the game before it is adopted. *Needs no spec.*
 - 4.2 **The spec reader** and the unknown-name checks. The reader verifies the checksum and the
   format, and exposes the package as typed data. Checks: unknown trigger, effect, scope link,
@@ -855,7 +864,6 @@ five test mods.
 | When | Decision |
 | --- | --- |
 | Item 1.6 | The spec package committed compressed or raw. |
-| Item 2.1 | What happens to a file that is not valid UTF-8. |
 | Item 3.1 | Sign-off on the override rules, if an in-game experiment is needed to settle them. |
 | Item 4.1 | Sign-off on the check inventory and the code scheme. |
 | Item 6.11 | The target for the agent-use run. |

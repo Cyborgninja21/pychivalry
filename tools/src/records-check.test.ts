@@ -196,3 +196,83 @@ test('checkRecords finds the records of a repository and names the file of each 
         /^records\/game\/parse\.json: \(root\): must have required property 'game'/,
     );
 });
+
+function parseRecord(): SuiteRecord {
+    return {
+        ...validRecord(),
+        suite: 'game:parse',
+        command: 'task game:parse',
+        corpus: null,
+        notes: ['Files are decoded as UTF-8.'],
+        results: {
+            passed: true,
+            failures: [],
+            files: 2,
+            trees: 2,
+            parse_ms: 5,
+            folders: [
+                {
+                    folder: 'events',
+                    extension: '.txt',
+                    expected_files: 2,
+                    files: 2,
+                    trees: 2,
+                    bom: 1,
+                    not_utf8: 0,
+                    errors: 1,
+                    parse_ms: 5,
+                    why: 'Events.',
+                    excluded: [],
+                },
+            ],
+            errors: [
+                {
+                    file: 'events/a.txt',
+                    line: 3,
+                    column: 1,
+                    id: 'syntax/missing-closing-brace',
+                    catalogue: 'expected_after_arguments',
+                    message: 'Expected } after arguments',
+                    classification: 'game-defect',
+                    reason: 'Never closed.',
+                },
+            ],
+            notes: [],
+            not_read: [{ what: 'gui/**/*.gui', why: 'Step 10.' }],
+            encoding: {
+                extensions: ['.txt'],
+                files: 2,
+                bom: 1,
+                utf16_bom: 0,
+                not_utf8: 0,
+                line_endings: { lf: 2, crlf: 0, cr: 0, mixed: 0, none: 0 },
+                by_folder: [{ folder: 'events', extension: '.txt', files: 2, bom: 1, not_utf8: 0 }],
+                not_utf8_files: [],
+            },
+        },
+    };
+}
+
+test('a parse record must agree with itself: totals, error counts, passed and classifications', () => {
+    assert.deepEqual(checkRecord(parseRecord(), validate, expected), []);
+    const record = parseRecord();
+    record.results['files'] = 3;
+    record.results['passed'] = false;
+    const errors = record.results['errors'] as { classification: string }[];
+    errors.push({ ...(errors[0] ?? { classification: '' }), classification: 'unclassified' });
+    assert.deepEqual(checkRecord(record, validate, expected), [
+        "/results/files: 3 is not the folders' total (2)",
+        '/results/errors: 2 listed, but the folders count 1',
+        '/results/passed: false with 0 failures',
+    ]);
+    const passing = parseRecord();
+    (passing.results['errors'] as { classification: string }[])[0] = {
+        ...((passing.results['errors'] as object[])[0] as object),
+        classification: 'unclassified',
+    };
+    assert.deepEqual(checkRecord(passing, validate, expected), [
+        '/results/errors/0: a passing record holds an error classified "unclassified"',
+    ]);
+    const noShape = { ...parseRecord(), results: {} };
+    assert.ok(checkRecord(noShape, validate, expected).some((p) => p.includes('required')));
+});

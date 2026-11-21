@@ -3,7 +3,8 @@
 Status: draft, 2026-11-21. Decisions are answered, the scope is confirmed, and every build step
 has been checked against real data: the spec package, the 2.3.0 code and its records, the game
 installed today, and the current VS Code, Claude Code and GitHub documentation. Build step 1,
-the repository skeleton, is built; nothing else in this document is yet.
+the repository skeleton, is built, and build step 2, the parser, is built and in review;
+nothing else in this document is yet.
 
 The build plan, step by step, is in [PLAN.md](PLAN.md).
 
@@ -50,6 +51,7 @@ lives unchanged in `legacy/`.
 | VS Code only | pychivalry is always used through VS Code. The command line and the agent server ship inside the extension and are never installed separately. Nothing is published to npm. |
 | Marketplace | Not in the MVP. 1.0.0 ships as a downloadable file on GitHub, which means no automatic updates for its users. |
 | CI | A new root workflow arrives with the repository skeleton (build step 1). Until then nothing runs, and `legacy/` is not re-tested. |
+| Encoding | A script file that is not valid UTF-8 is read and parsed in full, each bad byte the replacement character, with one information note per file, never an error or a warning. A fallback encoding (Windows-1252, off by default) can be named to decode such a file instead. Written in [encoding.md](encoding.md). |
 
 ## Principles
 
@@ -258,7 +260,7 @@ Everything in this section is in the MVP.
 
 | Capability | What it means |
 | --- | --- |
-| Parser | Reads every script file of the base game; recovers from broken input so the editor keeps working mid-edit. Reads UTF-8 with or without a byte-order mark; the policy for anything else is written down in build step 2. |
+| Parser | Reads every script file of the base game; recovers from broken input so the editor keeps working mid-edit. Reads UTF-8 with or without a byte-order mark; the policy for anything else is written in [encoding.md](encoding.md). |
 | Workspace index | Knows every definition in the mod and in every folder of the base game and its DLC, not the seven folders 2.3.0 indexed. Follows the game's override rules. Updates on change without re-reading everything. Saved on disk between runs. |
 | Engine checks | Unknown triggers, effects, scopes, modifiers and fields; wrong scope for a keyword, judged only where the spec has scope data; the 3 required fields; structural checks written against catalogue messages. The full list is the [check inventory](#check-inventory-and-codes). |
 | Event targets | An undefined event target is reported as information. The base game alone has 10,523 of them. |

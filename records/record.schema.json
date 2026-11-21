@@ -67,9 +67,166 @@
                 },
                 "required": ["notes"]
             }
+        },
+        {
+            "if": {
+                "properties": { "suite": { "const": "game:parse" } },
+                "required": ["suite"]
+            },
+            "then": {
+                "properties": {
+                    "notes": { "type": "array", "minItems": 1 },
+                    "results": { "$ref": "#/$defs/parseResults" }
+                },
+                "required": ["notes"]
+            }
         }
     ],
     "$defs": {
+        "count": { "type": "integer", "minimum": 0 },
+        "text": { "type": "string", "minLength": 1 },
+        "extension": { "type": "string", "pattern": "^\\.[a-z0-9]+$" },
+        "parseResults": {
+            "description": "The base-game parse suite (records/README.md, \"Parse records\"): the folders read, every parse error with its classification, the information notes, the text files not read, and how every text file of the game is encoded.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["passed", "failures", "files", "trees", "parse_ms", "folders", "errors", "notes", "not_read", "encoding"],
+            "properties": {
+                "passed": { "type": "boolean" },
+                "failures": { "type": "array", "items": { "$ref": "#/$defs/text" } },
+                "files": { "$ref": "#/$defs/count" },
+                "trees": { "$ref": "#/$defs/count" },
+                "parse_ms": { "$ref": "#/$defs/count" },
+                "folders": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["folder", "extension", "expected_files", "files", "trees", "bom", "not_utf8", "errors", "parse_ms", "why", "excluded"],
+                        "properties": {
+                            "folder": { "$ref": "#/$defs/text" },
+                            "extension": { "$ref": "#/$defs/extension" },
+                            "expected_files": { "$ref": "#/$defs/count" },
+                            "files": { "$ref": "#/$defs/count" },
+                            "trees": { "$ref": "#/$defs/count" },
+                            "bom": { "$ref": "#/$defs/count" },
+                            "not_utf8": { "$ref": "#/$defs/count" },
+                            "errors": { "$ref": "#/$defs/count" },
+                            "parse_ms": { "$ref": "#/$defs/count" },
+                            "why": { "$ref": "#/$defs/text" },
+                            "excluded": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": ["file", "why"],
+                                    "properties": { "file": { "$ref": "#/$defs/text" }, "why": { "$ref": "#/$defs/text" } }
+                                }
+                            }
+                        }
+                    }
+                },
+                "errors": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["file", "line", "column", "id", "catalogue", "message", "classification", "reason"],
+                        "properties": {
+                            "file": { "$ref": "#/$defs/text" },
+                            "line": { "type": "integer", "minimum": 1 },
+                            "column": { "type": "integer", "minimum": 1 },
+                            "id": { "$ref": "#/$defs/text" },
+                            "catalogue": { "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/text" }] },
+                            "message": { "$ref": "#/$defs/text" },
+                            "classification": { "enum": ["game-defect", "pychivalry-fault", "unclassified"] },
+                            "reason": { "type": "string" }
+                        }
+                    }
+                },
+                "notes": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["file", "line", "column", "id", "message"],
+                        "properties": {
+                            "file": { "$ref": "#/$defs/text" },
+                            "line": { "type": "integer", "minimum": 1 },
+                            "column": { "type": "integer", "minimum": 1 },
+                            "id": { "$ref": "#/$defs/text" },
+                            "message": { "$ref": "#/$defs/text" }
+                        }
+                    }
+                },
+                "not_read": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["what", "why"],
+                        "properties": { "what": { "$ref": "#/$defs/text" }, "why": { "$ref": "#/$defs/text" } }
+                    }
+                },
+                "encoding": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["extensions", "files", "bom", "utf16_bom", "not_utf8", "line_endings", "by_folder", "not_utf8_files"],
+                    "properties": {
+                        "extensions": { "type": "array", "items": { "$ref": "#/$defs/extension" } },
+                        "files": { "$ref": "#/$defs/count" },
+                        "bom": { "$ref": "#/$defs/count" },
+                        "utf16_bom": { "$ref": "#/$defs/count" },
+                        "not_utf8": { "$ref": "#/$defs/count" },
+                        "line_endings": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": ["lf", "crlf", "cr", "mixed", "none"],
+                            "properties": {
+                                "lf": { "$ref": "#/$defs/count" },
+                                "crlf": { "$ref": "#/$defs/count" },
+                                "cr": { "$ref": "#/$defs/count" },
+                                "mixed": { "$ref": "#/$defs/count" },
+                                "none": { "$ref": "#/$defs/count" }
+                            }
+                        },
+                        "by_folder": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": ["folder", "extension", "files", "bom", "not_utf8"],
+                                "properties": {
+                                    "folder": { "$ref": "#/$defs/text" },
+                                    "extension": { "$ref": "#/$defs/extension" },
+                                    "files": { "$ref": "#/$defs/count" },
+                                    "bom": { "$ref": "#/$defs/count" },
+                                    "not_utf8": { "$ref": "#/$defs/count" }
+                                }
+                            }
+                        },
+                        "not_utf8_files": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": ["file", "invalid_bytes", "first_line", "in_comments", "in_strings", "elsewhere", "valid_multibyte_sequences"],
+                                "properties": {
+                                    "file": { "$ref": "#/$defs/text" },
+                                    "invalid_bytes": { "type": "integer", "minimum": 1 },
+                                    "first_line": { "type": "integer", "minimum": 1 },
+                                    "in_comments": { "$ref": "#/$defs/count" },
+                                    "in_strings": { "$ref": "#/$defs/count" },
+                                    "elsewhere": { "$ref": "#/$defs/count" },
+                                    "valid_multibyte_sequences": { "$ref": "#/$defs/count" }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "sha256": {
             "type": "string",
             "pattern": "^[0-9a-f]{64}$"

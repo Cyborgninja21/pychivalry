@@ -8,3 +8,6 @@
 *.png binary
 *.dds binary
 *.tga binary
+
+# Fixtures that exist to test another encoding: their bytes are exact.
+fixtures/mods/encoding-windows-1252/history/** -text

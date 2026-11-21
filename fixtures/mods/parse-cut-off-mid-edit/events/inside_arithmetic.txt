@@ -1,0 +1,6 @@
+namespace = fixture
+
+fixture.0001 = {
+	type = character_event
+	immediate = {
+		add_gold = @[ base +

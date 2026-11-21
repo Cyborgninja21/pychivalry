@@ -2,11 +2,11 @@
     "record_format": 1,
     "suite": "game:parse",
     "command": "task game:parse",
-    "made_at": "2026-11-21T20:53:56.434Z",
+    "made_at": "2026-11-21T23:09:16.252Z",
     "tool": {
         "name": "pychivalry",
         "version": "0.0.0",
-        "commit": "3107a853e2fba09d968eaa5d486a2bb397884496",
+        "commit": "ebe872a1a97b840889b693d38d242276acadeb87",
         "dirty": false
     },
     "machine": {
@@ -29,7 +29,948 @@
     },
     "corpus": null,
     "notes": [
-        "Build step 1 stub: game:parse records the run's context and no results yet (docs/PLAN.md, item 1.8)."
+        "The folders and extensions read, with the evidence that each holds script and the number of files expected, are listed in results.folders; text files not read, and why, in results.not_read (docs/encoding.md, \"What the parser reads\").",
+        "Files are decoded as UTF-8, the default: no fallback encoding is named. A file that is not valid UTF-8 is read in full and gets one information note (results.notes).",
+        "Every error is classified in tools/data/parse-classifications.json, matched by file, finding and line. parse_ms is the time to decode and parse, on this machine, in one process.",
+        "results.encoding measures every text file of the game folder, whether the suite parses it or not: the figures of docs/encoding.md."
     ],
-    "results": {}
+    "results": {
+        "passed": true,
+        "failures": [],
+        "files": 4854,
+        "trees": 4854,
+        "parse_ms": 5342,
+        "folders": [
+            {
+                "folder": "common",
+                "extension": ".txt",
+                "expected_files": 3035,
+                "files": 3035,
+                "trees": 3035,
+                "bom": 2663,
+                "not_utf8": 0,
+                "errors": 1,
+                "parse_ms": 2191,
+                "why": "Database records; release 2.3.0 read it; the spec lists 183 folders under it.",
+                "excluded": []
+            },
+            {
+                "folder": "events",
+                "extension": ".txt",
+                "expected_files": 610,
+                "files": 610,
+                "trees": 610,
+                "bom": 610,
+                "not_utf8": 0,
+                "errors": 1,
+                "parse_ms": 1041,
+                "why": "Events; release 2.3.0 read it; in the spec.",
+                "excluded": []
+            },
+            {
+                "folder": "history",
+                "extension": ".txt",
+                "expected_files": 837,
+                "files": 837,
+                "trees": 837,
+                "bom": 613,
+                "not_utf8": 25,
+                "errors": 1,
+                "parse_ms": 1040,
+                "why": "History; release 2.3.0 read it; the spec lists 10 folders under it.",
+                "excluded": []
+            },
+            {
+                "folder": "gfx",
+                "extension": ".txt",
+                "expected_files": 271,
+                "files": 271,
+                "trees": 271,
+                "bom": 237,
+                "not_utf8": 0,
+                "errors": 0,
+                "parse_ms": 1052,
+                "why": "The spec lists 26 folders under it (coats of arms, court scenes, map styles, portraits and more); paths.settings points into it.",
+                "excluded": [
+                    {
+                        "file": "gfx/models/buildings/naming.txt",
+                        "why": "Not script: a plain list of model names, one per line, with no '='."
+                    }
+                ]
+            },
+            {
+                "folder": "map_data",
+                "extension": ".txt",
+                "expected_files": 8,
+                "files": 8,
+                "trees": 8,
+                "bom": 4,
+                "not_utf8": 1,
+                "errors": 0,
+                "parse_ms": 16,
+                "why": "In the spec (map_data/geographical_regions) and in the game's checksum manifest.",
+                "excluded": []
+            },
+            {
+                "folder": "music",
+                "extension": ".txt",
+                "expected_files": 3,
+                "files": 3,
+                "trees": 3,
+                "bom": 3,
+                "not_utf8": 0,
+                "errors": 0,
+                "parse_ms": 0,
+                "why": "In the spec; paths.settings names music/music_player_categories.",
+                "excluded": []
+            },
+            {
+                "folder": "sound",
+                "extension": ".txt",
+                "expected_files": 8,
+                "files": 8,
+                "trees": 8,
+                "bom": 0,
+                "not_utf8": 0,
+                "errors": 0,
+                "parse_ms": 0,
+                "why": "In the spec; paths.settings names sound/map/ambience.",
+                "excluded": [
+                    {
+                        "file": "sound/GUIDs.txt",
+                        "why": "Not script: a table of sound-bank identifiers, one `{guid} path` per line."
+                    }
+                ]
+            },
+            {
+                "folder": "dlc",
+                "extension": ".txt",
+                "expected_files": 44,
+                "files": 44,
+                "trees": 44,
+                "bom": 41,
+                "not_utf8": 0,
+                "errors": 0,
+                "parse_ms": 0,
+                "why": "The DLC's own files, in the game's layout (dlc/<pack>/music, dlc/<pack>/gfx and so on).",
+                "excluded": []
+            },
+            {
+                "folder": "data_binding",
+                "extension": ".txt",
+                "expected_files": 22,
+                "files": 22,
+                "trees": 22,
+                "bom": 22,
+                "not_utf8": 0,
+                "errors": 0,
+                "parse_ms": 3,
+                "why": "In the game's checksum manifest: data-binding macros, in script syntax.",
+                "excluded": []
+            },
+            {
+                "folder": "content_source/map_objects",
+                "extension": ".txt",
+                "expected_files": 16,
+                "files": 16,
+                "trees": 16,
+                "bom": 16,
+                "not_utf8": 0,
+                "errors": 0,
+                "parse_ms": 0,
+                "why": "paths.settings names content_source/map_objects/generators and masks.",
+                "excluded": []
+            }
+        ],
+        "errors": [
+            {
+                "file": "common/holding_sprawl_patterns/00_holding_sprawl_patterns.txt",
+                "line": 1988,
+                "column": 25,
+                "id": "syntax/missing-equals-before-block",
+                "catalogue": "expected_between_block_name_and_body",
+                "message": "Expected '=' between block name and body",
+                "classification": "game-defect",
+                "reason": "The pattern chinese_grid_pattern_01 is written 'name {' at the top level, without its '='. The rest of the file uses 'name = {'; the catalogue's message names a block name and a body, and the block is read as the pattern's."
+            },
+            {
+                "file": "events/dlc/gdp/gdp_visit_holding_decision_event_2.txt",
+                "line": 3839,
+                "column": 41,
+                "id": "syntax/missing-closing-brace",
+                "catalogue": "expected_after_arguments",
+                "message": "Expected } after arguments",
+                "classification": "game-defect",
+                "reason": "The file ends inside its last event, gdp_visit_holding_decision_event.1507: the event's own closing brace is missing. Counted outside comments and quoted text, the file has 1,399 '{' and 1,398 '}', and its depth is last zero on line 3838."
+            },
+            {
+                "file": "history/characters/han/sima_53f8_99ac.txt",
+                "line": 1395,
+                "column": 10,
+                "id": "syntax/missing-equals-before-block",
+                "catalogue": "expected_between_block_name_and_body",
+                "message": "Expected '=' between block name and body",
+                "classification": "game-defect",
+                "reason": "A dated entry of a character's history is written '296.1.1 { add_spouse = ... }', without its '='; every other entry has one. The same defect that release 2.3.0 recorded in history/characters/japanese.txt on game 1.20, which 1.21.0.3 no longer has."
+            }
+        ],
+        "notes": [
+            {
+                "file": "history/titles/k_amdo.txt",
+                "line": 3367,
+                "column": 8,
+                "id": "encoding/not-utf8",
+                "message": "This file is not valid UTF-8 (1 invalid bytes); it was read as UTF-8 with replacement characters."
+            },
+            {
+                "file": "history/titles/k_bashkiria.txt",
+                "line": 374,
+                "column": 32,
+                "id": "encoding/not-utf8",
+                "message": "This file is not valid UTF-8 (14 invalid bytes); it was read as UTF-8 with replacement characters."
+            },
+            {
+                "file": "history/titles/k_brittany.txt",
+                "line": 3,
+                "column": 26,
+                "id": "encoding/not-utf8",
+                "message": "This file is not valid UTF-8 (57 invalid bytes); it was read as UTF-8 with replacement characters."
+            },
+            {
+                "file": "history/titles/k_castille.txt",
+                "line": 10,
+                "column": 35,
+                "id": "encoding/not-utf8",
+                "message": "This file is not valid UTF-8 (226 invalid bytes); it was read as UTF-8 with replacement characters."
+            },
+            {
+                "file": "history/titles/k_esthonia.txt",
+                "line": 120,
+                "column": 22,
+                "id": "encoding/not-utf8",
+                "message": "This file is not valid UTF-8 (16 invalid bytes); it was read as UTF-8 with replacement characters."
+            },
+            {
+                "file": "history/titles/k_finland.txt",
+                "line": 68,
+                "column": 49,
+                "id": "encoding/not-utf8",
+                "message": "This file is not valid UTF-8 (25 invalid bytes); it was read as UTF-8 with replacement characters."
+            },
+            {
+                "file": "history/titles/k_ghana.txt",
+                "line": 1334,
+                "column": 7,
+                "id": "encoding/not-utf8",
+                "message": "This file is not valid UTF-8 (4 invalid bytes); it was read as UTF-8 with replacement characters."
+            },
+            {
+                "file": "history/titles/k_guge.txt",
+                "line": 1588,
+                "column": 7,
+                "id": "encoding/not-utf8",
+                "message": "This file is not valid UTF-8 (2 invalid bytes); it was read as UTF-8 with replacement characters."
+            },
+            {
+                "file": "history/titles/k_ireland.txt",
+                "line": 7,
+                "column": 22,
+                "id": "encoding/not-utf8",
+                "message": "This file is not valid UTF-8 (369 invalid bytes); it was read as UTF-8 with replacement characters."
+            },
+            {
+                "file": "history/titles/k_khakassia.txt",
+                "line": 607,
+                "column": 34,
+                "id": "encoding/not-utf8",
+                "message": "This file is not valid UTF-8 (1 invalid bytes); it was read as UTF-8 with replacement characters."
+            },
+            {
+                "file": "history/titles/k_kham.txt",
+                "line": 729,
+                "column": 6,
+                "id": "encoding/not-utf8",
+                "message": "This file is not valid UTF-8 (13 invalid bytes); it was read as UTF-8 with replacement characters."
+            },
+            {
+                "file": "history/titles/k_leon.txt",
+                "line": 11,
+                "column": 24,
+                "id": "encoding/not-utf8",
+                "message": "This file is not valid UTF-8 (223 invalid bytes); it was read as UTF-8 with replacement characters."
+            },
+            {
+                "file": "history/titles/k_lhomon.txt",
+                "line": 1274,
+                "column": 8,
+                "id": "encoding/not-utf8",
+                "message": "This file is not valid UTF-8 (1 invalid bytes); it was read as UTF-8 with replacement characters."
+            },
+            {
+                "file": "history/titles/k_lithuania.txt",
+                "line": 68,
+                "column": 19,
+                "id": "encoding/not-utf8",
+                "message": "This file is not valid UTF-8 (48 invalid bytes); it was read as UTF-8 with replacement characters."
+            },
+            {
+                "file": "history/titles/k_maghreb.txt",
+                "line": 2236,
+                "column": 34,
+                "id": "encoding/not-utf8",
+                "message": "This file is not valid UTF-8 (1 invalid bytes); it was read as UTF-8 with replacement characters."
+            },
+            {
+                "file": "history/titles/k_maryul.txt",
+                "line": 1276,
+                "column": 16,
+                "id": "encoding/not-utf8",
+                "message": "This file is not valid UTF-8 (4 invalid bytes); it was read as UTF-8 with replacement characters."
+            },
+            {
+                "file": "history/titles/k_mordvinia.txt",
+                "line": 942,
+                "column": 32,
+                "id": "encoding/not-utf8",
+                "message": "This file is not valid UTF-8 (4 invalid bytes); it was read as UTF-8 with replacement characters."
+            },
+            {
+                "file": "history/titles/k_navarra.txt",
+                "line": 7,
+                "column": 20,
+                "id": "encoding/not-utf8",
+                "message": "This file is not valid UTF-8 (127 invalid bytes); it was read as UTF-8 with replacement characters."
+            },
+            {
+                "file": "history/titles/k_norway.txt",
+                "line": 54,
+                "column": 33,
+                "id": "encoding/not-utf8",
+                "message": "This file is not valid UTF-8 (173 invalid bytes); it was read as UTF-8 with replacement characters."
+            },
+            {
+                "file": "history/titles/k_romagna.txt",
+                "line": 546,
+                "column": 61,
+                "id": "encoding/not-utf8",
+                "message": "This file is not valid UTF-8 (7 invalid bytes); it was read as UTF-8 with replacement characters."
+            },
+            {
+                "file": "history/titles/k_scotland.txt",
+                "line": 3054,
+                "column": 23,
+                "id": "encoding/not-utf8",
+                "message": "This file is not valid UTF-8 (28 invalid bytes); it was read as UTF-8 with replacement characters."
+            },
+            {
+                "file": "history/titles/k_tsang.txt",
+                "line": 19,
+                "column": 10,
+                "id": "encoding/not-utf8",
+                "message": "This file is not valid UTF-8 (5 invalid bytes); it was read as UTF-8 with replacement characters."
+            },
+            {
+                "file": "history/titles/k_tuva.txt",
+                "line": 87,
+                "column": 40,
+                "id": "encoding/not-utf8",
+                "message": "This file is not valid UTF-8 (4 invalid bytes); it was read as UTF-8 with replacement characters."
+            },
+            {
+                "file": "history/titles/k_volga_bulgaria.txt",
+                "line": 1299,
+                "column": 34,
+                "id": "encoding/not-utf8",
+                "message": "This file is not valid UTF-8 (2 invalid bytes); it was read as UTF-8 with replacement characters."
+            },
+            {
+                "file": "history/titles/k_zhetysu.txt",
+                "line": 77,
+                "column": 23,
+                "id": "encoding/not-utf8",
+                "message": "This file is not valid UTF-8 (13 invalid bytes); it was read as UTF-8 with replacement characters."
+            },
+            {
+                "file": "map_data/positions.txt",
+                "line": 417,
+                "column": 3,
+                "id": "encoding/not-utf8",
+                "message": "This file is not valid UTF-8 (84 invalid bytes); it was read as UTF-8 with replacement characters."
+            }
+        ],
+        "not_read": [
+            {
+                "what": "gui/**/*.gui",
+                "why": "GUI syntax: its own parser and suite, build step 10."
+            },
+            {
+                "what": "localization/**/*.yml",
+                "why": "Localization files: read by the index, build step 3."
+            },
+            {
+                "what": "**/*.asset",
+                "why": ".asset files come after the MVP (docs/MVP.md, \"Not in the MVP\")."
+            },
+            {
+                "what": "**/*.info",
+                "why": "Paradox's documentation files: prose with examples, not loaded as script."
+            },
+            {
+                "what": "**/*.shader, **/*.gfx, **/*.settings",
+                "why": "Shaders and engine settings."
+            },
+            {
+                "what": "fonts/, licenses/, credits.txt",
+                "why": "Licences and credits: prose."
+            },
+            {
+                "what": "tests/, tools/, notifications/, dlc_metadata/, content_source/TODO.txt, the other .txt files at the top of the game folder",
+                "why": "Nothing in the spec or the game settings names them as script the game loads."
+            }
+        ],
+        "encoding": {
+            "extensions": [
+                ".txt",
+                ".gui",
+                ".yml",
+                ".info",
+                ".asset",
+                ".gfx",
+                ".shader",
+                ".settings",
+                ".mod"
+            ],
+            "files": 20530,
+            "bom": 16766,
+            "utf16_bom": 0,
+            "not_utf8": 27,
+            "line_endings": {
+                "lf": 13602,
+                "crlf": 6876,
+                "cr": 0,
+                "mixed": 36,
+                "none": 16
+            },
+            "by_folder": [
+                {
+                    "folder": "(top level)",
+                    "extension": ".info",
+                    "files": 1,
+                    "bom": 0,
+                    "not_utf8": 0
+                },
+                {
+                    "folder": "(top level)",
+                    "extension": ".settings",
+                    "files": 2,
+                    "bom": 0,
+                    "not_utf8": 0
+                },
+                {
+                    "folder": "(top level)",
+                    "extension": ".txt",
+                    "files": 5,
+                    "bom": 2,
+                    "not_utf8": 0
+                },
+                {
+                    "folder": "common",
+                    "extension": ".info",
+                    "files": 176,
+                    "bom": 112,
+                    "not_utf8": 0
+                },
+                {
+                    "folder": "common",
+                    "extension": ".txt",
+                    "files": 3035,
+                    "bom": 2663,
+                    "not_utf8": 0
+                },
+                {
+                    "folder": "content_source",
+                    "extension": ".txt",
+                    "files": 17,
+                    "bom": 16,
+                    "not_utf8": 0
+                },
+                {
+                    "folder": "data_binding",
+                    "extension": ".txt",
+                    "files": 22,
+                    "bom": 22,
+                    "not_utf8": 0
+                },
+                {
+                    "folder": "dlc",
+                    "extension": ".asset",
+                    "files": 20,
+                    "bom": 20,
+                    "not_utf8": 0
+                },
+                {
+                    "folder": "dlc",
+                    "extension": ".txt",
+                    "files": 44,
+                    "bom": 41,
+                    "not_utf8": 0
+                },
+                {
+                    "folder": "dlc_metadata",
+                    "extension": ".info",
+                    "files": 1,
+                    "bom": 0,
+                    "not_utf8": 0
+                },
+                {
+                    "folder": "dlc_metadata",
+                    "extension": ".txt",
+                    "files": 1,
+                    "bom": 1,
+                    "not_utf8": 0
+                },
+                {
+                    "folder": "events",
+                    "extension": ".info",
+                    "files": 1,
+                    "bom": 1,
+                    "not_utf8": 0
+                },
+                {
+                    "folder": "events",
+                    "extension": ".txt",
+                    "files": 610,
+                    "bom": 610,
+                    "not_utf8": 0
+                },
+                {
+                    "folder": "fonts",
+                    "extension": ".txt",
+                    "files": 10,
+                    "bom": 0,
+                    "not_utf8": 0
+                },
+                {
+                    "folder": "gfx",
+                    "extension": ".asset",
+                    "files": 2726,
+                    "bom": 19,
+                    "not_utf8": 0
+                },
+                {
+                    "folder": "gfx",
+                    "extension": ".info",
+                    "files": 22,
+                    "bom": 11,
+                    "not_utf8": 0
+                },
+                {
+                    "folder": "gfx",
+                    "extension": ".settings",
+                    "files": 9,
+                    "bom": 1,
+                    "not_utf8": 0
+                },
+                {
+                    "folder": "gfx",
+                    "extension": ".shader",
+                    "files": 32,
+                    "bom": 0,
+                    "not_utf8": 0
+                },
+                {
+                    "folder": "gfx",
+                    "extension": ".txt",
+                    "files": 272,
+                    "bom": 237,
+                    "not_utf8": 0
+                },
+                {
+                    "folder": "gui",
+                    "extension": ".gui",
+                    "files": 441,
+                    "bom": 192,
+                    "not_utf8": 0
+                },
+                {
+                    "folder": "gui",
+                    "extension": ".info",
+                    "files": 2,
+                    "bom": 0,
+                    "not_utf8": 0
+                },
+                {
+                    "folder": "history",
+                    "extension": ".info",
+                    "files": 7,
+                    "bom": 4,
+                    "not_utf8": 0
+                },
+                {
+                    "folder": "history",
+                    "extension": ".txt",
+                    "files": 837,
+                    "bom": 613,
+                    "not_utf8": 25
+                },
+                {
+                    "folder": "licenses",
+                    "extension": ".txt",
+                    "files": 16,
+                    "bom": 0,
+                    "not_utf8": 1
+                },
+                {
+                    "folder": "localization",
+                    "extension": ".yml",
+                    "files": 12171,
+                    "bom": 12171,
+                    "not_utf8": 0
+                },
+                {
+                    "folder": "map_data",
+                    "extension": ".info",
+                    "files": 1,
+                    "bom": 1,
+                    "not_utf8": 0
+                },
+                {
+                    "folder": "map_data",
+                    "extension": ".txt",
+                    "files": 8,
+                    "bom": 4,
+                    "not_utf8": 1
+                },
+                {
+                    "folder": "music",
+                    "extension": ".info",
+                    "files": 1,
+                    "bom": 0,
+                    "not_utf8": 0
+                },
+                {
+                    "folder": "music",
+                    "extension": ".txt",
+                    "files": 3,
+                    "bom": 3,
+                    "not_utf8": 0
+                },
+                {
+                    "folder": "notifications",
+                    "extension": ".txt",
+                    "files": 1,
+                    "bom": 1,
+                    "not_utf8": 0
+                },
+                {
+                    "folder": "reader_export",
+                    "extension": ".info",
+                    "files": 1,
+                    "bom": 1,
+                    "not_utf8": 0
+                },
+                {
+                    "folder": "sound",
+                    "extension": ".txt",
+                    "files": 9,
+                    "bom": 0,
+                    "not_utf8": 0
+                },
+                {
+                    "folder": "tests",
+                    "extension": ".info",
+                    "files": 1,
+                    "bom": 1,
+                    "not_utf8": 0
+                },
+                {
+                    "folder": "tests",
+                    "extension": ".txt",
+                    "files": 18,
+                    "bom": 18,
+                    "not_utf8": 0
+                },
+                {
+                    "folder": "tools",
+                    "extension": ".settings",
+                    "files": 1,
+                    "bom": 0,
+                    "not_utf8": 0
+                },
+                {
+                    "folder": "tools",
+                    "extension": ".txt",
+                    "files": 1,
+                    "bom": 1,
+                    "not_utf8": 0
+                },
+                {
+                    "folder": "tweakergui_assets",
+                    "extension": ".gfx",
+                    "files": 2,
+                    "bom": 0,
+                    "not_utf8": 0
+                },
+                {
+                    "folder": "tweakergui_assets",
+                    "extension": ".gui",
+                    "files": 1,
+                    "bom": 0,
+                    "not_utf8": 0
+                },
+                {
+                    "folder": "tweakergui_assets",
+                    "extension": ".shader",
+                    "files": 2,
+                    "bom": 0,
+                    "not_utf8": 0
+                }
+            ],
+            "not_utf8_files": [
+                {
+                    "file": "history/titles/k_amdo.txt",
+                    "invalid_bytes": 1,
+                    "first_line": 3367,
+                    "in_comments": 1,
+                    "in_strings": 0,
+                    "elsewhere": 0,
+                    "valid_multibyte_sequences": 0
+                },
+                {
+                    "file": "history/titles/k_bashkiria.txt",
+                    "invalid_bytes": 14,
+                    "first_line": 374,
+                    "in_comments": 14,
+                    "in_strings": 0,
+                    "elsewhere": 0,
+                    "valid_multibyte_sequences": 0
+                },
+                {
+                    "file": "history/titles/k_brittany.txt",
+                    "invalid_bytes": 57,
+                    "first_line": 3,
+                    "in_comments": 57,
+                    "in_strings": 0,
+                    "elsewhere": 0,
+                    "valid_multibyte_sequences": 0
+                },
+                {
+                    "file": "history/titles/k_castille.txt",
+                    "invalid_bytes": 226,
+                    "first_line": 10,
+                    "in_comments": 226,
+                    "in_strings": 0,
+                    "elsewhere": 0,
+                    "valid_multibyte_sequences": 0
+                },
+                {
+                    "file": "history/titles/k_esthonia.txt",
+                    "invalid_bytes": 16,
+                    "first_line": 120,
+                    "in_comments": 16,
+                    "in_strings": 0,
+                    "elsewhere": 0,
+                    "valid_multibyte_sequences": 0
+                },
+                {
+                    "file": "history/titles/k_finland.txt",
+                    "invalid_bytes": 25,
+                    "first_line": 68,
+                    "in_comments": 25,
+                    "in_strings": 0,
+                    "elsewhere": 0,
+                    "valid_multibyte_sequences": 0
+                },
+                {
+                    "file": "history/titles/k_ghana.txt",
+                    "invalid_bytes": 4,
+                    "first_line": 1334,
+                    "in_comments": 4,
+                    "in_strings": 0,
+                    "elsewhere": 0,
+                    "valid_multibyte_sequences": 0
+                },
+                {
+                    "file": "history/titles/k_guge.txt",
+                    "invalid_bytes": 2,
+                    "first_line": 1588,
+                    "in_comments": 2,
+                    "in_strings": 0,
+                    "elsewhere": 0,
+                    "valid_multibyte_sequences": 0
+                },
+                {
+                    "file": "history/titles/k_ireland.txt",
+                    "invalid_bytes": 369,
+                    "first_line": 7,
+                    "in_comments": 369,
+                    "in_strings": 0,
+                    "elsewhere": 0,
+                    "valid_multibyte_sequences": 0
+                },
+                {
+                    "file": "history/titles/k_khakassia.txt",
+                    "invalid_bytes": 1,
+                    "first_line": 607,
+                    "in_comments": 1,
+                    "in_strings": 0,
+                    "elsewhere": 0,
+                    "valid_multibyte_sequences": 0
+                },
+                {
+                    "file": "history/titles/k_kham.txt",
+                    "invalid_bytes": 13,
+                    "first_line": 729,
+                    "in_comments": 13,
+                    "in_strings": 0,
+                    "elsewhere": 0,
+                    "valid_multibyte_sequences": 0
+                },
+                {
+                    "file": "history/titles/k_leon.txt",
+                    "invalid_bytes": 223,
+                    "first_line": 11,
+                    "in_comments": 223,
+                    "in_strings": 0,
+                    "elsewhere": 0,
+                    "valid_multibyte_sequences": 0
+                },
+                {
+                    "file": "history/titles/k_lhomon.txt",
+                    "invalid_bytes": 1,
+                    "first_line": 1274,
+                    "in_comments": 1,
+                    "in_strings": 0,
+                    "elsewhere": 0,
+                    "valid_multibyte_sequences": 0
+                },
+                {
+                    "file": "history/titles/k_lithuania.txt",
+                    "invalid_bytes": 48,
+                    "first_line": 68,
+                    "in_comments": 48,
+                    "in_strings": 0,
+                    "elsewhere": 0,
+                    "valid_multibyte_sequences": 0
+                },
+                {
+                    "file": "history/titles/k_maghreb.txt",
+                    "invalid_bytes": 1,
+                    "first_line": 2236,
+                    "in_comments": 1,
+                    "in_strings": 0,
+                    "elsewhere": 0,
+                    "valid_multibyte_sequences": 0
+                },
+                {
+                    "file": "history/titles/k_maryul.txt",
+                    "invalid_bytes": 4,
+                    "first_line": 1276,
+                    "in_comments": 4,
+                    "in_strings": 0,
+                    "elsewhere": 0,
+                    "valid_multibyte_sequences": 0
+                },
+                {
+                    "file": "history/titles/k_mordvinia.txt",
+                    "invalid_bytes": 4,
+                    "first_line": 942,
+                    "in_comments": 4,
+                    "in_strings": 0,
+                    "elsewhere": 0,
+                    "valid_multibyte_sequences": 0
+                },
+                {
+                    "file": "history/titles/k_navarra.txt",
+                    "invalid_bytes": 127,
+                    "first_line": 7,
+                    "in_comments": 127,
+                    "in_strings": 0,
+                    "elsewhere": 0,
+                    "valid_multibyte_sequences": 0
+                },
+                {
+                    "file": "history/titles/k_norway.txt",
+                    "invalid_bytes": 173,
+                    "first_line": 54,
+                    "in_comments": 173,
+                    "in_strings": 0,
+                    "elsewhere": 0,
+                    "valid_multibyte_sequences": 0
+                },
+                {
+                    "file": "history/titles/k_romagna.txt",
+                    "invalid_bytes": 7,
+                    "first_line": 546,
+                    "in_comments": 7,
+                    "in_strings": 0,
+                    "elsewhere": 0,
+                    "valid_multibyte_sequences": 2
+                },
+                {
+                    "file": "history/titles/k_scotland.txt",
+                    "invalid_bytes": 28,
+                    "first_line": 3054,
+                    "in_comments": 28,
+                    "in_strings": 0,
+                    "elsewhere": 0,
+                    "valid_multibyte_sequences": 11
+                },
+                {
+                    "file": "history/titles/k_tsang.txt",
+                    "invalid_bytes": 5,
+                    "first_line": 19,
+                    "in_comments": 5,
+                    "in_strings": 0,
+                    "elsewhere": 0,
+                    "valid_multibyte_sequences": 0
+                },
+                {
+                    "file": "history/titles/k_tuva.txt",
+                    "invalid_bytes": 4,
+                    "first_line": 87,
+                    "in_comments": 4,
+                    "in_strings": 0,
+                    "elsewhere": 0,
+                    "valid_multibyte_sequences": 0
+                },
+                {
+                    "file": "history/titles/k_volga_bulgaria.txt",
+                    "invalid_bytes": 2,
+                    "first_line": 1299,
+                    "in_comments": 2,
+                    "in_strings": 0,
+                    "elsewhere": 0,
+                    "valid_multibyte_sequences": 0
+                },
+                {
+                    "file": "history/titles/k_zhetysu.txt",
+                    "invalid_bytes": 13,
+                    "first_line": 77,
+                    "in_comments": 13,
+                    "in_strings": 0,
+                    "elsewhere": 0,
+                    "valid_multibyte_sequences": 0
+                },
+                {
+                    "file": "licenses/software/FTL.txt",
+                    "invalid_bytes": 1,
+                    "first_line": 51,
+                    "in_comments": 0,
+                    "in_strings": 1,
+                    "elsewhere": 0,
+                    "valid_multibyte_sequences": 0
+                },
+                {
+                    "file": "map_data/positions.txt",
+                    "invalid_bytes": 84,
+                    "first_line": 417,
+                    "in_comments": 84,
+                    "in_strings": 0,
+                    "elsewhere": 0,
+                    "valid_multibyte_sequences": 0
+                }
+            ]
+        }
+    }
 }

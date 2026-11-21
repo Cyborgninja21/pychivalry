@@ -1,0 +1,7 @@
+fixture_effect = {
+	add_gold = 10
+	= 20
+	add_prestige = 5
+}
+
+= fixture_stray

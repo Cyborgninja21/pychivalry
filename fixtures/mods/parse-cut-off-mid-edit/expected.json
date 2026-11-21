@@ -1,0 +1,123 @@
+{
+    "files": {
+        "events/after_key.txt": {
+            "findings": [
+                {
+                    "id": "syntax/missing-closing-brace",
+                    "severity": "error",
+                    "line": 3,
+                    "column": 16,
+                    "message": "Expected } after arguments"
+                },
+                {
+                    "id": "syntax/missing-closing-brace",
+                    "severity": "error",
+                    "line": 5,
+                    "column": 12,
+                    "message": "Expected } after arguments"
+                }
+            ],
+            "tree": "namespace = fixture fixture.0001 = { type = character_event trigger = { is_adult"
+        },
+        "events/after_open_brace.txt": {
+            "findings": [
+                {
+                    "id": "syntax/missing-closing-brace",
+                    "severity": "error",
+                    "line": 3,
+                    "column": 16,
+                    "message": "Expected } after arguments"
+                }
+            ],
+            "tree": "namespace = fixture fixture.0001 = {"
+        },
+        "events/after_operator.txt": {
+            "findings": [
+                {
+                    "id": "syntax/missing-closing-brace",
+                    "severity": "error",
+                    "line": 3,
+                    "column": 16,
+                    "message": "Expected } after arguments"
+                },
+                {
+                    "id": "syntax/missing-value",
+                    "severity": "error",
+                    "line": 5,
+                    "column": 9,
+                    "message": "Expected '{' between equals and arguments"
+                }
+            ],
+            "tree": "namespace = fixture fixture.0001 = { type = character_event title = <none>"
+        },
+        "events/inside_arithmetic.txt": {
+            "findings": [
+                {
+                    "id": "syntax/missing-closing-brace",
+                    "severity": "error",
+                    "line": 3,
+                    "column": 16,
+                    "message": "Expected } after arguments"
+                },
+                {
+                    "id": "syntax/missing-closing-brace",
+                    "severity": "error",
+                    "line": 5,
+                    "column": 14,
+                    "message": "Expected } after arguments"
+                },
+                {
+                    "id": "syntax/malformed-arithmetic",
+                    "severity": "information",
+                    "line": 6,
+                    "column": 14,
+                    "message": "Malformed inline expression '@[ base +]': its ']' is missing"
+                }
+            ],
+            "tree": "namespace = fixture fixture.0001 = { type = character_event immediate = { add_gold = @[ base +"
+        },
+        "events/inside_comment.txt": {
+            "findings": [
+                {
+                    "id": "syntax/missing-closing-brace",
+                    "severity": "error",
+                    "line": 3,
+                    "column": 16,
+                    "message": "Expected } after arguments"
+                }
+            ],
+            "tree": "namespace = fixture fixture.0001 = { type = character_event (# an unfinished comm)"
+        },
+        "events/inside_string.txt": {
+            "findings": [
+                {
+                    "id": "syntax/missing-closing-brace",
+                    "severity": "error",
+                    "line": 3,
+                    "column": 16,
+                    "message": "Expected } after arguments"
+                },
+                {
+                    "id": "syntax/unterminated-string",
+                    "severity": "information",
+                    "line": 5,
+                    "column": 10,
+                    "message": "Unterminated string starting at 'events/inside_string.txt:5'"
+                }
+            ],
+            "tree": "namespace = fixture fixture.0001 = { type = character_event title = \"fixture.00"
+        },
+        "events/inside_top_level_key.txt": {
+            "findings": [
+                {
+                    "id": "syntax/missing-operator",
+                    "severity": "error",
+                    "line": 3,
+                    "column": 11,
+                    "message": "Unexpected token '' found at 'events/inside_top_level_key.txt:3', '=' expected"
+                }
+            ],
+            "tree": "namespace = fixture fixture.00"
+        }
+    }
+}
