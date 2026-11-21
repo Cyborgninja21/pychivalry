@@ -15,8 +15,11 @@ Each rule states what the game does, the evidence for it with file references, a
 words:
 
 - **Settled** by game evidence. The index may build on it.
-- **Open**: the evidence does not decide it. The rule needs the in-game experiment named with
-  it, run on the analysis machine on the owner's word. The index does not build on a guess.
+- **Open**: the game's files do not decide it. By the owner's decision of 2026-11-21 the open
+  rules are read out of the game executable, Windows and Linux, by the spec work, and arrive
+  as a table in the spec package. The in-game experiment named with each rule stays written
+  here as a cross-check and is not run for now. The index does not build on a guess: where a
+  rule is open it records every definition and names no winner.
 
 The evidence is ranked as in [references/README.md](references/README.md#order-of-trust): the
 executable, then the game's own output, then Paradox's `.info` files, then what the base game's
@@ -41,8 +44,8 @@ checked against any source.
 | 10 | DLC folders | Settled for 1.21.0.3: no DLC file or record collides with the base game; a mod file at a DLC file's path is open (experiment 7) |
 | 11 | Duplicate keys within one file | Settled for events and character history; otherwise part of rule 5 |
 
-Rules 3, 4, 5, 7, 8 and 9 are open, and the index depends on each of them, so build step 3
-stops after this item: see [What this means for step 3](#what-this-means-for-step-3).
+Rules 3, 4, 5, 7, 8 and 9 are open, and the index depends on each of them. How the step goes
+on without guessing is in [What this means for step 3](#what-this-means-for-step-3).
 
 ## The evidence
 
@@ -600,10 +603,23 @@ a decision for the owner.
 ## What this means for step 3
 
 The index depends on rules 3, 4, 5, 7, 8 and 9: which copy of the base game is read, which of two
-definitions is the one in force, and which files a mod hides. They are open, so the step stops
-after this item, as its brief requires, and does not build on a guess. Items 3.2 to 3.10 start
-once the owner has had the experiments run, or has decided otherwise.
+definitions is the one in force, and which files a mod hides. They are open. The owner decided
+on 2026-11-21 how the step goes on ([decisions 40 to 43](decisions.md#log)):
 
-What is settled already holds for the index when it is built: rules 1, 2 and 10; and for events,
-character history, on-actions (apart from their single values), defines, container keys and
-province terrain, rule 6.
+1. **The rules are data.** They are a table in the spec package: each rule, the folders it
+   applies to, what wins, its evidence, and the platforms it holds on. The core reads the table
+   and holds no rule of its own.
+2. **The open rules are read out of the executable,** by the spec work, for Windows and for
+   Linux: the code behind the "overriding entry" message, the file listing and its sorting,
+   `replace_path`, the localization reader, and the path lookups that decide letter case. Linux
+   and Windows are supported equally, so rule 9 is settled for both.
+3. **The index is neutral until then.** It records every definition with its layer, path and
+   place, and names a winner only where the table has a rule. Where it has none it answers
+   "defined more than once, winner not known", and nothing that depends on the winner is
+   reported.
+4. **The experiments above are not run for now.** They stay as a cross-check for the day a
+   rule read from the executable needs confirming in the running game.
+
+What is settled already goes into a stand-in table until the spec package carries one: rules 1,
+2 and 10; and for events, character history, on-actions (apart from their single values),
+defines, container keys and province terrain, rule 6.

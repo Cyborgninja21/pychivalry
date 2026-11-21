@@ -67,6 +67,12 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
 
 ### Changed
 
+- Two layouts are supported with equal weight: VS Code on the game's computer, and on another
+  computer on the local network. Linux and Windows are supported equally (the owner's
+  decisions of 2026-11-21).
+- The override rules are data: a table in the spec package read out of the executable, with a
+  neutral index until it arrives. Build step 3 is re-planned on that
+  ([docs/PLAN.md](docs/PLAN.md), items 3.1a, 3.6 and 3.6a).
 - The Windows-1252 fallback reads only the bytes that are not valid UTF-8; a file that mixes
   both encodings now reads all its letters correctly (the owner's decision of 2026-11-21).
 - The plan's environment table no longer states paths from the machine that runs the suites.

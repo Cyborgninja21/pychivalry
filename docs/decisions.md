@@ -62,6 +62,10 @@ How it is kept:
 | 37 | 2026-11-21 | Skeleton | The skeleton also carries contributor and security files with issue and pull-request templates, a user guide folder, a documents index, this log, editor settings files, and a corrected repository description. |
 | 38 | 2026-11-21 | Encoding (item 2.1) | A script file that is not valid UTF-8 is read anyway and parsed in full; each bad byte becomes the replacement character; one information note per file says it is not valid UTF-8, never an error or a warning, because the game itself ships and loads such files. A fallback-encoding option lets the caller name an encoding (Windows-1252; off by default) with which such a file is decoded instead, so its letters read correctly. In step 2 it is a parameter of the core's decoding function; the VS Code setting that exposes it arrives with the extension in step 7. Made with the count in hand: 27 of the base game's 20,530 text files ([encoding.md](encoding.md)). |
 | 39 | 2026-11-21 | Encoding fallback | The fallback encoding is used only for the bytes that are not valid UTF-8; every valid UTF-8 letter in the same file stays as it is. Refines row 38, under which the fallback as first built decoded the whole file and garbled the valid letters of files that mix both. |
+| 40 | 2026-11-21 | Layouts | pychivalry is built for two layouts with equal weight: VS Code on the same computer as the game, and VS Code on another computer on the local network. |
+| 41 | 2026-11-21 | Platforms | Linux and Windows are supported equally. A game behaviour that differs between them is settled for both. Replaces row 17. |
+| 42 | 2026-11-21 | Override rules | The override rules are data: a table in the spec package, read out of the Windows and Linux executables by the spec work, each rule with its evidence. The index records every definition and names a winner only where the table has a rule. This makes the spec additions thirteen (row 25 said twelve). |
+| 43 | 2026-11-21 | Override experiments | The in-game probe mods of overrides.md are not run for now. They stay written as a cross-check. A game bridge that runs probes, harvesting existing game logs, and a self-check against a user's own log were considered and not taken up. |
 
 ## Awaiting confirmation
 
@@ -112,5 +116,4 @@ it is answered.
 
 | Step | Question | Why it is asked |
 | --- | --- | --- |
-| 3 | Run the probe mods of [overrides.md](overrides.md#the-experiments) on the analysis machine (experiments 1 to 8), or decide otherwise how step 3 goes on. | Six override rules the index depends on are open, and only the running game can settle them (PLAN.md, item 3.1). |
-| 3 | Whether experiments 8a and 8b (letter case in paths) may also be run on Linux, which needs a game launch on a Linux machine that the plan does not provide. | The analysis machine runs Windows, whose file system ignores case; Linux is a supported platform. |
+| 3 | How pychivalry reaches the game's files and error log when the game is on another computer on the local network: a shared folder, VS Code's remote mode, or a helper on the game's computer. | Row 40 makes the second layout equal to the first, and the index (item 3.5) reads the whole game. |
