@@ -20,7 +20,7 @@ disagree, MVP.md is right and this plan is fixed.
 | Step | Name | Needs the 1.21 spec | State |
 | --- | --- | --- | --- |
 | 0 | Spec work, in `pdx-parser-re` | It produces it | In progress, another agent |
-| 1 | Repository skeleton | Two items only (1.6, 1.11) | Built, in review (pull request #114). Open, waiting on step 0: 1.6 (the committed spec is the 1.20.0.2 stand-in until the 1.21 format 5 package; compressed or raw still to decide) and 1.11 (the result baselines; the speed baselines are done) |
+| 1 | Repository skeleton | Two items only (1.6, 1.11) | Built and merged (pull requests #114 and #115). Open, waiting on step 0: 1.6 (the committed spec is the 1.20.0.2 stand-in until the 1.21 format 5 package; compressed or raw still to decide) and 1.11 (the result baselines; the speed baselines are done) |
 | 2 | Parser | No | Not started |
 | 3 | Workspace index | No; a stand-in folder list is enough | Not started |
 | 4 | Engine checks and lookup | Yes, from item 4.2 on | Not started |
@@ -56,9 +56,13 @@ These apply to every step and to every agent doing the work.
 7. **`task ci` stays green and stays free** of any display, game file, model, key or network.
 8. **A blocked item is a question for the owner,** asked at once. It is not a reason to start a
    later item.
-9. **Game launches happen only on Thor-R7,** on the owner's word.
+9. **Game launches happen only on the analysis machine,** on the owner's word.
 10. **Every step ends by updating** the Progress table above, `CHANGELOG.md`, and any document
-    the step changed the truth of.
+    the step changed the truth of. In particular: the user guide (`docs/guide/`) for anything a
+    user can see; `docs/references/` for a source used for the first time; `docs/test-data.md`
+    and the page of the `fixtures/` part for new test data; `docs/decisions.md` for a decision
+    asked, answered or made; `docs/README.md` for a new document; and the wiki manifest
+    (`docs/wiki/manifest.json`) for a document users should find on the wiki.
 
 ## Technical choices
 
@@ -89,15 +93,27 @@ GitHub); a tool that arrives later is pinned by the step that adds it.
 ```text
 AGENTS.md                 rules for agents working here
 CHANGELOG.md
+CONTRIBUTING.md           how to report a problem or propose a change
 LICENSE
 README.md
+SECURITY.md               how to report a vulnerability
 Taskfile.yml
 package.json              npm workspaces root
 tsconfig.base.json
-.github/workflows/ci.yml  public CI: Linux and Windows, fixtures only
+.editorconfig  .nvmrc  .vscode/   editor settings that match the formatter
+.github/
+  workflows/ci.yml        public CI: Linux and Windows, fixtures only
+  ISSUE_TEMPLATE/         the bug and feature forms
+  pull_request_template.md
 docs/
+  README.md               the index: every document and the step that writes it
   MVP.md                  what and why
   PLAN.md                 this file
+  decisions.md            every decision with its date; choices awaiting confirmation
+  test-data.md            every kind of test data and where it lives
+  references/             every source, its trust and copying rules, notes per source
+  guide/                  the user guide: installing, commands, settings
+  wiki/                   the wiki's home page, its manifest, how it is generated
   checks.md               the check inventory (step 4)
   encoding.md             what the parser reads (step 2)
   overrides.md            the game's override rules (step 3)
@@ -116,7 +132,12 @@ packages/
   vscode/                 the extension
 skills/                   explain, fix, write content
 presentation/             outline rules, snippets, field order, hints (step 8)
-fixtures/                 small hand-written mods and game stubs
+fixtures/
+  mods/                   small hand-written mods, one behaviour each (from step 2)
+  game/                   stubs of a base game (from step 3)
+  defects/                the planted-defect mod, its manifest and reference copy (step 6)
+  requests/               the content requests of the authoring run (step 9)
+  logs/                   captured game error logs (step 11)
 records/                  committed results of the game-file suites
 tools/                    scripts behind the local tasks
 legacy/                   release 2.3.0, unchanged, until step 13
@@ -128,11 +149,13 @@ Inside `packages/core/src`: `syntax/` (step 2), `index/` (step 3), `spec/` and `
 
 ## Environment for the game-file suites
 
-| Variable | Meaning | On the owner's laptop |
-| --- | --- | --- |
-| `CK3_GAME_PATH` | The game's `game` folder | `/data/SteamLibrary/steamapps/common/Crusader Kings III/game` |
-| `CK3_CORPUS` | The pinned copy of the test mods | `~/ck3-corpus` |
-| `CK3_CORPUS_SLUGS` | Which mods to run; default all | unset |
+| Variable | Meaning |
+| --- | --- |
+| `CK3_GAME_PATH` | The game's `game` folder: `<Steam library>/steamapps/common/Crusader Kings III/game` |
+| `CK3_CORPUS` | The folder holding the pinned copy of the test mods, outside the repository |
+| `CK3_CORPUS_SLUGS` | Which mods to run; default all |
+
+The values on the machine that runs the suites are not written in this repository.
 
 These names are the ones 2.3.0 used, so its scripts and records stay comparable.
 
@@ -155,7 +178,7 @@ These names are the ones 2.3.0 used, so its scripts and records stay comparable.
 | Paradox's `.info` documentation, as data | Lookup in item 4.6; hover in step 7 |
 | The data-types dump | After the MVP: localization bracket checks |
 | The GUI vocabulary | After the MVP: GUI checks |
-| Real error logs from Thor-R7 | Item 11.1 |
+| Real error logs from the analysis machine | Item 11.1 |
 
 **The contract.** The format 5 layout is the table "Format 5" in that plan. The spec reader in
 item 4.2 is written against it. If the other agent changes the layout, that plan is updated
@@ -210,8 +233,24 @@ suites and their records wired up, and the 2.3.0 baselines on record.
   - **Results**, when the 1.21 format 4 spec exists: the base-game parse and check counts, and
     the five mods' findings. **Needs step 0.**
 
+- 1.12 The documents index (`docs/README.md`) and the decision log (`docs/decisions.md`).
+- 1.13 References: `docs/references/`, an index of every source with its place in the order of
+  trust and what may be copied from it, and a notes page per source.
+- 1.14 Test data: `docs/test-data.md`, and `fixtures/` in three parts, `mods/`, `game/` and
+  `defects/`, each with a page stating its layout and rules. The steps that fill them follow
+  those pages.
+- 1.15 The user guide, `docs/guide/`: installing, commands, settings, stating what is decided
+  and built. Each later step adds what it ships; item 13.7 completes it.
+- 1.16 The repository wiki, generated from `docs/`: the manifest and home page in
+  `docs/wiki/`, `task wiki:check` in `task ci`, `task wiki:build` and `task wiki:publish`.
+  Publishing leaves pages it did not write alone unless told to remove them.
+- 1.17 Community and editor files: `CONTRIBUTING.md`, `SECURITY.md`, the issue forms and the
+  pull-request template, `.editorconfig`, `.nvmrc`, `.vscode/`; the repository's description
+  and topics on GitHub.
+
 **Tests.** `task ci` passes from a clean clone on Linux and Windows. The record checker
-rejects a record with a wrong spec checksum and a record with a missing field.
+rejects a record with a wrong spec checksum and a record with a missing field. The wiki build
+rejects a published document that is missing or holds a link that points at nothing.
 
 **Delivers.** The layout above, a green CI, the corpus manifest, the speed baselines.
 
@@ -305,7 +344,7 @@ replaced paths, no DLC precedence. All of this step beyond the basics is new wor
 
 - 3.1 `docs/overrides.md`: the game's override rules, established before any code. Sources, in
   order: the spec work, the game's `paths.settings` and mod descriptor files, Paradox's `.info`
-  files, and a small in-game experiment on Thor-R7 if those leave a question open. It covers:
+  files, and a small in-game experiment on the analysis machine if those leave a question open. It covers:
   a later file overriding an earlier one, whole-record against field-by-field replacement,
   `replace_path`, DLC folders, and the order files load in.
 - 3.2 A fixture mod and a fixture game stub that exercise every rule in `overrides.md`.
@@ -491,7 +530,7 @@ window, and a scored test that an agent can really use it.
 **Tests.** Each tool against fixtures. The size test. The graders pass on the reference copy
 and fail on the untouched test mod.
 
-**Delivers.** `packages/mcp/`, `fixtures/planted/`, `tools/scored-run/`, the first scored
+**Delivers.** `packages/mcp/`, `fixtures/defects/`, `tools/scored-run/`, the first scored
 record.
 
 **Done when.**
@@ -701,14 +740,14 @@ that fails to parse.
 **Goal.** The game's own error log, read correctly and tied to the mod's files; and the third
 measure of authored content.
 
-**Depends on.** Step 10, and Thor-R7 on the owner's word.
+**Depends on.** Step 10, and the analysis machine on the owner's word.
 
 **What 2.3.0 did.** An analyser built on 14 guessed patterns, tested on one hand-written
 16-line log. No real log exists in either repository.
 
 **Work items.**
 
-- 11.1 Capture real logs on Thor-R7: the base game alone; a fixture mod with one planted
+- 11.1 Capture real logs on the analysis machine: the base game alone; a fixture mod with one planted
   defect per check; each of the five test mods. Each capture records the game build and the
   launch options. The launch reuses the procedure in `pdx-parser-re`
   (`research/oracle/<version>/README.md`): the mod list set through `dlc_load.json`, the game
@@ -725,7 +764,7 @@ measure of authored content.
   under `Documents/Paradox Interactive/Crusader Kings III/logs`, including the OneDrive
   variant; on Linux under `~/.local/share/Paradox Interactive/Crusader Kings III/logs`; the
   Proton location found and added.
-- 11.8 The in-game load as the authoring run's third grade: the content is loaded on Thor-R7,
+- 11.8 The in-game load as the authoring run's third grade: the content is loaded on the analysis machine,
   and the log is compared with a log of the same build without it. It must add no lines that
   name its files. The measure is named for what item 11.5 showed it proves.
 
@@ -823,5 +862,5 @@ five test mods.
 | Item 7.1 | Only if a harness cannot be reached as designed. |
 | Item 8.1 | Sign-off on the formatting rules. |
 | Item 9.8 | The targets for the authoring run. |
-| Step 11 | Each use of Thor-R7. |
+| Step 11 | Each use of the analysis machine. |
 | Item 13.5 | What happens to the 2.x listing. |

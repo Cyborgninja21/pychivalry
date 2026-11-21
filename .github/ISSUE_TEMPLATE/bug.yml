@@ -1,0 +1,63 @@
+name: Bug
+description: pychivalry said something wrong, missed something, or broke
+labels: [bug]
+body:
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What kind of problem?
+      options:
+        - pychivalry reports something the game accepts
+        - pychivalry misses something the game rejects
+        - An editor feature misbehaves (completion, hover, navigation, formatting)
+        - The command line or the agent server misbehaves
+        - A crash or a hang
+        - Something else
+    validations:
+      required: true
+  - type: textarea
+    id: script
+    attributes:
+      label: The script that shows it
+      description: The few lines needed, written out, and the path of the file inside the mod (for example events/my_events.txt). Not a whole mod.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: said
+    attributes:
+      label: What pychivalry said or did
+      description: The message and its code, if there is one.
+    validations:
+      required: true
+  - type: textarea
+    id: game
+    attributes:
+      label: What the game says or does
+      description: The line from the game's error log, or what happens in game. This is the evidence the fix rests on.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: pychivalry version
+      description: Or ck3-language-support 2.3.0, for the old extension.
+    validations:
+      required: true
+  - type: input
+    id: game-version
+    attributes:
+      label: Game version
+      placeholder: 1.21.0.3
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - Linux
+        - Windows
+        - macOS (untested)
+    validations:
+      required: true

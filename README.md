@@ -14,7 +14,11 @@ pychivalry is being rebuilt from the ground up in TypeScript. **Nothing usable i
 - How, step by step, and how far it has got: [docs/PLAN.md](docs/PLAN.md) (the Progress table).
 - Build step 1, the repository skeleton, is in place: the workspace, `task ci`, public CI on
   Linux and Windows, the spec package and its check, the record format, the pinned test mods,
-  and the 2.3.0 speed baselines.
+  the 2.3.0 speed baselines, and the documents every later step fills.
+- Every document, and which step writes it: [docs/README.md](docs/README.md). The sources
+  pychivalry draws on: [docs/references/](docs/references/README.md). What the tests run on:
+  [docs/test-data.md](docs/test-data.md). The user guide so far:
+  [docs/guide/](docs/guide/README.md).
 - Release 2.3.0, the last version of the old code, lives unchanged in [legacy/](legacy/) and
   still builds from inside that folder. It is the behaviour to match and a source of test data;
   no code is copied from it. It is published as the `ck3-language-support` extension; the
@@ -43,9 +47,16 @@ packages/vscode   the extension
 tools/            the scripts behind the local tasks
 spec/             the committed spec package, its checksum and schema
 records/          committed results of the suites that need game files
-docs/             MVP.md and PLAN.md
+fixtures/         hand-written test mods, game stubs and the planted-defect mod
+docs/             MVP and plan, decision log, references, test data, user guide, wiki source
 legacy/           release 2.3.0, unchanged
 ```
+
+## Contributing
+
+How to report a problem or propose a change: [CONTRIBUTING.md](CONTRIBUTING.md). Rules for
+working on the code: [AGENTS.md](AGENTS.md). Reporting a vulnerability:
+[SECURITY.md](SECURITY.md).
 
 ## Licence
 

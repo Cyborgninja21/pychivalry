@@ -31,13 +31,13 @@ lives unchanged in `legacy/`.
 | Hand-kept tables | The tables 2.3.0 kept in code (about 100 entries: iterator parameters, structural keywords, block names) move into the spec package as a new format, with their evidence. The core holds none. |
 | Grounding | Everything is grounded in the game: its executable, its files, its own documentation and its own output. Community tools and the wiki may supply a hint or an idea for a rule, and nothing rests on them alone. |
 | Spec additions | The 1.21 spec keeps every part of the current package and adds twelve things (see [What the 1.21 spec adds](#what-the-121-spec-adds)). |
-| Game dumps | The game's documentation dumps run on Thor-R7 only, started with the game's own command-line option for running a console command, not by injecting keystrokes. |
+| Game dumps | The game's documentation dumps run on the analysis machine only, started with the game's own command-line option for running a console command, not by injecting keystrokes. |
 | Community tools | ck3-tiger and the CWTools rule files may be evaluated, and a rule or its logic taken where it proves true against the game. Neither is a source of vocabulary or a basis for a finding. |
 | Presentation data | Outline rules, snippets, field order and inline hints return as pychivalry's own data, in a separate file in this repository. It is never used to raise an error. |
 | Old rules | The 38 required-field flags and 89 rule codes of the pre-2.0 schema files are reviewed in the check inventory. Those that still hold on the 1.21 base game return as advice, never as errors or warnings. |
 | Game versions | One game version at a time: the current one. |
 | Game-file suites | No test runner is attached to this repository. A local task runs the suites that need game files and writes result records, which are committed. Public CI checks the records and runs everything else. |
-| Machines | This laptop runs the game-file suites: it has the game and the five test mods. Thor-R7, the Windows desktop with the analysis tools, is used only to re-derive the spec and to load content in the running game. |
+| Machines | This laptop runs the game-file suites: it has the game and the five test mods. The analysis machine, a Windows desktop with the analysis tools, is used only to re-derive the spec and to load content in the running game. |
 | VS Code floor | Recent editors only. The floor is the release where VS Code's Copilot harness is the default; 1.146 unless build step 7 finds an earlier one. |
 | AI surface | One bundled agent server (MCP) plus a set of skills. It serves both Claude Code and VS Code's built-in AI. There is no chat participant and no separate set of language-model tools. |
 | AI harness | The AI that uses pychivalry is Claude Code running in VS Code, or VS Code's built-in AI. No API key is stored anywhere. |
@@ -45,7 +45,7 @@ lives unchanged in `legacy/`.
 | Authored content | Scored on validity (the checker) and on two further measures: a model judging the result against the request, and loading the content in the real game. |
 | Authoring order | The authoring skill is built straight after the formatter, at build step 9. |
 | GUI and GFX | Parse, index and navigate. Checks and lookup against a GUI vocabulary are after the MVP; the 1.21 spec work starts collecting that vocabulary. |
-| Game patches | After 1.21, the spec is re-derived on the owner's word. Until then pychivalry reports the version mismatch and keeps working. Nothing runs unattended on Thor-R7. |
+| Game patches | After 1.21, the spec is re-derived on the owner's word. Until then pychivalry reports the version mismatch and keeps working. Nothing runs unattended on the analysis machine. |
 | Platforms | Linux and Windows are supported and tested. macOS is untested. |
 | VS Code only | pychivalry is always used through VS Code. The command line and the agent server ship inside the extension and are never installed separately. Nothing is published to npm. |
 | Marketplace | Not in the MVP. 1.0.0 ships as a downloadable file on GitHub, which means no automatic updates for its users. |
@@ -127,7 +127,7 @@ content is therefore scored three ways:
 
 1. **Validity.** The checker reports zero errors.
 2. **Does what was asked.** A model reads the request and the result and scores the match.
-3. **Loads in the game.** The content is loaded in CK3 on Thor-R7 and the game's error log is
+3. **Loads in the game.** The content is loaded in CK3 on the analysis machine and the game's error log is
    compared with a log of the same game build without it. The content must add no lines that
    name its files. This proves "no new errors at load"; whether the game also reports a defect
    in content that never runs is not yet known (see [Open questions](#open-questions)).
@@ -362,7 +362,7 @@ the later ones instead of claiming a cold start.
 ## Tests per feature
 
 `G` means the suite needs game files: it is run by the local task on this laptop and its result
-is a committed record. `T` means it needs the running game on Thor-R7. `M` means it calls an AI
+is a committed record. `T` means it needs the running game on the analysis machine. `M` means it calls an AI
 model (see [AI tests](#ai-tests)). Everything unmarked runs in public CI on fixtures.
 
 | Feature | Suite | Passes when |
@@ -497,7 +497,7 @@ test is extended in every step from 7 onward that adds a feature.
 owner's word. Derive the spec for game 1.21 in a new package format that keeps every current
 part and adds the twelve additions listed in [What the 1.21 spec adds](#what-the-121-spec-adds).
 Also emit the 1.21 spec in the current format, so 2.3.0 can run on it for the baselines. The
-executable analysis needs Thor-R7; the parts that only read game files may run wherever the
+executable analysis needs the analysis machine; the parts that only read game files may run wherever the
 1.21 files are.
 
 1. Repository skeleton: workspace layout, `task ci`, the root CI workflow (Linux and Windows),
@@ -528,7 +528,7 @@ executable analysis needs Thor-R7; the parts that only read game files may run w
    measures. **Preview build.**
 10. GUI files: the parser, the index of types and templates, go to definition. The
     graphics-file check. The call graph.
-11. Game-log analysis. First real logs are captured on Thor-R7: the base game alone, a fixture
+11. Game-log analysis. First real logs are captured on the analysis machine: the base game alone, a fixture
     mod with one planted defect per check, and each test mod. Then the matcher is built on
     them. Then the in-game load is added as the authoring run's third measure.
 12. Editor views: the CK3 Explorer tree, call hierarchy and selection ranges.
@@ -541,7 +541,7 @@ executable analysis needs Thor-R7; the parts that only read game files may run w
 | The game is patched during the build | The spec falls behind again; records shift. It was updated seven times in the seven weeks after the last derivation. | Every record states its game build; the mismatch is reported, not hidden; re-derivation is a known procedure. |
 | VS Code changes its AI interfaces again | It deprecated chat participants three days before this document was checked. The registration of the agent server could change next. | The AI surface is one standard agent server and plain-text skills; only `packages/vscode` touches VS Code's AI interfaces. |
 | Skills or the server do not load the same way in both AI harnesses | Two sets of setup instead of one. | Build step 7 proves both with the server alone, before any skill is written. |
-| Thor-R7 | It hibernates after 30 idle minutes, has powered itself off mid-run, and the game needs an unlocked desktop session there. | It is needed only for spec derivation and in-game loads; a keep-awake task runs for the length of a run. |
+| The analysis machine | It hibernates after 30 idle minutes, has powered itself off mid-run, and the game needs an unlocked desktop session there. | It is needed only for spec derivation and in-game loads; a keep-awake task runs for the length of a run. |
 | The in-game load proves less than hoped | A defect in content that never runs may not be logged at load. | The measure is named for what it proves; build step 11 tests which planted defects the game reports. |
 | The error-log format is not what 2.3.0 assumed | The log matcher is built on a wrong format. | Real logs are captured before the matcher is written. |
 | The scope is a full product, not a small first version | Nothing ships for a long time. | Preview builds at steps 7, 8 and 9. |
@@ -558,7 +558,7 @@ Each is settled by evidence inside the build, not by a choice.
 | 1 | The game's override rules: load order, replaced paths, DLC precedence. Neither 2.3.0 nor its documents state them. | Build step 3, from the spec work or an in-game test. |
 | 2 | Whether the game reports, at load, a defect in content that never runs. | Build step 11, with the planted-defect mod. |
 | 3 | The real format of the error log, when it is cleared, and what debug mode adds. | Build step 11, from captured logs. |
-| 8 | Whether the game's command-line option for running a console command produces the documentation dumps unattended. | Step 0, on Thor-R7. |
+| 8 | Whether the game's command-line option for running a console command produces the documentation dumps unattended. | Step 0, on the analysis machine. |
 | 9 | Whether ck3-tiger and the CWTools rule files hold rules worth taking, and under what licences. | Build step 4, when the check inventory is written. |
 | 4 | Whether VS Code forwards an extension-registered local server to its default AI harness as documented, and whether one skills folder loads in both harnesses. | Build step 7. |
 | 5 | The targets for the scored agent and authoring runs. | After the first scored runs, in build steps 6 and 9. |

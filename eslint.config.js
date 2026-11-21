@@ -13,6 +13,7 @@ export default defineConfig(
             'spec/**',
             'records/**',
             '.vscode-test/**',
+            '.wiki-build/**',
         ],
     },
     {

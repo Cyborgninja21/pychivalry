@@ -69,8 +69,14 @@ tasks:
     cmds:
       - node tools/dist/cli.js records check
 
+  wiki:check:
+    desc: 'Check that the wiki builds from docs/: every published document exists and every link in it resolves'
+    deps: [build]
+    cmds:
+      - node tools/dist/cli.js wiki check
+
   ci:
-    desc: 'Everything public CI runs: install, build, lint, format check, tests, the spec and record checks'
+    desc: 'Everything public CI runs: install, build, lint, format check, tests, the spec, record and wiki checks'
     cmds:
       - task: install
       - task: build
@@ -79,6 +85,7 @@ tasks:
       - task: test
       - task: spec:check
       - task: records:check
+      - task: wiki:check
 
   # ─── Game-file suites (local only; docs/PLAN.md, "Environment for the game-file suites") ───
 
@@ -131,3 +138,17 @@ tasks:
     deps: [build]
     cmds:
       - node tools/dist/cli.js baseline speed
+
+  # ─── The repository wiki, generated from docs/ (docs/wiki/README.md) ───
+
+  wiki:build:
+    desc: 'Build the wiki pages from docs/ into .wiki-build/ to look at; publishes nothing'
+    deps: [build]
+    cmds:
+      - node tools/dist/cli.js wiki build
+
+  wiki:publish:
+    desc: 'PUBLISH the wiki pages built from docs/ to the public GitHub wiki (WIKI_DRY_RUN=true shows the changes only; WIKI_PRUNE=all also removes pages it did not write)'
+    deps: [build]
+    cmds:
+      - node tools/dist/cli.js wiki publish

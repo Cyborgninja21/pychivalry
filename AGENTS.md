@@ -27,7 +27,11 @@ is fixed.
    later item.
 9. **Game launches happen only on the analysis machine the plan names,** on the owner's word.
 10. **Every step ends by updating** the Progress table in PLAN.md, `CHANGELOG.md`, and any
-    document the step changed the truth of.
+    document the step changed the truth of: the user guide (`docs/guide/`) for anything a user
+    can see, `docs/references/` for a source used for the first time, `docs/test-data.md` and
+    the `fixtures/` pages for new test data, `docs/decisions.md` for a decision asked, answered
+    or made, `docs/README.md` for a new document, and the wiki manifest for a document users
+    should find on the wiki.
 11. **No TODO or FIXME stubs.** Delivered code works. The only stubs are those the plan defines
     as stubs (the four `game:*` tasks of step 1).
 
@@ -37,7 +41,7 @@ Everything goes through [Taskfile.yml](Taskfile.yml); `task --list` shows it all
 
 | Task | What it does |
 | --- | --- |
-| `task ci` | Everything public CI runs: install, build, lint, format check, tests, spec check, record check |
+| `task ci` | Everything public CI runs: install, build, lint, format check, tests, spec check, record check, wiki check |
 | `task install` | `npm ci` from the root lock file |
 | `task build` | `tsc -b` over every package and the tools |
 | `task test` | Every package's tests: Node's built-in test runner on the compiled output |
@@ -45,6 +49,9 @@ Everything goes through [Taskfile.yml](Taskfile.yml); `task --list` shows it all
 | `task format:check` / `task format` | Prettier, check only / write |
 | `task spec:check` | The committed spec package: checksum of the uncompressed bytes, supported format |
 | `task records:check` | Every committed record: valid format, made on the committed spec and corpus |
+| `task wiki:check` | The wiki builds from `docs/`: every published document exists and every link resolves |
+| `task wiki:build` | The wiki pages, built into `.wiki-build/` to look at |
+| `task wiki:publish` | Publishes the wiki. Public the moment it runs: only on the owner's word ([docs/wiki/README.md](docs/wiki/README.md)) |
 
 ## Layout
 
@@ -56,7 +63,8 @@ Everything goes through [Taskfile.yml](Taskfile.yml); `task --list` shows it all
 | `tools` | The scripts behind the local tasks: spec and record checks, the game-file suites, the corpus manifest, the 2.3.0 baselines |
 | `spec` | The committed spec package ([spec/README.md](spec/README.md)) |
 | `records` | Committed results of the game-file suites ([records/README.md](records/README.md)) |
-| `fixtures` | Small hand-written mods and game stubs (from step 2) |
+| `fixtures` | Hand-written test data in three parts: `mods/`, `game/`, `defects/` ([fixtures/README.md](fixtures/README.md)) |
+| `docs` | Every document ([docs/README.md](docs/README.md)): MVP and plan, the decision log, references, test data, the user guide, the wiki source |
 | `legacy` | Release 2.3.0, unchanged, until step 13 |
 
 Every package is TypeScript in strict mode on the shared [tsconfig.base.json](tsconfig.base.json),
@@ -72,7 +80,8 @@ From step 4. Each check is one file under `packages/core/src/check/`, with its t
    catalogue message, a required schema field, the game's own output, or a reproduced in-game
    error) or the word "advice", the 2.3.0 check it replaces, and its fixture pair. A row
    without evidence can only be advice. Codes are permanent: never renamed, never reused.
-2. Write the fixture pair: a bad file it fires on and a good file it is silent on.
+2. Write the fixture pair under `fixtures/mods/`: `<check-name>-bad`, which it fires on, and
+   `<check-name>-good`, which it is silent on ([fixtures/mods/README.md](fixtures/mods/README.md)).
 3. Write `check/<name>.test.ts` against the pair, then `check/<name>.ts`. Every keyword it
    needs comes from the spec package or the installed game, never from a list in the code.
 4. Run the base-game and real-mod suites (`task game:check`, `task game:mods`) and commit

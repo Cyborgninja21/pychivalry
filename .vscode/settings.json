@@ -1,0 +1,17 @@
+{
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "[markdown]": {
+        "editor.formatOnSave": false
+    },
+    "typescript.tsdk": "node_modules/typescript/lib",
+    "files.exclude": {
+        "**/dist": true,
+        "**/*.tsbuildinfo": true
+    },
+    "search.exclude": {
+        "legacy": true,
+        "spec": true,
+        "**/dist": true
+    }
+}

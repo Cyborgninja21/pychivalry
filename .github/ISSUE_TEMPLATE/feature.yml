@@ -1,0 +1,27 @@
+name: Feature or change
+description: Something pychivalry should do, or do differently
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The rebuild follows a written plan: docs/MVP.md says what is in the first release and
+        docs/PLAN.md says in what order. Check whether what you want is already there.
+  - type: textarea
+    id: want
+    attributes:
+      label: What should it do?
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: What are you doing when you need it?
+      description: The modding task this would help with.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: For a new check, what is the game evidence?
+      description: The game's error-log line or in-game behaviour that shows the game rejects this. Without it the check can only be advice.

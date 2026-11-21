@@ -1,0 +1,29 @@
+# Editor settings that match Prettier (.prettierrc.json) and .gitattributes.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+[*.{yml,yaml}]
+indent_size = 2
+
+[*.md]
+# Two trailing spaces are a line break in Markdown.
+trim_trailing_whitespace = false
+
+[*.tsv]
+indent_style = tab
+
+# Release 2.3.0 is kept as it is, and fixtures are written the way the test needs them.
+[{legacy,fixtures}/**]
+charset = unset
+end_of_line = unset
+insert_final_newline = unset
+trim_trailing_whitespace = unset
+indent_style = unset
+indent_size = unset
