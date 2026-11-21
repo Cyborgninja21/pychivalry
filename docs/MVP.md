@@ -434,9 +434,11 @@ repository's history.
 Each step ends with its suites passing; the next does not start before that. The same-answers
 test is extended in every step from 7 onward that adds a feature.
 
-0. **Spec work, in `pdx-parser-re` on Thor-R7, on the owner's word.** Derive the spec for game
-   1.21. Add the hand-kept tables to the package as a new format, with their evidence. Also
-   emit the 1.21 spec in the current format, so 2.3.0 can run on it for the baselines.
+**Step 0, before anything is built here: spec work.** It happens in `pdx-parser-re` on Thor-R7,
+on the owner's word. Derive the spec for game 1.21. Add the hand-kept tables to the package as
+a new format, with their evidence. Also emit the 1.21 spec in the current format, so 2.3.0 can
+run on it for the baselines.
+
 1. Repository skeleton: workspace layout, `task ci`, the root CI workflow (Linux and Windows),
    `AGENTS.md`, the spec package committed with its checksum check, the local task for the
    game-file suites and its record format, the mod corpus pinned with its manifest, and the
