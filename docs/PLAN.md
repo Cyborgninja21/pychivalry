@@ -1,0 +1,823 @@
+# pychivalry: build plan
+
+Status: plan for approval, 2026-11-21. Nothing in it is built yet.
+
+This is the "how" for the rebuild. The "what" and the "why" are in [MVP.md](MVP.md): the
+decisions, the scope, the tests each feature needs and the definition of done. Where the two
+disagree, MVP.md is right and this plan is fixed.
+
+## How to read this plan
+
+- The work is thirteen build steps, preceded by step 0, which happens in another repository.
+- Steps run in order. A step is finished when every item under "Done when" holds. The next step
+  does not start before that.
+- Each step has the same parts: goal, what it depends on, the work items, the tests, what it
+  delivers, done when, and what is not yet known.
+- Work items are numbered `<step>.<item>` so they can be referred to and ticked off.
+
+## Progress
+
+| Step | Name | Needs the 1.21 spec | State |
+| --- | --- | --- | --- |
+| 0 | Spec work, in `pdx-parser-re` | It produces it | In progress, another agent |
+| 1 | Repository skeleton | Two items only (1.6, 1.11) | Not started |
+| 2 | Parser | No | Not started |
+| 3 | Workspace index | No; a stand-in folder list is enough | Not started |
+| 4 | Engine checks and lookup | Yes, from item 4.2 on | Not started |
+| 5 | Command line | Through step 4 | Not started |
+| 6 | Agent server | Through step 4 | Not started |
+| 7 | Language server and extension | Through step 4 | Not started |
+| 8 | Formatter and fixes | No, but follows step 7 | Not started |
+| 9 | Skills and the authoring run | Through step 4 | Not started |
+| 10 | GUI files, graphics check, call graph | Partly | Not started |
+| 11 | Game-log analysis, in-game load | Yes | Not started |
+| 12 | Editor views | No, but follows step 11 | Not started |
+| 13 | Benchmarks, legacy removed, 1.0.0 | Yes | Not started |
+
+Steps 1, 2 and 3 and item 4.1 can be done before the 1.21 spec exists.
+
+## Working rules
+
+These apply to every step and to every agent doing the work.
+
+1. **One step, one branch, one pull request.** Branch `agents/step-<n>-<short-name>`, cut from
+   `main`, worked in its own git worktree. The pull request is merged when the step's "Done
+   when" list holds and a second agent that did not write the code has checked it.
+2. **The step's section is the brief.** An agent executing a step reads MVP.md, this section,
+   and the sections of the steps before it.
+3. **Tests first where a record exists.** Where 2.3.0 has a test, a fixture or a record for the
+   behaviour, it is carried over before the code is written.
+4. **Nothing from `legacy/` is copied as code.** Tests, fixtures and records are data and are
+   carried over. Reading the old code for how it solved a problem is expected.
+5. **No name lists in the code.** A table a check needs comes from the spec package or from the
+   user's installed game. If a step finds it needs a table the spec lacks, it stops and the
+   table is requested from `pdx-parser-re`.
+6. **Evidence for every error and warning.** A finding without game evidence is advice.
+7. **`task ci` stays green and stays free** of any display, game file, model, key or network.
+8. **A blocked item is a question for the owner,** asked at once. It is not a reason to start a
+   later item.
+9. **Game launches happen only on Thor-R7,** on the owner's word.
+10. **Every step ends by updating** the Progress table above, `CHANGELOG.md`, and any document
+    the step changed the truth of.
+
+## Technical choices
+
+| Area | Choice | Why |
+| --- | --- | --- |
+| Language | TypeScript, strict mode, one `tsconfig` base shared by all packages | Decided. |
+| Runtime | Node 22 for development and CI; the shipped servers run on VS Code's own bundled runtime | Node 22 is what is installed; users need no Node of their own. |
+| Workspace | npm workspaces, one lock file at the root | What 2.3.0 used; no extra tool. |
+| `packages/core` dependencies | None at run time | Decided: the core is dependency-free. |
+| Tests | Node's built-in test runner on compiled output, for every package except the extension | No test framework to keep current; agents run it with one command. |
+| Extension tests | `@vscode/test-electron` driving a real VS Code | The only way to test the extension as shipped. 2.3.0 used the same. |
+| Bundling | esbuild, one single file each for the language server, the agent server and the command line; the spec stays a separate data file | VS Code's own guidance; small and fast. |
+| Language client | `vscode-languageclient` 11, started as a module over IPC | Runs on VS Code's runtime on Linux and Windows. |
+| Agent server library | The MCP TypeScript library, 2.x line (`@modelcontextprotocol/server`) | The current line; the 1.x line is in maintenance. |
+| Lint and format | ESLint and Prettier | What 2.3.0 used. |
+| Task runner | `Taskfile.yml` at the root | What 2.3.0 used; one entry point for agents. |
+| Licence | Apache-2.0 | What 2.3.0 used. |
+| Extension identity | Publisher `cyborgninja21`, name `pychivalry`, version 1.0.0 at release | Decided: a new identity. |
+
+Versions are pinned to exact numbers when step 1 installs them, and written into this table.
+
+## Repository layout
+
+```text
+AGENTS.md                 rules for agents working here
+CHANGELOG.md
+LICENSE
+README.md
+Taskfile.yml
+package.json              npm workspaces root
+tsconfig.base.json
+.github/workflows/ci.yml  public CI: Linux and Windows, fixtures only
+docs/
+  MVP.md                  what and why
+  PLAN.md                 this file
+  checks.md               the check inventory (step 4)
+  encoding.md             what the parser reads (step 2)
+  overrides.md            the game's override rules (step 3)
+  formatting.md           the formatting rules (step 8)
+  gui-syntax.md           GUI file syntax (step 10)
+  game-log.md             the error-log format (step 11)
+spec/
+  ck3-spec-<version>.json[.gz]   the committed spec package
+  ck3-spec-<version>.sha256      checksum of the uncompressed bytes
+  schema.json                    the package's own schema, from pdx-parser-re
+packages/
+  core/                   parse, index, check, lookup, format, fix data
+  cli/                    command line
+  mcp/                    agent server
+  lsp/                    language server
+  vscode/                 the extension
+skills/                   explain, fix, write content
+presentation/             outline rules, snippets, field order, hints (step 8)
+fixtures/                 small hand-written mods and game stubs
+records/                  committed results of the game-file suites
+tools/                    scripts behind the local tasks
+legacy/                   release 2.3.0, unchanged, until step 13
+```
+
+Inside `packages/core/src`: `syntax/` (step 2), `index/` (step 3), `spec/` and `check/`
+(step 4), `lookup/` (step 4), `format/` and `fix/` (step 8), `gui/` (step 10), `log/`
+(step 11). Each check is one file under `check/`, with its test beside it.
+
+## Environment for the game-file suites
+
+| Variable | Meaning | On the owner's laptop |
+| --- | --- | --- |
+| `CK3_GAME_PATH` | The game's `game` folder | `/data/SteamLibrary/steamapps/common/Crusader Kings III/game` |
+| `CK3_CORPUS` | The pinned copy of the test mods | `~/ck3-corpus` |
+| `CK3_CORPUS_SLUGS` | Which mods to run; default all | unset |
+
+These names are the ones 2.3.0 used, so its scripts and records stay comparable.
+
+---
+
+## Step 0: spec work
+
+**Where.** In `pdx-parser-re`, by another agent, to `spec/FORMAT_5_PLAN.md` in that repository.
+
+**What this plan needs from it.**
+
+| Item | Needed by |
+| --- | --- |
+| The 1.21 spec in format 4 | Item 1.11, the result baselines |
+| The 1.21 spec in format 5, with its checksum and schema | Item 1.6; step 4 from item 4.2 |
+| The hand-kept tables, in the package | Items 4.2 to 4.5 |
+| Value types, observed values, localization-key fields | Items 4.4, 4.5; completion in step 7 |
+| Modifier use areas | Item 4.2 |
+| The cleaned error catalogue | Item 4.1, item 11.3 |
+| Paradox's `.info` documentation, as data | Lookup in item 4.6; hover in step 7 |
+| The data-types dump | After the MVP: localization bracket checks |
+| The GUI vocabulary | After the MVP: GUI checks |
+| Real error logs from Thor-R7 | Item 11.1 |
+
+**The contract.** The format 5 layout is the table "Format 5" in that plan. The spec reader in
+item 4.2 is written against it. If the other agent changes the layout, that plan is updated
+first and this one follows.
+
+---
+
+## Step 1: repository skeleton
+
+**Goal.** A repository an agent can clone, build and test in one command, with the game-file
+suites and their records wired up, and the 2.3.0 baselines on record.
+
+**Depends on.** Nothing for most items. Items 1.6 and 1.11 need step 0.
+
+**Work items.**
+
+- 1.1 Root files: `README.md` (what pychivalry is, state of the rebuild, how to build),
+  `LICENSE` (Apache-2.0), `CHANGELOG.md`, `.gitignore`, `.gitattributes`. The repository has
+  had no root README or licence since everything moved to `legacy/`.
+- 1.2 npm workspaces root, `tsconfig.base.json`, and an empty buildable package for each of
+  `core`, `cli`, `mcp`, `lsp`, `vscode`. Exact tool versions pinned and written into
+  "Technical choices".
+- 1.3 `Taskfile.yml`: `install`, `build`, `test`, `lint`, `format:check`, `ci` (all of the
+  preceding), and the local tasks of item 1.8.
+- 1.4 `AGENTS.md`: the working rules above, how to add a check and its test, how to run each
+  suite, what may and may not be committed.
+- 1.5 `.github/workflows/ci.yml`: `task ci` on Linux and Windows, on pushes and pull requests.
+  No self-hosted runner. No secrets.
+- 1.6 The spec package under `spec/`, with its checksum file and schema. `task ci` verifies the
+  checksum and the format number. Decide compressed or raw here: 2.3.0 compressed it because a
+  commit hook refused files over 1 MB; the package is about 7 MB. **Needs step 0.** Until
+  then the 1.20.0.2 package is committed as a stand-in so the check exists.
+- 1.7 The record format, in `records/README.md`: every record is JSON and states the suite,
+  the tool version and commit, the game build and the hash of the game's file manifest, the
+  spec version and checksum, the corpus manifest hash, when it was made, and the results.
+- 1.8 The local tasks behind the game-file suites: `task game:parse`, `game:check`,
+  `game:mods`, `game:bench`. Each reads `CK3_GAME_PATH` and `CK3_CORPUS`, writes its record
+  under `records/`, and exits non-zero on a failed pass condition. Each is a stub in this step
+  that writes a valid, empty record.
+- 1.9 Public CI checks the records: each is valid against the record format, and its spec
+  checksum equals the committed spec's. A record made on an older spec fails the check, so a
+  spec change forces the suites to be re-run.
+- 1.10 The mod corpus: the five mods copied from the Steam workshop cache into `CK3_CORPUS`,
+  `music/` folders left out as 2.3.0 did, with `records/corpus/MANIFEST.tsv` (slug, workshop
+  id, name, supported version, file count, hash). Workshop ids: elf-destiny 3114064450, rice
+  2273832430, viet-events 2227658180, divine-intervention 2986538297, balance-of-power-ui
+  3157042775.
+- 1.11 The 2.3.0 baselines, by building `legacy/` and running it on the current game:
+  - **Speed**, now: parse time, base-game load time, whole-mod check time and peak memory for
+    each of the five mods; editor time to first full result. Each is the median of at least
+    five runs, cold start and warm start kept apart, with the machine described in the record.
+  - **Results**, when the 1.21 format 4 spec exists: the base-game parse and check counts, and
+    the five mods' findings. **Needs step 0.**
+
+**Tests.** `task ci` passes from a clean clone on Linux and Windows. The record checker
+rejects a record with a wrong spec checksum and a record with a missing field.
+
+**Delivers.** The layout above, a green CI, the corpus manifest, the speed baselines.
+
+**Done when.**
+
+1. A fresh clone builds and passes `task ci` with no display, game, model or key.
+2. Public CI is green on Linux and Windows.
+3. The speed baselines are committed, each a median of at least five runs.
+4. Items 1.6 and 1.11 are either complete or listed as open in the Progress table, waiting on
+   step 0.
+
+**Not yet known.** Whether 2.3.0 runs cleanly on the 1.21 game with a 1.20.0.2 spec for the
+speed runs. It should, with more "unknown" findings; the speed figures barely depend on that.
+
+---
+
+## Step 2: parser
+
+**Goal.** Every script file of the base game becomes a syntax tree, and broken input still
+does.
+
+**Depends on.** Step 1.
+
+**What 2.3.0 did.** A hand-written lexer and a recursive-descent parser for `.txt` script
+files only. It read UTF-8, skipped a leading byte-order mark, and always returned a tree. Its
+parser tests are 74 cases in two files. It has one fixture for broken input.
+
+**Work items.**
+
+- 2.1 `docs/encoding.md`: what the parser reads. UTF-8 with or without a byte-order mark is
+  the base; in the 1.20 base game 3,363 of 4,035 script files had the mark. This item scans
+  the 1.21 base game for files that are not valid UTF-8 and decides, with the count in hand,
+  what happens to them.
+- 2.2 The position model: offsets and UTF-16 columns, with the byte-order mark not counted, so
+  positions match what VS Code and the language-server protocol use.
+- 2.3 The lexer. Tokens it must produce, each with a test:
+  - the operators `=`, `==`, `!=`, `?=`, `>`, `<`, `>=`, `<=`; `?=` only after a name or a
+    scope chain;
+  - quoted text, which may span lines, with `\"` and `\\` as the only escapes;
+  - comments, kept in the tree;
+  - numbers, and dates in the form year.month.day;
+  - `@name` constants, and `@[ … ]` inline arithmetic as one token;
+  - a scope chain as one token, including a dot inside `|…|`; `namespace.0001` stays a name;
+  - `$PARAM$` macro parameters, including in the operator position.
+- 2.4 The parser. Forms it must accept, each with a test: `key = value`, `key = { … }`,
+  anonymous blocks, lists of bare values, mixed lists, numeric and date keys, an operator as a
+  value, `list "name"`, colour values (`rgb`, `hsv`, `hsv360`, in either letter case), and
+  file-local `scripted_trigger name = { … }` and `scripted_effect name = { … }` definitions.
+- 2.5 Error recovery. The parser always returns a tree. One recovery path per error, each with
+  a broken-input fixture, including text cut off mid-edit. The base game's own known defect,
+  a block with no `=` before it, must recover the way the game does.
+- 2.6 Parse errors as findings, in the structured shape from principle 3 of MVP.md. Codes come
+  from the spec's error catalogue where a message exists; the two that have none in 2.3.0 are
+  an unterminated string and a malformed inline arithmetic block.
+- 2.7 Incremental re-parse: an edit re-parses the affected part and reuses the rest.
+- 2.8 The base-game parse suite, `task game:parse`: an explicit list of folders and file
+  extensions with the expected file count for each, the parse time, and every parse error.
+- 2.9 The 74 parser cases from 2.3.0, carried over as table fixtures.
+
+**Tests.** Rows "Parser" in MVP.md's table. The broken-input set has at least one fixture per
+recovery path.
+
+**Delivers.** `packages/core/src/syntax/`, `docs/encoding.md`, the parse record for the 1.21
+base game.
+
+**Done when.**
+
+1. Every script file in the suite's folder list yields a tree.
+2. Every parse error in the base game is listed in the record with a classification.
+3. All carried-over cases and all broken-input fixtures pass.
+4. A re-parse after an edit gives the same tree as a full parse, on every fixture.
+
+**Not yet known.** How many base-game files are not valid UTF-8, and which folders beyond
+`common`, `events` and `history` hold script the parser should read (2.3.0 covered those three
+only; `gfx` has 272 `.txt` files).
+
+---
+
+## Step 3: workspace index
+
+**Goal.** Know every definition and every use in the mod and in the whole base game, follow
+the game's override rules, and keep the result on disk.
+
+**Depends on.** Step 2.
+
+**What 2.3.0 did.** An in-memory index of every mod file, and of seven base-game folders only.
+Nothing was saved on disk. "Defined" meant "in the mod or in the base game": no load order, no
+replaced paths, no DLC precedence. All of this step beyond the basics is new work.
+
+**Work items.**
+
+- 3.1 `docs/overrides.md`: the game's override rules, established before any code. Sources, in
+  order: the spec work, the game's `paths.settings` and mod descriptor files, Paradox's `.info`
+  files, and a small in-game experiment on Thor-R7 if those leave a question open. It covers:
+  a later file overriding an earlier one, whole-record against field-by-field replacement,
+  `replace_path`, DLC folders, and the order files load in.
+- 3.2 A fixture mod and a fixture game stub that exercise every rule in `overrides.md`.
+- 3.3 What a definition is, per folder: the record's key, taken from the spec's folder list and
+  record schemas. Events, scripted effects and triggers, script values, on-actions, decisions,
+  interactions, traits, modifiers, localization keys, and every other folder the spec lists.
+- 3.4 References: every use of a defined name, with its position.
+- 3.5 The base-game index: every folder the spec lists, not seven.
+- 3.6 Layering: mod over base game over DLC, by the rules of `overrides.md`.
+- 3.7 Incremental update: a changed file updates its own entries and marks the files that use
+  the names it defines.
+- 3.8 The on-disk cache of the base-game index: keyed by the spec checksum and a hash of the
+  game's file manifest; written atomically; a version number in the file so a format change
+  invalidates it. Stored in the user's cache folder, never in the mod.
+- 3.9 Localization as index data: keys per language, entries with and without a version
+  number, the byte-order mark handled.
+- 3.10 File lookup without regard to letter case, and paths classified by whole folder names.
+
+**Tests.** Rows "Workspace index" and "Index cache" in MVP.md's table.
+
+**Delivers.** `packages/core/src/index/`, `docs/overrides.md`, the override fixtures.
+
+**Done when.**
+
+1. On the fixture mod, every definition and use is found and none is invented.
+2. Overrides resolve as `overrides.md` says, on every fixture case.
+3. A reloaded cache answers exactly as a fresh index; changing the spec or the game manifest
+   forces a rebuild.
+4. Indexing the whole base game is timed and the figure is in a record.
+
+**Not yet known.** The override rules themselves (open question 1 in MVP.md). How much memory
+a whole-base-game index takes; 2.3.0's partial index peaked near 1 GB on the largest mod.
+
+---
+
+## Step 4: engine checks and lookup
+
+**Goal.** Tell the modder what the game would say, with evidence, and answer any question
+about a name.
+
+**Depends on.** Step 3. From item 4.2 on, the 1.21 spec in format 5.
+
+**Work items.**
+
+- 4.1 **The check inventory, `docs/checks.md`.** One row per check: code, severity, what it
+  finds, its evidence (or "advice"), the 2.3.0 check it replaces, the fixture pair that tests
+  it. Sources: 2.3.0's engine codes (about 14 from the catalogue, 6 of its own), its plug-in
+  catalogue of 85 codes, the audit record, and for advice only the 38 required-field flags and
+  89 rule codes of the pre-2.0 schema files. The code naming scheme is fixed here; codes are
+  permanent. ck3-tiger and the CWTools rule files are looked at here for rules worth taking,
+  each proved against the game before it is adopted. *Needs no spec.*
+- 4.2 **The spec reader** and the unknown-name checks. The reader verifies the checksum and the
+  format, and exposes the package as typed data. Checks: unknown trigger, effect, scope link,
+  list, modifier and on-action; name templates (the `%s` forms) accepted; names in more than
+  one bucket resolved by context; a modifier used outside its use area.
+- 4.3 **Context.** Which blocks hold triggers and which hold effects, from the hand-kept tables
+  now in the spec: block-opening keys, iterator parameters, structural keywords, containers.
+- 4.4 **Scope checks.** The scope a block runs in, from the record's root scope, per-field
+  scopes, links and iterators; a keyword in a scope the spec says it does not support. Judged
+  only where the spec has scope data; "no requirement declared" is not a finding.
+- 4.5 **Fields and structure.** Unknown field in a record, from the record schemas; the 3
+  required fields; a wrong kind of value, from the measured value types; the structural checks
+  written by hand against catalogue messages.
+- 4.6 **Event targets and localization.** An undefined event target, as information. A missing
+  localization key and unbalanced brackets, as warnings with their catalogue evidence. An
+  unused key, as advice.
+- 4.7 **Advice checks,** each a row in the inventory with "advice" as its evidence, each
+  re-proved on the 1.21 base game before it ships.
+- 4.8 **Lookup.** For any name: its buckets, description, the scopes it supports, what it
+  takes, where it is defined and used. Where the spec has nothing it answers "unknown".
+  Modifier descriptions come from the installed game's localization.
+- 4.9 **The base game's own errors.** Every error pychivalry reports in the base game is
+  classified: a defect of the game's files, with the reason, or a pychivalry fault to fix.
+  2.3.0 left 14 unclassified.
+- 4.10 **The game-file suites:** `task game:check` (base game) and `task game:mods` (the five
+  mods), with a classification file: every error in a test mod is classified as a real defect
+  with its reason, and an unclassified error fails the suite, as in 2.3.0.
+- 4.11 **Limits that keep it usable,** each with a test: a cap on findings per file with the
+  most severe kept; a bound on the work behind "did you mean"; silence when no game folder is
+  set.
+
+**Tests.** Rows "Engine checks" and "Lookup" in MVP.md's table. One fixture pair per check: a
+bad file it fires on and a good file it is silent on.
+
+**Delivers.** `packages/core/src/{spec,check,lookup}/`, `docs/checks.md`, the base-game and
+real-mod records.
+
+**Done when.**
+
+1. Every check in the inventory has its fixture pair and both pass.
+2. Every base-game error is classified, and none is a pychivalry fault.
+3. The scope check has zero findings on every base-game use it can judge, and the record
+   states how many it judged. 2.3.0 judged 93,665 of 561,077.
+4. On the five mods the error list equals the list of real defects.
+5. The core contains no keyword list: a search for the names in 2.3.0's tables finds none.
+
+**Not yet known.** How many of the old advice rules still hold on 1.21. Whether the measured
+value types are clean enough to raise a finding, or only good enough for completion.
+
+---
+
+## Step 5: command line
+
+**Goal.** The checker as a command, with output that matches 2.3.0's so results compare.
+
+**Depends on.** Step 4.
+
+**Work items.**
+
+- 5.1 `check <mod> [--vanilla <game>] [--spec <file>] [--json]`. Exit codes: 0 no errors,
+  1 errors found, 2 bad usage or not a folder.
+- 5.2 Text output in 2.3.0's shape: the file, then `line:col  severity  code  message`, then a
+  summary line. 2.3.0's golden output file is the first test.
+- 5.3 JSON output: one finding per line with 2.3.0's six fields (`file`, `range`, `severity`,
+  `code`, `message`, `source`), new fields beside them (`evidence`, `fix`), and a final
+  summary line: tool version, spec and game builds, counts by severity and by code.
+- 5.4 Filters: `--severity`, `--code`, `--limit`.
+- 5.5 `lookup <name>…`, `explain <code>…`, each with text and JSON output.
+- 5.6 `format` and `log` are declared here and filled in at steps 8 and 11.
+- 5.7 The command uses the on-disk index, so a second run does not reload the base game.
+
+**Tests.** 2.3.0's golden text output reproduced on its fixture mod. Exit codes. JSON lines
+parse and carry the six fields. A second run is faster than the first by the load time.
+
+**Delivers.** `packages/cli/`.
+
+**Done when.** The golden tests pass, and on each of the five mods the command line's findings
+equal the core's.
+
+**Not yet known.** Nothing identified.
+
+---
+
+## Step 6: agent server
+
+**Goal.** Everything the core knows, offered to an AI agent as tools that fit a context
+window, and a scored test that an agent can really use it.
+
+**Depends on.** Step 5.
+
+**Work items.**
+
+- 6.1 The server: a local process over standard input and output, on the MCP TypeScript
+  library's 2.x line. It reports its version and a schema version, and written instructions
+  saying what it is for and which tool to start with.
+- 6.2 The tools. Names are lower-case with underscores. Each declares the shape of what it
+  takes and what it returns, and is marked read-only.
+
+| Tool | Takes | Returns |
+| --- | --- | --- |
+| `check` | A file, a folder or the whole mod; minimum severity (default error); codes; a limit (default 50); a cursor | Totals by severity and by code, always; then the findings; a cursor when there are more |
+| `lookup` | One or more names | For each: what `lookup` in item 4.8 returns |
+| `find_definition` | A name, or a file and position | Where it is defined |
+| `find_references` | A name; a limit; a cursor | Where it is used |
+| `list_definitions` | A kind; a limit; a cursor | The definitions of that kind |
+| `call_graph` | A name; a direction | Callers or callees (filled in at step 10) |
+| `analyze_log` | A log file | Findings tied to files (filled in at step 11) |
+| `explain_code` | One or more codes | What each means and its evidence |
+| `format` | A file | The formatted text, as a proposal (filled in at step 8) |
+
+- 6.3 Result size: every result stays under about 10,000 tokens. A test measures each tool on
+  the largest test mod.
+- 6.4 Bad input is returned as a result that names the valid values, not as a protocol error.
+- 6.5 The server reads only the mod folder and the game folder, and writes nothing.
+- 6.6 It loads the on-disk index; it does not build its own from scratch when one exists.
+- 6.7 The planted-defect test mod: 20 to 30 defects, one per check code, each recorded in a
+  manifest (file, code, the text it sits on); lines that look wrong and are not; and a
+  reference copy with every defect fixed that passes all the graders.
+- 6.8 The scored-run script. For each trial it makes a fresh copy of the test mod with no git
+  history and starts Claude Code's command-line mode once, on the existing login, confined to
+  this server plus file read and edit. The flags, as documented for the installed version:
+  `--strict-mcp-config --mcp-config <file> --tools "Read,Edit" --allowedTools
+  "mcp__pychivalry__*" --permission-mode dontAsk --max-budget-usd <n> --output-format
+  stream-json --verbose --no-session-persistence --model <pinned>`.
+- 6.9 The graders, in code: the checker reports zero errors; every planted defect is gone;
+  nothing outside the planted lines changed; the look-alikes are untouched; no content was
+  deleted.
+- 6.10 The record of a scored run: the harness version, the model, the tool calls and tool
+  errors per trial, the pass rate per task. 5 trials per task in development, 10 before a
+  release.
+- 6.11 The first scored run, from which the owner sets the target.
+
+**Tests.** Each tool against fixtures. The size test. The graders pass on the reference copy
+and fail on the untouched test mod.
+
+**Delivers.** `packages/mcp/`, `fixtures/planted/`, `tools/scored-run/`, the first scored
+record.
+
+**Done when.**
+
+1. Every tool passes its fixture tests and the size test.
+2. The first scored run is on record, and the owner has set the target from it.
+
+**Not yet known.** Whether confining a run with those flags also keeps out the user's own
+Claude settings; one test run settles it. How many trials the login's usage limits allow.
+
+---
+
+## Step 7: language server and extension
+
+**Goal.** The editor shows what the core knows, the agent server reaches both AI harnesses, and
+one test proves every surface gives the same answers. First preview build.
+
+**Depends on.** Step 6.
+
+**Work items.**
+
+- 7.1 **Prove the AI wiring first,** before anything else in this step, with the server from
+  step 6 and nothing more:
+  - VS Code's default AI harness sees a local server the extension registers.
+  - Claude Code sees the same server after the "Set up for Claude Code" command.
+  - The registered location survives an extension update. The extension's folder name carries
+    its version, so the server is copied to the extension's own storage folder, or the entry
+    is rewritten on activation.
+  The result is written into MVP.md's open question 4. If either harness cannot be reached as
+  designed, this step stops and the owner is asked.
+- 7.2 The VS Code floor, pinned from what 7.1 found, written into the extension's manifest and
+  into MVP.md. The starting figure is 1.146.
+- 7.3 The language server, started by the extension as a module over IPC on VS Code's own
+  runtime. Languages: `ck3` for script files, `ck3-localization` for localization files.
+  Activation when such a file opens or the workspace holds a mod descriptor.
+- 7.4 Diagnostics while typing, and for the whole mod in the background with a file limit and a
+  yield between files. Closing a file keeps its diagnostics.
+- 7.5 Completion, hover, go to definition, find references, document symbols. Hover text is
+  the spec's description. Completion offers what is valid at the position.
+- 7.6 The game-path setting: detection across every Steam library on Linux and Windows, an
+  explicit setting that overrides it, and a clear message when no game is found.
+- 7.7 The extension bundles the command line and puts it on the path of the integrated
+  terminal.
+- 7.8 "Set up for Claude Code": adds the server to Claude Code's own configuration for this
+  workspace. If the Claude Code command is not installed it says so and offers to write a
+  project configuration file instead, after asking.
+- 7.9 The same-answers test: one mod through the editor, the command line and the agent
+  server; the three finding lists must be identical.
+- 7.10 Packaging: one installable file with the three bundles and the spec. Its size is
+  recorded; 2.3.0's was 1.8 MB.
+- 7.11 A smoke test on the packaged file, installed into a clean VS Code, on Linux and Windows.
+- 7.12 The first preview build, attached to a GitHub pre-release.
+
+**Tests.** Rows "Completion and hover" and "Same answers on every surface" in MVP.md's table.
+The extension tests run with the launching VS Code's own variables removed, so they also run
+from a terminal inside VS Code.
+
+**Delivers.** `packages/lsp/`, `packages/vscode/`, the first preview build.
+
+**Done when.**
+
+1. Both AI harnesses reach the server, on Linux and Windows, as recorded in 7.1.
+2. The same-answers test passes.
+3. The packaged extension passes its smoke test on both systems.
+4. The preview build is published as a pre-release.
+
+**Not yet known.** MVP.md open question 4, which item 7.1 exists to answer. Whether three
+copies of the index in memory at once are acceptable, or the servers need to share one.
+
+---
+
+## Step 8: formatter and fixes
+
+**Goal.** One formatting, defined in writing, that never loses anything; and fixes that travel
+with findings. Second preview build.
+
+**Depends on.** Step 7.
+
+**What 2.3.0 did.** Reprinted the file from the tree with tabs, aligned `=` within a block,
+kept lists of five or fewer on one line, quoted text containing spaces, and allowed at most two
+blank lines. It had no golden files and no written rules, and its settings were not read until
+2.3.
+
+**Work items.**
+
+- 8.1 `docs/formatting.md`: the rules, decided before any code. Indentation, operator
+  alignment on or off, list wrapping, quoting, blank lines, comments, line endings. 2.3.0's
+  behaviour is the starting point and each rule is checked against how the base game is
+  written.
+- 8.2 The formatter, working from the tree and keeping every comment and token.
+- 8.3 The round-trip suite on the base game: after formatting, every file re-parses to the same
+  tree. Part of `task game:parse`.
+- 8.4 Golden files for each rule; formatting twice changes nothing.
+- 8.5 On-type formatting, derived from the same rules, tested for agreement with the formatter.
+- 8.6 Fix data in the core: where a finding has a mechanical fix, the fix is part of the
+  finding.
+- 8.7 Quick fixes, each from fix data. 2.3.0's ten are the starting list: a localization stub
+  for a missing key, a key rename, indentation, operator spacing, trailing whitespace, an
+  empty block removed, a missing `ai_chance`, and three refactors.
+- 8.8 `presentation/`: outline rules, snippets, field order and inline hints, brought back from
+  the pre-2.0 schema files as pychivalry's own data. Loaded by the language server only. A
+  test proves no check reads it.
+- 8.9 `format` in the command line and the agent server, filled in.
+- 8.10 The second preview build.
+
+**Tests.** Rows "Formatter", "On-type formatting" and "Quick fixes" in MVP.md's table.
+
+**Delivers.** `packages/core/src/{format,fix}/`, `docs/formatting.md`, `presentation/`.
+
+**Done when.**
+
+1. The round-trip suite passes on every base-game file.
+2. Every golden file and every fix fixture passes.
+3. The same-answers test is extended to formatting and passes.
+
+**Not yet known.** Whether a recognised community formatting convention exists beyond "tabs".
+
+---
+
+## Step 9: skills and the authoring run
+
+**Goal.** The AI can explain an error, fix an error and write new content that the game
+accepts, in both harnesses, and a scored run says how well. Third preview build.
+
+**Depends on.** Step 8.
+
+**Work items.**
+
+- 9.1 The skills folder, in the form both harnesses load, as proved in 7.1. Three skills:
+  explain an error, fix an error, write new content.
+- 9.2 The authoring skill's rules: look names up before using them; write events with their
+  localization; run the checker; repair from the findings; stop at zero errors or after 5
+  rounds; never claim success with errors left. Content types: events, decisions, scripted
+  effects, scripted triggers.
+- 9.3 "Set up for Claude Code" extended to install the skills.
+- 9.4 The fixed list of content requests, with what a correct result must contain for each.
+- 9.5 The scored authoring run, on the script from item 6.8. Grade one, validity: the checker.
+  Grade two, the match to the request: a separate model call that reads the request and the
+  result and answers per dimension, and may answer "cannot tell".
+- 9.6 The judge is calibrated once against results graded by hand, and the agreement is
+  recorded.
+- 9.7 The hand checklist for VS Code's built-in AI, which cannot be scripted: the same
+  requests, run by a person, with what to look for.
+- 9.8 The first scored authoring run, from which the owner sets the targets.
+- 9.9 The third preview build.
+
+**Tests.** Row "Authoring" in MVP.md's table, on its first two measures.
+
+**Delivers.** `skills/`, `fixtures/requests/`, the first scored authoring record.
+
+**Done when.**
+
+1. The three skills load in both harnesses.
+2. The first scored authoring run is on record and the owner has set the targets.
+3. The hand checklist has been run once on VS Code's built-in AI.
+
+**Not yet known.** How well a model judge agrees with hand grading. Whether one skills folder
+serves both harnesses unchanged.
+
+---
+
+## Step 10: GUI files, graphics check, call graph
+
+**Goal.** GUI files are read and navigable, missing graphics are caught, and the call graph is
+available on every surface.
+
+**Depends on.** Step 9. The GUI vocabulary from step 0 is not needed: checks against it are
+after the MVP.
+
+**What 2.3.0 did.** No GUI or GFX checks. Its script parser reported errors on 327 of the 416
+base-game GUI files. Its graphics check read nine hand-picked keys and skipped bare names,
+macro values and parent-folder paths. Its call graph had five kinds of link.
+
+**Work items.**
+
+- 10.1 `docs/gui-syntax.md`: how GUI syntax differs from script, from the base game's files:
+  `types` blocks, `template` and `using`, `blockoverride`, values with units.
+- 10.2 The GUI parser, sharing the lexer where the syntax agrees.
+- 10.3 The GUI parse suite: every base-game GUI file parses (441 in 1.21.0.3). Part of
+  `task game:parse`.
+- 10.4 The index of GUI types and templates, and go to definition on them.
+- 10.5 The graphics-file check. Which keys hold a file path is taken from the spec and written
+  in the check inventory, with its catalogue evidence. Silent when no game folder is set.
+- 10.6 The call graph in the core: an event triggering an event, a scripted effect call, a
+  scripted trigger call, an on-action firing an event or another on-action, a decision firing
+  an event.
+- 10.7 `call_graph` in the agent server, filled in.
+
+**Tests.** Rows "GUI files", "Graphics-file check" and "Call graph, call hierarchy" in MVP.md's
+table.
+
+**Delivers.** `packages/core/src/gui/`, `docs/gui-syntax.md`, the GUI parse record.
+
+**Done when.**
+
+1. Every base-game GUI file parses.
+2. The graphics check passes its fixtures and raises nothing on the base game.
+3. The call graph equals the known graph of the fixture mod, for all five kinds of link.
+
+**Not yet known.** The full extent of GUI syntax; item 10.1 finds out by reading every file
+that fails to parse.
+
+---
+
+## Step 11: game-log analysis and the in-game load
+
+**Goal.** The game's own error log, read correctly and tied to the mod's files; and the third
+measure of authored content.
+
+**Depends on.** Step 10, and Thor-R7 on the owner's word.
+
+**What 2.3.0 did.** An analyser built on 14 guessed patterns, tested on one hand-written
+16-line log. No real log exists in either repository.
+
+**Work items.**
+
+- 11.1 Capture real logs on Thor-R7: the base game alone; a fixture mod with one planted
+  defect per check; each of the five test mods. Each capture records the game build and the
+  launch options. The launch reuses the procedure in `pdx-parser-re`
+  (`research/oracle/<version>/README.md`): the mod list set through `dlc_load.json`, the game
+  started directly, the main menu judged reached when the logs go quiet, the process stopped,
+  the mod list restored and compared.
+- 11.2 `docs/game-log.md`: the real format, from those captures. Whether an entry is one line
+  or several, when the log is cleared, what debug mode adds.
+- 11.3 The matcher, built on the spec's catalogue messages. Lines it cannot match are listed.
+- 11.4 Tying a message to a file and line in the mod.
+- 11.5 The answer to MVP.md's open question 2, from the planted-defect capture: which defects
+  the game reports at load, and which only when the content runs.
+- 11.6 `log` in the command line and `analyze_log` in the agent server, filled in.
+- 11.7 The editor shows the log's findings against the mod's files. Log folders: on Windows
+  under `Documents/Paradox Interactive/Crusader Kings III/logs`, including the OneDrive
+  variant; on Linux under `~/.local/share/Paradox Interactive/Crusader Kings III/logs`; the
+  Proton location found and added.
+- 11.8 The in-game load as the authoring run's third grade: the content is loaded on Thor-R7,
+  and the log is compared with a log of the same build without it. It must add no lines that
+  name its files. The measure is named for what item 11.5 showed it proves.
+
+**Tests.** Row "Game-log analysis" in MVP.md's table, on the captured logs kept as fixtures.
+
+**Delivers.** `packages/core/src/log/`, `docs/game-log.md`, the captured logs as fixtures.
+
+**Done when.**
+
+1. Every message in the captured logs is either tied to a file and line or listed as
+   unmatched, and the unmatched count is on record.
+2. Open questions 2 and 3 in MVP.md are answered in writing.
+3. One authored result has been through the in-game load end to end.
+
+**Not yet known.** MVP.md open questions 2 and 3. Whether the game's start-up option for
+running a console command works unattended.
+
+---
+
+## Step 12: editor views
+
+**Goal.** The remaining editor features.
+
+**Depends on.** Step 11.
+
+**Work items.**
+
+- 12.1 The CK3 Explorer tree: events by namespace, decisions, interactions, scripted effects
+  and triggers, script values, on-actions, localization per language. Answered from the index;
+  each node opens its file and line.
+- 12.2 Call hierarchy, from the call graph of step 10.
+- 12.3 Selection ranges, from the syntax tree.
+
+**Tests.** Rows "CK3 Explorer tree", "Call graph, call hierarchy" and "Selection ranges,
+document symbols" in MVP.md's table.
+
+**Delivers.** The three features in `packages/lsp/` and `packages/vscode/`.
+
+**Done when.** Each passes its fixture tests, and the tree's contents equal the index on the
+five test mods.
+
+**Not yet known.** Nothing identified.
+
+---
+
+## Step 13: benchmarks, legacy removed, release 1.0.0
+
+**Goal.** Prove the definition of done, remove the old code, release.
+
+**Depends on.** Every step before it.
+
+**Work items.**
+
+- 13.1 `task game:bench`: parse, index load, cached load, check and memory, each timed apart,
+  each the median of at least five runs, compared with the 2.3.0 baselines of item 1.11 within
+  the stated tolerance.
+- 13.2 Every game-file suite re-run on the current game and spec, records committed.
+- 13.3 A final scored run of both AI suites at 10 trials per task, against the targets.
+- 13.4 The definition of done in MVP.md, checked line by line, with the evidence for each line
+  written into the release notes.
+- 13.5 The decision on the `ck3-language-support` 2.x listing and its users (MVP.md open
+  question 7), put to the owner.
+- 13.6 `legacy/` deleted. The README says the tag `v2.3.0` is the reference for anything not
+  rebuilt.
+- 13.7 User documentation: install, set up for Claude Code, settings, every diagnostic code
+  with its evidence.
+- 13.8 Release 1.0.0: the tag, the GitHub release, the installable file.
+
+**Done when.** Every line of MVP.md's definition of done holds, and the release is published.
+
+---
+
+## What is carried over from 2.3.0
+
+| From `legacy/` | Used in |
+| --- | --- |
+| 74 parser cases (`packages/engine/test/unit/parser.test.ts`, `syntax-gaps.test.ts`) | Step 2 |
+| The engine's 250 unit tests, 3 golden files, 3 fixture mods | Steps 2 to 5 |
+| The command line's golden output (`test/fixtures/example-mod.cli.txt`) | Step 5 |
+| The extension's 485 tests and 77 fixture files | Steps 7, 8, 12 |
+| The classification rules for real-mod errors (`test/corpus/real-mods/classifications.json`) | Item 4.10 |
+| The plug-in catalogue (`data/diagnostics.yaml`) and the audit record | Item 4.1 |
+| The lessons in the changelogs for 2.1 to 2.3 | MVP.md "Lessons from 2.3.0"; a test each, in the step that owns the behaviour |
+| The whole of 2.3.0, runnable | Item 1.11, the baselines |
+
+## Decisions the plan will bring to the owner
+
+| When | Decision |
+| --- | --- |
+| Item 1.6 | The spec package committed compressed or raw. |
+| Item 2.1 | What happens to a file that is not valid UTF-8. |
+| Item 3.1 | Sign-off on the override rules, if an in-game experiment is needed to settle them. |
+| Item 4.1 | Sign-off on the check inventory and the code scheme. |
+| Item 6.11 | The target for the agent-use run. |
+| Item 7.1 | Only if a harness cannot be reached as designed. |
+| Item 8.1 | Sign-off on the formatting rules. |
+| Item 9.8 | The targets for the authoring run. |
+| Step 11 | Each use of Thor-R7. |
+| Item 13.5 | What happens to the 2.x listing. |
