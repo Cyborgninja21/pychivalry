@@ -1,0 +1,10 @@
+# Every text file is checked out with LF on every platform. Prettier, the spec and record
+# checksums, and the CK3 fixtures all expect LF; without this, Windows would check sources
+# out with CRLF and the format check would fail on every file.
+* text=auto eol=lf
+
+# Binary data: never converted.
+*.gz binary
+*.png binary
+*.dds binary
+*.tga binary

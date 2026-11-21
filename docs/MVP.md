@@ -2,8 +2,8 @@
 
 Status: draft, 2026-11-21. Decisions are answered, the scope is confirmed, and every build step
 has been checked against real data: the spec package, the 2.3.0 code and its records, the game
-installed today, and the current VS Code, Claude Code and GitHub documentation. Nothing in this
-document is built yet.
+installed today, and the current VS Code, Claude Code and GitHub documentation. Build step 1,
+the repository skeleton, is built; nothing else in this document is yet.
 
 The build plan, step by step, is in [PLAN.md](PLAN.md).
 
@@ -355,6 +355,9 @@ The design:
 The budgets: build step 1 runs 2.3.0 on this laptop against the current game and records, for
 each measure, the median of at least five runs, with a cold start and a warm start kept apart.
 The rebuild must stay within a stated tolerance of those medians.
+The records are in `records/baseline-2.3.0/`. The operating system's file cache cannot be dropped
+without administrator rights, so each series keeps its first run, in a fresh process, apart from
+the later ones instead of claiming a cold start.
 
 ## Tests per feature
 

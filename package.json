@@ -1,0 +1,39 @@
+{
+    "name": "pychivalry-repo",
+    "version": "0.0.0",
+    "private": true,
+    "description": "pychivalry, rebuilt: Crusader Kings 3 modding support for VS Code and AI agents",
+    "license": "Apache-2.0",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/Cyborgninja21/pychivalry.git"
+    },
+    "type": "module",
+    "engines": {
+        "node": ">=22.13.0"
+    },
+    "workspaces": [
+        "packages/core",
+        "packages/cli",
+        "packages/mcp",
+        "packages/lsp",
+        "packages/vscode",
+        "tools"
+    ],
+    "scripts": {
+        "build": "tsc -b",
+        "clean": "tsc -b --clean",
+        "test": "npm run test --workspaces",
+        "lint": "eslint . --max-warnings=0",
+        "format": "prettier --write .",
+        "format:check": "prettier --check ."
+    },
+    "devDependencies": {
+        "@eslint/js": "10.0.1",
+        "@types/node": "22.20.5",
+        "eslint": "10.15.0",
+        "prettier": "3.10.1",
+        "typescript": "6.0.3",
+        "typescript-eslint": "8.73.0"
+    }
+}

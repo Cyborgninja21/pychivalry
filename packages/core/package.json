@@ -1,0 +1,19 @@
+{
+    "name": "@pychivalry/core",
+    "version": "0.0.0",
+    "private": true,
+    "description": "The CK3 core: parse, index, check, lookup, format and fix data. No runtime dependencies.",
+    "license": "Apache-2.0",
+    "type": "module",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "default": "./dist/index.js"
+        }
+    },
+    "scripts": {
+        "test": "node --test \"dist/**/*.test.js\""
+    }
+}

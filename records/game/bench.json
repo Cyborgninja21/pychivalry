@@ -1,0 +1,44 @@
+{
+    "record_format": 1,
+    "suite": "game:bench",
+    "command": "task game:bench",
+    "made_at": "2026-11-21T20:54:45.913Z",
+    "tool": {
+        "name": "pychivalry",
+        "version": "0.0.0",
+        "commit": "41e39b07917082c956396a5951c76a2c1206b81c",
+        "dirty": false
+    },
+    "machine": {
+        "os": "linux",
+        "arch": "x64",
+        "logical_cpus": 16,
+        "memory_gib": 62,
+        "node": "v22.23.4"
+    },
+    "game": {
+        "build": "1.21.0.3",
+        "manifest_sha256": "83004e2f80b5db245db9ecb9cc88a927fd520875e34ec899f49f2921ebf3c235",
+        "files": 55608,
+        "content_hashed_files": 17388
+    },
+    "spec": {
+        "version": "1.20.0.2",
+        "sha256": "a9959bf9d650fe793ffd3ee60eb6589b8cb6eaaaae778ce84b58fdc535f2eeb6",
+        "package_format": 4
+    },
+    "corpus": {
+        "manifest_sha256": "da1a745c50330a3a50dee079fe53609cd236f2f8db8c9533084cfb96fbb0b2c6",
+        "slugs": [
+            "balance-of-power-ui",
+            "divine-intervention",
+            "elf-destiny",
+            "rice",
+            "viet-events"
+        ]
+    },
+    "notes": [
+        "Build step 1 stub: game:bench records the run's context and no results yet (docs/PLAN.md, item 1.8)."
+    ],
+    "results": {}
+}

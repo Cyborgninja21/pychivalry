@@ -1,0 +1,591 @@
+{
+    "record_format": 1,
+    "suite": "baseline:speed",
+    "command": "LEGACY_BUILD=<legacy build> CK3_GAME_PATH=<game dir> CK3_CORPUS=<corpus dir> BASELINE_PARTS=mods BASELINE_RUNS=11 task baseline:speed",
+    "made_at": "2026-11-21T21:04:18.649Z",
+    "tool": {
+        "name": "pychivalry",
+        "version": "2.3.0",
+        "commit": "3874ebf8a3c7e3defad35bb673a7ad618d6dcf67",
+        "dirty": true
+    },
+    "machine": {
+        "os": "linux",
+        "arch": "x64",
+        "logical_cpus": 16,
+        "memory_gib": 62,
+        "node": "v22.23.4"
+    },
+    "game": {
+        "build": "1.21.0.3",
+        "manifest_sha256": "83004e2f80b5db245db9ecb9cc88a927fd520875e34ec899f49f2921ebf3c235",
+        "files": 55608,
+        "content_hashed_files": 17388
+    },
+    "spec": {
+        "version": "1.20.0.2",
+        "sha256": "a9959bf9d650fe793ffd3ee60eb6589b8cb6eaaaae778ce84b58fdc535f2eeb6",
+        "package_format": 4
+    },
+    "corpus": {
+        "manifest_sha256": "da1a745c50330a3a50dee079fe53609cd236f2f8db8c9533084cfb96fbb0b2c6",
+        "slugs": [
+            "balance-of-power-ui",
+            "divine-intervention",
+            "elf-destiny",
+            "rice",
+            "viet-events"
+        ]
+    },
+    "notes": [
+        "Release 2.3.0 (the v2.3.0 tree, identical to legacy/), built from an export of legacy/ outside the repository by task baseline:prepare, run with its own spec package (1.20.0.2, format 4) on the current game build. Its spec predates that build, so it reports many unknown-name findings; only the timings and memory are recorded here, not the findings.",
+        "Each series is one first run and then the later runs, one process at a time. \"first\" is the first run of the series in a fresh process; it is not a cold start: the operating system file cache could not be dropped, and the base game and corpus files had already been read (by the corpus copy, the manifest hashing and earlier series), so they were most likely cached. \"later\" gives the median, minimum, maximum and spread (maximum minus minimum) of the remaining runs, and every value.",
+        "The machine was in ordinary use while the runs were made; other processes were running. context.load_average_1m is the one-minute load average just before each run.",
+        "load_ms is the workspace load (the mod and the base game indexed) before any mod file is checked; whole_mod_check_ms is the load plus the check of every script file, as release 2.3.0 reports them; peak_rss_kib is the peak resident memory of the process that did both.",
+        "Exit code 1 is expected: findings that 2.3.0's classification file does not cover, from its 1.20.0.2 spec on the newer game and newer mod versions."
+    ],
+    "results": {
+        "series": [
+            {
+                "name": "mod balance-of-power-ui: command-line check",
+                "method": "corpus-acceptance",
+                "mod": "balance-of-power-ui",
+                "runs": 11,
+                "measures": {
+                    "load_ms": {
+                        "unit": "ms",
+                        "first": 1824,
+                        "later": {
+                            "n": 10,
+                            "median": 1912,
+                            "min": 1778,
+                            "max": 2167,
+                            "spread": 389,
+                            "values": [
+                                1975,
+                                2167,
+                                2083,
+                                1917,
+                                1852,
+                                1825,
+                                1937,
+                                1778,
+                                1907,
+                                1818
+                            ]
+                        }
+                    },
+                    "whole_mod_check_ms": {
+                        "unit": "ms",
+                        "first": 1869,
+                        "later": {
+                            "n": 10,
+                            "median": 1921,
+                            "min": 1785,
+                            "max": 2176,
+                            "spread": 391,
+                            "values": [
+                                1990,
+                                2176,
+                                2091,
+                                1926,
+                                1861,
+                                1832,
+                                1948,
+                                1785,
+                                1916,
+                                1827
+                            ]
+                        }
+                    },
+                    "peak_rss_kib": {
+                        "unit": "KiB",
+                        "first": 238060,
+                        "later": {
+                            "n": 10,
+                            "median": 247322,
+                            "min": 240676,
+                            "max": 267236,
+                            "spread": 26560,
+                            "values": [
+                                256236,
+                                242404,
+                                248272,
+                                240744,
+                                267236,
+                                249904,
+                                252048,
+                                240676,
+                                246372,
+                                245548
+                            ]
+                        }
+                    }
+                },
+                "context": {
+                    "script_files_checked": [
+                        5
+                    ],
+                    "exit_codes": [
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0
+                    ],
+                    "load_average_1m": [
+                        15.07,
+                        14.26,
+                        14.26,
+                        13.44,
+                        13.44,
+                        13.44,
+                        12.84,
+                        12.84,
+                        12.05,
+                        12.05,
+                        11.57
+                    ]
+                }
+            },
+            {
+                "name": "mod divine-intervention: command-line check",
+                "method": "corpus-acceptance",
+                "mod": "divine-intervention",
+                "runs": 11,
+                "measures": {
+                    "load_ms": {
+                        "unit": "ms",
+                        "first": 7530,
+                        "later": {
+                            "n": 10,
+                            "median": 7634.5,
+                            "min": 6830,
+                            "max": 8322,
+                            "spread": 1492,
+                            "values": [
+                                6830,
+                                7991,
+                                7735,
+                                8207,
+                                7534,
+                                7080,
+                                8310,
+                                7475,
+                                8322,
+                                7308
+                            ]
+                        }
+                    },
+                    "whole_mod_check_ms": {
+                        "unit": "ms",
+                        "first": 21682,
+                        "later": {
+                            "n": 10,
+                            "median": 21044.5,
+                            "min": 19075,
+                            "max": 23424,
+                            "spread": 4349,
+                            "values": [
+                                21031,
+                                19075,
+                                19978,
+                                23424,
+                                19921,
+                                21405,
+                                21422,
+                                21058,
+                                22424,
+                                19654
+                            ]
+                        }
+                    },
+                    "peak_rss_kib": {
+                        "unit": "KiB",
+                        "first": 2511692,
+                        "later": {
+                            "n": 10,
+                            "median": 2496890,
+                            "min": 2481644,
+                            "max": 2530804,
+                            "spread": 49160,
+                            "values": [
+                                2511656,
+                                2495860,
+                                2490976,
+                                2482672,
+                                2530804,
+                                2502996,
+                                2496500,
+                                2497280,
+                                2501040,
+                                2481644
+                            ]
+                        }
+                    }
+                },
+                "context": {
+                    "script_files_checked": [
+                        227
+                    ],
+                    "exit_codes": [
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1
+                    ],
+                    "load_average_1m": [
+                        11.57,
+                        9.33,
+                        7.43,
+                        5.82,
+                        5.59,
+                        6.32,
+                        5.83,
+                        4.75,
+                        5.27,
+                        4.75,
+                        4.99
+                    ]
+                }
+            },
+            {
+                "name": "mod elf-destiny: command-line check",
+                "method": "corpus-acceptance",
+                "mod": "elf-destiny",
+                "runs": 11,
+                "measures": {
+                    "load_ms": {
+                        "unit": "ms",
+                        "first": 3379,
+                        "later": {
+                            "n": 10,
+                            "median": 3125,
+                            "min": 2703,
+                            "max": 5067,
+                            "spread": 2364,
+                            "values": [
+                                3108,
+                                2703,
+                                4305,
+                                5067,
+                                2764,
+                                3060,
+                                3354,
+                                3504,
+                                3142,
+                                2742
+                            ]
+                        }
+                    },
+                    "whole_mod_check_ms": {
+                        "unit": "ms",
+                        "first": 4911,
+                        "later": {
+                            "n": 10,
+                            "median": 4171.5,
+                            "min": 3644,
+                            "max": 6082,
+                            "spread": 2438,
+                            "values": [
+                                4133,
+                                3644,
+                                5317,
+                                6082,
+                                3775,
+                                4019,
+                                4505,
+                                4543,
+                                4210,
+                                3727
+                            ]
+                        }
+                    },
+                    "peak_rss_kib": {
+                        "unit": "KiB",
+                        "first": 687608,
+                        "later": {
+                            "n": 10,
+                            "median": 677672,
+                            "min": 657040,
+                            "max": 699032,
+                            "spread": 41992,
+                            "values": [
+                                689080,
+                                697868,
+                                699032,
+                                664236,
+                                674440,
+                                673968,
+                                683664,
+                                678360,
+                                676984,
+                                657040
+                            ]
+                        }
+                    }
+                },
+                "context": {
+                    "script_files_checked": [
+                        598
+                    ],
+                    "exit_codes": [
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1
+                    ],
+                    "load_average_1m": [
+                        4.81,
+                        4.91,
+                        4.75,
+                        4.75,
+                        4.66,
+                        4.92,
+                        5.09,
+                        4.84,
+                        5.1,
+                        4.85,
+                        4.85
+                    ]
+                }
+            },
+            {
+                "name": "mod rice: command-line check",
+                "method": "corpus-acceptance",
+                "mod": "rice",
+                "runs": 11,
+                "measures": {
+                    "load_ms": {
+                        "unit": "ms",
+                        "first": 3882,
+                        "later": {
+                            "n": 10,
+                            "median": 4037,
+                            "min": 3635,
+                            "max": 4603,
+                            "spread": 968,
+                            "values": [
+                                4087,
+                                4103,
+                                3987,
+                                3638,
+                                3635,
+                                3906,
+                                4276,
+                                4603,
+                                3922,
+                                4288
+                            ]
+                        }
+                    },
+                    "whole_mod_check_ms": {
+                        "unit": "ms",
+                        "first": 7522,
+                        "later": {
+                            "n": 10,
+                            "median": 7276,
+                            "min": 6986,
+                            "max": 7997,
+                            "spread": 1011,
+                            "values": [
+                                7182,
+                                7980,
+                                7164,
+                                6986,
+                                7012,
+                                7173,
+                                7997,
+                                7765,
+                                7370,
+                                7979
+                            ]
+                        }
+                    },
+                    "peak_rss_kib": {
+                        "unit": "KiB",
+                        "first": 1000088,
+                        "later": {
+                            "n": 10,
+                            "median": 1006750,
+                            "min": 997376,
+                            "max": 1022228,
+                            "spread": 24852,
+                            "values": [
+                                1022228,
+                                1008944,
+                                1009400,
+                                1002556,
+                                1017916,
+                                1004556,
+                                1009652,
+                                998460,
+                                998984,
+                                997376
+                            ]
+                        }
+                    }
+                },
+                "context": {
+                    "script_files_checked": [
+                        1313
+                    ],
+                    "exit_codes": [
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1
+                    ],
+                    "load_average_1m": [
+                        5.02,
+                        5.81,
+                        5.82,
+                        6,
+                        7.04,
+                        6.79,
+                        6.52,
+                        6.56,
+                        6.85,
+                        7.1,
+                        7.08
+                    ]
+                }
+            },
+            {
+                "name": "mod viet-events: command-line check",
+                "method": "corpus-acceptance",
+                "mod": "viet-events",
+                "runs": 11,
+                "measures": {
+                    "load_ms": {
+                        "unit": "ms",
+                        "first": 2443,
+                        "later": {
+                            "n": 10,
+                            "median": 2510.5,
+                            "min": 2352,
+                            "max": 2809,
+                            "spread": 457,
+                            "values": [
+                                2646,
+                                2460,
+                                2352,
+                                2609,
+                                2561,
+                                2401,
+                                2809,
+                                2450,
+                                2457,
+                                2676
+                            ]
+                        }
+                    },
+                    "whole_mod_check_ms": {
+                        "unit": "ms",
+                        "first": 2854,
+                        "later": {
+                            "n": 10,
+                            "median": 2940.5,
+                            "min": 2773,
+                            "max": 3283,
+                            "spread": 510,
+                            "values": [
+                                3283,
+                                2862,
+                                2779,
+                                3011,
+                                2997,
+                                2773,
+                                3270,
+                                2872,
+                                2884,
+                                3090
+                            ]
+                        }
+                    },
+                    "peak_rss_kib": {
+                        "unit": "KiB",
+                        "first": 458000,
+                        "later": {
+                            "n": 10,
+                            "median": 463560,
+                            "min": 450236,
+                            "max": 499388,
+                            "spread": 49152,
+                            "values": [
+                                464324,
+                                499388,
+                                459644,
+                                450236,
+                                463192,
+                                458968,
+                                465492,
+                                463928,
+                                452612,
+                                469620
+                            ]
+                        }
+                    }
+                },
+                "context": {
+                    "script_files_checked": [
+                        67
+                    ],
+                    "exit_codes": [
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0
+                    ],
+                    "load_average_1m": [
+                        7.45,
+                        7.45,
+                        7.17,
+                        7.08,
+                        7.08,
+                        7.15,
+                        7.14,
+                        7.14,
+                        6.81,
+                        6.66,
+                        7.17
+                    ]
+                }
+            }
+        ]
+    }
+}

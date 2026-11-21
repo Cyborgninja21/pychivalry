@@ -1,0 +1,7 @@
+# The pinned mod corpus: see records/corpus/README.md. Written by task corpus:manifest.
+slug	workshop_id	name	supported_version	files	sha256
+balance-of-power-ui	3157042775	Balance of Power UI	1.*.*	16	d9c165cb85cbe18d0bff2cd34eab321f36550ec99ef563e75770ceaf210cf911
+divine-intervention	2986538297	Divine Intervention Cheat Menu	1.21.0.3	570	7b77a2e3eb971c486a661f525d3a99d7b258779f93eeced297a808db3485ed90
+elf-destiny	3114064450	Elf Destiny	1.21.*	2008	a1c0bacfd951762a423936cbfb69d47319fc4cd7993df7053a032d14ac928d2f
+rice	2273832430	Regional Immersion and Cultural Enrichment (RICE)	1.19.*	4134	595dcb2734957bc44cc2d326205dbbea8f28838b06174e5d6bba4ca1acd86fc3
+viet-events	2227658180	VIET Events - A Flavor and Immersion Event Mod	1.21.*	446	bc531aa97baf99cfcb077ae946f968ee960c50d69ab57c77a385b3a57538d4ab

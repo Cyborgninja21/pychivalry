@@ -1,0 +1,17 @@
+{
+    "name": "@pychivalry/tools",
+    "version": "0.0.0",
+    "private": true,
+    "description": "Scripts behind the local tasks: the spec and record checks, the game-file suites, the corpus manifest and the 2.3.0 baselines.",
+    "license": "Apache-2.0",
+    "type": "module",
+    "bin": {
+        "pychivalry-tools": "dist/cli.js"
+    },
+    "dependencies": {
+        "ajv": "8.20.0"
+    },
+    "scripts": {
+        "test": "node --test \"dist/**/*.test.js\""
+    }
+}

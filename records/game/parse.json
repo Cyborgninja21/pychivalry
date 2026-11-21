@@ -1,0 +1,35 @@
+{
+    "record_format": 1,
+    "suite": "game:parse",
+    "command": "task game:parse",
+    "made_at": "2026-11-21T20:53:56.434Z",
+    "tool": {
+        "name": "pychivalry",
+        "version": "0.0.0",
+        "commit": "3107a853e2fba09d968eaa5d486a2bb397884496",
+        "dirty": false
+    },
+    "machine": {
+        "os": "linux",
+        "arch": "x64",
+        "logical_cpus": 16,
+        "memory_gib": 62,
+        "node": "v22.23.4"
+    },
+    "game": {
+        "build": "1.21.0.3",
+        "manifest_sha256": "83004e2f80b5db245db9ecb9cc88a927fd520875e34ec899f49f2921ebf3c235",
+        "files": 55608,
+        "content_hashed_files": 17388
+    },
+    "spec": {
+        "version": "1.20.0.2",
+        "sha256": "a9959bf9d650fe793ffd3ee60eb6589b8cb6eaaaae778ce84b58fdc535f2eeb6",
+        "package_format": 4
+    },
+    "corpus": null,
+    "notes": [
+        "Build step 1 stub: game:parse records the run's context and no results yet (docs/PLAN.md, item 1.8)."
+    ],
+    "results": {}
+}
