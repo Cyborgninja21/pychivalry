@@ -1,0 +1,40 @@
+{
+    "repository": "Cyborgninja21/pychivalry",
+    "branch": "main",
+    "pages": [
+        { "page": "Home", "source": "docs/wiki/Home.md" },
+        { "page": "User-Guide", "source": "docs/guide/README.md" },
+        { "page": "Installing", "source": "docs/guide/install.md" },
+        { "page": "Commands", "source": "docs/guide/commands.md" },
+        { "page": "Settings", "source": "docs/guide/settings.md" },
+        { "page": "References", "source": "docs/references/README.md" },
+        { "page": "Reference-Game-Files", "source": "docs/references/game-files.md" },
+        { "page": "Reference-Spec-Package", "source": "docs/references/spec-package.md" },
+        { "page": "Reference-Wiki-Era-Schemas", "source": "docs/references/wiki-era-schemas.md" },
+        { "page": "Reference-Community-Tools", "source": "docs/references/community-tools.md" },
+        { "page": "Reference-Release-2-3-0", "source": "docs/references/release-2.3.0.md" },
+        {
+            "page": "Reference-Editors-And-Agents",
+            "source": "docs/references/editors-and-agents.md"
+        },
+        { "page": "Test-Data", "source": "docs/test-data.md" },
+        { "page": "Decision-Log", "source": "docs/decisions.md" }
+    ],
+    "sidebar": [
+        { "heading": "pychivalry", "pages": ["Home"] },
+        { "heading": "User guide", "pages": ["User-Guide", "Installing", "Commands", "Settings"] },
+        {
+            "heading": "References",
+            "pages": [
+                "References",
+                "Reference-Game-Files",
+                "Reference-Spec-Package",
+                "Reference-Wiki-Era-Schemas",
+                "Reference-Community-Tools",
+                "Reference-Release-2-3-0",
+                "Reference-Editors-And-Agents"
+            ]
+        },
+        { "heading": "Project", "pages": ["Test-Data", "Decision-Log"] }
+    ]
+}

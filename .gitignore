@@ -24,3 +24,6 @@ coverage/
 *~
 .DS_Store
 Thumbs.db
+
+# A local build of the wiki (task wiki:build)
+.wiki-build/
