@@ -1,7 +1,7 @@
 # pychivalry: MVP
 
-Status: draft, 2026-11-21. The seven opening decisions are answered, the scope is confirmed, and
-a review of the first draft is folded in. Nothing in this document is built yet.
+Status: draft, 2026-11-21. The opening decisions and the decisions raised by the review are
+answered, and the scope is confirmed. Nothing in this document is built yet.
 
 ## What pychivalry is
 
@@ -29,6 +29,13 @@ lives unchanged in `legacy/`.
 | Authoring bar | The authoring loop has a round limit of 5. Its pass-rate target is set after the first scored run. |
 | CI | A new root workflow arrives with the repository skeleton (build step 1). Until then nothing runs, and `legacy/` is not re-tested. |
 | Marketplace | Not in the MVP. 1.0.0 ships as a downloadable file on GitHub, which means no automatic updates for its users. |
+| VS Code only | pychivalry is always used through VS Code. There is always an extension; the command line and the agent server ship inside it and are never installed separately. Nothing is published to npm. |
+| AI harness | The AI that uses pychivalry is Claude Code running in VS Code, or VS Code's built-in AI. The same two run the project's AI test suites. No API key is stored anywhere. |
+| Authored content | Scored on validity (the checker) and on two further measures: a model judging the result against the request, and loading the content in the real game and reading its error log. |
+| Game patches | The spec is re-derived on the owner's word after a patch. Until then pychivalry reports the version mismatch and keeps working. Nothing runs unattended on the analysis machine. |
+| Platforms | Linux and Windows are supported and tested. macOS is untested. |
+| Private runner | Thor-R7, the Windows desktop that already holds the game, the analysis tools and the mod cache. |
+| Authoring order | The authoring loop is built straight after the formatter, at build step 9. |
 
 ## Principles
 
@@ -54,15 +61,17 @@ lives unchanged in `legacy/`.
 
 ### 1. Built for AI agents to use
 
-An agent can do everything the editor can, without an editor.
+An agent working in VS Code (Claude Code, or VS Code's built-in AI) can do everything the
+editor's own features can, as structured data.
 
-- **MCP server** (`pychivalry mcp`), with tools for: check a file or a whole mod; look up a
+- **MCP server**, shipped inside the extension and registered by it, with tools for: check a file or a whole mod; look up a
   trigger, effect, scope, modifier or record field (what it is, where it is valid, what it
   takes); find a definition and its references; list a mod's events, decisions, scripted
   effects and so on; show what calls a scripted effect or trigger; analyse a game error log;
   explain a diagnostic code with its evidence; format a file.
-- **Command line** (`pychivalry check <mod> --vanilla <game> --json`), with the same findings as
-  the editor and an exit code that says whether there are errors.
+- **Command line** (`pychivalry check <mod> --vanilla <game> --json`), bundled in the extension
+  for agents and tasks running in VS Code's terminal, with the same findings as the editor and
+  an exit code that says whether there are errors.
 - Results are sized for a context window: counts and the most severe findings first, with
   paging for the rest.
 
@@ -78,9 +87,9 @@ The extension gives the editor's own AI chat CK3 knowledge instead of guesses.
   new content (see sense 4).
 - Quick fixes on diagnostics come from the same fix data an agent receives.
 
-The shipped product holds no model and no API key. It uses whichever model the user's editor
-or agent already has. The project's own test runs do call a model; see
-[AI tests](#ai-tests).
+pychivalry holds no model and no API key. It uses the AI already running in the user's VS
+Code: Claude Code or VS Code's built-in AI. The project's own AI test runs use the same two;
+see [AI tests](#ai-tests).
 
 ### 3. Built by AI agents
 
@@ -104,20 +113,24 @@ The headline feature: describe content, get script the game accepts.
   decisions, scripted effects and scripted triggers. Other types follow after the MVP.
 - Output is always a proposed change the person or agent reviews; nothing is written into a
   mod silently.
-- Available from the `@ck3` participant in VS Code and as an MCP prompt for outside agents.
+- Available from the `@ck3` participant for VS Code's built-in AI, and as an MCP prompt for
+  Claude Code.
 
 **Zero checker errors is not the same as content that works.** The checker proves the script
 is valid: known names, right scopes, required fields. It does not prove an event can fire, does
-what was asked, or reads sensibly. The MVP therefore scores authored content on two measures:
-validity (the checker) and a second measure of whether it does the job. Which second measure
-is [open decision 2](#open-decisions).
+what was asked, or reads sensibly. The MVP therefore scores authored content three ways:
+
+1. **Validity.** The checker reports zero errors.
+2. **Does what was asked.** A model reads the request and the result and scores the match.
+3. **Loads in the game.** The content is loaded in CK3 on the private runner and the game's own
+   error log is read back; the content must add no errors to it.
 
 ## Who it is for
 
 | User | Surface | What they get |
 | --- | --- | --- |
 | A modder in VS Code | The extension | Engine-true errors, completion, hover, go to definition, AI chat that knows CK3. |
-| An AI agent working on a mod | MCP server, command line | The same checks and lookups as structured data, and the authoring loop. |
+| An AI agent working on a mod in VS Code | The extension's MCP server and bundled command line | The same checks and lookups as structured data, and the authoring loop. |
 | An agent or person developing pychivalry | The repository | A spec-driven core and suites that judge a change without a human. |
 
 ## Architecture
@@ -131,11 +144,12 @@ spec package (from pdx-parser-re)
   |               |           |              |
 packages/cli   packages/mcp   packages/lsp   packages/author
 command line   agent server   language       generate, check, repair loop
-                              server         (model supplied by the caller)
+                              server         (model supplied by VS Code)
                                  |
                           packages/vscode
-                          thin extension: starts the server, registers the
-                          chat participant and the language-model tools
+                          thin extension: bundles all of the above, starts the
+                          servers, registers the agent server, the chat
+                          participant and the language-model tools
 ```
 
 Rules that keep it honest:
@@ -181,9 +195,11 @@ error log against a mod), and `mcp` to start the agent server.
 
 The tools listed under [sense 1](#1-built-for-ai-agents-to-use), plus the authoring prompt.
 
-- **Connection.** Started by the agent's host as a local process and spoken to over standard
-  input and output. No network port is opened.
-- **Folders.** The mod folder and the game folder are given when the server starts. The server
+- **Connection.** Bundled in the extension and registered by it with VS Code, so Claude Code
+  and VS Code's built-in AI find it without setup. It runs as a local process spoken to over
+  standard input and output. No network port is opened.
+- **Folders.** The mod folder is the open workspace and the game folder is the extension's
+  game-path setting. The server
   reads only inside those two folders, and writes nothing: changes are returned as proposals.
 - **Lifetime.** One long-running process per mod that holds the index in memory, so only the
   first call pays for loading the base game.
@@ -218,9 +234,9 @@ during this build.
   which version is installed.
 - When they differ, it says so once, plainly, and carries on: findings are still produced, and
   each run's output states the mismatch. It never refuses to work.
-- Deriving a spec for a new game version happens in `pdx-parser-re`, on the machine that holds
-  the analysis tools, and arrives here as a new committed file. Who starts that, and how soon
-  after a patch, is [open decision 3](#open-decisions).
+- Deriving a spec for a new game version happens in `pdx-parser-re`, on Thor-R7, and arrives
+  here as a new committed file. It is started on the owner's word after a patch. Nothing detects
+  a patch or starts a derivation unattended.
 
 ## Speed
 
@@ -268,27 +284,28 @@ runner (game files); `M` means it calls an AI model (see [AI tests](#ai-tests)).
 | CK3 Explorer tree | Fixture mod and real mods `P` | Tree contents equal the index; each node opens the right file and line. |
 | Same answers on every surface | One mod through editor, command line and agent server | The three finding lists are identical. Extended each time a build step adds a feature. |
 | Agent use | Planted defects in a test mod `M` | An agent with only the agent server finds and fixes them; scored automatically. |
-| Authoring | Fixed content requests `M` | Scored on validity and on the second measure. |
-| Speed | Benchmarks `P` | No slower than the 2.3.0 figures above, on the same machine. |
+| Authoring | Fixed content requests `M`; the in-game load also `P` | Scored on validity, on the match to the request, and on loading in the game. |
+| Speed | Benchmarks `P` | No slower than release 2.3.0 measured on the same runner. |
 
 ## AI tests
 
-Two suites call an AI model: agent use and authoring. That needs things the first draft did
-not state.
+Two suites call an AI model: agent use and authoring.
 
+- **The model is the one a user would have:** Claude Code running in VS Code, or VS Code's
+  built-in AI. A scored run is started from such a session. No API key is stored in the
+  repository, in CI or on the runner.
 - These suites are **scored runs**, not pass-or-fail gates on every change. A model's output
   is not repeatable, so each request runs several times and the result is a rate.
-- They run on demand and before a release, not on every commit, because each run costs money.
+- They run when started by a person or an agent, and before a release. They never run in CI.
 - Everything else in `task ci` stays free of any model, any key and any network call.
-- Which model, where its key is kept and what a run may cost is
-  [open decision 1](#open-decisions).
+- Each scored run records which harness and model produced it, so two runs can be compared.
 
 ## Test data
 
-- **Base game.** Read from the game install on the private runner. Never committed.
+- **Base game.** Read from the game install on Thor-R7, the private runner. Never committed.
 - **Real mods.** The five mods used for 2.3.0 were copied from a Steam workshop cache. They
   cannot be committed to a public repository, and they change when their authors update them.
-  The runner keeps a pinned copy with a manifest (mod, workshop id, version, file count), and a
+  Thor-R7 keeps a pinned copy with a manifest (mod, workshop id, version, file count), and a
   refresh is a deliberate act that re-records the expected results. Only mods the project
   owner supplies are used.
 - **Fixtures.** Small hand-written mods committed in this repository. Everything that is not
@@ -296,18 +313,18 @@ not state.
 
 ## Distribution and platforms
 
-- **Extension.** A downloadable file attached to each GitHub release. No Marketplace listing in
-  the MVP, so users update by hand.
-- **Command line and agent server.** How they are installed without the extension is
-  [open decision 4](#open-decisions).
-- **Operating systems.** Which are supported and tested is
-  [open decision 5](#open-decisions). 2.3.0 ran its CI on Linux, Windows and macOS.
+- **One thing to install: the extension.** A downloadable file attached to each GitHub release.
+  It contains the language server, the agent server and the command line. No Marketplace
+  listing in the MVP, so users update by hand.
+- **Nothing else is published.** No npm package and no separate command-line download.
+- **Operating systems.** Linux and Windows are supported and tested in public CI. macOS is
+  untested: it may work, and nothing proves it.
 
 ## Not in the MVP
 
 These come after the MVP: colour swatches and picker, support for more than one game version at
-a time, publishing to the VS Code Marketplace, and authoring of content types beyond the four
-named above.
+a time, publishing to the VS Code Marketplace, macOS testing, use outside VS Code, and
+authoring of content types beyond the four named above.
 
 ## Definition of done
 
@@ -323,10 +340,10 @@ The MVP is done when all of these hold, each proved by a suite in the repository
 4. **Same answers everywhere.** For the same mod, the editor, the command line and the agent
    server report the same findings.
 5. **Agent use.** The scored agent run meets its target.
-6. **Authoring.** The scored authoring run meets its target on both measures. The targets are
-   set once the first run exists.
-7. **Speed.** No slower than the 2.3.0 figures in [Speed](#speed), enforced by the benchmark
-   suite on the private runner.
+6. **Authoring.** The scored authoring run meets its target on all three measures. The targets
+   are set once the first run exists.
+7. **Speed.** No slower than release 2.3.0 measured on Thor-R7 (the figures in [Speed](#speed)
+   are re-recorded there in build step 1), enforced by the benchmark suite on the runner.
 8. **Development needs no human.** `task ci` passes from a clean clone with no display, no
    game files, no model and no key.
 
@@ -345,9 +362,10 @@ repository's history.
 Each step ends with its suites passing; the next does not start before that. The same-answers
 test is extended in every step from 7 onward that adds a feature.
 
-1. Repository skeleton: workspace layout, `task ci`, the root CI workflow, `AGENTS.md`, the
-   spec package committed with its checksum, the private runner registered with the game files
-   and the pinned mod corpus.
+1. Repository skeleton: workspace layout, `task ci`, the root CI workflow (Linux and Windows),
+   `AGENTS.md`, the spec package committed with its checksum, the private runner registered on
+   Thor-R7 with the game files and the pinned mod corpus, and the 2.3.0 speed figures
+   re-recorded on that machine as the baseline.
 2. Parser, with the base-game parse suite and the broken-input fixtures.
 3. Workspace index, with the on-disk cache.
 4. Engine checks and lookup, in this order, each with its fixtures and the base-game suite:
@@ -357,41 +375,38 @@ test is extended in every step from 7 onward that adds a feature.
    4. Required fields and the error catalogue's structural checks.
    5. Event targets and localization.
    6. Lookup, then the real-mod suite.
-5. Command line, JSON output. **Preview build:** the command-line checker.
-6. Agent server (MCP), with the planted-defect agent suite. **Preview build:** agents can use it.
-7. Language server and the thin VS Code extension, with the same-answers test.
-   **Preview build:** the extension, as a pre-release.
-8. Formatter and fix data, quick fixes.
-9. GUI and GFX file support, the graphics-file check and the call graph, on every surface.
-10. Game-log analysis, on every surface.
-11. Editor views: the CK3 Explorer tree, call hierarchy and selection ranges.
-12. Authoring loop, chat participant and language-model tools, with the scored authoring run.
+5. Command line, JSON output.
+6. Agent server (MCP), with the planted-defect agent suite.
+7. Language server and the thin VS Code extension, which bundles the command line and the
+   agent server, with the same-answers test. **First preview build** of the extension.
+8. Formatter and fix data, quick fixes. **Preview build.**
+9. Authoring loop, chat participant and language-model tools, with the scored authoring run
+   on its first two measures (validity and the match to the request). **Preview build.**
+10. GUI and GFX file support, the graphics-file check and the call graph, on every surface.
+11. Game-log analysis, on every surface. The authoring run's third measure, loading in the
+    game and reading its error log, is added here because it needs this step.
+12. Editor views: the CK3 Explorer tree, call hierarchy and selection ranges.
 13. Benchmarks enforced, `legacy/` removed, release 1.0.0 of `pychivalry`.
-
-The authoring loop is the headline feature and sits at step 12, yet it needs only checking,
-lookup and the formatter. Whether it moves forward is [open decision 6](#open-decisions).
 
 ## Risks
 
 | Risk | What it would do | What limits it |
 | --- | --- | --- |
 | The game is patched during the build | The spec falls behind the installed game; records made on the runner shift. | Every record states the game build it was made on; the mismatch is reported, not hidden; a re-derivation is a known procedure. |
-| VS Code changes its AI interfaces | The chat participant and language-model tools break or need rework. | They live only in `packages/vscode` and are built last; the agent server does not depend on them. |
-| One private runner | Two game-file suites and the benchmarks cannot run while it is down. | Their last results are kept as records; everything else runs in public CI. |
-| The scope is a full product, not a small first version | Nothing ships for a long time. | Three preview builds, at steps 5, 6 and 7. |
+| VS Code changes its AI interfaces | The chat participant, the language-model tools and the way the agent server is registered break or need rework. pychivalry is used only through VS Code, so this reaches every AI feature. | They live only in `packages/vscode`; the core, the checks and the editor features do not depend on them. |
+| One private runner, and it is a desktop | Thor-R7 hibernates after 30 idle minutes and has powered itself off mid-run before. The game-file suites and benchmarks cannot run while it is down. | A keep-awake task runs for the length of a run and is stopped after; the last results are kept as records; everything else runs in public CI. |
+| The scope is a full product, not a small first version | Nothing ships for a long time. | Preview builds of the extension at steps 7, 8 and 9. |
 | Model output is not repeatable | A scored run passes one day and fails the next. | Rates over several runs, with targets set from real numbers. |
 | The derived spec is incomplete somewhere | A false "unknown" error on a real keyword. | Nothing is dropped from the spec; the real-mod suite demands zero false errors. |
 
 ## Open decisions
 
-| # | Question | Why it matters |
+The opening decisions and the seven raised by the review were answered on 2026-11-21 and are in
+[Decisions already made](#decisions-already-made). What remains is settled inside the build:
+
+| # | Question | Settled when |
 | --- | --- | --- |
-| 1 | Which AI model runs the agent and authoring test suites, where its key is kept, and what a run may cost. | Two of the definition-of-done tests cannot run without it. |
-| 2 | The second measure for authored content: a model judging the result against the request, loading it in the real game and reading the error log, or both. | "Zero checker errors" alone does not show the content works. |
-| 3 | When the game is patched: who starts the re-derivation of the spec, and how soon. | Decides how long pychivalry runs on an out-of-date spec. |
-| 4 | How the command line and agent server are installed without the extension: an npm package, or only from a clone of this repository. | Agents outside VS Code need a way to get it. |
-| 5 | Which operating systems are supported and tested: Linux, Windows and macOS as in 2.3.0, or fewer. | Sets the CI matrix and the Steam-path detection work. |
-| 6 | Whether the authoring loop moves from build step 12 to straight after the formatter. | It is the headline feature and currently arrives last. |
-| 7 | Which machine hosts the private runner and the mod corpus. | Build step 1 cannot finish without it. |
-| 8 | The exact minimum VS Code version. | Settled in build step 12, from what the chat and tool interfaces need. |
-| 9 | What happens to the `ck3-language-support` 2.x listing and its users when 1.0.0 ships. | Settled before release 1.0.0. |
+| 1 | The exact minimum VS Code version. | Build step 9, from what the chat, tool and agent-server interfaces need. |
+| 2 | What happens to the `ck3-language-support` 2.x listing and its users when 1.0.0 ships. | Before release 1.0.0. |
+| 3 | How CK3 is started unattended on Thor-R7 for the in-game measure. | Build step 11. |
+| 4 | The targets for the scored agent and authoring runs. | After the first scored runs, in build steps 6 and 9. |
