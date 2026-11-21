@@ -12,6 +12,12 @@ what it changes.
   defines. It does not report them as unknown.
 - **Background work.** There is a limit on how many files pychivalry checks in the background,
   so the editor stays responsive on a large mod.
+- **Files that are not UTF-8.** pychivalry reads a script file that is not valid UTF-8 in
+  full, shows each byte it cannot read as the replacement character, and says once, as
+  information, that the file is not valid UTF-8; it is never an error, because the game ships
+  and loads such files itself. A setting will let you name Windows-1252 as the encoding to
+  read such files with instead, so their letters show correctly. It is off by default and
+  arrives with the extension in build step 7 ([what the parser reads](../encoding.md)).
 - **No keys.** Nothing in the settings holds an API key or a login. The AI that uses pychivalry
   is Claude Code or VS Code's built-in AI, on the login it already has.
 

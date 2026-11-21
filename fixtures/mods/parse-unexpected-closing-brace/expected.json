@@ -1,0 +1,16 @@
+{
+    "files": {
+        "events/fixture_events.txt": {
+            "findings": [
+                {
+                    "id": "syntax/unexpected-closing-brace",
+                    "severity": "error",
+                    "line": 11,
+                    "column": 1,
+                    "message": "Unexpected token, expected 'key = {'"
+                }
+            ],
+            "tree": "namespace = fixture fixture.0001 = { type = character_event trigger = { is_adult = yes } } option = { name = fixture.0001.a } fixture.0002 = { type = character_event }"
+        }
+    }
+}

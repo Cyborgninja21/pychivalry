@@ -4,7 +4,7 @@ import { test } from 'node:test';
 import { corpusRow, renderCorpusManifest } from './corpus.js';
 import { checkRecord, compileRecordSchema, type Expected } from './records-check.js';
 import { checkSpec } from './spec.js';
-import { gameSuiteRecord, GAME_SUITES } from './suites.js';
+import { gameSuiteRecord, GAME_SUITES, type SuiteOptions } from './suites.js';
 import { fixtureGame, fixtureMod, tempDir, writeTree } from './testing.js';
 import { CommandError, repoRoot, sha256 } from './util.js';
 
@@ -22,11 +22,17 @@ function pinnedFixtureCorpus(dir: string): { corpus: string; manifest: string; s
     return { corpus, manifest, sha: sha256(text) };
 }
 
-test('every stub writes a valid, empty record made on the committed spec', (t) => {
+test('every suite writes a valid record made on the committed spec; the stubs, empty results', (t) => {
     assert.ok(spec !== undefined);
     const dir = tempDir(t);
     const game = fixtureGame(path.join(dir, 'install'));
     const { corpus, manifest, sha } = pinnedFixtureCorpus(dir);
+    writeTree(dir, { 'classifications.json': '{ "classifications": [] }' });
+    const options: SuiteOptions = {
+        manifestFile: manifest,
+        parseFolders: [{ folder: 'common', extension: '.txt', expected: 1, why: 'The fixture.' }],
+        classificationsFile: path.join(dir, 'classifications.json'),
+    };
     const expected: Expected = {
         spec: { version: spec.version, sha256: spec.sha256 },
         corpusManifestSha256: sha,
@@ -36,11 +42,17 @@ test('every stub writes a valid, empty record made on the committed spec', (t) =
             root,
             suite,
             { CK3_GAME_PATH: game, CK3_CORPUS: corpus },
-            manifest,
+            options,
         );
         assert.deepEqual(checkRecord(record, validate, expected), [], suite);
         assert.equal(record.suite, `game:${suite}`);
-        assert.deepEqual(record.results, {});
+        if (suite === 'parse') {
+            assert.equal(record.results['passed'], true);
+            assert.equal(record.results['files'], 1);
+            assert.equal(record.results['trees'], 1);
+        } else {
+            assert.deepEqual(record.results, {});
+        }
         assert.equal(record.game.build, '1.21.0.3');
         if (suite === 'mods' || suite === 'bench') {
             assert.deepEqual(record.corpus, { manifest_sha256: sha, slugs: ['fixture-mod'] });
@@ -63,7 +75,13 @@ test('a corpus suite on a corpus that is not the pinned one fails its pass condi
     const { corpus, manifest } = pinnedFixtureCorpus(dir);
     writeTree(corpus, { 'fixture-mod/events/new.txt': 'namespace = new\n' });
     assert.throws(
-        () => gameSuiteRecord(root, 'mods', { CK3_GAME_PATH: game, CK3_CORPUS: corpus }, manifest),
+        () =>
+            gameSuiteRecord(
+                root,
+                'mods',
+                { CK3_GAME_PATH: game, CK3_CORPUS: corpus },
+                { manifestFile: manifest },
+            ),
         (err: unknown) =>
             err instanceof CommandError &&
             err.exitCode === 1 &&

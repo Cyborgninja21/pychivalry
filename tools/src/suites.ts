@@ -4,10 +4,10 @@
  * `CK3_CORPUS` (and `CK3_CORPUS_SLUGS`), and writes its record to
  * `records/game/<suite>.json`.
  *
- * In build step 1 every suite is a stub, as the plan defines: it establishes the run's context
- * (game build and manifest, the committed spec, the pinned corpus) and writes a valid record
- * whose results are empty. The steps that build each suite fill its results in: parse at
- * step 2, check and mods at step 4, bench at step 13.
+ * `game:parse` is the base-game parse suite of build step 2 (parse-suite.ts). The others are
+ * still the stubs of build step 1: each establishes the run's context (game build and
+ * manifest, the committed spec, the pinned corpus) and writes a valid record whose results are
+ * empty. Check and mods are filled in at step 4, bench at step 13.
  */
 
 import { existsSync, readFileSync } from 'node:fs';
@@ -22,7 +22,14 @@ import {
     selectSlugs,
     verifyCorpus,
 } from './corpus.js';
+import { catalogueFromSpec } from '@pychivalry/core';
 import { gameInfo, requireGameDir } from './game.js';
+import {
+    readClassifications,
+    runParseSuite,
+    type ParseSuiteResults,
+    type SuiteFolder,
+} from './parse-suite.js';
 import {
     committedSpec,
     machineInfo,
@@ -31,6 +38,7 @@ import {
     type CorpusRef,
     type SuiteRecord,
 } from './record.js';
+import { readSpecPackage } from './spec.js';
 import { CommandError, EXIT, sha256, writeJson, writeText } from './util.js';
 
 export const GAME_SUITES = ['parse', 'check', 'mods', 'bench'] as const;
@@ -86,21 +94,41 @@ export function pinnedCorpus(manifestFile: string, env: SuiteEnv): { dir: string
     return { dir, ref: { manifest_sha256: manifest.sha256, slugs } };
 }
 
+/** Where the classifications of the base game's parse errors live. */
+export function parseClassificationsFile(root: string): string {
+    return path.join(root, 'tools', 'data', 'parse-classifications.json');
+}
+
+/** What a test may change about a run: a smaller folder list, another classification file. */
+export interface SuiteOptions {
+    readonly manifestFile?: string;
+    readonly parseFolders?: readonly SuiteFolder[];
+    readonly classificationsFile?: string;
+}
+
+const PARSE_NOTES = [
+    'The folders and extensions read, with the evidence that each holds script and the number of files expected, are listed in results.folders; text files not read, and why, in results.not_read (docs/encoding.md, "What the parser reads").',
+    'Files are decoded as UTF-8, the default: no fallback encoding is named. A file that is not valid UTF-8 is read in full and gets one information note (results.notes).',
+    'Every error is classified in tools/data/parse-classifications.json, matched by file, finding and line. parse_ms is the time to decode and parse, on this machine, in one process.',
+    'results.encoding measures every text file of the game folder, whether the suite parses it or not: the figures of docs/encoding.md.',
+];
+
 /**
- * The record of one suite run, a stub's: the run's context and empty results. `root` is the
- * repository the tool and spec come from; `manifestFile` the corpus manifest to pin against.
+ * The record of one suite run. `root` is the repository the tool and spec come from; the
+ * corpus manifest pinned against is the committed one unless a test names another.
  */
 export function gameSuiteRecord(
     root: string,
     suite: GameSuite,
     env: SuiteEnv,
-    manifestFile = corpusManifestFile(root),
+    options: SuiteOptions = {},
 ): SuiteRecord {
     const gameDir = requireGameDir(env.CK3_GAME_PATH);
+    const manifestFile = options.manifestFile ?? corpusManifestFile(root);
     const corpus = READS_CORPUS[suite] ? pinnedCorpus(manifestFile, env).ref : null;
-    return {
-        record_format: 1,
-        suite: `game:${suite}`,
+    const context = {
+        record_format: 1 as const,
+        suite: `game:${suite}` as const,
         command: `task game:${suite}`,
         made_at: now(),
         tool: toolInfo(root),
@@ -108,6 +136,19 @@ export function gameSuiteRecord(
         game: gameInfo(gameDir),
         spec: committedSpec(root),
         corpus,
+    };
+    if (suite === 'parse') {
+        const results: ParseSuiteResults = runParseSuite(gameDir, {
+            catalogue: catalogueFromSpec(readSpecPackage(path.join(root, 'spec'))),
+            classifications: readClassifications(
+                options.classificationsFile ?? parseClassificationsFile(root),
+            ),
+            ...(options.parseFolders === undefined ? {} : { folders: options.parseFolders }),
+        });
+        return { ...context, notes: PARSE_NOTES, results: { ...results } };
+    }
+    return {
+        ...context,
         notes: [
             `Build step 1 stub: game:${suite} records the run's context and no results yet (docs/PLAN.md, item 1.8).`,
         ],
@@ -115,12 +156,27 @@ export function gameSuiteRecord(
     };
 }
 
-/** Run one suite and write its record. Returns the record file, relative to the root. */
-export function runGameSuite(root: string, suite: GameSuite, env: SuiteEnv): string {
+/** What a suite run wrote, and whether it passed. */
+export interface SuiteRun {
+    /** The record file, relative to the root. */
+    readonly file: string;
+    readonly passed: boolean;
+    readonly failures: readonly string[];
+}
+
+/** Run one suite and write its record, passed or not. */
+export function runGameSuite(root: string, suite: GameSuite, env: SuiteEnv): SuiteRun {
     const record = gameSuiteRecord(root, suite, env);
     const file = path.join('records', 'game', `${suite}.json`);
     writeJson(path.join(root, file), record);
-    return file.split(path.sep).join('/');
+    const failures = Array.isArray(record.results['failures'])
+        ? (record.results['failures'] as unknown[]).map(String)
+        : [];
+    return {
+        file: file.split(path.sep).join('/'),
+        passed: record.results['passed'] !== false,
+        failures,
+    };
 }
 
 /**

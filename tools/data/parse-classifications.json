@@ -1,0 +1,26 @@
+{
+    "about": "Every parse error task game:parse finds in the base game, classified: a defect of the game's own files (game-defect) or a fault of pychivalry's parser to fix (pychivalry-fault). Matched by file, finding id and line; an error without an entry, or an entry without an error, fails the suite (tools/src/parse-suite.ts). Game 1.21.0.3.",
+    "classifications": [
+        {
+            "file": "common/holding_sprawl_patterns/00_holding_sprawl_patterns.txt",
+            "id": "syntax/missing-equals-before-block",
+            "line": 1988,
+            "classification": "game-defect",
+            "reason": "The pattern chinese_grid_pattern_01 is written 'name {' at the top level, without its '='. The rest of the file uses 'name = {'; the catalogue's message names a block name and a body, and the block is read as the pattern's."
+        },
+        {
+            "file": "events/dlc/gdp/gdp_visit_holding_decision_event_2.txt",
+            "id": "syntax/missing-closing-brace",
+            "line": 3839,
+            "classification": "game-defect",
+            "reason": "The file ends inside its last event, gdp_visit_holding_decision_event.1507: the event's own closing brace is missing. Counted outside comments and quoted text, the file has 1,399 '{' and 1,398 '}', and its depth is last zero on line 3838."
+        },
+        {
+            "file": "history/characters/han/sima_53f8_99ac.txt",
+            "id": "syntax/missing-equals-before-block",
+            "line": 1395,
+            "classification": "game-defect",
+            "reason": "A dated entry of a character's history is written '296.1.1 { add_spouse = ... }', without its '='; every other entry has one. The same defect that release 2.3.0 recorded in history/characters/japanese.txt on game 1.20, which 1.21.0.3 no longer has."
+        }
+    ]
+}

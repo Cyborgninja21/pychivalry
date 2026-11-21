@@ -41,6 +41,26 @@ about the game: check again before relying on one.
 - pychivalry uses the 2.x line. It is pinned to an exact version by build step 6, which adds
   it.
 
+## Text and positions
+
+Checked on 2026-11-21 against the language-server protocol specification, version 3.17, and
+the WHATWG Encoding Standard (a living standard, last updated 2026-11-20). Used by build step 2
+([encoding.md](../encoding.md)).
+
+- **Positions count UTF-16 code units** unless client and server agree otherwise: "If the
+  server omits the position encoding in its initialize result the encoding defaults to the
+  string value `utf-16`."
+- **Lines end at `\n`, `\r\n` and `\r`**, and a character past the end of a line "defaults
+  back to the line length".
+- **The UTF-8 decoder replaces each invalid sequence with one U+FFFD**: a lead byte with too
+  few continuation bytes is one error, and the byte that broke the sequence is read again. The
+  continuation bytes allowed after `E0`, `ED`, `F0` and `F4` are narrowed (`A0`-`BF`,
+  `80`-`9F`, `90`-`BF`, `80`-`8F`). This is the decoder built into Node and browsers
+  (`TextDecoder`).
+- **Windows-1252** is the encoding the labels `windows-1252`, `latin1` and `iso-8859-1` all
+  name; 0x80 decodes to `€`. The core's own decoder agrees with Node's for all 256 bytes, which
+  a test checks.
+
 ## GitHub
 
 - **Self-hosted runners are advised against on public repositories**, because a pull request

@@ -1,0 +1,23 @@
+{
+    "files": {
+        "events/fixture_events.txt": {
+            "findings": [
+                {
+                    "id": "syntax/missing-closing-brace",
+                    "severity": "error",
+                    "line": 3,
+                    "column": 16,
+                    "message": "Expected } after arguments"
+                },
+                {
+                    "id": "syntax/unterminated-string",
+                    "severity": "information",
+                    "line": 5,
+                    "column": 10,
+                    "message": "Unterminated string starting at 'events/fixture_events.txt:5'"
+                }
+            ],
+            "tree": "namespace = fixture fixture.0001 = { type = character_event title = \"Unclosed title\n\toption = {\n\t\tname = fixture.0001.a\n\t}\n}\n"
+        }
+    }
+}

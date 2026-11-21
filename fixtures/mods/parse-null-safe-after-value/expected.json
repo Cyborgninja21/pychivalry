@@ -1,0 +1,16 @@
+{
+    "files": {
+        "events/fixture_events.txt": {
+            "findings": [
+                {
+                    "id": "syntax/null-safe-operator-after-value",
+                    "severity": "error",
+                    "line": 7,
+                    "column": 12,
+                    "message": "Unexpected token '?=' found at 'events/fixture_events.txt:7', '=' expected"
+                }
+            ],
+            "tree": "namespace = fixture fixture.0001 = { type = character_event immediate = { scope:target ?= { add_gold = 10 } 1066.1.1 ?= { add_gold = 20 } } }"
+        }
+    }
+}

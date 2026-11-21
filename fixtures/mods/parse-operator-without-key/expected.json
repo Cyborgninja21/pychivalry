@@ -1,0 +1,30 @@
+{
+    "files": {
+        "common/scripted_effects/fixture_effects.txt": {
+            "findings": [
+                {
+                    "id": "syntax/operator-without-key",
+                    "severity": "error",
+                    "line": 3,
+                    "column": 2,
+                    "message": "Unexpected token, expected 'key = {'"
+                },
+                {
+                    "id": "syntax/operator-without-key",
+                    "severity": "error",
+                    "line": 7,
+                    "column": 1,
+                    "message": "Unexpected token, expected 'key = {'"
+                },
+                {
+                    "id": "syntax/missing-operator",
+                    "severity": "error",
+                    "line": 8,
+                    "column": 1,
+                    "message": "Unexpected token '' found at 'common/scripted_effects/fixture_effects.txt:8', '=' expected"
+                }
+            ],
+            "tree": "fixture_effect = { add_gold = 10 20 add_prestige = 5 } fixture_stray"
+        }
+    }
+}

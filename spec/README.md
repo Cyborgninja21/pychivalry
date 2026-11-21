@@ -15,8 +15,10 @@ checksum and its schema.
 **The committed package is a stand-in until the 1.21 package in format 5 arrives from step 0**
 (docs/PLAN.md, item 1.6). It is the 1.20.0.2 package exactly as release 2.3.0 shipped it
 (`legacy/packages/engine/spec/`), byte for byte, so that the check below exists and the 2.3.0
-baselines name the spec they ran on. Nothing in the rebuild reads it: the spec reader is
-written in item 4.2, against format 5.
+baselines name the spec they ran on. The rebuild reads one part of it, the error catalogue
+(`errors[]`, each entry's `id` and `text`), which build step 2 uses as the evidence of parse
+findings; format 5 keeps that list. The spec reader proper is written in item 4.2, against
+format 5.
 
 When the 1.21 format 5 package arrives, it replaces these three files: the package, its
 `.sha256`, and the `schema.json` of format 5. Every record made on the stand-in then fails

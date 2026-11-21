@@ -1,0 +1,30 @@
+{
+    "files": {
+        "common/script_values/fixture_values.txt": {
+            "findings": [
+                {
+                    "id": "syntax/malformed-arithmetic",
+                    "severity": "information",
+                    "line": 5,
+                    "column": 8,
+                    "message": "Malformed inline expression '@[ base + * 2 ]': unexpected '*'"
+                },
+                {
+                    "id": "syntax/malformed-arithmetic",
+                    "severity": "information",
+                    "line": 6,
+                    "column": 13,
+                    "message": "Malformed inline expression '@[ base * (2 + 1 ]': missing ')'"
+                },
+                {
+                    "id": "syntax/malformed-arithmetic",
+                    "severity": "information",
+                    "line": 7,
+                    "column": 13,
+                    "message": "Malformed inline expression '@[ base - 1]': its ']' is missing"
+                }
+            ],
+            "tree": "@base = 10 fixture_value = { value = @[ base * 2 ] add = @[ base + * 2 ] multiply = @[ base * (2 + 1 ] subtract = @[ base - 1 divide = 2 }"
+        }
+    }
+}

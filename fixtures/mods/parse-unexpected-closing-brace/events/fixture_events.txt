@@ -1,0 +1,15 @@
+namespace = fixture
+
+fixture.0001 = {
+	type = character_event
+	trigger = {
+		is_adult = yes
+	}}
+	option = {
+		name = fixture.0001.a
+	}
+}
+
+fixture.0002 = {
+	type = character_event
+}

@@ -1,0 +1,15 @@
+1001 = {
+	name = "Fixture"
+	1066.1.1 = { birth = yes }
+	1080.6.1 { add_spouse = 1002 }
+	1100.1.1 = { death = yes }
+}
+
+1002 {
+	name = "Other"
+}
+
+1003 = {
+	name = "Third"
+	dynasty_names = { { dynnp_al- dynn_a } dynn_b { dynnp_ibn dynn_c } }
+}

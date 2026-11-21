@@ -9,6 +9,7 @@
         "pychivalry-tools": "dist/cli.js"
     },
     "dependencies": {
+        "@pychivalry/core": "0.0.0",
         "ajv": "8.20.0"
     },
     "scripts": {

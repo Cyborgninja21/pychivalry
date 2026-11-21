@@ -141,3 +141,20 @@ function declaredFormat(schema: unknown): number | undefined {
     const value = isObject(format) ? format['const'] : undefined;
     return typeof value === 'number' ? value : undefined;
 }
+
+/**
+ * The committed spec package, parsed, once it passes its check. Build step 2 reads only its
+ * error catalogue (`errors`), for the evidence of parse findings; the spec reader proper is
+ * item 4.2.
+ */
+export function readSpecPackage(specDir: string): unknown {
+    const check = checkSpec(specDir);
+    if (check.spec === undefined) {
+        throw new Error(
+            `the committed spec package fails its check:\n  ${check.problems.join('\n  ')}`,
+        );
+    }
+    const raw = readFileSync(path.join(specDir, check.spec.file));
+    const bytes = check.spec.compressed ? gunzipSync(raw) : raw;
+    return JSON.parse(bytes.toString('utf8')) as unknown;
+}

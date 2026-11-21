@@ -40,10 +40,32 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
 - `CONTRIBUTING.md`, `SECURITY.md`, issue forms and a pull-request template; `.editorconfig`,
   `.nvmrc` and `.vscode/`.
 
+- Build step 2, the parser ([docs/PLAN.md](docs/PLAN.md), items 2.1 to 2.9), in
+  `packages/core/src/syntax/`: decoding, a position model in UTF-16 code units with the
+  byte-order mark never counted, a lexer, a syntax tree, a parser that always returns a tree
+  and recovers from every error on its own path, findings in the structured shape with the
+  spec catalogue's message as their evidence, and incremental re-parse after an edit. The
+  parser holds no CK3 name: forms such as `rgb { }`, `list "name"` and
+  `scripted_trigger name = { }` are recognised by their shape.
+- `docs/encoding.md`, what the parser reads: a file that is not valid UTF-8 is read and parsed
+  in full, with one information note, and can be decoded as Windows-1252 instead (the owner's
+  decision of 2026-11-21); the base-game folders that hold script, with the evidence for each;
+  the syntax accepted and the findings reported.
+- `task game:parse` is the real base-game parse suite: 4,854 script files of game 1.21.0.3 in
+  ten folders, each yielding a tree, in 5.3 seconds; its three errors are classified as defects
+  of the game's own files in `tools/data/parse-classifications.json`. Its record,
+  `records/game/parse.json`, also measures the encoding of all 20,530 text files of the game.
+- Release 2.3.0's 74 parser cases, carried over as table fixtures; thirteen fixture mods under
+  `fixtures/mods/`: one per recovery path, text cut off mid-edit, 2.3.0's `broken_syntax` mod,
+  and a file that is not valid UTF-8.
+
 ### Changed
 
 - The plan's environment table no longer states paths from the machine that runs the suites.
 - The planted-defect mod lives in `fixtures/defects/` (the plan said `fixtures/planted/`).
+
+- `tools/` depends on `@pychivalry/core`, for the parse suite.
+- The record check also checks that a parse record agrees with itself.
 
 ### Open
 

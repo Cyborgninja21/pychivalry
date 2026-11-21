@@ -38,6 +38,14 @@ Small mods written by hand, one behaviour each. The layout and the naming rules 
 a file it is silent on. Parser cases a few lines long stay as tables in the test file beside
 the parser; anything larger is a file in a fixture mod.
 
+Build step 2 added the first: twelve broken-input mods named `parse-*`, one per recovery path
+of the parser plus text cut off mid-edit and release 2.3.0's `broken_syntax` mod, each with
+the findings and tree a correct parser gives in its `expected.json`; and
+`encoding-windows-1252`, a file that is not valid UTF-8. The list is in
+[fixtures/mods/README.md](../fixtures/mods/README.md). The parser's other test data stays in
+tables in the test files under `packages/core/src/syntax/`: the 74 parser cases of 2.3.0, and
+one case per token and per form.
+
 ## The planted-defect mod
 
 One mod with 20 to 30 defects, one per check code, a manifest of where each sits, lines that
@@ -61,9 +69,13 @@ pinned by file count and hash; a mod on disk that is not the pinned copy fails t
 ## The base game
 
 Read from the local install of the current game version. The suites state the build and a hash
-of the game's file manifest in each record. The game is never launched by a test on the
-development machine; loading content in the running game happens only on the analysis machine
-the plan names, on the owner's word.
+of the game's file manifest in each record. `task game:parse` reads 4,854 script files of game
+1.21.0.3 in ten folders and measures the encoding of all 20,530 text files; its record is
+`records/game/parse.json`, and every parse error in it is classified in
+`tools/data/parse-classifications.json` ([encoding.md](encoding.md)).
+
+The game is never launched by a test on the development machine; loading content in the
+running game happens only on the analysis machine the plan names, on the owner's word.
 
 ## Carried over from release 2.3.0
 

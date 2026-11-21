@@ -1,0 +1,16 @@
+{
+    "files": {
+        "events/fixture_events.txt": {
+            "findings": [
+                {
+                    "id": "syntax/missing-closing-brace",
+                    "severity": "error",
+                    "line": 3,
+                    "column": 16,
+                    "message": "Expected } after arguments"
+                }
+            ],
+            "tree": "namespace = fixture fixture.0001 = { type = character_event title = fixture.0001.t option = { name = fixture.0001.a add_gold = 10 }"
+        }
+    }
+}

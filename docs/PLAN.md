@@ -327,6 +327,12 @@ base game.
 `common`, `events` and `history` hold script the parser should read (2.3.0 covered those three
 only; `gfx` has 272 `.txt` files).
 
+**Found** (build step 2, [encoding.md](encoding.md)): 27 of the base game's 20,530 text files
+are not valid UTF-8, 25 of them title histories with Windows-1252 letters in comments; the
+owner decided what happens to them (decision 38). Beyond the three, `gfx`, `map_data`,
+`music`, `sound`, `dlc`, `data_binding` and `content_source/map_objects` hold script: 4,854
+files in all, each with the evidence for it.
+
 ---
 
 ## Step 3: workspace index
@@ -394,7 +400,10 @@ about a name.
   it. Sources: 2.3.0's engine codes (about 14 from the catalogue, 6 of its own), its plug-in
   catalogue of 85 codes, the audit record, and for advice only the 38 required-field flags and
   89 rule codes of the pre-2.0 schema files. The code naming scheme is fixed here; codes are
-  permanent. ck3-tiger and the CWTools rule files are looked at here for rules worth taking,
+  permanent. The syntax findings of step 2 already have stable identifiers and catalogue
+  evidence ([encoding.md](encoding.md#what-the-parser-reports)); this item gives each its code,
+  and confirms or changes the information severity of the three that have no catalogue
+  message. ck3-tiger and the CWTools rule files are looked at here for rules worth taking,
   each proved against the game before it is adopted. *Needs no spec.*
 - 4.2 **The spec reader** and the unknown-name checks. The reader verifies the checksum and the
   format, and exposes the package as typed data. Checks: unknown trigger, effect, scope link,
@@ -855,7 +864,6 @@ five test mods.
 | When | Decision |
 | --- | --- |
 | Item 1.6 | The spec package committed compressed or raw. |
-| Item 2.1 | What happens to a file that is not valid UTF-8. |
 | Item 3.1 | Sign-off on the override rules, if an in-game experiment is needed to settle them. |
 | Item 4.1 | Sign-off on the check inventory and the code scheme. |
 | Item 6.11 | The target for the agent-use run. |

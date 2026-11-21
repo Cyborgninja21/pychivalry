@@ -1,0 +1,5 @@
+namespace = fixture
+
+fixture.0001 = {
+	type = character_event
+	title = "fixture.00

@@ -27,11 +27,16 @@ a document adds its row here.
 
 ## The game's behaviour, as each step establishes it
 
-These do not exist yet. Each is written by the step named, from evidence.
+Each is written by the step named, from evidence.
+
+| Document | What it holds | Written by |
+| --- | --- | --- |
+| [encoding.md](encoding.md) | What the parser reads: encodings, byte-order marks, line endings, positions, the base-game folders it reads, the syntax it accepts and the findings it reports | Step 2 |
+
+These do not exist yet:
 
 | Document | What it will hold | Written by |
 | --- | --- | --- |
-| `encoding.md` | What the parser reads: encodings, byte-order marks, line endings | Step 2 |
 | `overrides.md` | The game's override rules: load order, replaced paths, DLC precedence | Step 3 |
 | `checks.md` | The check inventory: every code, its severity, its evidence, its fixture pair | Step 4 |
 | `formatting.md` | The formatting rules | Step 8 |

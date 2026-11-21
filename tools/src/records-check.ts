@@ -3,7 +3,7 @@
  * `records/` is valid against `records/record.schema.json`, was made on the committed spec
  * (a record made on another spec fails, so a spec change forces the suites to be re-run),
  * names the committed corpus manifest if it read the corpus, holds no local path, and states
- * statistics that agree with its own values.
+ * statistics that agree with its own values; a parse record's totals agree with its folders.
  */
 
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
@@ -101,6 +101,49 @@ function statisticsProblems(results: unknown): string[] {
     return problems;
 }
 
+/**
+ * A parse record's figures that disagree with each other: the totals and the folders, the
+ * error counts and the error list, `passed` and the failures, and every error classified.
+ */
+function parseProblems(results: unknown): string[] {
+    if (!isObject(results)) {
+        return [];
+    }
+    const problems: string[] = [];
+    const folders = Array.isArray(results['folders']) ? results['folders'].filter(isObject) : [];
+    const errors = Array.isArray(results['errors']) ? results['errors'].filter(isObject) : [];
+    const failures = Array.isArray(results['failures']) ? results['failures'] : [];
+    const sum = (key: string): number =>
+        folders.reduce((n, f) => n + (typeof f[key] === 'number' ? f[key] : 0), 0);
+    for (const key of ['files', 'trees'] as const) {
+        if (results[key] !== sum(key)) {
+            problems.push(
+                `/results/${key}: ${JSON.stringify(results[key])} is not the folders' total (${String(sum(key))})`,
+            );
+        }
+    }
+    if (sum('errors') !== errors.length) {
+        problems.push(
+            `/results/errors: ${String(errors.length)} listed, but the folders count ${String(sum('errors'))}`,
+        );
+    }
+    if (results['passed'] !== (failures.length === 0)) {
+        problems.push(
+            `/results/passed: ${JSON.stringify(results['passed'])} with ${String(failures.length)} failures`,
+        );
+    }
+    if (results['passed'] === true) {
+        errors.forEach((error, i) => {
+            if (error['classification'] !== 'game-defect') {
+                problems.push(
+                    `/results/errors/${String(i)}: a passing record holds an error classified ${JSON.stringify(error['classification'])}`,
+                );
+            }
+        });
+    }
+    return problems;
+}
+
 /** Every problem with one record. */
 export function checkRecord(
     record: unknown,
@@ -131,6 +174,9 @@ export function checkRecord(
     problems.push(...localPaths(record).map((where) => `holds a local path: ${where}`));
     if (record['suite'] === 'baseline:speed') {
         problems.push(...statisticsProblems(record['results']));
+    }
+    if (record['suite'] === 'game:parse') {
+        problems.push(...parseProblems(record['results']));
     }
     return problems;
 }

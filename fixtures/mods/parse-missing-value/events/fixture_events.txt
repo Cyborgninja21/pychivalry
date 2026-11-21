@@ -1,0 +1,11 @@
+namespace = fixture
+
+fixture.0001 = {
+	type = character_event
+	title =
+}
+
+fixture.0002 = {
+	type = character_event
+	desc > = fixture.0002.desc
+}

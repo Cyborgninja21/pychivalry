@@ -56,8 +56,14 @@ function run(args: readonly string[]): number {
         return EXIT.ok;
     }
     if (group === 'game' && (GAME_SUITES as readonly string[]).includes(command ?? '')) {
-        const file = runGameSuite(root, command as GameSuite, process.env);
-        process.stdout.write(`game:${String(command)}: record written to ${file}\n`);
+        const run = runGameSuite(root, command as GameSuite, process.env);
+        process.stdout.write(`game:${String(command)}: record written to ${run.file}\n`);
+        if (!run.passed) {
+            process.stderr.write(
+                `game:${String(command)} failed:\n  ${run.failures.join('\n  ')}\n`,
+            );
+            return EXIT.failed;
+        }
         return EXIT.ok;
     }
     if (group === 'corpus' && command === 'manifest') {
