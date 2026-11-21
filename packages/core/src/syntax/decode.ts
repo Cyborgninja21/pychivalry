@@ -6,8 +6,9 @@
  * valid UTF-8 is still read in full, because the game itself ships and loads such files:
  * each invalid sequence becomes U+FFFD, the replacement character, and one information-level
  * note says the file is not valid UTF-8. A caller that names a fallback encoding (only
- * Windows-1252 today; off by default) has such a file decoded with it instead, so its
- * letters read correctly; the note is still given.
+ * Windows-1252 today; off by default) has the invalid bytes of such a file, and only those,
+ * decoded with it, so that both those letters and the file's valid UTF-8 letters read
+ * correctly; the note is still given.
  */
 
 import { LineIndex } from './position.js';
@@ -17,7 +18,7 @@ import { toFinding, type Finding, type MessageCatalogue, type RawFinding } from 
 export type FallbackEncoding = 'windows-1252';
 
 export interface DecodeOptions {
-    /** Decode a file that is not valid UTF-8 with this encoding instead. Off by default. */
+    /** Decode the invalid bytes of a file that is not valid UTF-8 with this encoding. Off by default. */
     readonly fallbackEncoding?: FallbackEncoding | undefined;
     /** The error catalogue, for findings' evidence (none of the decoding notes use it). */
     readonly catalogue?: MessageCatalogue | undefined;
@@ -28,7 +29,7 @@ export interface Decoded {
     readonly text: string;
     /** True when the bytes started with the UTF-8 byte-order mark. */
     readonly bom: boolean;
-    /** How the bytes were decoded. */
+    /** How the bytes were decoded: as UTF-8 alone, or as UTF-8 with the fallback for its invalid bytes. */
     readonly encoding: 'utf-8' | FallbackEncoding;
     /** True when the bytes after the byte-order mark are valid UTF-8. */
     readonly validUtf8: boolean;
@@ -73,14 +74,28 @@ interface Invalid {
     first: number;
 }
 
+/** One invalid stretch: from byte `start` up to, not including, byte `end`. */
+export interface InvalidRange {
+    readonly start: number;
+    readonly end: number;
+}
+
 /**
  * Find the bytes that are not part of a valid UTF-8 sequence, using the rules of the WHATWG
  * Encoding Standard (the ones `TextDecoder` follows): a lead byte with the wrong
  * continuation bytes after it is invalid together with the continuation bytes it did get.
  */
 export function invalidUtf8(bytes: Uint8Array): Invalid {
-    let count = 0;
-    let first = -1;
+    const ranges = invalidUtf8Ranges(bytes);
+    return {
+        bytes: ranges.reduce((sum, range) => sum + (range.end - range.start), 0),
+        first: ranges[0]?.start ?? -1,
+    };
+}
+
+/** Each invalid stretch of some bytes as UTF-8, in order, by the same rules as `invalidUtf8`. */
+export function invalidUtf8Ranges(bytes: Uint8Array): InvalidRange[] {
+    const ranges: InvalidRange[] = [];
     let i = 0;
     while (i < bytes.length) {
         const byte = bytes[i] ?? 0;
@@ -109,10 +124,7 @@ export function invalidUtf8(bytes: Uint8Array): Invalid {
             }
         }
         if (need === 0) {
-            if (first < 0) {
-                first = i;
-            }
-            count++;
+            ranges.push({ start: i, end: i + 1 });
             i++;
             continue;
         }
@@ -132,13 +144,10 @@ export function invalidUtf8(bytes: Uint8Array): Invalid {
             i = j;
             continue;
         }
-        if (first < 0) {
-            first = i;
-        }
-        count += 1 + seen;
+        ranges.push({ start: i, end: j });
         i = j;
     }
-    return { bytes: count, first };
+    return ranges;
 }
 
 /** Decode a script file's bytes (docs/encoding.md). */
@@ -151,16 +160,27 @@ export function decodeScript(bytes: Uint8Array, options: DecodeOptions = {}): De
     } catch {
         // Not valid UTF-8: read it anyway, below.
     }
-    const invalid = invalidUtf8(body);
+    const ranges = invalidUtf8Ranges(body);
+    const invalid = {
+        bytes: ranges.reduce((sum, range) => sum + (range.end - range.start), 0),
+        first: ranges[0]?.start ?? 0,
+    };
     const fallback = options.fallbackEncoding;
+    // The note sits at the first invalid byte: the length of the valid text before it.
+    const at = utf8Strict.decode(body.subarray(0, invalid.first)).length;
     let text: string;
-    let at: number;
     if (fallback === 'windows-1252') {
-        text = decodeWindows1252(body);
-        at = Math.max(0, invalid.first);
+        // Valid UTF-8 stays UTF-8; only the invalid stretches are read as Windows-1252.
+        text = '';
+        let from = 0;
+        for (const range of ranges) {
+            text += utf8Strict.decode(body.subarray(from, range.start));
+            text += decodeWindows1252(body.subarray(range.start, range.end));
+            from = range.end;
+        }
+        text += utf8Strict.decode(body.subarray(from));
     } else {
         text = utf8.decode(body);
-        at = utf8Strict.decode(body.subarray(0, Math.max(0, invalid.first))).length;
     }
     const encoding = fallback ?? 'utf-8';
     const raw: RawFinding = {
@@ -169,7 +189,9 @@ export function decodeScript(bytes: Uint8Array, options: DecodeOptions = {}): De
         end: Math.min(at + 1, text.length),
         args: [
             String(invalid.bytes),
-            encoding === 'utf-8' ? 'UTF-8 with replacement characters' : 'Windows-1252',
+            encoding === 'utf-8'
+                ? 'UTF-8 with replacement characters'
+                : 'UTF-8, with its invalid bytes read as Windows-1252',
         ],
     };
     return {

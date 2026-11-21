@@ -58,6 +58,7 @@ How it is kept:
 | 36 | 2026-11-21 | Repository wiki | The GitHub wiki is generated from `docs/` by a task. The repository is the one source. |
 | 37 | 2026-11-21 | Skeleton | The skeleton also carries contributor and security files with issue and pull-request templates, a user guide folder, a documents index, this log, editor settings files, and a corrected repository description. |
 | 38 | 2026-11-21 | Encoding (item 2.1) | A script file that is not valid UTF-8 is read anyway and parsed in full; each bad byte becomes the replacement character; one information note per file says it is not valid UTF-8, never an error or a warning, because the game itself ships and loads such files. A fallback-encoding option lets the caller name an encoding (Windows-1252; off by default) with which such a file is decoded instead, so its letters read correctly. In step 2 it is a parameter of the core's decoding function; the VS Code setting that exposes it arrives with the extension in step 7. Made with the count in hand: 27 of the base game's 20,530 text files ([encoding.md](encoding.md)). |
+| 39 | 2026-11-21 | Encoding fallback | The fallback encoding is used only for the bytes that are not valid UTF-8; every valid UTF-8 letter in the same file stays as it is. Refines row 38, under which the fallback as first built decoded the whole file and garbled the valid letters of files that mix both. |
 
 ## Awaiting confirmation
 

@@ -51,7 +51,7 @@ lives unchanged in `legacy/`.
 | VS Code only | pychivalry is always used through VS Code. The command line and the agent server ship inside the extension and are never installed separately. Nothing is published to npm. |
 | Marketplace | Not in the MVP. 1.0.0 ships as a downloadable file on GitHub, which means no automatic updates for its users. |
 | CI | A new root workflow arrives with the repository skeleton (build step 1). Until then nothing runs, and `legacy/` is not re-tested. |
-| Encoding | A script file that is not valid UTF-8 is read and parsed in full, each bad byte the replacement character, with one information note per file, never an error or a warning. A fallback encoding (Windows-1252, off by default) can be named to decode such a file instead. Written in [encoding.md](encoding.md). |
+| Encoding | A script file that is not valid UTF-8 is read and parsed in full, each bad byte the replacement character, with one information note per file, never an error or a warning. A fallback encoding (Windows-1252, off by default) can be named to decode the bad bytes of such a file, and only those. Written in [encoding.md](encoding.md). |
 
 ## Principles
 

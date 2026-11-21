@@ -61,6 +61,8 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
 
 ### Changed
 
+- The Windows-1252 fallback reads only the bytes that are not valid UTF-8; a file that mixes
+  both encodings now reads all its letters correctly (the owner's decision of 2026-11-21).
 - The plan's environment table no longer states paths from the machine that runs the suites.
 - The planted-defect mod lives in `fixtures/defects/` (the plan said `fixtures/planted/`).
 
