@@ -62,9 +62,10 @@ Decided by the owner on 2026-11-21 ([decision 38](decisions.md#log)).
 3. **One information note per file** says it is not valid UTF-8: how many bytes are invalid,
    and how the file was read. It is placed at the first invalid byte. Its identifier is
    `encoding/not-utf8`.
-4. **A fallback encoding** can be named by the caller: Windows-1252, off by default. A file
-   that is not valid UTF-8 is then decoded with it instead, so its letters read correctly. The
-   note is still given. A file that is valid UTF-8 is never decoded with the fallback.
+4. **A fallback encoding** can be named by the caller: Windows-1252, off by default. The
+   invalid bytes of a file that is not valid UTF-8, and only those, are then decoded with it,
+   so its letters read correctly. Everything that is valid UTF-8 stays as it is, in that file
+   and in every other. The note is still given.
 
 Where it lives today: the core's decoding function, `decodeScript(bytes, options)`, and
 `readScript`, which decodes and parses, take `fallbackEncoding: 'windows-1252'`. Both paths
@@ -78,9 +79,11 @@ What follows from it:
 - **On the base game neither path changes a tree.** Every invalid byte the parser reads sits
   in a comment, so the fallback changes only comment text. In a mod, it changes quoted text
   too.
-- **The fallback decodes a whole file.** A file that mixes Windows-1252 bytes with letters in
-  valid UTF-8, like `k_romagna.txt` and `k_scotland.txt`, reads those UTF-8 letters as two
-  characters each (`Niccolò` as `NiccolÃ²`).
+- **The fallback reads only the invalid bytes** ([decision 39](decisions.md#log)). A file that
+  mixes Windows-1252 bytes with letters in valid UTF-8, like `k_romagna.txt` and
+  `k_scotland.txt`, reads both kinds correctly. As first built the fallback decoded the whole
+  file, which turned those files' valid letters into two characters each (`Niccolò` as
+  `NiccolÃ²`).
 - **Invalid is what the WHATWG Encoding Standard says it is,** the UTF-8 decoder built into
   Node and every browser (`TextDecoder`): a byte that cannot start a sequence, or a sequence
   cut short, together with the bytes of it that were read, is one U+FFFD. The note counts

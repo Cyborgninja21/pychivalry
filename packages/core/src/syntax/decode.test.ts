@@ -71,7 +71,7 @@ test('with the Windows-1252 fallback such a file reads its letters correctly', (
     );
     const [note] = file.allFindings;
     assert.equal(note?.id, 'encoding/not-utf8');
-    assert.deepEqual(note.args, ['4', 'Windows-1252']);
+    assert.deepEqual(note.args, ['4', 'UTF-8, with its invalid bytes read as Windows-1252']);
     assert.equal(file.text.charAt(note.start), 'é');
 });
 
@@ -103,8 +103,28 @@ test('positions stay correct on both paths: each is counted in the text that pat
     };
     // UTF-8: `é` is one character and the bad byte one U+FFFD.
     expect(false, 12);
-    // Windows-1252: every byte is one character, so the valid `é` reads as two.
-    expect(true, 13);
+    // The fallback: the valid `é` stays one character and the bad byte reads as one `é`.
+    expect(true, 12);
+});
+
+test('the fallback reads only the invalid bytes: valid UTF-8 letters in the same file stay', () => {
+    // `Niccolò` in valid UTF-8 beside `René` with a Windows-1252 byte, as two base-game files mix them.
+    const bytes = new Uint8Array([
+        ...encoder.encode('# Niccolò and Ren'),
+        0xe9,
+        ...encoder.encode('\na = "€'),
+        0x80,
+        ...encoder.encode('"'),
+    ]);
+    const file = decodeScript(bytes, { fallbackEncoding: 'windows-1252' });
+    assert.equal(file.text, '# Niccolò and René\na = "€€"');
+    assert.equal(file.invalidBytes, 2);
+    assert.equal(file.text.charAt(file.findings[0]?.start ?? -1), 'é');
+    // A sequence cut short is invalid together with the bytes of it that were read.
+    const cut = decodeScript(new Uint8Array([0x61, 0xe2, 0x82, 0x62]), {
+        fallbackEncoding: 'windows-1252',
+    });
+    assert.equal(cut.text, 'aâ‚b');
 });
 
 test('Windows-1252 decoding agrees with the WHATWG decoder for every byte', () => {

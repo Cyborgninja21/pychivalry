@@ -16,7 +16,8 @@ what it changes.
   full, shows each byte it cannot read as the replacement character, and says once, as
   information, that the file is not valid UTF-8; it is never an error, because the game ships
   and loads such files itself. A setting will let you name Windows-1252 as the encoding to
-  read such files with instead, so their letters show correctly. It is off by default and
+  read those bytes with, so their letters show correctly; the rest of the file is still read
+  as UTF-8. It is off by default and
   arrives with the extension in build step 7 ([what the parser reads](../encoding.md)).
 - **No keys.** Nothing in the settings holds an API key or a login. The AI that uses pychivalry
   is Claude Code or VS Code's built-in AI, on the login it already has.

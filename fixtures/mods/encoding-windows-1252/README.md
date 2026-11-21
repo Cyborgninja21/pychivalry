@@ -12,4 +12,4 @@ What a correct tool reports, as decided on 2026-11-21 (docs/decisions.md):
   bytes is U+FFFD, the replacement character; one information note says the file is not
   valid UTF-8, at the first of them (line 3).
 - With the Windows-1252 fallback: the same tree, with `é` in place of each U+FFFD, and the
-  same note, saying the file was read as Windows-1252.
+  same note, saying the file's invalid bytes were read as Windows-1252.
