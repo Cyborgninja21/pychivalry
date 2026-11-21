@@ -27,6 +27,9 @@ lives unchanged in `legacy/`.
 | Spec delivery | The built spec package is a file committed in this repository with its checksum. `pdx-parser-re` stays private. |
 | Spec version | The spec is re-derived for the current game, 1.21, before building starts. The existing spec is for 1.20.0.2. |
 | Hand-kept tables | The tables 2.3.0 kept in code (about 100 entries: iterator parameters, structural keywords, block names) move into the spec package as a new format, with their evidence. The core holds none. |
+| Spec additions | The 1.21 spec keeps every part of the current package and adds eight things, the hand-kept tables among them (see [What the 1.21 spec adds](#what-the-121-spec-adds)). |
+| Presentation data | Outline rules, snippets, field order and inline hints return as pychivalry's own data, in a separate file in this repository. It is never used to raise an error. |
+| Old rules | The 38 required-field flags and 89 rule codes of the pre-2.0 schema files are reviewed in the check inventory. Those that still hold on the 1.21 base game return as advice, never as errors or warnings. |
 | Game versions | One game version at a time: the current one. |
 | Game-file suites | No test runner is attached to this repository. A local task runs the suites that need game files and writes result records, which are committed. Public CI checks the records and runs everything else. |
 | Machines | This laptop runs the game-file suites: it has the game and the five test mods. Thor-R7, the Windows desktop with the analysis tools, is used only to re-derive the spec and to load content in the running game. |
@@ -171,15 +174,42 @@ Facts about the existing package, format 4, for game 1.20.0.2 (7.1 MB uncompress
 | Record schemas | 185 of 227 game folders have a field list (18,234 fields, almost all an inventory of the base game's own files). The fields have a kind but no value types. Only 3 fields in the whole package are marked required. No schema for `gui`, `gfx` or `localization`. |
 | Error catalogue | 1,968 message texts taken from the game executable. Text only: no severity and no condition. It includes strings that are not game errors. |
 
-What this means for the build:
+Every part of this package is kept. Release 2.3.0's engine read all of it.
 
-- **Before building starts**, `pdx-parser-re` produces a package for game 1.21 that also
-  carries the hand-kept tables (build step 0).
+### What the 1.21 spec adds
+
+The pre-2.0 pychivalry had 32 hand-written schema files, taken from the wiki. The extractor
+uses them only as hints for a field's kind and description, and keeps its own copy in
+`pdx-parser-re`. They held more than the spec carries: value types on 594 fields, 737
+descriptions, lists of allowed values. Release 2.3.0 no longer had those files at all. The 1.21
+derivation brings that knowledge back, measured from the game where it can be:
+
+| Addition | Source | What it enables |
+| --- | --- | --- |
+| The hand-kept tables (about 100 entries) | The 2.3.0 engine's code, each with its evidence | A core with no keyword lists. |
+| A value type per field | How the base game writes the field; the wiki type kept beside it as a hint | "Wrong kind of value" checks; better completion. |
+| Observed values per field, where the set is small | The base game | Allowed-value completion and advice. |
+| How often each field is set, per record | The base game | Advice-level "usually present", without claiming the game requires it. |
+| Every matching wiki description | The seed files, marked as wiki | Hover text for more than today's 272 fields. |
+| Which fields hold a localization key | The base game and the seed files | The missing-key warning, without hard-coded field names. |
+| A cleaned error catalogue | The existing catalogue | Non-game strings removed; each message marked as script-facing or not. |
+| A structured "what it takes" for triggers and effects | The usage line in the game's own documentation output | Lookup and completion that say what a keyword accepts. |
+
+The same derivation also emits the 1.21 spec in the current format, so 2.3.0 can run on it for
+the baselines.
+
+What no derivation can supply: scope data for the triggers and effects the game itself does not
+document, descriptions for modifiers and on-actions, and a GUI vocabulary. These stay
+documented gaps.
+
+### What this means for the build
+
 - **Required-field checks are small.** They cover the fields the spec marks, which today is 3.
+  A field the base game always sets is advice, not a requirement.
 - **Each structural check is written by hand** against a catalogue message. The catalogue
   supplies the wording and the evidence, not the logic. 2.3.0 implemented about 14.
-- **Lookup says what the spec says.** "What it takes" is the description text. Where the spec
-  has nothing, lookup says so; it does not guess.
+- **Lookup says what the spec says.** Where the spec has nothing, lookup says so; it does not
+  guess.
 - 2.3.0 shipped the package compressed because of a file-size limit on commits. Step 1 decides
   compressed or raw; either way the checksum is of the uncompressed bytes and `task ci`
   verifies it.
@@ -266,6 +296,9 @@ Three: explain an error, fix an error, write new content. Each is tested by the 
   and 6 of its own); the plug-in catalogue `data/diagnostics.yaml` (85 codes: 1 error, 10
   warnings, 63 information, 11 hints, of which 11 have game evidence and 72 are advice); and
   `Documentation/developer-guide/diagnostics-evidence.md`, the record of the audit behind them.
+- A fourth source, for advice only: the rules of the pre-2.0 schema files (38 required-field
+  flags, 89 rule codes), kept in `pdx-parser-re` under `research/seeds`. Each is reviewed; one
+  that still holds on the 1.21 base game returns as advice.
 - A check is built only if it has a row. A row without evidence can only be advice.
 - **Codes are permanent.** A code is never renamed and never reused for a different finding.
   The naming scheme is chosen with the inventory.
@@ -434,10 +467,12 @@ repository's history.
 Each step ends with its suites passing; the next does not start before that. The same-answers
 test is extended in every step from 7 onward that adds a feature.
 
-**Step 0, before anything is built here: spec work.** It happens in `pdx-parser-re` on Thor-R7,
-on the owner's word. Derive the spec for game 1.21. Add the hand-kept tables to the package as
-a new format, with their evidence. Also emit the 1.21 spec in the current format, so 2.3.0 can
-run on it for the baselines.
+**Step 0, before anything is built here: spec work.** It happens in `pdx-parser-re`, on the
+owner's word. Derive the spec for game 1.21 in a new package format that keeps every current
+part and adds the eight additions listed in [What the 1.21 spec adds](#what-the-121-spec-adds).
+Also emit the 1.21 spec in the current format, so 2.3.0 can run on it for the baselines. The
+executable analysis needs Thor-R7; the parts that only read game files may run wherever the
+1.21 files are.
 
 1. Repository skeleton: workspace layout, `task ci`, the root CI workflow (Linux and Windows),
    `AGENTS.md`, the spec package committed with its checksum check, the local task for the
@@ -461,7 +496,8 @@ run on it for the baselines.
    agent server, registers the server with VS Code and sets it up for Claude Code. The VS Code
    floor is pinned here. The same-answers test starts here. **First preview build.**
 8. Formatter. First its rules are written down. Then the formatter, its round-trip suite,
-   on-type formatting, fix data and quick fixes. **Preview build.**
+   on-type formatting, fix data and quick fixes. The presentation data file (outline rules,
+   snippets, field order, inline hints) is added here. **Preview build.**
 9. Skills: explain, fix and write content, with the scored authoring run on its first two
    measures. **Preview build.**
 10. GUI files: the parser, the index of types and templates, go to definition. The
