@@ -27,7 +27,10 @@ lives unchanged in `legacy/`.
 | Spec delivery | The built spec package is a file committed in this repository with its checksum. `pdx-parser-re` stays private. |
 | Spec version | The spec is re-derived for the current game, 1.21, before building starts. The existing spec is for 1.20.0.2. |
 | Hand-kept tables | The tables 2.3.0 kept in code (about 100 entries: iterator parameters, structural keywords, block names) move into the spec package as a new format, with their evidence. The core holds none. |
-| Spec additions | The 1.21 spec keeps every part of the current package and adds eight things, the hand-kept tables among them (see [What the 1.21 spec adds](#what-the-121-spec-adds)). |
+| Grounding | Everything is grounded in the game: its executable, its files, its own documentation and its own output. Community tools and the wiki may supply a hint or an idea for a rule, and nothing rests on them alone. |
+| Spec additions | The 1.21 spec keeps every part of the current package and adds twelve things (see [What the 1.21 spec adds](#what-the-121-spec-adds)). |
+| Game dumps | The game's documentation dumps run on Thor-R7 only, started with the game's own command-line option for running a console command, not by injecting keystrokes. |
+| Community tools | ck3-tiger and the CWTools rule files may be evaluated, and a rule or its logic taken where it proves true against the game. Neither is a source of vocabulary or a basis for a finding. |
 | Presentation data | Outline rules, snippets, field order and inline hints return as pychivalry's own data, in a separate file in this repository. It is never used to raise an error. |
 | Old rules | The 38 required-field flags and 89 rule codes of the pre-2.0 schema files are reviewed in the check inventory. Those that still hold on the 1.21 base game return as advice, never as errors or warnings. |
 | Game versions | One game version at a time: the current one. |
@@ -39,7 +42,7 @@ lives unchanged in `legacy/`.
 | Authoring bar | The authoring loop has a round limit of 5. Its pass-rate targets are set after the first scored run. |
 | Authored content | Scored on validity (the checker) and on two further measures: a model judging the result against the request, and loading the content in the real game. |
 | Authoring order | The authoring skill is built straight after the formatter, at build step 9. |
-| GUI and GFX | Parse, index and navigate. Checks and lookup against a GUI vocabulary are after the MVP, because no such vocabulary exists yet. |
+| GUI and GFX | Parse, index and navigate. Checks and lookup against a GUI vocabulary are after the MVP; the 1.21 spec work starts collecting that vocabulary. |
 | Game patches | After 1.21, the spec is re-derived on the owner's word. Until then pychivalry reports the version mismatch and keeps working. Nothing runs unattended on Thor-R7. |
 | Platforms | Linux and Windows are supported and tested. macOS is untested. |
 | VS Code only | pychivalry is always used through VS Code. The command line and the agent server ship inside the extension and are never installed separately. Nothing is published to npm. |
@@ -194,13 +197,31 @@ derivation brings that knowledge back, measured from the game where it can be:
 | Which fields hold a localization key | The base game and the seed files | The missing-key warning, without hard-coded field names. |
 | A cleaned error catalogue | The existing catalogue | Non-game strings removed; each message marked as script-facing or not. |
 | A structured "what it takes" for triggers and effects | The usage line in the game's own documentation output | Lookup and completion that say what a keyword accepts. |
+| Where each modifier may be used | The game's documentation output, which lists a use area for all 761 modifiers. Already captured in October and left out of the package | A "modifier used in the wrong place" check with game evidence. |
+| Paradox's own documentation files | 214 `.info` files shipped in the game folders, describing records field by field with value types, the scope each block receives, and defaults | The best source for value types, descriptions and scopes; ranks above the wiki. |
+| Functions usable in localization and GUI | The game's data-types dump, never yet captured | Checking the bracket commands in localization; part of a GUI vocabulary. |
+| A measured GUI vocabulary | The base game's 441 GUI files, which use about 2,000 distinct block names | Widget types and properties with usage counts, where today there is nothing. |
 
 The same derivation also emits the 1.21 spec in the current format, so 2.3.0 can run on it for
 the baselines.
 
+Where sources disagree about a field, the order of trust is: the executable, then the game's
+own output, then Paradox's documentation files, then what the base game's files do, then the
+wiki-era hints. The package records which source each fact came from.
+
+Other material in the game folder, used as evidence and not carried in the package:
+
+- **Base-game localization** holds a name and description for each modifier. pychivalry reads
+  it at run time for hover text, which fills the gap of modifiers having no description.
+- **The command-line options file** documents how to start the game straight into a save, in
+  debug mode, with a console command run at start-up.
+- **The load-path settings** list which folders the game loads, which bears on override rules.
+- **The Linux executable** keeps its class names, about 6,100 of which name triggers or
+  effects: a second binary to cross-check derived names against.
+
 What no derivation can supply: scope data for the triggers and effects the game itself does not
-document, descriptions for modifiers and on-actions, and a GUI vocabulary. These stay
-documented gaps.
+document, and descriptions for on-actions. These stay documented gaps. A GUI vocabulary taken
+from the base game's files is measured, not derived from the executable, and is labelled so.
 
 ### What this means for the build
 
@@ -469,7 +490,7 @@ test is extended in every step from 7 onward that adds a feature.
 
 **Step 0, before anything is built here: spec work.** It happens in `pdx-parser-re`, on the
 owner's word. Derive the spec for game 1.21 in a new package format that keeps every current
-part and adds the eight additions listed in [What the 1.21 spec adds](#what-the-121-spec-adds).
+part and adds the twelve additions listed in [What the 1.21 spec adds](#what-the-121-spec-adds).
 Also emit the 1.21 spec in the current format, so 2.3.0 can run on it for the baselines. The
 executable analysis needs Thor-R7; the parts that only read game files may run wherever the
 1.21 files are.
@@ -532,6 +553,8 @@ Each is settled by evidence inside the build, not by a choice.
 | 1 | The game's override rules: load order, replaced paths, DLC precedence. Neither 2.3.0 nor its documents state them. | Build step 3, from the spec work or an in-game test. |
 | 2 | Whether the game reports, at load, a defect in content that never runs. | Build step 11, with the planted-defect mod. |
 | 3 | The real format of the error log, when it is cleared, and what debug mode adds. | Build step 11, from captured logs. |
+| 8 | Whether the game's command-line option for running a console command produces the documentation dumps unattended. | Step 0, on Thor-R7. |
+| 9 | Whether ck3-tiger and the CWTools rule files hold rules worth taking, and under what licences. | Build step 4, when the check inventory is written. |
 | 4 | Whether VS Code forwards an extension-registered local server to its default AI harness as documented, and whether one skills folder loads in both harnesses. | Build step 7. |
 | 5 | The targets for the scored agent and authoring runs. | After the first scored runs, in build steps 6 and 9. |
 | 6 | Whether the spec package is committed compressed or raw. | Build step 1. |
