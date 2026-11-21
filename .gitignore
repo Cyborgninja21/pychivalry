@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+
+# Build output (tsc writes each package's dist/)
+dist/
+*.tsbuildinfo
+
+# Task's checksum state for `sources`/`generates`
+.task/
+
+# Extension test downloads and packages (steps 7 and later)
+.vscode-test/
+*.vsix
+
+# Logs and caches
+*.log
+npm-debug.log*
+.eslintcache
+coverage/
+
+# Editors and operating systems
+.idea/
+*.swp
+*~
+.DS_Store
+Thumbs.db

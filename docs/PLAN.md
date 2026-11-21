@@ -64,21 +64,25 @@ These apply to every step and to every agent doing the work.
 
 | Area | Choice | Why |
 | --- | --- | --- |
-| Language | TypeScript, strict mode, one `tsconfig` base shared by all packages | Decided. |
-| Runtime | Node 22 for development and CI; the shipped servers run on VS Code's own bundled runtime | Node 22 is what is installed; users need no Node of their own. |
+| Language | TypeScript **6.0.3**, strict mode, one `tsconfig` base shared by all packages (`tsconfig.base.json`), ES modules | Decided. 6.0.3 rather than the newer 7.0.2: typescript-eslint 8.73.0, the current release, supports TypeScript below 6.1 only. |
+| Runtime | Node 22 for development and CI (CI: **22.23.5**; `engines` `>=22.13.0`); the shipped servers run on VS Code's own bundled runtime | Node 22 is what is installed; users need no Node of their own. |
 | Workspace | npm workspaces, one lock file at the root | What 2.3.0 used; no extra tool. |
 | `packages/core` dependencies | None at run time | Decided: the core is dependency-free. |
-| Tests | Node's built-in test runner on compiled output, for every package except the extension | No test framework to keep current; agents run it with one command. |
-| Extension tests | `@vscode/test-electron` driving a real VS Code | The only way to test the extension as shipped. 2.3.0 used the same. |
-| Bundling | esbuild, one single file each for the language server, the agent server and the command line; the spec stays a separate data file | VS Code's own guidance; small and fast. |
-| Language client | `vscode-languageclient` 11, started as a module over IPC | Runs on VS Code's runtime on Linux and Windows. |
-| Agent server library | The MCP TypeScript library, 2.x line (`@modelcontextprotocol/server`) | The current line; the 1.x line is in maintenance. |
-| Lint and format | ESLint and Prettier | What 2.3.0 used. |
-| Task runner | `Taskfile.yml` at the root | What 2.3.0 used; one entry point for agents. |
+| Tests | Node's built-in test runner (`node:test`, `node:assert/strict`) on compiled output, for every package except the extension; types from `@types/node` **22.20.5** | No test framework to keep current; agents run it with one command. |
+| Extension tests | `@vscode/test-electron` driving a real VS Code; pinned in step 7, which adds it | The only way to test the extension as shipped. 2.3.0 used the same. |
+| Bundling | esbuild, one single file each for the language server, the agent server and the command line; the spec stays a separate data file; pinned in the step that adds it | VS Code's own guidance; small and fast. |
+| Language client | `vscode-languageclient` 11, started as a module over IPC; pinned in step 7 | Runs on VS Code's runtime on Linux and Windows. |
+| Agent server library | The MCP TypeScript library, 2.x line (`@modelcontextprotocol/server`); pinned in step 6 | The current line; the 1.x line is in maintenance. |
+| Lint and format | ESLint **10.15.0** with `@eslint/js` **10.0.1** and `typescript-eslint` **8.73.0** (`strictTypeChecked`); Prettier **3.10.1** | What 2.3.0 used. |
+| Task runner | `Taskfile.yml` at the root; Task **3.54.0** in CI (developed with 3.50.0) | What 2.3.0 used; one entry point for agents. |
 | Licence | Apache-2.0 | What 2.3.0 used. |
 | Extension identity | Publisher `cyborgninja21`, name `pychivalry`, version 1.0.0 at release | Decided: a new identity. |
+| Record checks | `ajv` **8.20.0** (JSON Schema 2020-12), in `tools/` only | Validates every record against `records/record.schema.json`; the core stays dependency-free. |
+| CI actions | `actions/checkout` **v7.0.1**, `actions/setup-node` **v7.1.0**, `go-task/setup-task` **v2.2.0**, each pinned by commit | Pinned so a moved tag cannot change what CI runs. |
 
-Versions are pinned to exact numbers when step 1 installs them, and written into this table.
+Versions are pinned to exact numbers when a step installs them, and written into this table.
+Step 1 pinned the ones in bold (2026-11-21, the current releases on the npm registry and
+GitHub); a tool that arrives later is pinned by the step that adds it.
 
 ## Repository layout
 

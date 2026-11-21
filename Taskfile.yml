@@ -1,0 +1,133 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+#
+# The one entry point for people and agents. `task ci` is what public CI runs and needs no
+# display, game files, model, key or network once `task install` has run. The game:* tasks
+# need the game and the mod corpus and run only on a machine that has them (AGENTS.md).
+
+version: '3'
+
+tasks:
+  default:
+    desc: List the tasks
+    cmds:
+      - task --list
+    silent: true
+
+  # ─── Build and test ─────────────────────────────────────────────
+
+  install:
+    desc: Install the npm workspace from the root lock file (npm ci)
+    cmds:
+      - npm ci
+    sources:
+      - package.json
+      - package-lock.json
+      - packages/*/package.json
+      - tools/package.json
+    generates:
+      - node_modules/.package-lock.json
+
+  build:
+    desc: Compile every package and the tools (tsc -b, strict)
+    deps: [install]
+    cmds:
+      - npm run build
+
+  test:
+    desc: "Run every package's unit tests: Node's test runner on the compiled output"
+    deps: [build]
+    cmds:
+      - npm test
+
+  lint:
+    desc: Lint every TypeScript file, type-aware, warnings as errors (ESLint)
+    deps: [build]
+    cmds:
+      - npm run lint
+
+  format:
+    desc: Format the sources and configuration (Prettier)
+    deps: [install]
+    cmds:
+      - npm run format
+
+  format:check:
+    desc: Check the formatting without changing anything (Prettier)
+    deps: [install]
+    cmds:
+      - npm run format:check
+
+  spec:check:
+    desc: 'Verify the committed spec package: the checksum of its uncompressed bytes and a supported package format'
+    deps: [build]
+    cmds:
+      - node tools/dist/cli.js spec check
+
+  records:check:
+    desc: 'Check every committed record: valid against records/record.schema.json, made on the committed spec and corpus, no local paths'
+    deps: [build]
+    cmds:
+      - node tools/dist/cli.js records check
+
+  ci:
+    desc: 'Everything public CI runs: install, build, lint, format check, tests, the spec and record checks'
+    cmds:
+      - task: install
+      - task: build
+      - task: lint
+      - task: format:check
+      - task: test
+      - task: spec:check
+      - task: records:check
+
+  # ─── Game-file suites (local only; docs/PLAN.md, "Environment for the game-file suites") ───
+
+  game:parse:
+    desc: 'Base-game parse suite (CK3_GAME_PATH); writes records/game/parse.json. Step 1: a stub'
+    deps: [build]
+    cmds:
+      - node tools/dist/cli.js game parse
+
+  game:check:
+    desc: 'Base-game check suite (CK3_GAME_PATH); writes records/game/check.json. Step 1: a stub'
+    deps: [build]
+    cmds:
+      - node tools/dist/cli.js game check
+
+  game:mods:
+    desc: 'Real-mod suite (CK3_GAME_PATH, CK3_CORPUS, CK3_CORPUS_SLUGS); writes records/game/mods.json. Step 1: a stub'
+    deps: [build]
+    cmds:
+      - node tools/dist/cli.js game mods
+
+  game:bench:
+    desc: 'Benchmarks (CK3_GAME_PATH, CK3_CORPUS, CK3_CORPUS_SLUGS); writes records/game/bench.json. Step 1: a stub'
+    deps: [build]
+    cmds:
+      - node tools/dist/cli.js game bench
+
+  corpus:manifest:
+    desc: 'Measure the mod corpus in CK3_CORPUS into records/corpus/MANIFEST.tsv (a deliberate refresh: records/corpus/README.md)'
+    deps: [build]
+    cmds:
+      - node tools/dist/cli.js corpus manifest
+
+  # ─── Release 2.3.0 baselines (docs/PLAN.md, item 1.11; Linux) ───
+
+  baseline:prepare:
+    desc: 'Export legacy/ (release 2.3.0) into LEGACY_BUILD, a folder outside the repository, and build it with its own Taskfile'
+    preconditions:
+      - sh: test -n "$LEGACY_BUILD"
+        msg: 'LEGACY_BUILD must name a folder outside the repository'
+      - sh: 'case "$(realpath -m "$LEGACY_BUILD")/" in "$(pwd)"/*) exit 1 ;; esac'
+        msg: "LEGACY_BUILD must be outside the repository: 2.3.0's scripts write into their own tree"
+    cmds:
+      - mkdir -p "$LEGACY_BUILD"
+      - git archive --format=tar HEAD:legacy | tar -x -C "$LEGACY_BUILD"
+      - cd "$LEGACY_BUILD" && task install && task build
+
+  baseline:speed:
+    desc: 'Time release 2.3.0 (LEGACY_BUILD, CK3_GAME_PATH, CK3_CORPUS; BASELINE_PARTS, BASELINE_RUNS); writes records/baseline-2.3.0/'
+    deps: [build]
+    cmds:
+      - node tools/dist/cli.js baseline speed

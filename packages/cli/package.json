@@ -1,0 +1,22 @@
+{
+    "name": "@pychivalry/cli",
+    "version": "0.0.0",
+    "private": true,
+    "description": "The command-line checker, a thin shell over @pychivalry/core.",
+    "license": "Apache-2.0",
+    "type": "module",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "default": "./dist/index.js"
+        }
+    },
+    "dependencies": {
+        "@pychivalry/core": "0.0.0"
+    },
+    "scripts": {
+        "test": "node --test \"dist/**/*.test.js\""
+    }
+}
