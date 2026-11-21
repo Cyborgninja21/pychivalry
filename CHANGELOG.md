@@ -22,4 +22,16 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   checker, `task records:check`; the local game-file suites `task game:parse`, `game:check`,
   `game:mods` and `game:bench` as stubs that write a valid, empty record.
 - `records/corpus/MANIFEST.tsv`: the five-mod test corpus, pinned.
-- `records/baseline-2.3.0/`: speed baselines of release 2.3.0 on game 1.21.0.3.
+- `records/baseline-2.3.0/`: speed baselines of release 2.3.0 on game 1.21.0.3, made with
+  `task baseline:prepare` and `task baseline:speed` from a build of `legacy/` outside the
+  repository: per mod, the command line's load, whole-mod check and peak memory (11 runs);
+  the base game's parse, check and peak memory (6 runs); per mod, the editor's time to first
+  full result and the language server's peak memory under xvfb (6 runs). Each keeps its first
+  run apart from the median and spread of the rest. 2.3.0's base-game script needs a heap
+  limit above Node's default on this game build; the record states the one used.
+
+### Open
+
+- Item 1.6: the 1.21 spec package in format 5 (step 0), and whether it is committed
+  compressed or raw (an owner decision).
+- Item 1.11: the result baselines, which need the 1.21 spec in format 4 (step 0).

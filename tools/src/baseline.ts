@@ -406,64 +406,65 @@ function editorSeries(
     const work = path.join(legacyDir, '.baseline');
     mkdirSync(work, { recursive: true });
     const extensionDir = path.join(legacyDir, 'vscode-extension');
-    const perMod = new Map<
-        string,
-        { first: number[]; rss: number[]; validated: number[]; versions: string[] }
-    >();
-    for (const slug of slugs) {
-        perMod.set(slug, { first: [], rss: [], validated: [], versions: [] });
-    }
-    const loadAverage: number[] = [];
+    const empty = (): {
+        first: number[];
+        rss: number[];
+        validated: number[];
+        versions: string[];
+        loadAverage: number[];
+        exits: Array<number | null>;
+    } => ({ first: [], rss: [], validated: [], versions: [], loadAverage: [], exits: [] });
+    const perMod = new Map(slugs.map((slug) => [slug, empty()]));
+    // One invocation per mod and run: the harness stops at the first mod whose assertions
+    // fail, so a run over several mods would leave the later ones unmeasured.
     for (let run = 0; run < runs; run++) {
-        loadAverage.push(Math.round((loadavg()[0] ?? 0) * 100) / 100);
-        const log = path.join(work, `editor-run-${String(run + 1)}.log`);
-        const fd = openSync(log, 'w');
-        const since = Date.now();
-        let result: SpawnSyncReturns<Buffer>;
-        try {
-            result = spawnSync(
-                'xvfb-run',
-                ['-a', process.execPath, path.join('out', 'test', 'runTest.js')],
-                {
-                    cwd: extensionDir,
-                    env: headlessEnv({
-                        CK3_CORPUS: corpus,
-                        CK3_GAME_PATH: game,
-                        CK3_CORPUS_SLUGS: slugs.join(','),
-                    }),
-                    stdio: ['ignore', fd, fd],
-                    timeout: 90 * 60 * 1000,
-                },
-            );
-        } finally {
-            closeSync(fd);
-        }
-        if (result.error !== undefined) {
-            failed(`the editor harness, run ${String(run + 1)}`, result, log);
-        }
         for (const slug of slugs) {
+            const entry = perMod.get(slug) ?? empty();
+            entry.loadAverage.push(Math.round((loadavg()[0] ?? 0) * 100) / 100);
+            const log = path.join(work, `editor-run-${String(run + 1)}-${slug}.log`);
+            const fd = openSync(log, 'w');
+            const since = Date.now();
+            let result: SpawnSyncReturns<Buffer>;
+            try {
+                result = spawnSync(
+                    'xvfb-run',
+                    ['-a', process.execPath, path.join('out', 'test', 'runTest.js')],
+                    {
+                        cwd: extensionDir,
+                        env: headlessEnv({
+                            CK3_CORPUS: corpus,
+                            CK3_GAME_PATH: game,
+                            CK3_CORPUS_SLUGS: slug,
+                        }),
+                        stdio: ['ignore', fd, fd],
+                        timeout: 60 * 60 * 1000,
+                    },
+                );
+            } finally {
+                closeSync(fd);
+            }
             const record = freshJson(countsFile(legacyDir, slug), since);
             const editor = record?.['editor'];
-            if (!isObject(editor)) {
+            if (result.error !== undefined || !isObject(editor)) {
                 failed(
-                    `the editor harness, run ${String(run + 1)}: no fresh editor record for ${slug}`,
+                    `the editor harness, run ${String(run + 1)}, ${slug}: no fresh editor record`,
                     result,
                     log,
                 );
             }
-            const entry = perMod.get(slug);
-            entry?.first.push(numberAt(editor, 'timeToFirstFullResultMs'));
-            entry?.rss.push(numberAt(editor, 'peakServerRssKb'));
-            entry?.validated.push(numberAt(editor, 'filesValidated'));
+            entry.exits.push(result.status);
+            entry.first.push(numberAt(editor, 'timeToFirstFullResultMs'));
+            entry.rss.push(numberAt(editor, 'peakServerRssKb'));
+            entry.validated.push(numberAt(editor, 'filesValidated'));
             const version = editor['vscodeVersion'];
-            entry?.versions.push(typeof version === 'string' ? version : 'unknown');
+            entry.versions.push(typeof version === 'string' ? version : 'unknown');
+            process.stdout.write(
+                `  editor run ${String(run + 1)}/${String(runs)} ${slug}: ${String(entry.first.at(-1))} ms, ${String(entry.rss.at(-1))} KiB\n`,
+            );
         }
-        process.stdout.write(
-            `  editor run ${String(run + 1)}/${String(runs)}: ${slugs.map((s) => `${s} ${String(perMod.get(s)?.first.at(-1))} ms`).join(', ')}\n`,
-        );
     }
     return slugs.map((slug) => {
-        const entry = perMod.get(slug) ?? { first: [], rss: [], validated: [], versions: [] };
+        const entry = perMod.get(slug) ?? empty();
         return {
             name: `mod ${slug}: editor, time to first full result`,
             method: 'editor' as const,
@@ -476,7 +477,8 @@ function editorSeries(
             context: {
                 files_validated: [...new Set(entry.validated)],
                 vscode_versions: [...new Set(entry.versions)],
-                load_average_1m: loadAverage,
+                harness_exit_codes: entry.exits,
+                load_average_1m: entry.loadAverage,
             },
         };
     });
@@ -561,7 +563,7 @@ export function runSpeedBaseline(root: string, env: BaselineEnv): string[] {
                 editorSeries(legacy, game, corpus.dir, corpus.ref.slugs, runs),
                 corpus.ref,
                 [
-                    "Each run is one invocation of release 2.3.0's extension integration harness (out/test/runTest.js) under xvfb-run, with WAYLAND_DISPLAY, the desktop session bus and the launching VS Code's variables removed, so that no window reached a desktop. The harness runs its own integration suite first, then opens each mod in a fresh VS Code with the game path set and every other setting at its default.",
+                    "Each run is one invocation of release 2.3.0's extension integration harness (out/test/runTest.js) under xvfb-run, with WAYLAND_DISPLAY, the desktop session bus and the launching VS Code's variables removed, so that no window reached a desktop. Each invocation measures one mod, selected with the harness's own CK3_CORPUS_SLUGS, because the harness stops at the first mod whose assertions fail. The harness runs its own integration suite first, then opens the mod in a fresh VS Code with the game path set and every other setting at its default. The runs go round the mods in turn: run 1 of every mod, then run 2, and so on.",
                     "time_to_first_full_result_ms is the harness's own figure: from the extension's activation to the language server's first full background pass. server_peak_rss_kib is the language server's peak resident memory as the harness reports it.",
                     'The harness exits non-zero on these runs: its assertions require every error finding to be classified, which the 1.20.0.2 spec on the newer game does not meet. Its record of the timings is written before those assertions.',
                 ],
