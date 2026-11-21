@@ -22,7 +22,7 @@ disagree, MVP.md is right and this plan is fixed.
 | 0 | Spec work, in `pdx-parser-re` | It produces it | In progress, another agent |
 | 1 | Repository skeleton | Two items only (1.6, 1.11) | Built and merged (pull requests #114 and #115). Open, waiting on step 0: 1.6 (the committed spec is the 1.20.0.2 stand-in until the 1.21 format 5 package; compressed or raw still to decide) and 1.11 (the result baselines; the speed baselines are done) |
 | 2 | Parser | No | Built and merged (pull request #116). Item 2.6's public codes are left to item 4.1, which maps the syntax finding identifiers to them |
-| 3 | Workspace index | No; a stand-in folder list is enough | Stopped after item 3.1, in review as a draft pull request. `docs/overrides.md` is written; six of its rules are open and need the in-game experiments it names, on the analysis machine on the owner's word. Items 3.2 to 3.10 are not started |
+| 3 | Workspace index | No; a stand-in folder list is enough | Stopped after item 3.1, in review as draft pull request #118. `docs/overrides.md` is written; six of its rules are open and need the in-game experiments it names, on the analysis machine on the owner's word. Items 3.2 to 3.10 are not started |
 | 4 | Engine checks and lookup | Yes, from item 4.2 on | Not started |
 | 5 | Command line | Through step 4 | Not started |
 | 6 | Agent server | Through step 4 | Not started |
