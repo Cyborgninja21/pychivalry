@@ -1,0 +1,12 @@
+my_culture = {
+	color = { 0.8 0.2 0.2 }
+	map_color = rgb { 201 166 138 }
+	coa = {
+		color1 = hsv{ 0.58 0.8 0.4 }
+		color2 = hsv360{ 021 074 045 }
+	}
+	landed = {
+		color = { 161 67 0 }
+	}
+	size = { 1 2 3 }
+}

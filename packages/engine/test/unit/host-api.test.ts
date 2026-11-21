@@ -13,6 +13,7 @@ import {
     isLocalizationFile,
     LocalizationIndex,
     localizationKeysOf,
+    localizationLanguageOf,
 } from '../../src/index/localization';
 import { pathToUri, Workspace } from '../../src/index/workspace';
 import { Indexer, SymbolType } from '../../src/index/indexer';
@@ -90,6 +91,31 @@ describe('Host API: LocalizationIndex', () => {
         const text =
             'l_english:\r\n key_a:0 "A" # a comment\r\n key_b: "B"\r\nkey_c:0 "no indent"\r\n';
         assert.deepStrictEqual(localizationKeysOf(text), ['key_a', 'key_b']);
+    });
+
+    it('names the language of a file and counts keys per file (files)', () => {
+        assert.strictEqual(localizationLanguageOf('events_l_english.yml'), 'english');
+        assert.strictEqual(localizationLanguageOf('x_l_SIMP_CHINESE.yml'), 'simp_chinese');
+        assert.strictEqual(localizationLanguageOf('notes.yml'), undefined);
+        const index = new LocalizationIndex();
+        const english = path.join(dir, 'english', 'a_l_english.yml');
+        const french = path.join(dir, 'french', 'a_l_french.yml');
+        index.indexText(english, 'l_english:\n a:0 "1"\n b:0 "2"\n');
+        index.indexText(french, 'l_french:\n a:0 "un"\n');
+        // `a` is defined in both files: the entry lookup keeps one, files() counts both.
+        assert.strictEqual(index.size, 2);
+        assert.deepStrictEqual(
+            index.files().sort((x, y) => (x.uri < y.uri ? -1 : 1)),
+            [
+                { uri: pathToUri(english), language: 'english', keys: 2 },
+                { uri: pathToUri(french), language: 'french', keys: 1 },
+            ]
+        );
+        index.clearFile(pathToUri(french));
+        assert.deepStrictEqual(
+            index.files().map((f) => f.language),
+            ['english']
+        );
     });
 
     it('replaces a file on re-index and clears it', () => {

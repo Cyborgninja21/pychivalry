@@ -1,6 +1,6 @@
 # Validation pipeline
 
-How a CK3 script file becomes diagnostics in pychivalry 2.2.0. The same pipeline serves the
+How a CK3 script file becomes diagnostics in pychivalry 2.3.0. The same pipeline serves the
 editor (the language server) and the command line (`pychivalry-engine check`). The code
 reference for every id and code is the generated
 [diagnostics reference](../../user-guide/diagnostics/README.md).

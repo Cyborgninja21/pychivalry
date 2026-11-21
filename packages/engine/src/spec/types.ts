@@ -1,7 +1,7 @@
 /**
  * Types of the CK3 spec package (pdx-parser-re `spec/package/ck3-spec-<version>.json`).
  *
- * They mirror `spec/schema.json` (package_format 3). Only the shapes the engine reads are
+ * They mirror `spec/schema.json` (package_format 4). Only the shapes the engine reads are
  * typed in detail; everything else is kept as plain data.
  */
 
@@ -71,7 +71,8 @@ export interface DirectoryEntry {
 export interface FieldSpec {
     kind: FieldKind;
     holds?: 'modifiers';
-    provenance: 'engine' | 'vanilla';
+    /** `corpus`: a wiki-era field the real-mod corpus sets (format 4); usage = corpus files. */
+    provenance: 'engine' | 'vanilla' | 'corpus';
     usage: number;
     required: boolean;
     required_evidence?: string;
@@ -80,6 +81,13 @@ export interface FieldSpec {
     wiki_kind?: string;
     hook?: boolean;
     note?: string;
+    /**
+     * The scope types the game evaluates this field in when they are not the record's root
+     * (format 4, measured on vanilla): one type is the field's scope; several mean the
+     * evidence does not decide between them.
+     */
+    scope?: string[];
+    scope_evidence?: string;
     fields?: Record<string, FieldSpec>;
 }
 
@@ -218,7 +226,7 @@ export interface ScopeTypeEntry {
 }
 
 export interface SpecPackage {
-    package_format: 3;
+    package_format: 4;
     manifest: Manifest;
     buckets: Record<Bucket, Record<string, BucketEntry>>;
     modifier_templates: string[];

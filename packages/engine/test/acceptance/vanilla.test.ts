@@ -14,6 +14,7 @@ import * as path from 'path';
 
 import { CK3Parser } from '../../src/syntax/parser';
 import { defaultSpec, packageRoot } from '../../src/spec/spec';
+import { assertGameRecord } from '../helpers/game-record';
 
 interface Recorded {
     file: string;
@@ -58,6 +59,12 @@ function recordedErrors(): { files: number; errors: Recorded[] } {
 describe('Vanilla 1.20 acceptance', function () {
     this.timeout(600_000);
     const dir = process.env.CK3_VANILLA_DIR;
+
+    it('the record says which game it was run against', () => {
+        const file = path.join(packageRoot(), 'test', 'acceptance', 'vanilla-1.20.0.2.json');
+        const data: unknown = JSON.parse(fs.readFileSync(file, 'utf8'));
+        assertGameRecord('vanilla record', Reflect.get(Object(data), 'game'));
+    });
 
     it('parses every common/, events/, history/ .txt with only the recorded errors', function () {
         if (!dir) {

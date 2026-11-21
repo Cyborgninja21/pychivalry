@@ -16,6 +16,6 @@ describe('Server version', () => {
         assert.ok(typeof pkg === 'object' && pkg !== null);
         assert.strictEqual(Reflect.get(pkg, 'name'), 'ck3-language-support');
         assert.strictEqual(extensionVersion(), Reflect.get(pkg, 'version'));
-        assert.strictEqual(extensionVersion(), '2.2.0');
+        assert.strictEqual(extensionVersion(), '2.3.0');
     });
 });

@@ -158,6 +158,8 @@ const checkMs = Number((process.hrtime.bigint() - checkStart) / 1000000n);
 
 const record = {
     spec: { version: spec.version(), exe_sha256: spec.data.manifest.exe.sha256 },
+    // The game the run read, which can be another build than the spec's executable.
+    game: engine.gameInfo(gameDir, spec.data.manifest.exe.sha256),
     command: 'node scripts/vanilla-acceptance.js <game dir>',
     parse: {
         trees,

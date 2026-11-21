@@ -2,7 +2,7 @@
 
 # Engine catalogue: Missing
 
-35 messages of category `missing` in the error catalogue of the CK3 1.20.0.2
+36 messages of category `missing` in the error catalogue of the CK3 1.20.0.2
 spec package. These are the game's own texts, as `error.log` prints them; `%s`, `{}`
 and `$X$` mark the values the game fills in. 4 of them are also reported by the
 engine core in the editor (column "pychivalry"); the others are listed so that a line of
@@ -25,6 +25,7 @@ engine core in the editor (column "pychivalry"); the others are listed so that a
 | `malformed_setup_puppet_relation_effect_puppet_type_missing_o` | `Malformed setup_puppet_relation effect, puppet type missing or invalid target` | 1.20.0.2 |  |
 | `missing_on_demand_texture_X` | `Missing on demand texture '%s'` | 1.20.0.2 |  |
 | `missing_or_invalid_tutorial_chain_for_tutorial_lesson_X` | `Missing or invalid tutorial chain for tutorial lesson '%s'` | <=1.19.0.6 | schema, error |
+| `namespace_X_used_in_event_X_file_X_is_not_defined_in_this_fi` | `Namespace '{}' used in event '{}' (file: {}) is not defined in this file - it might not load properly.` (supplement: the game's warning for an event whose namespace its file does not declare (pychivalry EVENT-016); in archive/strings/categorized/uncategorized.txt:0x14437a600 and in the 1.20.0.3 exe at file offset 0x4937da0 (research/errors/messages_supplement_1.20.0.2.tsv)) | <=1.19.0.6 |  |
 | `note_that_it_will_return_an_invalid_null_province_if_not_set` | `"Note that it will return an invalid/null province if not set explicitly before using this link."` | <=1.19.0.6 |  |
 | `option_X_in_category_X_blocks_undefined_phase_in_activity_X` | `Option '{}' in category '{}' blocks undefined phase in activity {}` | <=1.19.0.6 |  |
 | `persistent_portrait_info_missing_genes_expected_X_found_X_at` | `Persistent portrait info missing genes: expected %d, found %d! at '%s'` | <=1.19.0.6 |  |

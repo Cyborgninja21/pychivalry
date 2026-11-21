@@ -6,7 +6,7 @@ pychivalry reports two kinds of diagnostics.
 
 - **Engine diagnostics** (source `ck3-engine`) come from the engine core. Their id and
   text are the game's own, taken from the error catalogue of the CK3 1.20.0.2 spec
-  package (1967 messages), so a diagnostic in the editor reads like the line
+  package (1968 messages), so a diagnostic in the editor reads like the line
   the game would write to `error.log`. A few ids starting with `PYCH-` are the
   engine's own, for conditions the catalogue has no text for.
 - **Plug-in diagnostics** (source `ck3-plugin`, or `ck3-localization` in `.yml` files)
@@ -88,7 +88,7 @@ is below.
 | [Invalid flag](catalogue-invalid-flag.md) | 12 | 0 |
 | [Invalid format](catalogue-invalid-format.md) | 7 | 0 |
 | [Invalid value](catalogue-invalid-value.md) | 926 | 3 |
-| [Missing](catalogue-missing.md) | 35 | 4 |
+| [Missing](catalogue-missing.md) | 36 | 4 |
 | [Missing key](catalogue-missing-key.md) | 3 | 0 |
 | [Other](catalogue-other.md) | 812 | 0 |
 | [Scope change](catalogue-scope-change.md) | 1 | 0 |

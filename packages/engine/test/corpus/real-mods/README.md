@@ -17,6 +17,8 @@ every error-severity finding (file relative to the mod, 1-based line, code, mess
 classification (`real-defect` or `false-positive` with the GitHub issue), from
 [`classifications.json`](classifications.json), explained in [FINDINGS.md](FINDINGS.md).
 
+**Which game.** The spec is derived from the CK3 1.20.0.2 executable, but the 2.3.0 acceptance and corpus records were measured against the 1.20.0.3 game files (Steam updated the install on 2026-10-03; every record's `game` field gives the version, the executable's sha256 and `matches_spec_exe: false`), 21 game files differ, and on the unchanged 2.2.0 engine the difference is one `undefined_event_target_X` finding and four judged keyword uses, with zero scope findings either way.
+
 ## The corpus
 
 Never committed. Five Steam Workshop mods copied on 2026-10-02 from the local workshop cache
@@ -132,3 +134,36 @@ within a severity) and publishes them in position order; until then it kept the 
 position, so an error at the end of a long file full of style hints was not published. The
 editor's `ck3-engine` error findings are identical, file, line and code, to the engine path's
 in every file, capped ones included (asserted by the corpus suite).
+
+## Editor features smoke (2.3, post-2.0 Phase 5)
+
+The corpus suite's second test (`src/test/corpus/corpus.test.ts`, same command as the editor
+path) smoke-tests the 2.3 editor features in each mod's Extension Development Host after the
+diagnostics record is written, and records them under the `features` key: the colour values
+the colour provider finds in the first `.gui`/`.gfx` file (sorted) that writes a colour key
+outside a comment; an Enter typed in the editor (in memory, then reverted) after the first
+line ending in `{` of the first script file under `events/` or `common/`, with the on-type
+edits applied and the new line's indentation compared with the file's own first line of that
+block; and the CK3 Explorer's categories, the time of its top-level `ck3/modStructure` request
+and of fetching every node, and one reveal checked in the editor. The run of 2026-10-03 that
+wrote them reproduced every `editor` diagnostics field (counts, `bySeverity`, errors, files)
+exactly; its timing fields were not committed, so the `editor` records are still those of
+the 2.2.0 build.
+
+| Mod | Colours (file: values) | On-type (Enter) | Top request ms | Whole tree ms | Nodes | Reveal |
+| --- | --- | --- | ---: | ---: | ---: | --- |
+| balance-of-power-ui | `gui/00_bop_types.gui`: 2 | `common/script_values/svals_bop.txt` line 2: agrees | 3 | 15 | 37 | bop_refresh_effect (ok) |
+| divine-intervention | `gui/DI_button.gui`: 4 | `common/character_interaction_categories/00_character_interaction_categories.txt` line 8: agrees | 3 | 30 | 408 | DI_abdicate (ok) |
+| elf-destiny | `gui/OVERRIDES_types_2.gui`: 1 | `common/activities/activity_types/aeluran_matchmaking.txt` line 2: agrees | 5 | 95 | 2210 | adopt_ancient_egyptian_culture_decision (ok) |
+| rice | `gui/decision_view_widgets/decision_view_widget_RICE_galicia_cantiga_decision.gui`: 1 | `common/activities/activity_types/RICE_aachen_pilgrimage.txt` line 2: agrees | 6 | 126 | 5100 | RICE_SEA_harvest_rare_tropical_goods_decision (ok) |
+| viet-events | no `.gui`/`.gfx` file | `common/activities/activity_types/VIET_ancient_stone_monument_examination.txt` line 2: agrees | 3 | 44 | 1644 | VIET_decision_add_more_dovecotes (ok) |
+
+CK3 Explorer categories (counts; – = empty, hidden; Localization = keys over all languages):
+
+| Mod | Events | Decisions | Character Interactions | Scripted Effects | Scripted Triggers | Script Values | On-Actions | Localization |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| balance-of-power-ui | – | – | – | 1 | 1 | 17 | – | 7 |
+| divine-intervention | 5 | – | 80 | 119 | 44 | 45 | 8 | 11,307 |
+| elf-destiny | 392 | 25 | 22 | 415 | 274 | 526 | 159 | 11,740 |
+| rice | 2,166 | 292 | 25 | 904 | 185 | 604 | 116 | 389,048 |
+| viet-events | 1,288 | 23 | 2 | 97 | 34 | 3 | 34 | 80,122 |

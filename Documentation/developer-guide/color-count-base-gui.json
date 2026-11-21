@@ -1,0 +1,24 @@
+{
+  "dir": "<game dir>/gui",
+  "namedColors": 112,
+  "tree": {
+    "files": 89,
+    "values": 44,
+    "notations": {
+      "bare-unit": 37,
+      "bare-byte": 7
+    }
+  },
+  "scan": {
+    "files": 327,
+    "values": 447,
+    "notations": {
+      "bare-unit": 446,
+      "bare-byte": 1
+    }
+  },
+  "scanOnTreeFiles": {
+    "values": 44,
+    "filesDisagreeing": 0
+  }
+}

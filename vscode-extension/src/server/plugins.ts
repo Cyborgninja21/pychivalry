@@ -207,7 +207,10 @@ export function extensionPlugins(env: PluginEnvironment = {}): NamedPlugin[] {
                 if (events.length > 0) {
                     for (const err of validateNamespaceDeclaration(ast, uri)) {
                         out.push({
-                            severity: DiagnosticSeverity.Information,
+                            severity:
+                                err.severity === 'warning'
+                                    ? DiagnosticSeverity.Warning
+                                    : DiagnosticSeverity.Information,
                             range: err.range ?? {
                                 start: { line: 0, character: 0 },
                                 end: { line: 0, character: 0 },
