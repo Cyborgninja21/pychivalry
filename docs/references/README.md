@@ -30,11 +30,12 @@ written down instead.
 
 | Source | What it gives | Reaches pychivalry as | May be copied into this repository | Notes |
 | --- | --- | --- | --- | --- |
-| The game executable | Trigger, effect, link, list, on-action and modifier names; error message texts | The spec package | Only through the spec package | [spec-package.md](spec-package.md) |
+| The game executable | Trigger, effect, link, list, on-action and modifier names; error message texts | The spec package; and, for the override rules, message texts the spec does not carry, read from the Linux build | Only through the spec package; a message text may be quoted as evidence | [spec-package.md](spec-package.md), [game-files.md](game-files.md#the-linux-executable) |
 | The game's documentation dumps | Scopes per trigger and effect, usage lines, modifier use areas, data types | The spec package | Only through the spec package | [spec-package.md](spec-package.md) |
 | Paradox's `.info` files | Field types, defaults, the scope a block receives | The spec package | Facts, through the spec package. Whether their text may be carried is an open question for the owner | [game-files.md](game-files.md) |
 | The base game's script, GUI and localization files | Measured use: value types, observed values, how often a field is set, GUI block names | The spec package; and read at run time from the user's own install | Never as files. Counts and facts only | [game-files.md](game-files.md) |
 | The game's command-line options and load-path settings | How to start the game into a save with a console command; which folders load | Notes; the in-game test harness of step 11; the override rules of step 3 | Facts only | [game-files.md](game-files.md) |
+| The install's layout: the `game`, `jomini` and `clausewitz` folders, and the DLC descriptors | Where the base game's files are, and how a DLC names its folder | The override rules ([overrides.md](../overrides.md)); the base-game index of step 3 | Facts only | [game-files.md](game-files.md#the-installs-folders) |
 | The spec package | Everything above, built and checksummed | `spec/` in this repository | Yes: it is committed here | [spec-package.md](spec-package.md) |
 | The pre-2.0 schema files | Value types, descriptions, required flags, rule codes, written from the wiki | Hints inside the spec package, each marked as a wiki-era hint | Only through the spec package | [wiki-era-schemas.md](wiki-era-schemas.md) |
 | The CK3 wiki | Descriptions and explanations | Hints only, through the files above | No | [wiki-era-schemas.md](wiki-era-schemas.md) |

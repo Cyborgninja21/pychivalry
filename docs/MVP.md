@@ -3,8 +3,9 @@
 Status: draft, 2026-11-21. Decisions are answered, the scope is confirmed, and every build step
 has been checked against real data: the spec package, the 2.3.0 code and its records, the game
 installed today, and the current VS Code, Claude Code and GitHub documentation. Build step 1,
-the repository skeleton, is built, and build step 2, the parser, is built and in review;
-nothing else in this document is yet.
+the repository skeleton, and build step 2, the parser, are built; build step 3 has written the
+override rules it found and stopped on those that need an in-game test; nothing else in this
+document is yet.
 
 The build plan, step by step, is in [PLAN.md](PLAN.md).
 
@@ -557,7 +558,7 @@ Each is settled by evidence inside the build, not by a choice.
 
 | # | Question | Settled when |
 | --- | --- | --- |
-| 1 | The game's override rules: load order, replaced paths, DLC precedence. Neither 2.3.0 nor its documents state them. | Build step 3, from the spec work or an in-game test. |
+| 1 | The game's override rules: load order, replaced paths, DLC precedence. Neither 2.3.0 nor its documents state them. | Build step 3, from the spec work or an in-game test. Partly answered in [overrides.md](overrides.md); the rest waits on the in-game experiments written there. |
 | 2 | Whether the game reports, at load, a defect in content that never runs. | Build step 11, with the planted-defect mod. |
 | 3 | The real format of the error log, when it is cleared, and what debug mode adds. | Build step 11, from captured logs. |
 | 8 | Whether the game's command-line option for running a console command produces the documentation dumps unattended. | Step 0, on the analysis machine. |

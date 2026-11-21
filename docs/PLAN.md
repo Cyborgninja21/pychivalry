@@ -1,6 +1,6 @@
 # pychivalry: build plan
 
-Status: plan for approval, 2026-11-21. Step 1 is built and step 2 is in review; the Progress table says what is open.
+Status: plan for approval, 2026-11-21. Steps 1 and 2 are built and merged; step 3 has stopped after item 3.1 on rules that need an in-game test. The Progress table says what is open.
 
 This is the "how" for the rebuild. The "what" and the "why" are in [MVP.md](MVP.md): the
 decisions, the scope, the tests each feature needs and the definition of done. Where the two
@@ -21,8 +21,8 @@ disagree, MVP.md is right and this plan is fixed.
 | --- | --- | --- | --- |
 | 0 | Spec work, in `pdx-parser-re` | It produces it | In progress, another agent |
 | 1 | Repository skeleton | Two items only (1.6, 1.11) | Built and merged (pull requests #114 and #115). Open, waiting on step 0: 1.6 (the committed spec is the 1.20.0.2 stand-in until the 1.21 format 5 package; compressed or raw still to decide) and 1.11 (the result baselines; the speed baselines are done) |
-| 2 | Parser | No | Built, in review as pull request #116. Item 2.6's public codes are left to item 4.1, which maps the syntax finding identifiers to them |
-| 3 | Workspace index | No; a stand-in folder list is enough | Not started |
+| 2 | Parser | No | Built and merged (pull request #116). Item 2.6's public codes are left to item 4.1, which maps the syntax finding identifiers to them |
+| 3 | Workspace index | No; a stand-in folder list is enough | Stopped after item 3.1, in review as a draft pull request. `docs/overrides.md` is written; six of its rules are open and need the in-game experiments it names, on the analysis machine on the owner's word. Items 3.2 to 3.10 are not started |
 | 4 | Engine checks and lookup | Yes, from item 4.2 on | Not started |
 | 5 | Command line | Through step 4 | Not started |
 | 6 | Agent server | Through step 4 | Not started |
@@ -383,6 +383,17 @@ replaced paths, no DLC precedence. All of this step beyond the basics is new wor
 
 **Not yet known.** The override rules themselves (open question 1 in MVP.md). How much memory
 a whole-base-game index takes; 2.3.0's partial index peaked near 1 GB on the largest mod.
+
+**Found** (item 3.1, [overrides.md](overrides.md)): the game's own files settle that a mod's file
+replaces the base-game file at the same relative path, whole; that a file is identified by its
+whole relative path; the rules of events and character history (override priorities), of
+on-actions (declarations add up), of defines (field by field) and of container keys; and that
+on game 1.21.0.3 no DLC file collides with the base game. They do not settle the order files
+are read in, whether a key defined again replaces the whole record, which of the install's
+`game/` and `jomini/` copies is used, localization's duplicate keys and `replace` folder,
+`replace_path`, or the letter case of paths. Each of those has an in-game experiment in
+overrides.md. The base game spans three folders of the install: `jomini/` and `clausewitz/`
+beside `game/` hold script and localization too.
 
 ---
 

@@ -13,6 +13,9 @@ How it is kept:
 - A choice an agent made while building, that the owner has not confirmed, goes in
   [Awaiting confirmation](#awaiting-confirmation) and moves to the log when it is confirmed or
   changed.
+- A question a step has put to the owner, not yet answered, goes in
+  [Asked, awaiting the owner](#asked-awaiting-the-owner) and moves to the log when it is
+  answered.
 - Decisions the plan will ask for, and when, are listed in
   [PLAN.md](PLAN.md#decisions-the-plan-will-bring-to-the-owner).
 
@@ -93,3 +96,21 @@ until the owner changes it.
 | 2 | An incremental re-parse re-parses the innermost closed block around the edit, then the next one out, then the whole file. | The simplest unit that is provably the same as a full parse; a test checks every fixture. |
 | 2 | A UTF-16 file is not detected; it is read as UTF-8 and gets the note. | The base game has none. |
 | 2 | The release 2.3.0 fixture `broken_syntax` is carried over byte for byte as `fixtures/mods/parse-broken-syntax`. | Its two parse findings are the ones its golden file lists; the rest of that file is step 4's. |
+| 3 | Build step 3 stops after item 3.1, as its brief says when a rule the index needs is open; nothing of items 3.2 to 3.10 is built. | Six rules in overrides.md are open and the index depends on each; building on them would be building on a guess. |
+| 3 | The message texts of the Linux executable, read with `strings`, are used as rank-1 evidence beside the spec's catalogue: `Overriding entry '{}' for database '{}' in '{}'`, the localization reader's duplicate messages and `/replace/`, the descriptor key `replace_path`. | The committed catalogue does not carry them, and they are the game's own words on overriding; [references/game-files.md](references/game-files.md#the-linux-executable) already lists the executable as a source. |
+| 3 | The base game is the install's `game/`, `jomini/` and `clausewitz/` folders, not `game/` alone; which copy wins where two share a path stays open (overrides.md, rule 3). | `jomini/` holds script and localization `game/` does not, and `game/` ships changed copies of 39 of the 41 such files the two share. |
+| 3 | A rule is marked settled when a `.info` file states it, or when the base game's own files depend on it (defines split across files, container keys written in several files, file names repeated in different folders) and no game evidence points the other way; an inference about how the engine ranks its folders, and anything resting only on what modders say, stays open. | The brief's test: settled by game evidence, never by a hint. |
+| 3 | An event id defined twice at the same `id_override_priority` is kept twice and marked as a clash; the index does not pick one. | The game calls it an error, and nothing says which definition it then uses. |
+| 3 | The counts in overrides.md come from a one-off scan of game 1.21.0.3 with the build step 2 parser, not from a task and a committed record. The whole-base-game index suite (item 3.5) is to re-measure them in its record. | The step stopped before any index code, so there is no index suite yet to make the record. |
+| 3 | The experiments are three probe mods for the analysis machine, each answered in one launch: A for file order, record replacement, the install's folders, on-actions, history, localization and file-name case; B for `replace_path` and a mod file at a DLC file's path; C for a folder written in upper case. Each reads its answer from a decision's description that prints script values with `[EmptyScope.ScriptValue('name')|0]`, and from the logs. | One launch answers most rules; the localization form is the base game's own; B hides whole folders and C cannot share a mod folder with A on Windows. |
+| 3 | The CK3 wiki's claims are written as what modders commonly state, unverified. | Its site refused automated requests on 2026-11-21, so none of its pages could be read and quoted. |
+
+## Asked, awaiting the owner
+
+Questions a step has put to the owner and that are not yet answered. Each moves to the log when
+it is answered.
+
+| Step | Question | Why it is asked |
+| --- | --- | --- |
+| 3 | Run the probe mods of [overrides.md](overrides.md#the-experiments) on the analysis machine (experiments 1 to 8), or decide otherwise how step 3 goes on. | Six override rules the index depends on are open, and only the running game can settle them (PLAN.md, item 3.1). |
+| 3 | Whether experiments 8a and 8b (letter case in paths) may also be run on Linux, which needs a game launch on a Linux machine that the plan does not provide. | The analysis machine runs Windows, whose file system ignores case; Linux is a supported platform. |

@@ -32,12 +32,12 @@ Each is written by the step named, from evidence.
 | Document | What it holds | Written by |
 | --- | --- | --- |
 | [encoding.md](encoding.md) | What the parser reads: encodings, byte-order marks, line endings, positions, the base-game folders it reads, the syntax it accepts and the findings it reports | Step 2 |
+| [overrides.md](overrides.md) | The game's override rules: which definition the game uses when one is made twice, by a mod and the base game, by two files or in one file; the evidence for each rule, settled or open, and the in-game experiment for each open one | Step 3, item 3.1 |
 
 These do not exist yet:
 
 | Document | What it will hold | Written by |
 | --- | --- | --- |
-| `overrides.md` | The game's override rules: load order, replaced paths, DLC precedence | Step 3 |
 | `checks.md` | The check inventory: every code, its severity, its evidence, its fixture pair | Step 4 |
 | `formatting.md` | The formatting rules | Step 8 |
 | `gui-syntax.md` | GUI file syntax | Step 10 |
