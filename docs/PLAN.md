@@ -1,6 +1,6 @@
 # pychivalry: build plan
 
-Status: plan for approval, 2026-11-21. Step 1 is built; the Progress table says what is open.
+Status: plan for approval, 2026-11-21. Step 1 is built and step 2 is in review; the Progress table says what is open.
 
 This is the "how" for the rebuild. The "what" and the "why" are in [MVP.md](MVP.md): the
 decisions, the scope, the tests each feature needs and the definition of done. Where the two
@@ -21,7 +21,7 @@ disagree, MVP.md is right and this plan is fixed.
 | --- | --- | --- | --- |
 | 0 | Spec work, in `pdx-parser-re` | It produces it | In progress, another agent |
 | 1 | Repository skeleton | Two items only (1.6, 1.11) | Built and merged (pull requests #114 and #115). Open, waiting on step 0: 1.6 (the committed spec is the 1.20.0.2 stand-in until the 1.21 format 5 package; compressed or raw still to decide) and 1.11 (the result baselines; the speed baselines are done) |
-| 2 | Parser | No | Not started |
+| 2 | Parser | No | Built, in review as pull request #116. Item 2.6's public codes are left to item 4.1, which maps the syntax finding identifiers to them |
 | 3 | Workspace index | No; a stand-in folder list is enough | Not started |
 | 4 | Engine checks and lookup | Yes, from item 4.2 on | Not started |
 | 5 | Command line | Through step 4 | Not started |
