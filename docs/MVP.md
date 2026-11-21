@@ -1,6 +1,6 @@
 # pychivalry: MVP
 
-Status: draft, 2026-11-21, with the seven opening decisions answered. Nothing in this document is built yet.
+Status: draft, 2026-11-21, with the seven opening decisions answered and the MVP scope confirmed. Nothing in this document is built yet.
 
 ## What pychivalry is
 
@@ -146,21 +146,28 @@ Everything in this section is in the MVP.
 | Formatter | One formatting, used by the editor, the command line and the authoring loop. |
 | Fix data | Where a finding has a mechanical fix, the fix travels with the finding. |
 | Localization | Reads localization files; reports missing and unused keys as information. |
+| GUI and GFX files | `.gui` and `.gfx` files are parsed, indexed, checked and looked up like script files, not only parsed. |
+| Graphics-file check | Warns when a referenced `.dds`, `.png` or `.tga` file exists in neither the mod, the base game nor its DLC folders. |
+| Game-log analysis | Reads the game's own error log and ties each message to the file and line in the mod it is about. |
+| Call graph | For a scripted effect or trigger: what calls it and what it calls. |
 
 ### Editor (VS Code)
 
 Diagnostics while typing and for the whole mod in the background; completion; hover; go to
-definition and find references; document symbols; formatting, including on type; quick fixes;
-a game-path setting with detection of the Steam default.
+definition and find references; document symbols; call hierarchy; selection ranges; formatting,
+including on type; quick fixes; the CK3 Explorer tree view of a mod's events, decisions,
+scripted effects and the rest; the game's error log shown against the mod's files; a game-path
+setting with detection of the Steam default.
 
 ### Command line
 
-`check` (text or JSON, exit code), `lookup`, `format`, `explain <code>`, and `mcp` to start the
-agent server.
+`check` (text or JSON, exit code), `lookup`, `format`, `explain <code>`, `log` (analyse a game
+error log against a mod), and `mcp` to start the agent server.
 
 ### Agent server (MCP)
 
-The tools listed under [sense 1](#1-built-for-ai-agents-to-use), plus the authoring prompt.
+The tools listed under [sense 1](#1-built-for-ai-agents-to-use), plus game-log analysis, the
+call graph and the authoring prompt.
 
 ### Authoring loop
 
@@ -168,11 +175,9 @@ As described under [sense 4](#4-ai-writes-mods-end-to-end).
 
 ## Not in the MVP
 
-These existed in 2.3.0 or were planned, and come after the MVP: colour swatches and picker, the
-CK3 Explorer tree view, game-log analysis, the graphics-file check, call hierarchy, selection
-ranges, GUI and GFX file support beyond parsing, support for more than one game version at a
-time, publishing to the VS Code Marketplace, and authoring of content types beyond the four
-named above.
+These come after the MVP: colour swatches and picker, support for more than one game version at
+a time, publishing to the VS Code Marketplace (1.0.0 ships as a downloadable file on GitHub),
+and authoring of content types beyond the four named above.
 
 ## Definition of done
 
@@ -216,8 +221,11 @@ Each step ends with its suite passing; the next does not start before that.
 6. Agent server (MCP), with the planted-defect agent suite.
 7. Language server and the thin VS Code extension, with the same-answers test.
 8. Formatter and fix data, quick fixes.
-9. Authoring loop, chat participant and language-model tools, with the scored authoring run.
-10. Benchmarks enforced, `legacy/` removed, release 1.0.0 of `pychivalry`.
+9. GUI and GFX file support, the graphics-file check and the call graph, on every surface.
+10. Game-log analysis, on every surface.
+11. Editor views: the CK3 Explorer tree, call hierarchy and selection ranges.
+12. Authoring loop, chat participant and language-model tools, with the scored authoring run.
+13. Benchmarks enforced, `legacy/` removed, release 1.0.0 of `pychivalry`.
 
 ## Open decisions
 
@@ -227,6 +235,6 @@ The seven opening decisions were answered on 2026-11-21 and are in
 | # | Question | Settled when |
 | --- | --- | --- |
 | 1 | Which machine hosts the private runner. | Build step 1. |
-| 2 | The exact minimum VS Code version. | Build step 9, from what the chat and tool interfaces need. |
-| 3 | The authoring loop's pass-rate target, and which models the scored run uses. | After the first scored run in build step 9. |
+| 2 | The exact minimum VS Code version. | Build step 12, from what the chat and tool interfaces need. |
+| 3 | The authoring loop's pass-rate target, and which models the scored run uses. | After the first scored run in build step 12. |
 | 4 | What happens to the `ck3-language-support` 2.x listing and its users when 1.0.0 ships. | Before release 1.0.0. |
