@@ -1,0 +1,8 @@
+namespace = fixture
+
+fixture.0001 = {
+	immediate = {
+		fixture_reward_effect = yes
+		fixture_slot_effect = yes
+	}
+}

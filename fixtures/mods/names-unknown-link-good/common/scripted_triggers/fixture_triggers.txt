@@ -1,0 +1,14 @@
+# Scope chains: walked from root, this, prev or a data link such as scope: and title:, each
+# later segment a link, the last one possibly a value; a dotted word from elsewhere is no chain.
+fixture_chain_trigger = {
+	root.liege = {
+		is_adult = yes
+	}
+	exists = scope:fixture_target.liege
+	scope:fixture_target.liege.primary_title = {
+		exists = holder
+	}
+	scope:fixture_target.primary_title.tier >= 2
+	exists = title:k_fixture.holder
+	exists = fixture_not_a_chain.desc
+}

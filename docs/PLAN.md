@@ -1,6 +1,6 @@
 # pychivalry: build plan
 
-Status: plan for approval, 2026-11-22. Step 0 is done: the 1.21.0.3 spec package in format 5 is committed. Step 1 is complete, and steps 2 and 3 are built and merged, with the override rules the game's files leave open still unresolved until a spec package carries them. Item 4.1, the check inventory, is written and signed off; item 4.2 is next. The Progress table says what is open.
+Status: plan for approval, 2026-11-22. Step 0 is done: the 1.21.0.3 spec package in format 5 is committed. Step 1 is complete, and steps 2 and 3 are built and merged, with the override rules the game's files leave open still unresolved until a spec package carries them. Item 4.1, the check inventory, is written and signed off; item 4.2 is built but for two rows that wait on data the 1.21.0.3 package lacks, with item 4.3's context reader as its prerequisite, and the step stops there for the owner. The Progress table says what is open.
 
 This is the "how" for the rebuild. The "what" and the "why" are in [MVP.md](MVP.md): the
 decisions, the scope, the tests each feature needs and the definition of done. Where the two
@@ -23,7 +23,7 @@ disagree, MVP.md is right and this plan is fixed.
 | 1 | Repository skeleton | Two items only (1.6, 1.11) | Complete (pull requests #114, #115 and #124). Item 1.6: the 1.21.0.3 package is committed, gzipped. Item 1.11: the speed and result baselines of 2.3.0 are recorded on its format 4 copy |
 | 2 | Parser | No | Built and merged (pull request #116). Item 2.6's public codes are left to item 4.1, which maps the syntax finding identifiers to them |
 | 3 | Workspace index | No for the index; the override rules table comes from step 0 | Built and merged (pull requests #118 and #120). The stand-in rules table `spec/override-rules.json` carries the settled rules only; the rules it lacks (3, 4, 5, 7, 8, 9 and the open parts of 6 and 10 in `docs/overrides.md`) stay unresolved, and the index names no winner for them, until the spec package carries them |
-| 4 | Engine checks and lookup | Yes, from item 4.2 on | Item 4.1 is done and signed off (pull requests #121 and #122): `docs/checks.md`, the check inventory and the code scheme; its codes are permanent. Items 4.2 to 4.11 are not started; the 1.21 spec in format 5 they need is committed |
+| 4 | Engine checks and lookup | Yes, from item 4.2 on | Item 4.1 is done and signed off (pull requests #121 and #122): `docs/checks.md`, the check inventory and the code scheme; its codes are permanent. Item 4.2 (pull request #125): the typed spec reader and four of its six checks (`names/unknown-trigger`, `-effect`, `-link`, `-modifier`), with item 4.3's context reader built as their prerequisite. Stopped there: `names/unknown-on-action` waits for value types that name an on-action, `names/modifier-outside-use-area` for the use area of a modifier block, and the iterator sub-cases of the unknown-trigger and unknown-effect rows for keyword roles; none is in the 1.21.0.3 package (docs/decisions.md, "Asked, awaiting the owner"). Items 4.4 to 4.11 are not started |
 | 5 | Command line | Through step 4 | Not started |
 | 6 | Agent server | Through step 4 | Not started |
 | 7 | Language server and extension | Through step 4 | Not started |
@@ -487,8 +487,11 @@ about a name.
   format, and exposes the package as typed data. Checks: unknown trigger, effect, scope link,
   list, modifier and on-action; name templates (the `%s` forms) accepted; names in more than
   one bucket resolved by context; a modifier used outside its use area.
+  **Built**, but for two rows (below): `packages/core/src/spec/` and four checks in
+  `packages/core/src/check/`.
 - 4.3 **Context.** Which blocks hold triggers and which hold effects, from the hand-kept tables
   now in the spec: block-opening keys, iterator parameters, structural keywords, containers.
+  **Built** inside item 4.2, whose rows need it: `packages/core/src/check/context.ts`.
 - 4.4 **Scope checks.** The scope a block runs in, from the record's root scope, per-field
   scopes, links and iterators; a keyword in a scope the spec says it does not support. Judged
   only where the spec has scope data; "no requirement declared" is not a finding.
@@ -542,6 +545,47 @@ province-history reader's), which the planted-defect capture of item 11.1 should
 structural and advice checks need their keywords (`hidden`, `option`, `if`, `else`) as data,
 which the format 5 plan does not yet carry. ck3-tiger is GPL-3.0, so nothing of it may enter
 this repository; the CWTools rule files are MIT and three years behind the game.
+
+**Found** (item 4.2, measured on game 1.21.0.3 with a one-off script over the built core, the
+base game's index and the committed spec; the suites of item 4.10 will record the same):
+
+- The typed reader checks the package file's checksum, format 5 and version, and each
+  companion's checksum, size and header when it is opened; every caller in a process shares one
+  parse. The data-types companion answers every lookup with a list.
+- The hand-kept tables are read by the trust rule in docs/decisions.md: confirmed entries as
+  written; of the 15 contradicted, the game's lists widen 3, the game's buckets correct the
+  reason of 9 whose role stands, and the rule drops 3 (`debug_only` as a container, and two
+  `file_kinds` patterns of a table this item does not read); entries with no evidence only
+  accept keys. The 29 candidates of the tables it reads that the game's output or its `.info`
+  files document (17 iterator parameters, 10 script-value operations, 2 containers) accept
+  their keys too.
+- Four checks are built, all errors on their catalogue messages. On the base game they judge
+  1,200,304 keys in trigger and effect blocks, 10,736 keys in modifier blocks and 416,190 scope
+  chains, and raise 20 errors (16 `names/unknown-trigger`, 4 `names/unknown-effect`), each at a
+  line where release 2.3.0 reports the same name; 8 of them rest on a measured field kind the
+  package gets wrong (`config` of `common/pool_character_selectors`). Item 4.9 classifies them.
+  Release 2.3.0's other 74 errors of these families are not raised: the game documents the key
+  as an iterator parameter (`culture_filter`, `government_type_filter`, `is_eminent`), lists it
+  for the iterator (`faith_filter`), the block is a modifier block (`market_modifier`), or the
+  iterator is written in another letter case (`any_in_List`, whose `list` is then its
+  parameter).
+- On the five mods: 0 errors in balance-of-power-ui and divine-intervention, 2 in elf-destiny,
+  489 in rice and 1 in viet-events: the same errors, line for line, as release 2.3.0's of
+  these four families, without its 12 false ones in divine-intervention (a market modifier
+  block read as triggers; an iterator parameter the game documents). RICE's 489 are written for
+  game 1.19: 1.21.0.3 removed most of the names, and each finding carries the version and the
+  replacement the package gives.
+- Two rows cannot be built from the 1.21.0.3 package: `names/unknown-on-action` needs to know
+  which fields name an on-action, and the B1 value types name no database;
+  `names/modifier-outside-use-area` needs the use area of a modifier block, and the package
+  gives use areas only to the modifiers themselves. Which iterator prefix belongs in a trigger
+  block and which in an effect block is a keyword role the package does not carry either, so
+  the unknown-trigger and unknown-effect rows do not report an iterator in the wrong block.
+  These are questions for the owner (docs/decisions.md); the step stops before item 4.4.
+- The package's measured field kinds are mostly right, but not always: a dated title history
+  entry is measured an effect block with no fields, and `common/script_values` records its
+  links as effect blocks. The rules of reading that keep such cases silent are stated from the
+  package's data in docs/decisions.md ("Awaiting confirmation").
 
 ---
 

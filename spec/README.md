@@ -69,11 +69,24 @@ no platform rewrites their bytes, and keeps `schema.format5.json` byte for byte 
 
 ## What the rebuild reads today
 
-Two parts of the package file, through `tools/` and the core: the error catalogue (`errors`,
-each entry's `id` and `text`), the evidence of parse findings; and the folder list and record
-schemas (`directories[].path` and `content_type`, `schema[folder].fields` and `vanilla`), from
-which the index takes what a definition is. Format 5 keeps these keys of format 4 with the same
-shape. The typed spec reader that exposes the whole package is item 4.2 of docs/PLAN.md.
+The core's typed spec reader (`packages/core/src/spec/`, item 4.2 of docs/PLAN.md) reads the
+package file: it checks the SHA-256 of the uncompressed bytes against the `.sha256` beside it,
+package format 5 and the version, and exposes the package as typed data, read once per
+process. It opens a companion only when a feature asks for it, checked against the SHA-256,
+size and header the package file records; the data-types companion answers every lookup with
+a list. The hand-kept tables (`tables`) are read by a written trust rule (docs/decisions.md,
+"Awaiting confirmation", item 4.2). The tools' suites read the package through the same
+reader; `task spec:check` keeps its own fuller check (every companion, the JSON Schema, the
+gzip headers, the format 4 copy).
+
+What the engine checks read today: the buckets, `multi_bucket`, `iterator_prefixes`,
+`keyword_templates`, `modifier_templates` and `modifier_template_marks`, `retired`,
+`scope_validity.links` and the `takes` of triggers, `directories` and `schema` (`record_body`,
+each field's `kind`, `holds` and `fields`, the placeholder fields `<date>` and `<number>`, the
+value groups of `value_type`), `errors`, and the tables `structural`, `containers`,
+`random_list_entry`, `opens_context`, `iterator_params`, `block_params`,
+`modifier_block_params`, `value_block_keys`, `value_fields`, `vanilla_indexed_dirs` and
+`scope_heads`. The index reads the folder list and record schemas as before.
 
 ## The format 4 copy
 

@@ -8,8 +8,9 @@ repository skeleton, is complete, with that package and the 2.3.0 baselines reco
 format 4 copy; build step 2, the parser, is built; build step 3, the workspace index, is built,
 with the override rules as data: a stand-in table carries the rules the game's files settle,
 and the rest wait for a spec package that carries them. Item 4.1, the check inventory
-([checks.md](checks.md)), is written and signed off; nothing else in this document is built
-yet.
+([checks.md](checks.md)), is written and signed off. Item 4.2 has built the typed spec reader
+and four of its six unknown-name checks, with item 4.3's context reader; its other two rows
+wait for data the 1.21.0.3 package does not carry. Nothing else in this document is built yet.
 
 The build plan, step by step, is in [PLAN.md](PLAN.md).
 

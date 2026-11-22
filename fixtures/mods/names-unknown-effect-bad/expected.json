@@ -1,0 +1,65 @@
+{
+    "findings": [
+        {
+            "file": "common/scripted_effects/fixture_effects.txt",
+            "line": 26,
+            "column": 2,
+            "code": "names/unknown-effect",
+            "severity": "error",
+            "message": "Unknown effect 'fixture_made_up_effect'",
+            "data": {
+                "name": "fixture_made_up_effect"
+            }
+        },
+        {
+            "file": "common/scripted_effects/fixture_effects.txt",
+            "line": 27,
+            "column": 2,
+            "code": "names/unknown-effect",
+            "severity": "error",
+            "message": "Unknown effect 'is_adult'",
+            "data": {
+                "name": "is_adult",
+                "buckets": ["triggers"]
+            }
+        },
+        {
+            "file": "common/scripted_effects/fixture_effects.txt",
+            "line": 28,
+            "column": 2,
+            "code": "names/unknown-effect",
+            "severity": "error",
+            "message": "Unknown effect 'every_fixture_no_such_list'",
+            "data": {
+                "name": "every_fixture_no_such_list",
+                "iterator_prefix": "every_",
+                "list": "fixture_no_such_list"
+            }
+        },
+        {
+            "file": "common/scripted_effects/fixture_effects.txt",
+            "line": 32,
+            "column": 2,
+            "code": "names/unknown-effect",
+            "severity": "error",
+            "message": "Unknown effect 'add_special_building_slot'",
+            "data": {
+                "name": "add_special_building_slot",
+                "removed_in": "1.21.0.3",
+                "replacement": ["add_special_district_slot"],
+                "removal_note": "add_special_district_slot has the same built-in documentation with district in place of building (keyword_docs_1.20.0.2.json, keyword_docs_1.21.0.3.json)"
+            }
+        },
+        {
+            "file": "events/fixture_events.txt",
+            "line": 6,
+            "column": 3,
+            "code": "names/unknown-effect",
+            "severity": "error",
+            "message": "Unknown effect 'fixture_undefined_effect'",
+            "data": {
+                "name": "fixture_undefined_effect"
+            }
+        }
+    ]
+}

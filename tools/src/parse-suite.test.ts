@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import path from 'node:path';
 import { test } from 'node:test';
-import { catalogueFromSpec } from '@pychivalry/core';
+import { catalogueFromSpec, openSpec } from '@pychivalry/core';
 import {
     BASE_GAME_FOLDERS,
     readClassifications,
@@ -9,11 +9,10 @@ import {
     type ClassificationEntry,
     type SuiteFolder,
 } from './parse-suite.js';
-import { readSpecPackage } from './spec.js';
 import { tempDir, writeTree } from './testing.js';
 import { CommandError, repoRoot } from './util.js';
 
-const catalogue = catalogueFromSpec(readSpecPackage(path.join(repoRoot(), 'spec')));
+const catalogue = catalogueFromSpec(openSpec(path.join(repoRoot(), 'spec')).data);
 
 /** A small game folder: clean script, a defect, a file that is not UTF-8, a non-script file. */
 function fixtureGame(dir: string): string {

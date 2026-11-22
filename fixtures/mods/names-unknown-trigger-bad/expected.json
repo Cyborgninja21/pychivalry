@@ -1,0 +1,65 @@
+{
+    "findings": [
+        {
+            "file": "common/scripted_triggers/fixture_triggers.txt",
+            "line": 16,
+            "column": 2,
+            "code": "names/unknown-trigger",
+            "severity": "error",
+            "message": "Unknown trigger 'fixture_made_up_trigger'",
+            "data": {
+                "name": "fixture_made_up_trigger"
+            }
+        },
+        {
+            "file": "common/scripted_triggers/fixture_triggers.txt",
+            "line": 17,
+            "column": 2,
+            "code": "names/unknown-trigger",
+            "severity": "error",
+            "message": "Unknown trigger 'add_gold'",
+            "data": {
+                "name": "add_gold",
+                "buckets": ["effects"]
+            }
+        },
+        {
+            "file": "common/scripted_triggers/fixture_triggers.txt",
+            "line": 18,
+            "column": 2,
+            "code": "names/unknown-trigger",
+            "severity": "error",
+            "message": "Unknown trigger 'any_fixture_no_such_list'",
+            "data": {
+                "name": "any_fixture_no_such_list",
+                "iterator_prefix": "any_",
+                "list": "fixture_no_such_list"
+            }
+        },
+        {
+            "file": "common/scripted_triggers/fixture_triggers.txt",
+            "line": 22,
+            "column": 2,
+            "code": "names/unknown-trigger",
+            "severity": "error",
+            "message": "Unknown trigger 'has_special_building'",
+            "data": {
+                "name": "has_special_building",
+                "removed_in": "1.21.0.3",
+                "replacement": ["has_special_district"],
+                "removal_note": "has_special_district has the same built-in documentation with district in place of building (keyword_docs_1.20.0.2.json, keyword_docs_1.21.0.3.json)"
+            }
+        },
+        {
+            "file": "events/fixture_events.txt",
+            "line": 6,
+            "column": 3,
+            "code": "names/unknown-trigger",
+            "severity": "error",
+            "message": "Unknown trigger 'fixture_undefined_trigger'",
+            "data": {
+                "name": "fixture_undefined_trigger"
+            }
+        }
+    ]
+}

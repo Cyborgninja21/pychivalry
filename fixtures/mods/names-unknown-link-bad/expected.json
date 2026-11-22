@@ -1,0 +1,43 @@
+{
+    "findings": [
+        {
+            "file": "common/scripted_triggers/fixture_triggers.txt",
+            "line": 4,
+            "column": 2,
+            "code": "names/unknown-link",
+            "severity": "error",
+            "message": "Failed to parse data for event target link. Link: root.fixture_no_such_link, location: common/scripted_triggers/fixture_triggers.txt:4",
+            "data": {
+                "chain": "root.fixture_no_such_link",
+                "segment": "fixture_no_such_link",
+                "position": "key"
+            }
+        },
+        {
+            "file": "common/scripted_triggers/fixture_triggers.txt",
+            "line": 7,
+            "column": 11,
+            "code": "names/unknown-link",
+            "severity": "error",
+            "message": "Failed to parse data for event target link. Link: scope:fixture_target.fixture_no_such_link, location: common/scripted_triggers/fixture_triggers.txt:7",
+            "data": {
+                "chain": "scope:fixture_target.fixture_no_such_link",
+                "segment": "fixture_no_such_link",
+                "position": "value"
+            }
+        },
+        {
+            "file": "common/scripted_triggers/fixture_triggers.txt",
+            "line": 8,
+            "column": 2,
+            "code": "names/unknown-link",
+            "severity": "error",
+            "message": "Failed to parse data for event target link. Link: scope:fixture_target.liege.fixture_no_such_link, location: common/scripted_triggers/fixture_triggers.txt:8",
+            "data": {
+                "chain": "scope:fixture_target.liege.fixture_no_such_link",
+                "segment": "fixture_no_such_link",
+                "position": "key"
+            }
+        }
+    ]
+}

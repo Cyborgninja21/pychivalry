@@ -3,9 +3,10 @@
 > **Signed off by the owner on 2026-11-21** ([decisions 45 to 55](decisions.md#log)). The code
 > scheme, the twelve families and the code names on this page are permanent from that date: a
 > code is never renamed and never reused. A check that is dropped or changed is retired. This
-> page is build item 4.1 of [PLAN.md](PLAN.md#step-4-engine-checks-and-lookup). Nothing in it
-> is built beyond what build steps 2 and 3 already report (the parse findings and the index's
-> statuses); the rest is built from item 4.2 on, when the 1.21 spec package exists. What was
+> page is build item 4.1 of [PLAN.md](PLAN.md#step-4-engine-checks-and-lookup). Built so far:
+> what build steps 2 and 3 report (the parse findings and the index's statuses) and four rows of
+> item 4.2 (`names/unknown-trigger`, `names/unknown-effect`, `names/unknown-link`,
+> `names/unknown-modifier`); each group below says which of its rows are built. What was
 > decided is listed at the end, under [What the owner signed off](#what-the-owner-signs-off).
 
 Every check pychivalry ships has one row here: its code, its severity, what it finds, the
@@ -239,10 +240,20 @@ replacement as data and as a fix; 2.3.0's `PYCH-R001` and `PYCH-R002` fold in he
 | `names/unknown-on-action` | error | A value naming an on-action the game does not have | Catalogue `unknown_on_action_X` ("Unknown on action: %s") | new | `names-unknown-on-action` | 4.2 | 1.21 names; value types (which fields name an on-action) |
 | `names/modifier-outside-use-area` | warning | A modifier in a block of a kind its use area does not include | Game output: the documentation dump's use area for each modifier. No catalogue message was found for it | new | `names-modifier-outside-use-area` | 4.2 | use areas; value types (which use area a block is) |
 
+**Built** (item 4.2, `packages/core/src/check/`): `names/unknown-trigger`, `names/unknown-effect`,
+`names/unknown-link` and `names/unknown-modifier`, each with its fixture pair. Two parts of the
+first two rows are not built: an `every_`, `random_` or `ordered_` iterator in a trigger block,
+and an `any_` iterator in an effect block, are not reported, because which prefix belongs to
+which context is a keyword role the 1.21.0.3 package does not carry. **Not built:**
+`names/unknown-on-action`, whose value types (which fields name an on-action) the package does
+not carry, and `names/modifier-outside-use-area`, whose use area of a block it does not carry
+either. Both are questions for the owner ([decisions.md](decisions.md#asked-awaiting-the-owner)).
+
 ### 4.3: context
 
 Item 4.3 decides which blocks hold triggers, effects and modifiers. It raises no finding of
-its own; its tables feed the rows of 4.2 and 4.4.
+its own; its tables feed the rows of 4.2 and 4.4. **Built** inside item 4.2, whose rows need it
+(`packages/core/src/check/context.ts`).
 
 ### 4.4: scope
 

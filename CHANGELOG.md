@@ -113,8 +113,33 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   findings on each of the five mods by code and severity, with every error (0, 12, 2, 508 and
   1 errors).
 
+- Build step 4, item 4.2 ([docs/PLAN.md](docs/PLAN.md)): the typed spec reader in
+  `packages/core/src/spec/`. It checks the SHA-256 of the package file's uncompressed bytes,
+  format 5 and the version, decompresses with Node's own `zlib` (the core keeps no runtime
+  dependency), exposes the package as typed data read once per process, and opens a companion
+  only when it is asked for, checked against the record the package keeps of it; every lookup
+  in the data-types dump returns a list. The hand-kept tables are read by a written trust rule
+  in which the game's own output wins over a contradicted entry and an entry with no evidence
+  raises nothing ([docs/decisions.md](docs/decisions.md), "Awaiting confirmation").
+- The context reader of item 4.3, built inside item 4.2 as its prerequisite
+  (`packages/core/src/check/context.ts`): which blocks of a file hold triggers, effects,
+  modifiers and script values, and what each key in them is, from the package alone.
+- Four engine checks, each an error on its catalogue message, with its fixture pair:
+  `names/unknown-trigger`, `names/unknown-effect`, `names/unknown-link` and
+  `names/unknown-modifier`. A removed keyword carries the version it went in and its
+  replacement; an iterator over no list carries the list. On game 1.21.0.3 they raise 20 errors
+  in the base game and, on the five corpus mods, the same errors line for line as release 2.3.0
+  in these families, without its 12 false ones (docs/PLAN.md, item 4.2's "Found").
+- Tests that every code the core emits has its row in `docs/checks.md` with its severity and
+  evidence, and that no source file of the core writes a name of release 2.3.0's tables as a
+  string (definition of done 5).
+- Fixtures `names-unknown-trigger`, `names-unknown-effect`, `names-unknown-link` and
+  `names-unknown-modifier`, each a `-bad` and a `-good` mod.
+
 ### Changed
 
+- The tools' suites and the core's tests read the spec package through the core's reader; the
+  tools' own `readSpecPackage` is removed. `task spec:check` keeps its fuller check.
 - The speed baselines of release 2.3.0 are re-recorded on the 1.21.0.3 format 4 copy (they were
   made on its 1.20.0.2 spec). `task baseline:prepare` points the export of `legacy/` at that
   copy through the export's own `spec.config.json`, and every baseline task checks that the
@@ -148,4 +173,9 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   Windows and Linux executables; the 1.21.0.3 package does not carry it. Until it does the
   index lists every definition those rules decide and names no winner: 1,309 names of the base
   game.
-- Items 4.2 to 4.11, next.
+- Item 4.2 stops with two rows unbuilt, a question for the owner: `names/unknown-on-action`
+  needs value types that say which fields name an on-action, and
+  `names/modifier-outside-use-area` the use area of a modifier block; neither is in the
+  1.21.0.3 package. The unknown-trigger and unknown-effect checks do not yet report an iterator
+  in the wrong kind of block, which needs the keyword roles held with the other requests to the
+  spec work. Items 4.4 to 4.11 wait on the owner's answer.

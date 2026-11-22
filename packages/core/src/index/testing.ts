@@ -4,10 +4,10 @@
  * package's public surface.
  */
 
-import { readdirSync, readFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { gunzipSync } from 'node:zlib';
+import { openSpec } from '../spec/reader.js';
 import { FolderTable, foldersFromSpec } from './folders.js';
 import { indexFiles, indexMod, installFolders, listInstall } from './read-game.js';
 import { readRulesTable, rulesFor, type Platform, type RulesTable } from './rules.js';
@@ -21,25 +21,12 @@ export function repoPath(relative: string): string {
     return path.join(REPO, ...relative.split('/'));
 }
 
-let specPackage: unknown;
-
 /**
- * The committed spec package file, parsed: `spec/ck3-spec-<version>.json.gz`, not one of its
- * companions (`ck3-spec-<version>.<part>.json.gz`).
+ * The committed spec package file, parsed: `spec/ck3-spec-<version>.json.gz`, read and checked
+ * by the spec reader once per test process.
  */
 export function committedSpecPackage(): unknown {
-    if (specPackage === undefined) {
-        const file = readdirSync(repoPath('spec')).find((name) =>
-            /^ck3-spec-[0-9]+(?:\.[0-9]+)+\.json\.gz$/.test(name),
-        );
-        if (file === undefined) {
-            throw new Error('no spec package under spec/');
-        }
-        specPackage = JSON.parse(
-            gunzipSync(readFileSync(repoPath(`spec/${file}`))).toString('utf8'),
-        ) as unknown;
-    }
-    return specPackage;
+    return openSpec(repoPath('spec')).data;
 }
 
 let folders: FolderTable | undefined;

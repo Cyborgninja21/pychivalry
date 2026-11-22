@@ -3,6 +3,7 @@ import path from 'node:path';
 import { test } from 'node:test';
 import { gzipSync } from 'node:zlib';
 import { copyFileSync, rmSync } from 'node:fs';
+import { openSpec } from '@pychivalry/core';
 import { checkRulesTable, RULES_FILE, RULES_SCHEMA_FILE } from './rules-table.js';
 import {
     checkLegacySpec,
@@ -10,7 +11,6 @@ import {
     checkSpecFolder,
     gzipHeaderProblems,
     PACKAGE_FORMAT,
-    readSpecPackage,
     SCHEMA_FILE,
 } from './spec.js';
 import { tempDir, writeTree } from './testing.js';
@@ -103,11 +103,12 @@ test('the committed spec folder passes the full check: the package, its companio
     assert.equal(check.legacy.file, `legacy/ck3-spec-${check.spec.version}.format4.json.gz`);
 });
 
-test('the committed package reads as format 5 with the parts the rebuild reads today', () => {
-    const data = readSpecPackage(path.join(repoRoot(), 'spec')) as Record<string, unknown>;
-    assert.equal(data['package_format'], 5);
-    assert.ok(Array.isArray(data['directories']));
-    assert.ok(Array.isArray(data['errors']));
+test("the committed package reads as format 5 through the core's spec reader, the one the suites use", () => {
+    const spec = openSpec(path.join(repoRoot(), 'spec'));
+    assert.equal(spec.data.package_format, 5);
+    assert.equal(spec.sha256, checkSpec(path.join(repoRoot(), 'spec')).spec?.sha256);
+    assert.ok(Array.isArray(spec.data.directories));
+    assert.ok(Array.isArray(spec.data.errors));
 });
 
 test('a small valid folder passes, and the default check leaves the companions alone', (t) => {

@@ -527,19 +527,3 @@ export function checkSpecFolder(specDir: string): {
         ? { spec, legacy, problems: all }
         : { spec: undefined, legacy: undefined, problems: all };
 }
-
-/**
- * The committed spec package, parsed, once its package file passes its check. The rebuild
- * reads two parts of it today: the error catalogue (`errors`), for the evidence of parse
- * findings, and the folder list and record schemas (`directories`, `schema`), for the index.
- * The typed spec reader is item 4.2.
- */
-export function readSpecPackage(specDir: string): unknown {
-    const { check, data } = readPackage(specDir, false);
-    if (check.spec === undefined || data === undefined) {
-        throw new Error(
-            `the committed spec package fails its check:\n  ${check.problems.join('\n  ')}`,
-        );
-    }
-    return data;
-}

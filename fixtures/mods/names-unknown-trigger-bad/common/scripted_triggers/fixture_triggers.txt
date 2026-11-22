@@ -1,0 +1,23 @@
+# Keys in trigger blocks: triggers, a structural name, an iterator with its parameter, a
+# scripted trigger of this mod, a name in another letter case.
+fixture_ready_trigger = {
+	is_adult = yes
+	exists = liege
+	any_vassal = {
+		count >= 2
+		is_adult = yes
+	}
+	NOT = { is_ai = yes }
+	ROOT = { is_adult = yes }
+	trigger_if = {
+		limit = { age > 16 }
+		is_adult = yes
+	}
+	fixture_made_up_trigger = yes
+	add_gold = 10
+	any_fixture_no_such_list = { is_adult = yes }
+}
+
+fixture_district_trigger = {
+	has_special_building = yes
+}
