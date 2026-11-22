@@ -12,6 +12,7 @@
  */
 
 import { existsSync, readFileSync } from 'node:fs';
+import { loadavg } from 'node:os';
 import path from 'node:path';
 import {
     corpusRow,
@@ -161,6 +162,7 @@ export function gameSuiteRecord(
         return { ...context, notes: PARSE_NOTES, results: { ...results } };
     }
     if (suite === 'index') {
+        const loadBefore = loadavg()[0] ?? 0;
         const results = runIndexSuite({
             root,
             gameDir,
@@ -168,7 +170,8 @@ export function gameSuiteRecord(
             rulesSha256: committedRules(root).sha256,
             platform: currentPlatform() ?? process.platform,
         });
-        return { ...context, notes: INDEX_NOTES, results };
+        const load = `The load average over one minute was ${loadBefore.toFixed(2)} on ${String(context.machine.logical_cpus)} logical CPUs just before the run: the times are this machine's, under that load.`;
+        return { ...context, notes: [...INDEX_NOTES, load], results };
     }
     return {
         ...context,
