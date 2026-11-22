@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import path from 'node:path';
 import { test } from 'node:test';
 import { gzipSync } from 'node:zlib';
+import { copyFileSync } from 'node:fs';
+import { checkRulesTable, RULES_FILE, RULES_SCHEMA_FILE } from './rules-table.js';
 import { checkSpec, SUPPORTED_PACKAGE_FORMATS } from './spec.js';
 import { tempDir, writeTree } from './testing.js';
 import { repoRoot, sha256 } from './util.js';
@@ -64,4 +66,47 @@ test('two packages in the folder fail', (t) => {
     const check = checkSpec(dir);
     assert.equal(check.spec, undefined);
     assert.match(check.problems.join('\n'), /exactly one/);
+});
+
+test('the committed rules table passes its schema and the core', () => {
+    const check = checkRulesTable(path.join(repoRoot(), 'spec'));
+    assert.deepEqual(check.problems, []);
+    assert.equal(check.table?.status, 'stand-in');
+    assert.match(check.sha256 ?? '', /^[0-9a-f]{64}$/);
+});
+
+test('a rules table that fails its schema or the core fails the spec check', (t) => {
+    const dir = tempDir(t);
+    copyFileSync(
+        path.join(repoRoot(), 'spec', RULES_SCHEMA_FILE),
+        path.join(dir, RULES_SCHEMA_FILE),
+    );
+    const row = {
+        id: 'a',
+        overrides_rule: 5,
+        title: 'A row',
+        kind: 'key-resolution',
+        databases: ['common/traits'],
+        resolve: 'all',
+        platforms: ['linux'],
+        evidence: [{ rank: 4, source: 's', where: 'w', says: 'x' }],
+    };
+    const table = (rules: unknown[]): string =>
+        JSON.stringify({
+            rules_format: 1,
+            status: 'stand-in',
+            game_build: '1.21.0.3',
+            source: 's',
+            rules,
+        });
+    writeTree(dir, { [RULES_FILE]: table([row]) });
+    assert.deepEqual(checkRulesTable(dir).problems, []);
+    writeTree(dir, { [RULES_FILE]: table([{ ...row, kind: 'guess' }]) });
+    assert.ok(checkRulesTable(dir).problems.length > 0);
+    // Two rows answering one question pass the schema; the core refuses them.
+    writeTree(dir, { [RULES_FILE]: table([row, { ...row, id: 'b' }]) });
+    assert.match(checkRulesTable(dir).problems.join('\n'), /rows a and b both answer/);
+    writeTree(dir, { [RULES_FILE]: '{' });
+    assert.match(checkRulesTable(dir).problems.join('\n'), /not valid JSON/);
+    assert.match(checkRulesTable(tempDir(t)).problems.join('\n'), /override-rules.json is missing/);
 });

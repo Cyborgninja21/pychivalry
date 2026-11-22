@@ -1,0 +1,4 @@
+fixture_char_1 = {
+	history_override_priority = 1
+	name = "Fixture Overridden"
+}

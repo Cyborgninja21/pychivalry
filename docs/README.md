@@ -32,7 +32,7 @@ Each is written by the step named, from evidence.
 | Document | What it holds | Written by |
 | --- | --- | --- |
 | [encoding.md](encoding.md) | What the parser reads: encodings, byte-order marks, line endings, positions, the base-game folders it reads, the syntax it accepts and the findings it reports | Step 2 |
-| [overrides.md](overrides.md) | The game's override rules: which definition the game uses when one is made twice, by a mod and the base game, by two files or in one file; the evidence for each rule, settled or open, and the in-game experiment for each open one | Step 3, item 3.1 |
+| [overrides.md](overrides.md) | The game's override rules: which definition the game uses when one is made twice, by a mod and the base game, by two files or in one file; the evidence for each rule, settled or open, and the in-game experiment for each open one. The settled rules are carried as data in the stand-in table `spec/override-rules.json` ([spec/README.md](../spec/README.md#the-override-rules-table)) | Step 3, items 3.1 and 3.1a |
 
 These do not exist yet:
 

@@ -1,0 +1,177 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://github.com/Cyborgninja21/pychivalry/blob/main/spec/override-rules.schema.json",
+    "title": "pychivalry override rules table",
+    "description": "The rules by which one definition replaces another (docs/overrides.md), as data. Until the spec package carries this table, override-rules.json beside this file is a stand-in that carries only the rules docs/overrides.md marks settled. The core reads the table (packages/core/src/index/rules.ts, readRulesTable, which also checks what this schema cannot: two rows answering one question). `task spec:check` validates the table against this schema and with the core.",
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["rules_format", "status", "game_build", "source", "rules"],
+    "properties": {
+        "$schema": { "type": "string" },
+        "rules_format": { "description": "The version of this format.", "const": 1 },
+        "status": {
+            "description": "stand-in: carried in this repository until the spec package carries the table; spec: taken from the spec package.",
+            "enum": ["stand-in", "spec"]
+        },
+        "game_build": { "description": "The game build the rules were established on.", "type": "string", "pattern": "^[0-9]+(\\.[0-9]+)+$" },
+        "source": { "$ref": "#/$defs/text" },
+        "rules": { "type": "array", "items": { "$ref": "#/$defs/rule" } }
+    },
+    "$defs": {
+        "text": { "type": "string", "minLength": 1 },
+        "layer": { "enum": ["clausewitz", "jomini", "game", "dlc", "mod"] },
+        "layers": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/layer" } },
+        "form": { "enum": ["record", "value", "prefixed", "constant", "container", "entry", "key"] },
+        "databases": {
+            "description": "Spec folder paths (common/traits), or localization for every language.",
+            "type": "array",
+            "minItems": 1,
+            "items": { "$ref": "#/$defs/text" }
+        },
+        "evidence": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["rank", "source", "where", "says"],
+            "properties": {
+                "rank": { "description": "The rank in docs/references/README.md, 1 (the executable) to 5 (wiki-era hints).", "type": "integer", "minimum": 1, "maximum": 5 },
+                "source": { "$ref": "#/$defs/text" },
+                "where": { "$ref": "#/$defs/text" },
+                "says": { "$ref": "#/$defs/text" }
+            }
+        },
+        "base": {
+            "type": "object",
+            "required": ["id", "overrides_rule", "title", "kind", "platforms", "evidence"],
+            "properties": {
+                "kind": { "type": "string" },
+                "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+                "overrides_rule": { "description": "The rule's number in docs/overrides.md.", "type": "integer", "minimum": 1 },
+                "title": { "$ref": "#/$defs/text" },
+                "platforms": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "enum": ["linux", "windows"] } },
+                "evidence": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/evidence" } },
+                "note": { "$ref": "#/$defs/text" }
+            }
+        },
+        "rule": {
+            "type": "object",
+            "allOf": [{ "$ref": "#/$defs/base" }],
+            "oneOf": [
+                {
+                    "description": "A file in layer replaces, whole, the file at the same relative path in each of over.",
+                    "type": "object",
+                    "properties": {
+                        "id": true, "overrides_rule": true, "title": true, "platforms": true, "evidence": true, "note": true,
+                        "kind": { "const": "file-replace" },
+                        "layer": { "$ref": "#/$defs/layer" },
+                        "over": { "$ref": "#/$defs/layers" }
+                    },
+                    "required": ["layer", "over"],
+                    "additionalProperties": false
+                },
+                {
+                    "description": "A file is identified by its whole relative path.",
+                    "type": "object",
+                    "properties": {
+                        "id": true, "overrides_rule": true, "title": true, "platforms": true, "evidence": true, "note": true,
+                        "kind": { "const": "file-identity" },
+                        "by": { "const": "relative-path" }
+                    },
+                    "required": ["by"],
+                    "additionalProperties": false
+                },
+                {
+                    "description": "How paths that differ only in letter case compare.",
+                    "type": "object",
+                    "properties": {
+                        "id": true, "overrides_rule": true, "title": true, "platforms": true, "evidence": true, "note": true,
+                        "kind": { "const": "path-case" },
+                        "compare": { "enum": ["exact", "case-insensitive"] }
+                    },
+                    "required": ["compare"],
+                    "additionalProperties": false
+                },
+                {
+                    "description": "Packs (the DLCs) in an install folder: folders holding a descriptor with this extension; the descriptor's path_key names the pack's folder.",
+                    "type": "object",
+                    "properties": {
+                        "id": true, "overrides_rule": true, "title": true, "platforms": true, "evidence": true, "note": true,
+                        "kind": { "const": "pack-layer" },
+                        "layer": { "enum": ["game", "jomini", "clausewitz"] },
+                        "folder": { "$ref": "#/$defs/text" },
+                        "descriptor_extension": { "type": "string", "pattern": "^\\.[A-Za-z0-9]+$" },
+                        "path_key": { "$ref": "#/$defs/text" }
+                    },
+                    "required": ["layer", "folder", "descriptor_extension", "path_key"],
+                    "additionalProperties": false
+                },
+                {
+                    "description": "replace_path in a mod's descriptor hides the files of hides under that path, and of its subfolders when subfolders is true.",
+                    "type": "object",
+                    "properties": {
+                        "id": true, "overrides_rule": true, "title": true, "platforms": true, "evidence": true, "note": true,
+                        "kind": { "const": "replace-path" },
+                        "hides": { "$ref": "#/$defs/layers" },
+                        "subfolders": { "type": "boolean" }
+                    },
+                    "required": ["hides", "subfolders"],
+                    "additionalProperties": false
+                },
+                {
+                    "description": "The order files are read in.",
+                    "type": "object",
+                    "properties": {
+                        "id": true, "overrides_rule": true, "title": true, "platforms": true, "evidence": true, "note": true,
+                        "kind": { "const": "file-order" },
+                        "databases": { "$ref": "#/$defs/databases" },
+                        "compare": { "enum": ["bytes", "case-insensitive"] },
+                        "subfolders": { "enum": ["by-path", "files-first", "folders-first"] },
+                        "layers": { "enum": ["together", "in-order"] },
+                        "layer_order": { "$ref": "#/$defs/layers" }
+                    },
+                    "required": ["compare", "subfolders", "layers", "layer_order"],
+                    "additionalProperties": false
+                },
+                {
+                    "description": "What is in force when a key of a database is defined more than once.",
+                    "type": "object",
+                    "properties": {
+                        "id": true, "overrides_rule": true, "title": true, "platforms": true, "evidence": true, "note": true,
+                        "kind": { "const": "key-resolution" },
+                        "databases": { "$ref": "#/$defs/databases" },
+                        "forms": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/form" } },
+                        "resolve": { "enum": ["priority", "later-wins", "earlier-wins", "all", "statements"] },
+                        "priority_field": { "$ref": "#/$defs/text" },
+                        "priority_default": { "type": "integer" },
+                        "combine": { "enum": ["whole", "fields", "partial"] }
+                    },
+                    "required": ["databases", "resolve"],
+                    "additionalProperties": false
+                },
+                {
+                    "description": "Top-level keys that are containers: they add up, and the entries inside them are the definitions. keys is [\"*\"] for every top-level key.",
+                    "type": "object",
+                    "properties": {
+                        "id": true, "overrides_rule": true, "title": true, "platforms": true, "evidence": true, "note": true,
+                        "kind": { "const": "containers" },
+                        "databases": { "$ref": "#/$defs/databases" },
+                        "keys": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/text" } }
+                    },
+                    "required": ["databases", "keys"],
+                    "additionalProperties": false
+                },
+                {
+                    "description": "A definition in a file under a folder named segment wins over every other.",
+                    "type": "object",
+                    "properties": {
+                        "id": true, "overrides_rule": true, "title": true, "platforms": true, "evidence": true, "note": true,
+                        "kind": { "const": "folder-wins" },
+                        "databases": { "$ref": "#/$defs/databases" },
+                        "segment": { "type": "string", "pattern": "^[^/\\\\]+$" }
+                    },
+                    "required": ["databases", "segment"],
+                    "additionalProperties": false
+                }
+            ]
+        }
+    }
+}

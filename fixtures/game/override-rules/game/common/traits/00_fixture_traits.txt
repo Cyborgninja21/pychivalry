@@ -1,0 +1,6 @@
+fixture_brave = {
+	category = personality
+}
+fixture_shy = {
+	category = personality
+}

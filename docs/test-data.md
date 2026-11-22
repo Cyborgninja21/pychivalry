@@ -6,12 +6,12 @@ uses it. A step that adds test data adds it here.
 | Kind | Where | Committed | Used by | Runs in public CI |
 | --- | --- | --- | --- | --- |
 | Hand-written mods | [`fixtures/mods/`](../fixtures/mods/README.md) | Yes | Every package's tests | Yes |
-| Game stubs | [`fixtures/game/`](../fixtures/game/README.md) | Yes | Tests that need a base game to look names up in | Yes |
+| Game stubs | [`fixtures/game/`](../fixtures/game/README.md) | Yes | Tests that need a base game: the index's override fixtures | Yes |
 | The planted-defect mod | [`fixtures/defects/`](../fixtures/defects/README.md) | Yes | The scored agent-use run; its graders' own tests | The graders' tests only |
 | Content requests | `fixtures/requests/` (step 9) | Yes | The scored authoring run | No |
 | Captured game logs | `fixtures/logs/` (step 11) | Yes | Game-log analysis | Yes |
-| The five real mods | Outside the repository, in the folder `CK3_CORPUS` names; pinned by [`records/corpus/MANIFEST.tsv`](../records/corpus/README.md) | The manifest only | `task game:mods`, `task game:bench`, the 2.3.0 baselines | No |
-| The base game | The local install, in the folder `CK3_GAME_PATH` names | Never | `task game:parse`, `task game:check` and the suites above | No |
+| The five real mods | Outside the repository, in the folder `CK3_CORPUS` names; pinned by [`records/corpus/MANIFEST.tsv`](../records/corpus/README.md) | The manifest only | `task game:index`, `task game:mods`, `task game:bench`, the 2.3.0 baselines | No |
+| The base game | The local install, in the folder `CK3_GAME_PATH` names | Never | `task game:parse`, `task game:index`, `task game:check` and the suites above | No |
 | Records | [`records/`](../records/README.md) | Yes | Public CI checks each one against the committed spec and corpus | The check, yes |
 | Release 2.3.0's tests and records | [`legacy/`](../legacy/) | Yes, unchanged | Carried over by the step that owns each behaviour | No |
 
@@ -46,6 +46,18 @@ the findings and tree a correct parser gives in its `expected.json`; and
 tables in the test files under `packages/core/src/syntax/`: the 74 parser cases of 2.3.0, and
 one case per token and per form.
 
+Build step 3 added the index's fixtures. The first game stub,
+[`fixtures/game/override-rules`](../fixtures/game/README.md), is an install with the three folders
+`game/`, `jomini/` and `clausewitz/` and one DLC pack, holding the game's side of every rule in
+[overrides.md](overrides.md). Three mods are read over it, one at a time: `override-rules`,
+`override-rules-replace-path` (rule 8) and `override-rules-folder-case` (rule 9, a folder in
+upper case, which Windows cannot hold beside the lower-case one in a single tree). Each states,
+in its `expected.json`, what a correct index answers for every name: a winner where the stand-in
+rules table settles the rule, both definitions and no winner where the rule is open. A fourth
+mod, `index-definitions-and-uses`, lists every definition and every use of a defined name the
+index must find, and none it must not. The list is in
+[fixtures/mods/README.md](../fixtures/mods/README.md).
+
 ## The planted-defect mod
 
 One mod with 20 to 30 defects, one per check code, a manifest of where each sits, lines that
@@ -73,6 +85,11 @@ of the game's file manifest in each record. `task game:parse` reads 4,854 script
 1.21.0.3 in ten folders and measures the encoding of all 20,530 text files; its record is
 `records/game/parse.json`, and every parse error in it is classified in
 `tools/data/parse-classifications.json` ([encoding.md](encoding.md)).
+
+`task game:index` indexes the whole base game (17,272 files of 1.21.0.3 in the folders the spec
+lists, with the install's `jomini/` and `clausewitz/` folders and the DLC packs), caches and
+reloads the index, and indexes each of the five mods over it; its record is
+`records/game/index.json` ([records/README.md](../records/README.md#index-records-gameindex)).
 
 The game is never launched by a test on the development machine; loading content in the
 running game happens only on the analysis machine the plan names, on the owner's word.

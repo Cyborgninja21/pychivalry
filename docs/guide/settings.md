@@ -19,6 +19,11 @@ what it changes.
   read those bytes with, so their letters show correctly; the rest of the file is still read
   as UTF-8. It is off by default and
   arrives with the extension in build step 7 ([what the parser reads](../encoding.md)).
+- **Where pychivalry keeps its index of the game.** pychivalry reads your installed game once
+  and saves what it found, about 250 MB for game 1.21, in your own cache folder: on Windows
+  `%LOCALAPPDATA%\pychivalry\Cache\index`, on Linux `~/.cache/pychivalry/index` (or under
+  `$XDG_CACHE_HOME` when you set it). Nothing is written into your mod or the game folder. It is
+  rebuilt by itself when the game is patched, and you can delete it at any time.
 - **No keys.** Nothing in the settings holds an API key or a login. The AI that uses pychivalry
   is Claude Code or VS Code's built-in AI, on the login it already has.
 

@@ -3,9 +3,10 @@
 Status: draft, 2026-11-21. Decisions are answered, the scope is confirmed, and every build step
 has been checked against real data: the spec package, the 2.3.0 code and its records, the game
 installed today, and the current VS Code, Claude Code and GitHub documentation. Build step 1,
-the repository skeleton, and build step 2, the parser, are built; build step 3 has written the
-override rules the game's files settle, and is re-planned so that the rest arrive as data from
-the spec work; nothing else in this document is built yet.
+the repository skeleton, and build step 2, the parser, are built; build step 3, the workspace
+index, is built and in review, with the override rules as data: a stand-in table carries the
+rules the game's files settle, and the rest arrive from the spec work; nothing else in this
+document is built yet.
 
 The build plan, step by step, is in [PLAN.md](PLAN.md).
 

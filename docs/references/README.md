@@ -43,6 +43,7 @@ written down instead.
 | Release 2.3.0 | Tests, fixtures, records, lessons, the behaviour to match | Test data carried over; baselines | Tests, fixtures and records, yes. Code, never | [release-2.3.0.md](release-2.3.0.md) |
 | VS Code, Claude Code and the Model Context Protocol documentation | How the extension, the agent server and the skills must be built | Design choices in MVP.md and PLAN.md | Facts only | [editors-and-agents.md](editors-and-agents.md) |
 | The language-server protocol and the WHATWG Encoding Standard | How positions are counted and lines end; how invalid UTF-8 is replaced, and what Windows-1252 decodes to | The parser's position model and its decoding ([encoding.md](../encoding.md)) | Facts only | [editors-and-agents.md](editors-and-agents.md#text-and-positions) |
+| The XDG Base Directory Specification and Windows' known folders | Where a user's cache files belong on Linux and on Windows | The location of the index cache (build step 3) | Facts only | [editors-and-agents.md](editors-and-agents.md#cache-folders) |
 
 ## How to add a reference
 

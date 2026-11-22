@@ -65,6 +65,27 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   rule is marked settled or open; each open rule has the in-game experiment that would settle
   it, written as probe mods for the analysis machine.
 
+
+- Build step 3, the workspace index ([docs/PLAN.md](docs/PLAN.md), items 3.1a to 3.10), in
+  `packages/core/src/index/`. The override rules are data: `spec/override-rules.json`, a
+  stand-in table with its schema `spec/override-rules.schema.json`, carries only the rules
+  `docs/overrides.md` marks settled, and `task spec:check` validates it. The index records
+  every definition with its layer (the install's `clausewitz/`, `jomini/` and `game/` folders,
+  a DLC pack, the mod), its relative path and its place, and every use of a name; it names a
+  winner only where a row of the table answers, and otherwise answers "defined more than once,
+  winner not known". Localization keys per language, with and without a version number.
+  Incremental update names the files that use what a changed file defines. Files are found
+  without regard to letter case and classified by whole folder names. The base game's index is
+  cached in the user's cache folder, keyed by the spec checksum, the rules digest, the platform,
+  the game build and the manifest of the files read, and written atomically.
+- Fixtures for every rule of `docs/overrides.md`: the game stub `fixtures/game/override-rules`
+  and the mods `override-rules`, `override-rules-replace-path` and `override-rules-folder-case`;
+  and `index-definitions-and-uses`, every definition and use the index finds.
+- `task game:index` and its record `records/game/index.json`: the whole base game of 1.21.0.3
+  indexed (17,272 files, 3,344,507 definitions, 9,017,490 uses) in 13.5 seconds at a peak of
+  1.30 GiB, its 250 MiB cache reloaded in 0.9 seconds, and each of the five corpus mods indexed
+  over it. `task records:check` refuses an index record made on another rules table.
+
 ### Changed
 
 - In the MVP the game is on the same computer as VS Code; a game on another computer on the
@@ -86,8 +107,7 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
 - Item 1.6: the 1.21 spec package in format 5 (step 0), and whether it is committed
   compressed or raw (an owner decision).
 - Item 1.11: the result baselines, which need the 1.21 spec in format 4 (step 0).
-- Step 3 stopped after item 3.1: six override rules are open (the order files are read in,
-  whole-record or field-by-field replacement, the install's `game/` against `jomini/` copies,
-  localization duplicates and the `replace` folder, `replace_path`, letter case in paths) and
-  need the experiments in `docs/overrides.md`, run on the analysis machine on the owner's word.
-  Items 3.2 to 3.10 wait on them.
+- The override rules `docs/overrides.md` leaves open (rules 3, 4, 5, 7, 8 and 9, and the open
+  parts of 6 and 10) arrive as rows of the spec package's table from step 0, read out of the
+  Windows and Linux executables. Until then the index lists every definition those rules
+  decide and names no winner: 1,309 names of the base game.

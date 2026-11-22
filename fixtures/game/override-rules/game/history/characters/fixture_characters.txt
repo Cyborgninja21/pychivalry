@@ -1,0 +1,10 @@
+fixture_char_1 = {
+	name = "Fixture"
+	dynasty = 1
+}
+fixture_char_2 = {
+	name = "Twice"
+}
+fixture_char_2 = {
+	name = "Twice again"
+}

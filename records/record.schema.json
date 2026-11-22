@@ -24,7 +24,7 @@
         },
         "suite": {
             "description": "Which suite made the record.",
-            "enum": ["game:parse", "game:check", "game:mods", "game:bench", "baseline:speed"]
+            "enum": ["game:parse", "game:index", "game:check", "game:mods", "game:bench", "baseline:speed"]
         },
         "command": {
             "description": "The command that made the record, with `<game dir>` and `<corpus dir>` in place of local paths.",
@@ -77,6 +77,20 @@
                 "properties": {
                     "notes": { "type": "array", "minItems": 1 },
                     "results": { "$ref": "#/$defs/parseResults" }
+                },
+                "required": ["notes"]
+            }
+        },
+        {
+            "if": {
+                "properties": { "suite": { "const": "game:index" } },
+                "required": ["suite"]
+            },
+            "then": {
+                "properties": {
+                    "notes": { "type": "array", "minItems": 1 },
+                    "corpus": { "$ref": "#/$defs/corpus" },
+                    "results": { "$ref": "#/$defs/indexResults" }
                 },
                 "required": ["notes"]
             }
@@ -222,6 +236,182 @@
                                     "valid_multibyte_sequences": { "$ref": "#/$defs/count" }
                                 }
                             }
+                        }
+                    }
+                }
+            }
+        },
+        "duplicates": {
+            "description": "The names defined more than once: how many, by how each resolves, and the unknown ones (winner not known) by the open rule of docs/overrides.md and by database.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["names", "by_status", "unknown_by_rule", "unknown_by_database"],
+            "properties": {
+                "names": { "$ref": "#/$defs/count" },
+                "by_status": { "type": "object", "additionalProperties": { "$ref": "#/$defs/count" } },
+                "unknown_by_rule": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["rule", "names"],
+                        "properties": { "rule": { "type": "integer", "minimum": 1, "maximum": 11 }, "names": { "$ref": "#/$defs/count" } }
+                    }
+                },
+                "unknown_by_database": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["database", "names"],
+                        "properties": { "database": { "$ref": "#/$defs/text" }, "names": { "$ref": "#/$defs/count" } }
+                    }
+                }
+            }
+        },
+        "notDescribed": {
+            "description": "The .txt and .yml files in folders the spec does not describe, by folder; beside_spec_folders is true for a folder whose first folder also holds folders the spec lists.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["folder", "files", "beside_spec_folders"],
+                "properties": { "folder": { "$ref": "#/$defs/text" }, "files": { "$ref": "#/$defs/count" }, "beside_spec_folders": { "type": "boolean" } }
+            }
+        },
+        "indexResults": {
+            "description": "The base-game index suite (records/README.md, \"Index records\"): the base game indexed in every folder the spec lists, its cache saved and reloaded, and each corpus mod indexed over it.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["passed", "failures", "platform", "rules", "base_game", "mods"],
+            "properties": {
+                "passed": { "type": "boolean" },
+                "failures": { "type": "array", "items": { "$ref": "#/$defs/text" } },
+                "platform": { "$ref": "#/$defs/text" },
+                "rules": {
+                    "description": "The rules table the run used: the core's digest of spec/override-rules.json.",
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["sha256"],
+                    "properties": { "sha256": { "$ref": "#/$defs/sha256" } }
+                },
+                "base_game": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["layers", "packs", "files", "lines", "definitions", "uses", "uses_of_defined_names", "names", "definitions_by_form", "folders_indexed", "folders", "spec_folders_without_files", "not_described", "not_read", "defined_more_than_once", "time_ms", "peak_rss_kib", "heap_used_after_build_mib", "cache"],
+                    "properties": {
+                        "layers": {
+                            "type": "array",
+                            "minItems": 1,
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": ["layer", "files", "definitions", "uses", "uses_of_defined_names"],
+                                "properties": {
+                                    "layer": { "enum": ["clausewitz", "jomini", "game", "dlc", "mod"] },
+                                    "files": { "$ref": "#/$defs/count" },
+                                    "definitions": { "$ref": "#/$defs/count" },
+                                    "uses": { "$ref": "#/$defs/count" },
+                                    "uses_of_defined_names": { "$ref": "#/$defs/count" }
+                                }
+                            }
+                        },
+                        "packs": { "$ref": "#/$defs/count" },
+                        "files": { "$ref": "#/$defs/count" },
+                        "lines": { "$ref": "#/$defs/count" },
+                        "definitions": { "$ref": "#/$defs/count" },
+                        "uses": { "$ref": "#/$defs/count" },
+                        "uses_of_defined_names": { "$ref": "#/$defs/count" },
+                        "names": { "$ref": "#/$defs/count" },
+                        "definitions_by_form": { "type": "object", "additionalProperties": { "$ref": "#/$defs/count" } },
+                        "folders_indexed": { "$ref": "#/$defs/count" },
+                        "folders": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": ["folder", "content_type", "files", "definitions", "by_form", "spec_schema", "spec_files", "spec_records"],
+                                "properties": {
+                                    "folder": { "$ref": "#/$defs/text" },
+                                    "content_type": { "type": "string" },
+                                    "files": { "$ref": "#/$defs/count" },
+                                    "definitions": { "$ref": "#/$defs/count" },
+                                    "by_form": { "type": "object", "additionalProperties": { "$ref": "#/$defs/count" } },
+                                    "spec_schema": { "type": "boolean" },
+                                    "spec_files": { "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/count" }] },
+                                    "spec_records": { "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/count" }] }
+                                }
+                            }
+                        },
+                        "spec_folders_without_files": { "type": "array", "items": { "$ref": "#/$defs/text" } },
+                        "not_described": { "$ref": "#/$defs/notDescribed" },
+                        "not_read": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": ["extension", "files"],
+                                "properties": { "extension": { "$ref": "#/$defs/text" }, "files": { "$ref": "#/$defs/count" } }
+                            }
+                        },
+                        "defined_more_than_once": { "$ref": "#/$defs/duplicates" },
+                        "time_ms": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": ["list", "build", "save", "report"],
+                            "properties": {
+                                "list": { "$ref": "#/$defs/count" },
+                                "build": { "$ref": "#/$defs/count" },
+                                "save": { "$ref": "#/$defs/count" },
+                                "report": { "$ref": "#/$defs/count" }
+                            }
+                        },
+                        "peak_rss_kib": { "$ref": "#/$defs/count" },
+                        "heap_used_after_build_mib": { "$ref": "#/$defs/count" },
+                        "cache": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": ["bytes", "reload_ms", "reload_peak_rss_kib", "reload_answers_as_fresh"],
+                            "properties": {
+                                "bytes": { "$ref": "#/$defs/count" },
+                                "reload_ms": { "$ref": "#/$defs/count" },
+                                "reload_peak_rss_kib": { "$ref": "#/$defs/count" },
+                                "reload_answers_as_fresh": { "type": "boolean" }
+                            }
+                        }
+                    }
+                },
+                "mods": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["slug", "files", "definitions", "uses", "uses_of_defined_names", "replace_paths", "game_files_replaced", "game_files_hidden", "game_files_read_unknown", "mod_files_read_unknown", "not_described", "not_read_files", "defined_more_than_once", "time_ms", "peak_rss_kib"],
+                        "properties": {
+                            "slug": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+                            "files": { "$ref": "#/$defs/count" },
+                            "definitions": { "$ref": "#/$defs/count" },
+                            "uses": { "$ref": "#/$defs/count" },
+                            "uses_of_defined_names": { "$ref": "#/$defs/count" },
+                            "replace_paths": { "type": "array", "items": { "$ref": "#/$defs/text" } },
+                            "game_files_replaced": { "$ref": "#/$defs/count" },
+                            "game_files_hidden": { "$ref": "#/$defs/count" },
+                            "game_files_read_unknown": { "$ref": "#/$defs/count" },
+                            "mod_files_read_unknown": { "$ref": "#/$defs/count" },
+                            "not_described": { "$ref": "#/$defs/notDescribed" },
+                            "not_read_files": { "$ref": "#/$defs/count" },
+                            "defined_more_than_once": { "$ref": "#/$defs/duplicates" },
+                            "time_ms": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": ["load_base", "index_mod", "report"],
+                                "properties": {
+                                    "load_base": { "$ref": "#/$defs/count" },
+                                    "index_mod": { "$ref": "#/$defs/count" },
+                                    "report": { "$ref": "#/$defs/count" }
+                                }
+                            },
+                            "peak_rss_kib": { "$ref": "#/$defs/count" }
                         }
                     }
                 }

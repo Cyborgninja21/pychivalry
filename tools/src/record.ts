@@ -10,7 +10,8 @@ import type { GameInfo } from './game.js';
 import { checkSpec } from './spec.js';
 import { CommandError, EXIT, isObject, readJson } from './util.js';
 
-export type Suite = 'game:parse' | 'game:check' | 'game:mods' | 'game:bench' | 'baseline:speed';
+export type Suite =
+    'game:parse' | 'game:index' | 'game:check' | 'game:mods' | 'game:bench' | 'baseline:speed';
 
 export interface ToolInfo {
     name: 'pychivalry';

@@ -1,0 +1,3 @@
+fixture_temple_building = {
+	construction_time = 365
+}

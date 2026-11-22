@@ -26,6 +26,13 @@ committed spec's catalogue. The tree is the one-line summary of
 block has no `}`), comments in parentheses, a name before a key as `<name>`, and a missing
 operator or value as `<none>`.
 
+An index fixture's `expected.json` (build step 3) says what a correct index answers. For the
+override-rules mods, a list of `cases`: per name of a database, the rule of docs/overrides.md
+that decides it, the `status` (`single`, `winner`, `all`, `statements`, `clash`, `not-read` or
+`unknown`), the `winner` and every definition with its `layer`, `file`, `line` and `read`. For
+`index-definitions-and-uses`, every `definition` and every `use` of each defined name, with
+`line` and `column`.
+
 ## Check pairs
 
 A check is tested on a pair of mods: one it fires on and one it is silent on.
@@ -49,6 +56,10 @@ rewritten to this layout. Where one is carried over, its README says which file 
 | Mod | What it shows | Added by |
 | --- | --- | --- |
 | [encoding-windows-1252](encoding-windows-1252/README.md) | A file that is not valid UTF-8, read with and without the Windows-1252 fallback | Step 2 |
+| [index-definitions-and-uses](index-definitions-and-uses/README.md) | One definition of every form, and every way a word is a use | Step 3 |
+| [override-rules](override-rules/README.md) | Every rule of docs/overrides.md one mod can exercise, over the stub `game/override-rules` | Step 3 |
+| [override-rules-folder-case](override-rules-folder-case/README.md) | A folder spelled in upper case (rule 9) | Step 3 |
+| [override-rules-replace-path](override-rules-replace-path/README.md) | `replace_path` in the descriptor (rule 8) | Step 3 |
 | [parse-block-without-key](parse-block-without-key/README.md) | A block at the top level with no key | Step 2 |
 | [parse-broken-syntax](parse-broken-syntax/README.md) | Five errors in one file; carried over from 2.3.0's `broken_syntax` | Step 2 |
 | [parse-cut-off-mid-edit](parse-cut-off-mid-edit/README.md) | Text cut off at seven places in the middle of an edit | Step 2 |
@@ -64,4 +75,6 @@ rewritten to this layout. Where one is carried over, its README says which file 
 
 The recovery test (`packages/core/src/syntax/recovery.test.ts`) reads every `parse-*` mod and
 fails if a kind of parse finding has no mod of its own. The incremental re-parse test edits
-every `.txt` file here and compares each re-parse with a full parse.
+every `.txt` file here and compares each re-parse with a full parse. The index's fixture test
+(`packages/core/src/index/fixtures.test.ts`) reads the `override-rules*` mods and
+`index-definitions-and-uses`.

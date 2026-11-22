@@ -1,0 +1,3 @@
+fixture_sub_decision = {
+	ai_check_interval = 0
+}

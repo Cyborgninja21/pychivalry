@@ -3,6 +3,7 @@ import path from 'node:path';
 import { test } from 'node:test';
 import { corpusRow, renderCorpusManifest } from './corpus.js';
 import { checkRecord, compileRecordSchema, type Expected } from './records-check.js';
+import { committedRules } from './rules-table.js';
 import { checkSpec } from './spec.js';
 import { gameSuiteRecord, GAME_SUITES, type SuiteOptions } from './suites.js';
 import { fixtureGame, fixtureMod, tempDir, writeTree } from './testing.js';
@@ -36,6 +37,7 @@ test('every suite writes a valid record made on the committed spec; the stubs, e
     const expected: Expected = {
         spec: { version: spec.version, sha256: spec.sha256 },
         corpusManifestSha256: sha,
+        rulesSha256: committedRules(root).sha256,
     };
     for (const suite of GAME_SUITES) {
         const record = gameSuiteRecord(
@@ -50,11 +52,18 @@ test('every suite writes a valid record made on the committed spec; the stubs, e
             assert.equal(record.results['passed'], true);
             assert.equal(record.results['files'], 1);
             assert.equal(record.results['trees'], 1);
+        } else if (suite === 'index') {
+            assert.equal(record.results['passed'], true);
+            assert.equal((record.results['base_game'] as { definitions: number }).definitions, 1);
+            assert.deepEqual(
+                (record.results['mods'] as { slug: string }[]).map((m) => m.slug),
+                ['fixture-mod'],
+            );
         } else {
             assert.deepEqual(record.results, {});
         }
         assert.equal(record.game.build, '1.21.0.3');
-        if (suite === 'mods' || suite === 'bench') {
+        if (suite === 'mods' || suite === 'bench' || suite === 'index') {
             assert.deepEqual(record.corpus, { manifest_sha256: sha, slugs: ['fixture-mod'] });
         } else {
             assert.equal(record.corpus, null);

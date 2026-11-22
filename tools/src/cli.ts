@@ -5,7 +5,7 @@
  *
  *   spec check                     the committed spec package (task spec:check)
  *   records check                  every committed record (task records:check)
- *   game parse|check|mods|bench    a game-file suite (task game:<suite>)
+ *   game parse|index|check|mods|bench    a game-file suite (task game:<suite>)
  *   corpus manifest                measure the corpus into records/corpus/MANIFEST.tsv
  *   baseline speed                 release 2.3.0's speed baselines (task baseline:speed)
  *   wiki check|build|publish       the repository wiki, generated from docs/ (task wiki:*)
@@ -16,6 +16,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { runSpeedBaseline } from './baseline.js';
 import { checkRecords } from './records-check.js';
+import { checkRulesTable, RULES_FILE } from './rules-table.js';
 import { checkSpec } from './spec.js';
 import { GAME_SUITES, runGameSuite, writeCorpusManifest, type GameSuite } from './suites.js';
 import { CommandError, EXIT, repoRoot } from './util.js';
@@ -34,13 +35,18 @@ function run(args: readonly string[]): number {
     const [group, command] = args;
     if (group === 'spec' && command === 'check') {
         const check = checkSpec(path.join(root, 'spec'));
-        if (check.spec === undefined) {
-            process.stderr.write(`spec check failed:\n  ${check.problems.join('\n  ')}\n`);
+        const rules = checkRulesTable(path.join(root, 'spec'));
+        const problems = [...check.problems, ...rules.problems];
+        if (check.spec === undefined || rules.table === undefined || problems.length > 0) {
+            process.stderr.write(`spec check failed:\n  ${problems.join('\n  ')}\n`);
             return EXIT.failed;
         }
         const { file, sha256, package_format: format } = check.spec;
         process.stdout.write(
             `spec check: ${file} is package format ${String(format)}, sha256 ${sha256} (uncompressed): ok\n`,
+        );
+        process.stdout.write(
+            `spec check: ${RULES_FILE} is a ${rules.table.status} rules table of ${String(rules.table.rules.length)} rows, digest ${String(rules.sha256)}: ok\n`,
         );
         return EXIT.ok;
     }

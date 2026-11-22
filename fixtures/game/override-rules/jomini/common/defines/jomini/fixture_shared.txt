@@ -1,0 +1,3 @@
+NFixtureShared = {
+	FIXTURE_FADE = 2.0
+}

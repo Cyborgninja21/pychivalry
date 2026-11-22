@@ -1,0 +1,4 @@
+NFixture = {
+	FIXTURE_B = 3
+	FIXTURE_C = 4
+}

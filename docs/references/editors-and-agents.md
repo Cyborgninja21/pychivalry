@@ -61,6 +61,22 @@ the WHATWG Encoding Standard (a living standard, last updated 2026-11-20). Used 
   name; 0x80 decodes to `€`. The core's own decoder agrees with Node's for all 256 bytes, which
   a test checks.
 
+## Cache folders
+
+Checked on 2026-11-21. Used by build step 3 for the index cache
+(`packages/core/src/index/cache.ts`).
+
+- **Linux: the XDG Base Directory Specification**, version 0.8 (8 May 2021): "$XDG_CACHE_HOME
+  defines the base directory relative to which user-specific non-essential data files should
+  be stored", and "If $XDG_CACHE_HOME is either not set or empty, a default equal to
+  $HOME/.cache should be used." Its paths "must be absolute"; a relative one is to be treated
+  as invalid and ignored. The index cache is `$XDG_CACHE_HOME/pychivalry/index`, by default
+  `~/.cache/pychivalry/index`.
+- **Windows: the known folder `FOLDERID_LocalAppData`**, whose default path is
+  `%LOCALAPPDATA%` (`%USERPROFILE%\AppData\Local`), the folder for a user's data that does not
+  roam with the profile (Microsoft's KNOWNFOLDERID reference). The index cache is
+  `%LOCALAPPDATA%\pychivalry\Cache\index`.
+
 ## GitHub
 
 - **Self-hosted runners are advised against on public repositories**, because a pull request

@@ -622,4 +622,7 @@ on 2026-11-21 how the step goes on ([decisions 40 to 43](decisions.md#log)):
 
 What is settled already goes into a stand-in table until the spec package carries one: rules 1,
 2 and 10; and for events, character history, on-actions (apart from their single values),
-defines, container keys and province terrain, rule 6.
+defines, container keys and province terrain, rule 6. The stand-in table is
+[spec/override-rules.json](../spec/override-rules.json), with its schema
+`spec/override-rules.schema.json`; [spec/README.md](../spec/README.md#the-override-rules-table)
+describes it.

@@ -1,0 +1,5 @@
+k_fixture = {
+	867.1.1 = {
+		holder = fixture_char_1
+	}
+}
