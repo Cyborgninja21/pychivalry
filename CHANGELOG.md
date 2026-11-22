@@ -178,4 +178,6 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   `names/modifier-outside-use-area` the use area of a modifier block; neither is in the
   1.21.0.3 package. The unknown-trigger and unknown-effect checks do not yet report an iterator
   in the wrong kind of block, which needs the keyword roles held with the other requests to the
-  spec work. Items 4.4 to 4.11 wait on the owner's answer.
+  spec work. The owner decided on 2026-11-22 (decisions 61 to 63) to request all of these, and
+  a correction of `config` in `common/pool_character_selectors`, from the spec work; items 4.4
+  to 4.11 wait for that follow-up package.
