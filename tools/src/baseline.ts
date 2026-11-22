@@ -85,7 +85,7 @@ function commonNotes(legacy: LegacyBuild): string[] {
             ? 'identical to the v2.3.0 tree'
             : `the v2.3.0 tree with one change the owner decided (it accepts the since value 1.21.0.3 of the format 4 copy), in ${legacy.changedFromTag.map((f) => `legacy/${f}`).join(' and ')}`;
     return [
-        `Release 2.3.0: legacy/ at commit ${legacy.tool.commit.slice(0, 7)}, ${changes}. It was built from an export of legacy/ outside the repository by task baseline:prepare, whose spec.config.json points it at the committed format 4 copy of the spec, ${legacy.specFile} (game ${legacy.spec.version}), the only format release 2.3.0 reads; nothing else in the export differs from legacy/.`,
+        `Release 2.3.0: legacy/ at commit ${legacy.tool.commit.slice(0, 7)}, ${changes}. It was built from an export of legacy/ outside the repository by task baseline:prepare, whose spec.config.json points it at the committed format 4 copy of the spec, ${legacy.specFile} (game ${legacy.spec.version}), the only format release 2.3.0 reads; ${legacy.tool.dirty ? 'other tracked files of the export differ from legacy/ too (tool.dirty).' : 'nothing else in the export differs from legacy/.'}`,
         'The game files read are the build the format 4 copy was derived for, and the corpus is the committed one: records/README.md, "Baselines".',
     ];
 }
