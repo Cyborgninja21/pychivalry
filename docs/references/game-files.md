@@ -80,6 +80,15 @@ for the override rules: the generic database's `Overriding entry '{}' for databa
 descriptor key `replace_path`. They are quoted in [overrides.md](../overrides.md#the-evidence).
 A message text shows the game has the behaviour it reports, not when the message fires.
 
+Build step 4 (item 4.1) read them again on 2026-11-21, with `strings -n 6` (725,545 strings),
+for the check inventory: every catalogue message the inventory cites is still there, word for
+word, on 1.21.0.3; the nearest source path shows which part of the game keeps each one; and
+some 1.21 messages the 1.20 catalogue lacks were found ("The body of triggered_desc can only
+take desc and/or trigger", "Unrecognized loc key %s. Near %s"). The compiler keeps one copy of
+a text that several source files use, beside one of them, so a context shows a place that uses
+a message, not every place. What was found is in
+[checks.md](../checks.md#where-the-executable-keeps-each-message).
+
 ## Workshop mods
 
 Each mod carries a `descriptor.mod` with its name, its workshop id (`remote_file_id`) and the

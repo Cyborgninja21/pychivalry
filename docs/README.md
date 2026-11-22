@@ -10,6 +10,7 @@ a document adds its row here.
 | [MVP.md](MVP.md) | What is being built and why: the decisions as they stand, the scope, the tests each feature needs, the definition of done | Before step 1 |
 | [PLAN.md](PLAN.md) | How it is built: thirteen steps, each with numbered items, tests and a "done when" list; the Progress table | Before step 1; updated by every step |
 | [decisions.md](decisions.md) | Every decision with its date, in the order it was made, and the choices an agent made that the owner has not yet confirmed | Every step that asks or answers one |
+| [checks.md](checks.md) | The check inventory: every check the MVP ships, with its code, severity, evidence (or "advice"), the 2.3.0 check it replaces and its fixture pair; the code scheme; the review of 2.3.0's codes and the pre-2.0 rules. Proposed, awaiting the owner's sign-off | Step 4, item 4.1; every step that adds a check |
 
 ## Sources and test data
 
@@ -38,7 +39,6 @@ These do not exist yet:
 
 | Document | What it will hold | Written by |
 | --- | --- | --- |
-| `checks.md` | The check inventory: every code, its severity, its evidence, its fixture pair | Step 4 |
 | `formatting.md` | The formatting rules | Step 8 |
 | `gui-syntax.md` | GUI file syntax | Step 10 |
 | `game-log.md` | The error-log format | Step 11 |

@@ -19,6 +19,7 @@
         },
         { "page": "What-The-Parser-Reads", "source": "docs/encoding.md" },
         { "page": "Override-Rules", "source": "docs/overrides.md" },
+        { "page": "Check-Inventory", "source": "docs/checks.md" },
         { "page": "Test-Data", "source": "docs/test-data.md" },
         { "page": "Decision-Log", "source": "docs/decisions.md" }
     ],
@@ -37,7 +38,10 @@
                 "Reference-Editors-And-Agents"
             ]
         },
-        { "heading": "The game's behaviour", "pages": ["What-The-Parser-Reads", "Override-Rules"] },
+        {
+            "heading": "The game's behaviour",
+            "pages": ["What-The-Parser-Reads", "Override-Rules", "Check-Inventory"]
+        },
         { "heading": "Project", "pages": ["Test-Data", "Decision-Log"] }
     ]
 }

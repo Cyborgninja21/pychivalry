@@ -4,8 +4,9 @@ Status: draft, 2026-11-21. Decisions are answered, the scope is confirmed, and e
 has been checked against real data: the spec package, the 2.3.0 code and its records, the game
 installed today, and the current VS Code, Claude Code and GitHub documentation. Build step 1,
 the repository skeleton, and build step 2, the parser, are built; build step 3, the workspace
-index, is built and in review, with the override rules as data: a stand-in table carries the
-rules the game's files settle, and the rest arrive from the spec work; nothing else in this
+index, is built, with the override rules as data: a stand-in table carries the rules the game's
+files settle, and the rest arrive from the spec work. Item 4.1, the check inventory
+([checks.md](checks.md)), is written and awaits the owner's sign-off; nothing else in this
 document is built yet.
 
 The build plan, step by step, is in [PLAN.md](PLAN.md).
@@ -333,8 +334,9 @@ Three: explain an error, fix an error, write new content. Each is tested by the 
 
 ## Check inventory and codes
 
-- Build step 4 starts by writing `docs/checks.md`: every check the MVP ships, one row each,
-  with its code, severity, evidence (or the word "advice") and the 2.3.0 check it replaces.
+- Build step 4 starts by writing [checks.md](checks.md): every check the MVP ships, one row
+  each, with its code, severity, evidence (or the word "advice") and the 2.3.0 check it
+  replaces. It is written and awaits the owner's sign-off.
 - Its three sources in `legacy/`: the engine's own message codes (about 14 from the catalogue
   and 6 of its own); the plug-in catalogue `data/diagnostics.yaml` (85 codes: 1 error, 10
   warnings, 63 information, 11 hints, of which 11 have game evidence and 72 are advice); and
