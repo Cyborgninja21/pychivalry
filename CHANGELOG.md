@@ -67,8 +67,8 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
 
 ### Changed
 
-- Two layouts are supported with equal weight: VS Code on the game's computer, and on another
-  computer on the local network. Linux and Windows are supported equally (the owner's
+- In the MVP the game is on the same computer as VS Code; a game on another computer on the
+  local network comes after the MVP. Linux and Windows are supported equally (the owner's
   decisions of 2026-11-21).
 - The override rules are data: a table in the spec package read out of the executable, with a
   neutral index until it arrives. Build step 3 is re-planned on that
