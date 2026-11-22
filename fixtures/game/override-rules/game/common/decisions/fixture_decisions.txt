@@ -1,0 +1,6 @@
+fixture_base_decision = {
+	ai_check_interval = 0
+}
+fixture_shared_decision = {
+	ai_check_interval = 0
+}

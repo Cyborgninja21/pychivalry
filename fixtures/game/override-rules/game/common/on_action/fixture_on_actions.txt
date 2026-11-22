@@ -1,0 +1,3 @@
+fixture_on_action = {
+	events = { fixture.1 }
+}

@@ -1,0 +1,3 @@
+fixture_not_described = {
+	fixture_effect = yes
+}

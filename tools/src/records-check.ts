@@ -3,12 +3,14 @@
  * `records/` is valid against `records/record.schema.json`, was made on the committed spec
  * (a record made on another spec fails, so a spec change forces the suites to be re-run),
  * names the committed corpus manifest if it read the corpus, holds no local path, and states
- * statistics that agree with its own values; a parse record's totals agree with its folders.
+ * statistics that agree with its own values; a parse record's totals agree with its folders;
+ * an index record's totals agree with its layers, and it was made on the committed rules table.
  */
 
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { Ajv2020, type ErrorObject, type ValidateFunction } from 'ajv/dist/2020.js';
+import { checkRulesTable } from './rules-table.js';
 import { checkSpec } from './spec.js';
 import { summarize } from './stats.js';
 import { isObject, relativePosix, sha256OfFile } from './util.js';
@@ -18,6 +20,8 @@ export interface Expected {
     spec: { version: string; sha256: string };
     /** SHA-256 of the committed records/corpus/MANIFEST.tsv; undefined when there is none. */
     corpusManifestSha256: string | undefined;
+    /** The core's digest of the committed rules table; undefined when it fails its check. */
+    rulesSha256?: string | undefined;
 }
 
 /** Compile the record schema. */
@@ -144,6 +148,64 @@ function parseProblems(results: unknown): string[] {
     return problems;
 }
 
+/**
+ * An index record's figures that disagree with each other or with the repository: its totals
+ * and its layers, `passed` and the failures, the mods and the corpus it names, and the rules
+ * table it was made on.
+ */
+function indexProblems(record: Record<string, unknown>, expected: Expected): string[] {
+    const results = record['results'];
+    if (!isObject(results)) {
+        return [];
+    }
+    const problems: string[] = [];
+    const failures = Array.isArray(results['failures']) ? results['failures'] : [];
+    if (results['passed'] !== (failures.length === 0)) {
+        problems.push(
+            `/results/passed: ${JSON.stringify(results['passed'])} with ${String(failures.length)} failures`,
+        );
+    }
+    const rules = isObject(results['rules']) ? results['rules']['sha256'] : undefined;
+    if (rules !== expected.rulesSha256) {
+        problems.push(
+            `/results/rules/sha256: made on rules table ${JSON.stringify(rules)}, but the committed spec/override-rules.json is ${expected.rulesSha256 ?? 'missing or failing its check'}; re-run the suite`,
+        );
+    }
+    const base = isObject(results['base_game']) ? results['base_game'] : {};
+    const layers = Array.isArray(base['layers']) ? base['layers'].filter(isObject) : [];
+    for (const key of ['files', 'definitions', 'uses', 'uses_of_defined_names'] as const) {
+        const sum = layers.reduce((n, l) => n + (typeof l[key] === 'number' ? l[key] : 0), 0);
+        if (base[key] !== sum) {
+            problems.push(
+                `/results/base_game/${key}: ${JSON.stringify(base[key])} is not the layers' total (${String(sum)})`,
+            );
+        }
+    }
+    const folders = Array.isArray(base['folders']) ? base['folders'] : [];
+    if (base['folders_indexed'] !== folders.length) {
+        problems.push(
+            `/results/base_game/folders_indexed: ${JSON.stringify(base['folders_indexed'])} with ${String(folders.length)} folders listed`,
+        );
+    }
+    const cache = isObject(base['cache']) ? base['cache'] : {};
+    if (results['passed'] === true && cache['reload_answers_as_fresh'] !== true) {
+        problems.push(
+            '/results/base_game/cache: a passing record whose reloaded index does not answer as the fresh one',
+        );
+    }
+    const corpus = record['corpus'];
+    const slugs = isObject(corpus) && Array.isArray(corpus['slugs']) ? corpus['slugs'] : [];
+    const mods = Array.isArray(results['mods'])
+        ? results['mods'].filter(isObject).map((m) => m['slug'])
+        : [];
+    if (JSON.stringify(mods) !== JSON.stringify(slugs)) {
+        problems.push(
+            `/results/mods: the mods ${JSON.stringify(mods)} are not the corpus slugs ${JSON.stringify(slugs)}`,
+        );
+    }
+    return problems;
+}
+
 /** Every problem with one record. */
 export function checkRecord(
     record: unknown,
@@ -177,6 +239,9 @@ export function checkRecord(
     }
     if (record['suite'] === 'game:parse') {
         problems.push(...parseProblems(record['results']));
+    }
+    if (record['suite'] === 'game:index') {
+        problems.push(...indexProblems(record, expected));
     }
     return problems;
 }
@@ -213,6 +278,7 @@ export function checkRecords(root: string): { files: string[]; problems: string[
     const expected: Expected = {
         spec: { version: spec.spec.version, sha256: spec.spec.sha256 },
         corpusManifestSha256: existsSync(manifest) ? sha256OfFile(manifest) : undefined,
+        rulesSha256: checkRulesTable(path.join(root, 'spec')).sha256,
     };
     const validate = compileRecordSchema(path.join(root, 'records', 'record.schema.json'));
     const files = findRecords(path.join(root, 'records'));

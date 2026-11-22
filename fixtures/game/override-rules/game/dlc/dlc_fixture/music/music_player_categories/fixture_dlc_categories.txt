@@ -1,0 +1,3 @@
+fixture_dlc_category = {
+	id = fixture_dlc_category
+}

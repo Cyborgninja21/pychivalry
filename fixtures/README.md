@@ -28,4 +28,8 @@ Two more parts arrive later: `requests/`, the content requests of the scored aut
 6. **Explained.** Each fixture mod has a `README.md` of a few lines: what it shows, and what a
    correct tool reports on it.
 7. **LF line endings and UTF-8,** except where the fixture exists to test another encoding or
-   line ending, which its README says and `.gitattributes` protects.
+   line ending, which its README says and `.gitattributes` protects. Localization files start
+   with the byte-order mark, as the game asks for, and Prettier leaves them alone.
+8. **No two paths that differ only in letter case in one folder tree.** Windows cannot check
+   them out side by side; a fixture about letter case puts the other spelling in a mod of its
+   own.

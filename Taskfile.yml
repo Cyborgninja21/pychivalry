@@ -95,6 +95,12 @@ tasks:
     cmds:
       - node tools/dist/cli.js game parse
 
+  game:index:
+    desc: 'Base-game index suite (CK3_GAME_PATH, CK3_CORPUS, CK3_CORPUS_SLUGS): the whole base game indexed, cached and reloaded, each mod indexed over it; writes records/game/index.json. Heavy: run it alone'
+    deps: [build]
+    cmds:
+      - node tools/dist/cli.js game index
+
   game:check:
     desc: 'Base-game check suite (CK3_GAME_PATH); writes records/game/check.json. Step 1: a stub'
     deps: [build]

@@ -1,0 +1,3 @@
+NFixtureJomini = {
+	FIXTURE_ONLY = 1
+}

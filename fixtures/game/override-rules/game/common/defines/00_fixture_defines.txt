@@ -1,0 +1,4 @@
+NFixture = {
+	FIXTURE_A = 1
+	FIXTURE_B = 2
+}

@@ -1,0 +1,2 @@
+1 = plains
+2 = hills

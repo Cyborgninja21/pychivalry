@@ -1,0 +1,3 @@
+colors = {
+	fixture_red = rgb { 255 0 0 }
+}

@@ -5,6 +5,9 @@ legacy/
 spec/
 records/
 
+# CK3 localization files are not YAML, and fixtures hold their bytes exactly as written.
+fixtures/**/*.yml
+
 # Prose is formatted by its authors, not by Prettier.
 *.md
 

@@ -1,0 +1,254 @@
+{
+    "note": "Every definition this mod holds, and every use of each name it defines, as a correct index finds them when it reads the mod alone with the committed spec and the stand-in rules table. Lines and columns count from 1; a tab is one column. Files in common/fixture_not_a_folder/ and events_old/ are in no folder the spec lists, so they are not read: they define nothing and their uses are not listed.",
+    "definitions": [
+        {
+            "name": "@fixture_cost",
+            "database": "constants",
+            "form": "constant",
+            "container": null,
+            "prefix": null,
+            "file": "common/scripted_effects/fixture_effects.txt",
+            "line": 1,
+            "column": 1
+        },
+        {
+            "name": "fixture_effect",
+            "database": "common/scripted_effects",
+            "form": "record",
+            "container": null,
+            "prefix": null,
+            "file": "common/scripted_effects/fixture_effects.txt",
+            "line": 3,
+            "column": 1
+        },
+        {
+            "name": "fixture_other_effect",
+            "database": "common/scripted_effects",
+            "form": "record",
+            "container": null,
+            "prefix": null,
+            "file": "common/scripted_effects/fixture_effects.txt",
+            "line": 7,
+            "column": 1
+        },
+        {
+            "name": "fixture_trait",
+            "database": "common/traits",
+            "form": "record",
+            "container": null,
+            "prefix": null,
+            "file": "common/traits/fixture_traits.txt",
+            "line": 1,
+            "column": 1
+        },
+        {
+            "name": "fixture_trait_opposite",
+            "database": "common/traits",
+            "form": "record",
+            "container": null,
+            "prefix": null,
+            "file": "common/traits/fixture_traits.txt",
+            "line": 4,
+            "column": 1
+        },
+        {
+            "name": "fixture_value",
+            "database": "common/script_values",
+            "form": "value",
+            "container": null,
+            "prefix": null,
+            "file": "common/script_values/fixture_values.txt",
+            "line": 1,
+            "column": 1
+        },
+        {
+            "name": "fixture_scaled_value",
+            "database": "common/script_values",
+            "form": "record",
+            "container": null,
+            "prefix": null,
+            "file": "common/script_values/fixture_values.txt",
+            "line": 2,
+            "column": 1
+        },
+        {
+            "name": "namespace",
+            "database": "events",
+            "form": "value",
+            "container": null,
+            "prefix": null,
+            "file": "events/fixture_events.txt",
+            "line": 1,
+            "column": 1
+        },
+        {
+            "name": "fixture_inline_trigger",
+            "database": "inline:scripted_trigger",
+            "form": "prefixed",
+            "container": null,
+            "prefix": "scripted_trigger",
+            "file": "events/fixture_events.txt",
+            "line": 2,
+            "column": 18
+        },
+        {
+            "name": "fixture.1",
+            "database": "events",
+            "form": "record",
+            "container": null,
+            "prefix": null,
+            "file": "events/fixture_events.txt",
+            "line": 5,
+            "column": 1
+        },
+        {
+            "name": "1001",
+            "database": "history/characters",
+            "form": "record",
+            "container": null,
+            "prefix": null,
+            "file": "history/characters/fixture_characters.txt",
+            "line": 1,
+            "column": 1
+        },
+        {
+            "name": "1002",
+            "database": "history/characters",
+            "form": "record",
+            "container": null,
+            "prefix": null,
+            "file": "history/characters/fixture_characters.txt",
+            "line": 7,
+            "column": 1
+        },
+        {
+            "name": "NFixture",
+            "database": "common/defines",
+            "form": "container",
+            "container": null,
+            "prefix": null,
+            "file": "common/defines/fixture_defines.txt",
+            "line": 1,
+            "column": 1
+        },
+        {
+            "name": "FIXTURE_DEFINE",
+            "database": "common/defines",
+            "form": "entry",
+            "container": "NFixture",
+            "prefix": null,
+            "file": "common/defines/fixture_defines.txt",
+            "line": 2,
+            "column": 2
+        },
+        {
+            "name": "colors",
+            "database": "common/named_colors",
+            "form": "container",
+            "container": null,
+            "prefix": null,
+            "file": "common/named_colors/fixture_colors.txt",
+            "line": 1,
+            "column": 1
+        },
+        {
+            "name": "fixture_green",
+            "database": "common/named_colors",
+            "form": "entry",
+            "container": "colors",
+            "prefix": null,
+            "file": "common/named_colors/fixture_colors.txt",
+            "line": 2,
+            "column": 2
+        },
+        {
+            "name": "fixture.1.t",
+            "database": "localization:l_english",
+            "form": "key",
+            "container": null,
+            "prefix": null,
+            "file": "localization/english/fixture_l_english.yml",
+            "line": 2,
+            "column": 2,
+            "version": 0
+        },
+        {
+            "name": "fixture.1.desc",
+            "database": "localization:l_english",
+            "form": "key",
+            "container": null,
+            "prefix": null,
+            "file": "localization/english/fixture_l_english.yml",
+            "line": 3,
+            "column": 2,
+            "version": null
+        },
+        {
+            "name": "fixture.1.a",
+            "database": "localization:l_english",
+            "form": "key",
+            "container": null,
+            "prefix": null,
+            "file": "localization/english/fixture_l_english.yml",
+            "line": 4,
+            "column": 2,
+            "version": 0
+        },
+        {
+            "name": "fixture_trait",
+            "database": "localization:l_english",
+            "form": "key",
+            "container": null,
+            "prefix": null,
+            "file": "localization/english/fixture_l_english.yml",
+            "line": 5,
+            "column": 2,
+            "version": null
+        }
+    ],
+    "uses": {
+        "@fixture_cost": [
+            { "file": "common/scripted_effects/fixture_effects.txt", "line": 4, "column": 13 }
+        ],
+        "fixture_effect": [{ "file": "events/fixture_events.txt", "line": 15, "column": 3 }],
+        "fixture_other_effect": [
+            { "file": "common/scripted_effects/fixture_effects.txt", "line": 5, "column": 2 }
+        ],
+        "fixture_trait": [
+            { "file": "common/scripted_effects/fixture_effects.txt", "line": 8, "column": 14 },
+            { "file": "common/traits/fixture_traits.txt", "line": 5, "column": 16 },
+            { "file": "events/fixture_events.txt", "line": 3, "column": 14 },
+            { "file": "events/fixture_events.txt", "line": 11, "column": 18 },
+            { "file": "history/characters/fixture_characters.txt", "line": 3, "column": 10 }
+        ],
+        "fixture_trait_opposite": [
+            { "file": "common/traits/fixture_traits.txt", "line": 2, "column": 16 }
+        ],
+        "fixture_value": [
+            { "file": "common/script_values/fixture_values.txt", "line": 3, "column": 10 },
+            { "file": "localization/english/fixture_l_english.yml", "line": 3, "column": 43 }
+        ],
+        "fixture_scaled_value": [{ "file": "events/fixture_events.txt", "line": 17, "column": 20 }],
+        "namespace": [],
+        "fixture_inline_trigger": [
+            { "file": "events/fixture_events.txt", "line": 10, "column": 3 }
+        ],
+        "fixture.1": [{ "file": "events/fixture_events.txt", "line": 16, "column": 19 }],
+        "1001": [],
+        "1002": [{ "file": "history/characters/fixture_characters.txt", "line": 4, "column": 11 }],
+        "NFixture": [
+            { "file": "common/script_values/fixture_values.txt", "line": 5, "column": 15 }
+        ],
+        "FIXTURE_DEFINE": [
+            { "file": "common/script_values/fixture_values.txt", "line": 5, "column": 24 }
+        ],
+        "colors": [],
+        "fixture_green": [{ "file": "common/traits/fixture_traits.txt", "line": 6, "column": 10 }],
+        "fixture.1.t": [
+            { "file": "events/fixture_events.txt", "line": 7, "column": 10 },
+            { "file": "localization/english/fixture_l_english.yml", "line": 3, "column": 25 }
+        ],
+        "fixture.1.desc": [{ "file": "events/fixture_events.txt", "line": 8, "column": 10 }],
+        "fixture.1.a": [{ "file": "events/fixture_events.txt", "line": 21, "column": 10 }]
+    }
+}

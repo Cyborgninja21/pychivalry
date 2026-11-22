@@ -1,0 +1,8 @@
+namespace = fixture
+fixture.1 = {
+	id_override_priority = 1
+	type = character_event
+}
+fixture.2 = {
+	type = character_event
+}

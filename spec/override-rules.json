@@ -1,0 +1,260 @@
+{
+    "$schema": "./override-rules.schema.json",
+    "rules_format": 1,
+    "status": "stand-in",
+    "game_build": "1.21.0.3",
+    "source": "The rules docs/overrides.md marks settled (build step 3, item 3.1a). The open rules (3, 4, 5, 7, 8, 9, and the open parts of 6 and 10) have no row: the spec package will carry them, read out of the Windows and Linux executables.",
+    "rules": [
+        {
+            "id": "mod-file-replaces-game-file",
+            "overrides_rule": 1,
+            "title": "A mod's file replaces, whole, the base game's file at the same relative path",
+            "kind": "file-replace",
+            "layer": "mod",
+            "over": ["game"],
+            "platforms": ["linux", "windows"],
+            "evidence": [
+                {
+                    "rank": 3,
+                    "source": "<game dir>/events/_events.info",
+                    "where": "lines 77 to 83, id_override_priority",
+                    "says": "The field exists so that a mod can override one event of the unmodded game from a file with another name, and so not override the entire file: a mod file named as the game's file overrides all of it."
+                },
+                {
+                    "rank": 3,
+                    "source": "<game dir>/history/_characters.info",
+                    "where": "lines 25 to 31, history_override_priority",
+                    "says": "The same, for history characters."
+                }
+            ],
+            "note": "Holds for paths written exactly alike. Paths that differ only in letter case are rule 9, open. The rule's evidence is about the game/ folder; a mod file at the path of a jomini/, clausewitz/ or DLC file is open (rules 3 and 10)."
+        },
+        {
+            "id": "file-is-its-relative-path",
+            "overrides_rule": 2,
+            "title": "A file is identified by its whole relative path, not by its file name",
+            "kind": "file-identity",
+            "by": "relative-path",
+            "platforms": ["linux", "windows"],
+            "evidence": [
+                {
+                    "rank": 4,
+                    "source": "The base game's files, measured on 1.21.0.3",
+                    "where": "events/situation_events/debug.txt and events/test_events/debug.txt; music/in_game/music.txt and music/main_themes/music.txt; the two 00_temple_district_buildings.txt under common/buildings",
+                    "says": "Each pair holds different definitions; if a file name alone identified a file, one of each pair would never be read and the base game would lose, for example, its main-menu themes."
+                }
+            ]
+        },
+        {
+            "id": "dlc-files-sit-inside-their-pack",
+            "overrides_rule": 10,
+            "title": "A DLC is a folder of game/dlc/ with a descriptor whose path names it; its files sit at their path inside the pack",
+            "kind": "pack-layer",
+            "layer": "game",
+            "folder": "dlc",
+            "descriptor_extension": ".dlc",
+            "path_key": "path",
+            "platforms": ["linux", "windows"],
+            "evidence": [
+                {
+                    "rank": 1,
+                    "source": "The Linux executable, its message texts",
+                    "where": "CDLCManager::InitializeMods(), Folder not found for DLC/Mod %s:, beside clausewitzlib/dlc.cpp",
+                    "says": "DLCs and mods are handled by one manager with one descriptor reader."
+                },
+                {
+                    "rank": 4,
+                    "source": "<game dir>/dlc/*/*.dlc, the 23 packs of 1.21.0.3",
+                    "where": "the path key of each descriptor",
+                    "says": "Each pack's descriptor names its own folder (path = \"dlc/dlc003_fp1\"), and its files repeat the game's layout inside it."
+                }
+            ],
+            "note": "On 1.21.0.3 no DLC file has the relative path of a base-game file or of another pack's, so the order of DLC against the base game decides nothing there. Whether a mod's file at a DLC file's path replaces it is open."
+        },
+        {
+            "id": "events-by-override-priority",
+            "overrides_rule": 6,
+            "title": "An event defined more than once: the largest id_override_priority wins, whole; equal largest values are an error",
+            "kind": "key-resolution",
+            "databases": ["events"],
+            "forms": ["record"],
+            "resolve": "priority",
+            "priority_field": "id_override_priority",
+            "priority_default": 0,
+            "combine": "whole",
+            "platforms": ["linux", "windows"],
+            "evidence": [
+                {
+                    "rank": 3,
+                    "source": "<game dir>/events/_events.info",
+                    "where": "lines 77 to 83",
+                    "says": "An event id defined more than once is resolved by id_override_priority, an integer that is 0 by default; the definition with the largest value overrides all the others; two with the same value are an error."
+                },
+                {
+                    "rank": 1,
+                    "source": "The spec package's error catalogue",
+                    "where": "duplicated_event_id_X_with_the_same_override_priority_X_foun",
+                    "says": "The game reports a duplicated event id with the same override priority."
+                }
+            ],
+            "note": "Within one file as across files (rule 11). Which of two equal-priority definitions the game then uses is not stated, so none is named: the index reports a clash."
+        },
+        {
+            "id": "characters-by-override-priority",
+            "overrides_rule": 6,
+            "title": "A history character defined more than once: the largest history_override_priority sets the base attributes and birth date; the rest adds up; equal largest values are an error",
+            "kind": "key-resolution",
+            "databases": ["history/characters"],
+            "forms": ["record"],
+            "resolve": "priority",
+            "priority_field": "history_override_priority",
+            "priority_default": 0,
+            "combine": "partial",
+            "platforms": ["linux", "windows"],
+            "evidence": [
+                {
+                    "rank": 3,
+                    "source": "<game dir>/history/_characters.info",
+                    "where": "lines 25 to 31",
+                    "says": "The same rule with history_override_priority, except that only the character's base attributes (the fields listed above line 25) and the date of birth are overridden; everything else from the definitions adds up."
+                },
+                {
+                    "rank": 1,
+                    "source": "The spec package's error catalogue",
+                    "where": "duplicate_character_id_X_found_in_history",
+                    "says": "The game reports a duplicate character id in history."
+                }
+            ],
+            "note": "Within one file as across files (rule 11)."
+        },
+        {
+            "id": "on-action-declarations-add-up",
+            "overrides_rule": 6,
+            "title": "Every declaration of an on-action, in any file, adds to it",
+            "kind": "key-resolution",
+            "databases": ["common/on_action"],
+            "forms": ["record"],
+            "resolve": "all",
+            "platforms": ["linux", "windows"],
+            "evidence": [
+                {
+                    "rank": 3,
+                    "source": "<game dir>/common/on_action/_on_actions.info",
+                    "where": "lines 106 to 119",
+                    "says": "An on-action's data may be declared in several files, and a mod adds effects to a base on-action this way without replacing its file; one on-action may not have more than one trigger or more than one effect block."
+                }
+            ],
+            "note": "What happens to an on-action's single values (fallback, fallback_event, weight_multiplier) when two declarations set them is open (experiment 4)."
+        },
+        {
+            "id": "province-terrain-is-not-keyed",
+            "overrides_rule": 6,
+            "title": "Province terrain is not a keyed database: every file is read, each a mix of statements",
+            "kind": "key-resolution",
+            "databases": ["common/province_terrain"],
+            "resolve": "statements",
+            "platforms": ["linux", "windows"],
+            "evidence": [
+                {
+                    "rank": 3,
+                    "source": "<game dir>/common/province_terrain/_province_terrain.info",
+                    "where": "lines 3 to 5",
+                    "says": "The folder is not a regular keyed database; every .txt file of it is read in order, by convention the 00_ file holding the terrain and the 01_ file the winter properties."
+                }
+            ],
+            "note": "Which of two statements setting the same property is in force depends on the order files are read in (rule 4), which is open."
+        },
+        {
+            "id": "define-groups-add-up",
+            "overrides_rule": 6,
+            "title": "Defines are set field by field: every top-level key is a group, the defines inside it are the definitions, and a group written again sets only the defines it names",
+            "kind": "containers",
+            "databases": ["common/defines"],
+            "keys": ["*"],
+            "platforms": ["linux", "windows"],
+            "evidence": [
+                {
+                    "rank": 4,
+                    "source": "The base game's files, measured on 1.21.0.3",
+                    "where": "19 groups written in two files each with no define in both, for example NRite in common/defines/00_defines.txt and common/defines/graphic/00_graphics.txt",
+                    "says": "If a later group replaced the earlier one whole, the base game would lose one half of each."
+                },
+                {
+                    "rank": 1,
+                    "source": "The Linux executable, its message texts",
+                    "where": "Looking for a single value %s in %s, but scripted as an array, won't assign until changed, beside clausewitzlib/definesreader.cpp",
+                    "says": "The defines reader assigns single values."
+                }
+            ],
+            "note": "Which value wins when two files set the same define is the order files are read in (rule 4), which is open."
+        },
+        {
+            "id": "container-entries-add-up",
+            "overrides_rule": 6,
+            "title": "Container keys written in several files add up; the definitions are the entries inside them",
+            "kind": "containers",
+            "databases": ["common/named_colors"],
+            "keys": ["colors"],
+            "platforms": ["linux", "windows"],
+            "evidence": [
+                {
+                    "rank": 4,
+                    "source": "The base game's files, measured on 1.21.0.3",
+                    "where": "colors in 3 files of common/named_colors",
+                    "says": "Each file holds different entries, and dropping all but one file's would leave the base game without most of them."
+                }
+            ]
+        },
+        {
+            "id": "special-genes-entries-add-up",
+            "overrides_rule": 6,
+            "title": "Container keys written in several files add up; the definitions are the entries inside them",
+            "kind": "containers",
+            "databases": ["common/genes"],
+            "keys": ["special_genes"],
+            "platforms": ["linux", "windows"],
+            "evidence": [
+                {
+                    "rank": 4,
+                    "source": "The base game's files, measured on 1.21.0.3",
+                    "where": "special_genes in 8 files of common/genes",
+                    "says": "Each file holds different entries, and dropping all but one file's would leave the base game without most of them."
+                }
+            ]
+        },
+        {
+            "id": "template-list-entries-add-up",
+            "overrides_rule": 6,
+            "title": "Container keys written in several files add up; the definitions are the entries inside them",
+            "kind": "containers",
+            "databases": ["common/coat_of_arms/template_lists"],
+            "keys": ["coat_of_arms_template_lists"],
+            "platforms": ["linux", "windows"],
+            "evidence": [
+                {
+                    "rank": 4,
+                    "source": "The base game's files, measured on 1.21.0.3",
+                    "where": "coat_of_arms_template_lists in 2 files of common/coat_of_arms/template_lists",
+                    "says": "Each file holds different entries, and dropping all but one file's would leave the base game without most of them."
+                }
+            ]
+        },
+        {
+            "id": "coat-of-arms-template-entries-add-up",
+            "overrides_rule": 6,
+            "title": "Container keys written in several files add up; the definitions are the entries inside them",
+            "kind": "containers",
+            "databases": ["common/coat_of_arms/coat_of_arms"],
+            "keys": ["template"],
+            "platforms": ["linux", "windows"],
+            "evidence": [
+                {
+                    "rank": 4,
+                    "source": "The base game's files, measured on 1.21.0.3",
+                    "where": "template in 3 files of common/coat_of_arms/coat_of_arms",
+                    "says": "Each file holds different entries, and dropping all but one file's would leave the base game without most of them."
+                }
+            ]
+        }
+    ]
+}

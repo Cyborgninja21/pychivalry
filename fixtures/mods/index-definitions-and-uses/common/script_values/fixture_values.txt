@@ -1,0 +1,6 @@
+fixture_value = 10
+fixture_scaled_value = {
+	value = fixture_value
+	multiply = 0.5
+	add = define:NFixture|FIXTURE_DEFINE
+}

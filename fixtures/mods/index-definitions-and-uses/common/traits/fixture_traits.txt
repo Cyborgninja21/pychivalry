@@ -1,0 +1,7 @@
+fixture_trait = {
+	opposites = { fixture_trait_opposite }
+}
+fixture_trait_opposite = {
+	opposites = { fixture_trait }
+	color = fixture_green
+}

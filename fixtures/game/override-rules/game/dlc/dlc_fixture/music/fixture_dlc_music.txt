@@ -1,0 +1,3 @@
+fixture_dlc_track = {
+	music = "event:/fixture"
+}

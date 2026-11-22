@@ -1,0 +1,4 @@
+# Replaces the game's file at the same path, whole (docs/overrides.md, rule 1).
+fixture_shy = {
+	category = personality
+}

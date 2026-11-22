@@ -1,13 +1,14 @@
 /**
- * The local game-file suites (docs/PLAN.md item 1.8): `task game:parse`, `game:check`,
- * `game:mods` and `game:bench`. Each reads `CK3_GAME_PATH` and, where it reads mods,
- * `CK3_CORPUS` (and `CK3_CORPUS_SLUGS`), and writes its record to
+ * The local game-file suites (docs/PLAN.md item 1.8): `task game:parse`, `game:index`,
+ * `game:check`, `game:mods` and `game:bench`. Each reads `CK3_GAME_PATH` and, where it reads
+ * mods, `CK3_CORPUS` (and `CK3_CORPUS_SLUGS`), and writes its record to
  * `records/game/<suite>.json`.
  *
- * `game:parse` is the base-game parse suite of build step 2 (parse-suite.ts). The others are
- * still the stubs of build step 1: each establishes the run's context (game build and
- * manifest, the committed spec, the pinned corpus) and writes a valid record whose results are
- * empty. Check and mods are filled in at step 4, bench at step 13.
+ * `game:parse` is the base-game parse suite of build step 2 (parse-suite.ts); `game:index` the
+ * index suite of build step 3 (index-suite.ts). The others are still the stubs of build step 1:
+ * each establishes the run's context (game build and manifest, the committed spec, the pinned
+ * corpus) and writes a valid record whose results are empty. Check and mods are filled in at
+ * step 4, bench at step 13.
  */
 
 import { existsSync, readFileSync } from 'node:fs';
@@ -22,8 +23,9 @@ import {
     selectSlugs,
     verifyCorpus,
 } from './corpus.js';
-import { catalogueFromSpec } from '@pychivalry/core';
+import { catalogueFromSpec, currentPlatform } from '@pychivalry/core';
 import { gameInfo, requireGameDir } from './game.js';
+import { runIndexSuite } from './index-suite.js';
 import {
     readClassifications,
     runParseSuite,
@@ -38,15 +40,17 @@ import {
     type CorpusRef,
     type SuiteRecord,
 } from './record.js';
+import { committedRules } from './rules-table.js';
 import { readSpecPackage } from './spec.js';
 import { CommandError, EXIT, sha256, writeJson, writeText } from './util.js';
 
-export const GAME_SUITES = ['parse', 'check', 'mods', 'bench'] as const;
+export const GAME_SUITES = ['parse', 'index', 'check', 'mods', 'bench'] as const;
 export type GameSuite = (typeof GAME_SUITES)[number];
 
 /** Which suites read the mod corpus. */
 const READS_CORPUS: Record<GameSuite, boolean> = {
     parse: false,
+    index: true,
     check: false,
     mods: true,
     bench: true,
@@ -106,6 +110,14 @@ export interface SuiteOptions {
     readonly classificationsFile?: string;
 }
 
+const INDEX_NOTES = [
+    "The base game is the install's clausewitz/, jomini/ and game/ folders and the DLC packs inside game/dlc/, each its own layer; a pack's files sit at their path inside the pack (spec/override-rules.json, the pack-layer row). The files read are the .txt and .yml files in the folders the committed spec lists; results.base_game.not_described counts the .txt and .yml files in other folders, not read, and not_read every other file by extension.",
+    'A definition is a top-level key of a file in a listed folder, recorded with how it is written (record, value, prefixed, constant, container, entry, localization key); a use is a word written anywhere else (records/README.md, Index records). uses counts every word; uses_of_defined_names those whose name something in the index defines, the references of item 3.4.',
+    'Names defined more than once are resolved with the committed stand-in rules table, which carries only the rules docs/overrides.md marks settled. by_status counts each name of each database once; an unknown name (defined more than once, winner not known) is counted under every open rule of docs/overrides.md that leaves it open, so unknown_by_rule may sum to more than the unknown names.',
+    "The fresh build, the reload from the cache and each mod over the base game run one at a time, each in a fresh process (tools/src/index-worker.ts), with Node's default heap. peak_rss_kib is that process's peak resident memory, read right after the build, the reload or the mod; times are in milliseconds on this machine. The cache is written to a temporary folder and deleted after the run; its key is the spec checksum, the rules digest, the platform, the game build and the manifest of the files read.",
+    'The spec is for game 1.20.0.2 and the game is 1.21.0.3: a folder the 1.21 game adds is not described by the spec (not_described with beside_spec_folders true), and spec_folders_without_files lists the 1.20 folders that hold no file in this install.',
+];
+
 const PARSE_NOTES = [
     'The folders and extensions read, with the evidence that each holds script and the number of files expected, are listed in results.folders; text files not read, and why, in results.not_read (docs/encoding.md, "What the parser reads").',
     'Files are decoded as UTF-8, the default: no fallback encoding is named. A file that is not valid UTF-8 is read in full and gets one information note (results.notes).',
@@ -125,7 +137,8 @@ export function gameSuiteRecord(
 ): SuiteRecord {
     const gameDir = requireGameDir(env.CK3_GAME_PATH);
     const manifestFile = options.manifestFile ?? corpusManifestFile(root);
-    const corpus = READS_CORPUS[suite] ? pinnedCorpus(manifestFile, env).ref : null;
+    const pinned = READS_CORPUS[suite] ? pinnedCorpus(manifestFile, env) : null;
+    const corpus = pinned?.ref ?? null;
     const context = {
         record_format: 1 as const,
         suite: `game:${suite}` as const,
@@ -146,6 +159,16 @@ export function gameSuiteRecord(
             ...(options.parseFolders === undefined ? {} : { folders: options.parseFolders }),
         });
         return { ...context, notes: PARSE_NOTES, results: { ...results } };
+    }
+    if (suite === 'index') {
+        const results = runIndexSuite({
+            root,
+            gameDir,
+            corpus: pinned === null ? null : { dir: pinned.dir, slugs: pinned.ref.slugs },
+            rulesSha256: committedRules(root).sha256,
+            platform: currentPlatform() ?? process.platform,
+        });
+        return { ...context, notes: INDEX_NOTES, results };
     }
     return {
         ...context,

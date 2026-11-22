@@ -1,0 +1,3 @@
+NFixture = {
+	FIXTURE_DEFINE = 1
+}

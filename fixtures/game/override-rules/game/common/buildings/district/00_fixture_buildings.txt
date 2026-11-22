@@ -1,0 +1,3 @@
+fixture_district_building = {
+	construction_time = 365
+}

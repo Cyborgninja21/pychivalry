@@ -1,0 +1,3 @@
+fixture_mod_category = {
+	id = fixture_mod_category
+}

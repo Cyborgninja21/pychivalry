@@ -1,0 +1,111 @@
+/**
+ * The workspace index (docs/PLAN.md, step 3): every definition and use in the mod and the whole
+ * base game, with the layer, path and place of each; what the override rules table says is in
+ * force; incremental updates; and the base game's index cached on disk.
+ */
+
+export {
+    CACHE_FORMAT,
+    cacheFileName,
+    defaultCacheDir,
+    loadIndex,
+    saveIndex,
+    type CacheKey,
+    type CacheMiss,
+} from './cache.js';
+export {
+    CONSTANTS_DATABASE,
+    inlineDatabase,
+    localizationDatabase,
+    scalarWords,
+} from './extract.js';
+export { FolderTable, foldersFromSpec, type FolderMatch, type SpecFolder } from './folders.js';
+export {
+    gameCacheKey,
+    openGameIndex,
+    type GameIndex,
+    type GameIndexOptions,
+} from './game-index.js';
+export {
+    parseLocalization,
+    readLocalization,
+    type LocalizationEntry,
+    type LocalizationFile,
+    type LocalizationHeader,
+    type LocalizationUse,
+} from './localization.js';
+export { compareCodePoints, compareFiles, layerKind } from './order.js';
+export {
+    diskPath,
+    extensionOf,
+    fileNameOf,
+    foldCase,
+    isWithin,
+    parentOf,
+    PathTable,
+    relativePath,
+    segmentsOf,
+} from './paths.js';
+export {
+    descriptorValues,
+    indexFiles,
+    indexMod,
+    installFolders,
+    listInstall,
+    listMod,
+    readGameBuild,
+    REPLACE_PATH_KEY,
+    sourceManifestSha256,
+    walkFiles,
+    type InstallFolder,
+    type ModListing,
+    type SourceFile,
+    type SourceListing,
+} from './read-game.js';
+export {
+    canonicalJson,
+    currentPlatform,
+    databaseMatches,
+    FORMS,
+    LAYER_NAMES,
+    PLATFORMS,
+    readRulesTable,
+    RULE_KINDS,
+    rulesDigest,
+    rulesFor,
+    RulesTableError,
+    withRule,
+    type ContainersRule,
+    type FileIdentityRule,
+    type FileOrderRule,
+    type FileReplaceRule,
+    type FolderWinsRule,
+    type Form,
+    type KeyResolutionRule,
+    type LayerName,
+    type PackLayerRule,
+    type PathCaseRule,
+    type Platform,
+    type ReplacePathRule,
+    type Rule,
+    type RuleEvidence,
+    type RuleKind,
+    type RulesTable,
+} from './rules.js';
+export { StringTable } from './strings.js';
+export {
+    fileKindOf,
+    WorkspaceIndex,
+    type Definition,
+    type DefinitionGroup,
+    type FileKind,
+    type FileQuestion,
+    type FileStatus,
+    type IndexedFile,
+    type IndexOptions,
+    type IndexState,
+    type Resolution,
+    type UnknownReason,
+    type UpdateResult,
+    type Use,
+} from './workspace.js';

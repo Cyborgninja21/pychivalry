@@ -1,0 +1,796 @@
+{
+    "game": "fixtures/game/override-rules",
+    "platforms": ["linux", "windows"],
+    "note": "Every name of every database the stub and this mod define, with the rule of docs/overrides.md that decides it and what a correct index answers with the stand-in table (spec/override-rules.json). A settled rule names the winner, or says every definition adds up; an open rule lists both definitions and gives no winner (status unknown). Lines count from 1.",
+    "cases": [
+        {
+            "rule": 1,
+            "what": "The mod's file at the game file's path replaces it whole: the game's definition is not read",
+            "database": "common/traits",
+            "container": null,
+            "name": "fixture_shy",
+            "status": "single",
+            "winner": { "layer": "mod", "file": "common/traits/00_fixture_traits.txt", "line": 2 },
+            "definitions": [
+                {
+                    "layer": "game",
+                    "file": "common/traits/00_fixture_traits.txt",
+                    "line": 4,
+                    "read": "no"
+                },
+                {
+                    "layer": "mod",
+                    "file": "common/traits/00_fixture_traits.txt",
+                    "line": 2,
+                    "read": "yes"
+                }
+            ]
+        },
+        {
+            "rule": 1,
+            "what": "A name only the replaced game file defines is no longer read anywhere",
+            "database": "common/traits",
+            "container": null,
+            "name": "fixture_brave",
+            "status": "not-read",
+            "winner": null,
+            "definitions": [
+                {
+                    "layer": "game",
+                    "file": "common/traits/00_fixture_traits.txt",
+                    "line": 1,
+                    "read": "no"
+                }
+            ]
+        },
+        {
+            "rule": 2,
+            "what": "Two files of one name in different folders are two files: both are read",
+            "database": "common/buildings",
+            "container": null,
+            "name": "fixture_temple_building",
+            "status": "single",
+            "winner": {
+                "layer": "game",
+                "file": "common/buildings/holding/00_fixture_buildings.txt",
+                "line": 1
+            },
+            "definitions": [
+                {
+                    "layer": "game",
+                    "file": "common/buildings/holding/00_fixture_buildings.txt",
+                    "line": 1,
+                    "read": "yes"
+                }
+            ]
+        },
+        {
+            "rule": 2,
+            "what": "Two files of one name in different folders are two files: both are read",
+            "database": "common/buildings",
+            "container": null,
+            "name": "fixture_district_building",
+            "status": "single",
+            "winner": {
+                "layer": "game",
+                "file": "common/buildings/district/00_fixture_buildings.txt",
+                "line": 1
+            },
+            "definitions": [
+                {
+                    "layer": "game",
+                    "file": "common/buildings/district/00_fixture_buildings.txt",
+                    "line": 1,
+                    "read": "yes"
+                }
+            ]
+        },
+        {
+            "rule": 3,
+            "what": "jomini/ and game/ ship a file at one path: which copy is read is open",
+            "database": "common/defines",
+            "container": null,
+            "name": "NFixtureShared",
+            "status": "unknown",
+            "winner": null,
+            "definitions": [
+                {
+                    "layer": "jomini",
+                    "file": "common/defines/jomini/fixture_shared.txt",
+                    "line": 1,
+                    "read": "unknown"
+                },
+                {
+                    "layer": "game",
+                    "file": "common/defines/jomini/fixture_shared.txt",
+                    "line": 1,
+                    "read": "unknown"
+                }
+            ]
+        },
+        {
+            "rule": 3,
+            "what": "jomini/ and game/ ship a file at one path: which copy of the define is read is open",
+            "database": "common/defines",
+            "container": "NFixtureShared",
+            "name": "FIXTURE_FADE",
+            "status": "unknown",
+            "winner": null,
+            "definitions": [
+                {
+                    "layer": "jomini",
+                    "file": "common/defines/jomini/fixture_shared.txt",
+                    "line": 2,
+                    "read": "unknown"
+                },
+                {
+                    "layer": "game",
+                    "file": "common/defines/jomini/fixture_shared.txt",
+                    "line": 2,
+                    "read": "unknown"
+                }
+            ]
+        },
+        {
+            "rule": 3,
+            "what": "clausewitz/ and game/ ship a localization file at one path: which copy is read is open",
+            "database": "localization:l_english",
+            "container": null,
+            "name": "fixture_engine_key",
+            "status": "unknown",
+            "winner": null,
+            "definitions": [
+                {
+                    "layer": "clausewitz",
+                    "file": "localization/fixture_shared_l_english.yml",
+                    "line": 2,
+                    "read": "unknown"
+                },
+                {
+                    "layer": "game",
+                    "file": "localization/fixture_shared_l_english.yml",
+                    "line": 2,
+                    "read": "unknown"
+                }
+            ]
+        },
+        {
+            "rule": 3,
+            "what": "A mod file at the path of a file only jomini/ ships: rule 1's evidence is about game/, so whether it replaces it is open",
+            "database": "common/defines",
+            "container": null,
+            "name": "NFixtureJomini",
+            "status": "unknown",
+            "winner": null,
+            "definitions": [
+                {
+                    "layer": "jomini",
+                    "file": "common/defines/jomini/fixture_jomini_only.txt",
+                    "line": 1,
+                    "read": "unknown"
+                },
+                {
+                    "layer": "mod",
+                    "file": "common/defines/jomini/fixture_jomini_only.txt",
+                    "line": 1,
+                    "read": "unknown"
+                }
+            ]
+        },
+        {
+            "rule": 3,
+            "what": "The define inside it: open in the same way",
+            "database": "common/defines",
+            "container": "NFixtureJomini",
+            "name": "FIXTURE_ONLY",
+            "status": "unknown",
+            "winner": null,
+            "definitions": [
+                {
+                    "layer": "jomini",
+                    "file": "common/defines/jomini/fixture_jomini_only.txt",
+                    "line": 2,
+                    "read": "unknown"
+                },
+                {
+                    "layer": "mod",
+                    "file": "common/defines/jomini/fixture_jomini_only.txt",
+                    "line": 2,
+                    "read": "unknown"
+                }
+            ]
+        },
+        {
+            "rule": 5,
+            "what": "A key of a keyed database defined in a game file and a mod file: which wins is open (and rule 4, the order)",
+            "database": "common/script_values",
+            "container": null,
+            "name": "fixture_value",
+            "status": "unknown",
+            "winner": null,
+            "definitions": [
+                {
+                    "layer": "game",
+                    "file": "common/script_values/00_fixture_values.txt",
+                    "line": 1,
+                    "read": "yes"
+                },
+                {
+                    "layer": "mod",
+                    "file": "common/script_values/zz_fixture_values.txt",
+                    "line": 1,
+                    "read": "yes"
+                }
+            ]
+        },
+        {
+            "rule": 11,
+            "what": "A key defined twice in one file of a keyed database: which wins is open (rule 5)",
+            "database": "common/script_values",
+            "container": null,
+            "name": "fixture_twice",
+            "status": "unknown",
+            "winner": null,
+            "definitions": [
+                {
+                    "layer": "game",
+                    "file": "common/script_values/00_fixture_values.txt",
+                    "line": 2,
+                    "read": "yes"
+                },
+                {
+                    "layer": "game",
+                    "file": "common/script_values/00_fixture_values.txt",
+                    "line": 3,
+                    "read": "yes"
+                }
+            ]
+        },
+        {
+            "rule": 6,
+            "what": "Events: the largest id_override_priority wins, whole",
+            "database": "events",
+            "container": null,
+            "name": "fixture.1",
+            "status": "winner",
+            "winner": { "layer": "mod", "file": "events/fixture_mod_events.txt", "line": 2 },
+            "definitions": [
+                { "layer": "game", "file": "events/fixture_events.txt", "line": 2, "read": "yes" },
+                {
+                    "layer": "mod",
+                    "file": "events/fixture_mod_events.txt",
+                    "line": 2,
+                    "read": "yes"
+                }
+            ]
+        },
+        {
+            "rule": 6,
+            "what": "Events: two definitions at the same priority are an error; neither is named",
+            "database": "events",
+            "container": null,
+            "name": "fixture.2",
+            "status": "clash",
+            "winner": null,
+            "definitions": [
+                { "layer": "game", "file": "events/fixture_events.txt", "line": 5, "read": "yes" },
+                {
+                    "layer": "mod",
+                    "file": "events/fixture_mod_events.txt",
+                    "line": 6,
+                    "read": "yes"
+                }
+            ]
+        },
+        {
+            "rule": 6,
+            "what": "Events: the rule is for event records; namespace = x is a value, so no row answers for it",
+            "database": "events",
+            "container": null,
+            "name": "namespace",
+            "status": "unknown",
+            "winner": null,
+            "definitions": [
+                { "layer": "game", "file": "events/fixture_events.txt", "line": 1, "read": "yes" },
+                {
+                    "layer": "mod",
+                    "file": "events/fixture_mod_events.txt",
+                    "line": 1,
+                    "read": "yes"
+                }
+            ]
+        },
+        {
+            "rule": 6,
+            "what": "Character history: the largest history_override_priority sets the base attributes; the rest adds up",
+            "database": "history/characters",
+            "container": null,
+            "name": "fixture_char_1",
+            "status": "winner",
+            "combine": "partial",
+            "winner": {
+                "layer": "mod",
+                "file": "history/characters/fixture_mod_characters.txt",
+                "line": 1
+            },
+            "definitions": [
+                {
+                    "layer": "game",
+                    "file": "history/characters/fixture_characters.txt",
+                    "line": 1,
+                    "read": "yes"
+                },
+                {
+                    "layer": "mod",
+                    "file": "history/characters/fixture_mod_characters.txt",
+                    "line": 1,
+                    "read": "yes"
+                }
+            ]
+        },
+        {
+            "rule": 11,
+            "what": "Character history: a character id twice in one file at the same priority is an error",
+            "database": "history/characters",
+            "container": null,
+            "name": "fixture_char_2",
+            "status": "clash",
+            "winner": null,
+            "definitions": [
+                {
+                    "layer": "game",
+                    "file": "history/characters/fixture_characters.txt",
+                    "line": 5,
+                    "read": "yes"
+                },
+                {
+                    "layer": "game",
+                    "file": "history/characters/fixture_characters.txt",
+                    "line": 8,
+                    "read": "yes"
+                }
+            ]
+        },
+        {
+            "rule": 6,
+            "what": "On-actions: every declaration adds to it",
+            "database": "common/on_action",
+            "container": null,
+            "name": "fixture_on_action",
+            "status": "all",
+            "winner": null,
+            "definitions": [
+                {
+                    "layer": "game",
+                    "file": "common/on_action/fixture_on_actions.txt",
+                    "line": 1,
+                    "read": "yes"
+                },
+                {
+                    "layer": "mod",
+                    "file": "common/on_action/fixture_mod_on_actions.txt",
+                    "line": 1,
+                    "read": "yes"
+                }
+            ]
+        },
+        {
+            "rule": 6,
+            "what": "Defines: a group written again adds up",
+            "database": "common/defines",
+            "container": null,
+            "name": "NFixture",
+            "status": "all",
+            "winner": null,
+            "definitions": [
+                {
+                    "layer": "game",
+                    "file": "common/defines/00_fixture_defines.txt",
+                    "line": 1,
+                    "read": "yes"
+                },
+                {
+                    "layer": "mod",
+                    "file": "common/defines/zz_fixture_defines.txt",
+                    "line": 1,
+                    "read": "yes"
+                }
+            ]
+        },
+        {
+            "rule": 6,
+            "what": "Defines: a define only one group sets is defined once",
+            "database": "common/defines",
+            "container": "NFixture",
+            "name": "FIXTURE_A",
+            "status": "single",
+            "winner": {
+                "layer": "game",
+                "file": "common/defines/00_fixture_defines.txt",
+                "line": 2
+            },
+            "definitions": [
+                {
+                    "layer": "game",
+                    "file": "common/defines/00_fixture_defines.txt",
+                    "line": 2,
+                    "read": "yes"
+                }
+            ]
+        },
+        {
+            "rule": 6,
+            "what": "Defines: a define only one group sets is defined once",
+            "database": "common/defines",
+            "container": "NFixture",
+            "name": "FIXTURE_C",
+            "status": "single",
+            "winner": {
+                "layer": "mod",
+                "file": "common/defines/zz_fixture_defines.txt",
+                "line": 3
+            },
+            "definitions": [
+                {
+                    "layer": "mod",
+                    "file": "common/defines/zz_fixture_defines.txt",
+                    "line": 3,
+                    "read": "yes"
+                }
+            ]
+        },
+        {
+            "rule": 4,
+            "what": "Defines: the same define set in two files: which value wins is the order files are read in, open",
+            "database": "common/defines",
+            "container": "NFixture",
+            "name": "FIXTURE_B",
+            "status": "unknown",
+            "winner": null,
+            "definitions": [
+                {
+                    "layer": "game",
+                    "file": "common/defines/00_fixture_defines.txt",
+                    "line": 3,
+                    "read": "yes"
+                },
+                {
+                    "layer": "mod",
+                    "file": "common/defines/zz_fixture_defines.txt",
+                    "line": 2,
+                    "read": "yes"
+                }
+            ]
+        },
+        {
+            "rule": 6,
+            "what": "Container keys: written in several files, they add up",
+            "database": "common/named_colors",
+            "container": null,
+            "name": "colors",
+            "status": "all",
+            "winner": null,
+            "definitions": [
+                {
+                    "layer": "game",
+                    "file": "common/named_colors/fixture_colors.txt",
+                    "line": 1,
+                    "read": "yes"
+                },
+                {
+                    "layer": "mod",
+                    "file": "common/named_colors/fixture_mod_colors.txt",
+                    "line": 1,
+                    "read": "yes"
+                }
+            ]
+        },
+        {
+            "rule": 6,
+            "what": "Container keys: the entries are the definitions",
+            "database": "common/named_colors",
+            "container": "colors",
+            "name": "fixture_red",
+            "status": "single",
+            "winner": {
+                "layer": "game",
+                "file": "common/named_colors/fixture_colors.txt",
+                "line": 2
+            },
+            "definitions": [
+                {
+                    "layer": "game",
+                    "file": "common/named_colors/fixture_colors.txt",
+                    "line": 2,
+                    "read": "yes"
+                }
+            ]
+        },
+        {
+            "rule": 6,
+            "what": "Container keys: the entries are the definitions",
+            "database": "common/named_colors",
+            "container": "colors",
+            "name": "fixture_blue",
+            "status": "single",
+            "winner": {
+                "layer": "mod",
+                "file": "common/named_colors/fixture_mod_colors.txt",
+                "line": 2
+            },
+            "definitions": [
+                {
+                    "layer": "mod",
+                    "file": "common/named_colors/fixture_mod_colors.txt",
+                    "line": 2,
+                    "read": "yes"
+                }
+            ]
+        },
+        {
+            "rule": 6,
+            "what": "Province terrain is not keyed: both statements about province 1 are read",
+            "database": "common/province_terrain",
+            "container": null,
+            "name": "1",
+            "status": "statements",
+            "winner": null,
+            "definitions": [
+                {
+                    "layer": "game",
+                    "file": "common/province_terrain/00_fixture_terrain.txt",
+                    "line": 1,
+                    "read": "yes"
+                },
+                {
+                    "layer": "game",
+                    "file": "common/province_terrain/01_fixture_properties.txt",
+                    "line": 1,
+                    "read": "yes"
+                }
+            ]
+        },
+        {
+            "rule": 6,
+            "what": "Province terrain: a statement made once",
+            "database": "common/province_terrain",
+            "container": null,
+            "name": "2",
+            "status": "single",
+            "winner": {
+                "layer": "game",
+                "file": "common/province_terrain/00_fixture_terrain.txt",
+                "line": 2
+            },
+            "definitions": [
+                {
+                    "layer": "game",
+                    "file": "common/province_terrain/00_fixture_terrain.txt",
+                    "line": 2,
+                    "read": "yes"
+                }
+            ]
+        },
+        {
+            "rule": 6,
+            "what": "A title's history written in two places: open (experiment 5)",
+            "database": "history/titles",
+            "container": null,
+            "name": "k_fixture",
+            "status": "unknown",
+            "winner": null,
+            "definitions": [
+                {
+                    "layer": "game",
+                    "file": "history/titles/fixture_titles.txt",
+                    "line": 1,
+                    "read": "yes"
+                },
+                {
+                    "layer": "mod",
+                    "file": "history/titles/zz_fixture_titles.txt",
+                    "line": 1,
+                    "read": "yes"
+                }
+            ]
+        },
+        {
+            "rule": 7,
+            "what": "A localization key in a game file and a mod file: which copy is kept is open",
+            "database": "localization:l_english",
+            "container": null,
+            "name": "fixture_loc_key",
+            "status": "unknown",
+            "winner": null,
+            "definitions": [
+                {
+                    "layer": "game",
+                    "file": "localization/english/fixture_l_english.yml",
+                    "line": 2,
+                    "read": "yes"
+                },
+                {
+                    "layer": "mod",
+                    "file": "localization/english/fixture_mod_l_english.yml",
+                    "line": 2,
+                    "read": "yes"
+                }
+            ]
+        },
+        {
+            "rule": 7,
+            "what": "A localization key in the mod's replace folder: what the folder does is open",
+            "database": "localization:l_english",
+            "container": null,
+            "name": "fixture_loc_replaced",
+            "status": "unknown",
+            "winner": null,
+            "definitions": [
+                {
+                    "layer": "game",
+                    "file": "localization/english/fixture_l_english.yml",
+                    "line": 3,
+                    "read": "yes"
+                },
+                {
+                    "layer": "mod",
+                    "file": "localization/english/replace/fixture_replace_l_english.yml",
+                    "line": 2,
+                    "read": "yes"
+                }
+            ]
+        },
+        {
+            "rule": 9,
+            "what": "A game file whose path a mod file repeats in other letter case: whether it is replaced is open",
+            "database": "common/script_values",
+            "container": null,
+            "name": "fixture_age",
+            "status": "unknown",
+            "winner": null,
+            "definitions": [
+                {
+                    "layer": "game",
+                    "file": "common/script_values/00_fixture_age_values.txt",
+                    "line": 1,
+                    "read": "unknown"
+                }
+            ]
+        },
+        {
+            "rule": 9,
+            "what": "The mod file written in other letter case: whether it replaces the game's is open",
+            "database": "common/script_values",
+            "container": null,
+            "name": "fixture_case_replace",
+            "status": "unknown",
+            "winner": null,
+            "definitions": [
+                {
+                    "layer": "mod",
+                    "file": "common/script_values/00_FIXTURE_AGE_VALUES.txt",
+                    "line": 1,
+                    "read": "unknown"
+                }
+            ]
+        },
+        {
+            "rule": 10,
+            "what": "A DLC's file sits at its path inside the pack, in a layer of its own",
+            "database": "music",
+            "container": null,
+            "name": "fixture_dlc_track",
+            "status": "single",
+            "winner": {
+                "layer": "dlc:dlc_fixture",
+                "file": "music/fixture_dlc_music.txt",
+                "line": 1
+            },
+            "definitions": [
+                {
+                    "layer": "dlc:dlc_fixture",
+                    "file": "music/fixture_dlc_music.txt",
+                    "line": 1,
+                    "read": "yes"
+                }
+            ]
+        },
+        {
+            "rule": 10,
+            "what": "A mod file at a DLC file's path: whether it replaces it is open",
+            "database": "music",
+            "container": null,
+            "name": "fixture_dlc_category",
+            "status": "unknown",
+            "winner": null,
+            "definitions": [
+                {
+                    "layer": "dlc:dlc_fixture",
+                    "file": "music/music_player_categories/fixture_dlc_categories.txt",
+                    "line": 1,
+                    "read": "unknown"
+                }
+            ]
+        },
+        {
+            "rule": 10,
+            "what": "The mod's file at the DLC file's path",
+            "database": "music",
+            "container": null,
+            "name": "fixture_mod_category",
+            "status": "unknown",
+            "winner": null,
+            "definitions": [
+                {
+                    "layer": "mod",
+                    "file": "music/music_player_categories/fixture_dlc_categories.txt",
+                    "line": 1,
+                    "read": "unknown"
+                }
+            ]
+        },
+        {
+            "rule": 8,
+            "what": "Without replace_path in this mod's descriptor, the game's decisions are read",
+            "database": "common/decisions",
+            "container": null,
+            "name": "fixture_base_decision",
+            "status": "single",
+            "winner": {
+                "layer": "game",
+                "file": "common/decisions/fixture_decisions.txt",
+                "line": 1
+            },
+            "definitions": [
+                {
+                    "layer": "game",
+                    "file": "common/decisions/fixture_decisions.txt",
+                    "line": 1,
+                    "read": "yes"
+                }
+            ]
+        },
+        {
+            "rule": 8,
+            "what": "Without replace_path in this mod's descriptor, the game's decisions are read",
+            "database": "common/decisions",
+            "container": null,
+            "name": "fixture_shared_decision",
+            "status": "single",
+            "winner": {
+                "layer": "game",
+                "file": "common/decisions/fixture_decisions.txt",
+                "line": 4
+            },
+            "definitions": [
+                {
+                    "layer": "game",
+                    "file": "common/decisions/fixture_decisions.txt",
+                    "line": 4,
+                    "read": "yes"
+                }
+            ]
+        },
+        {
+            "rule": 8,
+            "what": "Without replace_path in this mod's descriptor, the game's decisions are read",
+            "database": "common/decisions",
+            "container": null,
+            "name": "fixture_sub_decision",
+            "status": "single",
+            "winner": {
+                "layer": "game",
+                "file": "common/decisions/fixture_sub/fixture_sub_decisions.txt",
+                "line": 1
+            },
+            "definitions": [
+                {
+                    "layer": "game",
+                    "file": "common/decisions/fixture_sub/fixture_sub_decisions.txt",
+                    "line": 1,
+                    "read": "yes"
+                }
+            ]
+        }
+    ]
+}

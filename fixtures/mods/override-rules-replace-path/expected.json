@@ -1,0 +1,64 @@
+{
+    "game": "fixtures/game/override-rules",
+    "platforms": ["linux", "windows"],
+    "note": "The cases of rule 8 only: every other name of the stub answers as in fixtures/mods/override-rules/expected.json with that mod left out. replace_path = \"common/decisions\" in this mod's descriptor makes every game file under that path a file the game may or may not read: what replace_path hides is open, so no decision of the game under it has a winner. Lines count from 1.",
+    "cases": [
+        {
+            "rule": 8,
+            "what": "A game decision under the replaced path: whether its file is read is open",
+            "database": "common/decisions",
+            "container": null,
+            "name": "fixture_base_decision",
+            "status": "unknown",
+            "winner": null,
+            "definitions": [
+                {
+                    "layer": "game",
+                    "file": "common/decisions/fixture_decisions.txt",
+                    "line": 1,
+                    "read": "unknown"
+                }
+            ]
+        },
+        {
+            "rule": 8,
+            "what": "A decision the mod defines again under the replaced path: open, so both are listed and no winner is given",
+            "database": "common/decisions",
+            "container": null,
+            "name": "fixture_shared_decision",
+            "status": "unknown",
+            "winner": null,
+            "definitions": [
+                {
+                    "layer": "game",
+                    "file": "common/decisions/fixture_decisions.txt",
+                    "line": 4,
+                    "read": "unknown"
+                },
+                {
+                    "layer": "mod",
+                    "file": "common/decisions/fixture_mod_decisions.txt",
+                    "line": 1,
+                    "read": "yes"
+                }
+            ]
+        },
+        {
+            "rule": 8,
+            "what": "A game decision in a subfolder of the replaced path: whether replace_path reaches subfolders is open too",
+            "database": "common/decisions",
+            "container": null,
+            "name": "fixture_sub_decision",
+            "status": "unknown",
+            "winner": null,
+            "definitions": [
+                {
+                    "layer": "game",
+                    "file": "common/decisions/fixture_sub/fixture_sub_decisions.txt",
+                    "line": 1,
+                    "read": "unknown"
+                }
+            ]
+        }
+    ]
+}
