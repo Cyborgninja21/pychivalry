@@ -1,6 +1,6 @@
 # pychivalry: build plan
 
-Status: plan for approval, 2026-11-21. Steps 1, 2 and 3 are built and merged, with the override rules the game's files leave open still unresolved until the spec package carries them. Item 4.1, the check inventory, is written and awaits the owner's sign-off; the rest of step 4 waits for the 1.21 spec. The Progress table says what is open.
+Status: plan for approval, 2026-11-21. Steps 1, 2 and 3 are built and merged, with the override rules the game's files leave open still unresolved until the spec package carries them. Item 4.1, the check inventory, is written and signed off; the rest of step 4 waits for the 1.21 spec. The Progress table says what is open.
 
 This is the "how" for the rebuild. The "what" and the "why" are in [MVP.md](MVP.md): the
 decisions, the scope, the tests each feature needs and the definition of done. Where the two
@@ -23,7 +23,7 @@ disagree, MVP.md is right and this plan is fixed.
 | 1 | Repository skeleton | Two items only (1.6, 1.11) | Built and merged (pull requests #114 and #115). Open, waiting on step 0: 1.6 (the committed spec is the 1.20.0.2 stand-in until the 1.21 format 5 package; compressed or raw still to decide) and 1.11 (the result baselines; the speed baselines are done) |
 | 2 | Parser | No | Built and merged (pull request #116). Item 2.6's public codes are left to item 4.1, which maps the syntax finding identifiers to them |
 | 3 | Workspace index | No for the index; the override rules table comes from step 0 | Built and merged (pull requests #118 and #120). The stand-in rules table `spec/override-rules.json` carries the settled rules only; the rules it lacks (3, 4, 5, 7, 8, 9 and the open parts of 6 and 10 in `docs/overrides.md`) stay unresolved, and the index names no winner for them, until the spec package carries them |
-| 4 | Engine checks and lookup | Yes, from item 4.2 on | Item 4.1 written, awaiting the owner's sign-off (pull request #121): `docs/checks.md`, the check inventory and the code scheme. Items 4.2 to 4.11 are blocked on the 1.21 spec in format 5 |
+| 4 | Engine checks and lookup | Yes, from item 4.2 on | Item 4.1 is done and signed off (pull requests #121 and #122): `docs/checks.md`, the check inventory and the code scheme; its codes are permanent. Items 4.2 to 4.11 are blocked on the 1.21 spec in format 5 |
 | 5 | Command line | Through step 4 | Not started |
 | 6 | Agent server | Through step 4 | Not started |
 | 7 | Language server and extension | Through step 4 | Not started |
@@ -456,8 +456,7 @@ about a name.
   and confirms or changes the information severity of the three that have no catalogue
   message. ck3-tiger and the CWTools rule files are looked at here for rules worth taking,
   each proved against the game before it is adopted. *Needs no spec.*
-  **Written**, awaiting the owner's sign-off: [checks.md](checks.md). The questions it asks
-  are listed at its end and in decisions.md.
+  **Done and signed off** on 2026-11-21: [checks.md](checks.md). Its codes are permanent.
 - 4.2 **The spec reader** and the unknown-name checks. The reader verifies the checksum and the
   format, and exposes the package as typed data. Checks: unknown trigger, effect, scope link,
   list, modifier and on-action; name templates (the `%s` forms) accepted; names in more than
@@ -929,7 +928,6 @@ five test mods.
 | When | Decision |
 | --- | --- |
 | Item 1.6 | The spec package committed compressed or raw. |
-| Item 4.1 | Sign-off on the check inventory and the code scheme. |
 | Item 6.11 | The target for the agent-use run. |
 | Item 7.1 | Only if a harness cannot be reached as designed. |
 | Item 8.1 | Sign-off on the formatting rules. |

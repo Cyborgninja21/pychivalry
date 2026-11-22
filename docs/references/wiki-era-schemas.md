@@ -31,7 +31,7 @@ Counted by build step 4, item 4.1, on 2026-11-21.
 
 Each flag and rule was counted on the 1.21.0.3 base game, one by one, in
 [checks.md](../checks.md#the-pre-20-rules-one-by-one). A rule holds when it applies to at least
-10 base-game records and fires on none (a criterion awaiting the owner's sign-off).
+10 base-game records and fires on none (the owner's criterion, decided on 2026-11-21).
 
 | | Return as advice | Covered by a check with game evidence | Dropped |
 | --- | ---: | ---: | ---: |

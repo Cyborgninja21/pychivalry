@@ -1,11 +1,12 @@
 # The check inventory and its codes
 
-> **Proposed, awaiting the owner's sign-off.** This page is build item 4.1 of
-> [PLAN.md](PLAN.md#step-4-engine-checks-and-lookup). Nothing in it is built beyond what build
-> steps 2 and 3 already report (the parse findings and the index's statuses). No check is built
-> before the owner has signed off the code scheme and the rows; the decisions asked are listed
-> at the end, under [What the owner signs off](#what-the-owner-signs-off). Until then a code on
-> this page may still change; from the sign-off on, codes are permanent.
+> **Signed off by the owner on 2026-11-21** ([decisions 45 to 55](decisions.md#log)). The code
+> scheme, the twelve families and the code names on this page are permanent from that date: a
+> code is never renamed and never reused. A check that is dropped or changed is retired. This
+> page is build item 4.1 of [PLAN.md](PLAN.md#step-4-engine-checks-and-lookup). Nothing in it
+> is built beyond what build steps 2 and 3 already report (the parse findings and the index's
+> statuses); the rest is built from item 4.2 on, when the 1.21 spec package exists. What was
+> decided is listed at the end, under [What the owner signed off](#what-the-owner-signs-off).
 
 Every check pychivalry ships has one row here: its code, its severity, what it finds, the
 evidence that the game raises it (or the word **advice**), the release 2.3.0 check it replaces,
@@ -875,7 +876,8 @@ from its own records, made on game 1.20.0.3.
 
 ## What the owner signs off
 
-Each is also a row in [decisions.md](decisions.md#asked-awaiting-the-owner).
+Signed off on 2026-11-21. The eleven questions as they were asked follow; the answer to each is
+in the table after them and in [decisions.md](decisions.md#log), rows 45 to 55.
 
 1. **The code scheme.** A: `family/name` slugs, the step 2 identifiers kept as their codes
    (proposed). B: numbered codes such as `PYC1001`. Also the twelve families and the code names
@@ -918,3 +920,20 @@ Each is also a row in [decisions.md](decisions.md#asked-awaiting-the-owner).
     presentation data of step 8.
 11. **The two spec requests not in the format 5 plan:** implicit localization keys, and the
     keyword roles of question 10.
+
+### The answers
+
+| # | Decided |
+| --- | --- |
+| 1 | `family/name` codes, the step 2 identifiers kept as they are; the twelve families and every code name on this page. |
+| 2 | Zero exceptions: an old rule returns as advice only when it applies to at least 10 base-game records and fires on none. |
+| 3 | The five severity changes against 2.3.0, as listed. |
+| 4 | The 39 codes are not carried over, and the removed-keyword codes fold into the unknown-name codes. |
+| 5 | `syntax/malformed-arithmetic` stays information until a capture or the cleaned catalogue shows what its candidate message is about. |
+| 6 | `fields/unknown-field` stays a warning on `unknown_X_in_X`. |
+| 7 | The six new evidenced checks, at the severities listed. |
+| 8 | A field a Paradox `.info` file calls required does not count as a required schema field. `structure/event-letter-without-sender` stays advice, at information. |
+| 9 | The 13 provisional advice checks are in the MVP on the terms written: each ships only if item 4.7 shows it holds, and is retired otherwise. |
+| 10 | The keywords come from the spec package, as a table with evidence. No pychivalry-owned keyword file. |
+| 11 | Both are to be requested from the spec work. The request itself is held on the owner's word, with the other requests to that work. |
+
