@@ -1,6 +1,6 @@
 # pychivalry: build plan
 
-Status: plan for approval, 2026-11-21. Steps 1 and 2 are built and merged; step 3 has stopped after item 3.1 on rules that need an in-game test. The Progress table says what is open.
+Status: plan for approval, 2026-11-21. Steps 1 and 2 are built and merged; step 3 is built and in review, with the override rules the game's files leave open still unresolved until the spec package carries them. The Progress table says what is open.
 
 This is the "how" for the rebuild. The "what" and the "why" are in [MVP.md](MVP.md): the
 decisions, the scope, the tests each feature needs and the definition of done. Where the two
@@ -22,7 +22,7 @@ disagree, MVP.md is right and this plan is fixed.
 | 0 | Spec work, in `pdx-parser-re` | It produces it | In progress, another agent |
 | 1 | Repository skeleton | Two items only (1.6, 1.11) | Built and merged (pull requests #114 and #115). Open, waiting on step 0: 1.6 (the committed spec is the 1.20.0.2 stand-in until the 1.21 format 5 package; compressed or raw still to decide) and 1.11 (the result baselines; the speed baselines are done) |
 | 2 | Parser | No | Built and merged (pull request #116). Item 2.6's public codes are left to item 4.1, which maps the syntax finding identifiers to them |
-| 3 | Workspace index | No for the index; the override rules table comes from step 0 | Item 3.1 is done and merged (pull request #118): `docs/overrides.md` states what the game's files settle and what they leave open. Items 3.2 to 3.10 are not started and wait on the owner's go |
+| 3 | Workspace index | No for the index; the override rules table comes from step 0 | Built, in review (pull request #PRNUM). Item 3.1 merged in pull request #118; items 3.1a and 3.2 to 3.10 are built. The stand-in rules table `spec/override-rules.json` carries the settled rules only; the open rules (3, 4, 5, 7, 8, 9 and the open parts of 6 and 10 in `docs/overrides.md`) stay unresolved, and the index names no winner for them, until the spec package carries them |
 | 4 | Engine checks and lookup | Yes, from item 4.2 on | Not started |
 | 5 | Command line | Through step 4 | Not started |
 | 6 | Agent server | Through step 4 | Not started |
@@ -359,7 +359,9 @@ replaced paths, no DLC precedence. All of this step beyond the basics is new wor
   the folders it applies to, what wins, its evidence, and the platforms it holds on. The table
   comes in the spec package from step 0, which reads the open rules out of the Windows and
   Linux executables. Until it arrives, a stand-in table under `spec/` carries only the rules
-  overrides.md marks settled. The core reads the table; it holds no rule of its own.
+  overrides.md marks settled. The core reads the table; it holds no rule of its own. **Built:**
+  `spec/override-rules.json` and its schema `spec/override-rules.schema.json`
+  ([spec/README.md](../spec/README.md#the-override-rules-table)), checked by `task spec:check`.
 - 3.2 A fixture mod and a fixture game stub that exercise every rule in `overrides.md`. For a
   settled rule the fixture states the winner. For an open rule it states both definitions and
   that no winner is given.
@@ -416,6 +418,22 @@ are read in, whether a key defined again replaces the whole record, which of the
 overrides.md; by the owner's decision of 2026-11-21 they are not run for now, and the open rules
 are read out of the executable by step 0 instead (item 3.1a). The base game spans three folders of the install: `jomini/` and `clausewitz/`
 beside `game/` hold script and localization too.
+
+**Found** (items 3.1a to 3.10, [records/game/index.json](../records/game/index.json)): on game
+1.21.0.3 the index reads 17,272 files of 219 folders the spec lists, in four layers (88 files of
+`clausewitz/`, 230 of `jomini/`, 16,910 of `game/`, 44 in 23 DLC packs), and holds 3,344,507
+definitions (3,100,873 of them localization keys in 11 languages) and 9,017,490 uses, 5,075,832
+of them of a defined name. 13,007 names are defined more than once: 11,662 are province-terrain
+statements, 33 add up (on-actions, define groups, container keys), 3 are the character ids the
+game itself calls an error, and 1,309 have no winner known: 638 under rule 6's open part (the
+history of provinces and titles), 440 under rule 5, 231 under rule 3. The build takes 13.5
+seconds and peaks at 1.30 GiB; the cache is 250 MiB and reloads in 0.9 seconds, answering
+exactly as the fresh index. Gaps the spec work can close: 14 folders beside the spec's hold
+1.21 files the 1.20 spec does not describe (`common/districts`, `common/trade` and others);
+eight folders of the 1.20 list hold no file the index reads on 1.21; the three history folders whose records are named by their
+file (`history/cultures`, `history/situations`, `history/struggles`) have no keyed definitions;
+a landed title's nested titles are not definitions, because nothing says its nested keys are
+titles; and `namespace` in an event file is a top-level value with no row, defined 631 times.
 
 ---
 

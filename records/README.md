@@ -14,6 +14,7 @@ enforces and this page is fixed.
 | File | Written by |
 | --- | --- |
 | `game/parse.json` | `task game:parse` |
+| `game/index.json` | `task game:index` |
 | `game/check.json` | `task game:check` |
 | `game/mods.json` | `task game:mods` |
 | `game/bench.json` | `task game:bench` |
@@ -30,7 +31,7 @@ Every record is one JSON object, four-space indented, with a final newline.
 | Field | What it states |
 | --- | --- |
 | `record_format` | The version of this format: `1`. |
-| `suite` | Which suite: `game:parse`, `game:check`, `game:mods`, `game:bench` or `baseline:speed`. |
+| `suite` | Which suite: `game:parse`, `game:index`, `game:check`, `game:mods`, `game:bench` or `baseline:speed`. |
 | `command` | The command that made it, with `<game dir>`, `<corpus dir>` and `<legacy build>` for local paths. |
 | `made_at` | When it was made, ISO 8601 in UTC. |
 | `tool` | The build that made it: `name` (`pychivalry`), `version`, the git `commit`, and `dirty`, true when tracked files outside `records/` differed from that commit. A 2.3.0 baseline names release 2.3.0 and the commit of the tag `v2.3.0`. |
@@ -77,6 +78,10 @@ For every `*.json` under `records/` except the `*.schema.json` files:
 6. A parse record's totals agree with its folders, its error count with its error list, and
    `passed` with its failures; a passing parse record holds only errors classified
    `game-defect`.
+7. An index record was made on the committed rules table (`results.rules.sha256` is the core's
+   digest of `spec/override-rules.json`), so a changed table forces the suite to be re-run; its
+   base-game totals agree with its layers; `passed` agrees with its failures; and its mods are
+   the corpus slugs it names.
 
 ## Speed records (`baseline:speed`)
 
@@ -132,3 +137,29 @@ The 2.3.0 baselines are made with the spec 2.3.0 can read, format 4. They pass c
 because the committed stand-in is that same package. When the format 5 package replaces it, no
 2.3.0 run can carry its checksum, so check 2 will fail them by design; how baselines are
 checked from then on is decided with that change (docs/PLAN.md, item 1.6).
+
+## Index records (`game:index`)
+
+`task game:index` (build step 3) indexes the whole base game with the committed spec and the
+override rules table, saves the index to a cache in a temporary folder, reloads it, and indexes
+each corpus mod over the base game. The fresh build, the reload and each mod run one at a time,
+each in a fresh process, so the time and peak memory each reports are its own. Its `notes` are
+required, and state the load average before the run. `results`:
+
+| Field | What it states |
+| --- | --- |
+| `passed`, `failures` | Whether the run passed: the reloaded index answers as the fresh one (equal digests) and came from the cache, and every mod indexed |
+| `platform`, `rules.sha256` | The platform whose rules applied, and the digest of the rules table used |
+| `base_game.layers` | Per layer (`clausewitz`, `jomini`, `game`, `dlc`): files, definitions, uses, and the uses of a name something in the index defines |
+| `base_game.files`, `lines`, `definitions`, `uses`, `uses_of_defined_names`, `names` | Totals over the layers; `names` counts every distinct string the index holds |
+| `base_game.definitions_by_form` | Definitions by how they are written: `record`, `value`, `prefixed`, `constant`, `container`, `entry`, `key` |
+| `base_game.folders` | Per folder of the spec that holds a file: its files, definitions, definitions by form, and the 1.20 spec's own count of its files and records |
+| `base_game.spec_folders_without_files`, `not_described`, `not_read` | The spec's folders that hold no file read; the `.txt` and `.yml` files in folders the spec does not describe, by folder (`beside_spec_folders` when its first folder also holds listed ones); every other file, by extension |
+| `base_game.defined_more_than_once` | The names of a database defined more than once: their count, how each resolves (`all`, `statements`, `clash`, `winner`, `single`, `not-read`, `unknown`), the unknown ones by the open rule of docs/overrides.md that leaves each open (a name can count under more than one) and by database |
+| `base_game.time_ms`, `peak_rss_kib`, `heap_used_after_build_mib` | Listing, building, saving and reporting times; the build process's peak resident memory, read right after the build and the save; its heap in use then |
+| `base_game.cache` | The cache file's bytes, the reload's time and peak memory, and whether the reloaded index answers as the fresh one |
+| `mods` | Per corpus mod indexed over the base game: its files, definitions, uses, `replace_path` values, the game files it replaces or hides or makes uncertain, its own files whose read status is unknown, its files not described or not read, the names defined more than once that it takes part in, its times and peak memory |
+
+A definition is a top-level key of a file in a folder the spec lists, a key whose text is a name,
+a whole number or an `@constant`; a use is a word written anywhere else, or a `$name$` in a
+localization entry ([packages/core/src/index/extract.ts](../packages/core/src/index/extract.ts)).
