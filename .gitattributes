@@ -5,6 +5,12 @@
 
 # Binary data: never converted.
 *.gz binary
+
+# The spec package, committed as pdx-parser-re built it: gzipped JSON whose checksums are of
+# the uncompressed bytes, and its JSON Schema, byte for byte (spec/README.md). No platform may
+# rewrite them.
+spec/**/*.json.gz binary
+spec/schema.format5.json -text
 *.png binary
 *.dds binary
 *.tga binary

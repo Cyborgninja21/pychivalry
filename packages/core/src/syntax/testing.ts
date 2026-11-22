@@ -48,16 +48,26 @@ function itemSummary(item: Item | Value): string {
     }
 }
 
-/** The committed spec package, parsed. */
+let specPackage: unknown;
+
+/**
+ * The committed spec package file, parsed: `spec/ck3-spec-<version>.json.gz`, not one of its
+ * companions (`ck3-spec-<version>.<part>.json.gz`).
+ */
 export function committedSpecPackage(): unknown {
-    const dir = path.join(repoRoot, 'spec');
-    const file = readdirSync(dir).find((name) => /^ck3-spec-.*\.json(\.gz)?$/.test(name));
-    if (file === undefined) {
-        throw new Error('no spec package under spec/');
+    if (specPackage === undefined) {
+        const dir = path.join(repoRoot, 'spec');
+        const file = readdirSync(dir).find((name) =>
+            /^ck3-spec-[0-9]+(?:\.[0-9]+)+\.json\.gz$/.test(name),
+        );
+        if (file === undefined) {
+            throw new Error('no spec package under spec/');
+        }
+        specPackage = JSON.parse(
+            gunzipSync(readFileSync(path.join(dir, file))).toString('utf8'),
+        ) as unknown;
     }
-    const bytes = readFileSync(path.join(dir, file));
-    const raw = file.endsWith('.gz') ? gunzipSync(bytes) : bytes;
-    return JSON.parse(raw.toString('utf8')) as unknown;
+    return specPackage;
 }
 
 let catalogue: MessageCatalogue | undefined;

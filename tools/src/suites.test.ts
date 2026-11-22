@@ -5,7 +5,7 @@ import { corpusRow, renderCorpusManifest } from './corpus.js';
 import { checkRecord, compileRecordSchema, type Expected } from './records-check.js';
 import { committedRules } from './rules-table.js';
 import { checkSpec } from './spec.js';
-import { gameSuiteRecord, GAME_SUITES, type SuiteOptions } from './suites.js';
+import { gameSuiteRecord, GAME_SUITES, specGameNote, type SuiteOptions } from './suites.js';
 import { fixtureGame, fixtureMod, tempDir, writeTree } from './testing.js';
 import { CommandError, repoRoot, sha256 } from './util.js';
 
@@ -95,5 +95,16 @@ test('a corpus suite on a corpus that is not the pinned one fails its pass condi
             err instanceof CommandError &&
             err.exitCode === 1 &&
             /not the pinned one/.test(err.message),
+    );
+});
+
+test("the index record's note says whether the spec is for the game build installed", () => {
+    assert.match(
+        specGameNote('1.21.0.3', '1.21.0.3'),
+        /^The spec is for game 1\.21\.0\.3, the build installed\./,
+    );
+    assert.match(
+        specGameNote('1.21.0.3', '1.22.0.1'),
+        /^The spec is for game 1\.21\.0\.3 and the game is 1\.22\.0\.1: a folder the newer game adds/,
     );
 });

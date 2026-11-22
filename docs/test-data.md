@@ -12,7 +12,8 @@ uses it. A step that adds test data adds it here.
 | Captured game logs | `fixtures/logs/` (step 11) | Yes | Game-log analysis | Yes |
 | The five real mods | Outside the repository, in the folder `CK3_CORPUS` names; pinned by [`records/corpus/MANIFEST.tsv`](../records/corpus/README.md) | The manifest only | `task game:index`, `task game:mods`, `task game:bench`, the 2.3.0 baselines | No |
 | The base game | The local install, in the folder `CK3_GAME_PATH` names | Never | `task game:parse`, `task game:index`, `task game:check` and the suites above | No |
-| Records | [`records/`](../records/README.md) | Yes | Public CI checks each one against the committed spec and corpus | The check, yes |
+| Records | [`records/`](../records/README.md) | Yes | Public CI checks each one against the committed spec and corpus (a 2.3.0 baseline against the committed format 4 copy) | The check, yes |
+| The spec package | [`spec/`](../spec/README.md): the 1.21.0.3 package in format 5, its companions, and the format 4 copy for 2.3.0 | Yes, gzipped | Every reader of the spec; the parse and index suites; the 2.3.0 baselines (the format 4 copy) | Its check, yes; the tests read the package file |
 | Release 2.3.0's tests and records | [`legacy/`](../legacy/) | Yes, unchanged | Carried over by the step that owns each behaviour | No |
 
 ## The rules
@@ -86,10 +87,19 @@ of the game's file manifest in each record. `task game:parse` reads 4,854 script
 `records/game/parse.json`, and every parse error in it is classified in
 `tools/data/parse-classifications.json` ([encoding.md](encoding.md)).
 
-`task game:index` indexes the whole base game (17,272 files of 1.21.0.3 in the folders the spec
-lists, with the install's `jomini/` and `clausewitz/` folders and the DLC packs), caches and
-reloads the index, and indexes each of the five mods over it; its record is
-`records/game/index.json` ([records/README.md](../records/README.md#index-records-gameindex)).
+`task game:index` indexes the whole base game (17,302 files of 1.21.0.3 in the 236 folders of
+the spec's list that hold files, with the install's `jomini/` and `clausewitz/` folders and the
+DLC packs), caches and reloads the index, and indexes each of the five mods over it; its record
+is `records/game/index.json` ([records/README.md](../records/README.md#index-records-gameindex)).
+
+## Release 2.3.0's baselines
+
+`records/baseline-2.3.0/` holds what release 2.3.0 does on game 1.21.0.3 and the five mods,
+run from a build of `legacy/` outside the repository on the committed format 4 copy of the
+1.21.0.3 spec: its speed (`speed-*.json`, `task baseline:speed`) and its results
+(`results-*.json`, `task baseline:results`): the base game's parse and check counts with every
+error, and each mod's findings by code and severity with every error. They are the behaviour the
+rebuild is measured against ([records/README.md](../records/README.md#baselines)).
 
 The game is never launched by a test on the development machine; loading content in the
 running game happens only on the analysis machine the plan names, on the owner's word.
@@ -107,5 +117,3 @@ files, the classification rules for real-mod errors, and the plug-in catalogue.
 - **A real game error log.** Release 2.3.0's log fixture is hand-written and its format is
   unverified. Build step 11 starts by capturing real ones.
 - **The planted-defect mod and the content requests.** Steps 6 and 9.
-- **Result baselines of 2.3.0.** They need the 1.21 spec; the speed baselines are in
-  `records/baseline-2.3.0/`.

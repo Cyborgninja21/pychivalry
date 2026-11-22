@@ -116,8 +116,14 @@ const INDEX_NOTES = [
     'A definition is a top-level key of a file in a listed folder, recorded with how it is written (record, value, prefixed, constant, container, entry, localization key); a use is a word written anywhere else (records/README.md, Index records). uses counts every word; uses_of_defined_names those whose name something in the index defines, the references of item 3.4.',
     'Names defined more than once are resolved with the committed stand-in rules table, which carries only the rules docs/overrides.md marks settled. by_status counts each name of each database once; an unknown name (defined more than once, winner not known) is counted under every open rule of docs/overrides.md that leaves it open, so unknown_by_rule may sum to more than the unknown names.',
     "The fresh build, the reload from the cache and each mod over the base game run one at a time, each in a fresh process (tools/src/index-worker.ts), with Node's default heap. peak_rss_kib is that process's peak resident memory, read right after the build, the reload or the mod; times are in milliseconds on this machine. The cache is written to a temporary folder and deleted after the run; its key is the spec checksum, the rules digest, the platform, the game build and the manifest of the files read.",
-    'The spec is for game 1.20.0.2 and the game is 1.21.0.3: a folder the 1.21 game adds is not described by the spec (not_described with beside_spec_folders true), and spec_folders_without_files lists the 1.20 folders that hold no file in this install.',
 ];
+
+/** What the index record says of the spec's game version against the installed build. */
+export function specGameNote(specVersion: string, gameBuild: string): string {
+    return specVersion === gameBuild
+        ? `The spec is for game ${specVersion}, the build installed. not_described lists the folders the spec does not list that hold .txt or .yml files (beside_spec_folders true when a folder of the spec shares their first folder), and spec_folders_without_files the spec's folders that hold no file read in this install.`
+        : `The spec is for game ${specVersion} and the game is ${gameBuild}: a folder the newer game adds is not described by the spec (not_described with beside_spec_folders true), and spec_folders_without_files lists the spec's folders that hold no file read in this install.`;
+}
 
 const PARSE_NOTES = [
     'The folders and extensions read, with the evidence that each holds script and the number of files expected, are listed in results.folders; text files not read, and why, in results.not_read (docs/encoding.md, "What the parser reads").',
@@ -171,7 +177,11 @@ export function gameSuiteRecord(
             platform: currentPlatform() ?? process.platform,
         });
         const load = `The load average over one minute was ${loadBefore.toFixed(2)} on ${String(context.machine.logical_cpus)} logical CPUs just before the run: the times are this machine's, under that load.`;
-        return { ...context, notes: [...INDEX_NOTES, load], results };
+        return {
+            ...context,
+            notes: [...INDEX_NOTES, specGameNote(context.spec.version, context.game.build), load],
+            results,
+        };
     }
     return {
         ...context,

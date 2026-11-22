@@ -4,7 +4,7 @@
  * package's public surface.
  */
 
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gunzipSync } from 'node:zlib';
@@ -21,16 +21,32 @@ export function repoPath(relative: string): string {
     return path.join(REPO, ...relative.split('/'));
 }
 
+let specPackage: unknown;
+
+/**
+ * The committed spec package file, parsed: `spec/ck3-spec-<version>.json.gz`, not one of its
+ * companions (`ck3-spec-<version>.<part>.json.gz`).
+ */
+export function committedSpecPackage(): unknown {
+    if (specPackage === undefined) {
+        const file = readdirSync(repoPath('spec')).find((name) =>
+            /^ck3-spec-[0-9]+(?:\.[0-9]+)+\.json\.gz$/.test(name),
+        );
+        if (file === undefined) {
+            throw new Error('no spec package under spec/');
+        }
+        specPackage = JSON.parse(
+            gunzipSync(readFileSync(repoPath(`spec/${file}`))).toString('utf8'),
+        ) as unknown;
+    }
+    return specPackage;
+}
+
 let folders: FolderTable | undefined;
 
 /** The folder list of the committed spec package. */
 export function specFolders(): FolderTable {
-    if (folders === undefined) {
-        const file = repoPath('spec/ck3-spec-1.20.0.2.json.gz');
-        folders = new FolderTable(
-            foldersFromSpec(JSON.parse(gunzipSync(readFileSync(file)).toString('utf8'))),
-        );
-    }
+    folders ??= new FolderTable(foldersFromSpec(committedSpecPackage()));
     return folders;
 }
 

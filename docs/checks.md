@@ -46,8 +46,8 @@ Everything else is pychivalry's own advice and is information (semantic advice) 
 
 | Kind | What it is |
 | --- | --- |
-| Catalogue | A message of the spec package's error catalogue, named by its id, for example `unknown_trigger_X` ("Unknown trigger '%s'"). The committed catalogue is the 1.20.0.2 stand-in; every catalogue message this page cites was also found, word for word, in the 1.21.0.3 Linux executable ([below](#where-the-executable-keeps-each-message)). |
-| Executable | A message of the 1.21.0.3 executable that the 1.20.0.2 catalogue does not hold. The 1.21 catalogue must carry it before the check ships. |
+| Catalogue | A message of the spec package's error catalogue, named by its id, for example `unknown_trigger_X` ("Unknown trigger '%s'"). This page was written against the 1.20.0.2 stand-in; the committed catalogue is now game 1.21.0.3's (2,023 messages), and every catalogue id this page cites is in it with the same text. Every catalogue message this page cites was also found, word for word, in the 1.21.0.3 Linux executable ([below](#where-the-executable-keeps-each-message)). |
+| Executable | A message of the 1.21.0.3 executable that the 1.20.0.2 catalogue does not hold. The 1.21 catalogue must carry it before the check ships; the committed 1.21.0.3 catalogue does not carry this page's one such message yet. |
 | Required field | A field the spec package marks required, with the game's message for it. |
 | Game output | The game's own output: its documentation dumps or its error log. |
 | Reproduced | An error reproduced in the running game, with its log line. None yet: in-game runs are build step 11. |
@@ -65,9 +65,11 @@ findings are already tested by the `parse-*` mods and `encoding-windows-1252`.
 **Item.** The build item of [PLAN.md](PLAN.md#step-4-engine-checks-and-lookup) that builds
 the check; the rows are grouped by it.
 
-**Needs from the spec.** What the check needs that the committed stand-in (format 4, game
-1.20.0.2) does not carry, in these short names, all of them parts of the 1.21 package in format
-5 ([MVP.md](MVP.md#what-the-121-spec-adds)) unless marked "not in the plan":
+**Needs from the spec.** What the check needs that the stand-in this page was written against
+(format 4, game 1.20.0.2) does not carry, in these short names, all of them parts of the 1.21
+package in format 5 ([MVP.md](MVP.md#what-the-121-spec-adds)) unless marked "not in the plan".
+The 1.21.0.3 package is now committed; whether each part meets its check's need is item 4.2's
+to read:
 
 | Short name | Part of the 1.21 spec |
 | --- | --- |

@@ -2,11 +2,11 @@
     "record_format": 1,
     "suite": "game:parse",
     "command": "task game:parse",
-    "made_at": "2026-11-21T23:09:16.252Z",
+    "made_at": "2026-11-22T07:19:49.381Z",
     "tool": {
         "name": "pychivalry",
         "version": "0.0.0",
-        "commit": "ebe872a1a97b840889b693d38d242276acadeb87",
+        "commit": "8f0d24cc499111c38abb4f7ed7168cd04e61cf4f",
         "dirty": false
     },
     "machine": {
@@ -23,9 +23,9 @@
         "content_hashed_files": 17388
     },
     "spec": {
-        "version": "1.20.0.2",
-        "sha256": "a9959bf9d650fe793ffd3ee60eb6589b8cb6eaaaae778ce84b58fdc535f2eeb6",
-        "package_format": 4
+        "version": "1.21.0.3",
+        "sha256": "4a878a3a1537ef239b725615c9ef3450ef05cc5968024c7e01fbcc67d4bf6baf",
+        "package_format": 5
     },
     "corpus": null,
     "notes": [
@@ -39,7 +39,7 @@
         "failures": [],
         "files": 4854,
         "trees": 4854,
-        "parse_ms": 5342,
+        "parse_ms": 4304,
         "folders": [
             {
                 "folder": "common",
@@ -50,8 +50,8 @@
                 "bom": 2663,
                 "not_utf8": 0,
                 "errors": 1,
-                "parse_ms": 2191,
-                "why": "Database records; release 2.3.0 read it; the spec lists 183 folders under it.",
+                "parse_ms": 1652,
+                "why": "Database records; release 2.3.0 read it; the spec lists 196 folders under it.",
                 "excluded": []
             },
             {
@@ -63,7 +63,7 @@
                 "bom": 610,
                 "not_utf8": 0,
                 "errors": 1,
-                "parse_ms": 1041,
+                "parse_ms": 892,
                 "why": "Events; release 2.3.0 read it; in the spec.",
                 "excluded": []
             },
@@ -76,7 +76,7 @@
                 "bom": 613,
                 "not_utf8": 25,
                 "errors": 1,
-                "parse_ms": 1040,
+                "parse_ms": 892,
                 "why": "History; release 2.3.0 read it; the spec lists 10 folders under it.",
                 "excluded": []
             },
@@ -89,8 +89,8 @@
                 "bom": 237,
                 "not_utf8": 0,
                 "errors": 0,
-                "parse_ms": 1052,
-                "why": "The spec lists 26 folders under it (coats of arms, court scenes, map styles, portraits and more); paths.settings points into it.",
+                "parse_ms": 853,
+                "why": "The spec lists 30 folders under it (coats of arms, court scenes, map styles, portraits and more); paths.settings points into it.",
                 "excluded": [
                     {
                         "file": "gfx/models/buildings/naming.txt",
@@ -107,7 +107,7 @@
                 "bom": 4,
                 "not_utf8": 1,
                 "errors": 0,
-                "parse_ms": 16,
+                "parse_ms": 11,
                 "why": "In the spec (map_data/geographical_regions) and in the game's checksum manifest.",
                 "excluded": []
             },
@@ -133,7 +133,7 @@
                 "bom": 0,
                 "not_utf8": 0,
                 "errors": 0,
-                "parse_ms": 0,
+                "parse_ms": 2,
                 "why": "In the spec; paths.settings names sound/map/ambience.",
                 "excluded": [
                     {
@@ -164,7 +164,7 @@
                 "bom": 22,
                 "not_utf8": 0,
                 "errors": 0,
-                "parse_ms": 3,
+                "parse_ms": 0,
                 "why": "In the game's checksum manifest: data-binding macros, in script syntax.",
                 "excluded": []
             },

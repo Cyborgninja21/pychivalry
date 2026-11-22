@@ -47,8 +47,8 @@ Everything goes through [Taskfile.yml](Taskfile.yml); `task --list` shows it all
 | `task test` | Every package's tests: Node's built-in test runner on the compiled output |
 | `task lint` | ESLint, type-aware, warnings as errors |
 | `task format:check` / `task format` | Prettier, check only / write |
-| `task spec:check` | The committed spec package: checksum of the uncompressed bytes, supported format |
-| `task records:check` | Every committed record: valid format, made on the committed spec and corpus |
+| `task spec:check` | The committed spec package: the checksums of the package file and its companions (uncompressed), format 5, the JSON Schema, the format 4 copy, the rules table |
+| `task records:check` | Every committed record: valid format, made on the committed spec (a 2.3.0 baseline: on the format 4 copy) and corpus |
 | `task wiki:check` | The wiki builds from `docs/`: every published document exists and every link resolves |
 | `task wiki:build` | The wiki pages, built into `.wiki-build/` to look at |
 | `task wiki:publish` | Publishes the wiki. Public the moment it runs: only on the owner's word ([docs/wiki/README.md](docs/wiki/README.md)) |
@@ -61,7 +61,7 @@ Everything goes through [Taskfile.yml](Taskfile.yml); `task --list` shows it all
 | `packages/cli`, `packages/mcp`, `packages/lsp` | Thin shells over the core: command line, agent server, language server |
 | `packages/vscode` | The extension: starts the servers, registers the agent server. No CK3 logic. |
 | `tools` | The scripts behind the local tasks: spec and record checks, the game-file suites, the corpus manifest, the 2.3.0 baselines |
-| `spec` | The committed spec package ([spec/README.md](spec/README.md)) |
+| `spec` | The committed spec package, its companions and schema, the format 4 copy for 2.3.0 in `spec/legacy/`, the override rules table ([spec/README.md](spec/README.md)) |
 | `records` | Committed results of the game-file suites ([records/README.md](records/README.md)) |
 | `fixtures` | Hand-written test data in three parts: `mods/`, `game/`, `defects/` ([fixtures/README.md](fixtures/README.md)) |
 | `docs` | Every document ([docs/README.md](docs/README.md)): MVP and plan, the decision log, references, test data, the user guide, the wiki source |
@@ -106,7 +106,7 @@ record under `records/`, which is committed; CI checks the record.
 | `task game:mods` | game, corpus | `records/game/mods.json` |
 | `task game:bench` | game, corpus | `records/game/bench.json` |
 | `task corpus:manifest` | corpus | `records/corpus/MANIFEST.tsv` (a deliberate refresh only) |
-| `task baseline:prepare`, `task baseline:speed` | game, corpus, `LEGACY_BUILD` | `records/baseline-2.3.0/` |
+| `task baseline:prepare`, `task baseline:speed`, `task baseline:results` | game, corpus, `LEGACY_BUILD` | `records/baseline-2.3.0/` |
 
 A suite exits 0 when it passed, 1 when a pass condition failed (a corpus mod that is not the
 pinned copy counts), and 2 on bad usage. A record made on another spec than the committed one

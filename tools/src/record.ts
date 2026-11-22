@@ -11,7 +11,13 @@ import { checkSpec } from './spec.js';
 import { CommandError, EXIT, isObject, readJson } from './util.js';
 
 export type Suite =
-    'game:parse' | 'game:index' | 'game:check' | 'game:mods' | 'game:bench' | 'baseline:speed';
+    | 'game:parse'
+    | 'game:index'
+    | 'game:check'
+    | 'game:mods'
+    | 'game:bench'
+    | 'baseline:speed'
+    | 'baseline:results';
 
 export interface ToolInfo {
     name: 'pychivalry';

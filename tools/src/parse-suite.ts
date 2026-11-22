@@ -45,7 +45,7 @@ export const BASE_GAME_FOLDERS: readonly SuiteFolder[] = [
         folder: 'common',
         extension: '.txt',
         expected: 3035,
-        why: 'Database records; release 2.3.0 read it; the spec lists 183 folders under it.',
+        why: 'Database records; release 2.3.0 read it; the spec lists 196 folders under it.',
     },
     {
         folder: 'events',
@@ -63,7 +63,7 @@ export const BASE_GAME_FOLDERS: readonly SuiteFolder[] = [
         folder: 'gfx',
         extension: '.txt',
         expected: 271,
-        why: 'The spec lists 26 folders under it (coats of arms, court scenes, map styles, portraits and more); paths.settings points into it.',
+        why: 'The spec lists 30 folders under it (coats of arms, court scenes, map styles, portraits and more); paths.settings points into it.',
         excluded: [
             {
                 file: 'gfx/models/buildings/naming.txt',

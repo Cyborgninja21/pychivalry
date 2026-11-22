@@ -91,7 +91,29 @@ test('the catalogue is read from a package and ignores what is not an entry', ()
     assert.deepEqual([...catalogue], [['a', 'A']]);
     assert.equal(catalogueFromSpec(null).size, 0);
     assert.equal(catalogueFromSpec({ errors: 'no' }).size, 0);
-    assert.ok(committedCatalogue().size > 1000);
+});
+
+test('a format 5 catalogue entry is read by its id and text; the keys format 5 adds are not used', () => {
+    const catalogue = catalogueFromSpec({
+        package_format: 5,
+        errors: [
+            {
+                id: 'expected_after_arguments',
+                category: 'expected_brace_close',
+                text: 'Expected } after arguments',
+                since: '<=1.19.0.6',
+                note: '',
+                script_facing: 'unknown',
+                reason: 'no rule matched',
+                subject: 'unknown',
+                subject_reason: 'no rule matched',
+            },
+        ],
+    });
+    assert.deepEqual([...catalogue], [['expected_after_arguments', 'Expected } after arguments']]);
+    const spec = committedSpecPackage() as { package_format: number };
+    assert.equal(spec.package_format, 5);
+    assert.equal(committedCatalogue().size, 2023);
 });
 
 test('every finding is in the structured shape: id, severity, offsets, range, args, evidence', () => {

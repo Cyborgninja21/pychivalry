@@ -12,9 +12,11 @@ pychivalry is being rebuilt from the ground up in TypeScript. **Nothing usable i
 
 - What is being built, and why: [docs/MVP.md](docs/MVP.md).
 - How, step by step, and how far it has got: [docs/PLAN.md](docs/PLAN.md) (the Progress table).
-- Build step 1, the repository skeleton, is in place: the workspace, `task ci`, public CI on
-  Linux and Windows, the spec package and its check, the record format, the pinned test mods,
-  the 2.3.0 speed baselines, and the documents every later step fills.
+- Build step 1, the repository skeleton, is complete: the workspace, `task ci`, public CI on
+  Linux and Windows, the spec package for game 1.21.0.3 and its check, the record format, the
+  pinned test mods, the 2.3.0 speed and result baselines, and the documents every later step
+  fills. The parser (step 2) and the workspace index (step 3) are built; the checks of step 4
+  come next.
 - Every document, and which step writes it: [docs/README.md](docs/README.md). The sources
   pychivalry draws on: [docs/references/](docs/references/README.md). What the tests run on:
   [docs/test-data.md](docs/test-data.md). The user guide so far:
@@ -45,7 +47,7 @@ packages/mcp      agent server
 packages/lsp      language server
 packages/vscode   the extension
 tools/            the scripts behind the local tasks
-spec/             the committed spec package, its checksum and schema
+spec/             the committed spec package, its companions, checksums and schema
 records/          committed results of the suites that need game files
 fixtures/         hand-written test mods, game stubs and the planted-defect mod
 docs/             MVP and plan, decision log, references, test data, user guide, wiki source

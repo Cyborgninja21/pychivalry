@@ -218,8 +218,8 @@ test('the folder list is read from a spec package, with its record schemas', () 
 
 test('the committed spec lists the folders the base game holds records in', () => {
     const folders = specFolders();
-    assert.equal(folders.folders.length, 227);
+    assert.equal(folders.folders.length, 244);
     assert.ok(folders.get('events') !== undefined);
     assert.ok(folders.get('localization') !== undefined);
-    assert.equal(folders.folders.filter((f) => f.schema).length, 185);
+    assert.equal(folders.folders.filter((f) => f.schema).length, 198);
 });
