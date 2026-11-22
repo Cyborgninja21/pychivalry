@@ -1,6 +1,6 @@
 # pychivalry: build plan
 
-Status: plan for approval, 2026-11-21. Steps 1 and 2 are built and merged; step 3 is built and in review, with the override rules the game's files leave open still unresolved until the spec package carries them. The Progress table says what is open.
+Status: plan for approval, 2026-11-21. Steps 1, 2 and 3 are built and merged, with the override rules the game's files leave open still unresolved until the spec package carries them. Item 4.1, the check inventory, is written and awaits the owner's sign-off; the rest of step 4 waits for the 1.21 spec. The Progress table says what is open.
 
 This is the "how" for the rebuild. The "what" and the "why" are in [MVP.md](MVP.md): the
 decisions, the scope, the tests each feature needs and the definition of done. Where the two
@@ -22,8 +22,8 @@ disagree, MVP.md is right and this plan is fixed.
 | 0 | Spec work, in `pdx-parser-re` | It produces it | In progress, another agent |
 | 1 | Repository skeleton | Two items only (1.6, 1.11) | Built and merged (pull requests #114 and #115). Open, waiting on step 0: 1.6 (the committed spec is the 1.20.0.2 stand-in until the 1.21 format 5 package; compressed or raw still to decide) and 1.11 (the result baselines; the speed baselines are done) |
 | 2 | Parser | No | Built and merged (pull request #116). Item 2.6's public codes are left to item 4.1, which maps the syntax finding identifiers to them |
-| 3 | Workspace index | No for the index; the override rules table comes from step 0 | Built, in review (pull request #120). Item 3.1 merged in pull request #118; items 3.1a and 3.2 to 3.10 are built. The stand-in rules table `spec/override-rules.json` carries the settled rules only; the open rules (3, 4, 5, 7, 8, 9 and the open parts of 6 and 10 in `docs/overrides.md`) stay unresolved, and the index names no winner for them, until the spec package carries them |
-| 4 | Engine checks and lookup | Yes, from item 4.2 on | Not started |
+| 3 | Workspace index | No for the index; the override rules table comes from step 0 | Built and merged (pull requests #118 and #120). The stand-in rules table `spec/override-rules.json` carries the settled rules only; the rules it lacks (3, 4, 5, 7, 8, 9 and the open parts of 6 and 10 in `docs/overrides.md`) stay unresolved, and the index names no winner for them, until the spec package carries them |
+| 4 | Engine checks and lookup | Yes, from item 4.2 on | Item 4.1 written, awaiting the owner's sign-off (pull request #121): `docs/checks.md`, the check inventory and the code scheme. Items 4.2 to 4.11 are blocked on the 1.21 spec in format 5 |
 | 5 | Command line | Through step 4 | Not started |
 | 6 | Agent server | Through step 4 | Not started |
 | 7 | Language server and extension | Through step 4 | Not started |
@@ -456,6 +456,8 @@ about a name.
   and confirms or changes the information severity of the three that have no catalogue
   message. ck3-tiger and the CWTools rule files are looked at here for rules worth taking,
   each proved against the game before it is adopted. *Needs no spec.*
+  **Written**, awaiting the owner's sign-off: [checks.md](checks.md). The questions it asks
+  are listed at its end and in decisions.md.
 - 4.2 **The spec reader** and the unknown-name checks. The reader verifies the checksum and the
   format, and exposes the package as typed data. Checks: unknown trigger, effect, scope link,
   list, modifier and on-action; name templates (the `%s` forms) accepted; names in more than
@@ -503,6 +505,18 @@ real-mod records.
 
 **Not yet known.** How many of the old advice rules still hold on 1.21. Whether the measured
 value types are clean enough to raise a finding, or only good enough for completion.
+
+**Found** (item 4.1, [checks.md](checks.md)): 78 checks, 11 of them the parse findings step 2
+built; 21 errors, 9 warnings, 45 information and 3 hints; 31 with game evidence and 47 advice.
+Of release 2.3.0's 108 codes, 56 are carried over (5 at another severity), 13 provisionally, 39
+not. Of the pre-2.0 rules, 17 of the 38 required-field flags and 28 of the 89 rule codes hold
+on the 1.21 base game and return as advice; none of the 32 "required" flags is a requirement
+the game states. Every catalogue message cited is present in the 1.21.0.3 executable, but four
+sit beside a narrower reader than the check citing them (the unknown-field message among the
+province-history reader's), which the planted-defect capture of item 11.1 should settle. The
+structural and advice checks need their keywords (`hidden`, `option`, `if`, `else`) as data,
+which the format 5 plan does not yet carry. ck3-tiger is GPL-3.0, so nothing of it may enter
+this repository; the CWTools rule files are MIT and three years behind the game.
 
 ---
 

@@ -86,6 +86,17 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   1.30 GiB, its 250 MiB cache reloaded in 0.9 seconds, and each of the five corpus mods indexed
   over it. `task records:check` refuses an index record made on another rules table.
 
+- Build step 4, item 4.1 ([docs/PLAN.md](docs/PLAN.md)): `docs/checks.md`, the check inventory
+  and its code scheme, proposed and awaiting the owner's sign-off. Codes are `family/name`
+  (`names/unknown-trigger`), the step 2 identifiers kept as they are; 78 rows, each with its
+  severity, its evidence or the word advice, the 2.3.0 code it replaces, its fixture pair, its
+  build item and what it needs from the 1.21 spec. Every one of release 2.3.0's 108 codes is
+  mapped to a new code or to "not carried over", with the reason. The pre-2.0 schema files' 38
+  required-field flags and 89 rule codes are each counted on the 1.21.0.3 base game, with a
+  verdict. Every catalogue message the inventory cites is checked against the 1.21.0.3
+  executable. ck3-tiger (GPL-3.0) and the CWTools rule files (MIT) are evaluated and their
+  licences recorded in `docs/references/community-tools.md`; nothing is taken from either.
+
 ### Changed
 
 - In the MVP the game is on the same computer as VS Code; a game on another computer on the
@@ -111,3 +122,5 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   parts of 6 and 10) arrive as rows of the spec package's table from step 0, read out of the
   Windows and Linux executables. Until then the index lists every definition those rules
   decide and names no winner: 1,309 names of the base game.
+- Item 4.1: the owner's sign-off on `docs/checks.md` (the code scheme, the rows, and the
+  eleven questions at its end). Items 4.2 to 4.11 wait for it and for the 1.21 spec in format 5.
