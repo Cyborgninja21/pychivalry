@@ -1,0 +1,11 @@
+namespace = fixture
+
+fixture.0001 = {
+	trigger = {
+		fixture_ready_trigger = yes
+		fixture_undefined_trigger = yes
+	}
+	immediate = {
+		add_gold = 10
+	}
+}

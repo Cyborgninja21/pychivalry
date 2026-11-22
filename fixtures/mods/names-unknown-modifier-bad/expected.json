@@ -1,0 +1,28 @@
+{
+    "findings": [
+        {
+            "file": "common/culture/eras/fixture_eras.txt",
+            "line": 9,
+            "column": 3,
+            "code": "names/unknown-modifier",
+            "severity": "error",
+            "message": "Unknown modifier type 'fixture_no_such_modifier' at common/culture/eras/fixture_eras.txt:9",
+            "data": {
+                "name": "fixture_no_such_modifier"
+            }
+        },
+        {
+            "file": "common/culture/eras/fixture_eras.txt",
+            "line": 10,
+            "column": 3,
+            "code": "names/unknown-modifier",
+            "severity": "error",
+            "message": "Unknown modifier type 'tax_mult' at common/culture/eras/fixture_eras.txt:10",
+            "data": {
+                "name": "tax_mult",
+                "removed_in": "1.21.0.3",
+                "replacement": []
+            }
+        }
+    ]
+}

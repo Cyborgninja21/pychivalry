@@ -3,10 +3,10 @@
  * error catalogue, and the fixture mods. Used by tests only; not exported by the package.
  */
 
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { gunzipSync } from 'node:zlib';
+import { openSpec } from '../spec/reader.js';
 import { catalogueFromSpec, type MessageCatalogue } from './findings.js';
 import type { Item, Value } from './tree.js';
 
@@ -48,26 +48,12 @@ function itemSummary(item: Item | Value): string {
     }
 }
 
-let specPackage: unknown;
-
 /**
- * The committed spec package file, parsed: `spec/ck3-spec-<version>.json.gz`, not one of its
- * companions (`ck3-spec-<version>.<part>.json.gz`).
+ * The committed spec package file, parsed: `spec/ck3-spec-<version>.json.gz`, read and checked
+ * by the spec reader once per test process.
  */
 export function committedSpecPackage(): unknown {
-    if (specPackage === undefined) {
-        const dir = path.join(repoRoot, 'spec');
-        const file = readdirSync(dir).find((name) =>
-            /^ck3-spec-[0-9]+(?:\.[0-9]+)+\.json\.gz$/.test(name),
-        );
-        if (file === undefined) {
-            throw new Error('no spec package under spec/');
-        }
-        specPackage = JSON.parse(
-            gunzipSync(readFileSync(path.join(dir, file))).toString('utf8'),
-        ) as unknown;
-    }
-    return specPackage;
+    return openSpec(path.join(repoRoot, 'spec')).data;
 }
 
 let catalogue: MessageCatalogue | undefined;

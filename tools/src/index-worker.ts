@@ -19,11 +19,11 @@ import {
     type ModListing,
     type SourceListing,
     type WorkspaceIndex,
+    openSpec,
 } from '@pychivalry/core';
 import { duplicates, type WorkerResult, type WorkerTask } from './index-suite.js';
 import { committedSpec } from './record.js';
 import { committedRules } from './rules-table.js';
-import { readSpecPackage } from './spec.js';
 
 const MIB = 1024 * 1024;
 
@@ -199,7 +199,7 @@ function describeMod(index: WorkspaceIndex, listing: ModListing): Record<string,
 function main(): void {
     const task = JSON.parse(process.argv[2] ?? '{}') as WorkerTask;
     const root = task.root;
-    const folders = new FolderTable(foldersFromSpec(readSpecPackage(path.join(root, 'spec'))));
+    const folders = new FolderTable(foldersFromSpec(openSpec(path.join(root, 'spec')).data));
     const rules = committedRules(root).table;
     const game = openGameIndex({
         gameDir: task.gameDir,
