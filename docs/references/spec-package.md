@@ -57,6 +57,24 @@ Every fact in format 5 records which source it came from, so a check can tell ga
 from a hint: the executable, the game's own output, the `.info` files, the base game's files,
 and the wiki-era seeds, in that order of trust.
 
+## What item 4.2 found the package does and does not carry
+
+Read by the typed reader (`packages/core/src/spec/`) and used by the first engine checks, on
+2026-11-22. Each point is a fact of the committed files, measured by the checks' own run over
+the 1.21.0.3 base game where it says so.
+
+| Question a check asks | What the package gives |
+| --- | --- |
+| Which blocks hold triggers or effects | A record body for 3 folders (`record_body`: scripted effects, rules and triggers); otherwise each field's measured `kind` (225 `trigger_block`, 279 `effect_block`); the tables `opens_context`, `structural`, `containers`, `iterator_params`. Measured kinds are mostly right; two are wrong on the base game's own files: `history/titles` `<date>` and `<number>` are `effect_block` with no sub-fields, though they hold the title history's fields, and `common/pool_character_selectors` `config` is `trigger_block`, though its `.info` file documents a block of `background` and `age`. The schema of `common/script_values` records 19 links (`faith`, `liege`, ...) as effect blocks |
+| Which blocks hold modifiers | The 38 fields marked `holds: modifiers`. No record body is marked a modifier block (`common/modifiers` and `common/traits` list their modifiers as fields) |
+| Which use area a modifier block is | Nothing. The use areas are on the 778 modifiers (`use_areas`) and the 198 template tags, not on blocks |
+| Which fields name an on-action, or a key of another database | Nothing in the B1 value types, which give value groups (`word`, `list`, `script_value`, ...), never a database. The `.info` companion's field facts carry `refers_to` on 83 values, one of them an on-action (`trigger_event`'s `on_action` inside an activity locale's `on_enter_locale`) |
+| Which iterator prefix belongs in a trigger block and which in an effect block | Nothing: `iterator_prefixes` lists the four, `scope_validity.lists` the four iterator names of each list |
+| Whether the game's readers tell letter cases apart | Nothing directly; the tables `structural` and `same_scope_structural` read their names in any case, and the base game writes 133 keys in judged blocks in another case than the bucket's (`ROOT` 47 times, `THIS` 34, `IF` 11, `NOt` once) |
+| Which names a mod may call | `vanilla_indexed_dirs` (7 folders) and the keyword templates' `keys`; `record_body` says which of the 7 hold triggers and which effects, nothing which hold lists or values |
+| Where a scope chain is walked from, and what may end it | `scope_heads` (its reason contradicted, its role standing) and the links' own forms (`global_link`, `requires_data`); a chain ending in a value is the A5 `takes` form `comparison` of a trigger, which the base game does 9,772 times |
+| Table entries a check may trust | 143 confirmed, 15 contradicted with the game's own evidence, 8 with none; 65 candidates apart, 29 of which (in the tables the checks read) the game's output or its `.info` files document |
+
 ## What no derivation can supply
 
 - Scope data for the triggers and effects the game does not document.

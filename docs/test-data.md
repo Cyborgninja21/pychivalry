@@ -59,6 +59,14 @@ mod, `index-definitions-and-uses`, lists every definition and every use of a def
 index must find, and none it must not. The list is in
 [fixtures/mods/README.md](../fixtures/mods/README.md).
 
+Build step 4 added the first check pairs, one per check of item 4.2: `names-unknown-trigger`,
+`names-unknown-effect`, `names-unknown-link` and `names-unknown-modifier`, each a `-bad` mod the
+check fires on and a `-good` mod that differs from it only in the defects. A bad mod's
+`expected.json` lists every finding of every check on it; the good mod has none. Each check's
+test (`packages/core/src/check/<name>.test.ts`) indexes the mod on its own and runs every check
+on its files. The rules of reading the checks follow are tested on a few lines of text each, in
+`packages/core/src/check/context.test.ts`.
+
 ## The planted-defect mod
 
 One mod with 20 to 30 defects, one per check code, a manifest of where each sits, lines that

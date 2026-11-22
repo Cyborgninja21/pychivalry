@@ -45,6 +45,20 @@ fixtures/mods/<check-name>-good/
 The good mod differs from the bad one only in the defect. The check inventory
 (`docs/checks.md`, build step 4) names the pair of every check.
 
+A bad mod's `expected.json` lists every finding of every engine check on the mod, so that it
+shows its one behaviour only; the good mod has none, and no `expected.json`:
+
+```json
+{ "findings": [ { "file": "common/scripted_triggers/fixture_triggers.txt", "line": 16,
+    "column": 2, "code": "names/unknown-trigger", "severity": "error",
+    "message": "Unknown trigger 'fixture_made_up_trigger'",
+    "data": { "name": "fixture_made_up_trigger" } } ] }
+```
+
+`message` is rendered with the committed spec's catalogue; `data` is the finding's data. The
+check's test (`packages/core/src/check/<name>.test.ts`) indexes the mod on its own, with no
+base game, so a name the mod calls must be defined in the mod.
+
 ## Carried over from release 2.3.0
 
 The old tests' fixture mods are data and are carried over by the step that owns the behaviour,
@@ -57,6 +71,10 @@ rewritten to this layout. Where one is carried over, its README says which file 
 | --- | --- | --- |
 | [encoding-windows-1252](encoding-windows-1252/README.md) | A file that is not valid UTF-8, read with and without the Windows-1252 fallback | Step 2 |
 | [index-definitions-and-uses](index-definitions-and-uses/README.md) | One definition of every form, and every way a word is a use | Step 3 |
+| [names-unknown-effect-bad](names-unknown-effect-bad/README.md), [-good](names-unknown-effect-good/README.md) | Keys in effect blocks that are no effect: made up, a trigger, an iterator over no list, removed, a scripted effect defined nowhere | Item 4.2 |
+| [names-unknown-link-bad](names-unknown-link-bad/README.md), [-good](names-unknown-link-good/README.md) | Scope chains with a segment that is no link, as a key and as a value | Item 4.2 |
+| [names-unknown-modifier-bad](names-unknown-modifier-bad/README.md), [-good](names-unknown-modifier-good/README.md) | A modifier block with a made-up and a removed modifier; a template and a marked-only name | Item 4.2 |
+| [names-unknown-trigger-bad](names-unknown-trigger-bad/README.md), [-good](names-unknown-trigger-good/README.md) | Keys in trigger blocks that are no trigger: made up, an effect, an iterator over no list, removed, a scripted trigger defined nowhere | Item 4.2 |
 | [override-rules](override-rules/README.md) | Every rule of docs/overrides.md one mod can exercise, over the stub `game/override-rules` | Step 3 |
 | [override-rules-folder-case](override-rules-folder-case/README.md) | A folder spelled in upper case (rule 9) | Step 3 |
 | [override-rules-replace-path](override-rules-replace-path/README.md) | `replace_path` in the descriptor (rule 8) | Step 3 |
