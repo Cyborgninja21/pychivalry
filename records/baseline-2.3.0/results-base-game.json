@@ -1,0 +1,968 @@
+{
+    "record_format": 1,
+    "suite": "baseline:results",
+    "command": "LEGACY_BUILD=<legacy build> CK3_GAME_PATH=<game dir> BASELINE_PARTS=base-game BASELINE_NODE_HEAP=8192 task baseline:results",
+    "made_at": "2026-11-22T07:23:18.414Z",
+    "tool": {
+        "name": "pychivalry",
+        "version": "2.3.0",
+        "commit": "a50e8afb196360197e3dcf6df5d5a34e6b49f6f9",
+        "dirty": false
+    },
+    "machine": {
+        "os": "linux",
+        "arch": "x64",
+        "logical_cpus": 16,
+        "memory_gib": 62,
+        "node": "v22.23.4"
+    },
+    "game": {
+        "build": "1.21.0.3",
+        "manifest_sha256": "83004e2f80b5db245db9ecb9cc88a927fd520875e34ec899f49f2921ebf3c235",
+        "files": 55608,
+        "content_hashed_files": 17388
+    },
+    "spec": {
+        "version": "1.21.0.3",
+        "sha256": "0894b1a5aa0165012450a2d445a733559436f580ab26be940e3a660bf81b59ca",
+        "package_format": 4
+    },
+    "corpus": null,
+    "notes": [
+        "Release 2.3.0: legacy/ at commit a50e8af, the v2.3.0 tree with one change the owner decided (it accepts the since value 1.21.0.3 of the format 4 copy), in legacy/packages/engine/spec/schema.json and legacy/packages/engine/src/spec/types.ts. It was built from an export of legacy/ outside the repository by task baseline:prepare, whose spec.config.json points it at the committed format 4 copy of the spec, spec/legacy/ck3-spec-1.21.0.3.format4.json.gz (game 1.21.0.3), the only format release 2.3.0 reads; nothing else in the export differs from legacy/.",
+        "The game files read are the build the format 4 copy was derived for, and the corpus is the committed one: records/README.md, \"Baselines\".",
+        "The script ran with the Node flag --max-old-space-size=8192 and was otherwise unchanged: with Node's default heap limit (about 4 GiB here) it runs out of memory on this game build during its check phase.",
+        "One run of vanilla-acceptance.js. parse is every .txt file under common/, events/ and history/ parsed, with every parse error; check is the same tree loaded as a workspace and run through 2.3.0's registry, schema and scope checks, with the findings counted by code and severity and every error listed; scope says how many keyword uses the scope check could judge. Messages are 2.3.0's own, as it wrote them."
+    ],
+    "results": {
+        "method": "vanilla-acceptance",
+        "context": {
+            "node_flags": [
+                "--max-old-space-size=8192"
+            ],
+            "load_average_1m": 3.19
+        },
+        "base_game": {
+            "parse": {
+                "files": 4482,
+                "by_folder": [
+                    {
+                        "folder": "common",
+                        "files": 3035
+                    },
+                    {
+                        "folder": "events",
+                        "files": 610
+                    },
+                    {
+                        "folder": "history",
+                        "files": 837
+                    }
+                ],
+                "files_with_bom": 3886,
+                "errors": 3,
+                "error_list": [
+                    {
+                        "file": "common/holding_sprawl_patterns/00_holding_sprawl_patterns.txt",
+                        "line": 1988,
+                        "column": 25,
+                        "code": "expected_between_block_name_and_body",
+                        "message": "Expected '=' between block name and body"
+                    },
+                    {
+                        "file": "events/dlc/gdp/gdp_visit_holding_decision_event_2.txt",
+                        "line": 3839,
+                        "column": 41,
+                        "code": "expected_after_arguments",
+                        "message": "Expected } after arguments"
+                    },
+                    {
+                        "file": "history/characters/han/sima_53f8_99ac.txt",
+                        "line": 1395,
+                        "column": 10,
+                        "code": "expected_between_block_name_and_body",
+                        "message": "Expected '=' between block name and body"
+                    }
+                ]
+            },
+            "check": {
+                "by_severity": {
+                    "error": 96,
+                    "warning": 0,
+                    "information": 11668,
+                    "hint": 0
+                },
+                "by_code": [
+                    {
+                        "code": "unknown_trigger_X",
+                        "severity": "error",
+                        "count": 84
+                    },
+                    {
+                        "code": "unknown_effect_X",
+                        "severity": "error",
+                        "count": 10
+                    },
+                    {
+                        "code": "trying_to_use_X_link_on_an_invalid_scope_X",
+                        "severity": "error",
+                        "count": 2
+                    },
+                    {
+                        "code": "undefined_event_target_X",
+                        "severity": "information",
+                        "count": 11668
+                    }
+                ],
+                "errors": 96,
+                "error_list": [
+                    {
+                        "file": "common/activities/guest_invite_rules/activity_invite_rules.txt",
+                        "line": 1188,
+                        "code": "unknown_effect_X",
+                        "message": "Unknown effect 'government_type_filter'"
+                    },
+                    {
+                        "file": "common/activities/guest_invite_rules/activity_invite_rules.txt",
+                        "line": 1202,
+                        "code": "unknown_effect_X",
+                        "message": "Unknown effect 'government_type_filter'"
+                    },
+                    {
+                        "file": "common/buildings/resource_district_buildings/fish_district_buildings.txt",
+                        "line": 242,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'trade_good_salt_sell_price_mult'"
+                    },
+                    {
+                        "file": "common/buildings/resource_district_buildings/fish_district_buildings.txt",
+                        "line": 334,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'trade_good_salt_sell_price_mult'"
+                    },
+                    {
+                        "file": "common/buildings/resource_district_buildings/fish_district_buildings.txt",
+                        "line": 428,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'trade_good_salt_sell_price_mult'"
+                    },
+                    {
+                        "file": "common/buildings/resource_district_buildings/fish_district_buildings.txt",
+                        "line": 517,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'trade_good_salt_sell_price_mult'"
+                    },
+                    {
+                        "file": "common/buildings/resource_district_buildings/fish_district_buildings.txt",
+                        "line": 610,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'trade_good_salt_sell_price_mult'"
+                    },
+                    {
+                        "file": "common/buildings/resource_district_buildings/fish_district_buildings.txt",
+                        "line": 701,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'trade_good_salt_sell_price_mult'"
+                    },
+                    {
+                        "file": "common/buildings/resource_district_buildings/fish_district_buildings.txt",
+                        "line": 792,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'trade_good_salt_sell_price_mult'"
+                    },
+                    {
+                        "file": "common/buildings/resource_district_buildings/fish_district_buildings.txt",
+                        "line": 883,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'trade_good_salt_sell_price_mult'"
+                    },
+                    {
+                        "file": "common/buildings/resource_district_buildings/fish_district_buildings.txt",
+                        "line": 974,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'trade_good_salt_sell_price_mult'"
+                    },
+                    {
+                        "file": "common/buildings/resource_district_buildings/fish_district_buildings.txt",
+                        "line": 1065,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'trade_good_salt_sell_price_mult'"
+                    },
+                    {
+                        "file": "common/character_interactions/00_debug_interactions.txt",
+                        "line": 3218,
+                        "code": "trying_to_use_X_link_on_an_invalid_scope_X",
+                        "message": "Trying to use religious_head_title link on an invalid scope character"
+                    },
+                    {
+                        "file": "common/council_tasks/00_court_chaplain_tasks.txt",
+                        "line": 501,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'government_type_filter'"
+                    },
+                    {
+                        "file": "common/culture/traditions/00_combat_traditions.txt",
+                        "line": 1594,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'culture_filter'"
+                    },
+                    {
+                        "file": "common/culture/traditions/00_combat_traditions.txt",
+                        "line": 1714,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'culture_filter'"
+                    },
+                    {
+                        "file": "common/culture/traditions/00_combat_traditions.txt",
+                        "line": 1801,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'culture_filter'"
+                    },
+                    {
+                        "file": "common/culture/traditions/00_combat_traditions.txt",
+                        "line": 1998,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'culture_filter'"
+                    },
+                    {
+                        "file": "common/culture/traditions/00_maa_traditions.txt",
+                        "line": 2098,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'culture_filter'"
+                    },
+                    {
+                        "file": "common/culture/traditions/00_realm_traditions.txt",
+                        "line": 868,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'culture_filter'"
+                    },
+                    {
+                        "file": "common/culture/traditions/00_realm_traditions.txt",
+                        "line": 1000,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'culture_filter'"
+                    },
+                    {
+                        "file": "common/culture/traditions/00_realm_traditions.txt",
+                        "line": 1104,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'culture_filter'"
+                    },
+                    {
+                        "file": "common/culture/traditions/00_realm_traditions.txt",
+                        "line": 1110,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'culture_filter'"
+                    },
+                    {
+                        "file": "common/culture/traditions/00_realm_traditions.txt",
+                        "line": 1536,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'culture_filter'"
+                    },
+                    {
+                        "file": "common/culture/traditions/00_realm_traditions.txt",
+                        "line": 1858,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'culture_filter'"
+                    },
+                    {
+                        "file": "common/culture/traditions/00_regional_traditions.txt",
+                        "line": 834,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'culture_filter'"
+                    },
+                    {
+                        "file": "common/culture/traditions/00_regional_traditions.txt",
+                        "line": 840,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'culture_filter'"
+                    },
+                    {
+                        "file": "common/culture/traditions/00_regional_traditions.txt",
+                        "line": 1438,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'culture_filter'"
+                    },
+                    {
+                        "file": "common/culture/traditions/00_regional_traditions.txt",
+                        "line": 1444,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'culture_filter'"
+                    },
+                    {
+                        "file": "common/culture/traditions/00_regional_traditions.txt",
+                        "line": 1530,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'culture_filter'"
+                    },
+                    {
+                        "file": "common/culture/traditions/00_regional_traditions.txt",
+                        "line": 1536,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'culture_filter'"
+                    },
+                    {
+                        "file": "common/culture/traditions/00_ritual_traditions.txt",
+                        "line": 710,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'culture_filter'"
+                    },
+                    {
+                        "file": "common/culture/traditions/00_ritual_traditions.txt",
+                        "line": 821,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'culture_filter'"
+                    },
+                    {
+                        "file": "common/culture/traditions/00_ritual_traditions.txt",
+                        "line": 1109,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'culture_filter'"
+                    },
+                    {
+                        "file": "common/culture/traditions/00_ritual_traditions.txt",
+                        "line": 1207,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'culture_filter'"
+                    },
+                    {
+                        "file": "common/culture/traditions/00_ritual_traditions.txt",
+                        "line": 1309,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'culture_filter'"
+                    },
+                    {
+                        "file": "common/culture/traditions/00_ritual_traditions.txt",
+                        "line": 1395,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'culture_filter'"
+                    },
+                    {
+                        "file": "common/culture/traditions/00_ritual_traditions.txt",
+                        "line": 1404,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'culture_filter'"
+                    },
+                    {
+                        "file": "common/culture/traditions/00_ritual_traditions.txt",
+                        "line": 1518,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'culture_filter'"
+                    },
+                    {
+                        "file": "common/culture/traditions/00_ritual_traditions.txt",
+                        "line": 1696,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'culture_filter'"
+                    },
+                    {
+                        "file": "common/culture/traditions/00_societal_traditions.txt",
+                        "line": 300,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'culture_filter'"
+                    },
+                    {
+                        "file": "common/culture/traditions/00_societal_traditions.txt",
+                        "line": 421,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'culture_filter'"
+                    },
+                    {
+                        "file": "common/culture/traditions/00_societal_traditions.txt",
+                        "line": 783,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'culture_filter'"
+                    },
+                    {
+                        "file": "common/culture/traditions/00_societal_traditions.txt",
+                        "line": 1179,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'culture_filter'"
+                    },
+                    {
+                        "file": "common/culture/traditions/00_societal_traditions.txt",
+                        "line": 1303,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'culture_filter'"
+                    },
+                    {
+                        "file": "common/culture/traditions/00_societal_traditions.txt",
+                        "line": 1428,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'culture_filter'"
+                    },
+                    {
+                        "file": "common/culture/traditions/00_societal_traditions.txt",
+                        "line": 1671,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'culture_filter'"
+                    },
+                    {
+                        "file": "common/culture/traditions/00_societal_traditions.txt",
+                        "line": 1797,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'culture_filter'"
+                    },
+                    {
+                        "file": "common/culture/traditions/00_societal_traditions.txt",
+                        "line": 2066,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'culture_filter'"
+                    },
+                    {
+                        "file": "common/culture/traditions/00_societal_traditions.txt",
+                        "line": 2174,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'culture_filter'"
+                    },
+                    {
+                        "file": "common/culture/traditions/00_societal_traditions.txt",
+                        "line": 2272,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'culture_filter'"
+                    },
+                    {
+                        "file": "common/culture/traditions/00_societal_traditions.txt",
+                        "line": 2370,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'culture_filter'"
+                    },
+                    {
+                        "file": "common/culture/traditions/00_societal_traditions.txt",
+                        "line": 2479,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'culture_filter'"
+                    },
+                    {
+                        "file": "common/culture/traditions/00_societal_traditions.txt",
+                        "line": 2574,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'culture_filter'"
+                    },
+                    {
+                        "file": "common/culture/traditions/00_societal_traditions.txt",
+                        "line": 2672,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'culture_filter'"
+                    },
+                    {
+                        "file": "common/culture/traditions/00_societal_traditions.txt",
+                        "line": 2767,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'culture_filter'"
+                    },
+                    {
+                        "file": "common/culture/traditions/00_societal_traditions.txt",
+                        "line": 2963,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'culture_filter'"
+                    },
+                    {
+                        "file": "common/culture/traditions/00_societal_traditions.txt",
+                        "line": 3058,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'culture_filter'"
+                    },
+                    {
+                        "file": "common/culture/traditions/01_fp1_traditions.txt",
+                        "line": 332,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'culture_filter'"
+                    },
+                    {
+                        "file": "common/culture/traditions/01_fp1_traditions.txt",
+                        "line": 435,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'culture_filter'"
+                    },
+                    {
+                        "file": "common/culture/traditions/03_fp3_traditions.txt",
+                        "line": 384,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'culture_filter'"
+                    },
+                    {
+                        "file": "common/culture/traditions/03_fp3_traditions.txt",
+                        "line": 488,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'culture_filter'"
+                    },
+                    {
+                        "file": "common/culture/traditions/06_ce1_traditions.txt",
+                        "line": 59,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'culture_filter'"
+                    },
+                    {
+                        "file": "common/culture/traditions/tgp_traditions.txt",
+                        "line": 464,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'culture_filter'"
+                    },
+                    {
+                        "file": "common/culture/traditions/tgp_traditions.txt",
+                        "line": 1301,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'culture_filter'"
+                    },
+                    {
+                        "file": "common/culture/traditions/tgp_traditions.txt",
+                        "line": 2007,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'culture_filter'"
+                    },
+                    {
+                        "file": "common/culture/traditions/tgp_traditions.txt",
+                        "line": 2181,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'culture_filter'"
+                    },
+                    {
+                        "file": "common/decisions/00_holy_order_decisions.txt",
+                        "line": 423,
+                        "code": "trying_to_use_X_link_on_an_invalid_scope_X",
+                        "message": "Trying to use lessee link on an invalid scope character"
+                    },
+                    {
+                        "file": "common/decisions/00_major_decisions_east_europe.txt",
+                        "line": 397,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'filter'"
+                    },
+                    {
+                        "file": "common/pool_character_selectors/00_clergy.txt",
+                        "line": 61,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'background'"
+                    },
+                    {
+                        "file": "common/pool_character_selectors/00_clergy.txt",
+                        "line": 114,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'background'"
+                    },
+                    {
+                        "file": "common/pool_character_selectors/00_holy_order.txt",
+                        "line": 59,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'background'"
+                    },
+                    {
+                        "file": "common/pool_character_selectors/00_holy_order.txt",
+                        "line": 136,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'background'"
+                    },
+                    {
+                        "file": "common/pool_character_selectors/00_holy_order.txt",
+                        "line": 207,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'background'"
+                    },
+                    {
+                        "file": "common/pool_character_selectors/00_holy_order.txt",
+                        "line": 274,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'background'"
+                    },
+                    {
+                        "file": "common/pool_character_selectors/00_holy_order.txt",
+                        "line": 341,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'background'"
+                    },
+                    {
+                        "file": "common/pool_character_selectors/00_mercenary.txt",
+                        "line": 44,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'background'"
+                    },
+                    {
+                        "file": "common/scripted_effects/00_childhood_effects.txt",
+                        "line": 157,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'culture_filter'"
+                    },
+                    {
+                        "file": "common/scripted_effects/00_childhood_effects.txt",
+                        "line": 158,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'faith_filter'"
+                    },
+                    {
+                        "file": "common/scripted_effects/00_childhood_effects.txt",
+                        "line": 164,
+                        "code": "unknown_effect_X",
+                        "message": "Unknown effect 'culture_filter'"
+                    },
+                    {
+                        "file": "common/scripted_effects/00_childhood_effects.txt",
+                        "line": 165,
+                        "code": "unknown_effect_X",
+                        "message": "Unknown effect 'faith_filter'"
+                    },
+                    {
+                        "file": "common/scripted_effects/00_laamp_effects.txt",
+                        "line": 1846,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'save_scope_as'"
+                    },
+                    {
+                        "file": "common/scripted_effects/00_pilgrimage_effects.txt",
+                        "line": 610,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'is_eminent'"
+                    },
+                    {
+                        "file": "common/scripted_effects/00_relation_effects.txt",
+                        "line": 757,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'is_powerful'"
+                    },
+                    {
+                        "file": "common/scripted_effects/00_religion_effects.txt",
+                        "line": 1320,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'can_elevate_holy_site'"
+                    },
+                    {
+                        "file": "common/scripted_effects/00_religion_effects.txt",
+                        "line": 1322,
+                        "code": "unknown_effect_X",
+                        "message": "Unknown effect 'elevate_holy_site'"
+                    },
+                    {
+                        "file": "common/scripted_effects/00_religion_effects.txt",
+                        "line": 1331,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'can_demote_holy_site'"
+                    },
+                    {
+                        "file": "common/scripted_effects/00_religion_effects.txt",
+                        "line": 1333,
+                        "code": "unknown_effect_X",
+                        "message": "Unknown effect 'demote_holy_site'"
+                    },
+                    {
+                        "file": "common/scripted_triggers/00_relation_triggers.txt",
+                        "line": 1071,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'is_powerful'"
+                    },
+                    {
+                        "file": "common/scripted_triggers/00_religious_triggers.txt",
+                        "line": 806,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'secret_is_blackmailable_strong_hook_trigger'"
+                    },
+                    {
+                        "file": "common/scripted_triggers/00_religious_triggers.txt",
+                        "line": 807,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'secret_is_blackmailable_weak_hook_trigger'"
+                    },
+                    {
+                        "file": "events/artifacts/historical_artifacts_events.txt",
+                        "line": 1111,
+                        "code": "unknown_effect_X",
+                        "message": "Unknown effect 'is_eminent'"
+                    },
+                    {
+                        "file": "events/artifacts/historical_artifacts_events.txt",
+                        "line": 1153,
+                        "code": "unknown_effect_X",
+                        "message": "Unknown effect 'faith_filter'"
+                    },
+                    {
+                        "file": "events/dlc/ep3/ep3_laamp_decision_events.txt",
+                        "line": 5518,
+                        "code": "unknown_trigger_X",
+                        "message": "Unknown trigger 'list'"
+                    },
+                    {
+                        "file": "events/dlc/gdp/gdp_merchant_events.txt",
+                        "line": 2195,
+                        "code": "unknown_effect_X",
+                        "message": "Unknown effect 'selection_count'"
+                    },
+                    {
+                        "file": "events/dlc/gdp/gdp_merchant_events.txt",
+                        "line": 2240,
+                        "code": "unknown_effect_X",
+                        "message": "Unknown effect 'selection_count'"
+                    }
+                ]
+            },
+            "scope": {
+                "keyword_uses": 613889,
+                "keyword_uses_known_scope": 199620,
+                "keyword_uses_judged": 101466,
+                "link_steps_judged": 19904,
+                "findings": 2,
+                "keyword_uses_by_known_scope_type": [
+                    {
+                        "type": "character",
+                        "uses": 163848
+                    },
+                    {
+                        "type": "landed_title",
+                        "uses": 8336
+                    },
+                    {
+                        "type": "province",
+                        "uses": 6362
+                    },
+                    {
+                        "type": "culture",
+                        "uses": 2231
+                    },
+                    {
+                        "type": "dynasty_house",
+                        "uses": 1778
+                    },
+                    {
+                        "type": "situation",
+                        "uses": 1412
+                    },
+                    {
+                        "type": "faith",
+                        "uses": 1314
+                    },
+                    {
+                        "type": "rite",
+                        "uses": 1215
+                    },
+                    {
+                        "type": "travel_plan",
+                        "uses": 1215
+                    },
+                    {
+                        "type": "story",
+                        "uses": 1070
+                    },
+                    {
+                        "type": "artifact",
+                        "uses": 960
+                    },
+                    {
+                        "type": "secret",
+                        "uses": 728
+                    },
+                    {
+                        "type": "casus_belli",
+                        "uses": 720
+                    },
+                    {
+                        "type": "activity",
+                        "uses": 662
+                    },
+                    {
+                        "type": "domicile",
+                        "uses": 563
+                    },
+                    {
+                        "type": "character_memory",
+                        "uses": 561
+                    },
+                    {
+                        "type": "scheme",
+                        "uses": 533
+                    },
+                    {
+                        "type": "culture_pillar",
+                        "uses": 517
+                    },
+                    {
+                        "type": "tenet",
+                        "uses": 461
+                    },
+                    {
+                        "type": "doctrine",
+                        "uses": 405
+                    },
+                    {
+                        "type": "struggle",
+                        "uses": 400
+                    },
+                    {
+                        "type": "trait",
+                        "uses": 383
+                    },
+                    {
+                        "type": "dynasty",
+                        "uses": 353
+                    },
+                    {
+                        "type": "situation_participant_group",
+                        "uses": 311
+                    },
+                    {
+                        "type": "task_contract",
+                        "uses": 305
+                    },
+                    {
+                        "type": "faction",
+                        "uses": 258
+                    },
+                    {
+                        "type": "situation_sub_region",
+                        "uses": 243
+                    },
+                    {
+                        "type": "war",
+                        "uses": 231
+                    },
+                    {
+                        "type": "house_relation",
+                        "uses": 214
+                    },
+                    {
+                        "type": "culture_tradition",
+                        "uses": 199
+                    },
+                    {
+                        "type": "trade_route",
+                        "uses": 188
+                    },
+                    {
+                        "type": "legend",
+                        "uses": 184
+                    },
+                    {
+                        "type": "religion",
+                        "uses": 166
+                    },
+                    {
+                        "type": "combat_side",
+                        "uses": 148
+                    },
+                    {
+                        "type": "regiment",
+                        "uses": 136
+                    },
+                    {
+                        "type": "great_project",
+                        "uses": 111
+                    },
+                    {
+                        "type": "trade_good_category",
+                        "uses": 105
+                    },
+                    {
+                        "type": "accolade",
+                        "uses": 103
+                    },
+                    {
+                        "type": "army",
+                        "uses": 96
+                    },
+                    {
+                        "type": "confederation",
+                        "uses": 91
+                    },
+                    {
+                        "type": "trade_good_type",
+                        "uses": 64
+                    },
+                    {
+                        "type": "accolade_type",
+                        "uses": 62
+                    },
+                    {
+                        "type": "ghw",
+                        "uses": 62
+                    },
+                    {
+                        "type": "trade_market",
+                        "uses": 58
+                    },
+                    {
+                        "type": "epidemic",
+                        "uses": 44
+                    },
+                    {
+                        "type": "inspiration",
+                        "uses": 37
+                    },
+                    {
+                        "type": "holy_order",
+                        "uses": 34
+                    },
+                    {
+                        "type": "decision",
+                        "uses": 26
+                    },
+                    {
+                        "type": "district",
+                        "uses": 20
+                    },
+                    {
+                        "type": "project_contribution",
+                        "uses": 17
+                    },
+                    {
+                        "type": "culture_innovation",
+                        "uses": 16
+                    },
+                    {
+                        "type": "court_position_type",
+                        "uses": 14
+                    },
+                    {
+                        "type": "tax_slot",
+                        "uses": 12
+                    },
+                    {
+                        "type": "combat",
+                        "uses": 7
+                    },
+                    {
+                        "type": "holy_site",
+                        "uses": 5
+                    },
+                    {
+                        "type": "mercenary_company",
+                        "uses": 5
+                    },
+                    {
+                        "type": "agent_slot",
+                        "uses": 4
+                    },
+                    {
+                        "type": "casus_belli_type",
+                        "uses": 3
+                    },
+                    {
+                        "type": "geographical_region",
+                        "uses": 3
+                    },
+                    {
+                        "type": "great_project_type",
+                        "uses": 3
+                    },
+                    {
+                        "type": "activity_type",
+                        "uses": 2
+                    },
+                    {
+                        "type": "government_type",
+                        "uses": 2
+                    },
+                    {
+                        "type": "trade_monopoly",
+                        "uses": 2
+                    },
+                    {
+                        "type": "building",
+                        "uses": 1
+                    },
+                    {
+                        "type": "organization",
+                        "uses": 1
+                    }
+                ]
+            }
+        }
+    }
+}

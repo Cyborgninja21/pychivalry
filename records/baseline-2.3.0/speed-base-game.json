@@ -2,12 +2,12 @@
     "record_format": 1,
     "suite": "baseline:speed",
     "command": "LEGACY_BUILD=<legacy build> CK3_GAME_PATH=<game dir> CK3_CORPUS=<corpus dir> BASELINE_PARTS=base-game BASELINE_RUNS=6 BASELINE_NODE_HEAP=8192 task baseline:speed",
-    "made_at": "2026-11-21T21:15:42.760Z",
+    "made_at": "2026-11-22T07:38:09.216Z",
     "tool": {
         "name": "pychivalry",
         "version": "2.3.0",
-        "commit": "3874ebf8a3c7e3defad35bb673a7ad618d6dcf67",
-        "dirty": true
+        "commit": "a50e8afb196360197e3dcf6df5d5a34e6b49f6f9",
+        "dirty": false
     },
     "machine": {
         "os": "linux",
@@ -23,16 +23,18 @@
         "content_hashed_files": 17388
     },
     "spec": {
-        "version": "1.20.0.2",
-        "sha256": "a9959bf9d650fe793ffd3ee60eb6589b8cb6eaaaae778ce84b58fdc535f2eeb6",
+        "version": "1.21.0.3",
+        "sha256": "0894b1a5aa0165012450a2d445a733559436f580ab26be940e3a660bf81b59ca",
         "package_format": 4
     },
     "corpus": null,
     "notes": [
-        "Release 2.3.0 (the v2.3.0 tree, identical to legacy/), built from an export of legacy/ outside the repository by task baseline:prepare, run with its own spec package (1.20.0.2, format 4) on the current game build. Its spec predates that build, so it reports many unknown-name findings; only the timings and memory are recorded here, not the findings.",
+        "Release 2.3.0: legacy/ at commit a50e8af, the v2.3.0 tree with one change the owner decided (it accepts the since value 1.21.0.3 of the format 4 copy), in legacy/packages/engine/spec/schema.json and legacy/packages/engine/src/spec/types.ts. It was built from an export of legacy/ outside the repository by task baseline:prepare, whose spec.config.json points it at the committed format 4 copy of the spec, spec/legacy/ck3-spec-1.21.0.3.format4.json.gz (game 1.21.0.3), the only format release 2.3.0 reads; nothing else in the export differs from legacy/.",
+        "The game files read are the build the format 4 copy was derived for, and the corpus is the committed one: records/README.md, \"Baselines\".",
+        "Only the timings and memory are recorded here; what 2.3.0 found is in the results baselines (results-*.json).",
         "Each series is one first run and then the later runs, one process at a time. \"first\" is the first run of the series in a fresh process; it is not a cold start: the operating system file cache could not be dropped, and the base game and corpus files had already been read (by the corpus copy, the manifest hashing and earlier series), so they were most likely cached. \"later\" gives the median, minimum, maximum and spread (maximum minus minimum) of the remaining runs, and every value.",
         "The machine was in ordinary use while the runs were made; other processes were running. context.load_average_1m is the one-minute load average just before each run.",
-        "The script ran with the Node flag --max-old-space-size=8192 and was otherwise unchanged: with Node's default heap limit (about 4 GiB here) it ran out of memory on this game build during its check phase.",
+        "The script ran with the Node flag --max-old-space-size=8192 and was otherwise unchanged: with Node's default heap limit (about 4 GiB here) it runs out of memory on this game build during its check phase.",
         "parse_ms parses every .txt file under common/, events/ and history/; check_ms then loads the same tree as a workspace and runs the registry, schema and scope checks on it. peak_rss_kib is the peak resident memory of the whole process, read at exit."
     ],
     "results": {
@@ -45,55 +47,55 @@
                 "measures": {
                     "parse_ms": {
                         "unit": "ms",
-                        "first": 7024,
+                        "first": 5750,
                         "later": {
                             "n": 5,
-                            "median": 7147,
-                            "min": 6206,
-                            "max": 7990,
-                            "spread": 1784,
+                            "median": 6213,
+                            "min": 5258,
+                            "max": 6386,
+                            "spread": 1128,
                             "values": [
-                                7211,
-                                6206,
-                                7147,
-                                6740,
-                                7990
+                                6386,
+                                6278,
+                                6197,
+                                6213,
+                                5258
                             ]
                         }
                     },
                     "check_ms": {
                         "unit": "ms",
-                        "first": 76545,
+                        "first": 66689,
                         "later": {
                             "n": 5,
-                            "median": 69911,
-                            "min": 67148,
-                            "max": 108018,
-                            "spread": 40870,
+                            "median": 64395,
+                            "min": 62516,
+                            "max": 67495,
+                            "spread": 4979,
                             "values": [
-                                67148,
-                                69331,
-                                108018,
-                                71423,
-                                69911
+                                64395,
+                                65211,
+                                67495,
+                                63356,
+                                62516
                             ]
                         }
                     },
                     "peak_rss_kib": {
                         "unit": "KiB",
-                        "first": 5916556,
+                        "first": 5962384,
                         "later": {
                             "n": 5,
-                            "median": 6001508,
-                            "min": 5919048,
-                            "max": 6053820,
-                            "spread": 134772,
+                            "median": 5982468,
+                            "min": 5876900,
+                            "max": 6050088,
+                            "spread": 173188,
                             "values": [
-                                6001508,
-                                6053820,
-                                6024204,
-                                5962228,
-                                5919048
+                                5997276,
+                                5937816,
+                                5982468,
+                                5876900,
+                                6050088
                             ]
                         }
                     }
@@ -106,12 +108,12 @@
                         "--max-old-space-size=8192"
                     ],
                     "load_average_1m": [
-                        4.38,
-                        5.04,
-                        5.23,
-                        4.84,
-                        12.59,
-                        7.6
+                        4.91,
+                        5.14,
+                        5.12,
+                        4.39,
+                        5,
+                        4.32
                     ]
                 }
             }

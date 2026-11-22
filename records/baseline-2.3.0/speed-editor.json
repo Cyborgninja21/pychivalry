@@ -2,12 +2,12 @@
     "record_format": 1,
     "suite": "baseline:speed",
     "command": "LEGACY_BUILD=<legacy build> CK3_GAME_PATH=<game dir> CK3_CORPUS=<corpus dir> BASELINE_PARTS=editor BASELINE_RUNS=6 task baseline:speed",
-    "made_at": "2026-11-21T21:59:28.630Z",
+    "made_at": "2026-11-22T08:16:55.278Z",
     "tool": {
         "name": "pychivalry",
         "version": "2.3.0",
-        "commit": "3874ebf8a3c7e3defad35bb673a7ad618d6dcf67",
-        "dirty": true
+        "commit": "a50e8afb196360197e3dcf6df5d5a34e6b49f6f9",
+        "dirty": false
     },
     "machine": {
         "os": "linux",
@@ -23,8 +23,8 @@
         "content_hashed_files": 17388
     },
     "spec": {
-        "version": "1.20.0.2",
-        "sha256": "a9959bf9d650fe793ffd3ee60eb6589b8cb6eaaaae778ce84b58fdc535f2eeb6",
+        "version": "1.21.0.3",
+        "sha256": "0894b1a5aa0165012450a2d445a733559436f580ab26be940e3a660bf81b59ca",
         "package_format": 4
     },
     "corpus": {
@@ -38,12 +38,14 @@
         ]
     },
     "notes": [
-        "Release 2.3.0 (the v2.3.0 tree, identical to legacy/), built from an export of legacy/ outside the repository by task baseline:prepare, run with its own spec package (1.20.0.2, format 4) on the current game build. Its spec predates that build, so it reports many unknown-name findings; only the timings and memory are recorded here, not the findings.",
+        "Release 2.3.0: legacy/ at commit a50e8af, the v2.3.0 tree with one change the owner decided (it accepts the since value 1.21.0.3 of the format 4 copy), in legacy/packages/engine/spec/schema.json and legacy/packages/engine/src/spec/types.ts. It was built from an export of legacy/ outside the repository by task baseline:prepare, whose spec.config.json points it at the committed format 4 copy of the spec, spec/legacy/ck3-spec-1.21.0.3.format4.json.gz (game 1.21.0.3), the only format release 2.3.0 reads; nothing else in the export differs from legacy/.",
+        "The game files read are the build the format 4 copy was derived for, and the corpus is the committed one: records/README.md, \"Baselines\".",
+        "Only the timings and memory are recorded here; what 2.3.0 found is in the results baselines (results-*.json).",
         "Each series is one first run and then the later runs, one process at a time. \"first\" is the first run of the series in a fresh process; it is not a cold start: the operating system file cache could not be dropped, and the base game and corpus files had already been read (by the corpus copy, the manifest hashing and earlier series), so they were most likely cached. \"later\" gives the median, minimum, maximum and spread (maximum minus minimum) of the remaining runs, and every value.",
         "The machine was in ordinary use while the runs were made; other processes were running. context.load_average_1m is the one-minute load average just before each run.",
         "Each run is one invocation of release 2.3.0's extension integration harness (out/test/runTest.js) under xvfb-run, with WAYLAND_DISPLAY, the desktop session bus and the launching VS Code's variables removed, so that no window reached a desktop. Each invocation measures one mod, selected with the harness's own CK3_CORPUS_SLUGS, because the harness stops at the first mod whose assertions fail. The harness runs its own integration suite first, then opens the mod in a fresh VS Code with the game path set and every other setting at its default. The runs go round the mods in turn: run 1 of every mod, then run 2, and so on.",
         "time_to_first_full_result_ms is the harness's own figure: from the extension's activation to the language server's first full background pass. server_peak_rss_kib is the language server's peak resident memory as the harness reports it.",
-        "The harness exits non-zero on these runs: its assertions require every error finding to be classified, which the 1.20.0.2 spec on the newer game does not meet. Its record of the timings is written before those assertions."
+        "18 of 30 runs of the harness exited non-zero: its assertions require every error finding to be classified in 2.3.0's own classification file, written for the corpus copy and spec of 2026-10. Its record of the timings is written before those assertions."
     ],
     "results": {
         "series": [
@@ -55,37 +57,37 @@
                 "measures": {
                     "time_to_first_full_result_ms": {
                         "unit": "ms",
-                        "first": 2459,
+                        "first": 2413,
                         "later": {
                             "n": 5,
-                            "median": 2591,
-                            "min": 2346,
-                            "max": 2979,
-                            "spread": 633,
+                            "median": 2327,
+                            "min": 2173,
+                            "max": 2505,
+                            "spread": 332,
                             "values": [
-                                2979,
-                                2433,
-                                2591,
-                                2346,
-                                2636
+                                2327,
+                                2490,
+                                2251,
+                                2173,
+                                2505
                             ]
                         }
                     },
                     "server_peak_rss_kib": {
                         "unit": "KiB",
-                        "first": 318748,
+                        "first": 275352,
                         "later": {
                             "n": 5,
-                            "median": 319216,
-                            "min": 313728,
-                            "max": 321772,
-                            "spread": 8044,
+                            "median": 288248,
+                            "min": 276852,
+                            "max": 290876,
+                            "spread": 14024,
                             "values": [
-                                313728,
-                                319216,
-                                321772,
-                                320620,
-                                317884
+                                288248,
+                                276852,
+                                289432,
+                                277028,
+                                290876
                             ]
                         }
                     }
@@ -106,12 +108,12 @@
                         0
                     ],
                     "load_average_1m": [
-                        3.98,
-                        3.5,
-                        7.16,
-                        3.99,
-                        5.42,
-                        6.39
+                        3.26,
+                        6.34,
+                        5.41,
+                        4.78,
+                        6.01,
+                        5.59
                     ]
                 }
             },
@@ -123,37 +125,37 @@
                 "measures": {
                     "time_to_first_full_result_ms": {
                         "unit": "ms",
-                        "first": 16718,
+                        "first": 15412,
                         "later": {
                             "n": 5,
-                            "median": 17230,
-                            "min": 16505,
-                            "max": 21345,
-                            "spread": 4840,
+                            "median": 19508,
+                            "min": 15177,
+                            "max": 24665,
+                            "spread": 9488,
                             "values": [
-                                18785,
-                                17230,
-                                16505,
-                                21345,
-                                16661
+                                15177,
+                                19508,
+                                18300,
+                                24665,
+                                24233
                             ]
                         }
                     },
                     "server_peak_rss_kib": {
                         "unit": "KiB",
-                        "first": 2638356,
+                        "first": 2566156,
                         "later": {
                             "n": 5,
-                            "median": 1495824,
-                            "min": 1368984,
-                            "max": 2599616,
-                            "spread": 1230632,
+                            "median": 2548464,
+                            "min": 2424796,
+                            "max": 2564396,
+                            "spread": 139600,
                             "values": [
-                                1495824,
-                                1533040,
-                                2599616,
-                                1368984,
-                                1433072
+                                2558544,
+                                2564396,
+                                2545640,
+                                2424796,
+                                2548464
                             ]
                         }
                     }
@@ -174,12 +176,12 @@
                         1
                     ],
                     "load_average_1m": [
-                        4.01,
-                        3.6,
-                        5.36,
-                        4.01,
-                        5.1,
-                        4.02
+                        3.17,
+                        10.99,
+                        5.47,
+                        4.24,
+                        4.32,
+                        4.56
                     ]
                 }
             },
@@ -191,37 +193,37 @@
                 "measures": {
                     "time_to_first_full_result_ms": {
                         "unit": "ms",
-                        "first": 8134,
+                        "first": 6904,
                         "later": {
                             "n": 5,
-                            "median": 7214,
-                            "min": 6493,
-                            "max": 11806,
-                            "spread": 5313,
+                            "median": 7899,
+                            "min": 7039,
+                            "max": 9909,
+                            "spread": 2870,
                             "values": [
-                                7343,
-                                6493,
-                                7214,
-                                11806,
-                                6585
+                                9169,
+                                7372,
+                                9909,
+                                7039,
+                                7899
                             ]
                         }
                     },
                     "server_peak_rss_kib": {
                         "unit": "KiB",
-                        "first": 449732,
+                        "first": 411664,
                         "later": {
                             "n": 5,
-                            "median": 451472,
-                            "min": 426840,
-                            "max": 482084,
-                            "spread": 55244,
+                            "median": 402356,
+                            "min": 398160,
+                            "max": 428468,
+                            "spread": 30308,
                             "values": [
-                                451472,
-                                470712,
-                                482084,
-                                426840,
-                                427808
+                                402356,
+                                401348,
+                                398160,
+                                428468,
+                                414516
                             ]
                         }
                     }
@@ -242,12 +244,12 @@
                         1
                     ],
                     "load_average_1m": [
-                        4.44,
-                        6.05,
-                        3.8,
-                        4.08,
-                        8.24,
-                        4.67
+                        3.64,
+                        7.43,
+                        5.83,
+                        3.66,
+                        5.24,
+                        5.77
                     ]
                 }
             },
@@ -259,37 +261,37 @@
                 "measures": {
                     "time_to_first_full_result_ms": {
                         "unit": "ms",
-                        "first": 19819,
+                        "first": 20905,
                         "later": {
                             "n": 5,
-                            "median": 22891,
-                            "min": 21303,
-                            "max": 24864,
-                            "spread": 3561,
+                            "median": 22759,
+                            "min": 21133,
+                            "max": 23743,
+                            "spread": 2610,
                             "values": [
-                                22419,
-                                23553,
-                                22891,
-                                21303,
-                                24864
+                                23743,
+                                22148,
+                                21133,
+                                22759,
+                                23475
                             ]
                         }
                     },
                     "server_peak_rss_kib": {
                         "unit": "KiB",
-                        "first": 729600,
+                        "first": 842976,
                         "later": {
                             "n": 5,
-                            "median": 731148,
-                            "min": 730764,
-                            "max": 761516,
-                            "spread": 30752,
+                            "median": 747332,
+                            "min": 725760,
+                            "max": 776356,
+                            "spread": 50596,
                             "values": [
-                                730764,
-                                731148,
-                                731104,
-                                761516,
-                                757376
+                                761264,
+                                731944,
+                                725760,
+                                776356,
+                                747332
                             ]
                         }
                     }
@@ -310,12 +312,12 @@
                         1
                     ],
                     "load_average_1m": [
-                        4.65,
-                        8.39,
-                        3.86,
-                        4.9,
-                        16.85,
-                        7.37
+                        3.16,
+                        4.86,
+                        5.16,
+                        4.26,
+                        5.94,
+                        6.79
                     ]
                 }
             },
@@ -327,37 +329,37 @@
                 "measures": {
                     "time_to_first_full_result_ms": {
                         "unit": "ms",
-                        "first": 7019,
+                        "first": 7952,
                         "later": {
                             "n": 5,
-                            "median": 7307,
-                            "min": 6947,
-                            "max": 8122,
-                            "spread": 1175,
+                            "median": 8294,
+                            "min": 7182,
+                            "max": 10367,
+                            "spread": 3185,
                             "values": [
-                                6947,
-                                8122,
-                                8036,
-                                7307,
-                                7111
+                                7182,
+                                8294,
+                                8457,
+                                10367,
+                                7526
                             ]
                         }
                     },
                     "server_peak_rss_kib": {
                         "unit": "KiB",
-                        "first": 472660,
+                        "first": 447696,
                         "later": {
                             "n": 5,
-                            "median": 480944,
-                            "min": 479036,
-                            "max": 492552,
-                            "spread": 13516,
+                            "median": 444556,
+                            "min": 419524,
+                            "max": 469872,
+                            "spread": 50348,
                             "values": [
-                                480152,
-                                479036,
-                                481056,
-                                480944,
-                                492552
+                                419524,
+                                428784,
+                                469872,
+                                455652,
+                                444556
                             ]
                         }
                     }
@@ -378,12 +380,12 @@
                         0
                     ],
                     "load_average_1m": [
-                        3.59,
-                        8.15,
-                        4.22,
-                        5.94,
-                        13.5,
-                        4.89
+                        4.68,
+                        6.2,
+                        3.93,
+                        3.83,
+                        5.88,
+                        5.25
                     ]
                 }
             }
