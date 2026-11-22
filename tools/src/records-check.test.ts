@@ -18,9 +18,10 @@ import { repoRoot, sha256 } from './util.js';
 const schemaFile = path.join(repoRoot(), 'records', 'record.schema.json');
 const validate = compileRecordSchema(schemaFile);
 
-const SPEC = { version: '1.20.0.2', sha256: 'a'.repeat(64) };
+const SPEC = { version: '1.21.0.3', sha256: 'a'.repeat(64) };
+const LEGACY = { version: '1.21.0.3', sha256: '9'.repeat(64), package_format: 4 };
 const CORPUS = 'b'.repeat(64);
-const expected: Expected = { spec: SPEC, corpusManifestSha256: CORPUS };
+const expected: Expected = { spec: SPEC, legacySpec: LEGACY, corpusManifestSha256: CORPUS };
 
 function validRecord(): SuiteRecord {
     return {
@@ -36,7 +37,7 @@ function validRecord(): SuiteRecord {
             files: 3,
             content_hashed_files: 1,
         },
-        spec: { ...SPEC, package_format: 4 },
+        spec: { ...SPEC, package_format: 5 },
         corpus: { manifest_sha256: CORPUS, slugs: ['rice'] },
         results: {},
     };
@@ -46,6 +47,7 @@ function speedRecord(later: number[]): SuiteRecord {
     return {
         ...validRecord(),
         suite: 'baseline:speed',
+        spec: { ...LEGACY },
         notes: ['The first run is not a cold start.'],
         results: {
             series: [
@@ -76,8 +78,38 @@ test('a record with a wrong spec checksum is rejected', () => {
 
 test('a record made on another spec version is rejected', () => {
     const record = validRecord();
-    record.spec.version = '1.21.0.3';
-    assert.match(checkRecord(record, validate, expected).join('\n'), /made on spec "1\.21\.0\.3"/);
+    record.spec.version = '1.20.0.2';
+    assert.match(checkRecord(record, validate, expected).join('\n'), /made on spec "1\.20\.0\.2"/);
+});
+
+test('a 2.3.0 baseline is tied to the committed format 4 copy and its game build, not to the package', () => {
+    assert.deepEqual(checkRecord(speedRecord([5, 1, 4, 2, 3]), validate, expected), []);
+    const onPackage = { ...speedRecord([5, 1, 4, 2, 3]), spec: { ...SPEC, package_format: 5 } };
+    assert.match(
+        checkRecord(onPackage, validate, expected).join('\n'),
+        /^\/spec: a 2\.3\.0 baseline made on spec "1\.21\.0\.3" format 5 .* but the committed format 4 copy is 1\.21\.0\.3 format 4/,
+    );
+    const otherCopy = speedRecord([5, 1, 4, 2, 3]);
+    otherCopy.spec.sha256 = '8'.repeat(64);
+    assert.match(checkRecord(otherCopy, validate, expected).join('\n'), /re-run the baseline/);
+    const otherGame = speedRecord([5, 1, 4, 2, 3]);
+    otherGame.game.build = '1.21.1.0';
+    assert.deepEqual(checkRecord(otherGame, validate, expected), [
+        '/game/build: a 2.3.0 baseline made on game "1.21.1.0", but the committed spec is for game 1.21.0.3; re-run the baseline',
+    ]);
+    const otherCorpus = speedRecord([5, 1, 4, 2, 3]);
+    otherCorpus.corpus = { manifest_sha256: 'f'.repeat(64), slugs: ['rice'] };
+    assert.match(
+        checkRecord(otherCorpus, validate, expected).join('\n'),
+        /made on corpus manifest/,
+    );
+    assert.match(
+        checkRecord(speedRecord([5, 1, 4, 2, 3]), validate, {
+            ...expected,
+            legacySpec: undefined,
+        }).join('\n'),
+        /committed format 4 copy spec\/legacy\/, which is missing/,
+    );
 });
 
 test('a record with a missing field is rejected, for every required field', () => {
@@ -163,17 +195,21 @@ test('a speed record without notes is rejected', () => {
 
 test('checkRecords finds the records of a repository and names the file of each problem', (t) => {
     const root = tempDir(t);
-    const json = Buffer.from(JSON.stringify({ package_format: 4 }));
+    const json = Buffer.from(
+        JSON.stringify({ package_format: 5, manifest: { version: '1.21.0.3', companions: {} } }),
+    );
     writeTree(root, {
-        'spec/ck3-spec-1.20.0.2.json.gz': gzipSync(json),
-        'spec/ck3-spec-1.20.0.2.sha256': `${sha256(json)}  ck3-spec-1.20.0.2.json\n`,
-        'spec/schema.json': JSON.stringify({ properties: { package_format: { const: 4 } } }),
+        'spec/ck3-spec-1.21.0.3.json.gz': gzipSync(json),
+        'spec/ck3-spec-1.21.0.3.sha256': `${sha256(json)}  ck3-spec-1.21.0.3.json\n`,
+        'spec/schema.format5.json': JSON.stringify({
+            properties: { package_format: { const: 5 } },
+        }),
         'records/corpus/MANIFEST.tsv': 'manifest\n',
     });
     mkdirSync(path.join(root, 'records'), { recursive: true });
     copyFileSync(schemaFile, path.join(root, 'records', 'record.schema.json'));
     const good = validRecord();
-    good.spec = { version: '1.20.0.2', sha256: sha256(json), package_format: 4 };
+    good.spec = { version: '1.21.0.3', sha256: sha256(json), package_format: 5 };
     good.corpus = { manifest_sha256: sha256('manifest\n'), slugs: ['rice'] };
     const stale = { ...good, spec: { ...good.spec, sha256: '0'.repeat(64) } };
     const missing: Record<string, unknown> = { ...good };
@@ -275,4 +311,125 @@ test('a parse record must agree with itself: totals, error counts, passed and cl
     ]);
     const noShape = { ...parseRecord(), results: {} };
     assert.ok(checkRecord(noShape, validate, expected).some((p) => p.includes('required')));
+});
+
+function resultsModsRecord(): SuiteRecord {
+    return {
+        ...validRecord(),
+        suite: 'baseline:results',
+        spec: { ...LEGACY },
+        notes: ['One run per mod.'],
+        results: {
+            method: 'corpus-acceptance',
+            context: { exit_codes: [1], load_average_1m: [1.5] },
+            mods: [
+                {
+                    slug: 'rice',
+                    files: 4,
+                    by_severity: { error: 1, warning: 0, information: 2, hint: 0 },
+                    by_code: [
+                        { code: 'unknown_trigger_X', severity: 'error', count: 1 },
+                        { code: 'undefined_event_target_X', severity: 'information', count: 2 },
+                    ],
+                    errors: 1,
+                    error_list: [
+                        {
+                            file: 'events/a.txt',
+                            line: 3,
+                            code: 'unknown_trigger_X',
+                            message: "Unknown trigger 'x'",
+                            classification: 'unclassified',
+                        },
+                    ],
+                },
+            ],
+        },
+    };
+}
+
+function resultsBaseGameRecord(): SuiteRecord {
+    return {
+        ...validRecord(),
+        suite: 'baseline:results',
+        spec: { ...LEGACY },
+        corpus: null,
+        notes: ['One run.'],
+        results: {
+            method: 'vanilla-acceptance',
+            context: { node_flags: [], load_average_1m: 1 },
+            base_game: {
+                parse: {
+                    files: 3,
+                    by_folder: [
+                        { folder: 'common', files: 2 },
+                        { folder: 'events', files: 1 },
+                    ],
+                    files_with_bom: 1,
+                    errors: 1,
+                    error_list: [
+                        { file: 'common/a.txt', line: 1, column: 2, code: 'x', message: 'X' },
+                    ],
+                },
+                check: {
+                    by_severity: { error: 0, warning: 1, information: 0, hint: 0 },
+                    by_code: [{ code: 'y', severity: 'warning', count: 1 }],
+                    errors: 0,
+                    error_list: [],
+                },
+                scope: {
+                    keyword_uses: 10,
+                    keyword_uses_known_scope: 5,
+                    keyword_uses_judged: 4,
+                    link_steps_judged: 3,
+                    findings: 0,
+                    keyword_uses_by_known_scope_type: [{ type: 'character', uses: 5 }],
+                },
+            },
+        },
+    };
+}
+
+test('a results baseline that agrees with itself passes, for the mods and for the base game', () => {
+    assert.deepEqual(checkRecord(resultsModsRecord(), validate, expected), []);
+    assert.deepEqual(checkRecord(resultsBaseGameRecord(), validate, expected), []);
+});
+
+test('a results baseline whose counts disagree with each other or with its corpus is rejected', () => {
+    const record = resultsModsRecord();
+    const mod = (record.results['mods'] as Record<string, unknown>[])[0] ?? {};
+    mod['by_severity'] = { error: 2, warning: 0, information: 2, hint: 0 };
+    mod['errors'] = 2;
+    record.corpus = { manifest_sha256: CORPUS, slugs: ['viet-events'] };
+    assert.deepEqual(checkRecord(record, validate, expected), [
+        '/results/mods/0/by_severity/error: 2 is not the total of by_code (1)',
+        '/results/mods/0/errors: 2 with 1 listed',
+        '/results/mods/0/error_list: 1 listed, but by_severity counts 2 errors',
+        '/results/mods: the mods ["rice"] are not the corpus slugs ["viet-events"]',
+    ]);
+    const base = resultsBaseGameRecord();
+    const parse = (base.results['base_game'] as { parse: Record<string, unknown> }).parse;
+    parse['files'] = 4;
+    parse['errors'] = 0;
+    assert.deepEqual(checkRecord(base, validate, expected), [
+        "/results/base_game/parse/files: 4 is not the folders' total (3)",
+        '/results/base_game/parse/errors: 0 with 1 listed',
+    ]);
+});
+
+test('a results baseline must have the shape of its method', () => {
+    const record = resultsModsRecord();
+    record.results['method'] = 'vanilla-acceptance';
+    assert.match(
+        checkRecord(record, validate, expected).join('\n'),
+        /must have required property 'base_game'/,
+    );
+    const noClassification = resultsModsRecord();
+    const mod = (
+        noClassification.results['mods'] as { error_list: Record<string, unknown>[] }[]
+    )[0];
+    delete mod?.error_list[0]?.['classification'];
+    assert.match(
+        checkRecord(noClassification, validate, expected).join('\n'),
+        /must have required property 'classification'/,
+    );
 });

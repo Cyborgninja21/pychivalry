@@ -43,9 +43,10 @@ function isJson(value: unknown): value is Record<string, unknown> {
 }
 
 /**
- * The folder list of a spec package (formats 4 and 5): `directories[]` with `path` and
- * `content_type`, and `schema[path]` with `fields` and `vanilla.records`. An entry without a
- * path or content type is skipped.
+ * The folder list of a format 5 spec package: `directories[]` with `path` and
+ * `content_type`, and `schema[path]` with `fields` and `vanilla.records` and `vanilla.files`.
+ * Format 5 keeps these keys of format 4 with the same shape and adds keys this reader does
+ * not use. An entry without a path or content type is skipped.
  */
 export function foldersFromSpec(specPackage: unknown): SpecFolder[] {
     if (!isJson(specPackage) || !Array.isArray(specPackage['directories'])) {

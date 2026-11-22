@@ -1,0 +1,6209 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Cyborgninja21/pdx-parser-re/spec/package/schema.format5.json",
+  "title": "CK3 spec package, format 5",
+  "description": "One versioned bundle of the CK3 script vocabulary derived from one executable (see manifest.exe.sha256), in package format 5: format 4 (spec/package/schema.json) plus the additions of spec/FORMAT_5_PLAN.md. Every format 4 key keeps its name, meaning and shape; tools/python/build_spec_package.py checks that this file is schema.json plus additions (only property names, $defs entries and required/enum items added). Built by tools/python/build_spec_package.py --format 5. The data of the three heavy parts (C1 info_docs, C2 gui, C3 data_types) is in companion files beside the package file (ck3-spec-<version>.info.json, .gui.json, .data_types.json, each with its .sha256), listed in manifest.companions with their sha256; their shapes are $defs companionInfo, companionGui and companionDataTypes.",
+  "type": "object",
+  "required": [
+    "package_format",
+    "manifest",
+    "buckets",
+    "modifier_templates",
+    "keyword_templates",
+    "iterator_prefixes",
+    "multi_bucket",
+    "directories",
+    "schema",
+    "errors",
+    "retired",
+    "noise_dropped",
+    "scope_validity",
+    "scope_types",
+    "parts",
+    "modifier_template_tags",
+    "modifier_template_marks",
+    "info_docs",
+    "gui",
+    "data_types",
+    "tables"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "package_format": {
+      "const": 5,
+      "description": "Shape version. 2 (2026-10-01): adds keyword_templates. 3 (2026-10-02): scope_validity filled from the game's own script_docs output and the new top-level scope_types; a format-2 loader rejects the unknown top-level key, hence the bump. 4 (2026-10-03, post-2.0 Phase 6): schema fields may carry `scope` (the scope types the game evaluates the field in when they are not the record's root, measured on vanilla) and `scope_evidence`, and `provenance: corpus` for an unconfirmed wiki field the real-mod corpus sets; a format-3 loader rejects both (fields are closed, provenance an enum), hence the bump. 5 (2026-11-21, spec/FORMAT_5_PLAN.md phase L2): format 4 plus additions, nothing removed or reshaped: the top-level list parts and the part objects modifier_template_tags (phase L3), info_docs, gui, data_types and tables, manifest.info_text, and optional keys on bucket entries (use_areas, takes), schema fields (record_usage, description_source, value_type, value_type_evidence, wiki_type, values, loc_key, loc_key_evidence, source) and errors (script_facing, reason); a format-4 loader rejects the new top-level keys (additionalProperties false), hence the bump. The format 4 schema is spec/package/schema.json."
+    },
+    "manifest": {
+      "$ref": "#/$defs/manifest"
+    },
+    "buckets": {
+      "type": "object",
+      "required": [
+        "triggers",
+        "effects",
+        "links",
+        "lists",
+        "on_actions",
+        "modifiers"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "triggers": {
+          "$ref": "#/$defs/bucket"
+        },
+        "effects": {
+          "$ref": "#/$defs/bucket"
+        },
+        "links": {
+          "$ref": "#/$defs/bucket"
+        },
+        "lists": {
+          "$ref": "#/$defs/bucket"
+        },
+        "on_actions": {
+          "$ref": "#/$defs/bucket"
+        },
+        "modifiers": {
+          "$ref": "#/$defs/bucket"
+        }
+      },
+      "description": "Registered keywords per bucket. Lookups are by (name, context): a name can be in several buckets (see multi_bucket)."
+    },
+    "modifier_templates": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "pattern": "%s"
+      },
+      "description": "Name templates of the modifier types the engine generates per database entry at load time (e.g. stationed_%s_damage_mult): the exe templates the game's modifier_definition_formats attest, plus (format 3) the template tags the game documents in script_docs' modifiers.log ($PLACEHOLDER$ written as %s) that none of them generates. A modifier name is valid if it is in buckets.modifiers or fills one template with a key of the matching database. In format 5, modifier_template_marks marks the entries that are not proof that a name is valid (%s_add)."
+    },
+    "keyword_templates": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Triggers and effects the engine registers once per key of a database at load time (e.g. has_relation_%s per scripted relation). A name is in the template's bucket when it is the template with %s replaced by a top-level key of a file in the key database folder.",
+      "items": {
+        "$ref": "#/$defs/keywordTemplate"
+      }
+    },
+    "iterator_prefixes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "any_",
+          "every_",
+          "random_",
+          "ordered_"
+        ]
+      },
+      "description": "An iterator is one of these prefixes followed by a name of buckets.lists (never of buckets.links)."
+    },
+    "multi_bucket": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+      },
+      "additionalProperties": {
+        "type": "array",
+        "minItems": 2,
+        "items": {
+          "type": "string",
+          "enum": [
+            "triggers",
+            "effects",
+            "links",
+            "lists",
+            "on_actions",
+            "modifiers"
+          ]
+        }
+      }
+    },
+    "directories": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/directory"
+      }
+    },
+    "schema": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/schemaEntry"
+      },
+      "description": "Per-directory record schema, keyed by directory path (each key is a path in directories)."
+    },
+    "errors": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/error"
+      }
+    },
+    "retired": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/retired"
+      }
+    },
+    "noise_dropped": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/noise"
+      }
+    },
+    "scope_validity": {
+      "type": "object",
+      "required": [
+        "triggers",
+        "effects",
+        "links",
+        "lists",
+        "on_actions"
+      ],
+      "additionalProperties": false,
+      "description": "Per-keyword scope validity from the game's own script_docs output (research/oracle/<version>/, imported by tools/python/oracle_import.py), per bucket and name. Every trigger, effect and event target the game documents is here, including the list iterators (any_/every_/random_/ordered_) and the per-key names of keyword templates; lists are keyed by base, on_actions include the game's script on_actions (from_code false).",
+      "properties": {
+        "triggers": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/scopeRecord"
+          }
+        },
+        "effects": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/scopeRecord"
+          }
+        },
+        "links": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/linkRecord"
+          },
+          "description": "Event targets. A name can have two forms: a global one taking data (faith:catholic) and a scoped one (x.faith)."
+        },
+        "lists": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/listRecord"
+          }
+        },
+        "on_actions": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/onActionRecord"
+          }
+        }
+      }
+    },
+    "scope_types": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {
+        "pattern": "^[a-z_]+$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/scopeType"
+      },
+      "description": "Every scope type the game's script_docs output names (none excluded), with the links whose output produces it, the lists that iterate it, the on_actions that expect it, how many triggers and effects support it and its index in the binary's scope-type table (registrar walk) when it has one."
+    },
+    "parts": {
+      "type": "array",
+      "minItems": 12,
+      "items": {
+        "$ref": "#/$defs/partEntry"
+      },
+      "description": "Every format 5 addition (A1-A5, B1-B3, C1-C4 of spec/FORMAT_5_PLAN.md), one entry each in that order, with its status: one look says what this package holds. A part that is not built gives a reason and puts none of its keys in the package; a part that is built carries them and names its input files (each also in manifest.sources and manifest.source_sha256)."
+    },
+    "modifier_template_tags": {
+      "$ref": "#/$defs/modifierTemplateTagsPart",
+      "description": "A1: every modifier template tag the game's modifiers.log prints, kept exactly as the game writes it ($GOVERNMENT_TYPE$_tributary_opinion), with its use areas and how it relates to modifier_templates (a list of strings in format 4, so the tags cannot sit on its items)."
+    },
+    "modifier_template_marks": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "%s"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/modifierTemplateMark"
+      },
+      "description": "A1 (owner decision after J1): the entries of modifier_templates (a list of strings in format 4, which cannot carry a mark) that need not be taken as proof that a name is valid, keyed by the entry; {} when none is. Every entry the bare-suffix rule marks is here and nothing else (build_spec_package.py, modifier_template_marks()); the template itself stays in modifier_templates (plan rule 3)."
+    },
+    "info_docs": {
+      "$ref": "#/$defs/infoDocsPart",
+      "description": "C1: Paradox's own documentation files (.info), grouped by the directory each documents; facts apart from the text (manifest.info_text). When built, the data is in the companion file ck3-spec-<version>.info.json (companionInfo) and this object records it."
+    },
+    "gui": {
+      "$ref": "#/$defs/guiPart",
+      "description": "C2: a GUI vocabulary measured from the base game's .gui files (provenance: vanilla), as a consumer needs it to complete and check .gui files. When built, the data is in the companion file ck3-spec-<version>.gui.json (companionGui) and this object records it."
+    },
+    "data_types": {
+      "$ref": "#/$defs/dataTypesPart",
+      "description": "C3: the functions usable in localization and GUI, from the game's data-types dump. When built, the data is in the companion file ck3-spec-<version>.data_types.json (companionDataTypes) and this object records it."
+    },
+    "tables": {
+      "$ref": "#/$defs/tablesPart",
+      "description": "C4: the hand-kept tables of the pychivalry 2.3.0 engine, each entry with its evidence and evidence_status; candidates listed apart."
+    }
+  },
+  "$defs": {
+    "manifest": {
+      "type": "object",
+      "required": [
+        "game",
+        "version",
+        "exe",
+        "tooling",
+        "generated",
+        "sources",
+        "info_text",
+        "companions"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "game": {
+          "const": "ck3"
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+\\.\\d+$"
+        },
+        "exe": {
+          "type": "object",
+          "required": [
+            "version",
+            "exe",
+            "bytes",
+            "sha256"
+          ],
+          "properties": {
+            "version": {
+              "type": "string"
+            },
+            "exe": {
+              "type": "string"
+            },
+            "bytes": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[0-9A-F]{64}$"
+            }
+          }
+        },
+        "tooling": {
+          "type": "object",
+          "required": [
+            "ghidra",
+            "ghidra_cli",
+            "profile",
+            "profile_sha256"
+          ]
+        },
+        "generated": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "sources": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          },
+          "description": "Every input file of the package, repository-relative, sorted. In format 5 this includes the input files of every built part (each part names its own in parts[].sources)."
+        },
+        "source_sha256": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "description": "sha256 of each source file with CRLF normalised to LF (in format 5 also the input files of every built part)."
+        },
+        "doc_join": {
+          "type": "string",
+          "description": "Separator used when a name has several registrar docs."
+        },
+        "info_text": {
+          "enum": [
+            "full",
+            "facts"
+          ],
+          "description": "The --info-text the package was built with: full, the .info companion carries the comment text of Paradox's .info files (info_docs data.text) and schema fields carry a description from .info (description_source info) where they have no other; facts, the companion carries only the facts read from them and no schema field carries a description from .info. It governs info_docs and those descriptions when C1 is built."
+        },
+        "companions": {
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^ck3-spec-.+\\.(info|gui|data_types)\\.json$"
+          },
+          "additionalProperties": {
+            "type": "object",
+            "required": [
+              "part",
+              "key",
+              "sha256",
+              "bytes"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "part": {
+                "enum": [
+                  "C1",
+                  "C2",
+                  "C3"
+                ]
+              },
+              "key": {
+                "enum": [
+                  "info_docs",
+                  "gui",
+                  "data_types"
+                ]
+              },
+              "sha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              "bytes": {
+                "type": "integer",
+                "minimum": 1
+              }
+            }
+          },
+          "description": "Format 5: every companion file of this package (the data of the built parts C1, C2 and C3), by file name, with its part, the package key that records it, its sha256 and its size; {} when none of them is built."
+        }
+      }
+    },
+    "bucketEntry": {
+      "type": "object",
+      "required": [
+        "doc"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "doc": {
+          "type": "string",
+          "description": "Built-in registrar documentation, verbatim (empty when none)."
+        },
+        "provenance": {
+          "const": "table",
+          "description": "Modifiers only: read from the exe's static modifier table."
+        },
+        "use_areas": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "A1, modifiers only (on every modifier when A1 is built): where the modifier may be used, as the game's script_docs modifiers.log lists them (research/oracle/<version>/oracle.json); null when the log does not document the name (nothing is guessed)."
+        },
+        "takes": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/takes"
+            }
+          ],
+          "description": "A5, on every trigger and effect when A5 is built: what the keyword takes, read from the usage lines of the documentation text (the game's script_docs description and Traits, and the executable's built-in text), with the exact text of each reading; null where no text gives a usage line (never a guess, never a default). spec/keywords/takes_<version>.json, written by tools/python/derive_takes.py."
+        }
+      }
+    },
+    "bucket": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/bucketEntry"
+      }
+    },
+    "directory": {
+      "type": "object",
+      "required": [
+        "path",
+        "content_type",
+        "level",
+        "since",
+        "source",
+        "present_in_vanilla"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "content_type": {
+          "type": "string"
+        },
+        "level": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "since": {
+          "type": "string",
+          "enum": [
+            "<=1.19.0.6",
+            "1.20.0.2",
+            "1.21.0.3"
+          ]
+        },
+        "source": {
+          "type": "string",
+          "enum": [
+            "scriptable_systems",
+            "exe_loader_path",
+            "snapshot"
+          ]
+        },
+        "present_in_vanilla": {
+          "type": "boolean"
+        },
+        "default_scope": {
+          "type": "string"
+        }
+      }
+    },
+    "field": {
+      "type": "object",
+      "required": [
+        "kind",
+        "provenance",
+        "usage",
+        "required",
+        "since"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "trigger_block",
+            "effect_block",
+            "value",
+            "block",
+            "list",
+            "reference",
+            "enum"
+          ]
+        },
+        "holds": {
+          "const": "modifiers"
+        },
+        "provenance": {
+          "type": "string",
+          "enum": [
+            "engine",
+            "vanilla",
+            "corpus"
+          ]
+        },
+        "usage": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "required_evidence": {
+          "type": "string"
+        },
+        "since": {
+          "type": "string",
+          "enum": [
+            "<=1.19.0.6",
+            "1.20.0.2",
+            "1.21.0.3"
+          ]
+        },
+        "description": {
+          "type": "string"
+        },
+        "wiki_kind": {
+          "type": "string"
+        },
+        "hook": {
+          "type": "boolean"
+        },
+        "note": {
+          "type": "string"
+        },
+        "scope": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "The scope types the game evaluates this field in, when they are not the record's root (format 4): every documented use at the field's level in vanilla accepts each of them. One type: the field's scope; several: the evidence does not decide between them."
+        },
+        "scope_evidence": {
+          "type": "string",
+          "description": "How the scope was measured (uses counted, the record's root)."
+        },
+        "fields": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/field"
+          }
+        },
+        "record_usage": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "A2, on every depth-1 field when A2 is built, and on every sub-field when the inventory counts records for children (schema_inventory.py since phase L4; an older inventory counts files only, and no sub-field has it): in how many vanilla records of the directory the field is set (research/inventory/<version>/directories/*.json `records`; 0 for a field vanilla sets in no record, such as an unused interaction hook or the corpus field, whose usage counts corpus files). For a sub-field: the records whose field sets it. Always a vanilla count, so record_usage / vanilla.records of the directory is the field's share of its records."
+        },
+        "description_source": {
+          "enum": [
+            "wiki",
+            "info"
+          ],
+          "description": "Exactly on the fields and sub-fields that have a description, when A3 is built: where the description came from. wiki (A3): the pychivalry seed files (research/seeds/pychivalry/schemas/*.yaml). info (C1, owner decision after J1): the comment text of Paradox's .info file that documents the field (the first linked fact of `source` that has one, whole, as info_docs' text holds it), written only where the field has no description from format 4 or A3: a description a field already has is never replaced, and where both exist the .info text stays only in info_docs (build_schema.py --info-report lists every one). A package built with --info-text facts has no description from .info (manifest.info_text), and the format 4 copy never has one."
+        },
+        "value_type": {
+          "type": "string",
+          "pattern": "^(unknown|(boolean|integer|decimal|number|date|script_value|scope|link|flag|word|path|text|color|other|block|list)(\\|(boolean|integer|decimal|number|date|script_value|scope|link|flag|word|path|text|color|other|block|list))*)$",
+          "description": "B1: the field's value type, measured from how vanilla writes it (build_schema.py, value_type()): every value group the field's values fall in, in a fixed order, joined with | (one name: one type; several: the values are mixed, the majority is never picked); unknown when every value is a $PARAMETER$ or an @constant. On every field and sub-field the inventory has."
+        },
+        "value_type_evidence": {
+          "type": "object",
+          "required": [
+            "shapes",
+            "groups"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "shapes": {
+              "type": "object",
+              "propertyNames": {
+                "enum": [
+                  "color",
+                  "typed_block",
+                  "quoted_yes_no",
+                  "quoted_number",
+                  "quoted_date",
+                  "quoted_word",
+                  "quoted_key",
+                  "quoted_path",
+                  "quoted_text",
+                  "yes_no",
+                  "integer",
+                  "decimal",
+                  "date",
+                  "math",
+                  "constant",
+                  "parameter",
+                  "scope_ref",
+                  "variable_ref",
+                  "chain_value",
+                  "flag",
+                  "link_ref",
+                  "prefixed",
+                  "link_name",
+                  "script_value",
+                  "event_id",
+                  "dotted_key",
+                  "path",
+                  "bare_word",
+                  "other",
+                  "block",
+                  "empty_block",
+                  "bare_list"
+                ]
+              },
+              "additionalProperties": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "description": "How many of the field's uses have each value shape (schema_inventory.py SHAPES), and how many are blocks, empty blocks and bare-value lists."
+            },
+            "groups": {
+              "type": "object",
+              "propertyNames": {
+                "enum": [
+                  "boolean",
+                  "integer",
+                  "decimal",
+                  "number",
+                  "date",
+                  "script_value",
+                  "scope",
+                  "link",
+                  "flag",
+                  "word",
+                  "path",
+                  "text",
+                  "color",
+                  "other",
+                  "block",
+                  "list"
+                ]
+              },
+              "additionalProperties": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "description": "The uses per value group after the rule's subsumptions; value_type names exactly these groups."
+            },
+            "wiki_type_agrees": {
+              "type": "boolean",
+              "description": "Beside wiki_type: every measured group is one the seed type allows (absent when the seed type is not compared or the type is unknown)."
+            }
+          },
+          "description": "B1: the counts value_type was decided from."
+        },
+        "wiki_type": {
+          "type": "string",
+          "minLength": 1,
+          "description": "B1: the type the wiki seed names for the field, as the seed writes it; a hint kept beside the measured value_type, which it may contradict (value_type_evidence.wiki_type_agrees)."
+        },
+        "values": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "value",
+              "count"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "value": {
+                "type": "string",
+                "description": "The value as the files write it (quotes kept)."
+              },
+              "count": {
+                "type": "integer",
+                "minimum": 1
+              }
+            }
+          },
+          "description": "B2: every value vanilla gives the field, with its count, most used first, when there are at most 20 distinct values (build_schema.py VALUES_PUBLISH) and the field is not free text (no value_type group text)."
+        },
+        "loc_key": {
+          "const": true,
+          "description": "B3: the field's values are localization keys (build_schema.py: at least 3 distinct values, at least 90% of them keys of localization/english, fewer than half of those keys also names written in the game's common/ or gfx/ files). Absent otherwise."
+        },
+        "loc_key_evidence": {
+          "type": "object",
+          "required": [
+            "checked",
+            "keys",
+            "share",
+            "own_names",
+            "object_names",
+            "uses",
+            "key_uses"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "checked": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Distinct values checked (quotes removed)."
+            },
+            "keys": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Of them, localization keys."
+            },
+            "share": {
+              "type": "number",
+              "minimum": 0,
+              "description": "keys / checked, 3 decimals."
+            },
+            "own_names": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Of the keys, those set in a record of the same name (counted in object_names too)."
+            },
+            "object_names": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Of the keys, those also written as a key in the game's common/ or gfx/ .txt files (names of game objects, a record's own name included)."
+            },
+            "uses": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Scalar uses of the field."
+            },
+            "key_uses": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Uses whose value is a key."
+            }
+          },
+          "description": "B3: how loc_key was established."
+        },
+        "info_type": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "enum": [
+              "block",
+              "bool",
+              "color",
+              "database_key",
+              "date",
+              "duration",
+              "dynamic_description",
+              "effect",
+              "enum",
+              "file_path",
+              "fixed_point",
+              "flag",
+              "integer",
+              "list",
+              "localization_key",
+              "modifier",
+              "mtth",
+              "number",
+              "scope",
+              "script_value",
+              "scripted_cost",
+              "sound",
+              "string",
+              "trigger"
+            ]
+          },
+          "description": "C1 (owner decision after J1), on a field with `source` whose linked .info facts name a value type: those types, sorted and distinct (info_docs.py's reading of the .info placeholders; its `types` table says what each means). Beside B1's measured value_type, as wiki_type is; value_type is never changed. Absent when the facts name no type."
+        },
+        "info_scope": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "scope",
+              "type"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "scope": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "The scope the note is about: root, this, scope:<name>, or null where the note names none (`in character scope`, `Receives the event scope`)."
+              },
+              "type": {
+                "type": "string",
+                "minLength": 1,
+                "description": "The scope type, as the .info writes it (mixed case: Activity, character, Province)."
+              }
+            }
+          },
+          "description": "C1 (owner decision after J1), on a field with `source` whose linked .info facts carry scope notes that name a scope type: each {scope, type}, sorted and distinct (the note's own words stay in the fact). Beside format 4's measured scope, which is never changed. Absent when no note names a type."
+        },
+        "source": {
+          "type": "object",
+          "required": [
+            "info"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "info": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "file",
+                  "id",
+                  "line"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "The .info file (info_docs.data.directories.<dir>.files.<file>)."
+                  },
+                  "id": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "The field fact: that file's facts.fields[id]."
+                  },
+                  "line": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                }
+              },
+              "minItems": 1
+            }
+          },
+          "description": "C1, on a field or sub-field a .info file of the same directory names (build_schema.py, info_docs.schema_links()): the field facts that name it. Their types, defaults, allowed values, scope notes and comment text stay in info_docs; what they say about the field is also given here as info_type, info_scope and (description_source info) a description, each beside the measured values and never replacing them (owner decision after J1)."
+        }
+      }
+    },
+    "unconfirmed": {
+      "type": "object",
+      "required": [
+        "provenance",
+        "usage"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "provenance": {
+          "const": "wiki"
+        },
+        "usage": {
+          "const": 0
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "trigger_block",
+            "effect_block",
+            "value",
+            "block",
+            "list",
+            "reference",
+            "enum"
+          ]
+        },
+        "description": {
+          "type": "string"
+        }
+      }
+    },
+    "schemaEntry": {
+      "type": "object",
+      "required": [
+        "content_type",
+        "fields",
+        "vanilla"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "content_type": {
+          "type": "string"
+        },
+        "root_scope": {
+          "type": "string"
+        },
+        "record_body": {
+          "type": "string",
+          "enum": [
+            "trigger_block",
+            "effect_block",
+            "modifier_block"
+          ]
+        },
+        "vanilla": {
+          "type": "object",
+          "required": [
+            "files",
+            "records"
+          ],
+          "properties": {
+            "files": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "records": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
+        "wiki_seed": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "fields": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/field"
+          }
+        },
+        "unconfirmed": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/unconfirmed"
+          },
+          "description": "Fields pychivalry documents that vanilla 1.20 never sets; not part of the schema."
+        }
+      }
+    },
+    "error": {
+      "type": "object",
+      "required": [
+        "id",
+        "category",
+        "text",
+        "since",
+        "note"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_]{1,60}$"
+        },
+        "category": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        },
+        "since": {
+          "type": "string",
+          "enum": [
+            "<=1.19.0.6",
+            "1.20.0.2",
+            "1.21.0.3"
+          ]
+        },
+        "note": {
+          "type": "string"
+        },
+        "script_facing": {
+          "enum": [
+            "yes",
+            "no",
+            "unknown"
+          ],
+          "description": "A4, on every error when A4 is built: can script cause this message? yes: the text reports a problem in, or caused by, script and says so; no: the string cannot come from script (not a message, or about something script does not touch), kept and marked, never deleted; unknown: the text does not decide. Set by the named rules of tools/python/build_error_catalogue.py (SCRIPT_FACING)."
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "description": "A4, with script_facing: '<rule>: <one-line justification>; matched <what the rule matched in the text>', or 'no rule matched' (unknown), so the value can be checked against the text."
+        },
+        "subject": {
+          "enum": [
+            "asset",
+            "audio",
+            "casus_belli",
+            "character_interaction",
+            "compression",
+            "console",
+            "data_system",
+            "database",
+            "dev_tools",
+            "effect",
+            "event",
+            "file_io",
+            "game_object",
+            "graphics",
+            "gui",
+            "history",
+            "input_display",
+            "json",
+            "link",
+            "list",
+            "localization",
+            "modifier",
+            "not_a_message",
+            "on_action",
+            "online_platform",
+            "os_runtime",
+            "saved_game",
+            "scope",
+            "script_file",
+            "script_value",
+            "settings_file",
+            "trigger",
+            "trigger_cache",
+            "unknown",
+            "variable"
+          ],
+          "description": "A4, the finer category (owner decision): on every error when A4 is built, what the message is about, beside category (which keeps its format 4 values): an area of the engine script does not touch (graphics, audio, os_runtime, ...), a construct of script (trigger, effect, scope, modifier, localization, gui, ...), a kind of game object (game_object: a scope type the game documents), a file (file_io, script_file), not_a_message, or unknown when the text does not say (never forced). Set by the named rules of tools/python/build_error_catalogue.py (SUBJECT); the first that matches decides."
+        },
+        "subject_reason": {
+          "type": "string",
+          "minLength": 1,
+          "description": "A4, with subject: '<rule>: <one-line justification>; matched <what the rule matched in the text>', or 'no rule matched' (unknown), so the value can be checked against the text."
+        }
+      }
+    },
+    "retired": {
+      "type": "object",
+      "required": [
+        "name",
+        "bucket",
+        "removed_in",
+        "replacement",
+        "note"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+        },
+        "bucket": {
+          "type": "string",
+          "enum": [
+            "triggers",
+            "effects",
+            "links",
+            "lists",
+            "on_actions",
+            "modifiers"
+          ]
+        },
+        "removed_in": {
+          "type": "string"
+        },
+        "replacement": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+          }
+        },
+        "note": {
+          "type": "string"
+        }
+      }
+    },
+    "noise": {
+      "type": "object",
+      "required": [
+        "name",
+        "bucket",
+        "reason"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "bucket": {
+          "type": "string",
+          "enum": [
+            "triggers",
+            "effects",
+            "links",
+            "lists",
+            "on_actions",
+            "modifiers"
+          ]
+        },
+        "reason": {
+          "type": "string"
+        }
+      }
+    },
+    "keywordTemplate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "template",
+        "bucket",
+        "keys",
+        "doc"
+      ],
+      "properties": {
+        "template": {
+          "type": "string",
+          "pattern": "^[a-z_]*%s[a-z_]*$",
+          "description": "name with one %s slot"
+        },
+        "bucket": {
+          "enum": [
+            "triggers",
+            "effects",
+            "links",
+            "lists"
+          ]
+        },
+        "keys": {
+          "type": "string",
+          "pattern": "^common/",
+          "description": "database folder whose top-level keys fill %s; a path in directories"
+        },
+        "doc": {
+          "type": "string",
+          "description": "the registrar's built-in documentation"
+        }
+      }
+    },
+    "scopeRecord": {
+      "type": "object",
+      "required": [
+        "supported_scopes",
+        "supported_targets",
+        "description"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "supported_scopes": {
+          "$ref": "#/$defs/scopeList",
+          "description": "Scope types as the game prints them; [\"none\"] = the keyword declares no scope requirement (the game's scope check does not apply; never report); [] = the log gives none."
+        },
+        "supported_targets": {
+          "$ref": "#/$defs/scopeList"
+        },
+        "description": {
+          "type": "string"
+        },
+        "traits": {
+          "type": "string"
+        }
+      }
+    },
+    "scopeList": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z_]+$"
+      }
+    },
+    "linkRecord": {
+      "type": "object",
+      "required": [
+        "forms"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "forms": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "supported_scopes",
+              "supported_targets",
+              "requires_data",
+              "global_link",
+              "wild_card",
+              "description"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "supported_scopes": {
+                "$ref": "#/$defs/scopeList",
+                "description": "Input Scopes"
+              },
+              "supported_targets": {
+                "$ref": "#/$defs/scopeList",
+                "description": "Output Scopes"
+              },
+              "requires_data": {
+                "type": "boolean"
+              },
+              "global_link": {
+                "type": "boolean"
+              },
+              "wild_card": {
+                "type": "boolean"
+              },
+              "description": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "listRecord": {
+      "type": "object",
+      "required": [
+        "supported_scopes",
+        "supported_targets",
+        "description",
+        "iterators",
+        "forms_agree"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "supported_scopes": {
+          "$ref": "#/$defs/scopeList",
+          "description": "scopes the any_ iterator is valid in"
+        },
+        "supported_targets": {
+          "$ref": "#/$defs/scopeList",
+          "description": "element type"
+        },
+        "description": {
+          "type": "string"
+        },
+        "iterators": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "forms_agree": {
+          "type": "boolean"
+        }
+      }
+    },
+    "onActionRecord": {
+      "type": "object",
+      "required": [
+        "supported_scopes",
+        "supported_targets",
+        "description",
+        "from_code"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "supported_scopes": {
+          "$ref": "#/$defs/scopeList",
+          "description": "Expected Scope"
+        },
+        "supported_targets": {
+          "$ref": "#/$defs/scopeList"
+        },
+        "description": {
+          "type": "string"
+        },
+        "from_code": {
+          "type": "boolean"
+        }
+      }
+    },
+    "scopeType": {
+      "type": "object",
+      "required": [
+        "links",
+        "lists",
+        "on_actions",
+        "triggers",
+        "effects",
+        "input_of_links",
+        "named_as",
+        "binary_index"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "links": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "lists": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "on_actions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "triggers": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "effects": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "input_of_links": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "named_as": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "binary_index": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        }
+      }
+    },
+    "partId": {
+      "enum": [
+        "A1",
+        "A2",
+        "A3",
+        "A4",
+        "A5",
+        "B1",
+        "B2",
+        "B3",
+        "C1",
+        "C2",
+        "C3",
+        "C4"
+      ]
+    },
+    "partKeys": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "description": "The package keys the part fills; <name>, <dir> and <field> stand for any entry."
+    },
+    "partEntry": {
+      "description": "One entry of parts. Built: status built, sources (the part's input files) and files (the package file and/or the companion file that hold it). Not built: status not_built and reason, in plain words (for example \"phase L4 has not run\").",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "id",
+            "title",
+            "keys",
+            "status",
+            "sources",
+            "files"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "id": {
+              "$ref": "#/$defs/partId"
+            },
+            "title": {
+              "type": "string",
+              "minLength": 1
+            },
+            "keys": {
+              "$ref": "#/$defs/partKeys"
+            },
+            "status": {
+              "const": "built"
+            },
+            "sources": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "files": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "pattern": "^ck3-spec-.+\\.json$"
+              },
+              "description": "The files that hold the part: the package file when any of its keys sits there (every part but C2 and C3), then its companion file (C1, C2, C3)."
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "id",
+            "title",
+            "keys",
+            "status",
+            "reason"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "id": {
+              "$ref": "#/$defs/partId"
+            },
+            "title": {
+              "type": "string",
+              "minLength": 1
+            },
+            "keys": {
+              "$ref": "#/$defs/partKeys"
+            },
+            "status": {
+              "const": "not_built"
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      ]
+    },
+    "partNotBuilt": {
+      "type": "object",
+      "required": [
+        "status",
+        "reason"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "const": "not_built"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "description": "A top-level part no phase has filled for this package: present and valid, with no data and a reason in plain words. Built and empty is {\"status\": \"built\", \"data\": {}} (or, for C1-C3, a companion whose data is {})."
+    },
+    "infoDocsPart": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "status",
+            "companion"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "status": {
+              "const": "built"
+            },
+            "companion": {
+              "$ref": "#/$defs/companionRecord"
+            }
+          },
+          "description": "Built: the data (infoDocsData) is in the part's companion file, which the record names with its sha256."
+        },
+        {
+          "$ref": "#/$defs/partNotBuilt"
+        }
+      ]
+    },
+    "infoDocsData": {
+      "type": "object",
+      "required": [
+        "version",
+        "snapshot",
+        "generator",
+        "directories",
+        "counts",
+        "placeholders",
+        "types",
+        "shapes",
+        "problem_kinds",
+        "unparsed_reasons"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+\\.\\d+$",
+          "description": "The game version the .info files were read from (their snapshot); the package's own version."
+        },
+        "snapshot": {
+          "type": "object",
+          "required": [
+            "steam_build",
+            "version"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "steam_build": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "version": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "description": "The snapshot's SNAPSHOT.json (null when the snapshot had none)."
+        },
+        "generator": {
+          "const": "tools/python/info_docs.py"
+        },
+        "directories": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/infoDirectory"
+          },
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Keyed by the directory a .info file documents (`.` for the game folder), the same names as schema and directories use: schema.<dir> and info_docs.data.directories.<dir> describe one directory."
+        },
+        "text": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/infoText"
+          },
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Paradox's own text, keyed by the file's path: present when manifest.info_text is full (every file has an entry), absent when it is facts. The facts refer to it by line number only."
+        },
+        "counts": {
+          "type": "object",
+          "required": [
+            "bytes",
+            "counted_lines",
+            "directories",
+            "fact_lines",
+            "facts",
+            "fields_by_source",
+            "fields_with_value_type",
+            "files",
+            "files_with_facts",
+            "lines",
+            "placeholder_uses_mapped",
+            "placeholder_uses_unmapped",
+            "placeholders_distinct",
+            "placeholders_mapped_unused",
+            "placeholders_mapped_used",
+            "placeholders_unmapped",
+            "problems",
+            "shapes",
+            "unparsed_lines"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "bytes": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "counted_lines": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "directories": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "fact_lines": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "facts": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "fields_by_source": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "fields_with_value_type": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "files": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "files_with_facts": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "lines": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "placeholder_uses_mapped": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "placeholder_uses_unmapped": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "placeholders_distinct": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "placeholders_mapped_unused": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "placeholders_mapped_used": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "placeholders_unmapped": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "problems": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "shapes": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "unparsed_lines": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          },
+          "description": "info_docs.py's counts over every file read."
+        },
+        "placeholders": {
+          "type": "object",
+          "required": [
+            "mapped",
+            "unmapped"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "mapped": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/infoPlaceholder"
+              }
+            },
+            "unmapped": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/infoPlaceholder"
+              }
+            }
+          },
+          "description": "The placeholder wordings the files use (`<localization key>`), with the type info_docs.py's table maps each to (mapped) or none (unmapped: the wording is kept, no type is guessed)."
+        },
+        "types": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          },
+          "propertyNames": {
+            "enum": [
+              "block",
+              "bool",
+              "color",
+              "database_key",
+              "date",
+              "duration",
+              "dynamic_description",
+              "effect",
+              "enum",
+              "file_path",
+              "fixed_point",
+              "flag",
+              "integer",
+              "list",
+              "localization_key",
+              "modifier",
+              "mtth",
+              "number",
+              "scope",
+              "script_value",
+              "scripted_cost",
+              "sound",
+              "string",
+              "trigger"
+            ]
+          },
+          "description": "What each value type of `types` and `value_types` means."
+        },
+        "shapes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          },
+          "propertyNames": {
+            "enum": [
+              "brief_headings",
+              "commented_examples",
+              "definition_list",
+              "empty_record",
+              "example_record",
+              "flat_fields",
+              "markdown",
+              "no_facts",
+              "placeholders",
+              "prose",
+              "scope_notes",
+              "script_file",
+              "section_headings",
+              "titled_headings",
+              "trailing_comments",
+              "typed_comments"
+            ]
+          },
+          "description": "What each file shape means."
+        },
+        "problem_kinds": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "What each kind of problems[] means."
+        },
+        "unparsed_reasons": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "What each reason of unparsed[] means."
+        }
+      },
+      "description": "C1 when built: research/info/<version>/info_docs.json (tools/python/info_docs.py) with its files grouped by the directory each documents, so a consumer goes from schema.<dir> to info_docs.data.directories.<dir>. The facts (types read from placeholders, defaults, allowed values, scope notes, line numbers) are apart from Paradox's text (`text`, only when manifest.info_text is full). Every file record is info_docs.json's, unchanged."
+    },
+    "infoDirectory": {
+      "type": "object",
+      "required": [
+        "files"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "files": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/infoFile"
+          },
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Keyed by the file's path in the game folder (three directories have two)."
+        }
+      },
+      "description": "The .info files that document one directory."
+    },
+    "infoFile": {
+      "type": "object",
+      "required": [
+        "bom",
+        "bytes",
+        "coverage",
+        "directory",
+        "encoding",
+        "facts",
+        "line_endings",
+        "lines",
+        "path",
+        "problems",
+        "sha256",
+        "shapes",
+        "unparsed"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "bom": {
+          "type": "boolean"
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "coverage": {
+          "type": "object",
+          "required": [
+            "counted_lines",
+            "fact_lines",
+            "share"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "counted_lines": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "fact_lines": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "share": {
+              "type": "number",
+              "minimum": 0
+            }
+          }
+        },
+        "directory": {
+          "type": "string",
+          "description": "The directory it documents: the key it is under."
+        },
+        "encoding": {
+          "enum": [
+            "utf-8",
+            "cp1252"
+          ]
+        },
+        "facts": {
+          "$ref": "#/$defs/infoFacts"
+        },
+        "line_endings": {
+          "enum": [
+            "crlf",
+            "lf",
+            "mixed",
+            "none"
+          ]
+        },
+        "lines": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Its path in the game folder: the key it is under."
+        },
+        "problems": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "kind",
+              "line"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "kind": {
+                "type": "string",
+                "minLength": 1
+              },
+              "line": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "text": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "shapes": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "brief_headings",
+              "commented_examples",
+              "definition_list",
+              "empty_record",
+              "example_record",
+              "flat_fields",
+              "markdown",
+              "no_facts",
+              "placeholders",
+              "prose",
+              "scope_notes",
+              "script_file",
+              "section_headings",
+              "titled_headings",
+              "trailing_comments",
+              "typed_comments"
+            ]
+          }
+        },
+        "unparsed": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "lines",
+              "reason"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "lines": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "description": "Line ranges the reader did not read, with the reason (unparsed_reasons)."
+        }
+      },
+      "description": "One .info file as info_docs.py read it."
+    },
+    "infoFacts": {
+      "type": "object",
+      "required": [
+        "allowed",
+        "content",
+        "defaults",
+        "definitions",
+        "fields",
+        "headings",
+        "items",
+        "scope_notes"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "allowed": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "line",
+              "source",
+              "values"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "line": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "source": {
+                "enum": [
+                  "annotation",
+                  "inline_list",
+                  "list",
+                  "value"
+                ]
+              },
+              "values": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "content": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "line",
+              "path",
+              "value"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "line": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "path": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "value": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "defaults": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "line",
+              "value",
+              "wording"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "line": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "value": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "wording": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "definitions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "line",
+              "term"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "doc_lines": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              },
+              "id": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "line": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "term": {
+                "type": "string"
+              },
+              "value": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/infoField"
+          }
+        },
+        "headings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "form",
+              "line",
+              "title"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "form": {
+                "enum": [
+                  "comment",
+                  "text"
+                ]
+              },
+              "line": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "title": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "line",
+              "path",
+              "value"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "line": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "path": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "value": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "scope_notes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "form",
+              "line",
+              "scope",
+              "text",
+              "type"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "form": {
+                "enum": [
+                  "assign",
+                  "bare",
+                  "in_scope",
+                  "label",
+                  "named",
+                  "no_root",
+                  "receives",
+                  "root_scope",
+                  "sentence",
+                  "typed"
+                ]
+              },
+              "line": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "scope": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "text": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "type": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        "script_summary": {
+          "type": "object",
+          "required": [
+            "field_lines",
+            "items",
+            "records",
+            "paths"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "field_lines": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "items": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "records": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "paths": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "count",
+                  "kinds",
+                  "line",
+                  "path"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "count": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "kinds": {
+                    "type": "array",
+                    "items": {
+                      "enum": [
+                        "block",
+                        "inline_block",
+                        "value"
+                      ]
+                    }
+                  },
+                  "line": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "path": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "description": "A script_file's fields summarised by path."
+        }
+      },
+      "description": "What info_docs.py read from one file, each fact with its line (its docstring gives every rule)."
+    },
+    "infoField": {
+      "type": "object",
+      "required": [
+        "id",
+        "kind",
+        "line",
+        "name",
+        "op",
+        "path",
+        "source",
+        "value"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "allowed": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "line",
+              "source",
+              "values"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "line": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "source": {
+                "enum": [
+                  "annotation",
+                  "inline_list",
+                  "list",
+                  "value"
+                ]
+              },
+              "values": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "commented": {
+          "type": "boolean"
+        },
+        "defaults": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "line",
+              "value",
+              "wording"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "line": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "value": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "wording": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "doc_lines": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "description": "The comment lines that document the field (their text: text.<file>.docs.f<id>)."
+        },
+        "end_line": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "examples": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "line",
+              "value"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "line": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "value": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "id": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Its index in the file's facts.fields."
+        },
+        "kind": {
+          "enum": [
+            "block",
+            "heading",
+            "inline_block",
+            "value"
+          ]
+        },
+        "line": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "name": {
+          "type": "string"
+        },
+        "name_alternatives": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "op": {
+          "enum": [
+            "=",
+            "==",
+            "!=",
+            "<",
+            "<=",
+            ">",
+            ">=",
+            "?=",
+            null
+          ]
+        },
+        "path": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "qualifiers": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "optional",
+              "repeatable",
+              "situational",
+              "required",
+              "deprecated"
+            ]
+          }
+        },
+        "scopes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "form",
+              "line",
+              "scope",
+              "text",
+              "type"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "form": {
+                "enum": [
+                  "assign",
+                  "bare",
+                  "in_scope",
+                  "label",
+                  "named",
+                  "no_root",
+                  "receives",
+                  "root_scope",
+                  "sentence",
+                  "typed"
+                ]
+              },
+              "line": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "scope": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "text": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "type": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        "source": {
+          "enum": [
+            "commented",
+            "heading",
+            "markdown",
+            "script"
+          ]
+        },
+        "types": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "line",
+              "normalised",
+              "source",
+              "type",
+              "wording"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "line": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "normalised": {
+                "type": "string"
+              },
+              "refers_to": {
+                "type": "string",
+                "minLength": 1
+              },
+              "source": {
+                "enum": [
+                  "annotation",
+                  "content",
+                  "name",
+                  "value"
+                ]
+              },
+              "type": {
+                "enum": [
+                  "block",
+                  "bool",
+                  "color",
+                  "database_key",
+                  "date",
+                  "duration",
+                  "dynamic_description",
+                  "effect",
+                  "enum",
+                  "file_path",
+                  "fixed_point",
+                  "flag",
+                  "integer",
+                  "list",
+                  "localization_key",
+                  "modifier",
+                  "mtth",
+                  "number",
+                  "scope",
+                  "script_value",
+                  "scripted_cost",
+                  "sound",
+                  "string",
+                  "trigger",
+                  null
+                ]
+              },
+              "wording": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "value": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "value_types": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "block",
+              "bool",
+              "color",
+              "database_key",
+              "date",
+              "duration",
+              "dynamic_description",
+              "effect",
+              "enum",
+              "file_path",
+              "fixed_point",
+              "flag",
+              "integer",
+              "list",
+              "localization_key",
+              "modifier",
+              "mtth",
+              "number",
+              "scope",
+              "script_value",
+              "scripted_cost",
+              "sound",
+              "string",
+              "trigger"
+            ]
+          }
+        }
+      },
+      "description": "A field the file writes or names, with what it says of it."
+    },
+    "infoText": {
+      "type": "object",
+      "required": [
+        "content",
+        "docs"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "content": {
+          "type": "string",
+          "description": "The whole file text as read (BOM removed, line endings kept)."
+        },
+        "docs": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "propertyNames": {
+            "type": "string",
+            "pattern": "^[fd][0-9]+$"
+          },
+          "description": "f<id>: the comment text documenting facts.fields[id]; d<id>: facts.definitions[id]."
+        }
+      },
+      "description": "Paradox's text of one .info file (manifest.info_text full only)."
+    },
+    "infoPlaceholder": {
+      "type": "object",
+      "required": [
+        "files",
+        "refers_to",
+        "sources",
+        "spellings",
+        "type",
+        "uses",
+        "wording"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "bare": {
+          "type": "boolean"
+        },
+        "files": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "refers_to": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "annotation",
+              "content",
+              "name",
+              "value"
+            ]
+          }
+        },
+        "spellings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "type": {
+          "enum": [
+            "block",
+            "bool",
+            "color",
+            "database_key",
+            "date",
+            "duration",
+            "dynamic_description",
+            "effect",
+            "enum",
+            "file_path",
+            "fixed_point",
+            "flag",
+            "integer",
+            "list",
+            "localization_key",
+            "modifier",
+            "mtth",
+            "number",
+            "scope",
+            "script_value",
+            "scripted_cost",
+            "sound",
+            "string",
+            "trigger",
+            null
+          ]
+        },
+        "uses": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "wording": {
+          "type": "string"
+        }
+      }
+    },
+    "guiPart": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "status",
+            "companion"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "status": {
+              "const": "built"
+            },
+            "companion": {
+              "$ref": "#/$defs/companionRecord"
+            }
+          },
+          "description": "Built: the data (guiData) is in the part's companion file, which the record names with its sha256."
+        },
+        {
+          "$ref": "#/$defs/partNotBuilt"
+        }
+      ]
+    },
+    "guiData": {
+      "type": "object",
+      "required": [
+        "format",
+        "generator",
+        "version",
+        "provenance",
+        "what_this_is",
+        "in_exe",
+        "rules",
+        "parameters",
+        "sources",
+        "counts",
+        "widget_types",
+        "properties",
+        "property_blocks",
+        "templates",
+        "types",
+        "blocks",
+        "layers",
+        "top_level_blocks",
+        "values_no_key",
+        "other_statements",
+        "unresolved",
+        "constants",
+        "left_out"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "format": {
+          "const": "gui_vocabulary"
+        },
+        "generator": {
+          "const": "tools/python/gui_inventory.py"
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+\\.\\d+$",
+          "description": "The game version the .gui files were read from; the package's own."
+        },
+        "provenance": {
+          "const": "vanilla"
+        },
+        "what_this_is": {
+          "type": "string",
+          "minLength": 1
+        },
+        "in_exe": {
+          "type": "string",
+          "minLength": 1,
+          "description": "How in_exe is filled: from research/inventory/<version>/gui_in_exe.json (gui_inventory.py --exe), or why it is not."
+        },
+        "rules": {
+          "type": "object",
+          "required": [
+            "counts",
+            "never_used",
+            "property",
+            "property_block",
+            "shapes",
+            "top_level_blocks",
+            "unresolved",
+            "values",
+            "widget"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "counts": {
+              "type": "string",
+              "minLength": 1
+            },
+            "never_used": {
+              "type": "string",
+              "minLength": 1
+            },
+            "property": {
+              "type": "string",
+              "minLength": 1
+            },
+            "property_block": {
+              "type": "string",
+              "minLength": 1
+            },
+            "shapes": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string",
+                "minLength": 1
+              },
+              "propertyNames": {
+                "enum": [
+                  "bare_word",
+                  "block",
+                  "bracket_expression",
+                  "constant_expression",
+                  "constant_reference",
+                  "flags",
+                  "number",
+                  "other",
+                  "percent",
+                  "quoted_text",
+                  "yes_no"
+                ]
+              }
+            },
+            "top_level_blocks": {
+              "type": "string",
+              "minLength": 1
+            },
+            "unresolved": {
+              "type": "string",
+              "minLength": 1
+            },
+            "values": {
+              "type": "string",
+              "minLength": 1
+            },
+            "widget": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "description": "The reader's rules, in words."
+        },
+        "parameters": {
+          "type": "object",
+          "required": [
+            "values_kept",
+            "values_published"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "values_kept": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "values_published": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "sources": {
+          "type": "object",
+          "required": [
+            "gui_files",
+            "inventory",
+            "snapshot"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "gui_files": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "inventory": {
+              "type": "string",
+              "minLength": 1
+            },
+            "snapshot": {
+              "type": "object",
+              "required": [
+                "files_sha256_checked",
+                "gui_list_sha256",
+                "manifest"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "files_sha256_checked": {
+                  "type": "boolean"
+                },
+                "gui_list_sha256": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                },
+                "manifest": {
+                  "type": "object",
+                  "required": [
+                    "files",
+                    "steam_build",
+                    "version"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "files": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "steam_build": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "version": {
+                      "type": "string",
+                      "pattern": "^\\d+\\.\\d+\\.\\d+\\.\\d+$"
+                    }
+                  }
+                }
+              }
+            },
+            "exe": {
+              "type": "object",
+              "description": "Where in_exe comes from (phase J1): the committed list of the vocabulary's names among the executable's strings, and that executable.",
+              "required": [
+                "file",
+                "in_exe",
+                "sha256"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "file": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "in_exe": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "type": "string",
+                  "pattern": "^[0-9A-F]{64}$"
+                }
+              }
+            }
+          }
+        },
+        "counts": {
+          "type": "object",
+          "additionalProperties": {
+            "oneOf": [
+              {
+                "type": "integer",
+                "minimum": 0
+              },
+              {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            ]
+          },
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "gui_inventory.py's counts over every file read."
+        },
+        "widget_types": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/guiWidgetType"
+          },
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "properties": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "required": [
+              "count",
+              "example",
+              "files",
+              "in_exe",
+              "provenance",
+              "shapes",
+              "widget_types"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "count": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "example": {
+                "type": "string",
+                "minLength": 1
+              },
+              "files": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "in_exe": {
+                "type": [
+                  "boolean",
+                  "null"
+                ]
+              },
+              "provenance": {
+                "const": "vanilla"
+              },
+              "shapes": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "propertyNames": {
+                  "enum": [
+                    "bare_word",
+                    "block",
+                    "bracket_expression",
+                    "constant_expression",
+                    "constant_reference",
+                    "flags",
+                    "number",
+                    "other",
+                    "percent",
+                    "quoted_text",
+                    "yes_no"
+                  ]
+                }
+              },
+              "widget_types": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          },
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Every property name over all widget types."
+        },
+        "property_blocks": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "required": [
+              "count",
+              "example",
+              "files",
+              "holds_widgets",
+              "in_exe",
+              "keys",
+              "parents",
+              "provenance"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "count": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "example": {
+                "type": "string",
+                "minLength": 1
+              },
+              "files": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "holds_widgets": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "in_exe": {
+                "type": [
+                  "boolean",
+                  "null"
+                ]
+              },
+              "keys": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/$defs/guiUse"
+                },
+                "propertyNames": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "parents": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "provenance": {
+                "const": "vanilla"
+              }
+            }
+          },
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Blocks whose key is not a widget type (background, modify_texture, state, ...), with their keys."
+        },
+        "templates": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "required": [
+              "defined",
+              "definitions",
+              "files",
+              "properties",
+              "provenance",
+              "resolved",
+              "uses"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "defined": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "file",
+                    "kind",
+                    "line"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "file": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "kind": {
+                      "enum": [
+                        "local_template",
+                        "template"
+                      ]
+                    },
+                    "line": {
+                      "type": "integer",
+                      "minimum": 1
+                    }
+                  }
+                }
+              },
+              "definitions": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "files": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "properties": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/$defs/guiUse"
+                },
+                "propertyNames": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "provenance": {
+                "const": "vanilla"
+              },
+              "resolved": {
+                "type": "boolean"
+              },
+              "uses": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          },
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "`template Name { }` and `using = Name`."
+        },
+        "types": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "required": [
+              "defined",
+              "definitions",
+              "never_used",
+              "provenance",
+              "types",
+              "uses"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "defined": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "file",
+                    "line",
+                    "types"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "file": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "line": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "types": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  }
+                }
+              },
+              "definitions": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "never_used": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "provenance": {
+                "const": "vanilla"
+              },
+              "types": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "uses": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          },
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "`types Name { }` groups and the widget types each defines."
+        },
+        "blocks": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "required": [
+              "defined",
+              "definitions",
+              "override_files",
+              "override_in",
+              "override_properties",
+              "overrides",
+              "provenance",
+              "resolved"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "defined": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "definition",
+                    "file",
+                    "in",
+                    "line"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "definition": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "file": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "in": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "line": {
+                      "type": "integer",
+                      "minimum": 1
+                    }
+                  }
+                }
+              },
+              "definitions": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "override_files": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "override_in": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "override_properties": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/$defs/guiUse"
+                },
+                "propertyNames": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "overrides": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "provenance": {
+                "const": "vanilla"
+              },
+              "resolved": {
+                "type": "boolean"
+              }
+            }
+          },
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Named `block \"x\" { }` and the `blockoverride \"x\"` that target them."
+        },
+        "layers": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "required": [
+              "defined",
+              "keys",
+              "provenance"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "defined": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "file",
+                    "line"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "file": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "line": {
+                      "type": "integer",
+                      "minimum": 1
+                    }
+                  }
+                }
+              },
+              "keys": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/$defs/guiUse"
+                },
+                "propertyNames": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "provenance": {
+                "const": "vanilla"
+              }
+            }
+          },
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "top_level_blocks": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "required": [
+              "count",
+              "example",
+              "files",
+              "provenance"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "count": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "example": {
+                "type": "string",
+                "minLength": 1
+              },
+              "files": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "provenance": {
+                "const": "vanilla"
+              }
+            }
+          },
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "values_no_key": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "required": [
+              "count",
+              "example",
+              "files",
+              "provenance"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "count": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "example": {
+                "type": "string",
+                "minLength": 1
+              },
+              "files": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "provenance": {
+                "const": "vanilla"
+              }
+            }
+          },
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "other_statements": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/$defs/guiUse"
+              },
+              "propertyNames": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "propertyNames": {
+            "enum": [
+              "top_level",
+              "types_blocks"
+            ]
+          }
+        },
+        "unresolved": {
+          "type": "object",
+          "required": [
+            "blockoverride",
+            "constants",
+            "using"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "blockoverride": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "example",
+                  "files",
+                  "name",
+                  "uses"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "example": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "files": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "uses": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                }
+              }
+            },
+            "constants": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "defined_in",
+                  "files_without_a_definition",
+                  "name"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "defined_in": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "files_without_a_definition": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            },
+            "using": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "example",
+                  "files",
+                  "name",
+                  "uses"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "example": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "files": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "uses": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                }
+              }
+            }
+          }
+        },
+        "constants": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "required": [
+              "defined",
+              "provenance"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "defined": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "file",
+                    "line",
+                    "value"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "file": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "line": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "value": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "minItems": 1
+              },
+              "provenance": {
+                "const": "vanilla"
+              }
+            }
+          },
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "`@name = value`, file-local: every file that defines the constant, the line and the value as written (from the per-file inventories research/inventory/<version>/gui/<file>.json)."
+        },
+        "left_out": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          },
+          "propertyNames": {
+            "enum": [
+              "data_binding"
+            ]
+          },
+          "description": "Keys of spec/gui/vocabulary_<version>.json this part does not carry, with the reason; they stay in that file."
+        }
+      },
+      "description": "C2 when built: spec/gui/vocabulary_<version>.json (tools/python/gui_inventory.py), the vocabulary measured from the base game's .gui files (provenance vanilla; not the engine's list), without the keys named in left_out, plus `constants` from the per-file inventories."
+    },
+    "guiWidgetType": {
+      "type": "object",
+      "required": [
+        "derived_types",
+        "example",
+        "files",
+        "in_exe",
+        "kind",
+        "never_used",
+        "properties",
+        "provenance",
+        "uses"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "base": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "chain": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "chain_problem": {
+          "type": "string",
+          "minLength": 1
+        },
+        "defaults": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "base",
+              "file",
+              "line",
+              "types_block"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "base": {
+                "type": "string",
+                "minLength": 1
+              },
+              "file": {
+                "type": "string",
+                "minLength": 1
+              },
+              "line": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "types_block": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "description": "`type name = name`: where the base game sets a built-in type's defaults."
+        },
+        "defined": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "base",
+              "file",
+              "line",
+              "types_block"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "base": {
+                "type": "string",
+                "minLength": 1
+              },
+              "file": {
+                "type": "string",
+                "minLength": 1
+              },
+              "line": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "types_block": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "derived_types": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "example": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "files": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "in_exe": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "kind": {
+          "enum": [
+            "built_in",
+            "defined"
+          ]
+        },
+        "never_used": {
+          "type": "boolean"
+        },
+        "properties": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/guiUse"
+          },
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "The properties written in blocks of this type and in its definition."
+        },
+        "provenance": {
+          "const": "vanilla"
+        },
+        "root": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "uses": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "description": "A widget type: built_in (a base no file defines) or defined (`type name = base`, with its chain of bases to the built-in root)."
+    },
+    "guiUse": {
+      "type": "object",
+      "required": [
+        "count",
+        "example",
+        "files",
+        "provenance",
+        "shapes"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "block_arity": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "propertyNames": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "description": "Blocks by the number of values in them ({ 100 50 } is 2)."
+        },
+        "block_items": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "propertyNames": {
+            "enum": [
+              "bare_word",
+              "block",
+              "bracket_expression",
+              "constant_expression",
+              "constant_reference",
+              "flags",
+              "number",
+              "other",
+              "percent",
+              "quoted_text",
+              "yes_no"
+            ]
+          },
+          "description": "The shapes of the values inside its blocks."
+        },
+        "count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "distinct_flag_words": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "distinct_values": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "example": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The first place it is seen, <file>:<line>."
+        },
+        "files": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "flag_words": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "in_exe": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "other_examples": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "provenance": {
+          "const": "vanilla"
+        },
+        "shapes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "propertyNames": {
+            "enum": [
+              "bare_word",
+              "block",
+              "bracket_expression",
+              "constant_expression",
+              "constant_reference",
+              "flags",
+              "number",
+              "other",
+              "percent",
+              "quoted_text",
+              "yes_no"
+            ]
+          }
+        },
+        "values": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "description": "The bare-word values as written, when there are at most parameters.values_published of them."
+        }
+      },
+      "description": "How the base game's .gui files write one property (or key): uses, files, value shapes, and the closed set of its bare-word values where it is small."
+    },
+    "dataTypesPart": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "status",
+            "companion"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "status": {
+              "const": "built"
+            },
+            "companion": {
+              "$ref": "#/$defs/companionRecord"
+            }
+          },
+          "description": "Built: the data (dataTypesData) is in the part's companion file, which the record names with its sha256."
+        },
+        {
+          "$ref": "#/$defs/partNotBuilt"
+        }
+      ]
+    },
+    "dataTypesData": {
+      "type": "object",
+      "required": [
+        "format",
+        "generator",
+        "globals",
+        "grammar",
+        "provenance",
+        "report",
+        "return_types",
+        "sources",
+        "types",
+        "version",
+        "what_this_is"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "format": {
+          "const": "data_types"
+        },
+        "generator": {
+          "const": "tools/python/data_types_import.py"
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+\\.\\d+$",
+          "description": "The game version the dump was captured from; the package's own."
+        },
+        "provenance": {
+          "const": "game_output",
+          "description": "The game's own output (spec/FORMAT_5_PLAN.md rule 2)."
+        },
+        "what_this_is": {
+          "type": "string",
+          "minLength": 1
+        },
+        "grammar": {
+          "type": "object",
+          "required": [
+            "entry",
+            "index",
+            "kind",
+            "layout",
+            "name",
+            "return_types",
+            "source",
+            "verbatim"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "entry": {
+              "type": "string",
+              "minLength": 1
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "kind": {
+              "type": "string",
+              "minLength": 1
+            },
+            "index": {
+              "type": "string",
+              "minLength": 1
+            },
+            "verbatim": {
+              "type": "string",
+              "minLength": 1
+            },
+            "return_types": {
+              "type": "string",
+              "minLength": 1
+            },
+            "source": {
+              "type": "string",
+              "minLength": 1
+            },
+            "layout": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "description": "The dump's grammar and the import's rules, in words."
+        },
+        "sources": {
+          "type": "object",
+          "required": [
+            "files",
+            "folder"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "folder": {
+              "type": "string",
+              "pattern": "^research/oracle/\\d+\\.\\d+\\.\\d+\\.\\d+/data_types/$"
+            },
+            "files": {
+              "type": "object",
+              "propertyNames": {
+                "type": "string",
+                "pattern": "^data_types_[A-Za-z0-9_]+\\.txt$"
+              },
+              "additionalProperties": {
+                "type": "object",
+                "required": [
+                  "bytes",
+                  "entries",
+                  "lines",
+                  "sha256"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "bytes": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "entries": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "lines": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "sha256": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  }
+                }
+              }
+            }
+          },
+          "description": "The dump files read, as committed."
+        },
+        "globals": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1
+          },
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/dataTypesEntry"
+            },
+            "minItems": 1
+          },
+          "description": "Global promotes, functions and macros by name without arguments: every entry of the name, in dump order."
+        },
+        "types": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1
+          },
+          "additionalProperties": {
+            "type": "object",
+            "required": [
+              "definitions",
+              "members"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "definitions": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/dataTypesEntry"
+                },
+                "description": "The Type entries, one per file that defines it."
+              },
+              "members": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "additionalProperties": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/dataTypesEntry"
+                  },
+                  "minItems": 1
+                },
+                "description": "By member name without arguments: every entry (a Promote and a Function may share a name), in dump order."
+              }
+            }
+          },
+          "description": "Every type the dump defines or names as a member's owner."
+        },
+        "return_types": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1
+          },
+          "additionalProperties": {
+            "type": "object",
+            "required": [
+              "entries",
+              "status"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "entries": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "status": {
+                "enum": [
+                  "defined",
+                  "unregistered",
+                  "undefined"
+                ]
+              }
+            }
+          },
+          "description": "Every return type the entries name: defined (a Type entry of that name exists), unregistered (the game's `[unregistered]`), undefined (never defined)."
+        },
+        "report": {
+          "$ref": "#/$defs/dataTypesReport"
+        }
+      },
+      "description": "C3 when built: spec/data_types/data_types_<version>.json as tools/python/data_types_import.py writes it, the game's own dump_data_types output with every entry's text and source."
+    },
+    "dataTypesEntry": {
+      "type": "object",
+      "required": [
+        "args",
+        "definition_type",
+        "description",
+        "kind",
+        "macro_replacement",
+        "name",
+        "owner",
+        "return_type",
+        "source"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The name line as the game wrote it (arguments included)."
+        },
+        "kind": {
+          "enum": [
+            "global",
+            "type",
+            "member"
+          ],
+          "description": "member for a name `Type.Member`, type for a Type entry, global otherwise."
+        },
+        "owner": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1,
+          "description": "The type a member belongs to; null for a global or a type."
+        },
+        "args": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+          },
+          "description": "The argument names the name line shows, in order; null when it shows no argument list."
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The `Description:` text verbatim; null when the entry has none."
+        },
+        "macro_replacement": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The `Macro replacement:` text verbatim (Global macro entries); null when the entry has none."
+        },
+        "definition_type": {
+          "enum": [
+            "Global promote",
+            "Global function",
+            "Global macro",
+            "Type",
+            "Promote",
+            "Function"
+          ],
+          "description": "The `Definition type:` text verbatim."
+        },
+        "return_type": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1,
+          "description": "The `Return type:` text verbatim (a type name or `[unregistered]`); null when the entry has none (Type and Global macro entries)."
+        },
+        "source": {
+          "type": "object",
+          "required": [
+            "file",
+            "line"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "file": {
+              "type": "string",
+              "pattern": "^data_types_[A-Za-z0-9_]+\\.txt$",
+              "description": "The dump file, in sources.folder."
+            },
+            "line": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "The line of the entry's name line, from 1."
+            }
+          }
+        }
+      },
+      "description": "One entry of the game's dump_data_types output."
+    },
+    "dataTypesReport": {
+      "type": "object",
+      "required": [
+        "definition_types",
+        "entries",
+        "files",
+        "forms",
+        "globals",
+        "inconsistent",
+        "irregular_names",
+        "kinds",
+        "members",
+        "return_types",
+        "shapes",
+        "types",
+        "unknown_definition_types",
+        "unplaced",
+        "with_description",
+        "with_macro_replacement"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "entries": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "files": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/dataTypesFileReport"
+          },
+          "propertyNames": {
+            "type": "string",
+            "pattern": "^data_types_[A-Za-z0-9_]+\\.txt$"
+          }
+        },
+        "definition_types": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "propertyNames": {
+            "enum": [
+              "Global promote",
+              "Global function",
+              "Global macro",
+              "Type",
+              "Promote",
+              "Function"
+            ]
+          }
+        },
+        "forms": {
+          "type": "object",
+          "required": [
+            "global",
+            "global_call",
+            "irregular",
+            "member",
+            "member_call",
+            "type"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "global": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "global_call": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "type": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "member": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "member_call": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "irregular": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "kinds": {
+          "type": "object",
+          "required": [
+            "global",
+            "member",
+            "type"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "global": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "type": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "member": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "shapes": {
+          "$ref": "#/$defs/dataTypesShapes"
+        },
+        "with_description": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "with_macro_replacement": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "globals": {
+          "type": "object",
+          "required": [
+            "entries",
+            "names",
+            "names_with_two_or_more_entries"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "names": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "entries": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "names_with_two_or_more_entries": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "types": {
+          "type": "object",
+          "required": [
+            "defined",
+            "defined_in_two_or_more_files",
+            "definitions",
+            "names",
+            "with_members_but_never_defined",
+            "without_members"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "names": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "defined": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "definitions": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "defined_in_two_or_more_files": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "with_members_but_never_defined": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "without_members": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "members": {
+          "type": "object",
+          "required": [
+            "entries",
+            "names",
+            "names_with_two_or_more_entries"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "names": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "entries": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "names_with_two_or_more_entries": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "return_types": {
+          "type": "object",
+          "required": [
+            "distinct",
+            "entries",
+            "undefined"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "entries": {
+              "type": "object",
+              "required": [
+                "defined",
+                "none",
+                "undefined",
+                "unregistered"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "defined": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "unregistered": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "undefined": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "none": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            },
+            "distinct": {
+              "type": "object",
+              "required": [
+                "defined",
+                "undefined",
+                "unregistered"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "defined": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "unregistered": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "undefined": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            },
+            "undefined": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "unplaced": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "file",
+              "line",
+              "reason",
+              "text"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "file": {
+                "type": "string",
+                "pattern": "^data_types_[A-Za-z0-9_]+\\.txt$"
+              },
+              "line": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "text": {
+                "type": "string"
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "description": "Every line the reader could not place, with the reason: listed, never dropped."
+        },
+        "irregular_names": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "file",
+              "line",
+              "name",
+              "reason"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "file": {
+                "type": "string",
+                "pattern": "^data_types_[A-Za-z0-9_]+\\.txt$"
+              },
+              "line": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "description": "The entries whose name line is of no grammar form, kept as written."
+        },
+        "inconsistent": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "definition_type",
+              "file",
+              "line",
+              "name",
+              "reason"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "file": {
+                "type": "string",
+                "pattern": "^data_types_[A-Za-z0-9_]+\\.txt$"
+              },
+              "line": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "definition_type": {
+                "type": "string",
+                "minLength": 1
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "description": "The entries whose definition type is not of the kind their name line has."
+        },
+        "unknown_definition_types": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "file",
+                "line",
+                "name"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "file": {
+                  "type": "string",
+                  "pattern": "^data_types_[A-Za-z0-9_]+\\.txt$"
+                },
+                "line": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "name": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            },
+            "minItems": 1
+          }
+        }
+      },
+      "description": "The parse report: counts, return-type resolution, what could not be placed, signs of a dump cut short."
+    },
+    "dataTypesFileReport": {
+      "type": "object",
+      "required": [
+        "definition_types",
+        "ends_with_newline",
+        "ends_with_separator",
+        "entries",
+        "first_entry",
+        "forms",
+        "framing_problems",
+        "kinds",
+        "last_entry",
+        "last_type",
+        "layout_breaks",
+        "members_whose_type_is_not_defined_in_this_file",
+        "shapes",
+        "types",
+        "types_without_members_in_this_file"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "entries": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "definition_types": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "propertyNames": {
+            "enum": [
+              "Global promote",
+              "Global function",
+              "Global macro",
+              "Type",
+              "Promote",
+              "Function"
+            ]
+          }
+        },
+        "forms": {
+          "type": "object",
+          "required": [
+            "global",
+            "global_call",
+            "irregular",
+            "member",
+            "member_call",
+            "type"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "global": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "global_call": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "type": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "member": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "member_call": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "irregular": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "kinds": {
+          "type": "object",
+          "required": [
+            "global",
+            "member",
+            "type"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "global": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "type": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "member": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "shapes": {
+          "$ref": "#/$defs/dataTypesShapes"
+        },
+        "types": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "first_entry": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "last_entry": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "last_type": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ends_with_newline": {
+          "type": "boolean"
+        },
+        "ends_with_separator": {
+          "type": "boolean",
+          "description": "The file ends with the separator after its last entry, as every entry is followed by one."
+        },
+        "framing_problems": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "line",
+              "problem"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "line": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "problem": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "layout_breaks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "line",
+              "name",
+              "reason"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "line": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "description": "Every entry that breaks the dump's layout (grammar.layout)."
+        },
+        "members_whose_type_is_not_defined_in_this_file": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "types_without_members_in_this_file": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "description": "What the reader found in one dump file, and the signs of a file cut short."
+    },
+    "dataTypesShapes": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "propertyNames": {
+        "pattern": "^name( \\+ (Macro replacement|Description|Definition type|Return type))*$"
+      },
+      "description": "Entries by the label lines they have, in order."
+    },
+    "tablesPart": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "status",
+            "data"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "status": {
+              "const": "built"
+            },
+            "data": {
+              "$ref": "#/$defs/tablesData"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/partNotBuilt"
+        }
+      ]
+    },
+    "tablesData": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/table"
+      },
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[a-z0-9_]+$"
+      },
+      "description": "C4 when built: the hand-kept tables, one per spec/tables/*.yml (check_tables.py), keyed by the file name without .yml, each entry with its evidence and evidence_status. Built only when every measured item records the package's version."
+    },
+    "table": {
+      "type": "object",
+      "required": [
+        "about",
+        "entries",
+        "candidates"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "about": {
+          "type": "object",
+          "required": [
+            "attributes",
+            "consumer",
+            "entries_in_code",
+            "meaning",
+            "name",
+            "source"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "attributes": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string",
+                "minLength": 1
+              },
+              "propertyNames": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "consumer": {
+              "type": "string",
+              "minLength": 1
+            },
+            "difference": {
+              "type": "string",
+              "minLength": 1
+            },
+            "entries_in_code": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "meaning": {
+              "type": "string",
+              "minLength": 1
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "notes": {
+              "type": "string",
+              "minLength": 1
+            },
+            "source": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "file",
+                  "lines",
+                  "name",
+                  "repository",
+                  "revision"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "lines": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "repository": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "revision": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              "minItems": 1
+            }
+          }
+        },
+        "entries": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/tableEntry"
+          },
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "candidates": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/tableCandidate"
+          },
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "description": "One spec/tables/<key>.yml: what the table is (about: its name in the old engine's code, where it was, what a consumer does with it), its entries and its candidates."
+    },
+    "tableEntry": {
+      "type": "object",
+      "required": [
+        "evidence",
+        "evidence_status"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "case_params": {
+          "type": "string",
+          "minLength": 1
+        },
+        "case_scripted_modifiers": {
+          "type": "boolean"
+        },
+        "cases": {
+          "type": "boolean"
+        },
+        "child": {
+          "enum": [
+            "trigger",
+            "effect",
+            "same",
+            "none"
+          ]
+        },
+        "context": {
+          "enum": [
+            "trigger",
+            "effect",
+            "none"
+          ]
+        },
+        "directory": {
+          "type": "string",
+          "minLength": 1
+        },
+        "lists": {
+          "oneOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          ]
+        },
+        "order": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "params": {
+          "type": "object",
+          "additionalProperties": {
+            "enum": [
+              "trigger",
+              "effect",
+              "same",
+              "none"
+            ]
+          },
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "pattern": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scripted_modifiers": {
+          "type": "boolean"
+        },
+        "why": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence": {
+          "oneOf": [
+            {
+              "const": "none"
+            },
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/tableItem"
+              },
+              "minItems": 1
+            }
+          ]
+        },
+        "searched": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/tableItem"
+          }
+        },
+        "related": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/tableItem"
+          }
+        },
+        "contradicted": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "claim",
+              "evidence",
+              "finding"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "claim": {
+                "type": "string",
+                "minLength": 1
+              },
+              "evidence": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/tableItem"
+                },
+                "minItems": 1
+              },
+              "finding": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "notes": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence_status": {
+          "enum": [
+            "confirmed",
+            "contradicted",
+            "none"
+          ],
+          "description": "Added by the package from the entry's own evidence: confirmed, at least one item supports it and nothing contradicts it (measured); contradicted, the game's files or output show it wrong or incomplete (contradicted gives the claim, the finding and the evidence; it may also have support); none, no evidence was found (evidence: none): kept by hand, as the old engine had it."
+        }
+      },
+      "description": "One entry with the attributes the old engine's code gave it (the table's about.attributes says what each means) and its evidence."
+    },
+    "tableCandidate": {
+      "type": "object",
+      "required": [
+        "what",
+        "evidence"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "case_params": {
+          "type": "string",
+          "minLength": 1
+        },
+        "case_scripted_modifiers": {
+          "type": "boolean"
+        },
+        "cases": {
+          "type": "boolean"
+        },
+        "child": {
+          "enum": [
+            "trigger",
+            "effect",
+            "same",
+            "none"
+          ]
+        },
+        "context": {
+          "enum": [
+            "trigger",
+            "effect",
+            "none"
+          ]
+        },
+        "directory": {
+          "type": "string",
+          "minLength": 1
+        },
+        "lists": {
+          "oneOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          ]
+        },
+        "order": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "params": {
+          "type": "object",
+          "additionalProperties": {
+            "enum": [
+              "trigger",
+              "effect",
+              "same",
+              "none"
+            ]
+          },
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "pattern": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scripted_modifiers": {
+          "type": "boolean"
+        },
+        "why": {
+          "type": "string",
+          "minLength": 1
+        },
+        "what": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence": {
+          "oneOf": [
+            {
+              "const": "none"
+            },
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/tableItem"
+              },
+              "minItems": 1
+            }
+          ]
+        },
+        "searched": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/tableItem"
+          }
+        },
+        "related": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/tableItem"
+          }
+        },
+        "notes": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "description": "A name the evidence shows the table lacks: listed, never added to entries."
+    },
+    "tableItem": {
+      "type": "object",
+      "required": [
+        "kind",
+        "shows"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "bucket",
+            "strings",
+            "script_docs",
+            "info",
+            "base_game"
+          ]
+        },
+        "shows": {
+          "type": "string",
+          "minLength": 1,
+          "description": "What the item shows, in plain words."
+        },
+        "bases_found": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "buckets": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "triggers",
+              "effects",
+              "links",
+              "lists",
+              "on_actions",
+              "modifiers"
+            ]
+          }
+        },
+        "column": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "entries": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "example": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "object",
+              "required": [
+                "group",
+                "line",
+                "name"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "group": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "line": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          ]
+        },
+        "field": {
+          "type": "string",
+          "minLength": 1
+        },
+        "file": {
+          "type": "string",
+          "minLength": 1
+        },
+        "files": {
+          "type": "string",
+          "minLength": 1
+        },
+        "found": {
+          "type": [
+            "boolean",
+            "string",
+            "null"
+          ]
+        },
+        "group": {
+          "type": "string",
+          "minLength": 1
+        },
+        "groups": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "key": {
+          "type": "string",
+          "minLength": 1
+        },
+        "keywords": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+\\.\\d+$",
+          "description": "The version of the keyword lists the query used."
+        },
+        "line": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ]
+        },
+        "list": {
+          "type": "boolean"
+        },
+        "lists": {
+          "oneOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          ]
+        },
+        "measured": {
+          "type": "object",
+          "additionalProperties": {
+            "oneOf": [
+              {
+                "type": "integer",
+                "minimum": 0
+              },
+              {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            ]
+          },
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "names": {
+          "type": "string",
+          "minLength": 1
+        },
+        "names_found": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "of": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "query": {
+          "type": "object",
+          "required": [],
+          "additionalProperties": false,
+          "properties": {
+            "breakdown": {
+              "enum": [
+                "base",
+                "prefix",
+                "parent",
+                "value"
+              ]
+            },
+            "children_of": {
+              "type": "string",
+              "minLength": 1
+            },
+            "depth": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "dir": {
+              "type": "string",
+              "minLength": 1
+            },
+            "folder": {
+              "type": "string",
+              "minLength": 1
+            },
+            "folders_matching": {
+              "type": "string",
+              "minLength": 1
+            },
+            "grandparent": {
+              "type": "string",
+              "minLength": 1
+            },
+            "key": {
+              "type": "string",
+              "minLength": 1
+            },
+            "order": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "order_group": {
+              "type": "string",
+              "minLength": 1
+            },
+            "parent": {
+              "type": "string",
+              "minLength": 1
+            },
+            "parent_iterator": {
+              "oneOf": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              ]
+            },
+            "prefixes": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "value": {
+              "type": "string"
+            },
+            "value_kind": {
+              "enum": [
+                "block",
+                "scalar"
+              ]
+            }
+          }
+        },
+        "value": {
+          "type": [
+            "string",
+            "integer",
+            "boolean",
+            "null"
+          ]
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+\\.\\d+$",
+          "description": "The version of what the item was measured on (game snapshot, keyword lists or game output)."
+        },
+        "words": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "note": {
+          "type": "string",
+          "minLength": 1,
+          "description": "A note the author of the item wrote (tools/python/check_tables.py: a field a person writes, on any kind of item)."
+        }
+      },
+      "description": "One evidence item (tools/python/check_tables.py's docstring gives each kind's fields): bucket and strings (the executable), script_docs (the game's own output), info (a .info file) or base_game (a count on the base game)."
+    },
+    "modifierTemplateTagsPart": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "status",
+            "data"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "status": {
+              "const": "built"
+            },
+            "data": {
+              "$ref": "#/$defs/modifierTemplateTagsData"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/partNotBuilt"
+        }
+      ]
+    },
+    "modifierTemplateTagsData": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "\\$[A-Z_]+\\$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/modifierTemplateTag"
+      },
+      "description": "A1 when built: keyed by the template tag exactly as modifiers.log prints it."
+    },
+    "modifierTemplateTag": {
+      "type": "object",
+      "required": [
+        "use_areas",
+        "form",
+        "placeholders",
+        "relation",
+        "template",
+        "template_source",
+        "covered_by"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "use_areas": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Where a modifier of this template may be used (modifiers.log 'Use areas')."
+        },
+        "form": {
+          "type": "string",
+          "pattern": "%s",
+          "description": "The tag with each $PLACEHOLDER$ replaced by %s, the notation of modifier_templates."
+        },
+        "placeholders": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Z_]+$"
+          },
+          "description": "The placeholder names, in the order the tag writes them."
+        },
+        "relation": {
+          "enum": [
+            "template",
+            "covered",
+            "not_carried",
+            "none"
+          ],
+          "description": "template: the form is itself an entry of modifier_templates; covered: it is not, but entries accept every name it generates (covered_by); not_carried: a form whose fixed text is a modifier suffix alone (%s_add), which modifier_templates leaves out on purpose; none: none of these."
+        },
+        "template": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The modifier_templates entry equal to form, or null."
+        },
+        "template_source": {
+          "enum": [
+            "executable",
+            "script_docs",
+            null
+          ],
+          "description": "Where that entry comes from: executable, the derivation's exe templates (MODIFIER_VALIDATION.json); script_docs, added from modifiers.log by the builder; null when template is null."
+        },
+        "covered_by": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "%s"
+          },
+          "description": "Every modifier_templates entry that accepts all names the form generates under the engine's fill (%s = [a-z0-9_]+), sorted; template is among them when it is not null."
+        }
+      }
+    },
+    "takes": {
+      "type": "object",
+      "required": [
+        "forms",
+        "readings",
+        "disagreement"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "forms": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "enum": [
+              "yes/no",
+              "comparison",
+              "scope",
+              "database_key",
+              "one_of",
+              "value",
+              "block",
+              "other"
+            ]
+          },
+          "description": "The distinct forms of the readings in rank order: the game's Traits, its description's usage lines, then the executable's own text."
+        },
+        "readings": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/takesReading"
+          }
+        },
+        "disagreement": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Set where the executable's own text reads a form the game's output does not; both readings are kept, the game's first."
+        }
+      }
+    },
+    "takesReading": {
+      "type": "object",
+      "required": [
+        "form",
+        "parts",
+        "sources",
+        "text"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "form": {
+          "enum": [
+            "yes/no",
+            "comparison",
+            "scope",
+            "database_key",
+            "one_of",
+            "value",
+            "block",
+            "other"
+          ]
+        },
+        "parts": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "What the text names of the form: the value, the operator and right-hand side, the scope types, the database class, the values, or a block's keys and placeholders."
+        },
+        "sources": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "enum": [
+              "script_docs",
+              "script_docs_traits",
+              "executable"
+            ]
+          },
+          "description": "Where this exact text is: script_docs, the game's description of the keyword (triggers.log, effects.log); script_docs_traits, the Traits the game prints for a trigger; executable, a text the executable attaches to the name (keyword_docs)."
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The exact text the reading was read from: the usage line (or lines, for a block), or the Traits."
+        },
+        "glued": {
+          "const": true,
+          "description": "The usage runs on from the sentence before it without a line break."
+        },
+        "chained": {
+          "const": true,
+          "description": "The name ends a scope chain (scope:a.name)."
+        },
+        "no_operator": {
+          "const": true,
+          "description": "The text writes the name and a block with no operator between them."
+        },
+        "unclosed": {
+          "const": true,
+          "description": "The text ends before the block's closing brace."
+        }
+      }
+    },
+    "companionRecord": {
+      "type": "object",
+      "required": [
+        "file",
+        "sha256",
+        "bytes",
+        "holds",
+        "data_keys",
+        "counts"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "file": {
+          "type": "string",
+          "pattern": "^ck3-spec-.+\\.(info|gui|data_types)\\.json$",
+          "description": "The companion file, beside the package file: ck3-spec-<version>.<info|gui|data_types>.json (a proof build: ck3-spec-<version>.format5.<...>.json)."
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$",
+          "description": "sha256 of the companion file's bytes; a consumer checks it before reading the file."
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Size of the companion file in bytes."
+        },
+        "holds": {
+          "type": "string",
+          "minLength": 1,
+          "description": "What the companion holds, in plain words."
+        },
+        "data_keys": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "The top-level keys of the companion's data object, sorted."
+        },
+        "counts": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "description": "Counts of the companion's data (tools/python/build_spec_package.py companion_counts()), which the builder's validator recomputes from the companion; null only where the data does not give the number."
+        }
+      },
+      "description": "A part whose data is in a companion file (owner decision, 2026-11-21: the package file keeps everything else). The package carries this record instead of the data, so a consumer knows what the companion holds without opening it, and loads the companion only when it needs the part."
+    },
+    "companionInfo": {
+      "type": "object",
+      "required": [
+        "companion",
+        "package",
+        "package_format",
+        "game",
+        "version",
+        "part",
+        "sources",
+        "source_sha256",
+        "data",
+        "info_text"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "companion": {
+          "const": "info",
+          "description": "The companion's name: ck3-spec-<version>.info.json."
+        },
+        "package": {
+          "type": "string",
+          "pattern": "^ck3-spec-[0-9][0-9.]*[0-9](\\.format[0-9]+)?\\.json$",
+          "description": "The package file this companion belongs to (beside it), which records its sha256."
+        },
+        "package_format": {
+          "const": 5
+        },
+        "game": {
+          "const": "ck3"
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^[0-9]+(\\.[0-9]+)+$",
+          "description": "The game version; the package's manifest.version."
+        },
+        "part": {
+          "type": "object",
+          "required": [
+            "id",
+            "title",
+            "key"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "id": {
+              "const": "C1"
+            },
+            "title": {
+              "type": "string",
+              "minLength": 1
+            },
+            "key": {
+              "const": "info_docs"
+            }
+          }
+        },
+        "sources": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "The part's input files (the package's parts entry sources)."
+        },
+        "source_sha256": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "description": "sha256 of each input file (LF), as the package's manifest.source_sha256."
+        },
+        "data": {
+          "$ref": "#/$defs/infoDocsData"
+        },
+        "info_text": {
+          "enum": [
+            "full",
+            "facts"
+          ],
+          "description": "The --info-text the companion was built with; the package's manifest.info_text."
+        }
+      },
+      "description": "The companion file ck3-spec-<version>.info.json of part C1 (Paradox's own documentation files): its data, and what identifies it (the package, the version, the part, its input files)."
+    },
+    "companionGui": {
+      "type": "object",
+      "required": [
+        "companion",
+        "package",
+        "package_format",
+        "game",
+        "version",
+        "part",
+        "sources",
+        "source_sha256",
+        "data"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "companion": {
+          "const": "gui",
+          "description": "The companion's name: ck3-spec-<version>.gui.json."
+        },
+        "package": {
+          "type": "string",
+          "pattern": "^ck3-spec-[0-9][0-9.]*[0-9](\\.format[0-9]+)?\\.json$",
+          "description": "The package file this companion belongs to (beside it), which records its sha256."
+        },
+        "package_format": {
+          "const": 5
+        },
+        "game": {
+          "const": "ck3"
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^[0-9]+(\\.[0-9]+)+$",
+          "description": "The game version; the package's manifest.version."
+        },
+        "part": {
+          "type": "object",
+          "required": [
+            "id",
+            "title",
+            "key"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "id": {
+              "const": "C2"
+            },
+            "title": {
+              "type": "string",
+              "minLength": 1
+            },
+            "key": {
+              "const": "gui"
+            }
+          }
+        },
+        "sources": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "The part's input files (the package's parts entry sources)."
+        },
+        "source_sha256": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "description": "sha256 of each input file (LF), as the package's manifest.source_sha256."
+        },
+        "data": {
+          "$ref": "#/$defs/guiData"
+        }
+      },
+      "description": "The companion file ck3-spec-<version>.gui.json of part C2 (the measured GUI vocabulary): its data, and what identifies it (the package, the version, the part, its input files)."
+    },
+    "companionDataTypes": {
+      "type": "object",
+      "required": [
+        "companion",
+        "package",
+        "package_format",
+        "game",
+        "version",
+        "part",
+        "sources",
+        "source_sha256",
+        "data"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "companion": {
+          "const": "data_types",
+          "description": "The companion's name: ck3-spec-<version>.data_types.json."
+        },
+        "package": {
+          "type": "string",
+          "pattern": "^ck3-spec-[0-9][0-9.]*[0-9](\\.format[0-9]+)?\\.json$",
+          "description": "The package file this companion belongs to (beside it), which records its sha256."
+        },
+        "package_format": {
+          "const": 5
+        },
+        "game": {
+          "const": "ck3"
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^[0-9]+(\\.[0-9]+)+$",
+          "description": "The game version; the package's manifest.version."
+        },
+        "part": {
+          "type": "object",
+          "required": [
+            "id",
+            "title",
+            "key"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "id": {
+              "const": "C3"
+            },
+            "title": {
+              "type": "string",
+              "minLength": 1
+            },
+            "key": {
+              "const": "data_types"
+            }
+          }
+        },
+        "sources": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "The part's input files (the package's parts entry sources)."
+        },
+        "source_sha256": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "description": "sha256 of each input file (LF), as the package's manifest.source_sha256."
+        },
+        "data": {
+          "$ref": "#/$defs/dataTypesData"
+        }
+      },
+      "description": "The companion file ck3-spec-<version>.data_types.json of part C3 (the data-types dump): its data, and what identifies it (the package, the version, the part, its input files)."
+    },
+    "modifierTemplateMark": {
+      "type": "object",
+      "required": [
+        "mark",
+        "fixed_text",
+        "game_tags",
+        "sole_cover_of"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "mark": {
+          "enum": [
+            "bare_suffix"
+          ],
+          "description": "bare_suffix: the template's fixed text is a value-kind suffix alone (_add, _mult or _factor), so under the engine's fill (%s = [a-z0-9_]+) it accepts every name that ends with it, misspelled ones included."
+        },
+        "fixed_text": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The template without %s (_add)."
+        },
+        "game_tags": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "The template tags of the game's modifiers.log (modifier_template_tags) whose %s form is this template, as the game writes them ($TAX_SLOT_TYPE$_add: what the game says fills %s)."
+        },
+        "sole_cover_of": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "%s"
+          },
+          "description": "The %s forms of the other modifiers.log tags that only marked templates accept (their covered_by): a consumer that does not take this template as proof needs these forms to accept the names the game documents through it."
+        }
+      },
+      "description": "A1: why a modifier_templates entry is marked, and what depends on it."
+    }
+  }
+}

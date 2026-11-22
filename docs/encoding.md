@@ -138,10 +138,10 @@ layout. `task game:parse` reads this list, and fails if a folder holds another n
 
 | Folder | Extension | Files | Why |
 | --- | --- | --- | --- |
-| `common` | `.txt` | 3,035 | Database records; 2.3.0 read it; 183 folders of it are in the spec |
+| `common` | `.txt` | 3,035 | Database records; 2.3.0 read it; 196 folders of it are in the spec |
 | `events` | `.txt` | 610 | Events; 2.3.0 read it |
 | `history` | `.txt` | 837 | History; 2.3.0 read it; 10 folders of it are in the spec |
-| `gfx` | `.txt` | 271 | 26 of its folders are in the spec (coats of arms, court scenes, map styles, portraits); `paths.settings` points into it |
+| `gfx` | `.txt` | 271 | 30 of its folders are in the spec (coats of arms, court scenes, map styles, portraits); `paths.settings` points into it |
 | `map_data` | `.txt` | 8 | In the spec and in the game's checksum manifest |
 | `music` | `.txt` | 3 | In the spec; `paths.settings` names `music/music_player_categories` |
 | `sound` | `.txt` | 8 | In the spec; `paths.settings` names `sound/map/ambience` |

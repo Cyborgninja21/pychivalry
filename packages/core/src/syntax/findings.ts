@@ -142,9 +142,10 @@ export interface Finding {
 export type MessageCatalogue = ReadonlyMap<string, string>;
 
 /**
- * The error catalogue of a spec package, from its `errors` list of `{ id, text }` entries
- * (package formats 4 and 5). Anything else in the package is ignored; an entry without a
- * string id and text is skipped.
+ * The error catalogue of a format 5 spec package, from its `errors` list: each entry's `id`
+ * and `text`. The other keys of an entry (format 4's `category`, `since` and `note`, format
+ * 5's `script_facing`, `reason`, `subject` and `subject_reason`) and anything else in the
+ * package are not read here; an entry without a string id and text is skipped.
  */
 export function catalogueFromSpec(specPackage: unknown): MessageCatalogue {
     const catalogue = new Map<string, string>();

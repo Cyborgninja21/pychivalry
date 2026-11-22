@@ -58,13 +58,13 @@ tasks:
       - npm run format:check
 
   spec:check:
-    desc: 'Verify the committed spec package: the checksum of its uncompressed bytes and a supported package format'
+    desc: 'Verify the committed spec package: the checksums of the package file and its companions (uncompressed), format 5, the companions the package lists, the JSON Schema, the format 4 copy for 2.3.0, and the rules table'
     deps: [build]
     cmds:
       - node tools/dist/cli.js spec check
 
   records:check:
-    desc: 'Check every committed record: valid against records/record.schema.json, made on the committed spec and corpus, no local paths'
+    desc: 'Check every committed record: valid against records/record.schema.json, made on the committed spec (a 2.3.0 baseline: on the format 4 copy) and corpus, no local paths'
     deps: [build]
     cmds:
       - node tools/dist/cli.js records check
@@ -128,7 +128,8 @@ tasks:
   # ─── Release 2.3.0 baselines (docs/PLAN.md, item 1.11; Linux) ───
 
   baseline:prepare:
-    desc: 'Export legacy/ (release 2.3.0) into LEGACY_BUILD, a folder outside the repository, and build it with its own Taskfile'
+    desc: 'Export legacy/ (release 2.3.0) into LEGACY_BUILD, a folder outside the repository, point it at the committed format 4 copy spec/legacy/, and build it with its own Taskfile'
+    deps: [build]
     preconditions:
       - sh: test -n "$LEGACY_BUILD"
         msg: 'LEGACY_BUILD must name a folder outside the repository'
@@ -137,13 +138,20 @@ tasks:
     cmds:
       - mkdir -p "$LEGACY_BUILD"
       - git archive --format=tar HEAD:legacy | tar -x -C "$LEGACY_BUILD"
+      - node tools/dist/cli.js baseline spec
       - cd "$LEGACY_BUILD" && task install && task build
 
   baseline:speed:
-    desc: 'Time release 2.3.0 (LEGACY_BUILD, CK3_GAME_PATH, CK3_CORPUS; BASELINE_PARTS, BASELINE_RUNS, BASELINE_NODE_HEAP); writes records/baseline-2.3.0/'
+    desc: 'Time release 2.3.0 (LEGACY_BUILD, CK3_GAME_PATH, CK3_CORPUS; BASELINE_PARTS, BASELINE_RUNS, BASELINE_NODE_HEAP); writes records/baseline-2.3.0/speed-*.json'
     deps: [build]
     cmds:
       - node tools/dist/cli.js baseline speed
+
+  baseline:results:
+    desc: 'Run release 2.3.0 once on the base game and on each mod and record what it finds (LEGACY_BUILD, CK3_GAME_PATH, CK3_CORPUS; BASELINE_PARTS=base-game,mods; BASELINE_NODE_HEAP); writes records/baseline-2.3.0/results-*.json'
+    deps: [build]
+    cmds:
+      - node tools/dist/cli.js baseline results
 
   # ─── The repository wiki, generated from docs/ (docs/wiki/README.md) ───
 

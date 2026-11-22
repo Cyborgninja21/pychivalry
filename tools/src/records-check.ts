@@ -5,19 +5,29 @@
  * names the committed corpus manifest if it read the corpus, holds no local path, and states
  * statistics that agree with its own values; a parse record's totals agree with its folders;
  * an index record's totals agree with its layers, and it was made on the committed rules table.
+ *
+ * A baseline of release 2.3.0 cannot be made on the format 5 package, which 2.3.0 cannot
+ * read. It is tied instead to the committed format 4 copy of the same game version
+ * (`spec/legacy/`): its spec is that copy, byte for byte, and the game it read is the build
+ * that copy and the package were derived for.
  */
 
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { Ajv2020, type ErrorObject, type ValidateFunction } from 'ajv/dist/2020.js';
 import { checkRulesTable } from './rules-table.js';
-import { checkSpec } from './spec.js';
+import { checkLegacySpec, checkSpec } from './spec.js';
 import { summarize } from './stats.js';
 import { isObject, relativePosix, sha256OfFile } from './util.js';
 
 /** What every record must agree with: the committed spec and corpus manifest. */
 export interface Expected {
     spec: { version: string; sha256: string };
+    /**
+     * The committed format 4 copy (`spec/legacy/`), which a 2.3.0 baseline must name as its
+     * spec; undefined when it is missing or fails its check.
+     */
+    legacySpec?: { version: string; sha256: string; package_format: number } | undefined;
     /** SHA-256 of the committed records/corpus/MANIFEST.tsv; undefined when there is none. */
     corpusManifestSha256: string | undefined;
     /** The core's digest of the committed rules table; undefined when it fails its check. */
@@ -206,6 +216,123 @@ function indexProblems(record: Record<string, unknown>, expected: Expected): str
     return problems;
 }
 
+/** The suites of the 2.3.0 baselines, made on the format 4 copy rather than the package. */
+export const BASELINE_SUITES: readonly string[] = ['baseline:speed', 'baseline:results'];
+
+const SEVERITY_KEYS = ['error', 'warning', 'information', 'hint'] as const;
+
+/**
+ * Counts by code that disagree with the totals by severity, and an error count that
+ * disagrees with the error list or the error total, at `where`.
+ */
+function findingCountProblems(results: Record<string, unknown>, where: string): string[] {
+    const problems: string[] = [];
+    const bySeverity = isObject(results['by_severity']) ? results['by_severity'] : {};
+    const byCode = Array.isArray(results['by_code']) ? results['by_code'].filter(isObject) : [];
+    for (const severity of SEVERITY_KEYS) {
+        const sum = byCode
+            .filter((c) => c['severity'] === severity)
+            .reduce((n, c) => n + (typeof c['count'] === 'number' ? c['count'] : 0), 0);
+        if (bySeverity[severity] !== sum) {
+            problems.push(
+                `${where}/by_severity/${severity}: ${JSON.stringify(bySeverity[severity])} is not the total of by_code (${String(sum)})`,
+            );
+        }
+    }
+    const errors = Array.isArray(results['error_list']) ? results['error_list'].length : 0;
+    if (results['errors'] !== errors) {
+        problems.push(
+            `${where}/errors: ${JSON.stringify(results['errors'])} with ${String(errors)} listed`,
+        );
+    }
+    if (bySeverity['error'] !== errors) {
+        problems.push(
+            `${where}/error_list: ${String(errors)} listed, but by_severity counts ${JSON.stringify(bySeverity['error'])} errors`,
+        );
+    }
+    return problems;
+}
+
+/** A results baseline's figures that disagree with each other or with the corpus it names. */
+function baselineResultsProblems(record: Record<string, unknown>): string[] {
+    const results = record['results'];
+    if (!isObject(results)) {
+        return [];
+    }
+    const problems: string[] = [];
+    const base = results['base_game'];
+    if (isObject(base)) {
+        const parse = isObject(base['parse']) ? base['parse'] : {};
+        const folders = Array.isArray(parse['by_folder'])
+            ? parse['by_folder'].filter(isObject)
+            : [];
+        const sum = folders.reduce(
+            (n, f) => n + (typeof f['files'] === 'number' ? f['files'] : 0),
+            0,
+        );
+        if (parse['files'] !== sum) {
+            problems.push(
+                `/results/base_game/parse/files: ${JSON.stringify(parse['files'])} is not the folders' total (${String(sum)})`,
+            );
+        }
+        const listed = Array.isArray(parse['error_list']) ? parse['error_list'].length : 0;
+        if (parse['errors'] !== listed) {
+            problems.push(
+                `/results/base_game/parse/errors: ${JSON.stringify(parse['errors'])} with ${String(listed)} listed`,
+            );
+        }
+        if (isObject(base['check'])) {
+            problems.push(...findingCountProblems(base['check'], '/results/base_game/check'));
+        }
+    }
+    if (Array.isArray(results['mods'])) {
+        const mods = results['mods'].filter(isObject);
+        mods.forEach((mod, i) => {
+            problems.push(...findingCountProblems(mod, `/results/mods/${String(i)}`));
+        });
+        const corpus = record['corpus'];
+        const slugs = isObject(corpus) && Array.isArray(corpus['slugs']) ? corpus['slugs'] : [];
+        const named = mods.map((m) => m['slug']);
+        if (JSON.stringify(named) !== JSON.stringify(slugs)) {
+            problems.push(
+                `/results/mods: the mods ${JSON.stringify(named)} are not the corpus slugs ${JSON.stringify(slugs)}`,
+            );
+        }
+    }
+    return problems;
+}
+
+/**
+ * A 2.3.0 baseline not tied to the committed format 4 copy: another spec than that copy, or
+ * another game build than the one it (and the package) were derived for.
+ */
+function baselineSpecProblems(record: Record<string, unknown>, expected: Expected): string[] {
+    const legacy = expected.legacySpec;
+    if (legacy === undefined) {
+        return [
+            '/spec: a 2.3.0 baseline is checked against the committed format 4 copy spec/legacy/, which is missing or fails its check',
+        ];
+    }
+    const problems: string[] = [];
+    const spec = isObject(record['spec']) ? record['spec'] : {};
+    if (
+        spec['sha256'] !== legacy.sha256 ||
+        spec['version'] !== legacy.version ||
+        spec['package_format'] !== legacy.package_format
+    ) {
+        problems.push(
+            `/spec: a 2.3.0 baseline made on spec ${JSON.stringify(spec['version'])} format ${JSON.stringify(spec['package_format'])} (${JSON.stringify(spec['sha256'])}), but the committed format 4 copy is ${legacy.version} format ${String(legacy.package_format)} (${legacy.sha256}); re-run the baseline`,
+        );
+    }
+    const game = isObject(record['game']) ? record['game'] : {};
+    if (game['build'] !== legacy.version) {
+        problems.push(
+            `/game/build: a 2.3.0 baseline made on game ${JSON.stringify(game['build'])}, but the committed spec is for game ${legacy.version}; re-run the baseline`,
+        );
+    }
+    return problems;
+}
+
 /** Every problem with one record. */
 export function checkRecord(
     record: unknown,
@@ -220,7 +347,9 @@ export function checkRecord(
         return problems;
     }
     const spec = record['spec'];
-    if (isObject(spec)) {
+    if (BASELINE_SUITES.includes(String(record['suite']))) {
+        problems.push(...baselineSpecProblems(record, expected));
+    } else if (isObject(spec)) {
         if (spec['sha256'] !== expected.spec.sha256 || spec['version'] !== expected.spec.version) {
             problems.push(
                 `/spec: made on spec ${JSON.stringify(spec['version'])} (${JSON.stringify(spec['sha256'])}), but the committed spec is ${expected.spec.version} (${expected.spec.sha256}); re-run the suite`,
@@ -242,6 +371,9 @@ export function checkRecord(
     }
     if (record['suite'] === 'game:index') {
         problems.push(...indexProblems(record, expected));
+    }
+    if (record['suite'] === 'baseline:results') {
+        problems.push(...baselineResultsProblems(record));
     }
     return problems;
 }
@@ -275,8 +407,17 @@ export function checkRecords(root: string): { files: string[]; problems: string[
         };
     }
     const manifest = path.join(root, 'records', 'corpus', 'MANIFEST.tsv');
+    const legacy = checkLegacySpec(path.join(root, 'spec')).legacy;
     const expected: Expected = {
         spec: { version: spec.spec.version, sha256: spec.spec.sha256 },
+        legacySpec:
+            legacy === undefined
+                ? undefined
+                : {
+                      version: legacy.version,
+                      sha256: legacy.sha256,
+                      package_format: legacy.package_format,
+                  },
         corpusManifestSha256: existsSync(manifest) ? sha256OfFile(manifest) : undefined,
         rulesSha256: checkRulesTable(path.join(root, 'spec')).sha256,
     };

@@ -7,17 +7,20 @@
  *   records check                  every committed record (task records:check)
  *   game parse|index|check|mods|bench    a game-file suite (task game:<suite>)
  *   corpus manifest                measure the corpus into records/corpus/MANIFEST.tsv
+ *   baseline spec                  point an export of legacy/ at the committed format 4 copy
+ *                                  (part of task baseline:prepare)
  *   baseline speed                 release 2.3.0's speed baselines (task baseline:speed)
+ *   baseline results               release 2.3.0's result baselines (task baseline:results)
  *   wiki check|build|publish       the repository wiki, generated from docs/ (task wiki:*)
  */
 
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { runSpeedBaseline } from './baseline.js';
+import { prepareLegacySpec, runResultBaseline, runSpeedBaseline } from './baseline.js';
 import { checkRecords } from './records-check.js';
 import { checkRulesTable, RULES_FILE } from './rules-table.js';
-import { checkSpec } from './spec.js';
+import { checkSpecFolder, SCHEMA_FILE } from './spec.js';
 import { GAME_SUITES, runGameSuite, writeCorpusManifest, type GameSuite } from './suites.js';
 import { CommandError, EXIT, repoRoot } from './util.js';
 import { buildWiki, publishWiki } from './wiki.js';
@@ -27,23 +30,36 @@ const USAGE = `usage: pychivalry-tools <command>
   records check
   game ${GAME_SUITES.join('|')}
   corpus manifest
-  baseline speed
+  baseline spec|speed|results
   wiki check|build|publish`;
 
 function run(args: readonly string[]): number {
     const root = repoRoot();
     const [group, command] = args;
     if (group === 'spec' && command === 'check') {
-        const check = checkSpec(path.join(root, 'spec'));
+        const check = checkSpecFolder(path.join(root, 'spec'));
         const rules = checkRulesTable(path.join(root, 'spec'));
         const problems = [...check.problems, ...rules.problems];
-        if (check.spec === undefined || rules.table === undefined || problems.length > 0) {
+        if (
+            check.spec === undefined ||
+            check.legacy === undefined ||
+            rules.table === undefined ||
+            problems.length > 0
+        ) {
             process.stderr.write(`spec check failed:\n  ${problems.join('\n  ')}\n`);
             return EXIT.failed;
         }
-        const { file, sha256, package_format: format } = check.spec;
+        const { file, sha256, package_format: format, companions } = check.spec;
         process.stdout.write(
-            `spec check: ${file} is package format ${String(format)}, sha256 ${sha256} (uncompressed): ok\n`,
+            `spec check: ${file} is package format ${String(format)}, sha256 ${sha256} (uncompressed), valid against ${SCHEMA_FILE}: ok\n`,
+        );
+        for (const companion of companions) {
+            process.stdout.write(
+                `spec check: companion ${companion.file}.gz (${companion.part}, ${companion.key}) has the sha256 and size the package states and is valid against ${SCHEMA_FILE}: ok\n`,
+            );
+        }
+        process.stdout.write(
+            `spec check: ${check.legacy.file} is the format ${String(check.legacy.package_format)} copy for release 2.3.0, sha256 ${check.legacy.sha256} (uncompressed): ok\n`,
         );
         process.stdout.write(
             `spec check: ${RULES_FILE} is a ${rules.table.status} rules table of ${String(rules.table.rules.length)} rows, digest ${String(rules.sha256)}: ok\n`,
@@ -76,8 +92,23 @@ function run(args: readonly string[]): number {
         process.stdout.write(writeCorpusManifest(root, process.env));
         return EXIT.ok;
     }
-    if (group === 'baseline' && command === 'speed') {
-        for (const file of runSpeedBaseline(root, process.env)) {
+    if (group === 'baseline' && command === 'spec') {
+        const legacyDir = process.env['LEGACY_BUILD'];
+        if (legacyDir === undefined || legacyDir === '') {
+            throw new CommandError('LEGACY_BUILD must name an export of legacy/', EXIT.usage);
+        }
+        const legacy = prepareLegacySpec(root, legacyDir);
+        process.stdout.write(
+            `baseline: the export's spec.config.json points at spec/${legacy.file} (format ${String(legacy.package_format)}, game ${legacy.version}, sha256 ${legacy.sha256})\n`,
+        );
+        return EXIT.ok;
+    }
+    if (group === 'baseline' && (command === 'speed' || command === 'results')) {
+        const files =
+            command === 'speed'
+                ? runSpeedBaseline(root, process.env)
+                : runResultBaseline(root, process.env);
+        for (const file of files) {
             process.stdout.write(`baseline: record written to ${file}\n`);
         }
         return EXIT.ok;

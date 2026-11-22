@@ -24,7 +24,15 @@
         },
         "suite": {
             "description": "Which suite made the record.",
-            "enum": ["game:parse", "game:index", "game:check", "game:mods", "game:bench", "baseline:speed"]
+            "enum": [
+                "game:parse",
+                "game:index",
+                "game:check",
+                "game:mods",
+                "game:bench",
+                "baseline:speed",
+                "baseline:results"
+            ]
         },
         "command": {
             "description": "The command that made the record, with `<game dir>` and `<corpus dir>` in place of local paths.",
@@ -64,6 +72,19 @@
                 "properties": {
                     "notes": { "type": "array", "minItems": 1 },
                     "results": { "$ref": "#/$defs/speedResults" }
+                },
+                "required": ["notes"]
+            }
+        },
+        {
+            "if": {
+                "properties": { "suite": { "const": "baseline:results" } },
+                "required": ["suite"]
+            },
+            "then": {
+                "properties": {
+                    "notes": { "type": "array", "minItems": 1 },
+                    "results": { "$ref": "#/$defs/baselineResults" }
                 },
                 "required": ["notes"]
             }
@@ -433,12 +454,12 @@
                     "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.-]+)?$"
                 },
                 "commit": {
-                    "description": "The git commit the tool was built from.",
+                    "description": "The git commit the tool was built from. A 2.3.0 baseline names the commit that last changed legacy/.",
                     "type": "string",
                     "pattern": "^[0-9a-f]{40}$"
                 },
                 "dirty": {
-                    "description": "True when tracked files outside records/ differed from that commit.",
+                    "description": "True when tracked files outside records/ differed from that commit. For a 2.3.0 baseline: when the build copy differed from legacy/ in a file the baseline does not write on purpose.",
                     "type": "boolean"
                 }
             }
@@ -505,6 +526,194 @@
                     "uniqueItems": true,
                     "items": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" }
                 }
+            }
+        },
+        "baselineResults": {
+            "description": "What release 2.3.0 found in one run: on the base game (vanilla-acceptance) or on each corpus mod (corpus-acceptance). records/README.md, \"Result baselines\".",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["method", "context"],
+            "properties": {
+                "method": { "enum": ["vanilla-acceptance", "corpus-acceptance"] },
+                "context": {
+                    "description": "Facts that are not results: the Node flags, the load average before the run, exit codes.",
+                    "type": "object"
+                },
+                "base_game": { "$ref": "#/$defs/baselineBaseGame" },
+                "mods": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": { "$ref": "#/$defs/baselineMod" }
+                }
+            },
+            "allOf": [
+                {
+                    "if": { "properties": { "method": { "const": "vanilla-acceptance" } } },
+                    "then": {
+                        "properties": {
+                            "base_game": { "$ref": "#/$defs/baselineBaseGame" },
+                            "mods": false
+                        },
+                        "required": ["base_game"]
+                    }
+                },
+                {
+                    "if": { "properties": { "method": { "const": "corpus-acceptance" } } },
+                    "then": {
+                        "properties": {
+                            "base_game": false,
+                            "mods": { "type": "array", "minItems": 1 }
+                        },
+                        "required": ["mods"]
+                    }
+                }
+            ]
+        },
+        "severityCounts": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["error", "warning", "information", "hint"],
+            "properties": {
+                "error": { "$ref": "#/$defs/count" },
+                "warning": { "$ref": "#/$defs/count" },
+                "information": { "$ref": "#/$defs/count" },
+                "hint": { "$ref": "#/$defs/count" }
+            }
+        },
+        "codeCount": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["code", "severity", "count"],
+            "properties": {
+                "code": { "type": "string", "minLength": 1 },
+                "severity": { "enum": ["error", "warning", "information", "hint"] },
+                "count": { "type": "integer", "minimum": 1 }
+            }
+        },
+        "baselineError": {
+            "description": "One error-severity finding of release 2.3.0 on the base game: the file relative to the game folder, the line from 1, its code and its message as 2.3.0 wrote it.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["file", "line", "code", "message"],
+            "properties": {
+                "file": { "type": "string", "minLength": 1 },
+                "line": { "type": "integer", "minimum": 1 },
+                "code": { "type": "string", "minLength": 1 },
+                "message": { "type": "string" }
+            }
+        },
+        "baselineParseError": {
+            "description": "One parse error of release 2.3.0 on the base game, with its column from 1.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["file", "line", "column", "code", "message"],
+            "properties": {
+                "file": { "type": "string", "minLength": 1 },
+                "line": { "type": "integer", "minimum": 1 },
+                "column": { "type": "integer", "minimum": 1 },
+                "code": { "type": "string", "minLength": 1 },
+                "message": { "type": "string" }
+            }
+        },
+        "baselineModError": {
+            "description": "One error-severity finding of release 2.3.0 on a mod: the file relative to the mod folder, the line from 1, its code, its message, and what 2.3.0's own classification file says of it.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["file", "line", "code", "message", "classification"],
+            "properties": {
+                "file": { "type": "string", "minLength": 1 },
+                "line": { "type": "integer", "minimum": 1 },
+                "code": { "type": "string", "minLength": 1 },
+                "message": { "type": "string" },
+                "classification": { "type": "string", "minLength": 1 },
+                "reason": { "type": "string" },
+                "issue": { "type": "string" }
+            }
+        },
+        "baselineBaseGame": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["parse", "check", "scope"],
+            "properties": {
+                "parse": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["files", "by_folder", "files_with_bom", "errors", "error_list"],
+                    "properties": {
+                        "files": { "$ref": "#/$defs/count" },
+                        "by_folder": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": ["folder", "files"],
+                                "properties": {
+                                    "folder": { "type": "string", "minLength": 1 },
+                                    "files": { "$ref": "#/$defs/count" }
+                                }
+                            }
+                        },
+                        "files_with_bom": { "$ref": "#/$defs/count" },
+                        "errors": { "$ref": "#/$defs/count" },
+                        "error_list": { "type": "array", "items": { "$ref": "#/$defs/baselineParseError" } }
+                    }
+                },
+                "check": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["by_severity", "by_code", "errors", "error_list"],
+                    "properties": {
+                        "by_severity": { "$ref": "#/$defs/severityCounts" },
+                        "by_code": { "type": "array", "items": { "$ref": "#/$defs/codeCount" } },
+                        "errors": { "$ref": "#/$defs/count" },
+                        "error_list": { "type": "array", "items": { "$ref": "#/$defs/baselineError" } }
+                    }
+                },
+                "scope": {
+                    "description": "How much of the base game release 2.3.0's scope check could judge.",
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "keyword_uses",
+                        "keyword_uses_known_scope",
+                        "keyword_uses_judged",
+                        "link_steps_judged",
+                        "findings",
+                        "keyword_uses_by_known_scope_type"
+                    ],
+                    "properties": {
+                        "keyword_uses": { "$ref": "#/$defs/count" },
+                        "keyword_uses_known_scope": { "$ref": "#/$defs/count" },
+                        "keyword_uses_judged": { "$ref": "#/$defs/count" },
+                        "link_steps_judged": { "$ref": "#/$defs/count" },
+                        "findings": { "$ref": "#/$defs/count" },
+                        "keyword_uses_by_known_scope_type": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": ["type", "uses"],
+                                "properties": {
+                                    "type": { "type": "string", "minLength": 1 },
+                                    "uses": { "$ref": "#/$defs/count" }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "baselineMod": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["slug", "files", "by_severity", "by_code", "errors", "error_list"],
+            "properties": {
+                "slug": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+                "files": { "$ref": "#/$defs/count" },
+                "by_severity": { "$ref": "#/$defs/severityCounts" },
+                "by_code": { "type": "array", "items": { "$ref": "#/$defs/codeCount" } },
+                "errors": { "$ref": "#/$defs/count" },
+                "error_list": { "type": "array", "items": { "$ref": "#/$defs/baselineModError" } }
             }
         },
         "speedResults": {
