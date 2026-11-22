@@ -1,6 +1,6 @@
 # pychivalry: build plan
 
-Status: plan for approval, 2026-11-21. Steps 1, 2 and 3 are built and merged, with the override rules the game's files leave open still unresolved until the spec package carries them. Item 4.1, the check inventory, is written and signed off; the rest of step 4 waits for the 1.21 spec. The Progress table says what is open.
+Status: plan for approval, 2026-11-22. Step 0 is done: the 1.21.0.3 spec package in format 5 is committed. Step 1 is complete, and steps 2 and 3 are built and merged, with the override rules the game's files leave open still unresolved until a spec package carries them. Item 4.1, the check inventory, is written and signed off; item 4.2 is next. The Progress table says what is open.
 
 This is the "how" for the rebuild. The "what" and the "why" are in [MVP.md](MVP.md): the
 decisions, the scope, the tests each feature needs and the definition of done. Where the two
@@ -19,11 +19,11 @@ disagree, MVP.md is right and this plan is fixed.
 
 | Step | Name | Needs the 1.21 spec | State |
 | --- | --- | --- | --- |
-| 0 | Spec work, in `pdx-parser-re` | It produces it | In progress, another agent |
-| 1 | Repository skeleton | Two items only (1.6, 1.11) | Built and merged (pull requests #114 and #115). Open, waiting on step 0: 1.6 (the committed spec is the 1.20.0.2 stand-in until the 1.21 format 5 package; compressed or raw still to decide) and 1.11 (the result baselines; the speed baselines are done) |
+| 0 | Spec work, in `pdx-parser-re` | It produces it | Done: the 1.21.0.3 package in format 5, its three companions, its schema and the format 4 copy, adopted in item 1.6. The override rules table and the other held requests are not in it |
+| 1 | Repository skeleton | Two items only (1.6, 1.11) | Complete (pull requests #114, #115 and #124). Item 1.6: the 1.21.0.3 package is committed, gzipped. Item 1.11: the speed and result baselines of 2.3.0 are recorded on its format 4 copy |
 | 2 | Parser | No | Built and merged (pull request #116). Item 2.6's public codes are left to item 4.1, which maps the syntax finding identifiers to them |
 | 3 | Workspace index | No for the index; the override rules table comes from step 0 | Built and merged (pull requests #118 and #120). The stand-in rules table `spec/override-rules.json` carries the settled rules only; the rules it lacks (3, 4, 5, 7, 8, 9 and the open parts of 6 and 10 in `docs/overrides.md`) stay unresolved, and the index names no winner for them, until the spec package carries them |
-| 4 | Engine checks and lookup | Yes, from item 4.2 on | Item 4.1 is done and signed off (pull requests #121 and #122): `docs/checks.md`, the check inventory and the code scheme; its codes are permanent. Items 4.2 to 4.11 are blocked on the 1.21 spec in format 5 |
+| 4 | Engine checks and lookup | Yes, from item 4.2 on | Item 4.1 is done and signed off (pull requests #121 and #122): `docs/checks.md`, the check inventory and the code scheme; its codes are permanent. Items 4.2 to 4.11 are not started; the 1.21 spec in format 5 they need is committed |
 | 5 | Command line | Through step 4 | Not started |
 | 6 | Agent server | Through step 4 | Not started |
 | 7 | Language server and extension | Through step 4 | Not started |
@@ -34,7 +34,8 @@ disagree, MVP.md is right and this plan is fixed.
 | 12 | Editor views | No, but follows step 11 | Not started |
 | 13 | Benchmarks, legacy removed, 1.0.0 | Yes | Not started |
 
-Steps 1, 2 and 3 and item 4.1 can be done before the 1.21 spec exists.
+Steps 1, 2 and 3 and item 4.1 could be done before the 1.21 spec existed; the rest of the plan
+runs on it.
 
 ## Working rules
 
@@ -121,9 +122,12 @@ docs/
   gui-syntax.md           GUI file syntax (step 10)
   game-log.md             the error-log format (step 11)
 spec/
-  ck3-spec-<version>.json[.gz]   the committed spec package
-  ck3-spec-<version>.sha256      checksum of the uncompressed bytes
-  schema.json                    the package's own schema, from pdx-parser-re
+  ck3-spec-<version>.json.gz     the committed spec package file, gzipped
+  ck3-spec-<version>.<part>.json.gz   its companions: info, gui, data_types
+  ck3-spec-<version>[.<part>].sha256  checksum of each file's uncompressed bytes
+  schema.format5.json            the package's own schema, from pdx-parser-re
+  legacy/                        the same version in format 4, for the 2.3.0 baselines only
+  override-rules.json            the override rules table, a stand-in (step 3)
 packages/
   core/                   parse, index, check, lookup, format, fix data
   cli/                    command line
@@ -164,6 +168,12 @@ These names are the ones 2.3.0 used, so its scripts and records stay comparable.
 ## Step 0: spec work
 
 **Where.** In `pdx-parser-re`, by another agent, to `spec/FORMAT_5_PLAN.md` in that repository.
+
+**Done** (2026-11-21, adopted here 2026-11-22 in item 1.6): the 1.21.0.3 package in format 5
+with all twelve of its parts built, its three companions, its schema, and the format 4 copy.
+Not in the package: the override rules table and the other requests held in
+[decisions.md](decisions.md). No real error log came with it either; item 11.1 starts by
+capturing them.
 
 **What this plan needs from it.**
 
@@ -212,6 +222,10 @@ suites and their records wired up, and the 2.3.0 baselines on record.
   checksum and the format number. Decide compressed or raw here: 2.3.0 compressed it because a
   commit hook refused files over 1 MB; the package is about 7 MB. **Needs step 0.** Until
   then the 1.20.0.2 package is committed as a stand-in so the check exists.
+  **Done** (2026-11-22): the 1.21.0.3 package, format 5, its three companions and its schema,
+  committed gzipped by the owner's decision; `task spec:check` verifies every file's checksum,
+  the companions the package lists, the JSON Schema and the format 4 copy kept for 2.3.0 in
+  `spec/legacy/` ([spec/README.md](../spec/README.md)).
 - 1.7 The record format, in `records/README.md`: every record is JSON and states the suite,
   the tool version and commit, the game build and the hash of the game's file manifest, the
   spec version and checksum, the corpus manifest hash, when it was made, and the results.
@@ -233,6 +247,10 @@ suites and their records wired up, and the 2.3.0 baselines on record.
     five runs, cold start and warm start kept apart, with the machine described in the record.
   - **Results**, when the 1.21 format 4 spec exists: the base-game parse and check counts, and
     the five mods' findings. **Needs step 0.**
+  - **Done** (2026-11-22): both re-recorded on game 1.21.0.3 with the 1.21.0.3 format 4 copy,
+    the speed baselines replacing those made on the 1.20.0.2 spec; `task records:check` ties
+    every baseline to that copy, the game build and the corpus
+    ([records/README.md](../records/README.md#baselines)).
 
 - 1.12 The documents index (`docs/README.md`) and the decision log (`docs/decisions.md`).
 - 1.13 References: `docs/references/`, an index of every source with its place in the order of
@@ -265,6 +283,10 @@ rejects a published document that is missing or holds a link that points at noth
 
 **Not yet known.** Whether 2.3.0 runs cleanly on the 1.21 game with a 1.20.0.2 spec for the
 speed runs. It should, with more "unknown" findings; the speed figures barely depend on that.
+
+**Found** (item 1.11): it does, with an 8 GiB heap limit for the base game; and on the 1.21.0.3
+format 4 copy, once its loader accepted the `since` value `1.21.0.3` (the one change under
+`legacy/`, the owner's decision).
 
 ---
 
@@ -434,6 +456,10 @@ eight folders of the 1.20 list hold no file the index reads on 1.21; the three h
 file (`history/cultures`, `history/situations`, `history/struggles`) have no keyed definitions;
 a landed title's nested titles are not definitions, because nothing says its nested keys are
 titles; and `namespace` in an event file is a top-level value with no row, defined 631 times.
+Re-measured on the 1.21.0.3 package (item 1.6): 236 folders indexed, 17,302 files; 12 folders
+of 103 files are still not described, 3 of them beside the spec's (`common` itself,
+`gfx/tools`, `map_data`); the same eight folders hold no file; 1,309 names still have no winner
+known.
 
 ---
 
@@ -927,7 +953,7 @@ five test mods.
 
 | When | Decision |
 | --- | --- |
-| Item 1.6 | The spec package committed compressed or raw. |
+| Item 1.6 | The spec package committed compressed or raw. Decided 2026-11-22: compressed. |
 | Item 6.11 | The target for the agent-use run. |
 | Item 7.1 | Only if a harness cannot be reached as designed. |
 | Item 8.1 | Sign-off on the formatting rules. |

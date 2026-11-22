@@ -1,65 +1,103 @@
 # The spec package
 
 pychivalry takes its CK3 vocabulary only from the spec package that `pdx-parser-re` derives
-from the game (docs/MVP.md, "The spec package"). The built package is committed here with its
-checksum and its schema.
+from the game (docs/MVP.md, "The spec package"). The built package is committed here as it
+was built, with its checksums and its schema. Nothing here is edited by hand.
 
 | File | What it is |
 | --- | --- |
-| `ck3-spec-1.20.0.2.json.gz` | The package for game 1.20.0.2, package format 4, gzipped |
-| `ck3-spec-1.20.0.2.sha256` | SHA-256 of the **uncompressed** JSON, in `sha256sum` form |
-| `schema.json` | The package's own JSON Schema, from `pdx-parser-re` (`spec/package/schema.json`) |
-| `override-rules.json` | The override rules table, a stand-in until the spec package carries one ([below](#the-override-rules-table)) |
+| `ck3-spec-1.21.0.3.json.gz` | The package file for game 1.21.0.3, package format 5, gzipped |
+| `ck3-spec-1.21.0.3.info.json.gz` | Companion C1: Paradox's 214 `.info` documentation files, facts and full text (`info_docs`) |
+| `ck3-spec-1.21.0.3.gui.json.gz` | Companion C2: the GUI vocabulary measured from the base game's `.gui` files (`gui`) |
+| `ck3-spec-1.21.0.3.data_types.json.gz` | Companion C3: the game's own data-types dump (`data_types`) |
+| `ck3-spec-1.21.0.3.sha256`, `.info.sha256`, `.gui.sha256`, `.data_types.sha256` | SHA-256 of each file's **uncompressed** JSON, in `sha256sum` form |
+| `schema.format5.json` | The JSON Schema (draft 2020-12) of the package file and the three companions, from `pdx-parser-re` (`spec/package/schema.format5.json`) |
+| `legacy/ck3-spec-1.21.0.3.format4.json.gz`, `legacy/ck3-spec-1.21.0.3.format4.sha256` | The same game version in package format 4. It exists only so that release 2.3.0 can be run for the baselines; nothing in the new code reads it |
+| `override-rules.json` | The override rules table, a stand-in the spec package does not yet replace ([below](#the-override-rules-table)) |
 | `override-rules.schema.json` | The table's JSON Schema |
 
-## This package is a stand-in
+The package file holds every part a tool needs to start; each companion holds one heavy part
+and is opened only when that part is needed. The package file names each companion in
+`manifest.companions` (its file, part, key, SHA-256 and size) and records it again under its
+own key (`info_docs`, `gui`, `data_types`).
 
-**The committed package is a stand-in until the 1.21 package in format 5 arrives from step 0**
-(docs/PLAN.md, item 1.6). It is the 1.20.0.2 package exactly as release 2.3.0 shipped it
-(`legacy/packages/engine/spec/`), byte for byte, so that the check below exists and the 2.3.0
-baselines name the spec they ran on. The rebuild reads one part of it, the error catalogue
-(`errors[]`, each entry's `id` and `text`), which build step 2 uses as the evidence of parse
-findings; format 5 keeps that list. The spec reader proper is written in item 4.2, against
-format 5.
+The package carries Paradox's full `.info` text (`manifest.info_text` is `full`) and is
+committed as `pdx-parser-re` built it (docs/decisions.md, 2026-11-22).
 
-When the 1.21 format 5 package arrives, it replaces these three files: the package, its
-`.sha256`, and the `schema.json` of format 5. Every record made on the stand-in then fails
-`task records:check` and its suite is re-run (records/README.md).
+## Compression
 
-## Compressed or raw: an open decision
+Every JSON file here is committed gzipped (docs/decisions.md, 2026-11-22): 2.75 MB for the four
+files of the package instead of 50.4 MB, and 0.64 MB for the format 4 copy instead of 8.6 MB.
+The checksums are of the uncompressed bytes, so a file can be checked against the `.sha256`
+that `pdx-parser-re` wrote beside it.
 
-Whether the package is committed compressed or raw is **an open decision for the owner**
-(docs/PLAN.md, "Decisions the plan will bring to the owner", item 1.6). Release 2.3.0
-compressed it because a commit hook refused files over 1 MB; the package is about 7 MB
-uncompressed (the 1.20.0.2 package: 7,120,885 bytes raw, 542,820 gzipped). The stand-in is
-committed compressed only because that is how 2.3.0 shipped it. Either way the checksum is of
-the uncompressed bytes, and the check accepts both forms.
+The compression is deterministic, so the same JSON always gives the same committed bytes:
+
+```bash
+gzip -n -9 -c ck3-spec-1.21.0.3.json > ck3-spec-1.21.0.3.json.gz
+```
+
+`-n` keeps the file name and the time out of the gzip header; `-9` is the highest level. The
+committed files were made this way with GNU gzip 1.14. `.gitattributes` marks them binary, so
+no platform rewrites their bytes, and keeps `schema.format5.json` byte for byte as well.
 
 ## The check
 
 `task spec:check` (part of `task ci`) fails unless:
 
-- the folder holds exactly one `ck3-spec-<version>.json` or `ck3-spec-<version>.json.gz`;
-- `ck3-spec-<version>.sha256` exists and its hash equals the SHA-256 of the uncompressed bytes;
-- the package's `package_format` is one this repository supports: 4 (the stand-in) or 5 (the
-  format the rebuild's spec reader is written against);
-- `schema.json` declares the same `package_format` as the package.
+- the folder holds exactly one `ck3-spec-<version>.json.gz`, and its `.sha256` equals the
+  SHA-256 of the uncompressed bytes and names the uncompressed file;
+- the package's `package_format` is 5, the only format the rebuild reads, and its
+  `manifest.version` is the version in the file name;
+- `schema.format5.json` declares `package_format` 5;
+- every companion `manifest.companions` lists is here, gzipped, with the SHA-256 and the size
+  the package states, its own `.sha256` agreeing, the same record under the package's key for
+  it, and a header (`companion`, `package`, `version`, `package_format`) naming this package;
+  a companion that is missing, altered or of another package fails;
+- no other `ck3-spec-*.json[.gz]` file sits beside them;
+- the package file and every companion are valid against `schema.format5.json` (each
+  companion against the `$defs` entry for its `companion` name). The validation runs in CI:
+  the whole spec check takes under a second. The schema is written for a draft 2020-12
+  validator rather than for Ajv's strict authoring rules, so the check relaxes those rules
+  except the one that refuses an unknown keyword;
+- every gzip header stores no file name, comment, extra field or time;
+- `legacy/` holds exactly one `ck3-spec-<version>.format4.json.gz` whose `.format4.sha256`
+  agrees, whose `package_format` is 4 and whose game version is the package's;
 - `override-rules.json` is valid against `override-rules.schema.json`, and the core's own reader
   (`readRulesTable` in `packages/core/src/index/rules.ts`) accepts it: it also refuses two rows
   that answer the same question on one platform.
+
+## What the rebuild reads today
+
+Two parts of the package file, through `tools/` and the core: the error catalogue (`errors`,
+each entry's `id` and `text`), the evidence of parse findings; and the folder list and record
+schemas (`directories[].path` and `content_type`, `schema[folder].fields` and `vanilla`), from
+which the index takes what a definition is. Format 5 keeps these keys of format 4 with the same
+shape. The typed spec reader that exposes the whole package is item 4.2 of docs/PLAN.md.
+
+## The format 4 copy
+
+`legacy/ck3-spec-1.21.0.3.format4.json.gz` is the 1.21.0.3 package as `pdx-parser-re` also
+builds it in format 4, the only format release 2.3.0 reads. `task baseline:prepare` points the
+export of `legacy/` at it, and every 2.3.0 baseline record names it as its spec
+([records/README.md](../records/README.md#baselines)). The rebuild never reads it.
 
 ## The override rules table
 
 Which definition is in force when the same thing is defined more than once is data, never code
 (docs/MVP.md, "Override rules"; docs/PLAN.md, item 3.1a). The table is to come in the spec
-package, read out of the Windows and Linux executables by the spec work. Until it does,
-**`override-rules.json` is a stand-in that carries only the rules
+package, read out of the Windows and Linux executables by the spec work. The 1.21.0.3 package
+does not carry it: the override rules are the thirteenth addition, and the twelve the package
+carries are the others (docs/MVP.md, "The spec package"). So
+**`override-rules.json` stays a stand-in that carries only the rules
 [docs/overrides.md](../docs/overrides.md) marks settled**: rules 1, 2 and 10, and the settled
 parts of rule 6 (events and character history by their override priority, on-actions, define
 groups and container keys adding up, province terrain not keyed). Every row names the rule's
 number in overrides.md, the folders (databases) it holds for, what it decides, its evidence with
 its rank, and the platforms it holds on. The open rules have no row, so the index names no winner
-for what they decide.
+for what they decide. The other requests to the spec work that the package does not carry
+either (declarations that are not records, nested and file-named definitions, keyword roles,
+implicit localization keys) are held (docs/decisions.md).
 
 The core reads the table through a parameter and holds no rule of its own. Each kind of row is a
 kind of question overrides.md asks, settled or open, so that a rule the spec work adds is a new
@@ -83,3 +121,13 @@ every language. `rules_format` is the table's own format, 1. Its digest is part 
 cache's key and of every `game:index` record, so a changed table rebuilds the cache and fails a
 record made on the old one.
 
+## How a new package arrives
+
+1. `pdx-parser-re` derives it for a game build and writes the package file, its companions, the
+   format 4 copy, a `.sha256` for each and the schema.
+2. Each JSON file is checked against its `.sha256`, gzipped as above and put in place of the
+   old one; the format 4 copy goes in `legacy/`, the schema replaces `schema.format5.json`.
+   `task spec:check` verifies the lot.
+3. Every committed record made on the old package now fails `task records:check`, so the
+   suites that need game files are re-run, and the 2.3.0 baselines on the new format 4 copy,
+   and their records are committed with the package.

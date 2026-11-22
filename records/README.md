@@ -19,6 +19,7 @@ enforces and this page is fixed.
 | `game/mods.json` | `task game:mods` |
 | `game/bench.json` | `task game:bench` |
 | `baseline-2.3.0/speed-mods.json`, `speed-base-game.json`, `speed-editor.json` | `task baseline:speed` |
+| `baseline-2.3.0/results-base-game.json`, `results-mods.json` | `task baseline:results` |
 | `corpus/MANIFEST.tsv` | `task corpus:manifest`; the pinned corpus, not a record ([corpus/README.md](corpus/README.md)) |
 
 Each run overwrites its suite's record; the history is git's. Records are written only by the
@@ -31,13 +32,13 @@ Every record is one JSON object, four-space indented, with a final newline.
 | Field | What it states |
 | --- | --- |
 | `record_format` | The version of this format: `1`. |
-| `suite` | Which suite: `game:parse`, `game:index`, `game:check`, `game:mods`, `game:bench` or `baseline:speed`. |
+| `suite` | Which suite: `game:parse`, `game:index`, `game:check`, `game:mods`, `game:bench`, `baseline:speed` or `baseline:results`. |
 | `command` | The command that made it, with `<game dir>`, `<corpus dir>` and `<legacy build>` for local paths. |
 | `made_at` | When it was made, ISO 8601 in UTC. |
-| `tool` | The build that made it: `name` (`pychivalry`), `version`, the git `commit`, and `dirty`, true when tracked files outside `records/` differed from that commit. A 2.3.0 baseline names release 2.3.0 and the commit of the tag `v2.3.0`. |
+| `tool` | The build that made it: `name` (`pychivalry`), `version`, the git `commit`, and `dirty`, true when tracked files outside `records/` differed from that commit. A 2.3.0 baseline names release 2.3.0 and the commit that last changed `legacy/`; its `dirty` is true when the build copy differs from `legacy/` in a file other than those the baseline writes on purpose (the export's `spec.config.json`, and the records 2.3.0's own tools write into their tree). |
 | `machine` | The machine, generically: `os` (family), `arch`, `logical_cpus`, `memory_gib`, `node`. Nothing that identifies it or its owner. |
 | `game` | The installed game: `build` (from the launcher's settings file, `rawVersion`), `manifest_sha256` (below), `files`, `content_hashed_files`. |
-| `spec` | The spec package the run used: `version`, `sha256` (of the uncompressed bytes), `package_format`. |
+| `spec` | The spec package the run used: `version`, `sha256` (of the uncompressed bytes), `package_format`. For a 2.3.0 baseline, the format 4 copy it ran on ([Baselines](#baselines)). |
 | `corpus` | `null` for a suite that reads no mods; otherwise `manifest_sha256`, the SHA-256 of `corpus/MANIFEST.tsv` as committed, and `slugs`, the mods it read. |
 | `notes` | Optional sentences a reader needs to interpret the results. Required on a speed record. |
 | `results` | The results. Each suite's shape is defined, in the schema and here, by the step that builds the suite. A step 1 stub writes `{}`. |
@@ -70,7 +71,9 @@ For every `*.json` under `records/` except the `*.schema.json` files:
 1. It is valid against [record.schema.json](record.schema.json): every field present, nothing
    unknown.
 2. Its `spec` is the committed spec: the same version and the same SHA-256 as `spec/`. **A
-   record made on another spec fails**, so a spec change forces the suites to be re-run.
+   record made on another spec fails**, so a spec change forces the suites to be re-run. A
+   2.3.0 baseline is tied to the committed format 4 copy instead, by the rule in
+   [Baselines](#baselines).
 3. If it read the corpus, its `corpus.manifest_sha256` is the SHA-256 of the committed
    `corpus/MANIFEST.tsv`, so a corpus refresh forces them to be re-run too.
 4. No string in it is an absolute or home-relative path.
@@ -82,6 +85,35 @@ For every `*.json` under `records/` except the `*.schema.json` files:
    digest of `spec/override-rules.json`), so a changed table forces the suite to be re-run; its
    base-game totals agree with its layers; `passed` agrees with its failures; and its mods are
    the corpus slugs it names.
+8. A results baseline's counts agree with each other: the parse's files with its folders and
+   its errors with its error list; per check and per mod, the totals by severity with the
+   counts by code, and the error count with the error list and the total of errors; and its
+   mods are the corpus slugs it names.
+
+## Baselines
+
+The 2.3.0 baselines (`baseline:speed`, `baseline:results`) are made by release 2.3.0, which
+reads only package format 4. They cannot be made on the committed package, which is format 5,
+so they are tied to the committed **format 4 copy of the same game version**,
+`spec/legacy/ck3-spec-<version>.format4.json.gz` ([spec/README.md](../spec/README.md#the-format-4-copy)).
+`task records:check` fails a baseline unless:
+
+- its `spec` is that copy: the same version, the same SHA-256 of the uncompressed bytes, and
+  `package_format` 4;
+- its `game.build` is that copy's game version, which `task spec:check` makes the package's
+  too: the baseline read the game build the spec was derived for;
+- its `corpus`, if it read the corpus, is the committed `corpus/MANIFEST.tsv` (check 3, as for
+  every record).
+
+A new package or a new corpus therefore fails the baselines too, until they are re-run. The
+tests are in `tools/src/records-check.test.ts`.
+
+`task baseline:prepare` makes the run use that copy: it exports `legacy/` to a folder outside
+the repository, copies the format 4 copy and its checksum into the export's
+`packages/engine/spec/`, rewrites the export's `packages/engine/spec.config.json` (the one
+place 2.3.0 reads to know which package to bundle) to name them, and builds the export. Each
+baseline task then checks that the spec the build bundles, in the engine and in the
+extension, is that copy byte for byte before it runs anything.
 
 ## Speed records (`baseline:speed`)
 
@@ -110,6 +142,26 @@ The methods, each a tool of release 2.3.0 run unchanged from a build outside the
 | `vanilla-acceptance` | `packages/engine/scripts/vanilla-acceptance.js <game dir> <out>`: `parse_ms`, every `.txt` under `common/`, `events/`, `history/` parsed; `check_ms`, the same tree loaded and checked; `peak_rss_kib` of the whole process, read at exit. A heap limit set with `BASELINE_NODE_HEAP` is stated in `context.node_flags` and the record's notes. |
 | `editor` | The extension's integration harness under `xvfb-run`, a real VS Code per mod: `time_to_first_full_result_ms`, from activation to the language server's first full background pass; `server_peak_rss_kib`, the language server's peak memory. |
 
+## Result baselines (`baseline:results`)
+
+`task baseline:results` runs release 2.3.0's own tools once each, from the same build as the
+speed baselines, and records what 2.3.0 found. Messages are 2.3.0's own, as it wrote them.
+
+`results-base-game.json` (method `vanilla-acceptance`, `corpus` null): `results.base_game` has
+
+| Field | What it states |
+| --- | --- |
+| `parse` | `files` (every `.txt` under `common/`, `events/`, `history/`), `by_folder`, `files_with_bom`, `errors` and `error_list` (`file`, `line`, `column`, `code`, `message`) |
+| `check` | The same tree loaded and run through 2.3.0's registry, schema and scope checks: `by_severity`, `by_code` (`code`, `severity`, `count`, most first within a severity), `errors` and `error_list` (`file`, `line`, `code`, `message`) |
+| `scope` | How much the scope check could judge: `keyword_uses`, `keyword_uses_known_scope`, `keyword_uses_judged`, `link_steps_judged`, `findings`, and the known uses by scope type |
+
+`results-mods.json` (method `corpus-acceptance`): `results.mods` has per mod `slug`, `files`
+(script files checked), `by_severity`, `by_code`, `errors` and `error_list` (`file` relative
+to the mod, `line`, `code`, `message`, and `classification`, what 2.3.0's own classification
+file says of the error, with its `reason` where it gives one). That file was written for the
+corpus copy and spec of 2026-10, so `unclassified` means only that it does not cover the
+error. `results.context` states the load average before each run and the exit codes.
+
 ## Parse records (`game:parse`)
 
 `task game:parse` (build step 2) parses every script file of the base game in an explicit list
@@ -131,13 +183,6 @@ error matches an entry of `tools/data/parse-classifications.json` (by file, find
 classified `game-defect`. An error without an entry, an entry without an error, and a
 `pychivalry-fault` each fail it. A failed run still writes its record, and exits 1.
 
-### Baselines and the format 5 spec
-
-The 2.3.0 baselines are made with the spec 2.3.0 can read, format 4. They pass check 2 today
-because the committed stand-in is that same package. When the format 5 package replaces it, no
-2.3.0 run can carry its checksum, so check 2 will fail them by design; how baselines are
-checked from then on is decided with that change (docs/PLAN.md, item 1.6).
-
 ## Index records (`game:index`)
 
 `task game:index` (build step 3) indexes the whole base game with the committed spec and the
@@ -153,7 +198,7 @@ required, and state the load average before the run. `results`:
 | `base_game.layers` | Per layer (`clausewitz`, `jomini`, `game`, `dlc`): files, definitions, uses, and the uses of a name something in the index defines |
 | `base_game.files`, `lines`, `definitions`, `uses`, `uses_of_defined_names`, `names` | Totals over the layers; `names` counts every distinct string the index holds |
 | `base_game.definitions_by_form` | Definitions by how they are written: `record`, `value`, `prefixed`, `constant`, `container`, `entry`, `key` |
-| `base_game.folders` | Per folder of the spec that holds a file: its files, definitions, definitions by form, and the 1.20 spec's own count of its files and records |
+| `base_game.folders` | Per folder of the spec that holds a file: its files, definitions, definitions by form, and the spec's own count of its files and records in the base game it was derived from |
 | `base_game.spec_folders_without_files`, `not_described`, `not_read` | The spec's folders that hold no file read; the `.txt` and `.yml` files in folders the spec does not describe, by folder (`beside_spec_folders` when its first folder also holds listed ones); every other file, by extension |
 | `base_game.defined_more_than_once` | The names of a database defined more than once: their count, how each resolves (`all`, `statements`, `clash`, `winner`, `single`, `not-read`, `unknown`), the unknown ones by the open rule of docs/overrides.md that leaves each open (a name can count under more than one) and by database |
 | `base_game.time_ms`, `peak_rss_kib`, `heap_used_after_build_mib` | Listing, building, saving and reporting times; the build process's peak resident memory, read right after the build and the save; its heap in use then |

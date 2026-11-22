@@ -1,13 +1,15 @@
 # pychivalry: MVP
 
-Status: draft, 2026-11-21. Decisions are answered, the scope is confirmed, and every build step
+Status: draft, 2026-11-22. Decisions are answered, the scope is confirmed, and every build step
 has been checked against real data: the spec package, the 2.3.0 code and its records, the game
-installed today, and the current VS Code, Claude Code and GitHub documentation. Build step 1,
-the repository skeleton, and build step 2, the parser, are built; build step 3, the workspace
-index, is built, with the override rules as data: a stand-in table carries the rules the game's
-files settle, and the rest arrive from the spec work. Item 4.1, the check inventory
-([checks.md](checks.md)), is written and signed off; nothing else in this
-document is built yet.
+installed today, and the current VS Code, Claude Code and GitHub documentation. Step 0, the
+spec work, is done: the 1.21.0.3 package in format 5 is committed. Build step 1, the
+repository skeleton, is complete, with that package and the 2.3.0 baselines recorded on its
+format 4 copy; build step 2, the parser, is built; build step 3, the workspace index, is built,
+with the override rules as data: a stand-in table carries the rules the game's files settle,
+and the rest wait for a spec package that carries them. Item 4.1, the check inventory
+([checks.md](checks.md)), is written and signed off; nothing else in this document is built
+yet.
 
 The build plan, step by step, is in [PLAN.md](PLAN.md).
 
@@ -30,8 +32,8 @@ lives unchanged in `legacy/`.
 | Source of truth | pychivalry takes its vocabulary only from the spec package produced by `pdx-parser-re`. It does not scrape the wiki and ships no name lists of its own. At run time it does read the user's installed game for names the game defines in files (traits, localization keys and the like). |
 | Derived names | A name the derivation produced is never dropped because the game's own documentation omits it. The doubt is documented instead. |
 | Identity | A new extension, named `pychivalry`, starting at 1.0.0. It does not update `ck3-language-support` 2.x in place; people on 2.3.0 install the new one by hand. |
-| Spec delivery | The built spec package is a file committed in this repository with its checksum. `pdx-parser-re` stays private. |
-| Spec version | The spec is re-derived for the current game, 1.21, before building starts. The existing spec is for 1.20.0.2. |
+| Spec delivery | The built spec package is committed in this repository as it was built, with Paradox's full `.info` text, gzipped, with the checksum of each file's uncompressed bytes. `pdx-parser-re` stays private. |
+| Spec version | The spec is re-derived for the current game, 1.21, before building starts. The committed package is for 1.21.0.3, in format 5. |
 | Hand-kept tables | The tables 2.3.0 kept in code (about 100 entries: iterator parameters, structural keywords, block names) move into the spec package as a new format, with their evidence. The core holds none. |
 | Grounding | Everything is grounded in the game: its executable, its files, its own documentation and its own output. Community tools and the wiki may supply a hint or an idea for a rule, and nothing rests on them alone. |
 | Spec additions | The 1.21 spec keeps every part of the current package and adds thirteen things (see [What the 1.21 spec adds](#what-the-121-spec-adds)). |
@@ -189,19 +191,32 @@ its error log.
 
 ## The spec package
 
-Facts about the existing package, format 4, for game 1.20.0.2 (7.1 MB uncompressed):
+Facts about the committed package, format 5, for game 1.21.0.3 (one package file of 21.6 MB and
+three companion files, 50.4 MB in all uncompressed, 2.75 MB gzipped), measured from the
+package itself:
 
 | Part | What it holds |
 | --- | --- |
-| Names | 1,447 triggers, 1,007 effects, 312 links, 377 lists, 217 on-actions, 609 modifiers. |
-| Descriptions | A free-text description for most triggers, effects, links and lists. None for modifiers or on-actions. No structured argument types anywhere. |
-| Scope data | Which scopes a trigger or effect is valid in, from the game's own `script_docs` output. 55 triggers and 99 effects have no entry; a further 157 and 320 declare no requirement. |
-| Record schemas | 185 of 227 game folders have a field list (18,234 fields, almost all an inventory of the base game's own files). The fields have a kind but no value types. Only 3 fields in the whole package are marked required. No schema for `gui`, `gfx` or `localization`. |
-| Error catalogue | 1,968 message texts taken from the game executable. Text only: no severity and no condition. It includes strings that are not game errors. |
+| Names | 1,598 triggers, 1,105 effects, 361 links, 436 lists, 233 on-actions, 778 modifiers: 4,511 rows, 4,331 distinct names, 146 in more than one bucket. |
+| Descriptions | The executable's own text for 1,563 triggers, 1,028 effects, 359 links and 436 lists. None for modifiers or on-actions. A structured "what it takes" for 2,075 of the 2,703 triggers and effects. |
+| Scope data | Which scopes a trigger or effect is valid in, from the game's own `script_docs` output: 2,163 trigger and 2,399 effect entries. 63 triggers and 118 effects have no entry; 181 and 363 entries declare no requirement (`none`). Where each modifier may be used, for all 778. |
+| Record schemas | 198 of the 244 game folders the package lists have a field list: 8,179 fields and 14,685 sub-fields (22,864 in all), each with a measured value type and how often the base game sets it. Only 3 are marked required, all three with the game's message: `on_invalidated_desc` of casus belli types, `index` of character interaction categories, `chain` of tutorial lessons. No schema for `gui`, `gfx` or `localization`. |
+| Error catalogue | 2,023 message texts taken from the game executable, each marked as script-facing or not: 257 yes, 874 no, 892 unknown. Still no condition. |
 
-Every part of this package is kept. Release 2.3.0's engine read all of it.
+Every part of the 1.20.0.2 package is kept, with the same shape. Release 2.3.0's engine read
+all of it; it runs on the same game version's format 4 copy, committed apart for the baselines
+(`spec/legacy/`).
 
 ### What the 1.21 spec adds
+
+The 1.21.0.3 package carries twelve of the thirteen additions below, all twelve marked built in
+its `parts` list: A1 modifier use areas, A2 how often each field is set, A3 the wiki
+descriptions, A4 the cleaned catalogue, A5 what triggers and effects take, B1 value types, B2
+observed values, B3 localization-key fields, C1 the `.info` files, C2 the GUI vocabulary, C3
+the data-types dump and C4 the hand-kept tables (19 tables, 166 entries with their evidence).
+**The thirteenth, the override rules, is not in it**, and the index keeps its stand-in table
+until a package carries one. The other requests held in [decisions.md](decisions.md) are not in
+it either.
 
 The pre-2.0 pychivalry had 32 hand-written schema files, taken from the wiki. The extractor
 uses them only as hints for a field's kind and description, and keeps its own copy in
@@ -225,8 +240,8 @@ derivation brings that knowledge back, measured from the game where it can be:
 | A measured GUI vocabulary | The base game's 441 GUI files, which use about 2,000 distinct block names | Widget types and properties with usage counts, where today there is nothing. |
 | The override rules | The executable, Windows and Linux: the code behind its "overriding entry" message, its file listing and sorting, `replace_path`, the localization reader and its path lookups. [overrides.md](overrides.md) lists the rules needed and what the game's files already settle | Knowing which of two definitions is in force, on both platforms, without a list of rules in the code. |
 
-The same derivation also emits the 1.21 spec in the current format, so 2.3.0 can run on it for
-the baselines.
+The same derivation also emits the 1.21 spec in format 4, so 2.3.0 can run on it for the
+baselines; that copy is committed in `spec/legacy/`.
 
 Where sources disagree about a field, the order of trust is: the executable, then the game's
 own output, then Paradox's documentation files, then what the base game's files do, then the
@@ -248,26 +263,27 @@ from the base game's files is measured, not derived from the executable, and is 
 
 ### What this means for the build
 
-- **Required-field checks are small.** They cover the fields the spec marks, which today is 3.
-  A field the base game always sets is advice, not a requirement.
+- **Required-field checks are small.** They cover the fields the spec marks, which in 1.21.0.3
+  is still 3. A field the base game always sets is advice, not a requirement.
 - **Each structural check is written by hand** against a catalogue message. The catalogue
   supplies the wording and the evidence, not the logic. 2.3.0 implemented about 14.
 - **Lookup says what the spec says.** Where the spec has nothing, lookup says so; it does not
   guess.
-- 2.3.0 shipped the package compressed because of a file-size limit on commits. Step 1 decides
-  compressed or raw; either way the checksum is of the uncompressed bytes and `task ci`
-  verifies it.
+- **The package is committed compressed** (decided 2026-11-22): each file gzipped
+  deterministically, the checksum of the uncompressed bytes, all verified by `task ci`,
+  together with each companion and the package's JSON Schema.
 
 ## The game
 
-- **Versions.** The spec is from 1.20.0.2; version 1.20 was released on 2026-09-30. Since then the game has had
-  seven updates. The current version is 1.21.0.3 (2026-11-19), which followed the 1.21 release
-  and its expansion on 2026-11-17.
+- **Versions.** The spec is for 1.21.0.3 (2026-11-19), the current version, which followed the
+  1.21 release and its expansion on 2026-11-17. The spec it replaced was for 1.20.0.2; the game
+  had seven updates between the two.
 - **On this laptop.** CK3 1.21.0.3 is installed in a second Steam library, with all five test
   mods in the Steam workshop cache. The base game has 4,482 script files in the three folders
   2.3.0 covered (2.3.0's record: 4,035), plus 441 GUI files and 12,171 localization files.
 - **The 2.3.0 records cannot be reproduced.** They were made on 1.20.0.3 files. New baselines
-  are recorded in build step 1 by running 2.3.0 on the current game with the 1.21 spec.
+  were recorded in build step 1 by running 2.3.0 on game 1.21.0.3 with the 1.21.0.3 spec in
+  format 4 (`records/baseline-2.3.0/`).
 - **Mismatch.** pychivalry records which game build its spec came from and reads which is
   installed. When they differ it says so once and carries on.
 
@@ -349,7 +365,9 @@ Three: explain an error, fix an error, write new content. Each is tested by the 
   The naming scheme is chosen with the inventory.
 - **The base game's own errors.** 2.3.0 reports 1 parse error and 14 check errors in the base
   game. The parse error is a known defect in the game's files. The 14 were never classified.
-  Classifying each as a game defect or a pychivalry fault is part of build step 4.
+  Classifying each as a game defect or a pychivalry fault is part of build step 4. On game
+  1.21.0.3 with the 1.21.0.3 spec it reports 3 parse errors and 96 check errors
+  ([records/baseline-2.3.0/results-base-game.json](../records/baseline-2.3.0/results-base-game.json)).
 
 ## Speed
 
@@ -380,6 +398,22 @@ The rebuild must stay within a stated tolerance of those medians.
 The records are in `records/baseline-2.3.0/`. The operating system's file cache cannot be dropped
 without administrator rights, so each series keeps its first run, in a fresh process, apart from
 the later ones instead of claiming a cold start.
+
+Recorded on 2026-11-22, release 2.3.0 on game 1.21.0.3 with the 1.21.0.3 spec in format 4, on
+this laptop (Linux, 16 logical CPUs, 62 GiB), the median of the later runs (10 per mod on the
+command line, 5 for the base game and the editor):
+
+| Measure | balance-of-power-ui | divine-intervention | elf-destiny | rice | viet-events |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Script files checked | 5 | 227 | 598 | 1,313 | 67 |
+| Load before any mod file is checked | 1.57 s | 6.40 s | 2.33 s | 2.96 s | 1.91 s |
+| Whole-mod check, load included | 1.58 s | 17.76 s | 3.24 s | 6.32 s | 2.36 s |
+| Peak memory, command line | 0.24 GiB | 2.43 GiB | 0.62 GiB | 0.96 GiB | 0.48 GiB |
+| Editor: time to the first full result | 2.33 s | 19.51 s | 7.90 s | 22.76 s | 8.29 s |
+| Peak memory, language server | 0.27 GiB | 2.43 GiB | 0.38 GiB | 0.71 GiB | 0.42 GiB |
+
+The base game alone: 4,482 files parsed in 6.2 seconds, then checked in 64.4 seconds, at a peak
+of 5.7 GiB, with an 8 GiB heap limit, which 2.3.0 needs on this game build.
 
 ## Tests per feature
 
@@ -585,5 +619,7 @@ Each is settled by evidence inside the build, not by a choice.
 | 9 | Whether ck3-tiger and the CWTools rule files hold rules worth taking, and under what licences. | Build step 4, when the check inventory is written. |
 | 4 | Whether VS Code forwards an extension-registered local server to its default AI harness as documented, and whether one skills folder loads in both harnesses. | Build step 7. |
 | 5 | The targets for the scored agent and authoring runs. | After the first scored runs, in build steps 6 and 9. |
-| 6 | Whether the spec package is committed compressed or raw. | Build step 1. |
 | 7 | What happens to the `ck3-language-support` 2.x listing and its users when 1.0.0 ships. | Before release 1.0.0. |
+
+Question 6, whether the spec package is committed compressed or raw, was closed on 2026-11-22:
+compressed ([decisions.md](decisions.md)).

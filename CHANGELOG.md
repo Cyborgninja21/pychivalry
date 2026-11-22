@@ -97,7 +97,35 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   executable. ck3-tiger (GPL-3.0) and the CWTools rule files (MIT) are evaluated and their
   licences recorded in `docs/references/community-tools.md`; nothing is taken from either.
 
+- Items 1.6 and 1.11, which closes build step 1 ([docs/PLAN.md](docs/PLAN.md)): the spec
+  package for game 1.21.0.3 in format 5, committed as `pdx-parser-re` built it, with Paradox's
+  full `.info` text, and gzipped deterministically (the owner's decisions of 2026-11-22): the
+  package file, its three companions (the `.info` documentation, the GUI vocabulary, the
+  data-types dump), each with the checksum of its uncompressed bytes, and its JSON Schema
+  `spec/schema.format5.json`. `task spec:check` verifies every file's checksum, format 5, every
+  companion the package lists (its checksum, size, its own record and header), the package and
+  the companions against the JSON Schema, and that no gzip header stores a name or a time.
+- `spec/legacy/`: the same game version in format 4, which only release 2.3.0 reads, for the
+  baselines; `task spec:check` verifies its checksum, format and game version.
+- `records/baseline-2.3.0/results-base-game.json` and `results-mods.json`, the result baselines
+  of release 2.3.0 that never existed before (`task baseline:results`): its base-game parse
+  and check counts with every error (4,482 files, 3 parse errors, 96 check errors), and its
+  findings on each of the five mods by code and severity, with every error (0, 12, 2, 508 and
+  1 errors).
+
 ### Changed
+
+- The speed baselines of release 2.3.0 are re-recorded on the 1.21.0.3 format 4 copy (they were
+  made on its 1.20.0.2 spec). `task baseline:prepare` points the export of `legacy/` at that
+  copy through the export's own `spec.config.json`, and every baseline task checks that the
+  build bundles it. `task records:check` ties every 2.3.0 baseline to the committed format 4
+  copy, its game build and the committed corpus, instead of to the package.
+- The game-file suites are re-run on the 1.21.0.3 package. The index now describes the 17
+  folders game 1.21 added (236 folders indexed instead of 219, 17,302 files instead of 17,272);
+  12 folders of 103 files are still not described, and 1,309 names still have no winner known.
+  The parse is unchanged: 4,854 files, 3 errors, all classified.
+- The rebuild reads package format 5 only; the stand-in for 1.20.0.2 in format 4 and its schema
+  are removed.
 
 - In the MVP the game is on the same computer as VS Code; a game on another computer on the
   local network comes after the MVP. Linux and Windows are supported equally (the owner's
@@ -115,11 +143,9 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
 
 ### Open
 
-- Item 1.6: the 1.21 spec package in format 5 (step 0), and whether it is committed
-  compressed or raw (an owner decision).
-- Item 1.11: the result baselines, which need the 1.21 spec in format 4 (step 0).
 - The override rules `docs/overrides.md` leaves open (rules 3, 4, 5, 7, 8 and 9, and the open
-  parts of 6 and 10) arrive as rows of the spec package's table from step 0, read out of the
-  Windows and Linux executables. Until then the index lists every definition those rules
-  decide and names no winner: 1,309 names of the base game.
-- Items 4.2 to 4.11 wait for the 1.21 spec in format 5.
+  parts of 6 and 10) are to arrive as rows of a table in the spec package, read out of the
+  Windows and Linux executables; the 1.21.0.3 package does not carry it. Until it does the
+  index lists every definition those rules decide and names no winner: 1,309 names of the base
+  game.
+- Items 4.2 to 4.11, next.
