@@ -26,7 +26,7 @@ export const FIELD_KINDS = [
 ] as const;
 export type FieldKind = (typeof FIELD_KINDS)[number];
 
-export const SINCE_VALUES = ['<=1.19.0.6', '1.20.0.2'] as const;
+export const SINCE_VALUES = ['<=1.19.0.6', '1.20.0.2', '1.21.0.3'] as const;
 export type Since = (typeof SINCE_VALUES)[number];
 
 export interface BucketEntry {
