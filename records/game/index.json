@@ -2,11 +2,11 @@
     "record_format": 1,
     "suite": "game:index",
     "command": "task game:index",
-    "made_at": "2026-11-22T01:09:44.993Z",
+    "made_at": "2026-11-22T07:20:01.270Z",
     "tool": {
         "name": "pychivalry",
         "version": "0.0.0",
-        "commit": "2ff5f70fb1059565c4d5f69e4a58eb753bee2f36",
+        "commit": "8f0d24cc499111c38abb4f7ed7168cd04e61cf4f",
         "dirty": false
     },
     "machine": {
@@ -23,9 +23,9 @@
         "content_hashed_files": 17388
     },
     "spec": {
-        "version": "1.20.0.2",
-        "sha256": "a9959bf9d650fe793ffd3ee60eb6589b8cb6eaaaae778ce84b58fdc535f2eeb6",
-        "package_format": 4
+        "version": "1.21.0.3",
+        "sha256": "4a878a3a1537ef239b725615c9ef3450ef05cc5968024c7e01fbcc67d4bf6baf",
+        "package_format": 5
     },
     "corpus": {
         "manifest_sha256": "da1a745c50330a3a50dee079fe53609cd236f2f8db8c9533084cfb96fbb0b2c6",
@@ -42,8 +42,8 @@
         "A definition is a top-level key of a file in a listed folder, recorded with how it is written (record, value, prefixed, constant, container, entry, localization key); a use is a word written anywhere else (records/README.md, Index records). uses counts every word; uses_of_defined_names those whose name something in the index defines, the references of item 3.4.",
         "Names defined more than once are resolved with the committed stand-in rules table, which carries only the rules docs/overrides.md marks settled. by_status counts each name of each database once; an unknown name (defined more than once, winner not known) is counted under every open rule of docs/overrides.md that leaves it open, so unknown_by_rule may sum to more than the unknown names.",
         "The fresh build, the reload from the cache and each mod over the base game run one at a time, each in a fresh process (tools/src/index-worker.ts), with Node's default heap. peak_rss_kib is that process's peak resident memory, read right after the build, the reload or the mod; times are in milliseconds on this machine. The cache is written to a temporary folder and deleted after the run; its key is the spec checksum, the rules digest, the platform, the game build and the manifest of the files read.",
-        "The spec is for game 1.20.0.2 and the game is 1.21.0.3: a folder the 1.21 game adds is not described by the spec (not_described with beside_spec_folders true), and spec_folders_without_files lists the 1.20 folders that hold no file in this install.",
-        "The load average over one minute was 5.14 on 16 logical CPUs just before the run: the times are this machine's, under that load."
+        "The spec is for game 1.21.0.3, the build installed. not_described lists the folders the spec does not list that hold .txt or .yml files (beside_spec_folders true when a folder of the spec shares their first folder), and spec_folders_without_files the spec's folders that hold no file read in this install.",
+        "The load average over one minute was 2.57 on 16 logical CPUs just before the run: the times are this machine's, under that load."
     ],
     "results": {
         "passed": true,
@@ -70,10 +70,10 @@
                 },
                 {
                     "layer": "game",
-                    "files": 16910,
-                    "definitions": 3333395,
-                    "uses": 9013950,
-                    "uses_of_defined_names": 5074481
+                    "files": 16940,
+                    "definitions": 3338216,
+                    "uses": 9086343,
+                    "uses_of_defined_names": 5121708
                 },
                 {
                     "layer": "dlc",
@@ -84,22 +84,22 @@
                 }
             ],
             "packs": 23,
-            "files": 17272,
-            "lines": 11448506,
-            "definitions": 3344507,
-            "uses": 9017490,
-            "uses_of_defined_names": 5075832,
-            "names": 602379,
+            "files": 17302,
+            "lines": 11517318,
+            "definitions": 3349328,
+            "uses": 9089883,
+            "uses_of_defined_names": 5123059,
+            "names": 607126,
             "definitions_by_form": {
                 "constant": 3047,
                 "container": 201,
                 "entry": 3030,
                 "key": 3100873,
                 "prefixed": 4650,
-                "record": 210560,
+                "record": 215381,
                 "value": 22146
             },
-            "folders_indexed": 219,
+            "folders_indexed": 236,
             "folders": [
                 {
                     "folder": "common/accolade_icons",
@@ -145,8 +145,8 @@
                         "record": 218
                     },
                     "spec_schema": true,
-                    "spec_files": 11,
-                    "spec_records": 198
+                    "spec_files": 12,
+                    "spec_records": 218
                 },
                 {
                     "folder": "common/activities/activity_group_types",
@@ -182,8 +182,8 @@
                         "record": 24
                     },
                     "spec_schema": true,
-                    "spec_files": 23,
-                    "spec_records": 23
+                    "spec_files": 24,
+                    "spec_records": 24
                 },
                 {
                     "folder": "common/activities/guest_invite_rules",
@@ -195,7 +195,7 @@
                     },
                     "spec_schema": true,
                     "spec_files": 1,
-                    "spec_records": 61
+                    "spec_records": 65
                 },
                 {
                     "folder": "common/activities/intents",
@@ -206,8 +206,8 @@
                         "record": 69
                     },
                     "spec_schema": true,
-                    "spec_files": 20,
-                    "spec_records": 66
+                    "spec_files": 21,
+                    "spec_records": 69
                 },
                 {
                     "folder": "common/activities/pulse_actions",
@@ -218,8 +218,8 @@
                         "record": 328
                     },
                     "spec_schema": true,
-                    "spec_files": 23,
-                    "spec_records": 314
+                    "spec_files": 24,
+                    "spec_records": 328
                 },
                 {
                     "folder": "common/ai_goaltypes",
@@ -255,7 +255,7 @@
                     },
                     "spec_schema": true,
                     "spec_files": 1,
-                    "spec_records": 38
+                    "spec_records": 45
                 },
                 {
                     "folder": "common/artifacts/feature_groups",
@@ -291,7 +291,7 @@
                     },
                     "spec_schema": true,
                     "spec_files": 2,
-                    "spec_records": 27
+                    "spec_records": 39
                 },
                 {
                     "folder": "common/artifacts/templates",
@@ -303,7 +303,7 @@
                     },
                     "spec_schema": true,
                     "spec_files": 7,
-                    "spec_records": 76
+                    "spec_records": 77
                 },
                 {
                     "folder": "common/artifacts/types",
@@ -315,7 +315,7 @@
                     },
                     "spec_schema": true,
                     "spec_files": 1,
-                    "spec_records": 66
+                    "spec_records": 69
                 },
                 {
                     "folder": "common/artifacts/visuals",
@@ -326,8 +326,8 @@
                         "record": 191
                     },
                     "spec_schema": true,
-                    "spec_files": 11,
-                    "spec_records": 184
+                    "spec_files": 12,
+                    "spec_records": 191
                 },
                 {
                     "folder": "common/bookmark_portraits",
@@ -338,8 +338,8 @@
                         "record": 359
                     },
                     "spec_schema": true,
-                    "spec_files": 341,
-                    "spec_records": 341
+                    "spec_files": 359,
+                    "spec_records": 359
                 },
                 {
                     "folder": "common/bookmarks/bookmarks",
@@ -351,7 +351,7 @@
                     },
                     "spec_schema": true,
                     "spec_files": 1,
-                    "spec_records": 20
+                    "spec_records": 22
                 },
                 {
                     "folder": "common/bookmarks/challenge_characters",
@@ -387,8 +387,8 @@
                         "record": 3548
                     },
                     "spec_schema": true,
-                    "spec_files": 22,
-                    "spec_records": 989
+                    "spec_files": 85,
+                    "spec_records": 3548
                 },
                 {
                     "folder": "common/casus_belli_groups",
@@ -400,7 +400,7 @@
                     },
                     "spec_schema": true,
                     "spec_files": 1,
-                    "spec_records": 19
+                    "spec_records": 21
                 },
                 {
                     "folder": "common/casus_belli_types",
@@ -412,8 +412,8 @@
                         "record": 138
                     },
                     "spec_schema": true,
-                    "spec_files": 28,
-                    "spec_records": 126
+                    "spec_files": 32,
+                    "spec_records": 138
                 },
                 {
                     "folder": "common/character_backgrounds",
@@ -449,8 +449,8 @@
                         "record": 652
                     },
                     "spec_schema": true,
-                    "spec_files": 67,
-                    "spec_records": 558
+                    "spec_files": 74,
+                    "spec_records": 652
                 },
                 {
                     "folder": "common/character_memory_types",
@@ -461,8 +461,8 @@
                         "record": 421
                     },
                     "spec_schema": true,
-                    "spec_files": 22,
-                    "spec_records": 398
+                    "spec_files": 23,
+                    "spec_records": 421
                 },
                 {
                     "folder": "common/coat_of_arms/coat_of_arms",
@@ -477,8 +477,8 @@
                         "value": 577
                     },
                     "spec_schema": true,
-                    "spec_files": 13,
-                    "spec_records": 3198
+                    "spec_files": 14,
+                    "spec_records": 3581
                 },
                 {
                     "folder": "common/coat_of_arms/dynamic_definitions",
@@ -543,6 +543,18 @@
                     "spec_records": 13
                 },
                 {
+                    "folder": "common/confederation_aspirations",
+                    "content_type": "confederation_aspiration",
+                    "files": 1,
+                    "definitions": 7,
+                    "by_form": {
+                        "record": 7
+                    },
+                    "spec_schema": true,
+                    "spec_files": 1,
+                    "spec_records": 7
+                },
+                {
                     "folder": "common/confederation_types",
                     "content_type": "confederation_type",
                     "files": 3,
@@ -551,8 +563,8 @@
                         "record": 9
                     },
                     "spec_schema": true,
-                    "spec_files": 2,
-                    "spec_records": 7
+                    "spec_files": 3,
+                    "spec_records": 9
                 },
                 {
                     "folder": "common/connection_arrows",
@@ -600,7 +612,7 @@
                     },
                     "spec_schema": true,
                     "spec_files": 9,
-                    "spec_records": 72
+                    "spec_records": 75
                 },
                 {
                     "folder": "common/court_amenities",
@@ -623,8 +635,8 @@
                         "record": 99
                     },
                     "spec_schema": true,
-                    "spec_files": 39,
-                    "spec_records": 85
+                    "spec_files": 41,
+                    "spec_records": 99
                 },
                 {
                     "folder": "common/court_positions/types",
@@ -636,8 +648,8 @@
                         "record": 87
                     },
                     "spec_schema": true,
-                    "spec_files": 6,
-                    "spec_records": 81
+                    "spec_files": 8,
+                    "spec_records": 87
                 },
                 {
                     "folder": "common/court_types",
@@ -685,7 +697,7 @@
                     },
                     "spec_schema": true,
                     "spec_files": 2,
-                    "spec_records": 137
+                    "spec_records": 155
                 },
                 {
                     "folder": "common/culture/cultures",
@@ -696,8 +708,8 @@
                         "record": 255
                     },
                     "spec_schema": true,
-                    "spec_files": 55,
-                    "spec_records": 244
+                    "spec_files": 56,
+                    "spec_records": 255
                 },
                 {
                     "folder": "common/culture/eras",
@@ -722,7 +734,7 @@
                     },
                     "spec_schema": true,
                     "spec_files": 9,
-                    "spec_records": 108
+                    "spec_records": 133
                 },
                 {
                     "folder": "common/culture/name_equivalency",
@@ -734,7 +746,7 @@
                     },
                     "spec_schema": true,
                     "spec_files": 1,
-                    "spec_records": 1436
+                    "spec_records": 1457
                 },
                 {
                     "folder": "common/culture/name_lists",
@@ -745,8 +757,8 @@
                         "record": 230
                     },
                     "spec_schema": true,
-                    "spec_files": 51,
-                    "spec_records": 218
+                    "spec_files": 57,
+                    "spec_records": 230
                 },
                 {
                     "folder": "common/culture/pillars",
@@ -758,7 +770,7 @@
                     },
                     "spec_schema": true,
                     "spec_files": 5,
-                    "spec_records": 162
+                    "spec_records": 163
                 },
                 {
                     "folder": "common/culture/traditions",
@@ -769,8 +781,8 @@
                         "record": 207
                     },
                     "spec_schema": true,
-                    "spec_files": 16,
-                    "spec_records": 198
+                    "spec_files": 17,
+                    "spec_records": 207
                 },
                 {
                     "folder": "common/customizable_localization",
@@ -781,8 +793,8 @@
                         "record": 2993
                     },
                     "spec_schema": true,
-                    "spec_files": 158,
-                    "spec_records": 2778
+                    "spec_files": 164,
+                    "spec_records": 2993
                 },
                 {
                     "folder": "common/deathreasons",
@@ -793,8 +805,8 @@
                         "record": 326
                     },
                     "spec_schema": true,
-                    "spec_files": 3,
-                    "spec_records": 317
+                    "spec_files": 4,
+                    "spec_records": 326
                 },
                 {
                     "folder": "common/decision_group_types",
@@ -806,7 +818,7 @@
                     },
                     "spec_schema": true,
                     "spec_files": 1,
-                    "spec_records": 18
+                    "spec_records": 23
                 },
                 {
                     "folder": "common/decisions",
@@ -818,8 +830,8 @@
                         "record": 587
                     },
                     "spec_schema": true,
-                    "spec_files": 76,
-                    "spec_records": 501
+                    "spec_files": 84,
+                    "spec_records": 587
                 },
                 {
                     "folder": "common/defines",
@@ -832,7 +844,7 @@
                     },
                     "spec_schema": true,
                     "spec_files": 12,
-                    "spec_records": 162
+                    "spec_records": 168
                 },
                 {
                     "folder": "common/diarchies/diarchy_mandates",
@@ -859,6 +871,18 @@
                     "spec_records": 8
                 },
                 {
+                    "folder": "common/districts",
+                    "content_type": "district",
+                    "files": 11,
+                    "definitions": 352,
+                    "by_form": {
+                        "record": 352
+                    },
+                    "spec_schema": true,
+                    "spec_files": 11,
+                    "spec_records": 352
+                },
+                {
                     "folder": "common/dna_data",
                     "content_type": "dna_data",
                     "files": 9,
@@ -867,8 +891,8 @@
                         "record": 465
                     },
                     "spec_schema": true,
-                    "spec_files": 8,
-                    "spec_records": 445
+                    "spec_files": 9,
+                    "spec_records": 465
                 },
                 {
                     "folder": "common/domiciles/buildings",
@@ -880,8 +904,8 @@
                         "record": 2912
                     },
                     "spec_schema": true,
-                    "spec_files": 6,
-                    "spec_records": 1864
+                    "spec_files": 7,
+                    "spec_records": 2912
                 },
                 {
                     "folder": "common/domiciles/types",
@@ -893,7 +917,7 @@
                     },
                     "spec_schema": true,
                     "spec_files": 2,
-                    "spec_records": 6
+                    "spec_records": 7
                 },
                 {
                     "folder": "common/dynasties",
@@ -904,8 +928,8 @@
                         "record": 11748
                     },
                     "spec_schema": true,
-                    "spec_files": 8,
-                    "spec_records": 10398
+                    "spec_files": 10,
+                    "spec_records": 11750
                 },
                 {
                     "folder": "common/dynasty_house_motto_inserts",
@@ -941,7 +965,7 @@
                     },
                     "spec_schema": true,
                     "spec_files": 5,
-                    "spec_records": 604
+                    "spec_records": 712
                 },
                 {
                     "folder": "common/dynasty_legacies",
@@ -952,8 +976,8 @@
                         "record": 24
                     },
                     "spec_schema": true,
-                    "spec_files": 10,
-                    "spec_records": 22
+                    "spec_files": 11,
+                    "spec_records": 24
                 },
                 {
                     "folder": "common/dynasty_perks",
@@ -964,8 +988,8 @@
                         "record": 120
                     },
                     "spec_schema": true,
-                    "spec_files": 11,
-                    "spec_records": 110
+                    "spec_files": 12,
+                    "spec_records": 120
                 },
                 {
                     "folder": "common/effect_localization",
@@ -976,8 +1000,8 @@
                         "record": 1120
                     },
                     "spec_schema": true,
-                    "spec_files": 36,
-                    "spec_records": 1017
+                    "spec_files": 37,
+                    "spec_records": 1121
                 },
                 {
                     "folder": "common/epidemics",
@@ -1027,7 +1051,7 @@
                     },
                     "spec_schema": true,
                     "spec_files": 2,
-                    "spec_records": 313
+                    "spec_records": 331
                 },
                 {
                     "folder": "common/event_themes",
@@ -1040,7 +1064,7 @@
                     },
                     "spec_schema": true,
                     "spec_files": 2,
-                    "spec_records": 195
+                    "spec_records": 201
                 },
                 {
                     "folder": "common/event_transitions",
@@ -1064,8 +1088,8 @@
                         "record": 14
                     },
                     "spec_schema": true,
-                    "spec_files": 6,
-                    "spec_records": 12
+                    "spec_files": 8,
+                    "spec_records": 14
                 },
                 {
                     "folder": "common/flavorization",
@@ -1077,7 +1101,7 @@
                     },
                     "spec_schema": true,
                     "spec_files": 9,
-                    "spec_records": 1358
+                    "spec_records": 1574
                 },
                 {
                     "folder": "common/focuses",
@@ -1089,7 +1113,7 @@
                     },
                     "spec_schema": true,
                     "spec_files": 3,
-                    "spec_records": 28
+                    "spec_records": 33
                 },
                 {
                     "folder": "common/game_concepts",
@@ -1100,8 +1124,8 @@
                         "record": 1269
                     },
                     "spec_schema": true,
-                    "spec_files": 17,
-                    "spec_records": 1142
+                    "spec_files": 18,
+                    "spec_records": 1269
                 },
                 {
                     "folder": "common/game_rules",
@@ -1140,7 +1164,7 @@
                     },
                     "spec_schema": true,
                     "spec_files": 3,
-                    "spec_records": 20
+                    "spec_records": 21
                 },
                 {
                     "folder": "common/graphical_unit_types",
@@ -1164,8 +1188,8 @@
                         "record": 40
                     },
                     "spec_schema": true,
-                    "spec_files": 4,
-                    "spec_records": 24
+                    "spec_files": 5,
+                    "spec_records": 40
                 },
                 {
                     "folder": "common/guest_system",
@@ -1178,6 +1202,30 @@
                     "spec_schema": true,
                     "spec_files": 1,
                     "spec_records": 2
+                },
+                {
+                    "folder": "common/holding_sprawl_graphics",
+                    "content_type": "holding_sprawl_graphic",
+                    "files": 1,
+                    "definitions": 19,
+                    "by_form": {
+                        "record": 19
+                    },
+                    "spec_schema": true,
+                    "spec_files": 1,
+                    "spec_records": 19
+                },
+                {
+                    "folder": "common/holding_sprawl_patterns",
+                    "content_type": "holding_sprawl_pattern",
+                    "files": 1,
+                    "definitions": 17,
+                    "by_form": {
+                        "record": 17
+                    },
+                    "spec_schema": true,
+                    "spec_files": 1,
+                    "spec_records": 16
                 },
                 {
                     "folder": "common/holdings",
@@ -1213,7 +1261,7 @@
                     },
                     "spec_schema": true,
                     "spec_files": 1,
-                    "spec_records": 48
+                    "spec_records": 50
                 },
                 {
                     "folder": "common/house_aspirations",
@@ -1225,8 +1273,8 @@
                         "record": 35
                     },
                     "spec_schema": true,
-                    "spec_files": 4,
-                    "spec_records": 29
+                    "spec_files": 5,
+                    "spec_records": 35
                 },
                 {
                     "folder": "common/house_relation_types",
@@ -1250,7 +1298,7 @@
                     },
                     "spec_schema": true,
                     "spec_files": 1,
-                    "spec_records": 1
+                    "spec_records": 2
                 },
                 {
                     "folder": "common/important_actions",
@@ -1261,8 +1309,8 @@
                         "record": 338
                     },
                     "spec_schema": true,
-                    "spec_files": 35,
-                    "spec_records": 301
+                    "spec_files": 38,
+                    "spec_records": 338
                 },
                 {
                     "folder": "common/inspirations",
@@ -1286,8 +1334,8 @@
                         "record": 3475
                     },
                     "spec_schema": true,
-                    "spec_files": 12,
-                    "spec_records": 1742
+                    "spec_files": 14,
+                    "spec_records": 3475
                 },
                 {
                     "folder": "common/law_groups",
@@ -1298,8 +1346,8 @@
                         "record": 49
                     },
                     "spec_schema": true,
-                    "spec_files": 6,
-                    "spec_records": 30
+                    "spec_files": 7,
+                    "spec_records": 49
                 },
                 {
                     "folder": "common/laws",
@@ -1311,8 +1359,8 @@
                         "record": 283
                     },
                     "spec_schema": true,
-                    "spec_files": 6,
-                    "spec_records": 201
+                    "spec_files": 8,
+                    "spec_records": 283
                 },
                 {
                     "folder": "common/lease_contracts",
@@ -1409,7 +1457,7 @@
                     },
                     "spec_schema": true,
                     "spec_files": 10,
-                    "spec_records": 111
+                    "spec_records": 112
                 },
                 {
                     "folder": "common/message_filter_types",
@@ -1421,7 +1469,7 @@
                     },
                     "spec_schema": true,
                     "spec_files": 2,
-                    "spec_records": 195
+                    "spec_records": 210
                 },
                 {
                     "folder": "common/message_group_types",
@@ -1433,7 +1481,7 @@
                     },
                     "spec_schema": true,
                     "spec_files": 1,
-                    "spec_records": 31
+                    "spec_records": 33
                 },
                 {
                     "folder": "common/messages",
@@ -1445,8 +1493,8 @@
                         "record": 823
                     },
                     "spec_schema": true,
-                    "spec_files": 42,
-                    "spec_records": 727
+                    "spec_files": 45,
+                    "spec_records": 823
                 },
                 {
                     "folder": "common/modifier_definition_formats",
@@ -1457,8 +1505,8 @@
                         "record": 2851
                     },
                     "spec_schema": true,
-                    "spec_files": 13,
-                    "spec_records": 1982
+                    "spec_files": 16,
+                    "spec_records": 2851
                 },
                 {
                     "folder": "common/modifier_icons",
@@ -1482,8 +1530,8 @@
                         "record": 7539
                     },
                     "spec_schema": true,
-                    "spec_files": 140,
-                    "spec_records": 6350
+                    "spec_files": 152,
+                    "spec_records": 7539
                 },
                 {
                     "folder": "common/morpheme_strip_rules",
@@ -1507,8 +1555,8 @@
                         "entry": 164
                     },
                     "spec_schema": true,
-                    "spec_files": 2,
-                    "spec_records": 2
+                    "spec_files": 3,
+                    "spec_records": 3
                 },
                 {
                     "folder": "common/nicknames",
@@ -1519,8 +1567,8 @@
                         "record": 787
                     },
                     "spec_schema": true,
-                    "spec_files": 11,
-                    "spec_records": 729
+                    "spec_files": 12,
+                    "spec_records": 787
                 },
                 {
                     "folder": "common/on_action",
@@ -1532,8 +1580,8 @@
                         "record": 1073
                     },
                     "spec_schema": true,
-                    "spec_files": 173,
-                    "spec_records": 937
+                    "spec_files": 193,
+                    "spec_records": 1073
                 },
                 {
                     "folder": "common/opinion_modifiers",
@@ -1545,8 +1593,8 @@
                         "record": 1704
                     },
                     "spec_schema": true,
-                    "spec_files": 75,
-                    "spec_records": 1629
+                    "spec_files": 80,
+                    "spec_records": 1704
                 },
                 {
                     "folder": "common/playable_difficulty_infos",
@@ -1596,7 +1644,7 @@
                     },
                     "spec_schema": true,
                     "spec_files": 2,
-                    "spec_records": 12720
+                    "spec_records": 12919
                 },
                 {
                     "folder": "common/puppets/actions",
@@ -1644,7 +1692,7 @@
                     },
                     "spec_schema": true,
                     "spec_files": 1,
-                    "spec_records": 6
+                    "spec_records": 7
                 },
                 {
                     "folder": "common/religion/doctrine_group_types",
@@ -1656,7 +1704,7 @@
                     },
                     "spec_schema": true,
                     "spec_files": 1,
-                    "spec_records": 49
+                    "spec_records": 54
                 },
                 {
                     "folder": "common/religion/doctrine_types",
@@ -1668,7 +1716,7 @@
                     },
                     "spec_schema": true,
                     "spec_files": 6,
-                    "spec_records": 126
+                    "spec_records": 142
                 },
                 {
                     "folder": "common/religion/faith_types",
@@ -1680,7 +1728,7 @@
                     },
                     "spec_schema": true,
                     "spec_files": 1,
-                    "spec_records": 103
+                    "spec_records": 104
                 },
                 {
                     "folder": "common/religion/holy_site_types",
@@ -1692,7 +1740,7 @@
                     },
                     "spec_schema": true,
                     "spec_files": 2,
-                    "spec_records": 336
+                    "spec_records": 283
                 },
                 {
                     "folder": "common/religion/religion_family_types",
@@ -1767,6 +1815,30 @@
                     "spec_records": 97
                 },
                 {
+                    "folder": "common/roads/road_modifiers",
+                    "content_type": "road_modifier",
+                    "files": 1,
+                    "definitions": 1,
+                    "by_form": {
+                        "record": 1
+                    },
+                    "spec_schema": true,
+                    "spec_files": 1,
+                    "spec_records": 1
+                },
+                {
+                    "folder": "common/roads/road_types",
+                    "content_type": "road_type",
+                    "files": 2,
+                    "definitions": 4201,
+                    "by_form": {
+                        "record": 4201
+                    },
+                    "spec_schema": true,
+                    "spec_files": 2,
+                    "spec_records": 4201
+                },
+                {
                     "folder": "common/ruler_objective_advice_types",
                     "content_type": "ruler_objective_advice_type",
                     "files": 1,
@@ -1788,7 +1860,7 @@
                     },
                     "spec_schema": true,
                     "spec_files": 1,
-                    "spec_records": 65
+                    "spec_records": 75
                 },
                 {
                     "folder": "common/schemes/pulse_actions",
@@ -1826,8 +1898,8 @@
                         "record": 136
                     },
                     "spec_schema": true,
-                    "spec_files": 43,
-                    "spec_records": 79
+                    "spec_files": 65,
+                    "spec_records": 136
                 },
                 {
                     "folder": "common/script_values",
@@ -1840,8 +1912,8 @@
                         "value": 7707
                     },
                     "spec_schema": true,
-                    "spec_files": 122,
-                    "spec_records": 3942
+                    "spec_files": 148,
+                    "spec_records": 4572
                 },
                 {
                     "folder": "common/scripted_animations",
@@ -1852,8 +1924,8 @@
                         "record": 20
                     },
                     "spec_schema": true,
-                    "spec_files": 2,
-                    "spec_records": 16
+                    "spec_files": 3,
+                    "spec_records": 20
                 },
                 {
                     "folder": "common/scripted_character_templates",
@@ -1864,8 +1936,8 @@
                         "record": 437
                     },
                     "spec_schema": true,
-                    "spec_files": 44,
-                    "spec_records": 410
+                    "spec_files": 48,
+                    "spec_records": 437
                 },
                 {
                     "folder": "common/scripted_costs",
@@ -1877,7 +1949,7 @@
                     },
                     "spec_schema": true,
                     "spec_files": 1,
-                    "spec_records": 13
+                    "spec_records": 15
                 },
                 {
                     "folder": "common/scripted_effects",
@@ -1889,8 +1961,8 @@
                         "record": 4735
                     },
                     "spec_schema": true,
-                    "spec_files": 185,
-                    "spec_records": 4106
+                    "spec_files": 201,
+                    "spec_records": 4735
                 },
                 {
                     "folder": "common/scripted_guis",
@@ -1901,8 +1973,8 @@
                         "record": 59
                     },
                     "spec_schema": true,
-                    "spec_files": 9,
-                    "spec_records": 48
+                    "spec_files": 10,
+                    "spec_records": 59
                 },
                 {
                     "folder": "common/scripted_lists",
@@ -1914,7 +1986,7 @@
                     },
                     "spec_schema": true,
                     "spec_files": 1,
-                    "spec_records": 6
+                    "spec_records": 7
                 },
                 {
                     "folder": "common/scripted_modifiers",
@@ -1926,8 +1998,8 @@
                         "record": 485
                     },
                     "spec_schema": true,
-                    "spec_files": 45,
-                    "spec_records": 423
+                    "spec_files": 49,
+                    "spec_records": 485
                 },
                 {
                     "folder": "common/scripted_relations",
@@ -1939,7 +2011,7 @@
                     },
                     "spec_schema": true,
                     "spec_files": 1,
-                    "spec_records": 38
+                    "spec_records": 46
                 },
                 {
                     "folder": "common/scripted_rules",
@@ -1951,7 +2023,7 @@
                     },
                     "spec_schema": true,
                     "spec_files": 3,
-                    "spec_records": 71
+                    "spec_records": 76
                 },
                 {
                     "folder": "common/scripted_triggers",
@@ -1963,8 +2035,8 @@
                         "record": 4459
                     },
                     "spec_schema": true,
-                    "spec_files": 148,
-                    "spec_records": 3866
+                    "spec_files": 157,
+                    "spec_records": 4459
                 },
                 {
                     "folder": "common/secret_types",
@@ -1975,8 +2047,8 @@
                         "record": 22
                     },
                     "spec_schema": true,
-                    "spec_files": 3,
-                    "spec_records": 19
+                    "spec_files": 4,
+                    "spec_records": 22
                 },
                 {
                     "folder": "common/situation/catalysts",
@@ -1987,8 +2059,8 @@
                         "record": 312
                     },
                     "spec_schema": true,
-                    "spec_files": 6,
-                    "spec_records": 269
+                    "spec_files": 7,
+                    "spec_records": 312
                 },
                 {
                     "folder": "common/situation/situation_group_types",
@@ -2012,8 +2084,8 @@
                         "record": 13
                     },
                     "spec_schema": true,
-                    "spec_files": 11,
-                    "spec_records": 12
+                    "spec_files": 12,
+                    "spec_records": 13
                 },
                 {
                     "folder": "common/spiritual_fulfillment",
@@ -2037,8 +2109,8 @@
                         "record": 55
                     },
                     "spec_schema": true,
-                    "spec_files": 53,
-                    "spec_records": 52
+                    "spec_files": 56,
+                    "spec_records": 55
                 },
                 {
                     "folder": "common/struggle/catalysts",
@@ -2074,8 +2146,8 @@
                         "record": 73
                     },
                     "spec_schema": true,
-                    "spec_files": 15,
-                    "spec_records": 64
+                    "spec_files": 16,
+                    "spec_records": 73
                 },
                 {
                     "folder": "common/subject_contracts/groups",
@@ -2087,7 +2159,7 @@
                     },
                     "spec_schema": true,
                     "spec_files": 1,
-                    "spec_records": 23
+                    "spec_records": 24
                 },
                 {
                     "folder": "common/succession_appointment",
@@ -2098,8 +2170,8 @@
                         "record": 13
                     },
                     "spec_schema": true,
-                    "spec_files": 9,
-                    "spec_records": 12
+                    "spec_files": 10,
+                    "spec_records": 13
                 },
                 {
                     "folder": "common/succession_election",
@@ -2110,8 +2182,8 @@
                         "record": 9
                     },
                     "spec_schema": true,
-                    "spec_files": 8,
-                    "spec_records": 8
+                    "spec_files": 9,
+                    "spec_records": 9
                 },
                 {
                     "folder": "common/suggestions",
@@ -2134,8 +2206,8 @@
                         "record": 179
                     },
                     "spec_schema": true,
-                    "spec_files": 11,
-                    "spec_records": 159
+                    "spec_files": 16,
+                    "spec_records": 179
                 },
                 {
                     "folder": "common/tax_slots/obligations",
@@ -2175,6 +2247,90 @@
                     "spec_records": 17
                 },
                 {
+                    "folder": "common/title_types",
+                    "content_type": "title_type",
+                    "files": 1,
+                    "definitions": 11,
+                    "by_form": {
+                        "record": 11
+                    },
+                    "spec_schema": true,
+                    "spec_files": 1,
+                    "spec_records": 11
+                },
+                {
+                    "folder": "common/trade/county_potential_trade_goods",
+                    "content_type": "county_potential_trade_good",
+                    "files": 1,
+                    "definitions": 35,
+                    "by_form": {
+                        "record": 35
+                    },
+                    "spec_schema": true,
+                    "spec_files": 1,
+                    "spec_records": 35
+                },
+                {
+                    "folder": "common/trade/trade_good_categories",
+                    "content_type": "trade_good_category",
+                    "files": 2,
+                    "definitions": 41,
+                    "by_form": {
+                        "record": 41
+                    },
+                    "spec_schema": true,
+                    "spec_files": 2,
+                    "spec_records": 41
+                },
+                {
+                    "folder": "common/trade/trade_good_types",
+                    "content_type": "trade_good_type",
+                    "files": 1,
+                    "definitions": 44,
+                    "by_form": {
+                        "record": 44
+                    },
+                    "spec_schema": true,
+                    "spec_files": 1,
+                    "spec_records": 44
+                },
+                {
+                    "folder": "common/trade/trade_market_toll_levels",
+                    "content_type": "trade_market_toll_level",
+                    "files": 1,
+                    "definitions": 6,
+                    "by_form": {
+                        "record": 6
+                    },
+                    "spec_schema": true,
+                    "spec_files": 1,
+                    "spec_records": 6
+                },
+                {
+                    "folder": "common/trade_goods_graphics",
+                    "content_type": "trade_goods_graphic",
+                    "files": 1,
+                    "definitions": 69,
+                    "by_form": {
+                        "record": 69
+                    },
+                    "spec_schema": true,
+                    "spec_files": 1,
+                    "spec_records": 69
+                },
+                {
+                    "folder": "common/trade_tasks",
+                    "content_type": "trade_task",
+                    "files": 1,
+                    "definitions": 3,
+                    "by_form": {
+                        "record": 3
+                    },
+                    "spec_schema": true,
+                    "spec_files": 1,
+                    "spec_records": 3
+                },
+                {
                     "folder": "common/traits",
                     "content_type": "trait",
                     "files": 1,
@@ -2185,7 +2341,7 @@
                     },
                     "spec_schema": true,
                     "spec_files": 1,
-                    "spec_records": 306
+                    "spec_records": 311
                 },
                 {
                     "folder": "common/travel/point_of_interest_types",
@@ -2209,7 +2365,7 @@
                     },
                     "spec_schema": true,
                     "spec_files": 2,
-                    "spec_records": 29
+                    "spec_records": 32
                 },
                 {
                     "folder": "common/trigger_localization",
@@ -2220,8 +2376,8 @@
                         "record": 1758
                     },
                     "spec_schema": true,
-                    "spec_files": 53,
-                    "spec_records": 1707
+                    "spec_files": 55,
+                    "spec_records": 1780
                 },
                 {
                     "folder": "common/tutorial_lesson_chains",
@@ -2245,8 +2401,8 @@
                         "record": 124
                     },
                     "spec_schema": true,
-                    "spec_files": 9,
-                    "spec_records": 116
+                    "spec_files": 10,
+                    "spec_records": 124
                 },
                 {
                     "folder": "common/vassal_stances",
@@ -2272,8 +2428,8 @@
                         "value": 631
                     },
                     "spec_schema": true,
-                    "spec_files": 576,
-                    "spec_records": 10255
+                    "spec_files": 610,
+                    "spec_records": 10836
                 },
                 {
                     "folder": "gfx/coat_of_arms/color_palettes",
@@ -2506,12 +2662,60 @@
                     "spec_records": null
                 },
                 {
+                    "folder": "gfx/map/spline_network/spline_styles",
+                    "content_type": "spline_style",
+                    "files": 1,
+                    "definitions": 9,
+                    "by_form": {
+                        "record": 9
+                    },
+                    "spec_schema": false,
+                    "spec_files": null,
+                    "spec_records": null
+                },
+                {
+                    "folder": "gfx/map/spline_network/spline_types",
+                    "content_type": "spline_type",
+                    "files": 1,
+                    "definitions": 3,
+                    "by_form": {
+                        "record": 3
+                    },
+                    "spec_schema": false,
+                    "spec_files": null,
+                    "spec_records": null
+                },
+                {
+                    "folder": "gfx/map/spline_network/trade_route_entities",
+                    "content_type": "trade_route_entity",
+                    "files": 2,
+                    "definitions": 2,
+                    "by_form": {
+                        "record": 2
+                    },
+                    "spec_schema": false,
+                    "spec_files": null,
+                    "spec_records": null
+                },
+                {
                     "folder": "gfx/map/table_styles",
                     "content_type": "table_style",
                     "files": 1,
                     "definitions": 4,
                     "by_form": {
                         "record": 4
+                    },
+                    "spec_schema": false,
+                    "spec_files": null,
+                    "spec_records": null
+                },
+                {
+                    "folder": "gfx/map/textures",
+                    "content_type": "texture",
+                    "files": 1,
+                    "definitions": 1,
+                    "by_form": {
+                        "record": 1
                     },
                     "spec_schema": false,
                     "spec_files": null,
@@ -2622,8 +2826,8 @@
                         "record": 81427
                     },
                     "spec_schema": true,
-                    "spec_files": 209,
-                    "spec_records": 73346
+                    "spec_files": 253,
+                    "spec_records": 81427
                 },
                 {
                     "folder": "history/cultures",
@@ -2632,8 +2836,8 @@
                     "definitions": 0,
                     "by_form": {},
                     "spec_schema": true,
-                    "spec_files": 141,
-                    "spec_records": 573
+                    "spec_files": 154,
+                    "spec_records": 647
                 },
                 {
                     "folder": "history/faiths",
@@ -2669,8 +2873,8 @@
                         "record": 12125
                     },
                     "spec_schema": true,
-                    "spec_files": 177,
-                    "spec_records": 10889
+                    "spec_files": 217,
+                    "spec_records": 12125
                 },
                 {
                     "folder": "history/situations",
@@ -2679,8 +2883,8 @@
                     "definitions": 0,
                     "by_form": {},
                     "spec_schema": true,
-                    "spec_files": 2,
-                    "spec_records": 6
+                    "spec_files": 3,
+                    "spec_records": 22
                 },
                 {
                     "folder": "history/struggles",
@@ -2701,8 +2905,8 @@
                         "record": 7900
                     },
                     "spec_schema": true,
-                    "spec_files": 184,
-                    "spec_records": 6090
+                    "spec_files": 187,
+                    "spec_records": 7900
                 },
                 {
                     "folder": "history/wars",
@@ -2749,8 +2953,8 @@
                         "record": 754
                     },
                     "spec_schema": true,
-                    "spec_files": 3,
-                    "spec_records": 700
+                    "spec_files": 4,
+                    "spec_records": 754
                 },
                 {
                     "folder": "music",
@@ -2800,51 +3004,6 @@
                     "beside_spec_folders": true
                 },
                 {
-                    "folder": "common/confederation_aspirations",
-                    "files": 1,
-                    "beside_spec_folders": true
-                },
-                {
-                    "folder": "common/districts",
-                    "files": 11,
-                    "beside_spec_folders": true
-                },
-                {
-                    "folder": "common/holding_sprawl_graphics",
-                    "files": 1,
-                    "beside_spec_folders": true
-                },
-                {
-                    "folder": "common/holding_sprawl_patterns",
-                    "files": 1,
-                    "beside_spec_folders": true
-                },
-                {
-                    "folder": "common/roads",
-                    "files": 3,
-                    "beside_spec_folders": true
-                },
-                {
-                    "folder": "common/title_types",
-                    "files": 1,
-                    "beside_spec_folders": true
-                },
-                {
-                    "folder": "common/trade",
-                    "files": 5,
-                    "beside_spec_folders": true
-                },
-                {
-                    "folder": "common/trade_goods_graphics",
-                    "files": 1,
-                    "beside_spec_folders": true
-                },
-                {
-                    "folder": "common/trade_tasks",
-                    "files": 1,
-                    "beside_spec_folders": true
-                },
-                {
                     "folder": "content_source",
                     "files": 17,
                     "beside_spec_folders": false
@@ -2863,16 +3022,6 @@
                     "folder": "fonts",
                     "files": 12,
                     "beside_spec_folders": false
-                },
-                {
-                    "folder": "gfx/map/spline_network",
-                    "files": 4,
-                    "beside_spec_folders": true
-                },
-                {
-                    "folder": "gfx/map/textures",
-                    "files": 1,
-                    "beside_spec_folders": true
                 },
                 {
                     "folder": "gfx/tools",
@@ -3213,17 +3362,17 @@
                 ]
             },
             "time_ms": {
-                "list": 300,
-                "build": 13459,
-                "save": 212,
-                "report": 3281
+                "list": 263,
+                "build": 12463,
+                "save": 192,
+                "report": 3003
             },
-            "peak_rss_kib": 1358964,
-            "heap_used_after_build_mib": 538,
+            "peak_rss_kib": 1346444,
+            "heap_used_after_build_mib": 550,
             "cache": {
-                "bytes": 261717672,
-                "reload_ms": 880,
-                "reload_peak_rss_kib": 662948,
+                "bytes": 262932816,
+                "reload_ms": 692,
+                "reload_peak_rss_kib": 667704,
                 "reload_answers_as_fresh": true
             }
         },
@@ -3254,18 +3403,18 @@
                     "unknown_by_database": []
                 },
                 "time_ms": {
-                    "load_base": 890,
-                    "index_mod": 9,
-                    "report": 634
+                    "load_base": 680,
+                    "index_mod": 5,
+                    "report": 478
                 },
-                "peak_rss_kib": 666900
+                "peak_rss_kib": 684352
             },
             {
                 "slug": "divine-intervention",
-                "files": 428,
-                "definitions": 54027,
-                "uses": 1985776,
-                "uses_of_defined_names": 734654,
+                "files": 433,
+                "definitions": 54081,
+                "uses": 1989555,
+                "uses_of_defined_names": 737050,
                 "replace_paths": [],
                 "game_files_replaced": 1,
                 "game_files_hidden": 0,
@@ -3276,20 +3425,15 @@
                         "folder": "(top level)",
                         "files": 1,
                         "beside_spec_folders": false
-                    },
-                    {
-                        "folder": "common/districts",
-                        "files": 5,
-                        "beside_spec_folders": true
                     }
                 ],
                 "not_read_files": 135,
                 "defined_more_than_once": {
-                    "names": 3576,
+                    "names": 3630,
                     "by_status": {
                         "all": 6,
                         "single": 16,
-                        "unknown": 3554
+                        "unknown": 3608
                     },
                     "unknown_by_rule": [
                         {
@@ -3298,13 +3442,17 @@
                         },
                         {
                             "rule": 5,
-                            "names": 3553
+                            "names": 3607
                         }
                     ],
                     "unknown_by_database": [
                         {
                             "database": "common/buildings",
                             "names": 3507
+                        },
+                        {
+                            "database": "common/districts",
+                            "names": 54
                         },
                         {
                             "database": "constants",
@@ -3321,34 +3469,24 @@
                     ]
                 },
                 "time_ms": {
-                    "load_base": 876,
-                    "index_mod": 2491,
-                    "report": 820
+                    "load_base": 667,
+                    "index_mod": 1904,
+                    "report": 516
                 },
-                "peak_rss_kib": 1384976
+                "peak_rss_kib": 1505432
             },
             {
                 "slug": "elf-destiny",
-                "files": 950,
-                "definitions": 19001,
-                "uses": 335747,
-                "uses_of_defined_names": 180235,
+                "files": 958,
+                "definitions": 19071,
+                "uses": 340803,
+                "uses_of_defined_names": 182395,
                 "replace_paths": [],
-                "game_files_replaced": 32,
+                "game_files_replaced": 34,
                 "game_files_hidden": 0,
                 "game_files_read_unknown": 0,
                 "mod_files_read_unknown": 0,
                 "not_described": [
-                    {
-                        "folder": "common/districts",
-                        "files": 4,
-                        "beside_spec_folders": true
-                    },
-                    {
-                        "folder": "common/trade",
-                        "files": 4,
-                        "beside_spec_folders": true
-                    },
                     {
                         "folder": "data_binding",
                         "files": 1,
@@ -3362,11 +3500,11 @@
                 ],
                 "not_read_files": 1047,
                 "defined_more_than_once": {
-                    "names": 1943,
+                    "names": 2002,
                     "by_status": {
                         "all": 36,
-                        "single": 1333,
-                        "unknown": 574
+                        "single": 1382,
+                        "unknown": 584
                     },
                     "unknown_by_rule": [
                         {
@@ -3379,7 +3517,7 @@
                         },
                         {
                             "rule": 5,
-                            "names": 224
+                            "names": 234
                         },
                         {
                             "rule": 6,
@@ -3420,6 +3558,10 @@
                             "names": 9
                         },
                         {
+                            "database": "common/trade/trade_good_categories",
+                            "names": 7
+                        },
+                        {
                             "database": "common/scripted_effects",
                             "names": 6
                         },
@@ -3441,6 +3583,10 @@
                         },
                         {
                             "database": "common/character_interactions",
+                            "names": 3
+                        },
+                        {
+                            "database": "common/districts",
                             "names": 3
                         },
                         {
@@ -3510,18 +3656,18 @@
                     ]
                 },
                 "time_ms": {
-                    "load_base": 949,
-                    "index_mod": 359,
-                    "report": 767
+                    "load_base": 770,
+                    "index_mod": 329,
+                    "report": 699
                 },
-                "peak_rss_kib": 670064
+                "peak_rss_kib": 707372
             },
             {
                 "slug": "rice",
                 "files": 2090,
                 "definitions": 430663,
                 "uses": 737688,
-                "uses_of_defined_names": 443445,
+                "uses_of_defined_names": 443496,
                 "replace_paths": [],
                 "game_files_replaced": 0,
                 "game_files_hidden": 0,
@@ -3585,11 +3731,11 @@
                     ]
                 },
                 "time_ms": {
-                    "load_base": 828,
-                    "index_mod": 1466,
-                    "report": 684
+                    "load_base": 666,
+                    "index_mod": 948,
+                    "report": 587
                 },
-                "peak_rss_kib": 740116
+                "peak_rss_kib": 707944
             },
             {
                 "slug": "viet-events",
@@ -3632,11 +3778,11 @@
                     ]
                 },
                 "time_ms": {
-                    "load_base": 1282,
-                    "index_mod": 337,
-                    "report": 648
+                    "load_base": 728,
+                    "index_mod": 270,
+                    "report": 701
                 },
-                "peak_rss_kib": 665464
+                "peak_rss_kib": 719376
             }
         ]
     }
