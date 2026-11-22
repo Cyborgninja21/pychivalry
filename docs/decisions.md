@@ -66,6 +66,7 @@ How it is kept:
 | 41 | 2026-11-21 | Platforms | Linux and Windows are supported equally. A game behaviour that differs between them is settled for both. Replaces row 17. |
 | 42 | 2026-11-21 | Override rules | The override rules are data: a table in the spec package, read out of the Windows and Linux executables by the spec work, each rule with its evidence. The index records every definition and names a winner only where the table has a rule. This makes the spec additions thirteen (row 25 said twelve). |
 | 43 | 2026-11-21 | Override experiments | The in-game probe mods of overrides.md are not run for now. They stay written as a cross-check. A game bridge that runs probes, harvesting existing game logs, and a self-check against a user's own log were considered and not taken up. |
+| 44 | 2026-11-21 | Layouts | In the MVP the game is on the same computer as VS Code, the case about nine times in ten. A game on another computer on the local network comes after the MVP. Replaces row 40, which recorded the two layouts as equal weight from a misread answer. |
 
 ## Awaiting confirmation
 
@@ -116,4 +117,4 @@ it is answered.
 
 | Step | Question | Why it is asked |
 | --- | --- | --- |
-| 3 | How pychivalry reaches the game's files and error log when the game is on another computer on the local network: a shared folder, VS Code's remote mode, or a helper on the game's computer. | Row 40 makes the second layout equal to the first, and the index (item 3.5) reads the whole game. |
+| - | None. | |

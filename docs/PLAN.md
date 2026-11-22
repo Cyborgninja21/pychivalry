@@ -22,7 +22,7 @@ disagree, MVP.md is right and this plan is fixed.
 | 0 | Spec work, in `pdx-parser-re` | It produces it | In progress, another agent |
 | 1 | Repository skeleton | Two items only (1.6, 1.11) | Built and merged (pull requests #114 and #115). Open, waiting on step 0: 1.6 (the committed spec is the 1.20.0.2 stand-in until the 1.21 format 5 package; compressed or raw still to decide) and 1.11 (the result baselines; the speed baselines are done) |
 | 2 | Parser | No | Built and merged (pull request #116). Item 2.6's public codes are left to item 4.1, which maps the syntax finding identifiers to them |
-| 3 | Workspace index | No for the index; the override rules table comes from step 0 | Item 3.1 is done and merged (pull request #118): `docs/overrides.md` states what the game's files settle and what they leave open. Items 3.2 to 3.10 are not started. They wait on the owner's read of this revised plan and on open question 10 of MVP.md (how the second layout reaches the game's files) |
+| 3 | Workspace index | No for the index; the override rules table comes from step 0 | Item 3.1 is done and merged (pull request #118): `docs/overrides.md` states what the game's files settle and what they leave open. Items 3.2 to 3.10 are not started and wait on the owner's go |
 | 4 | Engine checks and lookup | Yes, from item 4.2 on | Not started |
 | 5 | Command line | Through step 4 | Not started |
 | 6 | Agent server | Through step 4 | Not started |
@@ -374,10 +374,11 @@ replaced paths, no DLC precedence. All of this step beyond the basics is new wor
   Where the table has none, the index answers "defined more than once, winner not known", and
   a check or lookup that depends on the winner stays silent. Nothing is guessed. When the
   table gains a rule, the answer changes with no change to the code.
-- 3.6a Both layouts (MVP.md, "Where the game is"). The game folder may be on the local disk or
-  on another computer. The index and its cache are tested with the game folder reached both
-  ways, give the same answers, and the time for each is in the record. How the second layout
-  reaches the files is open question 10 of MVP.md and is decided before item 3.5.
+- 3.6a The game is on the same computer (MVP.md, "Where the game is"). The index reads the game
+  folder from the local disk. A game on another computer comes after the MVP; the index does
+  nothing that would rule it out: the game folder is a parameter, the cache is keyed by the
+  game's build and file manifest and kept in the user's cache folder, and lookups do not
+  assume one letter case.
 - 3.7 Incremental update: a changed file updates its own entries and marks the files that use
   the names it defines.
 - 3.8 The on-disk cache of the base-game index: keyed by the spec checksum and a hash of the
@@ -399,8 +400,7 @@ replaced paths, no DLC precedence. All of this step beyond the basics is new wor
    table holds; each rule step 0 adds later is covered by its fixture with no code change.
 3. A reloaded cache answers exactly as a fresh index; changing the spec or the game manifest
    forces a rebuild.
-4. Indexing the whole base game is timed and the figure is in a record, for the game folder on
-   the local disk and reached from another computer.
+4. Indexing the whole base game is timed and the figure is in a record.
 
 **Not yet known.** The override rules themselves (open question 1 in MVP.md). How much memory
 a whole-base-game index takes; 2.3.0's partial index peaked near 1 GB on the largest mod.
@@ -897,7 +897,6 @@ five test mods.
 | When | Decision |
 | --- | --- |
 | Item 1.6 | The spec package committed compressed or raw. |
-| Before item 3.5 | How pychivalry reaches the game's files when the game is on another computer on the local network (open question 10 of MVP.md). |
 | Item 4.1 | Sign-off on the check inventory and the code scheme. |
 | Item 6.11 | The target for the agent-use run. |
 | Item 7.1 | Only if a harness cannot be reached as designed. |

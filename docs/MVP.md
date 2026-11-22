@@ -49,7 +49,7 @@ lives unchanged in `legacy/`.
 | GUI and GFX | Parse, index and navigate. Checks and lookup against a GUI vocabulary are after the MVP; the 1.21 spec work starts collecting that vocabulary. |
 | Game patches | After 1.21, the spec is re-derived on the owner's word. Until then pychivalry reports the version mismatch and keeps working. Nothing runs unattended on the analysis machine. |
 | Platforms | Linux and Windows are supported equally and both are tested. A behaviour of the game that differs between them, the letter case of file paths for one, is settled for both; nothing is left unverified on one of them. macOS is untested. |
-| Layouts | pychivalry is built for two layouts, given equal weight: VS Code on the same computer as the game, and VS Code on another computer on the local network. Neither is the exception (see [Where the game is](#where-the-game-is)). |
+| Layouts | In the MVP the game is on the same computer as VS Code, which is the case about nine times in ten. A game on another computer on the local network comes after the MVP (see [Where the game is](#where-the-game-is)). |
 | Override rules | The rules by which one definition replaces another are data, not code: a table in the spec package, each rule with its evidence and the platforms it holds on, read out of the game executable by the spec work. The index records every definition and picks a winner only where the table has a rule. Where it has none, pychivalry says nothing that depends on the winner. |
 | VS Code only | pychivalry is always used through VS Code. The command line and the agent server ship inside the extension and are never installed separately. Nothing is published to npm. |
 | Marketplace | Not in the MVP. 1.0.0 ships as a downloadable file on GitHub, which means no automatic updates for its users. |
@@ -175,26 +175,15 @@ Rules that keep it honest:
 ### Where the game is
 
 pychivalry reads the user's installed game: its files for the names the game defines, and later
-its error log. It is built for two layouts, and neither is the exception:
+its error log.
 
-| Layout | VS Code | The game | What must hold |
-| --- | --- | --- | --- |
-| One computer | On the computer that has the game | The same computer | pychivalry finds the game in any Steam library and reads it from the local disk. |
-| Two computers | On another computer on the local network | A different computer | pychivalry reads the same game files and the same error log although they are not on its own disk, gives the same findings as in the first layout, and stays fast enough to use. |
-
-Linux and Windows are supported equally in both: either computer may run either system, so a
-mod edited on Linux may be checked against a game installed on Windows, and the reverse.
-
-What follows for the build:
-
-- **Every feature's suite states which layout it ran in**, and the features that read the game
-  (the index, lookup, game-log analysis, the in-game load) are tested in both.
-- **The index cache lives beside the editor, not beside the game,** and is keyed by the game's
-  build and file manifest, so reading a game across the network is paid for once.
-- **Paths are never assumed to be local or in one letter case.** A game folder may be a network
-  path, and the two computers may disagree about letter case.
-- **How the second layout reaches the game's files** is not decided: a shared folder, the
-  editor's own remote mode, or a small helper on the game's computer. It is open question 10.
+- **In the MVP the game is on the same computer as VS Code.** That is the case about nine times
+  in ten. pychivalry finds the game in any Steam library and reads it from the local disk.
+- **A game on another computer on the local network comes after the MVP.** Nothing is built or
+  tested for it now, and nothing is built that would rule it out: the game folder is a setting,
+  the index cache is kept on the editor's computer keyed by the game's build and file manifest,
+  and no path is assumed to be in one letter case.
+- **Linux and Windows are supported equally.** The game and the editor may be on either.
 
 ## The spec package
 
@@ -468,7 +457,8 @@ is a rate, because a model's output is not repeatable.
 
 These come after the MVP: checks and lookup against a GUI vocabulary; `.asset` files; colour
 swatches and picker; checking several mods together as one playset; more than one game version
-at a time; the VS Code Marketplace; macOS testing; use outside VS Code; a chat participant; and
+at a time; a game installed on another computer than VS Code; the VS Code Marketplace; macOS
+testing; use outside VS Code; a chat participant; and
 authoring of content types beyond the four named above.
 
 ## Definition of done
@@ -594,4 +584,3 @@ Each is settled by evidence inside the build, not by a choice.
 | 5 | The targets for the scored agent and authoring runs. | After the first scored runs, in build steps 6 and 9. |
 | 6 | Whether the spec package is committed compressed or raw. | Build step 1. |
 | 7 | What happens to the `ck3-language-support` 2.x listing and its users when 1.0.0 ships. | Before release 1.0.0. |
-| 10 | How pychivalry reaches the game's files and error log when the game is on another computer on the local network: a shared folder, VS Code's remote mode, or a helper on the game's computer. | An owner decision, before item 3.5 of the build plan. |
