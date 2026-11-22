@@ -87,7 +87,7 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   over it. `task records:check` refuses an index record made on another rules table.
 
 - Build step 4, item 4.1 ([docs/PLAN.md](docs/PLAN.md)): `docs/checks.md`, the check inventory
-  and its code scheme, proposed and awaiting the owner's sign-off. Codes are `family/name`
+  and its code scheme, signed off by the owner on 2026-11-21; its codes are permanent. Codes are `family/name`
   (`names/unknown-trigger`), the step 2 identifiers kept as they are; 78 rows, each with its
   severity, its evidence or the word advice, the 2.3.0 code it replaces, its fixture pair, its
   build item and what it needs from the 1.21 spec. Every one of release 2.3.0's 108 codes is
@@ -122,5 +122,4 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   parts of 6 and 10) arrive as rows of the spec package's table from step 0, read out of the
   Windows and Linux executables. Until then the index lists every definition those rules
   decide and names no winner: 1,309 names of the base game.
-- Item 4.1: the owner's sign-off on `docs/checks.md` (the code scheme, the rows, and the
-  eleven questions at its end). Items 4.2 to 4.11 wait for it and for the 1.21 spec in format 5.
+- Items 4.2 to 4.11 wait for the 1.21 spec in format 5.
