@@ -23,7 +23,7 @@ disagree, MVP.md is right and this plan is fixed.
 | 1 | Repository skeleton | Two items only (1.6, 1.11) | Built and merged (pull requests #114 and #115). Open, waiting on step 0: 1.6 (the committed spec is the 1.20.0.2 stand-in until the 1.21 format 5 package; compressed or raw still to decide) and 1.11 (the result baselines; the speed baselines are done) |
 | 2 | Parser | No | Built and merged (pull request #116). Item 2.6's public codes are left to item 4.1, which maps the syntax finding identifiers to them |
 | 3 | Workspace index | No for the index; the override rules table comes from step 0 | Built and merged (pull requests #118 and #120). The stand-in rules table `spec/override-rules.json` carries the settled rules only; the rules it lacks (3, 4, 5, 7, 8, 9 and the open parts of 6 and 10 in `docs/overrides.md`) stay unresolved, and the index names no winner for them, until the spec package carries them |
-| 4 | Engine checks and lookup | Yes, from item 4.2 on | Item 4.1 written, awaiting the owner's sign-off (pull request #PRNUM): `docs/checks.md`, the check inventory and the code scheme. Items 4.2 to 4.11 are blocked on the 1.21 spec in format 5 |
+| 4 | Engine checks and lookup | Yes, from item 4.2 on | Item 4.1 written, awaiting the owner's sign-off (pull request #121): `docs/checks.md`, the check inventory and the code scheme. Items 4.2 to 4.11 are blocked on the 1.21 spec in format 5 |
 | 5 | Command line | Through step 4 | Not started |
 | 6 | Agent server | Through step 4 | Not started |
 | 7 | Language server and extension | Through step 4 | Not started |
