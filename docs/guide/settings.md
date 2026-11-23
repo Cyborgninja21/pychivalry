@@ -49,6 +49,16 @@ The command line in the terminal does not read settings: it searches Steam's lib
   `%LOCALAPPDATA%\pychivalry\Cache\index`, on Linux `~/.cache/pychivalry/index` (or under
   `$XDG_CACHE_HOME` when you set it). Nothing is written into your mod or the game folder. It is
   rebuilt by itself when the game is patched, and you can delete it at any time.
+- **One copy of the game's index in memory.** While VS Code has a mod open, its language server
+  lends its index of the game to pychivalry's agent servers and to `pychivalry` in the terminal,
+  so that the three hold one copy between them, not one each (about 0.7 GB each for game 1.21).
+  They find it through a small file in the same cache folder, beside `index` (`host/`, readable
+  by you only), and talk over a local channel in that folder, a Unix socket, or on Windows a
+  named pipe of your own computer: never a network port. When VS Code is closed, or a program
+  cannot reach it, each loads the index itself, as before. Every program gives the same answer
+  either way. To turn the sharing off, set the environment variable
+  `PYCHIVALRY_SHARED_INDEX=off` for the programs (for VS Code, before you start it): each then
+  loads its own copy ([how it works](../shared-index.md)).
 - **No keys.** Nothing in the settings holds an API key, a token or a login, and pychivalry
   makes no network call or model call. The AI that uses pychivalry is always another program
   that connects to it: Claude Code or VS Code's built-in AI, signed in however you already

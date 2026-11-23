@@ -1,6 +1,6 @@
 # pychivalry: build plan
 
-Status: plan for approval, 2026-11-22. Step 0 is done: the 1.21.0.3 spec package in format 8 is committed (2026-11-23, decision 68), its override rules table among its parts. Step 1 is complete, and steps 2 and 3 are built and merged, the index reading the override rules from the package. Item 4.1, the check inventory, is written and signed off. The rest of step 4 and step 5 were built in parallel on the owner's word (decisions 70 and 72) and brought together by an integration pull request: every item of step 4 and step 5 is built, but for two blocked rows of the inventory and the parts of four rows that wait on the owner or on the spec work. Step 4's "Done when" holds but for its first line (two blocked rows have no fixture pair); step 5's holds. Step 6 is built (decision 77): the agent server, the planted-defect mod, its graders and the scored-test script; item 6.11's first test sessions ran on the owner's word (decision 81), 5 of 5 passed, and the owner set the target from them: every test session passes, 10 of 10 before a release (decision 82). The five proposals of those sessions are done (decision 83): a harder planted mod, findings that say what is valid, and the rest. Step 7 was built on the owner's word by agents in parallel (decisions 84 and 85): the language server, the extension that starts it and registers the agent server with both AI harnesses, the command line on the terminal's path, the same-answers test, the packaged `.vsix` and its smoke test. Its item 7.12, the first preview's pre-release, waits for the owner's word, with the by-hand check of the signed-in harnesses. The Progress table says what is open.
+Status: plan for approval, 2026-11-22. Step 0 is done: the 1.21.0.3 spec package in format 8 is committed (2026-11-23, decision 68), its override rules table among its parts. Step 1 is complete, and steps 2 and 3 are built and merged, the index reading the override rules from the package. Item 4.1, the check inventory, is written and signed off. The rest of step 4 and step 5 were built in parallel on the owner's word (decisions 70 and 72) and brought together by an integration pull request: every item of step 4 and step 5 is built, but for two blocked rows of the inventory and the parts of four rows that wait on the owner or on the spec work. Step 4's "Done when" holds but for its first line (two blocked rows have no fixture pair); step 5's holds. Step 6 is built (decision 77): the agent server, the planted-defect mod, its graders and the scored-test script; item 6.11's first test sessions ran on the owner's word (decision 81), 5 of 5 passed, and the owner set the target from them: every test session passes, 10 of 10 before a release (decision 82). The five proposals of those sessions are done (decision 83): a harder planted mod, findings that say what is valid, and the rest. Step 7 was built on the owner's word by agents in parallel (decisions 84 and 85): the language server, the extension that starts it and registers the agent server with both AI harnesses, the command line on the terminal's path, the same-answers test, the packaged `.vsix` and its smoke test. Its item 7.12, the first preview's pre-release, was published on the owner's word on 2026-11-23 (decision 86): step 7 is done. Then, on the owner's word (decision 87), the language server, the agent servers and the command line were made to share one copy of the base game's index ([shared-index.md](shared-index.md)). Step 8 has started on the owner's word, built by agents in parallel (decision 89). The Progress table says what is open.
 
 This is the "how" for the rebuild. The "what" and the "why" are in [MVP.md](MVP.md): the
 decisions, the scope, the tests each feature needs and the definition of done. Where the two
@@ -26,8 +26,8 @@ disagree, MVP.md is right and this plan is fixed.
 | 4 | Engine checks and lookup | Yes, from item 4.2 on | Built. Item 4.1 is signed off (#121, #122); 4.2 with 4.3 (#125, #127, re-measured on format 8 in #132); 4.4 scope (#130); 4.5 fields and structure (#131); 4.6 event targets and localization (#134); 4.7 advice (#133); 4.8 lookup (#128); 4.9 to 4.11, the classification of the base game's errors, the game-file suites and the limits, in the integration pull request. 62 of the inventory's 78 rows are built (five in part), 11 retired by item 4.7's re-proof, 2 blocked, 3 belong to steps 10 and 11. Open: `structure/triggered-desc-other-field` (its message is not in the catalogue) and `scope/title-text-reads-scope-saved-late` (the localization text's saved-scope form is not data), blocked; the iterator sub-cases of `names/unknown-trigger` and `-effect` (the owner); the game-concept half of `references/unknown-name`, the open brackets of `localization/unbalanced-brackets` and the block and word types of `fields/wrong-kind-of-value`; the twelve spec requests of decision 73 and the questions in decisions.md. "Done when" 2 to 5 hold; 1 does not, for the two blocked rows |
 | 5 | Command line | Through step 4 | Built (#129, with the per-file cap in the integration pull request): `check`, `lookup` and `explain`, text and JSON, the filters, the exit codes, the on-disk index. "Done when" holds: the golden test passes, and on each of the five mods the command line's findings equal the core's and the `game:mods` record's. Open: the owner's questions on `--severity`, `--no-vanilla`, the folders checked and `mcp` (decisions.md) |
 | 6 | Agent server | Through step 4 | Items 6.1 to 6.6 built (the agent server, `packages/mcp/`): the six tools `check`, `lookup`, `find_definition`, `find_references`, `list_definitions` and `explain_code`, each read-only with its shapes declared, every result under 10,000 tokens (measured on rice), bad input as results naming the valid values, nothing written but the index cache, the on-disk index loaded; with them decisions 74 to 77 (`localization/unused-key` off by default). `call_graph`, `analyze_log` and `format` come with steps 10, 11 and 8. Items 6.7 to 6.10 built (#136): the planted-defect mod `fixtures/defects/` (27 defects, one per error and warning code, and 10 look-alikes, over the game stub `planted-defects`), the five graders, the scored-test script `task scored:agent-use` and its record format, all tested in CI without Claude Code; with them a CI test that no shipped package holds a key or reaches the network. Item 6.11 run on the owner's word (decision 81): the first five test sessions are on record, 5 of 5 passed (`records/scored/agent-use.json`), after two repair sessions that found harness faults, fixed; the owner set the target from them: every test session passes, a release run 10 of 10 (decision 82), which the record now states. Then, on the owner's word (decision 83), the sessions' five proposals: the planted mod made harder (32 defects, every error and warning code at least once, 29 look-alikes, 17 files; defects that need a lookup, interact or are fixed elsewhere; its reference's wrong-scope fix made right), scope findings that name the links that lead to the scope they need, field findings that carry the value type and the base game's values, the instructions naming the tools' prefix, and readable slots in every message `explain_code` shows; with them, the core's check on a name defined in many files no longer grows with the cube of the files (300 files: 7.5 s before, 0.09 s after). "Done when" holds: both lines. The harder mod has not been run by a test session yet |
-| 7 | Language server and extension | Through step 4 | Built but for item 7.12, on the owner's word (decisions 84 and 85), by agents in parallel: the language server, server side (#140); the extension with its AI wiring, items 7.1, 7.2 and 7.8 (#142); the rest of items 7.3 to 7.11 in one more pull request. The extension starts the language server over IPC on VS Code's own runtime, declares its four settings, gives the agent server the game folder, registers it with VS Code's AI and sets it up for Claude Code, and puts the command line on the integrated terminal's path. The same-answers test passes on the planted-defect mod in CI and on the five real mods (0, 15, 627, 2,942 and 62 findings, the same on the editor, the command line and the agent server). The `.vsix` is 3.88 MB (2.3.0's: 1.8 MB) and its smoke test passes in a clean VS Code on Linux and Windows. Editor speed against the 2.3.0 baseline: faster on all five mods, more memory on four (MVP.md, "Speed"). "Done when" 2 and 3 hold; 1 holds for everything a test can show, the signed-in harness calling the tools waiting on the owner's by-hand check; 4, the pre-release, waits on the owner's word (draft: [preview-release.md](preview-release.md)). Open: that, and the owner's questions on step 7 in decisions.md |
-| 8 | Formatter and fixes | No, but follows step 7 | Not started |
+| 7 | Language server and extension | Through step 4 | Done. Built on the owner's word (decisions 84 and 85), by agents in parallel: the language server, server side (#140); the extension with its AI wiring, items 7.1, 7.2 and 7.8 (#142); the rest of items 7.3 to 7.11 in one more pull request. The extension starts the language server over IPC on VS Code's own runtime, declares its four settings, gives the agent server the game folder, registers it with VS Code's AI and sets it up for Claude Code, and puts the command line on the integrated terminal's path. The same-answers test passes on the planted-defect mod in CI and on the five real mods (0, 15, 627, 2,942 and 62 findings, the same on the editor, the command line and the agent server). The `.vsix` is 3.88 MB (2.3.0's: 1.8 MB) and its smoke test passes in a clean VS Code on Linux and Windows. Editor speed against the 2.3.0 baseline: faster on all five mods, more memory on four (MVP.md, "Speed"). "Done when" holds: 2 to 4 in full, 1 for everything a test can show (a signed-in harness calling the tools is the owner's by-hand check). The first preview is published (decision 86): the GitHub pre-release `v0.1.0`, "pychivalry 0.1.0 (preview)", with the `.vsix` ([preview-release.md](preview-release.md)). The VS Code floor stays 1.146 (decision 88). After it, on the owner's word (decision 87), the three programs share one copy of the base game's index: the language server lends it to the agent servers and the command line, which load their own only when it cannot answer ([shared-index.md](shared-index.md)); on rice their peak memory went from 3.02 GiB to 1.64 GiB in all, with the same findings on every surface. Open: the owner's questions on step 7 in decisions.md |
+| 8 | Formatter and fixes | No, but follows step 7 | In progress: started on the owner's word (decision 89), built by agents in parallel, each in its own worktree and pull request |
 | 9 | Skills and the authoring run | Through step 4 | Not started |
 | 10 | GUI files, graphics check, call graph | Partly | Not started |
 | 11 | Game-log analysis, in-game load | Yes | Not started |
@@ -121,6 +121,7 @@ docs/
   checks.md               the check inventory (step 4)
   encoding.md             what the parser reads (step 2)
   overrides.md            the game's override rules (step 3)
+  shared-index.md         one index of the base game shared by the programs (decision 87)
   formatting.md           the formatting rules (step 8)
   gui-syntax.md           GUI file syntax (step 10)
   game-log.md             the error-log format (step 11)
@@ -1143,9 +1144,11 @@ one test proves every surface gives the same answers. First preview build.
   It passes on Linux locally and in CI on Linux and Windows (the `vscode-test` job).
 - 7.12 The first preview build, attached to a GitHub pre-release.
 
-  *Open, on the owner's word:* a release is public. The tag, title and notes are drafted in
-  [preview-release.md](preview-release.md), with how it is made; the by-hand check
-  ([guide/by-hand-check.md](guide/by-hand-check.md)) comes first, on Linux and Windows.
+  *Done (decision 86):* on the owner's word, 2026-11-23, the public GitHub pre-release
+  `v0.1.0`, "pychivalry 0.1.0 (preview)", on commit `133a9a1`, with `pychivalry-0.1.0.vsix`
+  attached (SHA-256 `25f38c9dfd11e7019ac0f0b9b5d193b305be87c129fa687dca59dad7c20cac94`) and
+  the notes as drafted. [preview-release.md](preview-release.md) is the record of what was
+  published, and says how the next preview is made.
 
 **Tests.** Rows "Completion and hover" and "Same answers on every surface" in MVP.md's table.
 The extension tests run with the launching VS Code's own variables removed, so they also run
@@ -1165,12 +1168,26 @@ the extension's definition to the Copilot harness, "Set up for Claude Code" writ
 entry, and both command lines start a server that answers `check`, across an update too; a
 real Claude Code connected from the entry on Linux. A signed-in harness calling the tools, and a
 real Claude Code on Windows, are the owner's by-hand check. (2) holds: in CI on the planted mod,
-and on the five real mods locally. (3) holds on Linux and in CI on Linux and Windows. (4) is not
-met: it waits on the owner's word.
+and on the five real mods locally. (3) holds on Linux and in CI on Linux and Windows. (4) is
+met: the pre-release was published on the owner's word (decision 86). Step 7 is done.
+
+**Speed** (2026-11-23, `task vscode:corpus`; MVP.md, "Speed", has the method): the packaged
+extension's time from activation to its first full result, and the language server's peak
+memory then, the median of five warm runs, against the 2.3.0 editor baseline:
+
+| | balance-of-power-ui | divine-intervention | elf-destiny | rice | viet-events |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| First full result, 2.3.0 | 2.42 s | 18.00 s | 6.95 s | 22.47 s | 7.80 s |
+| First full result, step 7 | 2.16 s | 9.86 s | 3.35 s | 6.41 s | 2.97 s |
+| Peak memory, 2.3.0 | 0.28 GiB | 2.43 GiB | 0.39 GiB | 0.74 GiB | 0.43 GiB |
+| Peak memory, step 7 | 0.65 GiB | 1.36 GiB | 0.72 GiB | 0.87 GiB | 0.72 GiB |
+
+The language server alone, started by a test client (#140): 2.22, 13.92, 4.40, 7.88 and 3.47
+seconds to the first full result, at 0.73, 1.98, 0.88, 1.02 and 0.84 GiB.
 
 **Not yet known.** MVP.md open question 4's skills half (step 9). Whether three copies of the
-index in memory at once are acceptable, or the servers need to share one (asked: the language
-server holds 0.65 to 1.36 GiB at its peak on the five mods).
+index in memory at once were acceptable is answered: they were not (decision 87); the programs
+share one ([shared-index.md](shared-index.md)), measured in MVP.md, "Speed".
 
 ---
 

@@ -84,10 +84,16 @@ What `check` prints:
   (empty until fixes arrive in build step 8) and `data` (the names the finding is about, and
   what is valid there where pychivalry knows it, as [the agent server](agent-server.md) gives
   it). The
-  last line is `{"summary": ...}`: the version, the spec package and the game build, the files
+  last line is `{"summary": ...}`: the version, the spec package and the game build (with
+  `from_cache`, true when its index came from the cache, and `shared`, true when the language
+  server of an open VS Code answered the command with its own copy of it), the files
   checked and not checked, the counts of every finding by severity and by code, how many
   findings matched the filters and how many were shown, and `capped`: what the per-file limit
   left out.
+- **One copy of the game's index.** When VS Code has a mod open, `check` and `lookup` are
+  answered by its language server, which already holds the game's index, instead of loading a
+  second copy; what they print is the same either way, and when the language server cannot
+  answer, the command runs by itself ([Settings](settings.md)).
 - **At most 1,000 findings per file.** A file with more keeps its most severe ones (errors
   first, then warnings, information and hints), and the count of the others is given: on
   standard error with the text output, in `capped` with `--json`. The counts are of the

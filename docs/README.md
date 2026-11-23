@@ -11,7 +11,8 @@ a document adds its row here.
 | [PLAN.md](PLAN.md) | How it is built: thirteen steps, each with numbered items, tests and a "done when" list; the Progress table | Before step 1; updated by every step |
 | [decisions.md](decisions.md) | Every decision with its date, in the order it was made, and the choices an agent made that the owner has not yet confirmed | Every step that asks or answers one |
 | [checks.md](checks.md) | The check inventory: every check the MVP ships, with its code, severity, evidence (or "advice"), the 2.3.0 check it replaces, its fixture pair and its state (built, blocked, retired); the code scheme; the review of 2.3.0's codes and the pre-2.0 rules. Signed off by the owner on 2026-11-21 | Step 4, item 4.1; every step that adds a check |
-| [preview-release.md](preview-release.md) | The first preview's GitHub pre-release (item 7.12), drafted for the owner: its tag, title and notes, and how it is made. Not published | Step 7 |
+| [preview-release.md](preview-release.md) | The first preview's GitHub pre-release (item 7.12), published on the owner's word on 2026-11-23: its tag, title, commit, file and notes as published, and how a preview is made | Step 7 |
+| [shared-index.md](shared-index.md) | How the language server, the agent servers and the command line share one copy of the base game's index (decision 87): the options weighed and why one was chosen, how it works, its local channel and the exception to rule 12, what only Windows can show, and the measurements | Step 7, after its pre-release |
 
 ## Sources and test data
 

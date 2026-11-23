@@ -16,9 +16,12 @@ scored-test script. Item 6.11's first test sessions ran on the owner's word, 5 o
 the owner set the target: every test session passes, 10 of 10 before a release. Build step 7
 is built but for its last item: the language server, the extension that starts it and
 registers the agent server with VS Code's AI and Claude Code, the command line on the terminal's
-path, the same-answers test, the packaged `.vsix` and its smoke test; the first preview's
-pre-release waits on the owner's word. What waits on the owner or on the spec work is in
-[decisions.md](decisions.md). Nothing else in this document is built yet.
+path, the same-answers test, the packaged `.vsix` and its smoke test; the first preview,
+0.1.0, is published as a GitHub pre-release (2026-11-23). After it the language server, the
+agent servers and the command line were made to share one copy of the base game's index
+([shared-index.md](shared-index.md)). Build step 8, the formatter and fixes, has started. What
+waits on the owner or on the spec work is in [decisions.md](decisions.md). Nothing else in this
+document is built yet.
 
 The build plan, step by step, is in [PLAN.md](PLAN.md).
 
@@ -53,7 +56,8 @@ lives unchanged in `legacy/`.
 | Game versions | One game version at a time: the current one. |
 | Game-file suites | No test runner is attached to this repository. A local task runs the suites that need game files and writes result records, which are committed. Public CI checks the records and runs everything else. |
 | Machines | This laptop runs the game-file suites: it has the game and the five test mods. The analysis machine, a Windows desktop with the analysis tools, is used only to re-derive the spec and to load content in the running game. |
-| VS Code floor | Recent editors only. The floor is the release where VS Code's Copilot harness is the default: **1.146**, pinned in build step 7 (item 7.2), the lowest release on which the extension's agent server was seen forwarded to that harness (1.142 to 1.145 start no harness session without a sign-in). |
+| VS Code floor | Recent editors only. The floor is the release where VS Code's Copilot harness is the default: **1.146**, pinned in build step 7 (item 7.2), the lowest release on which the extension's agent server was seen forwarded to that harness (1.142 to 1.145 start no harness session without a sign-in). The owner kept it at 1.146 on 2026-11-23 (decision 88). |
+| Shared index | The language server, the agent servers and the command line hold one copy of the base game's index between them, not one each (decision 87): the language server lends it; the others load their own only when it cannot answer. Every surface gives the same findings either way ([shared-index.md](shared-index.md)). |
 | AI surface | One bundled agent server (MCP) plus a set of skills. It serves both Claude Code and VS Code's built-in AI. There is no chat participant and no separate set of language-model tools. |
 | AI harness | The AI that uses pychivalry is always another program that connects to it: Claude Code running in VS Code, or VS Code's built-in AI, signed in however its user already signed it in. pychivalry contains no API key, no token and no login, and no shipped package makes a network call or a model call; a test in CI holds every shipped package to it. |
 | AI tests | The agent-use test runs test sessions of the Claude Code already installed on the developer's machine, pinned to Opus 5.5 (`claude-opus-5-5`). Its first five test sessions ran on the owner's word of 2026-11-23, each with session limit 3: 5 of 5 passed ([tools/scored-run/README.md](../tools/scored-run/README.md#the-first-test-sessions-item-611)). The target, set by the owner from that result: every test session passes. A release run of 10 must pass all 10; a development run of 5 that passes fewer than 5 is looked into. The planted-defect mod was made harder after those sessions, which fixed it too easily to tell a better agent server from a worse one. Documents and code never describe the test in terms of money, accounts or keys. |
@@ -187,6 +191,11 @@ Rules that keep it honest:
 - `packages/vscode` contains no checking, parsing or lookup logic.
 - The spec package is read at start. The core contains no keyword lists; a table the checks
   need comes from the spec package or from the user's installed game.
+- **One copy of the base game's index.** While the extension runs, the language server lends
+  its index of the base game to the agent servers and the command line on the same machine,
+  over a local channel (a Unix domain socket or a Windows named pipe in the user's own folder,
+  never a port), and answers their requests with their own code over a fork of it; each loads
+  its own copy only when no language server answers ([shared-index.md](shared-index.md)).
 
 ### Where the game is
 

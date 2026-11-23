@@ -8,10 +8,16 @@ game.
 
 ## State of the rebuild
 
-pychivalry is being rebuilt from the ground up in TypeScript. **1.0.0 is not released.** A
-first preview, 0.1.0, is built (build step 7): an extension installed from a `.vsix` file, with
-the checks and lookups built so far, the editor features, the agent server for VS Code's AI and
-Claude Code, and the command line ([installing it](docs/guide/install.md)).
+pychivalry is being rebuilt from the ground up in TypeScript. **1.0.0 is not released.** The
+first preview, **0.1.0**, is published as a
+[GitHub pre-release](https://github.com/Cyborgninja21/pychivalry/releases/tag/v0.1.0) (build
+step 7, 2026-11-23): an extension installed from its `.vsix` file, with the checks and lookups
+built so far, the editor features (diagnostics, hover, completion, go to definition, find
+references, the outline), the agent server for VS Code's AI and Claude Code, and the command
+line in VS Code's terminal ([installing it](docs/guide/install.md)). Since then, on `main`,
+the language server, the agent servers and the command line share one copy of the game's
+index in memory ([how](docs/shared-index.md)). Build step 8, the formatter and fixes, is in
+progress.
 
 - What is being built, and why: [docs/MVP.md](docs/MVP.md).
 - How, step by step, and how far it has got: [docs/PLAN.md](docs/PLAN.md) (the Progress table).
@@ -20,7 +26,7 @@ Claude Code, and the command line ([installing it](docs/guide/install.md)).
   pinned test mods, the 2.3.0 speed and result baselines, and the documents every later step
   fills. The parser (step 2), the workspace index (step 3), the checks and lookup (step 4), the
   command line (step 5), the agent server (step 6) and the language server and extension (step
-  7) are built; the formatter and fixes of step 8 come next.
+  7) are built; the formatter and fixes of step 8 are being built.
 - Every document, and which step writes it: [docs/README.md](docs/README.md). The sources
   pychivalry draws on: [docs/references/](docs/references/README.md). What the tests run on:
   [docs/test-data.md](docs/test-data.md). The user guide so far:

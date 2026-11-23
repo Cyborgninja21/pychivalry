@@ -275,10 +275,36 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   job caches the downloaded VS Code. The language server's notice of a finished background pass
   carries its peak memory (`peakRssKib`).
 - `docs/guide/by-hand-check.md`, the check a person makes on Linux and Windows before a preview
-  goes out; `docs/preview-release.md`, the draft of the first preview's pre-release, not
-  published.
+  goes out; `docs/preview-release.md`, the draft of the first preview's pre-release.
+- The first preview, published on the owner's word (decision 86): the GitHub pre-release
+  `v0.1.0`, "pychivalry 0.1.0 (preview)", on commit `133a9a1`, with `pychivalry-0.1.0.vsix`
+  attached; `docs/preview-release.md` is now the record of what was published, and the install
+  page links the download. Step 7 is done.
+- One shared index (decision 87, `docs/shared-index.md`): the language server lends its index
+  of the base game, frozen, to the agent servers and the command line on the same machine, and
+  answers their requests with their own code (the command line's `runSteps`, the agent server's
+  tools) over a fork that shares every file and table of the base game; each loads its own copy
+  only when no language server answers, so the three hold one copy between them. On rice, the
+  largest test mod, the three programs' peak memory went from 3.02 GiB to 1.64 GiB in all, and
+  the editor's time to its first full result did not get worse. The core gained forks of an
+  index (`WorkspaceIndex.fork`, a layered string table and maps), work in steps that a server
+  runs in slices (`Steps`, `drainInSlices`, `checkWorkspaceSteps` and the indexing's step
+  forms), the lent base game (`shareBase`, `BaseRefused`), the address file in the user's
+  owner-only cache folder and the local channel (`packages/core/src/share/`); the language
+  server's `pychivalry/sharing` request says what it lent; the command line's JSON summary says
+  `game.shared`; `PYCHIVALRY_SHARED_INDEX=off` turns it off. Tested on Linux and Windows: the same
+  answers on every fixture mod and the planted-defect mod through a fork, and every fallback (no
+  lender, a lender gone, refusing, silent or dying in the middle of a request, a second language
+  server taking over). The same-answers test runs with sharing on, checking that the language
+  server answered the command line and every page of the agent server, and again with it off.
 
 ### Changed
+
+- AGENTS.md rule 12's test (`tools/src/no-key-no-network.test.ts`) allows Node's `node:net` in
+  exactly one shipped file, the local channel of the shared index
+  (`packages/core/src/share/channel.ts`), with its reason, and holds that file to binding and
+  connecting a path only, never a port or a host; every other shipped file is refused it as
+  before.
 
 - `localization/unused-key` is off by default (decision 76): the runner reports it only with
   `unusedKeys`, the command line's `check` with `--unused-keys`, the agent server's `check` with
@@ -412,6 +438,12 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
 
 ### Fixed
 
+- The command line's cache test compared the wall-clock times of two runs and failed once on a
+  loaded machine. It now proves the second run did not read the game by the work done: it
+  reports a cache load and no build, the cache file is not written again, and a game file
+  changed between the runs where the listing cannot see it leaves the findings unchanged (a run
+  on a fresh cache shows they would change).
+
 - The core's check slowed with the cube of the number of files defining one name: it resolved
   the name once per definition and compared every pair of the definitions each time (100 files
   0.3 s, 300 files 6 to 7.5 s). The index now finds an unordered pair among sorted neighbours
@@ -424,8 +456,8 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
 
 - The harder planted mod has not been run by a test session yet; a run starts only on the
   owner's word (decision 80).
-- Build step 7 is built but for item 7.12: the first preview's pre-release waits for the owner's
-  word, and the by-hand check of the signed-in AI harnesses for the owner, on Linux and Windows.
+- The by-hand check of the signed-in AI harnesses, on Linux and Windows, is the owner's.
+- Build step 8 is in progress (decision 89).
 - Whether a check row should judge a static modifier applied by an effect of another use area
   is a question for the owner (`docs/decisions.md`); no built row covers it.
 - Two rows of the check inventory are blocked: `structure/triggered-desc-other-field` (its
