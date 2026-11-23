@@ -37,103 +37,159 @@ const expected = {
     corpusManifestSha256: undefined,
 };
 
-/** A session's stream in the shape Claude Code writes with stream-json and verbose. */
+/**
+ * A session's stream in the shape Claude Code 2.1.330 writes with stream-json and verbose: the
+ * shape of item 6.11's test sessions, every event kind they held, with identifiers, folders,
+ * texts and figures replaced. Each `assistant` event holds one content block; a tool's result
+ * comes back as a `user` event whose `tool_result` content is the tool's text, beside the
+ * structured result (`tool_use_result`) and its permission decision (`tool_result_meta`).
+ */
 function stream(options: {
     readonly tools?: readonly string[];
-    readonly servers?: readonly { name: string; status: string }[];
+    readonly servers?: readonly { name: string; status: string; source?: string }[];
     readonly skills?: readonly string[];
+    readonly plugins?: readonly { name: string; path: string; source: string }[];
     readonly subtype?: string;
     readonly errorText?: string;
 }): string {
+    const ids = { session_id: '<session id>', uuid: '<uuid>' };
+    const message = (content: unknown): Record<string, unknown> => ({
+        model: PINNED_MODEL,
+        id: '<message id>',
+        type: 'message',
+        role: 'assistant',
+        content: [content],
+        container: null,
+        stop_reason: null,
+        stop_sequence: null,
+        stop_details: null,
+        usage: {},
+        input_transformations: [],
+        diagnostics: null,
+        context_management: null,
+    });
+    const assistant = (content: unknown): unknown => ({
+        type: 'assistant',
+        message: message(content),
+        parent_tool_use_id: null,
+        ...ids,
+        timestamp: '2026-11-23T00:00:00.000Z',
+        request_id: '<request id>',
+    });
+    const call = (id: string, name: string, input: unknown): unknown => ({
+        ...(assistant({ type: 'tool_use', id, name, input, caller: { type: 'direct' } }) as object),
+        wire_tool_inputs: { [id]: input },
+    });
+    const answer = (id: string, content: unknown, isError: boolean): unknown => ({
+        type: 'user',
+        message: {
+            role: 'user',
+            content: [
+                {
+                    tool_use_id: id,
+                    type: 'tool_result',
+                    content,
+                    ...(isError ? { is_error: true } : {}),
+                },
+            ],
+        },
+        parent_tool_use_id: null,
+        ...ids,
+        timestamp: '2026-11-23T00:00:00.000Z',
+        tool_use_result: {},
+        tool_result_meta: [
+            {
+                id,
+                permission_decision: { decision: 'accept', source: 'config', reason_type: 'rule' },
+            },
+        ],
+    });
+    const subtype = options.subtype ?? 'success';
     const events: unknown[] = [
         {
             type: 'system',
             subtype: 'init',
             cwd: '/somewhere/private',
-            session_id: 'not-kept',
-            claude_code_version: '2.1.220',
-            model: PINNED_MODEL,
-            permissionMode: 'dontAsk',
+            ...ids,
             tools: options.tools ?? [
-                'Read',
                 'Edit',
+                'Read',
                 ...SERVER_TOOLS.map((n) => `mcp__pychivalry__${n}`),
             ],
-            mcp_servers: options.servers ?? [{ name: 'pychivalry', status: 'connected' }],
-            skills: options.skills ?? [],
-            plugins: [],
+            mcp_servers: options.servers ?? [
+                { name: 'pychivalry', status: 'connected', source: 'dynamic' },
+            ],
+            model: PINNED_MODEL,
+            permissionMode: 'dontAsk',
+            slash_commands: [],
             apiKeySource: 'none',
+            claude_code_version: '2.1.330',
+            output_style: 'default',
+            agents: ['claude', 'Explore', 'general-purpose', 'Plan', 'statusline-setup'],
+            skills: options.skills ?? [],
+            plugins: options.plugins ?? [
+                {
+                    name: 'cc-plugin-telemetry',
+                    path: 'builtin',
+                    source: 'cc-plugin-telemetry@builtin',
+                },
+                { name: 'cc-plugin-privacy', path: 'builtin', source: 'cc-plugin-privacy@builtin' },
+            ],
+            capabilities: ['interrupt_receipt_v1', 'msg_lifecycle_v1'],
+            analytics_disabled: false,
+            product_feedback_disabled: false,
+            served_by_anthropic: true,
+            original_cwd: '/somewhere/private',
+            additional_directories: [],
+            messaging_socket_path: '/somewhere/private/socket',
+            fast_mode_state: 'off',
+            fast_mode_disabled_reason: 'sdk_opt_in_required',
+            per_turn_effort_active: true,
+            ultrathink_available: false,
+            ultrathink_typed_raises: false,
+            view_mode: 'default',
         },
+        call('call-1', 'mcp__pychivalry__check', { min_severity: 'warning' }),
+        { type: 'rate_limit_event', rate_limit_info: {}, ...ids },
+        answer('call-1', '{"files_checked":14,"totals":{}}', false),
+        assistant({ type: 'text', text: 'Let me read the files involved.' }),
+        call('call-2', 'Read', { file_path: '/somewhere/private/x.txt' }),
+        answer(
+            'call-2',
+            options.errorText ?? 'File does not exist: /somewhere/private/x.txt',
+            true,
+        ),
         {
-            type: 'assistant',
-            message: {
-                content: [
-                    { type: 'text', text: 'Checking the mod.' },
-                    {
-                        type: 'tool_use',
-                        id: 'call-1',
-                        name: 'mcp__pychivalry__check',
-                        input: { severity: 'warning' },
-                    },
-                ],
-            },
+            type: 'system',
+            subtype: 'thinking_tokens',
+            estimated_tokens: 50,
+            estimated_tokens_delta: 50,
+            ...ids,
         },
+        assistant({ type: 'thinking', thinking: '', signature: '<signature>' }),
+        call('call-3', 'Edit', { file_path: '/somewhere/private/x.txt' }),
+        answer('call-3', 'The file has been updated.', false),
+        assistant({ type: 'text', text: 'Done.' }),
         {
-            type: 'user',
-            message: {
-                content: [
-                    {
-                        type: 'tool_result',
-                        tool_use_id: 'call-1',
-                        content: [{ type: 'text', text: '28 findings' }],
-                    },
-                ],
-            },
-        },
-        {
-            type: 'assistant',
-            message: {
-                content: [
-                    {
-                        type: 'tool_use',
-                        id: 'call-2',
-                        name: 'Read',
-                        input: { file_path: '/somewhere/private/x.txt' },
-                    },
-                ],
-            },
-        },
-        {
-            type: 'user',
-            message: {
-                content: [
-                    {
-                        type: 'tool_result',
-                        tool_use_id: 'call-2',
-                        is_error: true,
-                        content:
-                            options.errorText ?? 'File does not exist: /somewhere/private/x.txt',
-                    },
-                ],
-            },
-        },
-        {
-            type: 'assistant',
-            message: { content: [{ type: 'tool_use', id: 'call-3', name: 'Edit', input: {} }] },
-        },
-        {
-            type: 'user',
-            message: { content: [{ type: 'tool_result', tool_use_id: 'call-3', content: 'ok' }] },
-        },
-        {
-            type: 'result',
-            subtype: options.subtype ?? 'success',
-            is_error: (options.subtype ?? 'success') !== 'success',
+            duration_api_ms: 1000,
+            stop_reason: 'end_turn',
+            ...ids,
             total_cost_usd: 0.42,
-            num_turns: 3,
-            duration_ms: 1234,
-            session_id: 'not-kept',
+            usage: {},
+            modelUsage: {},
             permission_denials: [{ tool_name: 'Bash', tool_use_id: 'call-9', tool_input: {} }],
+            terminal_reason: subtype === 'success' ? 'completed' : 'max_budget',
+            fast_mode_state: 'off',
+            fast_mode_disabled_reason: 'sdk_opt_in_required',
+            safety_stops: 0,
+            is_error: subtype !== 'success',
+            num_turns: 3,
+            subtype,
+            api_error_status: null,
+            result: 'Done.',
+            type: 'result',
+            duration_ms: 1234,
+            credential_expires_at: '2026-12-31T00:00:00.000Z',
         },
     ];
     return `${events.map((e) => JSON.stringify(e)).join('\n')}\nnot json\n`;
@@ -208,7 +264,7 @@ test('a run whose agent fixes the mod: every trial passes, and the record holds'
     const results = record.results;
     assert.equal(results.trials.length, 2);
     assert.deepEqual(results.tasks, [{ name: 'agent-use', trials: 2, passed: 2, pass_rate: 1 }]);
-    assert.equal(results.harness.version, '2.1.220');
+    assert.equal(results.harness.version, '2.1.330');
     assert.equal(results.model, PINNED_MODEL);
     assert.equal(results.session_limit, 2);
     assert.equal(record.corpus, null);
@@ -230,6 +286,12 @@ test('a run whose agent fixes the mod: every trial passes, and the record holds'
     assert.equal(trial.permission_denials, 1);
     assert.deepEqual(trial.findings_left, { error: 0, warning: 0, information: 0, hint: 0 });
     assert.deepEqual(trial.session?.mcp_servers, [{ name: 'pychivalry', status: 'connected' }]);
+    // Claude Code's own plugins are listed and are no harness problem.
+    assert.deepEqual(trial.session.plugins, [
+        'cc-plugin-privacy@builtin',
+        'cc-plugin-telemetry@builtin',
+    ]);
+    assert.deepEqual(trial.session.skills, []);
     // Nothing from the session but what the record names: no folder, no id, nothing about how
     // Claude Code is signed in, and none of the figures Claude Code reports about the session's
     // use of the developer's plan (the stream's `total_cost_usd`).
@@ -241,6 +303,10 @@ test('a run whose agent fixes the mod: every trial passes, and the record holds'
         'must-not-reach',
         'cost',
         '0.42',
+        'credential_expires_at',
+        '2026-12-31',
+        'rate_limit',
+        'socket',
     ]) {
         assert.ok(!text.includes(kept), `the record holds ${kept}`);
     }
@@ -354,12 +420,19 @@ test('a session that is not confined is a harness problem and fails its trial', 
                 { name: 'pychivalry', status: 'failed' },
                 { name: 'other', status: 'connected' },
             ],
+            skills: ['code-review'],
+            plugins: [
+                { name: 'cc-plugin-privacy', path: 'builtin', source: 'cc-plugin-privacy@builtin' },
+                { name: 'my-plugin', path: '/somewhere/private', source: 'my-plugin@my-market' },
+            ],
         }),
     );
     const trial = record.results.trials[0];
     assert.equal(trial?.passed, false);
     assert.deepEqual(trial.harness_problems, [
         'tools outside the confinement were offered: Bash, mcp__other__tool',
+        'skills were offered: code-review',
+        'plugins were loaded: my-plugin@my-market',
         'other agent servers were offered: other',
         'the agent server failed to start',
     ]);
@@ -496,7 +569,7 @@ test('the stream reader keeps the calls, errors, start and end, and counts unrea
         ['mcp__pychivalry__check', 'Read', 'Edit'],
     );
     assert.deepEqual(summary.toolErrors, [{ name: 'Read', message: 'boom' }]);
-    assert.equal(summary.init?.version, '2.1.220');
+    assert.equal(summary.init?.version, '2.1.330');
     assert.equal(summary.result?.subtype, 'success');
     assert.equal(summary.result.isError, false);
     assert.equal(summary.result.errorText, null);

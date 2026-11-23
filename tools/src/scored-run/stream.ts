@@ -31,8 +31,12 @@ export interface StreamInit {
     readonly mcpServers: readonly { readonly name: string; readonly status: string }[];
     /** The skills the session could use, by name; empty when the stream lists none. */
     readonly skills: readonly string[];
-    /** The plugins loaded, by name only (an entry's path is not read). */
-    readonly plugins: readonly string[];
+    /**
+     * The plugins loaded: each by its source (`<name>@<marketplace>`) or, without one, its name,
+     * and whether it is built into Claude Code (source `<name>@builtin`, or path `builtin`), as
+     * Claude Code 2.1.330 lists two of its own in every session. A plugin's path is not read.
+     */
+    readonly plugins: readonly { readonly name: string; readonly builtIn: boolean }[];
 }
 
 export interface StreamToolCall {
@@ -120,6 +124,27 @@ function initOf(event: Record<string, unknown>): StreamInit {
                   .map((v) => (typeof v === 'string' ? v : isObject(v) ? text(v['name']) : null))
                   .filter((v): v is string => v !== null)
             : [];
+    const plugins = Array.isArray(event['plugins'])
+        ? event['plugins']
+              .map((p) => {
+                  if (typeof p === 'string') {
+                      return { name: p, builtIn: false };
+                  }
+                  if (!isObject(p)) {
+                      return null;
+                  }
+                  const source = text(p['source']);
+                  const name = source ?? text(p['name']);
+                  return name === null
+                      ? null
+                      : {
+                            name,
+                            builtIn:
+                                (source?.endsWith('@builtin') ?? false) || p['path'] === 'builtin',
+                        };
+              })
+              .filter((p): p is { name: string; builtIn: boolean } => p !== null)
+        : [];
     return {
         version: text(event['claude_code_version']),
         model: text(event['model']),
@@ -127,7 +152,7 @@ function initOf(event: Record<string, unknown>): StreamInit {
         tools,
         mcpServers: servers,
         skills: names(event['skills']),
-        plugins: names(event['plugins']),
+        plugins,
     };
 }
 

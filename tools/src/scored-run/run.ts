@@ -195,7 +195,8 @@ export function scoredOptions(
 
 /**
  * Claude Code's arguments for one trial: the flags of docs/PLAN.md item 6.8, checked against
- * `claude --help` of Claude Code 2.1.220 (tools/scored-run/README.md says how each differs):
+ * `claude --help` of Claude Code 2.1.220 and again of 2.1.330, which ran item 6.11's test
+ * sessions (tools/scored-run/README.md says how each differs):
  *
  * - `-p` with the prompt first: command-line mode, which the plan's other flags need. Three of
  *   the flags take several values (`--mcp-config`, `--tools`, `--allowedTools`), so the prompt
@@ -437,8 +438,11 @@ export function harnessProblems(
     if (init.skills.length > 0) {
         problems.push(`skills were offered: ${init.skills.join(', ')}`);
     }
-    if (init.plugins.length > 0) {
-        problems.push(`plugins were loaded: ${init.plugins.join(', ')}`);
+    // Claude Code's own plugins come with the program, as its built-in agents do; any other
+    // plugin is the person's set-up.
+    const plugins = init.plugins.filter((p) => !p.builtIn).map((p) => p.name);
+    if (plugins.length > 0) {
+        problems.push(`plugins were loaded: ${plugins.join(', ')}`);
     }
     const others = init.mcpServers.filter((s) => s.name !== SERVER_NAME).map((s) => s.name);
     if (others.length > 0) {
@@ -518,7 +522,7 @@ export function trialRecord(input: {
                       tools: [...summary.init.tools].sort(),
                       mcp_servers: summary.init.mcpServers.map((s) => ({ ...s })),
                       skills: [...summary.init.skills].sort(),
-                      plugins: [...summary.init.plugins].sort(),
+                      plugins: summary.init.plugins.map((p) => p.name).sort(),
                   },
         turns: summary.result?.turns ?? null,
         duration_ms: summary.result?.durationMs ?? null,

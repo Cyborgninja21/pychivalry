@@ -1264,7 +1264,7 @@
                                     "items": { "$ref": "#/$defs/text" }
                                 },
                                 "plugins": {
-                                    "description": "The plugins loaded, by name: none, when the session is confined.",
+                                    "description": "The plugins loaded, each by its source (<name>@<marketplace>) or name: when the session is confined, only Claude Code's own (<name>@builtin).",
                                     "type": "array",
                                     "items": { "$ref": "#/$defs/text" }
                                 }
