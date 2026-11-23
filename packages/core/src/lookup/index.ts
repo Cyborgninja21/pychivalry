@@ -6,6 +6,15 @@
 
 export { DEFAULT_USES_LIMIT, lookup, type LookupOptions } from './lookup.js';
 export {
+    completionsAt,
+    DEFAULT_COMPLETION_LIMIT,
+    type CompletionAnswer,
+    type CompletionCandidate,
+    type CompletionInput,
+    type CompletionKind,
+    type CompletionPlace,
+} from './complete.js';
+export {
     diskFileSource,
     inForceOf,
     languageOf,

@@ -1256,6 +1256,79 @@ export class WorkspaceIndex {
         return id === undefined ? undefined : this.view(id);
     }
 
+    /**
+     * The names the file at a layer and exact path writes, each once, sorted: those it uses,
+     * saves a scope as, reads as a saved scope, and writes with a `$PARAM$` (`nameTemplates`).
+     * With its definitions (`definitionsIn`), what another file's findings can depend on: a
+     * server compares them before and after an edit to know which files to check again
+     * (`filesNaming`). Undefined when no such file is indexed.
+     */
+    namesIn(
+        layer: string,
+        path: string,
+    ):
+        | {
+              readonly uses: readonly string[];
+              readonly saves: readonly string[];
+              readonly reads: readonly string[];
+              readonly templates: readonly string[];
+          }
+        | undefined {
+        const id = this.byKey.get(`${layer}\u0000${path}`);
+        const file = id === undefined ? undefined : this.files[id];
+        if (file === undefined) {
+            return undefined;
+        }
+        const words = (ids: Iterable<number>): string[] =>
+            [...new Set(ids)].map((n) => this.strings.get(n)).sort(compareStrings);
+        return {
+            uses: words(file.names),
+            saves: words(this.useNames(file.saves)),
+            reads: words(this.useNames(file.reads)),
+            templates: words(this.useNames(file.templates)),
+        };
+    }
+
+    /**
+     * The paths of the files of a layer that define, use, save a scope as, or read as a saved
+     * scope any of `names`, sorted: the files whose findings can change when those names do.
+     */
+    filesNaming(names: Iterable<string>, layer: string): string[] {
+        const ids = new Set<number>();
+        for (const name of names) {
+            const id = this.strings.find(name);
+            if (id >= 0) {
+                ids.add(id);
+            }
+        }
+        if (ids.size === 0) {
+            return [];
+        }
+        const holds = (array: Int32Array, from: number, stride: number): boolean => {
+            for (let i = from; i < array.length; i += stride) {
+                if (ids.has(array[i] ?? -1)) {
+                    return true;
+                }
+            }
+            return false;
+        };
+        const out: string[] = [];
+        for (const file of this.files) {
+            if (file === undefined || file.layer !== layer) {
+                continue;
+            }
+            if (
+                [...ids].some((id) => containsSorted(file.names, id)) ||
+                holds(file.defs, DEF.name, DEF_STRIDE) ||
+                holds(file.saves, 0, USE_STRIDE) ||
+                holds(file.reads, 0, USE_STRIDE)
+            ) {
+                out.push(file.path);
+            }
+        }
+        return out.sort(compareStrings);
+    }
+
     // ─── Definitions and what is in force ─────────────────────────────────
 
     private definition(handle: number): Definition {

@@ -175,6 +175,12 @@ export interface FileReading {
     /** The modifier blocks read from a record's fields, with their place and D7 row. */
     readonly modifierBlocks: ReadonlyMap<Block, ModifierBlockSite>;
     readonly chains: readonly ChainSite[];
+    /**
+     * The schema fields a block's keys are read against, where the reading gives the block
+     * any: a record's body, a field's block, a trigger or effect block a field opens (an event
+     * option's `trigger`). Completion offers them (`lookup/complete.ts`); no check reads it.
+     */
+    readonly fields: ReadonlyMap<Block, Readonly<Record<string, SchemaField>>>;
 }
 
 export interface ReadInput {
@@ -403,6 +409,7 @@ class Reader {
     readonly modifiers: JudgedModifier[] = [];
     readonly modifierBlocks = new Map<Block, ModifierBlockSite>();
     readonly chains: ChainSite[] = [];
+    readonly fields = new Map<Block, Readonly<Record<string, SchemaField>>>();
     /** The D7 rows of the file's directory. */
     private areas: readonly ModifierBlockAreaRow[] = [];
     private readonly local = new Map<Context, Set<string>>([
@@ -590,6 +597,9 @@ class Reader {
     ): void {
         const kind: BlockKind = valueMode ? 'script-value' : 'none';
         this.blocks.set(block, kind);
+        if (fields !== undefined) {
+            this.fields.set(block, fields);
+        }
         for (const item of block.items) {
             if (item.kind === 'block') {
                 this.walkNone(item, undefined, valueMode, null);
@@ -659,6 +669,9 @@ class Reader {
 
     private walkContext(block: Block, context: Context, allowed: Fields, extras: Extras): void {
         this.blocks.set(block, context);
+        if (allowed !== undefined) {
+            this.fields.set(block, allowed);
+        }
         for (const item of block.items) {
             if (item.kind === 'block') {
                 this.walkContext(item, context, allowed, {});
@@ -867,6 +880,9 @@ class Reader {
     private readModifiers(block: Block, fields: Fields, site: ModifierBlockSite): void {
         this.blocks.set(block, 'modifiers');
         this.modifierBlocks.set(block, site);
+        if (fields !== undefined) {
+            this.fields.set(block, fields);
+        }
         for (const item of block.items) {
             if (item.kind !== 'pair') {
                 continue;
@@ -923,5 +939,6 @@ export function readContext(input: ReadInput): FileReading {
         modifiers: reader.modifiers,
         modifierBlocks: reader.modifierBlocks,
         chains: reader.chains,
+        fields: reader.fields,
     };
 }

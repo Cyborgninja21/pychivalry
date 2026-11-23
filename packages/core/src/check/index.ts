@@ -110,9 +110,13 @@ export {
 } from './inventory.js';
 export {
     capFindings,
+    checkNames,
+    checkSourceFile,
     checkWorkspace,
     type CappedFile,
     type CheckedFile,
+    type CheckSource,
+    type FileCheckInput,
     GAME_NOT_LOADED,
     MAX_FINDINGS_PER_FILE,
     localizationFindings,
