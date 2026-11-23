@@ -7,6 +7,9 @@
     "type": "module",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
+    "bin": {
+        "pychivalry-lsp": "dist/main.js"
+    },
     "exports": {
         ".": {
             "types": "./dist/index.d.ts",
@@ -14,7 +17,11 @@
         }
     },
     "dependencies": {
-        "@pychivalry/core": "0.0.0"
+        "@pychivalry/core": "0.0.0",
+        "vscode-languageserver": "11.0.1"
+    },
+    "devDependencies": {
+        "vscode-languageserver-protocol": "3.18.6"
     },
     "scripts": {
         "test": "node --test \"dist/**/*.test.js\""
