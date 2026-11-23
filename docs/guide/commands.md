@@ -10,6 +10,58 @@ The extension is not built yet, so it adds no commands today. One is decided:
 
 Each later step that adds a command adds its row here.
 
+## The command line
+
+`pychivalry` checks a mod from a terminal and gives the same findings as the editor and the
+agent server. It will ship inside the extension, which puts it on the path of VS Code's
+terminal (build step 7); until then it runs from a build of this repository as
+`node packages/cli/dist/main.js <command>`.
+
+| Command | What it does |
+| --- | --- |
+| `pychivalry check <mod>` | Checks a mod folder: every finding, file by file, then a summary |
+| `pychivalry explain <code>...` | What a finding's code means: its severity, what it finds and the game's evidence for it. A code may be written `names/*` for a whole family, or `*` for all |
+| `pychivalry --help`, `pychivalry <command> --help` | The commands, or one command's options |
+| `pychivalry --version` | The version |
+
+Options of `check`:
+
+| Option | What it does |
+| --- | --- |
+| `--vanilla <game>` | The game's `game` folder, the one holding `common/`. Without it, pychivalry looks for the game in every Steam library |
+| `--no-vanilla` | Check without the base game. Names the game defines are then not judged, never reported unknown |
+| `--spec <file>` | Another spec package file (`ck3-spec-<version>.json.gz`, with its `.sha256` beside it), or its folder |
+| `--json` | One JSON object per finding and a last summary line, instead of text |
+| `--severity <severity>` | Keep only findings of these severities: `error`, `warning`, `information`, `hint`. Several are written with commas or by giving the option again |
+| `--code <code>` | Keep only findings of these codes: a code, a family (`names/*`) or `*`. Several as for `--severity` |
+| `--limit <n>` | Show at most `n` findings. The summary still counts all of them |
+
+What `check` prints:
+
+- **Text.** Each file with findings, then one line per finding, `line:column  severity  code
+  message`, then a blank line; last, `<n> files checked: <e> errors, <w> warnings, <o> other`,
+  which counts every finding (`other` is information and hints) and adds `(<s> shown)` when
+  the filters or the limit leave some out. This is the shape of release 2.3.0's command line,
+  with the new codes. Notes go to standard error: the game was not found, the game is of
+  another build than the spec package, or some files were not checked because they are in a
+  folder the game does not read as script.
+- **JSON.** One object per finding with release 2.3.0's fields `file`, `range` (lines and
+  characters counted from 0), `severity`, `code`, `message` and `source`, and beside them
+  `evidence` (the game's message or output the finding rests on, or none for advice), `fix`
+  (empty until fixes arrive in build step 8) and `data` (the names the finding is about). The
+  last line is `{"summary": ...}`: the version, the spec package and the game build, the files
+  checked and not checked, the counts of every finding by severity and by code, and how many
+  findings matched the filters and how many were shown.
+
+Exit codes: `0` when no finding kept is an error, `1` when one is, `2` on bad usage or when the
+mod, the game or the spec package cannot be read. The filters choose the findings kept, so
+`--code syntax/*` exits with `1` only for a syntax error; `--limit` does not change the exit
+code. `explain` exits with `1` when a code is none of this build's.
+
+The first `check` reads the whole base game, about 15 seconds for game 1.21, and saves what it
+found in your cache folder ([Settings](settings.md)); every later one loads that in a second or
+two.
+
 ## Building and testing from source
 
 Everything goes through `task`; `task --list` shows every task.
@@ -30,7 +82,7 @@ Everything goes through `task`; `task --list` shows every task.
 
 These read a local install of the game and the five test mods, and run only on a machine that
 has them. Each writes a record that is committed. They are for developing pychivalry, not for
-checking your own mod; the command-line checker for that arrives with build step 5.
+checking your own mod; for that, use [the command line](#the-command-line).
 
 | Task | Needs | What it does |
 | --- | --- | --- |

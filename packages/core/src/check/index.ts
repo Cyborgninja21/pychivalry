@@ -45,6 +45,23 @@ export {
     type FindingData,
 } from './finding.js';
 export { definedNamesOf } from './names.js';
+export {
+    codeMatches,
+    codesMatching,
+    familyOf,
+    inventoryRows,
+    type Code,
+    type InventoryRow,
+} from './inventory.js';
+export {
+    checkWorkspace,
+    GAME_NOT_LOADED,
+    scriptFindings,
+    type ScriptInput,
+    type WorkspaceCheck,
+    type WorkspaceCheckOptions,
+    type WorkspaceFinding,
+} from './workspace.js';
 
 export interface CheckInput {
     readonly spec: Spec;
