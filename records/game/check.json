@@ -2,11 +2,11 @@
     "record_format": 1,
     "suite": "game:check",
     "command": "task game:check",
-    "made_at": "2026-11-22T07:20:53.994Z",
+    "made_at": "2026-11-23T02:32:00.036Z",
     "tool": {
         "name": "pychivalry",
         "version": "0.0.0",
-        "commit": "8f0d24cc499111c38abb4f7ed7168cd04e61cf4f",
+        "commit": "e30857d9563d6df15ee8d51756e9dfff72f7e4bc",
         "dirty": false
     },
     "machine": {
@@ -24,8 +24,8 @@
     },
     "spec": {
         "version": "1.21.0.3",
-        "sha256": "4a878a3a1537ef239b725615c9ef3450ef05cc5968024c7e01fbcc67d4bf6baf",
-        "package_format": 5
+        "sha256": "47fff382e93e9e756e89ba62b8e8463dd59e1bf7740314e8a9e39fb7d28667d9",
+        "package_format": 7
     },
     "corpus": null,
     "notes": [
