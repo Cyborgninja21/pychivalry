@@ -1,20 +1,82 @@
 {
     "name": "pychivalry",
+    "displayName": "pychivalry",
     "publisher": "cyborgninja21",
-    "version": "0.0.0",
+    "version": "0.1.0",
+    "preview": true,
     "private": true,
-    "description": "The VS Code extension: starts the servers and sets up the AI harnesses. No CK3 logic.",
+    "description": "Crusader Kings 3 modding: pychivalry's checks and lookups for VS Code's own AI and for Claude Code. Preview.",
     "license": "Apache-2.0",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/Cyborgninja21/pychivalry.git"
+    },
+    "engines": {
+        "vscode": "^1.146.0"
+    },
+    "categories": [
+        "Programming Languages",
+        "AI"
+    ],
     "type": "module",
-    "main": "dist/index.js",
-    "types": "dist/index.d.ts",
-    "exports": {
-        ".": {
-            "types": "./dist/index.d.ts",
-            "default": "./dist/index.js"
-        }
+    "main": "./dist/bundle/extension.cjs",
+    "activationEvents": [
+        "onLanguage:ck3",
+        "onLanguage:ck3-localization",
+        "workspaceContains:**/descriptor.mod"
+    ],
+    "contributes": {
+        "languages": [
+            {
+                "id": "ck3",
+                "aliases": [
+                    "Crusader Kings 3",
+                    "CK3"
+                ],
+                "filenamePatterns": [
+                    "**/common/**/*.txt",
+                    "**/events/**/*.txt",
+                    "**/gfx/**/*.txt",
+                    "**/gui/**/*.txt",
+                    "**/history/**/*.txt",
+                    "**/map_data/**/*.txt",
+                    "**/music/**/*.txt",
+                    "**/sound/**/*.txt"
+                ]
+            },
+            {
+                "id": "ck3-localization",
+                "aliases": [
+                    "CK3 Localization"
+                ],
+                "filenamePatterns": [
+                    "**/localization/**/*.yml"
+                ]
+            }
+        ],
+        "commands": [
+            {
+                "command": "pychivalry.setUpClaudeCode",
+                "title": "Set up for Claude Code",
+                "category": "pychivalry"
+            }
+        ],
+        "mcpServerDefinitionProviders": [
+            {
+                "id": "pychivalry.agentServer",
+                "label": "pychivalry"
+            }
+        ]
     },
     "scripts": {
         "test": "node --test \"dist/**/*.test.js\""
+    },
+    "devDependencies": {
+        "@modelcontextprotocol/client": "2.4.0",
+        "@pychivalry/core": "0.0.0",
+        "@pychivalry/mcp": "0.0.0",
+        "@types/vscode": "1.146.0",
+        "@vscode/test-electron": "3.1.0",
+        "esbuild": "0.28.2"
     }
 }

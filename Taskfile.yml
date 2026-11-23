@@ -34,9 +34,10 @@ tasks:
       - npm run build
 
   test:
-    desc: "Run every package's unit tests: Node's test runner on the compiled output"
+    desc: "Run every package's unit tests: Node's test runner on the compiled output (the extension's bundle first, whose server a test starts); no display, no editor"
     deps: [build]
     cmds:
+      - task: vscode:bundle
       - npm test
 
   lint:
@@ -86,6 +87,23 @@ tasks:
       - task: spec:check
       - task: records:check
       - task: wiki:check
+
+  # ─── The VS Code extension (packages/vscode) ───
+
+  vscode:bundle:
+    desc: 'Bundle the extension with esbuild into packages/vscode/dist/bundle/: the extension, the agent server and the spec package beside it; and its editor tests into dist/test-bundle/'
+    deps: [build]
+    cmds:
+      - node packages/vscode/dist/bundle.js
+
+  vscode:test:
+    desc: "The extension's editor tests in a real VS Code, the pinned release, downloaded into .vscode-test/ the first time (network); on Linux only on a virtual display, under xvfb-run, never on a desktop; throwaway user-data, extensions, home and Claude Code configuration folders. PYCHIVALRY_TEST_CLAUDE=<claude> uses a real Claude Code's own configuration commands; PYCHIVALRY_VSCODE_VERSION another VS Code. Not part of task ci"
+    deps: [vscode:bundle]
+    cmds:
+      - cmd: env -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u ELECTRON_RUN_AS_NODE xvfb-run -a node packages/vscode/dist/editor/run.js
+        platforms: [linux]
+      - cmd: node packages/vscode/dist/editor/run.js
+        platforms: [windows, darwin]
 
   # ─── Game-file suites (local only; docs/PLAN.md, "Environment for the game-file suites") ───
 

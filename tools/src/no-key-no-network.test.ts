@@ -104,6 +104,40 @@ const EXCEPTIONS: readonly {
         files: ['packages/cli/src/testing.ts'],
         reason: 'A test helper, not shipped: it runs the built command line in a process of its own, as a user would.',
     },
+    {
+        module: 'vscode',
+        files: [
+            'packages/vscode/src/extension.ts',
+            'packages/vscode/src/editor/main.ts',
+            'packages/vscode/src/editor/update.ts',
+        ],
+        reason: "VS Code's own extension API, which the editor gives the extension when it loads it; the bundle leaves it out. The editor tests (not shipped) run inside that editor.",
+    },
+    {
+        module: 'node:child_process',
+        files: ['packages/vscode/src/claude.ts'],
+        reason: '"Set up for Claude Code" runs the `claude` command the user installed, `claude mcp remove` and `claude mcp add`, a local program that writes its own configuration; on Windows a `claude.cmd` through the system\'s `cmd.exe`. It runs nothing else.',
+    },
+    {
+        module: 'esbuild',
+        files: ['packages/vscode/src/bundle.ts'],
+        reason: "The build script, not shipped: esbuild writes the extension's bundles (a development dependency, never inside them).",
+    },
+    {
+        module: '@vscode/test-electron',
+        files: ['packages/vscode/src/editor/run.ts'],
+        reason: "The editor tests' runner, not shipped and never in task ci: it downloads the pinned VS Code the tests run in (task vscode:test) and starts it; a development dependency, never in a bundle the extension ships.",
+    },
+    {
+        module: '@modelcontextprotocol/client',
+        files: ['packages/vscode/src/editor/agent.ts'],
+        reason: "A test helper, not shipped: the extension's tests talk to the agent server through the MCP library's own client.",
+    },
+    {
+        module: '@modelcontextprotocol/client/stdio',
+        files: ['packages/vscode/src/editor/agent.ts'],
+        reason: "A test helper, not shipped: the client's standard-input transport, which starts the agent server from a harness's entry and talks to it over its standard input and output.",
+    },
 ];
 
 /** The shipped packages: every folder of `packages/` with a `src` folder. */
