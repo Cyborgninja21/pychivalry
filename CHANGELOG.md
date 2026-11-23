@@ -180,8 +180,37 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
     define.
   - `docs/guide/checks.md`, the user guide's reference of every code this build reports,
     written from the core's check inventory by `task docs:checks` and tested against it.
+- Build step 6, items 6.1 to 6.6, the agent server (`packages/mcp/`, on the owner's word,
+  decision 77): an MCP server over standard input and output on `@modelcontextprotocol/server`
+  2.4.0, which names itself, its version and its tool schema version (1), and whose written
+  instructions say what it is for and to start with `check`. Six tools, each read-only and
+  declaring the shape of what it takes and returns: `check` (totals by severity and by code
+  first, then the findings at or above a minimum severity, of some codes, in a file or folder,
+  a page at a time with a cursor; `localization/unused-key` with `unused_keys`), `lookup`,
+  `find_definition` (by name or by a place in a file), `find_references`, `list_definitions` and
+  `explain_code`. Every result stays under about 10,000 tokens, measured on a written mod of
+  thousands of findings in CI and on rice over the real base game locally; bad input comes back
+  as a result naming the valid values; the server writes nothing but the base game's index in
+  the user's cache folder, and loads that index when it is there. `check` reports exactly the
+  core's findings, through the one runner. Started as `node packages/mcp/dist/main.js` with
+  `--mod`, `--vanilla` or `--no-vanilla` and `--spec`; `docs/guide/agent-server.md` says how an
+  agent uses it.
+- The core, for a server that keeps one index between requests: `syncMod` brings a mod indexed
+  earlier up to date with its folder; the index's `nameAt`, `databases` and `definitionsOf`; the
+  runner's options `only` (check some files of an indexed mod) and `workspace` (an open one).
+- `pychivalry check --unused-keys`.
 
 ### Changed
+
+- `localization/unused-key` is off by default (decision 76): the runner reports it only with
+  `unusedKeys`, the command line's `check` with `--unused-keys`, the agent server's `check` with
+  `unused_keys`; `explain` and the check reference say so. `task game:mods` runs the default, and
+  its record no longer counts those hints (rice: 141,090; viet-events: 19,698), nor what the
+  per-file cap dropped of them.
+- Owner decisions 74 and 75: the four checks whose message is in the 1.21 executable but not in
+  the catalogue wait for it (`structure/triggered-desc-other-field` stays blocked, the three
+  event advice rows stay advice); `references/unknown-name` ships, its 4 base-game findings
+  listed as known exceptions in `docs/checks.md`.
 
 - Merged without changing a finding: the advice checks read saved scopes as the index does
   (item 4.6's reading); one reader of part D4, `check/keyword-roles.ts` (formerly

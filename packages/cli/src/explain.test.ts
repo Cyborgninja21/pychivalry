@@ -73,6 +73,7 @@ test('explain --json: one object per code, an unknown code marked unknown, exit 
                 text: "Unknown effect '%s'",
             },
             message: "Unknown effect '%s'",
+            off_by_default: false,
         },
         { code: 'names/no-such-check', known: false },
     ]);

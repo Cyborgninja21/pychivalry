@@ -35,12 +35,13 @@ export function evidenceText(row: InventoryRow): string {
     return "none: this is pychivalry's own advice, never an error or a warning";
 }
 
-/** A row as text: the code and its severity, what it finds, its evidence. */
+/** A row as text: the code and its severity, what it finds, its evidence, whether it is off. */
 export function rowText(row: InventoryRow): string {
     return [
         `${row.code}  ${row.severity}`,
         `  Finds: ${row.finds}`,
         `  Evidence: ${evidenceText(row)}`,
+        ...(row.offByDefault ? ['  Off by default: check --unused-keys turns it on'] : []),
     ].join('\n');
 }
 
@@ -54,6 +55,7 @@ export function rowJson(row: InventoryRow): Record<string, unknown> {
         finds: row.finds,
         evidence: row.evidence,
         message: row.message,
+        off_by_default: row.offByDefault,
     };
 }
 

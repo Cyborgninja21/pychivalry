@@ -79,6 +79,7 @@ export {
     readGameBuild,
     REPLACE_PATH_KEY,
     sourceManifestSha256,
+    syncMod,
     UNREAD_TEXT_EXTENSIONS,
     unreadWords,
     walkFiles,
@@ -86,6 +87,7 @@ export {
     type ModListing,
     type SourceFile,
     type SourceListing,
+    type SyncedMod,
 } from './read-game.js';
 export {
     ALIAS_APPLIED,

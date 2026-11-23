@@ -72,6 +72,8 @@ export function checkReferencePage(rows: readonly InventoryRow[], specVersion: s
         '  something the game enforces.',
         `- A file reports at most ${MAX_FINDINGS_PER_FILE.toLocaleString('en-US')} findings, its most severe first; the command line says how`,
         '  many it left out.',
+        "- A check marked **off by default** reports only when asked: the command line's",
+        "  `check --unused-keys`, the agent server's `check` with `unused_keys`.",
         '',
         'The full inventory, with the checks still to come and those retired, the release 2.3.0',
         'check each replaces and how each was proved on the base game, is the',
@@ -82,8 +84,11 @@ export function checkReferencePage(rows: readonly InventoryRow[], specVersion: s
         lines.push('', `## ${family}`, '', '| Code | Severity | What it finds | Evidence |');
         lines.push('| --- | --- | --- | --- |');
         for (const row of rows.filter((r) => r.family === family)) {
+            const off = row.offByDefault
+                ? ' **Off by default:** `pychivalry check --unused-keys` turns it on.'
+                : '';
             lines.push(
-                `| \`${row.code}\` | ${row.severity} | ${cell(row.finds)} | ${cell(evidenceCell(row))} |`,
+                `| \`${row.code}\` | ${row.severity} | ${cell(row.finds)}${off} | ${cell(evidenceCell(row))} |`,
             );
         }
     }

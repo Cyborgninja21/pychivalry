@@ -220,16 +220,31 @@ export interface LocalizationCheckInput {
     readonly parsed: LocalizationFile;
     readonly names: DefinedNames & Partial<WorkspaceNames>;
     readonly catalogue?: MessageCatalogue | undefined;
+    /**
+     * Run `localization/unused-key`, which is off by default (docs/decisions.md, decision 76):
+     * a large mod has a hint for nearly every key it defines.
+     */
+    readonly unusedKeys?: boolean | undefined;
 }
 
-/** Every finding of the engine checks on one localization file, in the order of where each starts. */
+/**
+ * Every finding of the engine checks on one localization file, in the order of where each
+ * starts; `localization/unused-key` only when asked (`unusedKeys`).
+ */
 export function checkLocalizationFile(input: LocalizationCheckInput): CheckFinding[] {
     const context = { lines: input.parsed.lines, catalogue: input.catalogue };
     return [
         ...unbalancedBrackets(input.file, input.parsed, context),
-        ...unusedKeys(
-            { spec: input.spec, folders: input.folders, loc: input.parsed, names: input.names },
-            context,
-        ),
+        ...(input.unusedKeys === true
+            ? unusedKeys(
+                  {
+                      spec: input.spec,
+                      folders: input.folders,
+                      loc: input.parsed,
+                      names: input.names,
+                  },
+                  context,
+              )
+            : []),
     ].sort(byPlace);
 }

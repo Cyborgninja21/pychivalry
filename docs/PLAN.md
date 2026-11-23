@@ -1,6 +1,6 @@
 # pychivalry: build plan
 
-Status: plan for approval, 2026-11-22. Step 0 is done: the 1.21.0.3 spec package in format 8 is committed (2026-11-23, decision 68), its override rules table among its parts. Step 1 is complete, and steps 2 and 3 are built and merged, the index reading the override rules from the package. Item 4.1, the check inventory, is written and signed off. The rest of step 4 and step 5 were built in parallel on the owner's word (decisions 70 and 72) and brought together by an integration pull request: every item of step 4 and step 5 is built, but for two blocked rows of the inventory and the parts of four rows that wait on the owner or on the spec work. Step 4's "Done when" holds but for its first line (two blocked rows have no fixture pair); step 5's holds. The Progress table says what is open.
+Status: plan for approval, 2026-11-22. Step 0 is done: the 1.21.0.3 spec package in format 8 is committed (2026-11-23, decision 68), its override rules table among its parts. Step 1 is complete, and steps 2 and 3 are built and merged, the index reading the override rules from the package. Item 4.1, the check inventory, is written and signed off. The rest of step 4 and step 5 were built in parallel on the owner's word (decisions 70 and 72) and brought together by an integration pull request: every item of step 4 and step 5 is built, but for two blocked rows of the inventory and the parts of four rows that wait on the owner or on the spec work. Step 4's "Done when" holds but for its first line (two blocked rows have no fixture pair); step 5's holds. On the owner's word (decision 77) step 6 is under way: items 6.1 to 6.6, the agent server, are built; items 6.7 to 6.11 are being built beside them. The Progress table says what is open.
 
 This is the "how" for the rebuild. The "what" and the "why" are in [MVP.md](MVP.md): the
 decisions, the scope, the tests each feature needs and the definition of done. Where the two
@@ -25,7 +25,7 @@ disagree, MVP.md is right and this plan is fixed.
 | 3 | Workspace index | No for the index; the override rules table comes from step 0 | Built and merged (pull requests #118 and #120). The override rules come from the spec package's part D1 (the stand-in `spec/override-rules.json` is retired, decision 65): a settled or derived row decides, a partial or open row does not; parts D2 and D3 say what a definition is. Base-game names defined more than once with no winner known: 1,309 on the format 5 package, 118 on format 7, 233 on format 8 (the 21 coats of arms and the gene of decision 67 are answered; 167 nested names whose scope the package does not settle, under several parents, are new). Since format 8 the index also applies the scope of nested names, the gene containers, the coat of arms alias line, the stores of province terrain and the localization file condition. Still open: character history defined twice (a partial row), nested names of a scope resting on the measurement alone, the depth of the folders only partial rows or no row describe, the 32 folders with no row and `gui`, and the order of several mods or DLC packs (`docs/overrides.md`) |
 | 4 | Engine checks and lookup | Yes, from item 4.2 on | Built. Item 4.1 is signed off (#121, #122); 4.2 with 4.3 (#125, #127, re-measured on format 8 in #132); 4.4 scope (#130); 4.5 fields and structure (#131); 4.6 event targets and localization (#134); 4.7 advice (#133); 4.8 lookup (#128); 4.9 to 4.11, the classification of the base game's errors, the game-file suites and the limits, in the integration pull request. 62 of the inventory's 78 rows are built (five in part), 11 retired by item 4.7's re-proof, 2 blocked, 3 belong to steps 10 and 11. Open: `structure/triggered-desc-other-field` (its message is not in the catalogue) and `scope/title-text-reads-scope-saved-late` (the localization text's saved-scope form is not data), blocked; the iterator sub-cases of `names/unknown-trigger` and `-effect` (the owner); the game-concept half of `references/unknown-name`, the open brackets of `localization/unbalanced-brackets` and the block and word types of `fields/wrong-kind-of-value`; the twelve spec requests of decision 73 and the questions in decisions.md. "Done when" 2 to 5 hold; 1 does not, for the two blocked rows |
 | 5 | Command line | Through step 4 | Built (#129, with the per-file cap in the integration pull request): `check`, `lookup` and `explain`, text and JSON, the filters, the exit codes, the on-disk index. "Done when" holds: the golden test passes, and on each of the five mods the command line's findings equal the core's and the `game:mods` record's. Open: the owner's questions on `--severity`, `--no-vanilla`, the folders checked and `mcp` (decisions.md) |
-| 6 | Agent server | Through step 4 | Not started |
+| 6 | Agent server | Through step 4 | Items 6.1 to 6.6 built (the agent server, `packages/mcp/`): the six tools `check`, `lookup`, `find_definition`, `find_references`, `list_definitions` and `explain_code`, each read-only with its shapes declared, every result under 10,000 tokens (measured on rice), bad input as results naming the valid values, nothing written but the index cache, the on-disk index loaded; with them decisions 74 to 77 (`localization/unused-key` off by default). `call_graph`, `analyze_log` and `format` come with steps 10, 11 and 8. Items 6.7 to 6.11 (the planted-defect mod, the graders, the scored-run script and the first scored run) are being built beside them |
 | 7 | Language server and extension | Through step 4 | Not started |
 | 8 | Formatter and fixes | No, but follows step 7 | Not started |
 | 9 | Skills and the authoring run | Through step 4 | Not started |
@@ -77,7 +77,7 @@ These apply to every step and to every agent doing the work.
 | Extension tests | `@vscode/test-electron` driving a real VS Code; pinned in step 7, which adds it | The only way to test the extension as shipped. 2.3.0 used the same. |
 | Bundling | esbuild, one single file each for the language server, the agent server and the command line; the spec stays a separate data file; pinned in the step that adds it | VS Code's own guidance; small and fast. |
 | Language client | `vscode-languageclient` 11, started as a module over IPC; pinned in step 7 | Runs on VS Code's runtime on Linux and Windows. |
-| Agent server library | The MCP TypeScript library, 2.x line (`@modelcontextprotocol/server`); pinned in step 6 | The current line; the 1.x line is in maintenance. |
+| Agent server library | The MCP TypeScript library, 2.x line: `@modelcontextprotocol/server` **2.4.0** (pinned in step 6, 2026-11-23, the current release on the npm registry). It pulls in `@modelcontextprotocol/core` 2.4.0 and `zod` 4 (4.6.7 locked), nothing else at run time; its JSON Schema validator (ajv) is bundled inside it. The tests add its client, `@modelcontextprotocol/client` **2.4.0**, as a development dependency (with `eventsource`, `eventsource-parser`, `jose` and `pkce-challenge`) | The current line; the 1.x line (`@modelcontextprotocol/sdk`) is in maintenance. The server is declared as its documentation describes (`McpServer`, `registerTool`, `serveStdio`), its shapes as JSON Schema (`fromJsonSchema`), so the package depends on the core and the library only. |
 | Lint and format | ESLint **10.15.0** with `@eslint/js` **10.0.1** and `typescript-eslint` **8.73.0** (`strictTypeChecked`); Prettier **3.10.1** | What 2.3.0 used. |
 | Task runner | `Taskfile.yml` at the root; Task **3.54.0** in CI (developed with 3.50.0) | What 2.3.0 used; one entry point for agents. |
 | Licence | Apache-2.0 | What 2.3.0 used. |
@@ -752,12 +752,14 @@ script over the built core, the base game's index and the committed spec, on Lin
   no unbalanced brackets, no unused key. On the mods (event targets / missing-key warnings /
   missing-key advice / brackets / unused keys): balance-of-power-ui 0/0/0/0/105,
   divine-intervention 3/0/0/0/3,699, elf-destiny 21/6/129/0/2,444, rice 189/204/19/7/141,365,
-  viet-events 45/0/0/3/21,592 (before the per-file cap).
+  viet-events 45/0/0/3/21,592 (before the per-file cap). Since decision 76 the unused-key check
+  is off by default, so a check and the suites report those hints only when asked.
 - **4.7 advice.** 28 rows built, each re-proved on the base game by `pychivalry-tools advice
   proof`; the eleven provisional rows that fire there are retired (checks.md, Retired codes);
   `scope/title-text-reads-scope-saved-late` and the game-concept half of
   `references/unknown-name` are blocked. `references/unknown-name` fires on 4 base-game
-  portraits, as its row says: a question for the owner.
+  portraits, as its row says; it ships as information with the 4 listed as known exceptions
+  (decision 75).
 - **4.8 lookup.** Every reading of a name the package has, its definitions and uses in a
   workspace with what is in force (since the integration also the object an alias row makes
   it share, and "not in force"), a modifier's localization through part D5, and "did you
@@ -785,7 +787,8 @@ script over the built core, the base game's index and the committed spec, on Lin
 - **4.11 the limits.** The per-file cap keeps 1,000 findings, the most severe first, and
   reports the rest: on rice it drops 275 unused-key hints of one file (141,365 before, 141,090
   after), on viet-events 1,894 of 8 files; the base game and the other mods have no file over
-  the cap. No check computes "did you mean"; lookup's budget is tested in `suggest.test.ts`.
+  the cap. With the unused-key check off by default (decision 76) no file of the five mods is
+  over it. No check computes "did you mean"; lookup's budget is tested in `suggest.test.ts`.
   Without a game folder every fixture's bad half gives only findings that a base game defining
   every name gives too.
 - **Merged without changing a finding:** the advice checks' saved scopes onto the index's own
@@ -828,7 +831,8 @@ equal the core's.
 On each of the five mods `check --json` gives the same findings as the core's `checkWorkspace`,
 finding by finding, and the same counts by code and the same error and warning lists as the
 `game:mods` record: 105, 3,714, 3,071, 144,032 and 19,760 findings (a one-off comparison,
-not committed).
+not committed). Those counts hold the unused-key hints, which decision 76 has since turned off
+by default: the record re-made after it counts 0, 15, 627, 2,942 and 62.
 
 **Not yet known.** Nothing identified.
 
@@ -869,6 +873,11 @@ window, and a scored test that an agent can really use it.
 | `analyze_log` | A log file | Findings tied to files (filled in at step 11) |
 | `explain_code` | One or more codes | What each means and its evidence |
 | `format` | A file | The formatted text, as a proposal (filled in at step 8) |
+
+  *Built (items 6.1 to 6.6):* the six tools that work today. `call_graph`, `analyze_log` and
+  `format` are not registered until they do something (no stubs): steps 10, 11 and 8 each add its
+  tool as one more entry of `TOOLS` in `packages/mcp/src/server.ts`, with its shapes, its fixture
+  tests and the size test, and raise the schema version (`packages/mcp/src/version.ts`).
 
 - 6.3 Result size: every result stays under about 10,000 tokens. A test measures each tool on
   the largest test mod.

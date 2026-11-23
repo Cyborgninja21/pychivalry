@@ -36,6 +36,7 @@ Options of `check`:
 | `--severity <severity>` | Keep only findings of these severities: `error`, `warning`, `information`, `hint`. Several are written with commas or by giving the option again |
 | `--code <code>` | Keep only findings of these codes: a code, a family (`names/*`) or `*`. Several as for `--severity` |
 | `--limit <n>` | Show at most `n` findings. The summary still counts all of them |
+| `--unused-keys` | Also report localization keys nothing in the mod or the base game uses (`localization/unused-key`). Off by default: a large mod has a hint for nearly every key it defines |
 
 Options of `lookup`: `--vanilla`, `--no-vanilla`, `--spec` and `--json` as for `check`, and:
 
@@ -69,7 +70,9 @@ What `check` prints:
   standard error with the text output, in `capped` with `--json`. The counts are of the
   findings kept.
 
-Every code, with what it finds and its evidence, is listed in [Checks](checks.md).
+Every code, with what it finds and its evidence, is listed in [Checks](checks.md). The same
+checks, lookups and explanations are tools of [the agent server](agent-server.md), for an AI
+agent; it starts as `node packages/mcp/dist/main.js` from a build of this repository.
 
 Exit codes: `0` when no finding kept is an error, `1` when one is, `2` on bad usage or when the
 mod, the game or the spec package cannot be read. The filters choose the findings kept, so

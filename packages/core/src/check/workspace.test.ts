@@ -19,6 +19,7 @@ import {
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { test, type TestContext } from 'node:test';
+import { syncMod } from '../index/read-game.js';
 import { committedSpec, REPO_ROOT } from '../spec/testing.js';
 import { CHECK_KINDS, isAdvice, type CheckCode } from './finding.js';
 import { checkFixture, expectedFindings, PAIR_GAMES } from './testing.js';
@@ -105,8 +106,10 @@ test("on each check's fixture pair the runner reports what every check reports, 
         // leaves them out, as its own test does (#133).
         const keep = (f: Record<string, unknown>): boolean =>
             advice(code) || !advice(String(f['code']));
-        // A pair whose checks need a base game is read over its game stub (item 4.6).
+        // A pair whose checks need a base game is read over its game stub (item 4.6); a check
+        // off by default is asked for (decision 76).
         const stub = PAIR_GAMES[bad.replace(/-bad$/, '')];
+        const unusedKeys = CHECK_KINDS[code as CheckCode].offByDefault === true;
         for (const [mod, expected] of [
             [bad, expectedFindings(bad)],
             [bad.replace(/-bad$/, '-good'), []],
@@ -120,11 +123,12 @@ test("on each check's fixture pair the runner reports what every check reports, 
                         : path.join(REPO_ROOT, 'fixtures', 'game', stub, 'game'),
                 cacheDir: null,
                 platform: 'linux',
+                unusedKeys,
             });
             const found = written(run.findings);
             assert.deepEqual(
                 found,
-                checkFixture(mod, stub === undefined ? {} : { game: stub }),
+                checkFixture(mod, stub === undefined ? { unusedKeys } : { game: stub, unusedKeys }),
                 `${mod}: the runner is every check`,
             );
             assert.deepEqual(found.filter(keep), expected, `${mod}: what the pair expects`);
@@ -277,4 +281,44 @@ test('a workspace opens with or without a game and with or without a mod', (t) =
     const modOnly = openWorkspace({ spec, modDir: mod, gameDir: null, cacheDir: null });
     assert.equal(modOnly.game, null);
     assert.equal(modOnly.index.allFiles().length, 1);
+});
+
+test('a workspace kept open and brought up to date gives the findings of a fresh run; only keeps some files', (t) => {
+    const dir = scratch(t);
+    const mod = path.join(dir, 'mod');
+    write(path.join(mod, 'events', 'fixture_events.txt'), MOD_EVENTS);
+    write(
+        path.join(mod, 'common', 'scripted_triggers', 'fixture_triggers.txt'),
+        'fixture_mod_trigger = { made_up = yes }\n',
+    );
+    const game = gameStub(path.join(dir, 'install'), {
+        'common/scripted_triggers/fixture_triggers.txt':
+            'fixture_game_trigger = { always = yes }\n',
+    });
+    const opened = openWorkspace({ spec, modDir: null, gameDir: game, cacheDir: null });
+    const fresh = (): WorkspaceFinding[] => [
+        ...checkWorkspace({ spec, modDir: mod, gameDir: game, cacheDir: null }).findings,
+    ];
+    let synced = syncMod(opened.index, mod, null);
+    const kept = (only?: (file: string) => boolean): WorkspaceFinding[] => [
+        ...checkWorkspace({
+            spec,
+            modDir: mod,
+            gameDir: game,
+            cacheDir: null,
+            workspace: { ...opened, mod: synced },
+            only,
+        }).findings,
+    ];
+    assert.deepEqual(kept(), fresh());
+    assert.ok(fresh().length > 0);
+    write(path.join(mod, 'events', 'fixture_events.txt'), `${MOD_EVENTS}\n}\n`);
+    synced = syncMod(opened.index, mod, synced);
+    assert.deepEqual(kept(), fresh(), 'after an edit');
+    const events = kept((file) => file.startsWith('events/'));
+    assert.deepEqual(
+        events,
+        fresh().filter((f) => f.file.startsWith('events/')),
+    );
+    assert.ok(events.length > 0 && events.length < fresh().length);
 });

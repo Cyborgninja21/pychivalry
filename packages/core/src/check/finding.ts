@@ -91,6 +91,12 @@ export interface CheckKind {
     /** True for pychivalry's own advice: no game evidence (docs/checks.md, evidence "Advice"). */
     readonly advice?: true;
     /**
+     * True for a check that is off by default and runs only when asked (the runner's
+     * `unusedKeys`; the command line's `check --unused-keys`): `localization/unused-key`
+     * (docs/decisions.md, decision 76).
+     */
+    readonly offByDefault?: true;
+    /**
      * For a code whose message depends on the place (docs/decisions.md, item 4.1: one code per
      * kind of finding, its evidence varying with the place): where each finding's own message
      * comes from. `required-field`: the field's `required_evidence`, the game's message for it;
@@ -267,6 +273,7 @@ export const CHECK_KINDS: Readonly<Record<CheckCode, CheckKind>> = {
         severity: 'hint',
         catalogue: null,
         advice: true,
+        offByDefault: true,
         slots: ['value'],
         description: 'A key the mod defines that nothing in the mod or the base game uses.',
         text: "The localization key '%s' is used nowhere in the mod or the base game.",
