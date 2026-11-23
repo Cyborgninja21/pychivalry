@@ -1,0 +1,18 @@
+{
+    "$schema": "../../presentation.schema.json",
+    "folder": "common/great_projects/types",
+    "from": ["great_projects.yaml"],
+    "outline": {
+        "symbol": "Object",
+        "blocks": []
+    },
+    "snippets": [
+        {
+            "label": "cost",
+            "description": "What the project costs",
+            "at": "field",
+            "field": "cost",
+            "body": ["cost = {", "\tgold = ${1:500}", "}"]
+        }
+    ]
+}

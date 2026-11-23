@@ -1,0 +1,13 @@
+{
+    "$schema": "../presentation.schema.json",
+    "folder": "common/scripted_triggers",
+    "from": [],
+    "snippets": [
+        {
+            "label": "scripted trigger",
+            "description": "A new scripted trigger, called as `name = yes`",
+            "at": "record",
+            "body": ["${1:my_trigger} = {", "\t$0", "}"]
+        }
+    ]
+}

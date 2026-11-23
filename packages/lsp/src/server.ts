@@ -59,6 +59,7 @@ import {
     MessageType,
     ShowMessageNotification,
     TextDocumentSyncKind,
+    type CancellationToken,
     type CompletionParams,
     type Connection,
     type DefinitionParams,
@@ -67,6 +68,8 @@ import {
     type FileEvent,
     type Hover,
     type HoverParams,
+    type InlayHint,
+    type InlayHintParams,
     type InitializeParams,
     type InitializeResult,
     type Location,
@@ -78,6 +81,8 @@ import { toDiagnostic } from './diagnostics.js';
 import { OpenDocument } from './documents.js';
 import { chooseGame, gameNotices, type GameChoice, type Notice } from './game.js';
 import { renderHover } from './hover.js';
+import { PresentationFeatures, type PresentedFile } from './presentation-features.js';
+import { loadPresentation, type Presentation } from './presentation.js';
 import {
     knownPath,
     pathInside,
@@ -158,6 +163,8 @@ export interface ServerOptions {
     readonly editDelay?: number | undefined;
     /** How long after the last change on disk the mod is read again, in milliseconds; 200 by default. */
     readonly diskDelay?: number | undefined;
+    /** The presentation data (docs/PLAN.md item 8.8); by default the data pychivalry ships. */
+    readonly presentation?: Presentation | undefined;
 }
 
 /** A file as it is on disk, read when it was opened and when it changed. */
@@ -269,6 +276,9 @@ export class LanguageServer {
     private diskTimer: NodeJS.Timeout | null = null;
     private diskChanges: FileEvent[] = [];
     private firstFullResultMs: number | null = null;
+    /** Outline rules, snippets, field order and inline hints (docs/PLAN.md item 8.8). */
+    private readonly presenting: PresentationFeatures;
+    private presentingCaps = { snippets: false, inlayRefresh: false };
 
     constructor(connection: Connection, options: ServerOptions) {
         this.connection = connection;
@@ -277,6 +287,17 @@ export class LanguageServer {
         this.flavour = options.flavour ?? THIS_SYSTEM;
         this.catalogue = catalogueFromSpec(options.spec.data);
         this.folders = folderTableFromSpec(options.spec.data);
+        this.presenting = new PresentationFeatures(
+            {
+                spec: this.spec,
+                folders: this.folders,
+                index: () => this.opened?.index ?? null,
+                generation: () => this.generation,
+                contentOf: (layer, file) => this.contentOf(layer, file),
+                names: () => this.names(),
+            },
+            options.presentation ?? loadPresentation(),
+        );
         this.listen();
     }
 
@@ -313,6 +334,7 @@ export class LanguageServer {
         c.onReferences((params) => this.references(params));
         c.onDocumentSymbol((params) => this.symbols(params));
         c.onCompletion((params) => this.complete(params));
+        c.languages.inlayHint.on((params, token) => this.inlay(params, token));
         c.onRequest(FINDINGS_REQUEST, (params: FindingsParams): FindingsResult => {
             const file = this.pathOf(params.uri);
             return { file, findings: file === null ? [] : this.fileFindings(file) };
@@ -330,6 +352,10 @@ export class LanguageServer {
                 caps.workspace?.didChangeConfiguration?.dynamicRegistration === true,
             watchedFiles: caps.workspace?.didChangeWatchedFiles?.dynamicRegistration === true,
             workspaceFolders: caps.workspace?.workspaceFolders === true,
+        };
+        this.presentingCaps = {
+            snippets: caps.textDocument?.completion?.completionItem?.snippetSupport === true,
+            inlayRefresh: caps.workspace?.inlayHint?.refreshSupport === true,
         };
         const init: unknown = params.initializationOptions;
         if (typeof init === 'object' && init !== null && 'settings' in init) {
@@ -350,6 +376,7 @@ export class LanguageServer {
                 referencesProvider: true,
                 documentSymbolProvider: true,
                 completionProvider: { resolveProvider: false },
+                inlayHintProvider: true,
                 workspace: {
                     workspaceFolders: { supported: true, changeNotifications: true },
                 },
@@ -394,6 +421,9 @@ export class LanguageServer {
             });
         }
         this.settings = await this.pullSettings(this.initialSettings);
+        for (const problem of this.presenting.presentation.problems) {
+            this.connection.console.warn(`pychivalry: presentation data: ${problem}`);
+        }
         await this.open();
     }
 
@@ -418,6 +448,9 @@ export class LanguageServer {
         const before = this.settings;
         this.settings = await this.pullSettings(pushed);
         const change = settingsChange(before, this.settings);
+        if (before.inlayHints !== this.settings.inlayHints) {
+            this.refreshInlayHints();
+        }
         if (change.reopen) {
             await this.open();
             return;
@@ -553,6 +586,8 @@ export class LanguageServer {
         this.syncEditorText();
         this.checkOpenFiles();
         this.enqueue(this.closedCovered());
+        // The index is read: the localized inline hints can be shown.
+        this.refreshInlayHints();
         if (this.queue.size === 0) {
             // Nothing to check in the background: the first full result is there.
             await this.announce({
@@ -1468,7 +1503,8 @@ export class LanguageServer {
             place === null || this.opened === null
                 ? []
                 : this.opened.index.definitionsIn(place.layer, place.file);
-        return documentSymbols(doc, definitions);
+        const plain = documentSymbols(doc, definitions);
+        return doc.kind === 'script' ? this.presenting.symbols(plain, this.presented(doc)) : plain;
     }
 
     private complete(params: CompletionParams): CompletionList | null {
@@ -1477,15 +1513,54 @@ export class LanguageServer {
         if (doc === undefined || opened === null || doc.kind !== 'script' || doc.path === null) {
             return null;
         }
-        return completionList({
+        const offset = doc.lines.offsetAt(params.position);
+        const list = completionList({
             spec: this.spec,
             folders: this.folders,
             file: doc.path,
             parsed: doc.script(),
-            offset: doc.lines.offsetAt(params.position),
+            offset,
             names: this.names(),
             index: opened.index,
         });
+        return this.presenting.completion(
+            list,
+            this.presented(doc, doc.path),
+            offset,
+            this.presentingCaps.snippets,
+        );
+    }
+
+    // ─── Presentation data (docs/PLAN.md item 8.8, presentation-features.ts) ──
+
+    /** An open script file as the presentation features read it, by its path in its layer. */
+    private presented(
+        doc: OpenDocument,
+        file = this.placeOf(doc)?.file ?? doc.path,
+    ): PresentedFile {
+        return {
+            file,
+            parsed: doc.script(),
+            rangeOf: (start, end) => doc.lines.rangeOf(start, end),
+        };
+    }
+
+    private refreshInlayHints(): void {
+        if (this.presentingCaps.inlayRefresh) {
+            void this.connection.languages.inlayHint.refresh().catch(() => undefined);
+        }
+    }
+
+    private async inlay(params: InlayHintParams, token: CancellationToken): Promise<InlayHint[]> {
+        const doc = this.docs.get(params.textDocument.uri);
+        if (!this.settings.inlayHints || this.opened === null || doc?.kind !== 'script') {
+            return [];
+        }
+        const at = this.presented(doc);
+        const file = at.file;
+        return file === null
+            ? []
+            : this.presenting.inlayHints({ ...at, file }, params.range, token);
     }
 
     // ─── For tests and measurement ─────────────────────────────────────────

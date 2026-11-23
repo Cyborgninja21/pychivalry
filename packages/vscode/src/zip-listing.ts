@@ -55,6 +55,7 @@ const ALLOWED = [
     /^extension\/license(\.txt)?$/i,
     /^extension\/dist\/bundle\/extension\.cjs$/,
     /^extension\/dist\/bundle\/lsp\/pychivalry-lsp\.mjs$/,
+    /^extension\/dist\/bundle\/lsp\/presentation\/([a-z0-9_]+\/)*[a-z0-9_]+\.json$/,
     /^extension\/dist\/bundle\/server\/(pychivalry-mcp\.mjs|pychivalry-cli\.mjs|manifest\.json)$/,
     /^extension\/dist\/bundle\/server\/spec\/ck3-spec-[0-9.]+(\.[a-z_]+)?\.(json\.gz|sha256)$/,
 ];

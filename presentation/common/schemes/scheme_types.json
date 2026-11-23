@@ -1,0 +1,95 @@
+{
+    "$schema": "../../presentation.schema.json",
+    "folder": "common/schemes/scheme_types",
+    "from": ["schemes.yaml"],
+    "outline": {
+        "symbol": "Class",
+        "detail": "{skill}",
+        "blocks": [
+            {
+                "field": "allow",
+                "symbol": "Object"
+            },
+            {
+                "field": "valid",
+                "symbol": "Object"
+            },
+            {
+                "field": "on_start",
+                "symbol": "Function"
+            },
+            {
+                "field": "on_phase_completed",
+                "symbol": "Function"
+            }
+        ]
+    },
+    "fieldOrder": [
+        {
+            "block": "",
+            "fields": [
+                "skill",
+                "desc",
+                "success_desc",
+                "discovery_desc",
+                "icon",
+                "illustration",
+                "target_type",
+                "category",
+                "is_secret",
+                "cooldown",
+                "base_progress_goal",
+                "phases_per_agent_charge",
+                "allow",
+                "valid",
+                "agent_leave_threshold",
+                "on_start",
+                "on_phase_completed",
+                "on_hud_click",
+                "on_monthly"
+            ]
+        }
+    ],
+    "snippets": [
+        {
+            "label": "skill",
+            "description": "The skill the scheme is run with",
+            "at": "field",
+            "field": "skill",
+            "body": ["skill = ${1|intrigue,diplomacy,stewardship,learning,martial|}"]
+        },
+        {
+            "label": "allow",
+            "description": "The conditions for the scheme to be started",
+            "at": "field",
+            "field": "allow",
+            "body": ["allow = {", "\t$0", "}"]
+        },
+        {
+            "label": "valid",
+            "description": "The conditions for the scheme to go on",
+            "at": "field",
+            "field": "valid",
+            "body": ["valid = {", "\t$0", "}"]
+        },
+        {
+            "label": "on_start",
+            "description": "What happens when the scheme starts",
+            "at": "field",
+            "field": "on_start",
+            "body": ["on_start = {", "\t$0", "}"]
+        },
+        {
+            "label": "base_progress_goal",
+            "description": "The progress the scheme needs",
+            "at": "field",
+            "field": "base_progress_goal",
+            "body": ["base_progress_goal = ${1:200}"]
+        }
+    ],
+    "hints": [
+        {
+            "kind": "text"
+        }
+    ]
+}

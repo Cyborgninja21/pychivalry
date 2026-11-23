@@ -1,0 +1,73 @@
+{
+    "$schema": "../presentation.schema.json",
+    "folder": "common/casus_belli_types",
+    "from": ["casus_belli_types.yaml"],
+    "outline": {
+        "symbol": "Class",
+        "blocks": []
+    },
+    "fieldOrder": [
+        {
+            "block": "",
+            "fields": [
+                "icon",
+                "group",
+                "valid_to_start",
+                "should_invalidate",
+                "on_invalidated",
+                "cost",
+                "on_victory",
+                "on_white_peace",
+                "on_defeat",
+                "ai_score"
+            ]
+        }
+    ],
+    "snippets": [
+        {
+            "label": "casus belli",
+            "description": "A new casus belli: its group, names, conditions and outcomes",
+            "at": "record",
+            "body": [
+                "${1:my_casus_belli} = {",
+                "\tgroup = ${2:conquest}",
+                "\twar_name = ${1:my_casus_belli}_war_name",
+                "\ton_invalidated_desc = ${3:msg_invalidate_war_title}",
+                "\tvalid_to_start = {",
+                "\t\t$4",
+                "\t}",
+                "\ton_victory = {",
+                "\t\t$5",
+                "\t}",
+                "\ton_white_peace = {",
+                "\t\t$6",
+                "\t}",
+                "\ton_defeat = {",
+                "\t\t$0",
+                "\t}",
+                "}"
+            ]
+        },
+        {
+            "label": "valid_to_start",
+            "description": "The conditions for a war to be declared with it",
+            "at": "field",
+            "field": "valid_to_start",
+            "body": ["valid_to_start = {", "\t$0", "}"]
+        },
+        {
+            "label": "on_victory",
+            "description": "What the attacker's victory does",
+            "at": "field",
+            "field": "on_victory",
+            "body": ["on_victory = {", "\t$0", "}"]
+        },
+        {
+            "label": "on_defeat",
+            "description": "What the attacker's defeat does",
+            "at": "field",
+            "field": "on_defeat",
+            "body": ["on_defeat = {", "\t$0", "}"]
+        }
+    ]
+}

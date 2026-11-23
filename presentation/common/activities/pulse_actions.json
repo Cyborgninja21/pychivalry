@@ -1,0 +1,52 @@
+{
+    "$schema": "../../presentation.schema.json",
+    "folder": "common/activities/pulse_actions",
+    "from": ["pulse_actions.yaml"],
+    "outline": {
+        "symbol": "Function",
+        "blocks": [
+            {
+                "field": "is_valid",
+                "symbol": "Object"
+            },
+            {
+                "field": "weight",
+                "symbol": "Property"
+            },
+            {
+                "field": "effect",
+                "symbol": "Function"
+            }
+        ]
+    },
+    "snippets": [
+        {
+            "label": "icon",
+            "description": "The icon of the pulse action's log entry",
+            "at": "field",
+            "field": "icon",
+            "body": ["icon = ${1:public}"]
+        },
+        {
+            "label": "is_valid",
+            "description": "The conditions for the pulse action to happen",
+            "at": "field",
+            "field": "is_valid",
+            "body": ["is_valid = {", "\t${1:is_current_phase_active = yes}", "}"]
+        },
+        {
+            "label": "weight",
+            "description": "How likely the pulse action is",
+            "at": "field",
+            "field": "weight",
+            "body": ["weight = {", "\tvalue = ${1:1}", "}"]
+        },
+        {
+            "label": "effect",
+            "description": "What the pulse action does",
+            "at": "field",
+            "field": "effect",
+            "body": ["effect = {", "\t$0", "}"]
+        }
+    ]
+}

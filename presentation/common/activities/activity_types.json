@@ -1,0 +1,211 @@
+{
+    "$schema": "../../presentation.schema.json",
+    "folder": "common/activities/activity_types",
+    "from": ["activity_types.yaml"],
+    "outline": {
+        "symbol": "Class",
+        "blocks": [
+            {
+                "field": "is_shown",
+                "symbol": "Object"
+            },
+            {
+                "field": "is_valid",
+                "symbol": "Object"
+            },
+            {
+                "field": "phases",
+                "symbol": "Module",
+                "children": "blocks"
+            },
+            {
+                "field": "options",
+                "symbol": "Module",
+                "children": "blocks"
+            },
+            {
+                "field": "special_guests",
+                "symbol": "Module",
+                "children": "blocks"
+            },
+            {
+                "field": "on_start",
+                "symbol": "Function"
+            },
+            {
+                "field": "on_complete",
+                "symbol": "Function"
+            }
+        ]
+    },
+    "snippets": [
+        {
+            "label": "is_shown",
+            "description": "The conditions for the activity to be shown",
+            "at": "field",
+            "field": "is_shown",
+            "body": ["is_shown = {", "\t${1:is_adult = yes}", "}"]
+        },
+        {
+            "label": "can_start",
+            "description": "The conditions for the activity to be started",
+            "at": "field",
+            "field": "can_start",
+            "body": ["can_start = {", "\t$0", "}"]
+        },
+        {
+            "label": "is_valid",
+            "description": "The conditions for the activity to go on",
+            "at": "field",
+            "field": "is_valid",
+            "body": ["is_valid = {", "\t${1:exists = scope:host}", "}"]
+        },
+        {
+            "label": "phases",
+            "description": "The activity's phases, each with what it does",
+            "at": "field",
+            "field": "phases",
+            "body": [
+                "phases = {",
+                "\t${1:my_phase} = {",
+                "\t\tis_predefined = yes",
+                "\t\ton_phase_active = {",
+                "\t\t\t$0",
+                "\t\t}",
+                "\t}",
+                "}"
+            ]
+        },
+        {
+            "label": "options",
+            "description": "The choices the host makes when planning",
+            "at": "field",
+            "field": "options",
+            "body": [
+                "options = {",
+                "\t${1:my_option_category} = {",
+                "\t\t${2:my_option} = {",
+                "\t\t\tdefault = yes",
+                "\t\t}",
+                "\t}",
+                "}"
+            ]
+        },
+        {
+            "label": "special_guests",
+            "description": "The guests the activity has a place for",
+            "at": "field",
+            "field": "special_guests",
+            "body": [
+                "special_guests = {",
+                "\t${1:honorary_guest} = {",
+                "\t\tis_required = no",
+                "\t\tselect_character = {",
+                "\t\t\t$0",
+                "\t\t}",
+                "\t}",
+                "}"
+            ]
+        },
+        {
+            "label": "cost",
+            "description": "What the activity costs its host",
+            "at": "field",
+            "field": "cost",
+            "body": ["cost = {", "\tgold = {", "\t\tvalue = ${1:100}", "\t}", "}"]
+        },
+        {
+            "label": "cooldown",
+            "description": "How long before the host can hold it again",
+            "at": "field",
+            "field": "cooldown",
+            "body": ["cooldown = {", "\tyears = ${1:1}", "}"]
+        },
+        {
+            "label": "ai_will_do",
+            "description": "How much the AI wants to hold the activity",
+            "at": "field",
+            "field": "ai_will_do",
+            "body": ["ai_will_do = {", "\tvalue = ${1:100}", "}"]
+        },
+        {
+            "label": "province_filter",
+            "description": "Where the activity may be held",
+            "at": "field",
+            "field": "province_filter",
+            "body": ["province_filter = ${1|capital,domain,realm,top_realm,holy_sites,all|}"]
+        },
+        {
+            "label": "activity_group_type",
+            "description": "The group of the activity planner the activity is listed in",
+            "at": "field",
+            "field": "activity_group_type",
+            "body": ["activity_group_type = ${1:grand}"]
+        },
+        {
+            "label": "background",
+            "description": "The illustration the activity's window shows",
+            "at": "field",
+            "field": "background",
+            "body": [
+                "background = {",
+                "\ttexture = \"${1:gfx/interface/illustrations/activity_feast.dds}\"",
+                "}"
+            ]
+        },
+        {
+            "label": "on_start",
+            "description": "What happens when the activity starts",
+            "at": "field",
+            "field": "on_start",
+            "body": ["on_start = {", "\tscope:host = {", "\t\t$0", "\t}", "}"]
+        },
+        {
+            "label": "on_complete",
+            "description": "What happens when the activity ends",
+            "at": "field",
+            "field": "on_complete",
+            "body": ["on_complete = {", "\t$0", "}"]
+        },
+        {
+            "label": "guest_invite_rules",
+            "description": "Who the host can invite, and who is invited by default",
+            "at": "field",
+            "field": "guest_invite_rules",
+            "body": [
+                "guest_invite_rules = {",
+                "\trules = {",
+                "\t\t1 = ${1:activity_invite_rule_friends}",
+                "\t}",
+                "\tdefaults = {",
+                "\t\t1 = ${2:activity_invite_rule_close_family}",
+                "\t}",
+                "}"
+            ]
+        },
+        {
+            "label": "host_intents",
+            "description": "The intents the host can choose",
+            "at": "field",
+            "field": "host_intents",
+            "body": [
+                "host_intents = {",
+                "\tintents = { ${1:reduce_stress_intent} }",
+                "\tdefault = ${1:reduce_stress_intent}",
+                "}"
+            ]
+        },
+        {
+            "label": "guest_intents",
+            "description": "The intents a guest can choose",
+            "at": "field",
+            "field": "guest_intents",
+            "body": [
+                "guest_intents = {",
+                "\tintents = { ${1:reduce_stress_intent} }",
+                "\tdefault = ${1:reduce_stress_intent}",
+                "}"
+            ]
+        }
+    ]
+}

@@ -1,0 +1,180 @@
+{
+    "$schema": "../presentation.schema.json",
+    "folder": "common/story_cycles",
+    "from": ["story_cycles.yaml"],
+    "outline": {
+        "symbol": "Class",
+        "blocks": [
+            {
+                "field": "on_setup",
+                "symbol": "Function"
+            },
+            {
+                "field": "on_end",
+                "symbol": "Function"
+            },
+            {
+                "field": "on_owner_death",
+                "symbol": "Function"
+            },
+            {
+                "field": "effect_group",
+                "symbol": "Method",
+                "label": "effect_group {n}"
+            }
+        ]
+    },
+    "fieldOrder": [
+        {
+            "block": "",
+            "fields": ["on_setup", "on_end", "on_owner_death", "effect_group"]
+        }
+    ],
+    "snippets": [
+        {
+            "label": "story cycle",
+            "description": "A new story: what starts and ends it, and an effect group that runs every few days",
+            "at": "record",
+            "body": [
+                "${1:my_story} = {",
+                "\ton_setup = {",
+                "\t\t$2",
+                "\t}",
+                "\ton_end = {",
+                "\t\t$3",
+                "\t}",
+                "\ton_owner_death = {",
+                "\t\tscope:story = {",
+                "\t\t\tend_story = yes",
+                "\t\t}",
+                "\t}",
+                "\teffect_group = {",
+                "\t\tdays = ${4:30}",
+                "\t\ttriggered_effect = {",
+                "\t\t\ttrigger = {",
+                "\t\t\t\t${5:always = yes}",
+                "\t\t\t}",
+                "\t\t\teffect = {",
+                "\t\t\t\t$0",
+                "\t\t\t}",
+                "\t\t}",
+                "\t}",
+                "}"
+            ]
+        },
+        {
+            "label": "on_setup",
+            "description": "What happens when the story starts",
+            "at": "field",
+            "field": "on_setup",
+            "body": ["on_setup = {", "\t$0", "}"]
+        },
+        {
+            "label": "on_end",
+            "description": "What happens when the story ends",
+            "at": "field",
+            "field": "on_end",
+            "body": ["on_end = {", "\t$0", "}"]
+        },
+        {
+            "label": "on_owner_death",
+            "description": "What happens when the story's owner dies",
+            "at": "field",
+            "field": "on_owner_death",
+            "body": ["on_owner_death = {", "\tscope:story = {", "\t\tend_story = yes", "\t}", "}"]
+        },
+        {
+            "label": "effect_group",
+            "description": "Effects run every few days while the story lasts",
+            "at": "field",
+            "field": "effect_group",
+            "body": [
+                "effect_group = {",
+                "\tdays = ${1:30}",
+                "\ttrigger = {",
+                "\t\t$2",
+                "\t}",
+                "\ttriggered_effect = {",
+                "\t\ttrigger = {",
+                "\t\t\t$3",
+                "\t\t}",
+                "\t\teffect = {",
+                "\t\t\t$0",
+                "\t\t}",
+                "\t}",
+                "}"
+            ]
+        },
+        {
+            "label": "triggered_effect",
+            "description": "Effects run when their trigger holds",
+            "at": "field",
+            "block": "effect_group",
+            "field": "triggered_effect",
+            "body": [
+                "triggered_effect = {",
+                "\ttrigger = {",
+                "\t\t$1",
+                "\t}",
+                "\teffect = {",
+                "\t\t$0",
+                "\t}",
+                "}"
+            ]
+        },
+        {
+            "label": "first_valid",
+            "description": "The first triggered effect whose trigger holds",
+            "at": "field",
+            "block": "effect_group",
+            "field": "first_valid",
+            "body": [
+                "first_valid = {",
+                "\ttriggered_effect = {",
+                "\t\ttrigger = {",
+                "\t\t\t$1",
+                "\t\t}",
+                "\t\teffect = {",
+                "\t\t\t$2",
+                "\t\t}",
+                "\t}",
+                "\ttriggered_effect = {",
+                "\t\ttrigger = {",
+                "\t\t\talways = yes",
+                "\t\t}",
+                "\t\teffect = {",
+                "\t\t\t$0",
+                "\t\t}",
+                "\t}",
+                "}"
+            ]
+        },
+        {
+            "label": "random_valid",
+            "description": "One triggered effect whose trigger holds, picked at random",
+            "at": "field",
+            "block": "effect_group",
+            "field": "random_valid",
+            "body": [
+                "random_valid = {",
+                "\ttriggered_effect = {",
+                "\t\ttrigger = {",
+                "\t\t\t$1",
+                "\t\t}",
+                "\t\teffect = {",
+                "\t\t\t$2",
+                "\t\t}",
+                "\t}",
+                "\ttriggered_effect = {",
+                "\t\ttrigger = {",
+                "\t\t\t$3",
+                "\t\t}",
+                "\t\teffect = {",
+                "\t\t\t$0",
+                "\t\t}",
+                "\t}",
+                "}"
+            ]
+        }
+    ]
+}
