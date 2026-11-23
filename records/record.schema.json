@@ -1047,13 +1047,12 @@
                 "task",
                 "harness",
                 "model",
-                "budget_usd_per_trial",
+                "session_limit",
                 "timeout_minutes",
                 "arguments",
                 "server",
                 "trials",
-                "tasks",
-                "cost_usd"
+                "tasks"
             ],
             "properties": {
                 "task": {
@@ -1098,8 +1097,16 @@
                     "type": "string",
                     "pattern": "^claude-[a-z0-9]+(-[a-z0-9]+)*$"
                 },
-                "budget_usd_per_trial": { "type": "number", "exclusiveMinimum": 0 },
-                "timeout_minutes": { "type": "number", "exclusiveMinimum": 0 },
+                "session_limit": {
+                    "description": "The session limit each test session was given (SCORED_SESSION_LIMIT), passed to Claude Code, which ends a session early when it is reached.",
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                },
+                "timeout_minutes": {
+                    "description": "The time limit after which the run stops a test session.",
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                },
                 "arguments": {
                     "description": "Claude Code's arguments, with the prompt file and the agent-server configuration named, not given.",
                     "type": "array",
@@ -1130,16 +1137,11 @@
                             "pass_rate": { "type": "number", "minimum": 0, "maximum": 1 }
                         }
                     }
-                },
-                "cost_usd": {
-                    "description": "The trials' costs added up, where known: Claude Code's own estimate.",
-                    "type": "number",
-                    "minimum": 0
                 }
             }
         },
         "trial": {
-            "description": "One trial of a scored run.",
+            "description": "One trial of a scored run: one test session of Claude Code.",
             "type": "object",
             "additionalProperties": false,
             "required": [
@@ -1153,7 +1155,6 @@
                 "tool_errors",
                 "permission_denials",
                 "session",
-                "cost_usd",
                 "turns",
                 "duration_ms",
                 "exit_code",
@@ -1167,8 +1168,8 @@
                     "type": "boolean"
                 },
                 "stopped": {
-                    "description": "What ended the session: finished (by itself), budget (--max-budget-usd), turns, error, timeout (the run's time limit), no-result (the stream has no end).",
-                    "enum": ["finished", "budget", "turns", "error", "timeout", "no-result"]
+                    "description": "What ended the test session: finished (by itself), session-limit (Claude Code ended it at the session limit), turns, error, timeout (the run's time limit), no-result (the stream has no end).",
+                    "enum": ["finished", "session-limit", "turns", "error", "timeout", "no-result"]
                 },
                 "harness_problems": {
                     "description": "What makes the trial say nothing about the server: a session that broke or was not confined.",
@@ -1259,7 +1260,6 @@
                         }
                     ]
                 },
-                "cost_usd": { "oneOf": [{ "type": "null" }, { "type": "number", "minimum": 0 }] },
                 "turns": { "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/count" }] },
                 "duration_ms": { "oneOf": [{ "type": "null" }, { "type": "number", "minimum": 0 }] },
                 "exit_code": { "oneOf": [{ "type": "null" }, { "type": "integer" }] },

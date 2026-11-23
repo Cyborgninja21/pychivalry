@@ -91,7 +91,7 @@ test(
         cpSync(original, modDir, { recursive: true });
         const cacheDir = path.join(dir, 'cache');
         mkdirSync(cacheDir);
-        const options = scoredOptions(root, { SCORED_BUDGET_USD: '1' });
+        const options = scoredOptions(root, { SCORED_SESSION_LIMIT: '1' });
         assert.ok(
             existsSync(options.server),
             `the agent server is built: ${options.server} (task build)`,

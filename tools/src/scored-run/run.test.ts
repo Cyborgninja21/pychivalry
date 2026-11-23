@@ -15,12 +15,15 @@ import { CommandError, repoRoot } from '../util.js';
 import { DEFECTS_DIR } from './manifest.js';
 import {
     claudeArgs,
+    credentialVariable,
     PINNED_MODEL,
     PROMPT_FILE,
     runScored,
     sanitize,
     scoredOptions,
     SERVER_TOOLS,
+    SESSION_LIMIT_SUBTYPE,
+    trialEnv,
 } from './run.js';
 import { readStream } from './stream.js';
 import type { ScoredRecord } from './scored-record.js';
@@ -138,6 +141,22 @@ interface Run {
     readonly log: string[];
 }
 
+/**
+ * Variables that may hold a key, a token or another credential, set around every run of these
+ * tests: none may reach a test session.
+ */
+const CREDENTIALS: Readonly<Record<string, string>> = {
+    ANTHROPIC_API_KEY: 'must-not-reach-the-session',
+    ANTHROPIC_AUTH_TOKEN: 'must-not-reach-the-session',
+    CLAUDE_CODE_OAUTH_TOKEN: 'must-not-reach-the-session',
+    AWS_BEARER_TOKEN_BEDROCK: 'must-not-reach-the-session',
+    AWS_SECRET_ACCESS_KEY: 'must-not-reach-the-session',
+    GITHUB_TOKEN: 'must-not-reach-the-session',
+    SOME_SERVICE_PASSWORD: 'must-not-reach-the-session',
+    GOOGLE_APPLICATION_CREDENTIALS: 'must-not-reach-the-session',
+    openai_api_key: 'must-not-reach-the-session',
+};
+
 function run(t: TestContext, env: Record<string, string>, streamText = stream({})): Run {
     const dir = tempDir(t);
     const streamFile = path.join(dir, 'stream.jsonl');
@@ -147,13 +166,13 @@ function run(t: TestContext, env: Record<string, string>, streamText = stream({}
     const { record } = runScored(
         root,
         {
-            SCORED_BUDGET_USD: '2',
+            SCORED_SESSION_LIMIT: '2',
             SCORED_TRIALS: '2',
             SCORED_CLAUDE: fake,
             SCORED_SERVER: fake,
             FAKE_CLAUDE_STREAM: streamFile,
             FAKE_CLAUDE_ARGV: argvFile,
-            ANTHROPIC_API_KEY: 'must-not-reach-the-session',
+            ...CREDENTIALS,
             CLAUDECODE: '1',
             CLAUDE_CODE_SESSION_ID: 'a-surrounding-session',
             CLAUDE_EFFORT: 'low',
@@ -184,11 +203,11 @@ test('a run whose agent fixes the mod: every trial passes, and the record holds'
     assert.deepEqual(results.tasks, [{ name: 'agent-use', trials: 2, passed: 2, pass_rate: 1 }]);
     assert.equal(results.harness.version, '2.1.220');
     assert.equal(results.model, PINNED_MODEL);
-    assert.equal(results.cost_usd, 0.84);
+    assert.equal(results.session_limit, 2);
     assert.equal(record.corpus, null);
     assert.match(
         record.command,
-        /^SCORED_MODEL=claude-opus-5-5 SCORED_TRIALS=2 SCORED_BUDGET_USD=2 SCORED_SERVER=\S+ task scored:agent-use$/,
+        /^SCORED_MODEL=claude-opus-5-5 SCORED_TRIALS=2 SCORED_SESSION_LIMIT=2 SCORED_SERVER=\S+ task scored:agent-use$/,
     );
     const trial = results.trials[0];
     assert.ok(trial !== undefined);
@@ -204,9 +223,18 @@ test('a run whose agent fixes the mod: every trial passes, and the record holds'
     assert.equal(trial.permission_denials, 1);
     assert.deepEqual(trial.findings_left, { error: 0, warning: 0, information: 0, hint: 0 });
     assert.deepEqual(trial.session?.mcp_servers, [{ name: 'pychivalry', status: 'connected' }]);
-    // Nothing from the session's start but what the record names: no folder, id or login.
+    // Nothing from the session but what the record names: no folder, no id, nothing about how
+    // Claude Code is signed in, and none of the figures Claude Code reports about the session's
+    // use of the developer's plan (the stream's `total_cost_usd`).
     const text = JSON.stringify(record);
-    for (const kept of ['/somewhere/private', 'not-kept', 'apiKeySource', 'must-not-reach']) {
+    for (const kept of [
+        '/somewhere/private',
+        'not-kept',
+        'apiKeySource',
+        'must-not-reach',
+        'cost',
+        '0.42',
+    ]) {
         assert.ok(!text.includes(kept), `the record holds ${kept}`);
     }
     assert.ok(log.some((l) => l.includes('2 of 2 trials passed')));
@@ -219,13 +247,10 @@ test('a run whose agent fixes the mod: every trial passes, and the record holds'
         const configFile = argv[argv.indexOf('--mcp-config') + 1] ?? '';
         assert.deepEqual(
             argv,
-            claudeArgs({ model: PINNED_MODEL, budgetUsd: 2 }, prompt, configFile),
+            claudeArgs({ model: PINNED_MODEL, sessionLimit: 2 }, prompt, configFile),
         );
         assert.equal(call['git'], false);
-        assert.equal(call['api_key'], false);
-        assert.deepEqual(call['session_variables'], []);
-        assert.equal(call['claude_ai_servers'], 'false');
-        assert.equal(call['auto_memory_off'], '1');
+        assert.deepEqual(call['credential_variables'], []);
         const cwd = call['cwd'] as string;
         assert.notEqual(path.resolve(cwd), path.resolve(root, DEFECTS_DIR, 'mod'));
         const config = call['mcp_config'] as { mcpServers: Record<string, { args: string[] }> };
@@ -261,9 +286,42 @@ test('a run whose agent changes nothing: the trials fail on the checker graders'
     assert.equal(trial.findings_left.error, 22);
 });
 
-test('a trial stopped at its budget is recorded as such, not as a harness problem', (t) => {
-    const { record } = run(t, { SCORED_TRIALS: '1' }, stream({ subtype: 'error_max_budget_usd' }));
-    assert.equal(record.results.trials[0]?.stopped, 'budget');
+test("the test session's environment drops every key and token variable, and a surrounding session's", (t) => {
+    // What the session was given, as the stand-in for Claude Code saw it.
+    const { calls } = run(t, { SCORED_TRIALS: '1' });
+    assert.equal(calls.length, 1);
+    const call = calls[0] ?? {};
+    assert.deepEqual(call['credential_variables'], []);
+    assert.deepEqual(call['session_variables'], []);
+    assert.equal(call['claude_ai_servers'], 'false');
+    assert.equal(call['auto_memory_off'], '1');
+
+    // The rule itself: every variable named like a key, a token or another credential goes,
+    // whatever its letter case; the rest of the environment stays.
+    const env = trialEnv({
+        ...CREDENTIALS,
+        PATH: 'bin',
+        LANG: 'C.UTF-8',
+        CK3_GAME_PATH: '<game dir>',
+        CLAUDECODE: '1',
+        CLAUDE_CODE_SESSION_ID: 'a-surrounding-session',
+    });
+    for (const name of Object.keys(CREDENTIALS)) {
+        assert.ok(credentialVariable(name), name);
+        assert.ok(!(name in env), `${name} reached the session`);
+    }
+    assert.deepEqual(env, {
+        PATH: 'bin',
+        LANG: 'C.UTF-8',
+        CK3_GAME_PATH: '<game dir>',
+        ENABLE_CLAUDEAI_MCP_SERVERS: 'false',
+        CLAUDE_CODE_DISABLE_AUTO_MEMORY: '1',
+    });
+});
+
+test('a test session ended at its session limit is recorded as such, not as a harness problem', (t) => {
+    const { record } = run(t, { SCORED_TRIALS: '1' }, stream({ subtype: SESSION_LIMIT_SUBTYPE }));
+    assert.equal(record.results.trials[0]?.stopped, 'session-limit');
     assert.deepEqual(record.results.trials[0].harness_problems, []);
 });
 
@@ -322,7 +380,7 @@ test('a session past the time limit is stopped and recorded', (t) => {
     ]);
 });
 
-test('the parameters: a budget is required, a model is a full name, defaults hold', () => {
+test('the parameters: a session limit is required with no default, a model is a full name, defaults hold', () => {
     const usage = (env: Record<string, string>): void => {
         assert.throws(
             () => scoredOptions(root, env),
@@ -330,15 +388,16 @@ test('the parameters: a budget is required, a model is a full name, defaults hol
         );
     };
     usage({});
-    usage({ SCORED_BUDGET_USD: '0' });
-    usage({ SCORED_BUDGET_USD: 'two' });
-    usage({ SCORED_BUDGET_USD: '2', SCORED_MODEL: 'opus' });
-    usage({ SCORED_BUDGET_USD: '2', SCORED_TRIALS: '1.5' });
-    usage({ SCORED_BUDGET_USD: '2', SCORED_SERVER_ARGS: '--mod' });
-    const options = scoredOptions(root, { SCORED_BUDGET_USD: '2.5' });
+    usage({ SCORED_SESSION_LIMIT: '' });
+    usage({ SCORED_SESSION_LIMIT: '0' });
+    usage({ SCORED_SESSION_LIMIT: 'two' });
+    usage({ SCORED_SESSION_LIMIT: '2', SCORED_MODEL: 'opus' });
+    usage({ SCORED_SESSION_LIMIT: '2', SCORED_TRIALS: '1.5' });
+    usage({ SCORED_SESSION_LIMIT: '2', SCORED_SERVER_ARGS: '--mod' });
+    const options = scoredOptions(root, { SCORED_SESSION_LIMIT: '2.5' });
     assert.equal(options.model, PINNED_MODEL);
     assert.equal(options.trials, 5);
-    assert.equal(options.budgetUsd, 2.5);
+    assert.equal(options.sessionLimit, 2.5);
     assert.equal(options.server, path.join(root, 'packages', 'mcp', 'dist', 'main.js'));
     assert.deepEqual(options.serverArgs, ['--mod', '{mod}', '--vanilla', '{game}']);
     assert.deepEqual(options.claude, { command: 'claude', args: [] });
@@ -351,7 +410,11 @@ test('a missing agent server stops the run before any trial', () => {
         () =>
             runScored(
                 root,
-                { SCORED_BUDGET_USD: '1', SCORED_CLAUDE: fake, SCORED_SERVER: 'no/such/main.js' },
+                {
+                    SCORED_SESSION_LIMIT: '1',
+                    SCORED_CLAUDE: fake,
+                    SCORED_SERVER: 'no/such/main.js',
+                },
                 () => undefined,
             ),
         /the agent server is not built: no\/such\/main\.js/,
@@ -360,7 +423,7 @@ test('a missing agent server stops the run before any trial', () => {
 
 test('the flags of the plan, as the installed Claude Code takes them', () => {
     assert.deepEqual(
-        claudeArgs({ model: 'claude-test-1', budgetUsd: 1.5 }, 'Fix it.', 'mcp.json'),
+        claudeArgs({ model: 'claude-test-1', sessionLimit: 1.5 }, 'Fix it.', 'mcp.json'),
         [
             '-p',
             'Fix it.',

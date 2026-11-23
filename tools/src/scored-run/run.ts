@@ -1,33 +1,40 @@
 /**
- * The scored agent-use run (docs/PLAN.md items 6.8 and 6.10; docs/MVP.md, "AI tests"), behind
- * `task scored:agent-use`. Never part of `task ci`: each trial starts Claude Code, which draws
- * on the login's usage limits, so a run is started by a person, or by an agent on the owner's
- * word.
+ * The scored agent-use test (docs/PLAN.md items 6.8 and 6.10; docs/MVP.md, "AI tests"), behind
+ * `task scored:agent-use`. It is a developer's test script: not shipped, not part of the
+ * extension, and never run by CI. pychivalry itself holds no key, token or login and makes no
+ * model call. This script starts the Claude Code program already installed on the developer's
+ * machine, signed in however the developer signed it in, once per trial as a separate test
+ * session with pychivalry's agent server attached, and grades in code what that session did to
+ * a copy of the planted-defect mod. It gives Claude Code no credentials and removes key and
+ * token variables from the session's environment (`trialEnv`). Each test session counts
+ * against the developer's own Claude plan like any session they open themselves, so a run is
+ * started by a person, or by an agent on the owner's word.
  *
  * For each trial it copies `fixtures/defects/mod/` into a fresh temporary folder (a copy of the
  * files, with no git history), writes an agent-server configuration naming only the built agent
- * server (`packages/mcp`, started over the manifest's game stub), and starts Claude Code's
- * command-line mode once in that folder, on the existing login, with the committed task prompt
+ * server (`packages/mcp`, started over the manifest's game stub), and starts the test session
+ * in Claude Code's command-line mode in that folder, with the committed task prompt
  * (`tools/scored-run/agent-use.prompt.md`). The session is confined to that server plus file
  * read and edit (`claudeArgs`). It reads the session's output stream for the tool calls and
  * tool errors (`stream.ts`), grades the folder as the session left it (`graders.ts`), and
  * writes the record, `records/scored/agent-use.json` (`scored-record.ts`).
  *
- * A trial stops at its budget: Claude Code's own `--max-budget-usd` ends the session when its
- * estimate of the cost passes the budget (it can pass it by the one response that crossed it),
- * and a session still running after the time limit is stopped.
+ * Each test session has two safety stops. The session limit, `SCORED_SESSION_LIMIT`, is passed
+ * unchanged to Claude Code's own option `--max-budget-usd`, which ends a session early; the
+ * script uses it only as that per-session stop and keeps no account of its own. A session still
+ * running after the time limit is stopped.
  *
  * The parameters, from the environment:
  *
  * | Variable | Meaning | Default |
  * | --- | --- | --- |
- * | `SCORED_BUDGET_USD` | The budget per trial, in US dollars | none: it must be given |
+ * | `SCORED_SESSION_LIMIT` | The session limit of each test session, a positive number passed to Claude Code (above) | none: it must be given |
  * | `SCORED_MODEL` | The model, by its full name | `PINNED_MODEL` |
- * | `SCORED_TRIALS` | Trials per task | 5 |
+ * | `SCORED_TRIALS` | Trials (test sessions) per task | 5 |
  * | `SCORED_SERVER` | The agent server's entry point, from the repository root | `packages/mcp/dist/main.js` |
  * | `SCORED_SERVER_ARGS` | Its arguments, a JSON list; `{mod}` and `{game}` stand for the trial's mod and the game stub | `["--mod", "{mod}", "--vanilla", "{game}"]`, as `packages/mcp` reads them |
  * | `SCORED_CLAUDE` | Claude Code's command; a `.js` or `.mjs` file is run with Node | `claude` |
- * | `SCORED_TIMEOUT_MINUTES` | The time limit per trial | 30 |
+ * | `SCORED_TIMEOUT_MINUTES` | The time limit of each test session | 30 |
  * | `SCORED_KEEP` | `true` keeps the run's temporary folder (each trial's mod, stream and configuration) and prints where | removed |
  */
 
@@ -96,7 +103,8 @@ export const BUILT_IN_TOOLS: readonly string[] = ['Read', 'Edit'];
 export interface ScoredOptions {
     readonly model: string;
     readonly trials: number;
-    readonly budgetUsd: number;
+    /** The session limit of each test session, passed to Claude Code (the header above). */
+    readonly sessionLimit: number;
     /** The agent server's entry point, absolute. */
     readonly server: string;
     readonly serverArgs: readonly string[];
@@ -122,10 +130,10 @@ export function scoredOptions(
     root: string,
     env: Readonly<Record<string, string | undefined>>,
 ): ScoredOptions {
-    const budget = env['SCORED_BUDGET_USD'];
-    if (budget === undefined || budget === '') {
+    const limit = env['SCORED_SESSION_LIMIT'];
+    if (limit === undefined || limit === '') {
         throw new CommandError(
-            'SCORED_BUDGET_USD must give the budget per trial in US dollars; a run spends up to trials x budget (tools/scored-run/README.md)',
+            'SCORED_SESSION_LIMIT must be given: the session limit of each test session, a positive number passed to Claude Code, which ends the session early when it is reached; there is no default (tools/scored-run/README.md)',
             EXIT.usage,
         );
     }
@@ -157,7 +165,7 @@ export function scoredOptions(
     return {
         model,
         trials: positive('SCORED_TRIALS', env['SCORED_TRIALS'] ?? String(DEFAULT_TRIALS), true),
-        budgetUsd: positive('SCORED_BUDGET_USD', budget, false),
+        sessionLimit: positive('SCORED_SESSION_LIMIT', limit, false),
         server: path.resolve(root, env['SCORED_SERVER'] ?? DEFAULT_SERVER),
         serverArgs,
         claude: /\.m?js$/.test(claude)
@@ -181,12 +189,14 @@ export function scoredOptions(
  *   goes before them, as Claude Code's own examples write it.
  * - `--allowedTools` also allows `Read` and `Edit`: under `--permission-mode dontAsk` every
  *   call that would ask is refused, and an edit asks unless it is allowed.
+ * - The session limit goes to Claude Code's own session-ending option (the header above), as a
+ *   safety stop for each test session.
  * - `--setting-sources project,local` leaves out the user's own settings, instructions and
  *   skills, so that a trial measures the server, not the person's set-up (the plan's open
  *   question; the trial folder has no project settings).
  */
 export function claudeArgs(
-    options: Pick<ScoredOptions, 'model' | 'budgetUsd'>,
+    options: Pick<ScoredOptions, 'model' | 'sessionLimit'>,
     prompt: string,
     mcpConfigFile: string,
 ): string[] {
@@ -203,7 +213,7 @@ export function claudeArgs(
         '--permission-mode',
         'dontAsk',
         '--max-budget-usd',
-        String(options.budgetUsd),
+        String(options.sessionLimit),
         '--output-format',
         'stream-json',
         '--verbose',
@@ -216,7 +226,7 @@ export function claudeArgs(
 }
 
 /** The same arguments as a record states them: the prompt and the configuration file named. */
-export function recordedArgs(options: Pick<ScoredOptions, 'model' | 'budgetUsd'>): string[] {
+export function recordedArgs(options: Pick<ScoredOptions, 'model' | 'sessionLimit'>): string[] {
     return claudeArgs(options, `<${PROMPT_FILE}>`, '<agent-server configuration>');
 }
 
@@ -236,22 +246,28 @@ function sessionVariable(name: string): boolean {
 }
 
 /**
- * The environment of a trial's Claude Code: this one, without an API key, so the session runs
- * on the existing login (no key is stored anywhere), and without a surrounding Claude Code
- * session's variables; with claude.ai's own connectors and the automatic memory turned off, so
- * that nothing but the configured server is offered.
+ * Whether a variable's name says it may hold a key, a token or another credential: an API key,
+ * an access or session token, a secret, a password, a credentials file, a sign-in. Such a
+ * variable is never handed to a test session, whoever set it and whatever it is for.
+ */
+export function credentialVariable(name: string): boolean {
+    return /KEY|TOKEN|SECRET|PASSWORD|PASSWD|CREDENTIAL|AUTH/i.test(name);
+}
+
+/**
+ * The environment of a trial's test session: this one without any variable that may hold a
+ * credential (`credentialVariable`), so the script hands Claude Code no key or token and the
+ * session runs as the developer's Claude Code is already signed in; without a surrounding
+ * Claude Code session's variables; and with the other agent servers Claude Code would offer
+ * from claude.ai and its automatic memory switched off, so that nothing but the configured
+ * server is offered.
  */
 export function trialEnv(
     env: Readonly<Record<string, string | undefined>>,
 ): Record<string, string> {
     const out: Record<string, string> = {};
     for (const [k, v] of Object.entries(env)) {
-        if (
-            v !== undefined &&
-            k !== 'ANTHROPIC_API_KEY' &&
-            k !== 'ANTHROPIC_AUTH_TOKEN' &&
-            !sessionVariable(k)
-        ) {
+        if (v !== undefined && !credentialVariable(k) && !sessionVariable(k)) {
             out[k] = v;
         }
     }
@@ -320,6 +336,12 @@ export function sanitize(text: string, folders: readonly { path: string; name: s
     return out.length > 300 ? `${out.slice(0, 297)}...` : out;
 }
 
+/**
+ * The end Claude Code's stream gives a session that its own session-ending option stopped at
+ * the session limit: Claude Code's name for it, read as `session-limit`.
+ */
+export const SESSION_LIMIT_SUBTYPE = 'error_max_budget_usd';
+
 /** What made a trial's session end, from its stream and its exit. */
 function stoppedBy(summary: StreamSummary, timedOut: boolean): TrialRecord['stopped'] {
     if (timedOut) {
@@ -332,8 +354,8 @@ function stoppedBy(summary: StreamSummary, timedOut: boolean): TrialRecord['stop
     if (subtype === 'success') {
         return 'finished';
     }
-    if (subtype === 'error_max_budget_usd') {
-        return 'budget';
+    if (subtype === SESSION_LIMIT_SUBTYPE) {
+        return 'session-limit';
     }
     if (subtype === 'error_max_turns') {
         return 'turns';
@@ -447,7 +469,6 @@ export function trialRecord(input: {
                       tools: [...summary.init.tools].sort(),
                       mcp_servers: summary.init.mcpServers.map((s) => ({ ...s })),
                   },
-        cost_usd: summary.result?.costUsd ?? null,
         turns: summary.result?.turns ?? null,
         duration_ms: summary.result?.durationMs ?? null,
         exit_code: input.exitCode,
@@ -465,7 +486,7 @@ function commandOf(root: string, options: ScoredOptions): string {
     const parts = [
         `SCORED_MODEL=${options.model}`,
         `SCORED_TRIALS=${String(options.trials)}`,
-        `SCORED_BUDGET_USD=${String(options.budgetUsd)}`,
+        `SCORED_SESSION_LIMIT=${String(options.sessionLimit)}`,
     ];
     const server = relativePosix(root, options.server);
     if (server !== DEFAULT_SERVER) {
@@ -497,7 +518,7 @@ export function runScored(
     const prompt = readFileSync(promptFile, 'utf8').trim();
     const version = harnessVersion(options.claude);
     log(
-        `scored:agent-use: Claude Code ${version}, model ${options.model}, ${String(options.trials)} trials, at most ${String(options.budgetUsd)} USD each (${String(options.trials * options.budgetUsd)} USD in all)`,
+        `scored:agent-use: Claude Code ${version}, model ${options.model}, ${String(options.trials)} test sessions, each with session limit ${String(options.sessionLimit)} and time limit ${String(options.timeoutMinutes)} minutes`,
     );
 
     const runDir = realpathSync(mkdtempSync(path.join(tmpdir(), 'pychivalry-scored-')));
@@ -568,7 +589,7 @@ export function runScored(
             trials.push(trial);
             const failed = trial.graders.filter((g) => !g.passed).map((g) => g.name);
             log(
-                `trial ${String(n)}: ${trial.passed ? 'passed' : 'failed'} (${trial.stopped}; ${String(summary.toolCalls.length)} tool calls, ${String(summary.toolErrors.length)} tool errors; cost ${String(trial.cost_usd ?? 'unknown')} USD${failed.length > 0 ? `; failed: ${failed.join(', ')}` : ''}${trial.harness_problems.length > 0 ? `; harness: ${trial.harness_problems.join('; ')}` : ''})`,
+                `trial ${String(n)}: ${trial.passed ? 'passed' : 'failed'} (${trial.stopped}; ${String(summary.toolCalls.length)} tool calls, ${String(summary.toolErrors.length)} tool errors${failed.length > 0 ? `; failed: ${failed.join(', ')}` : ''}${trial.harness_problems.length > 0 ? `; harness: ${trial.harness_problems.join('; ')}` : ''})`,
             );
         }
     } finally {
@@ -594,7 +615,7 @@ export function runScored(
         },
         harness: { name: 'claude-code', version },
         model: options.model,
-        budget_usd_per_trial: options.budgetUsd,
+        session_limit: options.sessionLimit,
         timeout_minutes: options.timeoutMinutes,
         arguments: recordedArgs(options),
         server: {
@@ -614,7 +635,6 @@ export function runScored(
                 pass_rate: passRate(passed, trials.length),
             },
         ],
-        cost_usd: Math.round(trials.reduce((s, t) => s + (t.cost_usd ?? 0), 0) * 1e6) / 1e6,
     };
     const record: ScoredRecord = {
         record_format: 1,
@@ -628,7 +648,7 @@ export function runScored(
         corpus: null,
         notes: [
             `The agent server and the graders read the game stub ${manifest.game}, not an installed game.`,
-            "cost_usd is Claude Code's own estimate (total_cost_usd). On a subscription login it is not charged per call: the run draws on the login's usage limits instead.",
+            'Each trial is one test session of the Claude Code installed on the machine the run was made on, which the script gave no credentials; pychivalry itself makes no model call.',
             "A trial passes when all five graders pass and its harness had no problem. The tool calls and errors are counted from the session's output stream; their inputs and results are not kept.",
         ],
         results,

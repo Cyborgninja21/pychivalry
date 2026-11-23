@@ -34,6 +34,14 @@ is fixed.
     should find on the wiki.
 11. **No TODO or FIXME stubs.** Delivered code works. The only stubs are those the plan defines
     as stubs (the four `game:*` tasks of step 1).
+12. **No key, no network, no model call in what ships.** pychivalry holds no API key, token or
+    login, and no shipped package (`packages/*`) makes a network call or a model call; the AI is
+    always another program that connects to it. `tools/src/no-key-no-network.test.ts` holds
+    this in CI: a module a shipped file imports that is neither Node's nor pychivalry's own is
+    listed there with its reason, and a networking module never is. The scored test is
+    described as test sessions of the developer's own Claude Code, each with a session limit
+    and each counting against the developer's own Claude plan; never in terms of money,
+    accounts or keys (docs/decisions.md, decision 80).
 
 ## Commands
 
@@ -53,7 +61,7 @@ Everything goes through [Taskfile.yml](Taskfile.yml); `task --list` shows it all
 | `task docs:checks` | Writes the user guide's check reference, `docs/guide/checks.md`, from the core's check inventory |
 | `task wiki:build` | The wiki pages, built into `.wiki-build/` to look at |
 | `task wiki:publish` | Publishes the wiki. Public the moment it runs: only on the owner's word ([docs/wiki/README.md](docs/wiki/README.md)) |
-| `task scored:agent-use` | The scored agent-use run: Claude Code fixes the planted-defect mod with the agent server, on the login. Spends the login's usage: only on the owner's word, never in `task ci` ([tools/scored-run/README.md](tools/scored-run/README.md)) |
+| `task scored:agent-use` | The scored agent-use test, a developer's test script: it starts the Claude Code already installed on the developer's machine as separate test sessions, with the agent server attached, to fix the planted-defect mod, and grades them in code. pychivalry holds no key and makes no model call; each test session counts against the developer's own Claude plan. Only on the owner's word, never in `task ci` ([tools/scored-run/README.md](tools/scored-run/README.md)) |
 
 ## Layout
 
@@ -62,7 +70,7 @@ Everything goes through [Taskfile.yml](Taskfile.yml); `task --list` shows it all
 | `packages/core` | Parse, index, check, lookup, format, fix data. The only package that knows CK3. No runtime dependencies. |
 | `packages/cli`, `packages/mcp`, `packages/lsp` | Thin shells over the core: command line, agent server, language server |
 | `packages/vscode` | The extension: starts the servers, registers the agent server. No CK3 logic. |
-| `tools` | The scripts behind the local tasks: spec and record checks, the game-file suites, the corpus manifest, the 2.3.0 baselines |
+| `tools` | The scripts behind the local tasks: spec and record checks, the game-file suites, the corpus manifest, the 2.3.0 baselines, the scored test of the agent server (`tools/scored-run/`). Never shipped |
 | `spec` | The committed spec package (its override rules are part D1), its companions and schema, the format 4 copy for 2.3.0 in `spec/legacy/` ([spec/README.md](spec/README.md)) |
 | `records` | Committed results of the game-file suites ([records/README.md](records/README.md)) |
 | `fixtures` | Hand-written test data in three parts: `mods/`, `game/`, `defects/` ([fixtures/README.md](fixtures/README.md)) |

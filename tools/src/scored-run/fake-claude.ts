@@ -3,9 +3,11 @@
  * network. `--version` answers as Claude Code 2.1.220 does. Otherwise, as a trial runs it, it
  * does what its environment says, in this order:
  *
- * - `FAKE_CLAUDE_ARGV`: appends one JSON line to that file: its arguments, its folder, and
- *   which of the environment variables a trial sets or removes it was given, whether its
- *   folder holds git history, and the agent-server configuration it was given;
+ * - `FAKE_CLAUDE_ARGV`: appends one JSON line to that file: its arguments, its folder, the
+ *   names of the variables it was given that may hold a key, a token or another credential
+ *   (none, when the run is right), which of the other variables a trial sets or removes it was
+ *   given, whether its folder holds git history, and the agent-server configuration it was
+ *   given;
  * - `FAKE_CLAUDE_APPLY`: copies that folder's files over its own folder, as an agent's edits;
  * - `FAKE_CLAUDE_STREAM`: writes that file to its output, as a recorded session's stream;
  * - `FAKE_CLAUDE_SLEEP_MS`: waits that long;
@@ -29,8 +31,9 @@ if (argvFile !== undefined) {
         `${JSON.stringify({
             argv: args,
             cwd: process.cwd(),
-            api_key: env['ANTHROPIC_API_KEY'] !== undefined,
-            auth_token: env['ANTHROPIC_AUTH_TOKEN'] !== undefined,
+            credential_variables: Object.keys(env).filter((k) =>
+                /KEY|TOKEN|SECRET|PASSWORD|PASSWD|CREDENTIAL|AUTH/i.test(k),
+            ),
             claude_ai_servers: env['ENABLE_CLAUDEAI_MCP_SERVERS'] ?? null,
             auto_memory_off: env['CLAUDE_CODE_DISABLE_AUTO_MEMORY'] ?? null,
             session_variables: Object.keys(env).filter(
