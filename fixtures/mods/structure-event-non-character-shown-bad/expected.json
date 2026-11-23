@@ -1,0 +1,18 @@
+{
+    "findings": [
+        {
+            "file": "events/fixture_events.txt",
+            "line": 3,
+            "column": 1,
+            "code": "structure/event-non-character-shown",
+            "severity": "error",
+            "message": "Error in event 'fixture.0001'. Non-character events must be hidden, or be narrative events",
+            "data": {
+                "event": "fixture.0001",
+                "scope": "faith",
+                "root_scope": "character",
+                "needs": ["hidden", "major"]
+            }
+        }
+    ]
+}

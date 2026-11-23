@@ -1,0 +1,32 @@
+{
+    "findings": [
+        {
+            "file": "events/fixture_events_a.txt",
+            "line": 3,
+            "column": 1,
+            "code": "definitions/clash",
+            "severity": "error",
+            "message": "Duplicated event ID fixture.0001 with the same override priority 0 found:",
+            "data": {
+                "name": "fixture.0001",
+                "database": "events",
+                "rule": "events-by-override-priority",
+                "others": ["mod:events/fixture_events_b.txt:3"]
+            }
+        },
+        {
+            "file": "events/fixture_events_b.txt",
+            "line": 3,
+            "column": 1,
+            "code": "definitions/clash",
+            "severity": "error",
+            "message": "Duplicated event ID fixture.0001 with the same override priority 0 found:",
+            "data": {
+                "name": "fixture.0001",
+                "database": "events",
+                "rule": "events-by-override-priority",
+                "others": ["mod:events/fixture_events_a.txt:3"]
+            }
+        }
+    ]
+}

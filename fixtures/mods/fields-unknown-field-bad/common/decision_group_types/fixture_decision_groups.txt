@@ -1,0 +1,14 @@
+# Decision groups of the fixture.
+@fixture_order = 10
+
+fixture_first_group = {
+	sort_order = @fixture_order
+	important_decision_group = yes
+	gui_tags = { fixture_tag }
+}
+
+fixture_second_group = {
+	sort_order = 20
+	fixture_made_up_field = yes
+	Important_Decision_Group = no
+}

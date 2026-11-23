@@ -1,0 +1,3 @@
+fixture_third.0001 = {
+	hidden = yes
+}

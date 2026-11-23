@@ -1,0 +1,3 @@
+fixture_tradition = {
+	category = societal
+}

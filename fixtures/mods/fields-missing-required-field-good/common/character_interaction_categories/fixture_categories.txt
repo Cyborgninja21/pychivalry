@@ -1,0 +1,4 @@
+fixture_category = {
+	icon = fixture_icon
+	index = 0
+}

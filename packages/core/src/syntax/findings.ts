@@ -129,6 +129,21 @@ export type Evidence =
           readonly source: string;
       }
     | {
+          /**
+           * A field the spec package marks required (docs/checks.md, evidence "Required field"),
+           * with the game's own message for it: the field's `required_evidence`, and the
+           * catalogue entry that holds that text, when one does.
+           */
+          readonly kind: 'required-field';
+          /** The folder whose records need the field, and the field's path in a record. */
+          readonly directory: string;
+          readonly field: string;
+          /** The catalogue entry whose text is the field's message, or null when none is. */
+          readonly id: string | null;
+          /** The game's message for the missing field (`required_evidence`); empty when none. */
+          readonly text: string;
+      }
+    | {
           /** No game message: pychivalry's own advice (principle 1 of docs/MVP.md). */
           readonly kind: 'advice';
       };
