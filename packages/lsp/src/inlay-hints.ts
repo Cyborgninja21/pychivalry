@@ -202,7 +202,9 @@ export async function inlayHints(input: InlayHintInput): Promise<InlayHint[]> {
         }
         const record: Pair & { readonly value: Block } = { ...item, value: item.value };
         for (const rule of texts) {
-            if (folder === null) {
+            // A local definition written after a word (`scripted_trigger name = { }`) is no
+            // record of the folder.
+            if (folder === null || record.prefix !== null) {
                 continue;
             }
             const path = rule.block === undefined || rule.block === '' ? [] : rule.block.split('.');

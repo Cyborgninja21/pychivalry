@@ -1,5 +1,9 @@
 namespace = presentation_fixture
 
+scripted_trigger presentation_local_trigger = {
+	is_adult = yes
+}
+
 presentation_fixture.1 = {
 	type = character_event
 	title = presentation_fixture.1.t

@@ -116,14 +116,25 @@ test('outline, snippets, field order and inline hints on the presentation fixtur
     await t.test('the outline follows the folder rule: an event and its blocks', async () => {
         const symbols = (await client.symbols(eventsUri)) ?? [];
         assert.deepEqual(
-            symbols.map((s) => [s.name, s.kind, s.detail]),
+            symbols.map((s) => s.name),
             [
-                ['namespace', SymbolKind.Property, undefined],
-                ['presentation_fixture.1', SymbolKind.Event, 'character_event'],
-                ['presentation_fixture.2', SymbolKind.Event, 'events'],
+                'namespace',
+                'presentation_local_trigger',
+                'presentation_fixture.1',
+                'presentation_fixture.2',
             ],
         );
-        const children = symbols[1]?.children ?? [];
+        // The namespace and the local scripted trigger keep the plain outline.
+        assert.equal(symbols[0]?.kind, SymbolKind.Property);
+        assert.notEqual(symbols[1]?.kind, SymbolKind.Event);
+        assert.deepEqual(
+            symbols.slice(2).map((s) => [s.kind, s.detail]),
+            [
+                [SymbolKind.Event, 'character_event'],
+                [SymbolKind.Event, 'events'],
+            ],
+        );
+        const children = symbols[2]?.children ?? [];
         assert.deepEqual(
             children.map((c) => [c.name, c.kind]),
             [

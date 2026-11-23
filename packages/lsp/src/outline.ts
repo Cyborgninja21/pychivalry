@@ -5,7 +5,8 @@
  * rule lists (mostly blocks), each with its own label and kind, in the order they are written. The definitions
  * the index read inside the record stay under it (under the listed block that holds them,
  * where one does). Every other top-level entry, and every file of a folder without a rule,
- * keeps the plain outline of `symbols.ts`.
+ * keeps the plain outline of `symbols.ts`: an `@constant`, a local definition written after a
+ * word (`scripted_trigger name = { }` in an events file), an events file's `namespace`.
  */
 
 import type { Block, FileNode, Pair } from '@pychivalry/core';
@@ -166,7 +167,14 @@ export function outlineSymbols(plain: DocumentSymbol[], input: OutlineInput): Do
     }
     return plain.map((symbol, i) => {
         const pair = pairs[i];
-        if (pair === undefined || pair.value?.kind !== 'block' || pair.key.text.startsWith('@')) {
+        // A record: a key with a block, neither an `@constant` nor a local definition written
+        // after a word (`scripted_trigger name = { }`).
+        if (
+            pair === undefined ||
+            pair.value?.kind !== 'block' ||
+            pair.prefix !== null ||
+            pair.key.text.startsWith('@')
+        ) {
             return symbol;
         }
         return recordSymbol({ ...pair, value: pair.value }, rule, symbol, input);

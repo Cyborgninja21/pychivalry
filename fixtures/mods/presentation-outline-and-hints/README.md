@@ -6,7 +6,7 @@ empty game stub. What a correct server answers:
 
 | Where | Answer |
 | --- | --- |
-| Outline of `events/presentation_events.txt` | `namespace` as the plain outline has it; each event an `Event` with its `type` as detail, and under it its `immediate` (`Function`) and its options (`EnumMember`), each labelled with its `name` key, in the order written |
+| Outline of `events/presentation_events.txt` | `namespace` and the local `scripted_trigger presentation_local_trigger` as the plain outline has them; each event an `Event` with its `type` as detail, and under it its `immediate` (`Function`) and its options (`EnumMember`), each labelled with its `name` key, in the order written |
 | Outline of `common/decisions/presentation_decisions.txt` | The decision a `Function`, with no `title`, so the plain detail; under it `is_shown`, `effect`, `ai_will_do` |
 | Outline of `common/scripted_effects/presentation_effects.txt` | The plain outline: that folder has no outline rule |
 | Completion at the top level of the events file | The snippets `namespace`, `event` and `hidden event`, to an editor that takes snippets; none to one that does not |
