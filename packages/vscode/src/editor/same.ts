@@ -156,7 +156,8 @@ export async function pychivalryInTerminal(
                 '@echo off',
                 `where pychivalry > ${q(at('found'))}`,
                 `call pychivalry ${args.map(cmdWord).join(' ')} > ${q(at('out'))} 2> ${q(at('err'))}`,
-                `echo %ERRORLEVEL%> ${q(at('code.tmp'))}`,
+                // The redirection first: `echo 1> file` would redirect stream 1 instead.
+                `> ${q(at('code.tmp'))} echo %ERRORLEVEL%`,
                 `move /y ${q(at('code.tmp'))} ${q(at('code'))} > nul`,
                 '',
             ].join('\r\n'),

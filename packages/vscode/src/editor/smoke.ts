@@ -17,7 +17,7 @@ import type { PychivalryApi } from '../extension.js';
 import { EXTENSION_ID } from '../ids.js';
 import { CLI_FILE, LSP_FILE, LSP_FOLDER, SERVER_FILE, SPEC_FOLDER } from '../launch.js';
 import { BIN_FOLDER } from '../terminal.js';
-import { isInside, samePath } from './fixture.js';
+import { isInside, sameFile, samePath } from './fixture.js';
 import { given, type EditorCase } from './harness.js';
 import { activeExtension, displayCase } from './main.js';
 import { assertSameAnswers, pychivalryInTerminal } from './same.js';
@@ -185,7 +185,7 @@ export function smokeCases(): readonly EditorCase[] {
                 assert.match(run.stdout, /^pychivalry \d+\.\d+\.\d+\r?\n$/);
                 // The `pychivalry` the terminal found is the launcher in global storage.
                 const found = run.found.split(/\r?\n/)[0] ?? '';
-                assert.ok(samePath(found, launcher), `${found} is not ${launcher}`);
+                assert.ok(sameFile(found, launcher), `${found} is not ${launcher}`);
                 assert.equal(path.basename(path.dirname(found)), BIN_FOLDER);
             },
         },

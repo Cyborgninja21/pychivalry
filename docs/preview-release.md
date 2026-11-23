@@ -30,54 +30,28 @@ owner in [decisions.md](decisions.md#asked-awaiting-the-owner)).
 
 ## The notes
 
-> **pychivalry 0.1.0 is a preview** of the rebuilt pychivalry: a VS Code extension for Crusader
-> Kings III modding that tells you, and the AI you use, what the game itself would say about
-> your mod's script. It is not 1.0.0. It will change, it is installed and updated by hand, and
-> it is a new extension, `cyborgninja21.pychivalry`, not an update of `ck3-language-support`
-> 2.3.0.
+> **pychivalry 0.1.0 is a preview** of the rebuilt pychivalry, a VS Code extension for Crusader
+> Kings III modding: it tells you, and the AI you use, what the game itself would say about your
+> mod's script. It is not 1.0.0: it will change, and it is installed and updated by hand. It is a
+> new extension, `cyborgninja21.pychivalry`, not an update of `ck3-language-support` 2.3.0;
+> disable that one for a mod you open with this.
 >
-> ### What works
+> **What works.** Checks while you type and for the whole mod in the background, every error and
+> warning resting on the game's own evidence (game 1.21.0.3); hover with the game's own
+> description, completion of what is valid where you type, go to definition, find references
+> and the outline. VS Code's own AI sees pychivalry's tools as soon as it is installed; for
+> Claude Code, run "pychivalry: Set up for Claude Code" once in your mod's folder. In VS Code's
+> terminal, `pychivalry check .`, `lookup` and `explain`, with no Node of your own. The editor,
+> the command line and the agent server report the same findings.
 >
-> - **Checks**, while you type and for the whole mod in the background: syntax, unknown
->   triggers, effects and links, scopes, fields and structure, event targets, localization,
->   and advice. Every error and warning rests on the game's own evidence; information and
->   hints are advice. Checked on game 1.21.0.3.
-> - **Hover** with the game's own description, **completion** of what is valid where you type,
->   **go to definition**, **find references** and the **outline** of a file, across your mod and
->   the base game.
-> - **The agent server for your AI.** VS Code's own AI sees pychivalry's tools (check, lookup,
->   find definitions and references, list definitions, explain a code) as soon as the extension
->   is installed. For Claude Code, run "pychivalry: Set up for Claude Code" once in your mod's
->   folder.
-> - **The command line** in VS Code's terminal: `pychivalry check .`, `pychivalry lookup <name>`,
->   `pychivalry explain <code>`. No Node needed: VS Code runs it.
-> - **The same answers everywhere:** the editor, the command line and the agent server report the
->   same findings for the same mod.
-> - **Settings:** the game folder (found in any Steam library when left empty), the background
->   file limit, unused localization keys, and reading older files saved as Windows-1252.
+> **Not yet.** Formatting and quick fixes, skills for writing content, GUI files, the call
+> graph, the game's error log and the CK3 Explorer views come with later steps; two checks wait
+> on the spec package. Linux and Windows are tested, macOS is not; the game must be on the same
+> computer.
 >
-> ### What is not in this preview
+> **Installing.** Download `pychivalry-0.1.0.vsix` below. In VS Code 1.146 or later: Extensions
+> view, `...`, "Install from VSIX...". Open your mod's folder; if the game is not in a Steam
+> library, set `pychivalry.gamePath` to its `game` folder.
 >
-> - Formatting and quick fixes, skills for writing content with AI, GUI files and the graphics
->   check, the call graph, the game's error log, and the CK3 Explorer views: they come with
->   later build steps.
-> - Two checks of the inventory are blocked, waiting on the spec package; a few others are built
->   in part. The check reference on the wiki says which.
-> - Linux and Windows are tested; macOS is not. The game must be on the same computer as VS Code.
->
-> ### Installing
->
-> 1. Download `pychivalry-0.1.0.vsix` below.
-> 2. In VS Code (1.146 or later): Extensions view, `...` menu, "Install from VSIX...", and choose
->    the file. Or: `code --install-extension pychivalry-0.1.0.vsix`.
-> 3. Open your mod's folder. If the game is not in a Steam library, set `pychivalry.gamePath` to
->    its `game` folder.
-> 4. For Claude Code: run "pychivalry: Set up for Claude Code" from the Command Palette.
->
-> If you also have `ck3-language-support` 2.3.0 installed, disable it for the mod: both would
-> check the same files.
->
-> pychivalry holds no API key, no token and no login, and makes no network call and no model
-> call. The AI is always another program that connects to it.
->
-> This is a preview: please report what goes wrong on the issues page.
+> pychivalry holds no API key, token or login and makes no network or model call. Please report
+> what goes wrong on the issues page.
