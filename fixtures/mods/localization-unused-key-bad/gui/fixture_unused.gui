@@ -1,0 +1,8 @@
+# An interface file: the index does not read it, but it shows a key.
+types FixtureUnused {
+	type fixture_unused_window = window {
+		text_single = {
+			text = "fixture_unused_in_gui"
+		}
+	}
+}

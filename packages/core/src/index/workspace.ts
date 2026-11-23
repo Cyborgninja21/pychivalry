@@ -103,6 +103,12 @@ interface FileEntry {
     readonly uses: Int32Array;
     /** The names it uses, sorted, each once. */
     readonly names: Int32Array;
+    /** The names it saves a scope as, each with where it starts (`USE_STRIDE`). */
+    readonly saves: Int32Array;
+    /** The names it reads as a saved scope (`scope:name`), each with where it starts. */
+    readonly reads: Int32Array;
+    /** The words it writes with a `$PARAM$` beside literal text, each with where it starts. */
+    readonly templates: Int32Array;
 }
 
 /** Everything the cache stores of an index. */
@@ -118,6 +124,9 @@ export interface IndexState {
         readonly defs: Int32Array;
         readonly uses: Int32Array;
         readonly names: Int32Array;
+        readonly saves: Int32Array;
+        readonly reads: Int32Array;
+        readonly templates: Int32Array;
     }[];
     readonly replacePaths: readonly string[];
 }
@@ -411,6 +420,14 @@ export class WorkspaceIndex {
     private readonly byKey = new Map<string, number>();
     private readonly paths = new PathTable<number>();
     private readonly byName = new Map<number, number[]>();
+    /** The files that save a scope as each name. */
+    private readonly bySave = new Map<number, number[]>();
+    /** The files that read each name as a saved scope. */
+    private readonly byRead = new Map<number, number[]>();
+    /** One byte per interned name: 1 when a file uses it. Built when asked, dropped on a change. */
+    private usedBits: Uint8Array | null = null;
+    /** Every template word of every file, each once. Built when asked, dropped on a change. */
+    private templateWords: string[] | null = null;
     private replacePaths: string[] = [];
     private statuses: FileStatus[] | null = null;
 
@@ -527,6 +544,8 @@ export class WorkspaceIndex {
                         ? fileConstantsDatabase(path)
                         : CONSTANTS_DATABASE,
                 fileStem: stem.includes('.') ? stem.slice(0, stem.lastIndexOf('.')) : stem,
+                saveKeys: this.folders.saveKeys,
+                scopeLinks: this.folders.scopeLinks,
             });
             lineStarts = parsed.lines.lineStarts;
         } else {
@@ -548,6 +567,9 @@ export class WorkspaceIndex {
             defs: Int32Array.from(extracted.defs),
             uses: packUses(extracted.uses),
             names: sortedUnique(this.useNames(extracted.uses)),
+            saves: packUses(extracted.saves ?? []),
+            reads: packUses(extracted.reads ?? []),
+            templates: packUses(extracted.templates ?? []),
         };
     }
 
@@ -601,7 +623,22 @@ export class WorkspaceIndex {
                 handles.push(id * SPAN + i);
             }
         }
+        for (const [array, map] of [
+            [file.saves, this.bySave],
+            [file.reads, this.byRead],
+        ] as const) {
+            for (const name of new Set(this.useNames(array))) {
+                const ids = map.get(name);
+                if (ids === undefined) {
+                    map.set(name, [id]);
+                } else {
+                    ids.push(id);
+                }
+            }
+        }
         this.statuses = null;
+        this.usedBits = null;
+        this.templateWords = null;
         return id;
     }
 
@@ -618,13 +655,28 @@ export class WorkspaceIndex {
                 this.byName.set(name, handles);
             }
         }
+        for (const [array, map] of [
+            [file.saves, this.bySave],
+            [file.reads, this.byRead],
+        ] as const) {
+            for (const name of new Set(this.useNames(array))) {
+                const ids = map.get(name)?.filter((i) => i !== id) ?? [];
+                if (ids.length === 0) {
+                    map.delete(name);
+                } else {
+                    map.set(name, ids);
+                }
+            }
+        }
         this.files[id] = undefined;
         this.byKey.delete(`${file.layer}\u0000${file.path}`);
         this.paths.remove(file.path, id);
         this.statuses = null;
+        this.usedBits = null;
+        this.templateWords = null;
     }
 
-    private *useNames(uses: readonly number[]): Generator<number> {
+    private *useNames(uses: ArrayLike<number>): Generator<number> {
         for (let i = 0; i < uses.length; i += USE_STRIDE) {
             yield uses[i] ?? 0;
         }
@@ -1333,6 +1385,172 @@ export class WorkspaceIndex {
         );
     }
 
+    /**
+     * Every place a scope is saved as `name` (`save_scope_as = name`; `FolderTable.saveKeys`),
+     * sorted by layer, path and place: where `scope:name` can come from.
+     */
+    savedScopes(name: string): Use[] {
+        return this.placesOf(name, this.bySave, (file) => file.saves);
+    }
+
+    /** Every place `name` is read as a saved scope (`scope:name`), sorted as `savedScopes`. */
+    scopeReads(name: string): Use[] {
+        return this.placesOf(name, this.byRead, (file) => file.reads);
+    }
+
+    /**
+     * Whether some file writes `name` other than as the name of a saved-scope read
+     * (`scope:name`): as any other word, a save among them. A name no file writes otherwise is
+     * saved by no script at all.
+     */
+    isUsedBesideScopeReads(name: string): boolean {
+        const id = this.strings.find(name);
+        if (id < 0) {
+            return false;
+        }
+        const readers = new Set(this.byRead.get(id) ?? []);
+        for (const file of this.files) {
+            if (file === undefined || !containsSorted(file.names, id)) {
+                continue;
+            }
+            if (!readers.has(file.id)) {
+                return true;
+            }
+            const count = (array: Int32Array): number => {
+                let n = 0;
+                for (let i = 0; i < array.length; i += USE_STRIDE) {
+                    if (array[i] === id) {
+                        n++;
+                    }
+                }
+                return n;
+            };
+            if (count(file.uses) > count(file.reads)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Every word a file writes with a `$PARAM$` beside literal text (`been_to_$SCENE$`), each
+     * once, sorted: each stands for every name it can become (`nameTemplatePattern`).
+     */
+    nameTemplates(): readonly string[] {
+        if (this.templateWords === null) {
+            const ids = new Set<number>();
+            for (const file of this.files) {
+                for (const id of this.useNames(file?.templates ?? [])) {
+                    ids.add(id);
+                }
+            }
+            this.templateWords = [...ids].map((id) => this.strings.get(id)).sort(compareStrings);
+        }
+        return this.templateWords;
+    }
+
+    /** The places of a name in one of the per-file arrays of names and offsets. */
+    private placesOf(
+        name: string,
+        byName: ReadonlyMap<number, readonly number[]>,
+        arrayOf: (file: FileEntry) => Int32Array,
+    ): Use[] {
+        const id = this.strings.find(name);
+        const out: Use[] = [];
+        for (const fileId of id < 0 ? [] : (byName.get(id) ?? [])) {
+            const file = this.files[fileId];
+            if (file === undefined) {
+                continue;
+            }
+            const read = this.statusOf(fileId).read;
+            const array = arrayOf(file);
+            for (let i = 0; i < array.length; i += USE_STRIDE) {
+                if (array[i] === id) {
+                    const start = array[i + 1] ?? 0;
+                    const end = start + name.length;
+                    out.push({
+                        name,
+                        layer: file.layer,
+                        file: file.path,
+                        start,
+                        end,
+                        range: {
+                            start: positionIn(file.lineStarts, start),
+                            end: positionIn(file.lineStarts, end),
+                        },
+                        read,
+                    });
+                }
+            }
+        }
+        return out.sort(
+            (a, b) =>
+                layerSortKey(a.layer) - layerSortKey(b.layer) ||
+                compareStrings(a.layer, b.layer) ||
+                compareStrings(a.file, b.file) ||
+                a.start - b.start,
+        );
+    }
+
+    /** Whether the index holds any definition of `name`, in any database. */
+    hasDefinition(name: string): boolean {
+        return this.handlesOf(name).length > 0;
+    }
+
+    /** Whether any file uses `name` (`references` would list a use of it). */
+    isUsed(name: string): boolean {
+        const id = this.strings.find(name);
+        if (id < 0) {
+            return false;
+        }
+        if (this.usedBits === null) {
+            const bits = new Uint8Array(this.strings.size);
+            for (const file of this.files) {
+                for (const n of file?.names ?? []) {
+                    bits[n] = 1;
+                }
+            }
+            this.usedBits = bits;
+        }
+        return this.usedBits[id] === 1;
+    }
+
+    /**
+     * Whether a file writes `word` as one scope chain (`my_mod.event.t`): the index records a
+     * chain's segments as uses of their own, so the whole word is found as consecutive uses of
+     * its segments, each where the one before ends past its `.`.
+     */
+    isUsedAsChain(word: string): boolean {
+        const segments = word.split('.');
+        const ids = segments.map((s) => this.strings.find(s));
+        if (segments.length < 2 || ids.some((id) => id < 0)) {
+            return false;
+        }
+        const first = ids[0] ?? -1;
+        for (const file of this.files) {
+            if (file === undefined || !ids.every((id) => containsSorted(file.names, id))) {
+                continue;
+            }
+            const uses = file.uses;
+            for (let i = 0; i < uses.length; i += USE_STRIDE) {
+                if (uses[i] !== first) {
+                    continue;
+                }
+                let at = (uses[i + 1] ?? 0) + (segments[0]?.length ?? 0) + 1;
+                let ok = true;
+                for (let j = 1; j < segments.length && ok; j++) {
+                    const k = i + j * USE_STRIDE;
+                    ok = uses[k] === ids[j] && uses[k + 1] === at;
+                    at += (segments[j]?.length ?? 0) + 1;
+                }
+                if (ok) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     /** Every name used anywhere, each once. */
     *usedNames(): Generator<string> {
         const seen = new Set<number>();
@@ -1463,6 +1681,23 @@ export class WorkspaceIndex {
                 uses.push(`${s(file.uses[i] ?? -1)}\u0001${String(file.uses[i + 1])}`);
             }
             hash.update(uses.join('\n'));
+            const saves: string[] = [];
+            for (let i = 0; i < file.saves.length; i += USE_STRIDE) {
+                saves.push(`${s(file.saves[i] ?? -1)}\u0001${String(file.saves[i + 1])}`);
+            }
+            hash.update(`saves\u0000${saves.join('\n')}`);
+            const reads: string[] = [];
+            for (let i = 0; i < file.reads.length; i += USE_STRIDE) {
+                reads.push(`${s(file.reads[i] ?? -1)}\u0001${String(file.reads[i + 1])}`);
+            }
+            hash.update(`reads\u0000${reads.join('\n')}`);
+            const templates: string[] = [];
+            for (let i = 0; i < file.templates.length; i += USE_STRIDE) {
+                templates.push(
+                    `${s(file.templates[i] ?? -1)}\u0001${String(file.templates[i + 1])}`,
+                );
+            }
+            hash.update(`templates\u0000${templates.join('\n')}`);
         }
         hash.update(`replace\u0000${this.replacePaths.join('\u0000')}`);
         return hash.digest('hex');

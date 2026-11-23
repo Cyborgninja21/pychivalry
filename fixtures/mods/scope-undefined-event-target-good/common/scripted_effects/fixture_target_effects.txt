@@ -1,0 +1,9 @@
+# Saves read by the events of this mod.
+fixture_target_save_effect = {
+	save_scope_as = fixture_target_saved_elsewhere
+	save_scope_value_as = {
+		name = fixture_target_saved_value
+		value = 5
+	}
+	save_scope_as = fixture_target_built_$WHAT$
+}

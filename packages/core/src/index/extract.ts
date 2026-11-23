@@ -31,6 +31,12 @@
  * `NGroup` and `NAME`); quoted text that holds one such word, read as that word. A word holding
  * a `$PARAM$` stands for many names and is not a use; nor are dates, decimals, `@[ ... ]`,
  * operators, a tagged value's tag or a prefix word.
+ *
+ * Saves, beside the uses: a pair anywhere in a script file whose key is one the spec package
+ * says saves a scope (`save_scope_as = name`; `FolderTable.saveKeys`) and whose value is a
+ * plain name records a save of that name; the head of a chain written with the link that reads
+ * a saved scope (`scope:name`; `FolderTable.scopeLinks`) records a read of it (docs/checks.md,
+ * `scope/undefined-event-target`). The name is a use as well in both, as every word is.
  */
 
 import { chainSegments, classifyWord } from '../syntax/lexer.js';
@@ -109,12 +115,31 @@ export interface ScriptContext {
     readonly constants?: string;
     /** The file's stem, the name of its record when the folder names records by their file. */
     readonly fileStem?: string | null;
+    /**
+     * The keys that save a scope (`save_scope_as`), in lower case (`FolderTable.saveKeys`): a
+     * pair `key = name` with one of them, anywhere in the file, records a save of `name`.
+     */
+    readonly saveKeys?: ReadonlySet<string>;
+    /**
+     * The links that read a saved scope (`scope`), in lower case (`FolderTable.scopeLinks`): the
+     * head of a chain written with one of them, anywhere in the file, records a read of its name.
+     */
+    readonly scopeLinks?: ReadonlySet<string>;
 }
 
 /** What one file defines and uses, packed. */
 export interface Extracted {
     readonly defs: number[];
     readonly uses: number[];
+    /** The names it saves a scope as, each with where the name starts (`USE_STRIDE`). */
+    readonly saves?: number[];
+    /** The names it reads as a saved scope (`scope:name`), each with where the name starts. */
+    readonly reads?: number[];
+    /**
+     * The words it writes with a `$PARAM$` beside literal text (`been_to_$SCENE$`), each with
+     * where it starts: each stands for every name it can become, a saved scope's among them.
+     */
+    readonly templates?: number[];
 }
 
 const WHOLE_NUMBER = /^[0-9]+$/;
@@ -192,10 +217,15 @@ function chainWords(
     }
 }
 
-/** Every use in a value, a block or a list of items, without recursion. */
+/**
+ * Every use in a value, a block or a list of items, without recursion; each pair to `onPair`,
+ * each scalar to `onScalar`.
+ */
 function collectUses(
     roots: readonly (Item | Value)[],
     push: (word: string, start: number) => void,
+    onPair?: (pair: Pair) => void,
+    onScalar?: (scalar: Scalar) => void,
 ): void {
     const stack: (Item | Value)[] = [...roots].reverse();
     for (;;) {
@@ -206,8 +236,10 @@ function collectUses(
         switch (node.kind) {
             case 'scalar':
                 scalarWords(node, push);
+                onScalar?.(node);
                 break;
             case 'pair':
+                onPair?.(node);
                 if (node.value !== null) {
                     stack.push(node.value);
                 }
@@ -393,11 +425,69 @@ function priorityOf(block: Block, field: string, fallback: number): number {
     return fallback;
 }
 
+const PARAMETER_IN_WORD = /\$[^$\s]+\$/g;
+
+/** Whether a word holds a `$PARAM$` and literal text beside it: `been_to_$SCENE$`. */
+export function isNameTemplate(word: string): boolean {
+    return word.includes('$') && word.replace(PARAMETER_IN_WORD, '') !== '';
+}
+
+/** The names a template word can become, as a pattern: each `$PARAM$` stands for any text. */
+export function nameTemplatePattern(word: string): RegExp {
+    const parts = word.split(PARAMETER_IN_WORD).map((p) => p.replace(/[.*+?^()|[\]\\{}]/g, '\\$&'));
+    return new RegExp(`^${parts.join('.+')}$`);
+}
+
 /** What a script file defines and uses. */
 export function extractScript(file: FileNode, context: ScriptContext): Extracted {
     const { strings } = context;
     const defs: number[] = [];
     const uses: number[] = [];
+    const saves: number[] = [];
+    const saveKeys = context.saveKeys;
+    // `save_scope_as = name`: a save of `name`. A name holding a `$PARAM$` stands for many.
+    const onPair =
+        saveKeys === undefined || saveKeys.size === 0
+            ? undefined
+            : (pair: Pair): void => {
+                  const value = pair.value;
+                  if (
+                      value?.kind === 'scalar' &&
+                      value.type === 'name' &&
+                      !value.text.includes('$') &&
+                      saveKeys.has(pair.key.text.toLowerCase())
+                  ) {
+                      saves.push(strings.intern(value.text), value.start);
+                  }
+              };
+    const reads: number[] = [];
+    const templates: number[] = [];
+    const scopeLinks = context.scopeLinks;
+    // `scope:name`, as a key or a value, alone or at the head of a chain: a read of `name`. A
+    // name built with a `$PARAM$` (`save_scope_as = been_to_$SCENE$`): a template.
+    const onScalar =
+        scopeLinks === undefined || scopeLinks.size === 0
+            ? undefined
+            : (scalar: Scalar): void => {
+                  if (scalar.type === 'name' && isNameTemplate(scalar.text)) {
+                      templates.push(strings.intern(scalar.text), scalar.start);
+                      return;
+                  }
+                  if (scalar.type !== 'chain') {
+                      return;
+                  }
+                  const head = scalar.segments?.[0] ?? '';
+                  const colon = head.indexOf(':');
+                  const name = head.slice(colon + 1);
+                  if (
+                      colon > 0 &&
+                      name !== '' &&
+                      !/[$|]/.test(name) &&
+                      scopeLinks.has(head.slice(0, colon).toLowerCase())
+                  ) {
+                      reads.push(strings.intern(name), scalar.start + colon + 1);
+                  }
+              };
     /** Where each nested definition's own key starts: not a use. */
     const ownKeys = new Set<number>();
     const push = (word: string, start: number): void => {
@@ -426,8 +516,8 @@ export function extractScript(file: FileNode, context: ScriptContext): Extracted
     };
     if (context.database === null) {
         // No listed folder holds the file: the spec does not say what it defines.
-        collectUses(file.items, push);
-        return { defs, uses };
+        collectUses(file.items, push, onPair, onScalar);
+        return { defs, uses, saves, reads, templates };
     }
     const folder = context.folder;
     if (folder?.fileNamed === true && context.fileStem !== null && context.fileStem !== undefined) {
@@ -497,8 +587,8 @@ export function extractScript(file: FileNode, context: ScriptContext): Extracted
             rest.push(item.value);
         }
     }
-    collectUses(rest, push);
-    return { defs, uses };
+    collectUses(rest, push, onPair, onScalar);
+    return { defs, uses, saves, reads, templates };
 }
 
 /** What a localization file defines and uses. */

@@ -1,0 +1,2 @@
+l_english:
+ fixture_loc_no_bom:0 "Defined in a file without the byte-order mark"

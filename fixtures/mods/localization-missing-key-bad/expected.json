@@ -1,0 +1,87 @@
+{
+    "findings": [
+        {
+            "file": "common/court_positions/types/fixture_court_positions.txt",
+            "line": 2,
+            "column": 1,
+            "code": "localization/missing-key",
+            "severity": "warning",
+            "message": "Unknown loc key fixture_court_position",
+            "data": {
+                "key": "fixture_court_position",
+                "pattern": "<name>",
+                "directory": "common/court_positions/types",
+                "requirement": "required",
+                "row_status": "confirmed"
+            }
+        },
+        {
+            "file": "common/court_positions/types/fixture_court_positions.txt",
+            "line": 2,
+            "column": 1,
+            "code": "localization/missing-key",
+            "severity": "warning",
+            "message": "Unknown loc key fixture_court_position_desc",
+            "data": {
+                "key": "fixture_court_position_desc",
+                "pattern": "<name>_desc",
+                "directory": "common/court_positions/types",
+                "requirement": "required",
+                "row_status": "confirmed"
+            }
+        },
+        {
+            "file": "common/decision_group_types/fixture_decision_groups.txt",
+            "line": 2,
+            "column": 1,
+            "code": "localization/missing-key",
+            "severity": "information",
+            "message": "Every record of common/decision_group_types in the base game has the localization key decision_group_type_<name>; 'decision_group_type_fixture_decision_group' is defined in no localization file.",
+            "data": {
+                "key": "decision_group_type_fixture_decision_group",
+                "pattern": "decision_group_type_<name>",
+                "directory": "common/decision_group_types",
+                "requirement": "always-present-in-base-game",
+                "row_status": "confirmed"
+            }
+        },
+        {
+            "file": "events/fixture_loc_events.txt",
+            "line": 17,
+            "column": 10,
+            "code": "localization/missing-key",
+            "severity": "warning",
+            "message": "Unknown loc key fixture_loc.0001.missing",
+            "data": {
+                "key": "fixture_loc.0001.missing",
+                "field": "option.name"
+            }
+        },
+        {
+            "file": "events/fixture_loc_events.txt",
+            "line": 20,
+            "column": 10,
+            "code": "localization/missing-key",
+            "severity": "warning",
+            "message": "Unknown loc key fixture text with spaces",
+            "data": {
+                "key": "fixture text with spaces",
+                "field": "option.name"
+            }
+        }
+    ],
+    "without_bom": [
+        {
+            "file": "events/fixture_loc_events.txt",
+            "line": 14,
+            "column": 10,
+            "code": "localization/missing-key",
+            "severity": "warning",
+            "message": "Unknown loc key fixture_loc_no_bom",
+            "data": {
+                "key": "fixture_loc_no_bom",
+                "field": "option.name"
+            }
+        }
+    ]
+}

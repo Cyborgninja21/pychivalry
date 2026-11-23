@@ -1,0 +1,4 @@
+﻿l_english:
+ fixture_loc.0001.t:0 "An event"
+ fixture_loc.0001.a: "An option, written without a version number"
+ fixture_loc.0002.dynamic:0 "A dynamic description"

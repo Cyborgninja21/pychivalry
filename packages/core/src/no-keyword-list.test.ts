@@ -25,6 +25,7 @@ const FORMAT_WORDS: Readonly<Record<string, string>> = {
     parameter: "a word's kind in the syntax tree (`WordType`): a `$PARAM$`",
     object: "what JavaScript's `typeof` gives for an object",
     status: "a key every row of the spec package's parts D1 to D8 carries, and of a part (`built`)",
+    text: "a value group of the spec package's measured value types (part B1, `value_type`): free text",
 };
 
 /** Every name of 2.3.0's tables: the entries, their parameters, the lists and folders they name. */
