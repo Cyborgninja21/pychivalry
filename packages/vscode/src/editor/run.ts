@@ -325,8 +325,24 @@ async function tests(how: Starter, root: string): Promise<void> {
             .map((w) => w.trim()),
     );
     const harness = harnessExtension(root);
+    // Each suite runs whatever the one before it did, and the run fails at the end naming each
+    // suite that failed, so one failure does not hide another system's.
+    const failed: string[] = [];
+    const suite = async (name: string, run: () => Promise<void>): Promise<void> => {
+        if (!wanted.has(name)) {
+            return;
+        }
+        try {
+            await run();
+        } catch (err) {
+            failed.push(name);
+            process.stderr.write(
+                `vscode:test: suite ${name} failed: ${err instanceof Error ? (err.stack ?? err.message) : String(err)}\n`,
+            );
+        }
+    };
 
-    if (wanted.has('main')) {
+    await suite('main', async () => {
         const mod = modCopy(root);
         const main = place(root, 'main');
         await start(how, 'main', main, PACKAGE, mod, { PYCHIVALRY_TEST_GAME: PLANTED_GAME });
@@ -366,9 +382,9 @@ async function tests(how: Starter, root: string): Promise<void> {
                 'ok - Claude Code connects to the server from the entry the set-up wrote\n',
             );
         }
-    }
+    });
 
-    if (wanted.has('smoke')) {
+    await suite('smoke', async () => {
         // Items 7.9 and 7.11: the packaged file, installed into a clean VS Code.
         const vsix = packagedVsix();
         const smoke = place(root, 'smoke');
@@ -380,9 +396,9 @@ async function tests(how: Starter, root: string): Promise<void> {
             PYCHIVALRY_TEST_EXTENSIONS: smoke.extensions,
             PYCHIVALRY_TEST_VERSION: extensionVersion(),
         });
-    }
+    });
 
-    if (wanted.has('update')) {
+    await suite('update', async () => {
         // Item 7.1 (c): the extension as a user installs it, then an update.
         const mod = existsSync(path.join(root, 'mods & more (100%)', 'a mod'))
             ? path.join(root, 'mods & more (100%)', 'a mod')
@@ -420,6 +436,10 @@ async function tests(how: Starter, root: string): Promise<void> {
             `ok - between versions: Claude Code's entry answers check with version ${v1} removed and no VS Code running\n`,
         );
         await start(how, 'update-2', update, harness, mod, versions);
+    });
+
+    if (failed.length > 0) {
+        throw new Error(`the editor suites ${failed.join(', ')} failed`);
     }
 }
 

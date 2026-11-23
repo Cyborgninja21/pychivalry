@@ -95,8 +95,11 @@ export function mainCases(): readonly EditorCase[] {
             name: '7.3: the language server checks the mod, and VS Code shows its finding',
             run: async () => {
                 const language = theApi().language;
+                // The background pass leaves out the files open in the editor, which are checked
+                // as they open: the case above opened both of this mod's files, so the pass may
+                // have had none left to check.
                 const full = await language.firstFullResult;
-                assert.ok(full.done.complete && full.done.checked > 0, JSON.stringify(full.done));
+                assert.ok(full.done.complete && !full.done.limited, JSON.stringify(full.done));
                 const events = vscode.Uri.file(path.join(mod, 'events', 'fixture_events.txt'));
                 let shown: vscode.Diagnostic[] = [];
                 await waitFor('the diagnostics', () => {
