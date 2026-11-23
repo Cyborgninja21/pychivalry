@@ -219,10 +219,9 @@ function infoScopeWords(schema: Readonly<Record<string, DirectorySchema>>): Set<
     const words = new Set<string>();
     const collect = (fields: Fields): void => {
         for (const field of Object.values(fields ?? {})) {
+            // A note about no named scope has a null `scope`: it names no head.
             for (const note of field.info_scope ?? []) {
-                if (note.scope !== null) {
-                    words.add(note.scope);
-                }
+                words.add(note.scope);
             }
             collect(field.fields);
         }
@@ -609,10 +608,7 @@ class Walker {
             return false;
         }
         return field.info_scope.some((note) => {
-            if (
-                note.scope === null ||
-                (note.scope !== this.model.rootHead && note.scope !== this.model.thisHead)
-            ) {
+            if (note.scope !== this.model.rootHead && note.scope !== this.model.thisHead) {
                 return false;
             }
             const type = note.type.toLowerCase();
