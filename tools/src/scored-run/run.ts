@@ -207,6 +207,8 @@ export function scoredOptions(
  * - `--setting-sources project,local` leaves out the user's own settings, instructions and
  *   skills, so that a trial measures the server, not the person's set-up (the plan's open
  *   question; the trial folder has no project settings).
+ * - `--disable-slash-commands` leaves out the skills Claude Code brings with it: item 6.11's
+ *   first test session listed 16 at its start, none of them the user's.
  */
 export function claudeArgs(
     options: Pick<ScoredOptions, 'model' | 'sessionLimit'>,
@@ -235,6 +237,7 @@ export function claudeArgs(
         options.model,
         '--setting-sources',
         'project,local',
+        '--disable-slash-commands',
     ];
 }
 
@@ -363,25 +366,44 @@ export function sanitize(text: string, folders: readonly { path: string; name: s
  */
 export const SESSION_LIMIT_SUBTYPE = 'error_max_budget_usd';
 
-/** What made a trial's session end, from its stream and its exit. */
-function stoppedBy(summary: StreamSummary, timedOut: boolean): TrialRecord['stopped'] {
+/**
+ * What made a trial's session end, from its stream and its exit. A session ended by itself
+ * only when its end is `success` and not an error: Claude Code also ends a session that never
+ * reached the model with `success` and `is_error` (stream.ts).
+ */
+export function stoppedBy(summary: StreamSummary, timedOut: boolean): TrialRecord['stopped'] {
     if (timedOut) {
         return 'timeout';
     }
-    const subtype = summary.result?.subtype;
-    if (subtype === undefined) {
+    const result = summary.result;
+    if (result === null) {
         return 'no-result';
     }
-    if (subtype === 'success') {
-        return 'finished';
-    }
-    if (subtype === SESSION_LIMIT_SUBTYPE) {
+    if (result.subtype === SESSION_LIMIT_SUBTYPE) {
         return 'session-limit';
     }
-    if (subtype === 'error_max_turns') {
+    if (result.subtype === 'error_max_turns') {
         return 'turns';
     }
+    if (result.subtype === 'success' && !result.isError) {
+        return 'finished';
+    }
     return 'error';
+}
+
+/** How a session that ended on an error ended: its subtype, why its loop ended, the status. */
+function errorEnd(summary: StreamSummary): string {
+    const result = summary.result;
+    if (result === null) {
+        return 'an error';
+    }
+    return [
+        result.subtype,
+        result.terminalReason,
+        result.apiErrorStatus === null ? null : `status ${String(result.apiErrorStatus)}`,
+    ]
+        .filter((part) => part !== null)
+        .join(', ');
 }
 
 /** The problems of a trial's harness: what makes the trial say nothing about the server. */
@@ -399,7 +421,7 @@ export function harnessProblems(
     } else if (stopped === 'no-result') {
         problems.push(`the stream has no result; Claude Code exited with ${String(exitCode)}`);
     } else if (stopped === 'error') {
-        problems.push(`the session ended with ${summary.result?.subtype ?? 'an error'}`);
+        problems.push(`the session ended on an error (${errorEnd(summary)})`);
     }
     const init = summary.init;
     if (init === null) {
@@ -411,6 +433,12 @@ export function harnessProblems(
     );
     if (outside.length > 0) {
         problems.push(`tools outside the confinement were offered: ${outside.join(', ')}`);
+    }
+    if (init.skills.length > 0) {
+        problems.push(`skills were offered: ${init.skills.join(', ')}`);
+    }
+    if (init.plugins.length > 0) {
+        problems.push(`plugins were loaded: ${init.plugins.join(', ')}`);
     }
     const others = init.mcpServers.filter((s) => s.name !== SERVER_NAME).map((s) => s.name);
     if (others.length > 0) {
@@ -489,6 +517,8 @@ export function trialRecord(input: {
                       permission_mode: summary.init.permissionMode,
                       tools: [...summary.init.tools].sort(),
                       mcp_servers: summary.init.mcpServers.map((s) => ({ ...s })),
+                      skills: [...summary.init.skills].sort(),
+                      plugins: [...summary.init.plugins].sort(),
                   },
         turns: summary.result?.turns ?? null,
         duration_ms: summary.result?.durationMs ?? null,
@@ -512,6 +542,9 @@ function commandOf(root: string, options: ScoredOptions): string {
     const server = relativePosix(root, options.server);
     if (server !== DEFAULT_SERVER) {
         parts.push(`SCORED_SERVER=${server.startsWith('..') ? '<agent server>' : server}`);
+    }
+    if (options.claude.command !== 'claude' || options.claude.args.length > 0) {
+        parts.push('SCORED_CLAUDE=<another Claude Code>');
     }
     if (options.continue) {
         parts.push('SCORED_CONTINUE=true');
@@ -689,6 +722,12 @@ export function runScored(
                 );
             }
             const summary = readStream(readFileSync(streamFile, 'utf8'));
+            const folders = [
+                { path: modDir, name: '<trial mod>' },
+                { path: runDir, name: '<run dir>' },
+                { path: root, name: '<repository>' },
+                { path: homedir(), name: '<home>' },
+            ];
             const { findings, grades } = gradeMod({
                 root,
                 spec,
@@ -704,14 +743,14 @@ export function runScored(
                 timeoutMinutes: options.timeoutMinutes,
                 grades,
                 findings,
-                folders: [
-                    { path: modDir, name: '<trial mod>' },
-                    { path: runDir, name: '<run dir>' },
-                    { path: root, name: '<repository>' },
-                    { path: homedir(), name: '<home>' },
-                ],
+                folders,
             });
             trials.push(trial);
+            const errorText = summary.result?.errorText ?? null;
+            if (trial.stopped === 'error' && errorText !== null) {
+                // The session's own words on its error, for the person running it; never recorded.
+                log(`trial ${String(n)}: the session's error: ${sanitize(errorText, folders)}`);
+            }
             const failed = trial.graders.filter((g) => !g.passed).map((g) => g.name);
             log(
                 `trial ${String(n)}: ${trial.passed ? 'passed' : 'failed'} (${trial.stopped}; ${String(summary.toolCalls.length)} tool calls, ${String(summary.toolErrors.length)} tool errors${failed.length > 0 ? `; failed: ${failed.join(', ')}` : ''}${trial.harness_problems.length > 0 ? `; harness: ${trial.harness_problems.join('; ')}` : ''})`,

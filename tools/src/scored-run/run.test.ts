@@ -41,6 +41,7 @@ const expected = {
 function stream(options: {
     readonly tools?: readonly string[];
     readonly servers?: readonly { name: string; status: string }[];
+    readonly skills?: readonly string[];
     readonly subtype?: string;
     readonly errorText?: string;
 }): string {
@@ -59,6 +60,8 @@ function stream(options: {
                 ...SERVER_TOOLS.map((n) => `mcp__pychivalry__${n}`),
             ],
             mcp_servers: options.servers ?? [{ name: 'pychivalry', status: 'connected' }],
+            skills: options.skills ?? [],
+            plugins: [],
             apiKeySource: 'none',
         },
         {
@@ -211,7 +214,7 @@ test('a run whose agent fixes the mod: every trial passes, and the record holds'
     assert.equal(record.corpus, null);
     assert.match(
         record.command,
-        /^SCORED_MODEL=claude-opus-5-5 SCORED_TRIALS=2 SCORED_SESSION_LIMIT=2 SCORED_SERVER=\S+ task scored:agent-use$/,
+        /^SCORED_MODEL=claude-opus-5-5 SCORED_TRIALS=2 SCORED_SESSION_LIMIT=2 SCORED_SERVER=\S+ SCORED_CLAUDE=<another Claude Code> task scored:agent-use$/,
     );
     const trial = results.trials[0];
     assert.ok(trial !== undefined);
@@ -462,6 +465,7 @@ test('the flags of the plan, as the installed Claude Code takes them', () => {
             'claude-test-1',
             '--setting-sources',
             'project,local',
+            '--disable-slash-commands',
         ],
     );
 });
@@ -494,6 +498,8 @@ test('the stream reader keeps the calls, errors, start and end, and counts unrea
     assert.deepEqual(summary.toolErrors, [{ name: 'Read', message: 'boom' }]);
     assert.equal(summary.init?.version, '2.1.220');
     assert.equal(summary.result?.subtype, 'success');
+    assert.equal(summary.result.isError, false);
+    assert.equal(summary.result.errorText, null);
     assert.deepEqual(summary.result.permissionDenials, ['Bash']);
     assert.equal(summary.unreadLines, 1);
     assert.deepEqual(readStream(''), {
@@ -567,4 +573,110 @@ test('a continued run adds its trials to the record, numbered after its own, and
     );
     const kept = JSON.parse(readFileSync(recordFile, 'utf8')) as ScoredRecord;
     assert.equal(kept.results.trials.length, 3);
+});
+
+/**
+ * The whole stream of item 6.11's first test session, as Claude Code 2.1.220 wrote it, with its
+ * identifiers, folder and figures replaced: the installed Claude Code refused the pinned model
+ * before any request and still ended the session with the subtype `success`.
+ */
+const REFUSED_MODEL_STREAM = [
+    {
+        type: 'system',
+        subtype: 'init',
+        cwd: '<trial mod>',
+        session_id: '<session id>',
+        tools: ['Edit', 'Read', ...SERVER_TOOLS.map((n) => `mcp__pychivalry__${n}`)],
+        mcp_servers: [{ name: 'pychivalry', status: 'connected' }],
+        model: PINNED_MODEL,
+        permissionMode: 'dontAsk',
+        slash_commands: ['debug', 'simplify', 'clear', 'compact', 'context'],
+        apiKeySource: 'none',
+        claude_code_version: '2.1.220',
+        output_style: 'default',
+        agents: ['claude', 'Explore', 'general-purpose', 'Plan', 'statusline-setup'],
+        skills: ['debug', 'simplify'],
+        plugins: [],
+        capabilities: ['interrupt_receipt_v1', 'interrupt_cancel_queued_v1', 'msg_lifecycle_v1'],
+        analytics_disabled: false,
+        product_feedback_disabled: false,
+        fast_mode_state: 'off',
+        fast_mode_disabled_reason: 'sdk_opt_in_required',
+        uuid: '<uuid>',
+    },
+    {
+        type: 'assistant',
+        message: {
+            id: '<id>',
+            container: null,
+            model: '<synthetic>',
+            role: 'assistant',
+            stop_details: null,
+            stop_reason: 'stop_sequence',
+            stop_sequence: '',
+            type: 'message',
+            usage: {},
+            content: [
+                {
+                    type: 'text',
+                    text: 'API Error: 400 Claude Code 2.1.220 does not support this model; version 2.1.280 or newer is required.',
+                },
+            ],
+            context_management: null,
+        },
+        parent_tool_use_id: null,
+        session_id: '<session id>',
+        uuid: '<uuid>',
+        timestamp: '2026-11-23T00:00:00.000Z',
+        error: 'unknown',
+        request_id: '<request id>',
+        is_api_error_message: true,
+    },
+    {
+        is_error: true,
+        duration_api_ms: 0,
+        num_turns: 1,
+        stop_reason: 'stop_sequence',
+        session_id: '<session id>',
+        total_cost_usd: 0,
+        usage: {},
+        modelUsage: {},
+        permission_denials: [],
+        terminal_reason: 'api_error',
+        fast_mode_state: 'off',
+        fast_mode_disabled_reason: 'sdk_opt_in_required',
+        subtype: 'success',
+        api_error_status: 400,
+        result: 'API Error: 400 Claude Code 2.1.220 does not support this model; version 2.1.280 or newer is required.',
+        type: 'result',
+        duration_ms: 267,
+        uuid: '<uuid>',
+    },
+]
+    .map((e) => JSON.stringify(e))
+    .join('\n');
+
+test('a session that never reached the model ends on an error, though its subtype is success', (t) => {
+    const summary = readStream(REFUSED_MODEL_STREAM);
+    assert.equal(summary.result?.subtype, 'success');
+    assert.equal(summary.result.isError, true);
+    assert.equal(summary.result.terminalReason, 'api_error');
+    assert.equal(summary.result.apiErrorStatus, 400);
+    assert.match(summary.result.errorText ?? '', /does not support this model/);
+    assert.deepEqual(summary.toolCalls, []);
+    assert.equal(summary.unreadLines, 0);
+
+    const { record, log } = run(t, { SCORED_TRIALS: '1' }, REFUSED_MODEL_STREAM);
+    const trial = record.results.trials[0];
+    assert.equal(trial?.stopped, 'error');
+    assert.equal(trial.passed, false);
+    assert.deepEqual(trial.harness_problems, [
+        'the session ended on an error (success, api_error, status 400)',
+        'skills were offered: debug, simplify',
+    ]);
+    assert.deepEqual(trial.session?.skills, ['debug', 'simplify']);
+    assert.deepEqual(trial.session.plugins, []);
+    // The error's words reach the person running the test, never the record.
+    assert.ok(log.some((l) => /trial 1: the session's error: API Error: 400/.test(l)));
+    assert.ok(!JSON.stringify(record).includes('does not support'));
 });
