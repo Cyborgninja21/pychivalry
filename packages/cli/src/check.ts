@@ -37,12 +37,14 @@
  */
 
 import {
-    checkWorkspace,
+    checkWorkspaceSteps,
     codesMatching,
     defaultCacheDir,
+    drain,
     whatIsValid,
     type Severity,
     type Spec,
+    type Steps,
     type WorkspaceCheck,
     type WorkspaceFinding,
 } from '@pychivalry/core';
@@ -250,6 +252,7 @@ export function summaryJson(
                       dir: game.dir,
                       found_by: game.source,
                       from_cache: run.game.fromCache,
+                      shared: run.game.shared,
                       ms: {
                           list: Math.round(run.game.ms.list),
                           build: Math.round(run.game.ms.build),
@@ -336,77 +339,82 @@ export const checkCommand: Command = {
         DRY_RUN_OPTION,
     ],
     positionals: { min: 1, max: 1 },
-    run(parsed: Parsed, io: Io): number {
-        const filters = readFilters(parsed);
-        const fix = parsed.flags.has('--fix');
-        const dryRun = parsed.flags.has('--dry-run');
-        if (dryRun && !fix) {
-            throw new UsageError('--dry-run: only with --fix');
+    run: (parsed: Parsed, io: Io): number => drain(checkSteps(parsed, io)),
+    steps: checkSteps,
+};
+
+/** `check`, in steps: a pause after each file of the mod indexed and checked. */
+function* checkSteps(parsed: Parsed, io: Io): Steps<number> {
+    const filters = readFilters(parsed);
+    const fix = parsed.flags.has('--fix');
+    const dryRun = parsed.flags.has('--dry-run');
+    if (dryRun && !fix) {
+        throw new UsageError('--dry-run: only with --fix');
+    }
+    const modDir = path.resolve(io.cwd, parsed.positionals[0] ?? '');
+    if (!isDirectory(modDir)) {
+        throw new InputError(`not a folder: ${modDir}`);
+    }
+    const spec = readSpecOption(parsed, io);
+    const game = readGameOption(parsed, io, spec);
+    const checkMod = (): Steps<WorkspaceCheck> =>
+        checkWorkspaceSteps({
+            spec,
+            modDir,
+            gameDir: game.dir,
+            cacheDir: defaultCacheDir(io.env, io.platform, io.home),
+            unusedKeys: parsed.flags.has('--unused-keys'),
+            base: io.base,
+        });
+    let run = yield* checkMod();
+    let fixed: FixRun | null = null;
+    if (fix) {
+        fixed = applySafeFixes(
+            modDir,
+            select(run.findings, { ...filters, limit: null }).matched,
+            dryRun,
+            run.findings,
+        );
+        if (!dryRun && fixed.files.length > 0) {
+            run = yield* checkMod();
         }
-        const modDir = path.resolve(io.cwd, parsed.positionals[0] ?? '');
-        if (!isDirectory(modDir)) {
-            throw new InputError(`not a folder: ${modDir}`);
-        }
-        const spec = readSpecOption(parsed, io);
-        const game = readGameOption(parsed, io, spec);
-        const checkMod = (): WorkspaceCheck =>
-            checkWorkspace({
-                spec,
-                modDir,
-                gameDir: game.dir,
-                cacheDir: defaultCacheDir(io.env, io.platform, io.home),
-                unusedKeys: parsed.flags.has('--unused-keys'),
-            });
-        let run = checkMod();
-        let fixed: FixRun | null = null;
-        if (fix) {
-            fixed = applySafeFixes(
-                modDir,
-                select(run.findings, { ...filters, limit: null }).matched,
-                dryRun,
-                run.findings,
-            );
-            if (!dryRun && fixed.files.length > 0) {
-                run = checkMod();
-            }
-        }
-        const { matched, shown } = select(run.findings, filters);
-        const json = parsed.flags.has('--json');
-        if (fixed?.dryRun === true) {
-            if (json) {
-                const lines = fixed.applied.map((p) => JSON.stringify(plannedJson(p)));
-                lines.push(
-                    JSON.stringify({
-                        summary: {
-                            ...summaryJson(run, spec, game, matched.length, 0),
-                            fixes: fixSummaryJson(fixed),
-                        },
-                    }),
-                );
-                io.stdout(`${lines.join('\n')}\n`);
-            } else {
-                io.stdout(renderPlan(fixed));
-            }
-        } else if (json) {
-            const lines = shown.map((f) => JSON.stringify(findingJson(f)));
+    }
+    const { matched, shown } = select(run.findings, filters);
+    const json = parsed.flags.has('--json');
+    if (fixed?.dryRun === true) {
+        if (json) {
+            const lines = fixed.applied.map((p) => JSON.stringify(plannedJson(p)));
             lines.push(
                 JSON.stringify({
                     summary: {
-                        ...summaryJson(run, spec, game, matched.length, shown.length),
-                        ...(fixed === null ? {} : { fixes: fixSummaryJson(fixed) }),
+                        ...summaryJson(run, spec, game, matched.length, 0),
+                        fixes: fixSummaryJson(fixed),
                     },
                 }),
             );
             io.stdout(`${lines.join('\n')}\n`);
         } else {
-            io.stdout(renderText(run, shown));
-            if (fixed !== null) {
-                io.stderr(`pychivalry: ${summaryLine(fixed)}\n`);
-            }
-            for (const note of notes(run, spec, game)) {
-                io.stderr(`pychivalry: ${note}\n`);
-            }
+            io.stdout(renderPlan(fixed));
         }
-        return matched.some((f) => f.severity === 'error') ? EXIT.found : EXIT.ok;
-    },
-};
+    } else if (json) {
+        const lines = shown.map((f) => JSON.stringify(findingJson(f)));
+        lines.push(
+            JSON.stringify({
+                summary: {
+                    ...summaryJson(run, spec, game, matched.length, shown.length),
+                    ...(fixed === null ? {} : { fixes: fixSummaryJson(fixed) }),
+                },
+            }),
+        );
+        io.stdout(`${lines.join('\n')}\n`);
+    } else {
+        io.stdout(renderText(run, shown));
+        if (fixed !== null) {
+            io.stderr(`pychivalry: ${summaryLine(fixed)}\n`);
+        }
+        for (const note of notes(run, spec, game)) {
+            io.stderr(`pychivalry: ${note}\n`);
+        }
+    }
+    return matched.some((f) => f.severity === 'error') ? EXIT.found : EXIT.ok;
+}

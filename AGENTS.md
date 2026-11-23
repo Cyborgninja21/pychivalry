@@ -38,7 +38,10 @@ is fixed.
     login, and no shipped package (`packages/*`) makes a network call or a model call; the AI is
     always another program that connects to it. `tools/src/no-key-no-network.test.ts` holds
     this in CI: a module a shipped file imports that is neither Node's nor pychivalry's own is
-    listed there with its reason, and a networking module never is. The scored test is
+    listed there with its reason, and a networking module never is, but for one file: the
+    local channel by which pychivalry's own programs on one machine share the base game's index
+    (`packages/core/src/share/channel.ts`, [docs/shared-index.md](docs/shared-index.md)) may use
+    `node:net`, held to binding and connecting a path only, never a port or a host. The scored test is
     described as test sessions of the developer's own Claude Code, each with a session limit
     and each counting against the developer's own Claude plan; never in terms of money,
     accounts or keys (docs/decisions.md, decision 80).

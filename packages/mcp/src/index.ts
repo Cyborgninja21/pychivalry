@@ -14,7 +14,16 @@ export const packageName = '@pychivalry/mcp';
 export const builtOn = corePackageName;
 
 export { defaultSpecDir, sessionOptions, USAGE, UsageError, type Surroundings } from './args.js';
-export { createServer, instructions, TOOLS } from './server.js';
+export { createServer, instructions } from './server.js';
+export { answer, answerSteps, TOOLS } from './hosted.js';
+export {
+    askForTool,
+    McpHost,
+    SESSION_IDLE_MS,
+    type Ask,
+    type McpLender,
+    type McpRequest,
+} from './share.js';
 export { Session, type GameChoice, type ModPath, type SessionOptions } from './session.js';
 export { RESULT_BUDGET } from './result.js';
 export { SCHEMA_VERSION, SERVER_NAME, VERSION } from './version.js';

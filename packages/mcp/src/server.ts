@@ -9,30 +9,12 @@
  * one more `Tool` in `TOOLS`, with its own shapes and tests; the schema version moves with it.
  */
 
-import { fromJsonSchema, McpServer, type CallToolResult } from '@modelcontextprotocol/server';
-import { bad, BadInput, ok } from './result.js';
+import { fromJsonSchema, McpServer } from '@modelcontextprotocol/server';
+import { answer, TOOLS } from './hosted.js';
 import { argumentValidator, jsonSchema } from './schema.js';
 import type { Session } from './session.js';
-import { listed, type ListedTool } from './tool.js';
-import { checkTool } from './tools/check.js';
-import {
-    findDefinitionTool,
-    findReferencesTool,
-    listDefinitionsTool,
-} from './tools/definitions.js';
-import { explainTool } from './tools/explain.js';
-import { lookupTool } from './tools/lookup.js';
+import { askForTool } from './share.js';
 import { SCHEMA_VERSION, SERVER_NAME, VERSION } from './version.js';
-
-/** Every tool, in the order a client lists them. */
-export const TOOLS: readonly ListedTool[] = [
-    listed(checkTool),
-    listed(lookupTool),
-    listed(findDefinitionTool),
-    listed(findReferencesTool),
-    listed(listDefinitionsTool),
-    listed(explainTool),
-];
 
 /** The server's written instructions: what it is for and how to start. */
 export function instructions(session: Session): string {
@@ -48,18 +30,6 @@ export function instructions(session: Session): string {
         "The server only reads. Fix a finding by editing the mod's files yourself, then check again: every call reads the files as they are now. Lines and columns count from 1. Every result is kept small: follow next_cursor for more.",
         `Server version ${VERSION}, tool schema version ${String(SCHEMA_VERSION)}.`,
     ].join('\n\n');
-}
-
-/** A tool's answer as a result: bad input as a result marked as an error, never thrown. */
-function answer(tool: ListedTool, args: Record<string, unknown>, session: Session): CallToolResult {
-    try {
-        return ok(tool.call(args, session));
-    } catch (err) {
-        if (err instanceof BadInput) {
-            return bad(err.message);
-        }
-        throw err;
-    }
 }
 
 /** The server, its tools registered over the session. */
@@ -93,7 +63,10 @@ export function createServer(session: Session): McpServer {
                 },
                 _meta: { 'pychivalry/schema-version': SCHEMA_VERSION },
             },
-            (args) => answer(tool, args, session),
+            // Asked first of the program that lends the base game, when there is one that
+            // answers (docs/shared-index.md); otherwise answered here.
+            async (args) =>
+                (await askForTool(session, tool.name, args)) ?? answer(tool, args, session),
         );
     }
     return server;

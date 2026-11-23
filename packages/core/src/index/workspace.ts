@@ -69,6 +69,7 @@ import {
     type RulesTable,
     type RowStatus,
 } from './rules.js';
+import { LayeredMap } from './layered.js';
 import { StringTable } from './strings.js';
 
 /** Which files the index reads: script files and localization files. */
@@ -423,6 +424,11 @@ function blockKeyOf(d: Definition): string {
 /** A definition handle: file id and index, in one number. */
 const SPAN = 2 ** 22;
 
+/** A list copied, for a fork to change apart from the index it was forked from. */
+function copyList(list: number[]): number[] {
+    return [...list];
+}
+
 const LAYER_SORT = ['clausewitz', 'jomini', 'game', 'dlc', 'mod'];
 
 function layerSortKey(layer: string): number {
@@ -506,19 +512,22 @@ export class WorkspaceIndex {
     readonly fileConditions: readonly Rule[];
     private readonly fallbackEncoding: FallbackEncoding | undefined;
     private readonly strings: StringTable;
-    private readonly files: (FileEntry | undefined)[] = [];
-    private readonly byKey = new Map<string, number>();
-    private readonly paths = new PathTable<number>();
-    private readonly byName = new Map<number, number[]>();
+    private readonly files: (FileEntry | undefined)[];
+    private readonly byKey: Map<string, number>;
+    private readonly paths: PathTable<number>;
+    /** Where each name is defined: a handle per definition (`SPAN`). */
+    private readonly byName: LayeredMap<number, number[]>;
     /** The files that save a scope as each name. */
-    private readonly bySave = new Map<number, number[]>();
+    private readonly bySave: LayeredMap<number, number[]>;
     /** The files that read each name as a saved scope. */
-    private readonly byRead = new Map<number, number[]>();
+    private readonly byRead: LayeredMap<number, number[]>;
+    /** True once a fork shares this index: it changes no more (`fork`). */
+    private frozen = false;
     /** One byte per interned name: 1 when a file uses it. Built when asked, dropped on a change. */
     private usedBits: Uint8Array | null = null;
     /** Every template word of every file, each once. Built when asked, dropped on a change. */
     private templateWords: string[] | null = null;
-    private replacePaths: string[] = [];
+    private replacePaths: string[];
     private statuses: FileStatus[] | null = null;
     /** Per database, what a pass over all its definitions found; dropped on every change. */
     private replays = new Map<string, AliasReplay>();
@@ -532,7 +541,18 @@ export class WorkspaceIndex {
      */
     private resolutions = new Map<string, Resolution>();
 
-    constructor(options: IndexOptions, strings = new StringTable()) {
+    /**
+     * An empty index; with `base` (by `fork` only), an index over `base`'s files, which shares
+     * them and their tables, `strings` being the fork of `base`'s string table.
+     */
+    constructor(options: IndexOptions, strings = new StringTable(), base?: WorkspaceIndex) {
+        this.files = base === undefined ? [] : [...base.files];
+        this.byKey = new Map(base?.byKey);
+        this.paths = base === undefined ? new PathTable<number>() : base.paths.copy();
+        this.byName = base === undefined ? new LayeredMap() : base.byName.fork();
+        this.bySave = base === undefined ? new LayeredMap() : base.bySave.fork();
+        this.byRead = base === undefined ? new LayeredMap() : base.byRead.fork();
+        this.replacePaths = base === undefined ? [] : [...base.replacePaths];
         this.folders = options.folders;
         this.table = options.rules;
         this.platform = options.platform;
@@ -545,6 +565,44 @@ export class WorkspaceIndex {
                 : fileConditionRules(options.rules, options.platform);
         this.fallbackEncoding = options.fallbackEncoding;
         this.strings = strings;
+    }
+
+    /**
+     * An index over this one (docs/shared-index.md): it holds every file of this one and shares
+     * them, their names and their tables, and keeps what is added, changed or removed after
+     * apart, copying a table's entry only when it changes it. It answers as an index that had
+     * the same files added after this one's would: the same numbers for the same names, in the
+     * same order. This index is frozen from then on (`freeze`), so that every fork of it stays
+     * true; many forks may share it.
+     */
+    fork(): WorkspaceIndex {
+        this.frozen = true;
+        return new WorkspaceIndex(
+            {
+                folders: this.folders,
+                rules: this.table,
+                platform: this.platform,
+                fallbackEncoding: this.fallbackEncoding,
+            },
+            this.strings.fork(),
+            this,
+        );
+    }
+
+    /** No file is added, changed or removed from now on: adding one throws. */
+    freeze(): void {
+        this.frozen = true;
+    }
+
+    /** True when the index changes no more (`fork`, `freeze`). */
+    get isFrozen(): boolean {
+        return this.frozen;
+    }
+
+    private refuseChange(): void {
+        if (this.frozen) {
+            throw new Error('the index is shared by its forks and changes no more');
+        }
     }
 
     /** An index holding a cached state (cache.ts). */
@@ -712,6 +770,7 @@ export class WorkspaceIndex {
      * written: the game compares the folder byte for byte.
      */
     setReplacePaths(paths: readonly string[]): void {
+        this.refuseChange();
         this.replacePaths = [...paths];
         this.changed();
     }
@@ -721,6 +780,7 @@ export class WorkspaceIndex {
     }
 
     private store(file: Omit<FileEntry, 'id'>): number {
+        this.refuseChange();
         const id = this.files.length;
         const entry: FileEntry = { ...file, id };
         this.files.push(entry);
@@ -728,7 +788,7 @@ export class WorkspaceIndex {
         this.paths.add(file.path, id);
         for (let i = 0; i * DEF_STRIDE < file.defs.length; i++) {
             const name = file.defs[i * DEF_STRIDE + DEF.name] ?? 0;
-            const handles = this.byName.get(name);
+            const handles = this.byName.mutable(name, copyList);
             if (handles === undefined) {
                 this.byName.set(name, [id * SPAN + i]);
             } else {
@@ -740,7 +800,7 @@ export class WorkspaceIndex {
             [file.reads, this.byRead],
         ] as const) {
             for (const name of new Set(this.useNames(array))) {
-                const ids = map.get(name);
+                const ids = map.mutable(name, copyList);
                 if (ids === undefined) {
                     map.set(name, [id]);
                 } else {
@@ -753,6 +813,7 @@ export class WorkspaceIndex {
     }
 
     private unstore(id: number): void {
+        this.refuseChange();
         const file = this.files[id];
         if (file === undefined) {
             return;
@@ -2224,7 +2285,7 @@ export class WorkspaceIndex {
     /** The places of a name in one of the per-file arrays of names and offsets. */
     private placesOf(
         name: string,
-        byName: ReadonlyMap<number, readonly number[]>,
+        byName: { get(key: number): readonly number[] | undefined },
         arrayOf: (file: FileEntry) => Int32Array,
     ): Use[] {
         const id = this.strings.find(name);

@@ -5,6 +5,7 @@
  * exit code 2.
  */
 
+import { BaseRefused, drain, type Steps } from '@pychivalry/core';
 import { InputError, parseArgs, UsageError } from './args.js';
 import { EXIT, type Command } from './command.js';
 import { COMMANDS } from './commands.js';
@@ -44,6 +45,15 @@ export function usage(commands: readonly Command[] = COMMANDS): string {
 
 /** Run the command line on `argv` (without the program's own name); returns the exit code. */
 export function run(argv: readonly string[], io: Io, commands = COMMANDS): number {
+    return drain(runSteps(argv, io, commands));
+}
+
+/**
+ * `run` in steps (`Steps`): a command that reads a whole mod pauses after each file
+ * (`Command.steps`). `BaseRefused`, when the base game `io.base` lends is not the one the
+ * command asks for, is thrown, not reported: the command is then run by its own program.
+ */
+export function* runSteps(argv: readonly string[], io: Io, commands = COMMANDS): Steps<number> {
     const [name, ...rest] = argv;
     if (name === undefined) {
         io.stderr(usage(commands));
@@ -75,8 +85,13 @@ export function run(argv: readonly string[], io: Io, commands = COMMANDS): numbe
                 count < min ? `${command.name} needs ${command.args}` : `too many arguments`,
             );
         }
-        return command.run(parsed, io);
+        return command.steps === undefined
+            ? command.run(parsed, io)
+            : yield* command.steps(parsed, io);
     } catch (err) {
+        if (err instanceof BaseRefused) {
+            throw err;
+        }
         if (err instanceof InputError) {
             io.stderr(`${TOOL} ${command.name}: ${err.message}\n`);
             return EXIT.usage;

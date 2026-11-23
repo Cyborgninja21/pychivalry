@@ -14,7 +14,7 @@
  */
 
 import type { WorkspaceFinding } from '@pychivalry/core';
-import type { BackgroundDone, FindingsResult } from '@pychivalry/lsp';
+import type { BackgroundDone, FindingsResult, SharingStatus } from '@pychivalry/lsp';
 import * as vscode from 'vscode';
 import {
     LanguageClient,
@@ -22,9 +22,9 @@ import {
     type LanguageClientOptions,
     type ServerOptions,
 } from 'vscode-languageclient/node';
-import { BACKGROUND_DONE, FINDINGS_REQUEST, LANGUAGES } from './ids.js';
+import { BACKGROUND_DONE, FINDINGS_REQUEST, LANGUAGES, SHARING_REQUEST } from './ids.js';
 
-export type { BackgroundDone, FindingsResult, WorkspaceFinding };
+export type { BackgroundDone, FindingsResult, SharingStatus, WorkspaceFinding };
 
 /** The first background pass that left nothing to check, and when it was announced. */
 export interface FullResult {
@@ -44,6 +44,11 @@ export interface LanguageServer {
     readonly firstFullResult: Promise<FullResult>;
     /** The next full result after `after` (a `Date.now()`), for a check after a change. */
     readonly nextFullResult: (after: number) => Promise<FullResult>;
+    /**
+     * What the server lends the agent servers and the command line, and what it answered for
+     * them (`pychivalry/sharing`, docs/shared-index.md).
+     */
+    readonly sharing: () => Promise<SharingStatus>;
 }
 
 /** Start the language server bundled at `module`, reading the spec package in `specDir`. */
@@ -100,5 +105,9 @@ export function startLanguageServer(
         },
         firstFullResult: nextFullResult(0),
         nextFullResult,
+        sharing: async () => {
+            await started;
+            return client.sendRequest<SharingStatus>(SHARING_REQUEST);
+        },
     };
 }

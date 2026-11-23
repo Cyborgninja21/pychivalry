@@ -49,10 +49,17 @@ import {
     readLocalization,
     type LocalizationFile,
 } from '../index/localization.js';
-import { indexMod, unreadWords, type ModListing, type SourceListing } from '../index/read-game.js';
+import {
+    indexModSteps,
+    unreadWords,
+    type ModListing,
+    type SourceListing,
+} from '../index/read-game.js';
 import { currentPlatform, rulesFromSpec, type Platform, type RulesTable } from '../index/rules.js';
 import { fileKindOf, WorkspaceIndex } from '../index/workspace.js';
+import { forkBaseSteps, type SharedBase } from '../share/base.js';
 import type { Spec } from '../spec/reader.js';
+import { drain, type Steps } from '../steps.js';
 import type { FallbackEncoding } from '../syntax/decode.js';
 import {
     catalogueFromSpec,
@@ -409,6 +416,13 @@ export interface WorkspaceOptions {
     /** The platform whose override rules apply; by default this one. */
     readonly platform?: Platform | undefined;
     readonly fallbackEncoding?: FallbackEncoding | undefined;
+    /**
+     * A base game another program has open and lends (docs/shared-index.md): the workspace is a
+     * fork of it instead of a base game loaded here, when it is the base game these options name
+     * and its files have not changed since; otherwise `BaseRefused` is thrown, and nothing is
+     * loaded.
+     */
+    readonly base?: SharedBase | undefined;
 }
 
 /** A workspace opened: the base game's index, with a mod indexed over it when one is given. */
@@ -428,6 +442,13 @@ export interface Workspace {
 export function openWorkspace(
     options: WorkspaceOptions & { readonly modDir: string | null },
 ): Workspace {
+    return drain(openWorkspaceSteps(options));
+}
+
+/** `openWorkspace` in steps (`steps.ts`): a pause after each file of the mod indexed. */
+export function* openWorkspaceSteps(
+    options: WorkspaceOptions & { readonly modDir: string | null },
+): Steps<Workspace> {
     const { folders, rules } = specContext(options.spec);
     const platform = 'platform' in options ? options.platform : currentPlatform();
     let game: GameIndex | null = null;
@@ -439,6 +460,19 @@ export function openWorkspace(
             platform,
             fallbackEncoding: options.fallbackEncoding,
         });
+    } else if (options.base !== undefined) {
+        game = yield* forkBaseSteps(
+            options.base,
+            {
+                specSha256: options.spec.sha256,
+                gameDir: options.gameDir,
+                platform,
+                fallbackEncoding: options.fallbackEncoding,
+            },
+            folders,
+            rules,
+        );
+        index = game.index;
     } else {
         game = openGameIndex({
             gameDir: options.gameDir,
@@ -451,7 +485,7 @@ export function openWorkspace(
         });
         index = game.index;
     }
-    const mod = options.modDir === null ? null : indexMod(index, options.modDir);
+    const mod = options.modDir === null ? null : yield* indexModSteps(index, options.modDir);
     return { index, game, mod };
 }
 
@@ -656,12 +690,18 @@ function diskText(listing: SourceListing): ModText {
  * files.
  */
 export function checkWorkspace(options: WorkspaceCheckOptions): WorkspaceCheck {
-    const { index, game } = options.workspace ?? openWorkspace({ ...options, modDir: null });
+    return drain(checkWorkspaceSteps(options));
+}
+
+/** `checkWorkspace` in steps (`steps.ts`): a pause after each file indexed and each checked. */
+export function* checkWorkspaceSteps(options: WorkspaceCheckOptions): Steps<WorkspaceCheck> {
+    const { index, game } =
+        options.workspace ?? (yield* openWorkspaceSteps({ ...options, modDir: null }));
     const modDir = options.modDir;
     let listing: SourceListing;
     if (modDir !== null) {
         if (options.workspace === undefined) {
-            listing = indexMod(index, modDir);
+            listing = yield* indexModSteps(index, modDir);
         } else if (options.workspace.mod !== null) {
             listing = options.workspace.mod;
         } else {
@@ -699,6 +739,7 @@ export function checkWorkspace(options: WorkspaceCheckOptions): WorkspaceCheck {
         if (cap.capped !== null) {
             capped.push(cap.capped);
         }
+        yield;
     }
     return {
         files: checked.map((f) => f.path),

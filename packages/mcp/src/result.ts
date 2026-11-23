@@ -16,6 +16,8 @@
  */
 
 import type { CallToolResult } from '@modelcontextprotocol/server';
+
+export type { CallToolResult };
 import { createHash } from 'node:crypto';
 
 /** The most characters a result's JSON may hold. */

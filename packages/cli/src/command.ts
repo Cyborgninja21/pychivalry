@@ -3,6 +3,7 @@
  * The commands are one table (commands.ts); the usage text and the dispatch read it.
  */
 
+import type { Steps } from '@pychivalry/core';
 import type { OptionSpec, Parsed } from './args.js';
 import type { Io } from './io.js';
 
@@ -20,4 +21,10 @@ export interface Command {
     readonly positionals: { readonly min: number; readonly max: number | null };
     /** Run it; returns the exit code. Throws a `UsageError` on bad usage. */
     run(parsed: Parsed, io: Io): number;
+    /**
+     * The same work in steps (`Steps`), for a command that reads a whole mod: what `run` does,
+     * pausing after each file, so that a program that runs it for another can keep answering
+     * its own (docs/shared-index.md).
+     */
+    readonly steps?: ((parsed: Parsed, io: Io) => Steps<number>) | undefined;
 }

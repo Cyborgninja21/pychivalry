@@ -4,6 +4,7 @@
  * read-only, never destructive, and the same arguments on the same files give the same answer.
  */
 
+import { drain, type Steps } from '@pychivalry/core';
 import type { Schema } from './schema.js';
 import type { Session } from './session.js';
 
@@ -22,6 +23,12 @@ export interface Tool<Args = Record<string, unknown>> {
      * for arguments the shape cannot rule out, its text naming the valid values.
      */
     run(args: Args, session: Session): Record<string, unknown>;
+    /**
+     * The same work in steps (`Steps`), for a tool that reads the whole mod: what `run` does,
+     * pausing after each file, so that a program that answers for the agent server can keep
+     * answering its own (docs/shared-index.md).
+     */
+    readonly steps?: ((args: Args, session: Session) => Steps<Record<string, unknown>>) | undefined;
 }
 
 /** A tool as the server lists it: its arguments' type erased, since its shape checks them. */
@@ -33,6 +40,11 @@ export interface ListedTool {
     readonly output: Schema;
     /** `run`, with arguments its input shape has already checked. */
     readonly call: (args: Record<string, unknown>, session: Session) => Record<string, unknown>;
+    /** `call` in steps: the tool's own steps, or its `run` as one step. */
+    readonly callSteps: (
+        args: Record<string, unknown>,
+        session: Session,
+    ) => Steps<Record<string, unknown>>;
 }
 
 /** A tool for the server's list. */
@@ -44,7 +56,16 @@ export function listed<Args>(tool: Tool<Args>): ListedTool {
         input: tool.input,
         output: tool.output,
         // The library checks the arguments against `input` before this runs (`schema.ts`).
-        call: (args, session) => tool.run(args as Args, session),
+        call: (args, session) =>
+            tool.steps === undefined
+                ? tool.run(args as Args, session)
+                : drain(tool.steps(args as Args, session)),
+        callSteps: function* (args, session) {
+            if (tool.steps === undefined) {
+                return tool.run(args as Args, session);
+            }
+            return yield* tool.steps(args as Args, session);
+        },
     };
 }
 

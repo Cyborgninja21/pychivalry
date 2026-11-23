@@ -42,6 +42,8 @@ export interface SameAnswersReport {
     readonly bySeverity: Record<Severity, number>;
     readonly agentPages: number;
     readonly cliPath: string;
+    /** What the language server answered for the others (docs/shared-index.md). */
+    readonly shared: { readonly cli: number; readonly mcp: number };
 }
 
 /** Every file below `dir`, relative to it and written with `/`. */
@@ -137,6 +139,7 @@ export async function pychivalryInTerminal(
     work: string,
     args: readonly string[],
     ms = 600_000,
+    env: Readonly<Record<string, string>> = {},
 ): Promise<{
     readonly code: number;
     readonly stdout: string;
@@ -155,6 +158,7 @@ export async function pychivalryInTerminal(
             at('run.cmd'),
             [
                 '@echo off',
+                ...Object.entries(env).map(([k, v]) => `set ${k}=${v}`),
                 `where pychivalry > ${q(at('found'))}`,
                 `call pychivalry ${args.map(cmdWord).join(' ')} > ${q(at('out'))} 2> ${q(at('err'))}`,
                 // The redirection first: `echo 1> file` would redirect stream 1 instead.
@@ -170,6 +174,7 @@ export async function pychivalryInTerminal(
             at('run.sh'),
             [
                 `command -v pychivalry > ${shWord(at('found'))}`,
+                ...Object.entries(env).map(([k, v]) => `export ${k}=${shWord(v)}`),
                 `pychivalry ${args.map(shWord).join(' ')} > ${shWord(at('out'))} 2> ${shWord(at('err'))}`,
                 `echo $? > ${shWord(at('code.tmp'))}`,
                 `mv ${shWord(at('code.tmp'))} ${shWord(at('code'))}`,
@@ -212,9 +217,17 @@ function assertSame(
     );
 }
 
+/** The variable that turns sharing the base game's index off (docs/shared-index.md). */
+const SHARING_OFF = { PYCHIVALRY_SHARED_INDEX: 'off' } as const;
+
 /**
  * Run the same-answers test on the mod VS Code has open, read over the game `game`; `work` is a
  * folder for the terminal's files. Fails naming the findings that differ.
+ *
+ * With sharing on (docs/shared-index.md), as a user has it: the language server lends its base
+ * game, and the command line and the agent server must have been answered by it, which its
+ * `pychivalry/sharing` status counts. Then both run again with sharing turned off, each loading
+ * the base game itself, and must give the same findings again.
  */
 export async function assertSameAnswers(
     api: PychivalryApi,
@@ -266,6 +279,8 @@ export async function assertSameAnswers(
     const fromCli = parseCliJson(cli.stdout);
     assertSame(editor, fromCli.findings, ['the editor', 'the command line']);
     assert.equal(fromCli.summary['files_checked'], files, 'the files the command line checked');
+    const cliGame = fromCli.summary['game'] as { shared?: unknown } | null;
+    assert.equal(cliGame?.shared, true, 'the language server answered the command line');
 
     // The agent server, from the definition VS Code's AI is given.
     const [definition] = await api.definitions();
@@ -286,6 +301,42 @@ export async function assertSameAnswers(
         'the agent server',
     ]);
     assert.equal(agent.filesChecked, files, 'the files the agent server checked');
+    const sharing = await api.language.sharing();
+    assert.equal(sharing.lending, true, 'the language server lends its base game');
+    const shared = { cli: sharing.answered['cli'] ?? 0, mcp: sharing.answered['mcp'] ?? 0 };
+    assert.ok(shared.cli >= 1, `the command line was answered by it: ${JSON.stringify(sharing)}`);
+    assert.ok(
+        shared.mcp >= agent.pages,
+        `every page of the agent server was answered by it: ${JSON.stringify(sharing)}`,
+    );
+
+    // The same with sharing off: the command line and the agent server each load the base game.
+    const alone = await pychivalryInTerminal(
+        path.join(work, 'cli-alone'),
+        ['check', '--json', '--vanilla', game, mod],
+        600_000,
+        SHARING_OFF,
+    );
+    const fromAlone = parseCliJson(alone.stdout);
+    assertSame(editor, fromAlone.findings, ['the editor', 'the command line alone']);
+    const aloneGame = fromAlone.summary['game'] as { shared?: unknown } | null;
+    assert.equal(aloneGame?.shared, false, 'the command line read the base game itself');
+    const agentAlone = await checkAll({
+        command: definition.command,
+        args: definition.args,
+        env: { ...definition.env, ...SHARING_OFF },
+        ...(definition.cwd === undefined ? {} : { cwd: definition.cwd.fsPath }),
+    });
+    assertSame(only(editor, { data: true, evidence: false }), agentAlone.findings.map(fromAgent), [
+        'the editor',
+        'the agent server alone',
+    ]);
+    const after = await api.language.sharing();
+    assert.deepEqual(
+        after.answered,
+        sharing.answered,
+        'nothing was asked of the language server with sharing off',
+    );
 
     return {
         files,
@@ -293,5 +344,6 @@ export async function assertSameAnswers(
         bySeverity: bySeverity(editor),
         agentPages: agent.pages,
         cliPath: cli.found,
+        shared,
     };
 }

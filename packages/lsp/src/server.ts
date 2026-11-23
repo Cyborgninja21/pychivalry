@@ -27,6 +27,8 @@
 
 import {
     catalogueFromSpec,
+    currentPlatform,
+    shareBase,
     checkNames,
     checkSourceFile,
     compareCodePoints,
@@ -45,6 +47,8 @@ import {
     type FolderTable,
     type GameIndex,
     type MessageCatalogue,
+    type Place,
+    type SharedBase,
     type Spec,
     type SyncedMod,
     type UpdateResult,
@@ -87,6 +91,7 @@ import { toDiagnostic } from './diagnostics.js';
 import { OpenDocument } from './documents.js';
 import { chooseGame, gameNotices, type GameChoice, type Notice } from './game.js';
 import { renderHover } from './hover.js';
+import { Lender, SHARING_REQUEST, type SharingStatus } from './lend.js';
 import { PresentationFeatures, type PresentedFile } from './presentation-features.js';
 import { loadPresentation, type Presentation } from './presentation.js';
 import {
@@ -169,6 +174,14 @@ export interface ServerOptions {
     readonly editDelay?: number | undefined;
     /** How long after the last change on disk the mod is read again, in milliseconds; 200 by default. */
     readonly diskDelay?: number | undefined;
+    /**
+     * Where the agent servers and the command line look for a program that lends its base game
+     * (the user's environment, system and home): with it, the server lends its own
+     * (docs/shared-index.md); without it, as in most tests, it lends nothing.
+     */
+    readonly place?: Place | undefined;
+    /** How often a server that does not lend looks again whether it can; for the tests. */
+    readonly lendClaimMs?: number | undefined;
     /** The presentation data (docs/PLAN.md item 8.8); by default the data pychivalry ships. */
     readonly presentation?: Presentation | undefined;
 }
@@ -283,6 +296,7 @@ export class LanguageServer {
     private diskTimer: NodeJS.Timeout | null = null;
     private diskChanges: FileEvent[] = [];
     private firstFullResultMs: number | null = null;
+    private readonly lender: Lender | null;
     /** Outline rules, snippets, field order and inline hints (docs/PLAN.md item 8.8). */
     private readonly presenting: PresentationFeatures;
     private presentingCaps = { snippets: false, inlayRefresh: false };
@@ -290,6 +304,16 @@ export class LanguageServer {
     constructor(connection: Connection, options: ServerOptions) {
         this.connection = connection;
         this.options = options;
+        this.lender =
+            options.place === undefined
+                ? null
+                : new Lender(
+                      options.place,
+                      (text) => {
+                          connection.console.log(text);
+                      },
+                      options.lendClaimMs,
+                  );
         this.spec = options.spec;
         this.flavour = options.flavour ?? THIS_SYSTEM;
         this.catalogue = catalogueFromSpec(options.spec.data);
@@ -347,6 +371,7 @@ export class LanguageServer {
             const file = this.pathOf(params.uri);
             return { file, findings: file === null ? [] : this.fileFindings(file) };
         });
+        c.onRequest(SHARING_REQUEST, (): SharingStatus => this.sharing());
         c.onShutdown(() => {
             this.stop();
         });
@@ -563,12 +588,25 @@ export class LanguageServer {
             modDir: null,
             fallbackEncoding: this.settings.fallbackEncoding ?? undefined,
         });
-        const mod = modDir === null ? null : syncMod(workspace.index, modDir, null);
+        // The base game is lent to the agent servers and the command line, frozen; the mod is
+        // read over a fork of it, as each of theirs is (docs/shared-index.md).
+        let index = workspace.index;
+        let base: SharedBase | null = null;
+        if (workspace.game !== null && game.dir !== null) {
+            base = shareBase(workspace.game, {
+                specSha256: this.spec.sha256,
+                gameDir: game.dir,
+                platform: currentPlatform(),
+                fallbackEncoding: this.settings.fallbackEncoding ?? undefined,
+            });
+            index = workspace.game.index.fork();
+        }
+        const mod = modDir === null ? null : syncMod(index, modDir, null);
         progress?.done();
         const opened: Opened = {
             modDir,
             game,
-            index: workspace.index,
+            index,
             gameIndex: workspace.game,
             mod,
             listed: new Set(mod?.files.map((f) => f.path) ?? []),
@@ -578,6 +616,7 @@ export class LanguageServer {
             places: null,
         };
         this.opened = opened;
+        void this.lender?.lend(this.spec, base, this.options.cacheDir);
         this.generation++;
         this.indexed.clear();
         this.onDisk.clear();
@@ -1090,7 +1129,21 @@ export class LanguageServer {
         }
     }
 
+    /** What the server lends the agent servers and the command line (`pychivalry/sharing`). */
+    sharing(): SharingStatus {
+        return (
+            this.lender?.status() ?? {
+                lending: false,
+                answered: {},
+                refused: 0,
+                failed: 0,
+                sessions: 0,
+            }
+        );
+    }
+
     private stop(): void {
+        void this.lender?.stop();
         this.queue.clear();
         this.cancelPass();
         for (const timer of this.editTimers.values()) {

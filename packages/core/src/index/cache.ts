@@ -50,7 +50,8 @@ export interface CacheKey {
 
 const MAGIC = 'PYCHIDX\n';
 
-function keysEqual(a: CacheKey, b: CacheKey): boolean {
+/** True when two keys name the same input: a cache made under one answers for the other. */
+export function cacheKeysEqual(a: CacheKey, b: CacheKey): boolean {
     return (
         a.format === b.format &&
         a.spec_sha256 === b.spec_sha256 &&
@@ -218,7 +219,7 @@ export function loadIndex(
     try {
         const headerLength = bytes.readUInt32LE(12);
         const header = JSON.parse(bytes.toString('utf8', 16, 16 + headerLength)) as Header;
-        if (!keysEqual(header.key, key)) {
+        if (!cacheKeysEqual(header.key, key)) {
             return { miss: 'key' };
         }
         let at = 16 + headerLength;

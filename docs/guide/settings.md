@@ -1,6 +1,6 @@
 # Settings
 
-pychivalry has four settings, in VS Code's Settings under "pychivalry" (or in `settings.json`
+pychivalry has five settings, in VS Code's Settings under "pychivalry" (or in `settings.json`
 as `pychivalry.*`). The language server reads them, and the extension gives the agent server the
 game folder; each step that adds a setting adds it here with its name, its default and what it
 changes.
@@ -11,6 +11,7 @@ changes.
 | `pychivalry.background.fileLimit` | `3000` | The most files of the mod checked in the background; `0`: none. Files open in the editor are always checked |
 | `pychivalry.localization.unusedKeys` | `false` | Report `localization/unused-key`, a hint for each localization key nothing uses; off by default, as in the command line and the agent server |
 | `pychivalry.encoding.fallback` | `"none"` | `"windows-1252"`: read the bytes of a file that are not valid UTF-8 as Windows-1252, so their letters show correctly ([what the parser reads](../encoding.md)) |
+| `pychivalry.inlayHints.enabled` | `true` | Show pychivalry's inline hints in script files: beside a record's key the localized text of its name (an event's title, a decision's name, an option's text), and after a link or an iterator the scope type it switches to. They are shown, never judged. VS Code's own `editor.inlayHints.enabled` also applies |
 
 A value of the wrong type is ignored and the default used. Changing the game folder or the
 fallback encoding reads the game again; turning `unusedKeys` on or off checks every file again.
@@ -49,6 +50,16 @@ The command line in the terminal does not read settings: it searches Steam's lib
   `%LOCALAPPDATA%\pychivalry\Cache\index`, on Linux `~/.cache/pychivalry/index` (or under
   `$XDG_CACHE_HOME` when you set it). Nothing is written into your mod or the game folder. It is
   rebuilt by itself when the game is patched, and you can delete it at any time.
+- **One copy of the game's index in memory.** While VS Code has a mod open, its language server
+  lends its index of the game to pychivalry's agent servers and to `pychivalry` in the terminal,
+  so that the three hold one copy between them, not one each (about 0.7 GB each for game 1.21).
+  They find it through a small file in the same cache folder, beside `index` (`host/`, readable
+  by you only), and talk over a local channel in that folder, a Unix socket, or on Windows a
+  named pipe of your own computer: never a network port. When VS Code is closed, or a program
+  cannot reach it, each loads the index itself, as before. Every program gives the same answer
+  either way. To turn the sharing off, set the environment variable
+  `PYCHIVALRY_SHARED_INDEX=off` for the programs (for VS Code, before you start it): each then
+  loads its own copy ([how it works](../shared-index.md)).
 - **No keys.** Nothing in the settings holds an API key, a token or a login, and pychivalry
   makes no network call or model call. The AI that uses pychivalry is always another program
   that connects to it: Claude Code or VS Code's built-in AI, signed in however you already

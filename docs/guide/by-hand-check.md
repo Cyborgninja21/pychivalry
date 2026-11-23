@@ -61,6 +61,14 @@ Write down for each step: what you did, what you saw, and pass or fail.
    - Pass: the version prints, and the findings and their count match the Problems panel's
      (the terminal's `pychivalry` reads the game from Steam's libraries, or from `--vanilla
      <game folder>` when you pass it).
+9. **One copy of the game's index** ([how it works](../shared-index.md)). With the mod still
+   open, run `pychivalry check --json .` in the terminal and look at the last line.
+   - Pass: its `"game"` says `"shared":true`: the language server answered. Then close VS Code
+     and run the same in a plain terminal outside it: it still works, says `"shared":false`,
+     and its findings are the same. With VS Code open again, a Claude Code session's check
+     (step 6) gives the same findings as before, and the system monitor shows one pychivalry
+     language server at about 0.7 GB or more and the agent server and the command line well
+     under 0.3 GB each.
 
 ## Only on Windows
 
@@ -75,6 +83,10 @@ These the Windows runner in CI cannot show, because it has neither Claude Code n
   `/mcp` must still show pychivalry connected, and step 8 must still run.
 - **The game found by Steam's libraries** with `pychivalry.gamePath` empty, on a library that
   is not on the system drive.
+- **The shared index's pipe.** Step 9 on Windows, where the channel is a named pipe; and, on a
+  machine with a second Windows account, that a `pychivalry check --json` run in that account,
+  on the same mod, says `"shared":false` (it cannot reach the first account's language
+  server, whose address file is in the first account's own folder).
 
 ## When something fails
 

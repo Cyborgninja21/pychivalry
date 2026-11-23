@@ -96,10 +96,16 @@ What `check` prints:
   parser read the line as; and others), and `alternatives`, at most five, each a `title` and
   its `edits`: a `file` of the mod (it may be another file, or a new one: `create`), a `range`
   and its `new_text`. The last line is `{"summary": ...}`: the version, the spec package and
-  the game build, the files checked and not checked, the counts of every finding by severity
-  and by code, how many findings matched the filters and how many were shown, `capped`: what
-  the per-file limit left out, and with `--fix`, `fixes`: how many were applied and to which
-  files.
+  the game build (with `from_cache`, true when its index came from the cache, and `shared`,
+  true when the language server of an open VS Code answered the command with its own copy of
+  it), the files checked and not checked, the counts of every finding by severity and by code,
+  how many findings matched the filters and how many were shown, `capped`: what the per-file
+  limit left out, and with `--fix`, `fixes`: how many were applied and to which files.
+- **One copy of the game's index.** When VS Code has a mod open, `check` and `lookup` are
+  answered by its language server, which already holds the game's index, instead of loading a
+  second copy; what they print is the same either way, and when the language server cannot
+  answer, the command runs by itself ([Settings](settings.md)). `check --fix` always runs by
+  itself, so that the edits to your files are made by the command you ran.
 - **At most 1,000 findings per file.** A file with more keeps its most severe ones (errors
   first, then warnings, information and hints), and the count of the others is given: on
   standard error with the text output, in `capped` with `--json`. The counts are of the

@@ -12,6 +12,8 @@ export * from './spec/index.js';
 export * from './check/index.js';
 export * from './lookup/index.js';
 export * from './fix/index.js';
+export * from './share/index.js';
+export { drain, drainInSlices, type Steps } from './steps.js';
 
 /** This package's name, as in its package.json. */
 export const packageName = '@pychivalry/core';

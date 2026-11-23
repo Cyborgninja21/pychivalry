@@ -370,6 +370,21 @@ export function packageFileIn(dir: string): { readonly file: string; readonly ve
     return { file, version: PACKAGE_FILE.exec(file)?.[1] ?? '' };
 }
 
+/**
+ * The checksum of the package a spec folder holds, as its `.sha256` file states it, without
+ * reading the package: what names the package (`Spec.sha256`) for a program that only needs to
+ * know which one it is (docs/shared-index.md).
+ */
+export function specChecksumIn(dir: string): string {
+    const folder = path.resolve(dir);
+    const { version } = packageFileIn(folder);
+    const shaFile = path.join(folder, `ck3-spec-${version}.sha256`);
+    if (!existsSync(shaFile)) {
+        throw new SpecError(`ck3-spec-${version}.sha256 is missing`);
+    }
+    return readChecksumFile(readFileSync(shaFile, 'utf8'), `ck3-spec-${version}.json`);
+}
+
 const opened = new Map<string, Spec>();
 
 /**

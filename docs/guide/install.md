@@ -5,9 +5,11 @@
 pychivalry 1.0.0 is not released. The first **preview**, version 0.1.0, is a build of the
 rebuild as it stands after build step 7: the checks, lookups and editor features built so far,
 the agent server for your AI, and the command line. It is a preview: it will change, it has
-not been through a release's checks, and it is installed and updated by hand. Its file is
-attached to a pre-release on the repository's GitHub releases page once the owner publishes it;
-until then it is built from source with `task vscode:package` (below).
+not been through a release's checks, and it is installed and updated by hand. Its file,
+`pychivalry-0.1.0.vsix`, is attached to the pre-release
+[pychivalry 0.1.0 (preview)](https://github.com/Cyborgninja21/pychivalry/releases/tag/v0.1.0)
+on the repository's GitHub releases page, published on 2026-11-23. It can also be built from
+source with `task vscode:package` (below).
 
 The old version, release 2.3.0, is still published as the `ck3-language-support` extension and
 still works. It is no longer developed. pychivalry is a new extension named `pychivalry`
@@ -16,7 +18,9 @@ by side, but both then check the same files; disable one of them for a mod.
 
 ### Installing the preview
 
-1. Download `pychivalry-0.1.0.vsix`.
+1. Download `pychivalry-0.1.0.vsix` from the
+   [0.1.0 pre-release](https://github.com/Cyborgninja21/pychivalry/releases/tag/v0.1.0). Its
+   SHA-256 is `25f38c9dfd11e7019ac0f0b9b5d193b305be87c129fa687dca59dad7c20cac94`.
 2. In VS Code, open the Extensions view, choose the `...` menu at its top, then
    "Install from VSIX...", and choose the file. From a terminal, the same is
    `code --install-extension pychivalry-0.1.0.vsix`.

@@ -65,7 +65,10 @@ It reads the mod folder, the game folder, the spec package and its index of the 
 writes nothing into the mod or the game. The only thing it ever writes is that index, in your
 cache folder ([Settings](settings.md)), and only when none is there for the installed game: a
 server finds the index the command line saved and loads it in a second or two. The first request
-loads it; later requests reuse it.
+loads it; later requests reuse it. While VS Code has a mod open, the server asks its language
+server instead, which holds the index already and answers with the server's own tools, so the
+two hold one copy between them; the answers are the same either way, and when the language
+server cannot answer, the server loads the index itself ([Settings](settings.md)).
 
 Every request reads the mod's files as they are now. An agent fixes a finding by editing the
 files itself, through its own harness, and checks again. A finding with a mechanical fix

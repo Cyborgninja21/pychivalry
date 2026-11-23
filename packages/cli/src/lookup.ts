@@ -18,7 +18,9 @@ import {
     defaultCacheDir,
     diskFileSource,
     lookup,
-    openWorkspace,
+    openWorkspaceSteps,
+    drain,
+    type Steps,
     type DefinitionsAnswer,
     type LocalizationAnswer,
     type LookupResult,
@@ -280,51 +282,56 @@ export const lookupCommand: Command = {
         LANGUAGE_OPTION,
     ],
     positionals: { min: 1, max: null },
-    run(parsed: Parsed, io: Io): number {
-        const given = oneValue(parsed, '--mod');
-        const modDir = given === undefined ? null : path.resolve(io.cwd, given);
-        if (modDir !== null && !isDirectory(modDir)) {
-            throw new InputError(`--mod: not a folder: ${modDir}`);
-        }
-        const spec = readSpecOption(parsed, io);
-        const game = readGameOption(parsed, io, spec);
-        const workspace =
-            game.dir === null && modDir === null
-                ? null
-                : openWorkspace({
-                      spec,
-                      modDir,
-                      gameDir: game.dir,
-                      cacheDir: defaultCacheDir(io.env, io.platform, io.home),
-                  });
-        const listings: SourceListing[] = [];
-        if (workspace?.game !== null && workspace?.game !== undefined) {
-            listings.push(workspace.game.listing);
-        }
-        if (workspace?.mod !== null && workspace?.mod !== undefined) {
-            listings.push(workspace.mod);
-        }
-        const json = parsed.flags.has('--json');
-        const out: string[] = [];
-        let unknown = 0;
-        for (const name of parsed.positionals) {
-            const result = lookup(name, {
-                spec,
-                index: workspace?.index ?? null,
-                files: game.dir === null ? null : diskFileSource(listings),
-                language: oneValue(parsed, '--language') ?? null,
-            });
-            if (isUnknown(result)) {
-                unknown++;
-            }
-            out.push(json ? JSON.stringify(result) : lookupText(result));
-        }
-        io.stdout(`${out.join(json ? '\n' : '\n\n')}\n`);
-        if (!json && game.notFound) {
-            io.stderr(
-                'pychivalry: the game was not found in any Steam library and --vanilla was not given: only the spec package and the mod were read\n',
-            );
-        }
-        return unknown > 0 ? EXIT.found : EXIT.ok;
-    },
+    run: (parsed: Parsed, io: Io): number => drain(lookupSteps(parsed, io)),
+    steps: lookupSteps,
 };
+
+/** `lookup`, in steps: a pause after each file of the mod indexed. */
+function* lookupSteps(parsed: Parsed, io: Io): Steps<number> {
+    const given = oneValue(parsed, '--mod');
+    const modDir = given === undefined ? null : path.resolve(io.cwd, given);
+    if (modDir !== null && !isDirectory(modDir)) {
+        throw new InputError(`--mod: not a folder: ${modDir}`);
+    }
+    const spec = readSpecOption(parsed, io);
+    const game = readGameOption(parsed, io, spec);
+    const workspace =
+        game.dir === null && modDir === null
+            ? null
+            : yield* openWorkspaceSteps({
+                  spec,
+                  modDir,
+                  gameDir: game.dir,
+                  cacheDir: defaultCacheDir(io.env, io.platform, io.home),
+                  base: io.base,
+              });
+    const listings: SourceListing[] = [];
+    if (workspace?.game !== null && workspace?.game !== undefined) {
+        listings.push(workspace.game.listing);
+    }
+    if (workspace?.mod !== null && workspace?.mod !== undefined) {
+        listings.push(workspace.mod);
+    }
+    const json = parsed.flags.has('--json');
+    const out: string[] = [];
+    let unknown = 0;
+    for (const name of parsed.positionals) {
+        const result = lookup(name, {
+            spec,
+            index: workspace?.index ?? null,
+            files: game.dir === null ? null : diskFileSource(listings),
+            language: oneValue(parsed, '--language') ?? null,
+        });
+        if (isUnknown(result)) {
+            unknown++;
+        }
+        out.push(json ? JSON.stringify(result) : lookupText(result));
+    }
+    io.stdout(`${out.join(json ? '\n' : '\n\n')}\n`);
+    if (!json && game.notFound) {
+        io.stderr(
+            'pychivalry: the game was not found in any Steam library and --vanilla was not given: only the spec package and the mod were read\n',
+        );
+    }
+    return unknown > 0 ? EXIT.found : EXIT.ok;
+}
