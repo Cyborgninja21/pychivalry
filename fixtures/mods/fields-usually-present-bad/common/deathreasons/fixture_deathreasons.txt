@@ -1,0 +1,3 @@
+death_fixture = {
+	public_knowledge = yes
+}
