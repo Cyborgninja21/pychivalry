@@ -1,0 +1,9 @@
+namespace = fixture
+
+fixture.0001 = {
+	type = fixture_event
+	hidden = yes
+	immediate = {
+		add_gold = 10
+	}
+}

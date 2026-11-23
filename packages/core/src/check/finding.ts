@@ -16,6 +16,7 @@ import {
     type Slot,
 } from '../syntax/findings.js';
 import type { Range } from '../syntax/position.js';
+import { ADVICE_KINDS } from './advice-kinds.js';
 
 /** The codes the engine checks of this build emit. */
 export type CheckCode =
@@ -37,7 +38,39 @@ export type CheckCode =
     | 'definitions/not-read'
     | 'scope/wrong-scope-for-trigger'
     | 'scope/wrong-scope-for-effect'
-    | 'scope/link-on-wrong-scope';
+    | 'scope/link-on-wrong-scope'
+    | AdviceCode;
+
+/** The codes of the advice checks of item 4.7: information or hints, with no game message. */
+export type AdviceCode =
+    | 'fields/usually-present'
+    | 'fields/unusual-value'
+    | 'references/unknown-name'
+    | 'structure/namespace-outside-events'
+    | 'structure/event-unknown-type'
+    | 'structure/event-letter-without-sender'
+    | 'structure/event-without-desc'
+    | 'structure/event-without-option'
+    | 'structure/event-after-without-option'
+    | 'structure/event-several-immediate'
+    | 'structure/event-several-after'
+    | 'structure/event-empty'
+    | 'structure/event-portrait-position-twice'
+    | 'structure/event-triggered-animation-without-trigger'
+    | 'structure/event-triggered-animation-without-animation'
+    | 'structure/logic-operator-without-block'
+    | 'structure/else-without-if'
+    | 'structure/trigger-else-without-trigger-if'
+    | 'structure/switch-without-trigger'
+    | 'structure/switch-without-branches'
+    | 'structure/round-to-not-positive'
+    | 'structure/casus-belli-without-outcome'
+    | 'structure/story-effect-group-without-timing'
+    | 'structure/story-effect-group-several-timings'
+    | 'structure/story-effect-group-without-effect'
+    | 'structure/story-effect-group-chance-above-100'
+    | 'structure/story-effect-group-chance-not-positive'
+    | 'scope/saved-late-read-in-desc';
 
 export interface CheckKind {
     readonly severity: Severity;
@@ -49,6 +82,8 @@ export interface CheckKind {
     readonly catalogue: string | null;
     /** For a check with no catalogue message: where the game's output it rests on is. */
     readonly gameOutput?: string;
+    /** True for pychivalry's own advice: no game evidence (docs/checks.md, evidence "Advice"). */
+    readonly advice?: true;
     /**
      * For a code whose message depends on the place (docs/decisions.md, item 4.1: one code per
      * kind of finding, its evidence varying with the place): where each finding's own message
@@ -193,7 +228,13 @@ export const CHECK_KINDS: Readonly<Record<CheckCode, CheckKind>> = {
         slots: ['value', 'value'],
         description: 'A link applied to a scope it cannot start from.',
     },
+    ...ADVICE_KINDS,
 };
+
+/** True for an advice code: pychivalry's own advice, information or a hint (item 4.7). */
+export function isAdvice(code: CheckCode): boolean {
+    return CHECK_KINDS[code].advice === true;
+}
 
 /** Data a finding carries beside its message: names, lists, versions. */
 export type FindingData = Readonly<Record<string, string | readonly string[]>>;
@@ -218,6 +259,9 @@ export interface CheckFinding {
  */
 export function evidenceOf(code: CheckCode, catalogue: MessageCatalogue | undefined): Evidence {
     const kind = CHECK_KINDS[code];
+    if (kind.advice === true) {
+        return { kind: 'advice' };
+    }
     if (kind.catalogue === null) {
         return kind.gameOutput === undefined
             ? { kind: 'advice' }

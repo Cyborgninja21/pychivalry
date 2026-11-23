@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { CHECK_KINDS } from './finding.js';
+import { CHECK_KINDS, isAdvice } from './finding.js';
 import { CODE } from './scope-link-on-wrong-scope.js';
 import { checkFixture, checkText, expectedFindings } from './testing.js';
 
@@ -25,11 +25,17 @@ test(`${CODE}: a global link takes any scope; a link on an unknown scope is not 
     // `title:k_x` is a global link that takes data; `scope:x` has no type the package gives.
     const text =
         'fixture_decision = {\n\tis_shown = {\n\t\tprimary_title = {\n\t\t\ttitle:k_fixture.holder = { is_adult = yes }\n\t\t\tscope:fixture_target.holder = { is_adult = yes }\n\t\t}\n\t}\n}\n';
-    assert.deepEqual(checkText('common/decisions/fixture.txt', text), []);
+    assert.deepEqual(
+        checkText('common/decisions/fixture.txt', text).filter((f) => !isAdvice(f.code)),
+        [],
+    );
 });
 
 test(`${CODE}: a chain in a keyword's parameters is evaluated where the keyword runs it, and is not judged`, () => {
     const text =
         'fixture_decision = {\n\teffect = {\n\t\tadd_opinion = {\n\t\t\ttarget = root.holder\n\t\t\tmodifier = fixture_opinion\n\t\t}\n\t}\n}\n';
-    assert.deepEqual(checkText('common/decisions/fixture.txt', text), []);
+    assert.deepEqual(
+        checkText('common/decisions/fixture.txt', text).filter((f) => !isAdvice(f.code)),
+        [],
+    );
 });

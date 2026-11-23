@@ -1,0 +1,10 @@
+namespace = fixture
+
+fixture.0001 = {
+	type = letter_event
+	title = fixture.0001.t
+	desc = fixture.0001.desc
+	option = {
+		name = fixture.0001.a
+	}
+}

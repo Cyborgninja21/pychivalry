@@ -1,0 +1,26 @@
+namespace = fixture
+
+fixture.0001 = {
+	type = character_event
+	title = fixture.0001.t
+	desc = {
+		desc = fixture.0001.intro
+		switch = {
+			trigger = scope:fixture_mood
+			flag:happy = {
+				desc = fixture.0001.happy
+			}
+			fallback = {
+				desc = fixture.0001.plain
+			}
+		}
+	}
+	immediate = {
+		random_courtier = {
+			save_scope_as = fixture_mood
+		}
+	}
+	option = {
+		name = fixture.0001.a
+	}
+}

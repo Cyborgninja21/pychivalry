@@ -1,0 +1,15 @@
+{
+    "findings": [
+        {
+            "file": "common/scripted_effects/fixture_effects.txt",
+            "line": 2,
+            "column": 2,
+            "code": "structure/switch-without-branches",
+            "severity": "information",
+            "message": "This 'switch' has no branch.",
+            "data": {
+                "block": "switch"
+            }
+        }
+    ]
+}

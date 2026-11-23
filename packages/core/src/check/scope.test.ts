@@ -14,6 +14,7 @@ import { parse } from '../syntax/parser.js';
 import { blockOf, type Block, type FileNode, type Pair } from '../syntax/tree.js';
 import { readContext } from './context.js';
 import { headsOf, keywordUses, readScopes, type Scope, type ScopeReading } from './scope.js';
+import { isAdvice } from './finding.js';
 import { checkText, specContext } from './testing.js';
 
 const PROBE = 'fixture_probe';
@@ -446,7 +447,10 @@ test('a keyword use is judged where its scope is known and its scope data declar
 test('lesson: `x = root` is a comparison, not a scope switch', () => {
     // If `primary_title = root` switched the scope, is_adult would be judged in a title.
     const text = shown('primary_title = root\nholder = root\nis_adult = yes');
-    assert.deepEqual(checkText(DECISION, text), []);
+    assert.deepEqual(
+        checkText(DECISION, text).filter((f) => !isAdvice(f.code)),
+        [],
+    );
     const { uses, scopes } = walk(DECISION, text);
     assert.deepEqual(
         uses.filter((u) => u.name === 'is_adult').map((u) => u.verdict),
@@ -467,7 +471,10 @@ test('lesson: trait groups count as traits, and a trait group as data is a trait
 
 test('lesson: a colour value is not a call, and not a block of script', () => {
     const text = effect('primary_title = hsv { 0.5 0.5 0.5 }\nadd_gold = 5');
-    assert.deepEqual(checkText(DECISION, text), []);
+    assert.deepEqual(
+        checkText(DECISION, text).filter((f) => !isAdvice(f.code)),
+        [],
+    );
     const { uses, scopes } = walk(DECISION, text);
     assert.deepEqual(scopes.links, []);
     assert.deepEqual(

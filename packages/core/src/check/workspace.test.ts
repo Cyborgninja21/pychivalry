@@ -20,7 +20,8 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { test, type TestContext } from 'node:test';
 import { committedSpec, REPO_ROOT } from '../spec/testing.js';
-import { expectedFindings } from './testing.js';
+import { CHECK_KINDS, isAdvice, type CheckCode } from './finding.js';
+import { checkFixture, expectedFindings } from './testing.js';
 import {
     checkWorkspace,
     GAME_NOT_LOADED,
@@ -72,7 +73,16 @@ function written(findings: readonly WorkspaceFinding[]): Record<string, unknown>
 
 const isParse = (f: WorkspaceFinding): boolean => /^(syntax|encoding)\//.test(f.code);
 
-test("on each check's fixture pair the runner reports what the fixture expects", (t) => {
+/** True for a finding of an advice check of item 4.7. */
+const advice = (code: string): boolean => code in CHECK_KINDS && isAdvice(code as CheckCode);
+
+/** The code a check pair is named for: the code with its `/` written as `-`. */
+function codeOfPair(pair: string): string | undefined {
+    const name = pair.replace(/-(bad|good)$/, '');
+    return Object.keys(CHECK_KINDS).find((code) => code.replace('/', '-') === name);
+}
+
+test("on each check's fixture pair the runner reports what every check reports, and what the pair expects", (t) => {
     const game = gameStub(scratch(t));
     // Every check pair: a bad mod whose expected.json lists findings (the parse mods list files).
     const pairs = readdirSync(MODS).filter(
@@ -83,27 +93,33 @@ test("on each check's fixture pair the runner reports what the fixture expects",
                 (JSON.parse(readFileSync(path.join(MODS, m, 'expected.json'), 'utf8')) as object),
     );
     assert.ok(pairs.includes('definitions-clash-bad'));
+    assert.ok(pairs.includes('structure-event-without-desc-bad'));
     assert.ok(pairs.length >= 6);
     // The fixtures' expected findings are Linux's, as `checkFixture` reads them: a folder in
     // another letter case is a file the game does not read there (definitions-not-read-bad).
     for (const bad of pairs) {
-        const run = checkWorkspace({
-            spec,
-            modDir: path.join(MODS, bad),
-            gameDir: game,
-            cacheDir: null,
-            platform: 'linux',
-        });
-        assert.deepEqual(written(run.findings), expectedFindings(bad), bad);
-        const good = bad.replace(/-bad$/, '-good');
-        const clean = checkWorkspace({
-            spec,
-            modDir: path.join(MODS, good),
-            gameDir: game,
-            cacheDir: null,
-            platform: 'linux',
-        });
-        assert.deepEqual(written(clean.findings), [], good);
+        const code = codeOfPair(bad);
+        assert.ok(code !== undefined, `${bad} is named for a code`);
+        // A pair lists the findings of its own check and of every check that is not advice; the
+        // advice checks of item 4.7 are tested on their own pairs, so a pair of another code
+        // leaves them out, as its own test does (#133).
+        const keep = (f: Record<string, unknown>): boolean =>
+            advice(code) || !advice(String(f['code']));
+        for (const [mod, expected] of [
+            [bad, expectedFindings(bad)],
+            [bad.replace(/-bad$/, '-good'), []],
+        ] as const) {
+            const run = checkWorkspace({
+                spec,
+                modDir: path.join(MODS, mod),
+                gameDir: game,
+                cacheDir: null,
+                platform: 'linux',
+            });
+            const found = written(run.findings);
+            assert.deepEqual(found, checkFixture(mod), `${mod}: the runner is every check`);
+            assert.deepEqual(found.filter(keep), expected, `${mod}: what the pair expects`);
+        }
     }
 });
 
@@ -179,9 +195,10 @@ test('a name the game defines is known; without the game no such name is reporte
         'common/scripted_triggers/fixture_triggers.txt':
             'fixture_game_trigger = { always = yes }\n',
     });
+    // The event has no desc and no option: advice of item 4.7, which is not what this is about.
     const withGame = checkWorkspace({ spec, modDir: mod, gameDir: game, cacheDir: null });
     assert.deepEqual(
-        withGame.findings.map((f) => [f.file, f.code, f.message]),
+        withGame.findings.filter((f) => !advice(f.code)).map((f) => [f.file, f.code, f.message]),
         [
             [
                 'events/broken.txt',
@@ -198,7 +215,7 @@ test('a name the game defines is known; without the game no such name is reporte
     assert.equal(withGame.gameBuild, spec.version);
     const without = checkWorkspace({ spec, modDir: mod, gameDir: null, cacheDir: null });
     assert.deepEqual(
-        without.findings.map((f) => [f.file, f.code]),
+        without.findings.filter((f) => !advice(f.code)).map((f) => [f.file, f.code]),
         [['events/broken.txt', 'syntax/unexpected-closing-brace']],
     );
     assert.equal(GAME_NOT_LOADED.isDefined('anything', 'common/scripted_triggers'), true);

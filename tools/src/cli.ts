@@ -12,12 +12,17 @@
  *   baseline speed                 release 2.3.0's speed baselines (task baseline:speed)
  *   baseline results               release 2.3.0's result baselines (task baseline:results)
  *   wiki check|build|publish       the repository wiki, generated from docs/ (task wiki:*)
+ *   advice proof                   the advice checks of item 4.7 on the base game: per row, the
+ *                                  units it applies to and the findings it raises there
  */
 
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { openSpec } from '@pychivalry/core';
+import { adviceProof, proofText } from './advice-proof.js';
 import { prepareLegacySpec, runResultBaseline, runSpeedBaseline } from './baseline.js';
+import { requireGameDir } from './game.js';
 import { checkRecords } from './records-check.js';
 import { checkRulesTable, RULES_SOURCE, rulesUse } from './rules-table.js';
 import { checkSpecFolder, SCHEMA_FILE } from './spec.js';
@@ -31,7 +36,8 @@ const USAGE = `usage: pychivalry-tools <command>
   game ${GAME_SUITES.join('|')}
   corpus manifest
   baseline spec|speed|results
-  wiki check|build|publish`;
+  wiki check|build|publish
+  advice proof`;
 
 function run(args: readonly string[]): number {
     const root = repoRoot();
@@ -143,6 +149,12 @@ function run(args: readonly string[]): number {
     if (group === 'wiki' && command === 'publish') {
         process.stdout.write(publishWiki(root, process.env));
         return EXIT.ok;
+    }
+    if (group === 'advice' && command === 'proof') {
+        const gameDir = requireGameDir(process.env['CK3_GAME_PATH']);
+        const proof = adviceProof(openSpec(path.join(root, 'spec')), gameDir);
+        process.stdout.write(proofText(proof));
+        return proof.rows.every((r) => r.verdict === 'holds') ? EXIT.ok : EXIT.failed;
     }
     process.stderr.write(`${USAGE}\n`);
     return EXIT.usage;

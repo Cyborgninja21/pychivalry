@@ -1,0 +1,11 @@
+fixture_reward_effect = {
+	if = {
+		limit = {
+			is_adult = yes
+		}
+		add_gold = 10
+	}
+	else = {
+		add_prestige = 10
+	}
+}

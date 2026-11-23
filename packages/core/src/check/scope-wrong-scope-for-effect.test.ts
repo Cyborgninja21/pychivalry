@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { CHECK_KINDS } from './finding.js';
+import { CHECK_KINDS, isAdvice } from './finding.js';
 import { CODE } from './scope-wrong-scope-for-effect.js';
 import { checkFixture, checkText, expectedFindings } from './testing.js';
 
@@ -26,7 +26,7 @@ test(`${CODE}: an every_ iterator is an effect by its prefix (part D8), an any_ 
     // the effect block's `limit`, by the triggers'.
     const text =
         'fixture_decision = {\n\teffect = {\n\t\tprimary_title = {\n\t\t\tif = {\n\t\t\t\tlimit = {\n\t\t\t\t\tany_vassal = { is_adult = yes }\n\t\t\t\t}\n\t\t\t\tevery_vassal = { add_gold = 1 }\n\t\t\t}\n\t\t}\n\t}\n}\n';
-    const found = checkText('common/decisions/fixture.txt', text);
+    const found = checkText('common/decisions/fixture.txt', text).filter((f) => !isAdvice(f.code));
     assert.deepEqual(
         found.map((f) => [f.code, f.data['name']]),
         [

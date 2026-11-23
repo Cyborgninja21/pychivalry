@@ -25,7 +25,8 @@
  *    this comparison.
  * 4. **Not compared:** 2.3.0's 34 `PYCH-S003` warnings ("declares event content, but <folder>
  *    loads no script content"). Their row, `structure/namespace-outside-events`, is advice of
- *    item 4.7, and in the game's layout below no file is outside `events/`.
+ *    item 4.7 about a different place: in the game's layout below, every file 2.3.0 warned
+ *    about is in `events/`, where a namespace belongs.
  *
  * The example mod keeps each kind of content in a numbered folder of its own (`01_syntax/`),
  * which the game does not read; 2.3.0 read every file as script whatever its folder. The new

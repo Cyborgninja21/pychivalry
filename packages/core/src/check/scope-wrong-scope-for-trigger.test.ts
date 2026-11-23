@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { CHECK_KINDS } from './finding.js';
+import { CHECK_KINDS, isAdvice } from './finding.js';
 import { CODE } from './scope-wrong-scope-for-trigger.js';
 import { checkFixture, checkText, expectedFindings } from './testing.js';
 
@@ -25,7 +25,15 @@ test(`${CODE}: a trigger whose scope data declares no requirement, or a scope no
     // `exists` declares `none`; a scripted trigger runs in whatever scope calls it.
     const decision =
         'fixture_decision = {\n\tis_shown = {\n\t\tprimary_title = {\n\t\t\texists = holder\n\t\t}\n\t}\n}\n';
-    assert.deepEqual(checkText('common/decisions/fixture.txt', decision), []);
+    assert.deepEqual(
+        checkText('common/decisions/fixture.txt', decision).filter((f) => !isAdvice(f.code)),
+        [],
+    );
     const scripted = 'fixture_trigger = {\n\ttier >= 2\n\tis_adult = yes\n}\n';
-    assert.deepEqual(checkText('common/scripted_triggers/fixture.txt', scripted), []);
+    assert.deepEqual(
+        checkText('common/scripted_triggers/fixture.txt', scripted).filter(
+            (f) => !isAdvice(f.code),
+        ),
+        [],
+    );
 });
