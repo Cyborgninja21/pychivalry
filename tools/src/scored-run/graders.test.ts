@@ -63,9 +63,9 @@ test('on the untouched mod/, the checker graders fail and the others pass', () =
     const { grades } = gradeMod({ root, spec, manifest, original, result: original });
     assert.deepEqual(failing(original), ['zero-errors', 'defects-gone']);
     const gone = grades.find((g) => g.name === 'defects-gone');
-    // 28 findings of planted codes, shown up to the cap and counted past it.
+    // 33 findings of planted codes, shown up to the cap and counted past it.
     assert.equal(gone?.problems.length, MAX_PROBLEMS + 1);
-    assert.equal(gone.problems[MAX_PROBLEMS], 'and 8 more');
+    assert.equal(gone.problems[MAX_PROBLEMS], 'and 13 more');
 });
 
 test('a fix that deletes the offending block fails nothing-deleted alone', (t) => {
@@ -74,7 +74,7 @@ test('a fix that deletes the offending block fails nothing-deleted alone', (t) =
     const dir = referenceWith(t, 'events/harvest_events.txt', (text) =>
         replaceOnce(
             text,
-            '\t\tcapital_county = {\n\t\t\tadd_county_modifier = {\n\t\t\t\tmodifier = harvest_bounty_modifier\n\t\t\t\tyears = 5\n\t\t\t}\n\t\t}\n',
+            '\t\tcapital_county = {\n\t\t\tadd_county_modifier = {\n\t\t\t\tmodifier = harvest_granary_modifier\n\t\t\t\tyears = 5\n\t\t\t}\n\t\t}\n',
             '',
         ),
     );
@@ -89,13 +89,13 @@ test('commenting the offending line out fails nothing-deleted alone', (t) => {
 });
 
 test('a fix that also edits a look-alike fails look-alikes-untouched alone', (t) => {
-    // The interaction category is given its index, and its HSV colour, which is right, is
-    // rewritten too, as RGBA: inside the lines the fix may change, but a look-alike.
+    // The market's interaction category is given its index, and its RGB colour, which is
+    // right, is rewritten too, as HSV: inside the lines the fix may change, but a look-alike.
     const dir = referenceWith(
         t,
         'common/character_interaction_categories/harvest_categories.txt',
         (text) =>
-            replaceOnce(text, '\tcolor = hsv { 0.12 0.7 0.8 }\n', '\tcolor = { 0.8 0.6 0.2 1 }\n'),
+            replaceOnce(text, '\tcolor = { 0.8 0.6 0.2 }\n', '\tcolor = hsv { 0.1 0.75 0.8 }\n'),
     );
     assert.deepEqual(failing(dir), ['look-alikes-untouched']);
 });
@@ -132,6 +132,71 @@ test('a warning left unfixed fails defects-gone alone', (t) => {
         replaceOnce(text, '"[ROOT.Char.GetFirstName] brings', '"[ROOT.Char.GetFirstName brings'),
     );
     assert.deepEqual(failing(dir), ['defects-gone']);
+});
+
+test('a fix the game accepts is accepted, though the reference fixes it another way', (t) => {
+    // The graders judge by the checker and the manifest's fix ranges, never by equality with
+    // reference/ (item 6.11: the sessions fixed the wrong-scope link with primary_title.holder
+    // where the reference uses liege, and the wrong-scope effect with add_character_modifier).
+    const holder = referenceWith(t, 'common/decisions/harvest_decisions.txt', (text) =>
+        replaceOnce(
+            text,
+            '\t\tliege = {\n\t\t\tis_alive',
+            '\t\tprimary_title.holder = {\n\t\t\tis_alive',
+        ),
+    );
+    assert.deepEqual(failing(holder), []);
+    const character = referenceWith(t, 'events/harvest_events.txt', (text) =>
+        replaceOnce(
+            text,
+            '\t\tcapital_county = {\n\t\t\tadd_county_modifier = {\n\t\t\t\tmodifier = harvest_granary_modifier\n\t\t\t\tyears = 5\n\t\t\t}\n\t\t}\n',
+            '\t\tadd_character_modifier = {\n\t\t\tmodifier = harvest_granary_modifier\n\t\t\tyears = 5\n\t\t}\n',
+        ),
+    );
+    assert.deepEqual(failing(character), []);
+    // The clash fixed by renaming the court event to a free id, the on-action following it.
+    const renamed = path.join(tempDir(t), 'mod');
+    cpSync(reference, renamed, { recursive: true });
+    for (const [file, from, to] of [
+        ['events/harvest_court_events.txt', 'harvest.0012 = {', 'harvest.0006 = {'],
+        ['common/on_action/harvest_on_actions.txt', '25 = harvest.0012', '25 = harvest.0006'],
+    ] as const) {
+        const at = path.join(renamed, ...file.split('/'));
+        writeFileSync(at, replaceOnce(readFileSync(at, 'utf8'), from, to));
+    }
+    assert.deepEqual(failing(renamed), []);
+});
+
+test('the obvious fix of a defect that interacts with another fails', (t) => {
+    // The hidden event harvst.0004 renamed to harvest.0004, which the court event already
+    // has: the checker reports the clash, and the on-action that named the event an unknown
+    // key.
+    const clash = referenceWith(t, 'events/harvest_events.txt', (text) =>
+        replaceOnce(text, 'harvest.0005 = {', 'harvest.0004 = {'),
+    );
+    assert.deepEqual(failing(clash), ['zero-errors', 'defects-gone']);
+    // The faith event's scope removed instead of hiding it: its faith trigger and effect are
+    // then in a character scope, and words are lost.
+    const scope = referenceWith(t, 'events/harvest_faith_events.txt', (text) =>
+        replaceOnce(text, '\tscope = faith\n\thidden = yes\n', ''),
+    );
+    assert.deepEqual(failing(scope), [
+        'zero-errors',
+        'defects-gone',
+        'only-planted-lines',
+        'look-alikes-untouched',
+        'nothing-deleted',
+    ]);
+    // The unclosed block closed at the end of the file: the checker is silent, but the brace
+    // is not where the block ends.
+    const brace = referenceWith(t, 'common/scripted_effects/harvest_reward_effects.txt', (text) =>
+        replaceOnce(
+            text,
+            '\t\tyears = 2\n\t}\n\tadd_gold = 25\n}\n',
+            '\t\tyears = 2\n\tadd_gold = 25\n}\n}\n',
+        ),
+    );
+    assert.deepEqual(failing(brace), ['only-planted-lines']);
 });
 
 test('an error of a code not planted fails zero-errors alone', () => {

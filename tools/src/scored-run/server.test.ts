@@ -138,11 +138,16 @@ test(
         assert.notEqual(call['isError'], true);
         const output = call['structuredContent'] as {
             totals: { by_severity: Record<string, number>; by_code: Record<string, number> };
-            findings: { file: string; line: number; code: string }[];
+            findings: {
+                file: string;
+                line: number;
+                code: string;
+                data: Record<string, string | string[]>;
+            }[];
         };
         assert.deepEqual(output.totals.by_severity, {
-            error: 22,
-            warning: 6,
+            error: 26,
+            warning: 7,
             information: 0,
             hint: 0,
         });
@@ -154,6 +159,26 @@ test(
             planted.sort(),
             'the planted defects, at the lines the manifest counts from 1',
         );
+        // The findings say what is valid (item 6.11, proposals 2 and 3): a scope finding the
+        // scopes the keyword or link takes and the links that lead there, a missing field the
+        // value type and the values the base game writes.
+        const dataOf = (code: string, file: string): Record<string, string | string[]> => {
+            const found = output.findings.find((f) => f.code === code && f.file === file);
+            assert.ok(found !== undefined, `${code} in ${file}`);
+            return found.data;
+        };
+        const effect = dataOf('scope/wrong-scope-for-effect', 'events/harvest_events.txt');
+        assert.equal(effect['name'], 'add_county_modifier');
+        assert.deepEqual(effect['expected'], ['landed_title']);
+        assert.ok(effect['links_from_scope']?.includes('capital_county'));
+        const link = dataOf('scope/link-on-wrong-scope', 'common/decisions/harvest_decisions.txt');
+        assert.ok(link['links_from_scope']?.includes('primary_title'));
+        const index = dataOf(
+            'fields/missing-required-field',
+            'common/character_interaction_categories/harvest_categories.txt',
+        );
+        assert.equal(index['value_type'], 'integer');
+        assert.ok(index['values']?.includes('15'));
 
         // The server wrote nothing into the mod.
         assert.deepEqual(filesIn(modDir), filesIn(original));

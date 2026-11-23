@@ -1,0 +1,36 @@
+namespace = harvest_market
+
+# The harvest market opens in the capital.
+harvest_market.0001 = {
+	type = character_event
+	title = harvest_market.0001.t
+	desc = harvest_market.0001.desc
+
+	trigger = {
+		is_landed = yes
+		gold >= 10
+	}
+
+	option = {
+		name = harvest_market.0001.a
+		add_gold = -10
+		add_character_modifier = {
+			modifier = harvest_bounty_modifier
+			years = 1
+		}
+		trigger_event = { id = harvest_market.0002 days = 30 }
+	}
+	option = {
+		name = harvest_market.0001.b
+		add_prestige = 5
+	}
+}
+
+# The merchants leave.
+harvest_market.0002 = {
+	type = character_event
+	hidden = yes
+	immediate = {
+		remove_character_modifier = harvest_bounty_modifier
+	}
+}

@@ -356,8 +356,8 @@ test('a run whose agent changes nothing: the trials fail on the checker graders'
         passed: 0,
         pass_rate: 0,
     });
-    // 21 error codes, the clash reported at both its definitions.
-    assert.equal(trial.findings_left.error, 22);
+    // Every error code, some planted more than once, the clash reported at both definitions.
+    assert.equal(trial.findings_left.error, 26);
 });
 
 test("the test session's environment drops every key and token variable, and a surrounding session's", (t) => {
