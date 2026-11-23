@@ -22,8 +22,9 @@ test("an interaction category's index: an integer, and the base game's values in
 test('the most written values first, at most MAX_VALUES, with the count when cut', () => {
     const values = Array.from({ length: 25 }, (_, i) => ({ value: `v${String(i)}`, count: i }));
     const data = fieldValueData({ ...BASE, value_type: 'word', values });
-    assert.equal(data['values']?.length, MAX_VALUES);
-    assert.equal(data['values']?.[0], 'v24');
+    const listed = data['values'] as readonly string[];
+    assert.equal(listed.length, MAX_VALUES);
+    assert.equal(listed[0], 'v24');
     assert.equal(data['values_total'], '25');
     assert.deepEqual(fieldValueData({ ...BASE }), {});
     assert.deepEqual(fieldValueData(undefined), {});
