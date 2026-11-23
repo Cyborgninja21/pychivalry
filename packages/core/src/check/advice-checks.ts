@@ -10,6 +10,7 @@ import type { CheckCode, CheckFinding } from './finding.js';
 import { check as fieldsUnusualValue } from './fields-unusual-value.js';
 import { check as fieldsUsuallyPresent } from './fields-usually-present.js';
 import { check as referencesUnknownName } from './references-unknown-name.js';
+import { check as scopeSavedLateReadInDesc } from './scope-saved-late-read-in-desc.js';
 import { check as structureCasusBelliWithoutOutcome } from './structure-casus-belli-without-outcome.js';
 import { check as structureElseWithoutIf } from './structure-else-without-if.js';
 import { check as structureEventAfterWithoutOption } from './structure-event-after-without-option.js';
@@ -40,6 +41,7 @@ export const ADVICE_CHECKS: readonly AdviceCheck[] = [
     fieldsUnusualValue,
     fieldsUsuallyPresent,
     referencesUnknownName,
+    scopeSavedLateReadInDesc,
     structureCasusBelliWithoutOutcome,
     structureElseWithoutIf,
     structureEventAfterWithoutOption,
