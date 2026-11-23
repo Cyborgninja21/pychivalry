@@ -30,14 +30,16 @@
  *   decision 76); every other check always runs.
  * - **A server** that keeps one workspace open between requests passes it (`workspace`), its
  *   mod brought up to date with `syncMod`, and may check only some of the mod's files (`only`):
- *   every file is still indexed, so a file's findings are those of a whole run.
+ *   every file is still indexed, so a file's findings are those of a whole run. A server that
+ *   checks one file at a time calls what the runner calls for each file (`checkSourceFile`, over
+ *   `checkNames`), from the file's bytes or from text an editor holds.
  */
 
 import { readFileSync } from 'node:fs';
 import { folderTableFromSpec, type FolderTable } from '../index/folders.js';
 import { openGameIndex, type GameIndex } from '../index/game-index.js';
 import { compareCodePoints } from '../index/order.js';
-import { readLocalization } from '../index/localization.js';
+import { readLocalization, type LocalizationFile } from '../index/localization.js';
 import { indexMod, unreadWords, type ModListing, type SourceListing } from '../index/read-game.js';
 import { currentPlatform, rulesFromSpec, type Platform, type RulesTable } from '../index/rules.js';
 import { fileKindOf, WorkspaceIndex } from '../index/workspace.js';
@@ -47,9 +49,11 @@ import {
     catalogueFromSpec,
     findingMessage,
     type Evidence,
+    type Finding,
     type MessageCatalogue,
     type Severity,
 } from '../syntax/findings.js';
+import type { ParseResult } from '../syntax/parser.js';
 import type { Range } from '../syntax/position.js';
 import { readScript } from '../syntax/read.js';
 import type { DefinedNames } from './context.js';
@@ -216,14 +220,27 @@ export interface ScriptInput {
  * check's, in the order of where each starts.
  */
 export function scriptFindings(input: ScriptInput): WorkspaceFinding[] {
-    const { folders, catalogue } = specContext(input.spec);
+    const { catalogue } = specContext(input.spec);
     const parsed = readScript(input.bytes, {
         catalogue,
         fallbackEncoding: input.fallbackEncoding,
     });
+    return parsedScriptFindings(input, parsed, parsed.allFindings);
+}
+
+/**
+ * The findings of a script file already parsed: `syntax` holds the decoder's note, if any,
+ * and the parser's findings, in the order of where each starts (`readScript`'s `allFindings`).
+ */
+function parsedScriptFindings(
+    input: Omit<ScriptInput, 'bytes'>,
+    parsed: ParseResult,
+    syntax: readonly Finding[],
+): WorkspaceFinding[] {
+    const { folders, catalogue } = specContext(input.spec);
     const out: WorkspaceFinding[] = [];
     const layer = input.index?.layer ?? MOD_LAYER;
-    for (const f of parsed.allFindings) {
+    for (const f of syntax) {
         out.push({
             file: input.file,
             layer,
@@ -278,8 +295,16 @@ export interface LocalizationInput {
 
 /** Every finding of the engine checks on one localization file, in the order of where each starts. */
 export function localizationFindings(input: LocalizationInput): WorkspaceFinding[] {
-    const { folders, catalogue } = specContext(input.spec);
     const parsed = readLocalization(input.bytes, { fallbackEncoding: input.fallbackEncoding });
+    return parsedLocalizationFindings(input, parsed);
+}
+
+/** The findings of a localization file already read. */
+function parsedLocalizationFindings(
+    input: Omit<LocalizationInput, 'bytes'>,
+    parsed: LocalizationFile,
+): WorkspaceFinding[] {
+    const { folders, catalogue } = specContext(input.spec);
     return checkLocalizationFile({
         spec: input.spec,
         folders,
@@ -422,6 +447,105 @@ export interface WorkspaceCheck {
 }
 
 /**
+ * What one file is checked from: its bytes, as the runner reads them from disk; or text an
+ * editor holds, already read. A script file's text comes parsed (`parse`, or `reparse` after
+ * an edit), with the decoder's note about the file on disk when the text is still what the
+ * file holds; a localization file's text comes read (`readLocalization`).
+ */
+export type CheckSource =
+    | { readonly bytes: Uint8Array }
+    | { readonly script: ParseResult; readonly notes?: readonly Finding[] | undefined }
+    | { readonly localization: LocalizationFile };
+
+/** One file of a workspace to check, and what its checks see. */
+export interface FileCheckInput {
+    readonly spec: Spec;
+    /** The file's path inside the mod (or inside its base-game layer), with `/`. */
+    readonly file: string;
+    /** Its layer in the index: `mod` for a mod's file. */
+    readonly layer: string;
+    readonly source: CheckSource;
+    /** The definitions the checks see: `checkNames` gives the runner's. */
+    readonly names: DefinedNames & Partial<WorkspaceNames>;
+    /** The workspace index that holds the file. */
+    readonly index: WorkspaceIndex;
+    readonly fallbackEncoding?: FallbackEncoding | undefined;
+    /** Run the checks that are off by default (`WorkspaceCheckOptions.unusedKeys`). */
+    readonly unusedKeys?: boolean | undefined;
+    readonly measure?: ScopeMeasure | undefined;
+    /** The most findings the file reports; `MAX_FINDINGS_PER_FILE` by default. */
+    readonly maxFindingsPerFile?: number | undefined;
+}
+
+/**
+ * Every finding on one file of a workspace, under the cap: what `checkWorkspace` reports for
+ * the file, which calls it for each file it checks. A server that checks one file at a time
+ * (an open file as it is edited, the mod's files one by one in the background) calls it too,
+ * so that its findings for a file are the runner's.
+ */
+export function checkSourceFile(input: FileCheckInput): {
+    readonly kept: WorkspaceFinding[];
+    readonly capped: CappedFile | null;
+} {
+    const source = input.source;
+    let found: WorkspaceFinding[];
+    if (fileKindOf(input.file) === 'localization') {
+        if ('script' in source) {
+            throw new Error(`checkSourceFile: ${input.file} is a localization file`);
+        }
+        found = parsedLocalizationFindings(
+            input,
+            'localization' in source
+                ? source.localization
+                : readLocalization(source.bytes, { fallbackEncoding: input.fallbackEncoding }),
+        );
+    } else {
+        if ('localization' in source) {
+            throw new Error(`checkSourceFile: ${input.file} is a script file`);
+        }
+        const scriptInput = {
+            spec: input.spec,
+            file: input.file,
+            names: input.names,
+            index: { workspace: input.index, layer: input.layer },
+            fallbackEncoding: input.fallbackEncoding,
+            measure: input.measure,
+        };
+        if ('bytes' in source) {
+            found = scriptFindings({ ...scriptInput, bytes: source.bytes });
+        } else {
+            const syntax = [...(source.notes ?? []), ...source.script.findings].sort(
+                (a, b) => a.start - b.start || a.end - b.end,
+            );
+            found = parsedScriptFindings(scriptInput, source.script, syntax);
+        }
+    }
+    return capFindings(found, input.maxFindingsPerFile ?? MAX_FINDINGS_PER_FILE);
+}
+
+/**
+ * The definitions a run's checks see over a workspace (`openWorkspace`): for a mod with the base
+ * game, the index's, with the words of the mod's files the index does not read (its interface
+ * files) counted as uses of a localization key (`localization/unused-key`; `unreadWords`, given
+ * when the caller keeps them); for a mod without the base game, none unknown
+ * (`GAME_NOT_LOADED`); for the base game itself, the index's.
+ */
+export function checkNames(
+    workspace: Pick<Workspace, 'index' | 'game'>,
+    modDir: string | null,
+    words?: ReadonlySet<string>,
+): DefinedNames & Partial<WorkspaceNames> {
+    if (modDir === null) {
+        return definedNamesOf(workspace.index);
+    }
+    return workspace.game === null
+        ? GAME_NOT_LOADED
+        : definedNamesOf(workspace.index, {
+              unreadWords: words ?? unreadWords(modDir, workspace.index),
+          });
+}
+
+/**
  * Every finding pychivalry reports on a mod; with `modDir: null`, on the base game's own
  * files.
  */
@@ -429,7 +553,6 @@ export function checkWorkspace(options: WorkspaceCheckOptions): WorkspaceCheck {
     const { index, game } = options.workspace ?? openWorkspace({ ...options, modDir: null });
     const modDir = options.modDir;
     let listing: SourceListing;
-    let names: DefinedNames & Partial<WorkspaceNames>;
     if (modDir !== null) {
         if (options.workspace === undefined) {
             listing = indexMod(index, modDir);
@@ -438,18 +561,12 @@ export function checkWorkspace(options: WorkspaceCheckOptions): WorkspaceCheck {
         } else {
             throw new Error('checkWorkspace: the workspace given holds no mod');
         }
-        // With the base game, the words of the mod's files the index does not read (its
-        // interface files) count as uses of a localization key (`localization/unused-key`).
-        names =
-            game === null
-                ? GAME_NOT_LOADED
-                : definedNamesOf(index, { unreadWords: unreadWords(modDir, index) });
     } else if (game !== null) {
         listing = game.listing;
-        names = definedNamesOf(index);
     } else {
         throw new Error('checkWorkspace: neither a mod nor a game folder to check');
     }
+    const names = checkNames({ index, game }, modDir);
     const only = options.only;
     const checked = listing.files
         .filter((f) => fileKindOf(f.path) !== undefined && (only === undefined || only(f.path)))
@@ -458,24 +575,18 @@ export function checkWorkspace(options: WorkspaceCheckOptions): WorkspaceCheck {
     const findings: WorkspaceFinding[] = [];
     const capped: CappedFile[] = [];
     for (const file of checked) {
-        const input = {
+        const cap = checkSourceFile({
             spec: options.spec,
             file: file.path,
             layer: file.layer,
-            bytes: readFileSync(file.disk),
+            source: { bytes: readFileSync(file.disk) },
             names,
+            index,
             fallbackEncoding: options.fallbackEncoding,
             unusedKeys: options.unusedKeys,
-        };
-        const found =
-            fileKindOf(file.path) === 'localization'
-                ? localizationFindings(input)
-                : scriptFindings({
-                      ...input,
-                      index: { workspace: index, layer: file.layer },
-                      measure: options.measure,
-                  });
-        const cap = capFindings(found, max);
+            measure: options.measure,
+            maxFindingsPerFile: max,
+        });
         findings.push(...cap.kept);
         if (cap.capped !== null) {
             capped.push(cap.capped);
