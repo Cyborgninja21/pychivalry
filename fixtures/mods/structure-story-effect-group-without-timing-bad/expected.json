@@ -1,0 +1,16 @@
+{
+    "findings": [
+        {
+            "file": "common/story_cycles/fixture_story_cycles.txt",
+            "line": 2,
+            "column": 2,
+            "code": "structure/story-effect-group-without-timing",
+            "severity": "information",
+            "message": "This 'effect_group' has none of 'days', 'weeks', 'months' or 'years'.",
+            "data": {
+                "block": "effect_group",
+                "missing": ["days", "weeks", "months", "years"]
+            }
+        }
+    ]
+}

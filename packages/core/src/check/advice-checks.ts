@@ -7,6 +7,7 @@
 
 import type { AdviceCheck, AdviceInput } from './advice.js';
 import type { CheckCode, CheckFinding } from './finding.js';
+import { check as structureCasusBelliWithoutOutcome } from './structure-casus-belli-without-outcome.js';
 import { check as structureElseWithoutIf } from './structure-else-without-if.js';
 import { check as structureEventAfterWithoutOption } from './structure-event-after-without-option.js';
 import { check as structureEventEmpty } from './structure-event-empty.js';
@@ -22,12 +23,18 @@ import { check as structureEventWithoutOption } from './structure-event-without-
 import { check as structureLogicOperatorWithoutBlock } from './structure-logic-operator-without-block.js';
 import { check as structureNamespaceOutsideEvents } from './structure-namespace-outside-events.js';
 import { check as structureRoundToNotPositive } from './structure-round-to-not-positive.js';
+import { check as structureStoryEffectGroupChanceAbove100 } from './structure-story-effect-group-chance-above-100.js';
+import { check as structureStoryEffectGroupChanceNotPositive } from './structure-story-effect-group-chance-not-positive.js';
+import { check as structureStoryEffectGroupSeveralTimings } from './structure-story-effect-group-several-timings.js';
+import { check as structureStoryEffectGroupWithoutEffect } from './structure-story-effect-group-without-effect.js';
+import { check as structureStoryEffectGroupWithoutTiming } from './structure-story-effect-group-without-timing.js';
 import { check as structureSwitchWithoutBranches } from './structure-switch-without-branches.js';
 import { check as structureSwitchWithoutTrigger } from './structure-switch-without-trigger.js';
 import { check as structureTriggerElseWithoutTriggerIf } from './structure-trigger-else-without-trigger-if.js';
 
 /** Every advice check this build ships. */
 export const ADVICE_CHECKS: readonly AdviceCheck[] = [
+    structureCasusBelliWithoutOutcome,
     structureElseWithoutIf,
     structureEventAfterWithoutOption,
     structureEventEmpty,
@@ -43,6 +50,11 @@ export const ADVICE_CHECKS: readonly AdviceCheck[] = [
     structureLogicOperatorWithoutBlock,
     structureNamespaceOutsideEvents,
     structureRoundToNotPositive,
+    structureStoryEffectGroupChanceAbove100,
+    structureStoryEffectGroupChanceNotPositive,
+    structureStoryEffectGroupSeveralTimings,
+    structureStoryEffectGroupWithoutEffect,
+    structureStoryEffectGroupWithoutTiming,
     structureSwitchWithoutBranches,
     structureSwitchWithoutTrigger,
     structureTriggerElseWithoutTriggerIf,

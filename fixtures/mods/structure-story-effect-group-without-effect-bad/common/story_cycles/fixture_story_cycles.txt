@@ -1,0 +1,5 @@
+fixture_story = {
+	effect_group = {
+		days = 30
+	}
+}
