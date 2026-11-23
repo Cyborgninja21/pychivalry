@@ -169,6 +169,9 @@ const HARD_ARGS = [
     'unicode é ü ✓',
 ];
 
+/** A path written into a batch file, where `%` must be doubled to stay a `%`. */
+const inBatch = (p: string): string => p.replace(/%/g, '%%');
+
 /** A stand-in `claude` that prints its arguments as JSON. */
 function echoClaude(dir: string): { readonly file: string; readonly viaCmd: boolean } {
     const script = path.join(dir, 'echo-args.cjs');
@@ -176,7 +179,10 @@ function echoClaude(dir: string): { readonly file: string; readonly viaCmd: bool
     if (process.platform === 'win32') {
         // As an npm install's claude.cmd does: the arguments handed on with %*.
         const file = path.join(dir, 'claude.cmd');
-        writeFileSync(file, `@echo off\r\n"${process.execPath}" "${script}" %*\r\n`);
+        writeFileSync(
+            file,
+            `@echo off\r\n"${inBatch(process.execPath)}" "${inBatch(script)}" %*\r\n`,
+        );
         return { file, viaCmd: true };
     }
     const file = path.join(dir, 'claude');
@@ -207,7 +213,7 @@ test('a claude that fails gives its exit code and output; one that cannot start 
     writeFileSync(
         file,
         process.platform === 'win32'
-            ? `@echo off\r\n"${process.execPath}" "${script}" %*\r\n`
+            ? `@echo off\r\n"${inBatch(process.execPath)}" "${inBatch(script)}" %*\r\n`
             : `#!/bin/sh\nexec "${process.execPath}" "${script}" "$@"\n`,
         { mode: 0o755 },
     );

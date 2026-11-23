@@ -15,7 +15,7 @@ import { EXTENSION_ID, SET_UP_CLAUDE_CODE } from '../ids.js';
 import { MANIFEST_FILE, parseManifest } from '../install.js';
 import { serverEntry } from '../setup.js';
 import { checkThrough } from './agent.js';
-import { asEntry, assertFixtureAnswer, claudeEntryFor } from './fixture.js';
+import { asEntry, assertFixtureAnswer, claudeEntryFor, isInside } from './fixture.js';
 import { given, type EditorCase } from './harness.js';
 import { activeExtension } from './main.js';
 
@@ -64,7 +64,7 @@ export function updateCases(step: 1 | 2): readonly EditorCase[] {
                     readFileSync(path.join(installed.dir, MANIFEST_FILE), 'utf8'),
                 );
                 assert.equal(manifest.version, version);
-                assert.ok(!installed.dir.includes(theExt().extensionPath), installed.dir);
+                assert.ok(!isInside(installed.dir, theExt().extensionPath), installed.dir);
             },
         },
     ];

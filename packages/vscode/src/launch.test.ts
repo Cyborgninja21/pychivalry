@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import path from 'node:path';
 import { test } from 'node:test';
-import { pathFor, serverLaunch, stableRuntime } from './launch.js';
+import { folderPath, pathFor, serverLaunch, stableRuntime } from './launch.js';
 
 test('the command line names the server file, the mod and the spec, and runs VS Code as Node', () => {
     assert.deepEqual(
@@ -84,4 +84,12 @@ test("a snap's VS Code is written in its current form, which survives a snap ref
             p,
         );
     }
+});
+
+test("on Windows a folder's drive letter is written in upper case, as a terminal there names it", () => {
+    assert.equal(folderPath('c:\\Mods\\my mod', 'win32'), 'C:\\Mods\\my mod');
+    assert.equal(folderPath('C:\\Mods', 'win32'), 'C:\\Mods');
+    assert.equal(folderPath('\\\\server\\share\\mod', 'win32'), '\\\\server\\share\\mod');
+    assert.equal(folderPath('/c:/odd', 'linux'), '/c:/odd');
+    assert.equal(folderPath('c:/x', 'linux'), 'c:/x');
 });

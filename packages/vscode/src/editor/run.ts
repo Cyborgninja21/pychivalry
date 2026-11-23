@@ -27,6 +27,7 @@ import {
     existsSync,
     mkdirSync,
     mkdtempSync,
+    readdirSync,
     readFileSync,
     rmSync,
     symlinkSync,
@@ -119,7 +120,9 @@ function claudeOnPath(root: string): { readonly dir: string; readonly what: stri
     const real = process.env['PYCHIVALRY_TEST_CLAUDE'];
     const standIn = fileURLToPath(new URL('./claude-stand-in.js', import.meta.url));
     if (process.platform === 'win32') {
-        const line = real === undefined ? `"${process.execPath}" "${standIn}"` : `"${real}"`;
+        // A batch file reads `%` as the start of a variable: doubled, it stays a `%`.
+        const q = (p: string): string => `"${p.replace(/%/g, '%%')}"`;
+        const line = real === undefined ? `${q(process.execPath)} ${q(standIn)}` : q(real);
         writeFileSync(path.join(dir, 'claude.cmd'), `@echo off\r\n${line} %*\r\n`);
     } else if (real === undefined) {
         writeFileSync(
@@ -193,7 +196,9 @@ async function main(): Promise<void> {
         version,
         cachePath: path.join(REPO, '.vscode-test'),
     });
-    process.stdout.write(`vscode:test: VS Code ${version}\n`);
+    process.stdout.write(
+        `vscode:test: VS Code ${version}, started as ${path.basename(vscodeExecutablePath)} in a folder holding ${readdirSync(path.dirname(vscodeExecutablePath)).join(', ')}\n`,
+    );
 
     const root = mkdtempSync(path.join(tmpdir(), 'pychivalry-editor-'));
     try {

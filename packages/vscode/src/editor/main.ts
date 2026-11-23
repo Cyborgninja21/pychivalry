@@ -13,7 +13,7 @@ import { EXTENSION_ID, SET_UP_CLAUDE_CODE } from '../ids.js';
 import { SERVER_FILE, SPEC_FOLDER, stableRuntime, type ServerLaunch } from '../launch.js';
 import { PROJECT_FILE, serverEntry } from '../setup.js';
 import { checkThrough } from './agent.js';
-import { asEntry, assertFixtureAnswer, claudeEntryFor } from './fixture.js';
+import { asEntry, assertFixtureAnswer, claudeEntryFor, isInside, samePath } from './fixture.js';
 import { given, Skip, waitFor, type EditorCase } from './harness.js';
 
 /** The extension, once VS Code has activated it on its own. */
@@ -63,10 +63,11 @@ export function mainCases(): readonly EditorCase[] {
             name: 'the extension activates on its own on a folder holding a mod descriptor',
             run: async () => {
                 api = (await activeExtension()).exports;
-                assert.deepEqual(
-                    vscode.workspace.workspaceFolders?.map((f) => f.uri.fsPath),
-                    [mod],
-                );
+                const folders = vscode.workspace.workspaceFolders ?? [];
+                assert.equal(folders.length, 1);
+                assert.ok(samePath(folders[0]?.uri.fsPath ?? '', mod), folders[0]?.uri.fsPath);
+                // Where the editor's own runtime is: the command line every harness is given.
+                console.log(`  VS Code runs servers with ${process.execPath}`);
             },
         },
         {
@@ -91,7 +92,7 @@ export function mainCases(): readonly EditorCase[] {
                 assert.ok(existsSync(path.join(installed.dir, SERVER_FILE)));
                 assert.ok(existsSync(path.join(installed.dir, SPEC_FOLDER)));
                 assert.ok(
-                    !path.relative(ext.extensionPath, installed.dir).match(/^[^.]/),
+                    !isInside(installed.dir, ext.extensionPath),
                     `${installed.dir} is inside ${ext.extensionPath}`,
                 );
                 assert.ok(installed.dir.includes('globalStorage'), installed.dir);
@@ -117,7 +118,7 @@ export function mainCases(): readonly EditorCase[] {
                     path.join(installed.dir, SPEC_FOLDER),
                 ]);
                 assert.deepEqual(d.env, { ELECTRON_RUN_AS_NODE: '1' });
-                assert.equal(d.cwd?.fsPath, mod);
+                assert.ok(samePath(d.cwd?.fsPath ?? '', mod), d.cwd?.fsPath);
                 assert.equal(d.version, installed.version);
                 launch = await theApi().launchFor(mod);
                 assert.deepEqual(
@@ -135,7 +136,7 @@ export function mainCases(): readonly EditorCase[] {
                 // not an API: a VS Code that changes it fails here, and the floor is re-measured.
                 assert.ok(launch !== undefined);
                 const plugins = path.join(given('PYCHIVALRY_TEST_USER_DATA'), 'agentPlugins');
-                const expected = { ...serverEntry(launch), cwd: mod };
+                const expected = serverEntry(launch);
                 let seen: unknown[] = [];
                 const forwarded = (): boolean => {
                     seen = mcpFilesUnder(plugins).map((f) => {
@@ -144,7 +145,17 @@ export function mainCases(): readonly EditorCase[] {
                         };
                         return data.mcpServers?.['pychivalry'];
                     });
-                    return seen.some((e) => isDeepStrictEqual(e, expected));
+                    return seen.some((e) => {
+                        if (typeof e !== 'object' || e === null) {
+                            return false;
+                        }
+                        const { cwd, ...rest } = e as Record<string, unknown>;
+                        return (
+                            isDeepStrictEqual(rest, expected) &&
+                            typeof cwd === 'string' &&
+                            samePath(cwd, mod)
+                        );
+                    });
                 };
                 await waitFor('the forwarded definition', forwarded, 60_000).catch(
                     (err: unknown) => {

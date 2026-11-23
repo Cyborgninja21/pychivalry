@@ -19,7 +19,13 @@ import * as vscode from 'vscode';
 import { findClaude, runClaude, type ClaudeCommand } from './claude.js';
 import { PROVIDER_ID, SET_UP_CLAUDE_CODE } from './ids.js';
 import { installServer, type InstallResult } from './install.js';
-import { SERVER_NAME, serverLaunch, stableRuntime, type ServerLaunch } from './launch.js';
+import {
+    folderPath,
+    SERVER_NAME,
+    serverLaunch,
+    stableRuntime,
+    type ServerLaunch,
+} from './launch.js';
 import { PROJECT_FILE, setUpClaudeCode, type SetupOutcome, type SetupUi } from './setup.js';
 
 /** The bundled server folder, in the extension's folder. */
@@ -142,7 +148,7 @@ export function activate(context: vscode.ExtensionContext): PychivalryApi {
         const { version } = await agentServer;
         return Promise.all(
             folders.map(async (folder) => {
-                const launch = await launchFor(folder.uri.fsPath);
+                const launch = await launchFor(folderPath(folder.uri.fsPath, process.platform));
                 const label = folders.length === 1 ? SERVER_NAME : `${SERVER_NAME}: ${folder.name}`;
                 const definition = new vscode.McpStdioServerDefinition(
                     label,
@@ -198,7 +204,7 @@ export function activate(context: vscode.ExtensionContext): PychivalryApi {
                     );
                     return undefined;
                 }
-                const outcome = await setUp(folder, askInVsCode);
+                const outcome = await setUp(folderPath(folder, process.platform), askInVsCode);
                 report(outcome, log);
                 return outcome;
             },

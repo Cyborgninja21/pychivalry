@@ -24,6 +24,18 @@ export function assertFixtureAnswer(answer: CheckAnswer): void {
     );
 }
 
+/** Whether two paths name the same file: on Windows without regard to letter case. */
+export function samePath(a: string, b: string): boolean {
+    const [x, y] = [path.resolve(a), path.resolve(b)];
+    return process.platform === 'win32' ? x.toLowerCase() === y.toLowerCase() : x === y;
+}
+
+/** Whether `inner` is `outer` or inside it. */
+export function isInside(inner: string, outer: string): boolean {
+    const rel = path.relative(outer, inner);
+    return rel === '' || (!rel.startsWith('..') && !path.isAbsolute(rel));
+}
+
 /** The server entry Claude Code holds for `folder` in its configuration folder `config`. */
 export function claudeEntryFor(config: string, folder: string): Record<string, unknown> {
     const data = JSON.parse(readFileSync(path.join(config, '.claude.json'), 'utf8')) as {

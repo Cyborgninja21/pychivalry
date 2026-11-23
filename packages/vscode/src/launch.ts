@@ -74,6 +74,18 @@ export function serverLaunch(
 }
 
 /**
+ * A folder as a terminal started in it names it: on Windows VS Code gives a folder's drive letter
+ * in lower case (`c:\mods`), where a terminal and Node's `process.cwd()` give it in upper case.
+ * Claude Code keeps a local server under its project's folder, so the set-up and the entries
+ * name the folder the way a Claude Code started in a terminal there will.
+ */
+export function folderPath(fsPath: string, platform: NodeJS.Platform): string {
+    return platform === 'win32'
+        ? fsPath.replace(/^([a-z]):/, (_m, d: string) => `${d.toUpperCase()}:`)
+        : fsPath;
+}
+
+/**
  * The executable to write into a configuration that outlives this VS Code: `execPath`, or its
  * snap's `current` form. A snap runs from `/snap/<name>/<revision>/`, and a refresh moves it to
  * a new revision and later removes the old one; `/snap/<name>/current` always points at the
