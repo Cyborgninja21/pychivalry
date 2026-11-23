@@ -135,3 +135,28 @@ test('one definition is in order whatever its layer; none is an empty order', ()
     ]);
     assert.deepEqual(sortByOrder([], order), []);
 });
+
+test('a pool of n definitions takes about n log n comparisons, not n squared', () => {
+    // A check resolves a name once per definition; comparing every pair of a name's
+    // definitions each time made a name defined in 300 files take 7.5 seconds. Counted, not
+    // timed: eight times the pool may take at most 16 times the comparisons (n log n is about
+    // 11.6 times here, n squared 64).
+    const order = rule('bytes', 'by-path', 'together', ['game', 'mod']);
+    const comparisons = (size: number): number => {
+        let count = 0;
+        const counting: typeof compareFiles = (a, b, r) => {
+            count++;
+            return compareFiles(a, b, r);
+        };
+        const pool: Def[] = Array.from({ length: size }, (_, i) => ({
+            layer: 'mod',
+            file: `common/x/many_${String((i * 7919) % size).padStart(4, '0')}.txt`,
+            start: 0,
+        }));
+        assert.equal(sortByOrder(pool, order, counting)?.length, size);
+        return count;
+    };
+    const few = comparisons(100);
+    const many = comparisons(800);
+    assert.ok(many < 16 * few, `${String(many)} comparisons for 800, ${String(few)} for 100`);
+});

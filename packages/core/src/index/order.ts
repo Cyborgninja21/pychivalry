@@ -115,13 +115,18 @@ export function compareFiles(
  * finds; otherwise the files of one rank and path sort next to each other, and the pool is
  * unordered exactly when two neighbours of the sorted pool are. That is n log n comparisons
  * where comparing every pair is n squared, and a check resolves a name once per definition: a
- * name defined in 300 files took the check 7.5 seconds that way.
+ * name defined in 300 files took the check 7.5 seconds that way. `compareWith` is
+ * `compareFiles`; a test gives one that counts the comparisons.
  */
 export function sortByOrder<
     T extends { readonly layer: string; readonly file: string; readonly start: number },
->(pool: readonly T[], order: FileOrderRule): T[] | undefined {
+>(
+    pool: readonly T[],
+    order: FileOrderRule,
+    compareWith: typeof compareFiles = compareFiles,
+): T[] | undefined {
     const compare = (a: T, b: T): number | undefined =>
-        compareFiles({ layer: a.layer, path: a.file }, { layer: b.layer, path: b.file }, order);
+        compareWith({ layer: a.layer, path: a.file }, { layer: b.layer, path: b.file }, order);
     if (pool.length > 1 && pool.some((d) => compare(d, d) === undefined)) {
         return undefined;
     }

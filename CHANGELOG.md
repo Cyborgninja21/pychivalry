@@ -386,7 +386,9 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   the name once per definition and compared every pair of the definitions each time (100 files
   0.3 s, 300 files 6 to 7.5 s). The index now finds an unordered pair among sorted neighbours
   and keeps each name's resolution until a file changes: 300 files take 0.09 s and 1,000 files
-  0.36 s. A test pins the growth; no finding of the base game or the five mods moved.
+  0.36 s. Tests count the sort's comparisons (n log n, not n squared), hold the resolution
+  remembered until a file changes, and bound a check of 1,000 files; no finding of the base
+  game or the five mods moved.
 
 ### Open
 

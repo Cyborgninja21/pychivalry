@@ -978,7 +978,8 @@ window, and a scored test that an agent can really use it.
   With them, the slowdown the size test had noted: the core's check resolved a name once per
   definition and compared every pair of its definitions each time, so a name defined in n
   files cost n cubed (100 files 0.3 s, 300 files 6 to 7.5 s). It now sorts them and resolves a
-  name once: 300 files 0.09 s, 1,000 files 0.36 s, and a test pins the growth. `task
+  name once: 300 files 0.09 s, 1,000 files 0.36 s; tests count the sort's comparisons (n log
+  n), hold the resolution remembered, and bound a check of 1,000 files. `task
   game:check` and `task game:mods` were re-run: no finding figure moved. The size test on
   rice passes, every result under 30,000 characters (the largest 27,990).
 
