@@ -1084,6 +1084,19 @@ class Looker {
                         status: 'winner',
                         rule: resolution.rule,
                         combine: resolution.combine,
+                        ...(resolution.shared === undefined
+                            ? {}
+                            : {
+                                  shared: {
+                                      target: resolution.shared.target,
+                                      filledBy: {
+                                          layer: resolution.shared.filledBy.layer,
+                                          file: resolution.shared.filledBy.file,
+                                          range: resolution.shared.filledBy.range,
+                                      },
+                                      names: [...resolution.shared.names],
+                                  },
+                              }),
                     };
                     break;
                 case 'all':

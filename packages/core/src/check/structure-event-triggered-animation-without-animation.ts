@@ -10,7 +10,7 @@
 
 import type { AdviceCheck, AdviceInput, AdviceResult } from './advice.js';
 import { either, NOTHING } from './advice.js';
-import { childPairs, keywordRolesOf } from './advice-roles.js';
+import { childPairs, keywordRolesOf } from './keyword-roles.js';
 import { triggeredAnimations } from './advice-animations.js';
 import type { CheckFinding } from './finding.js';
 import { finding } from './report.js';

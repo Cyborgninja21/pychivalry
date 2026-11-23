@@ -5,7 +5,7 @@
 
 import type { AdviceInput, AdviceResult } from './advice.js';
 import { NOTHING } from './advice.js';
-import { childPairs, type RoleRow } from './advice-roles.js';
+import { childPairs, type RoleRow } from './keyword-roles.js';
 import { eventModelOf, eventsOf } from './advice-events.js';
 import type { AdviceCode, CheckFinding } from './finding.js';
 import { finding } from './report.js';

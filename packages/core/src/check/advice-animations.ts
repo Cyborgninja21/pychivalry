@@ -6,7 +6,7 @@
 
 import type { Block, Pair } from '../syntax/tree.js';
 import type { AdviceInput } from './advice.js';
-import { bodyOf, childPairs, type RoleRow } from './advice-roles.js';
+import { bodyOf, childPairs, type RoleRow } from './keyword-roles.js';
 import { eventModelOf, eventRows, eventsOf } from './advice-events.js';
 
 export interface TriggeredAnimations {

@@ -9,7 +9,7 @@
 import type { Block, Pair } from '../syntax/tree.js';
 import type { AdviceInput } from './advice.js';
 import { directoryOf, recordsOf } from './advice.js';
-import { bodyOf, childPairs, holdsIn, keywordRolesOf, type RoleRow } from './advice-roles.js';
+import { bodyOf, childPairs, holdsIn, keywordRolesOf, type RoleRow } from './keyword-roles.js';
 
 export interface EffectGroups {
     readonly keyword: string;

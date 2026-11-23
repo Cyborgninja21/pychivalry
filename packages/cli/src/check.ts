@@ -15,7 +15,10 @@
  *   gives the core fix data) and `data`; last, `{"summary": ...}`: the tool and its version,
  *   the spec's version and checksum, the game's build and how its index was had, the files
  *   checked and not checked, the counts of every finding by severity and by code, and how many
- *   findings matched the filters and how many were shown.
+ *   findings matched the filters and how many were shown, and what the per-file cap dropped.
+ * - **The per-file cap:** a file reports at most `MAX_FINDINGS_PER_FILE` findings, its most
+ *   severe first (the core's runner); the counts are of the findings kept, and the findings the
+ *   cap dropped are counted apart (`capped`, and a note with the text output).
  * - **Filters:** `--severity` and `--code` keep the findings they match; the exit code is
  *   that of the findings kept, so `--code syntax/*` exits 1 only for a syntax error.
  *   `--limit` shortens the listing only.
@@ -229,8 +232,25 @@ export function summaryJson(
             by_folder: Object.fromEntries(notChecked),
         },
         counts: countFindings(run.findings),
+        capped: cappedJson(run),
         matched,
         shown,
+    };
+}
+
+/** What the per-file cap dropped: the cap, the files it shortened, and the findings by code. */
+export function cappedJson(run: WorkspaceCheck): Record<string, unknown> {
+    const byCode = new Map<string, number>();
+    for (const file of run.capped) {
+        for (const row of file.droppedByCode) {
+            byCode.set(row.code, (byCode.get(row.code) ?? 0) + row.count);
+        }
+    }
+    return {
+        max_per_file: run.maxFindingsPerFile,
+        files: run.capped.map((c) => ({ file: c.file, found: c.found, dropped: c.dropped })),
+        dropped: run.capped.reduce((n, c) => n + c.dropped, 0),
+        by_code: Object.fromEntries([...byCode].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))),
     };
 }
 
@@ -245,6 +265,12 @@ function notes(run: WorkspaceCheck, spec: Spec, game: GameChoice): string[] {
     if (run.gameBuild !== null && run.gameBuild !== spec.version) {
         out.push(
             `the game is build ${run.gameBuild}; the spec package is for ${spec.version}: names that changed between the two may be judged wrongly`,
+        );
+    }
+    if (run.capped.length > 0) {
+        const dropped = run.capped.reduce((n, c) => n + c.dropped, 0);
+        out.push(
+            `${String(dropped)} findings were dropped from ${String(run.capped.length)} files that had more than ${String(run.maxFindingsPerFile)} each; the most severe of each such file are kept (--json: summary.capped)`,
         );
     }
     const notChecked = [...run.notChecked].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));

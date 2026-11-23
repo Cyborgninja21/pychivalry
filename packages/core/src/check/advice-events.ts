@@ -15,7 +15,7 @@
 import type { Spec } from '../spec/reader.js';
 import type { Block, Pair } from '../syntax/tree.js';
 import { directoryOf, recordsOf, type AdviceInput } from './advice.js';
-import { childPairs, keywordRolesOf, type KeywordRoles, type RoleRow } from './advice-roles.js';
+import { childPairs, keywordRolesOf, type KeywordRoles, type RoleRow } from './keyword-roles.js';
 
 /** What part D4 says about events. */
 export interface EventModel {

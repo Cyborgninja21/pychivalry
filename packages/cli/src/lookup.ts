@@ -127,7 +127,9 @@ function scopesText(s: ScopesAnswer): string[] {
                 out.push(`scopes measured: ${s.measured.scopes.join(', ')}`);
             }
             if (s.info !== null) {
-                out.push(`scopes the .info files give: ${s.info.map((i) => i.scope).join(', ')}`);
+                out.push(
+                    `scopes the .info files give: ${s.info.map((i) => i.scope ?? 'no named scope').join(', ')}`,
+                );
             }
             if (s.recordRoot !== null) {
                 out.push(`the record's root scope: ${s.recordRoot}`);
@@ -202,8 +204,15 @@ function definitionsText(d: DefinitionsAnswer): string[] {
                   : 'rule' in g.inForce
                     ? `${g.inForce.status} (${g.inForce.rule})`
                     : g.inForce.status;
+        const shared =
+            g.inForce.status === 'winner' && g.inForce.shared !== undefined
+                ? [
+                      `  shared with ${g.inForce.shared.names.join(', ')}${g.inForce.shared.target === null ? '' : `, an alias of ${g.inForce.shared.target}`}; filled by ${place(g.inForce.shared.filledBy)}`,
+                  ]
+                : [];
         return [
             `defined in ${g.database}${g.container === null ? '' : ` (${g.container})`}: ${force}`,
+            ...shared,
             ...g.definitions.map(
                 (def) =>
                     `  ${place(def)}${def.inForce === 'yes' ? ', in force' : def.inForce === 'not-known' ? ', in force not known' : ', not in force'}`,

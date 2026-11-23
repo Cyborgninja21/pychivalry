@@ -31,9 +31,10 @@ import { unknownModifiers } from './names-unknown-modifier.js';
 import { unknownOnActions } from './names-unknown-on-action.js';
 import { unknownTriggers } from './names-unknown-trigger.js';
 import type { WorkspaceNames } from './names.js';
+import { addToScopeMeasure, type ScopeMeasure } from './measure.js';
 import { keywordUses, readScopes } from './scope.js';
 import { undefinedEventTargets } from './scope-undefined-event-target.js';
-import { linksOnWrongScope } from './scope-link-on-wrong-scope.js';
+import { judgedSteps, linksOnWrongScope } from './scope-link-on-wrong-scope.js';
 import { wrongScopeEffects } from './scope-wrong-scope-for-effect.js';
 import { wrongScopeTriggers } from './scope-wrong-scope-for-trigger.js';
 
@@ -91,6 +92,7 @@ export {
     type UnknownWhy,
 } from './scope.js';
 export { judgedSteps } from './scope-link-on-wrong-scope.js';
+export { addToScopeMeasure, newScopeMeasure, type ScopeMeasure } from './measure.js';
 export { ADVICE_CHECKS, adviceFindings, runAdvice } from './advice-checks.js';
 export type { AdviceCheck, AdviceInput, AdviceResult } from './advice.js';
 export {
@@ -99,11 +101,16 @@ export {
     familyOf,
     inventoryRows,
     type Code,
+    type InventoryEvidence,
     type InventoryRow,
 } from './inventory.js';
 export {
+    capFindings,
     checkWorkspace,
+    type CappedFile,
+    type CheckedFile,
     GAME_NOT_LOADED,
+    MAX_FINDINGS_PER_FILE,
     localizationFindings,
     openWorkspace,
     scriptFindings,
@@ -134,6 +141,11 @@ export interface CheckInput {
      * definitions (`definitions/*`); without it they report nothing.
      */
     readonly index?: { readonly workspace: WorkspaceIndex; readonly layer: string } | undefined;
+    /**
+     * Where to count what the scope checks judged (`measure.ts`), for the game-file suites;
+     * nothing is counted without it.
+     */
+    readonly measure?: ScopeMeasure | undefined;
 }
 
 /** Every finding of the engine checks on one file, in the order of where each starts. */
@@ -148,6 +160,9 @@ export function checkFile(input: CheckInput): CheckFinding[] {
     const reading: FileReading = readContext(read);
     const scopes = readScopes(read, reading);
     const uses = keywordUses(input.spec, reading, scopes);
+    if (input.measure !== undefined) {
+        addToScopeMeasure(input.measure, uses, judgedSteps(reading, scopes));
+    }
     const context = { lines: input.parsed.lines, catalogue: input.catalogue };
     const records = {
         spec: input.spec,

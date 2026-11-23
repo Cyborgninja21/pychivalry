@@ -1,0 +1,2507 @@
+{
+    "about": "Every error task game:mods finds in the corpus mods, classified: a real defect of the mod (real-defect), shown from the mod and game 1.21.0.3 with the reason; a fault of the committed spec package (spec-package-fault); a fault of pychivalry to fix (pychivalry-fault, which fails the suite); or not shown either way (unclassified, which fails the suite too). An entry covers the errors of its code in its mod and file at each of its lines; an error with no entry, and an entry line that matches no error, fail the suite (tools/src/check-suite.ts). Game 1.21.0.3, spec package 1.21.0.3 format 8, the pinned corpus of records/corpus/MANIFEST.tsv.",
+    "classifications": [
+        {
+            "slug": "elf-destiny",
+            "file": "common/council_tasks/OVERRIDE_steward_tasks.txt",
+            "code": "names/unknown-link",
+            "lines": [138],
+            "classification": "real-defect",
+            "reason": "'promote_culture_development_penalty' in 'scope:county.promote_culture_development_penalty' is no link of game 1.21.0.3 and no script value the mod or the base game defines (no file of the base game names it): the development penalties went with development in 1.21.0.3, while the file's own text already reads prosperity_level. The game fails to parse the link (catalogue \"failed_to_parse_data_for_event_target_link_link_X_location_X\"). Release 2.3.0 reported the same error. The mod's descriptor declares supported_version \"1.21.*\"."
+        },
+        {
+            "slug": "elf-destiny",
+            "file": "common/council_tasks/aeluran_advisor_tasks.txt",
+            "code": "names/unknown-link",
+            "lines": [357],
+            "classification": "real-defect",
+            "reason": "'convert_faith_development_penalty' in 'scope:county.convert_faith_development_penalty' is no link of game 1.21.0.3 and no script value the mod or the base game defines (no file of the base game names it): the development penalties went with development in 1.21.0.3, while the file's own text already reads prosperity_level. The game fails to parse the link (catalogue \"failed_to_parse_data_for_event_target_link_link_X_location_X\"). Release 2.3.0 reported the same error. The mod's descriptor declares supported_version \"1.21.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_aachen_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [30, 75],
+            "classification": "real-defect",
+            "reason": "'monthly_county_control_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_aachen_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [31, 76],
+            "classification": "real-defect",
+            "reason": "'development_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_aslian_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [31, 72, 113, 154],
+            "classification": "real-defect",
+            "reason": "'development_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_bamian_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [36],
+            "classification": "real-defect",
+            "reason": "'development_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_bamian_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [37],
+            "classification": "real-defect",
+            "reason": "'development_growth' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_bozo_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [19, 61, 105],
+            "classification": "real-defect",
+            "reason": "'development_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_bozo_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [20, 62, 106],
+            "classification": "real-defect",
+            "reason": "'development_growth' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_bozo_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [104],
+            "classification": "real-defect",
+            "reason": "'tax_mult' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_breton_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [102, 146, 188],
+            "classification": "real-defect",
+            "reason": "'development_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_chios_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [64, 100, 141, 182, 269],
+            "classification": "real-defect",
+            "reason": "'development_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_chios_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [268],
+            "classification": "real-defect",
+            "reason": "'tax_mult' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_galicia2_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [75, 126, 167, 206],
+            "classification": "real-defect",
+            "reason": "'tax_mult' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_granada_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [34, 86],
+            "classification": "real-defect",
+            "reason": "'development_growth' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_granada_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [35, 87],
+            "classification": "real-defect",
+            "reason": "'development_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_guanche_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [50],
+            "classification": "real-defect",
+            "reason": "'development_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_hangzhou_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [30],
+            "classification": "real-defect",
+            "reason": "'development_growth' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_harran_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [53],
+            "classification": "real-defect",
+            "reason": "'monthly_county_control_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_harran_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [107],
+            "classification": "real-defect",
+            "reason": "'development_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_khuzestan_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [31, 83, 122, 159],
+            "classification": "real-defect",
+            "reason": "'tax_mult' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_khuzestan_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [32],
+            "classification": "real-defect",
+            "reason": "'development_growth' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_khuzestan_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [33],
+            "classification": "real-defect",
+            "reason": "'development_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_khwarezm_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [35, 78],
+            "classification": "real-defect",
+            "reason": "'development_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_lesbos_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [32, 79],
+            "classification": "real-defect",
+            "reason": "'tax_mult' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_lesbos_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [33, 80],
+            "classification": "real-defect",
+            "reason": "'development_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_lesbos_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [115, 156, 198, 245],
+            "classification": "real-defect",
+            "reason": "'monthly_county_control_decline_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_lesbos_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [205, 252],
+            "classification": "real-defect",
+            "reason": "'different_faith_county_opinion_mult' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Its note: \"1.21.0.3 registers different_faith_popular_opinion_mult; modifiers have no built-in documentation in either version, so no replacement is claimed\". Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_mayo_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [42, 298],
+            "classification": "real-defect",
+            "reason": "'monthly_county_control_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_mayo_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [138, 197, 251, 299],
+            "classification": "real-defect",
+            "reason": "'development_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_mayo_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [139, 198, 252],
+            "classification": "real-defect",
+            "reason": "'development_growth' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_niger_delta_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [37],
+            "classification": "real-defect",
+            "reason": "'development_growth' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_niger_delta_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [38],
+            "classification": "real-defect",
+            "reason": "'development_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_normandy_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [77, 129, 181],
+            "classification": "real-defect",
+            "reason": "'tax_mult' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_north_atlantic_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [32],
+            "classification": "real-defect",
+            "reason": "'development_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_nubia_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [22, 62, 114, 162, 213, 256, 299, 342, 387, 448, 499],
+            "classification": "real-defect",
+            "reason": "'development_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_nubia_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [23, 108],
+            "classification": "real-defect",
+            "reason": "'monthly_county_control_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_nubia_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [63, 113, 161, 386, 447],
+            "classification": "real-defect",
+            "reason": "'development_growth' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_nubia_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [115, 388],
+            "classification": "real-defect",
+            "reason": "'tax_mult' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_nubia_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [438],
+            "classification": "real-defect",
+            "reason": "'different_faith_county_opinion_mult' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Its note: \"1.21.0.3 registers different_faith_popular_opinion_mult; modifiers have no built-in documentation in either version, so no replacement is claimed\". Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_oceania_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [31, 77],
+            "classification": "real-defect",
+            "reason": "'monthly_county_control_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_oceania_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [76],
+            "classification": "real-defect",
+            "reason": "'development_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_pamir_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [205, 246, 287, 328, 373, 415, 457, 499],
+            "classification": "real-defect",
+            "reason": "'development_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_pamir_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [374, 416, 458, 500],
+            "classification": "real-defect",
+            "reason": "'tax_mult' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_red_sea_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [
+                33, 74, 115, 156, 197, 238, 279, 320, 361, 402, 443, 484, 526, 567, 608, 649, 933
+            ],
+            "classification": "real-defect",
+            "reason": "'development_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_red_sea_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [836, 868, 898, 932],
+            "classification": "real-defect",
+            "reason": "'tax_mult' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_red_sea_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [934],
+            "classification": "real-defect",
+            "reason": "'development_growth' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_rhodes_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [29, 72],
+            "classification": "real-defect",
+            "reason": "'development_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_sardinia_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [30],
+            "classification": "real-defect",
+            "reason": "'development_growth' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_sardinia_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [31],
+            "classification": "real-defect",
+            "reason": "'development_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_sicily_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [33],
+            "classification": "real-defect",
+            "reason": "'tax_mult' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_sicily_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [34, 97, 204, 254],
+            "classification": "real-defect",
+            "reason": "'development_growth' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_sicily_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [35, 96, 205, 255],
+            "classification": "real-defect",
+            "reason": "'development_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_sicily_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [88],
+            "classification": "real-defect",
+            "reason": "'monthly_county_control_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_siwa_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [63, 139],
+            "classification": "real-defect",
+            "reason": "'tax_mult' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_siwa_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [64, 140],
+            "classification": "real-defect",
+            "reason": "'development_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_siwa_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [65, 141],
+            "classification": "real-defect",
+            "reason": "'development_growth' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_siwa_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [135],
+            "classification": "real-defect",
+            "reason": "'monthly_county_control_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_socotra_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [23, 64, 106, 153, 199, 240, 282, 333],
+            "classification": "real-defect",
+            "reason": "'monthly_county_control_decline_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_socotra_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [113, 160, 289, 340],
+            "classification": "real-defect",
+            "reason": "'different_faith_county_opinion_mult' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Its note: \"1.21.0.3 registers different_faith_popular_opinion_mult; modifiers have no built-in documentation in either version, so no replacement is claimed\". Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_socotra_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [386, 418, 448],
+            "classification": "real-defect",
+            "reason": "'tax_mult' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_south_ethiopia_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [28],
+            "classification": "real-defect",
+            "reason": "'development_growth' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_south_ethiopia_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [29],
+            "classification": "real-defect",
+            "reason": "'development_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_sri_lanka_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [27],
+            "classification": "real-defect",
+            "reason": "'development_growth' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_sri_lanka_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [28],
+            "classification": "real-defect",
+            "reason": "'development_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_sri_lanka_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [29],
+            "classification": "real-defect",
+            "reason": "'monthly_county_control_decline_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_sus_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [21, 56, 91],
+            "classification": "real-defect",
+            "reason": "'development_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_tarim_basin_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [35, 84, 133, 361],
+            "classification": "real-defect",
+            "reason": "'development_growth' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_tarim_basin_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [36, 85, 134, 360],
+            "classification": "real-defect",
+            "reason": "'development_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_tarim_basin_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [359],
+            "classification": "real-defect",
+            "reason": "'tax_mult' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_upper_egypt_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [38, 96, 153],
+            "classification": "real-defect",
+            "reason": "'monthly_county_control_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_upper_egypt_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [39, 97, 154],
+            "classification": "real-defect",
+            "reason": "'tax_mult' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_yazd_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [29],
+            "classification": "real-defect",
+            "reason": "'development_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_yazd_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [30],
+            "classification": "real-defect",
+            "reason": "'tax_mult' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_yorkshire_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [30, 67, 116, 155, 192],
+            "classification": "real-defect",
+            "reason": "'tax_mult' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_yorkshire_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [68, 117, 156, 193],
+            "classification": "real-defect",
+            "reason": "'development_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_zhangzhung_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [47, 108, 216],
+            "classification": "real-defect",
+            "reason": "'tax_mult' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_zhangzhung_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [48, 106, 169, 215, 356],
+            "classification": "real-defect",
+            "reason": "'development_growth' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_zhangzhung_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [107, 168, 214, 355],
+            "classification": "real-defect",
+            "reason": "'development_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/RICE_zhangzhung_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [347],
+            "classification": "real-defect",
+            "reason": "'monthly_county_control_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/buildings/wap_duchy_buildings.txt",
+            "code": "names/unknown-modifier",
+            "lines": [35, 73, 109],
+            "classification": "real-defect",
+            "reason": "'development_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/innovations/RICE_andean_roads.txt",
+            "code": "names/unknown-modifier",
+            "lines": [28],
+            "classification": "real-defect",
+            "reason": "'hills_development_growth_factor' is no modifier of game 1.21.0.3's documentation and fills none of its modifier templates; 1.21.0.3 removed development (the package's removed list: development_growth_factor, removed in 1.21.0.3), and no form ending in _development_growth_factor remains. The game reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/innovations/RICE_andean_roads.txt",
+            "code": "names/unknown-modifier",
+            "lines": [29],
+            "classification": "real-defect",
+            "reason": "'mountains_development_growth_factor' is no modifier of game 1.21.0.3's documentation and fills none of its modifier templates; 1.21.0.3 removed development (the package's removed list: development_growth_factor, removed in 1.21.0.3), and no form ending in _development_growth_factor remains. The game reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/innovations/RICE_andean_roads.txt",
+            "code": "names/unknown-modifier",
+            "lines": [30],
+            "classification": "real-defect",
+            "reason": "'desert_mountains_development_growth_factor' is no modifier of game 1.21.0.3's documentation and fills none of its modifier templates; 1.21.0.3 removed development (the package's removed list: development_growth_factor, removed in 1.21.0.3), and no form ending in _development_growth_factor remains. The game reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/innovations/RICE_enset_innovations.txt",
+            "code": "names/unknown-modifier",
+            "lines": [29],
+            "classification": "real-defect",
+            "reason": "'hills_development_growth_factor' is no modifier of game 1.21.0.3's documentation and fills none of its modifier templates; 1.21.0.3 removed development (the package's removed list: development_growth_factor, removed in 1.21.0.3), and no form ending in _development_growth_factor remains. The game reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/innovations/RICE_enset_innovations.txt",
+            "code": "names/unknown-modifier",
+            "lines": [30],
+            "classification": "real-defect",
+            "reason": "'mountains_development_growth_factor' is no modifier of game 1.21.0.3's documentation and fills none of its modifier templates; 1.21.0.3 removed development (the package's removed list: development_growth_factor, removed in 1.21.0.3), and no form ending in _development_growth_factor remains. The game reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/innovations/RICE_enset_innovations.txt",
+            "code": "names/unknown-modifier",
+            "lines": [31],
+            "classification": "real-defect",
+            "reason": "'desert_mountains_development_growth_factor' is no modifier of game 1.21.0.3's documentation and fills none of its modifier templates; 1.21.0.3 removed development (the package's removed list: development_growth_factor, removed in 1.21.0.3), and no form ending in _development_growth_factor remains. The game reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/innovations/RICE_fire_stick_farming.txt",
+            "code": "names/unknown-modifier",
+            "lines": [21],
+            "classification": "real-defect",
+            "reason": "'development_decline_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/innovations/RICE_glacier_grafting.txt",
+            "code": "names/unknown-modifier",
+            "lines": [21],
+            "classification": "real-defect",
+            "reason": "'hills_development_growth_factor' is no modifier of game 1.21.0.3's documentation and fills none of its modifier templates; 1.21.0.3 removed development (the package's removed list: development_growth_factor, removed in 1.21.0.3), and no form ending in _development_growth_factor remains. The game reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/innovations/RICE_glacier_grafting.txt",
+            "code": "names/unknown-modifier",
+            "lines": [22],
+            "classification": "real-defect",
+            "reason": "'mountains_development_growth_factor' is no modifier of game 1.21.0.3's documentation and fills none of its modifier templates; 1.21.0.3 removed development (the package's removed list: development_growth_factor, removed in 1.21.0.3), and no form ending in _development_growth_factor remains. The game reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/innovations/RICE_glacier_grafting.txt",
+            "code": "names/unknown-modifier",
+            "lines": [23],
+            "classification": "real-defect",
+            "reason": "'desert_mountains_development_growth_factor' is no modifier of game 1.21.0.3's documentation and fills none of its modifier templates; 1.21.0.3 removed development (the package's removed list: development_growth_factor, removed in 1.21.0.3), and no form ending in _development_growth_factor remains. The game reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/innovations/RICE_gossi_jars.txt",
+            "code": "names/unknown-modifier",
+            "lines": [25],
+            "classification": "real-defect",
+            "reason": "'floodplains_development_growth_factor' is no modifier of game 1.21.0.3's documentation and fills none of its modifier templates; 1.21.0.3 removed development (the package's removed list: development_growth_factor, removed in 1.21.0.3), and no form ending in _development_growth_factor remains. The game reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/innovations/RICE_gossi_jars.txt",
+            "code": "names/unknown-modifier",
+            "lines": [26],
+            "classification": "real-defect",
+            "reason": "'drylands_development_growth_factor' is no modifier of game 1.21.0.3's documentation and fills none of its modifier templates; 1.21.0.3 removed development (the package's removed list: development_growth_factor, removed in 1.21.0.3), and no form ending in _development_growth_factor remains. The game reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/innovations/RICE_irrigation_tanks_innovations.txt",
+            "code": "names/unknown-modifier",
+            "lines": [82],
+            "classification": "real-defect",
+            "reason": "'development_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/innovations/RICE_qanat_innovations.txt",
+            "code": "names/unknown-modifier",
+            "lines": [82],
+            "classification": "real-defect",
+            "reason": "'development_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/innovations/RICE_quipu.txt",
+            "code": "names/unknown-modifier",
+            "lines": [28],
+            "classification": "real-defect",
+            "reason": "'monthly_county_control_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/innovations/RICE_sasi.txt",
+            "code": "names/unknown-modifier",
+            "lines": [22],
+            "classification": "real-defect",
+            "reason": "'development_decline_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/innovations/RICE_south_ethiopia_walls_innovations.txt",
+            "code": "names/unknown-modifier",
+            "lines": [32],
+            "classification": "real-defect",
+            "reason": "'hills_development_growth_factor' is no modifier of game 1.21.0.3's documentation and fills none of its modifier templates; 1.21.0.3 removed development (the package's removed list: development_growth_factor, removed in 1.21.0.3), and no form ending in _development_growth_factor remains. The game reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/innovations/RICE_south_ethiopia_walls_innovations.txt",
+            "code": "names/unknown-modifier",
+            "lines": [33],
+            "classification": "real-defect",
+            "reason": "'mountains_development_growth_factor' is no modifier of game 1.21.0.3's documentation and fills none of its modifier templates; 1.21.0.3 removed development (the package's removed list: development_growth_factor, removed in 1.21.0.3), and no form ending in _development_growth_factor remains. The game reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/innovations/RICE_south_ethiopia_walls_innovations.txt",
+            "code": "names/unknown-modifier",
+            "lines": [34],
+            "classification": "real-defect",
+            "reason": "'desert_mountains_development_growth_factor' is no modifier of game 1.21.0.3's documentation and fills none of its modifier templates; 1.21.0.3 removed development (the package's removed list: development_growth_factor, removed in 1.21.0.3), and no form ending in _development_growth_factor remains. The game reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/innovations/RICE_sweet_potato_cultivation.txt",
+            "code": "names/unknown-modifier",
+            "lines": [23],
+            "classification": "real-defect",
+            "reason": "'development_decline_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/innovations/RICE_velakkara_guards.txt",
+            "code": "names/unknown-modifier",
+            "lines": [87],
+            "classification": "real-defect",
+            "reason": "'monthly_county_control_decline_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/traditions/RICE_bozo_traditions.txt",
+            "code": "names/unknown-modifier",
+            "lines": [48],
+            "classification": "real-defect",
+            "reason": "'wetlands_development_growth_factor' is no modifier of game 1.21.0.3's documentation and fills none of its modifier templates; 1.21.0.3 removed development (the package's removed list: development_growth_factor, removed in 1.21.0.3), and no form ending in _development_growth_factor remains. The game reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/traditions/RICE_bozo_traditions.txt",
+            "code": "names/unknown-modifier",
+            "lines": [49],
+            "classification": "real-defect",
+            "reason": "'floodplains_development_growth_factor' is no modifier of game 1.21.0.3's documentation and fills none of its modifier templates; 1.21.0.3 removed development (the package's removed list: development_growth_factor, removed in 1.21.0.3), and no form ending in _development_growth_factor remains. The game reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/traditions/RICE_easter_egg_traditions.txt",
+            "code": "names/unknown-modifier",
+            "lines": [31],
+            "classification": "real-defect",
+            "reason": "'development_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/traditions/RICE_mordvin_traditions.txt",
+            "code": "names/unknown-modifier",
+            "lines": [85],
+            "classification": "real-defect",
+            "reason": "'tax_mult' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/traditions/RICE_niger_delta_traditions.txt",
+            "code": "names/unknown-modifier",
+            "lines": [72],
+            "classification": "real-defect",
+            "reason": "'monthly_county_control_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/traditions/RICE_niger_delta_traditions.txt",
+            "code": "names/unknown-modifier",
+            "lines": [224],
+            "classification": "real-defect",
+            "reason": "'monthly_county_control_decline_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/traditions/RICE_nubia_traditions.txt",
+            "code": "names/unknown-modifier",
+            "lines": [41],
+            "classification": "real-defect",
+            "reason": "'floodplains_development_growth_factor' is no modifier of game 1.21.0.3's documentation and fills none of its modifier templates; 1.21.0.3 removed development (the package's removed list: development_growth_factor, removed in 1.21.0.3), and no form ending in _development_growth_factor remains. The game reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/traditions/RICE_nubia_traditions.txt",
+            "code": "names/unknown-modifier",
+            "lines": [43],
+            "classification": "real-defect",
+            "reason": "'desert_development_growth_factor' is no modifier of game 1.21.0.3's documentation and fills none of its modifier templates; 1.21.0.3 removed development (the package's removed list: development_growth_factor, removed in 1.21.0.3), and no form ending in _development_growth_factor remains. The game reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/traditions/RICE_nubia_traditions.txt",
+            "code": "names/unknown-modifier",
+            "lines": [45],
+            "classification": "real-defect",
+            "reason": "'drylands_development_growth_factor' is no modifier of game 1.21.0.3's documentation and fills none of its modifier templates; 1.21.0.3 removed development (the package's removed list: development_growth_factor, removed in 1.21.0.3), and no form ending in _development_growth_factor remains. The game reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/traditions/RICE_nubia_traditions.txt",
+            "code": "names/unknown-modifier",
+            "lines": [306],
+            "classification": "real-defect",
+            "reason": "'hills_development_growth_factor' is no modifier of game 1.21.0.3's documentation and fills none of its modifier templates; 1.21.0.3 removed development (the package's removed list: development_growth_factor, removed in 1.21.0.3), and no form ending in _development_growth_factor remains. The game reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/traditions/RICE_nubia_traditions.txt",
+            "code": "names/unknown-modifier",
+            "lines": [307],
+            "classification": "real-defect",
+            "reason": "'mountains_development_growth_factor' is no modifier of game 1.21.0.3's documentation and fills none of its modifier templates; 1.21.0.3 removed development (the package's removed list: development_growth_factor, removed in 1.21.0.3), and no form ending in _development_growth_factor remains. The game reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/traditions/RICE_nubia_traditions.txt",
+            "code": "names/unknown-modifier",
+            "lines": [308],
+            "classification": "real-defect",
+            "reason": "'desert_mountains_development_growth_factor' is no modifier of game 1.21.0.3's documentation and fills none of its modifier templates; 1.21.0.3 removed development (the package's removed list: development_growth_factor, removed in 1.21.0.3), and no form ending in _development_growth_factor remains. The game reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/traditions/RICE_oceania_traditions.txt",
+            "code": "names/unknown-modifier",
+            "lines": [854],
+            "classification": "real-defect",
+            "reason": "'terraced_hills_development_growth_factor' is no modifier of game 1.21.0.3's documentation and fills none of its modifier templates; 1.21.0.3 removed development (the package's removed list: development_growth_factor, removed in 1.21.0.3), and no form ending in _development_growth_factor remains. The game reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/traditions/RICE_oceania_traditions.txt",
+            "code": "names/unknown-modifier",
+            "lines": [855],
+            "classification": "real-defect",
+            "reason": "'wetlands_development_growth_factor' is no modifier of game 1.21.0.3's documentation and fills none of its modifier templates; 1.21.0.3 removed development (the package's removed list: development_growth_factor, removed in 1.21.0.3), and no form ending in _development_growth_factor remains. The game reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/traditions/RICE_oceania_traditions.txt",
+            "code": "names/unknown-modifier",
+            "lines": [856],
+            "classification": "real-defect",
+            "reason": "'hills_development_growth_factor' is no modifier of game 1.21.0.3's documentation and fills none of its modifier templates; 1.21.0.3 removed development (the package's removed list: development_growth_factor, removed in 1.21.0.3), and no form ending in _development_growth_factor remains. The game reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/traditions/RICE_oceania_traditions.txt",
+            "code": "names/unknown-modifier",
+            "lines": [857],
+            "classification": "real-defect",
+            "reason": "'mountains_development_growth_factor' is no modifier of game 1.21.0.3's documentation and fills none of its modifier templates; 1.21.0.3 removed development (the package's removed list: development_growth_factor, removed in 1.21.0.3), and no form ending in _development_growth_factor remains. The game reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/traditions/RICE_oceania_traditions.txt",
+            "code": "names/unknown-modifier",
+            "lines": [858],
+            "classification": "real-defect",
+            "reason": "'desert_mountains_development_growth_factor' is no modifier of game 1.21.0.3's documentation and fills none of its modifier templates; 1.21.0.3 removed development (the package's removed list: development_growth_factor, removed in 1.21.0.3), and no form ending in _development_growth_factor remains. The game reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/traditions/RICE_regional_traditions.txt",
+            "code": "names/unknown-modifier",
+            "lines": [327, 530, 1173, 3323],
+            "classification": "real-defect",
+            "reason": "'monthly_county_control_decline_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/traditions/RICE_regional_traditions.txt",
+            "code": "names/unknown-modifier",
+            "lines": [395],
+            "classification": "real-defect",
+            "reason": "'floodplains_development_growth_factor' is no modifier of game 1.21.0.3's documentation and fills none of its modifier templates; 1.21.0.3 removed development (the package's removed list: development_growth_factor, removed in 1.21.0.3), and no form ending in _development_growth_factor remains. The game reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/traditions/RICE_regional_traditions.txt",
+            "code": "names/unknown-modifier",
+            "lines": [397],
+            "classification": "real-defect",
+            "reason": "'oasis_development_growth_factor' is no modifier of game 1.21.0.3's documentation and fills none of its modifier templates; 1.21.0.3 removed development (the package's removed list: development_growth_factor, removed in 1.21.0.3), and no form ending in _development_growth_factor remains. The game reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/traditions/RICE_regional_traditions.txt",
+            "code": "names/unknown-modifier",
+            "lines": [399],
+            "classification": "real-defect",
+            "reason": "'desert_development_growth_factor' is no modifier of game 1.21.0.3's documentation and fills none of its modifier templates; 1.21.0.3 removed development (the package's removed list: development_growth_factor, removed in 1.21.0.3), and no form ending in _development_growth_factor remains. The game reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/traditions/RICE_regional_traditions.txt",
+            "code": "names/unknown-modifier",
+            "lines": [1565, 3322],
+            "classification": "real-defect",
+            "reason": "'development_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/traditions/RICE_regional_traditions.txt",
+            "code": "names/unknown-modifier",
+            "lines": [1665, 2548],
+            "classification": "real-defect",
+            "reason": "'monthly_county_control_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/traditions/RICE_regional_traditions.txt",
+            "code": "names/unknown-modifier",
+            "lines": [2134],
+            "classification": "real-defect",
+            "reason": "'drylands_development_growth_factor' is no modifier of game 1.21.0.3's documentation and fills none of its modifier templates; 1.21.0.3 removed development (the package's removed list: development_growth_factor, removed in 1.21.0.3), and no form ending in _development_growth_factor remains. The game reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/traditions/RICE_regional_traditions.txt",
+            "code": "names/unknown-modifier",
+            "lines": [2485],
+            "classification": "real-defect",
+            "reason": "'hills_development_growth_factor' is no modifier of game 1.21.0.3's documentation and fills none of its modifier templates; 1.21.0.3 removed development (the package's removed list: development_growth_factor, removed in 1.21.0.3), and no form ending in _development_growth_factor remains. The game reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/traditions/RICE_regional_traditions.txt",
+            "code": "names/unknown-modifier",
+            "lines": [2486],
+            "classification": "real-defect",
+            "reason": "'mountains_development_growth_factor' is no modifier of game 1.21.0.3's documentation and fills none of its modifier templates; 1.21.0.3 removed development (the package's removed list: development_growth_factor, removed in 1.21.0.3), and no form ending in _development_growth_factor remains. The game reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/traditions/RICE_regional_traditions.txt",
+            "code": "names/unknown-modifier",
+            "lines": [2487],
+            "classification": "real-defect",
+            "reason": "'desert_mountains_development_growth_factor' is no modifier of game 1.21.0.3's documentation and fills none of its modifier templates; 1.21.0.3 removed development (the package's removed list: development_growth_factor, removed in 1.21.0.3), and no form ending in _development_growth_factor remains. The game reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/traditions/RICE_sicily_traditions.txt",
+            "code": "names/unknown-modifier",
+            "lines": [38],
+            "classification": "real-defect",
+            "reason": "'different_faith_county_opinion_mult' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Its note: \"1.21.0.3 registers different_faith_popular_opinion_mult; modifiers have no built-in documentation in either version, so no replacement is claimed\". Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/traditions/RICE_sicily_traditions.txt",
+            "code": "names/unknown-modifier",
+            "lines": [46],
+            "classification": "real-defect",
+            "reason": "'monthly_county_control_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/traditions/RICE_sicily_traditions.txt",
+            "code": "names/unknown-modifier",
+            "lines": [299],
+            "classification": "real-defect",
+            "reason": "'development_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/traditions/RICE_south_ethiopia_traditions.txt",
+            "code": "names/unknown-modifier",
+            "lines": [40],
+            "classification": "real-defect",
+            "reason": "'tax_mult' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/traditions/RICE_sri_lanka_traditions.txt",
+            "code": "names/unknown-modifier",
+            "lines": [103],
+            "classification": "real-defect",
+            "reason": "'forest_development_growth_factor' is no modifier of game 1.21.0.3's documentation and fills none of its modifier templates; 1.21.0.3 removed development (the package's removed list: development_growth_factor, removed in 1.21.0.3), and no form ending in _development_growth_factor remains. The game reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/traditions/RICE_sri_lanka_traditions.txt",
+            "code": "names/unknown-modifier",
+            "lines": [104],
+            "classification": "real-defect",
+            "reason": "'jungle_development_growth_factor' is no modifier of game 1.21.0.3's documentation and fills none of its modifier templates; 1.21.0.3 removed development (the package's removed list: development_growth_factor, removed in 1.21.0.3), and no form ending in _development_growth_factor remains. The game reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/traditions/RICE_sri_lanka_traditions.txt",
+            "code": "names/unknown-modifier",
+            "lines": [105],
+            "classification": "real-defect",
+            "reason": "'hills_development_growth_factor' is no modifier of game 1.21.0.3's documentation and fills none of its modifier templates; 1.21.0.3 removed development (the package's removed list: development_growth_factor, removed in 1.21.0.3), and no form ending in _development_growth_factor remains. The game reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/traditions/RICE_sri_lanka_traditions.txt",
+            "code": "names/unknown-modifier",
+            "lines": [325],
+            "classification": "real-defect",
+            "reason": "'monthly_county_control_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/traditions/bao_breizh_tradition.txt",
+            "code": "names/unknown-modifier",
+            "lines": [119],
+            "classification": "real-defect",
+            "reason": "'development_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/traditions/bao_breizh_tradition.txt",
+            "code": "names/unknown-modifier",
+            "lines": [120],
+            "classification": "real-defect",
+            "reason": "'monthly_county_control_decline_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/traditions/sea_traditions.txt",
+            "code": "names/unknown-modifier",
+            "lines": [333],
+            "classification": "real-defect",
+            "reason": "'development_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/culture/traditions/sea_traditions.txt",
+            "code": "names/unknown-modifier",
+            "lines": [334],
+            "classification": "real-defect",
+            "reason": "'monthly_county_control_decline_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/decisions/RICE_lesbos_decisions.txt",
+            "code": "names/unknown-trigger",
+            "lines": [49],
+            "classification": "real-defect",
+            "reason": "'has_special_building' is in the spec package's removed list: a trigger removed in game 1.21.0.3. Its note: \"has_special_district has the same built-in documentation with district in place of building (keyword_docs_1.20.0.2.json, keyword_docs_1.21.0.3.json)\". The package names its replacement: has_special_district. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown trigger '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/decisions/RICE_niger_delta_decisions.txt",
+            "code": "names/unknown-trigger",
+            "lines": [67],
+            "classification": "real-defect",
+            "reason": "'development_level' is in the spec package's removed list: a trigger removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown trigger '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/decisions/RICE_normandy_decisions.txt",
+            "code": "names/unknown-trigger",
+            "lines": [334, 335, 336, 337, 338, 339, 340, 346],
+            "classification": "real-defect",
+            "reason": "'development_level' is in the spec package's removed list: a trigger removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown trigger '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/decisions/RICE_north_atlantic_decisions.txt",
+            "code": "names/unknown-trigger",
+            "lines": [52, 460, 673, 1216, 1367],
+            "classification": "real-defect",
+            "reason": "'development_level' is in the spec package's removed list: a trigger removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown trigger '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/decisions/RICE_sicily_decisions.txt",
+            "code": "names/unknown-trigger",
+            "lines": [253, 267, 1014, 1392],
+            "classification": "real-defect",
+            "reason": "'development_level' is in the spec package's removed list: a trigger removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown trigger '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/decisions/RICE_socotra_decisions.txt",
+            "code": "names/unknown-trigger",
+            "lines": [46, 748],
+            "classification": "real-defect",
+            "reason": "'has_special_building' is in the spec package's removed list: a trigger removed in game 1.21.0.3. Its note: \"has_special_district has the same built-in documentation with district in place of building (keyword_docs_1.20.0.2.json, keyword_docs_1.21.0.3.json)\". The package names its replacement: has_special_district. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown trigger '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/decisions/RICE_socotra_decisions.txt",
+            "code": "names/unknown-trigger",
+            "lines": [666],
+            "classification": "real-defect",
+            "reason": "'development_level' is in the spec package's removed list: a trigger removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown trigger '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/dynasty_perks/RICE_sicily_dynasty_perks.txt",
+            "code": "names/unknown-modifier",
+            "lines": [60],
+            "classification": "real-defect",
+            "reason": "'development_growth' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/dynasty_perks/RICE_sus_dynasty_perks.txt",
+            "code": "names/unknown-modifier",
+            "lines": [80],
+            "classification": "real-defect",
+            "reason": "'faith_creation_piety_cost_mult' is in the spec package's removed list: a modifier removed in game 1.20.0.2. Its note: \"now rite_creation_* (SUMMARY.md, modifier types)\". The package names its replacement: rite_creation_piety_cost_mult. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/dynasty_perks/RICE_tarim_basin_dynasty_perks.txt",
+            "code": "names/unknown-modifier",
+            "lines": [26],
+            "classification": "real-defect",
+            "reason": "'different_faith_county_opinion_mult' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Its note: \"1.21.0.3 registers different_faith_popular_opinion_mult; modifiers have no built-in documentation in either version, so no replacement is claimed\". Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/legends/chronicles/RICE_nubia_chronicles.txt",
+            "code": "names/unknown-modifier",
+            "lines": [25],
+            "classification": "real-defect",
+            "reason": "'development_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/legends/chronicles/RICE_sus_chronicles.txt",
+            "code": "names/unknown-modifier",
+            "lines": [26],
+            "classification": "real-defect",
+            "reason": "'tax_mult' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/religion/doctrine_types/RICE_doctrines_austroasiatic.txt",
+            "code": "names/unknown-modifier",
+            "lines": [197],
+            "classification": "real-defect",
+            "reason": "'jungle_development_growth_factor' is no modifier of game 1.21.0.3's documentation and fills none of its modifier templates; 1.21.0.3 removed development (the package's removed list: development_growth_factor, removed in 1.21.0.3), and no form ending in _development_growth_factor remains. The game reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/religion/doctrine_types/RICE_doctrines_buddhism_sri_lanka.txt",
+            "code": "names/unknown-modifier",
+            "lines": [9],
+            "classification": "real-defect",
+            "reason": "'monthly_county_control_decline_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/religion/doctrine_types/RICE_doctrines_buddhism_sri_lanka.txt",
+            "code": "names/unknown-modifier",
+            "lines": [18],
+            "classification": "real-defect",
+            "reason": "'monthly_county_control_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/religion/doctrine_types/RICE_doctrines_buddhism_sri_lanka.txt",
+            "code": "names/unknown-modifier",
+            "lines": [19],
+            "classification": "real-defect",
+            "reason": "'development_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/religion/doctrine_types/RICE_doctrines_zunism.txt",
+            "code": "names/unknown-modifier",
+            "lines": [18],
+            "classification": "real-defect",
+            "reason": "'mountains_development_growth_factor' is no modifier of game 1.21.0.3's documentation and fills none of its modifier templates; 1.21.0.3 removed development (the package's removed list: development_growth_factor, removed in 1.21.0.3), and no form ending in _development_growth_factor remains. The game reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/script_values/RICE_sicily_values.txt",
+            "code": "names/unknown-trigger",
+            "lines": [2160],
+            "classification": "real-defect",
+            "reason": "'development_level' is in the spec package's removed list: a trigger removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown trigger '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE__misc_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [1311],
+            "classification": "real-defect",
+            "reason": "'change_development_progress_with_overflow' is in the spec package's removed list: a effect removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_aachen_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [56],
+            "classification": "real-defect",
+            "reason": "'add_special_building' is in the spec package's removed list: a effect removed in game 1.21.0.3. Its note: \"1.21.0.3 registers add_special_district, whose built-in documentation is the text of add_special_district_slot with its own name (\"Add a special district slot to the province\"), not this name's; no replacement is claimed\". Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_aachen_effects.txt",
+            "code": "names/unknown-trigger",
+            "lines": [52],
+            "classification": "real-defect",
+            "reason": "'has_special_building' is in the spec package's removed list: a trigger removed in game 1.21.0.3. Its note: \"has_special_district has the same built-in documentation with district in place of building (keyword_docs_1.20.0.2.json, keyword_docs_1.21.0.3.json)\". The package names its replacement: has_special_district. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown trigger '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_aslian_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [207, 230],
+            "classification": "real-defect",
+            "reason": "'add_special_building' is in the spec package's removed list: a effect removed in game 1.21.0.3. Its note: \"1.21.0.3 registers add_special_district, whose built-in documentation is the text of add_special_district_slot with its own name (\"Add a special district slot to the province\"), not this name's; no replacement is claimed\". Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_aslian_effects.txt",
+            "code": "names/unknown-trigger",
+            "lines": [203, 226],
+            "classification": "real-defect",
+            "reason": "'has_special_building' is in the spec package's removed list: a trigger removed in game 1.21.0.3. Its note: \"has_special_district has the same built-in documentation with district in place of building (keyword_docs_1.20.0.2.json, keyword_docs_1.21.0.3.json)\". The package names its replacement: has_special_district. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown trigger '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_bamian_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [87],
+            "classification": "real-defect",
+            "reason": "'add_special_building' is in the spec package's removed list: a effect removed in game 1.21.0.3. Its note: \"1.21.0.3 registers add_special_district, whose built-in documentation is the text of add_special_district_slot with its own name (\"Add a special district slot to the province\"), not this name's; no replacement is claimed\". Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_bamian_effects.txt",
+            "code": "names/unknown-trigger",
+            "lines": [83],
+            "classification": "real-defect",
+            "reason": "'has_special_building' is in the spec package's removed list: a trigger removed in game 1.21.0.3. Its note: \"has_special_district has the same built-in documentation with district in place of building (keyword_docs_1.20.0.2.json, keyword_docs_1.21.0.3.json)\". The package names its replacement: has_special_district. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown trigger '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_bozo_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [111, 123, 135],
+            "classification": "real-defect",
+            "reason": "'add_special_building' is in the spec package's removed list: a effect removed in game 1.21.0.3. Its note: \"1.21.0.3 registers add_special_district, whose built-in documentation is the text of add_special_district_slot with its own name (\"Add a special district slot to the province\"), not this name's; no replacement is claimed\". Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_bozo_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [173, 176, 179, 186],
+            "classification": "real-defect",
+            "reason": "'change_development_level' is in the spec package's removed list: a effect removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_bozo_effects.txt",
+            "code": "names/unknown-trigger",
+            "lines": [107, 119, 131],
+            "classification": "real-defect",
+            "reason": "'has_special_building' is in the spec package's removed list: a trigger removed in game 1.21.0.3. Its note: \"has_special_district has the same built-in documentation with district in place of building (keyword_docs_1.20.0.2.json, keyword_docs_1.21.0.3.json)\". The package names its replacement: has_special_district. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown trigger '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_breton_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [10],
+            "classification": "real-defect",
+            "reason": "'add_special_building' is in the spec package's removed list: a effect removed in game 1.21.0.3. Its note: \"1.21.0.3 registers add_special_district, whose built-in documentation is the text of add_special_district_slot with its own name (\"Add a special district slot to the province\"), not this name's; no replacement is claimed\". Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_breton_effects.txt",
+            "code": "names/unknown-trigger",
+            "lines": [6],
+            "classification": "real-defect",
+            "reason": "'has_special_building' is in the spec package's removed list: a trigger removed in game 1.21.0.3. Its note: \"has_special_district has the same built-in documentation with district in place of building (keyword_docs_1.20.0.2.json, keyword_docs_1.21.0.3.json)\". The package names its replacement: has_special_district. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown trigger '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_breton_effects.txt",
+            "code": "scope/wrong-scope-for-effect",
+            "lines": [23],
+            "classification": "real-defect",
+            "reason": "'add_building' is run in a province scope; the game's own documentation of the effect (effects.log, 1.21.0.3, the package's scope_validity) gives it the supported scope district only: game 1.21.0.3 moved buildings from provinces to districts, and reports the catalogue's \"wrong_scope_for_effect_X_expected_X\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_chios_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [11, 25],
+            "classification": "real-defect",
+            "reason": "'add_special_building' is in the spec package's removed list: a effect removed in game 1.21.0.3. Its note: \"1.21.0.3 registers add_special_district, whose built-in documentation is the text of add_special_district_slot with its own name (\"Add a special district slot to the province\"), not this name's; no replacement is claimed\". Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_chios_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [37],
+            "classification": "real-defect",
+            "reason": "'add_special_building_slot' is in the spec package's removed list: a effect removed in game 1.21.0.3. Its note: \"add_special_district_slot has the same built-in documentation with district in place of building (keyword_docs_1.20.0.2.json, keyword_docs_1.21.0.3.json)\". The package names its replacement: add_special_district_slot. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_chios_effects.txt",
+            "code": "names/unknown-trigger",
+            "lines": [7, 21, 33],
+            "classification": "real-defect",
+            "reason": "'has_special_building' is in the spec package's removed list: a trigger removed in game 1.21.0.3. Its note: \"has_special_district has the same built-in documentation with district in place of building (keyword_docs_1.20.0.2.json, keyword_docs_1.21.0.3.json)\". The package names its replacement: has_special_district. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown trigger '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_galicia2_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [438],
+            "classification": "real-defect",
+            "reason": "'add_special_building' is in the spec package's removed list: a effect removed in game 1.21.0.3. Its note: \"1.21.0.3 registers add_special_district, whose built-in documentation is the text of add_special_district_slot with its own name (\"Add a special district slot to the province\"), not this name's; no replacement is claimed\". Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_galicia2_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [449],
+            "classification": "real-defect",
+            "reason": "'add_special_building_slot' is in the spec package's removed list: a effect removed in game 1.21.0.3. Its note: \"add_special_district_slot has the same built-in documentation with district in place of building (keyword_docs_1.20.0.2.json, keyword_docs_1.21.0.3.json)\". The package names its replacement: add_special_district_slot. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_galicia2_effects.txt",
+            "code": "names/unknown-trigger",
+            "lines": [434, 445],
+            "classification": "real-defect",
+            "reason": "'has_special_building' is in the spec package's removed list: a trigger removed in game 1.21.0.3. Its note: \"has_special_district has the same built-in documentation with district in place of building (keyword_docs_1.20.0.2.json, keyword_docs_1.21.0.3.json)\". The package names its replacement: has_special_district. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown trigger '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_granada_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [185],
+            "classification": "real-defect",
+            "reason": "'add_special_building' is in the spec package's removed list: a effect removed in game 1.21.0.3. Its note: \"1.21.0.3 registers add_special_district, whose built-in documentation is the text of add_special_district_slot with its own name (\"Add a special district slot to the province\"), not this name's; no replacement is claimed\". Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_granada_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [196],
+            "classification": "real-defect",
+            "reason": "'add_special_building_slot' is in the spec package's removed list: a effect removed in game 1.21.0.3. Its note: \"add_special_district_slot has the same built-in documentation with district in place of building (keyword_docs_1.20.0.2.json, keyword_docs_1.21.0.3.json)\". The package names its replacement: add_special_district_slot. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_granada_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [394, 578],
+            "classification": "real-defect",
+            "reason": "'change_development_level' is in the spec package's removed list: a effect removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_granada_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [457],
+            "classification": "real-defect",
+            "reason": "'change_development_progress_with_overflow' is in the spec package's removed list: a effect removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_granada_effects.txt",
+            "code": "names/unknown-trigger",
+            "lines": [181, 192],
+            "classification": "real-defect",
+            "reason": "'has_special_building' is in the spec package's removed list: a trigger removed in game 1.21.0.3. Its note: \"has_special_district has the same built-in documentation with district in place of building (keyword_docs_1.20.0.2.json, keyword_docs_1.21.0.3.json)\". The package names its replacement: has_special_district. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown trigger '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_guanche_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [62],
+            "classification": "real-defect",
+            "reason": "'add_special_building_slot' is in the spec package's removed list: a effect removed in game 1.21.0.3. Its note: \"add_special_district_slot has the same built-in documentation with district in place of building (keyword_docs_1.20.0.2.json, keyword_docs_1.21.0.3.json)\". The package names its replacement: add_special_district_slot. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_guanche_effects.txt",
+            "code": "scope/wrong-scope-for-effect",
+            "lines": [60, 63],
+            "classification": "real-defect",
+            "reason": "'add_building' is run in a province scope; the game's own documentation of the effect (effects.log, 1.21.0.3, the package's scope_validity) gives it the supported scope district only: game 1.21.0.3 moved buildings from provinces to districts, and reports the catalogue's \"wrong_scope_for_effect_X_expected_X\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_guanche_effects.txt",
+            "code": "scope/wrong-scope-for-effect",
+            "lines": [61],
+            "classification": "real-defect",
+            "reason": "'remove_building' is run in a province scope; the game's own documentation of the effect (effects.log, 1.21.0.3, the package's scope_validity) gives it the supported scope district only: game 1.21.0.3 moved buildings from provinces to districts, and reports the catalogue's \"wrong_scope_for_effect_X_expected_X\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_hangzhou_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [62],
+            "classification": "real-defect",
+            "reason": "'add_special_building' is in the spec package's removed list: a effect removed in game 1.21.0.3. Its note: \"1.21.0.3 registers add_special_district, whose built-in documentation is the text of add_special_district_slot with its own name (\"Add a special district slot to the province\"), not this name's; no replacement is claimed\". Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_hangzhou_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [73],
+            "classification": "real-defect",
+            "reason": "'add_special_building_slot' is in the spec package's removed list: a effect removed in game 1.21.0.3. Its note: \"add_special_district_slot has the same built-in documentation with district in place of building (keyword_docs_1.20.0.2.json, keyword_docs_1.21.0.3.json)\". The package names its replacement: add_special_district_slot. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_hangzhou_effects.txt",
+            "code": "names/unknown-trigger",
+            "lines": [58, 69],
+            "classification": "real-defect",
+            "reason": "'has_special_building' is in the spec package's removed list: a trigger removed in game 1.21.0.3. Its note: \"has_special_district has the same built-in documentation with district in place of building (keyword_docs_1.20.0.2.json, keyword_docs_1.21.0.3.json)\". The package names its replacement: has_special_district. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown trigger '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_harran_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [248, 267, 415],
+            "classification": "real-defect",
+            "reason": "'add_special_building' is in the spec package's removed list: a effect removed in game 1.21.0.3. Its note: \"1.21.0.3 registers add_special_district, whose built-in documentation is the text of add_special_district_slot with its own name (\"Add a special district slot to the province\"), not this name's; no replacement is claimed\". Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_harran_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [287],
+            "classification": "real-defect",
+            "reason": "'add_special_building_slot' is in the spec package's removed list: a effect removed in game 1.21.0.3. Its note: \"add_special_district_slot has the same built-in documentation with district in place of building (keyword_docs_1.20.0.2.json, keyword_docs_1.21.0.3.json)\". The package names its replacement: add_special_district_slot. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_harran_effects.txt",
+            "code": "names/unknown-trigger",
+            "lines": [244, 263, 274],
+            "classification": "real-defect",
+            "reason": "'has_special_building' is in the spec package's removed list: a trigger removed in game 1.21.0.3. Its note: \"has_special_district has the same built-in documentation with district in place of building (keyword_docs_1.20.0.2.json, keyword_docs_1.21.0.3.json)\". The package names its replacement: has_special_district. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown trigger '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_harran_effects.txt",
+            "code": "scope/wrong-scope-for-effect",
+            "lines": [396],
+            "classification": "real-defect",
+            "reason": "'remove_building' is run in a province scope; the game's own documentation of the effect (effects.log, 1.21.0.3, the package's scope_validity) gives it the supported scope district only: game 1.21.0.3 moved buildings from provinces to districts, and reports the catalogue's \"wrong_scope_for_effect_X_expected_X\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_khuzestan_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [18],
+            "classification": "real-defect",
+            "reason": "'add_special_building' is in the spec package's removed list: a effect removed in game 1.21.0.3. Its note: \"1.21.0.3 registers add_special_district, whose built-in documentation is the text of add_special_district_slot with its own name (\"Add a special district slot to the province\"), not this name's; no replacement is claimed\". Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_khuzestan_effects.txt",
+            "code": "names/unknown-trigger",
+            "lines": [14],
+            "classification": "real-defect",
+            "reason": "'has_special_building' is in the spec package's removed list: a trigger removed in game 1.21.0.3. Its note: \"has_special_district has the same built-in documentation with district in place of building (keyword_docs_1.20.0.2.json, keyword_docs_1.21.0.3.json)\". The package names its replacement: has_special_district. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown trigger '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_khuzestan_effects.txt",
+            "code": "scope/wrong-scope-for-effect",
+            "lines": [36, 44, 52],
+            "classification": "real-defect",
+            "reason": "'add_building' is run in a province scope; the game's own documentation of the effect (effects.log, 1.21.0.3, the package's scope_validity) gives it the supported scope district only: game 1.21.0.3 moved buildings from provinces to districts, and reports the catalogue's \"wrong_scope_for_effect_X_expected_X\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_khwarezm_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [20, 35],
+            "classification": "real-defect",
+            "reason": "'add_special_building' is in the spec package's removed list: a effect removed in game 1.21.0.3. Its note: \"1.21.0.3 registers add_special_district, whose built-in documentation is the text of add_special_district_slot with its own name (\"Add a special district slot to the province\"), not this name's; no replacement is claimed\". Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_khwarezm_effects.txt",
+            "code": "names/unknown-trigger",
+            "lines": [16, 27],
+            "classification": "real-defect",
+            "reason": "'has_special_building' is in the spec package's removed list: a trigger removed in game 1.21.0.3. Its note: \"has_special_district has the same built-in documentation with district in place of building (keyword_docs_1.20.0.2.json, keyword_docs_1.21.0.3.json)\". The package names its replacement: has_special_district. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown trigger '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_lesbos_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [80, 99, 111, 124, 138, 149, 160, 411, 421],
+            "classification": "real-defect",
+            "reason": "'add_special_building' is in the spec package's removed list: a effect removed in game 1.21.0.3. Its note: \"1.21.0.3 registers add_special_district, whose built-in documentation is the text of add_special_district_slot with its own name (\"Add a special district slot to the province\"), not this name's; no replacement is claimed\". Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_lesbos_effects.txt",
+            "code": "names/unknown-trigger",
+            "lines": [76, 95, 107, 120, 134, 145, 156],
+            "classification": "real-defect",
+            "reason": "'has_special_building' is in the spec package's removed list: a trigger removed in game 1.21.0.3. Its note: \"has_special_district has the same built-in documentation with district in place of building (keyword_docs_1.20.0.2.json, keyword_docs_1.21.0.3.json)\". The package names its replacement: has_special_district. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown trigger '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_lesbos_effects.txt",
+            "code": "scope/wrong-scope-for-effect",
+            "lines": [743, 749, 755, 761],
+            "classification": "real-defect",
+            "reason": "'remove_building' is run in a province scope; the game's own documentation of the effect (effects.log, 1.21.0.3, the package's scope_validity) gives it the supported scope district only: game 1.21.0.3 moved buildings from provinces to districts, and reports the catalogue's \"wrong_scope_for_effect_X_expected_X\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_mayo_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [119, 142, 165, 189, 201],
+            "classification": "real-defect",
+            "reason": "'add_special_building' is in the spec package's removed list: a effect removed in game 1.21.0.3. Its note: \"1.21.0.3 registers add_special_district, whose built-in documentation is the text of add_special_district_slot with its own name (\"Add a special district slot to the province\"), not this name's; no replacement is claimed\". Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_mayo_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [755],
+            "classification": "real-defect",
+            "reason": "'change_development_progress_with_overflow' is in the spec package's removed list: a effect removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_mayo_effects.txt",
+            "code": "names/unknown-trigger",
+            "lines": [115, 138, 161, 185, 197],
+            "classification": "real-defect",
+            "reason": "'has_special_building' is in the spec package's removed list: a trigger removed in game 1.21.0.3. Its note: \"has_special_district has the same built-in documentation with district in place of building (keyword_docs_1.20.0.2.json, keyword_docs_1.21.0.3.json)\". The package names its replacement: has_special_district. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown trigger '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_niger_delta_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [241, 253],
+            "classification": "real-defect",
+            "reason": "'add_special_building' is in the spec package's removed list: a effect removed in game 1.21.0.3. Its note: \"1.21.0.3 registers add_special_district, whose built-in documentation is the text of add_special_district_slot with its own name (\"Add a special district slot to the province\"), not this name's; no replacement is claimed\". Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_niger_delta_effects.txt",
+            "code": "names/unknown-trigger",
+            "lines": [237, 249],
+            "classification": "real-defect",
+            "reason": "'has_special_building' is in the spec package's removed list: a trigger removed in game 1.21.0.3. Its note: \"has_special_district has the same built-in documentation with district in place of building (keyword_docs_1.20.0.2.json, keyword_docs_1.21.0.3.json)\". The package names its replacement: has_special_district. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown trigger '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_normandy_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [18],
+            "classification": "real-defect",
+            "reason": "'add_special_building' is in the spec package's removed list: a effect removed in game 1.21.0.3. Its note: \"1.21.0.3 registers add_special_district, whose built-in documentation is the text of add_special_district_slot with its own name (\"Add a special district slot to the province\"), not this name's; no replacement is claimed\". Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_normandy_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [1106, 1142, 1178, 1214, 1466, 1502, 1538, 1574],
+            "classification": "real-defect",
+            "reason": "'change_development_progress_with_overflow' is in the spec package's removed list: a effect removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_north_atlantic_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [432],
+            "classification": "real-defect",
+            "reason": "'add_special_building' is in the spec package's removed list: a effect removed in game 1.21.0.3. Its note: \"1.21.0.3 registers add_special_district, whose built-in documentation is the text of add_special_district_slot with its own name (\"Add a special district slot to the province\"), not this name's; no replacement is claimed\". Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_north_atlantic_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [3309],
+            "classification": "real-defect",
+            "reason": "'change_development_level' is in the spec package's removed list: a effect removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_north_atlantic_effects.txt",
+            "code": "names/unknown-trigger",
+            "lines": [428],
+            "classification": "real-defect",
+            "reason": "'has_special_building' is in the spec package's removed list: a trigger removed in game 1.21.0.3. Its note: \"has_special_district has the same built-in documentation with district in place of building (keyword_docs_1.20.0.2.json, keyword_docs_1.21.0.3.json)\". The package names its replacement: has_special_district. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown trigger '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_nubia_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [
+                1790, 1793, 1796, 1799, 1802, 1805, 1808, 1811, 1814, 1822, 1825, 1828, 1831, 1834,
+                1837, 1840, 1843, 1846, 1851, 1854, 1857, 1860, 1863, 1866, 1869, 1872, 1875
+            ],
+            "classification": "real-defect",
+            "reason": "'change_development_level' is in the spec package's removed list: a effect removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_nubia_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [2847, 2858, 2869, 2880, 2891, 2902, 2913, 2925],
+            "classification": "real-defect",
+            "reason": "'add_special_building' is in the spec package's removed list: a effect removed in game 1.21.0.3. Its note: \"1.21.0.3 registers add_special_district, whose built-in documentation is the text of add_special_district_slot with its own name (\"Add a special district slot to the province\"), not this name's; no replacement is claimed\". Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_nubia_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [2936],
+            "classification": "real-defect",
+            "reason": "'add_special_building_slot' is in the spec package's removed list: a effect removed in game 1.21.0.3. Its note: \"add_special_district_slot has the same built-in documentation with district in place of building (keyword_docs_1.20.0.2.json, keyword_docs_1.21.0.3.json)\". The package names its replacement: add_special_district_slot. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_nubia_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [3567, 3640],
+            "classification": "real-defect",
+            "reason": "'change_development_progress_with_overflow' is in the spec package's removed list: a effect removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_nubia_effects.txt",
+            "code": "names/unknown-trigger",
+            "lines": [2843, 2854, 2865, 2876, 2887, 2898, 2909, 2921, 2932],
+            "classification": "real-defect",
+            "reason": "'has_special_building' is in the spec package's removed list: a trigger removed in game 1.21.0.3. Its note: \"has_special_district has the same built-in documentation with district in place of building (keyword_docs_1.20.0.2.json, keyword_docs_1.21.0.3.json)\". The package names its replacement: has_special_district. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown trigger '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_oceania_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [718, 730],
+            "classification": "real-defect",
+            "reason": "'add_special_building' is in the spec package's removed list: a effect removed in game 1.21.0.3. Its note: \"1.21.0.3 registers add_special_district, whose built-in documentation is the text of add_special_district_slot with its own name (\"Add a special district slot to the province\"), not this name's; no replacement is claimed\". Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_oceania_effects.txt",
+            "code": "names/unknown-trigger",
+            "lines": [714, 726],
+            "classification": "real-defect",
+            "reason": "'has_special_building' is in the spec package's removed list: a trigger removed in game 1.21.0.3. Its note: \"has_special_district has the same built-in documentation with district in place of building (keyword_docs_1.20.0.2.json, keyword_docs_1.21.0.3.json)\". The package names its replacement: has_special_district. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown trigger '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_oceania_effects.txt",
+            "code": "names/unknown-trigger",
+            "lines": [802, 814],
+            "classification": "real-defect",
+            "reason": "'development_level' is in the spec package's removed list: a trigger removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown trigger '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_pamir_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [533, 544],
+            "classification": "real-defect",
+            "reason": "'add_special_building' is in the spec package's removed list: a effect removed in game 1.21.0.3. Its note: \"1.21.0.3 registers add_special_district, whose built-in documentation is the text of add_special_district_slot with its own name (\"Add a special district slot to the province\"), not this name's; no replacement is claimed\". Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_pamir_effects.txt",
+            "code": "names/unknown-trigger",
+            "lines": [529, 540],
+            "classification": "real-defect",
+            "reason": "'has_special_building' is in the spec package's removed list: a trigger removed in game 1.21.0.3. Its note: \"has_special_district has the same built-in documentation with district in place of building (keyword_docs_1.20.0.2.json, keyword_docs_1.21.0.3.json)\". The package names its replacement: has_special_district. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown trigger '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_red_sea_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [85, 95, 121, 148, 199, 209, 219, 253, 693, 696, 699],
+            "classification": "real-defect",
+            "reason": "'add_special_building' is in the spec package's removed list: a effect removed in game 1.21.0.3. Its note: \"1.21.0.3 registers add_special_district, whose built-in documentation is the text of add_special_district_slot with its own name (\"Add a special district slot to the province\"), not this name's; no replacement is claimed\". Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_red_sea_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [109, 136, 167, 177, 187],
+            "classification": "real-defect",
+            "reason": "'add_special_building_slot' is in the spec package's removed list: a effect removed in game 1.21.0.3. Its note: \"add_special_district_slot has the same built-in documentation with district in place of building (keyword_docs_1.20.0.2.json, keyword_docs_1.21.0.3.json)\". The package names its replacement: add_special_district_slot. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_red_sea_effects.txt",
+            "code": "names/unknown-trigger",
+            "lines": [81, 91, 105, 117, 132, 144, 163, 173, 183, 195, 205, 215, 249],
+            "classification": "real-defect",
+            "reason": "'has_special_building' is in the spec package's removed list: a trigger removed in game 1.21.0.3. Its note: \"has_special_district has the same built-in documentation with district in place of building (keyword_docs_1.20.0.2.json, keyword_docs_1.21.0.3.json)\". The package names its replacement: has_special_district. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown trigger '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_rhodes_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [16],
+            "classification": "real-defect",
+            "reason": "'add_special_building' is in the spec package's removed list: a effect removed in game 1.21.0.3. Its note: \"1.21.0.3 registers add_special_district, whose built-in documentation is the text of add_special_district_slot with its own name (\"Add a special district slot to the province\"), not this name's; no replacement is claimed\". Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_rhodes_effects.txt",
+            "code": "names/unknown-trigger",
+            "lines": [12],
+            "classification": "real-defect",
+            "reason": "'has_special_building' is in the spec package's removed list: a trigger removed in game 1.21.0.3. Its note: \"has_special_district has the same built-in documentation with district in place of building (keyword_docs_1.20.0.2.json, keyword_docs_1.21.0.3.json)\". The package names its replacement: has_special_district. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown trigger '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_sardinia_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [170],
+            "classification": "real-defect",
+            "reason": "'add_special_building' is in the spec package's removed list: a effect removed in game 1.21.0.3. Its note: \"1.21.0.3 registers add_special_district, whose built-in documentation is the text of add_special_district_slot with its own name (\"Add a special district slot to the province\"), not this name's; no replacement is claimed\". Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_sardinia_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [458, 469, 481, 514],
+            "classification": "real-defect",
+            "reason": "'change_development_level' is in the spec package's removed list: a effect removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_sardinia_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [1470],
+            "classification": "real-defect",
+            "reason": "RICE's scripted effect calls 'upgrade_tradeport', which neither the mod nor game 1.21.0.3 defines (no file of the base game names it) and which is no effect of the game's documentation: the game reports \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_sardinia_effects.txt",
+            "code": "names/unknown-trigger",
+            "lines": [165],
+            "classification": "real-defect",
+            "reason": "'has_special_building' is in the spec package's removed list: a trigger removed in game 1.21.0.3. Its note: \"has_special_district has the same built-in documentation with district in place of building (keyword_docs_1.20.0.2.json, keyword_docs_1.21.0.3.json)\". The package names its replacement: has_special_district. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown trigger '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_siberia_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [116],
+            "classification": "real-defect",
+            "reason": "'add_special_building' is in the spec package's removed list: a effect removed in game 1.21.0.3. Its note: \"1.21.0.3 registers add_special_district, whose built-in documentation is the text of add_special_district_slot with its own name (\"Add a special district slot to the province\"), not this name's; no replacement is claimed\". Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_siberia_effects.txt",
+            "code": "names/unknown-trigger",
+            "lines": [112],
+            "classification": "real-defect",
+            "reason": "'has_special_building' is in the spec package's removed list: a trigger removed in game 1.21.0.3. Its note: \"has_special_district has the same built-in documentation with district in place of building (keyword_docs_1.20.0.2.json, keyword_docs_1.21.0.3.json)\". The package names its replacement: has_special_district. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown trigger '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_sicily_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [350, 362, 374, 386, 398],
+            "classification": "real-defect",
+            "reason": "'add_special_building' is in the spec package's removed list: a effect removed in game 1.21.0.3. Its note: \"1.21.0.3 registers add_special_district, whose built-in documentation is the text of add_special_district_slot with its own name (\"Add a special district slot to the province\"), not this name's; no replacement is claimed\". Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_sicily_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [2353, 3371, 5352, 5487],
+            "classification": "real-defect",
+            "reason": "'change_development_level' is in the spec package's removed list: a effect removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_sicily_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [5530],
+            "classification": "real-defect",
+            "reason": "'change_development_progress' is in the spec package's removed list: a effect removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_sicily_effects.txt",
+            "code": "names/unknown-trigger",
+            "lines": [346, 358, 370, 382, 394],
+            "classification": "real-defect",
+            "reason": "'has_special_building' is in the spec package's removed list: a trigger removed in game 1.21.0.3. Its note: \"has_special_district has the same built-in documentation with district in place of building (keyword_docs_1.20.0.2.json, keyword_docs_1.21.0.3.json)\". The package names its replacement: has_special_district. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown trigger '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_siwa_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [44, 54],
+            "classification": "real-defect",
+            "reason": "'add_special_building' is in the spec package's removed list: a effect removed in game 1.21.0.3. Its note: \"1.21.0.3 registers add_special_district, whose built-in documentation is the text of add_special_district_slot with its own name (\"Add a special district slot to the province\"), not this name's; no replacement is claimed\". Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_siwa_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [72, 82],
+            "classification": "real-defect",
+            "reason": "'add_special_building_slot' is in the spec package's removed list: a effect removed in game 1.21.0.3. Its note: \"add_special_district_slot has the same built-in documentation with district in place of building (keyword_docs_1.20.0.2.json, keyword_docs_1.21.0.3.json)\". The package names its replacement: add_special_district_slot. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_siwa_effects.txt",
+            "code": "names/unknown-trigger",
+            "lines": [40, 50, 68, 78],
+            "classification": "real-defect",
+            "reason": "'has_special_building' is in the spec package's removed list: a trigger removed in game 1.21.0.3. Its note: \"has_special_district has the same built-in documentation with district in place of building (keyword_docs_1.20.0.2.json, keyword_docs_1.21.0.3.json)\". The package names its replacement: has_special_district. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown trigger '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_socotra_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [178, 197, 207, 217, 227, 237, 562, 572],
+            "classification": "real-defect",
+            "reason": "'add_special_building' is in the spec package's removed list: a effect removed in game 1.21.0.3. Its note: \"1.21.0.3 registers add_special_district, whose built-in documentation is the text of add_special_district_slot with its own name (\"Add a special district slot to the province\"), not this name's; no replacement is claimed\". Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_socotra_effects.txt",
+            "code": "names/unknown-trigger",
+            "lines": [174, 193, 203, 213, 223, 233],
+            "classification": "real-defect",
+            "reason": "'has_special_building' is in the spec package's removed list: a trigger removed in game 1.21.0.3. Its note: \"has_special_district has the same built-in documentation with district in place of building (keyword_docs_1.20.0.2.json, keyword_docs_1.21.0.3.json)\". The package names its replacement: has_special_district. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown trigger '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_socotra_effects.txt",
+            "code": "scope/wrong-scope-for-effect",
+            "lines": [182],
+            "classification": "real-defect",
+            "reason": "'add_building' is run in a province scope; the game's own documentation of the effect (effects.log, 1.21.0.3, the package's scope_validity) gives it the supported scope district only: game 1.21.0.3 moved buildings from provinces to districts, and reports the catalogue's \"wrong_scope_for_effect_X_expected_X\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_socotra_effects.txt",
+            "code": "scope/wrong-scope-for-effect",
+            "lines": [1031, 1037, 1043, 1049],
+            "classification": "real-defect",
+            "reason": "'remove_building' is run in a province scope; the game's own documentation of the effect (effects.log, 1.21.0.3, the package's scope_validity) gives it the supported scope district only: game 1.21.0.3 moved buildings from provinces to districts, and reports the catalogue's \"wrong_scope_for_effect_X_expected_X\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_south_ethiopia_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [14],
+            "classification": "real-defect",
+            "reason": "'add_special_building' is in the spec package's removed list: a effect removed in game 1.21.0.3. Its note: \"1.21.0.3 registers add_special_district, whose built-in documentation is the text of add_special_district_slot with its own name (\"Add a special district slot to the province\"), not this name's; no replacement is claimed\". Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_south_ethiopia_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [1144],
+            "classification": "real-defect",
+            "reason": "'change_development_progress' is in the spec package's removed list: a effect removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_south_ethiopia_effects.txt",
+            "code": "names/unknown-trigger",
+            "lines": [10],
+            "classification": "real-defect",
+            "reason": "'has_special_building' is in the spec package's removed list: a trigger removed in game 1.21.0.3. Its note: \"has_special_district has the same built-in documentation with district in place of building (keyword_docs_1.20.0.2.json, keyword_docs_1.21.0.3.json)\". The package names its replacement: has_special_district. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown trigger '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_sri_lanka_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [325, 1279],
+            "classification": "real-defect",
+            "reason": "'add_special_building' is in the spec package's removed list: a effect removed in game 1.21.0.3. Its note: \"1.21.0.3 registers add_special_district, whose built-in documentation is the text of add_special_district_slot with its own name (\"Add a special district slot to the province\"), not this name's; no replacement is claimed\". Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_sri_lanka_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [1278, 3292],
+            "classification": "real-defect",
+            "reason": "'add_special_building_slot' is in the spec package's removed list: a effect removed in game 1.21.0.3. Its note: \"add_special_district_slot has the same built-in documentation with district in place of building (keyword_docs_1.20.0.2.json, keyword_docs_1.21.0.3.json)\". The package names its replacement: add_special_district_slot. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_sri_lanka_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [3267],
+            "classification": "real-defect",
+            "reason": "'change_development_level' is in the spec package's removed list: a effect removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_sri_lanka_effects.txt",
+            "code": "names/unknown-trigger",
+            "lines": [1274, 3288],
+            "classification": "real-defect",
+            "reason": "'has_special_building' is in the spec package's removed list: a trigger removed in game 1.21.0.3. Its note: \"has_special_district has the same built-in documentation with district in place of building (keyword_docs_1.20.0.2.json, keyword_docs_1.21.0.3.json)\". The package names its replacement: has_special_district. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown trigger '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_sri_lanka_effects.txt",
+            "code": "scope/wrong-scope-for-effect",
+            "lines": [324],
+            "classification": "real-defect",
+            "reason": "'remove_building' is run in a province scope; the game's own documentation of the effect (effects.log, 1.21.0.3, the package's scope_validity) gives it the supported scope district only: game 1.21.0.3 moved buildings from provinces to districts, and reports the catalogue's \"wrong_scope_for_effect_X_expected_X\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_sri_lanka_effects.txt",
+            "code": "scope/wrong-scope-for-effect",
+            "lines": [3293],
+            "classification": "real-defect",
+            "reason": "'add_building' is run in a province scope; the game's own documentation of the effect (effects.log, 1.21.0.3, the package's scope_validity) gives it the supported scope district only: game 1.21.0.3 moved buildings from provinces to districts, and reports the catalogue's \"wrong_scope_for_effect_X_expected_X\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_sus_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [94, 106, 117, 127, 137, 152, 164, 178, 414],
+            "classification": "real-defect",
+            "reason": "'add_special_building' is in the spec package's removed list: a effect removed in game 1.21.0.3. Its note: \"1.21.0.3 registers add_special_district, whose built-in documentation is the text of add_special_district_slot with its own name (\"Add a special district slot to the province\"), not this name's; no replacement is claimed\". Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_sus_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [189],
+            "classification": "real-defect",
+            "reason": "'add_special_building_slot' is in the spec package's removed list: a effect removed in game 1.21.0.3. Its note: \"add_special_district_slot has the same built-in documentation with district in place of building (keyword_docs_1.20.0.2.json, keyword_docs_1.21.0.3.json)\". The package names its replacement: add_special_district_slot. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_sus_effects.txt",
+            "code": "names/unknown-trigger",
+            "lines": [90, 102, 113, 123, 133, 148, 160, 174, 185],
+            "classification": "real-defect",
+            "reason": "'has_special_building' is in the spec package's removed list: a trigger removed in game 1.21.0.3. Its note: \"has_special_district has the same built-in documentation with district in place of building (keyword_docs_1.20.0.2.json, keyword_docs_1.21.0.3.json)\". The package names its replacement: has_special_district. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown trigger '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_tarim_basin_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [17, 28, 49, 61],
+            "classification": "real-defect",
+            "reason": "'add_special_building' is in the spec package's removed list: a effect removed in game 1.21.0.3. Its note: \"1.21.0.3 registers add_special_district, whose built-in documentation is the text of add_special_district_slot with its own name (\"Add a special district slot to the province\"), not this name's; no replacement is claimed\". Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_tarim_basin_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [66],
+            "classification": "real-defect",
+            "reason": "'add_special_building_slot' is in the spec package's removed list: a effect removed in game 1.21.0.3. Its note: \"add_special_district_slot has the same built-in documentation with district in place of building (keyword_docs_1.20.0.2.json, keyword_docs_1.21.0.3.json)\". The package names its replacement: add_special_district_slot. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_tarim_basin_effects.txt",
+            "code": "names/unknown-trigger",
+            "lines": [13, 24, 45, 57],
+            "classification": "real-defect",
+            "reason": "'has_special_building' is in the spec package's removed list: a trigger removed in game 1.21.0.3. Its note: \"has_special_district has the same built-in documentation with district in place of building (keyword_docs_1.20.0.2.json, keyword_docs_1.21.0.3.json)\". The package names its replacement: has_special_district. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown trigger '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_upper_egypt_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [117, 129, 1275, 1293],
+            "classification": "real-defect",
+            "reason": "'add_special_building' is in the spec package's removed list: a effect removed in game 1.21.0.3. Its note: \"1.21.0.3 registers add_special_district, whose built-in documentation is the text of add_special_district_slot with its own name (\"Add a special district slot to the province\"), not this name's; no replacement is claimed\". Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_upper_egypt_effects.txt",
+            "code": "names/unknown-trigger",
+            "lines": [113, 125],
+            "classification": "real-defect",
+            "reason": "'has_special_building' is in the spec package's removed list: a trigger removed in game 1.21.0.3. Its note: \"has_special_district has the same built-in documentation with district in place of building (keyword_docs_1.20.0.2.json, keyword_docs_1.21.0.3.json)\". The package names its replacement: has_special_district. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown trigger '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_upper_egypt_effects.txt",
+            "code": "scope/wrong-scope-for-effect",
+            "lines": [1261, 1271, 1289],
+            "classification": "real-defect",
+            "reason": "'remove_building' is run in a province scope; the game's own documentation of the effect (effects.log, 1.21.0.3, the package's scope_validity) gives it the supported scope district only: game 1.21.0.3 moved buildings from provinces to districts, and reports the catalogue's \"wrong_scope_for_effect_X_expected_X\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_yazd_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [208],
+            "classification": "real-defect",
+            "reason": "'add_special_building' is in the spec package's removed list: a effect removed in game 1.21.0.3. Its note: \"1.21.0.3 registers add_special_district, whose built-in documentation is the text of add_special_district_slot with its own name (\"Add a special district slot to the province\"), not this name's; no replacement is claimed\". Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_yazd_effects.txt",
+            "code": "names/unknown-trigger",
+            "lines": [204],
+            "classification": "real-defect",
+            "reason": "'has_special_building' is in the spec package's removed list: a trigger removed in game 1.21.0.3. Its note: \"has_special_district has the same built-in documentation with district in place of building (keyword_docs_1.20.0.2.json, keyword_docs_1.21.0.3.json)\". The package names its replacement: has_special_district. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown trigger '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_yorkshire_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [24, 322, 332],
+            "classification": "real-defect",
+            "reason": "'add_special_building' is in the spec package's removed list: a effect removed in game 1.21.0.3. Its note: \"1.21.0.3 registers add_special_district, whose built-in documentation is the text of add_special_district_slot with its own name (\"Add a special district slot to the province\"), not this name's; no replacement is claimed\". Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_yorkshire_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [35, 38],
+            "classification": "real-defect",
+            "reason": "'add_special_building_slot' is in the spec package's removed list: a effect removed in game 1.21.0.3. Its note: \"add_special_district_slot has the same built-in documentation with district in place of building (keyword_docs_1.20.0.2.json, keyword_docs_1.21.0.3.json)\". The package names its replacement: add_special_district_slot. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_yorkshire_effects.txt",
+            "code": "names/unknown-trigger",
+            "lines": [20, 318, 328],
+            "classification": "real-defect",
+            "reason": "'has_special_building' is in the spec package's removed list: a trigger removed in game 1.21.0.3. Its note: \"has_special_district has the same built-in documentation with district in place of building (keyword_docs_1.20.0.2.json, keyword_docs_1.21.0.3.json)\". The package names its replacement: has_special_district. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown trigger '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_zhangzhung_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [668, 690, 702, 724, 735, 747, 769],
+            "classification": "real-defect",
+            "reason": "'add_special_building' is in the spec package's removed list: a effect removed in game 1.21.0.3. Its note: \"1.21.0.3 registers add_special_district, whose built-in documentation is the text of add_special_district_slot with its own name (\"Add a special district slot to the province\"), not this name's; no replacement is claimed\". Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_zhangzhung_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [679, 713, 758],
+            "classification": "real-defect",
+            "reason": "'add_special_building_slot' is in the spec package's removed list: a effect removed in game 1.21.0.3. Its note: \"add_special_district_slot has the same built-in documentation with district in place of building (keyword_docs_1.20.0.2.json, keyword_docs_1.21.0.3.json)\". The package names its replacement: add_special_district_slot. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/scripted_effects/RICE_zhangzhung_effects.txt",
+            "code": "names/unknown-trigger",
+            "lines": [664, 675, 686, 698, 709, 720, 731, 743, 754, 765],
+            "classification": "real-defect",
+            "reason": "'has_special_building' is in the spec package's removed list: a trigger removed in game 1.21.0.3. Its note: \"has_special_district has the same built-in documentation with district in place of building (keyword_docs_1.20.0.2.json, keyword_docs_1.21.0.3.json)\". The package names its replacement: has_special_district. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown trigger '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/situation/situations/RICE_nile_river_situation.txt",
+            "code": "names/unknown-modifier",
+            "lines": [387, 718, 1051, 1384, 1720, 2054],
+            "classification": "real-defect",
+            "reason": "'tax_mult' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/situation/situations/RICE_nile_river_situation.txt",
+            "code": "names/unknown-modifier",
+            "lines": [388, 719, 1052],
+            "classification": "real-defect",
+            "reason": "'development_growth' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/situation/situations/RICE_nile_river_situation.txt",
+            "code": "names/unknown-modifier",
+            "lines": [1385, 1721, 2055],
+            "classification": "real-defect",
+            "reason": "'development_decline' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/situation/situations/RICE_nubia_baqt_situation.txt",
+            "code": "names/unknown-modifier",
+            "lines": [202, 351],
+            "classification": "real-defect",
+            "reason": "'development_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/struggle/struggles/RICE_normandy_struggles.txt",
+            "code": "names/unknown-modifier",
+            "lines": [221, 236, 242],
+            "classification": "real-defect",
+            "reason": "'monthly_county_control_growth_at_war_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/struggle/struggles/RICE_normandy_struggles.txt",
+            "code": "names/unknown-modifier",
+            "lines": [319, 333, 343],
+            "classification": "real-defect",
+            "reason": "'tax_mult' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/struggle/struggles/RICE_normandy_struggles.txt",
+            "code": "names/unknown-modifier",
+            "lines": [321, 335, 345, 563, 570, 577],
+            "classification": "real-defect",
+            "reason": "'development_growth' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/struggle/struggles/RICE_normandy_struggles.txt",
+            "code": "names/unknown-modifier",
+            "lines": [322, 336, 346, 564, 571, 578],
+            "classification": "real-defect",
+            "reason": "'development_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/struggle/struggles/RICE_north_atlantic_struggles.txt",
+            "code": "names/unknown-modifier",
+            "lines": [256, 263, 270, 481, 488, 495, 693, 700, 707, 902, 909, 916],
+            "classification": "real-defect",
+            "reason": "'tax_mult' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/struggle/struggles/RICE_north_atlantic_struggles.txt",
+            "code": "names/unknown-modifier",
+            "lines": [257, 264, 482, 489, 496, 694, 701, 708, 903, 910, 917],
+            "classification": "real-defect",
+            "reason": "'development_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/struggle/struggles/RICE_sicily_struggle.txt",
+            "code": "names/unknown-modifier",
+            "lines": [305],
+            "classification": "real-defect",
+            "reason": "'development_growth' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/struggle/struggles/RICE_sicily_struggle.txt",
+            "code": "names/unknown-modifier",
+            "lines": [306],
+            "classification": "real-defect",
+            "reason": "'development_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/struggle/struggles/RICE_sicily_struggle.txt",
+            "code": "names/unknown-modifier",
+            "lines": [308],
+            "classification": "real-defect",
+            "reason": "'monthly_county_control_decline_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/struggle/struggles/RICE_sicily_struggle.txt",
+            "code": "names/unknown-modifier",
+            "lines": [545],
+            "classification": "real-defect",
+            "reason": "'tax_mult' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/struggle/struggles/RICE_sicily_struggle.txt",
+            "code": "names/unknown-modifier",
+            "lines": [546],
+            "classification": "real-defect",
+            "reason": "'development_decline' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/struggle/struggles/RICE_sicily_struggle.txt",
+            "code": "names/unknown-modifier",
+            "lines": [547],
+            "classification": "real-defect",
+            "reason": "'development_decline_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/struggle/struggles/RICE_sri_lanka_struggle.txt",
+            "code": "names/unknown-modifier",
+            "lines": [241, 459, 671],
+            "classification": "real-defect",
+            "reason": "'development_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/struggle/struggles/RICE_sri_lanka_struggle.txt",
+            "code": "names/unknown-modifier",
+            "lines": [242, 460, 672],
+            "classification": "real-defect",
+            "reason": "'development_growth' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/struggle/struggles/RICE_sri_lanka_struggle.txt",
+            "code": "names/unknown-modifier",
+            "lines": [243, 461],
+            "classification": "real-defect",
+            "reason": "'monthly_county_control_decline_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/struggle/struggles/RICE_sri_lanka_struggle.txt",
+            "code": "names/unknown-modifier",
+            "lines": [673],
+            "classification": "real-defect",
+            "reason": "'monthly_county_control_growth_factor' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "common/struggle/struggles/RICE_sri_lanka_struggle.txt",
+            "code": "names/unknown-modifier",
+            "lines": [675],
+            "classification": "real-defect",
+            "reason": "'tax_mult' is in the spec package's removed list: a modifier removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown modifier type '{}' at {}\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "events/RICE_bozo_events.txt",
+            "code": "names/unknown-effect",
+            "lines": [652, 655, 658, 661, 698, 701, 704, 707, 744, 747, 750, 753],
+            "classification": "real-defect",
+            "reason": "'change_development_progress_with_overflow' is in the spec package's removed list: a effect removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "events/RICE_harran_events.txt",
+            "code": "scope/wrong-scope-for-effect",
+            "lines": [1377],
+            "classification": "real-defect",
+            "reason": "'remove_building' is run in a province scope; the game's own documentation of the effect (effects.log, 1.21.0.3, the package's scope_validity) gives it the supported scope district only: game 1.21.0.3 moved buildings from provinces to districts, and reports the catalogue's \"wrong_scope_for_effect_X_expected_X\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "events/RICE_khwarezm_events.txt",
+            "code": "names/unknown-effect",
+            "lines": [127, 162],
+            "classification": "real-defect",
+            "reason": "'add_special_building' is in the spec package's removed list: a effect removed in game 1.21.0.3. Its note: \"1.21.0.3 registers add_special_district, whose built-in documentation is the text of add_special_district_slot with its own name (\"Add a special district slot to the province\"), not this name's; no replacement is claimed\". Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "events/RICE_khwarezm_events.txt",
+            "code": "scope/wrong-scope-for-effect",
+            "lines": [40, 72, 124, 159],
+            "classification": "real-defect",
+            "reason": "'remove_building' is run in a province scope; the game's own documentation of the effect (effects.log, 1.21.0.3, the package's scope_validity) gives it the supported scope district only: game 1.21.0.3 moved buildings from provinces to districts, and reports the catalogue's \"wrong_scope_for_effect_X_expected_X\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "events/RICE_manichean_events.txt",
+            "code": "names/unknown-effect",
+            "lines": [944],
+            "classification": "real-defect",
+            "reason": "'change_development_level' is in the spec package's removed list: a effect removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "events/RICE_normandy_events.txt",
+            "code": "names/unknown-effect",
+            "lines": [3335, 5337],
+            "classification": "real-defect",
+            "reason": "'change_development_progress_with_overflow' is in the spec package's removed list: a effect removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "events/RICE_normandy_events.txt",
+            "code": "names/unknown-effect",
+            "lines": [9634],
+            "classification": "real-defect",
+            "reason": "'change_development_level' is in the spec package's removed list: a effect removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "events/RICE_north_atlantic_events.txt",
+            "code": "names/unknown-effect",
+            "lines": [20100],
+            "classification": "real-defect",
+            "reason": "'change_development_level' is in the spec package's removed list: a effect removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "events/RICE_nubia_events.txt",
+            "code": "names/unknown-effect",
+            "lines": [2863, 2975, 4552, 4738],
+            "classification": "real-defect",
+            "reason": "'change_development_level' is in the spec package's removed list: a effect removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "events/RICE_oceania_events.txt",
+            "code": "names/unknown-effect",
+            "lines": [2202],
+            "classification": "real-defect",
+            "reason": "'change_development_progress_with_overflow' is in the spec package's removed list: a effect removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "events/RICE_pamir_events.txt",
+            "code": "names/unknown-effect",
+            "lines": [833],
+            "classification": "real-defect",
+            "reason": "'change_development_level' is in the spec package's removed list: a effect removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "events/RICE_red_sea_events.txt",
+            "code": "names/unknown-effect",
+            "lines": [770, 2110],
+            "classification": "real-defect",
+            "reason": "'change_development_level' is in the spec package's removed list: a effect removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "events/RICE_sicily_events.txt",
+            "code": "names/unknown-effect",
+            "lines": [2325],
+            "classification": "real-defect",
+            "reason": "'change_development_progress' is in the spec package's removed list: a effect removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "events/RICE_sicily_events.txt",
+            "code": "names/unknown-effect",
+            "lines": [2956],
+            "classification": "real-defect",
+            "reason": "'change_development_level' is in the spec package's removed list: a effect removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "events/RICE_socotra_events.txt",
+            "code": "names/unknown-effect",
+            "lines": [6344],
+            "classification": "real-defect",
+            "reason": "'change_development_level' is in the spec package's removed list: a effect removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "events/RICE_sri_lanka_events.txt",
+            "code": "names/unknown-effect",
+            "lines": [3199, 3286, 3373, 3460, 3548],
+            "classification": "real-defect",
+            "reason": "'change_development_progress_with_overflow' is in the spec package's removed list: a effect removed in game 1.21.0.3. Game 1.21.0.3 does not have it and reports the catalogue's \"Unknown effect '%s'\". The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "history/titles/RICE_admin_titles.txt",
+            "code": "names/unknown-effect",
+            "lines": [21],
+            "classification": "real-defect",
+            "reason": "history/titles calls 'destroy_landless_title_no_tgp_dlc_effect', which neither the mod nor game 1.21.0.3 defines (no file of the base game names it) and which is no effect of the game's documentation: the game reports \"Unknown effect '%s'\". Release 2.3.0 classified the same error a real defect (the 1.20.0.2 base game no longer defined it). The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "history/titles/RICE_laamp_titles_1066.txt",
+            "code": "names/unknown-effect",
+            "lines": [
+                16, 38, 60, 82, 104, 126, 148, 170, 192, 214, 236, 258, 280, 302, 324, 346, 368,
+                391, 414, 437, 460, 483, 506, 529, 552, 576, 606, 628, 650, 674
+            ],
+            "classification": "real-defect",
+            "reason": "history/titles calls 'destroy_landless_title_no_dlc_effect', which neither the mod nor game 1.21.0.3 defines (no file of the base game names it) and which is no effect of the game's documentation: the game reports \"Unknown effect '%s'\". Release 2.3.0 classified the same error a real defect (the 1.20.0.2 base game no longer defined it). The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "history/titles/RICE_laamp_titles_1178.txt",
+            "code": "names/unknown-effect",
+            "lines": [
+                16, 38, 60, 82, 104, 126, 148, 170, 192, 214, 237, 259, 282, 305, 331, 353, 374,
+                394, 414, 434, 455, 475, 501, 523, 545, 568
+            ],
+            "classification": "real-defect",
+            "reason": "history/titles calls 'destroy_landless_title_no_dlc_effect', which neither the mod nor game 1.21.0.3 defines (no file of the base game names it) and which is no effect of the game's documentation: the game reports \"Unknown effect '%s'\". Release 2.3.0 classified the same error a real defect (the 1.20.0.2 base game no longer defined it). The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "rice",
+            "file": "history/titles/RICE_laamp_titles_867.txt",
+            "code": "names/unknown-effect",
+            "lines": [
+                12, 30, 49, 67, 85, 103, 121, 139, 157, 178, 196, 214, 232, 250, 268, 286, 304, 322,
+                340, 358, 376, 394, 412, 430, 448, 467, 492, 510, 528, 546, 564
+            ],
+            "classification": "real-defect",
+            "reason": "history/titles calls 'destroy_landless_title_no_dlc_effect', which neither the mod nor game 1.21.0.3 defines (no file of the base game names it) and which is no effect of the game's documentation: the game reports \"Unknown effect '%s'\". Release 2.3.0 classified the same error a real defect (the 1.20.0.2 base game no longer defined it). The mod's descriptor declares supported_version \"1.19.*\"."
+        },
+        {
+            "slug": "viet-events",
+            "file": "common/scripted_effects/VIET_misc_effects.txt",
+            "code": "names/unknown-effect",
+            "lines": [307],
+            "classification": "real-defect",
+            "reason": "VIET_ek_character_setup_effect calls 'ek_character_setup_effect', which neither the mod nor game 1.21.0.3 defines: an Elder Kings compatibility hook, guarded at run time by 'exists = culture:heartlander', but the game reads the scripted effect, and the unknown name in it, whatever the guard. Release 2.3.0 classified the same error a real defect. The mod's descriptor declares supported_version \"1.21.*\"."
+        }
+    ]
+}

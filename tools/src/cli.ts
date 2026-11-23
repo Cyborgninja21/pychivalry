@@ -14,6 +14,8 @@
  *   wiki check|build|publish       the repository wiki, generated from docs/ (task wiki:*)
  *   advice proof                   the advice checks of item 4.7 on the base game: per row, the
  *                                  units it applies to and the findings it raises there
+ *   docs checks                    write the user guide's check reference, docs/guide/checks.md,
+ *                                  from the core's check inventory (task docs:checks)
  */
 
 import { mkdtempSync, rmSync } from 'node:fs';
@@ -21,6 +23,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { openSpec } from '@pychivalry/core';
 import { adviceProof, proofText } from './advice-proof.js';
+import { writeCheckReference } from './check-reference.js';
 import { prepareLegacySpec, runResultBaseline, runSpeedBaseline } from './baseline.js';
 import { requireGameDir } from './game.js';
 import { checkRecords } from './records-check.js';
@@ -37,7 +40,8 @@ const USAGE = `usage: pychivalry-tools <command>
   corpus manifest
   baseline spec|speed|results
   wiki check|build|publish
-  advice proof`;
+  advice proof
+  docs checks`;
 
 function run(args: readonly string[]): number {
     const root = repoRoot();
@@ -155,6 +159,11 @@ function run(args: readonly string[]): number {
         const proof = adviceProof(openSpec(path.join(root, 'spec')), gameDir);
         process.stdout.write(proofText(proof));
         return proof.rows.every((r) => r.verdict === 'holds') ? EXIT.ok : EXIT.failed;
+    }
+    if (group === 'docs' && command === 'checks') {
+        const file = writeCheckReference(root);
+        process.stdout.write(`docs checks: ${path.relative(root, file)} written\n`);
+        return EXIT.ok;
     }
     process.stderr.write(`${USAGE}\n`);
     return EXIT.usage;

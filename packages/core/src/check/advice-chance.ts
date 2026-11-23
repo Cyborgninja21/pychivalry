@@ -6,7 +6,7 @@
 import type { Pair, Scalar } from '../syntax/tree.js';
 import type { AdviceInput } from './advice.js';
 import { numberOf } from './advice.js';
-import { childPairs } from './advice-roles.js';
+import { childPairs } from './keyword-roles.js';
 import { effectGroupsOf } from './advice-story.js';
 
 export interface Chance {

@@ -11,7 +11,7 @@
 
 import type { AdviceCheck, AdviceInput, AdviceResult } from './advice.js';
 import { either, NOTHING } from './advice.js';
-import { childPairs } from './advice-roles.js';
+import { childPairs } from './keyword-roles.js';
 import { eventModelOf, eventRow, eventsOf } from './advice-events.js';
 import type { CheckFinding } from './finding.js';
 import { finding } from './report.js';

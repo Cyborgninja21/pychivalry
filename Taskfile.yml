@@ -153,6 +153,14 @@ tasks:
     cmds:
       - node tools/dist/cli.js baseline results
 
+  # ─── Documents written from the code ───
+
+  docs:checks:
+    desc: "Write the user guide's check reference, docs/guide/checks.md, from the core's check inventory (a test holds the committed page to it)"
+    deps: [build]
+    cmds:
+      - node tools/dist/cli.js docs checks
+
   # ─── The repository wiki, generated from docs/ (docs/wiki/README.md) ───
 
   wiki:build:

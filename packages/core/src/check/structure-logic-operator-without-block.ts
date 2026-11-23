@@ -9,7 +9,7 @@
 
 import type { AdviceCheck, AdviceInput, AdviceResult } from './advice.js';
 import { NOTHING, walkPairs } from './advice.js';
-import { keywordRolesOf } from './advice-roles.js';
+import { keywordRolesOf } from './keyword-roles.js';
 import type { CheckFinding } from './finding.js';
 import { finding } from './report.js';
 import { blockOf } from '../syntax/tree.js';

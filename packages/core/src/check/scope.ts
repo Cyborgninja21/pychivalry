@@ -221,7 +221,9 @@ function infoScopeWords(schema: Readonly<Record<string, DirectorySchema>>): Set<
         for (const field of Object.values(fields ?? {})) {
             // A note about no named scope has a null `scope`: it names no head.
             for (const note of field.info_scope ?? []) {
-                words.add(note.scope);
+                if (note.scope !== null) {
+                    words.add(note.scope);
+                }
             }
             collect(field.fields);
         }

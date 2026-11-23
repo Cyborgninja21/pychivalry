@@ -11,8 +11,8 @@ import { parse } from '../syntax/parser.js';
 import { blockOf, type Block } from '../syntax/tree.js';
 import { ADVICE_CHECKS, runAdvice } from './advice-checks.js';
 import { descriptionRow, eventModelOf, eventRow } from './advice-events.js';
-import { keywordRolesOf, parseTerm, termsHold } from './advice-roles.js';
-import { savedScopeLink } from './advice-scopes.js';
+import { keywordRolesOf, parseTerm, termsHold } from './keyword-roles.js';
+import { savedScopeLinks } from './advice-scopes.js';
 import { ADVICE_KINDS } from './advice-kinds.js';
 import type { CheckCode } from './finding.js';
 import { checkText, specContext } from './testing.js';
@@ -110,7 +110,8 @@ test("part D4's events, as the checks read them from the committed package", () 
 });
 
 test('the link that reads a saved scope comes from the evidence of the table save_keys', () => {
-    assert.equal(savedScopeLink(spec), 'scope');
+    // The folder table's, as the index and scope/undefined-event-target read it.
+    assert.deepEqual([...savedScopeLinks(specContext().folders)], ['scope']);
     assert.ok(keywordRolesOf(spec).rows.length > 0);
 });
 

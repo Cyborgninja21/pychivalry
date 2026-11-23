@@ -254,6 +254,139 @@ function findingCountProblems(results: Record<string, unknown>, where: string): 
     return problems;
 }
 
+/**
+ * A check suite's figures that disagree with each other: the totals by severity and by code,
+ * the error and warning counts and their lists, the dropped findings and their codes, `passed`
+ * and the failures; and a passing record holding a finding that is unclassified or a
+ * pychivalry fault. `where` is the JSON pointer of the results checked (one mod's, for the
+ * real-mod suite).
+ */
+function checkFindingProblems(results: Record<string, unknown>, where: string): string[] {
+    const problems: string[] = [];
+    const bySeverity = isObject(results['by_severity']) ? results['by_severity'] : {};
+    const byCode = Array.isArray(results['by_code']) ? results['by_code'].filter(isObject) : [];
+    for (const severity of SEVERITY_KEYS) {
+        const sum = byCode
+            .filter((c) => c['severity'] === severity)
+            .reduce((n, c) => n + (typeof c['count'] === 'number' ? c['count'] : 0), 0);
+        if (bySeverity[severity] !== sum) {
+            problems.push(
+                `${where}/by_severity/${severity}: ${JSON.stringify(bySeverity[severity])} is not the total of by_code (${String(sum)})`,
+            );
+        }
+    }
+    for (const [count, list, severity] of [
+        ['errors', 'error_list', 'error'],
+        ['warnings', 'warning_list', 'warning'],
+    ] as const) {
+        const listed = Array.isArray(results[list]) ? results[list].length : 0;
+        if (results[count] !== listed || bySeverity[severity] !== listed) {
+            problems.push(
+                `${where}/${list}: ${String(listed)} listed, but ${count} is ${JSON.stringify(results[count])} and by_severity counts ${JSON.stringify(bySeverity[severity])}`,
+            );
+        }
+    }
+    const capped = isObject(results['capped']) ? results['capped'] : {};
+    const droppedByCode = Array.isArray(capped['dropped_by_code'])
+        ? capped['dropped_by_code'].filter(isObject)
+        : [];
+    const dropped = droppedByCode.reduce(
+        (n, c) => n + (typeof c['count'] === 'number' ? c['count'] : 0),
+        0,
+    );
+    if (capped['dropped'] !== dropped) {
+        problems.push(
+            `${where}/capped/dropped: ${JSON.stringify(capped['dropped'])} is not the total of dropped_by_code (${String(dropped)})`,
+        );
+    }
+    return problems;
+}
+
+/** Whether a classified finding may stand in a passing record. */
+function passes(finding: Record<string, unknown>): boolean {
+    return (
+        finding['classification'] !== 'unclassified' &&
+        finding['classification'] !== 'pychivalry-fault'
+    );
+}
+
+/** A base-game check record's figures that disagree with each other (`checkFindingProblems`). */
+function checkSuiteProblems(results: unknown): string[] {
+    if (!isObject(results)) {
+        return [];
+    }
+    const problems = checkFindingProblems(results, '/results');
+    const failures = Array.isArray(results['failures']) ? results['failures'] : [];
+    if (results['passed'] !== (failures.length === 0)) {
+        problems.push(
+            `/results/passed: ${JSON.stringify(results['passed'])} with ${String(failures.length)} failures`,
+        );
+    }
+    const files = Array.isArray(results['files_by_layer'])
+        ? results['files_by_layer'].filter(isObject)
+        : [];
+    const sum = files.reduce((n, f) => n + (typeof f['files'] === 'number' ? f['files'] : 0), 0);
+    if (results['files'] !== sum) {
+        problems.push(
+            `/results/files: ${JSON.stringify(results['files'])} is not the layers' total (${String(sum)})`,
+        );
+    }
+    if (results['passed'] === true) {
+        for (const list of ['error_list', 'warning_list'] as const) {
+            const listed = Array.isArray(results[list]) ? results[list].filter(isObject) : [];
+            listed.forEach((f, i) => {
+                if (!passes(f)) {
+                    problems.push(
+                        `/results/${list}/${String(i)}: a passing record holds a finding classified ${JSON.stringify(f['classification'])}`,
+                    );
+                }
+            });
+        }
+    }
+    return problems;
+}
+
+/** A real-mod check record's figures that disagree with each other or with its corpus. */
+function modsSuiteProblems(record: Record<string, unknown>): string[] {
+    const results = record['results'];
+    if (!isObject(results)) {
+        return [];
+    }
+    const problems: string[] = [];
+    const failures = Array.isArray(results['failures']) ? results['failures'] : [];
+    if (results['passed'] !== (failures.length === 0)) {
+        problems.push(
+            `/results/passed: ${JSON.stringify(results['passed'])} with ${String(failures.length)} failures`,
+        );
+    }
+    const mods = Array.isArray(results['mods']) ? results['mods'].filter(isObject) : [];
+    mods.forEach((mod, i) => {
+        const where = `/results/mods/${String(i)}`;
+        problems.push(...checkFindingProblems(mod, where));
+        if (results['passed'] === true) {
+            const listed = Array.isArray(mod['error_list'])
+                ? mod['error_list'].filter(isObject)
+                : [];
+            listed.forEach((f, n) => {
+                if (!passes(f)) {
+                    problems.push(
+                        `${where}/error_list/${String(n)}: a passing record holds an error classified ${JSON.stringify(f['classification'])}`,
+                    );
+                }
+            });
+        }
+    });
+    const corpus = record['corpus'];
+    const slugs = isObject(corpus) && Array.isArray(corpus['slugs']) ? corpus['slugs'] : [];
+    const named = mods.map((m) => m['slug']);
+    if (JSON.stringify(named) !== JSON.stringify(slugs)) {
+        problems.push(
+            `/results/mods: the mods ${JSON.stringify(named)} are not the corpus slugs ${JSON.stringify(slugs)}`,
+        );
+    }
+    return problems;
+}
+
 /** A results baseline's figures that disagree with each other or with the corpus it names. */
 function baselineResultsProblems(record: Record<string, unknown>): string[] {
     const results = record['results'];
@@ -375,6 +508,12 @@ export function checkRecord(
     }
     if (record['suite'] === 'baseline:results') {
         problems.push(...baselineResultsProblems(record));
+    }
+    if (record['suite'] === 'game:check') {
+        problems.push(...checkSuiteProblems(record['results']));
+    }
+    if (record['suite'] === 'game:mods') {
+        problems.push(...modsSuiteProblems(record));
     }
     return problems;
 }

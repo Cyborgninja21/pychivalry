@@ -21,6 +21,15 @@ import { CHECK_KINDS, evidenceOf, type CheckCode } from './finding.js';
 /** A code of this build: a parse finding's or an engine check's. */
 export type Code = FindingId | CheckCode;
 
+/**
+ * The evidence of a row: a finding's own kinds, or, for a check whose message depends on the
+ * place (`evidenceFrom`), where each finding takes its game message from: the field's own
+ * message, which the spec package gives with each field it marks required (`required-field`),
+ * or the catalogue message the rules table's row for the clash names (`rules-row`).
+ */
+export type InventoryEvidence =
+    Evidence | { readonly kind: 'per-place'; readonly from: 'required-field' | 'rules-row' };
+
 /** One row of the check inventory. */
 export interface InventoryRow {
     readonly code: Code;
@@ -31,9 +40,10 @@ export interface InventoryRow {
     readonly finds: string;
     /**
      * The evidence that the game raises it: its catalogue entry, with the game's own text
-     * when the catalogue is given; the game's output it rests on; or none, for advice.
+     * when the catalogue is given; the game's output it rests on; the place's own message
+     * (`per-place`); or none, for advice.
      */
-    readonly evidence: Evidence;
+    readonly evidence: InventoryEvidence;
     /** The message text, `%s` (or the game's own placeholders) for each value; null when the catalogue entry's text was not given. */
     readonly message: string | null;
 }
@@ -68,7 +78,10 @@ export function inventoryRows(catalogue?: MessageCatalogue): InventoryRow[] {
     }
     for (const code of Object.keys(CHECK_KINDS) as CheckCode[]) {
         const kind = CHECK_KINDS[code];
-        const evidence = evidenceOf(code, catalogue);
+        const evidence: InventoryEvidence =
+            kind.evidenceFrom === undefined
+                ? evidenceOf(code, catalogue)
+                : { kind: 'per-place', from: kind.evidenceFrom };
         rows.push({
             code,
             family: familyOf(code),

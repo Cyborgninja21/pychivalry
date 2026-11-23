@@ -5,10 +5,10 @@
  * `records/game/<suite>.json`.
  *
  * `game:parse` is the base-game parse suite of build step 2 (parse-suite.ts); `game:index` the
- * index suite of build step 3 (index-suite.ts). The others are still the stubs of build step 1:
- * each establishes the run's context (game build and manifest, the committed spec, the pinned
- * corpus) and writes a valid record whose results are empty. Check and mods are filled in at
- * step 4, bench at step 13.
+ * index suite of build step 3 (index-suite.ts); `game:check` and `game:mods` the check suites
+ * of item 4.10 (check-suite.ts). `game:bench` is still the stub of build step 1: it
+ * establishes the run's context (game build and manifest, the committed spec, the pinned
+ * corpus) and writes a valid record whose results are empty; it is filled in at step 13.
  */
 
 import { existsSync, readFileSync } from 'node:fs';
@@ -25,6 +25,7 @@ import {
     verifyCorpus,
 } from './corpus.js';
 import { catalogueFromSpec, currentPlatform, openSpec } from '@pychivalry/core';
+import { runCheckSuite, runModsSuite } from './check-suite.js';
 import { gameInfo, requireGameDir } from './game.js';
 import { runIndexSuite } from './index-suite.js';
 import {
@@ -103,12 +104,36 @@ export function parseClassificationsFile(root: string): string {
     return path.join(root, 'tools', 'data', 'parse-classifications.json');
 }
 
+/** Where the classifications of the base game's check errors and warnings live. */
+export function checkClassificationsFile(root: string): string {
+    return path.join(root, 'tools', 'data', 'check-classifications.json');
+}
+
+/** Where the classifications of the corpus mods' check errors live. */
+export function modsClassificationsFile(root: string): string {
+    return path.join(root, 'tools', 'data', 'mods-classifications.json');
+}
+
 /** What a test may change about a run: a smaller folder list, another classification file. */
 export interface SuiteOptions {
     readonly manifestFile?: string;
     readonly parseFolders?: readonly SuiteFolder[];
     readonly classificationsFile?: string;
 }
+
+const CHECK_NOTES = [
+    "Every file of the base game the index reads is checked (the .txt and .yml files of the folders the committed spec lists, in the install's clausewitz/, jomini/ and game/ folders and the DLC packs, each in its own layer), with the core's one runner, checkWorkspace, as the command line's check runs it on a mod: the parser and every engine check, over the base game's own index, built in the same process.",
+    "Every error and warning is listed with its file, layer, line and column, and classified in tools/data/check-classifications.json, matched by layer, file, code and line: game-defect (a defect of the game's own files), spec-package-fault (the committed spec package is wrong or lacks what the check needs; the request is in docs/decisions.md) or pychivalry-fault (fails the run). Information and hints are counted by code.",
+    "scope counts the keyword uses (triggers, effects and iterators in trigger and effect blocks) the scope checks saw, those whose scope was known, those judged against the scope data of the game's own documentation, the findings, and the uses not judged by why; and the link steps judged. baseline_2_3_0 gives release 2.3.0's figures on the same game from records/baseline-2.3.0/results-base-game.json.",
+    "time_ms and peak_rss_kib are the checking process's own: listing and building the base game's index, then checking every file; times in milliseconds on this machine.",
+];
+
+const MODS_NOTES = [
+    "Each corpus mod is checked with the core's one runner, checkWorkspace, as the command line's check runs it: its .txt and .yml files in the folders the committed spec lists, over the base game's index. The index is built once into a cache in a temporary folder (base_game_cache), deleted after the run; each mod is checked in a fresh process that loads it from there.",
+    'Every error is listed and classified in tools/data/mods-classifications.json, matched by mod, file, code and line: real-defect (shown from the mod and game 1.21.0.3), spec-package-fault, pychivalry-fault (fails the run) or unclassified (not shown either way: fails the run). Warnings are listed; information and hints are counted by code.',
+    "baseline_2_3_0 gives release 2.3.0's results on the same mod from records/baseline-2.3.0/results-mods.json, and how many errors the two report at the same file and line.",
+    "time_ms.load_base is listing the base game's files and loading its index from the cache; time_ms.check indexing the mod over it and checking it; peak_rss_kib the mod's process's own.",
+];
 
 const INDEX_NOTES = [
     "The base game is the install's clausewitz/, jomini/ and game/ folders and the DLC packs inside game/dlc/, each its own layer; a pack's files sit at their path inside the pack (the spec package's override rules, part D1, the pack-layer row). The files read are the .txt and .yml files in the folders the committed spec lists; results.base_game.not_described counts the .txt and .yml files in other folders, not read, and not_read every other file by extension.",
@@ -130,6 +155,11 @@ const PARSE_NOTES = [
     'Every error is classified in tools/data/parse-classifications.json, matched by file, finding and line. parse_ms is the time to decode and parse, on this machine, in one process.',
     'results.encoding measures every text file of the game folder, whether the suite parses it or not: the figures of docs/encoding.md.',
 ];
+
+/** The load average just before a run, as a note. */
+function loadNote(context: { machine: { logical_cpus: number } }, load: number): string {
+    return `The load average over one minute was ${load.toFixed(2)} on ${String(context.machine.logical_cpus)} logical CPUs just before the run: the times are this machine's, under that load.`;
+}
 
 /**
  * The record of one suite run. `root` is the repository the tool and spec come from; the
@@ -165,6 +195,25 @@ export function gameSuiteRecord(
             ...(options.parseFolders === undefined ? {} : { folders: options.parseFolders }),
         });
         return { ...context, notes: PARSE_NOTES, results: { ...results } };
+    }
+    if (suite === 'check') {
+        const loadBefore = loadavg()[0] ?? 0;
+        const results = runCheckSuite({
+            root,
+            gameDir,
+            classificationsFile: options.classificationsFile ?? checkClassificationsFile(root),
+        });
+        return { ...context, notes: [...CHECK_NOTES, loadNote(context, loadBefore)], results };
+    }
+    if (suite === 'mods') {
+        const loadBefore = loadavg()[0] ?? 0;
+        const results = runModsSuite({
+            root,
+            gameDir,
+            corpus: { dir: pinned?.dir ?? '', slugs: pinned?.ref.slugs ?? [] },
+            classificationsFile: options.classificationsFile ?? modsClassificationsFile(root),
+        });
+        return { ...context, notes: [...MODS_NOTES, loadNote(context, loadBefore)], results };
     }
     if (suite === 'index') {
         const loadBefore = loadavg()[0] ?? 0;

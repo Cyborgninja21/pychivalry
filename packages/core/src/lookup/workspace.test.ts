@@ -281,3 +281,53 @@ test('a localization key is a definition like any other', () => {
         ],
     );
 });
+
+/** The stub `fixtures/game/override-rules` alone, indexed once: its coats of arms and alias lines. */
+let aliases: WorkspaceIndex | undefined;
+
+function aliasIndex(): WorkspaceIndex {
+    if (aliases === undefined) {
+        const rules = packageRules();
+        const listing = listInstall(
+            installFolders(repoPath('fixtures/game/override-rules/game')),
+            specFolders(),
+            decidingRules(rules, 'linux'),
+        );
+        aliases = indexFiles(listing.files, { folders: specFolders(), rules, platform: 'linux' });
+    }
+    return aliases;
+}
+
+test("a name an alias row decides shows the object it shares (the index's Resolution.shared)", () => {
+    const r = lookup('fixture_alias_twice', { spec: committedSpec(), index: aliasIndex() });
+    const [group] = groups(r);
+    assert.ok(group !== undefined);
+    const inForce = group.inForce;
+    assert.ok(inForce.status === 'winner', inForce.status);
+    assert.ok(inForce.shared !== undefined);
+    // The later alias line points the key to fixture_coa_b; the block of
+    // fixture_alias_then_block, read after its own alias line to fixture_coa_b, fills the
+    // object the three names share.
+    assert.equal(inForce.shared.target, 'fixture_coa_b');
+    assert.deepEqual([...inForce.shared.names].sort(), [
+        'fixture_alias_then_block',
+        'fixture_alias_twice',
+        'fixture_coa_b',
+    ]);
+    assert.equal(
+        inForce.shared.filledBy.file,
+        'common/coat_of_arms/coat_of_arms/00_fixture_coat_of_arms.txt',
+    );
+    assert.equal(inForce.shared.filledBy.range.start.line, 19);
+});
+
+test('a name whose alias lines all point to a target not read yet is defined and not in force', () => {
+    const r = lookup('fixture_alias_missing', { spec: committedSpec(), index: aliasIndex() });
+    const [group] = groups(r);
+    assert.ok(group !== undefined);
+    assert.deepEqual(group.inForce, { status: 'not-in-force', rule: 'coat-of-arms-alias' });
+    assert.deepEqual(
+        group.definitions.map((d) => d.inForce),
+        ['no'],
+    );
+});

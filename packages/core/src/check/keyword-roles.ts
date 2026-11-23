@@ -1,13 +1,15 @@
 /**
- * The keyword roles of part D4 (`keyword_roles`), as the advice checks of item 4.7 read them
- * (docs/checks.md, "4.7: advice that holds on 1.21"). Every keyword such a check tests comes
- * from a row here: its word, where it holds (`where`: the folders and the parent keys), its
- * roles and their qualifiers (`follows`, `pairs_with`, `needs`, `range`). The core writes no
- * keyword: a check names a role of the part's vocabulary, never a word.
+ * The keyword roles of part D4 (`keyword_roles`): the one reader of the part for every check
+ * that tests a keyword by its role, the structural checks of item 4.5 and the advice checks of
+ * item 4.7 (docs/checks.md). Every keyword such a check tests comes from a row here: its word,
+ * where it holds (`where`: the folders and the parent keys, `holdsIn`), its roles and their
+ * qualifiers (`follows`, `pairs_with`, `needs`, `range`). The core writes no keyword: a check
+ * names a role of the part's vocabulary, never a word.
  *
  * Every row may feed advice, whatever its status: a check built on a measured-only role is
- * advice (the part's own `consumer` text), and every check here is advice. A row that adds no
- * role (`stated-elsewhere`) is read for the roles its `stated_elsewhere` names.
+ * advice (the part's own `consumer` text). A check that raises an error or a warning reads only
+ * the roles the part confirms (`roleConfirmed`). A row that adds no role (`stated-elsewhere`)
+ * is read for the roles its `stated_elsewhere` names.
  *
  * A condition the part states only in words (`condition`) is read from the row's measurement,
  * as `condition_from: measured` says the package itself does: a count of `measured.counts`
@@ -205,6 +207,15 @@ export function keywordRolesOf(spec: Spec): KeywordRoles {
         cache.set(spec, roles);
     }
     return roles;
+}
+
+/**
+ * True when the part confirms the row's role: its `role_status` for the role is `confirmed`.
+ * Only such a role may raise an error or a warning (a role named only by `stated_elsewhere` has
+ * no status of its own here).
+ */
+export function roleConfirmed(row: RoleRow, role: string): boolean {
+    return row.row.role_status[role] === 'confirmed';
 }
 
 /** True when the row holds in this folder (`anywhere`, or one of its folders). */

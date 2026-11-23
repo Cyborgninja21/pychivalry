@@ -26,8 +26,8 @@ const expected: Expected = { spec: SPEC, legacySpec: LEGACY, corpusManifestSha25
 function validRecord(): SuiteRecord {
     return {
         record_format: 1,
-        suite: 'game:mods',
-        command: 'task game:mods',
+        suite: 'game:bench',
+        command: 'task game:bench',
         made_at: '2026-11-21T12:00:00.000Z',
         tool: { name: 'pychivalry', version: '0.0.0', commit: 'c'.repeat(40), dirty: false },
         machine: { os: 'linux', arch: 'x64', logical_cpus: 16, memory_gib: 62, node: 'v22.23.4' },
@@ -432,4 +432,176 @@ test('a results baseline must have the shape of its method', () => {
         checkRecord(noClassification, validate, expected).join('\n'),
         /must have required property 'classification'/,
     );
+});
+
+const SCOPE = {
+    keyword_uses: 10,
+    keyword_uses_known_scope: 6,
+    keyword_uses_judged: 4,
+    findings: 0,
+    unjudged_by_reason: [{ reason: 'no-requirement', uses: 2 }],
+    link_steps_judged: 3,
+    link_findings: 0,
+};
+const NOT_CAPPED = { max_per_file: 1000, files: 0, dropped: 0, dropped_by_code: [] };
+
+function checkSuiteRecord(): SuiteRecord {
+    return {
+        ...validRecord(),
+        suite: 'game:check',
+        command: 'task game:check',
+        corpus: null,
+        notes: ['A check record.'],
+        results: {
+            passed: true,
+            failures: [],
+            files: 3,
+            files_by_layer: [
+                { layer: 'game', files: 2 },
+                { layer: 'jomini', files: 1 },
+            ],
+            by_severity: { error: 1, warning: 1, information: 2, hint: 0 },
+            by_code: [
+                { code: 'names/unknown-trigger', severity: 'error', count: 1 },
+                { code: 'localization/missing-key', severity: 'warning', count: 1 },
+                { code: 'scope/undefined-event-target', severity: 'information', count: 2 },
+            ],
+            errors: 1,
+            error_list: [
+                {
+                    file: 'common/x.txt',
+                    layer: 'game',
+                    line: 3,
+                    column: 5,
+                    code: 'names/unknown-trigger',
+                    message: "Unknown trigger 'x'",
+                    classification: 'game-defect',
+                    reason: 'No such trigger.',
+                },
+            ],
+            warnings: 1,
+            warning_list: [
+                {
+                    file: 'common/y.txt',
+                    layer: 'game',
+                    line: 4,
+                    column: 1,
+                    code: 'localization/missing-key',
+                    message: 'Unknown loc key y',
+                    classification: 'spec-package-fault',
+                    reason: 'The package is wrong.',
+                },
+            ],
+            classified: {
+                'game-defect': 1,
+                'spec-package-fault': 1,
+                'pychivalry-fault': 0,
+                unclassified: 0,
+            },
+            capped: NOT_CAPPED,
+            scope: SCOPE,
+            baseline_2_3_0: {
+                errors: 2,
+                errors_at_same_line: 1,
+                errors_only_2_3_0: 1,
+                errors_only_here: 0,
+                keyword_uses: 9,
+                keyword_uses_judged: 3,
+            },
+            time_ms: { list: 1, build: 2, check: 3, total: 6 },
+            peak_rss_kib: 1024,
+        },
+    };
+}
+
+test('a check record that agrees with itself passes', () => {
+    assert.deepEqual(checkRecord(checkSuiteRecord(), validate, expected), []);
+});
+
+test('a check record whose counts disagree, or that passes with an unclassified finding, is rejected', () => {
+    const record = checkSuiteRecord();
+    const results = record.results as Record<string, unknown> & {
+        error_list: Record<string, unknown>[];
+        capped: Record<string, unknown>;
+    };
+    results['files'] = 4;
+    results['errors'] = 2;
+    const [error] = results.error_list;
+    assert.ok(error !== undefined);
+    error['classification'] = 'unclassified';
+    results.capped = { ...NOT_CAPPED, dropped: 5 };
+    assert.deepEqual(checkRecord(record, validate, expected), [
+        '/results/error_list: 1 listed, but errors is 2 and by_severity counts 1',
+        '/results/capped/dropped: 5 is not the total of dropped_by_code (0)',
+        "/results/files: 4 is not the layers' total (3)",
+        '/results/error_list/0: a passing record holds a finding classified "unclassified"',
+    ]);
+});
+
+test('a mods check record must name its corpus slugs and classify every error to pass', () => {
+    const base = checkSuiteRecord().results;
+    const mod = {
+        slug: 'rice',
+        files: 3,
+        not_checked: [],
+        by_severity: base['by_severity'],
+        by_code: base['by_code'],
+        errors: 1,
+        error_list: [
+            {
+                file: 'common/x.txt',
+                line: 3,
+                column: 5,
+                code: 'names/unknown-trigger',
+                message: "Unknown trigger 'x'",
+                classification: 'pychivalry-fault',
+                reason: 'Ours.',
+            },
+        ],
+        warnings: 1,
+        warning_list: [
+            {
+                file: 'common/y.txt',
+                line: 4,
+                column: 1,
+                code: 'localization/missing-key',
+                message: 'Unknown loc key y',
+            },
+        ],
+        classified: {
+            'real-defect': 0,
+            'spec-package-fault': 0,
+            'pychivalry-fault': 1,
+            unclassified: 0,
+        },
+        capped: NOT_CAPPED,
+        scope: SCOPE,
+        baseline_2_3_0: {
+            files: 3,
+            by_severity: { error: 1, warning: 0, information: 0, hint: 0 },
+            errors: 1,
+            errors_at_same_line: 1,
+            errors_only_2_3_0: 0,
+            errors_only_here: 0,
+        },
+        time_ms: { load_base: 1, check: 2, total: 3 },
+        peak_rss_kib: 1024,
+    };
+    const record: SuiteRecord = {
+        ...validRecord(),
+        suite: 'game:mods',
+        command: 'task game:mods',
+        corpus: { manifest_sha256: CORPUS, slugs: ['viet-events'] },
+        notes: ['A mods record.'],
+        results: {
+            passed: true,
+            failures: [],
+            base_game_cache: { build_ms: 10, peak_rss_kib: 2048 },
+            mods: [mod],
+        },
+    };
+    assert.deepEqual(checkRecord(record, validate, expected), [
+        '/results/mods/0/error_list/0: a passing record holds an error classified "pychivalry-fault"',
+        '/results/mods: the mods ["rice"] are not the corpus slugs ["viet-events"]',
+    ]);
 });

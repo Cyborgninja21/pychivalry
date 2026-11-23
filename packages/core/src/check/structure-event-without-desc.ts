@@ -9,7 +9,7 @@
 
 import type { AdviceCheck, AdviceInput, AdviceResult } from './advice.js';
 import { NOTHING } from './advice.js';
-import { childPairs, termsHold, type RoleRow } from './advice-roles.js';
+import { childPairs, termsHold, type RoleRow } from './keyword-roles.js';
 import { descriptionRow, eventModelOf, eventsOf, type EventModel } from './advice-events.js';
 import type { CheckFinding } from './finding.js';
 import { finding } from './report.js';
