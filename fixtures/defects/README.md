@@ -26,7 +26,10 @@ agent, and this page would tell it where the defects are.
 
 On `mod/`, over the stub: exactly the planted defects, one finding each and two for the clash
 (one at each definition), at every severity: 22 errors and 6 warnings, no information, no hint.
-On `reference/`: nothing at all. A test holds both (`tools/src/scored-run/defects.test.ts`).
+On `reference/`: nothing at all. It is the same with unused keys on (`localization/unused-key`,
+off by default in the runner and in the agent server's `check`): the mod has none. A test holds
+all of it (`tools/src/scored-run/defects.test.ts`), and another gets the same 28 findings from
+the built agent server's `check` (`tools/src/scored-run/server.test.ts`).
 
 ## The defects
 

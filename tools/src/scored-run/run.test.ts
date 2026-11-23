@@ -20,6 +20,7 @@ import {
     runScored,
     sanitize,
     scoredOptions,
+    SERVER_TOOLS,
 } from './run.js';
 import { readStream } from './stream.js';
 import type { ScoredRecord } from './scored-record.js';
@@ -51,8 +52,7 @@ function stream(options: {
             tools: options.tools ?? [
                 'Read',
                 'Edit',
-                'mcp__pychivalry__check',
-                'mcp__pychivalry__lookup',
+                ...SERVER_TOOLS.map((n) => `mcp__pychivalry__${n}`),
             ],
             mcp_servers: options.servers ?? [{ name: 'pychivalry', status: 'connected' }],
             apiKeySource: 'none',
@@ -287,6 +287,25 @@ test('a session that is not confined is a harness problem and fails its trial', 
         'the agent server failed to start',
     ]);
     assert.ok(trial.graders.every((g) => g.passed));
+});
+
+test('a connected server whose tools were not offered is a harness problem', (t) => {
+    const { record } = run(
+        t,
+        { SCORED_TRIALS: '1', FAKE_CLAUDE_APPLY: path.join(root, DEFECTS_DIR, 'reference') },
+        stream({ tools: ['Read', 'Edit', 'mcp__pychivalry__check'] }),
+    );
+    assert.deepEqual(record.results.trials[0]?.harness_problems, [
+        "the agent server's tools were not offered: explain_code, find_definition, find_references, list_definitions, lookup",
+    ]);
+    // Still starting when the session began: no tools yet, and no problem.
+    const pending = run(
+        t,
+        { SCORED_TRIALS: '1', FAKE_CLAUDE_APPLY: path.join(root, DEFECTS_DIR, 'reference') },
+        stream({ tools: ['Read', 'Edit'], servers: [{ name: 'pychivalry', status: 'pending' }] }),
+    );
+    assert.deepEqual(pending.record.results.trials[0]?.harness_problems, []);
+    assert.equal(pending.record.results.trials[0].passed, true);
 });
 
 test('a session past the time limit is stopped and recorded', (t) => {

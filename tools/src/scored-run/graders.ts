@@ -5,7 +5,9 @@
  * pass.
  *
  * 1. `zero-errors`: the checker reports no error on the result. The checker is the core's one
- *    runner, `checkWorkspace`, over the manifest's game stub, as every surface runs it.
+ *    runner, `checkWorkspace`, over the manifest's game stub, as every surface runs it, with
+ *    its defaults: `localization/unused-key` off, as the agent server's `check` answers by
+ *    default. The planted mod has no unused key either way (defects.test.ts).
  * 2. `defects-gone`: the checker reports no finding of any planted defect's code, anywhere.
  * 3. `only-planted-lines`: nothing changed outside the planted lines. Every line of `mod/` a
  *    fix removed or changed is in a `fix` range of a defect, every line it added is where a
@@ -77,16 +79,29 @@ export function filesIn(dir: string): string[] {
     return out;
 }
 
-/** The checker's findings on a mod over a game folder: the core's one runner, no cache. */
-export function checkMod(spec: Spec, gameDir: string, modDir: string): GradedFinding[] {
-    return checkWorkspace({ spec, gameDir, cacheDir: null, modDir }).findings.map(
-        (f: WorkspaceFinding) => ({
-            file: f.file,
-            line: f.range.start.line + 1,
-            code: f.code,
-            severity: f.severity,
-        }),
-    );
+/**
+ * The checker's findings on a mod over a game folder: the core's one runner, no cache, with its
+ * defaults, as the agent server's `check` answers by default: `localization/unused-key` off
+ * unless `unusedKeys` is given (docs/decisions.md, decision 76).
+ */
+export function checkMod(
+    spec: Spec,
+    gameDir: string,
+    modDir: string,
+    options: { readonly unusedKeys?: boolean } = {},
+): GradedFinding[] {
+    return checkWorkspace({
+        spec,
+        gameDir,
+        cacheDir: null,
+        modDir,
+        unusedKeys: options.unusedKeys,
+    }).findings.map((f: WorkspaceFinding) => ({
+        file: f.file,
+        line: f.range.start.line + 1,
+        code: f.code,
+        severity: f.severity,
+    }));
 }
 
 /** The text with its comments removed: from a `#` outside quotes to the end of its line. */

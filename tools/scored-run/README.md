@@ -55,8 +55,12 @@ that line and to this page, so every record names the model it measured.
 
 1. The mod is copied into a new temporary folder: its files only, no git history.
 2. A server configuration is written beside it, naming one agent server, `pychivalry`: the
-   built server started with this Node, over the trial's mod and the game stub
-   `fixtures/game/planted-defects/game`, with its index cache in the run's own folder. The
+   built server, `packages/mcp/dist/main.js`, started with this Node as
+   `--mod <trial mod> --vanilla fixtures/game/planted-defects/game`, with its index cache in
+   the run's own folder. The server is bound to that one mod; it offers `check`, `lookup`,
+   `find_definition`, `find_references`, `list_definitions` and `explain_code` (to the agent,
+   `mcp__pychivalry__check` and so on), and counts lines and columns from 1, as the manifest
+   and the agent's `Read` do. The
    graders check the result over the same stub, so the server and the graders see the same base
    game, and no game install is needed.
 3. Claude Code starts in the mod's folder with the prompt and the arguments below. Its
@@ -107,7 +111,8 @@ session id, nothing about the login. A tool error's text is kept with the trial'
 
 **The harness held** when the session ended by itself or at its budget, its start shows only
 `Read`, `Edit` and the `mcp__pychivalry__` tools, only the `pychivalry` server, and that server
-did not fail. Otherwise the trial has a harness problem: it fails, and the run exits 1 so that
+did not fail; a server already connected at the start offers all six of its tools (one still
+starting, as Claude Code before 2.1.221 can show it, offers none yet). Otherwise the trial has a harness problem: it fails, and the run exits 1 so that
 nobody takes its pass rate for a result about the server.
 
 ## The graders
@@ -123,7 +128,9 @@ on its own (`tools/src/scored-run/graders.ts` states each exactly):
 5. `nothing-deleted`: no file is gone, and no change lost words (a line commented out or a
    block deleted does; a stray brace removed does not).
 
-The checker is the core's one runner, `checkWorkspace`, over the game stub. The graders pass on
+The checker is the core's one runner, `checkWorkspace`, over the game stub, with its defaults:
+`localization/unused-key` off, as the server's `check` answers by default. The planted mod has no
+unused key either way. The graders pass on
 `fixtures/defects/reference/` and fail on the untouched `mod/`; their tests run in public CI.
 
 ## The record
@@ -136,8 +143,10 @@ since re-making it spends the login's usage.
 
 ## Tests
 
-`tools/src/scored-run/*.test.ts` run in public CI with no model, key, network or display. The
-run's tests start `fake-claude.ts` in Claude Code's place: it answers `--version`, records the
+`tools/src/scored-run/*.test.ts` run in public CI with no model, key, network or display.
+`server.test.ts` starts the built agent server exactly as a trial's configuration says, on a
+fresh copy of the planted mod, and gets one `check` answer: the six tools, and the planted
+defects at the manifest's lines. The run's tests start `fake-claude.ts` in Claude Code's place: it answers `--version`, records the
 arguments and environment it was given, copies a folder over the trial's mod as an agent's edits
 would, and plays back a stream written in the documented shape. No real session has been
 recorded yet; the first real run's stream is the check of that shape.

@@ -78,6 +78,18 @@ export const RECORD_FILE = 'records/scored/agent-use.json';
 /** The agent server's name in the configuration, which prefixes its tools: `mcp__pychivalry__`. */
 export const SERVER_NAME = 'pychivalry';
 export const TASK = 'agent-use';
+/**
+ * The agent server's tools, as `packages/mcp` registers them; a session offers each as
+ * `mcp__pychivalry__<name>`.
+ */
+export const SERVER_TOOLS: readonly string[] = [
+    'check',
+    'explain_code',
+    'find_definition',
+    'find_references',
+    'list_definitions',
+    'lookup',
+];
 /** The built-in tools a trial may use. */
 export const BUILT_IN_TOOLS: readonly string[] = ['Read', 'Edit'];
 
@@ -366,6 +378,15 @@ export function harnessProblems(
         problems.push('the agent server is not in the session');
     } else if (server.status === 'failed') {
         problems.push('the agent server failed to start');
+    } else if (server.status === 'connected') {
+        // A server still starting when the session began (Claude Code before 2.1.221) has
+        // offered no tools yet; one that is connected offers all of them.
+        const missing = SERVER_TOOLS.filter(
+            (t) => !init.tools.includes(`mcp__${SERVER_NAME}__${t}`),
+        );
+        if (missing.length > 0) {
+            problems.push(`the agent server's tools were not offered: ${missing.join(', ')}`);
+        }
     }
     return problems;
 }

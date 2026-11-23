@@ -131,3 +131,17 @@ test('the checker reports exactly the planted defects on mod/, at every severity
 test('the checker reports nothing on reference/, at any severity', () => {
     assert.deepEqual(checkMod(spec, gameDir, referenceDir), []);
 });
+
+test('with unused keys on, neither mod/ nor reference/ has one: the defaults change nothing', () => {
+    // localization/unused-key is off by default in the one runner and in the agent server's
+    // check (docs/decisions.md, decision 76); the fixture means the same either way.
+    for (const dir of [modDir, referenceDir]) {
+        assert.deepEqual(
+            checkMod(spec, gameDir, dir, { unusedKeys: true }).filter(
+                (f) => f.code === 'localization/unused-key',
+            ),
+            [],
+        );
+    }
+    assert.equal(checkMod(spec, gameDir, referenceDir, { unusedKeys: true }).length, 0);
+});
