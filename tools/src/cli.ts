@@ -70,7 +70,7 @@ function run(args: readonly string[]): number {
         const use = rulesUse(rules.table)
             .map(
                 (u) =>
-                    `${u.platform}: ${String(u.applied)} applied, ${String(u.not_settled)} not settled, ${String(u.skipped)} skipped`,
+                    `${u.platform}: ${String(u.applied)} applied, ${String(u.not_settled)} not settled, ${String(u.skipped)} skipped (${String(u.file_conditions)} with a file condition applied)`,
             )
             .join('; ');
         process.stdout.write(

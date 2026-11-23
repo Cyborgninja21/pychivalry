@@ -13,10 +13,17 @@
  *   part D2 says a constant holds for its file;
  * - a key that a `containers` row of the rules table names, or a D3 `container-child` row, is
  *   a `container`, and each pair inside it an `entry` of the folder's database, known by the
- *   container and its own key;
+ *   container and its own key; where the row says what its children are (`entries`, format
+ *   8), a child the row lists as a container is a `container` again and its children the
+ *   entries (`special_genes`), an entry is known by its key space (`genes`) and the qualifier
+ *   lines in force (`portrait_group`), and `parent` says which container it is written in;
  * - a key part D3 says is a nested definition (a landed title inside another, at any depth;
- *   an activity type's option) is a `record` of the database the folder table gives it; one
- *   found by its place is known by its parent too (`container`: the keys down to it);
+ *   an activity type's option) is a `record` of the database the folder table gives it, known
+ *   by its name alone or with its parent, as the row's scope says (`container`: the keys down
+ *   to the parent block, an entry among them by its own identity); `parent` is the block it is
+ *   written in, and a scope that is not settled is flagged (`FLAG_SCOPE_NOT_SETTLED`);
+ * - a statement of a folder whose rows say it holds statements in separate stores (province
+ *   terrain) is known by its store (`container`);
  * - a file of a folder part D3 says names its records by their file is one `file` definition,
  *   named by the file's stem;
  * - a localization entry is a `key` of the database `localization:<language>`.
@@ -51,8 +58,18 @@ export const DEF = {
     keyEnd: 6,
     end: 7,
     extra: 8,
+    detail: 9,
+    flags: 10,
 } as const;
-export const DEF_STRIDE = 9;
+export const DEF_STRIDE = 11;
+
+/**
+ * `detail` is a string, or -1: for an entry of a key space or a nested definition, where it is
+ * written (its `parent`); for a top-level `key = value`, the value when it is one word (the
+ * target of an alias line).
+ */
+/** `flags`: the scope of the nested name is not settled (part D3): it decides nothing. */
+export const FLAG_SCOPE_NOT_SETTLED = 1;
 
 /** The integers stored per use: the name and where it starts. */
 export const USE_STRIDE = 2;
@@ -94,6 +111,32 @@ export function formOf(code: number): Form {
     return form;
 }
 
+/**
+ * What a container key's children are, from a deciding `containers` row with `entries`
+ * (format 8) and the folder's key-resolution row: the key space the definitions are known in,
+ * the child keys that are no definition, and those among them that set a part of the key.
+ */
+export interface ContainerReading {
+    readonly holds: 'definitions' | 'containers';
+    /** For `holds: containers`, the child keys that are containers; each read as this row's are. */
+    readonly containers: ReadonlySet<string>;
+    readonly keySpace: string | null;
+    readonly notEntries: ReadonlySet<string>;
+    /** Child lines that set a part of an entry's key for the entries after them (`portrait_group`). */
+    readonly qualifiers: ReadonlySet<string>;
+    /** How the containers listed in `containers` read their own children. */
+    readonly inner: ContainerReading | null;
+}
+
+/** A store of a folder that holds statements (province terrain), by the statement's form and key. */
+export interface StatementStore {
+    readonly store: string;
+    /** `value` (`key = value`) or `block` (`key = { }`). */
+    readonly form: 'value' | 'block';
+    /** The keys it is written with, or null for a placeholder (`<province id>`): any other key. */
+    readonly keys: ReadonlySet<string> | null;
+}
+
 /** How to read one script file: its folder's database and what the rules say of it. */
 export interface ScriptContext {
     readonly strings: StringTable;
@@ -109,6 +152,10 @@ export interface ScriptContext {
     readonly constants?: string;
     /** The file's stem, the name of its record when the folder names records by their file. */
     readonly fileStem?: string | null;
+    /** Format 8: per container key, what its children are (a containers row's `entries`). */
+    readonly entries?: ReadonlyMap<string, ContainerReading> | null;
+    /** Format 8: the stores of a folder that holds statements (`details.statements`). */
+    readonly stores?: readonly StatementStore[] | null;
 }
 
 /** What one file defines and uses, packed. */
@@ -296,33 +343,38 @@ function blocksAt(top: Pair, path: readonly RegExp[]): PathBlock[] {
 }
 
 /**
- * A nested definition: its pair, its rule, and its parent for a name found by its place
- * (`parent-field`, `any-block-child`): the keys from the top-level key down to the block that
- * holds it, joined by `/`. A name recognised by its key (`key-pattern`, a landed title) or the
- * record's own key (`record-key`) has none: it stands alone.
+ * A nested definition: its pair, its rule, and the keys from the top-level key down to the
+ * block it is written in (for `record-key`, the record's own key).
  */
-type Nested = readonly [Pair, NestedRule, string | null];
+type Nested = readonly [Pair, NestedRule, readonly string[]];
 
 /**
  * The nested definitions part D3 finds below one top-level pair; a `container-child` rule's
- * entries are left to the container reading. A name found by its place belongs to its parent:
- * D3 measures such names written under several parents, each a separate object.
+ * entries are left to the container reading. Below a container whose entries sit `entryDepth`
+ * keys down, only the rules that find names deeper than the entries apply (a gene's templates):
+ * the entries themselves are the container reading's.
  */
-function nestedDefinitions(top: Pair, rules: readonly NestedRule[]): Nested[] {
+function nestedDefinitions(top: Pair, rules: readonly NestedRule[], entryDepth = 0): Nested[] {
     const out: Nested[] = [];
     for (const rule of rules) {
         if (rule.type === 'container-child') {
             continue;
         }
+        if (entryDepth > 0) {
+            const byPlace = rule.type === 'parent-field' || rule.type === 'any-block-child';
+            if (!byPlace || rule.path.length <= entryDepth) {
+                continue;
+            }
+        }
         if (rule.type === 'record-key') {
-            for (const { pair } of blocksAt(top, rule.path)) {
+            for (const { pair, keys } of blocksAt(top, rule.path)) {
                 const field = rule.field;
                 if (
                     field !== null &&
                     pair.value?.kind === 'block' &&
                     pair.value.items.some((i) => i.kind === 'pair' && i.key.text === field)
                 ) {
-                    out.push([pair, rule, null]);
+                    out.push([pair, rule, keys]);
                 }
             }
             continue;
@@ -333,21 +385,19 @@ function nestedDefinitions(top: Pair, rules: readonly NestedRule[]): Nested[] {
                 continue;
             }
             // A block child whose key matches, at any depth below a block whose key matches.
-            const stack = blocksAt(top, rule.path)
-                .map((b) => b.pair)
-                .filter((p) => pattern.test(p.key.text));
+            const stack = blocksAt(top, rule.path).filter((b) => pattern.test(b.pair.key.text));
             for (;;) {
-                const pair = stack.pop();
-                if (pair === undefined) {
+                const at = stack.pop();
+                if (at === undefined) {
                     break;
                 }
-                if (pair.value?.kind !== 'block') {
+                if (at.pair.value?.kind !== 'block') {
                     continue;
                 }
-                for (const child of definingChildren(pair.value)) {
+                for (const child of definingChildren(at.pair.value)) {
                     if (pattern.test(child.key.text) && rule.forms.includes(nestedForm(child))) {
-                        out.push([child, rule, null]);
-                        stack.push(child);
+                        out.push([child, rule, at.keys]);
+                        stack.push({ pair: child, keys: [...at.keys, child.key.text] });
                     }
                 }
             }
@@ -360,12 +410,47 @@ function nestedDefinitions(top: Pair, rules: readonly NestedRule[]): Nested[] {
             }
             for (const child of definingChildren(parent.value)) {
                 if (!rule.except.has(child.key.text) && rule.forms.includes(nestedForm(child))) {
-                    out.push([child, rule, keys.join('/')]);
+                    out.push([child, rule, keys]);
                 }
             }
         }
     }
     return out;
+}
+
+/**
+ * Where a nested definition is known (part D3's scope, format 8): `container` the parent that
+ * is part of its identity, or null; `parent` the block it is written in; `flags` whether its
+ * scope is not settled. `identity` gives the identity of a block that is itself a definition
+ * known otherwise than by its keys (an entry of a key space: `genes/<gene>`).
+ */
+function placeOf(
+    rule: NestedRule,
+    keys: readonly string[],
+    identity: (keys: readonly string[]) => string,
+): { container: string | null; parent: string; flags: number } {
+    const parent = keys.join('/');
+    switch (rule.scope.kind) {
+        case 'global':
+            return { container: null, parent, flags: 0 };
+        case 'parent':
+            return { container: identity(keys.slice(0, rule.scope.depth)), parent, flags: 0 };
+        case 'not-settled':
+            return { container: null, parent, flags: FLAG_SCOPE_NOT_SETTLED };
+    }
+}
+
+/** The store a statement of a folder that holds statements is written to, or null. */
+function storeOf(
+    stores: readonly StatementStore[] | null | undefined,
+    form: 'value' | 'block',
+    key: string,
+): string | null {
+    if (stores === null || stores === undefined) {
+        return null;
+    }
+    const named = stores.find((s) => s.form === form && s.keys?.has(key) === true);
+    return (named ?? stores.find((s) => s.form === form && s.keys === null))?.store ?? null;
 }
 
 /** Whether a D3 `container-child` rule makes a top-level key a container. */
@@ -400,6 +485,8 @@ export function extractScript(file: FileNode, context: ScriptContext): Extracted
     const uses: number[] = [];
     /** Where each nested definition's own key starts: not a use. */
     const ownKeys = new Set<number>();
+    const folder = context.folder;
+    const rest: (Item | Value)[] = [];
     const push = (word: string, start: number): void => {
         if (!ownKeys.has(start)) {
             uses.push(strings.intern(word), start);
@@ -411,6 +498,8 @@ export function extractScript(file: FileNode, context: ScriptContext): Extracted
         form: Form,
         container: string | null,
         extra: number,
+        detail: string | null = null,
+        flags = 0,
     ): void => {
         defs.push(
             strings.intern(pair.key.text),
@@ -422,14 +511,84 @@ export function extractScript(file: FileNode, context: ScriptContext): Extracted
             pair.key.end,
             pair.end,
             extra,
+            detail === null ? -1 : strings.intern(detail),
+            flags,
         );
+    };
+    const defineNested = (
+        top: Pair,
+        entryDepth: number,
+        identity: (keys: readonly string[]) => string,
+    ): void => {
+        for (const [pair, rule, keys] of nestedDefinitions(top, folder?.nested ?? [], entryDepth)) {
+            const place = placeOf(rule, keys, identity);
+            define(pair, rule.database, 'record', place.container, NONE, place.parent, place.flags);
+            ownKeys.add(pair.key.start);
+        }
+    };
+    /**
+     * The children of a container block: its entries, or (`holds: containers`) the containers
+     * it holds and theirs. Returns the identity of each entry by the keys down to it.
+     */
+    const readContainer = (
+        block: Block,
+        path: readonly string[],
+        reading: ContainerReading | null,
+        identities: Map<string, string>,
+    ): void => {
+        const database = context.database ?? '';
+        let qualifier: string | null = null;
+        for (const inner of block.items) {
+            if (inner.kind !== 'pair' || !isDefiningPair(inner) || inner.prefix !== null) {
+                rest.push(inner);
+                continue;
+            }
+            const key = inner.key.text;
+            if (reading?.holds === 'containers') {
+                if (reading.containers.has(key) && inner.value?.kind === 'block') {
+                    define(inner, database, 'container', path.join('/'), NONE);
+                    readContainer(inner.value, [...path, key], reading.inner, identities);
+                } else if (inner.value !== null) {
+                    // The reader accepts no other child: no definition.
+                    rest.push(inner.value);
+                }
+                continue;
+            }
+            if (reading?.notEntries.has(key) === true) {
+                if (reading.qualifiers.has(key) && inner.value?.kind === 'scalar') {
+                    qualifier = `${key}=${inner.value.text}`;
+                }
+                if (inner.value !== null) {
+                    rest.push(inner.value);
+                }
+                continue;
+            }
+            const keySpace = reading?.keySpace ?? null;
+            const container =
+                keySpace === null
+                    ? path.join('/')
+                    : qualifier === null
+                      ? keySpace
+                      : `${keySpace}|${qualifier}`;
+            define(
+                inner,
+                database,
+                'entry',
+                container,
+                block.start,
+                keySpace === null ? null : path.join('/'),
+            );
+            identities.set([...path, key].join('/'), `${container}/${key}`);
+            if (inner.value !== null) {
+                rest.push(inner.value);
+            }
+        }
     };
     if (context.database === null) {
         // No listed folder holds the file: the spec does not say what it defines.
         collectUses(file.items, push);
         return { defs, uses };
     }
-    const folder = context.folder;
     if (folder?.fileNamed === true && context.fileStem !== null && context.fileStem !== undefined) {
         // The file is the record: named by its stem, it spans the whole file.
         defs.push(
@@ -442,9 +601,22 @@ export function extractScript(file: FileNode, context: ScriptContext): Extracted
             0,
             file.end,
             NONE,
+            -1,
+            0,
         );
     }
-    const rest: (Item | Value)[] = [];
+    /** The identity of a block by the keys down to it: an entry's own, else its keys. */
+    const identityIn =
+        (identities: ReadonlyMap<string, string>) =>
+        (keys: readonly string[]): string => {
+            for (let n = keys.length; n > 0; n--) {
+                const known = identities.get(keys.slice(0, n).join('/'));
+                if (known !== undefined) {
+                    return [known, ...keys.slice(n)].join('/');
+                }
+            }
+            return keys.join('/');
+        };
     for (const item of file.items) {
         if (item.kind !== 'pair' || !isDefiningPair(item) || declaresNoName(item, folder)) {
             rest.push(item);
@@ -464,15 +636,15 @@ export function extractScript(file: FileNode, context: ScriptContext): Extracted
                     isNestedContainer(item, folder));
             if (isContainer) {
                 define(item, database, 'container', null, NONE);
-                for (const inner of value.items) {
-                    if (inner.kind === 'pair' && isDefiningPair(inner) && inner.prefix === null) {
-                        define(inner, database, 'entry', item.key.text, value.start);
-                        if (inner.value !== null) {
-                            rest.push(inner.value);
-                        }
-                    } else {
-                        rest.push(inner);
-                    }
+                const reading = context.entries?.get(item.key.text) ?? null;
+                const identities = new Map<string, string>();
+                readContainer(value, [item.key.text], reading, identities);
+                if (reading !== null) {
+                    defineNested(
+                        item,
+                        reading.holds === 'containers' ? 2 : 1,
+                        identityIn(identities),
+                    );
                 }
                 continue;
             }
@@ -482,15 +654,21 @@ export function extractScript(file: FileNode, context: ScriptContext): Extracted
                     item,
                     database,
                     'record',
-                    null,
+                    storeOf(context.stores, 'block', item.key.text),
                     priority === null ? NONE : priorityOf(value, priority.field, priority.fallback),
                 );
-                for (const [pair, rule, parent] of nestedDefinitions(item, folder?.nested ?? [])) {
-                    define(pair, rule.database, 'record', parent, NONE);
-                    ownKeys.add(pair.key.start);
-                }
+                defineNested(item, 0, identityIn(new Map()));
             } else {
-                define(item, database, 'value', null, NONE);
+                define(
+                    item,
+                    database,
+                    'value',
+                    storeOf(context.stores, 'value', item.key.text),
+                    NONE,
+                    value?.kind === 'scalar' && (value.type === 'name' || value.type === 'number')
+                        ? value.text
+                        : null,
+                );
             }
         }
         if (item.value !== null) {
@@ -516,6 +694,8 @@ export function extractLocalization(file: LocalizationFile, strings: StringTable
             entry.end,
             entry.lineEnd,
             entry.version ?? NONE,
+            -1,
+            0,
         );
     }
     for (const use of file.uses) {

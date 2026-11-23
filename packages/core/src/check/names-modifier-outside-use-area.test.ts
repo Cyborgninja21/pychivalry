@@ -35,15 +35,15 @@ test(`${CODE}: a block whose part D7 row is not confirmed raises nothing`, () =>
 
 test(`${CODE}: a modifier the schema lists in the block is judged by its name; the block's own keys are not modifiers`, () => {
     // market_terrain_modifier: `terrain` is a key D7 measures in the block as no modifier.
-    // county_potential_trade_good_modifier: D7 confirms the use area county; the game's
-    // documentation gives `trade_good_<x>_production_add` the use area province only. The
-    // package's own row notes the two disagree (a request to the spec work, docs/decisions.md).
+    // county_potential_trade_good_modifier: since format 8, D7 confirms the use area province
+    // (docs/decisions.md row 67, point 1), so `trade_good_<x>_production_add`, a province
+    // modifier, is in its area; `monthly_prestige`, a character modifier, is not.
     const text =
-        'fixture_building_01 = {\n\tmarket_terrain_modifier = {\n\t\tterrain = taiga\n\t}\n\tcounty_potential_trade_good_modifier = {\n\t\ttrade_good = trade_good_cattle\n\t\ttrade_good_cattle_production_add = 1\n\t}\n}\n';
+        'fixture_building_01 = {\n\tmarket_terrain_modifier = {\n\t\tterrain = taiga\n\t}\n\tcounty_potential_trade_good_modifier = {\n\t\ttrade_good = trade_good_cattle\n\t\ttrade_good_cattle_production_add = 1\n\t\tmonthly_prestige = 1\n\t}\n}\n';
     // The advice checks of item 4.7 are tested on their own fixtures.
     const found = checkText('common/buildings/fixture.txt', text).filter((f) => !isAdvice(f.code));
     assert.deepEqual(
         found.map((f) => [f.code, f.args[0]]),
-        [[CODE, 'trade_good_cattle_production_add']],
+        [[CODE, 'monthly_prestige']],
     );
 });

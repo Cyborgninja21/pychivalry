@@ -69,6 +69,7 @@ export function inForceOf(
             return definition.read === 'no' ? 'no' : 'yes';
         case 'not-read':
         case 'not-defined':
+        case 'not-in-force':
             return 'no';
         case 'clash':
         case 'unknown':

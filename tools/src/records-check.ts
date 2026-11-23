@@ -7,7 +7,7 @@
  * an index record's totals agree with its layers, and it was made on the committed rules table
  * (the spec package's part D1).
  *
- * A baseline of release 2.3.0 cannot be made on the format 7 package, which 2.3.0 cannot
+ * A baseline of release 2.3.0 cannot be made on the format 8 package, which 2.3.0 cannot
  * read. It is tied instead to the committed format 4 copy of the same game version
  * (`spec/legacy/`): its spec is that copy, byte for byte, and the game it read is the build
  * that copy and the package were derived for.

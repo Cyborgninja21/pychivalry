@@ -6,9 +6,9 @@ and a mod, by two files, or twice in one file. Written by build step 3, item 3.1
 evidence. This page answers open question 1 of [MVP.md](MVP.md#open-questions) as far as that
 evidence goes, and names the in-game experiment for every rule it does not settle.
 
-**Since 2026-11-22 the rules are the spec package's part D1** (`override_rules`, format 7),
-read out of the Windows executable, and for the localization reader the Linux one, by the spec
-work: 82 rows, each with its evidence, its status and what it rests on per platform. The index
+**Since 2026-11-22 the rules are the spec package's part D1** (`override_rules`, format 7, and
+format 8 since 2026-11-23), read out of the Windows executable, and for the localization reader
+the Linux one, by the spec work: 95 rows, each with its evidence, its status and what it rests on per platform. The index
 reads them and holds no rule of its own; the stand-in table this page once fed is retired
 ([decisions.md](decisions.md#log)). Each rule below now says which row decides it, or that it
 is still open, under **Decided by**. A row decides when its status is `settled` or `derived`;
@@ -46,15 +46,15 @@ checked against any source.
 The status as this page found it from the game's files, and as the spec package's rows now
 decide it:
 
-| # | Rule | From the game's files (2026-11-21) | Decided by the package's rows (2026-11-22) |
+| # | Rule | From the game's files (2026-11-21) | Decided by the package's rows (2026-11-22; format 8, 2026-11-23) |
 | --- | --- | --- | --- |
 | 1 | A file replaces the file at the same path in an earlier layer, whole | Settled for a mod over the base game | Settled: `mod-file-replaces-lower-layers` (a mod over the DLC, `game`, `jomini`, `clausewitz`) |
 | 2 | File identity is the whole relative path, not the file name | Settled | Settled: `file-is-its-relative-path` |
 | 3 | The install's three folders, `clausewitz`, `jomini` and `game`, are one tree; which copy wins | Open: experiment 1 | Settled: `game-file-replaces-jomini-and-clausewitz`, `jomini-file-replaces-clausewitz` |
 | 4 | The order files are read in, within a folder and across the base game and a mod | Open: experiment 2 | Settled: `file-read-order`; whether a folder is read with its subfolders, `listing-depth-recursive` (194 folders) and `listing-depth-this-folder-only` (3), settled; 12 folders only by `partial` rows, open |
-| 5 | A key defined again in a keyed database: whole record or field by field, and which wins | Open: experiments 2 and 3 | Settled for 187 generic folders and 8 with a row of their own: the later wins, whole. 32 folders have no row, `gui` is open |
-| 6 | Folders with their own documented rules: events, character history, on-actions, defines, container keys, province terrain | Settled, except two parts that are open: experiments 4 and 5 | Settled but character history, whose row is `partial` (open again in the index); the history of titles and provinces is settled (every block applies) |
-| 7 | Localization: a key defined twice, and the `replace` folder | Open: experiment 6 | Settled: `localization-first-kept`, `localization-replace-folder-wins`. On Linux a file without a byte-order mark adds no keys (`msg-localization-missing-bom`), which the index does not apply yet |
+| 5 | A key defined again in a keyed database: whole record or field by field, and which wins | Open: experiments 2 and 3 | Settled for 187 generic folders and 8 with a row of their own: the later wins, whole. A coat of arms written as an alias line is replayed (`coat-of-arms-alias`). A nested name is known by itself or with its parent as part D3's `name_scope` says; a scope resting on the measurement alone decides nothing. 32 folders have no row, `gui` is open |
+| 6 | Folders with their own documented rules: events, character history, on-actions, defines, container keys, province terrain | Settled, except two parts that are open: experiments 4 and 5 | Settled but character history, whose row is `partial` (open again in the index); the history of titles and provinces is settled (every block applies); genes are one key space in six containers, `special_genes` among them; province terrain is per store, the later statement in force |
+| 7 | Localization: a key defined twice, and the `replace` folder | Open: experiment 6 | Settled: `localization-first-kept`, `localization-replace-folder-wins`. On Linux and Windows a file without a byte-order mark adds no keys (`msg-localization-missing-bom`, its `file_condition` applied) |
 | 8 | `replace_path` in a mod's descriptor | Open: experiment 7 | Settled: `replace-path-hides-lower-layers-in-listings` |
 | 9 | Letter case in paths | Open: experiments 8a and 8b | `derived` per platform: case-insensitive on Windows (`path-case-windows`), exact on Linux (`path-case-linux`); the engine folds no case (`path-case-engine-folds-nothing`, settled) |
 | 10 | DLC folders | Settled for 1.21.0.3; a mod file at a DLC file's path open | Settled: `dlc-packs-layout`, `dlc-file-replaces-install-folders`, and a mod over a DLC by rule 1's row |
@@ -63,10 +63,12 @@ decide it:
 What stays open, and the index answers "winner not known" for: character history defined more
 than once (rule 6, a partial row), a file below a subfolder of a folder whose depth
 only a partial row states (12 folders) or no row states (rule 4), the 32 folders of no row and
-`gui` (rule 5), the order of two DLC packs or two mods against each other (rule 1's mount
-order, not applied: the index holds one mod), and the per-field outcomes of an on-action
-declared twice (rule 6, not applied). The rows the package keeps `open` (7) and `partial` (12)
-are listed in [decisions.md](decisions.md#awaiting-confirmation) with what the index does with
+`gui` (rule 5), a nested name whose scope part D3 does not settle written under more than one
+parent (rule 5), a gene after a refused one in its block and the decal atlases of
+`common/genes` (rule 6, the open part of `gene-database-later-wins` and a partial row), the
+order of two DLC packs or two mods against each other (rule 1's mount order, not applied: the
+index holds one mod), and the per-field outcomes of an on-action declared twice (rule 6, not
+applied). The rows the package keeps `open` (7) and `partial` (15) are listed in [decisions.md](decisions.md#awaiting-confirmation) with what the index does with
 each kind.
 
 ## The evidence
@@ -223,7 +225,34 @@ situations, activity types, coats of arms, modifier definition formats and lande
 title key, nested or not). Two keys are one key when their bytes are equal, letter case not
 folded (`key-identity-generic-database`, `key-identity-byte-exact-readers`), which is how the
 index compares them. 32 folders have no row (`coverage` class `unknown`) and `gui` is `open`:
-their names stay "winner not known".
+their names stay "winner not known". GUI type names are lower-cased before they are stored
+(`key-identity-gui-types`, settled); the index reads no `.gui` file, so the row decides nothing
+it answers.
+
+**Coats of arms written as alias lines** (format 8, `coat-of-arms-alias`, settled; derived from
+the code, not observed in a running game): a top-level `key = other_key` makes the key another
+name of the object `other_key` points to, at the moment the line is read. The target must be
+read already (an earlier file, or earlier in the file); when it is not, the line does nothing
+and the key keeps what it had. A block, then an alias line: the alias is in force. An alias
+line, then a block for the key: the block is read into the shared object, so it defines the
+key, the target and every name aliased to it. Two alias lines: the later wins. The index
+replays the folder's top-level statements in read order, and an answer says the object a name
+shares and the block that fills it. On the base game the replay names, for each of the 21 names
+of the package's own replay (7 written as a block and an alias, 14 aliased twice), the
+statement and the block the package derives, and the three blocks read into another name's
+object (`678`, `tangut_liang`, `102020`, in `90_dynasties.txt`). A `template = x` line is no
+alias line; `name = value` inside a `template` block or in `template_lists` stays open
+(`coat-of-arms-value-entries-in-other-readers`, partial).
+
+**Nested names** (format 8, part D3's `name_scope`): a name found inside a record is known by
+itself (`global`: a landed title, a relation level, a house unity stage) or only with its
+parent (`parent`: a trait's track by its trait, an activity's option by its category and
+record, a define by its group, a gene's template by its gene). The format 7 reading took every
+name found by its place as local to its parent. 11 rows rest on the measurement alone and 2
+are unknown: they decide nothing, and such a name written under more than one parent is
+"winner not known" (reason `name-scope`; 167 base-game names, 142 of them portrait modifiers).
+A nested kind other than the folder's records has no row of the table: a `global` name of it
+written twice has no winner either.
 
 **Open: experiments 2 and 3.** The executable's generic database (`jomini/core/game_database.h`)
 logs `Overriding entry '{}' for database '{}' in '{}'`: when a key is read that the database
@@ -262,8 +291,10 @@ reports no clash for a character defined twice; on-actions, `on-action-declarati
 `define-groups-add-up` and `defines-later-wins-per-define` (settled: the later block wins, and
 inside one block the first of two); container keys, `named-colors-container`,
 `coat-of-arms-template-container`, `coat-of-arms-template-lists-container` with their
-later-wins rows (settled; `special_genes` has no containers row, `gene-database-later-wins`
-decides genes); province terrain, `province-terrain-statements` (settled); the history of titles
+later-wins rows (settled); genes, `gene-group-containers`, `special-genes-container` and
+`age-presets-container` (settled, format 8) with `gene-database-later-wins`
+(`decal-atlases-container` is partial); province terrain, `province-terrain-statements`
+(settled, read in the folder's own reader on 2026-11-23); the history of titles
 and of provinces, `title-history-appended` and `province-history-appended` (settled: every
 block of every definition applies, the later read deciding a date's entries), which answers the
 open part this page left (experiment 5).
@@ -318,9 +349,28 @@ most of them.
 | `common/coat_of_arms/template_lists` | `coat_of_arms_template_lists` | 2 |
 | `common/coat_of_arms/coat_of_arms` | `template` | 3 |
 
+**Genes: one key space in six containers** (format 8). `color_genes`, `morph_genes` and
+`accessory_genes` are containers whose children are genes; `special_genes` is a container of
+containers, whose children are those three keys and whose genes are definitions of the same map.
+A gene is known by its name, byte for byte, and the portrait group a `portrait_group = <name>`
+line earlier in its block sets (the base game writes none; every gene has the default group).
+The same type again: the later wins, whole. Another type: an error, and the earlier is kept;
+the reader leaves that block there, and what becomes of the genes after it is not traced, so
+the index names no winner for them. `age_presets` is a key space of its own (later wins,
+whole); `decal_atlases` is partial and decides nothing. A gene's templates are known by their
+gene; that the templates of a replaced gene are dropped with it (`details.templates`) is not
+applied, as no nested name follows its record's answer yet.
+
 **Province terrain: settled, not keyed.**
 `<game dir>/common/province_terrain/_province_terrain.info`, line 3: the folder is not a
-regular keyed database; every file in it is read in order, each a mix of statements.
+regular keyed database; every file in it is read in order, each a mix of statements. Since
+format 8 the row says what a repetition does (`details.statements`, read in the folder's own
+reader): a statement written again is overwritten by the later read, a winter block field by
+field, and a province's terrain line and its winter block are separate stores that never
+replace each other. The index keeps each store apart (a definition's `container` is the store)
+and answers within it. `msg-duplicate-modifier` is about entries inside a building of
+`common/buildings`, not this folder. A province id is compared as written (`007` and `7` are
+one key to the game: not applied).
 
 **History of titles and provinces: open, experiment 5.** `<game dir>/history/_history.info`:
 every history file is a block of starting values followed by dated blocks whose values override
@@ -334,10 +384,11 @@ within one file and 629 times across two files.
 **Decided by** `localization-first-kept` (settled, read in both executables): of two
 definitions in ordinary files, the one read first is kept; `localization-replace-folder-wins`
 (settled): a file under a folder named `replace`, written byte for byte anywhere in its path,
-wins over every ordinary file, and of two such files the one read later. On Linux a file
-without a UTF-8 byte-order mark adds no keys at all (`msg-localization-missing-bom`, settled,
-Linux only): the row's condition is in its text, not in a field, so the index does not apply
-it yet (a request to the spec work, [decisions.md](decisions.md)).
+wins over every ordinary file, and of two such files the one read later. A file without a
+UTF-8 byte-order mark adds no keys at all (`msg-localization-missing-bom`, settled, read on
+Linux and, since format 8, Windows): its `file_condition` names the files (every `.yml` below
+`localization/`), the condition (`no-utf8-bom`) and the effect (`no-definitions`), and the
+index applies it to the bytes of each file it reads (none in the base game).
 
 **Open: experiment 6.** The executable's localization reader (`pdx_localize.cpp`) logs
 `Duplicate localization key. Key '%s' is defined in both '%s' and '%s'.`, `Key '%s' defined in

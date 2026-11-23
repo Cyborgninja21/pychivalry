@@ -11,6 +11,7 @@ import path from 'node:path';
 import {
     APPLIED_KINDS,
     decides,
+    fileConditionRules,
     openSpec,
     PLATFORMS,
     rulesDigest,
@@ -73,6 +74,8 @@ export interface RulesUse {
     not_settled: number;
     /** Rows of an extension kind the index does not apply. */
     skipped: number;
+    /** Rows whose `file_condition` the index applies, whatever their kind (format 8). */
+    file_conditions: number;
 }
 
 /** How the index uses the table on each platform. */
@@ -84,6 +87,7 @@ export function rulesUse(table: RulesTable): RulesUse[] {
             applied: rows.filter(decides).length,
             not_settled: rows.filter((r) => APPLIED_KINDS.has(r.kind) && !decides(r)).length,
             skipped: rows.filter((r) => !APPLIED_KINDS.has(r.kind)).length,
+            file_conditions: fileConditionRules(table, platform).length,
         };
     });
 }

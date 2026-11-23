@@ -1,0 +1,27 @@
+# Coats of arms written as blocks and as alias lines `key = other_key` (format 8:
+# coat-of-arms-alias). An alias is made when its line is read, on a target read before it.
+fixture_coa_a = {
+	pattern = "fixture_a"
+}
+fixture_coa_b = {
+	pattern = "fixture_b"
+}
+# Two alias lines: the later wins.
+fixture_alias_twice = fixture_coa_a
+fixture_alias_twice = fixture_coa_b
+# A block, then an alias line: the alias is in force.
+fixture_block_then_alias = {
+	pattern = "fixture_c"
+}
+fixture_block_then_alias = fixture_coa_a
+# An alias line, then a block for the key: the block is read into the shared object, so it
+# is in force for the key, for fixture_coa_b and for fixture_alias_twice too.
+fixture_alias_then_block = fixture_coa_b
+fixture_alias_then_block = {
+	pattern = "fixture_d"
+}
+# The target is not read yet: the line does nothing.
+fixture_alias_missing = fixture_coa_later
+fixture_coa_later = {
+	pattern = "fixture_e"
+}
