@@ -24,8 +24,10 @@ what it changes.
   `%LOCALAPPDATA%\pychivalry\Cache\index`, on Linux `~/.cache/pychivalry/index` (or under
   `$XDG_CACHE_HOME` when you set it). Nothing is written into your mod or the game folder. It is
   rebuilt by itself when the game is patched, and you can delete it at any time.
-- **No keys.** Nothing in the settings holds an API key or a login. The AI that uses pychivalry
-  is Claude Code or VS Code's built-in AI, on the login it already has.
+- **No keys.** Nothing in the settings holds an API key, a token or a login, and pychivalry
+  makes no network call or model call. The AI that uses pychivalry is always another program
+  that connects to it: Claude Code or VS Code's built-in AI, signed in however you already
+  signed it in ([the agent server](agent-server.md)).
 
 ## From source
 

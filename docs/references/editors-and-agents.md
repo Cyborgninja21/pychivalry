@@ -27,9 +27,15 @@ about the game: check again before relying on one.
 - **Skills** are folders of instructions a harness loads on demand. pychivalry ships three:
   explain, fix, and write content. Whether one skills folder loads in both harnesses is part of
   open question 4.
-- **Scored runs** start Claude Code's command-line mode once per trial on the existing login,
-  confined to the server under test plus file read and edit. The flags are in item 6.8 of
-  [PLAN.md](../PLAN.md). No API key is stored anywhere.
+- **Scored tests** are developer test scripts, never shipped and never run by CI. They start
+  the Claude Code already installed on the developer's machine, signed in however the developer
+  signed it in, once per trial as a separate test session in its command-line mode, confined to
+  the server under test plus file read and edit, and give it no credentials. Claude Code has its
+  own command-line option that ends a session early, `--max-budget-usd`; the scored test uses
+  it only as a per-session limit, a safety stop, and pychivalry does no accounting of its own.
+  Each test session counts against the developer's own Claude plan, like any session they open.
+  The other flags are in item 6.8 of [PLAN.md](../PLAN.md). pychivalry holds no API key, token
+  or login and makes no model call.
 - **VS Code's built-in AI cannot be scripted.** It is checked by hand before a release against
   a written checklist.
 

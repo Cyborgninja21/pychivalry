@@ -10,9 +10,10 @@ the workspace index, is built, with the override rules as data, read from the pa
 step 4 is built: the check inventory ([checks.md](checks.md), signed off), the typed spec reader,
 62 of its 78 checks (two blocked, eleven retired by their re-proof, three for steps 10 and 11),
 lookup, the base-game and real-mod suites and their classifications, and the limits; build step
-5, the command line, is built; of build step 6, the agent server is built (items 6.1 to 6.6).
-What waits on the owner or on the spec work is in [decisions.md](decisions.md). Nothing else in
-this document is built yet.
+5, the command line, is built; of build step 6, items 6.1 to 6.10 are built: the agent server,
+the planted-defect mod, its graders and the scored-test script. Item 6.11, the first test
+sessions, waits for the owner's word. What waits on the owner or on the spec work is in
+[decisions.md](decisions.md). Nothing else in this document is built yet.
 
 The build plan, step by step, is in [PLAN.md](PLAN.md).
 
@@ -49,7 +50,8 @@ lives unchanged in `legacy/`.
 | Machines | This laptop runs the game-file suites: it has the game and the five test mods. The analysis machine, a Windows desktop with the analysis tools, is used only to re-derive the spec and to load content in the running game. |
 | VS Code floor | Recent editors only. The floor is the release where VS Code's Copilot harness is the default; 1.146 unless build step 7 finds an earlier one. |
 | AI surface | One bundled agent server (MCP) plus a set of skills. It serves both Claude Code and VS Code's built-in AI. There is no chat participant and no separate set of language-model tools. |
-| AI harness | The AI that uses pychivalry is Claude Code running in VS Code, or VS Code's built-in AI. No API key is stored anywhere. |
+| AI harness | The AI that uses pychivalry is always another program that connects to it: Claude Code running in VS Code, or VS Code's built-in AI, signed in however its user already signed it in. pychivalry contains no API key, no token and no login, and no shipped package makes a network call or a model call; a test in CI holds every shipped package to it. |
+| AI tests | The agent-use test runs test sessions of the Claude Code already installed on the developer's machine, pinned to Opus 5.5 (`claude-opus-5-5`). Its first test sessions wait for the owner's word; after them the result is reported, and build step 7 starts only on the owner's go. Documents and code never describe the test in terms of money, accounts or keys. |
 | Authoring bar | The authoring loop has a round limit of 5. Its pass-rate targets are set after the first scored run. |
 | Authored content | Scored on validity (the checker) and on two further measures: a model judging the result against the request, and loading the content in the real game. |
 | Authoring order | The authoring skill is built straight after the formatter, at build step 9. |
@@ -103,7 +105,9 @@ The extension gives the AI already running in the user's VS Code real CK3 knowle
   adds the server and the skills to Claude Code once.
 - Quick fixes on diagnostics come from the same fix data an agent receives.
 
-pychivalry holds no model and no API key.
+pychivalry holds no model, no API key, no token and no login, and makes no network call and no
+model call: the AI is always another program that connects to it. A test in public CI holds
+every shipped package to that.
 
 Why not a chat participant: VS Code deprecated chat participants on 2026-11-18. They do not
 work in its default AI harness, and the older harness that still runs them is removed in
@@ -429,8 +433,8 @@ of 5.8 GiB, with an 8 GiB heap limit, which 2.3.0 needs on this game build.
 ## Tests per feature
 
 `G` means the suite needs game files: it is run by the local task on this laptop and its result
-is a committed record. `T` means it needs the running game on the analysis machine. `M` means it calls an AI
-model (see [AI tests](#ai-tests)). Everything unmarked runs in public CI on fixtures.
+is a committed record. `T` means it needs the running game on the analysis machine. `M` means it runs as test
+sessions of Claude Code (see [AI tests](#ai-tests)). Everything unmarked runs in public CI on fixtures.
 
 | Feature | Suite | Passes when |
 | --- | --- | --- |
@@ -457,17 +461,32 @@ model (see [AI tests](#ai-tests)). Everything unmarked runs in public CI on fixt
 
 ## AI tests
 
-Two suites call an AI model. They are scored runs: each task runs several times and the result
-is a rate, because a model's output is not repeatable.
+**In plain words.** pychivalry contains no API key, no token and no login, and never will. No
+shipped package (`packages/core`, `cli`, `mcp`, `lsp` and `vscode`) makes a network call or a
+model call: the agent server is a local program that reads mod and game files and answers
+questions. The AI is always another program that connects to pychivalry: Claude Code, or VS
+Code's built-in AI, signed in however its user already signed it in. The AI tests below are
+developer test scripts. They are not shipped, not part of the extension, and never run by CI.
+Each starts the Claude Code program already installed on the developer's machine, as a separate
+test session with pychivalry's agent server attached, and grades what that session did; the
+agent-use test grades it in code, on a copy of the planted-defect mod.
+The script gives Claude Code no credentials and removes any key or token variable from the
+session's environment. The only effect on the developer is that each test session counts
+against their own Claude plan, like any session they open themselves.
 
-- **How they run.** A script starts Claude Code's command-line mode once per trial, on the
-  existing Claude login. No API key is stored. Each trial is confined to the agent server
-  under test plus file read and edit, in a fresh throwaway copy of a test mod. Runs draw on
-  the login's usage limits, so they are started by a person or an agent, never by CI.
+Two suites run this way. They are scored runs: each task runs several times and the result is a
+rate, because a model's output is not repeatable.
+
+- **How they run.** A script starts the developer's Claude Code in its command-line mode, one
+  test session per trial. Each test session is confined to the agent server under test plus file
+  read and edit, in a fresh throwaway copy of a test mod, and has a session limit and a time
+  limit as safety stops. Runs are started by a person, or by an agent on the owner's word,
+  never by CI ([tools/scored-run/README.md](../tools/scored-run/README.md)).
 - **VS Code's built-in AI cannot be scripted.** It is checked by hand before a release, against
   a short written checklist. Only the Claude Code runs are scored.
 - **Agent use.** A test mod with 20 to 30 planted defects, one per check code, plus lines that
-  look wrong and are not. A trial passes when the checker reports zero errors, every planted
+  look wrong and are not (built: 27 defects, one per error and warning code, and 10 look-alikes,
+  in `fixtures/defects/`). A trial passes when the checker reports zero errors, every planted
   defect is gone, nothing outside the planted lines changed, and the look-alikes are untouched.
 - **Authoring.** A fixed list of content requests. Each result is graded on validity by the
   checker and on the match to the request by a separate model call that may answer "cannot
@@ -628,7 +647,7 @@ executable analysis needs the analysis machine; the parts that only read game fi
 | The scope is a full product, not a small first version | Nothing ships for a long time. | Preview builds at steps 7, 8 and 9. |
 | Model output is not repeatable | A scored run passes one day and fails the next. | Rates over several trials, targets set from real numbers. |
 | The derived spec is incomplete somewhere | A false "unknown" error on a real keyword. | Nothing is dropped from the spec; the real-mod suite demands zero false errors. |
-| Scored runs use the owner's Claude usage limits | A release-size run could be cut short. | Trial counts are fixed and small; a run records where it stopped and resumes. |
+| Test sessions count against the developer's own Claude plan | A release-size run could be cut short by the plan's own limits. | Trial counts are fixed and small; each test session has a session limit and a time limit; a run records where it stopped and resumes. |
 
 ## Open questions
 
