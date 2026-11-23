@@ -107,8 +107,36 @@ interface RuleBase {
     /** For a row that is not settled: what is not shown. */
     readonly open?: string;
     readonly note?: string;
+    /**
+     * Format 8: the files the row decides contribute nothing, whatever the row's kind
+     * (`msg-localization-missing-bom`: a localization file without a byte-order mark).
+     */
+    readonly file_condition?: FileCondition;
     readonly [key: string]: unknown;
 }
+
+/**
+ * Which files contribute nothing, as data (`file_condition`, format 8): the files (a folder,
+ * an extension, whether its subfolders count), the condition they meet and its effect. The
+ * index applies the conditions and effects it knows (`FILE_CONDITIONS`, `FILE_EFFECTS`); the
+ * words of `which` and `test` are prose and are not read.
+ */
+export interface FileCondition {
+    readonly files: {
+        readonly folder: string;
+        readonly extension: string;
+        readonly recursive: boolean;
+        readonly which?: string;
+    };
+    readonly condition: string;
+    readonly effect: string;
+    readonly test?: string;
+}
+
+/** The file conditions the index tests: `no-utf8-bom`, the file does not start with EF BB BF. */
+export const FILE_CONDITIONS: readonly string[] = ['no-utf8-bom'];
+/** The effects the index applies: `no-definitions`, none of the file's keys is added. */
+export const FILE_EFFECTS: readonly string[] = ['no-definitions'];
 
 /** A file in `layer` replaces, whole, the file at the same relative path in each of `over`. */
 export interface FileReplaceRule extends RuleBase {
@@ -198,6 +226,50 @@ export interface KeyResolutionRule extends RuleBase {
      * others'; `partial`, the fields the rule's note names, the rest adding up.
      */
     readonly combine?: 'whole' | 'fields' | 'partial';
+    /** Format 8: the row's form is an alias line, `key = other_key` (`coat-of-arms-alias`). */
+    readonly alias?: AliasRule;
+}
+
+/**
+ * An alias line as data (format 8, `alias` of a key-resolution row): when the alias is made,
+ * whether its target must be read first, whether the key and the target share one object, what
+ * a missing target keeps, and what holds when the key is also written as a block after the
+ * line (`before_block`), before it (`after_block`) or as an alias again (`repeated`). The
+ * index applies the values of `ALIAS_APPLIED`; a row with any other value decides nothing.
+ */
+export interface AliasRule {
+    readonly form: string;
+    readonly made: string;
+    readonly requires_target_read_first: boolean;
+    readonly shares_object: boolean;
+    readonly target_missing: { readonly keeps: string; readonly message?: string };
+    readonly after_block: string;
+    readonly before_block: string;
+    readonly repeated: string;
+}
+
+/** The alias the index replays: made when read, on a target already read, one shared object. */
+export const ALIAS_APPLIED = {
+    made: 'at-read',
+    requires_target_read_first: true,
+    shares_object: true,
+    target_missing: 'first',
+    after_block: 'alias-in-force',
+    before_block: 'block-read-into-shared-object',
+    repeated: 'later-wins',
+} as const;
+
+/** Whether the index can replay an alias row: every value is one it applies. */
+export function aliasApplies(alias: AliasRule): boolean {
+    return (
+        alias.made === ALIAS_APPLIED.made &&
+        alias.requires_target_read_first === ALIAS_APPLIED.requires_target_read_first &&
+        alias.shares_object === ALIAS_APPLIED.shares_object &&
+        alias.target_missing.keeps === ALIAS_APPLIED.target_missing &&
+        alias.after_block === ALIAS_APPLIED.after_block &&
+        alias.before_block === ALIAS_APPLIED.before_block &&
+        alias.repeated === ALIAS_APPLIED.repeated
+    );
 }
 
 /**
@@ -209,6 +281,23 @@ export interface ContainersRule extends RuleBase {
     readonly kind: 'containers';
     readonly databases: readonly string[];
     readonly keys: readonly string[];
+    /** Format 8: what the children of the keys are, and the key space of the definitions. */
+    readonly entries?: ContainerEntries;
+}
+
+/**
+ * What a container's children are (format 8, `entries`): the definitions (`holds:
+ * definitions`), or container keys themselves (`holds: containers`, those `containers` lists),
+ * whose children are the definitions. Definitions of containers that share a `key_space` are
+ * definitions of one map; `not_entries` are child keys that are no definition (a gene
+ * container's `portrait_group` line).
+ */
+export interface ContainerEntries {
+    readonly holds: 'definitions' | 'containers';
+    readonly of: string;
+    readonly key_space: string;
+    readonly containers?: readonly string[];
+    readonly not_entries?: readonly string[];
 }
 
 /** A definition in a file under a folder named `segment`, written byte for byte, wins over every other. */
@@ -300,13 +389,13 @@ export const SKIPPED_KINDS: Readonly<Record<string, string>> = {
     'mount-dependencies':
         "what a descriptor's dependencies do to the mount order of several mods; the index holds one mod",
     'key-identity':
-        'what makes two keys one key: the text byte for byte, case not folded, which is how the index already compares keys',
+        'what makes two keys one key: the text byte for byte, case not folded, which is how the index already compares keys; the one row that folds case, key-identity-gui-types, is for GUI type names, and the index reads no .gui file',
     'field-outcomes':
         'per field of an on-action declared again; the index resolves an on-action as a whole (its declarations add up)',
     'path-case-mechanism':
         'where letter case is compared; its consequence is the two path-case rows',
     'duplicate-message':
-        'the message the game logs for a duplicate: the evidence of definitions/clash (item 4.5), not an answer of what is in force',
+        'the message the game logs for a duplicate: the evidence of definitions/clash (item 4.5), not an answer of what is in force; a row of the kind that carries a file_condition has that field applied (fileConditionRules)',
     'open-question': 'located and not followed: names nothing',
 };
 
@@ -352,9 +441,9 @@ const KIND_FIELDS: Record<RuleKind, { required: string[]; optional: string[] }> 
     },
     'key-resolution': {
         required: ['databases', 'resolve'],
-        optional: ['forms', 'priority_field', 'priority_default', 'combine'],
+        optional: ['forms', 'priority_field', 'priority_default', 'combine', 'alias'],
     },
-    containers: { required: ['databases', 'keys'], optional: [] },
+    containers: { required: ['databases', 'keys'], optional: ['entries'] },
     'folder-wins': { required: ['databases', 'segment'], optional: [] },
     'listing-depth': { required: ['databases', 'recursive'], optional: ['other_folders'] },
     'mount-order': { required: [], optional: [] },
@@ -473,6 +562,9 @@ function rowProblems(row: unknown, at: string): string[] {
             problems.push(`${at}: ${key} must list one or more databases`);
         }
     };
+    if ('file_condition' in row) {
+        problems.push(...fileConditionProblems(row['file_condition'], `${at}.file_condition`));
+    }
     switch (kind) {
         case 'file-replace':
             if (!oneOf(row['layer'], LAYER_NAMES)) {
@@ -548,12 +640,18 @@ function rowProblems(row: unknown, at: string): string[] {
             } else if (!winner && 'combine' in row) {
                 problems.push(`${at}: combine is for a rule that names a winner`);
             }
+            if ('alias' in row) {
+                problems.push(...aliasProblems(row['alias'], `${at}.alias`));
+            }
             break;
         }
         case 'containers':
             databases('databases', true);
             if (!stringList(row['keys']) || row['keys'].length === 0) {
                 problems.push(`${at}: keys must list one or more top-level keys, or "*"`);
+            }
+            if ('entries' in row) {
+                problems.push(...entriesProblems(row['entries'], `${at}.entries`));
             }
             break;
         case 'folder-wins':
@@ -573,6 +671,79 @@ function rowProblems(row: unknown, at: string): string[] {
             break;
         default:
             break;
+    }
+    return problems;
+}
+
+/** The shape of a `file_condition` (format 8). Its values are read where the index applies them. */
+function fileConditionProblems(value: unknown, at: string): string[] {
+    if (!isJson(value)) {
+        return [`${at}: must be an object`];
+    }
+    const problems: string[] = [];
+    const files = value['files'];
+    if (
+        !isJson(files) ||
+        typeof files['folder'] !== 'string' ||
+        files['folder'] === '' ||
+        typeof files['extension'] !== 'string' ||
+        typeof files['recursive'] !== 'boolean'
+    ) {
+        problems.push(`${at}.files: must give a folder, an extension and recursive`);
+    }
+    for (const key of ['condition', 'effect']) {
+        if (typeof value[key] !== 'string' || value[key] === '') {
+            problems.push(`${at}: ${key} must be text`);
+        }
+    }
+    return problems;
+}
+
+/** The shape of an `alias` (format 8). A value the index does not replay makes the row decide nothing. */
+function aliasProblems(value: unknown, at: string): string[] {
+    if (!isJson(value)) {
+        return [`${at}: must be an object`];
+    }
+    const problems: string[] = [];
+    for (const key of ['form', 'made', 'after_block', 'before_block', 'repeated']) {
+        if (typeof value[key] !== 'string' || value[key] === '') {
+            problems.push(`${at}: ${key} must be text`);
+        }
+    }
+    for (const key of ['requires_target_read_first', 'shares_object']) {
+        if (typeof value[key] !== 'boolean') {
+            problems.push(`${at}: ${key} must be true or false`);
+        }
+    }
+    const missing = value['target_missing'];
+    if (!isJson(missing) || typeof missing['keeps'] !== 'string') {
+        problems.push(`${at}: target_missing must say what it keeps`);
+    }
+    return problems;
+}
+
+/** The shape of a containers row's `entries` (format 8). */
+function entriesProblems(value: unknown, at: string): string[] {
+    if (!isJson(value)) {
+        return [`${at}: must be an object`];
+    }
+    const problems: string[] = [];
+    const holds = value['holds'];
+    if (!oneOf(holds, ['definitions', 'containers'])) {
+        problems.push(`${at}: holds must be definitions or containers`);
+    } else if (
+        holds === 'containers' &&
+        (!stringList(value['containers']) || value['containers'].length === 0)
+    ) {
+        problems.push(`${at}: a row whose keys hold containers lists them: containers`);
+    }
+    for (const key of ['of', 'key_space']) {
+        if (typeof value[key] !== 'string' || value[key] === '') {
+            problems.push(`${at}: ${key} must be text`);
+        }
+    }
+    if ('not_entries' in value && !stringList(value['not_entries'])) {
+        problems.push(`${at}: not_entries must list keys`);
     }
     return problems;
 }
@@ -725,6 +896,21 @@ export function decides(rule: Rule): boolean {
 /** The rows the index applies on a platform: those that hold there and decide. */
 export function decidingRules(table: RulesTable, platform: Platform): Rule[] {
     return rulesFor(table, platform).filter(decides);
+}
+
+/**
+ * The rows whose `file_condition` the index applies on a platform: they hold there, their
+ * status is one it builds on (`settled`, `derived`), whatever their kind, and their condition
+ * and effect are ones it knows. A `duplicate-message` row stays skipped for the rest.
+ */
+export function fileConditionRules(table: RulesTable, platform: Platform): Rule[] {
+    return rulesFor(table, platform).filter(
+        (r) =>
+            r.file_condition !== undefined &&
+            DECIDING_STATUSES.has(r.status) &&
+            FILE_CONDITIONS.includes(r.file_condition.condition) &&
+            FILE_EFFECTS.includes(r.file_condition.effect),
+    );
 }
 
 /**

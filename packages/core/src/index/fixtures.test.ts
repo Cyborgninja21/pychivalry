@@ -5,7 +5,9 @@
  * `fixtures/game/override-rules`: every name answers as the spec package's rules table (part
  * D1) says, on each platform; where no row decides, every definition is listed and no winner
  * is given; and a row taken out of the table, or put back, changes the answer with no change
- * to the code.
+ * to the code. Format 8's rows are among them: the scope of a nested name, the gene containers,
+ * the coat of arms alias line (with the object a name shares), the stores of province terrain,
+ * and a localization file without a byte-order mark, which adds no keys.
  */
 
 import assert from 'node:assert/strict';
@@ -34,6 +36,8 @@ interface Case {
     combine?: string;
     winner: Where | null;
     definitions: (Where & { read: Definition['read'] })[];
+    /** An alias replay's object (`Resolution.shared`): the target, the block that fills it, its names. */
+    shared?: { target: string | null; filled_by: Where; names: string[] };
 }
 
 interface Expected {
@@ -67,6 +71,15 @@ function answer(
         ...(r.status === 'winner' && r.combine !== 'whole' ? { combine: r.combine } : {}),
         winner,
         definitions: r.definitions.map((d) => ({ ...where(d), read: d.read })),
+        ...(r.status === 'winner' && r.shared !== undefined
+            ? {
+                  shared: {
+                      target: r.shared.target,
+                      filled_by: where(r.shared.filledBy),
+                      names: [...r.shared.names],
+                  },
+              }
+            : {}),
     };
 }
 
@@ -138,7 +151,7 @@ test('override-rules: an unknown answer lists every definition and names no winn
 });
 
 /** The table without some of its rows: the answer they gave goes back to "not known". */
-function without(ids: readonly string[]): RulesTable {
+function withoutRows(ids: readonly string[]): RulesTable {
     const table = packageRules();
     return readRulesTable({ ...table, rules: table.rules.filter((r) => !ids.includes(r.id)) });
 }
@@ -189,13 +202,41 @@ const ROWS: RowCase[] = [
         rows: ['mod-file-replaces-lower-layers'],
         name: { database: 'music', container: null, name: 'fixture_dlc_category' },
     },
+    {
+        what: 'rule 5: the alias row settles two alias lines of one coat of arms',
+        mod: 'override-rules',
+        rows: ['coat-of-arms-alias'],
+        name: {
+            database: 'common/coat_of_arms/coat_of_arms',
+            container: null,
+            name: 'fixture_alias_twice',
+        },
+    },
+    {
+        what: 'rule 6: the special_genes containers row makes its blocks add up',
+        mod: 'override-rules',
+        rows: ['special-genes-container'],
+        name: { database: 'common/genes', container: null, name: 'special_genes' },
+    },
+    {
+        what: "rule 6: the gene row's type_mismatch keeps the earlier gene",
+        mod: 'override-rules',
+        rows: ['gene-database-later-wins'],
+        name: { database: 'common/genes', container: 'genes', name: 'fixture_gene_refused' },
+    },
+    {
+        what: 'rule 6: the province terrain row keeps the terrain line and the winter block apart',
+        mod: 'override-rules',
+        rows: ['province-terrain-statements'],
+        name: { database: 'common/province_terrain', container: 'province_terrain', name: '2' },
+    },
 ];
 
 for (const r of ROWS) {
     test(`a row taken out of the table, or put back, changes the answer, no code changed: ${r.what}`, () => {
         const platform = r.platform ?? 'linux';
         const before = answer(
-            fixtureIndex('override-rules', r.mod, { rules: without(r.rows), platform }),
+            fixtureIndex('override-rules', r.mod, { rules: withoutRows(r.rows), platform }),
             r.name,
         );
         const after = fixtureIndex('override-rules', r.mod, { platform });
@@ -213,6 +254,22 @@ for (const r of ROWS) {
         assert.notDeepEqual([before.status, before.winner], [got.status, got.winner]);
     });
 }
+
+test('msg-localization-missing-bom: a localization file without a byte-order mark adds no keys, on each platform', () => {
+    for (const platform of PLATFORMS) {
+        const index = fixtureIndex('override-rules', 'override-rules', { platform });
+        const file = index.getFile('mod', 'localization/english/fixture_no_bom_l_english.yml');
+        assert.equal(file?.noDefinitions, 'msg-localization-missing-bom', platform);
+        assert.equal(file.definitions, 0);
+        assert.deepEqual(index.definitions('fixture_loc_no_bom_only'), [], platform);
+        // Without the row, the file's keys are read as any other's.
+        const without = fixtureIndex('override-rules', 'override-rules', {
+            platform,
+            rules: withoutRows(['msg-localization-missing-bom']),
+        });
+        assert.equal(without.definitions('fixture_loc_no_bom_only').length, 1);
+    }
+});
 
 test('without a platform no row holds: the settled cases have no winner either', () => {
     const index = fixtureIndex('override-rules', 'override-rules', { platform: undefined });

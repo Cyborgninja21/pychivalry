@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/Cyborgninja21/pdx-parser-re/spec/package/schema.format7.json",
-  "title": "CK3 spec package, format 7",
-  "description": "One versioned bundle of the CK3 script vocabulary derived from one executable (see manifest.exe.sha256), in package format 7: format 6 (spec/package/schema.format6.json) plus the three parts D6-D8 of the follow-up pass of 2026-11-22 (spec/FORMAT_5_PLAN.md, \"Format 7\"): three new top-level objects and three entries of `parts`. Every format 6 key keeps its name, meaning and shape; tools/python/build_spec_package.py checks that this file is schema.format6.json plus additions (only property names, $defs entries and required/enum items added; the format number and the number of parts are the only values that differ), as each schema file is the one before it plus additions, back to schema.json (format 4). Built by tools/python/build_spec_package.py. The data of the three heavy parts (C1 info_docs, C2 gui, C3 data_types) is in companion files beside the package file (ck3-spec-<version>.info.json, .gui.json, .data_types.json, each with its .sha256), listed in manifest.companions with their sha256; their shapes are $defs companionInfo, companionGui and companionDataTypes. The parts of formats 6 and 7 are in the package file.",
+  "$id": "https://github.com/Cyborgninja21/pdx-parser-re/spec/package/schema.format8.json",
+  "title": "CK3 spec package, format 8",
+  "description": "One versioned bundle of the CK3 script vocabulary derived from one executable (see manifest.exe.sha256), in package format 8: format 7 (spec/package/schema.format7.json) plus the additions of the third pass of 2026-11-22 (spec/FORMAT_5_PLAN.md, \"Format 8\"), all inside parts that exist: on every `nested` row of `definitions` (D3) the scope of the name (name_scope, scope_parent, name_scope_status, name_scope_basis, name_scope_references, name_scope_evidence, name_scope_qualifier) with its vocabulary; on a row of `declarations` (D2) `alias`; and, described here for the first time, the row fields `file_condition`, `entries`, `alias` and `replayed` of `override_rules` (D1). No top-level key and no part is added. Every format 7 key keeps its name, meaning and shape; tools/python/build_spec_package.py checks that this file is schema.format7.json plus additions (only property names, $defs entries and required/enum items added; the format number is the only value that differs), as each schema file is the one before it plus additions, back to schema.json (format 4). Built by tools/python/build_spec_package.py. The data of the three heavy parts (C1 info_docs, C2 gui, C3 data_types) is in companion files beside the package file (ck3-spec-<version>.info.json, .gui.json, .data_types.json, each with its .sha256), listed in manifest.companions with their sha256; their shapes are $defs companionInfo, companionGui and companionDataTypes. The parts of formats 6 and 7 are in the package file.",
   "type": "object",
   "required": [
     "package_format",
@@ -38,8 +38,8 @@
   "additionalProperties": false,
   "properties": {
     "package_format": {
-      "const": 7,
-      "description": "Shape version. 2 (2026-10-01): adds keyword_templates. 3 (2026-10-02): scope_validity filled from the game's own script_docs output and the new top-level scope_types; a format-2 loader rejects the unknown top-level key, hence the bump. 4 (2026-10-03, post-2.0 Phase 6): schema fields may carry `scope` (the scope types the game evaluates the field in when they are not the record's root, measured on vanilla) and `scope_evidence`, and `provenance: corpus` for an unconfirmed wiki field the real-mod corpus sets; a format-3 loader rejects both (fields are closed, provenance an enum), hence the bump. 5 (2026-11-21, spec/FORMAT_5_PLAN.md phase L2): format 4 plus additions, nothing removed or reshaped: the top-level list parts and the part objects modifier_template_tags (phase L3), info_docs, gui, data_types and tables, manifest.info_text, and optional keys on bucket entries (use_areas, takes), schema fields (record_usage, description_source, value_type, value_type_evidence, wiki_type, values, loc_key, loc_key_evidence, source) and errors (script_facing, reason); a format-4 loader rejects the new top-level keys (additionalProperties false), hence the bump. 6 (2026-11-22, the follow-up pass, spec/FORMAT_5_PLAN.md \"Format 6\"): format 5 plus additions, nothing removed or reshaped: the five top-level objects override_rules (D1), declarations (D2), definitions (D3), keyword_roles (D4) and implicit_loc_keys (D5), and their five entries of parts; each companion file states package_format 6. The top level of format 5 is closed (additionalProperties false), so a format-5 loader rejects the new top-level keys instead of reading a package it only half understands, hence the bump, as for every format before. The format 4 schema is spec/package/schema.json, the format 5 schema spec/package/schema.format5.json. 7 (2026-11-22, the second pull request of the follow-up pass, spec/FORMAT_5_PLAN.md \"Format 7\"): format 6 plus additions, nothing removed or reshaped: the three top-level objects field_references (D6), modifier_block_areas (D7) and iterator_kinds (D8), each {status, data} as the parts of format 6, and their three entries of parts; each companion states package_format 7. The top level of format 6 is closed (additionalProperties false in schema.format6.json), so a format 6 reader refuses the three new keys instead of reading a package it only half understands, hence the bump."
+      "const": 8,
+      "description": "Shape version. 2 (2026-10-01): adds keyword_templates. 3 (2026-10-02): scope_validity filled from the game's own script_docs output and the new top-level scope_types; a format-2 loader rejects the unknown top-level key, hence the bump. 4 (2026-10-03, post-2.0 Phase 6): schema fields may carry `scope` (the scope types the game evaluates the field in when they are not the record's root, measured on vanilla) and `scope_evidence`, and `provenance: corpus` for an unconfirmed wiki field the real-mod corpus sets; a format-3 loader rejects both (fields are closed, provenance an enum), hence the bump. 5 (2026-11-21, spec/FORMAT_5_PLAN.md phase L2): format 4 plus additions, nothing removed or reshaped: the top-level list parts and the part objects modifier_template_tags (phase L3), info_docs, gui, data_types and tables, manifest.info_text, and optional keys on bucket entries (use_areas, takes), schema fields (record_usage, description_source, value_type, value_type_evidence, wiki_type, values, loc_key, loc_key_evidence, source) and errors (script_facing, reason); a format-4 loader rejects the new top-level keys (additionalProperties false), hence the bump. 6 (2026-11-22, the follow-up pass, spec/FORMAT_5_PLAN.md \"Format 6\"): format 5 plus additions, nothing removed or reshaped: the five top-level objects override_rules (D1), declarations (D2), definitions (D3), keyword_roles (D4) and implicit_loc_keys (D5), and their five entries of parts; each companion file states package_format 6. The top level of format 5 is closed (additionalProperties false), so a format-5 loader rejects the new top-level keys instead of reading a package it only half understands, hence the bump, as for every format before. The format 4 schema is spec/package/schema.json, the format 5 schema spec/package/schema.format5.json. 7 (2026-11-22, the second pull request of the follow-up pass, spec/FORMAT_5_PLAN.md \"Format 7\"): format 6 plus additions, nothing removed or reshaped: the three top-level objects field_references (D6), modifier_block_areas (D7) and iterator_kinds (D8), each {status, data} as the parts of format 6, and their three entries of parts; each companion states package_format 7. The top level of format 6 is closed (additionalProperties false in schema.format6.json), so a format 6 reader refuses the three new keys instead of reading a package it only half understands, hence the bump. 8 (2026-11-22, the third pass, spec/FORMAT_5_PLAN.md \"Format 8\"): format 7 plus additions, nothing removed or reshaped, and no new top-level key or part: every `nested` row of definitions (D3) carries the scope of its name (name_scope, name_scope_status and name_scope_evidence on every row; scope_parent, name_scope_basis, name_scope_references and name_scope_qualifier where they apply), with five vocabulary entries; a row of declarations (D2) may carry `alias`, with one vocabulary entry; and the row fields file_condition, entries, alias and replayed of override_rules (D1) are described. The rows of D3 and D2 and their vocabularies are closed in schema.format7.json (additionalProperties false), so a format 7 reader refuses the new keys instead of reading rows it only half understands, hence the bump; the rows of D1 are open, so its new fields alone would not have needed one (file_condition was first built into a format 7 package, in the second commit of the pass). The format 7 package of the same data (build_spec_package.py --format 7 --plain-names) is this package less exactly the D3 and D2 keys named above; each companion states package_format 8."
     },
     "manifest": {
       "$ref": "#/$defs/manifest"
@@ -5991,7 +5991,7 @@
           "description": "The package file this companion belongs to (beside it), which records its sha256."
         },
         "package_format": {
-          "const": 7
+          "const": 8
         },
         "game": {
           "const": "ck3"
@@ -6078,7 +6078,7 @@
           "description": "The package file this companion belongs to (beside it), which records its sha256."
         },
         "package_format": {
-          "const": 7
+          "const": 8
         },
         "game": {
           "const": "ck3"
@@ -6158,7 +6158,7 @@
           "description": "The package file this companion belongs to (beside it), which records its sha256."
         },
         "package_format": {
-          "const": 7
+          "const": 8
         },
         "game": {
           "const": "ck3"
@@ -6751,7 +6751,8 @@
             "rank",
             "scope",
             "status",
-            "supports"
+            "supports",
+            "alias"
           ],
           "additionalProperties": false,
           "properties": {
@@ -6774,6 +6775,9 @@
               "$ref": "#/$defs/vocabularyTree"
             },
             "supports": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "alias": {
               "$ref": "#/$defs/vocabularyTree"
             }
           },
@@ -6875,6 +6879,26 @@
         "database": {
           "type": "string",
           "minLength": 1
+        },
+        "alias": {
+          "type": "object",
+          "required": [
+            "of",
+            "rule"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "of": {
+              "enum": [
+                "value"
+              ]
+            },
+            "rule": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9-]*$"
+            }
+          },
+          "description": "On a row of form value that declares a record: the line makes its key another name (an alias) of the record that `of` names (`value`: the value of the line); `rule` is the id of the row of override_rules (D1) that says when the alias is made and what holds when the key is also written as a block."
         }
       }
     },
@@ -7329,7 +7353,12 @@
             "recognised_by",
             "status",
             "supports",
-            "what"
+            "what",
+            "name_scope",
+            "scope_parent",
+            "name_scope_status",
+            "name_scope_applies_to",
+            "name_scope_qualifier"
           ],
           "additionalProperties": false,
           "properties": {
@@ -7359,6 +7388,21 @@
               "$ref": "#/$defs/vocabularyTree"
             },
             "what": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "name_scope": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "scope_parent": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "name_scope_status": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "name_scope_applies_to": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "name_scope_qualifier": {
               "$ref": "#/$defs/vocabularyTree"
             }
           },
@@ -7432,7 +7476,10 @@
         "kind",
         "measured",
         "recognised_by",
-        "status"
+        "status",
+        "name_scope",
+        "name_scope_status",
+        "name_scope_evidence"
       ],
       "additionalProperties": false,
       "properties": {
@@ -7528,6 +7575,86 @@
         "basis": {
           "type": "string",
           "minLength": 1
+        },
+        "name_scope": {
+          "enum": [
+            "global",
+            "parent",
+            "unknown"
+          ],
+          "description": "Whether the name identifies its definition on its own among the definitions of its kind (global), only together with a parent (parent; `scope_parent` says which), or the evidence does not settle it (unknown). The meanings are in vocabulary.name_scope."
+        },
+        "scope_parent": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Given exactly when name_scope is parent: `record` (the top-level record the name is written in), `container` (the top-level container key), or a leading part of the row's recognised_by.path, in its syntax: the block whose key qualifies the name."
+        },
+        "name_scope_status": {
+          "enum": [
+            "confirmed",
+            "measured-only",
+            "unknown"
+          ],
+          "description": "confirmed: an item of rank 1 to 3 in name_scope_evidence supports the scope and the row's own status is confirmed; measured-only: it rests on the measured base-game use, or the row's own role does (name_scope_basis says what shows it); unknown: name_scope is unknown."
+        },
+        "name_scope_basis": {
+          "type": "string",
+          "minLength": 1,
+          "description": "What the scope rests on where it is not confirmed, and what was looked at where it is unknown."
+        },
+        "name_scope_references": {
+          "type": "array",
+          "minItems": 1,
+          "description": "The fields and links the scope was measured with (measured.name_scope.references): `field = <name>`, the same beside another field that names the parent, or `link:<name>`.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "field": {
+                "type": "string",
+                "minLength": 1
+              },
+              "beside": {
+                "type": "string",
+                "minLength": 1
+              },
+              "link": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "name_scope_evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/definitionsScopeEvidence"
+          },
+          "description": "The evidence of the scope, kept apart from the role's (`evidence`); it always holds a rank 4 item, the measurement."
+        },
+        "name_scope_qualifier": {
+          "type": "object",
+          "required": [
+            "statement",
+            "default",
+            "says"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "statement": {
+              "type": "string",
+              "minLength": 1
+            },
+            "default": {
+              "type": "string",
+              "minLength": 1
+            },
+            "says": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "description": "On a row whose name_scope is global, where the executable's key has a second part that is no parent block: the key of the line that sets it (`statement`, written beside the definitions, before the ones it applies to), what holds without such a line (`default`), and what the part is (`says`). The name is unique among the definitions with one value of it (a gene and its portrait type group)."
         }
       }
     },
@@ -10010,6 +10137,83 @@
         }
       ],
       "properties": {
+        "alias": {
+          "additionalProperties": false,
+          "description": "On a key-resolution row whose form is a line that makes its key another name of a definition that exists (`key = other_key`): the rule as data. The enums are in vocabulary.alias.",
+          "properties": {
+            "after_block": {
+              "enum": [
+                "alias-in-force"
+              ]
+            },
+            "before_block": {
+              "enum": [
+                "block-read-into-shared-object"
+              ]
+            },
+            "form": {
+              "enum": [
+                "record",
+                "value",
+                "prefixed",
+                "constant",
+                "container",
+                "entry",
+                "key"
+              ]
+            },
+            "made": {
+              "enum": [
+                "at-read"
+              ]
+            },
+            "repeated": {
+              "enum": [
+                "later-wins"
+              ]
+            },
+            "requires_target_read_first": {
+              "type": "boolean"
+            },
+            "shares_object": {
+              "type": "boolean"
+            },
+            "target_missing": {
+              "additionalProperties": false,
+              "properties": {
+                "keeps": {
+                  "enum": [
+                    "first",
+                    "last",
+                    "both",
+                    "unknown",
+                    "none"
+                  ]
+                },
+                "message": {
+                  "pattern": "^msg-[a-z0-9-]+$",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "keeps",
+                "message"
+              ],
+              "type": "object"
+            }
+          },
+          "required": [
+            "form",
+            "made",
+            "requires_target_read_first",
+            "shares_object",
+            "target_missing",
+            "after_block",
+            "before_block",
+            "repeated"
+          ],
+          "type": "object"
+        },
         "also_rules": {
           "items": {
             "maximum": 11,
@@ -10041,6 +10245,48 @@
         "details": {
           "type": "object"
         },
+        "entries": {
+          "additionalProperties": false,
+          "description": "On a containers row: what the children of the row's keys are. `holds` definitions: they are the named entries of `key_space`; `holds` containers: they are container keys themselves (`containers` lists the ones the reader accepts) and the children of those are the definitions. Definitions of containers with one `key_space` are definitions of one map of the executable. `not_entries`: child keys that are no entry.",
+          "properties": {
+            "containers": {
+              "items": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            "holds": {
+              "enum": [
+                "definitions",
+                "containers"
+              ]
+            },
+            "key_space": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "not_entries": {
+              "items": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            "of": {
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "required": [
+            "holds",
+            "of",
+            "key_space"
+          ],
+          "type": "object"
+        },
         "evidence": {
           "items": {
             "$ref": "#/$defs/overrideRulesEvidence"
@@ -10054,6 +10300,60 @@
             "type": "string"
           },
           "type": "array"
+        },
+        "file_condition": {
+          "additionalProperties": false,
+          "description": "On a row that decides that some files contribute nothing: the decision as data. `files`: which files (`folder`, a folder of the package; `extension`, with its dot; `recursive`, whether the folder's sub-folders count; `which`, in words). `condition`: one of vocabulary.file_condition.conditions (`no-utf8-bom`: the file is shorter than three bytes or does not start with EF BB BF), with `test`, the same in words as the code tests it. `effect`: one of vocabulary.file_condition.effects (`no-definitions`: the file adds no key, so it neither defines one first nor replaces one, and a key only it defines is missing). The row's `platforms` say where it holds.",
+          "properties": {
+            "condition": {
+              "enum": [
+                "no-utf8-bom"
+              ]
+            },
+            "effect": {
+              "enum": [
+                "no-definitions"
+              ]
+            },
+            "files": {
+              "additionalProperties": false,
+              "properties": {
+                "extension": {
+                  "pattern": "^\\.",
+                  "type": "string"
+                },
+                "folder": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "recursive": {
+                  "type": "boolean"
+                },
+                "which": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "folder",
+                "extension",
+                "recursive",
+                "which"
+              ],
+              "type": "object"
+            },
+            "test": {
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "required": [
+            "files",
+            "condition",
+            "test",
+            "effect"
+          ],
+          "type": "object"
         },
         "findings": {
           "items": {
@@ -10173,6 +10473,134 @@
           "minItems": 1,
           "type": "array",
           "uniqueItems": true
+        },
+        "replayed": {
+          "description": "On a row with `alias`: the committed output of the tool that replays the row's rule over the base game's files, carried whole. Derived, not observed in the game (`basis`). `names`: one entry per name with more than one definition of which at least one is an alias line; `in_force` is null when every alias line of the name misses its target.",
+          "properties": {
+            "basis": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "blocks_read_into_a_shared_object": {
+              "items": {
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "counts": {
+              "type": "object"
+            },
+            "file": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "generator": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "names": {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "group": {
+                    "enum": [
+                      "block-and-alias",
+                      "alias-twice"
+                    ]
+                  },
+                  "in_force": {
+                    "type": [
+                      "object",
+                      "null"
+                    ]
+                  },
+                  "name": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "statements": {
+                    "items": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "file": {
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "form": {
+                          "enum": [
+                            "block",
+                            "value"
+                          ]
+                        },
+                        "line": {
+                          "minimum": 1,
+                          "type": "integer"
+                        },
+                        "target_missing": {
+                          "type": "boolean"
+                        },
+                        "value": {
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "form",
+                        "file",
+                        "line"
+                      ],
+                      "type": "object"
+                    },
+                    "minItems": 1,
+                    "type": "array"
+                  }
+                },
+                "required": [
+                  "name",
+                  "group",
+                  "statements",
+                  "in_force"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "rule": {
+              "type": "object"
+            },
+            "sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            "snapshot": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "value_lines_with_a_missing_target": {
+              "items": {
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "vocabulary": {
+              "type": "object"
+            },
+            "what": {
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "required": [
+            "file",
+            "sha256",
+            "generator",
+            "basis",
+            "counts",
+            "names",
+            "blocks_read_into_a_shared_object",
+            "value_lines_with_a_missing_target"
+          ],
+          "type": "object"
         },
         "status": {
           "enum": [
@@ -12456,6 +12884,102 @@
         }
       },
       "description": "A block that holds modifiers: `id` (<folder>::<field>, <folder>::(record), <folder>::*.<g> for a family, <folder>::**.<key> below depth 2), its `use_areas` with status and evidence, where the row comes from (`holds_from`), what was measured."
+    },
+    "definitionsScopeEvidence": {
+      "type": "object",
+      "required": [
+        "rank",
+        "says",
+        "source",
+        "supports",
+        "where"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "rank": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "says": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source": {
+          "enum": [
+            "executable",
+            "oracle",
+            "catalogue",
+            "info",
+            "base_game"
+          ]
+        },
+        "supports": {
+          "enum": [
+            "presence",
+            "scope"
+          ]
+        },
+        "where": {
+          "type": "string",
+          "minLength": 1
+        },
+        "beside": {
+          "type": "string",
+          "minLength": 1
+        },
+        "string": {
+          "type": "string",
+          "minLength": 1
+        },
+        "verified_in": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "file": {
+          "type": "string",
+          "minLength": 1
+        },
+        "lines": {
+          "type": "string",
+          "minLength": 1
+        },
+        "quote": {
+          "type": "string",
+          "minLength": 1
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "finding": {
+          "type": "object",
+          "required": [
+            "file",
+            "quote"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "file": {
+              "type": "string",
+              "minLength": 1
+            },
+            "quote": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "description": "On an executable item: a quote of a committed findings file of another part (under research/), checked by the tool: what the reading of the executable's code says beside the string."
+        }
+      },
+      "description": "An item of a nested row's `name_scope_evidence` (part D3): the part's evidence item, with `supports` scope (the item shows the scope of the names) or presence, and for an executable item an optional `finding`. An executable item without `string` is a code item: `where` names the functions and findings of the stored analysis it rests on, `verified_in` the findings file and the excerpts."
     }
   }
 }

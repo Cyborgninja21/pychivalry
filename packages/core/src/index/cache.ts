@@ -34,7 +34,7 @@ import path from 'node:path';
 import { WorkspaceIndex, type IndexOptions, type IndexState } from './workspace.js';
 
 /** The cache's format. A change to the layout raises it, and every older cache is rebuilt. */
-export const CACHE_FORMAT = 2;
+export const CACHE_FORMAT = 3;
 
 /** What a cache was built from. Two equal keys mean the cache answers for the same input. */
 export interface CacheKey {
@@ -101,6 +101,7 @@ interface Header {
         readonly kind: 'script' | 'localization';
         readonly folder: string | null;
         readonly exactCase: boolean;
+        readonly noDefinitions: string | null;
         readonly lengths: readonly [number, number, number, number];
     }[];
 }
@@ -133,6 +134,7 @@ export function saveIndex(index: WorkspaceIndex, file: string, key: CacheKey): n
             kind: f.kind,
             folder: f.folder,
             exactCase: f.exactCase,
+            noDefinitions: f.noDefinitions,
             lengths: [f.lineStarts.length, f.defs.length, f.uses.length, f.names.length],
         })),
     };
@@ -242,6 +244,7 @@ export function loadIndex(
                 kind: f.kind,
                 folder: f.folder,
                 exactCase: f.exactCase,
+                noDefinitions: f.noDefinitions,
                 lineStarts: take(f.lengths[0]),
                 defs: take(f.lengths[1]),
                 uses: take(f.lengths[2]),

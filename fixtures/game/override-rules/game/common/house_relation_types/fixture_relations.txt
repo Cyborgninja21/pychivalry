@@ -1,0 +1,13 @@
+# A house relation level is known by its name alone (part D3: name_scope global).
+fixture_relation_a = {
+	levels = {
+		fixture_level = {
+		}
+	}
+}
+fixture_relation_b = {
+	levels = {
+		fixture_level = {
+		}
+	}
+}

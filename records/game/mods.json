@@ -2,11 +2,11 @@
     "record_format": 1,
     "suite": "game:mods",
     "command": "task game:mods",
-    "made_at": "2026-11-23T02:32:02.798Z",
+    "made_at": "2026-11-23T08:35:02.969Z",
     "tool": {
         "name": "pychivalry",
         "version": "0.0.0",
-        "commit": "e30857d9563d6df15ee8d51756e9dfff72f7e4bc",
+        "commit": "6b51b5ff4cadf66e39b867c2c1160f2fd71c84cd",
         "dirty": false
     },
     "machine": {
@@ -24,8 +24,8 @@
     },
     "spec": {
         "version": "1.21.0.3",
-        "sha256": "47fff382e93e9e756e89ba62b8e8463dd59e1bf7740314e8a9e39fb7d28667d9",
-        "package_format": 7
+        "sha256": "b72678ccecdae4fce74a5983ebdba8b0004141881158f7be6bd9bd6eab6a70f7",
+        "package_format": 8
     },
     "corpus": {
         "manifest_sha256": "da1a745c50330a3a50dee079fe53609cd236f2f8db8c9533084cfb96fbb0b2c6",

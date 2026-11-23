@@ -19,10 +19,28 @@
  *   when the row's scope is `file`.
  * - D3, `definitions`: keys inside a record that are themselves definitions (a landed title
  *   nested at any depth, the options of an activity type), and the folders whose records are
- *   named by their file (`history/cultures`).
+ *   named by their file (`history/cultures`). Since format 8 each row says where its name
+ *   identifies the definition (`name_scope`): on its own, or only together with a parent
+ *   (`scope_parent`); a scope that is not `confirmed` decides nothing (`NestedScope`).
  */
 
 import type { DeclarationRow, NestedRow } from '../spec/package.js';
+
+/**
+ * Where a nested name identifies its definition (part D3, format 8), read from a row whose
+ * `name_scope_status` is `confirmed`:
+ *
+ * - `global`: the name alone, among the definitions of its kind (`qualifier`: the key of the
+ *   line that sets a second part of the key, a gene's `portrait_group`, or null);
+ * - `parent`: only together with the block `depth` keys down from the top level (1, the
+ *   record or the container key; more, the leading part of the path `scope_parent` names);
+ * - `not-settled`: the scope is `unknown`, or rests on the measurement alone: it decides
+ *   nothing, and the same name under two parents is "winner not known".
+ */
+export type NestedScope =
+    | { readonly kind: 'global'; readonly qualifier: string | null }
+    | { readonly kind: 'parent'; readonly depth: number }
+    | { readonly kind: 'not-settled'; readonly status: string };
 import { foldCase, parentOf, segmentsOf } from './paths.js';
 
 /** A top-level form that part D2 says declares no name: `namespace = x`, a setting. */
@@ -54,6 +72,29 @@ export interface NestedRule {
     readonly pattern: RegExp | null;
     readonly except: ReadonlySet<string>;
     readonly field: string | null;
+    /** Format 8: where the name identifies the definition. */
+    readonly scope: NestedScope;
+}
+
+/** The scope a D3 row gives its names (format 8): confirmed scopes only decide. */
+export function scopeOf(row: NestedRow): NestedScope {
+    if (row.name_scope_status !== 'confirmed' || row.name_scope === 'unknown') {
+        return { kind: 'not-settled', status: row.name_scope_status };
+    }
+    if (row.name_scope === 'global') {
+        return { kind: 'global', qualifier: row.name_scope_qualifier?.statement ?? null };
+    }
+    const parent = row.scope_parent ?? '';
+    if (parent === 'record' || parent === 'container') {
+        return { kind: 'parent', depth: 1 };
+    }
+    // A leading part of the row's own path: the block at that path qualifies the name.
+    const path = row.recognised_by.path.split('/');
+    const segments = parent.split('/');
+    const leading = segments.length <= path.length && segments.every((s, i) => s === path[i]);
+    return leading
+        ? { kind: 'parent', depth: segments.length }
+        : { kind: 'not-settled', status: `scope_parent ${parent} is no leading part of the path` };
 }
 
 /** A key matcher of D2 and D3: the word itself, a whole-key pattern, or a prefix. */
@@ -146,6 +187,7 @@ function nestedOf(rows: unknown, contentTypes: ReadonlyMap<string, string>): Nes
                 pattern: by.pattern === undefined ? null : wholeKey(by.pattern),
                 except: new Set(by.except ?? []),
                 field: by.field ?? null,
+                scope: scopeOf(r),
             };
         });
 }
@@ -166,7 +208,7 @@ export function constantScopeFromSpec(specPackage: unknown): string | null {
 }
 
 /**
- * The folder list of a format 7 spec package: `directories[]` with `path` and
+ * The folder list of a format 8 spec package: `directories[]` with `path` and
  * `content_type`, and `schema[path]` with `fields` and `vanilla.records` and `vanilla.files`;
  * from parts D2 and D3, what a folder's files define beyond their top-level keys. An entry
  * without a path or content type is skipped.

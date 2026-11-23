@@ -1,0 +1,5 @@
+# Read after the game's file: a later block for fixture_coa_a fills the object
+# fixture_block_then_alias points to as well.
+fixture_coa_a = {
+	pattern = "fixture_mod"
+}

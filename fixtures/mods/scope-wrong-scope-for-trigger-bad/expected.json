@@ -1,0 +1,82 @@
+{
+    "findings": [
+        {
+            "file": "common/decisions/fixture_decisions.txt",
+            "line": 5,
+            "column": 3,
+            "code": "scope/wrong-scope-for-trigger",
+            "severity": "error",
+            "message": "Wrong scope for trigger: character, expected landed_title",
+            "data": {
+                "name": "tier",
+                "scope": "character",
+                "expected": ["landed_title"]
+            }
+        },
+        {
+            "file": "common/decisions/fixture_decisions.txt",
+            "line": 7,
+            "column": 4,
+            "code": "scope/wrong-scope-for-trigger",
+            "severity": "error",
+            "message": "Wrong scope for trigger: landed_title, expected character",
+            "data": {
+                "name": "is_adult",
+                "scope": "landed_title",
+                "expected": ["character"]
+            }
+        },
+        {
+            "file": "common/decisions/fixture_decisions.txt",
+            "line": 8,
+            "column": 4,
+            "code": "scope/wrong-scope-for-trigger",
+            "severity": "error",
+            "message": "Wrong scope for trigger: landed_title, expected character",
+            "data": {
+                "name": "any_vassal",
+                "scope": "landed_title",
+                "expected": ["character"]
+            }
+        },
+        {
+            "file": "common/decisions/fixture_decisions.txt",
+            "line": 13,
+            "column": 4,
+            "code": "scope/wrong-scope-for-trigger",
+            "severity": "error",
+            "message": "Wrong scope for trigger: landed_title, expected character",
+            "data": {
+                "name": "has_trait",
+                "scope": "landed_title",
+                "expected": ["character"]
+            }
+        },
+        {
+            "file": "common/decisions/fixture_decisions.txt",
+            "line": 21,
+            "column": 4,
+            "code": "scope/wrong-scope-for-trigger",
+            "severity": "error",
+            "message": "Wrong scope for trigger: province, expected landed_title",
+            "data": {
+                "name": "has_county_modifier",
+                "scope": "province",
+                "expected": ["landed_title"]
+            }
+        },
+        {
+            "file": "events/fixture_events.txt",
+            "line": 8,
+            "column": 3,
+            "code": "scope/wrong-scope-for-trigger",
+            "severity": "error",
+            "message": "Wrong scope for trigger: province, expected character",
+            "data": {
+                "name": "is_adult",
+                "scope": "province",
+                "expected": ["character"]
+            }
+        }
+    ]
+}
