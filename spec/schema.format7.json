@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/Cyborgninja21/pdx-parser-re/spec/package/schema.format5.json",
-  "title": "CK3 spec package, format 5",
-  "description": "One versioned bundle of the CK3 script vocabulary derived from one executable (see manifest.exe.sha256), in package format 5: format 4 (spec/package/schema.json) plus the additions of spec/FORMAT_5_PLAN.md. Every format 4 key keeps its name, meaning and shape; tools/python/build_spec_package.py checks that this file is schema.json plus additions (only property names, $defs entries and required/enum items added). Built by tools/python/build_spec_package.py --format 5. The data of the three heavy parts (C1 info_docs, C2 gui, C3 data_types) is in companion files beside the package file (ck3-spec-<version>.info.json, .gui.json, .data_types.json, each with its .sha256), listed in manifest.companions with their sha256; their shapes are $defs companionInfo, companionGui and companionDataTypes.",
+  "$id": "https://github.com/Cyborgninja21/pdx-parser-re/spec/package/schema.format7.json",
+  "title": "CK3 spec package, format 7",
+  "description": "One versioned bundle of the CK3 script vocabulary derived from one executable (see manifest.exe.sha256), in package format 7: format 6 (spec/package/schema.format6.json) plus the three parts D6-D8 of the follow-up pass of 2026-11-22 (spec/FORMAT_5_PLAN.md, \"Format 7\"): three new top-level objects and three entries of `parts`. Every format 6 key keeps its name, meaning and shape; tools/python/build_spec_package.py checks that this file is schema.format6.json plus additions (only property names, $defs entries and required/enum items added; the format number and the number of parts are the only values that differ), as each schema file is the one before it plus additions, back to schema.json (format 4). Built by tools/python/build_spec_package.py. The data of the three heavy parts (C1 info_docs, C2 gui, C3 data_types) is in companion files beside the package file (ck3-spec-<version>.info.json, .gui.json, .data_types.json, each with its .sha256), listed in manifest.companions with their sha256; their shapes are $defs companionInfo, companionGui and companionDataTypes. The parts of formats 6 and 7 are in the package file.",
   "type": "object",
   "required": [
     "package_format",
@@ -25,13 +25,21 @@
     "info_docs",
     "gui",
     "data_types",
-    "tables"
+    "tables",
+    "override_rules",
+    "declarations",
+    "definitions",
+    "keyword_roles",
+    "implicit_loc_keys",
+    "field_references",
+    "modifier_block_areas",
+    "iterator_kinds"
   ],
   "additionalProperties": false,
   "properties": {
     "package_format": {
-      "const": 5,
-      "description": "Shape version. 2 (2026-10-01): adds keyword_templates. 3 (2026-10-02): scope_validity filled from the game's own script_docs output and the new top-level scope_types; a format-2 loader rejects the unknown top-level key, hence the bump. 4 (2026-10-03, post-2.0 Phase 6): schema fields may carry `scope` (the scope types the game evaluates the field in when they are not the record's root, measured on vanilla) and `scope_evidence`, and `provenance: corpus` for an unconfirmed wiki field the real-mod corpus sets; a format-3 loader rejects both (fields are closed, provenance an enum), hence the bump. 5 (2026-11-21, spec/FORMAT_5_PLAN.md phase L2): format 4 plus additions, nothing removed or reshaped: the top-level list parts and the part objects modifier_template_tags (phase L3), info_docs, gui, data_types and tables, manifest.info_text, and optional keys on bucket entries (use_areas, takes), schema fields (record_usage, description_source, value_type, value_type_evidence, wiki_type, values, loc_key, loc_key_evidence, source) and errors (script_facing, reason); a format-4 loader rejects the new top-level keys (additionalProperties false), hence the bump. The format 4 schema is spec/package/schema.json."
+      "const": 7,
+      "description": "Shape version. 2 (2026-10-01): adds keyword_templates. 3 (2026-10-02): scope_validity filled from the game's own script_docs output and the new top-level scope_types; a format-2 loader rejects the unknown top-level key, hence the bump. 4 (2026-10-03, post-2.0 Phase 6): schema fields may carry `scope` (the scope types the game evaluates the field in when they are not the record's root, measured on vanilla) and `scope_evidence`, and `provenance: corpus` for an unconfirmed wiki field the real-mod corpus sets; a format-3 loader rejects both (fields are closed, provenance an enum), hence the bump. 5 (2026-11-21, spec/FORMAT_5_PLAN.md phase L2): format 4 plus additions, nothing removed or reshaped: the top-level list parts and the part objects modifier_template_tags (phase L3), info_docs, gui, data_types and tables, manifest.info_text, and optional keys on bucket entries (use_areas, takes), schema fields (record_usage, description_source, value_type, value_type_evidence, wiki_type, values, loc_key, loc_key_evidence, source) and errors (script_facing, reason); a format-4 loader rejects the new top-level keys (additionalProperties false), hence the bump. 6 (2026-11-22, the follow-up pass, spec/FORMAT_5_PLAN.md \"Format 6\"): format 5 plus additions, nothing removed or reshaped: the five top-level objects override_rules (D1), declarations (D2), definitions (D3), keyword_roles (D4) and implicit_loc_keys (D5), and their five entries of parts; each companion file states package_format 6. The top level of format 5 is closed (additionalProperties false), so a format-5 loader rejects the new top-level keys instead of reading a package it only half understands, hence the bump, as for every format before. The format 4 schema is spec/package/schema.json, the format 5 schema spec/package/schema.format5.json. 7 (2026-11-22, the second pull request of the follow-up pass, spec/FORMAT_5_PLAN.md \"Format 7\"): format 6 plus additions, nothing removed or reshaped: the three top-level objects field_references (D6), modifier_block_areas (D7) and iterator_kinds (D8), each {status, data} as the parts of format 6, and their three entries of parts; each companion states package_format 7. The top level of format 6 is closed (additionalProperties false in schema.format6.json), so a format 6 reader refuses the three new keys instead of reading a package it only half understands, hence the bump."
     },
     "manifest": {
       "$ref": "#/$defs/manifest"
@@ -211,11 +219,11 @@
     },
     "parts": {
       "type": "array",
-      "minItems": 12,
+      "minItems": 20,
       "items": {
         "$ref": "#/$defs/partEntry"
       },
-      "description": "Every format 5 addition (A1-A5, B1-B3, C1-C4 of spec/FORMAT_5_PLAN.md), one entry each in that order, with its status: one look says what this package holds. A part that is not built gives a reason and puts none of its keys in the package; a part that is built carries them and names its input files (each also in manifest.sources and manifest.source_sha256)."
+      "description": "Every addition since format 4 (A1-A5, B1-B3, C1-C4 of format 5 and D1-D5 of format 6 and D6-D8 of format 7; spec/FORMAT_5_PLAN.md), one entry each in that order, with its status: one look says what this package holds. A part that is not built gives a reason and puts none of its keys in the package; a part that is built carries them and names its input files (each also in manifest.sources and manifest.source_sha256)."
     },
     "modifier_template_tags": {
       "$ref": "#/$defs/modifierTemplateTagsPart",
@@ -246,6 +254,38 @@
     "tables": {
       "$ref": "#/$defs/tablesPart",
       "description": "C4: the hand-kept tables of the pychivalry 2.3.0 engine, each entry with its evidence and evidence_status; candidates listed apart."
+    },
+    "override_rules": {
+      "$ref": "#/$defs/overrideRulesPart",
+      "description": "D1: the override rules, as a table: which file, folder or key wins when the base game and mods define the same thing, per rule with its kind, platforms, evidence (functions and strings of the Windows executable, for the localization reader also of the Linux executable, .info lines, measured cases) and status, and per folder of `directories` which rules govern it. The data is the output of tools/python/override_rules.py, whole."
+    },
+    "declarations": {
+      "$ref": "#/$defs/declarationsPart",
+      "description": "D2: declarations that are not records: per folder of `directories`, the top-level forms of a script file that are not a record of the folder's database (namespace, @constants, inline definitions, container keys, settings), each with what it declares, its scope, its evidence and its measured base-game use. The data is the output of tools/python/declarations.py, whole."
+    },
+    "definitions": {
+      "$ref": "#/$defs/definitionsPart",
+      "description": "D3: nested and file-named definitions: per folder of `directories`, the keys inside a record that are themselves definitions, the nested keys that look like names and are not, and whether the folder's records are named by their file. The data is the output of tools/python/nested_definitions.py, whole."
+    },
+    "keyword_roles": {
+      "$ref": "#/$defs/keywordRolesPart",
+      "description": "D4: keyword roles: the role of each structural keyword a check tests (what the key does in the block or record it is written in), with the evidence of each role, and a coverage table saying what the package already states about the keyword (its tables, buckets and schema). The data is the output of tools/python/keyword_roles.py, whole."
+    },
+    "implicit_loc_keys": {
+      "$ref": "#/$defs/implicitLocKeysPart",
+      "description": "D5: the localization keys a record has by its name: per folder of `directories`, the key patterns <prefix><name><suffix> the game builds from the key of a record, of a nested definition or from a file name, whether each is required or optional, and the evidence. The data is the output of tools/python/implicit_loc_keys.py, whole."
+    },
+    "field_references": {
+      "$ref": "#/$defs/fieldReferencesPart",
+      "description": "D6: the database a field's value names: per field and sub-field of the schema, per parameter of a trigger or effect and per trigger or effect written with a bare value, the databases whose keys its values are (`refers_to`), with the evidence (strings of the executable, the game's own output, the error catalogue, Paradox's .info files, the readings of A5's `takes`) and how many of the base game's values are keys of each database; `by_database` lists the rows per database. The data is the output of tools/python/field_references.py, whole."
+    },
+    "modifier_block_areas": {
+      "$ref": "#/$defs/modifierBlockAreasPart",
+      "description": "D7: the use areas a modifier block accepts: per field, record body or deeper block whose block holds modifiers, the use areas it is read with (character, county, province, ...), with the evidence (Paradox's .info files; an item's `areas` says which of the row's areas it states) and the use areas of the modifiers the base game writes there; `engine_check` the executable's check of a modifier against a block's area. The data is the output of tools/python/modifier_block_areas.py, whole."
+    },
+    "iterator_kinds": {
+      "$ref": "#/$defs/iteratorKindsPart",
+      "description": "D8: iterator kinds: which kind of block each list-iterator prefix belongs in (`any_` a trigger, `every_`, `random_` and `ordered_` effects), with the evidence (the game's own documentation output, the registrar walk, the base game's use); every list with its documented forms; the names that carry a prefix and are no iterator, and the places the rule does not apply (`departures`); the context rules the measurement reads a block's kind with; and whether a trigger-kind iterator may stand in the `limit` of an effect block (`limit_rule`). The data is the output of tools/python/iterator_kinds.py, whole."
     }
   },
   "$defs": {
@@ -333,7 +373,7 @@
             "full",
             "facts"
           ],
-          "description": "The --info-text the package was built with: full, the .info companion carries the comment text of Paradox's .info files (info_docs data.text) and schema fields carry a description from .info (description_source info) where they have no other; facts, the companion carries only the facts read from them and no schema field carries a description from .info. It governs info_docs and those descriptions when C1 is built."
+          "description": "The --info-text the package was built with: full, the .info companion carries the comment text of Paradox's .info files (info_docs data.text) and schema fields carry a description from .info (description_source info) where they have no other; facts, the companion carries only the facts read from them and no schema field carries a description from .info. It governs info_docs and those descriptions when C1 is built. In format 6, facts also leaves out the `quote` of every evidence item of D1-D5 that quotes a .info file (the item keeps `file` and `lines`)."
         },
         "companions": {
           "type": "object",
@@ -1343,7 +1383,15 @@
         "C1",
         "C2",
         "C3",
-        "C4"
+        "C4",
+        "D1",
+        "D2",
+        "D3",
+        "D4",
+        "D5",
+        "D6",
+        "D7",
+        "D8"
       ]
     },
     "partKeys": {
@@ -5235,7 +5283,7 @@
           "description": "Added by the package from the entry's own evidence: confirmed, at least one item supports it and nothing contradicts it (measured); contradicted, the game's files or output show it wrong or incomplete (contradicted gives the claim, the finding and the evidence; it may also have support); none, no evidence was found (evidence: none): kept by hand, as the old engine had it."
         }
       },
-      "description": "One entry with the attributes the old engine's code gave it (the table's about.attributes says what each means) and its evidence."
+      "description": "One entry with the attributes the old engine's code gave it (the table's about.attributes says what each means) and its evidence. An entry the code did not have was added from its evidence by the owner's decision, and its notes say so."
     },
     "tableCandidate": {
       "type": "object",
@@ -5354,7 +5402,7 @@
           "minLength": 1
         }
       },
-      "description": "A name the evidence shows the table lacks: listed, never added to entries."
+      "description": "A name the evidence shows the table lacks: listed apart. A candidate becomes an entry only by the owner's decision; it then leaves the candidates and the entry's notes say so (check_tables.py ADDED_NOTE), and about.entries_in_code does not count it."
     },
     "tableItem": {
       "type": "object",
@@ -5943,7 +5991,7 @@
           "description": "The package file this companion belongs to (beside it), which records its sha256."
         },
         "package_format": {
-          "const": 5
+          "const": 7
         },
         "game": {
           "const": "ck3"
@@ -6030,7 +6078,7 @@
           "description": "The package file this companion belongs to (beside it), which records its sha256."
         },
         "package_format": {
-          "const": 5
+          "const": 7
         },
         "game": {
           "const": "ck3"
@@ -6110,7 +6158,7 @@
           "description": "The package file this companion belongs to (beside it), which records its sha256."
         },
         "package_format": {
-          "const": 5
+          "const": 7
         },
         "game": {
           "const": "ck3"
@@ -6204,6 +6252,6210 @@
         }
       },
       "description": "A1: why a modifier_templates entry is marked, and what depends on it."
+    },
+    "overrideRulesPart": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "status",
+            "data"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "status": {
+              "const": "built"
+            },
+            "data": {
+              "$ref": "#/$defs/overrideRulesData"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/partNotBuilt"
+        }
+      ],
+      "description": "Part D1 as the package carries it: built, with its data, or not built, with the reason."
+    },
+    "declarationsPart": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "status",
+            "data"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "status": {
+              "const": "built"
+            },
+            "data": {
+              "$ref": "#/$defs/declarationsData"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/partNotBuilt"
+        }
+      ],
+      "description": "Part D2 as the package carries it: built, with its data, or not built, with the reason."
+    },
+    "definitionsPart": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "status",
+            "data"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "status": {
+              "const": "built"
+            },
+            "data": {
+              "$ref": "#/$defs/definitionsData"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/partNotBuilt"
+        }
+      ],
+      "description": "Part D3 as the package carries it: built, with its data, or not built, with the reason."
+    },
+    "keywordRolesPart": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "status",
+            "data"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "status": {
+              "const": "built"
+            },
+            "data": {
+              "$ref": "#/$defs/keywordRolesData"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/partNotBuilt"
+        }
+      ],
+      "description": "Part D4 as the package carries it: built, with its data, or not built, with the reason."
+    },
+    "implicitLocKeysPart": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "status",
+            "data"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "status": {
+              "const": "built"
+            },
+            "data": {
+              "$ref": "#/$defs/implicitLocKeysData"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/partNotBuilt"
+        }
+      ],
+      "description": "Part D5 as the package carries it: built, with its data, or not built, with the reason."
+    },
+    "measuredTree": {
+      "type": [
+        "integer",
+        "number",
+        "string",
+        "boolean",
+        "array",
+        "object"
+      ],
+      "items": {
+        "$ref": "#/$defs/measuredTree"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/measuredTree"
+      },
+      "description": "What a part's tool measured in the base game for a row (the key `measured` of parts D2 to D5): counts, maps of counts keyed by what was counted (a script key, a folder, a file, a depth), samples, and the query a count was made with. Its keys differ from row to row and follow the game's files, so only the kinds of value are fixed here; the README beside each tool's output (the part's first source) and its vocabulary say what each key holds."
+    },
+    "countTree": {
+      "type": [
+        "integer",
+        "object"
+      ],
+      "minimum": 0,
+      "additionalProperties": {
+        "$ref": "#/$defs/countTree"
+      },
+      "description": "A count, or counts keyed by a word of the part's vocabulary (a status, a kind, a rank), nested as the tool groups them."
+    },
+    "vocabularyTree": {
+      "type": [
+        "string",
+        "object"
+      ],
+      "minLength": 1,
+      "additionalProperties": {
+        "$ref": "#/$defs/vocabularyTree"
+      },
+      "description": "The meaning of a word, or the meanings keyed by word."
+    },
+    "declarationsData": {
+      "type": "object",
+      "required": [
+        "about",
+        "all_directories",
+        "counts",
+        "directories",
+        "folders",
+        "format",
+        "generator",
+        "inputs",
+        "parse_problems",
+        "snapshot",
+        "version",
+        "vocabulary"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "about": {
+          "type": "string",
+          "minLength": 1,
+          "description": "What the part holds, in words."
+        },
+        "all_directories": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/declarationsRow"
+          },
+          "description": "The rows that hold in every folder (the reader's @constants and the reader export)."
+        },
+        "counts": {
+          "type": "object",
+          "required": [
+            "all_directories_rows",
+            "by_declares",
+            "by_declares_and_status",
+            "by_form",
+            "by_status",
+            "confirmed_by_best_rank",
+            "directories",
+            "directories_present",
+            "directories_with_rows",
+            "files_read_with_a_problem",
+            "rows",
+            "script_files_read"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "all_directories_rows": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "by_declares": {
+              "$ref": "#/$defs/countTree"
+            },
+            "by_declares_and_status": {
+              "$ref": "#/$defs/countTree"
+            },
+            "by_form": {
+              "$ref": "#/$defs/countTree"
+            },
+            "by_status": {
+              "$ref": "#/$defs/countTree"
+            },
+            "confirmed_by_best_rank": {
+              "$ref": "#/$defs/countTree"
+            },
+            "directories": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "directories_present": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "directories_with_rows": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "files_read_with_a_problem": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "rows": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "script_files_read": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "description": "Counts of the rows, by status and by kind, and of what was read."
+        },
+        "directories": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1
+          },
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/declarationsRow"
+            }
+          },
+          "description": "Per folder of the package's directories: the rows of the top-level forms that are not a record of the folder's database ([] when the folder has none)."
+        },
+        "folders": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1
+          },
+          "additionalProperties": {
+            "type": "object",
+            "required": [
+              "block_keys_not_in_a_row",
+              "other_files",
+              "present",
+              "script_files",
+              "top_level"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "block_keys_not_in_a_row": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "other_files": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "additionalProperties": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "present": {
+                "type": "boolean"
+              },
+              "script_files": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "top_level": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "additionalProperties": {
+                  "type": "object",
+                  "required": [
+                    "keys",
+                    "occurrences"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "keys": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "occurrences": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  }
+                }
+              },
+              "constants": {
+                "type": "object",
+                "required": [
+                  "block_values",
+                  "defined_inside_a_block",
+                  "defined_twice_in_a_file",
+                  "distinct_names",
+                  "examples_of_a_use_without_a_definition_in_the_file",
+                  "files",
+                  "files_using_a_name_they_do_not_define",
+                  "names_used_in_a_file_that_does_not_define_them",
+                  "occurrences"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "block_values": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "defined_inside_a_block": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "defined_twice_in_a_file": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "distinct_names": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "examples_of_a_use_without_a_definition_in_the_file": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "files": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "files_using_a_name_they_do_not_define": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "names_used_in_a_file_that_does_not_define_them": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "occurrences": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                }
+              }
+            }
+          },
+          "description": "Per folder: what was measured of its top level (script files, forms with their key and occurrence counts, constants, the top-level blocks no row covers)."
+        },
+        "format": {
+          "const": "declarations",
+          "description": "The output's name; fixed."
+        },
+        "generator": {
+          "const": "tools/python/declarations.py",
+          "description": "The tool that wrote the output."
+        },
+        "inputs": {
+          "type": "object",
+          "required": [
+            "catalogue",
+            "directories",
+            "exe",
+            "hand",
+            "info",
+            "strings_in_exe"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "catalogue": {
+              "type": "string",
+              "minLength": 1
+            },
+            "directories": {
+              "type": "string",
+              "minLength": 1
+            },
+            "exe": {
+              "type": "object",
+              "required": [
+                "bytes",
+                "file",
+                "sha256"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "bytes": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "file": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                }
+              }
+            },
+            "hand": {
+              "type": "string",
+              "minLength": 1
+            },
+            "info": {
+              "type": "string",
+              "minLength": 1
+            },
+            "strings_in_exe": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "description": "The committed files, and the executable (file name, size and sha256), the output was made from."
+        },
+        "parse_problems": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "file",
+              "reason"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "file": {
+                "type": "string",
+                "minLength": 1
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "description": "The script files the tolerant reader read with a problem and went on from, with the reason."
+        },
+        "snapshot": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+\\.\\d+/game$",
+          "description": "The frozen game folder that was measured, as <version>/game."
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+\\.\\d+$",
+          "description": "The game version the output was made for; the package's own."
+        },
+        "vocabulary": {
+          "type": "object",
+          "required": [
+            "declares",
+            "form",
+            "match",
+            "rank",
+            "scope",
+            "status",
+            "supports"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "declares": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "form": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "match": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "rank": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "scope": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "status": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "supports": {
+              "$ref": "#/$defs/vocabularyTree"
+            }
+          },
+          "description": "Every word the rows use (status, rank, and the part's own enums), each with its meaning."
+        }
+      }
+    },
+    "declarationsRow": {
+      "type": "object",
+      "required": [
+        "declares",
+        "evidence",
+        "form",
+        "key",
+        "match",
+        "measured",
+        "scope",
+        "status"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "declares": {
+          "enum": [
+            "constant",
+            "container",
+            "inline-definition",
+            "namespace",
+            "record",
+            "setting",
+            "statement",
+            "unknown"
+          ]
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/declarationsEvidence"
+          }
+        },
+        "form": {
+          "enum": [
+            "bare-block",
+            "bare-value",
+            "block",
+            "block-no-equals",
+            "constant",
+            "prefixed",
+            "prefixed-bare",
+            "value"
+          ]
+        },
+        "key": {
+          "type": "string"
+        },
+        "match": {
+          "enum": [
+            "exact",
+            "pattern",
+            "prefix"
+          ]
+        },
+        "measured": {
+          "$ref": "#/$defs/measuredTree"
+        },
+        "note": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scope": {
+          "enum": [
+            "file",
+            "folder",
+            "global",
+            "unknown"
+          ]
+        },
+        "status": {
+          "enum": [
+            "confirmed",
+            "measured-only",
+            "unknown"
+          ]
+        },
+        "of": {
+          "type": "string",
+          "minLength": 1
+        },
+        "basis": {
+          "type": "string",
+          "minLength": 1
+        },
+        "see": {
+          "type": "string",
+          "minLength": 1
+        },
+        "repeated": {
+          "type": "boolean"
+        },
+        "database": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "declarationsEvidence": {
+      "type": "object",
+      "required": [
+        "rank",
+        "says",
+        "source",
+        "supports",
+        "where"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "beside": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rank": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "says": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source": {
+          "enum": [
+            "executable",
+            "oracle",
+            "catalogue",
+            "info",
+            "base_game"
+          ]
+        },
+        "string": {
+          "type": "string",
+          "minLength": 1
+        },
+        "supports": {
+          "enum": [
+            "presence",
+            "role"
+          ]
+        },
+        "verified_in": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "where": {
+          "type": "string",
+          "minLength": 1
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "file": {
+          "type": "string",
+          "minLength": 1
+        },
+        "lines": {
+          "type": "string",
+          "minLength": 1
+        },
+        "quote": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "definitionsData": {
+      "type": "object",
+      "required": [
+        "about",
+        "counts",
+        "file_named",
+        "folders",
+        "format",
+        "generator",
+        "inputs",
+        "nested",
+        "not_definitions",
+        "parse_problems",
+        "snapshot",
+        "sweep",
+        "version",
+        "vocabulary"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "about": {
+          "type": "string",
+          "minLength": 1,
+          "description": "What the part holds, in words."
+        },
+        "counts": {
+          "type": "object",
+          "required": [
+            "confirmed_by_best_rank",
+            "directories",
+            "directories_present",
+            "file_named",
+            "files_read_with_a_problem",
+            "localization_keys",
+            "nested",
+            "not_definitions",
+            "script_files_read",
+            "sweep_groups",
+            "sweep_groups_no_hand_row_covers"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "confirmed_by_best_rank": {
+              "$ref": "#/$defs/countTree"
+            },
+            "directories": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "directories_present": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "file_named": {
+              "$ref": "#/$defs/countTree"
+            },
+            "files_read_with_a_problem": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "localization_keys": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "nested": {
+              "$ref": "#/$defs/countTree"
+            },
+            "not_definitions": {
+              "$ref": "#/$defs/countTree"
+            },
+            "script_files_read": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "sweep_groups": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "sweep_groups_no_hand_row_covers": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "description": "Counts of the rows, by status and by kind, and of what was read."
+        },
+        "file_named": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/definitionsFileNamed"
+          },
+          "description": "Per folder: {} when nothing was found, else whether its records are named by their file (name_from), with evidence and measurement."
+        },
+        "folders": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1
+          },
+          "additionalProperties": {
+            "type": "object",
+            "required": [
+              "file_stems_that_are_a_key_of_another_folder",
+              "nested_rows",
+              "not_definitions_rows",
+              "present",
+              "script_files",
+              "top_level"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "file_stems_that_are_a_key_of_another_folder": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "additionalProperties": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "nested_rows": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "not_definitions_rows": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "present": {
+                "type": "boolean"
+              },
+              "script_files": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "top_level": {
+                "type": "object",
+                "required": [
+                  "dated_blocks",
+                  "files_with_a_keyed_block",
+                  "keyed_blocks",
+                  "other",
+                  "values"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "dated_blocks": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "files_with_a_keyed_block": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "keyed_blocks": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "other": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "values": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                }
+              },
+              "note": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "description": "Per folder: what was measured of it (script files, the top-level forms, the row counts)."
+        },
+        "format": {
+          "const": "definitions",
+          "description": "The output's name; fixed."
+        },
+        "generator": {
+          "const": "tools/python/nested_definitions.py",
+          "description": "The tool that wrote the output."
+        },
+        "inputs": {
+          "type": "object",
+          "required": [
+            "catalogue",
+            "declarations",
+            "directories",
+            "exe",
+            "hand",
+            "info",
+            "keywords",
+            "localization",
+            "oracle",
+            "strings_in_exe"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "catalogue": {
+              "type": "string",
+              "minLength": 1
+            },
+            "declarations": {
+              "type": "string",
+              "minLength": 1
+            },
+            "directories": {
+              "type": "string",
+              "minLength": 1
+            },
+            "exe": {
+              "type": "object",
+              "required": [
+                "bytes",
+                "file",
+                "sha256"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "bytes": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "file": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                }
+              }
+            },
+            "hand": {
+              "type": "string",
+              "minLength": 1
+            },
+            "info": {
+              "type": "string",
+              "minLength": 1
+            },
+            "keywords": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "localization": {
+              "type": "string",
+              "minLength": 1
+            },
+            "oracle": {
+              "type": "string",
+              "minLength": 1
+            },
+            "strings_in_exe": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "description": "The committed files, and the executable (file name, size and sha256), the output was made from."
+        },
+        "nested": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1
+          },
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/definitionsNestedRow"
+            }
+          },
+          "description": "Per folder: the keys inside a record that are themselves definitions (kind, the folder whose keys they are, how to recognise them and at what depth), with evidence and measurement."
+        },
+        "not_definitions": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1
+          },
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/definitionsNotRow"
+            }
+          },
+          "description": "Per folder: nested keys that look like names and are not definitions (a field, or a reference to a record of another folder)."
+        },
+        "parse_problems": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "file",
+              "reason"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "file": {
+                "type": "string",
+                "minLength": 1
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "description": "The script files the tolerant reader read with a problem and went on from, with the reason."
+        },
+        "snapshot": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+\\.\\d+/game$",
+          "description": "The frozen game folder that was measured, as <version>/game."
+        },
+        "sweep": {
+          "type": "object",
+          "required": [
+            "covered_share",
+            "min_names",
+            "referenced_share",
+            "script_share",
+            "structural_words"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "covered_share": {
+              "type": "number"
+            },
+            "min_names": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "referenced_share": {
+              "type": "number"
+            },
+            "script_share": {
+              "type": "number"
+            },
+            "structural_words": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "description": "The thresholds and the structural words of the sweep that looks for nested names no hand row covers."
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+\\.\\d+$",
+          "description": "The game version the output was made for; the package's own."
+        },
+        "vocabulary": {
+          "type": "object",
+          "required": [
+            "depth",
+            "form",
+            "kind",
+            "name_from",
+            "rank",
+            "recognised_by",
+            "status",
+            "supports",
+            "what"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "depth": {
+              "type": "string",
+              "minLength": 1
+            },
+            "form": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "kind": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "name_from": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "rank": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "recognised_by": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "status": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "supports": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "what": {
+              "$ref": "#/$defs/vocabularyTree"
+            }
+          },
+          "description": "Every word the rows use (status, rank, and the part's own enums), each with its meaning."
+        }
+      }
+    },
+    "definitionsFileNamed": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "The folder was read and its records are not named by their file."
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "evidence": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/definitionsEvidence"
+              }
+            },
+            "measured": {
+              "$ref": "#/$defs/measuredTree"
+            },
+            "name_from": {
+              "enum": [
+                "file-stem",
+                "none",
+                "unknown"
+              ]
+            },
+            "names_database": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "note": {
+              "type": "string",
+              "minLength": 1
+            },
+            "status": {
+              "enum": [
+                "confirmed",
+                "measured-only",
+                "unknown"
+              ]
+            }
+          },
+          "required": [
+            "evidence",
+            "measured",
+            "name_from",
+            "names_database",
+            "note",
+            "status"
+          ]
+        }
+      ]
+    },
+    "definitionsNestedRow": {
+      "type": "object",
+      "required": [
+        "database",
+        "depth",
+        "evidence",
+        "kind",
+        "measured",
+        "recognised_by",
+        "status"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "database": {
+          "type": "string"
+        },
+        "depth": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "const": "any"
+            }
+          ],
+          "description": "How many levels below the top level of the file the name is written; `any` for a key-pattern row."
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/definitionsEvidence"
+          }
+        },
+        "kind": {
+          "type": "string",
+          "minLength": 1
+        },
+        "measured": {
+          "$ref": "#/$defs/measuredTree"
+        },
+        "note": {
+          "type": "string",
+          "minLength": 1
+        },
+        "recognised_by": {
+          "type": "object",
+          "required": [
+            "forms",
+            "path",
+            "type"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "forms": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "path": {
+              "type": "string",
+              "minLength": 1
+            },
+            "type": {
+              "enum": [
+                "any-block-child",
+                "container-child",
+                "key-pattern",
+                "parent-field",
+                "record-key"
+              ]
+            },
+            "except": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "pattern": {
+              "type": "string",
+              "minLength": 1
+            },
+            "field": {
+              "type": "string",
+              "minLength": 1
+            },
+            "word": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "status": {
+          "enum": [
+            "confirmed",
+            "measured-only",
+            "unknown"
+          ]
+        },
+        "basis": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "definitionsNotRow": {
+      "type": "object",
+      "required": [
+        "database",
+        "evidence",
+        "measured",
+        "recognised_by",
+        "status",
+        "what"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "database": {
+          "type": "string"
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/definitionsEvidence"
+          }
+        },
+        "measured": {
+          "$ref": "#/$defs/measuredTree"
+        },
+        "recognised_by": {
+          "type": "object",
+          "required": [
+            "forms",
+            "path",
+            "type"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "forms": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "path": {
+              "type": "string",
+              "minLength": 1
+            },
+            "type": {
+              "enum": [
+                "any-block-child",
+                "container-child",
+                "key-pattern",
+                "parent-field",
+                "record-key"
+              ]
+            },
+            "except": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "status": {
+          "enum": [
+            "confirmed",
+            "measured-only",
+            "unknown"
+          ]
+        },
+        "what": {
+          "enum": [
+            "field",
+            "other",
+            "reference"
+          ]
+        },
+        "note": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "definitionsEvidence": {
+      "type": "object",
+      "required": [
+        "rank",
+        "says",
+        "source",
+        "supports",
+        "where"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "rank": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "says": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source": {
+          "enum": [
+            "executable",
+            "oracle",
+            "catalogue",
+            "info",
+            "base_game"
+          ]
+        },
+        "supports": {
+          "enum": [
+            "presence",
+            "role"
+          ]
+        },
+        "where": {
+          "type": "string",
+          "minLength": 1
+        },
+        "beside": {
+          "type": "string",
+          "minLength": 1
+        },
+        "string": {
+          "type": "string",
+          "minLength": 1
+        },
+        "verified_in": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "file": {
+          "type": "string",
+          "minLength": 1
+        },
+        "lines": {
+          "type": "string",
+          "minLength": 1
+        },
+        "quote": {
+          "type": "string",
+          "minLength": 1
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "keywordRolesData": {
+      "type": "object",
+      "required": [
+        "about",
+        "counts",
+        "coverage",
+        "format",
+        "generator",
+        "inputs",
+        "keywords",
+        "not_settled",
+        "parse_problems",
+        "snapshot",
+        "sources",
+        "version",
+        "vocabulary"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "about": {
+          "type": "object",
+          "required": [
+            "consumer",
+            "meaning",
+            "name",
+            "not_the_same_as",
+            "rows",
+            "status_rule"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "consumer": {
+              "type": "string",
+              "minLength": 1
+            },
+            "meaning": {
+              "type": "string",
+              "minLength": 1
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "not_the_same_as": {
+              "type": "string",
+              "minLength": 1
+            },
+            "rows": {
+              "type": "string",
+              "minLength": 1
+            },
+            "status_rule": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "description": "What the part holds, how a consumer reads a row, and what it is not."
+        },
+        "counts": {
+          "type": "object",
+          "required": [
+            "by_role_and_status",
+            "by_status",
+            "confirmed_roles_by_best_rank",
+            "coverage",
+            "files_read_with_a_problem",
+            "keywords",
+            "roles_added",
+            "roles_added_by_status",
+            "roles_stated_elsewhere",
+            "rows",
+            "script_files_read"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "by_role_and_status": {
+              "$ref": "#/$defs/countTree"
+            },
+            "by_status": {
+              "$ref": "#/$defs/countTree"
+            },
+            "confirmed_roles_by_best_rank": {
+              "$ref": "#/$defs/countTree"
+            },
+            "coverage": {
+              "$ref": "#/$defs/countTree"
+            },
+            "files_read_with_a_problem": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "keywords": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "roles_added": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "roles_added_by_status": {
+              "$ref": "#/$defs/countTree"
+            },
+            "roles_stated_elsewhere": {
+              "$ref": "#/$defs/countTree"
+            },
+            "rows": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "script_files_read": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "description": "Counts of the rows, by status and by kind, and of what was read."
+        },
+        "coverage": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/keywordRolesCoverage"
+          },
+          "description": "Per row, in the order of keywords: every place of the package that already mentions the keyword and what it says, what the package lacks, and what this part adds."
+        },
+        "format": {
+          "const": "keyword_roles",
+          "description": "The output's name; fixed."
+        },
+        "generator": {
+          "const": "tools/python/keyword_roles.py",
+          "description": "The tool that wrote the output."
+        },
+        "inputs": {
+          "type": "object",
+          "required": [
+            "catalogue",
+            "declarations",
+            "directories",
+            "exe",
+            "hand",
+            "info",
+            "oracle",
+            "package",
+            "strings_in_exe"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "catalogue": {
+              "type": "string",
+              "minLength": 1
+            },
+            "declarations": {
+              "type": "string",
+              "minLength": 1
+            },
+            "directories": {
+              "type": "string",
+              "minLength": 1
+            },
+            "exe": {
+              "type": "object",
+              "required": [
+                "bytes",
+                "file",
+                "sha256"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "bytes": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "file": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                }
+              }
+            },
+            "hand": {
+              "type": "string",
+              "minLength": 1
+            },
+            "info": {
+              "type": "string",
+              "minLength": 1
+            },
+            "oracle": {
+              "type": "string",
+              "minLength": 1
+            },
+            "package": {
+              "type": "string",
+              "minLength": 1
+            },
+            "strings_in_exe": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "description": "The committed files, and the executable (file name, size and sha256), the output was made from."
+        },
+        "keywords": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/keywordRolesRow"
+          },
+          "description": "One row per structural keyword and place: the roles this part adds (with their qualifiers and evidence), the roles an existing package entry already states, and the measurement."
+        },
+        "not_settled": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "What the evidence found does not settle, in words."
+        },
+        "parse_problems": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "file",
+              "reason"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "file": {
+                "type": "string",
+                "minLength": 1
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "description": "The script files the tolerant reader read with a problem and went on from, with the reason."
+        },
+        "snapshot": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+\\.\\d+/game$",
+          "description": "The frozen game folder that was measured, as <version>/game."
+        },
+        "sources": {
+          "type": "object",
+          "required": [
+            "tables"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "tables": {
+              "type": "object",
+              "propertyNames": {
+                "type": "string",
+                "minLength": 1
+              },
+              "additionalProperties": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "description": "The meaning of each hand-kept table (the package's tables) the coverage refers to."
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+\\.\\d+$",
+          "description": "The game version the output was made for; the package's own."
+        },
+        "vocabulary": {
+          "type": "object",
+          "required": [
+            "condition_from",
+            "opens",
+            "qualifier_of_role",
+            "rank",
+            "role_status",
+            "roles",
+            "status",
+            "supports"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "condition_from": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "opens": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "qualifier_of_role": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "rank": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "role_status": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "roles": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "status": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "supports": {
+              "$ref": "#/$defs/vocabularyTree"
+            }
+          },
+          "description": "Every word the rows use (status, rank, and the part's own enums), each with its meaning."
+        }
+      }
+    },
+    "keywordRolesCoverage": {
+      "type": "object",
+      "required": [
+        "adds",
+        "already",
+        "keyword",
+        "missing",
+        "where"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "adds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "already": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "ref",
+              "says",
+              "source"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "directory": {
+                "type": "string",
+                "minLength": 1
+              },
+              "entry": {
+                "type": "string",
+                "minLength": 1
+              },
+              "evidence_status": {
+                "enum": [
+                  "confirmed",
+                  "contradicted",
+                  "none",
+                  "measured-only",
+                  "unknown",
+                  null
+                ],
+                "description": "The evidence_status of a table entry, or the status of a declarations row; null for a table candidate."
+              },
+              "ref": {
+                "type": "string",
+                "minLength": 1
+              },
+              "says": {
+                "type": "string",
+                "minLength": 1
+              },
+              "source": {
+                "enum": [
+                  "table",
+                  "bucket",
+                  "schema",
+                  "declarations"
+                ]
+              },
+              "listed_as": {
+                "enum": [
+                  "entry",
+                  "candidate"
+                ]
+              },
+              "table": {
+                "type": "string",
+                "minLength": 1
+              },
+              "bucket": {
+                "enum": [
+                  "triggers",
+                  "effects"
+                ]
+              },
+              "description_source": {
+                "enum": [
+                  "wiki",
+                  "info",
+                  null
+                ]
+              },
+              "found": {
+                "type": "boolean"
+              },
+              "path": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "keyword": {
+          "type": "string",
+          "minLength": 1
+        },
+        "missing": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "where": {
+          "$ref": "#/$defs/keywordRolesWhere"
+        }
+      }
+    },
+    "keywordRolesRow": {
+      "type": "object",
+      "required": [
+        "evidence",
+        "keyword",
+        "role_status",
+        "roles",
+        "see",
+        "stated_elsewhere",
+        "status",
+        "where"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/keywordRolesEvidence"
+          }
+        },
+        "keyword": {
+          "type": "string",
+          "minLength": 1
+        },
+        "measured": {
+          "$ref": "#/$defs/measuredTree"
+        },
+        "note": {
+          "type": "string",
+          "minLength": 1
+        },
+        "role_status": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1
+          },
+          "additionalProperties": {
+            "enum": [
+              "confirmed",
+              "measured-only"
+            ]
+          }
+        },
+        "roles": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "see": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "stated_elsewhere": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "role",
+              "see"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "role": {
+                "type": "string",
+                "minLength": 1
+              },
+              "see": {
+                "type": "string",
+                "minLength": 1
+              },
+              "opens": {
+                "enum": [
+                  "dynamic_description",
+                  "effect",
+                  "same",
+                  "trigger"
+                ]
+              }
+            }
+          }
+        },
+        "status": {
+          "enum": [
+            "confirmed",
+            "measured-only",
+            "stated-elsewhere",
+            "unknown"
+          ]
+        },
+        "where": {
+          "$ref": "#/$defs/keywordRolesWhere"
+        },
+        "condition": {
+          "type": "string",
+          "minLength": 1
+        },
+        "condition_from": {
+          "enum": [
+            "evidence",
+            "measured"
+          ]
+        },
+        "pairs_with": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "opens": {
+          "enum": [
+            "dynamic_description",
+            "effect",
+            "same",
+            "trigger"
+          ]
+        },
+        "basis": {
+          "type": "string",
+          "minLength": 1
+        },
+        "needs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "overrides": {
+          "type": "string",
+          "minLength": 1
+        },
+        "allows_only": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "follows": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "range": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "keywordRolesWhere": {
+      "type": "object",
+      "required": [
+        "directories",
+        "inside"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "directories": {
+          "oneOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          ]
+        },
+        "inside": {
+          "type": "string",
+          "minLength": 1
+        },
+        "parents": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "keywordRolesEvidence": {
+      "type": "object",
+      "required": [
+        "rank",
+        "roles",
+        "says",
+        "source",
+        "supports",
+        "where"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "beside": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rank": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "roles": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "says": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source": {
+          "enum": [
+            "executable",
+            "oracle",
+            "catalogue",
+            "info",
+            "base_game"
+          ]
+        },
+        "string": {
+          "type": "string",
+          "minLength": 1
+        },
+        "supports": {
+          "enum": [
+            "presence",
+            "role"
+          ]
+        },
+        "verified_in": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "where": {
+          "type": "string",
+          "minLength": 1
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "file": {
+          "type": "string",
+          "minLength": 1
+        },
+        "lines": {
+          "type": "string",
+          "minLength": 1
+        },
+        "quote": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "implicitLocKeysData": {
+      "type": "object",
+      "required": [
+        "about",
+        "below_threshold",
+        "counts",
+        "directories",
+        "format",
+        "format_strings",
+        "generator",
+        "inputs",
+        "not_settled",
+        "parse_problems",
+        "set_aside",
+        "snapshot",
+        "two_name_patterns",
+        "version",
+        "vocabulary"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "about": {
+          "type": "object",
+          "required": [
+            "consumer",
+            "meaning",
+            "name",
+            "not_the_same_as",
+            "rows",
+            "status_rule"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "consumer": {
+              "type": "string",
+              "minLength": 1
+            },
+            "meaning": {
+              "type": "string",
+              "minLength": 1
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "not_the_same_as": {
+              "type": "string",
+              "minLength": 1
+            },
+            "rows": {
+              "type": "string",
+              "minLength": 1
+            },
+            "status_rule": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "description": "What the part holds, how a consumer reads a row, and what it is not."
+        },
+        "below_threshold": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1
+          },
+          "additionalProperties": {
+            "type": "object",
+            "required": [
+              "most_frequent",
+              "names",
+              "patterns"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "most_frequent": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "additionalProperties": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "names": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "patterns": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          },
+          "description": "Per folder and name source: the patterns measured below the listing threshold, counted, with the most frequent."
+        },
+        "counts": {
+          "type": "object",
+          "required": [
+            "by_requirement",
+            "by_requirement_and_source",
+            "by_status",
+            "by_status_and_requirement",
+            "confirmed_by_best_rank",
+            "directories",
+            "directories_present",
+            "directories_with_rows",
+            "format_strings",
+            "format_strings_cited_as_evidence",
+            "format_strings_matching_a_listed_pattern",
+            "format_strings_matching_only_a_set_aside_pattern",
+            "groups",
+            "groups_with_patterns_below_threshold",
+            "localization_keys",
+            "names",
+            "names_by_name_from",
+            "patterns_below_threshold",
+            "plain_name_hits",
+            "plain_name_hits_plausibly_coincidence",
+            "plain_name_rows",
+            "rows",
+            "rows_a_format_string_matches",
+            "rows_in_a_numbered_family",
+            "rows_whose_literal_is_in_the_executable",
+            "rows_with_a_condition",
+            "rows_with_hand_evidence",
+            "rows_with_overridden_by",
+            "script_files_read",
+            "set_aside",
+            "two_name_patterns",
+            "two_name_patterns_listed"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "by_requirement": {
+              "$ref": "#/$defs/countTree"
+            },
+            "by_requirement_and_source": {
+              "$ref": "#/$defs/countTree"
+            },
+            "by_status": {
+              "$ref": "#/$defs/countTree"
+            },
+            "by_status_and_requirement": {
+              "$ref": "#/$defs/countTree"
+            },
+            "confirmed_by_best_rank": {
+              "$ref": "#/$defs/countTree"
+            },
+            "directories": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "directories_present": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "directories_with_rows": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "format_strings": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "format_strings_cited_as_evidence": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "format_strings_matching_a_listed_pattern": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "format_strings_matching_only_a_set_aside_pattern": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "groups": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "groups_with_patterns_below_threshold": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "localization_keys": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "names": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "names_by_name_from": {
+              "$ref": "#/$defs/countTree"
+            },
+            "patterns_below_threshold": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "plain_name_hits": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "plain_name_hits_plausibly_coincidence": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "plain_name_rows": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "rows": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "rows_a_format_string_matches": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "rows_in_a_numbered_family": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "rows_whose_literal_is_in_the_executable": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "rows_with_a_condition": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "rows_with_hand_evidence": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "rows_with_overridden_by": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "script_files_read": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "set_aside": {
+              "$ref": "#/$defs/countTree"
+            },
+            "two_name_patterns": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "two_name_patterns_listed": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "description": "Counts of the rows, by status and by kind, and of what was read."
+        },
+        "directories": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1
+          },
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/implicitLocKeysRow"
+            }
+          },
+          "description": "Per folder of the package's directories: the key patterns <prefix><name><suffix> the game builds from a record's name ([] when none), each with its requirement, status, evidence and measurement."
+        },
+        "format": {
+          "const": "implicit_loc_keys",
+          "description": "The output's name; fixed."
+        },
+        "format_strings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "matches",
+              "nearest_source_path",
+              "string"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "matches": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "directory",
+                    "name_from",
+                    "pattern"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "directory": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "name_from": {
+                      "type": "string",
+                      "pattern": "^(record-key|file-stem|nested:[a-z0-9_]+)$"
+                    },
+                    "pattern": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
+                }
+              },
+              "nearest_source_path": {
+                "type": "object",
+                "required": [
+                  "bytes",
+                  "path"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "bytes": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "path": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              "string": {
+                "type": "string",
+                "minLength": 1
+              },
+              "matches_set_aside": {
+                "type": "object",
+                "required": [
+                  "patterns",
+                  "sample"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "patterns": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "sample": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
+                }
+              },
+              "cited_as_evidence_by": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "several_placeholders": {
+                "type": "boolean"
+              }
+            }
+          },
+          "description": "The format strings of the executable that look like a localization key pattern, with the rows each matches and the nearest source path."
+        },
+        "generator": {
+          "const": "tools/python/implicit_loc_keys.py",
+          "description": "The tool that wrote the output."
+        },
+        "inputs": {
+          "type": "object",
+          "required": [
+            "catalogue",
+            "declarations",
+            "definitions_hand",
+            "directories",
+            "exe",
+            "hand",
+            "info",
+            "oracle",
+            "package",
+            "strings_in_exe"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "catalogue": {
+              "type": "string",
+              "minLength": 1
+            },
+            "declarations": {
+              "type": "string",
+              "minLength": 1
+            },
+            "definitions_hand": {
+              "type": "string",
+              "minLength": 1
+            },
+            "directories": {
+              "type": "string",
+              "minLength": 1
+            },
+            "exe": {
+              "type": "object",
+              "required": [
+                "bytes",
+                "file",
+                "sha256"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "bytes": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "file": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                }
+              }
+            },
+            "hand": {
+              "type": "string",
+              "minLength": 1
+            },
+            "info": {
+              "type": "string",
+              "minLength": 1
+            },
+            "oracle": {
+              "type": "string",
+              "minLength": 1
+            },
+            "package": {
+              "type": "string",
+              "minLength": 1
+            },
+            "strings_in_exe": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "description": "The committed files, and the executable (file name, size and sha256), the output was made from."
+        },
+        "not_settled": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "What the evidence found does not settle, in words."
+        },
+        "parse_problems": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "How many script files the tolerant reader read with a problem and went on from."
+        },
+        "set_aside": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1
+          },
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "name_from",
+                "pattern",
+                "records",
+                "why",
+                "with_key"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "name_from": {
+                  "type": "string",
+                  "pattern": "^(record-key|file-stem|nested:[a-z0-9_]+)$"
+                },
+                "pattern": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "records": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "why": {
+                  "enum": [
+                    "key-of-another-record",
+                    "written-in-record"
+                  ]
+                },
+                "with_key": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "written_in_record": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "of": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "additionalProperties": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                }
+              }
+            }
+          },
+          "description": "Per folder: patterns left out of the rows because their keys are written in the record or are the key of another record, with the reason."
+        },
+        "snapshot": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+\\.\\d+/game$",
+          "description": "The frozen game folder that was measured, as <version>/game."
+        },
+        "two_name_patterns": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "condition",
+              "first",
+              "first_names",
+              "keys",
+              "pattern",
+              "sample",
+              "second",
+              "second_names",
+              "status"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "condition": {
+                "type": "string",
+                "minLength": 1
+              },
+              "first": {
+                "type": "string",
+                "minLength": 1
+              },
+              "first_names": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "keys": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "pattern": {
+                "type": "string",
+                "minLength": 1
+              },
+              "sample": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "second": {
+                "type": "string",
+                "minLength": 1
+              },
+              "second_names": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "status": {
+                "enum": [
+                  "confirmed",
+                  "measured-only",
+                  "unknown"
+                ]
+              }
+            }
+          },
+          "description": "Patterns built from two names (a pair of records), listed with status unknown."
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+\\.\\d+$",
+          "description": "The game version the output was made for; the package's own."
+        },
+        "vocabulary": {
+          "type": "object",
+          "required": [
+            "condition_from",
+            "exe_literals",
+            "format_strings",
+            "measured",
+            "name_from",
+            "numbered_family",
+            "rank",
+            "requirement",
+            "requirement_from",
+            "set_aside",
+            "shows",
+            "status",
+            "supports",
+            "thresholds"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "condition_from": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "exe_literals": {
+              "type": "string",
+              "minLength": 1
+            },
+            "format_strings": {
+              "type": "string",
+              "minLength": 1
+            },
+            "measured": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "name_from": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "numbered_family": {
+              "type": "string",
+              "minLength": 1
+            },
+            "rank": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "requirement": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "requirement_from": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "set_aside": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "shows": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "status": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "supports": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "thresholds": {
+              "$ref": "#/$defs/vocabularyTree"
+            }
+          },
+          "description": "Every word the rows use (status, rank, and the part's own enums), each with its meaning."
+        }
+      }
+    },
+    "implicitLocKeysRow": {
+      "type": "object",
+      "required": [
+        "evidence",
+        "measured",
+        "name_from",
+        "pattern",
+        "prefix",
+        "requirement",
+        "requirement_from",
+        "status",
+        "suffix"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/implicitLocKeysEvidence"
+          }
+        },
+        "measured": {
+          "$ref": "#/$defs/measuredTree"
+        },
+        "name_from": {
+          "type": "string",
+          "pattern": "^(record-key|file-stem|nested:[a-z0-9_]+)$"
+        },
+        "pattern": {
+          "type": "string",
+          "minLength": 1
+        },
+        "prefix": {
+          "type": "string"
+        },
+        "requirement": {
+          "enum": [
+            "always-present-in-base-game",
+            "optional",
+            "required",
+            "unknown"
+          ]
+        },
+        "requirement_from": {
+          "enum": [
+            "evidence",
+            "measured"
+          ]
+        },
+        "status": {
+          "enum": [
+            "confirmed",
+            "measured-only",
+            "unknown"
+          ]
+        },
+        "suffix": {
+          "type": "string"
+        },
+        "exe_literals": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "overridden_by": {
+          "type": "string",
+          "minLength": 1
+        },
+        "overridden_by_holds_a_loc_key": {
+          "type": "boolean"
+        },
+        "overridden_by_in_schema": {
+          "type": "boolean"
+        },
+        "format_strings": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "numbered_family": {
+          "type": "string",
+          "minLength": 1
+        },
+        "note": {
+          "type": "string",
+          "minLength": 1
+        },
+        "condition": {
+          "type": "string",
+          "minLength": 1
+        },
+        "condition_from": {
+          "enum": [
+            "evidence",
+            "measured"
+          ]
+        },
+        "unsettled": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "implicitLocKeysEvidence": {
+      "type": "object",
+      "required": [
+        "rank",
+        "says",
+        "source",
+        "supports",
+        "where"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "beside": {
+          "type": "string",
+          "minLength": 1
+        },
+        "bytes_apart": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "rank": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "says": {
+          "type": "string",
+          "minLength": 1
+        },
+        "shows": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "condition",
+              "overridden_by",
+              "requirement"
+            ]
+          }
+        },
+        "source": {
+          "enum": [
+            "executable",
+            "oracle",
+            "catalogue",
+            "info",
+            "base_game"
+          ]
+        },
+        "string": {
+          "type": "string",
+          "minLength": 1
+        },
+        "supports": {
+          "enum": [
+            "presence",
+            "role"
+          ]
+        },
+        "verified_in": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "where": {
+          "type": "string",
+          "minLength": 1
+        },
+        "file": {
+          "type": "string",
+          "minLength": 1
+        },
+        "lines": {
+          "type": "string",
+          "minLength": 1
+        },
+        "quote": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "overrideRulesData": {
+      "additionalProperties": false,
+      "properties": {
+        "about": {
+          "type": "object"
+        },
+        "binary": {
+          "properties": {
+            "sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            }
+          },
+          "required": [
+            "file",
+            "sha256",
+            "build",
+            "platform",
+            "image_base"
+          ],
+          "type": "object"
+        },
+        "counts": {
+          "type": "object"
+        },
+        "coverage": {
+          "items": {
+            "properties": {
+              "class": {
+                "enum": [
+                  "generic",
+                  "own-rule",
+                  "open",
+                  "unknown",
+                  "not-in-build"
+                ]
+              },
+              "database_classes": {
+                "items": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "folder": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "governed_by": {
+                "items": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "known": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "listing_path": {
+                "items": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "reader": {
+                "items": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "rows": {
+                "items": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "status": {
+                "enum": [
+                  "settled",
+                  "partial",
+                  "open"
+                ]
+              },
+              "via": {
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "folder",
+              "class",
+              "status",
+              "rows",
+              "governed_by"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "database_classes": {
+          "type": "object"
+        },
+        "extensions": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "pattern": "^x-[a-z0-9-]+$",
+                "type": "string"
+              },
+              "name": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "reason": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "what": {
+                "enum": [
+                  "kind",
+                  "field",
+                  "enum-meaning"
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "what",
+              "name",
+              "reason"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "format": {
+          "const": 1
+        },
+        "functions": {
+          "additionalProperties": {
+            "properties": {
+              "excerpt": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "findings": {
+                "items": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "identified_by": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "name": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "rows": {
+                "items": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            },
+            "required": [
+              "name",
+              "excerpt",
+              "identified_by",
+              "findings",
+              "rows"
+            ],
+            "type": "object"
+          },
+          "propertyNames": {
+            "pattern": "^0x[0-9a-f]+$"
+          },
+          "type": "object"
+        },
+        "game_build": {
+          "pattern": "^[0-9]+(\\.[0-9]+)+$",
+          "type": "string"
+        },
+        "generator": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "inputs": {
+          "type": "object"
+        },
+        "measured_cases": {
+          "items": {
+            "properties": {
+              "rows": {
+                "items": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "status": {
+                "enum": [
+                  "settled",
+                  "partial",
+                  "open",
+                  "derived"
+                ]
+              }
+            },
+            "required": [
+              "rule",
+              "case",
+              "decided",
+              "rows",
+              "status"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "pychivalry": {
+          "required": [
+            "commit",
+            "schema_sha256",
+            "rows_valid",
+            "problems"
+          ],
+          "type": "object"
+        },
+        "rules": {
+          "items": {
+            "$ref": "#/$defs/overrideRulesRule"
+          },
+          "type": "array"
+        },
+        "rules_now": {
+          "items": {
+            "properties": {
+              "line": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "rule": {
+                "type": "integer"
+              },
+              "stands": {
+                "enum": [
+                  "settled",
+                  "partial",
+                  "open",
+                  "derived"
+                ]
+              }
+            },
+            "required": [
+              "rule",
+              "stands",
+              "line"
+            ],
+            "type": "object"
+          },
+          "maxItems": 11,
+          "minItems": 11,
+          "type": "array"
+        },
+        "stand_in": {
+          "items": {
+            "required": [
+              "id",
+              "became",
+              "difference"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "version": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "vocabulary": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "about",
+        "format",
+        "generator",
+        "version",
+        "game_build",
+        "binary",
+        "inputs",
+        "vocabulary",
+        "extensions",
+        "functions",
+        "rules",
+        "coverage",
+        "database_classes",
+        "measured_cases",
+        "rules_now",
+        "stand_in",
+        "pychivalry",
+        "counts"
+      ],
+      "type": "object",
+      "description": "Part D1's data: research/overrides/<version>/override_rules.json, whole. This shape is that file's own JSON Schema (research/overrides/<version>/override_rules.schema.json, written by tools/python/override_rules.py), carried here unchanged but for the $ref names; build_spec_package.py checks that the two are the same. The rows of pychivalry's kinds keep pychivalry's field names and enums; the fields beside them are listed in vocabulary.row_fields.extra."
+    },
+    "overrideRulesEvidence": {
+      "properties": {
+        "binary": {
+          "type": "object"
+        },
+        "file": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "findings": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "folder": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "functions": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "address": {
+                "pattern": "^0x[0-9a-f]+$",
+                "type": "string"
+              },
+              "excerpt": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "name": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "address",
+              "name",
+              "excerpt"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "key": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "lines": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "quote": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "rank": {
+          "maximum": 5,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "says": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "source": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "verified_in": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "where": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "rank",
+        "source",
+        "where",
+        "says"
+      ],
+      "type": "object",
+      "description": "One evidence item of an override rule (part D1's own schema, $defs evidence)."
+    },
+    "overrideRulesRule": {
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "file-replace"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "layer",
+              "over"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "file-identity"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "by"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "path-case"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "compare"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "pack-layer"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "layer",
+              "folder",
+              "descriptor_extension",
+              "path_key"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "replace-path"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "hides",
+              "subfolders"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "file-order"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "compare",
+              "subfolders",
+              "layers",
+              "layer_order"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "key-resolution"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "databases",
+              "resolve"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "containers"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "databases",
+              "keys"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "folder-wins"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "databases",
+              "segment"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "mount-order"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "order"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "listing-depth"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "recursive",
+              "databases"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "key-identity"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "databases"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "field-outcomes"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "databases",
+              "fields"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "duplicate-message"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "text",
+              "keeps",
+              "after_logging"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "open-question"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "found"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "enum": [
+                  "partial",
+                  "open",
+                  "derived"
+                ]
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "required": [
+              "open"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "checked": {
+                "enum": [
+                  "in-part",
+                  "not-shown"
+                ]
+              }
+            },
+            "required": [
+              "checked"
+            ]
+          },
+          "then": {
+            "required": [
+              "checked_note"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "settled"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "checked": {
+                "enum": [
+                  "confirmed",
+                  "in-part"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "properties": {
+        "also_rules": {
+          "items": {
+            "maximum": 11,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "type": "array"
+        },
+        "checked": {
+          "enum": [
+            "confirmed",
+            "in-part",
+            "not-shown",
+            "not-applicable"
+          ]
+        },
+        "checked_note": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "databases": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "details": {
+          "type": "object"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/overrideRulesEvidence"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "extends": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "findings": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "id": {
+          "pattern": "^[a-z0-9][a-z0-9-]*$",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "file-replace",
+            "file-identity",
+            "path-case",
+            "pack-layer",
+            "replace-path",
+            "file-order",
+            "key-resolution",
+            "containers",
+            "folder-wins",
+            "mount-order",
+            "mount-dependencies",
+            "listing-depth",
+            "key-identity",
+            "field-outcomes",
+            "path-case-mechanism",
+            "duplicate-message",
+            "open-question"
+          ]
+        },
+        "message": {
+          "pattern": "^msg-[a-z0-9-]+$",
+          "type": "string"
+        },
+        "note": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "open": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "other_folders": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "overrides_rule": {
+          "description": "The rule's number in pychivalry's docs/overrides.md.",
+          "maximum": 11,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "platform_basis": {
+          "additionalProperties": false,
+          "minProperties": 1,
+          "properties": {
+            "linux": {
+              "additionalProperties": false,
+              "properties": {
+                "basis": {
+                  "enum": [
+                    "read",
+                    "assumed-same-engine",
+                    "derived",
+                    "derived-not-read"
+                  ]
+                },
+                "text": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "basis",
+                "text"
+              ],
+              "type": "object"
+            },
+            "windows": {
+              "additionalProperties": false,
+              "properties": {
+                "basis": {
+                  "enum": [
+                    "read",
+                    "assumed-same-engine",
+                    "derived",
+                    "derived-not-read"
+                  ]
+                },
+                "text": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "basis",
+                "text"
+              ],
+              "type": "object"
+            }
+          },
+          "type": "object"
+        },
+        "platforms": {
+          "items": {
+            "enum": [
+              "linux",
+              "windows"
+            ]
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "status": {
+          "enum": [
+            "settled",
+            "partial",
+            "open",
+            "derived"
+          ]
+        },
+        "title": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "vocabulary": {
+          "enum": [
+            "pychivalry",
+            "pychivalry-refined",
+            "extension"
+          ]
+        },
+        "wins": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "overrides_rule",
+        "title",
+        "kind",
+        "platforms",
+        "evidence",
+        "status",
+        "checked",
+        "findings",
+        "platform_basis",
+        "vocabulary"
+      ],
+      "type": "object",
+      "description": "One row of the override rules table (part D1's own schema, $defs rule)."
+    },
+    "fieldReferencesData": {
+      "type": "object",
+      "required": [
+        "about",
+        "by_database",
+        "counts",
+        "fields",
+        "format",
+        "generator",
+        "info_refers_to_not_mapped",
+        "inputs",
+        "not_settled",
+        "own_name_fields",
+        "parse_problems",
+        "snapshot",
+        "version",
+        "vocabulary"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "about": {
+          "type": "object",
+          "required": [
+            "consumer",
+            "meaning",
+            "name",
+            "rows",
+            "scope",
+            "status_rule"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "consumer": {
+              "type": "string",
+              "minLength": 1
+            },
+            "meaning": {
+              "type": "string",
+              "minLength": 1
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "rows": {
+              "type": "string",
+              "minLength": 1
+            },
+            "scope": {
+              "type": "string",
+              "minLength": 1
+            },
+            "status_rule": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "description": "What the part holds, in words."
+        },
+        "by_database": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1
+          },
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "description": "Per database: the ids of the rows whose `refers_to` holds it."
+        },
+        "counts": {
+          "type": "object",
+          "required": [
+            "by_kind",
+            "by_kind_and_status",
+            "by_status",
+            "confirmed_by_best_rank",
+            "databases",
+            "databases_named",
+            "directories",
+            "directories_present",
+            "own_name_fields",
+            "rows",
+            "rows_measured_disagrees",
+            "rows_naming_on_action",
+            "rows_not_in_schema",
+            "rows_with_an_on_action_value_not_naming_it",
+            "script_files_read",
+            "units_measured",
+            "units_with_values"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "by_kind": {
+              "$ref": "#/$defs/countTree"
+            },
+            "by_kind_and_status": {
+              "$ref": "#/$defs/countTree"
+            },
+            "by_status": {
+              "$ref": "#/$defs/countTree"
+            },
+            "confirmed_by_best_rank": {
+              "$ref": "#/$defs/countTree"
+            },
+            "databases": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "databases_named": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "directories": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "directories_present": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "own_name_fields": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "rows": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "rows_measured_disagrees": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "rows_naming_on_action": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "rows_not_in_schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "rows_with_an_on_action_value_not_naming_it": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "script_files_read": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "units_measured": {
+              "$ref": "#/$defs/countTree"
+            },
+            "units_with_values": {
+              "$ref": "#/$defs/countTree"
+            }
+          },
+          "description": "Counts of the rows, by status and by kind, and of what was read."
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/fieldReferencesRow"
+          },
+          "description": "The rows, one per place whose values name a database."
+        },
+        "format": {
+          "const": "field_references",
+          "description": "The output's name; fixed."
+        },
+        "generator": {
+          "const": "tools/python/field_references.py",
+          "description": "The tool that wrote the output."
+        },
+        "info_refers_to_not_mapped": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1
+          },
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "description": "The .info reader's `refers_to` words that no database here answers ({} when every word is mapped)."
+        },
+        "inputs": {
+          "type": "object",
+          "required": [
+            "catalogue",
+            "declarations",
+            "definitions_hand",
+            "directories",
+            "exe",
+            "hand",
+            "info",
+            "oracle",
+            "overrides",
+            "package",
+            "strings_in_exe"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "catalogue": {
+              "type": "string",
+              "minLength": 1
+            },
+            "declarations": {
+              "type": "string",
+              "minLength": 1
+            },
+            "definitions_hand": {
+              "type": "string",
+              "minLength": 1
+            },
+            "directories": {
+              "type": "string",
+              "minLength": 1
+            },
+            "exe": {
+              "type": "object",
+              "required": [
+                "bytes",
+                "file",
+                "sha256"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "bytes": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "file": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                }
+              }
+            },
+            "hand": {
+              "type": "string",
+              "minLength": 1
+            },
+            "info": {
+              "type": "string",
+              "minLength": 1
+            },
+            "oracle": {
+              "type": "string",
+              "minLength": 1
+            },
+            "overrides": {
+              "type": "string",
+              "minLength": 1
+            },
+            "package": {
+              "type": "string",
+              "minLength": 1
+            },
+            "strings_in_exe": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "description": "The committed files, and the executable's name, size and sha256 (read as bytes, never run)."
+        },
+        "not_settled": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "What the evidence does not settle, in words."
+        },
+        "own_name_fields": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "own_names",
+              "values"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "own_names": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "values": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          },
+          "description": "The fields whose values include the key of their own record, by id."
+        },
+        "parse_problems": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "The number of script files the tolerant reader read with a problem and went on from."
+        },
+        "snapshot": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+\\.\\d+/game$",
+          "description": "The frozen game folder that was measured, as <version>/game."
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+\\.\\d+$",
+          "description": "The game version the output was made for; the package's own."
+        },
+        "vocabulary": {
+          "type": "object",
+          "required": [
+            "databases",
+            "doc_words",
+            "in_schema",
+            "info_refers_to",
+            "kind",
+            "measured",
+            "measured_disagrees",
+            "members",
+            "not_databases",
+            "own_name_fields",
+            "rank",
+            "secondary",
+            "status",
+            "supports",
+            "thresholds",
+            "value_form"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "databases": {
+              "type": "object",
+              "propertyNames": {
+                "type": "string",
+                "minLength": 1
+              },
+              "additionalProperties": {
+                "type": "object",
+                "required": [
+                  "keys",
+                  "keys_also_of_another_database"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "add_bucket": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "add_databases": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "from": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "keys": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "keys_also_of_another_database": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "note": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "secondary": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            },
+            "doc_words": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "database",
+                  "pattern",
+                  "says"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "database": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "pattern": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "says": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            },
+            "in_schema": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "info_refers_to": {
+              "type": "object",
+              "propertyNames": {
+                "type": "string",
+                "minLength": 1
+              },
+              "additionalProperties": {
+                "type": "object",
+                "required": [
+                  "database"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "database": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "minLength": 1
+                  },
+                  "why": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            },
+            "kind": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "measured": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "measured_disagrees": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "members": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "not_databases": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "own_name_fields": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "rank": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "secondary": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "status": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "supports": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "thresholds": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "value_form": {
+              "$ref": "#/$defs/vocabularyTree"
+            }
+          },
+          "description": "Every word the rows use (status, rank, and the part's own enums), each with its meaning."
+        }
+      }
+    },
+    "fieldReferencesEvidence": {
+      "type": "object",
+      "required": [
+        "rank",
+        "says",
+        "source",
+        "supports",
+        "where"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "beside": {
+          "type": "string",
+          "minLength": 1
+        },
+        "bytes_apart": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "file": {
+          "type": "string",
+          "minLength": 1
+        },
+        "lines": {
+          "type": "string",
+          "minLength": 1
+        },
+        "quote": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rank": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "says": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source": {
+          "enum": [
+            "executable",
+            "oracle",
+            "catalogue",
+            "info",
+            "takes",
+            "base_game"
+          ]
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "executable",
+              "script_docs",
+              "script_docs_traits"
+            ]
+          }
+        },
+        "string": {
+          "type": "string",
+          "minLength": 1
+        },
+        "supports": {
+          "enum": [
+            "presence",
+            "role"
+          ]
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "verified_in": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "where": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "description": "An evidence item of part D6: its rank (1 the executable to 5 wiki-era hints), what it supports (role or presence), what it says and where it is; `source: takes` is a reading of the package's A5 `takes`, with its `ref`, `sources` and `text`."
+    },
+    "fieldReferencesPart": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "status",
+            "data"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "status": {
+              "const": "built"
+            },
+            "data": {
+              "$ref": "#/$defs/fieldReferencesData"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/partNotBuilt"
+        }
+      ],
+      "description": "Part D6 as the package carries it: built, with its data, or not built, with the reason."
+    },
+    "fieldReferencesRow": {
+      "type": "object",
+      "required": [
+        "bucket",
+        "directory",
+        "evidence",
+        "id",
+        "kind",
+        "measured",
+        "path",
+        "refers_to",
+        "status",
+        "value_form"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "also_in": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "basis": {
+          "type": "string",
+          "minLength": 1
+        },
+        "bucket": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "directory": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/fieldReferencesEvidence"
+          }
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "in_schema": {
+          "type": "boolean"
+        },
+        "kind": {
+          "enum": [
+            "field",
+            "info",
+            "other",
+            "parameter",
+            "value"
+          ]
+        },
+        "measured": {
+          "type": "object",
+          "required": [
+            "matched",
+            "misses",
+            "sample_misses",
+            "share",
+            "uses",
+            "values"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "matched": {
+              "type": "object",
+              "propertyNames": {
+                "type": "string",
+                "minLength": 1
+              },
+              "additionalProperties": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "misses": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "more_databases": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "on_action_values": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "other_values": {
+              "type": "object",
+              "propertyNames": {
+                "type": "string",
+                "minLength": 1
+              },
+              "additionalProperties": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "own_names": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "places": {
+              "type": "object",
+              "propertyNames": {
+                "type": "string",
+                "minLength": 1
+              },
+              "additionalProperties": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "sample_misses": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "share": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "uses": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "values": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "measured_disagrees": {
+          "type": "boolean"
+        },
+        "measured_note": {
+          "type": "string",
+          "minLength": 1
+        },
+        "members": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "note": {
+          "type": "string",
+          "minLength": 1
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "refers_to": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "status": {
+          "enum": [
+            "confirmed",
+            "measured-only",
+            "unknown"
+          ]
+        },
+        "tied": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "tied_more": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "value_form": {
+          "enum": [
+            "key",
+            "key or list of keys",
+            "list of keys",
+            null
+          ]
+        }
+      },
+      "description": "A place whose values name a database: `id` (<folder>::<field>[.<sub-field>], <bucket>::<name>[.<param>] or <folder>::<path>), `kind`, the databases it refers to with their status and evidence, what was measured."
+    },
+    "iteratorKindsContextRule": {
+      "type": "object",
+      "required": [
+        "context",
+        "evidence",
+        "measured",
+        "rule",
+        "says",
+        "see"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "context": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/iteratorKindsEvidence"
+          }
+        },
+        "measured": {
+          "$ref": "#/$defs/measuredTree"
+        },
+        "note": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rule": {
+          "type": "string",
+          "minLength": 1
+        },
+        "says": {
+          "type": "string",
+          "minLength": 1
+        },
+        "see": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "description": "A rule the measurement reads the kind of a block with: where it applies, what it says, the package entries it reads (`see`) and the iterator blocks it decided."
+    },
+    "iteratorKindsData": {
+      "type": "object",
+      "required": [
+        "about",
+        "context_rules",
+        "counts",
+        "departures",
+        "format",
+        "generator",
+        "inputs",
+        "limit_rule",
+        "lists",
+        "not_settled",
+        "parse_problems",
+        "prefixes",
+        "registrar",
+        "snapshot",
+        "version",
+        "vocabulary"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "about": {
+          "type": "object",
+          "required": [
+            "consumer",
+            "meaning",
+            "name",
+            "not_the_same_as",
+            "rows",
+            "status_rule"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "consumer": {
+              "type": "string",
+              "minLength": 1
+            },
+            "meaning": {
+              "type": "string",
+              "minLength": 1
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "not_the_same_as": {
+              "type": "string",
+              "minLength": 1
+            },
+            "rows": {
+              "type": "string",
+              "minLength": 1
+            },
+            "status_rule": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "description": "What the part holds, in words."
+        },
+        "context_rules": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/iteratorKindsContextRule"
+          },
+          "description": "The context rules, one per rule the measurement applies, in its order."
+        },
+        "counts": {
+          "type": "object",
+          "required": [
+            "departures",
+            "departures_by_found_by",
+            "departures_by_status",
+            "departures_by_what",
+            "files_read_with_a_problem",
+            "forms_documented",
+            "iterator_blocks_by_context",
+            "iterator_blocks_written",
+            "lists",
+            "lists_written",
+            "multi_bucket",
+            "prefixes",
+            "prefixes_by_kind",
+            "prefixes_by_status",
+            "script_files_read",
+            "written_in_other_kind"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "departures": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "departures_by_found_by": {
+              "$ref": "#/$defs/countTree"
+            },
+            "departures_by_status": {
+              "$ref": "#/$defs/countTree"
+            },
+            "departures_by_what": {
+              "$ref": "#/$defs/countTree"
+            },
+            "files_read_with_a_problem": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "forms_documented": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "iterator_blocks_by_context": {
+              "$ref": "#/$defs/countTree"
+            },
+            "iterator_blocks_written": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "lists": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "lists_written": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "multi_bucket": {
+              "type": "object",
+              "required": [
+                "lists_also_a_trigger_or_effect",
+                "lists_whose_base_is_also",
+                "prefixed_names_in_multi_bucket"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "lists_also_a_trigger_or_effect": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "lists_whose_base_is_also": {
+                  "type": "object",
+                  "required": [
+                    "effects",
+                    "links",
+                    "triggers"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "effects": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "links": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "triggers": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  }
+                },
+                "prefixed_names_in_multi_bucket": {
+                  "type": "array"
+                }
+              }
+            },
+            "prefixes": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "prefixes_by_kind": {
+              "$ref": "#/$defs/countTree"
+            },
+            "prefixes_by_status": {
+              "$ref": "#/$defs/countTree"
+            },
+            "script_files_read": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "written_in_other_kind": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "description": "Counts of the rows, by status and by kind, and of what was read."
+        },
+        "departures": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/iteratorKindsDeparture"
+          },
+          "description": "The departures, documented and measured."
+        },
+        "format": {
+          "const": "iterator_kinds",
+          "description": "The output's name; fixed."
+        },
+        "generator": {
+          "const": "tools/python/iterator_kinds.py",
+          "description": "The tool that wrote the output."
+        },
+        "inputs": {
+          "type": "object",
+          "required": [
+            "catalogue",
+            "declarations",
+            "directories",
+            "exe",
+            "hand",
+            "info",
+            "keyword_roles",
+            "oracle",
+            "oracle_json",
+            "package",
+            "registrar",
+            "strings_in_exe"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "catalogue": {
+              "type": "string",
+              "minLength": 1
+            },
+            "declarations": {
+              "type": "string",
+              "minLength": 1
+            },
+            "directories": {
+              "type": "string",
+              "minLength": 1
+            },
+            "exe": {
+              "type": "object",
+              "required": [
+                "bytes",
+                "file",
+                "sha256"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "bytes": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "file": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                }
+              }
+            },
+            "hand": {
+              "type": "string",
+              "minLength": 1
+            },
+            "info": {
+              "type": "string",
+              "minLength": 1
+            },
+            "keyword_roles": {
+              "type": "string",
+              "minLength": 1
+            },
+            "oracle": {
+              "type": "string",
+              "minLength": 1
+            },
+            "oracle_json": {
+              "type": "string",
+              "minLength": 1
+            },
+            "package": {
+              "type": "string",
+              "minLength": 1
+            },
+            "registrar": {
+              "type": "string",
+              "minLength": 1
+            },
+            "strings_in_exe": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "description": "The committed files, and the executable's name, size and sha256 (read as bytes, never run)."
+        },
+        "limit_rule": {
+          "type": "object",
+          "required": [
+            "answer",
+            "context",
+            "evidence",
+            "measured",
+            "question",
+            "see",
+            "status"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "answer": {
+              "type": "string",
+              "minLength": 1
+            },
+            "context": {
+              "type": "string",
+              "minLength": 1
+            },
+            "evidence": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/iteratorKindsEvidence"
+              }
+            },
+            "measured": {
+              "$ref": "#/$defs/measuredTree"
+            },
+            "question": {
+              "type": "string",
+              "minLength": 1
+            },
+            "see": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "status": {
+              "enum": [
+                "confirmed",
+                "measured-only"
+              ]
+            }
+          },
+          "description": "Whether a trigger-kind iterator may stand in an effect block's `limit`, with the answer and its evidence."
+        },
+        "lists": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1
+          },
+          "additionalProperties": {
+            "type": "object",
+            "required": [
+              "also_in",
+              "forms",
+              "written"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "also_in": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "forms": {
+                "type": "object",
+                "required": [
+                  "any_",
+                  "every_",
+                  "ordered_",
+                  "random_"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "any_": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "every_": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "ordered_": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "random_": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              "written": {
+                "$ref": "#/$defs/measuredTree"
+              }
+            }
+          },
+          "description": "Per list of the lists bucket: its documented forms and where the base game writes its iterators."
+        },
+        "not_settled": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "What the evidence does not settle, in words."
+        },
+        "parse_problems": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "file",
+              "reason"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "file": {
+                "type": "string",
+                "minLength": 1
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "description": "The script files the tolerant reader read with a problem and went on from, with the reason."
+        },
+        "prefixes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/iteratorKindsPrefix"
+          },
+          "description": "The four prefixes."
+        },
+        "registrar": {
+          "type": "object",
+          "required": [
+            "file",
+            "list_registrations",
+            "list_registrations_with_a_format",
+            "lists_of_the_bucket_named",
+            "prefixed_registrations"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "file": {
+              "type": "string",
+              "minLength": 1
+            },
+            "list_registrations": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "list_registrations_with_a_format": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "lists_of_the_bucket_named": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "prefixed_registrations": {
+              "type": "object",
+              "required": [
+                "effects",
+                "links",
+                "lists",
+                "triggers"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "effects": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "links": {
+                  "type": "array"
+                },
+                "lists": {
+                  "type": "array"
+                },
+                "triggers": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            }
+          },
+          "description": "What the registrar walk of the executable shows of the lists."
+        },
+        "snapshot": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+\\.\\d+/game$",
+          "description": "The frozen game folder that was measured, as <version>/game."
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+\\.\\d+$",
+          "description": "The game version the output was made for; the package's own."
+        },
+        "vocabulary": {
+          "type": "object",
+          "required": [
+            "contexts",
+            "departures",
+            "found_by",
+            "kinds",
+            "rank",
+            "status",
+            "supports"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "contexts": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "departures": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "found_by": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "kinds": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "rank": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "status": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "supports": {
+              "$ref": "#/$defs/vocabularyTree"
+            }
+          },
+          "description": "Every word the rows use (status, rank, and the part's own enums), each with its meaning."
+        }
+      }
+    },
+    "iteratorKindsDeparture": {
+      "type": "object",
+      "required": [
+        "evidence",
+        "found_by",
+        "kind",
+        "list",
+        "measured",
+        "name",
+        "prefix",
+        "see",
+        "status",
+        "what"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/iteratorKindsEvidence"
+          }
+        },
+        "found_by": {
+          "enum": [
+            "documentation",
+            "measurement"
+          ]
+        },
+        "kind": {
+          "enum": [
+            "effect",
+            "trigger",
+            "value",
+            null
+          ]
+        },
+        "list": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "measured": {
+          "$ref": "#/$defs/measuredTree"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "note": {
+          "type": "string",
+          "minLength": 1
+        },
+        "prefix": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "see": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "status": {
+          "enum": [
+            "confirmed",
+            "measured-only"
+          ]
+        },
+        "what": {
+          "enum": [
+            "case-variant",
+            "in-both-kinds",
+            "in-other-kind",
+            "missing-form",
+            "not-an-iterator",
+            "parameterized-name",
+            "scripted-list",
+            "value-context"
+          ]
+        }
+      },
+      "description": "A name that carries a prefix and is no iterator, or a place the rule does not apply: `what` it is, how it was found, its status, evidence and measurement."
+    },
+    "iteratorKindsEvidence": {
+      "type": "object",
+      "required": [
+        "rank",
+        "says",
+        "source",
+        "supports",
+        "where"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "beside": {
+          "type": "string",
+          "minLength": 1
+        },
+        "file": {
+          "type": "string",
+          "minLength": 1
+        },
+        "lines": {
+          "type": "string",
+          "minLength": 1
+        },
+        "quote": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rank": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "says": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source": {
+          "enum": [
+            "executable",
+            "oracle",
+            "info",
+            "base_game"
+          ]
+        },
+        "string": {
+          "type": "string",
+          "minLength": 1
+        },
+        "supports": {
+          "enum": [
+            "presence",
+            "role"
+          ]
+        },
+        "verified_in": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "where": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "description": "An evidence item of part D8: rank, what it supports, what it says and where it is (a string of the executable, a line of the game's own output, a .info quote, or a count of the base game's use)."
+    },
+    "iteratorKindsPart": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "status",
+            "data"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "status": {
+              "const": "built"
+            },
+            "data": {
+              "$ref": "#/$defs/iteratorKindsData"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/partNotBuilt"
+        }
+      ],
+      "description": "Part D8 as the package carries it: built, with its data, or not built, with the reason."
+    },
+    "iteratorKindsPrefix": {
+      "type": "object",
+      "required": [
+        "body",
+        "evidence",
+        "kind",
+        "measured",
+        "prefix",
+        "see",
+        "status"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "body": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/iteratorKindsEvidence"
+          }
+        },
+        "kind": {
+          "enum": [
+            "effect",
+            "trigger"
+          ]
+        },
+        "measured": {
+          "$ref": "#/$defs/measuredTree"
+        },
+        "prefix": {
+          "type": "string",
+          "minLength": 1
+        },
+        "see": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "status": {
+          "enum": [
+            "confirmed",
+            "measured-only"
+          ]
+        }
+      },
+      "description": "A list-iterator prefix: its kind (trigger or effect), how its own block is read, its status and evidence, what was measured."
+    },
+    "modifierBlockAreasData": {
+      "type": "object",
+      "required": [
+        "about",
+        "counts",
+        "engine_check",
+        "fields",
+        "format",
+        "generator",
+        "inputs",
+        "not_settled",
+        "parse_problems",
+        "snapshot",
+        "version",
+        "vocabulary"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "about": {
+          "type": "object",
+          "required": [
+            "consumer",
+            "meaning",
+            "name",
+            "rows",
+            "scope",
+            "status_rule"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "consumer": {
+              "type": "string",
+              "minLength": 1
+            },
+            "meaning": {
+              "type": "string",
+              "minLength": 1
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "rows": {
+              "type": "string",
+              "minLength": 1
+            },
+            "scope": {
+              "type": "string",
+              "minLength": 1
+            },
+            "status_rule": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "description": "What the part holds, in words."
+        },
+        "counts": {
+          "type": "object",
+          "required": [
+            "by_holds_from",
+            "by_status",
+            "by_use_areas",
+            "confirmed_by_best_rank",
+            "directories",
+            "directories_present",
+            "rows",
+            "rows_measured_disagrees",
+            "rows_whose_name_hint_is_the_use_area",
+            "rows_with_a_name_hint",
+            "schema_holds_modifiers",
+            "schema_holds_modifiers_not_measured_as_holding",
+            "script_files_read",
+            "units_measured"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "by_holds_from": {
+              "$ref": "#/$defs/countTree"
+            },
+            "by_status": {
+              "$ref": "#/$defs/countTree"
+            },
+            "by_use_areas": {
+              "$ref": "#/$defs/countTree"
+            },
+            "confirmed_by_best_rank": {
+              "$ref": "#/$defs/countTree"
+            },
+            "directories": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "directories_present": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "rows": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "rows_measured_disagrees": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "rows_whose_name_hint_is_the_use_area": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "rows_with_a_name_hint": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "schema_holds_modifiers": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "schema_holds_modifiers_not_measured_as_holding": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "script_files_read": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "units_measured": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "description": "Counts of the rows, by status and by kind, and of what was read."
+        },
+        "engine_check": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "rank",
+              "says",
+              "source",
+              "string",
+              "supports",
+              "verified_in",
+              "where"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "beside": {
+                "type": "string",
+                "minLength": 1
+              },
+              "bytes_apart": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "rank": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 5
+              },
+              "says": {
+                "type": "string",
+                "minLength": 1
+              },
+              "source": {
+                "enum": [
+                  "executable"
+                ]
+              },
+              "string": {
+                "type": "string",
+                "minLength": 1
+              },
+              "supports": {
+                "enum": [
+                  "presence",
+                  "role"
+                ]
+              },
+              "verified_in": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "where": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "description": "The executable's strings that check a modifier against the area of the block it is read in, as evidence items."
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/modifierBlockAreasRow"
+          },
+          "description": "The rows, one per block that holds modifiers."
+        },
+        "format": {
+          "const": "modifier_block_areas",
+          "description": "The output's name; fixed."
+        },
+        "generator": {
+          "const": "tools/python/modifier_block_areas.py",
+          "description": "The tool that wrote the output."
+        },
+        "inputs": {
+          "type": "object",
+          "required": [
+            "catalogue",
+            "directories",
+            "exe",
+            "hand",
+            "info",
+            "oracle",
+            "package",
+            "strings_in_exe",
+            "structural_keys"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "catalogue": {
+              "type": "string",
+              "minLength": 1
+            },
+            "directories": {
+              "type": "string",
+              "minLength": 1
+            },
+            "exe": {
+              "type": "object",
+              "required": [
+                "bytes",
+                "file",
+                "sha256"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "bytes": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "file": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                }
+              }
+            },
+            "hand": {
+              "type": "string",
+              "minLength": 1
+            },
+            "info": {
+              "type": "string",
+              "minLength": 1
+            },
+            "oracle": {
+              "type": "string",
+              "minLength": 1
+            },
+            "package": {
+              "type": "string",
+              "minLength": 1
+            },
+            "strings_in_exe": {
+              "type": "string",
+              "minLength": 1
+            },
+            "structural_keys": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "description": "The committed files, and the executable's name, size and sha256 (read as bytes, never run)."
+        },
+        "not_settled": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "What the evidence does not settle, in words."
+        },
+        "parse_problems": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "The number of script files the tolerant reader read with a problem and went on from."
+        },
+        "snapshot": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+\\.\\d+/game$",
+          "description": "The frozen game folder that was measured, as <version>/game."
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+\\.\\d+$",
+          "description": "The game version the output was made for; the package's own."
+        },
+        "vocabulary": {
+          "type": "object",
+          "required": [
+            "areas",
+            "deep",
+            "holds_from",
+            "in_schema",
+            "info_words",
+            "measured",
+            "measured_disagrees",
+            "members",
+            "name_hint",
+            "rank",
+            "status",
+            "supports",
+            "thresholds",
+            "use_areas"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "areas": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "deep": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "holds_from": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "in_schema": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "info_words": {
+              "type": "object",
+              "propertyNames": {
+                "type": "string",
+                "minLength": 1
+              },
+              "additionalProperties": {
+                "type": "object",
+                "required": [
+                  "use_areas"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "use_areas": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
+                }
+              }
+            },
+            "measured": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "measured_disagrees": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "members": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "name_hint": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "rank": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "status": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "supports": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "thresholds": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "use_areas": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "description": "Every word the rows use (status, rank, and the part's own enums), each with its meaning."
+        }
+      }
+    },
+    "modifierBlockAreasEvidence": {
+      "type": "object",
+      "required": [
+        "rank",
+        "says",
+        "source",
+        "supports",
+        "where"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "areas": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "character",
+              "county",
+              "culture",
+              "province",
+              "road",
+              "scheme",
+              "terrain",
+              "trade_market",
+              "trade_route",
+              "travel_plan"
+            ]
+          }
+        },
+        "file": {
+          "type": "string",
+          "minLength": 1
+        },
+        "lines": {
+          "type": "string",
+          "minLength": 1
+        },
+        "quote": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rank": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "says": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source": {
+          "enum": [
+            "executable",
+            "oracle",
+            "catalogue",
+            "info",
+            "base_game"
+          ]
+        },
+        "supports": {
+          "enum": [
+            "presence",
+            "role"
+          ]
+        },
+        "verified_in": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "where": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "description": "An evidence item of part D7: rank, what it supports, what it says, where it is; a .info item quotes its lines, and `areas` (when present) are the row's use areas it states."
+    },
+    "modifierBlockAreasPart": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "status",
+            "data"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "status": {
+              "const": "built"
+            },
+            "data": {
+              "$ref": "#/$defs/modifierBlockAreasData"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/partNotBuilt"
+        }
+      ],
+      "description": "Part D7 as the package carries it: built, with its data, or not built, with the reason."
+    },
+    "modifierBlockAreasRow": {
+      "type": "object",
+      "required": [
+        "directory",
+        "evidence",
+        "holds_from",
+        "id",
+        "measured",
+        "path",
+        "status",
+        "use_areas"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "directory": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/modifierBlockAreasEvidence"
+          }
+        },
+        "holds_from": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "hand",
+              "info",
+              "measured",
+              "schema"
+            ]
+          }
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "in_schema": {
+          "type": "boolean"
+        },
+        "measured": {
+          "$ref": "#/$defs/measuredTree"
+        },
+        "measured_disagrees": {
+          "type": "boolean"
+        },
+        "members": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "name_hint": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "note": {
+          "type": "string",
+          "minLength": 1
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "enum": [
+            "confirmed",
+            "measured-only",
+            "unknown"
+          ]
+        },
+        "unsettled": {
+          "type": "string",
+          "minLength": 1
+        },
+        "use_areas": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "character",
+              "county",
+              "culture",
+              "province",
+              "road",
+              "scheme",
+              "terrain",
+              "trade_market",
+              "trade_route",
+              "travel_plan"
+            ]
+          }
+        }
+      },
+      "description": "A block that holds modifiers: `id` (<folder>::<field>, <folder>::(record), <folder>::*.<g> for a family, <folder>::**.<key> below depth 2), its `use_areas` with status and evidence, where the row comes from (`holds_from`), what was measured."
     }
   }
 }

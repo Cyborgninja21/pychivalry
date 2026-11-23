@@ -2,7 +2,7 @@
     "record_format": 1,
     "suite": "baseline:results",
     "command": "LEGACY_BUILD=<legacy build> CK3_GAME_PATH=<game dir> BASELINE_PARTS=base-game BASELINE_NODE_HEAP=8192 task baseline:results",
-    "made_at": "2026-11-22T07:23:18.414Z",
+    "made_at": "2026-11-23T01:17:22.966Z",
     "tool": {
         "name": "pychivalry",
         "version": "2.3.0",
@@ -24,7 +24,7 @@
     },
     "spec": {
         "version": "1.21.0.3",
-        "sha256": "0894b1a5aa0165012450a2d445a733559436f580ab26be940e3a660bf81b59ca",
+        "sha256": "72f843cf8d36decd0135ada92c8748c44ae9aef756c46b73c5b054673901c724",
         "package_format": 4
     },
     "corpus": null,
@@ -40,7 +40,7 @@
             "node_flags": [
                 "--max-old-space-size=8192"
             ],
-            "load_average_1m": 3.19
+            "load_average_1m": 6.07
         },
         "base_game": {
             "parse": {
@@ -87,7 +87,7 @@
             },
             "check": {
                 "by_severity": {
-                    "error": 96,
+                    "error": 88,
                     "warning": 0,
                     "information": 11668,
                     "hint": 0
@@ -96,7 +96,7 @@
                     {
                         "code": "unknown_trigger_X",
                         "severity": "error",
-                        "count": 84
+                        "count": 76
                     },
                     {
                         "code": "unknown_effect_X",
@@ -114,7 +114,7 @@
                         "count": 11668
                     }
                 ],
-                "errors": 96,
+                "errors": 88,
                 "error_list": [
                     {
                         "file": "common/activities/guest_invite_rules/activity_invite_rules.txt",
@@ -531,54 +531,6 @@
                         "message": "Unknown trigger 'filter'"
                     },
                     {
-                        "file": "common/pool_character_selectors/00_clergy.txt",
-                        "line": 61,
-                        "code": "unknown_trigger_X",
-                        "message": "Unknown trigger 'background'"
-                    },
-                    {
-                        "file": "common/pool_character_selectors/00_clergy.txt",
-                        "line": 114,
-                        "code": "unknown_trigger_X",
-                        "message": "Unknown trigger 'background'"
-                    },
-                    {
-                        "file": "common/pool_character_selectors/00_holy_order.txt",
-                        "line": 59,
-                        "code": "unknown_trigger_X",
-                        "message": "Unknown trigger 'background'"
-                    },
-                    {
-                        "file": "common/pool_character_selectors/00_holy_order.txt",
-                        "line": 136,
-                        "code": "unknown_trigger_X",
-                        "message": "Unknown trigger 'background'"
-                    },
-                    {
-                        "file": "common/pool_character_selectors/00_holy_order.txt",
-                        "line": 207,
-                        "code": "unknown_trigger_X",
-                        "message": "Unknown trigger 'background'"
-                    },
-                    {
-                        "file": "common/pool_character_selectors/00_holy_order.txt",
-                        "line": 274,
-                        "code": "unknown_trigger_X",
-                        "message": "Unknown trigger 'background'"
-                    },
-                    {
-                        "file": "common/pool_character_selectors/00_holy_order.txt",
-                        "line": 341,
-                        "code": "unknown_trigger_X",
-                        "message": "Unknown trigger 'background'"
-                    },
-                    {
-                        "file": "common/pool_character_selectors/00_mercenary.txt",
-                        "line": 44,
-                        "code": "unknown_trigger_X",
-                        "message": "Unknown trigger 'background'"
-                    },
-                    {
                         "file": "common/scripted_effects/00_childhood_effects.txt",
                         "line": 157,
                         "code": "unknown_trigger_X",
@@ -695,19 +647,19 @@
                 ]
             },
             "scope": {
-                "keyword_uses": 613889,
-                "keyword_uses_known_scope": 199620,
-                "keyword_uses_judged": 101466,
-                "link_steps_judged": 19904,
+                "keyword_uses": 613103,
+                "keyword_uses_known_scope": 199500,
+                "keyword_uses_judged": 101162,
+                "link_steps_judged": 19905,
                 "findings": 2,
                 "keyword_uses_by_known_scope_type": [
                     {
                         "type": "character",
-                        "uses": 163848
+                        "uses": 163675
                     },
                     {
                         "type": "landed_title",
-                        "uses": 8336
+                        "uses": 8346
                     },
                     {
                         "type": "province",
@@ -803,7 +755,7 @@
                     },
                     {
                         "type": "faction",
-                        "uses": 258
+                        "uses": 301
                     },
                     {
                         "type": "situation_sub_region",

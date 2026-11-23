@@ -2,7 +2,7 @@
     "record_format": 1,
     "suite": "baseline:results",
     "command": "LEGACY_BUILD=<legacy build> CK3_GAME_PATH=<game dir> CK3_CORPUS=<corpus dir> BASELINE_PARTS=mods task baseline:results",
-    "made_at": "2026-11-22T07:24:01.823Z",
+    "made_at": "2026-11-23T01:18:00.399Z",
     "tool": {
         "name": "pychivalry",
         "version": "2.3.0",
@@ -24,7 +24,7 @@
     },
     "spec": {
         "version": "1.21.0.3",
-        "sha256": "0894b1a5aa0165012450a2d445a733559436f580ab26be940e3a660bf81b59ca",
+        "sha256": "72f843cf8d36decd0135ada92c8748c44ae9aef756c46b73c5b054673901c724",
         "package_format": 4
     },
     "corpus": {
@@ -55,11 +55,11 @@
                 0
             ],
             "load_average_1m": [
-                4.18,
-                4.18,
-                4.61,
-                4.88,
-                4.89
+                4.38,
+                4.38,
+                4.22,
+                4.36,
+                4.41
             ]
         },
         "mods": [
