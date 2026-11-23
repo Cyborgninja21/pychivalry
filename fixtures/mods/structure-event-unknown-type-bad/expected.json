@@ -1,0 +1,30 @@
+{
+    "findings": [
+        {
+            "file": "events/fixture_events.txt",
+            "line": 4,
+            "column": 9,
+            "code": "fields/unusual-value",
+            "severity": "hint",
+            "message": "The base game never writes 'fixture_event' in 'type'; it writes 'character_event', 'activity_event', 'letter_event' or 'court_event'.",
+            "data": {
+                "field": "type",
+                "value": "fixture_event",
+                "observed": ["character_event", "activity_event", "letter_event", "court_event"]
+            }
+        },
+        {
+            "file": "events/fixture_events.txt",
+            "line": 4,
+            "column": 9,
+            "code": "structure/event-unknown-type",
+            "severity": "information",
+            "message": "'fixture_event' is not an event type the game documents: 'activity_event', 'character_event', 'court_event' or 'letter_event'.",
+            "data": {
+                "event": "fixture.0001",
+                "type": "fixture_event",
+                "types": ["activity_event", "character_event", "court_event", "letter_event"]
+            }
+        }
+    ]
+}

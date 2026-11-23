@@ -1,0 +1,11 @@
+namespace = fixture
+
+fixture.0001 = {
+	hidden = yes
+	immediate = {
+		add_gold = 10
+	}
+	immediate = {
+		add_prestige = 10
+	}
+}

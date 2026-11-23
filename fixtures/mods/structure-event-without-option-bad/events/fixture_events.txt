@@ -1,0 +1,7 @@
+namespace = fixture
+
+fixture.0001 = {
+	type = character_event
+	title = fixture.0001.t
+	desc = fixture.0001.desc
+}

@@ -7,6 +7,7 @@ import type { FolderTable } from '../index/folders.js';
 import type { Spec } from '../spec/reader.js';
 import type { MessageCatalogue } from '../syntax/findings.js';
 import type { ParseResult } from '../syntax/parser.js';
+import { adviceFindings } from './advice-checks.js';
 import { readContext, type DefinedNames, type FileReading } from './context.js';
 import type { CheckFinding } from './finding.js';
 import { modifiersOutsideUseArea } from './names-modifier-outside-use-area.js';
@@ -39,12 +40,16 @@ export {
     CHECK_KINDS,
     checkMessage,
     evidenceOf,
+    isAdvice,
+    type AdviceCode,
     type CheckCode,
     type CheckFinding,
     type CheckKind,
     type FindingData,
 } from './finding.js';
 export { definedNamesOf } from './names.js';
+export { ADVICE_CHECKS, adviceFindings, runAdvice } from './advice-checks.js';
+export type { AdviceCheck, AdviceInput, AdviceResult } from './advice.js';
 
 export interface CheckInput {
     readonly spec: Spec;
@@ -78,6 +83,14 @@ export function checkFile(input: CheckInput): CheckFinding[] {
             names: input.names,
         }),
         ...modifiersOutsideUseArea(reading, context, input.spec),
+        ...adviceFindings({
+            spec: input.spec,
+            folders: input.folders,
+            file: input.file,
+            tree: input.parsed.file,
+            names: input.names,
+            context,
+        }),
     ].sort(
         (a, b) =>
             a.start - b.start || a.end - b.end || (a.code < b.code ? -1 : a.code > b.code ? 1 : 0),

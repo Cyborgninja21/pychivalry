@@ -1,0 +1,16 @@
+{
+    "findings": [
+        {
+            "file": "common/scripted_effects/fixture_effects.txt",
+            "line": 1,
+            "column": 1,
+            "code": "structure/namespace-outside-events",
+            "severity": "information",
+            "message": "The namespace 'fixture' is declared outside events, where no event uses it.",
+            "data": {
+                "namespace": "fixture",
+                "directory": "common/scripted_effects"
+            }
+        }
+    ]
+}

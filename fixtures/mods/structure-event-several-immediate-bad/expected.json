@@ -1,0 +1,16 @@
+{
+    "findings": [
+        {
+            "file": "events/fixture_events.txt",
+            "line": 8,
+            "column": 2,
+            "code": "structure/event-several-immediate",
+            "severity": "information",
+            "message": "The event 'fixture.0001' has more than one 'immediate'.",
+            "data": {
+                "event": "fixture.0001",
+                "keyword": "immediate"
+            }
+        }
+    ]
+}
