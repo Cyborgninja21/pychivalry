@@ -153,6 +153,14 @@ tasks:
     cmds:
       - node tools/dist/cli.js baseline results
 
+  # ─── Scored runs: they call an AI model, so never part of task ci (docs/MVP.md, "AI tests") ───
+
+  scored:agent-use:
+    desc: "The scored agent-use run (tools/scored-run/README.md): Claude Code on the existing login fixes the planted-defect mod with the agent server, SCORED_TRIALS times (default 5), at most SCORED_BUDGET_USD each (required), with SCORED_MODEL (default pinned); writes records/scored/agent-use.json. Spends the login's usage: only on the owner's word"
+    deps: [build]
+    cmds:
+      - node tools/dist/cli.js scored agent-use
+
   # ─── Documents written from the code ───
 
   docs:checks:

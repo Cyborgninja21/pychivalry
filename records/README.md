@@ -20,6 +20,7 @@ enforces and this page is fixed.
 | `game/bench.json` | `task game:bench` |
 | `baseline-2.3.0/speed-mods.json`, `speed-base-game.json`, `speed-editor.json` | `task baseline:speed` |
 | `baseline-2.3.0/results-base-game.json`, `results-mods.json` | `task baseline:results` |
+| `scored/agent-use.json` | `task scored:agent-use`, a scored run that calls an AI model ([below](#scored-records-scoredagent-use)) |
 | `corpus/MANIFEST.tsv` | `task corpus:manifest`; the pinned corpus, not a record ([corpus/README.md](corpus/README.md)) |
 
 Each run overwrites its suite's record; the history is git's. Records are written only by the
@@ -32,7 +33,7 @@ Every record is one JSON object, four-space indented, with a final newline.
 | Field | What it states |
 | --- | --- |
 | `record_format` | The version of this format: `1`. |
-| `suite` | Which suite: `game:parse`, `game:index`, `game:check`, `game:mods`, `game:bench`, `baseline:speed` or `baseline:results`. |
+| `suite` | Which suite: `game:parse`, `game:index`, `game:check`, `game:mods`, `game:bench`, `baseline:speed`, `baseline:results` or `scored:agent-use`. |
 | `command` | The command that made it, with `<game dir>`, `<corpus dir>` and `<legacy build>` for local paths. |
 | `made_at` | When it was made, ISO 8601 in UTC. |
 | `tool` | The build that made it: `name` (`pychivalry`), `version`, the git `commit`, and `dirty`, true when tracked files outside `records/` differed from that commit. A 2.3.0 baseline names release 2.3.0 and the commit that last changed `legacy/`; its `dirty` is true when the build copy differs from `legacy/` in a file other than those the baseline writes on purpose (the export's `spec.config.json`, and the records 2.3.0's own tools write into their tree). |
@@ -73,7 +74,8 @@ For every `*.json` under `records/` except the `*.schema.json` files:
 2. Its `spec` is the committed spec: the same version and the same SHA-256 as `spec/`. **A
    record made on another spec fails**, so a spec change forces the suites to be re-run. A
    2.3.0 baseline is tied to the committed format 4 copy instead, by the rule in
-   [Baselines](#baselines).
+   [Baselines](#baselines). A scored record is not tied to it at all
+   ([Scored records](#scored-records-scoredagent-use)).
 3. If it read the corpus, its `corpus.manifest_sha256` is the SHA-256 of the committed
    `corpus/MANIFEST.tsv`, so a corpus refresh forces them to be re-run too.
 4. No string in it is an absolute or home-relative path.
@@ -96,6 +98,10 @@ For every `*.json` under `records/` except the `*.schema.json` files:
    failures, the base game's files with its layers, and a `game:mods` record's mods with the
    corpus slugs it names; a passing record holds no finding classified `unclassified` or
    `pychivalry-fault`.
+10. A scored record agrees with itself: each trial's `passed` with its graders and its harness
+    problems, its graders the five in order, each grader's `passed` with its problems, the
+    trials numbered from 1, each task's trial and pass counts and pass rate with the trials,
+    and `cost_usd` with the trials' costs.
 
 ## Baselines
 
@@ -253,3 +259,32 @@ indexing and checking the mod; `total`) with the process's `peak_rss_kib`.
 A run passes when every finding it must classify has an entry, every entry matches a finding,
 none is a pychivalry fault, and, for the mods, none is `unclassified`. A failed run still writes
 its record, and exits 1.
+
+## Scored records (`scored:agent-use`)
+
+`task scored:agent-use` (build step 6, items 6.8 and 6.10) starts Claude Code's command-line
+mode once per trial on the existing login, confined to pychivalry's agent server plus file read
+and edit, asks it to fix the planted-defect mod `fixtures/defects/mod/`, and grades each result
+([tools/scored-run/README.md](../tools/scored-run/README.md)). It calls an AI model, so it runs
+only on the owner's word, never in CI.
+
+Its `game` is the game stub the agent server and the graders read
+(`fixtures/game/planted-defects`), not an installed game; its `corpus` is null; its `notes` are
+required. **It is not tied to the committed spec**: it states the spec it was made on, and a
+later spec does not fail it, because making it again spends the login's usage. `results`:
+
+| Field | What it states |
+| --- | --- |
+| `task` | The task: `name` (`agent-use`), the `prompt_file` and its `prompt_sha256`, the `fixture` and its `manifest_sha256`, the `game` stub, the numbers of `defects` and `look_alikes`, and the `graders` |
+| `harness` | `name` (`claude-code`) and `version`, from `claude --version` |
+| `model` | The model, by its full name |
+| `budget_usd_per_trial`, `timeout_minutes` | The budget Claude Code stops a session at (`--max-budget-usd`), and the time limit the run stops one at |
+| `arguments` | Claude Code's arguments, with the prompt file and the agent-server configuration named instead of given |
+| `server` | The agent server's `entry` point, from the repository root, and its `arguments` with `<trial mod>` and `<game stub>` |
+| `trials` | Per trial: `task`, `trial` (from 1), `passed`, `stopped` (`finished`, `budget`, `turns`, `error`, `timeout`, `no-result`), `harness_problems`, the five `graders` each with `passed` and its `problems`, `tool_calls` (per tool: `calls` and `errors`), `tool_errors` (the tool and its text, folders named, no other path), `permission_denials`, `session` (what the session was offered: the harness version, the model, the permission mode, the tools, the agent servers with their status; null when the stream had no start), `cost_usd` (Claude Code's own estimate), `turns`, `duration_ms`, `exit_code`, and `findings_left` (what the checker still reports, by severity) |
+| `tasks` | Per task: `trials`, `passed`, and `pass_rate` (passed / trials, to 4 places) |
+| `cost_usd` | The trials' costs added up, where known |
+
+A trial passes when all five graders pass and it has no harness problem. Nothing from the
+session is kept beyond these fields: not its text, not the tools' inputs or results, not its id,
+nothing about the login.

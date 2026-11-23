@@ -1,0 +1,4 @@
+# A stub of the game's checksum manifest, written for the fixture.
+directory
+	name = common
+	sub_directories = yes

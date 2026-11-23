@@ -1,0 +1,59 @@
+namespace = harvest
+
+# The harvest is in: the ruler decides how to celebrate it.
+harvest.0001 = {
+	type = character_event
+	title = harvest.0001.t
+	desc = harvest.0001.desc
+
+	trigger = {
+		is_adlut = yes
+		always = yes
+	}
+
+	immediate = {
+		save_scope_as = harvest_host
+		add_county_modifier = {
+			modifier = harvest_bounty_modifier
+			years = 5
+		}
+	}
+
+	option = {
+		name = harvest.0001.a
+		add_gol = 50
+		trigger_event = { id = harvest.0020 days = 3 }
+	}
+	option = {
+		name = harvest.0001.b
+		add_prestige = 25
+		add_gold = -10
+		ruler_feast_gift_effect = yes
+	}
+}
+
+# The host's father sends his congratulations.
+harvest.0002 = {
+	type = character_event
+	title = harvest.0002.t
+	desc = harvest.0002.desc
+
+	trigger = {
+		root.fathr = { is_alive = yes }
+		scope:harvest_host = root
+	}
+
+	option = {
+		name = harvest.0002.a
+		add_piety = 10
+	}
+}
+
+# A quiet event that only records the end of the festival.
+harvst.0004 = {
+	type = character_event
+	hidden = yes
+	immediate = {
+		add_character_flag = harvest_festival_over
+	}
+}

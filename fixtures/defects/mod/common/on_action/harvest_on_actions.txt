@@ -1,0 +1,11 @@
+# Each year, one event of the festival.
+harvest_festival_pulse = {
+	random_events = {
+		100 = harvest.0001
+		50 = harvest.0002
+	}
+}
+
+on_game_start = {
+	on_actions = { harvest_festival_puls }
+}

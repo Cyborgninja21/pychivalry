@@ -31,7 +31,8 @@
                 "game:mods",
                 "game:bench",
                 "baseline:speed",
-                "baseline:results"
+                "baseline:results",
+                "scored:agent-use"
             ]
         },
         "command": {
@@ -140,6 +141,20 @@
                     "notes": { "type": "array", "minItems": 1 },
                     "corpus": { "$ref": "#/$defs/corpus" },
                     "results": { "$ref": "#/$defs/modsResults" }
+                },
+                "required": ["notes"]
+            }
+        },
+        {
+            "if": {
+                "properties": { "suite": { "const": "scored:agent-use" } },
+                "required": ["suite"]
+            },
+            "then": {
+                "properties": {
+                    "notes": { "type": "array", "minItems": 1 },
+                    "corpus": { "type": "null" },
+                    "results": { "$ref": "#/$defs/scoredResults" }
                 },
                 "required": ["notes"]
             }
@@ -1021,6 +1036,244 @@
                     "type": "array",
                     "minItems": 5,
                     "items": { "type": "number", "minimum": 0 }
+                }
+            }
+        },
+        "scoredResults": {
+            "description": "A scored run (records/README.md, \"Scored records\"): the harness, the model, each trial's tool calls, tool errors and grades, and the pass rate per task.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "task",
+                "harness",
+                "model",
+                "budget_usd_per_trial",
+                "timeout_minutes",
+                "arguments",
+                "server",
+                "trials",
+                "tasks",
+                "cost_usd"
+            ],
+            "properties": {
+                "task": {
+                    "description": "The task: its committed prompt and planted-defect fixture, each by its hash.",
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "name",
+                        "prompt_file",
+                        "prompt_sha256",
+                        "manifest_sha256",
+                        "fixture",
+                        "game",
+                        "defects",
+                        "look_alikes",
+                        "graders"
+                    ],
+                    "properties": {
+                        "name": { "$ref": "#/$defs/text" },
+                        "prompt_file": { "$ref": "#/$defs/text" },
+                        "prompt_sha256": { "$ref": "#/$defs/sha256" },
+                        "manifest_sha256": { "$ref": "#/$defs/sha256" },
+                        "fixture": { "$ref": "#/$defs/text" },
+                        "game": { "$ref": "#/$defs/text" },
+                        "defects": { "$ref": "#/$defs/count" },
+                        "look_alikes": { "$ref": "#/$defs/count" },
+                        "graders": { "type": "array", "items": { "$ref": "#/$defs/text" } }
+                    }
+                },
+                "harness": {
+                    "description": "The harness: Claude Code, its version as `claude --version` gives it.",
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["name", "version"],
+                    "properties": {
+                        "name": { "const": "claude-code" },
+                        "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" }
+                    }
+                },
+                "model": {
+                    "description": "The model, by its full name, never an alias.",
+                    "type": "string",
+                    "pattern": "^claude-[a-z0-9]+(-[a-z0-9]+)*$"
+                },
+                "budget_usd_per_trial": { "type": "number", "exclusiveMinimum": 0 },
+                "timeout_minutes": { "type": "number", "exclusiveMinimum": 0 },
+                "arguments": {
+                    "description": "Claude Code's arguments, with the prompt file and the agent-server configuration named, not given.",
+                    "type": "array",
+                    "items": { "$ref": "#/$defs/text" }
+                },
+                "server": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["entry", "arguments"],
+                    "properties": {
+                        "entry": { "$ref": "#/$defs/text" },
+                        "arguments": { "type": "array", "items": { "$ref": "#/$defs/text" } }
+                    }
+                },
+                "trials": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/trial" } },
+                "tasks": {
+                    "description": "Per task: its trials, the trials that passed, and the pass rate (passed / trials, to 4 places).",
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["name", "trials", "passed", "pass_rate"],
+                        "properties": {
+                            "name": { "$ref": "#/$defs/text" },
+                            "trials": { "$ref": "#/$defs/count" },
+                            "passed": { "$ref": "#/$defs/count" },
+                            "pass_rate": { "type": "number", "minimum": 0, "maximum": 1 }
+                        }
+                    }
+                },
+                "cost_usd": {
+                    "description": "The trials' costs added up, where known: Claude Code's own estimate.",
+                    "type": "number",
+                    "minimum": 0
+                }
+            }
+        },
+        "trial": {
+            "description": "One trial of a scored run.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "task",
+                "trial",
+                "passed",
+                "stopped",
+                "harness_problems",
+                "graders",
+                "tool_calls",
+                "tool_errors",
+                "permission_denials",
+                "session",
+                "cost_usd",
+                "turns",
+                "duration_ms",
+                "exit_code",
+                "findings_left"
+            ],
+            "properties": {
+                "task": { "$ref": "#/$defs/text" },
+                "trial": { "type": "integer", "minimum": 1 },
+                "passed": {
+                    "description": "No harness problem, and every grader passed.",
+                    "type": "boolean"
+                },
+                "stopped": {
+                    "description": "What ended the session: finished (by itself), budget (--max-budget-usd), turns, error, timeout (the run's time limit), no-result (the stream has no end).",
+                    "enum": ["finished", "budget", "turns", "error", "timeout", "no-result"]
+                },
+                "harness_problems": {
+                    "description": "What makes the trial say nothing about the server: a session that broke or was not confined.",
+                    "type": "array",
+                    "items": { "$ref": "#/$defs/text" }
+                },
+                "graders": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["name", "passed", "problems"],
+                        "properties": {
+                            "name": {
+                                "enum": [
+                                    "zero-errors",
+                                    "defects-gone",
+                                    "only-planted-lines",
+                                    "look-alikes-untouched",
+                                    "nothing-deleted"
+                                ]
+                            },
+                            "passed": { "type": "boolean" },
+                            "problems": { "type": "array", "items": { "$ref": "#/$defs/text" } }
+                        }
+                    }
+                },
+                "tool_calls": {
+                    "description": "Per tool: its calls, and how many of them ended in an error.",
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["tool", "calls", "errors"],
+                        "properties": {
+                            "tool": { "$ref": "#/$defs/text" },
+                            "calls": { "$ref": "#/$defs/count" },
+                            "errors": { "$ref": "#/$defs/count" }
+                        }
+                    }
+                },
+                "tool_errors": {
+                    "description": "Each tool error, its text with the trial's folders named and no other path.",
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["tool", "message"],
+                        "properties": {
+                            "tool": { "$ref": "#/$defs/text" },
+                            "message": { "type": "string" }
+                        }
+                    }
+                },
+                "permission_denials": { "$ref": "#/$defs/count" },
+                "session": {
+                    "description": "What the session was offered, from its init event; null when the stream has none.",
+                    "oneOf": [
+                        { "type": "null" },
+                        {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                                "harness_version",
+                                "model",
+                                "permission_mode",
+                                "tools",
+                                "mcp_servers"
+                            ],
+                            "properties": {
+                                "harness_version": { "oneOf": [{ "type": "null" }, { "type": "string" }] },
+                                "model": { "oneOf": [{ "type": "null" }, { "type": "string" }] },
+                                "permission_mode": { "oneOf": [{ "type": "null" }, { "type": "string" }] },
+                                "tools": { "type": "array", "items": { "$ref": "#/$defs/text" } },
+                                "mcp_servers": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "additionalProperties": false,
+                                        "required": ["name", "status"],
+                                        "properties": {
+                                            "name": { "type": "string" },
+                                            "status": { "type": "string" }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                },
+                "cost_usd": { "oneOf": [{ "type": "null" }, { "type": "number", "minimum": 0 }] },
+                "turns": { "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/count" }] },
+                "duration_ms": { "oneOf": [{ "type": "null" }, { "type": "number", "minimum": 0 }] },
+                "exit_code": { "oneOf": [{ "type": "null" }, { "type": "integer" }] },
+                "findings_left": {
+                    "description": "What the checker still reports on the trial's mod, by severity.",
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["error", "warning", "information", "hint"],
+                    "properties": {
+                        "error": { "$ref": "#/$defs/count" },
+                        "warning": { "$ref": "#/$defs/count" },
+                        "information": { "$ref": "#/$defs/count" },
+                        "hint": { "$ref": "#/$defs/count" }
+                    }
                 }
             }
         }

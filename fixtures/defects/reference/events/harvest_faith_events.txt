@@ -1,0 +1,23 @@
+namespace = harvest
+
+# The faith blesses the fields.
+harvest.0010 = {
+	scope = faith
+	hidden = yes
+	title = harvest.0010.t
+	desc = harvest.0010.desc
+	option = {
+		name = harvest.0010.a
+	}
+}
+
+# A second celebration, for the court.
+harvest.0011 = {
+	type = character_event
+	title = harvest.0011.t
+	desc = harvest.0011.desc
+	option = {
+		name = harvest.0011.a
+		add_prestige = 10
+	}
+}

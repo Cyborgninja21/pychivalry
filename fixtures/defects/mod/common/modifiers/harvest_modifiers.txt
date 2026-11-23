@@ -1,0 +1,5 @@
+harvest_bounty_modifier = {
+	icon = economy_positive
+	monthly_income_mult = 0.1
+	stewardship = 2
+}

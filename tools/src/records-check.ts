@@ -7,6 +7,10 @@
  * an index record's totals agree with its layers, and it was made on the committed rules table
  * (the spec package's part D1).
  *
+ * A scored run's record (`scored:agent-use`, docs/PLAN.md item 6.10) is checked against the
+ * schema and with itself, not against the committed spec: it states the spec it was made on,
+ * and re-making it calls a model, which only the owner starts.
+ *
  * A baseline of release 2.3.0 cannot be made on the format 8 package, which 2.3.0 cannot
  * read. It is tied instead to the committed format 4 copy of the same game version
  * (`spec/legacy/`): its spec is that copy, byte for byte, and the game it read is the build
@@ -17,6 +21,7 @@ import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { Ajv2020, type ErrorObject, type ValidateFunction } from 'ajv/dist/2020.js';
 import { checkRulesTable } from './rules-table.js';
+import { SCORED_SUITE, scoredProblems } from './scored-run/scored-record.js';
 import { checkLegacySpec, checkSpec } from './spec.js';
 import { summarize } from './stats.js';
 import { isObject, relativePosix, sha256OfFile } from './util.js';
@@ -483,6 +488,10 @@ export function checkRecord(
     const spec = record['spec'];
     if (BASELINE_SUITES.includes(String(record['suite']))) {
         problems.push(...baselineSpecProblems(record, expected));
+    } else if (record['suite'] === SCORED_SUITE) {
+        // A scored run states the spec it used; a later spec does not fail it, because running
+        // it again spends the login's usage (scored-run/scored-record.ts).
+        problems.push(...scoredProblems(record['results']));
     } else if (isObject(spec)) {
         if (spec['sha256'] !== expected.spec.sha256 || spec['version'] !== expected.spec.version) {
             problems.push(
