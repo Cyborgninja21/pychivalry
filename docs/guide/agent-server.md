@@ -68,7 +68,8 @@ server finds the index the command line saved and loads it in a second or two. T
 loads it; later requests reuse it.
 
 Every request reads the mod's files as they are now. An agent fixes a finding by editing the
-files itself, through its own harness, and checks again.
+files itself, through its own harness, and checks again. A finding with a mechanical fix
+carries its edits (below); the server applies none of them.
 
 ## The tools
 
@@ -77,7 +78,7 @@ count from 1, as an editor shows them.
 
 | Tool | Takes | Returns |
 | --- | --- | --- |
-| `check` | `path`: a file or folder of the mod (the whole mod when left out); `min_severity` (`error` by default; `hint` lists everything); `codes`: codes, families (`names/*`) or `*`; `limit` (50 by default, at most 200); `cursor`; `unused_keys` (false by default) | `totals` by severity and by code over every finding of the path, always; `matched`; the `findings` (file, place, severity, code, message, data); `next_cursor`; what the per-file cap left out; the game read; notes |
+| `check` | `path`: a file or folder of the mod (the whole mod when left out); `min_severity` (`error` by default; `hint` lists everything); `codes`: codes, families (`names/*`) or `*`; `limit` (50 by default, at most 200); `cursor`; `unused_keys` (false by default) | `totals` by severity and by code over every finding of the path, always; `matched`; the `findings` (file, place, severity, code, message, data, fix); `next_cursor`; what the per-file cap left out; the game read; notes |
 | `lookup` | `names` (at most 20); `language` (`l_english`); `cursor` | For each name, the command line's `lookup --json` answer: every reading of the spec package, with its description, scopes and what it takes; where the mod and the base game define and use it, and which definition is in force; for a name nothing knows, names close to it |
 | `find_definition` | `name`, or `file`, `line` and `column` of a place in the mod | The name written there, and its definitions by kind, the one in force first, with the rule that decides |
 | `find_references` | `name`; `limit`; `cursor` | The count by layer, then the places it is written, the mod's first |
@@ -110,10 +111,30 @@ about and, where pychivalry knows it, what is valid there:
   first; `values_total` when there are more). They are measurements of the base game, not rules
   of the game.
 
+A finding's `fix` is null, or its mechanical fix as data, the same the editor's quick fixes and
+the command line's `--json` give:
+
+- `safety`: `safe` when only one outcome can be right (a misspelling with one valid name near
+  it, a removed keyword with its one documented replacement, a missing `=` the parser already
+  read); `suggestion` when the right fix is a choice, which the agent makes.
+- `basis`: what it rests on (`retired`, `nearest-name`, `scope-links`, `parser`, ...).
+- `alternatives`: at most five, nearest or most likely first, with `alternatives_total` when
+  there are more; each a `title` and its `edits`, each edit a `file` of the mod with a place
+  (`line`, `column`, `end_line`, `end_column`, counted from 1) and the `new_text` that replaces
+  it. An edit may be in another file than the finding's (a localization stub goes into the
+  mod's localization file), or make a new file (`create`, its `new_text` the whole file, the
+  byte-order mark the game needs first).
+
+The server writes nothing: an agent applies a fix with its own edit tool, every edit of the one
+alternative it chose, each place read against the file as it was before any of them, then
+checks again. A finding with no fix (`fix: null`) is one whose right change is a choice the data
+does not make: an event with no option, a definition two files share.
+
 ## Results stay small
 
 A result never holds more than about 10,000 tokens: Claude Code cuts a tool's result off at
-25,000. A list that does not fit gives `next_cursor`; the same call with `cursor` set to it gives
+25,000. Fixes count: a page of `check` holds as many findings, fixes and all, as fit. A list
+that does not fit gives `next_cursor`; the same call with `cursor` set to it gives
 the next page. `lookup` pages the same way when one name's answer is long (`trait` is a trigger,
 an effect, a link, a list, a field of nine folders and a scope type): the rest of a name comes
 back as `{ "name": ..., "continued": true, "readings": [...] }`. `explain_code` names the codes it
@@ -154,7 +175,8 @@ An agent checks a mod with an unknown trigger, two findings at a time:
             "severity": "error",
             "code": "names/unknown-trigger",
             "message": "Unknown trigger 'fixture_made_up_trigger'",
-            "data": { "name": "fixture_made_up_trigger" }
+            "data": { "name": "fixture_made_up_trigger" },
+            "fix": null
         },
         {
             "file": "common/scripted_triggers/fixture_triggers.txt",
@@ -162,7 +184,8 @@ An agent checks a mod with an unknown trigger, two findings at a time:
             "severity": "error",
             "code": "names/unknown-trigger",
             "message": "Unknown trigger 'add_gold'",
-            "data": { "name": "add_gold", "buckets": ["effects"] }
+            "data": { "name": "add_gold", "buckets": ["effects"] },
+            "fix": null
         }
     ],
     "next_cursor": "MjoyMDVkZjU5NTg3M2E",

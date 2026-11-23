@@ -1,7 +1,8 @@
 /**
  * The user guide's check reference, `docs/guide/checks.md`: every code this build reports, with
- * its severity, what it finds and the game's evidence for it, written from the core's own
- * inventory rows (`inventoryRows`, the data `pychivalry explain` prints), never by hand. `task
+ * its severity, what it finds, the game's evidence for it and its fix, written from the core's
+ * own inventory rows (`inventoryRows`, the data `pychivalry explain` prints) and fix rows
+ * (`FIX_ROWS`), never by hand. `task
  * docs:checks` writes it; a test holds the committed page to the inventory, so a code added,
  * re-graded or re-worded in the core is a page that must be written again.
  */
@@ -9,6 +10,7 @@
 import path from 'node:path';
 import {
     catalogueFromSpec,
+    FIX_ROWS,
     inventoryRows,
     MAX_FINDINGS_PER_FILE,
     openSpec,
@@ -59,6 +61,21 @@ export function evidenceCell(row: InventoryRow): string {
     }
 }
 
+/** A code's fix, in words: whether it is safe, a suggestion or none, and what it does. */
+export function fixCell(row: InventoryRow): string {
+    const fix = FIX_ROWS[row.code];
+    switch (fix.offer) {
+        case 'safe':
+            return `Safe: ${fix.what}`;
+        case 'safe-or-suggestion':
+            return `Safe or a suggestion: ${fix.what}`;
+        case 'suggestion':
+            return `Suggestion: ${fix.what}`;
+        case 'none':
+            return fix.what;
+    }
+}
+
 /** The page, from the rows of the inventory and the spec package's version. */
 export function checkReferencePage(rows: readonly InventoryRow[], specVersion: string): string {
     const count = (s: Severity): number => rows.filter((r) => r.severity === s).length;
@@ -85,6 +102,10 @@ export function checkReferencePage(rows: readonly InventoryRow[], specVersion: s
         '  many it left out.',
         "- A check marked **off by default** reports only when asked: the command line's",
         "  `check --unused-keys`, the agent server's `check` with `unused_keys`.",
+        '- A finding with a mechanical **fix** carries it as data: **safe**, the one outcome that',
+        '  can be right, which `pychivalry check --fix` and the editor\'s "fix all" apply; or a',
+        '  **suggestion**, alternatives to choose from, which nothing applies by itself. The editor',
+        '  offers both as quick fixes; the agent server reports them and applies nothing.',
         '',
         'The full inventory, with the checks still to come and those retired, the release 2.3.0',
         'check each replaces and how each was proved on the base game, is the',
@@ -92,14 +113,14 @@ export function checkReferencePage(rows: readonly InventoryRow[], specVersion: s
     ];
     const families = [...new Set(rows.map((r) => r.family))];
     for (const family of families) {
-        lines.push('', `## ${family}`, '', '| Code | Severity | What it finds | Evidence |');
-        lines.push('| --- | --- | --- | --- |');
+        lines.push('', `## ${family}`, '', '| Code | Severity | What it finds | Evidence | Fix |');
+        lines.push('| --- | --- | --- | --- | --- |');
         for (const row of rows.filter((r) => r.family === family)) {
             const off = row.offByDefault
                 ? ' **Off by default:** `pychivalry check --unused-keys` turns it on.'
                 : '';
             lines.push(
-                `| \`${row.code}\` | ${row.severity} | ${cell(row.finds)}${off} | ${cell(evidenceCell(row))} |`,
+                `| \`${row.code}\` | ${row.severity} | ${cell(row.finds)}${off} | ${cell(evidenceCell(row))} | ${cell(fixCell(row))} |`,
             );
         }
     }

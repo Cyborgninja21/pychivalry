@@ -19,6 +19,10 @@ code ([Commands](commands.md)).
   many it left out.
 - A check marked **off by default** reports only when asked: the command line's
   `check --unused-keys`, the agent server's `check` with `unused_keys`.
+- A finding with a mechanical **fix** carries it as data: **safe**, the one outcome that
+  can be right, which `pychivalry check --fix` and the editor's "fix all" apply; or a
+  **suggestion**, alternatives to choose from, which nothing applies by itself. The editor
+  offers both as quick fixes; the agent server reports them and applies nothing.
 
 The full inventory, with the checks still to come and those retired, the release 2.3.0
 check each replaces and how each was proved on the base game, is the
@@ -26,107 +30,107 @@ check each replaces and how each was proved on the base game, is the
 
 ## definitions
 
-| Code | Severity | What it finds | Evidence |
-| --- | --- | --- | --- |
-| `definitions/clash` | error | Definitions the rules table says the game calls an error. | The game's own message for the duplicate: the catalogue entry the rules table's row for the clash names |
-| `definitions/not-read` | information | A definition in a file the rules table says the game does not read. | Advice: pychivalry's own, with no game message |
+| Code | Severity | What it finds | Evidence | Fix |
+| --- | --- | --- | --- | --- |
+| `definitions/clash` | error | Definitions the rules table says the game calls an error. | The game's own message for the duplicate: the catalogue entry the rules table's row for the clash names | None: which definition gets another name is a choice. |
+| `definitions/not-read` | information | A definition in a file the rules table says the game does not read. | Advice: pychivalry's own, with no game message | None: the file is replaced or hidden on purpose, or moved: a choice. |
 
 ## encoding
 
-| Code | Severity | What it finds | Evidence |
-| --- | --- | --- | --- |
-| `encoding/not-utf8` | information | This file is not valid UTF-8 (&lt;number&gt; invalid bytes); it was read as &lt;encoding&gt;. | Advice: pychivalry's own, with no game message |
+| Code | Severity | What it finds | Evidence | Fix |
+| --- | --- | --- | --- | --- |
+| `encoding/not-utf8` | information | This file is not valid UTF-8 (&lt;number&gt; invalid bytes); it was read as &lt;encoding&gt;. | Advice: pychivalry's own, with no game message | None: which encoding the file was written in is not known. |
 
 ## fields
 
-| Code | Severity | What it finds | Evidence |
-| --- | --- | --- | --- |
-| `fields/bare-value-in-record` | error | A bare value directly in a record body that holds statements, where the game expects 'key ='; the finding is at the token found where '=' belongs. | The game's message `unexpected_token_X_found_at_X_expected`: "Unexpected token '&lt;token&gt;' found at '&lt;file:line&gt;', '=' expected" |
-| `fields/missing-required-field` | error | A field the spec package marks required is missing. | The game's own message for the field that is missing, which the spec package gives with each field it marks required |
-| `fields/unknown-field` | warning | A field in a record that its folder's field list does not have. | The game's message `unknown_X_in_X`: "Unknown &lt;field&gt; in &lt;record&gt;" |
-| `fields/usually-present` | information | A record without a field that every base-game record of its kind sets. | Advice: pychivalry's own, with no game message |
-| `fields/wrong-kind-of-value` | information | A value of another kind than the field takes. | Advice: pychivalry's own, with no game message |
-| `fields/unusual-value` | hint | A value no base-game record writes in a field whose values form a small set. | Advice: pychivalry's own, with no game message |
+| Code | Severity | What it finds | Evidence | Fix |
+| --- | --- | --- | --- | --- |
+| `fields/bare-value-in-record` | error | A bare value directly in a record body that holds statements, where the game expects 'key ='; the finding is at the token found where '=' belongs. | The game's message `unexpected_token_X_found_at_X_expected`: "Unexpected token '&lt;token&gt;' found at '&lt;file:line&gt;', '=' expected" | Safe or a suggestion: A field of the record measured boolean written as '= yes' (safe when the base game writes only yes). |
+| `fields/missing-required-field` | error | A field the spec package marks required is missing. | The game's own message for the field that is missing, which the spec package gives with each field it marks required | Suggestion: The field written with a placeholder of its kind to set, where its value is a number or a boolean. |
+| `fields/unknown-field` | warning | A field in a record that its folder's field list does not have. | The game's message `unknown_X_in_X`: "Unknown &lt;field&gt; in &lt;record&gt;" | Safe or a suggestion: The fields of the record's folder near the name, not already written; safe when there is only one. |
+| `fields/usually-present` | information | A record without a field that every base-game record of its kind sets. | Advice: pychivalry's own, with no game message | None: the field's value is a choice. |
+| `fields/wrong-kind-of-value` | information | A value of another kind than the field takes. | Advice: pychivalry's own, with no game message | Suggestion: The values the base game writes in the field, where they are a small set. |
+| `fields/unusual-value` | hint | A value no base-game record writes in a field whose values form a small set. | Advice: pychivalry's own, with no game message | Suggestion: The values the base game writes in the field that are near the one written. |
 
 ## localization
 
-| Code | Severity | What it finds | Evidence |
-| --- | --- | --- | --- |
-| `localization/missing-key` | warning | A localization key, in a field that holds one or that a record has by its name, defined in no localization file. | The game's message `unknown_loc_key_X`: "Unknown loc key &lt;key&gt;" |
-| `localization/unbalanced-brackets` | warning | Localization text with an extra `[` or `]`. | The game's message `loc_key_X_unexpected_extra_at_position_X_file_X`: "Loc key `<key>`: Unexpected extra `[` at position &lt;column&gt; - file `<file>`" |
-| `localization/unused-key` | hint | A key the mod defines that nothing in the mod or the base game uses. **Off by default:** `pychivalry check --unused-keys` turns it on. | Advice: pychivalry's own, with no game message |
+| Code | Severity | What it finds | Evidence | Fix |
+| --- | --- | --- | --- | --- |
+| `localization/missing-key` | warning | A localization key, in a field that holds one or that a record has by its name, defined in no localization file. | The game's message `unknown_loc_key_X`: "Unknown loc key &lt;key&gt;" | Suggestion: A stub entry for the key in the mod's localization file of each language it has (one is made when it has none). |
+| `localization/unbalanced-brackets` | warning | Localization text with an extra `[` or `]`. | The game's message `loc_key_X_unexpected_extra_at_position_X_file_X`: "Loc key `<key>`: Unexpected extra `[` at position &lt;column&gt; - file `<file>`" | Suggestion: The statement left open closed after its command, or the extra bracket taken away; offered only where the entry is then balanced. |
+| `localization/unused-key` | hint | A key the mod defines that nothing in the mod or the base game uses. **Off by default:** `pychivalry check --unused-keys` turns it on. | Advice: pychivalry's own, with no game message | None: removing a key deletes text that may be wanted. |
 
 ## names
 
-| Code | Severity | What it finds | Evidence |
-| --- | --- | --- | --- |
-| `names/unknown-effect` | error | A key in an effect block that is no effect there. | The game's message `unknown_effect_X`: "Unknown effect '&lt;effect&gt;'" |
-| `names/unknown-link` | error | A segment of a scope chain that is no link. | The game's message `failed_to_parse_data_for_event_target_link_link_X_location_X`: "Failed to parse data for event target link. Link: &lt;link&gt;, location: &lt;file:line&gt;" |
-| `names/unknown-modifier` | error | A key in a modifier block that is no modifier and fills no modifier template. | The game's message `unknown_modifier_type_X_at_X`: "Unknown modifier type '&lt;modifier name&gt;' at &lt;file:line&gt;" |
-| `names/unknown-on-action` | error | A value naming an on-action the game does not have. | The game's message `unknown_on_action_X`: "Unknown on action: &lt;on-action&gt;" |
-| `names/unknown-trigger` | error | A key in a trigger block that is no trigger there. | The game's message `unknown_trigger_X`: "Unknown trigger '&lt;trigger&gt;'" |
-| `names/modifier-outside-use-area` | warning | A modifier in a block of a kind its use area does not include. | The game's own output, with no message of its own: buckets.modifiers.&lt;name&gt;.use_areas and modifier_template_tags: the game's own modifier documentation |
+| Code | Severity | What it finds | Evidence | Fix |
+| --- | --- | --- | --- | --- |
+| `names/unknown-effect` | error | A key in an effect block that is no effect there. | The game's message `unknown_effect_X`: "Unknown effect '&lt;effect&gt;'" | Safe or a suggestion: The documented replacement of a removed effect, or the effects near the name that fit the scope; safe when there is only one. |
+| `names/unknown-link` | error | A segment of a scope chain that is no link. | The game's message `failed_to_parse_data_for_event_target_link_link_X_location_X`: "Failed to parse data for event target link. Link: &lt;link&gt;, location: &lt;file:line&gt;" | Safe or a suggestion: The links near the segment that start from its scope; safe when there is only one. |
+| `names/unknown-modifier` | error | A key in a modifier block that is no modifier and fills no modifier template. | The game's message `unknown_modifier_type_X_at_X`: "Unknown modifier type '&lt;modifier name&gt;' at &lt;file:line&gt;" | Safe or a suggestion: The documented replacement of a removed modifier, or the modifiers near the name whose use areas fit the block; safe when there is only one. |
+| `names/unknown-on-action` | error | A value naming an on-action the game does not have. | The game's message `unknown_on_action_X`: "Unknown on action: &lt;on-action&gt;" | Safe or a suggestion: The on-actions near the name, of the game and the mod; safe when there is only one. |
+| `names/unknown-trigger` | error | A key in a trigger block that is no trigger there. | The game's message `unknown_trigger_X`: "Unknown trigger '&lt;trigger&gt;'" | Safe or a suggestion: The documented replacement of a removed trigger, or the triggers near the name that fit the scope; safe when there is only one. |
+| `names/modifier-outside-use-area` | warning | A modifier in a block of a kind its use area does not include. | The game's own output, with no message of its own: buckets.modifiers.&lt;name&gt;.use_areas and modifier_template_tags: the game's own modifier documentation | None: whether the modifier moves to another block or another modifier is meant is a choice. |
 
 ## references
 
-| Code | Severity | What it finds | Evidence |
-| --- | --- | --- | --- |
-| `references/unknown-key` | warning | A value that should be a key of a database names no key of it in the mod, the base game or a DLC. | The game's message `failed_to_read_key_reference_X_from_database_X`: "Failed to read key reference &lt;key&gt; from database &lt;database&gt;" |
-| `references/unknown-name` | information | A value naming a definition the index does not hold, where no game message is known. | Advice: pychivalry's own, with no game message |
+| Code | Severity | What it finds | Evidence | Fix |
+| --- | --- | --- | --- | --- |
+| `references/unknown-key` | warning | A value that should be a key of a database names no key of it in the mod, the base game or a DLC. | The game's message `failed_to_read_key_reference_X_from_database_X`: "Failed to read key reference &lt;key&gt; from database &lt;database&gt;" | Safe or a suggestion: The keys of the database near the one written; safe when there is only one. |
+| `references/unknown-name` | information | A value naming a definition the index does not hold, where no game message is known. | Advice: pychivalry's own, with no game message | Suggestion: The names of the folder near the one written (advice: never safe). |
 
 ## scope
 
-| Code | Severity | What it finds | Evidence |
-| --- | --- | --- | --- |
-| `scope/link-on-wrong-scope` | error | A link applied to a scope it cannot start from. | The game's message `trying_to_use_X_link_on_an_invalid_scope_X`: "Trying to use &lt;link&gt; link on an invalid scope &lt;scope&gt;" |
-| `scope/wrong-scope-for-effect` | error | An effect in a scope its scope data does not list. | The game's message `wrong_scope_for_effect_X_expected_X`: "Wrong scope for effect: &lt;scope&gt;, expected &lt;scopes it takes&gt;" |
-| `scope/wrong-scope-for-trigger` | error | A trigger in a scope its scope data does not list. | The game's message `wrong_scope_for_trigger_X_expected_X`: "Wrong scope for trigger: &lt;scope&gt;, expected &lt;scopes it takes&gt;" |
-| `scope/saved-late-read-in-desc` | information | A scope read in an event's description that the event saves only after its window is shown. | Advice: pychivalry's own, with no game message |
-| `scope/undefined-event-target` | information | `scope:name` with no effect saving `name` in the file, the mod or the base game. | The game's message `undefined_event_target_X`: "Undefined event target '&lt;saved scope&gt;'" |
+| Code | Severity | What it finds | Evidence | Fix |
+| --- | --- | --- | --- | --- |
+| `scope/link-on-wrong-scope` | error | A link applied to a scope it cannot start from. | The game's message `trying_to_use_X_link_on_an_invalid_scope_X`: "Trying to use &lt;link&gt; link on an invalid scope &lt;scope&gt;" | Safe or a suggestion: A link that leads to a scope the link starts from written before it, where at most five do; safe when only one plain link does. |
+| `scope/wrong-scope-for-effect` | error | An effect in a scope its scope data does not list. | The game's message `wrong_scope_for_effect_X_expected_X`: "Wrong scope for effect: &lt;scope&gt;, expected &lt;scopes it takes&gt;" | Safe or a suggestion: The effect wrapped in a link that leads to a scope it takes, where at most five do; safe when only one plain link does. |
+| `scope/wrong-scope-for-trigger` | error | A trigger in a scope its scope data does not list. | The game's message `wrong_scope_for_trigger_X_expected_X`: "Wrong scope for trigger: &lt;scope&gt;, expected &lt;scopes it takes&gt;" | Safe or a suggestion: The trigger wrapped in a link that leads to a scope it takes, where at most five do; safe when only one plain link does. |
+| `scope/saved-late-read-in-desc` | information | A scope read in an event's description that the event saves only after its window is shown. | Advice: pychivalry's own, with no game message | None: moving the save is a change of what the event does. |
+| `scope/undefined-event-target` | information | `scope:name` with no effect saving `name` in the file, the mod or the base game. | The game's message `undefined_event_target_X`: "Undefined event target '&lt;saved scope&gt;'" | None: the name may be saved where the index cannot see, and which save is meant is a choice. |
 
 ## structure
 
-| Code | Severity | What it finds | Evidence |
-| --- | --- | --- | --- |
-| `structure/event-non-character-shown` | error | An event whose scope is not a character and that is neither hidden nor major. | The game's message `error_in_event_X_non_character_events_must_be_hidden_or_be_n`: "Error in event '&lt;event id&gt;'. Non-character events must be hidden, or be narrative events" |
-| `structure/range-min-above-max` | error | A range whose minimum is above its maximum. | The game's message `min_value_in_range_directive_is_larger_than_the_max_value_un`: "min value in range directive is larger than the max value. Unknown location; yell at a programmer" |
-| `structure/event-undeclared-namespace` | warning | An event whose namespace its file does not declare. | The game's message `namespace_X_used_in_event_X_file_X_is_not_defined_in_this_fi`: "Namespace '&lt;namespace&gt;' used in event '&lt;event id&gt;' (file: &lt;file&gt;) is not defined in this file - it might not load properly." |
-| `structure/casus-belli-without-outcome` | information | A casus belli with none of its outcome effects. | Advice: pychivalry's own, with no game message |
-| `structure/else-without-if` | information | An else branch not directly after the conditional it belongs to. | Advice: pychivalry's own, with no game message |
-| `structure/event-after-without-option` | information | An event that is not hidden, has an after block and no option. | Advice: pychivalry's own, with no game message |
-| `structure/event-empty` | information | An event with nothing in it. | Advice: pychivalry's own, with no game message |
-| `structure/event-letter-without-sender` | information | A letter event without a sender. | Advice: pychivalry's own, with no game message |
-| `structure/event-portrait-position-twice` | information | One portrait position given twice in an event. | Advice: pychivalry's own, with no game message |
-| `structure/event-several-after` | information | An event with more than one after block. | Advice: pychivalry's own, with no game message |
-| `structure/event-several-immediate` | information | An event with more than one immediate block. | Advice: pychivalry's own, with no game message |
-| `structure/event-triggered-animation-without-animation` | information | A triggered animation with no animation. | Advice: pychivalry's own, with no game message |
-| `structure/event-triggered-animation-without-trigger` | information | A portrait's triggered animation without a trigger. | Advice: pychivalry's own, with no game message |
-| `structure/event-unknown-type` | information | An event type the game does not document. | Advice: pychivalry's own, with no game message |
-| `structure/event-without-desc` | information | An event that is not hidden and has no description. | Advice: pychivalry's own, with no game message |
-| `structure/event-without-option` | information | An event that is not hidden and has no option. | Advice: pychivalry's own, with no game message |
-| `structure/logic-operator-without-block` | information | A logical operator with a single value instead of a block. | Advice: pychivalry's own, with no game message |
-| `structure/namespace-outside-events` | information | A file outside the event folder that declares a namespace. | Advice: pychivalry's own, with no game message |
-| `structure/round-to-not-positive` | information | A rounding step of zero or a negative number. | Advice: pychivalry's own, with no game message |
-| `structure/story-effect-group-chance-above-100` | information | A story cycle's effect group whose chance is above 100. | Advice: pychivalry's own, with no game message |
-| `structure/story-effect-group-chance-not-positive` | information | A story cycle's effect group whose chance is zero or less. | Advice: pychivalry's own, with no game message |
-| `structure/story-effect-group-several-timings` | information | A story cycle's effect group with more than one interval. | Advice: pychivalry's own, with no game message |
-| `structure/story-effect-group-without-effect` | information | A story cycle's effect group with no effect to run. | Advice: pychivalry's own, with no game message |
-| `structure/story-effect-group-without-timing` | information | A story cycle's effect group with no interval. | Advice: pychivalry's own, with no game message |
-| `structure/switch-without-branches` | information | A switch block with no branch. | Advice: pychivalry's own, with no game message |
-| `structure/switch-without-trigger` | information | A switch block without the trigger its cases are values of. | Advice: pychivalry's own, with no game message |
-| `structure/trigger-else-without-trigger-if` | information | A trigger else branch not directly after the conditional it belongs to. | Advice: pychivalry's own, with no game message |
+| Code | Severity | What it finds | Evidence | Fix |
+| --- | --- | --- | --- | --- |
+| `structure/event-non-character-shown` | error | An event whose scope is not a character and that is neither hidden nor major. | The game's message `error_in_event_X_non_character_events_must_be_hidden_or_be_n`: "Error in event '&lt;event id&gt;'. Non-character events must be hidden, or be narrative events" | Suggestion: Each keyword the game's message names written as '= yes' (hidden, major). |
+| `structure/range-min-above-max` | error | A range whose minimum is above its maximum. | The game's message `min_value_in_range_directive_is_larger_than_the_max_value_un`: "min value in range directive is larger than the max value. Unknown location; yell at a programmer" | Safe: The two bounds written low first. |
+| `structure/event-undeclared-namespace` | warning | An event whose namespace its file does not declare. | The game's message `namespace_X_used_in_event_X_file_X_is_not_defined_in_this_fi`: "Namespace '&lt;namespace&gt;' used in event '&lt;event id&gt;' (file: &lt;file&gt;) is not defined in this file - it might not load properly." | Suggestion: The id written with a declared namespace near it, where that id is free; or the namespace declared at the top of the file. |
+| `structure/casus-belli-without-outcome` | information | A casus belli with none of its outcome effects. | Advice: pychivalry's own, with no game message | None: the right change is a choice of content the data does not make. |
+| `structure/else-without-if` | information | An else branch not directly after the conditional it belongs to. | Advice: pychivalry's own, with no game message | None: the right change is a choice of content the data does not make. |
+| `structure/event-after-without-option` | information | An event that is not hidden, has an after block and no option. | Advice: pychivalry's own, with no game message | None: the right change is a choice of content the data does not make. |
+| `structure/event-empty` | information | An event with nothing in it. | Advice: pychivalry's own, with no game message | None: removing the event deletes a definition that may be named elsewhere. |
+| `structure/event-letter-without-sender` | information | A letter event without a sender. | Advice: pychivalry's own, with no game message | None: the right change is a choice of content the data does not make. |
+| `structure/event-portrait-position-twice` | information | One portrait position given twice in an event. | Advice: pychivalry's own, with no game message | None: the right change is a choice of content the data does not make. |
+| `structure/event-several-after` | information | An event with more than one after block. | Advice: pychivalry's own, with no game message | None: merging the blocks changes the order effects run in. |
+| `structure/event-several-immediate` | information | An event with more than one immediate block. | Advice: pychivalry's own, with no game message | None: merging the blocks changes the order effects run in. |
+| `structure/event-triggered-animation-without-animation` | information | A triggered animation with no animation. | Advice: pychivalry's own, with no game message | None: the right change is a choice of content the data does not make. |
+| `structure/event-triggered-animation-without-trigger` | information | A portrait's triggered animation without a trigger. | Advice: pychivalry's own, with no game message | None: the right change is a choice of content the data does not make. |
+| `structure/event-unknown-type` | information | An event type the game does not document. | Advice: pychivalry's own, with no game message | Suggestion: The documented event types near the one written. |
+| `structure/event-without-desc` | information | An event that is not hidden and has no description. | Advice: pychivalry's own, with no game message | None: the right change is a choice of content the data does not make. |
+| `structure/event-without-option` | information | An event that is not hidden and has no option. | Advice: pychivalry's own, with no game message | None: the right change is a choice of content the data does not make. |
+| `structure/logic-operator-without-block` | information | A logical operator with a single value instead of a block. | Advice: pychivalry's own, with no game message | None: the right change is a choice of content the data does not make. |
+| `structure/namespace-outside-events` | information | A file outside the event folder that declares a namespace. | Advice: pychivalry's own, with no game message | None: the right change is a choice of content the data does not make. |
+| `structure/round-to-not-positive` | information | A rounding step of zero or a negative number. | Advice: pychivalry's own, with no game message | None: the right change is a choice of content the data does not make. |
+| `structure/story-effect-group-chance-above-100` | information | A story cycle's effect group whose chance is above 100. | Advice: pychivalry's own, with no game message | None: the right change is a choice of content the data does not make. |
+| `structure/story-effect-group-chance-not-positive` | information | A story cycle's effect group whose chance is zero or less. | Advice: pychivalry's own, with no game message | None: the right change is a choice of content the data does not make. |
+| `structure/story-effect-group-several-timings` | information | A story cycle's effect group with more than one interval. | Advice: pychivalry's own, with no game message | None: the right change is a choice of content the data does not make. |
+| `structure/story-effect-group-without-effect` | information | A story cycle's effect group with no effect to run. | Advice: pychivalry's own, with no game message | None: the right change is a choice of content the data does not make. |
+| `structure/story-effect-group-without-timing` | information | A story cycle's effect group with no interval. | Advice: pychivalry's own, with no game message | None: the right change is a choice of content the data does not make. |
+| `structure/switch-without-branches` | information | A switch block with no branch. | Advice: pychivalry's own, with no game message | None: the right change is a choice of content the data does not make. |
+| `structure/switch-without-trigger` | information | A switch block without the trigger its cases are values of. | Advice: pychivalry's own, with no game message | None: the right change is a choice of content the data does not make. |
+| `structure/trigger-else-without-trigger-if` | information | A trigger else branch not directly after the conditional it belongs to. | Advice: pychivalry's own, with no game message | None: the right change is a choice of content the data does not make. |
 
 ## syntax
 
-| Code | Severity | What it finds | Evidence |
-| --- | --- | --- | --- |
-| `syntax/block-without-key` | error | A block at the top level of the file with no key in front of it. | The game's message `unexpected_token_expected_key`: "Unexpected token, expected 'key = {'" |
-| `syntax/missing-closing-brace` | error | A block is still open at the end of the file: its '}' is missing. | The game's message `expected_after_arguments`: "Expected } after arguments" |
-| `syntax/missing-equals-before-block` | error | A block written as 'name { ... }' among statements, with the '=' missing; read as 'name = { ... }'. | The game's message `expected_between_block_name_and_body`: "Expected '=' between block name and body" |
-| `syntax/missing-operator` | error | A key at the top level of the file with no operator after it; the finding is at the token found where '=' belongs. | The game's message `unexpected_token_X_found_at_X_expected`: "Unexpected token '&lt;token&gt;' found at '&lt;file:line&gt;', '=' expected" |
-| `syntax/missing-value` | error | An operator with no value after it. | The game's message `expected_between_equals_and_arguments`: "Expected '{' between equals and arguments" |
-| `syntax/null-safe-operator-after-value` | error | '?=' after something that is not a name or a scope chain. | The game's message `unexpected_token_X_found_at_X_expected`: "Unexpected token '&lt;token&gt;' found at '&lt;file:line&gt;', '=' expected" |
-| `syntax/operator-without-key` | error | An operator with no key in front of it. | The game's message `unexpected_token_expected_key`: "Unexpected token, expected 'key = {'" |
-| `syntax/unexpected-closing-brace` | error | A '}' at the top level of the file, where no block is open. | The game's message `unexpected_token_expected_key`: "Unexpected token, expected 'key = {'" |
-| `syntax/malformed-arithmetic` | information | Malformed inline expression '@[&lt;expression&gt;]': &lt;reason&gt; | Advice: pychivalry's own, with no game message |
-| `syntax/unterminated-string` | information | Unterminated string starting at '&lt;file:line&gt;' | Advice: pychivalry's own, with no game message |
+| Code | Severity | What it finds | Evidence | Fix |
+| --- | --- | --- | --- | --- |
+| `syntax/block-without-key` | error | A block at the top level of the file with no key in front of it. | The game's message `unexpected_token_expected_key`: "Unexpected token, expected 'key = {'" | None: the block's name is a choice. |
+| `syntax/missing-closing-brace` | error | A block is still open at the end of the file: its '}' is missing. | The game's message `expected_after_arguments`: "Expected } after arguments" | Suggestion: A '}' where the indentation says the block ends, or at the end of the file. |
+| `syntax/missing-equals-before-block` | error | A block written as 'name { ... }' among statements, with the '=' missing; read as 'name = { ... }'. | The game's message `expected_between_block_name_and_body`: "Expected '=' between block name and body" | Safe: The '=' written between the name and its block, as the parser reads it. |
+| `syntax/missing-operator` | error | A key at the top level of the file with no operator after it; the finding is at the token found where '=' belongs. | The game's message `unexpected_token_X_found_at_X_expected`: "Unexpected token '&lt;token&gt;' found at '&lt;file:line&gt;', '=' expected" | Safe: The '=' written between the key and the value on its line. |
+| `syntax/missing-value` | error | An operator with no value after it. | The game's message `expected_between_equals_and_arguments`: "Expected '{' between equals and arguments" | None: the value is a choice. |
+| `syntax/null-safe-operator-after-value` | error | '?=' after something that is not a name or a scope chain. | The game's message `unexpected_token_X_found_at_X_expected`: "Unexpected token '&lt;token&gt;' found at '&lt;file:line&gt;', '=' expected" | Safe or a suggestion: A quoted name or scope chain written without its quotes (safe); otherwise '?=' written as '='. |
+| `syntax/operator-without-key` | error | An operator with no key in front of it. | The game's message `unexpected_token_expected_key`: "Unexpected token, expected 'key = {'" | None: the key is a choice. |
+| `syntax/unexpected-closing-brace` | error | A '}' at the top level of the file, where no block is open. | The game's message `unexpected_token_expected_key`: "Unexpected token, expected 'key = {'" | Safe: The '}' that closes no block taken away: the file reads as before. |
+| `syntax/malformed-arithmetic` | information | Malformed inline expression '@[&lt;expression&gt;]': &lt;reason&gt; | Advice: pychivalry's own, with no game message | None: what the expression should compute is a choice. |
+| `syntax/unterminated-string` | information | Unterminated string starting at '&lt;file:line&gt;' | Advice: pychivalry's own, with no game message | None: where the text ends is a choice, and closing it at the end of its line can make a key of text cut off mid-edit. |

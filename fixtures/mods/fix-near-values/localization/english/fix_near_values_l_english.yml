@@ -1,0 +1,5 @@
+﻿l_english:
+ fixture.0001.t:0 "A title"
+ fixture.0001.desc:0 "A description"
+ fixture.0001.a:0 "An option"
+ nick_fixture:0 "the Fixture"

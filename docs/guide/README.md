@@ -15,11 +15,11 @@ and nothing more.
 | [Commands](commands.md) | The command the extension adds, the editor features, the command line in VS Code's terminal, and the tasks for building it from source |
 | [Settings](settings.md) | The settings, and how pychivalry finds the game |
 | [The agent server](agent-server.md) | How an AI agent uses pychivalry: starting the server, its tools, what it reads, and an example exchange |
-| [Checks](checks.md) | Every code pychivalry reports: its severity, what it finds and the game's evidence for it |
+| [Checks](checks.md) | Every code pychivalry reports: its severity, what it finds, the game's evidence for it and its fix |
 | [Checking a preview by hand](by-hand-check.md) | The check a person makes on Linux and on Windows before a preview or a release: the signed-in AI harnesses, Claude Code, an update, the terminal |
 
-Coming with the steps that build them: formatting and quick fixes (step 8), writing content
-with AI (step 9), and the editor's views (step 12).
+Coming with the steps that build them: formatting (step 8), writing content with AI (step 9),
+and the editor's views (step 12).
 
 ## What pychivalry will and will not tell you
 

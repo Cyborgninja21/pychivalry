@@ -57,6 +57,7 @@ function finding(
         message: `finding ${String(at)}`,
         evidence: { kind: 'advice' },
         data: {},
+        fix: null,
     };
 }
 

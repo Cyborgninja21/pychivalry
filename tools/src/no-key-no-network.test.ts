@@ -97,6 +97,7 @@ const EXCEPTIONS: readonly {
     {
         module: 'vscode-languageserver/node',
         files: [
+            'packages/lsp/src/code-actions.ts',
             'packages/lsp/src/completion.ts',
             'packages/lsp/src/diagnostics.ts',
             'packages/lsp/src/documents.ts',
