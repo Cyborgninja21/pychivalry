@@ -185,8 +185,10 @@ test('the suite on the fixture stub and mods passes, and its results fit the rec
     ]);
     const [mod, replacePath] = results['mods'] as Record<string, unknown>[];
     assert.ok(mod !== undefined && replacePath !== undefined);
-    // The traits file, jomini/'s define file, the DLC's category file, the culture history.
-    assert.equal(mod['game_files_replaced'], 4);
+    // The traits file, jomini/'s define file, the DLC's category file, the culture history;
+    // on Windows also the script values file the mod writes in upper case (path-case-windows:
+    // the worker answers for the platform it runs on).
+    assert.equal(mod['game_files_replaced'], process.platform === 'win32' ? 5 : 4);
     assert.deepEqual(replacePath['replace_paths'], ['common/decisions']);
     // Two files below subfolders whose depth no settled row states.
     assert.equal(replacePath['game_files_read_unknown'], 2);
