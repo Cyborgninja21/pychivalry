@@ -1,0 +1,14 @@
+# A task contract reward: part D3 states its scope from the measurement alone, so the same
+# name under two contracts may be one name or two.
+fixture_contract_a = {
+	task_contract_reward = {
+		fixture_reward = {
+		}
+	}
+}
+fixture_contract_b = {
+	task_contract_reward = {
+		fixture_reward = {
+		}
+	}
+}

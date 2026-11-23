@@ -1,7 +1,7 @@
 /**
- * The shapes of a format 7 spec package (docs/references/spec-package.md; the package's own
- * schema is `spec/schema.format7.json`): the keys of format 5 and the eight parts formats 6
- * and 7 add (D1 to D8). Only what the core reads is typed; every other key of the package
+ * The shapes of a format 8 spec package (docs/references/spec-package.md; the package's own
+ * schema is `spec/schema.format8.json`): the keys of format 5, the eight parts formats 6 and 7
+ * add (D1 to D8), and the keys format 8 adds inside D1, D2 and D3. Only what the core reads is typed; every other key of the package
  * keeps its place in `SpecData` as `unknown` and is read through the package itself. Nothing
  * here names a CK3 keyword: the keys are the package format's own.
  */
@@ -192,10 +192,10 @@ export interface Table {
     readonly candidates?: unknown;
 }
 
-// ─── The eight parts of formats 6 and 7 (D1 to D8) ──────────────────────────
+// ─── The eight parts of formats 6 to 8 (D1 to D8) ───────────────────────────
 
 /**
- * A part of format 6 or 7: `built`, its `data` the part tool's output whole, or `not_built`
+ * A part of formats 6 to 8: `built`, its `data` the part tool's output whole, or `not_built`
  * with the reason. Every row of every part carries a `status` and its `evidence`.
  */
 export type Part<T> =
@@ -275,6 +275,11 @@ export interface DeclarationRow extends PartRow {
     readonly scope: string;
     /** `confirmed`, `measured-only` or `unknown`. */
     readonly status: string;
+    /**
+     * Format 8: the line makes its key another name of the record its value names (`of`), as
+     * the D1 row `rule` says (a coat of arms written `key = other_key`).
+     */
+    readonly alias?: { readonly of: string; readonly rule: string };
 }
 
 /** D2, `declarations.data`. */
@@ -304,6 +309,23 @@ export interface RecognisedBy {
     readonly word?: string;
 }
 
+/**
+ * Format 8, D3: where a nested name identifies its definition. `global`: on its own among the
+ * definitions of its kind; `parent`: only together with the parent `scope_parent` names;
+ * `unknown`: not settled.
+ */
+export type NameScope = 'global' | 'parent' | 'unknown';
+
+/**
+ * Format 8, D3: the second part of a `global` name's key that is no parent block (a gene's
+ * portrait group): the line that sets it, written before the definitions it applies to.
+ */
+export interface NameScopeQualifier {
+    readonly statement: string;
+    readonly default: string;
+    readonly says: string;
+}
+
 /** A row of D3 `nested`: keys inside a record that are themselves definitions. */
 export interface NestedRow extends PartRow {
     readonly kind: string;
@@ -311,6 +333,19 @@ export interface NestedRow extends PartRow {
     readonly database: string;
     readonly depth: number | 'any';
     readonly recognised_by: RecognisedBy;
+    /** Format 8: the scope of the name. */
+    readonly name_scope: NameScope;
+    /**
+     * Format 8, with `name_scope: parent`: `record` (the top-level record), `container` (the
+     * top-level container key) or a leading part of `recognised_by.path` (the block whose key
+     * qualifies the name).
+     */
+    readonly scope_parent?: string;
+    /** Format 8: `confirmed`, `measured-only` or `unknown`; never above the row's `status`. */
+    readonly name_scope_status: string;
+    readonly name_scope_evidence: readonly PartEvidence[];
+    readonly name_scope_basis?: string;
+    readonly name_scope_qualifier?: NameScopeQualifier;
 }
 
 /** A row of D3 `file_named`: whether a folder's records are named by their file. */

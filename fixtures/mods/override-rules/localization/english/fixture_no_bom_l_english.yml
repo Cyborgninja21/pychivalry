@@ -1,0 +1,3 @@
+l_english:
+ fixture_loc_key: "Without a byte-order mark"
+ fixture_loc_no_bom_only: "Only here"

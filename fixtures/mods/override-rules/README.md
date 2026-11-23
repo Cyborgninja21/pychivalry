@@ -19,6 +19,14 @@ hides whole folders and the second cannot share a folder tree with this one on W
 | 9 | `common/script_values/00_FIXTURE_AGE_VALUES.txt` beside the game's `00_fixture_age_values.txt` | On Linux two paths, both read; on Windows the mod's replaces the game's |
 | 10 | `music/music_player_categories/fixture_dlc_categories.txt`, at the DLC file's path | The DLC's file is not read; the DLC's other file is read, at its path inside the pack |
 | 11 | `common/defines/zz_fixture_defines.txt`, a define written twice in one block | The first of the two |
+| 5 | `common/coat_of_arms/coat_of_arms/zz_fixture_coat_of_arms.txt`; (stub) blocks and alias lines | Format 8, `coat-of-arms-alias` replayed in read order: of two alias lines the later; a block then an alias, the alias; an alias then a block, the block, for the key, its target and every name on the object; a target not read yet, nothing in force; a later block of a target fills every name aliased to it |
+| 5 | `common/traits/00_fixture_traits.txt` (two traits with a track of one name); (stub) `common/house_relation_types/`, `common/task_contracts/` | Format 8, part D3's scope: a track is known by its trait, two tracks; a relation level by its name alone, one name defined twice and no row for a nested kind; a contract reward whose scope rests on the measurement alone, not known |
+| 6 | `common/genes/zz_fixture_genes.txt`; (stub) `common/genes/00_fixture_genes.txt` | Format 8: the gene containers and `special_genes` add up; every gene is one key space, known by its name and portrait group; the same type again, the later wins; another type, the earlier stays, and a gene after it in its block is not known; an age preset in a key space of its own; a template is known by its gene |
+| 6 | `common/province_terrain/zz_fixture_terrain.txt`; (stub) `common/province_terrain/` | Format 8, `province-terrain-statements`: a terrain line and a winter block are separate stores; a line written again, the later; a block written again, field by field |
+| 7 | `localization/english/fixture_no_bom_l_english.yml`, written without a byte-order mark | Format 8, `msg-localization-missing-bom` (`file_condition`), on Linux and Windows: the file adds no keys, so `fixture_loc_key`'s answer is the one without it and `fixture_loc_no_bom_only` is not defined |
+
+Every localization file starts with the UTF-8 byte-order mark but `fixture_no_bom_l_english.yml`,
+which leaves it out on purpose.
 
 `expected.json` lists every name the stub and this mod define, each with its rule, its status,
 its winner and every definition with its layer, file, line and whether the game reads its file,
