@@ -19,6 +19,7 @@ export {
     FINDING_KINDS,
     findingMessage,
     placeholderCount,
+    readableMessage,
     severityOf,
     type Evidence,
     type Finding,

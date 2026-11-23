@@ -30,7 +30,7 @@
  * | --- | --- | --- |
  * | `SCORED_SESSION_LIMIT` | The session limit of each test session, a positive number passed to Claude Code (above) | none: it must be given |
  * | `SCORED_MODEL` | The model, by its full name | `PINNED_MODEL` |
- * | `SCORED_TRIALS` | Trials (test sessions) per task | 5 |
+ * | `SCORED_TRIALS` | Trials (test sessions) per task: 5 in development, 10 (`RELEASE_TRIALS`) before a release, where every one must pass (the target, `targetOf`) | 5 |
  * | `SCORED_SERVER` | The agent server's entry point, from the repository root | `packages/mcp/dist/main.js` |
  * | `SCORED_SERVER_ARGS` | Its arguments, a JSON list; `{mod}` and `{game}` stand for the trial's mod and the game stub | `["--mod", "{mod}", "--vanilla", "{game}"]`, as `packages/mcp` reads them |
  * | `SCORED_CLAUDE` | Claude Code's command; a `.js` or `.mjs` file is run with Node | `claude` |
@@ -73,6 +73,8 @@ import { readStream, type StreamSummary } from './stream.js';
 import {
     passRate,
     SCORED_SUITE,
+    targetOf,
+    targetText,
     type ScoredRecord,
     type ScoredResults,
     type TrialRecord,
@@ -780,6 +782,7 @@ export function runScored(
                 trials: all.length,
                 passed,
                 pass_rate: passRate(passed, all.length),
+                target: targetOf(passed, all.length),
             },
         ],
     };
@@ -810,7 +813,7 @@ export function runScored(
     const file = recordFile;
     writeJson(file, record);
     log(
-        `scored:agent-use: ${String(passed)} of ${String(all.length)} trials passed (pass rate ${String(results.tasks[0]?.pass_rate ?? 0)}); record written to ${relativePosix(root, file)}`,
+        `scored:agent-use: ${String(passed)} of ${String(all.length)} trials passed (pass rate ${String(results.tasks[0]?.pass_rate ?? 0)}); ${targetText(targetOf(passed, all.length), passed)}; record written to ${relativePosix(root, file)}`,
     );
     return { file, record };
 }

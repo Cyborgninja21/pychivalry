@@ -44,6 +44,7 @@ export function instructions(session: Session): string {
         `pychivalry checks a Crusader Kings 3 mod the way the game itself reads it, and answers questions about CK3 script. This server works on one mod, the folder ${session.modDir}, for game ${session.spec.version}. ${game}`,
         "Start with check: it returns the totals by severity and by code, then the errors (ask for warnings and advice with min_severity), a page at a time. An error or a warning rests on the game's own evidence; information and hints are advice.",
         'explain_code says what a code means and its evidence; lookup says what a name is, where it is valid and where it is defined; find_definition, find_references and list_definitions find definitions and uses in the mod and the base game.',
+        `The tool names here are the bare ones. A client may list them under a prefix of its own: Claude Code, for one, lists check as mcp__${SERVER_NAME}__check. Call each tool by the name your client lists.`,
         "The server only reads. Fix a finding by editing the mod's files yourself, then check again: every call reads the files as they are now. Lines and columns count from 1. Every result is kept small: follow next_cursor for more.",
         `Server version ${VERSION}, tool schema version ${String(SCHEMA_VERSION)}.`,
     ].join('\n\n');

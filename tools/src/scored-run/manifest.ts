@@ -1,14 +1,15 @@
 /**
  * The planted-defect manifest, `fixtures/defects/manifest.json` (docs/PLAN.md item 6.7): each
- * defect planted in `fixtures/defects/mod/`, one per check code, and each line there that looks
- * wrong and is not. The graders read it (item 6.9), and so does the scored run (item 6.8).
+ * defect planted in `fixtures/defects/mod/`, at least one per error and warning code, and each
+ * line there that looks wrong and is not. The graders read it (item 6.9), and so does the scored run (item 6.8).
  *
  * The format (`manifest_format` 1). Lines are counted from 1 in `mod/`, files are paths inside
  * the mod with `/`:
  *
  * - `game`: the base game the mod is checked over, a game stub's `game` folder, from the
  *   repository root.
- * - `defects[]`: `code` (a check code, once each), `file` and `line` (where the checker reports
+ * - `defects[]`: `code` (a check code: every error and warning code at least once, a code
+ *   more than once where the mod plants it again), `file` and `line` (where the checker reports
  *   it), `text` (that line, exactly), `what` (the defect in words), `reported` (every place the
  *   checker reports it, when that is more than `file` and `line`: a clash is reported at each
  *   definition), and `fix`: where a fix may change the mod. Each entry of `fix` names a `file`

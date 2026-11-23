@@ -256,4 +256,11 @@ test('explain_code: the rows of the inventory, a family with <family>/*', async 
     const all = await s.output('explain_code', { codes: ['*'] });
     const shown = (all['codes'] as unknown[]).length + (all['not_shown'] as unknown[]).length;
     assert.equal(shown, rows.length, 'every code, shown or named to ask again');
+    // Item 6.11: a message was shown with its raw %s; every value is a readable slot now.
+    assert.doesNotMatch(JSON.stringify(all['codes']), /%s|\{\}/);
+    const required = await s.output('explain_code', { codes: ['fields/missing-required-field'] });
+    assert.equal(
+        (required['codes'] as { message: string }[])[0]?.message,
+        'The <record> is missing a field the spec package marks required.',
+    );
 });

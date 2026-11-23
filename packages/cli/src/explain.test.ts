@@ -17,15 +17,32 @@ test('explain renders a code: severity, what it finds, and its evidence with the
         [
             'names/unknown-trigger  error',
             '  Finds: A key in a trigger block that is no trigger there.',
-            `  Evidence: the game's own message unknown_trigger_X: "Unknown trigger '%s'"`,
+            `  Evidence: the game's own message unknown_trigger_X: "Unknown trigger '<trigger>'"`,
             '',
         ].join('\n'),
     );
     const advice = runCli(['explain', 'syntax/unterminated-string'], { cache });
     assert.match(advice.stdout, /^syntax\/unterminated-string {2}information\n/);
     assert.match(advice.stdout, /Evidence: none: this is pychivalry's own advice/);
+    assert.match(advice.stdout, /Message: "Unterminated string starting at '<file:line>'"/);
     const output = runCli(['explain', 'names/modifier-outside-use-area'], { cache });
     assert.match(output.stdout, /Evidence: the game's own output, with no message of its own: /);
+});
+
+test('explain shows no raw placeholder: each value is a readable slot', (t) => {
+    // Item 6.11: the agent server showed "The %s is missing a field the spec package marks
+    // required."; the command line's explain showed the game's messages with their %s.
+    const cache = scratch(t);
+    const required = runCli(['explain', 'fields/missing-required-field'], { cache });
+    assert.match(
+        required.stdout,
+        /Message: the place's own; with none, "The <record> is missing a field the spec package marks required\."/,
+    );
+    for (const json of [false, true]) {
+        const all = runCli(['explain', '*', ...(json ? ['--json'] : [])], { cache });
+        assert.equal(all.code, 0);
+        assert.doesNotMatch(all.stdout, /%s|\{\}/);
+    }
 });
 
 test('explain takes several codes and patterns, each code once, in the order asked', (t) => {
@@ -70,9 +87,9 @@ test('explain --json: one object per code, an unknown code marked unknown, exit 
             evidence: {
                 kind: 'catalogue',
                 id: 'unknown_effect_X',
-                text: "Unknown effect '%s'",
+                text: "Unknown effect '<effect>'",
             },
-            message: "Unknown effect '%s'",
+            message: "Unknown effect '<effect>'",
             off_by_default: false,
         },
         { code: 'names/no-such-check', known: false },

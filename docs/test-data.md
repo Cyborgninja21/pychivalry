@@ -92,25 +92,29 @@ in the test and on every bad half run with no game folder
 ## The planted-defect mod
 
 [`fixtures/defects/`](../fixtures/defects/README.md), written by hand in build step 6 (items 6.7
-to 6.9): a small "Harvest Festival" mod, `mod/`, with 27 planted defects, one per check code of
-this build that is an error or a warning (21 errors and 6 warnings), and 10 lines that look
-wrong and are not; `manifest.json`, which gives each defect's code, the line the checker reports
-it at, the text of that line and the lines a fix may change, and each look-alike with why it is
-right; and `reference/`, the same mod with every defect fixed. It is checked over its own game
-stub, [`fixtures/game/planted-defects`](../fixtures/game/README.md), which defines the tradition
-and the scripted effect the mod uses and does not define itself, so CI needs no game.
+to 6.9) and made harder after the first test sessions (decision 83): a "Harvest Festival" mod,
+`mod/`, of 17 files and 591 lines, with 32 planted defects, every check code of this build that
+is an error or a warning at least once (21 errors and 6 warnings; four codes twice), and 29
+lines that look wrong and are not; `manifest.json`, which gives each defect's code, the line the
+checker reports it at, the text of that line and the lines a fix may change, and each
+look-alike with why it is right; and `reference/`, the same mod with every defect fixed. Some
+defects need a lookup to fix, some interact (the obvious fix of one makes another), and some
+are fixed away from the line the finding points at. It is checked over its own game stub,
+[`fixtures/game/planted-defects`](../fixtures/game/README.md), which defines the tradition and
+the scripted effect the mod uses and does not define itself, so CI needs no game.
 
-On `mod/` the checker reports exactly the planted defects (22 errors, the clash at both of its
-definitions, and 6 warnings); on `reference/`, nothing
-(`tools/src/scored-run/defects.test.ts`). The built agent server gives the same 28 findings
+On `mod/` the checker reports exactly the planted defects (26 errors, the clash at both of its
+definitions, and 7 warnings); on `reference/`, nothing
+(`tools/src/scored-run/defects.test.ts`). The built agent server gives the same 33 findings
 (`tools/src/scored-run/server.test.ts`). It is what the scored agent-use test is graded on: in
 each test session of the developer's own Claude Code an agent is asked to fix a fresh copy, and
 the trial passes when the checker reports no errors, every planted defect is gone, nothing else
 changed, the look-alikes are untouched and nothing was deleted
 ([tools/scored-run/README.md](../tools/scored-run/README.md)). The graders' tests run in CI;
-the test sessions never do. The first five test sessions (item 6.11, 2026-11-23) fixed every
-defect and touched no look-alike in each session; their record is
-`records/scored/agent-use.json`, and how each defect was fixed is in
+the test sessions never do. The first five test sessions (item 6.11, 2026-11-23) ran on the
+first mod, of 27 defects and 10 look-alikes, which was replaced by this one because each of them
+fixed every defect in about a minute; their record is `records/scored/agent-use.json`, and how
+each defect was fixed is in
 [tools/scored-run/README.md](../tools/scored-run/README.md#each-planted-defect).
 
 ## The five real mods

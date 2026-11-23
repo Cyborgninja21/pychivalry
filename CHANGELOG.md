@@ -225,6 +225,28 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   `tools/scored-run/README.md`. `SCORED_CONTINUE=true` adds a run's test sessions to the record
   already written when it was made the same way, so one record holds a first session and the
   ones after it.
+- The owner's target for the agent-use test (decision 82): every test session passes, 10 of 10
+  in a release run; a development run of 5 that passes fewer than 5 is looked into. Each task
+  of a scored record states its `target` (the run, the trials needed, met or not) and the run
+  prints it; `task records:check` holds it to the trials.
+- Findings say what is valid (decision 83): `scope/wrong-scope-for-effect`, `-for-trigger` and
+  `scope/link-on-wrong-scope` carry `links_from_scope`, the links (or chains of two) that lead
+  from the current scope to the scopes the keyword or link takes, from the spec package's link
+  documentation; `fields/missing-required-field` and `fields/wrong-kind-of-value` carry the
+  field's measured `value_type` and the `values` the base game writes. Both are bounded. The
+  command line's text shows them after the game's message (the core's `whatIsValid`); the
+  agent server and the JSON output give the data. No code, severity or message changes.
+
+- Build step 7, items 7.3 to 7.6, server side (#140): `packages/lsp/`, the language server on
+  `vscode-languageserver` 11.0.1, started over IPC (or standard input and output for tests).
+  Diagnostics while typing and for the whole mod in the background (a file limit, progress,
+  cancellation; closing a file keeps them), equal file for file to the one runner's findings;
+  completion, hover, go to definition, find references and document symbols; the game folder
+  from a setting or any Steam library; four settings (`pychivalry.gamePath`,
+  `pychivalry.background.fileLimit`, `pychivalry.localization.unusedKeys`,
+  `pychivalry.encoding.fallback`). The core gained, additively, `checkSourceFile` and
+  `checkNames` (which `checkWorkspace` now calls per file), `FileReading.fields`,
+  `WorkspaceIndex.namesIn` and `filesNaming`, and completion (`completionsAt`).
 
 ### Changed
 
@@ -340,11 +362,41 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
 
 - `tools/` depends on `@pychivalry/core`, for the parse suite.
 - The record check also checks that a parse record agrees with itself.
+- The planted-defect mod is harder (decision 83): 32 defects, every error and warning code at
+  least once and four codes twice, and 29 look-alikes, in 17 files and 591 lines (was 27, 10,
+  15 and 254). Defects need a lookup (the scope an effect or trigger takes and the link to it,
+  an exact name, an event of another file, the values a field takes), interact (an obvious
+  rename that clashes with another file's event; a clash whose right fix also answers an
+  unknown key; a scope line that must stay), or are fixed away from the finding (a
+  localization key, a block named by its caller, a brace inside the block rather than at the
+  end of the file). Its reference copy's wrong-scope fix gives a county a modifier of county
+  modifiers. The graders judge by the checker and the manifest's fix ranges, and tests show
+  fixes the reference does not use passing and the obvious fixes of interacting defects
+  failing; `defects-gone` lists a code planted twice once.
+- `pychivalry explain` and the agent server's `explain_code` show every message with readable
+  slots (`Unknown trigger '<trigger>'`), never `%s` or `{}`; the check reference writes them as
+  text, not tags, and the command line's `explain` shows the message of an advice or per-place
+  row.
+- The agent server's instructions say that a client may list its tools under a prefix of its
+  own (`mcp__pychivalry__check` in Claude Code) and that the names in them are the bare ones.
+
+### Fixed
+
+- The core's check slowed with the cube of the number of files defining one name: it resolved
+  the name once per definition and compared every pair of the definitions each time (100 files
+  0.3 s, 300 files 6 to 7.5 s). The index now finds an unordered pair among sorted neighbours
+  and keeps each name's resolution until a file changes: 300 files take 0.09 s and 1,000 files
+  0.36 s. Tests count the sort's comparisons (n log n, not n squared), hold the resolution
+  remembered until a file changes, and bound a check of 1,000 files; no finding of the base
+  game or the five mods moved.
 
 ### Open
 
-- Item 6.11, the first test sessions of the agent-use test, waits for the owner's word (decision
-  80); after them the result is reported and step 7 starts only on the owner's go (decision 79).
+- The harder planted mod has not been run by a test session yet; a run starts only on the
+  owner's word (decision 80).
+- Build step 7 is in progress, built by agents in parallel (decision 84).
+- Whether a check row should judge a static modifier applied by an effect of another use area
+  is a question for the owner (`docs/decisions.md`); no built row covers it.
 - Two rows of the check inventory are blocked: `structure/triggered-desc-other-field` (its
   message is not in the committed catalogue) and `scope/title-text-reads-scope-saved-late` (the
   saved-scope form of localization text is not data). Parts of four more wait on the owner or

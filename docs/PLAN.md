@@ -1,6 +1,6 @@
 # pychivalry: build plan
 
-Status: plan for approval, 2026-11-22. Step 0 is done: the 1.21.0.3 spec package in format 8 is committed (2026-11-23, decision 68), its override rules table among its parts. Step 1 is complete, and steps 2 and 3 are built and merged, the index reading the override rules from the package. Item 4.1, the check inventory, is written and signed off. The rest of step 4 and step 5 were built in parallel on the owner's word (decisions 70 and 72) and brought together by an integration pull request: every item of step 4 and step 5 is built, but for two blocked rows of the inventory and the parts of four rows that wait on the owner or on the spec work. Step 4's "Done when" holds but for its first line (two blocked rows have no fixture pair); step 5's holds. On the owner's word (decision 77) step 6 is under way: items 6.1 to 6.10 are built (the agent server, the planted-defect mod, its graders and the scored-test script); item 6.11's first test sessions ran on the owner's word (decision 81) and are on record, 5 of 5 passed; the target is the owner's to set from them, and step 7 starts only on the owner's go (decision 79). The Progress table says what is open.
+Status: plan for approval, 2026-11-22. Step 0 is done: the 1.21.0.3 spec package in format 8 is committed (2026-11-23, decision 68), its override rules table among its parts. Step 1 is complete, and steps 2 and 3 are built and merged, the index reading the override rules from the package. Item 4.1, the check inventory, is written and signed off. The rest of step 4 and step 5 were built in parallel on the owner's word (decisions 70 and 72) and brought together by an integration pull request: every item of step 4 and step 5 is built, but for two blocked rows of the inventory and the parts of four rows that wait on the owner or on the spec work. Step 4's "Done when" holds but for its first line (two blocked rows have no fixture pair); step 5's holds. Step 6 is built (decision 77): the agent server, the planted-defect mod, its graders and the scored-test script; item 6.11's first test sessions ran on the owner's word (decision 81), 5 of 5 passed, and the owner set the target from them: every test session passes, 10 of 10 before a release (decision 82). The five proposals of those sessions are done (decision 83): a harder planted mod, findings that say what is valid, and the rest. Step 7 has started on the owner's word, built by agents in parallel (decision 84). The Progress table says what is open.
 
 This is the "how" for the rebuild. The "what" and the "why" are in [MVP.md](MVP.md): the
 decisions, the scope, the tests each feature needs and the definition of done. Where the two
@@ -25,8 +25,8 @@ disagree, MVP.md is right and this plan is fixed.
 | 3 | Workspace index | No for the index; the override rules table comes from step 0 | Built and merged (pull requests #118 and #120). The override rules come from the spec package's part D1 (the stand-in `spec/override-rules.json` is retired, decision 65): a settled or derived row decides, a partial or open row does not; parts D2 and D3 say what a definition is. Base-game names defined more than once with no winner known: 1,309 on the format 5 package, 118 on format 7, 233 on format 8 (the 21 coats of arms and the gene of decision 67 are answered; 167 nested names whose scope the package does not settle, under several parents, are new). Since format 8 the index also applies the scope of nested names, the gene containers, the coat of arms alias line, the stores of province terrain and the localization file condition. Still open: character history defined twice (a partial row), nested names of a scope resting on the measurement alone, the depth of the folders only partial rows or no row describe, the 32 folders with no row and `gui`, and the order of several mods or DLC packs (`docs/overrides.md`) |
 | 4 | Engine checks and lookup | Yes, from item 4.2 on | Built. Item 4.1 is signed off (#121, #122); 4.2 with 4.3 (#125, #127, re-measured on format 8 in #132); 4.4 scope (#130); 4.5 fields and structure (#131); 4.6 event targets and localization (#134); 4.7 advice (#133); 4.8 lookup (#128); 4.9 to 4.11, the classification of the base game's errors, the game-file suites and the limits, in the integration pull request. 62 of the inventory's 78 rows are built (five in part), 11 retired by item 4.7's re-proof, 2 blocked, 3 belong to steps 10 and 11. Open: `structure/triggered-desc-other-field` (its message is not in the catalogue) and `scope/title-text-reads-scope-saved-late` (the localization text's saved-scope form is not data), blocked; the iterator sub-cases of `names/unknown-trigger` and `-effect` (the owner); the game-concept half of `references/unknown-name`, the open brackets of `localization/unbalanced-brackets` and the block and word types of `fields/wrong-kind-of-value`; the twelve spec requests of decision 73 and the questions in decisions.md. "Done when" 2 to 5 hold; 1 does not, for the two blocked rows |
 | 5 | Command line | Through step 4 | Built (#129, with the per-file cap in the integration pull request): `check`, `lookup` and `explain`, text and JSON, the filters, the exit codes, the on-disk index. "Done when" holds: the golden test passes, and on each of the five mods the command line's findings equal the core's and the `game:mods` record's. Open: the owner's questions on `--severity`, `--no-vanilla`, the folders checked and `mcp` (decisions.md) |
-| 6 | Agent server | Through step 4 | Items 6.1 to 6.6 built (the agent server, `packages/mcp/`): the six tools `check`, `lookup`, `find_definition`, `find_references`, `list_definitions` and `explain_code`, each read-only with its shapes declared, every result under 10,000 tokens (measured on rice), bad input as results naming the valid values, nothing written but the index cache, the on-disk index loaded; with them decisions 74 to 77 (`localization/unused-key` off by default). `call_graph`, `analyze_log` and `format` come with steps 10, 11 and 8. Items 6.7 to 6.10 built (#136): the planted-defect mod `fixtures/defects/` (27 defects, one per error and warning code, and 10 look-alikes, over the game stub `planted-defects`), the five graders, the scored-test script `task scored:agent-use` and its record format, all tested in CI without Claude Code; with them a CI test that no shipped package holds a key or reaches the network. Item 6.11 run on the owner's word (decision 81): the first five test sessions are on record, 5 of 5 passed (`records/scored/agent-use.json`), after two repair sessions that found harness faults, fixed. Open: the target, which the owner sets from this result ("Done when" 2); then step 7 starts only on the owner's go (decision 79) |
-| 7 | Language server and extension | Through step 4 | Not started |
+| 6 | Agent server | Through step 4 | Items 6.1 to 6.6 built (the agent server, `packages/mcp/`): the six tools `check`, `lookup`, `find_definition`, `find_references`, `list_definitions` and `explain_code`, each read-only with its shapes declared, every result under 10,000 tokens (measured on rice), bad input as results naming the valid values, nothing written but the index cache, the on-disk index loaded; with them decisions 74 to 77 (`localization/unused-key` off by default). `call_graph`, `analyze_log` and `format` come with steps 10, 11 and 8. Items 6.7 to 6.10 built (#136): the planted-defect mod `fixtures/defects/` (27 defects, one per error and warning code, and 10 look-alikes, over the game stub `planted-defects`), the five graders, the scored-test script `task scored:agent-use` and its record format, all tested in CI without Claude Code; with them a CI test that no shipped package holds a key or reaches the network. Item 6.11 run on the owner's word (decision 81): the first five test sessions are on record, 5 of 5 passed (`records/scored/agent-use.json`), after two repair sessions that found harness faults, fixed; the owner set the target from them: every test session passes, a release run 10 of 10 (decision 82), which the record now states. Then, on the owner's word (decision 83), the sessions' five proposals: the planted mod made harder (32 defects, every error and warning code at least once, 29 look-alikes, 17 files; defects that need a lookup, interact or are fixed elsewhere; its reference's wrong-scope fix made right), scope findings that name the links that lead to the scope they need, field findings that carry the value type and the base game's values, the instructions naming the tools' prefix, and readable slots in every message `explain_code` shows; with them, the core's check on a name defined in many files no longer grows with the cube of the files (300 files: 7.5 s before, 0.09 s after). "Done when" holds: both lines. The harder mod has not been run by a test session yet |
+| 7 | Language server and extension | Through step 4 | In progress: started on the owner's word (decision 84), built by agents in parallel, each in its own worktree and pull request. Items 7.3 to 7.6 built, server side (#140): the language server, `packages/lsp/`, with diagnostics while typing and in the background, completion, hover, definition, references, symbols, the game folder and four settings; a test holds its diagnostics equal to the one runner's findings on every fixture mod. Open: the extension (7.1, 7.2, the client side of 7.3, 7.7 to 7.12) and the owner's three questions on the language server (decisions.md) |
 | 8 | Formatter and fixes | No, but follows step 7 | Not started |
 | 9 | Skills and the authoring run | Through step 4 | Not started |
 | 10 | GUI files, graphics check, call graph | Partly | Not started |
@@ -77,6 +77,7 @@ These apply to every step and to every agent doing the work.
 | Extension tests | `@vscode/test-electron` driving a real VS Code; pinned in step 7, which adds it | The only way to test the extension as shipped. 2.3.0 used the same. |
 | Bundling | esbuild, one single file each for the language server, the agent server and the command line; the spec stays a separate data file; pinned in the step that adds it | VS Code's own guidance; small and fast. |
 | Language client | `vscode-languageclient` 11, started as a module over IPC; pinned in step 7 | Runs on VS Code's runtime on Linux and Windows. |
+| Language server library | `vscode-languageserver` **11.0.1** (pinned in step 7, #140), the server-side companion of `vscode-languageclient` 11.0.1, both on `vscode-languageserver-protocol` 3.18.6; the language server's tests add `vscode-languageserver-protocol` **3.18.6** as a development dependency for their protocol client. The server depends on the core and this library only | The library VS Code's own language servers use; started as a Node module over IPC (`--node-ipc`), or over standard input and output (`--stdio`) for tests, and on no other transport. |
 | Agent server library | The MCP TypeScript library, 2.x line: `@modelcontextprotocol/server` **2.4.0** (pinned in step 6, 2026-11-23, the current release on the npm registry). It pulls in `@modelcontextprotocol/core` 2.4.0 and `zod` 4 (4.6.7 locked), nothing else at run time; its JSON Schema validator (ajv) is bundled inside it. The tests add its client, `@modelcontextprotocol/client` **2.4.0**, as a development dependency (with `eventsource`, `eventsource-parser`, `jose` and `pkce-challenge`) | The current line; the 1.x line (`@modelcontextprotocol/sdk`) is in maintenance. The server is declared as its documentation describes (`McpServer`, `registerTool`, `serveStdio`), its shapes as JSON Schema (`fromJsonSchema`), so the package depends on the core and the library only. |
 | Lint and format | ESLint **10.15.0** with `@eslint/js` **10.0.1** and `typescript-eslint` **8.73.0** (`strictTypeChecked`); Prettier **3.10.1** | What 2.3.0 used. |
 | Task runner | `Taskfile.yml` at the root; Task **3.54.0** in CI (developed with 3.50.0) | What 2.3.0 used; one entry point for agents. |
@@ -886,7 +887,9 @@ window, and a scored test that an agent can really use it.
 - 6.6 It loads the on-disk index; it does not build its own from scratch when one exists.
 - 6.7 The planted-defect test mod: 20 to 30 defects, one per check code, each recorded in a
   manifest (file, code, the text it sits on); lines that look wrong and are not; and a
-  reference copy with every defect fixed that passes all the graders.
+  reference copy with every defect fixed that passes all the graders. *Changed by decision
+  83:* every error and warning code at least once, a code more than once where it makes the
+  mod harder.
 - 6.8 The scored-test script, a developer's test script: not shipped, not part of the
   extension, never run by CI. pychivalry holds no key and makes no model call; the script
   starts the Claude Code program already installed on the developer's machine, signed in
@@ -938,8 +941,47 @@ window, and a scored test that an agent can really use it.
   session. Every start event showed the confinement holding, the plan's open question.
   `SCORED_CONTINUE` lets one record hold a first session and the sessions after it. The analysis
   and the proposals for the server are in
-  [tools/scored-run/README.md](../tools/scored-run/README.md#the-first-test-sessions-item-611);
-  the target is the owner's to set (decisions.md, "Asked, awaiting the owner").
+  [tools/scored-run/README.md](../tools/scored-run/README.md#the-first-test-sessions-item-611).
+  **Done:** the owner set the target from this result (decision 82): every test session passes;
+  a release run of 10 test sessions must pass all 10, and a development run of 5 that passes
+  fewer than 5 is looked into. The record states each task's target and whether the run met
+  it (`target`; item 6.11's record, made before, has none).
+
+  *Done after item 6.11, on the owner's word (decision 83):* the sessions' five proposals.
+  1. **A harder planted mod** (`fixtures/defects/`): 32 defects, every error and warning code
+     at least once and four codes twice, 29 look-alikes, 17 files and 591 lines (the first mod:
+     27, 10, 15 and 254). Defects whose fix needs a lookup (the scope an effect or trigger
+     takes and the link that leads there, an exact name, an event of another file, the values
+     a field takes); defects that interact (a namespace typo whose obvious fix clashes with an
+     event of another file; a clash whose right fix also answers an unknown key; a faith
+     event whose scope line must stay); defects fixed away from the finding (a localization
+     key, a block named by its caller, a brace that belongs inside the block). The checker
+     reports exactly the planted defects on `mod/` (26 errors and 7 warnings) and nothing on
+     `reference/`, in CI. The reference's wrong-scope fix now gives a county a modifier of
+     county modifiers; no built row judges that case (decisions.md, "Asked, awaiting the
+     owner"). The graders judge by the checker and the fix ranges, so fixes the reference does
+     not use pass (`primary_title.holder`, `add_character_modifier`), and the obvious fixes of
+     interacting defects fail; tests show both.
+  2. **Scope findings say the way out:** `scope/wrong-scope-for-effect`, `-for-trigger` and
+     `scope/link-on-wrong-scope` carry `links_from_scope`, the links (or chains of two) from
+     the current scope to the scopes the keyword or link takes, from the spec package, at most
+     12.
+  3. **Field findings say what the field takes:** `fields/missing-required-field` and
+     `fields/wrong-kind-of-value` carry the field's `value_type` and `values`, the values the
+     base game writes, at most 20. The command line's text shows both after the game's
+     message; no code, severity or message changes.
+  4. **The instructions name the prefix:** a client may show the tools under its own prefix
+     (`mcp__pychivalry__check`); the names in the instructions are the bare ones.
+  5. **Readable slots:** `explain` and `explain_code` show every message with named slots
+     (`Unknown trigger '<trigger>'`), never `%s` or `{}`.
+
+  With them, the slowdown the size test had noted: the core's check resolved a name once per
+  definition and compared every pair of its definitions each time, so a name defined in n
+  files cost n cubed (100 files 0.3 s, 300 files 6 to 7.5 s). It now sorts them and resolves a
+  name once: 300 files 0.09 s, 1,000 files 0.36 s; tests count the sort's comparisons (n log
+  n), hold the resolution remembered, and bound a check of 1,000 files. `task
+  game:check` and `task game:mods` were re-run: no finding figure moved. The size test on
+  rice passes, every result under 30,000 characters (the largest 27,990).
 
 **Tests.** Each tool against fixtures. The size test. The graders pass on the reference copy
 and fail on the untouched test mod.
@@ -949,8 +991,9 @@ record.
 
 **Done when.**
 
-1. Every tool passes its fixture tests and the size test.
-2. The first scored run is on record, and the owner has set the target from it.
+1. Every tool passes its fixture tests and the size test. *Met.*
+2. The first scored run is on record, and the owner has set the target from it. *Met: 5 of 5
+   on record; the target, every test session passing, set by decision 82.*
 
 **Not yet known.** How many test sessions a release run of 10 per task can take, since each
 counts against the developer's own Claude plan. (Whether the flags keep the developer's own
@@ -988,6 +1031,24 @@ one test proves every surface gives the same answers. First preview build.
   the spec's description. Completion offers what is valid at the position.
 - 7.6 The game-path setting: detection across every Steam library on Linux and Windows, an
   explicit setting that overrides it, and a clear message when no game is found.
+
+  *Built, server side (items 7.3 to 7.6, #140):* `packages/lsp/`, the language server on
+  `vscode-languageserver` 11.0.1, started as a Node module over IPC or, for tests, over standard
+  input and output. Script and localization files are told apart by extension, whatever the
+  language id. Diagnostics while typing (an incremental re-parse and the one runner's own
+  per-file path, `checkSourceFile` over `checkNames`, which `checkWorkspace` now calls for
+  each file) and for the whole mod in the background, with a file limit, a yield between files,
+  progress, cancellation when files change and a notice at the end of each pass; closing a file
+  keeps its diagnostics; a finding's evidence and data travel in the diagnostic's `data`.
+  Completion (the core's new `completionsAt`), hover (the lookup answer), go to definition,
+  find references and document symbols. The game folder from the setting `pychivalry.gamePath`
+  or any Steam library, one clear message when none is found, and a build other than the
+  spec's said once. Four settings ([docs/guide/settings.md](guide/settings.md)). A test holds,
+  on every fixture mod and the planted-defect mod, each file's diagnostics equal to the one
+  runner's findings for it. The core gained, additively, `FileReading.fields`,
+  `WorkspaceIndex.namesIn` and `filesNaming`. The extension that starts it (7.1, 7.2, the
+  client side of 7.3, 7.7 to 7.12) is another branch's. Questions for the owner are in
+  decisions.md ("Asked, awaiting the owner").
 - 7.7 The extension bundles the command line and puts it on the path of the integrated
   terminal.
 - 7.8 "Set up for Claude Code": adds the server to Claude Code's own configuration for this
@@ -1271,7 +1332,7 @@ five test mods.
 | When | Decision |
 | --- | --- |
 | Item 1.6 | The spec package committed compressed or raw. Decided 2026-11-22: compressed. |
-| Item 6.11 | The word to start the first test sessions of the agent-use test; then, from their result, its target and the go for step 7 (decisions 79 and 80). |
+| Item 6.11 | The word to start the first test sessions of the agent-use test; then, from their result, its target and the go for step 7 (decisions 79 and 80). Answered: the sessions ran (decision 81), the target is every test session passing, 10 of 10 before a release (decision 82), and step 7 has started (decision 84). |
 | Item 7.1 | Only if a harness cannot be reached as designed. |
 | Item 8.1 | Sign-off on the formatting rules. |
 | Item 9.8 | The targets for the authoring run. |

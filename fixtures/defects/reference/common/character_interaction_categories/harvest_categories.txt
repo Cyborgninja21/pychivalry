@@ -1,6 +1,13 @@
 # The festival's interactions, shown together.
 interaction_category_harvest = {
-	index = 50
+	index = 16
 	icon = harvest_icon
 	color = hsv { 0.12 0.7 0.8 }
+}
+
+# The market's interactions, after the festival's.
+interaction_category_harvest_market = {
+	index = 17
+	icon = harvest_market_icon
+	color = { 0.8 0.6 0.2 }
 }

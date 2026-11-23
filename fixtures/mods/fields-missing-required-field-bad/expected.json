@@ -9,7 +9,8 @@
             "message": "Casus belli fixture_casus_belli missing on_invalidated_desc",
             "data": {
                 "record": "fixture_casus_belli",
-                "field": "on_invalidated_desc"
+                "field": "on_invalidated_desc",
+                "value_type": "word|block"
             }
         },
         {
@@ -21,7 +22,26 @@
             "message": "Invalid or undefined index for character interaction category 'fixture_category'",
             "data": {
                 "record": "fixture_category",
-                "field": "index"
+                "field": "index",
+                "value_type": "integer",
+                "values": [
+                    "0",
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                    "6",
+                    "7",
+                    "8",
+                    "9",
+                    "10",
+                    "11",
+                    "12",
+                    "13",
+                    "14",
+                    "15"
+                ]
             }
         },
         {
@@ -33,7 +53,8 @@
             "message": "Missing or invalid tutorial chain for tutorial lesson 'fixture_lesson'",
             "data": {
                 "record": "fixture_lesson",
-                "field": "chain"
+                "field": "chain",
+                "value_type": "word"
             }
         }
     ]

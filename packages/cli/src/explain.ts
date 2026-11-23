@@ -1,7 +1,8 @@
 /**
  * `explain <code>...`: what a finding's code means, from the check inventory's row the core
  * exposes (`inventoryRows`): its severity, what it finds and its evidence, with the game's own
- * message text from the spec's catalogue (docs/PLAN.md item 5.5). A code may be written as a
+ * message text from the spec's catalogue (docs/PLAN.md item 5.5), each value in it a readable
+ * slot (`Unknown trigger '<trigger>'`). A code may be written as a
  * pattern, `<family>/*` or `*`, as `--code` takes it.
  *
  * Exit codes: 0 when every code given is one of this build, 1 when one is not (it is listed
@@ -35,12 +36,25 @@ export function evidenceText(row: InventoryRow): string {
     return "none: this is pychivalry's own advice, never an error or a warning";
 }
 
-/** A row as text: the code and its severity, what it finds, its evidence, whether it is off. */
+/**
+ * A row as text: the code and its severity, what it finds, its evidence, its message where the
+ * evidence line does not quote it, whether it is off. Every message is shown with its values as
+ * readable slots (`<trigger>`), never `%s`.
+ */
 export function rowText(row: InventoryRow): string {
+    const message =
+        row.message === null || row.evidence.kind === 'catalogue'
+            ? []
+            : [
+                  row.evidence.kind === 'per-place'
+                      ? `  Message: the place's own; with none, "${row.message}"`
+                      : `  Message: "${row.message}"`,
+              ];
     return [
         `${row.code}  ${row.severity}`,
         `  Finds: ${row.finds}`,
         `  Evidence: ${evidenceText(row)}`,
+        ...message,
         ...(row.offByDefault ? ['  Off by default: check --unused-keys turns it on'] : []),
     ].join('\n');
 }

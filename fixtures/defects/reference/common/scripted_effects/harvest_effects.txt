@@ -19,8 +19,21 @@ harvest_feast_effect = {
 	add_piety = 10
 }
 
+# The host takes the tithe.
 harvest_tithe_effect = {
 	ROOT = {
 		add_gold = 25
+	}
+}
+
+# Gives alms to the poor of the capital.
+harvest_alms_giving_effect = {
+	add_gold = -15
+	add_piety = 15
+	capital_county = {
+		add_county_modifier = {
+			modifier = harvest_granary_modifier
+			days = 180
+		}
 	}
 }

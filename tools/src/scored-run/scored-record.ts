@@ -1,7 +1,7 @@
 /**
  * The record of a scored run (docs/PLAN.md item 6.10; records/README.md, "Scored records"): the
  * harness version, the model, per trial the tool calls, the tool errors and which graders passed,
- * and the pass rate per task. Its schema is `scoredResults` in records/record.schema.json;
+ * and per task the pass rate, the owner's target and whether the run met it. Its schema is `scoredResults` in records/record.schema.json;
  * `scoredProblems` is what `task records:check` adds to the schema: the figures agree with each
  * other.
  *
@@ -94,13 +94,52 @@ export interface ScoredResults {
     readonly arguments: readonly string[];
     readonly server: { readonly entry: string; readonly arguments: readonly string[] };
     readonly trials: readonly TrialRecord[];
-    /** Per task: trials, trials passed, and the pass rate (passed / trials, to 4 places). */
+    /**
+     * Per task: trials, trials passed, the pass rate (passed / trials, to 4 places), and the
+     * target and whether the run met it (`targetOf`). A record made before the owner set the
+     * target (item 6.11's) has none.
+     */
     readonly tasks: readonly {
         readonly name: string;
         readonly trials: number;
         readonly passed: number;
         readonly pass_rate: number;
+        readonly target?: TaskTarget;
     }[];
+}
+
+/**
+ * The owner's target for the agent-use test (docs/decisions.md, decision 82): every test
+ * session passes. A release run is `RELEASE_TRIALS` test sessions and must pass all of them; a
+ * development run (`DEFAULT_TRIALS` in run.ts, 5) that passes fewer than all is looked into.
+ */
+export const RELEASE_TRIALS = 10;
+
+/** A task's target, as its record states it. */
+export interface TaskTarget {
+    /** What the run is: `release` with `RELEASE_TRIALS` trials or more, else `development`. */
+    readonly run: 'release' | 'development';
+    /** The trials that must pass: all of them. */
+    readonly needs: number;
+    /** True when the run met it: every trial passed. */
+    readonly met: boolean;
+}
+
+/** The target of a run of `trials` test sessions of which `passed` passed. */
+export function targetOf(passed: number, trials: number): TaskTarget {
+    return {
+        run: trials >= RELEASE_TRIALS ? 'release' : 'development',
+        needs: trials,
+        met: trials > 0 && passed === trials,
+    };
+}
+
+/** The target in words, for the person running the test. */
+export function targetText(target: TaskTarget, passed: number): string {
+    const met = target.met ? 'met' : 'not met';
+    return target.run === 'release'
+        ? `release target (every test session passes, ${String(target.needs)} of ${String(target.needs)}): ${met}`
+        : `development target (every test session passes; fewer is looked into): ${String(passed)} of ${String(target.needs)}, ${met}`;
 }
 
 export interface ScoredRecord {
@@ -124,8 +163,8 @@ export function passRate(passed: number, trials: number): number {
 
 /**
  * A scored record's figures that disagree with each other: a trial's `passed` with its graders
- * and harness problems, its graders with the five, and the tasks' counts and pass rates with
- * the trials.
+ * and harness problems, its graders with the five, and the tasks' counts, pass rates and
+ * targets with the trials.
  */
 export function scoredProblems(results: unknown): string[] {
     if (!isObject(results)) {
@@ -186,6 +225,15 @@ export function scoredProblems(results: unknown): string[] {
             problems.push(
                 `${where}/pass_rate: ${JSON.stringify(task['pass_rate'])} is not ${String(passed)} / ${String(mine.length)} (${String(passRate(passed, mine.length))})`,
             );
+        }
+        const target = task['target'];
+        if (target !== undefined) {
+            const expected = targetOf(passed, mine.length);
+            if (JSON.stringify(target) !== JSON.stringify(expected)) {
+                problems.push(
+                    `${where}/target: ${JSON.stringify(target)}, but ${String(passed)} of ${String(mine.length)} trials passed: ${JSON.stringify(expected)}`,
+                );
+            }
         }
     });
     return problems;

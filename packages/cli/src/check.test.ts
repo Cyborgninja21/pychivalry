@@ -364,3 +364,29 @@ test('localization/unused-key is off by default; --unused-keys turns it on', (t)
     const text = runCli(['explain', 'localization/unused-key'], { cache });
     assert.match(text.stdout, /Off by default: check --unused-keys turns it on/);
 });
+
+test('text: after the game message, what is valid there, where the finding knows it', (t) => {
+    // Item 6.11, proposals 2 and 3: a scope finding names the scopes the keyword takes and the
+    // links that lead there; a missing field, what it takes and the values the base game
+    // writes. The game's message itself is unchanged.
+    const { check } = setup(t);
+    const scope = check(path.join(MODS, 'scope-wrong-scope-for-effect-bad'));
+    assert.match(
+        scope.stdout,
+        / {2}10:3 {2}error {2}scope\/wrong-scope-for-effect {2}Wrong scope for effect: character, expected landed_title {2}\(add_county_modifier takes landed_title; from character: capital_barony, capital_county, ceremonial_liege_title, clerical_elector_title, fallback_succession_title, primary_title\)\n/,
+    );
+    const link = check(path.join(MODS, 'scope-link-on-wrong-scope-bad'));
+    assert.match(
+        link.stdout,
+        /Trying to use holder link on an invalid scope character {2}\(holder starts from landed_title; from character: [^)]*primary_title\)/,
+    );
+    const field = check(path.join(MODS, 'fields-missing-required-field-bad'));
+    assert.match(
+        field.stdout,
+        /Invalid or undefined index for character interaction category 'fixture_category' {2}\(index takes integer; the base game writes 0, 1, 2, [^)]*15\)/,
+    );
+    const json = jsonLines(
+        check(path.join(MODS, 'scope-wrong-scope-for-effect-bad'), '--json').stdout,
+    );
+    assert.equal(json[0]?.['message'], 'Wrong scope for effect: character, expected landed_title');
+});

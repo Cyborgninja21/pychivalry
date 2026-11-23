@@ -1,7 +1,15 @@
+# The host's spouse shares the rewards.
+harvest_spouse_reward_effect = {
+	primary_spouse ?= {
+		add_prestige = 10
+	}
+}
+
 # The rewards for hosting the festival.
 harvest_reward_effect = {
 	add_prestige = 50
 	add_character_modifier = {
 		modifier = harvest_bounty_modifier
 		years = 2
-	}
+	add_gold = 25
+}

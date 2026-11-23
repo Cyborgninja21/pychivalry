@@ -1,0 +1,62 @@
+namespace = harvest
+
+# The court gathers for the festival.
+harvest.0004 = {
+	type = character_event
+	title = harvest.0004.t
+	desc = harvest.0004.desc
+
+	trigger = {
+		is_ruler = yes
+		harvest_can_host_trigger = yes
+	}
+
+	immediate = {
+		every_courtier = {
+			limit = { is_adult = yes }
+			add_stress = -5
+		}
+	}
+
+	option = {
+		name = harvest.0004.a
+		add_prestige = 15
+		harvest_reward_effect = yes
+	}
+	option = {
+		name = harvest.0004.b
+		add_gold = -10
+		add_stress = -5
+	}
+}
+
+# A second celebration, for the court.
+harvest.0012 = {
+	type = character_event
+	title = harvest.0012.t
+	desc = harvest.0012.desc
+	option = {
+		name = harvest.0012.a
+		add_prestige = 10
+	}
+}
+
+# The court's steward reports on the granaries.
+harvest.0013 = {
+	type = character_event
+	title = harvest.0013.t
+	desc = harvest.0013.desc
+
+	trigger = {
+		capital_county = { county_control >= 50 }
+	}
+
+	option = {
+		name = harvest.0013.a
+		capital_county = { change_county_control = 5 }
+	}
+	option = {
+		name = harvest.0013.b
+		ROOT = { add_gold = 20 }
+	}
+}

@@ -75,9 +75,28 @@ count from 1, as an editor shows them.
 Three more tools come with the steps that build them: `format` (step 8), `call_graph` (step 10)
 and `analyze_log` (step 11).
 
+**Tool names.** The names here, and in the server's own instructions, are the bare ones. A
+client may list them under a prefix of its own: Claude Code lists `check` as
+`mcp__pychivalry__check`. An agent calls each tool by the name its client lists.
+
 `check` is the one to start with. Its totals come first and count every finding of the path,
 whatever the filters keep, so the agent sees the whole picture before the list. Every check runs
 except `localization/unused-key`, which is off by default: `unused_keys` turns it on.
+
+A finding's `message` is the game's own, as the game writes it; its `data` names what it is
+about and, where pychivalry knows it, what is valid there:
+
+- `scope/wrong-scope-for-effect`, `scope/wrong-scope-for-trigger`: the keyword (`name`), the
+  scope it is in (`scope`), the scopes it takes (`expected`), and `links_from_scope`, the links
+  that lead from that scope to one of them (`capital_county`, `primary_title`, ...; chains of
+  two, `culture_head.primary_title`, where no one link does), at most 12, with
+  `links_from_scope_total` when there are more.
+- `scope/link-on-wrong-scope`: the link (`link`), the scope it was applied to, the scopes it
+  starts from (`expected`) and `links_from_scope` the same way.
+- `fields/missing-required-field` and `fields/wrong-kind-of-value`: the field, its measured
+  `value_type` and `values`, the values the base game writes in it (at most 20, the most written
+  first; `values_total` when there are more). They are measurements of the base game, not rules
+  of the game.
 
 ## Results stay small
 
@@ -142,7 +161,8 @@ An agent checks a mod with an unknown trigger, two findings at a time:
 ```
 
 `add_gold` is in the effects bucket, not the triggers one (`data.buckets`). The agent asks what
-the code means and what the game's evidence is:
+the code means and what the game's evidence is; each value of a message is a named slot
+(`<trigger>`):
 
 ```json
 { "name": "explain_code", "arguments": { "codes": ["names/unknown-trigger"] } }
@@ -156,8 +176,8 @@ the code means and what the game's evidence is:
             "family": "names",
             "severity": "error",
             "finds": "A key in a trigger block that is no trigger there.",
-            "evidence": { "kind": "catalogue", "id": "unknown_trigger_X", "text": "Unknown trigger '%s'" },
-            "message": "Unknown trigger '%s'",
+            "evidence": { "kind": "catalogue", "id": "unknown_trigger_X", "text": "Unknown trigger '<trigger>'" },
+            "message": "Unknown trigger '<trigger>'",
             "off_by_default": false
         }
     ],

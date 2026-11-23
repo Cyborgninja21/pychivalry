@@ -10,10 +10,11 @@ the workspace index, is built, with the override rules as data, read from the pa
 step 4 is built: the check inventory ([checks.md](checks.md), signed off), the typed spec reader,
 62 of its 78 checks (two blocked, eleven retired by their re-proof, three for steps 10 and 11),
 lookup, the base-game and real-mod suites and their classifications, and the limits; build step
-5, the command line, is built; of build step 6, items 6.1 to 6.10 are built: the agent server,
-the planted-defect mod, its graders and the scored-test script. Item 6.11's first test sessions
-ran on the owner's word: 5 of 5 passed, and the target waits for the owner. What waits on the
-owner or on the spec work is in
+5, the command line, is built; build step 6, the agent server, is built: the server, the
+planted-defect mod (made harder after the first test sessions), its graders and the
+scored-test script. Item 6.11's first test sessions ran on the owner's word, 5 of 5 passed, and
+the owner set the target: every test session passes, 10 of 10 before a release. Build step 7
+has started: its language server is built, server side; the extension is not yet. What waits on the owner or on the spec work is in
 [decisions.md](decisions.md). Nothing else in this document is built yet.
 
 The build plan, step by step, is in [PLAN.md](PLAN.md).
@@ -52,7 +53,7 @@ lives unchanged in `legacy/`.
 | VS Code floor | Recent editors only. The floor is the release where VS Code's Copilot harness is the default; 1.146 unless build step 7 finds an earlier one. |
 | AI surface | One bundled agent server (MCP) plus a set of skills. It serves both Claude Code and VS Code's built-in AI. There is no chat participant and no separate set of language-model tools. |
 | AI harness | The AI that uses pychivalry is always another program that connects to it: Claude Code running in VS Code, or VS Code's built-in AI, signed in however its user already signed it in. pychivalry contains no API key, no token and no login, and no shipped package makes a network call or a model call; a test in CI holds every shipped package to it. |
-| AI tests | The agent-use test runs test sessions of the Claude Code already installed on the developer's machine, pinned to Opus 5.5 (`claude-opus-5-5`). Its first five test sessions ran on the owner's word of 2026-11-23, each with session limit 3: 5 of 5 passed ([tools/scored-run/README.md](../tools/scored-run/README.md#the-first-test-sessions-item-611)). The target is set by the owner from that result, and build step 7 starts only on the owner's go. Documents and code never describe the test in terms of money, accounts or keys. |
+| AI tests | The agent-use test runs test sessions of the Claude Code already installed on the developer's machine, pinned to Opus 5.5 (`claude-opus-5-5`). Its first five test sessions ran on the owner's word of 2026-11-23, each with session limit 3: 5 of 5 passed ([tools/scored-run/README.md](../tools/scored-run/README.md#the-first-test-sessions-item-611)). The target, set by the owner from that result: every test session passes. A release run of 10 must pass all 10; a development run of 5 that passes fewer than 5 is looked into. The planted-defect mod was made harder after those sessions, which fixed it too easily to tell a better agent server from a worse one. Documents and code never describe the test in terms of money, accounts or keys. |
 | Authoring bar | The authoring loop has a round limit of 5. Its pass-rate targets are set after the first scored run. |
 | Authored content | Scored on validity (the checker) and on two further measures: a model judging the result against the request, and loading the content in the real game. |
 | Authoring order | The authoring skill is built straight after the formatter, at build step 9. |
@@ -485,18 +486,26 @@ rate, because a model's output is not repeatable.
   never by CI ([tools/scored-run/README.md](../tools/scored-run/README.md)).
 - **VS Code's built-in AI cannot be scripted.** It is checked by hand before a release, against
   a short written checklist. Only the Claude Code runs are scored.
-- **Agent use.** A test mod with 20 to 30 planted defects, one per check code, plus lines that
-  look wrong and are not (built: 27 defects, one per error and warning code, and 10 look-alikes,
-  in `fixtures/defects/`). A trial passes when the checker reports zero errors, every planted
-  defect is gone, nothing outside the planted lines changed, and the look-alikes are untouched.
+- **Agent use.** A test mod with planted defects, every error and warning code at least once,
+  plus lines that look wrong and are not; hard enough that the pass rate tells a better agent
+  server from a worse one: defects whose fix needs a lookup, defects that interact, defects
+  fixed in another file than the finding (built: 32 defects and 29 look-alikes in 17 files, in
+  `fixtures/defects/`). A trial passes when the checker reports zero errors, every planted
+  defect is gone, nothing outside the planted lines changed, the look-alikes are untouched and
+  nothing was deleted. The graders judge by the checker and the manifest's fix ranges, so any
+  fix the checker accepts inside those ranges passes, not only the reference copy's.
 - **Authoring.** A fixed list of content requests. Each result is graded on validity by the
   checker and on the match to the request by a separate model call that may answer "cannot
   tell". The in-game load is the third grade once build step 11 exists.
 - **Repetitions.** 5 trials per task during development, 10 before a release.
+- **The target (agent use).** Every test session passes: a release run of 10 test sessions must
+  pass all 10, and a development run of 5 that passes fewer than 5 is looked into. The record
+  states the target and whether the run met it.
 - **Each record states** the harness version, the model, the tool calls made, and the result.
 - **The first result.** Agent use, 2026-11-23: five test sessions of Claude Code 2.1.330 on
   `claude-opus-5-5`, each with session limit 3, all passed, each in about a minute
-  (`records/scored/agent-use.json`). The pass-rate target is the owner's to set from it.
+  (`records/scored/agent-use.json`). The owner set the target from it (above); the planted
+  mod was then made harder, and the harder mod has not been run yet.
 
 ## Test data
 
@@ -555,8 +564,13 @@ The MVP is done when all of these hold, each proved by a suite in the repository
    *2026-11-23:* the command line's findings equal the core's on each of the five mods. After
    items 6.1 to 6.6 the agent server's `check` returns exactly the core's findings on the
    fixture mods (a test), and on rice its totals equal the `game:mods` record's (the local size
-   test). The editor is step 7.
-5. **Agent use.** The scored run meets its target.
+   test). The editor is step 7: its language server (#140) gives, on every fixture mod and the
+   planted-defect mod, each file's diagnostics equal to the one runner's findings (a test); the
+   extension that starts it is not built yet.
+5. **Agent use.** The scored run meets its target: a release run of 10 test sessions passes all
+   10 ([AI tests](#ai-tests)).
+   *2026-11-23:* the target is set (10 of 10). The first five test sessions passed 5 of 5 on
+   the first planted mod; the harder mod that replaced it has not been run yet (not yet met).
 6. **Authoring.** The scored run meets its targets on all three measures.
 7. **Speed.** Within tolerance of the 2.3.0 medians recorded in build step 1.
 8. **Development needs no human.** `task ci` passes from a clean clone with no display, no

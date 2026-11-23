@@ -5,18 +5,37 @@ harvest.0010 = {
 	scope = faith
 	title = harvest.0010.t
 	desc = harvest.0010.desc
+
+	trigger = {
+		fervor <= 90
+	}
+
+	immediate = {
+		change_fervor = 3
+	}
+
 	option = {
 		name = harvest.0010.a
 	}
 }
 
-# A second celebration, for the court.
-harvest.0002 = {
+# The faithful give thanks for the harvest.
+harvest.0011 = {
 	type = character_event
 	title = harvest.0011.t
 	desc = harvest.0011.desc
+
+	trigger = {
+		faith = { fervor >= 30 }
+	}
+
 	option = {
 		name = harvest.0011.a
+		add_piety = 20
+		change_fervor = 2
+	}
+	option = {
+		name = harvest.0011.b
 		add_prestige = 10
 	}
 }
