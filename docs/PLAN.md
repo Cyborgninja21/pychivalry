@@ -778,9 +778,9 @@ script over the built core, the base game's index and the committed spec, on Lin
   entry leaves out. Release 2.3.0 reports 88 errors on the same game; 12 are at lines this run
   also reports.
 - **4.10 the suites.** `task game:check` checks the base game's 17,302 files (game 16,940,
-  jomini 230, clausewitz 88, DLC 44) in about a minute (61 s: 17 s to build the index, 43 s to
-  check) at a peak of 2.7 GiB; `task game:mods` builds the index once (17 s, 1.3 GiB) and checks
-  each mod from it in 1.5 to 23 s at peaks of 0.7 to 1.9 GiB. Both run the one runner the
+  jomini 230, clausewitz 88, DLC 44) in 55 s (16 s to build the index, 38 s to check) at a
+  peak of 2.7 GiB; `task game:mods` builds the index once (16 s, 1.5 GiB) and checks each mod
+  from it in 1.5 to 17 s at peaks of 0.7 to 2.0 GiB. Both run the one runner the
   command line runs; on each mod the command line, the core and the record agree.
 - **4.11 the limits.** The per-file cap keeps 1,000 findings, the most severe first, and
   reports the rest: on rice it drops 275 unused-key hints of one file (141,365 before, 141,090
