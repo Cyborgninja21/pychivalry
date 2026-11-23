@@ -28,10 +28,13 @@ import {
     extractLocalization,
     extractScript,
     fileConstantsDatabase,
+    FLAG_SCOPE_NOT_SETTLED,
     formOf,
     NONE,
     USE_STRIDE,
+    type ContainerReading,
     type Extracted,
+    type StatementStore,
 } from './extract.js';
 import type { FolderTable } from './folders.js';
 import { parseLocalization, readLocalization } from './localization.js';
@@ -46,11 +49,14 @@ import {
     segmentsOf,
 } from './paths.js';
 import {
+    aliasApplies,
     APPLIED_KINDS,
     databaseMatches,
     decides,
+    fileConditionRules,
     resolveOfDetail,
     rulesFor,
+    type ContainerEntries,
     type ContainersRule,
     type FileOrderRule,
     type FolderWinsRule,
@@ -98,6 +104,8 @@ interface FileEntry {
     /** The spec folder that holds it, or null. */
     readonly folder: string | null;
     readonly exactCase: boolean;
+    /** The row whose `file_condition` says the file contributes no definitions, or null. */
+    readonly noDefinitions: string | null;
     readonly lineStarts: Int32Array;
     readonly defs: Int32Array;
     readonly uses: Int32Array;
@@ -114,6 +122,7 @@ export interface IndexState {
         readonly kind: FileKind;
         readonly folder: string | null;
         readonly exactCase: boolean;
+        readonly noDefinitions: string | null;
         readonly lineStarts: Int32Array;
         readonly defs: Int32Array;
         readonly uses: Int32Array;
@@ -131,6 +140,11 @@ export interface IndexedFile {
     readonly folder: string | null;
     /** False when its path writes that folder in other letter case than the spec. */
     readonly exactCase: boolean;
+    /**
+     * The row whose `file_condition` (format 8) says the file contributes no definitions
+     * (`msg-localization-missing-bom`: a localization file without a byte-order mark), or null.
+     */
+    readonly noDefinitions: string | null;
     readonly lines: number;
     readonly definitions: number;
     readonly uses: number;
@@ -214,6 +228,20 @@ export interface Definition {
     readonly version: number | null;
     /** For an entry, where its container's block starts in the file; otherwise null. */
     readonly containerBlock: number | null;
+    /**
+     * Where it is written, when that is not part of its identity (`container`): for an entry
+     * of a key space, the containers down to it (`special_genes/morph_genes`); for a nested
+     * definition (part D3), the keys down to the block that holds it. Otherwise null.
+     */
+    readonly parent: string | null;
+    /** For a top-level `key = value`, the value when it is one word (an alias line's target). */
+    readonly value: string | null;
+    /**
+     * Part D3's scope of a nested name (format 8): `settled`, or `not-settled` when the row's
+     * scope is unknown or rests on the measurement alone; such a name written under two
+     * parents is "winner not known".
+     */
+    readonly scope: 'settled' | 'not-settled';
     /** Whether the game reads the file it is in (`FileStatus.read`). */
     readonly read: FileStatus['read'];
 }
@@ -256,6 +284,17 @@ export type UnknownReason =
           readonly overrides_rule: number;
       }
     | {
+          /**
+           * Part D3 does not settle whether a nested name is known by itself or only with its
+           * parent (its scope is unknown or rests on the measurement alone), and the name is
+           * written under more than one parent: whether that is one name or several is not known.
+           */
+          readonly kind: 'name-scope';
+          readonly database: string;
+          /** The blocks it is written in. */
+          readonly parents: readonly string[];
+      }
+    | {
           /** Whether the game reads a file that holds a definition is not known. */
           readonly kind: 'file-unknown';
           readonly layer: string;
@@ -279,6 +318,12 @@ export type Resolution =
           readonly winner: Definition;
           readonly combine: 'whole' | 'fields' | 'partial';
           readonly rule: string;
+          /**
+           * The object the name shares with other names (an alias line, `coat-of-arms-alias`):
+           * the name an alias line in force points it to (null when its own block binds it),
+           * the block whose content is in force for the object, and every name on it.
+           */
+          readonly shared?: SharedObject;
       }
     | {
           /** A row says every definition adds to the result. */
@@ -304,11 +349,27 @@ export type Resolution =
           readonly definitions: readonly Definition[];
       }
     | {
+          /**
+           * Defined, and nothing is in force: each definition is an alias line whose target was
+           * not read when it was, and such a line does nothing (`alias.target_missing`).
+           */
+          readonly status: 'not-in-force';
+          readonly definitions: readonly Definition[];
+          readonly rule: string;
+      }
+    | {
           /** Defined more than once, winner not known. */
           readonly status: 'unknown';
           readonly definitions: readonly Definition[];
           readonly reasons: readonly UnknownReason[];
       };
+
+/** What an alias replay says of a name's object (`Resolution.shared`). */
+export interface SharedObject {
+    readonly target: string | null;
+    readonly filledBy: Definition;
+    readonly names: readonly string[];
+}
 
 /** One name of one database with more than one definition. */
 export interface DefinitionGroup {
@@ -325,6 +386,29 @@ export interface UpdateResult {
     readonly names: readonly string[];
     /** The other files that use one of those names, or a name of a file whose status changed. */
     readonly dependents: readonly IndexedFile[];
+}
+
+/** What replaying a database's alias lines found (`WorkspaceIndex.replay`). */
+interface AliasReplay {
+    /** The file-order row that could not order the statements, or null. */
+    readonly unordered: string | null;
+    /** Per name, the object it points to and the statement that made it point there. */
+    readonly bound: Map<string, { readonly object: number; readonly by: Definition }>;
+    readonly objects: { filledBy: Definition; readonly names: Set<string> }[];
+    /** The names an alias line touches: written as one, or on an object with another name. */
+    readonly involved: Set<string>;
+    /** Per name, the statements in files whose reading is not known that its object rests on. */
+    readonly uncertain: Map<string, Definition[]>;
+}
+
+/** The container an entry of a key space is written in, its type (`morph_genes`). */
+function typeOf(d: Definition | undefined): string | undefined {
+    return d?.parent?.split('/').at(-1);
+}
+
+/** The block an entry is written in: its file and where its container's block starts. */
+function blockKeyOf(d: Definition): string {
+    return `${d.layer}\u0000${d.file}\u0000@${String(d.containerBlock ?? d.start)}`;
 }
 
 /** A definition handle: file id and index, in one number. */
@@ -389,6 +473,10 @@ function packUses(uses: readonly number[]): Int32Array {
     return out;
 }
 
+function isJson(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
 const NOT_YET: FileStatus = {
     read: 'yes',
     replacedBy: null,
@@ -405,6 +493,8 @@ export class WorkspaceIndex {
     readonly rules: readonly Rule[];
     /** Every row that holds on the platform, deciding or not: for the reasons of an unknown. */
     readonly platformRules: readonly Rule[];
+    /** The rows whose `file_condition` the index applies on its platform (format 8). */
+    readonly fileConditions: readonly Rule[];
     private readonly fallbackEncoding: FallbackEncoding | undefined;
     private readonly strings: StringTable;
     private readonly files: (FileEntry | undefined)[] = [];
@@ -413,6 +503,9 @@ export class WorkspaceIndex {
     private readonly byName = new Map<number, number[]>();
     private replacePaths: string[] = [];
     private statuses: FileStatus[] | null = null;
+    /** Per database, what a pass over all its definitions found; dropped on every change. */
+    private replays = new Map<string, AliasReplay>();
+    private refused = new Map<string, Map<string, number>>();
 
     constructor(options: IndexOptions, strings = new StringTable()) {
         this.folders = options.folders;
@@ -421,6 +514,10 @@ export class WorkspaceIndex {
         this.platformRules =
             options.platform === undefined ? [] : rulesFor(options.rules, options.platform);
         this.rules = this.platformRules.filter(decides);
+        this.fileConditions =
+            options.platform === undefined
+                ? []
+                : fileConditionRules(options.rules, options.platform);
         this.fallbackEncoding = options.fallbackEncoding;
         this.strings = strings;
     }
@@ -527,6 +624,8 @@ export class WorkspaceIndex {
                         ? fileConstantsDatabase(path)
                         : CONSTANTS_DATABASE,
                 fileStem: stem.includes('.') ? stem.slice(0, stem.lastIndexOf('.')) : stem,
+                entries: folder === null ? null : this.entriesFor(folder),
+                stores: folder === null ? null : this.storesFor(folder),
             });
             lineStarts = parsed.lines.lineStarts;
         } else {
@@ -538,12 +637,17 @@ export class WorkspaceIndex {
             extracted = folder === null ? { defs: [], uses: all.uses } : all;
             lineStarts = loc.lines.lineStarts;
         }
+        const noDefinitions = this.noDefinitionsRule(path, content);
+        if (noDefinitions !== null) {
+            extracted = { defs: [], uses: extracted.uses };
+        }
         return {
             layer,
             path,
             kind,
             folder,
             exactCase: match?.exactCase ?? true,
+            noDefinitions,
             lineStarts: Int32Array.from(lineStarts),
             defs: Int32Array.from(extracted.defs),
             uses: packUses(extracted.uses),
@@ -579,7 +683,7 @@ export class WorkspaceIndex {
      */
     setReplacePaths(paths: readonly string[]): void {
         this.replacePaths = [...paths];
-        this.statuses = null;
+        this.changed();
     }
 
     getReplacePaths(): readonly string[] {
@@ -601,7 +705,7 @@ export class WorkspaceIndex {
                 handles.push(id * SPAN + i);
             }
         }
-        this.statuses = null;
+        this.changed();
         return id;
     }
 
@@ -621,7 +725,7 @@ export class WorkspaceIndex {
         this.files[id] = undefined;
         this.byKey.delete(`${file.layer}\u0000${file.path}`);
         this.paths.remove(file.path, id);
-        this.statuses = null;
+        this.changed();
     }
 
     private *useNames(uses: readonly number[]): Generator<number> {
@@ -672,6 +776,120 @@ export class WorkspaceIndex {
     }
 
     // ─── What the rules say about a database ──────────────────────────────
+
+    /**
+     * The row whose `file_condition` says a file contributes no definitions, when the file is
+     * one it names and meets its condition; else null. The condition is a test of the file's
+     * bytes (`no-utf8-bom`: they do not start with EF BB BF); text an editor hands in has no
+     * bytes to test and is read as written.
+     */
+    private noDefinitionsRule(path: string, content: Uint8Array | string): string | null {
+        if (typeof content === 'string') {
+            return null;
+        }
+        for (const rule of this.fileConditions) {
+            const condition = rule.file_condition;
+            if (condition === undefined) {
+                continue;
+            }
+            const { folder, extension, recursive } = condition.files;
+            const inFolder = recursive ? isWithin(path, folder) : parentOf(path) === folder;
+            if (!inFolder || extensionOf(path) !== extension) {
+                continue;
+            }
+            if (
+                condition.condition === 'no-utf8-bom' &&
+                !(
+                    content.length >= 3 &&
+                    content[0] === 0xef &&
+                    content[1] === 0xbb &&
+                    content[2] === 0xbf
+                )
+            ) {
+                return rule.id;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * What the children of a database's container keys are (format 8): the deciding containers
+     * rows with `entries`, each read with the key space it names and the parts of an entry's
+     * key the database's key-resolution row lists beside the name (`details.key.parts`).
+     */
+    private entriesFor(database: string): ReadonlyMap<string, ContainerReading> | null {
+        const rows = this.rules.filter(
+            (r): r is ContainersRule & { entries: ContainerEntries } =>
+                r.kind === 'containers' &&
+                r.entries !== undefined &&
+                r.databases.some((d) => databaseMatches(d, database)),
+        );
+        if (rows.length === 0) {
+            return null;
+        }
+        const key = this.keyRule(database, ['entry'])?.details?.['key'];
+        const qualifiersOf = (entries: ContainerEntries): Set<string> => {
+            const parts =
+                isJson(key) && key['key_space'] === entries.key_space && Array.isArray(key['parts'])
+                    ? (key['parts'] as unknown[]).filter((p): p is string => typeof p === 'string')
+                    : [];
+            const notEntries = entries.not_entries ?? [];
+            return new Set(parts.filter((p) => p !== 'name' && notEntries.includes(p)));
+        };
+        const out = new Map<string, ContainerReading>();
+        for (const row of rows) {
+            const entries = row.entries;
+            const definitions: ContainerReading = {
+                holds: 'definitions',
+                containers: new Set(),
+                keySpace: entries.key_space,
+                notEntries: new Set(entries.not_entries ?? []),
+                qualifiers: qualifiersOf(entries),
+                inner: null,
+            };
+            const reading: ContainerReading =
+                entries.holds === 'containers'
+                    ? {
+                          ...definitions,
+                          holds: 'containers',
+                          containers: new Set(entries.containers ?? []),
+                          inner: definitions,
+                      }
+                    : definitions;
+            for (const k of row.keys) {
+                out.set(k, reading);
+            }
+        }
+        return out;
+    }
+
+    /**
+     * The stores of a folder that holds statements (format 8, `details.statements` of a
+     * deciding key-resolution row whose `resolve` is `statements`): per kind of statement, its
+     * form and its keys (a key written `<...>` stands for any other key). Null otherwise.
+     */
+    private storesFor(database: string): StatementStore[] | null {
+        const rule = this.keyRule(database, ['record', 'value']);
+        const statements =
+            rule?.resolve === 'statements' ? rule.details?.['statements'] : undefined;
+        if (!isJson(statements)) {
+            return null;
+        }
+        const out: StatementStore[] = [];
+        for (const [store, s] of Object.entries(statements)) {
+            if (
+                !isJson(s) ||
+                (s['form'] !== 'value' && s['form'] !== 'block') ||
+                !Array.isArray(s['keys'])
+            ) {
+                continue;
+            }
+            const keys = (s['keys'] as unknown[]).filter((k): k is string => typeof k === 'string');
+            const placeholder = keys.every((k) => /^<.+>$/.test(k));
+            out.push({ store, form: s['form'], keys: placeholder ? null : new Set(keys) });
+        }
+        return out.length === 0 ? null : out;
+    }
 
     private containersRule(database: string, key: string | null): ContainersRule | undefined {
         return this.rules.find(
@@ -953,6 +1171,7 @@ export class WorkspaceIndex {
             kind: file.kind,
             folder: file.folder,
             exactCase: file.exactCase,
+            noDefinitions: file.noDefinitions,
             lines: file.lineStarts.length,
             definitions: file.defs.length / DEF_STRIDE,
             uses: file.uses.length / USE_STRIDE,
@@ -997,6 +1216,8 @@ export class WorkspaceIndex {
         const start = at(DEF.keyStart);
         const end = at(DEF.keyEnd);
         const form = formOf(at(DEF.form));
+        const detail = at(DEF.detail);
+        const detailText = detail < 0 ? null : this.strings.get(detail);
         return {
             name: this.strings.get(at(DEF.name)),
             database: this.strings.get(at(DEF.database)),
@@ -1015,6 +1236,9 @@ export class WorkspaceIndex {
             priority: form === 'record' && extra !== NONE ? extra : null,
             version: form === 'key' && extra !== NONE ? extra : null,
             containerBlock: form === 'entry' && extra !== NONE ? extra : null,
+            parent: form === 'value' ? null : detailText,
+            value: form === 'value' ? detailText : null,
+            scope: (at(DEF.flags) & FLAG_SCOPE_NOT_SETTLED) !== 0 ? 'not-settled' : 'settled',
             read: this.statusOf(id).read,
         };
     }
@@ -1085,6 +1309,52 @@ export class WorkspaceIndex {
         };
         if (live.some((d) => d.read === 'unknown')) {
             return { status: 'unknown', definitions, reasons: fileReasons() };
+        }
+        // Part D3: a nested name whose scope is not settled, under more than one parent.
+        if (live.some((d) => d.scope === 'not-settled')) {
+            const parents = [...new Set(live.map((d) => d.parent ?? ''))].sort();
+            if (parents.length > 1) {
+                return {
+                    status: 'unknown',
+                    definitions,
+                    reasons: [{ kind: 'name-scope', database, parents }],
+                };
+            }
+        }
+        // An entry after a refused one in its block (`details.type_mismatch`, genes): the reader
+        // returns from the block there, and what is made of the entries after it is not
+        // followed (the row's `open`).
+        const entryRule = live.every((d) => d.form === 'entry')
+            ? this.keyRule(database, ['entry'])
+            : undefined;
+        if (entryRule !== undefined && this.typeMismatch(entryRule, live) !== undefined) {
+            const refused = this.refusals(database, entryRule);
+            const after = live.some((d) => {
+                const cut = refused.get(blockKeyOf(d));
+                return cut !== undefined && d.start > cut;
+            });
+            if (after) {
+                return {
+                    status: 'unknown',
+                    definitions,
+                    reasons: [
+                        {
+                            kind: 'not-settled',
+                            database,
+                            rule: entryRule.id,
+                            status: entryRule.status,
+                            overrides_rule: entryRule.overrides_rule,
+                        },
+                    ],
+                };
+            }
+        }
+        // An alias line (`coat-of-arms-alias`): what is in force comes from replaying the folder.
+        if (container === null) {
+            const replayed = this.aliasAnswer(database, name, definitions);
+            if (replayed !== undefined) {
+                return replayed;
+            }
         }
         if (live.length === 1) {
             const winner = live[0] as Definition;
@@ -1165,8 +1435,21 @@ export class WorkspaceIndex {
         switch (rule.resolve) {
             case 'all':
                 return { status: 'all', definitions, rule: rule.id };
-            case 'statements':
+            case 'statements': {
+                // A folder of statements in stores of their own (format 8, `details.statements`):
+                // within one store, what a statement written again does.
+                const store = container === null ? undefined : rule.details?.['statements'];
+                const kind = isJson(store) ? store[container ?? ''] : undefined;
+                const onRepeat = isJson(kind) ? kind['on_repeat'] : undefined;
+                const combine = isJson(kind) ? kind['combine'] : undefined;
+                if (
+                    (onRepeat === 'later-wins' || onRepeat === 'earlier-wins') &&
+                    (combine === 'whole' || combine === 'fields')
+                ) {
+                    return this.byOrder(database, definitions, pool, onRepeat, combine, rule.id);
+                }
                 return { status: 'statements', definitions, rule: rule.id };
+            }
             case 'priority': {
                 const value = (d: Definition): number => d.priority ?? rule.priority_default ?? 0;
                 const top = Math.max(...pool.map(value));
@@ -1216,6 +1499,36 @@ export class WorkspaceIndex {
                         return (inBlock === 'later-wins' ? sorted.at(-1) : sorted[0]) as Definition;
                     });
                 }
+                // Entries of a key space whose row says what a later entry of another type does
+                // (`details.type_mismatch`, genes): it is refused and the earlier stays.
+                const mismatch = this.typeMismatch(rule, live);
+                if (mismatch !== undefined) {
+                    const ordered = this.inOrder(database, pool);
+                    if (ordered === undefined) {
+                        return {
+                            status: 'unknown',
+                            definitions,
+                            reasons: [{ kind: 'no-order', database, rule: rule.id }],
+                        };
+                    }
+                    const first = ordered[0];
+                    const kept = ordered.filter((d) => typeOf(d) === typeOf(first));
+                    const winner = (rule.resolve === 'later-wins' ? kept.at(-1) : kept[0]) ?? first;
+                    if (winner === undefined) {
+                        return {
+                            status: 'unknown',
+                            definitions,
+                            reasons: [{ kind: 'no-order', database, rule: rule.id }],
+                        };
+                    }
+                    return {
+                        status: 'winner',
+                        definitions,
+                        winner,
+                        combine: rule.combine ?? 'whole',
+                        rule: rule.id,
+                    };
+                }
                 return this.byOrder(
                     database,
                     definitions,
@@ -1226,6 +1539,288 @@ export class WorkspaceIndex {
                 );
             }
         }
+    }
+
+    /** Something changed: what was worked out from the files is worked out again. */
+    private changed(): void {
+        this.statuses = null;
+        this.replays = new Map();
+        this.refused = new Map();
+    }
+
+    /** A pool sorted in the order the game reads it, or undefined when no row orders it. */
+    private inOrder(database: string, pool: readonly Definition[]): Definition[] | undefined {
+        const order = this.orderRule(database);
+        if (order === undefined) {
+            return undefined;
+        }
+        const seen = { unordered: false };
+        const sorted = [...pool].sort((a, b) => {
+            const c = compareFiles(
+                { layer: a.layer, path: a.file },
+                { layer: b.layer, path: b.file },
+                order,
+            );
+            if (c === undefined) {
+                seen.unordered = true;
+            }
+            return (c ?? 0) || a.start - b.start;
+        });
+        return seen.unordered ? undefined : sorted;
+    }
+
+    /**
+     * The row's `details.type_mismatch` when it applies to these definitions: entries of the key
+     * space it names, each with the container it is written in, and the row keeps the first.
+     */
+    private typeMismatch(
+        rule: KeyResolutionRule,
+        live: readonly Definition[],
+    ): Readonly<Record<string, unknown>> | undefined {
+        const mismatch = rule.details?.['type_mismatch'];
+        if (
+            !isJson(mismatch) ||
+            mismatch['keeps'] !== 'first' ||
+            typeof mismatch['key_space'] !== 'string'
+        ) {
+            return undefined;
+        }
+        const space = mismatch['key_space'];
+        const fits = live.every(
+            (d) =>
+                d.form === 'entry' &&
+                d.parent !== null &&
+                (d.container ?? '').split('|')[0] === space,
+        );
+        return fits ? mismatch : undefined;
+    }
+
+    /**
+     * Per container block of a key space's entries, where the first refused entry starts: an
+     * entry of the same key as one read earlier, of another type (`details.type_mismatch`).
+     */
+    private refusals(database: string, rule: KeyResolutionRule): ReadonlyMap<string, number> {
+        const known = this.refused.get(database);
+        if (known !== undefined) {
+            return known;
+        }
+        const out = new Map<string, number>();
+        const groups = new Map<string, Definition[]>();
+        for (const d of this.allDefinitions(database)) {
+            if (
+                d.form === 'entry' &&
+                d.read !== 'no' &&
+                this.typeMismatch(rule, [d]) !== undefined
+            ) {
+                const key = `${d.container ?? ''}\u0000${d.name}`;
+                groups.set(key, [...(groups.get(key) ?? []), d]);
+            }
+        }
+        for (const group of groups.values()) {
+            const ordered = group.length < 2 ? undefined : this.inOrder(database, group);
+            const first = ordered?.[0];
+            for (const d of ordered ?? []) {
+                if (typeOf(d) !== typeOf(first)) {
+                    const block = blockKeyOf(d);
+                    out.set(block, Math.min(out.get(block) ?? d.start, d.start));
+                }
+            }
+        }
+        this.refused.set(database, out);
+        return out;
+    }
+
+    /** Every definition of a database, in every file. */
+    private allDefinitions(database: string): Definition[] {
+        const id = this.strings.find(database);
+        const out: Definition[] = [];
+        if (id < 0) {
+            return out;
+        }
+        for (const file of this.files) {
+            if (file === undefined) {
+                continue;
+            }
+            for (let i = 0; i * DEF_STRIDE < file.defs.length; i++) {
+                if (file.defs[i * DEF_STRIDE + DEF.database] === id) {
+                    out.push(this.definition(file.id * SPAN + i));
+                }
+            }
+        }
+        return out;
+    }
+
+    /**
+     * An alias line's answer (format 8, `coat-of-arms-alias`): the deciding key-resolution row
+     * of the database that carries `alias` is replayed over every top-level statement of the
+     * database in the order the game reads them. Undefined when no such row holds, or when the
+     * name has nothing to do with an alias line (then the other rows answer as before).
+     */
+    private aliasAnswer(
+        database: string,
+        name: string,
+        definitions: readonly Definition[],
+    ): Resolution | undefined {
+        const rows = this.platformRules.filter(
+            (r): r is KeyResolutionRule =>
+                r.kind === 'key-resolution' &&
+                r.alias !== undefined &&
+                r.databases.some((d) => databaseMatches(d, database)),
+        );
+        if (rows.length === 0) {
+            return undefined;
+        }
+        const row = rows.find((r) => decides(r) && r.alias !== undefined && aliasApplies(r.alias));
+        const hasLine = definitions.some((d) => d.form === 'value' && d.read !== 'no');
+        if (row === undefined) {
+            // A row says what an alias line is, but decides nothing the index can replay.
+            const pending = rows[0];
+            return hasLine && pending !== undefined
+                ? {
+                      status: 'unknown',
+                      definitions,
+                      reasons: [
+                          {
+                              kind: 'not-settled',
+                              database,
+                              rule: pending.id,
+                              status: pending.status,
+                              overrides_rule: pending.overrides_rule,
+                          },
+                      ],
+                  }
+                : undefined;
+        }
+        const replay = this.replay(database);
+        if (!replay.involved.has(name)) {
+            return undefined;
+        }
+        if (replay.unordered !== null) {
+            return {
+                status: 'unknown',
+                definitions,
+                reasons: [{ kind: 'no-order', database, rule: replay.unordered }],
+            };
+        }
+        const uncertain = replay.uncertain.get(name);
+        if (uncertain !== undefined) {
+            return {
+                status: 'unknown',
+                definitions,
+                reasons: uncertain.map((d) => ({
+                    kind: 'file-unknown' as const,
+                    layer: d.layer,
+                    file: d.file,
+                    questions: this.fileStatus(d.layer, d.file)?.questions ?? [],
+                })),
+            };
+        }
+        const binding = replay.bound.get(name);
+        const object = binding === undefined ? undefined : replay.objects[binding.object];
+        if (binding === undefined || object === undefined) {
+            // Every line of the name had a target not read yet: none did anything.
+            return { status: 'not-in-force', definitions, rule: row.id };
+        }
+        const recordRule = this.keyRule(database, ['record'])?.id ?? row.id;
+        return {
+            status: 'winner',
+            definitions,
+            winner: binding.by,
+            combine: 'whole',
+            rule: binding.by.form === 'value' ? row.id : recordRule,
+            shared: {
+                target: binding.by.form === 'value' ? binding.by.value : null,
+                filledBy: object.filledBy,
+                names: [...object.names].sort(),
+            },
+        };
+    }
+
+    /**
+     * Replay a database's top-level statements as an alias row says (`ALIAS_APPLIED`): in read
+     * order, a block for a name that points to an object is read into that object (the name's
+     * own, or the one it shares), else makes a new one; a line `key = other_key` points the key
+     * to the object `other_key` points to when that name is read already, and does nothing when
+     * it is not. A value line whose key is a container key is no alias line.
+     */
+    private replay(database: string): AliasReplay {
+        const known = this.replays.get(database);
+        if (known !== undefined) {
+            return known;
+        }
+        const containers = this.containersFor(database);
+        const statements = this.allDefinitions(database).filter(
+            (d) =>
+                d.read !== 'no' &&
+                d.container === null &&
+                (d.form === 'record' ||
+                    (d.form === 'value' &&
+                        d.value !== null &&
+                        containers !== 'all' &&
+                        containers?.has(d.name) !== true)),
+        );
+        const ordered = this.inOrder(database, statements);
+        const replay: AliasReplay = {
+            unordered:
+                ordered === undefined ? (this.orderRule(database)?.id ?? 'file-order') : null,
+            bound: new Map(),
+            objects: [],
+            involved: new Set(),
+            uncertain: new Map(),
+        };
+        const touched: (Definition[] | undefined)[] = [];
+        for (const s of ordered ?? statements) {
+            if (s.form === 'value') {
+                replay.involved.add(s.name);
+            }
+        }
+        for (const s of ordered ?? []) {
+            const bound = replay.bound.get(s.name);
+            if (s.form === 'record') {
+                if (bound === undefined) {
+                    replay.objects.push({ filledBy: s, names: new Set([s.name]) });
+                    touched.push(s.read === 'unknown' ? [s] : []);
+                    replay.bound.set(s.name, { object: replay.objects.length - 1, by: s });
+                } else {
+                    const object = replay.objects[bound.object];
+                    if (object !== undefined) {
+                        object.filledBy = s;
+                    }
+                    if (s.read === 'unknown') {
+                        touched[bound.object]?.push(s);
+                    }
+                    replay.bound.set(s.name, { object: bound.object, by: s });
+                }
+                continue;
+            }
+            const target = replay.bound.get(s.value ?? '');
+            if (target === undefined) {
+                // The target is not read yet: the line does nothing (`target_missing`).
+                continue;
+            }
+            if (bound !== undefined) {
+                replay.objects[bound.object]?.names.delete(s.name);
+            }
+            replay.objects[target.object]?.names.add(s.name);
+            if (s.read === 'unknown') {
+                touched[target.object]?.push(s);
+            }
+            replay.bound.set(s.name, { object: target.object, by: s });
+        }
+        for (const [name, binding] of replay.bound) {
+            const object = replay.objects[binding.object];
+            if (object !== undefined && object.names.size > 1) {
+                for (const n of object.names) {
+                    replay.involved.add(n);
+                }
+            }
+            const unsure = touched[binding.object] ?? [];
+            if (unsure.length > 0) {
+                replay.uncertain.set(name, unsure);
+            }
+        }
+        this.replays.set(database, replay);
+        return replay;
     }
 
     /** The definition read last, or first, of a pool, by the database's `file-order` row. */

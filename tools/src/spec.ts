@@ -2,12 +2,12 @@
  * The committed spec package (spec/README.md). `task spec:check` verifies, from the bytes:
  *
  * - the package file: exactly one `ck3-spec-<version>.json.gz` in `spec/`, the `.sha256` of
- *   its uncompressed bytes, package format 7, and the game version its manifest names;
+ *   its uncompressed bytes, package format 8, and the game version its manifest names;
  * - each companion the package file's `manifest.companions` lists: present beside it,
  *   gzipped, with the SHA-256 and size the package file states, its own `.sha256`, the same
  *   record under the package's key for it, and a header naming this package and version;
  *   no other spec file beside them;
- * - the schema `schema.format7.json`: it declares format 7, and the package file and every
+ * - the schema `schema.format8.json`: it declares format 8, and the package file and every
  *   companion are valid against it;
  * - the format 4 copy of the same game version in `spec/legacy/`, which only release 2.3.0
  *   reads, for the baselines: its checksum, format 4 and its game version.
@@ -23,13 +23,13 @@ import { Ajv2020, type ErrorObject, type ValidateFunction } from 'ajv/dist/2020.
 import { isObject, sha256 } from './util.js';
 
 /**
- * The package format the rebuild reads: 7 (docs/decisions.md). Format 5 is refused, as the
- * core's reader refuses it: the index and the checks need the parts only format 7 carries.
- * Format 4 is the legacy engine's.
+ * The package format the rebuild reads: 8 (docs/decisions.md). Formats 5 and 7 are refused, as
+ * the core's reader refuses them: the index reads keys only format 8 carries (the scope of a
+ * nested name, the alias line, the containers' entries). Format 4 is the legacy engine's.
  */
-export const PACKAGE_FORMAT = 7;
-/** The package's JSON Schema, from `pdx-parser-re` (`spec/package/schema.format7.json`). */
-export const SCHEMA_FILE = 'schema.format7.json';
+export const PACKAGE_FORMAT = 8;
+/** The package's JSON Schema, from `pdx-parser-re` (`spec/package/schema.format8.json`). */
+export const SCHEMA_FILE = 'schema.format8.json';
 /** The folder of the format 4 copy that release 2.3.0 runs on for the baselines. */
 export const LEGACY_DIR = 'legacy';
 /** The format of that copy. */

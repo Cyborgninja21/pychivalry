@@ -1,0 +1,7 @@
+# Read after the game's files (format 8: province-terrain-statements).
+# A terrain line written again: the later is in force.
+2 = forest
+# A winter block written again: the later block's fields over the earlier's, field by field.
+1 = {
+	harsh_winter_factor_override = 0.3
+}

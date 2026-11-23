@@ -2,7 +2,7 @@
  * The typed spec reader (docs/PLAN.md item 4.2). It reads the committed package file, a
  * gzipped JSON file with the SHA-256 of its uncompressed bytes beside it (spec/README.md),
  * checks that checksum and the package format, and exposes the package as typed data: the
- * keys of format 5 and the eight parts of formats 6 and 7 (D1 to D8, `part`). The three
+ * keys of format 5 and the eight parts of formats 6 to 8 (D1 to D8, `part`). The three
  * companions (Paradox's `.info` files, the GUI vocabulary, the data-types dump) are opened
  * only when a feature asks for one, each checked against the checksum and size the package
  * file records for it.
@@ -26,11 +26,12 @@ import {
 } from './package.js';
 
 /**
- * The package format the rebuild reads: 7 (docs/decisions.md). Format 5 is refused: the index's
- * override rules and the checks of item 4.2 need the parts only format 7 carries, and a
- * format 5 package would leave them silently without. Format 4 is release 2.3.0's.
+ * The package format the rebuild reads: 8 (docs/decisions.md). Format 7 is refused, as format 5
+ * was: the index reads the scope of a nested name, the alias line and the containers' entries
+ * that only format 8 carries, and a format 7 package would leave them silently without.
+ * Format 4 is release 2.3.0's.
  */
-export const SPEC_FORMAT = 7;
+export const SPEC_FORMAT = 8;
 
 /** The package file in a spec folder: `ck3-spec-<version>.json.gz`, never a companion. */
 const PACKAGE_FILE = /^ck3-spec-([0-9]+(?:\.[0-9]+)+)\.json\.gz$/;
@@ -95,7 +96,7 @@ function parseObject(bytes: Buffer, what: string): Record<string, unknown> {
 }
 
 /**
- * The keys of format 7 the core reads, checked for their shape so a wrong package fails here
+ * The keys of format 8 the core reads, checked for their shape so a wrong package fails here
  * rather than as a missing name in a check. The package's full schema is checked by
  * `task spec:check` in the tools.
  */
@@ -161,11 +162,53 @@ function checkShape(data: Record<string, unknown>, what: string): void {
     if (isObject(manifest) && !isObject(manifest['companions'])) {
         problems.push('no manifest.companions');
     }
+    problems.push(...nameScopeProblems(data['definitions']));
     if (problems.length > 0) {
         throw new SpecError(
             `${what} is not a format ${String(SPEC_FORMAT)} package: ${problems.join('; ')}`,
         );
     }
+}
+
+/**
+ * Format 8's keys of part D3 the index reads: every `nested` row says the scope of its name
+ * (`name_scope` and `name_scope_status`, and `scope_parent` when the scope is `parent`).
+ */
+function nameScopeProblems(part: unknown): string[] {
+    if (!isObject(part) || part['status'] !== 'built' || !isObject(part['data'])) {
+        return [];
+    }
+    const nested = part['data']['nested'];
+    if (nested === undefined) {
+        return [];
+    }
+    if (!isObject(nested)) {
+        return ['definitions.data.nested is not an object'];
+    }
+    const problems: string[] = [];
+    for (const [folder, rows] of Object.entries(nested)) {
+        if (!Array.isArray(rows)) {
+            problems.push(`definitions.data.nested.${folder} is not a list`);
+            continue;
+        }
+        rows.forEach((row: unknown, i) => {
+            const at = `definitions.data.nested.${folder}[${String(i)}]`;
+            if (!isObject(row)) {
+                problems.push(`${at} is not an object`);
+                return;
+            }
+            const scope = row['name_scope'];
+            if (scope !== 'global' && scope !== 'parent' && scope !== 'unknown') {
+                problems.push(`${at} has no name_scope`);
+            } else if (scope === 'parent' && typeof row['scope_parent'] !== 'string') {
+                problems.push(`${at} has name_scope parent and no scope_parent`);
+            }
+            if (typeof row['name_scope_status'] !== 'string') {
+                problems.push(`${at} has no name_scope_status`);
+            }
+        });
+    }
+    return problems;
 }
 
 /** The three companions, by the package key that records each. */
@@ -206,7 +249,7 @@ export class Spec {
     }
 
     /**
-     * The data of a part of formats 6 and 7 (D1 to D8), or null when the package says it is
+     * The data of a part of formats 6 to 8 (D1 to D8), or null when the package says it is
      * not built. Read with the package, once per process.
      */
     part<K extends PartKey>(key: K): PartData[K] | null {
@@ -331,7 +374,7 @@ const opened = new Map<string, Spec>();
 
 /**
  * The package in a spec folder, read once per process: its gzipped file, checked against the
- * `.sha256` beside it that names the uncompressed file, package format 7, and the version its
+ * `.sha256` beside it that names the uncompressed file, package format 8, and the version its
  * name and its manifest state. A second call for the same unchanged file returns the same
  * object.
  */

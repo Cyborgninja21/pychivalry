@@ -173,14 +173,18 @@ test('the suite on the fixture stub and mods passes, and its results fit the rec
         unknown_by_rule: { rule: number }[];
         unknown_by_reason: { reason: string; names: number }[];
     };
-    // fixture_char_2, twice in one file: its row is partial, so no winner and no clash.
+    // fixture_char_2, twice in one file: its row is partial, so no winner and no clash. A
+    // relation level under two relation types: one name (part D3, global), and no row answers
+    // for a nested kind. A contract reward under two contracts: its scope is not settled.
     assert.equal(dupes.by_status['clash'], undefined);
-    assert.equal(dupes.by_status['unknown'], 1);
+    assert.equal(dupes.by_status['unknown'], 3);
     assert.deepEqual(
         dupes.unknown_by_rule.map((r) => r.rule),
-        [6],
+        [5, 6],
     );
     assert.deepEqual(dupes.unknown_by_reason, [
+        { reason: 'name-scope', names: 1 },
+        { reason: 'no-rule', names: 1 },
         { reason: 'not-settled:characters-by-override-priority', names: 1 },
     ]);
     const [mod, replacePath] = results['mods'] as Record<string, unknown>[];
