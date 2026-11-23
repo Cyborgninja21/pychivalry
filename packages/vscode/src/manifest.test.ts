@@ -125,7 +125,7 @@ test('the two languages are the ones the code gives the language client', () => 
     );
 });
 
-test("the settings are the language server's four, each with its default and a description", () => {
+test("the settings are the language server's five, each with its default and a description", () => {
     const { title, properties } = manifest.contributes.configuration;
     assert.equal(title, 'pychivalry');
     assert.equal(SETTINGS_SECTION, LSP_SETTINGS_SECTION);
@@ -133,6 +133,7 @@ test("the settings are the language server's four, each with its default and a d
         'pychivalry.background.fileLimit',
         'pychivalry.encoding.fallback',
         'pychivalry.gamePath',
+        'pychivalry.inlayHints.enabled',
         'pychivalry.localization.unusedKeys',
     ]);
     assert.ok(`${SETTINGS_SECTION}.${GAME_PATH_SETTING}` in properties);

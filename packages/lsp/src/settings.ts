@@ -10,6 +10,7 @@
  * | `pychivalry.background.fileLimit` | `3000` | The most files of the mod checked in the background; `0`: none (open files are always checked) |
  * | `pychivalry.localization.unusedKeys` | `false` | Report `localization/unused-key`, off by default (decision 76) |
  * | `pychivalry.encoding.fallback` | `"none"` | `"windows-1252"`: read the bytes of a file that are not valid UTF-8 as Windows-1252 |
+ * | `pychivalry.inlayHints.enabled` | `true` | Show the presentation data's inline hints (`inlay-hints.ts`) |
  */
 
 import type { FallbackEncoding } from '@pychivalry/core';
@@ -26,6 +27,8 @@ export interface Settings {
     readonly unusedKeys: boolean;
     /** How to read the bytes of a file that are not valid UTF-8. */
     readonly fallbackEncoding: FallbackEncoding | null;
+    /** Show the presentation data's inline hints. */
+    readonly inlayHints: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -33,6 +36,7 @@ export const DEFAULT_SETTINGS: Settings = {
     fileLimit: 3000,
     unusedKeys: false,
     fallbackEncoding: null,
+    inlayHints: true,
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -62,6 +66,7 @@ export function readSettings(section: unknown): Settings {
     const fileLimit = get('background.fileLimit');
     const unusedKeys = get('localization.unusedKeys');
     const fallback = get('encoding.fallback');
+    const inlayHints = get('inlayHints.enabled');
     return {
         gamePath: typeof gamePath === 'string' ? gamePath.trim() : DEFAULT_SETTINGS.gamePath,
         fileLimit:
@@ -71,6 +76,7 @@ export function readSettings(section: unknown): Settings {
         unusedKeys: typeof unusedKeys === 'boolean' ? unusedKeys : DEFAULT_SETTINGS.unusedKeys,
         fallbackEncoding:
             fallback === 'windows-1252' ? 'windows-1252' : DEFAULT_SETTINGS.fallbackEncoding,
+        inlayHints: typeof inlayHints === 'boolean' ? inlayHints : DEFAULT_SETTINGS.inlayHints,
     };
 }
 

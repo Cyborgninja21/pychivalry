@@ -1,0 +1,13 @@
+{
+    "$schema": "../presentation.schema.json",
+    "folder": "common/script_values",
+    "from": [],
+    "snippets": [
+        {
+            "label": "script value",
+            "description": "A new script value: a number worked out in script",
+            "at": "record",
+            "body": ["${1:my_value} = {", "\tvalue = ${2:0}", "\t$0", "}"]
+        }
+    ]
+}

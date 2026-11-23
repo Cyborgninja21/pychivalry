@@ -1,0 +1,30 @@
+{
+    "$schema": "../presentation.schema.json",
+    "folder": "common/opinion_modifiers",
+    "from": ["modifiers.yaml"],
+    "outline": {
+        "symbol": "Object",
+        "blocks": []
+    },
+    "snippets": [
+        {
+            "label": "opinion modifier",
+            "description": "A new opinion modifier: how much, for how long, fading",
+            "at": "record",
+            "body": [
+                "${1:my_opinion} = {",
+                "\topinion = ${2:10}",
+                "\tyears = ${3:5}",
+                "\tdecaying = yes",
+                "}"
+            ]
+        },
+        {
+            "label": "opinion",
+            "description": "How much the modifier changes opinion",
+            "at": "field",
+            "field": "opinion",
+            "body": ["opinion = ${1:10}"]
+        }
+    ]
+}

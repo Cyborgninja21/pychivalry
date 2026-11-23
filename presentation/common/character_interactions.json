@@ -1,0 +1,131 @@
+{
+    "$schema": "../presentation.schema.json",
+    "folder": "common/character_interactions",
+    "from": ["character_interactions.yaml"],
+    "outline": {
+        "symbol": "Interface",
+        "detail": "{category}",
+        "blocks": [
+            {
+                "field": "is_shown",
+                "symbol": "Object"
+            },
+            {
+                "field": "can_send",
+                "symbol": "Object"
+            },
+            {
+                "field": "on_accept",
+                "symbol": "Function"
+            },
+            {
+                "field": "on_decline",
+                "symbol": "Function"
+            },
+            {
+                "field": "ai_accept",
+                "symbol": "Object"
+            }
+        ]
+    },
+    "fieldOrder": [
+        {
+            "block": "",
+            "fields": [
+                "category",
+                "icon",
+                "interface_priority",
+                "cooldown",
+                "redirect",
+                "is_shown",
+                "is_highlighted",
+                "can_send",
+                "on_auto_accept",
+                "ai_frequency",
+                "ai_potential",
+                "on_accept",
+                "on_decline",
+                "ai_accept",
+                "ai_targets",
+                "ai_will_do"
+            ]
+        }
+    ],
+    "snippets": [
+        {
+            "label": "character interaction",
+            "description": "A new interaction one character sends another",
+            "at": "record",
+            "body": [
+                "${1:my_interaction} = {",
+                "\tcategory = ${2|interaction_category_friendly,interaction_category_hostile,interaction_category_diplomacy|}",
+                "\tdesc = ${1:my_interaction}_desc",
+                "\tis_shown = {",
+                "\t\t${3:is_adult = yes}",
+                "\t}",
+                "\ton_accept = {",
+                "\t\t$0",
+                "\t}",
+                "\tauto_accept = yes",
+                "}"
+            ]
+        },
+        {
+            "label": "category",
+            "description": "The category the interaction is listed under",
+            "at": "field",
+            "field": "category",
+            "body": [
+                "category = ${1|interaction_category_friendly,interaction_category_hostile,interaction_category_diplomacy|}"
+            ]
+        },
+        {
+            "label": "is_shown",
+            "description": "The conditions for the interaction to be shown",
+            "at": "field",
+            "field": "is_shown",
+            "body": ["is_shown = {", "\t$0", "}"]
+        },
+        {
+            "label": "can_send",
+            "description": "The conditions for the interaction to be sent",
+            "at": "field",
+            "field": "can_send",
+            "body": ["can_send = {", "\t$0", "}"]
+        },
+        {
+            "label": "on_accept",
+            "description": "What happens when the recipient accepts",
+            "at": "field",
+            "field": "on_accept",
+            "body": ["on_accept = {", "\t$0", "}"]
+        },
+        {
+            "label": "on_decline",
+            "description": "What happens when the recipient declines",
+            "at": "field",
+            "field": "on_decline",
+            "body": ["on_decline = {", "\t$0", "}"]
+        },
+        {
+            "label": "ai_accept",
+            "description": "How much the AI wants to accept",
+            "at": "field",
+            "field": "ai_accept",
+            "body": ["ai_accept = {", "\tbase = ${1:0}", "}"]
+        },
+        {
+            "label": "ai_will_do",
+            "description": "How much the AI wants to send the interaction",
+            "at": "field",
+            "field": "ai_will_do",
+            "body": ["ai_will_do = {", "\tbase = ${1:10}", "}"]
+        }
+    ],
+    "hints": [
+        {
+            "kind": "text",
+            "field": "name"
+        }
+    ]
+}

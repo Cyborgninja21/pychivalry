@@ -1,0 +1,9 @@
+{
+    "$schema": "../presentation.schema.json",
+    "folder": "common/dynasty_legacies",
+    "from": ["dynasty_legacies.yaml"],
+    "outline": {
+        "symbol": "EnumMember",
+        "blocks": []
+    }
+}

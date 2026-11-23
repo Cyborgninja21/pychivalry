@@ -1,0 +1,14 @@
+presentation_decision = {
+	picture = {
+		reference = "gfx/interface/illustrations/decisions/decision_misc.dds"
+	}
+	is_shown = {
+		is_ruler = yes
+	}
+	effect = {
+		add_gold = 5
+	}
+	ai_will_do = {
+		base = 0
+	}
+}

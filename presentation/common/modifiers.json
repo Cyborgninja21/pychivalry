@@ -1,0 +1,9 @@
+{
+    "$schema": "../presentation.schema.json",
+    "folder": "common/modifiers",
+    "from": ["modifiers.yaml"],
+    "outline": {
+        "symbol": "Object",
+        "blocks": []
+    }
+}

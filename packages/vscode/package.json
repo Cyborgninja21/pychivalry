@@ -99,6 +99,11 @@
                         "Read the bytes of a file that are not valid UTF-8 as Windows-1252, as many older mods were saved, so their letters show correctly. The rest of the file is still read as UTF-8."
                     ],
                     "markdownDescription": "How to read a script or localization file that is not valid UTF-8. The game reads its files as UTF-8; choose `windows-1252` if your mod's accented letters show as `�`."
+                },
+                "pychivalry.inlayHints.enabled": {
+                    "type": "boolean",
+                    "default": true,
+                    "markdownDescription": "Show pychivalry's inline hints in script files: beside a record's key the localized text of its name (an event's title, a decision's name, an option's text), and after a link or an iterator the scope type it switches to. They are shown, never judged. VS Code's own `editor.inlayHints.enabled` also applies."
                 }
             }
         }

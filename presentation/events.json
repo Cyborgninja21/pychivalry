@@ -1,0 +1,196 @@
+{
+    "$schema": "./presentation.schema.json",
+    "folder": "events",
+    "from": ["events.yaml"],
+    "outline": {
+        "symbol": "Event",
+        "detail": "{type}",
+        "blocks": [
+            {
+                "field": "trigger",
+                "symbol": "Object"
+            },
+            {
+                "field": "immediate",
+                "symbol": "Function"
+            },
+            {
+                "field": "option",
+                "symbol": "EnumMember",
+                "label": "{name}",
+                "fallback": "option {n}"
+            },
+            {
+                "field": "after",
+                "symbol": "Function"
+            }
+        ]
+    },
+    "fieldOrder": [
+        {
+            "block": "",
+            "fields": [
+                "type",
+                "title",
+                "desc",
+                "theme",
+                "left_portrait",
+                "right_portrait",
+                "sender",
+                "lower_left_portrait",
+                "lower_center_portrait",
+                "lower_right_portrait",
+                "widgets",
+                "trigger",
+                "immediate",
+                "option",
+                "after"
+            ]
+        }
+    ],
+    "snippets": [
+        {
+            "label": "namespace",
+            "description": "The head of a new events file: the namespace its event ids start with",
+            "at": "file",
+            "body": ["namespace = ${1:my_namespace}"]
+        },
+        {
+            "label": "event",
+            "description": "A new character event with a title, a description, a portrait and one option",
+            "at": "record",
+            "body": [
+                "${1:my_namespace}.${2:1} = {",
+                "\ttype = ${3|character_event,letter_event,court_event,activity_event|}",
+                "\ttitle = ${1:my_namespace}.${2:1}.t",
+                "\tdesc = ${1:my_namespace}.${2:1}.desc",
+                "\ttheme = ${4:default}",
+                "\tleft_portrait = {",
+                "\t\tcharacter = root",
+                "\t\tanimation = ${5:idle}",
+                "\t}",
+                "\timmediate = {",
+                "\t\t$6",
+                "\t}",
+                "\toption = {",
+                "\t\tname = ${1:my_namespace}.${2:1}.a",
+                "\t\t$0",
+                "\t}",
+                "}"
+            ]
+        },
+        {
+            "label": "hidden event",
+            "description": "A new hidden event: no window, no option, its effects run at once",
+            "at": "record",
+            "body": [
+                "${1:my_namespace}.${2:1} = {",
+                "\thidden = yes",
+                "\timmediate = {",
+                "\t\t$0",
+                "\t}",
+                "}"
+            ]
+        },
+        {
+            "label": "type",
+            "description": "The kind of event window",
+            "at": "field",
+            "field": "type",
+            "body": ["type = ${1|character_event,letter_event,court_event,activity_event|}"]
+        },
+        {
+            "label": "title",
+            "description": "The localization key of the event's title",
+            "at": "field",
+            "field": "title",
+            "body": ["title = ${1:my_namespace.1.t}"]
+        },
+        {
+            "label": "desc",
+            "description": "The localization key of the event's text",
+            "at": "field",
+            "field": "desc",
+            "body": ["desc = ${1:my_namespace.1.desc}"]
+        },
+        {
+            "label": "theme",
+            "description": "The event's theme: its background, sound and icon",
+            "at": "field",
+            "field": "theme",
+            "body": ["theme = ${1:default}"]
+        },
+        {
+            "label": "sender",
+            "description": "Who sends a letter event",
+            "at": "field",
+            "field": "sender",
+            "body": ["sender = ${1:root}"]
+        },
+        {
+            "label": "hidden",
+            "description": "The event shows no window",
+            "at": "field",
+            "field": "hidden",
+            "body": ["hidden = yes"]
+        },
+        {
+            "label": "trigger",
+            "description": "The conditions for the event to fire",
+            "at": "field",
+            "field": "trigger",
+            "body": ["trigger = {", "\t$0", "}"]
+        },
+        {
+            "label": "immediate",
+            "description": "Effects run when the event fires, before its window shows",
+            "at": "field",
+            "field": "immediate",
+            "body": ["immediate = {", "\t$0", "}"]
+        },
+        {
+            "label": "after",
+            "description": "Effects run after an option is chosen",
+            "at": "field",
+            "field": "after",
+            "body": ["after = {", "\t$0", "}"]
+        },
+        {
+            "label": "option",
+            "description": "An option the player can choose, with its localization key",
+            "at": "field",
+            "field": "option",
+            "body": ["option = {", "\tname = ${1:my_namespace.1.a}", "\t$0", "}"]
+        },
+        {
+            "label": "left_portrait",
+            "description": "The character shown on the left of the event window",
+            "at": "field",
+            "field": "left_portrait",
+            "body": ["left_portrait = {", "\tcharacter = ${1:root}", "\tanimation = ${2:idle}", "}"]
+        },
+        {
+            "label": "right_portrait",
+            "description": "The character shown on the right of the event window",
+            "at": "field",
+            "field": "right_portrait",
+            "body": [
+                "right_portrait = {",
+                "\tcharacter = ${1:root}",
+                "\tanimation = ${2:idle}",
+                "}"
+            ]
+        }
+    ],
+    "hints": [
+        {
+            "kind": "text",
+            "field": "title"
+        },
+        {
+            "kind": "text",
+            "block": "option",
+            "field": "name"
+        }
+    ]
+}

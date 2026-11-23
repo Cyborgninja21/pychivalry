@@ -1,0 +1,6 @@
+{
+    "$schema": "./presentation.schema.json",
+    "folder": "*",
+    "language": "l_english",
+    "hints": [{ "kind": "scope" }]
+}
