@@ -1,10 +1,17 @@
 /**
  * The extension's bundles (`task vscode:bundle`), written with esbuild into `dist/bundle/`:
  *
- * - `extension.cjs`: the extension, one CommonJS file, `vscode` left to the editor;
+ * - `extension.cjs`: the extension with the language client, one CommonJS file, `vscode` left
+ *   to the editor;
+ * - `lsp/pychivalry-lsp.mjs`: the language server (`@pychivalry/lsp` with the core and the
+ *   protocol library), one ES module file, which the language client runs on VS Code's own
+ *   runtime from the extension's folder;
  * - `server/pychivalry-mcp.mjs`: the agent server (`@pychivalry/mcp` with the core and the MCP
  *   library), one ES module file, which VS Code's own executable runs as Node;
- * - `server/spec/`: the committed spec package and its companions, beside it as data files;
+ * - `server/pychivalry-cli.mjs`: the command line (`@pychivalry/cli` with the core, through
+ *   `cli-main.ts`), one ES module file, which the terminal's `pychivalry` runs the same way;
+ * - `server/spec/`: the committed spec package and its companions, beside them as data files,
+ *   the one copy all three servers read;
  * - `server/manifest.json`: every file of `server/` with its SHA-256 and size, which the
  *   extension compares to decide whether its stored copy is current (`install.ts`);
  *
@@ -19,7 +26,7 @@ import { copyFileSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSy
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { manifestOf, MANIFEST_FILE } from './install.js';
-import { SERVER_FILE, SPEC_FOLDER } from './launch.js';
+import { CLI_FILE, LSP_FILE, LSP_FOLDER, SERVER_FILE, SPEC_FOLDER } from './launch.js';
 
 /** The extension's package folder: this file is `packages/vscode/dist/bundle.js`. */
 const PACKAGE = fileURLToPath(new URL('../', import.meta.url));
@@ -60,15 +67,28 @@ async function main(): Promise<void> {
         format: 'cjs',
         external: ['vscode'],
     });
-    await build({
+    // A CommonJS module inside an ES module bundle still calls require() for Node's own.
+    const esm: BuildOptions = {
         ...shared,
-        entryPoints: [path.join(REPO, 'packages', 'mcp', 'dist', 'main.js')],
-        outfile: path.join(SERVER, SERVER_FILE),
         format: 'esm',
-        // A CommonJS module inside an ES module bundle still calls require() for Node's own.
         banner: {
             js: "import { createRequire as __pychivalryRequire } from 'node:module'; const require = __pychivalryRequire(import.meta.url);",
         },
+    };
+    await build({
+        ...esm,
+        entryPoints: [path.join(REPO, 'packages', 'mcp', 'dist', 'main.js')],
+        outfile: path.join(SERVER, SERVER_FILE),
+    });
+    await build({
+        ...esm,
+        entryPoints: [path.join(PACKAGE, 'dist', 'cli-main.js')],
+        outfile: path.join(SERVER, CLI_FILE),
+    });
+    await build({
+        ...esm,
+        entryPoints: [path.join(REPO, 'packages', 'lsp', 'dist', 'main.js')],
+        outfile: path.join(OUT, LSP_FOLDER, LSP_FILE),
     });
     await build({
         ...shared,
@@ -85,12 +105,13 @@ async function main(): Promise<void> {
     }
     const manifest = manifestOf(SERVER, version(), [
         SERVER_FILE,
+        CLI_FILE,
         ...specFiles.map((f) => `${SPEC_FOLDER}/${f}`),
     ]);
     writeFileSync(path.join(SERVER, MANIFEST_FILE), `${JSON.stringify(manifest, null, 2)}\n`);
     const size = manifest.files.reduce((n, f) => n + f.size, 0);
     process.stdout.write(
-        `vscode:bundle: dist/bundle/extension.cjs, server/ (${String(manifest.files.length)} files, ${String(Math.round(size / 1024))} KiB)\n`,
+        `vscode:bundle: dist/bundle/extension.cjs, ${LSP_FOLDER}/${LSP_FILE}, server/ (${String(manifest.files.length)} files, ${String(Math.round(size / 1024))} KiB)\n`,
     );
 }
 

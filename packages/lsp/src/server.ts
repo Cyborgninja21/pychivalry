@@ -138,6 +138,11 @@ export interface BackgroundDone {
     /** How long the pass took, and the time since the server's process started, in milliseconds. */
     readonly ms: number;
     readonly sinceStartMs: number;
+    /**
+     * The server process's peak resident memory so far, in KiB (`process.resourceUsage().maxRSS`),
+     * the figure release 2.3.0's editor baseline records.
+     */
+    readonly peakRssKib: number;
 }
 
 /** What the server is started with. */
@@ -1110,6 +1115,7 @@ export class LanguageServer {
             complete,
             ms: Math.round(ended - pass.started),
             sinceStartMs,
+            peakRssKib: process.resourceUsage().maxRSS,
         };
         await this.connection.sendNotification(BACKGROUND_DONE, done);
     }

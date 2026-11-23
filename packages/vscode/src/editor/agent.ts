@@ -1,7 +1,9 @@
 /**
  * The agent server started from a harness's entry, exactly as the entry states it (command,
- * arguments, variables over the starting process's own, folder), and asked one `check` through
- * the MCP library's own client. Used by the editor tests and by their runner. Test code only.
+ * arguments, variables over the starting process's own, folder), and asked `check` through the
+ * MCP library's own client: one page (`checkThrough`), or every finding of every severity, page
+ * after page to the end (`checkAll`, for the same-answers test). Used by the editor tests and by
+ * their runner. Test code only.
  */
 
 import { Client } from '@modelcontextprotocol/client';
@@ -44,8 +46,75 @@ function entryEnv(entry: Entry): Record<string, string> {
     return env;
 }
 
+/** What `checkAll` gathered: every finding, and the counts the server gave with the first page. */
+export interface AllFindings {
+    readonly server: string;
+    readonly filesChecked: number;
+    readonly totals: Record<string, unknown>;
+    readonly findings: readonly Record<string, unknown>[];
+    /** The pages it took. */
+    readonly pages: number;
+}
+
 /** Start the server from `entry`, call `check` on the whole mod, and stop it. */
 export async function checkThrough(entry: Entry): Promise<CheckAnswer> {
+    return withServer(entry, async (client, server) => {
+        const tools = (await client.listTools()).tools.map((t) => t.name);
+        return { tools, server, output: await callCheck(client, {}) };
+    });
+}
+
+/**
+ * Start the server from `entry` and call `check` on the whole mod with every severity, the
+ * largest page and each next cursor until there is none: every finding the agent server reports.
+ */
+export async function checkAll(entry: Entry): Promise<AllFindings> {
+    return withServer(entry, async (client, server) => {
+        const findings: Record<string, unknown>[] = [];
+        let first: Record<string, unknown> | null = null;
+        let cursor: string | null = null;
+        let pages = 0;
+        do {
+            const page = await callCheck(client, {
+                min_severity: 'hint',
+                limit: 200,
+                ...(cursor === null ? {} : { cursor }),
+            });
+            first ??= page;
+            pages++;
+            findings.push(...(page['findings'] as Record<string, unknown>[]));
+            const next = page['next_cursor'];
+            cursor = typeof next === 'string' ? next : null;
+        } while (cursor !== null);
+        return {
+            server,
+            filesChecked: first['files_checked'] as number,
+            totals: first['totals'] as Record<string, unknown>,
+            findings,
+            pages,
+        };
+    });
+}
+
+async function callCheck(
+    client: Client,
+    args: Record<string, unknown>,
+): Promise<Record<string, unknown>> {
+    const result = (await client.callTool(
+        { name: 'check', arguments: args },
+        { timeout: 600_000 },
+    )) as { structuredContent?: Record<string, unknown>; isError?: boolean };
+    if (result.isError === true || result.structuredContent === undefined) {
+        throw new Error(`check returned an error: ${JSON.stringify(result)}`);
+    }
+    return result.structuredContent;
+}
+
+/** Start the server from `entry`, run `use` with a connected client, and stop it. */
+async function withServer<T>(
+    entry: Entry,
+    use: (client: Client, server: string) => Promise<T>,
+): Promise<T> {
     const transport = new StdioClientTransport({
         command: entry.command,
         args: [...entry.args],
@@ -61,19 +130,7 @@ export async function checkThrough(entry: Entry): Promise<CheckAnswer> {
     try {
         await client.connect(transport);
         const info = client.getServerVersion();
-        const tools = (await client.listTools()).tools.map((t) => t.name);
-        const result = (await client.callTool(
-            { name: 'check', arguments: {} },
-            { timeout: 120_000 },
-        )) as { structuredContent?: Record<string, unknown>; isError?: boolean };
-        if (result.isError === true || result.structuredContent === undefined) {
-            throw new Error(`check returned an error: ${JSON.stringify(result)}`);
-        }
-        return {
-            tools,
-            server: `${info?.name ?? '?'} ${info?.version ?? '?'}`,
-            output: result.structuredContent,
-        };
+        return await use(client, `${info?.name ?? '?'} ${info?.version ?? '?'}`);
     } catch (err) {
         throw new Error(
             `the server from ${entry.command} ${entry.args.join(' ')} did not answer: ${err instanceof Error ? err.message : String(err)}\nits standard error:\n${stderr}`,

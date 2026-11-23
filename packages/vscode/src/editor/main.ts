@@ -1,6 +1,9 @@
 /**
  * The `main` editor suite: the extension from its development folder, on a copy of a fixture
- * mod (docs/PLAN.md, items 7.1 (a) and (b), and 7.8).
+ * mod (docs/PLAN.md, items 7.1 (a) and (b), 7.3, 7.4, 7.6 and 7.8): the agent server reaches
+ * both AI harnesses, the language server checks the mod and VS Code shows what it finds, the
+ * settings are declared, and the game folder setting reaches the agent server, VS Code's AI and
+ * a Claude Code set-up made before it changed.
  */
 
 import assert from 'node:assert/strict';
@@ -9,7 +12,7 @@ import path from 'node:path';
 import { isDeepStrictEqual } from 'node:util';
 import * as vscode from 'vscode';
 import type { PychivalryApi } from '../extension.js';
-import { EXTENSION_ID, SET_UP_CLAUDE_CODE } from '../ids.js';
+import { EXTENSION_ID, GAME_PATH_SETTING, SET_UP_CLAUDE_CODE, SETTINGS_SECTION } from '../ids.js';
 import { SERVER_FILE, SPEC_FOLDER, stableRuntime, type ServerLaunch } from '../launch.js';
 import { PROJECT_FILE, serverEntry } from '../setup.js';
 import { checkThrough } from './agent.js';
@@ -25,6 +28,21 @@ export async function activeExtension(): Promise<vscode.Extension<PychivalryApi>
     });
     assert.ok(ext !== undefined);
     return ext;
+}
+
+/** The case every suite starts with: VS Code is on the virtual display (Linux). */
+export function displayCase(): EditorCase {
+    return {
+        name: 'VS Code runs on the virtual display, never on a desktop',
+        run: () => {
+            if (process.platform !== 'linux') {
+                throw new Skip(`${process.platform} has no virtual display to check`);
+            }
+            assert.equal(process.env['WAYLAND_DISPLAY'], undefined);
+            assert.equal(process.env['DISPLAY'], given('PYCHIVALRY_EXPECTED_DISPLAY'));
+            return Promise.resolve();
+        },
+    };
 }
 
 /** Every `.mcp.json` below `dir`. */
@@ -48,17 +66,7 @@ export function mainCases(): readonly EditorCase[] {
     };
 
     return [
-        {
-            name: 'VS Code runs on the virtual display, never on a desktop',
-            run: () => {
-                if (process.platform !== 'linux') {
-                    throw new Skip(`${process.platform} has no virtual display to check`);
-                }
-                assert.equal(process.env['WAYLAND_DISPLAY'], undefined);
-                assert.equal(process.env['DISPLAY'], given('PYCHIVALRY_EXPECTED_DISPLAY'));
-                return Promise.resolve();
-            },
-        },
+        displayCase(),
         {
             name: 'the extension activates on its own on a folder holding a mod descriptor',
             run: async () => {
@@ -81,6 +89,71 @@ export function mainCases(): readonly EditorCase[] {
                     path.join(mod, 'localization', 'english', 'fixture_l_english.yml'),
                 );
                 assert.equal(loc.languageId, 'ck3-localization');
+            },
+        },
+        {
+            name: '7.3: the language server checks the mod, and VS Code shows its finding',
+            run: async () => {
+                const language = theApi().language;
+                const full = await language.firstFullResult;
+                assert.ok(full.done.complete && full.done.checked > 0, JSON.stringify(full.done));
+                const events = vscode.Uri.file(path.join(mod, 'events', 'fixture_events.txt'));
+                let shown: vscode.Diagnostic[] = [];
+                await waitFor('the diagnostics', () => {
+                    shown = vscode.languages.getDiagnostics(events);
+                    return shown.some((d) => d.severity === vscode.DiagnosticSeverity.Error);
+                });
+                const errors = shown.filter((d) => d.severity === vscode.DiagnosticSeverity.Error);
+                assert.deepEqual(
+                    errors.map((d) => [
+                        d.source,
+                        typeof d.code === 'object' ? d.code.value : d.code,
+                        d.range.start.line,
+                        d.message,
+                    ]),
+                    [
+                        [
+                            'pychivalry',
+                            'syntax/missing-closing-brace',
+                            2,
+                            'Expected } after arguments',
+                        ],
+                    ],
+                );
+                // What VS Code shows is what the server's findings request gives for the file.
+                const found = await language.findings(events);
+                assert.equal(found.file, 'events/fixture_events.txt');
+                const severity = ['error', 'warning', 'information', 'hint'];
+                assert.deepEqual(
+                    found.findings.map((f) => [f.code, f.severity, f.range.start.line, f.message]),
+                    shown.map((d) => [
+                        typeof d.code === 'object' ? d.code.value : d.code,
+                        severity[d.severity],
+                        d.range.start.line,
+                        d.message,
+                    ]),
+                );
+            },
+        },
+        {
+            name: "7.4, 7.6: the four settings are declared with the language server's defaults",
+            run: () => {
+                const config = vscode.workspace.getConfiguration(SETTINGS_SECTION);
+                const defaults = Object.fromEntries(
+                    [
+                        'gamePath',
+                        'background.fileLimit',
+                        'localization.unusedKeys',
+                        'encoding.fallback',
+                    ].map((key) => [key, config.inspect(key)?.defaultValue]),
+                );
+                assert.deepEqual(defaults, {
+                    gamePath: '',
+                    'background.fileLimit': 3000,
+                    'localization.unusedKeys': false,
+                    'encoding.fallback': 'none',
+                });
+                return Promise.resolve();
             },
         },
         {
@@ -243,6 +316,61 @@ export function mainCases(): readonly EditorCase[] {
                 assert.deepEqual(entry, serverEntry(launch));
                 assertFixtureAnswer(await checkThrough(asEntry(entry)));
                 rmSync(file, { force: true });
+            },
+        },
+        {
+            name: "7.6: the game folder setting reaches the agent server, VS Code's AI and a Claude Code set-up made before it",
+            run: async () => {
+                const game = given('PYCHIVALRY_TEST_GAME');
+                // The set-ups above were made with no game folder set.
+                assert.deepEqual(await theApi().claudeCodeOutOfDate(), []);
+                await vscode.workspace
+                    .getConfiguration(SETTINGS_SECTION)
+                    .update(GAME_PATH_SETTING, game, vscode.ConfigurationTarget.Global);
+                try {
+                    const now = await theApi().launchFor(mod);
+                    assert.deepEqual(now.args.slice(-2), ['--vanilla', game]);
+                    const [d] = await theApi().definitions();
+                    assert.deepEqual(d?.args, now.args);
+                    // VS Code asked the provider again and hands its AI the new command line.
+                    const plugins = path.join(given('PYCHIVALRY_TEST_USER_DATA'), 'agentPlugins');
+                    await waitFor(
+                        'the forwarded definition with the game folder',
+                        () =>
+                            mcpFilesUnder(plugins).some((f) => {
+                                try {
+                                    const data = JSON.parse(readFileSync(f, 'utf8')) as {
+                                        mcpServers?: Record<string, { args?: unknown }>;
+                                    };
+                                    return isDeepStrictEqual(
+                                        data.mcpServers?.['pychivalry']?.args,
+                                        now.args,
+                                    );
+                                } catch {
+                                    return false;
+                                }
+                            }),
+                        60_000,
+                    );
+                    // Claude Code keeps what it was given: the set-up is out of date, and made
+                    // again it gives Claude Code the new command line.
+                    const stale = await theApi().claudeCodeOutOfDate();
+                    assert.equal(stale.length, 1, JSON.stringify(stale));
+                    assert.ok(samePath(stale[0]?.folder ?? '', mod), stale[0]?.folder);
+                    const outcome = await vscode.commands.executeCommand<{ kind?: string }>(
+                        SET_UP_CLAUDE_CODE,
+                        vscode.Uri.file(mod),
+                    );
+                    assert.equal(outcome.kind, 'claude', JSON.stringify(outcome));
+                    const entry = claudeEntryFor(claudeConfig, mod);
+                    assert.deepEqual(entry, serverEntry(now));
+                    assert.deepEqual(await theApi().claudeCodeOutOfDate(), []);
+                    assertFixtureAnswer(await checkThrough(asEntry(entry)));
+                } finally {
+                    await vscode.workspace
+                        .getConfiguration(SETTINGS_SECTION)
+                        .update(GAME_PATH_SETTING, undefined, vscode.ConfigurationTarget.Global);
+                }
             },
         },
     ];

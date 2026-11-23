@@ -91,19 +91,32 @@ tasks:
   # ─── The VS Code extension (packages/vscode) ───
 
   vscode:bundle:
-    desc: 'Bundle the extension with esbuild into packages/vscode/dist/bundle/: the extension, the agent server and the spec package beside it; and its editor tests into dist/test-bundle/'
+    desc: 'Bundle the extension with esbuild into packages/vscode/dist/bundle/: the extension with its language client, the language server (lsp/), and the agent server and the command line with the spec package beside them (server/); and its editor tests into dist/test-bundle/'
     deps: [build]
     cmds:
       - node packages/vscode/dist/bundle.js
 
-  vscode:test:
-    desc: "The extension's editor tests in a real VS Code, the pinned release, downloaded into .vscode-test/ the first time (network); on Linux only on a virtual display, under xvfb-run, never on a desktop; throwaway user-data, extensions, home and Claude Code configuration folders. PYCHIVALRY_TEST_CLAUDE=<claude> uses a real Claude Code's own configuration commands; PYCHIVALRY_VSCODE_VERSION another VS Code. Not part of task ci"
+  vscode:package:
+    desc: 'Package the extension into one installable file, packages/vscode/dist/pychivalry-<version>.vsix, with the pinned vsce (no token, nothing published): the manifest, README, licence, the three bundles and the spec; prints its size and contents and refuses anything that must not ship'
     deps: [vscode:bundle]
+    cmds:
+      - node packages/vscode/dist/package.js
+
+  vscode:test:
+    desc: "The extension's editor tests in a real VS Code, the pinned release, downloaded into .vscode-test/ the first time (network): the extension from its folder, the packaged .vsix installed into a clean VS Code (the smoke test and the same-answers test), and an update; on Linux only on a virtual display, under xvfb-run, never on a desktop; throwaway user-data, extensions, home and Claude Code configuration folders. PYCHIVALRY_EDITOR_SUITES=main,smoke,update picks suites; PYCHIVALRY_TEST_CLAUDE=<claude> uses a real Claude Code's own configuration commands; PYCHIVALRY_VSCODE_VERSION another VS Code. Not part of task ci"
+    deps: [vscode:package]
     cmds:
       - cmd: env -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u ELECTRON_RUN_AS_NODE xvfb-run -a node packages/vscode/dist/editor/run.js
         platforms: [linux]
       - cmd: node packages/vscode/dist/editor/run.js
         platforms: [windows, darwin]
+
+  vscode:corpus:
+    desc: 'Local only (CK3_GAME_PATH, CK3_CORPUS, CK3_CORPUS_SLUGS; Linux, under xvfb-run): the packaged extension opened on each real mod PYCHIVALRY_CORPUS_RUNS times (default 6), timing the first full result and the language server peak memory as the 2.3.0 editor baseline did, and the same-answers test (editor, command line, agent server) on each mod; prints the medians, and writes them to PYCHIVALRY_CORPUS_REPORT when set. Heavy: run it alone'
+    deps: [vscode:package]
+    cmds:
+      - cmd: env -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS -u ELECTRON_RUN_AS_NODE PYCHIVALRY_EDITOR_MODE=corpus xvfb-run -a node packages/vscode/dist/editor/run.js
+        platforms: [linux]
 
   # ─── Game-file suites (local only; docs/PLAN.md, "Environment for the game-file suites") ───
 

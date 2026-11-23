@@ -1,44 +1,74 @@
 /**
- * The extension's entry point, the only file that speaks to VS Code (docs/PLAN.md, items 7.1
- * and 7.8). It holds no checking, parsing or lookup logic (docs/MVP.md, "Architecture"):
+ * The extension's entry point, the file that speaks to VS Code with `language.ts` (docs/PLAN.md,
+ * step 7). It holds no checking, parsing or lookup logic (docs/MVP.md, "Architecture"):
  *
- * - it copies the bundled agent server into its global storage folder (`install.ts`);
- * - it registers that server with VS Code's own AI, one local server per workspace folder, each
- *   bound to its folder as the mod (`contributes.mcpServerDefinitionProviders`, `vscode.lm.
- *   registerMcpServerDefinitionProvider`);
- * - it offers the command "pychivalry: Set up for Claude Code" (`setup.ts`).
+ * - it starts the language server for the mod's script and localization files (`language.ts`,
+ *   item 7.3), which reads the settings `pychivalry.*` itself (items 7.4 and 7.6);
+ * - it copies the bundled agent server and command line into its global storage folder
+ *   (`install.ts`), and puts the command line on the integrated terminal's path as `pychivalry`
+ *   (`terminal.ts`, item 7.7);
+ * - it registers the agent server with VS Code's own AI, one local server per workspace folder,
+ *   each bound to its folder as the mod and given the game folder the setting
+ *   `pychivalry.gamePath` names (`contributes.mcpServerDefinitionProviders`, `vscode.lm.
+ *   registerMcpServerDefinitionProvider`, item 7.1);
+ * - it offers the command "pychivalry: Set up for Claude Code" (`setup.ts`, item 7.8), remembers
+ *   the command line each set-up gave Claude Code, and offers to set it up again when that
+ *   command line changes (the game folder setting changed).
  *
- * The object `activate` returns is the extension's API: the same command line and the same
- * set-up, which the editor tests call.
+ * The object `activate` returns is the extension's API: the same command line, the same set-up
+ * and the language server's own answers, which the editor tests call.
  */
 
-import { accessSync, constants, existsSync, statSync } from 'node:fs';
+import { accessSync, constants, existsSync, realpathSync, statSync } from 'node:fs';
 import { homedir } from 'node:os';
 import path from 'node:path';
 import * as vscode from 'vscode';
 import { findClaude, runClaude, type ClaudeCommand } from './claude.js';
-import { PROVIDER_ID, SET_UP_CLAUDE_CODE } from './ids.js';
+import { GAME_PATH_SETTING, PROVIDER_ID, SET_UP_CLAUDE_CODE, SETTINGS_SECTION } from './ids.js';
 import { installServer, type InstallResult } from './install.js';
+import { startLanguageServer, type LanguageServer } from './language.js';
 import {
+    CLI_FILE,
     folderPath,
+    gameFromSetting,
+    LSP_FILE,
+    LSP_FOLDER,
     SERVER_NAME,
     serverLaunch,
+    SPEC_FOLDER,
     stableRuntime,
     type ServerLaunch,
 } from './launch.js';
-import { PROJECT_FILE, setUpClaudeCode, type SetupOutcome, type SetupUi } from './setup.js';
+import {
+    outOfDate,
+    PROJECT_FILE,
+    readSetUps,
+    recordOf,
+    SET_UPS_KEY,
+    setUpClaudeCode,
+    withSetUp,
+    type SetupOutcome,
+    type SetUpRecord,
+    type SetupUi,
+} from './setup.js';
+import { BIN_FOLDER, writeLauncher } from './terminal.js';
 
-/** The bundled server folder, in the extension's folder. */
+/** The bundled server folder, in the extension's folder: the agent server, the command line, the spec. */
 const BUNDLED_SERVER = path.join('dist', 'bundle', 'server');
+
+/** The bundled language server, in the extension's folder. */
+const BUNDLED_LSP = path.join('dist', 'bundle', LSP_FOLDER, LSP_FILE);
 
 /** The copy's folder, in the extension's global storage folder. */
 const STORED_SERVER = 'agent-server';
 
 /** What the extension offers other code, the editor tests among it. */
 export interface PychivalryApi {
+    /** `Date.now()` when the extension was activated. */
+    readonly activatedAt: number;
     /** The server's copy in global storage, once it is in place. */
     readonly agentServer: Promise<InstallResult>;
-    /** The server's command line for a mod folder. */
+    /** The server's command line for a mod folder, with the game folder the setting names. */
     readonly launchFor: (modDir: string) => Promise<ServerLaunch>;
     /** The definitions the provider gives VS Code now. */
     readonly definitions: () => Promise<vscode.McpStdioServerDefinition[]>;
@@ -48,6 +78,12 @@ export interface PychivalryApi {
         ui: SetupUi,
         find?: () => ClaudeCommand | null,
     ) => Promise<SetupOutcome>;
+    /** The set-ups whose command line is no longer the one the extension would give. */
+    readonly claudeCodeOutOfDate: () => Promise<SetUpRecord[]>;
+    /** The language server. */
+    readonly language: LanguageServer;
+    /** The launcher of the command line, once written; its folder is on the terminal's path. */
+    readonly commandLine: Promise<string>;
 }
 
 function isExecutable(file: string): boolean {
@@ -71,6 +107,19 @@ function findClaudeHere(): ClaudeCommand | null {
         home: homedir(),
         isExecutable,
     });
+}
+
+/** Whether two paths name one folder: resolved on disk, and on Windows in any letter case. */
+function sameFolder(a: string, b: string): boolean {
+    const real = (p: string): string => {
+        try {
+            return realpathSync.native(p);
+        } catch {
+            return path.resolve(p);
+        }
+    };
+    const [x, y] = [real(a), real(b)];
+    return process.platform === 'win32' ? x.toLowerCase() === y.toLowerCase() : x === y;
 }
 
 /** The workspace folders on disk: each is a mod the server can be bound to. */
@@ -117,10 +166,35 @@ function report(outcome: SetupOutcome, log: vscode.LogOutputChannel): void {
     }
 }
 
+/** The language server this activation started, stopped by `deactivate`. */
+let running: LanguageServer | undefined;
+
+/** Stop the language server: VS Code waits for the promise when the extension is deactivated. */
+export async function deactivate(): Promise<void> {
+    const server = running;
+    running = undefined;
+    await server?.client.dispose();
+}
+
+/** The game folder the setting names, for the agent server; null to let it search. */
+function gameSetting(): string | null {
+    return gameFromSetting(
+        vscode.workspace.getConfiguration(SETTINGS_SECTION).get<unknown>(GAME_PATH_SETTING),
+    );
+}
+
 export function activate(context: vscode.ExtensionContext): PychivalryApi {
+    const activatedAt = Date.now();
     const log = vscode.window.createOutputChannel('pychivalry', { log: true });
     const changed = new vscode.EventEmitter<void>();
     context.subscriptions.push(log, changed);
+
+    const language = startLanguageServer(
+        context.asAbsolutePath(BUNDLED_LSP),
+        context.asAbsolutePath(path.join(BUNDLED_SERVER, SPEC_FOLDER)),
+        log,
+    );
+    running = language;
 
     const agentServer = Promise.resolve().then(() =>
         installServer(
@@ -140,8 +214,23 @@ export function activate(context: vscode.ExtensionContext): PychivalryApi {
     );
 
     const runtime = stableRuntime(process.execPath, existsSync);
+
+    // The command line, on the integrated terminal's path (item 7.7).
+    const binDir = path.join(context.globalStorageUri.fsPath, BIN_FOLDER);
+    context.environmentVariableCollection.description =
+        "Puts pychivalry's command line on the terminal's path as `pychivalry`.";
+    context.environmentVariableCollection.prepend('PATH', `${binDir}${path.delimiter}`);
+    const commandLine = agentServer.then((installed) => {
+        const launcher = writeLauncher(binDir, runtime, path.join(installed.dir, CLI_FILE));
+        log.info(`Command line ${launcher.written ? 'written to' : 'already in'} ${launcher.file}`);
+        return launcher.file;
+    });
+    commandLine.catch((err: unknown) => {
+        log.error(`The command line could not be put on the terminal's path: ${String(err)}`);
+    });
+
     const launchFor = async (modDir: string): Promise<ServerLaunch> =>
-        serverLaunch(runtime, (await agentServer).dir, modDir);
+        serverLaunch(runtime, (await agentServer).dir, modDir, path, gameSetting());
 
     const definitions = async (): Promise<vscode.McpStdioServerDefinition[]> => {
         const folders = modFolders();
@@ -167,14 +256,55 @@ export function activate(context: vscode.ExtensionContext): PychivalryApi {
         folder: string,
         ui: SetupUi,
         find: () => ClaudeCommand | null = findClaudeHere,
-    ): Promise<SetupOutcome> =>
-        setUpClaudeCode({
+    ): Promise<SetupOutcome> => {
+        const launch = await launchFor(folder);
+        const outcome = await setUpClaudeCode({
             folder,
-            launch: await launchFor(folder),
+            launch,
             findClaude: find,
             runClaude: (claude, args, cwd) => runClaude(claude, args, cwd, process.env),
             ui,
         });
+        const record = recordOf(outcome, folder, launch);
+        if (record !== null) {
+            const records = readSetUps(context.globalState.get<unknown>(SET_UPS_KEY));
+            await context.globalState.update(SET_UPS_KEY, withSetUp(records, record));
+        }
+        return outcome;
+    };
+
+    // Claude Code keeps the command line it was given; when the extension would now give
+    // another (the game folder setting changed), it offers to set the folder up again, once
+    // for each command line.
+    const claudeCodeOutOfDate = async (): Promise<SetUpRecord[]> => {
+        const open = modFolders().map((f) => f.uri.fsPath);
+        const records = readSetUps(context.globalState.get<unknown>(SET_UPS_KEY)).filter((r) =>
+            open.some((o) => sameFolder(o, r.folder)),
+        );
+        const now = new Map<string, ServerLaunch>();
+        for (const r of records) {
+            now.set(r.folder, await launchFor(r.folder));
+        }
+        return outOfDate(records, (folder) => now.get(folder) ?? null);
+    };
+    const offered = new Set<string>();
+    const offerUpdates = async (): Promise<void> => {
+        for (const record of await claudeCodeOutOfDate()) {
+            const key = JSON.stringify([record.folder, await launchFor(record.folder)]);
+            if (offered.has(key)) {
+                continue;
+            }
+            offered.add(key);
+            const again = 'Set up again';
+            const answer = await vscode.window.showInformationMessage(
+                `Claude Code still starts pychivalry for ${record.folder} with the command line it was given when it was set up, before the game folder setting changed. Set it up again with the new one?`,
+                again,
+            );
+            if (answer === again) {
+                report(await setUp(record.folder, askInVsCode), log);
+            }
+        }
+    };
 
     context.subscriptions.push(
         vscode.lm.registerMcpServerDefinitionProvider(PROVIDER_ID, {
@@ -183,6 +313,13 @@ export function activate(context: vscode.ExtensionContext): PychivalryApi {
         }),
         vscode.workspace.onDidChangeWorkspaceFolders(() => {
             changed.fire();
+        }),
+        vscode.workspace.onDidChangeConfiguration((event) => {
+            if (event.affectsConfiguration(`${SETTINGS_SECTION}.${GAME_PATH_SETTING}`)) {
+                // VS Code asks the provider again, and its AI gets the new command line.
+                changed.fire();
+                void offerUpdates();
+            }
         }),
         vscode.commands.registerCommand(
             SET_UP_CLAUDE_CODE,
@@ -211,5 +348,16 @@ export function activate(context: vscode.ExtensionContext): PychivalryApi {
         ),
     );
 
-    return { agentServer, launchFor, definitions, setUpClaudeCode: setUp };
+    void agentServer.then(offerUpdates, () => undefined);
+
+    return {
+        activatedAt,
+        agentServer,
+        launchFor,
+        definitions,
+        setUpClaudeCode: setUp,
+        claudeCodeOutOfDate,
+        language,
+        commandLine,
+    };
 }

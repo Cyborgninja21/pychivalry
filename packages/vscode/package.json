@@ -66,17 +66,56 @@
                 "id": "pychivalry.agentServer",
                 "label": "pychivalry"
             }
-        ]
+        ],
+        "configuration": {
+            "title": "pychivalry",
+            "properties": {
+                "pychivalry.gamePath": {
+                    "type": "string",
+                    "default": "",
+                    "scope": "machine-overridable",
+                    "markdownDescription": "The game's `game` folder: the one holding `common/`, `events/` and `localization/`, inside the Crusader Kings III install (for example `…/steamapps/common/Crusader Kings III/game`), as an absolute path. Leave it empty and pychivalry looks for the game in every Steam library. pychivalry reads the game to know the names it defines; while no game is found it says so once and does not judge those names. The checks in the editor and the agent server your AI uses both read the game from here."
+                },
+                "pychivalry.background.fileLimit": {
+                    "type": "integer",
+                    "default": 3000,
+                    "minimum": 0,
+                    "markdownDescription": "The most files of the mod checked in the background when the mod opens, so the editor stays quick on a very large mod. A file you open is always checked. `0` checks only the files you open."
+                },
+                "pychivalry.localization.unusedKeys": {
+                    "type": "boolean",
+                    "default": false,
+                    "markdownDescription": "Also show a hint on each localization key that nothing in the mod or the game uses (`localization/unused-key`). Off by default: a large mod can have thousands of them."
+                },
+                "pychivalry.encoding.fallback": {
+                    "type": "string",
+                    "default": "none",
+                    "enum": [
+                        "none",
+                        "windows-1252"
+                    ],
+                    "enumDescriptions": [
+                        "Read every file as UTF-8, as the game does; a byte that is not UTF-8 shows as the replacement character, and pychivalry says once that the file is not valid UTF-8.",
+                        "Read the bytes of a file that are not valid UTF-8 as Windows-1252, as many older mods were saved, so their letters show correctly. The rest of the file is still read as UTF-8."
+                    ],
+                    "markdownDescription": "How to read a script or localization file that is not valid UTF-8. The game reads its files as UTF-8; choose `windows-1252` if your mod's accented letters show as `�`."
+                }
+            }
+        }
     },
     "scripts": {
         "test": "node --test \"dist/**/*.test.js\""
     },
     "devDependencies": {
         "@modelcontextprotocol/client": "2.4.0",
+        "@pychivalry/cli": "0.0.0",
         "@pychivalry/core": "0.0.0",
+        "@pychivalry/lsp": "0.0.0",
         "@pychivalry/mcp": "0.0.0",
         "@types/vscode": "1.146.0",
         "@vscode/test-electron": "3.1.0",
-        "esbuild": "0.28.2"
+        "@vscode/vsce": "4.1.1",
+        "esbuild": "0.28.2",
+        "vscode-languageclient": "11.0.1"
     }
 }

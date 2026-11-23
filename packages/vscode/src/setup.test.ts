@@ -5,7 +5,17 @@ import path from 'node:path';
 import { test, type TestContext } from 'node:test';
 import { addArgs, removeArgs, type ClaudeCommand, type RunResult } from './claude.js';
 import { serverLaunch } from './launch.js';
-import { PROJECT_FILE, serverEntry, setUpClaudeCode, withServer, type SetupDeps } from './setup.js';
+import {
+    outOfDate,
+    PROJECT_FILE,
+    readSetUps,
+    recordOf,
+    serverEntry,
+    setUpClaudeCode,
+    withServer,
+    withSetUp,
+    type SetupDeps,
+} from './setup.js';
 
 function scratch(t: TestContext): string {
     const dir = mkdtempSync(path.join(tmpdir(), 'pychivalry-vscode-'));
@@ -148,4 +158,50 @@ test('the entry is the one Claude Code writes itself: type, command, arguments, 
     );
     assert.throws(() => withServer('[]', launch), /does not hold a JSON object/);
     assert.throws(() => withServer('{"mcpServers": []}', launch), /mcpServers is not an object/);
+});
+
+test('a set-up is remembered with the command line it gave, and found out of date when that changes', () => {
+    const before = serverLaunch(
+        '/usr/share/code/code',
+        '/storage/agent-server',
+        '/mods/m',
+        path.posix,
+    );
+    const after = serverLaunch(
+        '/usr/share/code/code',
+        '/storage/agent-server',
+        '/mods/m',
+        path.posix,
+        '/games/Crusader Kings III/game',
+    );
+    assert.deepEqual(after.args.slice(-2), ['--vanilla', '/games/Crusader Kings III/game']);
+    const done = recordOf(
+        { kind: 'claude', claude: '/usr/bin/claude', folder: '/mods/m', output: '' },
+        '/mods/m',
+        before,
+    );
+    assert.ok(done !== null);
+    assert.equal(recordOf({ kind: 'declined', folder: '/mods/m' }, '/mods/m', before), null);
+    assert.equal(recordOf({ kind: 'failed', message: 'x' }, '/mods/m', before), null);
+    const other = { folder: '/mods/other', kind: 'project-file' as const, launch: before };
+    // Kept as JSON in the global state, and read back; anything else is dropped.
+    const records = readSetUps(
+        JSON.parse(JSON.stringify([...withSetUp([other], done), 'junk', { folder: 1 }])),
+    );
+    assert.deepEqual(records, [other, done]);
+    assert.deepEqual(readSetUps(undefined), []);
+    // The same command line: nothing to do. A changed one: the folder's set-up is out of date.
+    const now = (launch: typeof before) => (folder: string) =>
+        folder === '/mods/m' ? launch : null;
+    assert.deepEqual(outOfDate(records, now(before)), []);
+    assert.deepEqual(outOfDate(records, now(after)), [done]);
+    // A second set-up of the folder replaces the first.
+    const again = recordOf(
+        { kind: 'claude', claude: '/usr/bin/claude', folder: '/mods/m', output: '' },
+        '/mods/m',
+        after,
+    );
+    assert.ok(again !== null);
+    assert.deepEqual(outOfDate(withSetUp(records, again), now(after)), []);
+    assert.equal(withSetUp(records, again).length, 2);
 });

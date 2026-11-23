@@ -40,6 +40,7 @@ test('the background checks at most the file limit, in order, and says so once',
     const done = await client.settled();
     assert.equal(done.checked, 5);
     assert.equal(done.limited, true);
+    assert.ok(Number.isInteger(done.peakRssKib) && done.peakRssKib > 0, 'its peak memory');
     const published = [...client.diagnostics.keys()].sort();
     assert.deepEqual(
         published,

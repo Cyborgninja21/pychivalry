@@ -94,6 +94,89 @@ function described(run: RunResult): string {
     return run.error ?? (text === '' ? `exit code ${String(run.code)}` : text);
 }
 
+/**
+ * What the extension remembers of a set-up it made, in its global state: the folder, how it was
+ * written, and the command line Claude Code was given. Claude Code keeps that command line as it
+ * was given; the extension's copy of the server keeps its path across updates (`install.ts`), so
+ * only a change of the command line itself, such as the game folder setting, leaves the entry
+ * out of date.
+ */
+export interface SetUpRecord {
+    readonly folder: string;
+    readonly kind: 'claude' | 'project-file';
+    readonly launch: ServerLaunch;
+}
+
+/** The global-state key the records are kept under. */
+export const SET_UPS_KEY = 'pychivalry.claudeCodeSetUps';
+
+function isLaunch(value: unknown): value is ServerLaunch {
+    if (typeof value !== 'object' || value === null) {
+        return false;
+    }
+    const v = value as Record<string, unknown>;
+    return (
+        typeof v['command'] === 'string' &&
+        Array.isArray(v['args']) &&
+        v['args'].every((a) => typeof a === 'string') &&
+        typeof v['env'] === 'object' &&
+        v['env'] !== null &&
+        Object.values(v['env']).every((e) => typeof e === 'string')
+    );
+}
+
+/** The records kept in the global state; anything that is not one is dropped. */
+export function readSetUps(value: unknown): SetUpRecord[] {
+    if (!Array.isArray(value)) {
+        return [];
+    }
+    return value.flatMap((r: unknown): SetUpRecord[] => {
+        if (typeof r !== 'object' || r === null) {
+            return [];
+        }
+        const { folder, kind, launch } = r as Record<string, unknown>;
+        return typeof folder === 'string' &&
+            (kind === 'claude' || kind === 'project-file') &&
+            isLaunch(launch)
+            ? [{ folder, kind, launch }]
+            : [];
+    });
+}
+
+/** The records with the set-up of `record.folder` replaced by `record`. */
+export function withSetUp(records: readonly SetUpRecord[], record: SetUpRecord): SetUpRecord[] {
+    return [...records.filter((r) => r.folder !== record.folder), record];
+}
+
+/** The record a set-up's outcome leaves, or null when nothing was written. */
+export function recordOf(
+    outcome: SetupOutcome,
+    folder: string,
+    launch: ServerLaunch,
+): SetUpRecord | null {
+    return outcome.kind === 'claude' || outcome.kind === 'project-file'
+        ? { folder, kind: outcome.kind, launch }
+        : null;
+}
+
+function sameLaunch(a: ServerLaunch, b: ServerLaunch): boolean {
+    return JSON.stringify(serverEntry(a)) === JSON.stringify(serverEntry(b));
+}
+
+/**
+ * The set-ups whose command line is no longer the one the extension would give: `current` gives
+ * the command line for a folder now, or null for a folder that is not open.
+ */
+export function outOfDate(
+    records: readonly SetUpRecord[],
+    current: (folder: string) => ServerLaunch | null,
+): SetUpRecord[] {
+    return records.filter((r) => {
+        const now = current(r.folder);
+        return now !== null && !sameLaunch(now, r.launch);
+    });
+}
+
 /** Add the server to Claude Code's configuration for `deps.folder`. */
 export async function setUpClaudeCode(deps: SetupDeps): Promise<SetupOutcome> {
     const claude = deps.findClaude();
