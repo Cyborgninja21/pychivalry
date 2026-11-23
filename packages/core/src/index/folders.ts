@@ -10,10 +10,68 @@
  * Every top-level key of a file in a listed folder is a definition of that folder's
  * database: the spec package's own wording for a database's keys is "a top-level key of a
  * file in the key database folder" (its `keyword_templates`). The index records how each is
- * written (`Form` in rules.ts) and draws no other line between them.
+ * written (`Form` in rules.ts). Parts D2 and D3 of the package draw the other lines, each
+ * from a row whose status is `confirmed` (a row that rests on the measurement alone is not
+ * read here):
+ *
+ * - D2, `declarations`: a top-level form that declares a namespace or a setting is no
+ *   definition (`namespace = x` in an event file); an `@name` constant holds for its file
+ *   when the row's scope is `file`.
+ * - D3, `definitions`: keys inside a record that are themselves definitions (a landed title
+ *   nested at any depth, the options of an activity type), and the folders whose records are
+ *   named by their file (`history/cultures`).
  */
 
+import type { DeclarationRow, NestedRow } from '../spec/package.js';
 import { foldCase, parentOf, segmentsOf } from './paths.js';
+
+/** A top-level form that part D2 says declares no name: `namespace = x`, a setting. */
+export interface NotADefinition {
+    readonly key: string;
+    readonly match: DeclarationRow['match'];
+    /** `value` (`key = value`) or `block` (`key = { }`). */
+    readonly form: string;
+    /** What the row says it declares: `namespace` or `setting`. */
+    readonly declares: string;
+}
+
+/** How part D3 recognises a nested definition, with the database the index records it in. */
+export interface NestedRule {
+    /** The kind of definition (`landed_title`, `activity_option`). */
+    readonly kind: string;
+    /**
+     * The index's database for it: the row's database when the kind is that folder's content
+     * type (a nested landed title is a landed title), else `<database>#<kind>`, a database of
+     * its own that no rule of the table covers.
+     */
+    readonly database: string;
+    /** `parent-field`, `container-child`, `any-block-child`, `key-pattern` or `record-key`. */
+    readonly type: string;
+    /** The path from the top-level key, each segment a whole-key pattern (`*`: any key). */
+    readonly path: readonly RegExp[];
+    /** The forms the definitions take: `block`, `value`. */
+    readonly forms: readonly string[];
+    readonly pattern: RegExp | null;
+    readonly except: ReadonlySet<string>;
+    readonly field: string | null;
+}
+
+/** A key matcher of D2 and D3: the word itself, a whole-key pattern, or a prefix. */
+export function keyMatcher(key: string, match: string): (text: string) => boolean {
+    if (match === 'exact') {
+        return (text) => text === key;
+    }
+    if (match === 'prefix') {
+        return (text) => text.startsWith(key);
+    }
+    const pattern = wholeKey(key);
+    return (text) => pattern.test(text);
+}
+
+/** A whole-key pattern of D3's paths and D2's rows; `*` is any key. */
+function wholeKey(segment: string): RegExp {
+    return segment === '*' ? /^.+$/s : new RegExp(`^(?:${segment})$`);
+}
 
 /** One folder of the spec's list. */
 export interface SpecFolder {
@@ -29,6 +87,12 @@ export interface SpecFolder {
     readonly specRecords: number | null;
     /** The files the spec counted there, if it has a schema. */
     readonly specFiles: number | null;
+    /** Part D2: the top-level forms of its files that declare no name. */
+    readonly notDefinitions: readonly NotADefinition[];
+    /** Part D3: the keys inside its records that are definitions. */
+    readonly nested: readonly NestedRule[];
+    /** Part D3: true when its records are named by their file, the key being the file's stem. */
+    readonly fileNamed: boolean;
 }
 
 /** Where a file belongs: its folder, and whether its path spells that folder in the same case. */
@@ -42,17 +106,90 @@ function isJson(value: unknown): value is Record<string, unknown> {
     return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+/** The `data` of a built part of the package, or an empty object. */
+function partData(specPackage: Record<string, unknown>, key: string): Record<string, unknown> {
+    const part = specPackage[key];
+    return isJson(part) && part['status'] === 'built' && isJson(part['data']) ? part['data'] : {};
+}
+
+/** The confirmed rows of D2 that make a top-level form of a folder no definition. */
+function notDefinitionsOf(rows: unknown): NotADefinition[] {
+    if (!Array.isArray(rows)) {
+        return [];
+    }
+    return (rows as DeclarationRow[])
+        .filter(
+            (r) =>
+                r.status === 'confirmed' &&
+                (r.declares === 'namespace' || r.declares === 'setting') &&
+                (r.form === 'value' || r.form === 'block'),
+        )
+        .map((r) => ({ key: r.key, match: r.match, form: r.form, declares: r.declares }));
+}
+
+/** The confirmed rows of D3 `nested` for a folder, with the index's database for each. */
+function nestedOf(rows: unknown, contentTypes: ReadonlyMap<string, string>): NestedRule[] {
+    if (!Array.isArray(rows)) {
+        return [];
+    }
+    return (rows as NestedRow[])
+        .filter((r) => r.status === 'confirmed' && r.database !== '')
+        .map((r) => {
+            const by = r.recognised_by;
+            const own = contentTypes.get(r.database) === r.kind;
+            return {
+                kind: r.kind,
+                database: own ? r.database : `${r.database}#${r.kind}`,
+                type: by.type,
+                path: by.path.split('/').map(wholeKey),
+                forms: by.forms,
+                pattern: by.pattern === undefined ? null : wholeKey(by.pattern),
+                except: new Set(by.except ?? []),
+                field: by.field ?? null,
+            };
+        });
+}
+
+/** The scope part D2 gives an `@name` constant (`all_directories`), when a confirmed row gives one. */
+export function constantScopeFromSpec(specPackage: unknown): string | null {
+    if (!isJson(specPackage)) {
+        return null;
+    }
+    const rows = partData(specPackage, 'declarations')['all_directories'];
+    if (!Array.isArray(rows)) {
+        return null;
+    }
+    const row = (rows as DeclarationRow[]).find(
+        (r) => r.declares === 'constant' && r.status === 'confirmed',
+    );
+    return row?.scope ?? null;
+}
+
 /**
- * The folder list of a format 5 spec package: `directories[]` with `path` and
- * `content_type`, and `schema[path]` with `fields` and `vanilla.records` and `vanilla.files`.
- * Format 5 keeps these keys of format 4 with the same shape and adds keys this reader does
- * not use. An entry without a path or content type is skipped.
+ * The folder list of a format 7 spec package: `directories[]` with `path` and
+ * `content_type`, and `schema[path]` with `fields` and `vanilla.records` and `vanilla.files`;
+ * from parts D2 and D3, what a folder's files define beyond their top-level keys. An entry
+ * without a path or content type is skipped.
  */
 export function foldersFromSpec(specPackage: unknown): SpecFolder[] {
     if (!isJson(specPackage) || !Array.isArray(specPackage['directories'])) {
         return [];
     }
     const schemas = isJson(specPackage['schema']) ? specPackage['schema'] : {};
+    const declarations = partData(specPackage, 'declarations')['directories'];
+    const definitions = partData(specPackage, 'definitions');
+    const nested = isJson(definitions['nested']) ? definitions['nested'] : {};
+    const fileNamed = isJson(definitions['file_named']) ? definitions['file_named'] : {};
+    const contentTypes = new Map<string, string>();
+    for (const entry of specPackage['directories'] as unknown[]) {
+        if (
+            isJson(entry) &&
+            typeof entry['path'] === 'string' &&
+            typeof entry['content_type'] === 'string'
+        ) {
+            contentTypes.set(entry['path'], entry['content_type']);
+        }
+    }
     const out: SpecFolder[] = [];
     for (const entry of specPackage['directories'] as unknown[]) {
         if (!isJson(entry)) {
@@ -68,6 +205,7 @@ export function foldersFromSpec(specPackage: unknown): SpecFolder[] {
         const vanilla = isJson(schema) && isJson(schema['vanilla']) ? schema['vanilla'] : undefined;
         const records = vanilla?.['records'];
         const files = vanilla?.['files'];
+        const named = fileNamed[folder];
         out.push({
             path: segmentsOf(folder).join('/'),
             contentType,
@@ -75,18 +213,37 @@ export function foldersFromSpec(specPackage: unknown): SpecFolder[] {
             schemaFields: fields === undefined ? 0 : Object.keys(fields).length,
             specRecords: typeof records === 'number' ? records : null,
             specFiles: typeof files === 'number' ? files : null,
+            notDefinitions: notDefinitionsOf(
+                isJson(declarations) ? declarations[folder] : undefined,
+            ),
+            nested: nestedOf(nested[folder], contentTypes),
+            fileNamed:
+                isJson(named) &&
+                named['status'] === 'confirmed' &&
+                named['name_from'] === 'file-stem',
         });
     }
     return out;
 }
 
+/** The folder table of a spec package: its folders, and the scope part D2 gives a constant. */
+export function folderTableFromSpec(specPackage: unknown): FolderTable {
+    return new FolderTable(foldersFromSpec(specPackage), constantScopeFromSpec(specPackage));
+}
+
 /** The spec's folders, for classifying a file by its relative path. */
 export class FolderTable {
     readonly folders: readonly SpecFolder[];
+    /**
+     * Part D2: what an `@name` constant holds for: `file` (each file its own), or null when
+     * no confirmed row says, and the index keeps every constant in one database.
+     */
+    readonly constantScope: string | null;
     private readonly byFolded = new Map<string, SpecFolder>();
 
-    constructor(folders: readonly SpecFolder[]) {
+    constructor(folders: readonly SpecFolder[], constantScope: string | null = null) {
         this.folders = folders;
+        this.constantScope = constantScope;
         for (const folder of folders) {
             this.byFolded.set(foldCase(folder.path), folder);
         }

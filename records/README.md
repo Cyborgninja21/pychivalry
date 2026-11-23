@@ -82,7 +82,8 @@ For every `*.json` under `records/` except the `*.schema.json` files:
    `passed` with its failures; a passing parse record holds only errors classified
    `game-defect`.
 7. An index record was made on the committed rules table (`results.rules.sha256` is the core's
-   digest of `spec/override-rules.json`), so a changed table forces the suite to be re-run; its
+   digest of the spec package's override rules, part D1), so a changed table forces the suite to
+   be re-run; its
    base-game totals agree with its layers; `passed` agrees with its failures; and its mods are
    the corpus slugs it names.
 8. A results baseline's counts agree with each other: the parse's files with its folders and
@@ -185,8 +186,8 @@ classified `game-defect`. An error without an entry, an entry without an error, 
 
 ## Index records (`game:index`)
 
-`task game:index` (build step 3) indexes the whole base game with the committed spec and the
-override rules table, saves the index to a cache in a temporary folder, reloads it, and indexes
+`task game:index` (build step 3) indexes the whole base game with the committed spec and its
+override rules (part D1), saves the index to a cache in a temporary folder, reloads it, and indexes
 each corpus mod over the base game. The fresh build, the reload and each mod run one at a time,
 each in a fresh process, so the time and peak memory each reports are its own. Its `notes` are
 required, and state the load average before the run. `results`:
@@ -197,14 +198,16 @@ required, and state the load average before the run. `results`:
 | `platform`, `rules.sha256` | The platform whose rules applied, and the digest of the rules table used |
 | `base_game.layers` | Per layer (`clausewitz`, `jomini`, `game`, `dlc`): files, definitions, uses, and the uses of a name something in the index defines |
 | `base_game.files`, `lines`, `definitions`, `uses`, `uses_of_defined_names`, `names` | Totals over the layers; `names` counts every distinct string the index holds |
-| `base_game.definitions_by_form` | Definitions by how they are written: `record`, `value`, `prefixed`, `constant`, `container`, `entry`, `key` |
+| `base_game.definitions_by_form` | Definitions by how they are written: `record`, `value`, `prefixed`, `constant`, `container`, `entry`, `key`, `file` |
 | `base_game.folders` | Per folder of the spec that holds a file: its files, definitions, definitions by form, and the spec's own count of its files and records in the base game it was derived from |
 | `base_game.spec_folders_without_files`, `not_described`, `not_read` | The spec's folders that hold no file read; the `.txt` and `.yml` files in folders the spec does not describe, by folder (`beside_spec_folders` when its first folder also holds listed ones); every other file, by extension |
-| `base_game.defined_more_than_once` | The names of a database defined more than once: their count, how each resolves (`all`, `statements`, `clash`, `winner`, `single`, `not-read`, `unknown`), the unknown ones by the open rule of docs/overrides.md that leaves each open (a name can count under more than one) and by database |
+| `base_game.defined_more_than_once` | The names of a database defined more than once: their count, how each resolves (`all`, `statements`, `clash`, `winner`, `single`, `not-read`, `unknown`), the unknown ones by the open rule of docs/overrides.md that leaves each open (a name can count under more than one), by reason (`unknown_by_reason`: `no-rule`, `not-settled:<row>` for a partial or open row, `no-order`, `file-unknown:<question>`) and by database |
 | `base_game.time_ms`, `peak_rss_kib`, `heap_used_after_build_mib` | Listing, building, saving and reporting times; the build process's peak resident memory, read right after the build and the save; its heap in use then |
 | `base_game.cache` | The cache file's bytes, the reload's time and peak memory, and whether the reloaded index answers as the fresh one |
 | `mods` | Per corpus mod indexed over the base game: its files, definitions, uses, `replace_path` values, the game files it replaces or hides or makes uncertain, its own files whose read status is unknown, its files not described or not read, the names defined more than once that it takes part in, its times and peak memory |
 
 A definition is a top-level key of a file in a folder the spec lists, a key whose text is a name,
-a whole number or an `@constant`; a use is a word written anywhere else, or a `$name$` in a
-localization entry ([packages/core/src/index/extract.ts](../packages/core/src/index/extract.ts)).
+a whole number or an `@constant`, less the top-level forms the package's part D2 confirms declare
+no name (`namespace`, settings), and with the nested definitions and file-named records its part
+D3 confirms; a use is a word written anywhere else, or a `$name$` in a localization entry
+([packages/core/src/index/extract.ts](../packages/core/src/index/extract.ts)).

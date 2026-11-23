@@ -19,8 +19,8 @@ import {
     sourceManifestSha256,
     walkFiles,
 } from './read-game.js';
-import { rulesFor } from './rules.js';
-import { repoPath, specFolders, standInRules } from './testing.js';
+import { decidingRules } from './rules.js';
+import { repoPath, specFolders, packageRules } from './testing.js';
 
 const STUB = repoPath('fixtures/game/override-rules');
 
@@ -52,7 +52,7 @@ test("with the pack-layer row, a DLC's files sit at their path inside the pack",
     const listing = listInstall(
         installFolders(path.join(STUB, 'game')),
         specFolders(),
-        rulesFor(standInRules(), 'linux'),
+        decidingRules(packageRules(), 'linux'),
     );
     assert.deepEqual(listing.packs, [{ layer: 'dlc:dlc_fixture', folder: 'dlc/dlc_fixture' }]);
     const dlc = listing.files.filter((f) => f.layer.startsWith('dlc:')).map((f) => f.path);

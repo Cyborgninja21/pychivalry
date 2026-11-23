@@ -19,7 +19,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { prepareLegacySpec, runResultBaseline, runSpeedBaseline } from './baseline.js';
 import { checkRecords } from './records-check.js';
-import { checkRulesTable, RULES_FILE } from './rules-table.js';
+import { checkRulesTable, RULES_SOURCE, rulesUse } from './rules-table.js';
 import { checkSpecFolder, SCHEMA_FILE } from './spec.js';
 import { GAME_SUITES, runGameSuite, writeCorpusManifest, type GameSuite } from './suites.js';
 import { CommandError, EXIT, repoRoot } from './util.js';
@@ -61,8 +61,14 @@ function run(args: readonly string[]): number {
         process.stdout.write(
             `spec check: ${check.legacy.file} is the format ${String(check.legacy.package_format)} copy for release 2.3.0, sha256 ${check.legacy.sha256} (uncompressed): ok\n`,
         );
+        const use = rulesUse(rules.table)
+            .map(
+                (u) =>
+                    `${u.platform}: ${String(u.applied)} applied, ${String(u.not_settled)} not settled, ${String(u.skipped)} skipped`,
+            )
+            .join('; ');
         process.stdout.write(
-            `spec check: ${RULES_FILE} is a ${rules.table.status} rules table of ${String(rules.table.rules.length)} rows, digest ${String(rules.sha256)}: ok\n`,
+            `spec check: ${RULES_SOURCE} reads with the core's reader: ${String(rules.table.rules.length)} rows (${use}), digest ${String(rules.sha256)}: ok\n`,
         );
         return EXIT.ok;
     }

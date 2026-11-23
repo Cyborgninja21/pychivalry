@@ -1,0 +1,11 @@
+namespace = fixture_on_action_events
+
+fixture_on_action_events.1 = {
+	type = character_event
+	hidden = yes
+	immediate = {
+		trigger_event = { on_action = fixture_on_action }
+		trigger_event = { on_action = fixture_missing_event_on_action }
+		trigger_event = { on_action = scope:fixture_saved_on_action }
+	}
+}

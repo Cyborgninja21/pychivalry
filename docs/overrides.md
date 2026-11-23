@@ -6,13 +6,26 @@ and a mod, by two files, or twice in one file. Written by build step 3, item 3.1
 evidence. This page answers open question 1 of [MVP.md](MVP.md#open-questions) as far as that
 evidence goes, and names the in-game experiment for every rule it does not settle.
 
+**Since 2026-11-22 the rules are the spec package's part D1** (`override_rules`, format 7),
+read out of the Windows executable, and for the localization reader the Linux one, by the spec
+work: 82 rows, each with its evidence, its status and what it rests on per platform. The index
+reads them and holds no rule of its own; the stand-in table this page once fed is retired
+([decisions.md](decisions.md#log)). Each rule below now says which row decides it, or that it
+is still open, under **Decided by**. A row decides when its status is `settled` or `derived`;
+a `partial` or `open` row decides nothing, and what only it would answer stays "winner not
+known". Unless a row says otherwise, it was read in the Windows executable and holds on Linux by
+the owner's decision of 2026-11-22 that the engine is the same (`platform_basis.linux:
+assumed-same-engine`).
+
 Every fact here was taken on game 1.21.0.3 on 2026-11-21. `<game dir>` is the game's `game`
 folder; the install folder above it also holds `jomini/` and `clausewitz/`.
 
 ## How to read this page
 
-Each rule states what the game does, the evidence for it with file references, and one of two
-words:
+Each rule opens with **Decided by**: the rows of the spec package's part D1 that decide it now,
+with their status. What follows is what this page found in the game's own files on
+2026-11-21, kept as written: the evidence, the experiment that would cross-check it in the
+running game, and one of two words:
 
 - **Settled** by game evidence. The index may build on it.
 - **Open**: the game's files do not decide it. By the owner's decision of 2026-11-21 the open
@@ -30,22 +43,31 @@ checked against any source.
 
 ## Summary
 
-| # | Rule | Status |
-| --- | --- | --- |
-| 1 | A file replaces the file at the same path in an earlier layer, whole | Settled for a mod over the base game; the letter case of paths is open (rule 9) |
-| 2 | File identity is the whole relative path, not the file name | Settled |
-| 3 | The install's three folders, `clausewitz`, `jomini` and `game`, are one tree; which copy wins | Open: experiment 1 |
-| 4 | The order files are read in, within a folder and across the base game and a mod | Open: experiment 2 |
-| 5 | A key defined again in a keyed database: whole record or field by field, and which wins | Open: experiments 2 and 3 |
-| 6 | Folders with their own documented rules: events, character history, on-actions, defines, container keys, province terrain | Settled, except two parts that are open: experiments 4 and 5 |
-| 7 | Localization: a key defined twice, and the `replace` folder | Open: experiment 6 |
-| 8 | `replace_path` in a mod's descriptor | Open: experiment 7 |
-| 9 | Letter case in paths | Open: experiments 8a and 8b |
-| 10 | DLC folders | Settled for 1.21.0.3: no DLC file or record collides with the base game; a mod file at a DLC file's path is open (experiment 7) |
-| 11 | Duplicate keys within one file | Settled for events and character history; otherwise part of rule 5 |
+The status as this page found it from the game's files, and as the spec package's rows now
+decide it:
 
-Rules 3, 4, 5, 7, 8 and 9 are open, and the index depends on each of them. How the step goes
-on without guessing is in [What this means for step 3](#what-this-means-for-step-3).
+| # | Rule | From the game's files (2026-11-21) | Decided by the package's rows (2026-11-22) |
+| --- | --- | --- | --- |
+| 1 | A file replaces the file at the same path in an earlier layer, whole | Settled for a mod over the base game | Settled: `mod-file-replaces-lower-layers` (a mod over the DLC, `game`, `jomini`, `clausewitz`) |
+| 2 | File identity is the whole relative path, not the file name | Settled | Settled: `file-is-its-relative-path` |
+| 3 | The install's three folders, `clausewitz`, `jomini` and `game`, are one tree; which copy wins | Open: experiment 1 | Settled: `game-file-replaces-jomini-and-clausewitz`, `jomini-file-replaces-clausewitz` |
+| 4 | The order files are read in, within a folder and across the base game and a mod | Open: experiment 2 | Settled: `file-read-order`; whether a folder is read with its subfolders, `listing-depth-recursive` (194 folders) and `listing-depth-this-folder-only` (3), settled; 12 folders only by `partial` rows, open |
+| 5 | A key defined again in a keyed database: whole record or field by field, and which wins | Open: experiments 2 and 3 | Settled for 187 generic folders and 8 with a row of their own: the later wins, whole. 32 folders have no row, `gui` is open |
+| 6 | Folders with their own documented rules: events, character history, on-actions, defines, container keys, province terrain | Settled, except two parts that are open: experiments 4 and 5 | Settled but character history, whose row is `partial` (open again in the index); the history of titles and provinces is settled (every block applies) |
+| 7 | Localization: a key defined twice, and the `replace` folder | Open: experiment 6 | Settled: `localization-first-kept`, `localization-replace-folder-wins`. On Linux a file without a byte-order mark adds no keys (`msg-localization-missing-bom`), which the index does not apply yet |
+| 8 | `replace_path` in a mod's descriptor | Open: experiment 7 | Settled: `replace-path-hides-lower-layers-in-listings` |
+| 9 | Letter case in paths | Open: experiments 8a and 8b | `derived` per platform: case-insensitive on Windows (`path-case-windows`), exact on Linux (`path-case-linux`); the engine folds no case (`path-case-engine-folds-nothing`, settled) |
+| 10 | DLC folders | Settled for 1.21.0.3; a mod file at a DLC file's path open | Settled: `dlc-packs-layout`, `dlc-file-replaces-install-folders`, and a mod over a DLC by rule 1's row |
+| 11 | Duplicate keys within one file | Settled for events and character history; otherwise part of rule 5 | As rules 5 and 6; a define written twice in one block yields the first (`defines-later-wins-per-define`, `details.within_one_block`) |
+
+What stays open, and the index answers "winner not known" for: character history defined more
+than once (rule 6, a partial row), a file below a subfolder of a folder whose depth
+only a partial row states (12 folders) or no row states (rule 4), the 32 folders of no row and
+`gui` (rule 5), the order of two DLC packs or two mods against each other (rule 1's mount
+order, not applied: the index holds one mod), and the per-field outcomes of an on-action
+declared twice (rule 6, not applied). The rows the package keeps `open` (7) and `partial` (12)
+are listed in [decisions.md](decisions.md#awaiting-confirmation) with what the index does with
+each kind.
 
 ## The evidence
 
@@ -82,6 +104,13 @@ message fires, or what the game does next unless the text says so.
 
 ### 1. A file replaces the file at the same path in an earlier layer, whole
 
+**Decided by** `mod-file-replaces-lower-layers` (settled): a mod's file replaces, whole, the
+file at the same relative path in a DLC pack, `game/`, `jomini/` and `clausewitz/`; the lower
+copies are never read. Which of two mods, or two DLC packs, wins is `search-path-order` (the
+mount order, an extension kind the index does not apply: it holds one mod, and two packs at one
+path stay "not known"). The question this step put to the owner, whether rule 1 covers a mod
+file at a `jomini/` or `clausewitz/` path, is answered by that row.
+
 **Settled, for a mod over the base game.** A mod's file at the same relative path as a base-game
 file (`common/traits/00_traits.txt` in both) replaces that file: the base game's copy is not read
 at all.
@@ -97,6 +126,8 @@ at all.
   game only.
 
 ### 2. File identity is the whole relative path, not the file name
+
+**Decided by** `file-is-its-relative-path` (settled).
 
 **Settled.** Two files with the same name in different folders are two files; neither replaces
 the other. Measured, rank 4: the base game ships three such pairs, and in each the two files hold
@@ -114,6 +145,10 @@ path. Rule 3 shows the same between the install's own folders: the files the gam
 `jomini/` sit at exactly the same relative path.
 
 ### 3. The install's three folders are one tree
+
+**Decided by** `game-file-replaces-jomini-and-clausewitz` and `jomini-file-replaces-clausewitz`
+(both settled): `game/` over `jomini/` over `clausewitz/`, whole, at the same path. The 231
+base-game names this rule left open now have one copy in force.
 
 **Open: experiment 1.** The install folder holds `clausewitz/` (the engine), `jomini/` (the
 shared game layer) and `game/`, each in the same layout (`common/`, `gui/`, `localization/` and
@@ -135,6 +170,18 @@ The index needs it: the base game is all three folders, and a fact read from the
 a wrong answer.
 
 ### 4. The order files are read in
+
+**Decided by** `file-read-order` (settled): per folder, its files sorted by name, byte by byte
+(`Z` before `_` before `a`), then its subfolders sorted by name, each read the same way; the
+comparison is of one name at a time, never of a whole path; every layer's files are listed
+together, and a path present in several layers is opened once, from the highest layer. Whether
+a folder is read with its subfolders is `listing-depth-recursive` (194 folders, settled),
+`listing-depth-this-folder-only` (`common/named_colors`, `common/coat_of_arms/coat_of_arms`,
+`common/modifier_definition_formats`, settled) and two `partial` rows (12 folders, among them
+`history/characters`, `history/cultures` and `gfx/court_scene/scene_settings`), which decide
+nothing: a file below a subfolder of such a folder, or of a folder no row names, is "read: not
+known". `localization-read-order-linux` (partial) adds what the Linux localization reader does
+first.
 
 **Open: experiment 2.** Within one folder the game reads files in a fixed order, and that order
 matters:
@@ -169,6 +216,15 @@ a define set twice (rule 6).
 
 ### 5. A key defined again in a keyed database
 
+**Decided by** `generic-database-later-wins-whole` (settled, 187 folders): the definition read
+later (by `file-read-order`, then its place in the file) replaces the whole record, and the
+game logs `Overriding entry`; rows of their own say the same for scripted triggers and effects,
+situations, activity types, coats of arms, modifier definition formats and landed titles (per
+title key, nested or not). Two keys are one key when their bytes are equal, letter case not
+folded (`key-identity-generic-database`, `key-identity-byte-exact-readers`), which is how the
+index compares them. 32 folders have no row (`coverage` class `unknown`) and `gui` is `open`:
+their names stay "winner not known".
+
 **Open: experiments 2 and 3.** The executable's generic database (`jomini/core/game_database.h`)
 logs `Overriding entry '{}' for database '{}' in '{}'`: when a key is read that the database
 already holds, the new definition overrides the entry, and the message names the file it came
@@ -196,6 +252,21 @@ definition read wins and replaces the whole record ("LIOS"), and that some folde
 first ("FIOS").
 
 ### 6. Folders with their own documented rules
+
+**Decided by**, per folder: events, `events-by-override-priority` (settled; at equal priority
+the game logs the error and keeps the definition read first, which the index still reports as
+a clash and names none); character history, `characters-by-override-priority` (`partial`: what
+a lower-priority definition's dated blocks do is not shown), so the index names no winner and
+reports no clash for a character defined twice; on-actions, `on-action-declarations-add-up`
+(settled) with `on-action-field-outcomes` (an extension the index does not apply); defines,
+`define-groups-add-up` and `defines-later-wins-per-define` (settled: the later block wins, and
+inside one block the first of two); container keys, `named-colors-container`,
+`coat-of-arms-template-container`, `coat-of-arms-template-lists-container` with their
+later-wins rows (settled; `special_genes` has no containers row, `gene-database-later-wins`
+decides genes); province terrain, `province-terrain-statements` (settled); the history of titles
+and of provinces, `title-history-appended` and `province-history-appended` (settled: every
+block of every definition applies, the later read deciding a date's entries), which answers the
+open part this page left (experiment 5).
 
 **Events: settled.** `<game dir>/events/_events.info`, lines 77 to 83: an event id defined more
 than once is resolved by `id_override_priority`, an integer that is 0 by default and in every
@@ -260,6 +331,14 @@ within one file and 629 times across two files.
 
 ### 7. Localization
 
+**Decided by** `localization-first-kept` (settled, read in both executables): of two
+definitions in ordinary files, the one read first is kept; `localization-replace-folder-wins`
+(settled): a file under a folder named `replace`, written byte for byte anywhere in its path,
+wins over every ordinary file, and of two such files the one read later. On Linux a file
+without a UTF-8 byte-order mark adds no keys at all (`msg-localization-missing-bom`, settled,
+Linux only): the row's condition is in its text, not in a field, so the index does not apply
+it yet (a request to the spec work, [decisions.md](decisions.md)).
+
 **Open: experiment 6.** The executable's localization reader (`pdx_localize.cpp`) logs
 `Duplicate localization key. Key '%s' is defined in both '%s' and '%s'.`, `Key '%s' defined in
 multiple files: '%s', '%s'` and `Discarded duplicate key: %s for language %s`, and treats a
@@ -276,6 +355,11 @@ that otherwise the first copy read is kept.
 
 ### 8. `replace_path`
 
+**Decided by** `replace-path-hides-lower-layers-in-listings` (settled): `replace_path` hides
+the files directly in the folder it names, of every lower layer (and of mods earlier in the load
+order), when the folder is written byte for byte as the game lists it; a subfolder is listed
+under its own path and is not hidden.
+
 **Open: experiment 7.** The executable's descriptor reader knows the key `replace_path`, among
 the keys of a DLC or mod descriptor, and logs `replace_path not implemented for MSGR_DLC. DLC:
 %s`. No game file and none of the five corpus mods uses it, and no `.info` file describes it.
@@ -285,6 +369,13 @@ commonly state that `replace_path = "common/x"` in a mod's descriptor makes the 
 base game's files in `common/x`; whether that includes `common/x/y` is disputed.
 
 ### 9. Letter case in paths
+
+**Decided by** `path-case-engine-folds-nothing` (settled: the engine compares no case; the
+operating system finds a file) and, per platform, `path-case-windows` (`derived`: on a
+case-insensitive volume, the Windows default, a mod's file under either spelling replaces the
+game's) and `path-case-linux` (`derived`, not read in the Linux executable: a differently
+spelled path is another path, and a folder spelled in other case is not read). The index
+applies both, each on its own platform.
 
 **Open: experiments 8a and 8b.** Measured: no path under `common/`, `events/`, `history/` or
 `localization/` in the base game (16,653 files) has an upper-case letter, and no two paths in
@@ -297,6 +388,10 @@ files without regard to letter case") is pychivalry's, for finding files, not a 
 game's rule.
 
 ### 10. DLC folders
+
+**Decided by** `dlc-packs-layout` and `dlc-file-replaces-install-folders` (settled): a pack's
+files sit at their path inside it, and replace the install folders' files at the same path; a
+mod file at a DLC file's path replaces it (rule 1's row).
 
 **Settled for game 1.21.0.3.** Each DLC is a folder `<game dir>/dlc/<pack>/` with a descriptor
 `<pack>.dlc` whose `path` names that folder (`path = "dlc/dlc003_fp1"`). The executable handles
@@ -318,6 +413,10 @@ Which packs the game loads is the user's setting, not a rule of the files: the e
 data folder.
 
 ### 11. Duplicate keys within one file
+
+**Decided by** the rows of rules 5 and 6: within one file the later definition is the later
+one read, but for defines a name written twice inside one block yields the first
+(`details.within_one_block` of `defines-later-wins-per-define`).
 
 Settled where rule 6 settles it: an event id or a character id defined twice in one file is the
 error those rules describe. For every other keyed folder it is rule 5, and open: the generic
@@ -600,7 +699,7 @@ The analysis machine runs Windows, so experiments 8a and 8b answer for Windows o
 probes on Linux need a game launch on a Linux machine, which the plan does not provide: that is
 a decision for the owner.
 
-## What this means for step 3
+## What this meant for step 3
 
 The index depends on rules 3, 4, 5, 7, 8 and 9: which copy of the base game is read, which of two
 definitions is the one in force, and which files a mod hides. They are open. The owner decided
@@ -620,9 +719,7 @@ on 2026-11-21 how the step goes on ([decisions 40 to 43](decisions.md#log)):
 4. **The experiments above are not run for now.** They stay as a cross-check for the day a
    rule read from the executable needs confirming in the running game.
 
-What is settled already goes into a stand-in table until the spec package carries one: rules 1,
-2 and 10; and for events, character history, on-actions (apart from their single values),
-defines, container keys and province terrain, rule 6. The stand-in table is
-[spec/override-rules.json](../spec/override-rules.json), with its schema
-`spec/override-rules.schema.json`; [spec/README.md](../spec/README.md#the-override-rules-table)
-describes it.
+What was settled already went into a stand-in table until the spec package carried one. The
+1.21.0.3 package in format 7 carries the table (part D1), read out of the executable as point 2
+asked, and the stand-in is retired; [spec/README.md](../spec/README.md#the-override-rules-table)
+describes how the index reads it.

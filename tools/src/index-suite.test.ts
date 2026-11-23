@@ -1,7 +1,8 @@
 /**
  * The base-game index suite (index-suite.ts) on the fixture stub and fixture mods: it passes,
  * its results fit the record format, a reloaded cache answers as the fresh index, and each
- * open answer is counted under the rule of docs/overrides.md that leaves it open.
+ * open answer is counted under the rule of docs/overrides.md that leaves it open and by its
+ * reason.
  */
 
 import assert from 'node:assert/strict';
@@ -9,7 +10,7 @@ import { cpSync, mkdirSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { test } from 'node:test';
 import type { Resolution } from '@pychivalry/core';
-import { openRules, runIndexSuite } from './index-suite.js';
+import { openRules, reasonsOf, runIndexSuite } from './index-suite.js';
 import { checkRecord, compileRecordSchema } from './records-check.js';
 import type { SuiteRecord } from './record.js';
 import { committedRules } from './rules-table.js';
@@ -76,7 +77,32 @@ test('each open answer is counted under the rule of docs/overrides.md that leave
         [6],
     );
     assert.deepEqual(
-        openRules(unknown([{ kind: 'no-rule', database: 'common/defines', forms: ['entry'] }])),
+        openRules(
+            unknown([
+                {
+                    kind: 'not-settled',
+                    database: 'history/characters',
+                    rule: 'characters-by-override-priority',
+                    status: 'partial',
+                    overrides_rule: 6,
+                },
+            ]),
+        ),
+        [6],
+    );
+    assert.deepEqual(
+        openRules(
+            unknown([
+                {
+                    kind: 'file-unknown',
+                    layer: 'game',
+                    file: 'f',
+                    questions: [
+                        { kind: 'listing-depth', folder: 'history/characters', rule: null },
+                    ],
+                },
+            ]),
+        ),
         [4],
     );
     assert.deepEqual(
@@ -95,6 +121,22 @@ test('each open answer is counted under the rule of docs/overrides.md that leave
             ]),
         ),
         [3, 5],
+    );
+    assert.deepEqual(
+        reasonsOf(
+            unknown([
+                same('game', 'jomini'),
+                { kind: 'no-rule', database: 'common/x', forms: ['value'] },
+                {
+                    kind: 'not-settled',
+                    database: 'common/x',
+                    rule: 'a-row',
+                    status: 'open',
+                    overrides_rule: 5,
+                },
+            ]),
+        ),
+        ['file-unknown:same-path', 'no-rule', 'not-settled:a-row'],
     );
 });
 
@@ -129,17 +171,26 @@ test('the suite on the fixture stub and mods passes, and its results fit the rec
     const dupes = base['defined_more_than_once'] as {
         by_status: Record<string, number>;
         unknown_by_rule: { rule: number }[];
+        unknown_by_reason: { reason: string; names: number }[];
     };
-    assert.equal(dupes.by_status['clash'], 1, 'fixture_char_2, twice in one file');
+    // fixture_char_2, twice in one file: its row is partial, so no winner and no clash.
+    assert.equal(dupes.by_status['clash'], undefined);
+    assert.equal(dupes.by_status['unknown'], 1);
     assert.deepEqual(
         dupes.unknown_by_rule.map((r) => r.rule),
-        [3, 5],
+        [6],
     );
+    assert.deepEqual(dupes.unknown_by_reason, [
+        { reason: 'not-settled:characters-by-override-priority', names: 1 },
+    ]);
     const [mod, replacePath] = results['mods'] as Record<string, unknown>[];
     assert.ok(mod !== undefined && replacePath !== undefined);
-    assert.equal(mod['game_files_replaced'], 1);
+    // The traits file, jomini/'s define file, the DLC's category file, the culture history.
+    assert.equal(mod['game_files_replaced'], 4);
     assert.deepEqual(replacePath['replace_paths'], ['common/decisions']);
+    // Two files below subfolders whose depth no settled row states.
     assert.equal(replacePath['game_files_read_unknown'], 2);
+    assert.equal(replacePath['game_files_hidden'], 1);
     const record = {
         record_format: 1,
         suite: 'game:index',

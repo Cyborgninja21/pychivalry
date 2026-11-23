@@ -1,6 +1,6 @@
 # pychivalry: build plan
 
-Status: plan for approval, 2026-11-22. Step 0 is done: the 1.21.0.3 spec package in format 5 is committed. Step 1 is complete, and steps 2 and 3 are built and merged, with the override rules the game's files leave open still unresolved until a spec package carries them. Item 4.1, the check inventory, is written and signed off; item 4.2 is built but for two rows that wait on data the 1.21.0.3 package lacks, with item 4.3's context reader as its prerequisite, and the step stops there for the owner. The Progress table says what is open.
+Status: plan for approval, 2026-11-22. Step 0 is done: the 1.21.0.3 spec package in format 7 is committed, its override rules table among its parts. Step 1 is complete, and steps 2 and 3 are built and merged, the index reading the override rules from the package. Item 4.1, the check inventory, is written and signed off; item 4.2 is built, its six checks, with item 4.3's context reader as its prerequisite, but for two iterator sub-cases that wait on the owner. Items 4.4 onward are next. The Progress table says what is open.
 
 This is the "how" for the rebuild. The "what" and the "why" are in [MVP.md](MVP.md): the
 decisions, the scope, the tests each feature needs and the definition of done. Where the two
@@ -19,11 +19,11 @@ disagree, MVP.md is right and this plan is fixed.
 
 | Step | Name | Needs the 1.21 spec | State |
 | --- | --- | --- | --- |
-| 0 | Spec work, in `pdx-parser-re` | It produces it | Done: the 1.21.0.3 package in format 5, its three companions, its schema and the format 4 copy, adopted in item 1.6. The override rules table and the other held requests are not in it |
+| 0 | Spec work, in `pdx-parser-re` | It produces it | Done: the 1.21.0.3 package, adopted in item 1.6 in format 5 and replaced the same day by format 7 (decision 64), with its three companions, its schema `schema.format7.json` and a new format 4 copy. Format 7 carries the override rules table (D1) and the other held requests (D2 to D8) |
 | 1 | Repository skeleton | Two items only (1.6, 1.11) | Complete (pull requests #114, #115 and #124). Item 1.6: the 1.21.0.3 package is committed, gzipped. Item 1.11: the speed and result baselines of 2.3.0 are recorded on its format 4 copy |
 | 2 | Parser | No | Built and merged (pull request #116). Item 2.6's public codes are left to item 4.1, which maps the syntax finding identifiers to them |
-| 3 | Workspace index | No for the index; the override rules table comes from step 0 | Built and merged (pull requests #118 and #120). The stand-in rules table `spec/override-rules.json` carries the settled rules only; the rules it lacks (3, 4, 5, 7, 8, 9 and the open parts of 6 and 10 in `docs/overrides.md`) stay unresolved, and the index names no winner for them, until the spec package carries them |
-| 4 | Engine checks and lookup | Yes, from item 4.2 on | Item 4.1 is done and signed off (pull requests #121 and #122): `docs/checks.md`, the check inventory and the code scheme; its codes are permanent. Item 4.2 (pull request #125): the typed spec reader and four of its six checks (`names/unknown-trigger`, `-effect`, `-link`, `-modifier`), with item 4.3's context reader built as their prerequisite. Stopped there, on the owner's decision of 2026-11-22 (decision 63): building waits for the spec work's follow-up package, which is to name the fields that hold an on-action, the use area of each modifier block, which iterator prefix belongs in which block, and correct `config` in `common/pool_character_selectors`. Item 4.2 is finished from that package; items 4.4 to 4.11 are not started |
+| 3 | Workspace index | No for the index; the override rules table comes from step 0 | Built and merged (pull requests #118 and #120). The override rules come from the spec package's part D1 (the stand-in `spec/override-rules.json` is retired, decision 65): a settled or derived row decides, a partial or open row does not; parts D2 and D3 say what a definition is. Base-game names defined more than once with no winner known: 1,309 before, 118 now. Still open: character history defined twice (a partial row), the depth of the folders only partial rows or no row describe, the 32 folders with no row and `gui`, and the order of several mods or DLC packs (`docs/overrides.md`) |
+| 4 | Engine checks and lookup | Yes, from item 4.2 on | Item 4.1 is done and signed off (pull requests #121 and #122): `docs/checks.md`, the check inventory and the code scheme; its codes are permanent. Item 4.2 is done on the format 7 package (pull request #125 and this one): the typed spec reader, its eight new parts typed, and the six checks (`names/unknown-trigger`, `-effect`, `-link`, `-modifier`, `-on-action`, `names/modifier-outside-use-area`), with item 4.3's context reader built as their prerequisite. Open in item 4.2: the iterator sub-cases of `names/unknown-trigger` and `names/unknown-effect`, which wait on the owner (no game message ties them to an iterator of the wrong kind). Next: items 4.4 to 4.11, by another agent |
 | 5 | Command line | Through step 4 | Not started |
 | 6 | Agent server | Through step 4 | Not started |
 | 7 | Language server and extension | Through step 4 | Not started |
@@ -125,9 +125,8 @@ spec/
   ck3-spec-<version>.json.gz     the committed spec package file, gzipped
   ck3-spec-<version>.<part>.json.gz   its companions: info, gui, data_types
   ck3-spec-<version>[.<part>].sha256  checksum of each file's uncompressed bytes
-  schema.format5.json            the package's own schema, from pdx-parser-re
+  schema.format7.json            the package's own schema, from pdx-parser-re
   legacy/                        the same version in format 4, for the 2.3.0 baselines only
-  override-rules.json            the override rules table, a stand-in (step 3)
 packages/
   core/                   parse, index, check, lookup, format, fix data
   cli/                    command line
@@ -171,9 +170,9 @@ These names are the ones 2.3.0 used, so its scripts and records stay comparable.
 
 **Done** (2026-11-21, adopted here 2026-11-22 in item 1.6): the 1.21.0.3 package in format 5
 with all twelve of its parts built, its three companions, its schema, and the format 4 copy.
-Not in the package: the override rules table and the other requests held in
-[decisions.md](decisions.md). No real error log came with it either; item 11.1 starts by
-capturing them.
+**Follow-up done** (adopted 2026-11-22, decision 64): the same package in format 7, which adds
+the override rules table (D1) and the other requests held in [decisions.md](decisions.md)
+(D2 to D8). No real error log came with it; item 11.1 starts by capturing them.
 
 **What this plan needs from it.**
 
@@ -189,7 +188,7 @@ capturing them.
 | The data-types dump | After the MVP: localization bracket checks |
 | The GUI vocabulary | After the MVP: GUI checks |
 | Real error logs from the analysis machine | Item 11.1 |
-| The override rules, as a table: each rule, its evidence, the platforms it holds on (Windows and Linux both analysed) | Items 3.2 and 3.6. Until it arrives, the rules [overrides.md](overrides.md) marks settled are carried as a stand-in table |
+| The override rules, as a table: each rule, its evidence, the platforms it holds on (Windows and Linux both analysed) | Items 3.2 and 3.6. Delivered in format 7 as part D1 (Windows read for every row, Linux for the localization reader, the rest of Linux on the owner's decision that the engine is the same); the stand-in table is retired |
 
 **The contract.** The format 5 layout is the table "Format 5" in that plan. The spec reader in
 item 4.2 is written against it. If the other agent changes the layout, that plan is updated
@@ -225,7 +224,9 @@ suites and their records wired up, and the 2.3.0 baselines on record.
   **Done** (2026-11-22): the 1.21.0.3 package, format 5, its three companions and its schema,
   committed gzipped by the owner's decision; `task spec:check` verifies every file's checksum,
   the companions the package lists, the JSON Schema and the format 4 copy kept for 2.3.0 in
-  `spec/legacy/` ([spec/README.md](../spec/README.md)).
+  `spec/legacy/` ([spec/README.md](../spec/README.md)). Replaced the same day, on the owner's
+  go, by the 1.21.0.3 package in format 7 (decision 64): the same twelve parts and eight more,
+  the override rules table among them, with `schema.format7.json` and a new format 4 copy.
 - 1.7 The record format, in `records/README.md`: every record is JSON and states the suite,
   the tool version and commit, the game build and the hash of the game's file manifest, the
   spec version and checksum, the corpus manifest hash, when it was made, and the results.
@@ -380,10 +381,11 @@ replaced paths, no DLC precedence. All of this step beyond the basics is new wor
 - 3.1a The override rules as data. The rules are a table, never code: each row names the rule,
   the folders it applies to, what wins, its evidence, and the platforms it holds on. The table
   comes in the spec package from step 0, which reads the open rules out of the Windows and
-  Linux executables. Until it arrives, a stand-in table under `spec/` carries only the rules
+  Linux executables. Until it arrived, a stand-in table under `spec/` carried only the rules
   overrides.md marks settled. The core reads the table; it holds no rule of its own. **Built:**
-  `spec/override-rules.json` and its schema `spec/override-rules.schema.json`
-  ([spec/README.md](../spec/README.md#the-override-rules-table)), checked by `task spec:check`.
+  first a stand-in, `spec/override-rules.json`; since 2026-11-22 the spec package's part D1,
+  read by `rulesFromSpec` ([spec/README.md](../spec/README.md#the-override-rules-table)) and
+  checked by `task spec:check`; the stand-in is retired (decision 65).
 - 3.2 A fixture mod and a fixture game stub that exercise every rule in `overrides.md`. For a
   settled rule the fixture states the winner. For an open rule it states both definitions and
   that no winner is given.
@@ -459,7 +461,18 @@ titles; and `namespace` in an event file is a top-level value with no row, defin
 Re-measured on the 1.21.0.3 package (item 1.6): 236 folders indexed, 17,302 files; 12 folders
 of 103 files are still not described, 3 of them beside the spec's (`common` itself,
 `gfx/tools`, `map_data`); the same eight folders hold no file; 1,309 names still have no winner
-known.
+known. Re-measured on the format 7 package with its override rules (part D1) and parts D2 and
+D3 (item 4.2, [records/game/index.json](../records/game/index.json)): 17,302 files, 3,370,975
+definitions (`namespace` no longer one; 21,647 more, the nested titles and the other nested
+definitions D3 confirms, and 154 culture histories named by their files) and 9,068,424 uses;
+12,845 names defined more than once, of which 164 now have a winner, 672 add up, 229 have one
+definition in force, 11,662 are province-terrain statements and 118 have no winner known, down
+from 1,309: 93 with no row of the table (the folders the package leaves without a rule, the
+coats of arms written both as a record and as a value, and nested names written twice under
+one parent), 22 in files below a subfolder whose depth no settled row states (`sound`,
+`gfx/portraits`, `gfx/map/map_object_data`, `music`) and 3 character ids under the partial
+character row. The 3 character ids are no longer a clash: the row that made them one is
+partial.
 
 ---
 
@@ -468,7 +481,7 @@ known.
 **Goal.** Tell the modder what the game would say, with evidence, and answer any question
 about a name.
 
-**Depends on.** Step 3. From item 4.2 on, the 1.21 spec in format 5.
+**Depends on.** Step 3. From item 4.2 on, the 1.21 spec in format 7.
 
 **Work items.**
 
@@ -487,8 +500,9 @@ about a name.
   format, and exposes the package as typed data. Checks: unknown trigger, effect, scope link,
   list, modifier and on-action; name templates (the `%s` forms) accepted; names in more than
   one bucket resolved by context; a modifier used outside its use area.
-  **Built**, but for two rows (below): `packages/core/src/spec/` and four checks in
-  `packages/core/src/check/`.
+  **Built**, the six rows, two iterator sub-cases excepted (below): `packages/core/src/spec/` and
+  six checks in `packages/core/src/check/`; the last two rows and the reader's format 7 parts
+  on the follow-up package (decision 64).
 - 4.3 **Context.** Which blocks hold triggers and which hold effects, from the hand-kept tables
   now in the spec: block-opening keys, iterator parameters, structural keywords, containers.
   **Built** inside item 4.2, whose rows need it: `packages/core/src/check/context.ts`.
@@ -586,6 +600,55 @@ base game's index and the committed spec; the suites of item 4.10 will record th
   entry is measured an effect block with no fields, and `common/script_values` records its
   links as effect blocks. The rules of reading that keep such cases silent are stated from the
   package's data in docs/decisions.md ("Awaiting confirmation").
+
+**Found** (item 4.2 finished on the format 7 package, 2026-11-22, measured the same way with a
+one-off script over the built core, the base game's index and the committed spec):
+
+- The typed reader reads format 7 only and exposes its eight new parts (`Spec.part`), each row
+  with its status and evidence; the package file is read once per process. The hand-kept
+  tables grew (177 entries: 154 confirmed, 15 contradicted, 8 with none).
+- `names/unknown-on-action` reads the 11 places part D6 confirms name an on-action (5 fields of
+  `common/council_tasks` and `common/on_action`, 6 effect parameters, `trigger_event`'s
+  `on_action` among them). It raises nothing on the base game and nothing on the five mods.
+- `names/modifier-outside-use-area` reads the use area part D7 confirms for each block that
+  holds modifiers; the context reader now also reads as modifier blocks the 132 confirmed D7
+  blocks the schema does not mark, with the keys D7 measures there as parameters. On the base
+  game it judges 33,186 modifiers and raises 215 warnings, every one in one block,
+  `county_potential_trade_good_modifier` of `common/buildings`
+  (`regular_district_buildings/00_villages_district_buildings.txt`, 145 between lines 38 and
+  5,610; `00_tribal_economy_and_prestige_district_buildings.txt`, 70 between lines 382 and
+  1,626): 29 `trade_good_<x>_production_add` modifiers, whose only use area the game documents
+  is province, in a block D7 confirms as county while its own note says the two disagree and
+  that the row is not settled without a running game. A request to the spec work
+  (docs/decisions.md).
+- The base game's errors: 12, down from item 4.2's 20; the 8 `config` errors of
+  `common/pool_character_selectors` are gone with the corrected field kind. The 12, for item
+  4.9 to classify: `names/unknown-trigger` at
+  `common/decisions/00_major_decisions_east_europe.txt:397` (`filter`),
+  `common/scripted_effects/00_laamp_effects.txt:1846` (`save_scope_as`),
+  `common/scripted_effects/00_relation_effects.txt:757` (`is_powerful`),
+  `common/scripted_effects/00_religion_effects.txt:1320` and `:1331` (`can_elevate_holy_site`,
+  `can_demote_holy_site`), `common/scripted_triggers/00_relation_triggers.txt:1071`
+  (`is_powerful`), `common/scripted_triggers/00_religious_triggers.txt:806` and `:807` (the two
+  `secret_is_blackmailable_*_hook_trigger`); `names/unknown-effect` at
+  `common/scripted_effects/00_religion_effects.txt:1322` and `:1333` (`elevate_holy_site`,
+  `demote_holy_site`) and `events/dlc/gdp/gdp_merchant_events.txt:2195` and `:2240`
+  (`selection_count`). The checks judge 1,199,844 keys in trigger and effect blocks, 39,902 in
+  modifier blocks and 416,167 scope chains.
+- On the five mods, errors per code: balance-of-power-ui none; divine-intervention none (215
+  warnings, the same block in its copies of the two base-game files); elf-destiny 2
+  `names/unknown-link` as before (70 warnings, the same block); rice 139
+  `names/unknown-trigger`, 314 `names/unknown-effect` as before and 361
+  `names/unknown-modifier` (36 before: 325 more in blocks D7 confirms, nearly all modifiers
+  1.21.0.3 removed, such as `development_growth_factor`), and 80 warnings (`monthly_income`, a
+  character modifier, in a building's `province_modifier`); viet-events 1
+  `names/unknown-effect` as before.
+- The iterator sub-cases are not built: part D8 says which kind each prefix is, from the
+  game's own documentation, but no game message ties the unknown-trigger or unknown-effect
+  message to an iterator of the wrong kind (D8's own first open point), and the rows are
+  errors. A question for the owner.
+- Part D4 replaces nothing the context reader took from the tables: each context it states,
+  it states as the table entry the reader already reads.
 
 ---
 

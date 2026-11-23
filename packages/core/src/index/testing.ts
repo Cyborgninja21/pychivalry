@@ -1,17 +1,16 @@
 /**
- * Helpers for the index's tests: the repository's committed spec folder list and stand-in
- * rules table, and an index built from a fixture game stub and a fixture mod. Not part of the
+ * Helpers for the index's tests: the committed spec package's folder list and rules table
+ * (part D1), and an index built from a fixture game stub and a fixture mod. Not part of the
  * package's public surface.
  */
 
-import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { openSpec } from '../spec/reader.js';
-import { FolderTable, foldersFromSpec } from './folders.js';
+import { folderTableFromSpec, type FolderTable } from './folders.js';
 import { indexFiles, indexMod, installFolders, listInstall } from './read-game.js';
-import { readRulesTable, rulesFor, type Platform, type RulesTable } from './rules.js';
-import { WorkspaceIndex } from './workspace.js';
+import { decidingRules, rulesFromSpec, type Platform, type RulesTable } from './rules.js';
+import type { WorkspaceIndex } from './workspace.js';
 
 /** The repository root: compiled tests live in `packages/core/dist/index/`. */
 export const REPO = path.resolve(fileURLToPath(new URL('../../../../', import.meta.url)));
@@ -33,18 +32,26 @@ let folders: FolderTable | undefined;
 
 /** The folder list of the committed spec package. */
 export function specFolders(): FolderTable {
-    folders ??= new FolderTable(foldersFromSpec(committedSpecPackage()));
+    folders ??= folderTableFromSpec(committedSpecPackage());
     return folders;
 }
 
-/** The committed stand-in rules table, checked. */
-export function standInRules(): RulesTable {
-    return readRulesTable(JSON.parse(readFileSync(repoPath('spec/override-rules.json'), 'utf8')));
+let rules: RulesTable | undefined;
+
+/** The committed spec package's rules table (part D1), checked. */
+export function packageRules(): RulesTable {
+    rules ??= rulesFromSpec(openSpec(repoPath('spec')));
+    return rules;
 }
 
 /** A row's base fields, for rows written by a test: they are no statement about the game. */
 export const TEST_ROW = {
     platforms: ['linux', 'windows'],
+    status: 'settled',
+    platform_basis: {
+        linux: { basis: 'read', text: 'a test' },
+        windows: { basis: 'read', text: 'a test' },
+    },
     evidence: [
         {
             rank: 5,
@@ -60,15 +67,15 @@ export function stubIndex(
     stub: string,
     options: { rules?: RulesTable; platform?: Platform | undefined } = {},
 ): WorkspaceIndex {
-    const rules = options.rules ?? standInRules();
+    const table = options.rules ?? packageRules();
     const platform = 'platform' in options ? options.platform : 'linux';
     const gameDir = repoPath(`fixtures/game/${stub}/game`);
     const listing = listInstall(
         installFolders(gameDir),
         specFolders(),
-        platform === undefined ? [] : rulesFor(rules, platform),
+        platform === undefined ? [] : decidingRules(table, platform),
     );
-    return indexFiles(listing.files, { folders: specFolders(), rules, platform });
+    return indexFiles(listing.files, { folders: specFolders(), rules: table, platform });
 }
 
 /** A fixture mod indexed over a fixture stub. */

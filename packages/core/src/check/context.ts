@@ -9,10 +9,15 @@
  * - A record's body: the directory's schema (`schema.<dir>.record_body`, a trigger or an
  *   effect block), or its record fields (`fields`, each with its `kind`). An inline
  *   `word name = { }` reads as the records of the directory whose content type is `word`.
- * - A field's block: `holds: modifiers` makes it a modifier block; a block whose direct
- *   children include a key of the table `value_block_keys`, or a field of `value_fields`, is
- *   a script value; a field of kind `trigger_block` or `effect_block` is that; a key of
- *   `opens_context` opens its context where the schema does not record the field.
+ * - A field's block: `holds: modifiers` makes it a modifier block, and so does a row of part
+ *   D7 (`modifier_block_areas`) whose status is `confirmed`, for the record body, a field or
+ *   sub-field, a family of them, or a block at depth 3 or deeper by its key; the keys D7
+ *   measures in such a block as no modifier (`structural_keys`, `other_keys`) are its
+ *   parameters; a block whose
+ *   direct children include a key of the table `value_block_keys`, or a field of
+ *   `value_fields`, is a script value; a field of kind `trigger_block` or `effect_block` is
+ *   that; a key of `opens_context` opens its context where the schema does not record the
+ *   field.
  * - Inside a trigger or effect block: the parameters of the block around (an iterator's, a
  *   container's, a `block_params` entry's); `structural`; the context's bucket (a container of
  *   `containers` reads its body by its rule); links, which switch scope and keep the context;
@@ -40,7 +45,12 @@
  * - A key that differs from a known name only in letter case (`ROOT`, `IF`, `NOt`) is read as
  *   that name, as `structural` itself is ("in any case").
  * - Which iterator prefix belongs in a trigger block and which in an effect block is not
- *   judged: the package does not say (a keyword role it does not carry).
+ *   judged: part D8 says which (`any_` a trigger, the others effects), but no game message
+ *   ties an iterator of the wrong kind to the unknown-trigger or unknown-effect message, so
+ *   that sub-case waits on the owner (docs/decisions.md, "Asked, awaiting the owner").
+ * - Part D4 (`keyword_roles`) replaces nothing read here: every context it states for a
+ *   keyword it states as the table entry this reader already reads (`stated_elsewhere`), and
+ *   a test holds the two to each other.
  * - The body of a key that is unknown is not read, as the game skips it.
  *
  * The tables are trusted by the rule in `spec/tables.ts`. The core holds no keyword: every
@@ -48,7 +58,13 @@
  */
 
 import type { FolderTable } from '../index/folders.js';
-import type { BucketName, DirectorySchema, RetiredEntry, SchemaField } from '../spec/package.js';
+import type {
+    BucketName,
+    DirectorySchema,
+    ModifierBlockAreaRow,
+    RetiredEntry,
+    SchemaField,
+} from '../spec/package.js';
 import type { Spec } from '../spec/reader.js';
 import { tablesOf, type Child, type ContainerRule, type Tables } from '../spec/tables.js';
 import { vocabularyOf, type Vocabulary } from '../spec/vocabulary.js';
@@ -119,6 +135,17 @@ export type ModifierReading =
 export interface JudgedModifier {
     readonly pair: Pair;
     readonly reading: ModifierReading;
+    /** The modifier block it is written in. */
+    readonly block: Block;
+}
+
+/**
+ * A modifier block read from a record: the keys from the record's body to the block (`[]`
+ * for the body itself), and the part D7 row that describes it, if one does (any status).
+ */
+export interface ModifierBlockSite {
+    readonly path: readonly string[];
+    readonly row: ModifierBlockAreaRow | null;
 }
 
 /** What walking a chain's segments found. */
@@ -144,6 +171,8 @@ export interface FileReading {
     readonly blocks: ReadonlyMap<Block, BlockKind>;
     readonly keys: readonly JudgedKey[];
     readonly modifiers: readonly JudgedModifier[];
+    /** The modifier blocks read from a record's fields, with their place and D7 row. */
+    readonly modifierBlocks: ReadonlyMap<Block, ModifierBlockSite>;
     readonly chains: readonly ChainSite[];
 }
 
@@ -179,6 +208,90 @@ interface Model {
     readonly valueDirectories: ReadonlySet<string>;
     /** Per key, the sub-fields the schema records for a top-level field of that name. */
     readonly borrowed: Map<string, Fields>;
+    /** Part D7's rows, by directory. */
+    readonly modifierAreas: ReadonlyMap<string, readonly ModifierBlockAreaRow[]>;
+}
+
+/**
+ * Whether a key is one D7 measures in its block as no modifier: a field of the block
+ * (`measured.structural_keys`: `parameter`, `terrain`) or another key it counts there
+ * (`measured.other_keys`: `trade_good`). Read only where it makes a key not a finding.
+ */
+function blockKeyOf(row: ModifierBlockAreaRow | null, key: string): boolean {
+    const measured = row?.['measured'];
+    if (typeof measured !== 'object' || measured === null) {
+        return false;
+    }
+    return ['structural_keys', 'other_keys'].some((group) => {
+        const keys = (measured as Record<string, unknown>)[group];
+        return (
+            typeof keys === 'object' &&
+            keys !== null &&
+            Object.prototype.hasOwnProperty.call(keys, key)
+        );
+    });
+}
+
+/** Whether a key matches a segment of a D7 path: the key itself, or `<number>`, `<date>`. */
+function segmentMatches(segment: string, key: string): boolean {
+    if (segment === key) {
+        return true;
+    }
+    if (segment === '<number>') {
+        return /^-?[0-9]+(\.[0-9]+)?$/.test(key);
+    }
+    if (segment === '<date>') {
+        return /^-?[0-9]+\.[0-9]+\.[0-9]+$/.test(key);
+    }
+    return false;
+}
+
+/**
+ * The D7 row of a block at `path` below a record of `directory` (D7's own reading, its
+ * `about.consumer`): `(record)` for the body itself, a field or sub-field by its keys, a family
+ * `*.<g>` for each of its members, and `**.<key>` for every block with that key at depth 3 or
+ * deeper.
+ */
+export function modifierAreaRow(
+    rows: readonly ModifierBlockAreaRow[],
+    path: readonly string[],
+): ModifierBlockAreaRow | null {
+    for (const row of rows) {
+        const at = row.id.indexOf('::');
+        const id = at < 0 ? row.id : row.id.slice(at + 2);
+        if (id === '(record)') {
+            if (path.length === 0) {
+                return row;
+            }
+            continue;
+        }
+        const segments = id.split('.');
+        if (segments[0] === '**') {
+            const key = segments.slice(1).join('.');
+            if (path.length >= 3 && segmentMatches(key, path[path.length - 1] ?? '')) {
+                return row;
+            }
+            continue;
+        }
+        if (segments[0] === '*') {
+            const members = row.members ?? [];
+            if (
+                path.length === 2 &&
+                members.includes(path[0] ?? '') &&
+                segmentMatches(segments.slice(1).join('.'), path[1] ?? '')
+            ) {
+                return row;
+            }
+            continue;
+        }
+        if (
+            segments.length === path.length &&
+            segments.every((segment, i) => segmentMatches(segment, path[i] ?? ''))
+        ) {
+            return row;
+        }
+    }
+    return null;
 }
 
 function contextOfBody(body: string | undefined): Context | undefined {
@@ -232,6 +345,10 @@ function modelOf(spec: Spec): Model {
     const valueDirectories = new Set(
         spec.data.directories.filter((d) => groups.has(d.content_type)).map((d) => d.path),
     );
+    const modifierAreas = new Map<string, ModifierBlockAreaRow[]>();
+    for (const row of spec.part('modifier_block_areas')?.fields ?? []) {
+        modifierAreas.set(row.directory, [...(modifierAreas.get(row.directory) ?? []), row]);
+    }
     const model: Model = {
         vocabulary: vocabularyOf(spec),
         valueDirectories,
@@ -241,6 +358,7 @@ function modelOf(spec: Spec): Model {
         callable,
         callableAnywhere: anywhere,
         borrowed: new Map(),
+        modifierAreas,
     };
     models.set(spec, model);
     return model;
@@ -282,7 +400,10 @@ class Reader {
     readonly blocks = new Map<Block, BlockKind>();
     readonly keys: JudgedKey[] = [];
     readonly modifiers: JudgedModifier[] = [];
+    readonly modifierBlocks = new Map<Block, ModifierBlockSite>();
     readonly chains: ChainSite[] = [];
+    /** The D7 rows of the file's directory. */
+    private areas: readonly ModifierBlockAreaRow[] = [];
     private readonly local = new Map<Context, Set<string>>([
         ['trigger', new Set()],
         ['effect', new Set()],
@@ -303,6 +424,7 @@ class Reader {
         const directory = folders.classify(file)?.folder.path ?? null;
         const schema: DirectorySchema | undefined =
             directory === null ? undefined : own(spec.data.schema, directory);
+        this.areas = directory === null ? [] : (this.model.modifierAreas.get(directory) ?? []);
         for (const item of tree.items) {
             if (item.kind === 'pair' && item.prefix !== null) {
                 const context = this.model.prefixBodies.get(item.prefix.text);
@@ -325,14 +447,19 @@ class Reader {
                 if (context !== undefined) {
                     this.walkContext(block, context, undefined, {});
                 } else {
-                    this.walkNone(block, undefined, false);
+                    this.walkNone(block, undefined, false, null);
                 }
             } else if (recordContext !== undefined) {
                 this.walkContext(block, recordContext, undefined, {});
             } else if (directory !== null && this.model.valueDirectories.has(directory)) {
-                this.walkNone(block, undefined, true);
+                this.walkNone(block, undefined, true, null);
             } else if (schema !== undefined) {
-                this.walkNone(block, schema.fields, this.isValueBlock(block));
+                const body = this.confirmedArea([]);
+                if (body !== null) {
+                    this.readModifiers(block, schema.fields, { path: [], row: body });
+                } else {
+                    this.walkNone(block, schema.fields, this.isValueBlock(block), []);
+                }
             }
         }
         return directory;
@@ -443,13 +570,28 @@ class Reader {
         return { kind: 'links' };
     }
 
-    /** A body outside trigger and effect blocks: record fields, or script-value arithmetic. */
-    private walkNone(block: Block, fields: Fields, valueMode: boolean): void {
+    /** A D7 row for a block at `path` below the record, when its status is `confirmed`. */
+    private confirmedArea(path: readonly string[]): ModifierBlockAreaRow | null {
+        const row = modifierAreaRow(this.areas, path);
+        return row?.status === 'confirmed' ? row : null;
+    }
+
+    /**
+     * A body outside trigger and effect blocks: record fields, or script-value arithmetic.
+     * `path` is the keys from the record's body to this block, or null when the block is not
+     * reached through record fields alone.
+     */
+    private walkNone(
+        block: Block,
+        fields: Fields,
+        valueMode: boolean,
+        path: readonly string[] | null,
+    ): void {
         const kind: BlockKind = valueMode ? 'script-value' : 'none';
         this.blocks.set(block, kind);
         for (const item of block.items) {
             if (item.kind === 'block') {
-                this.walkNone(item, undefined, valueMode);
+                this.walkNone(item, undefined, valueMode, null);
                 continue;
             }
             if (item.kind !== 'pair') {
@@ -464,9 +606,10 @@ class Reader {
                 continue;
             }
             const key = item.key.text;
+            const below = path === null ? null : [...path, key];
             if (item.key.type === 'chain' || this.vocabulary.has('links', key)) {
                 // A scope switch, not a record field: its body reads like the block around it.
-                this.walkNone(body, undefined, valueMode || this.isValueBlock(body));
+                this.walkNone(body, undefined, valueMode || this.isValueBlock(body), null);
                 continue;
             }
             const opens = this.tables.opensContext.get(key);
@@ -474,23 +617,27 @@ class Reader {
                 if (opens === 'trigger') {
                     this.walkContext(body, 'trigger', undefined, {});
                 } else {
-                    this.walkNone(body, undefined, true);
+                    this.walkNone(body, undefined, true, null);
                 }
                 continue;
             }
             const found = fieldOf(fields, item.key);
             const field = found?.field;
-            if (found?.placeholder === true) {
-                // A dated or numbered entry: the record's own fields, never a context.
-                this.walkNone(body, field?.fields, this.isValueBlock(body));
+            const area = below === null ? null : this.confirmedArea(below);
+            if ((field?.holds === 'modifiers' && found?.placeholder !== true) || area !== null) {
+                this.readModifiers(body, field?.fields, {
+                    path: below ?? [],
+                    row: below === null ? null : modifierAreaRow(this.areas, below),
+                });
                 continue;
             }
-            if (field?.holds === 'modifiers') {
-                this.readModifiers(body, field.fields);
+            if (found?.placeholder === true) {
+                // A dated or numbered entry: the record's own fields, never a context.
+                this.walkNone(body, field?.fields, this.isValueBlock(body), below);
                 continue;
             }
             if (this.tables.valueFields.has(key) || this.isValueBlock(body)) {
-                this.walkNone(body, undefined, true);
+                this.walkNone(body, undefined, true, null);
                 continue;
             }
             const extras: Extras = { params: this.tables.blockParams.get(key) };
@@ -503,7 +650,7 @@ class Reader {
                 this.walkContext(body, opens, field?.fields ?? this.borrowedFields(key), extras);
                 continue;
             }
-            this.walkNone(body, field?.fields, false);
+            this.walkNone(body, field?.fields, false, below);
         }
     }
 
@@ -527,7 +674,7 @@ class Reader {
             return;
         }
         if (child === 'none' || this.isValueBlock(body)) {
-            this.walkNone(body, undefined, child !== 'none');
+            this.walkNone(body, undefined, child !== 'none', null);
         } else {
             this.walkContext(body, child === 'same' ? context : child, undefined, {});
         }
@@ -688,7 +835,7 @@ class Reader {
             return;
         }
         if (rule.child === 'none' || this.isValueBlock(body)) {
-            this.walkNone(body, undefined, false);
+            this.walkNone(body, undefined, false, null);
             return;
         }
         const inner: Context = rule.child === 'same' ? context : rule.child;
@@ -716,17 +863,26 @@ class Reader {
 
     // ─── Modifier blocks ───────────────────────────────────────────────────
 
-    private readModifiers(block: Block, fields: Fields): void {
+    private readModifiers(block: Block, fields: Fields, site: ModifierBlockSite): void {
         this.blocks.set(block, 'modifiers');
+        this.modifierBlocks.set(block, site);
         for (const item of block.items) {
             if (item.kind !== 'pair') {
                 continue;
             }
-            this.modifiers.push({ pair: item, reading: this.modifierReading(item.key, fields) });
+            this.modifiers.push({
+                pair: item,
+                reading: this.modifierReading(item.key, fields, site.row),
+                block,
+            });
         }
     }
 
-    private modifierReading(key: Scalar, fields: Fields): ModifierReading {
+    private modifierReading(
+        key: Scalar,
+        fields: Fields,
+        row: ModifierBlockAreaRow | null,
+    ): ModifierReading {
         const name = key.text;
         if (isOpaque(key) || key.type === 'chain') {
             return { kind: 'opaque' };
@@ -734,7 +890,7 @@ class Reader {
         if (fieldFor(fields, key) !== undefined) {
             return { kind: 'field' };
         }
-        if (this.tables.modifierBlockParams.has(name)) {
+        if (this.tables.modifierBlockParams.has(name) || blockKeyOf(row, name)) {
             return { kind: 'block-param' };
         }
         if (this.vocabulary.has('modifiers', name)) {
@@ -764,6 +920,7 @@ export function readContext(input: ReadInput): FileReading {
         blocks: reader.blocks,
         keys: reader.keys,
         modifiers: reader.modifiers,
+        modifierBlocks: reader.modifierBlocks,
         chains: reader.chains,
     };
 }

@@ -85,6 +85,11 @@ test("each check's catalogue message is in the committed catalogue, with a place
     const catalogue = catalogueFromSpec(committedSpec().data);
     for (const code of Object.keys(CHECK_KINDS) as CheckCode[]) {
         const kind = CHECK_KINDS[code];
+        if (kind.catalogue === null) {
+            // Evidence of the game's own output, with no message: the row says so.
+            assert.ok(rows.get(code)?.evidence.startsWith('Game output'), code);
+            continue;
+        }
         const text = catalogue.get(kind.catalogue);
         assert.ok(text !== undefined, `${kind.catalogue} is in the catalogue`);
         assert.equal(placeholderCount(text), kind.slots.length, code);

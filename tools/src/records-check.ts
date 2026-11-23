@@ -4,9 +4,10 @@
  * (a record made on another spec fails, so a spec change forces the suites to be re-run),
  * names the committed corpus manifest if it read the corpus, holds no local path, and states
  * statistics that agree with its own values; a parse record's totals agree with its folders;
- * an index record's totals agree with its layers, and it was made on the committed rules table.
+ * an index record's totals agree with its layers, and it was made on the committed rules table
+ * (the spec package's part D1).
  *
- * A baseline of release 2.3.0 cannot be made on the format 5 package, which 2.3.0 cannot
+ * A baseline of release 2.3.0 cannot be made on the format 7 package, which 2.3.0 cannot
  * read. It is tied instead to the committed format 4 copy of the same game version
  * (`spec/legacy/`): its spec is that copy, byte for byte, and the game it read is the build
  * that copy and the package were derived for.
@@ -178,7 +179,7 @@ function indexProblems(record: Record<string, unknown>, expected: Expected): str
     const rules = isObject(results['rules']) ? results['rules']['sha256'] : undefined;
     if (rules !== expected.rulesSha256) {
         problems.push(
-            `/results/rules/sha256: made on rules table ${JSON.stringify(rules)}, but the committed spec/override-rules.json is ${expected.rulesSha256 ?? 'missing or failing its check'}; re-run the suite`,
+            `/results/rules/sha256: made on rules table ${JSON.stringify(rules)}, but the committed spec package's override rules (part D1) are ${expected.rulesSha256 ?? 'missing or failing their check'}; re-run the suite`,
         );
     }
     const base = isObject(results['base_game']) ? results['base_game'] : {};

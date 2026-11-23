@@ -1,18 +1,29 @@
 /**
- * The override rules table (docs/PLAN.md item 3.1a): `spec/override-rules.json`, the stand-in
- * that carries the rules docs/overrides.md marks settled until the spec package carries the
- * table, and its schema `spec/override-rules.schema.json`. `task spec:check` validates the
- * table against the schema and with the core's own reader, which also refuses two rows that
- * answer one question.
+ * The override rules table (docs/PLAN.md item 3.1a): part D1 of the committed spec package,
+ * `override_rules.data`, read out of the game's executables by the spec work. It retired the
+ * stand-in table `spec/override-rules.json` (docs/decisions.md). `task spec:check` reads it
+ * with the core's own reader, which refuses two rows that answer one question on one platform;
+ * the package's JSON Schema, which the spec check validates the package against, covers the
+ * rest of its shape.
  */
 
-import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
-import { Ajv2020, type ErrorObject } from 'ajv/dist/2020.js';
-import { readRulesTable, rulesDigest, RulesTableError, type RulesTable } from '@pychivalry/core';
+import {
+    APPLIED_KINDS,
+    decides,
+    openSpec,
+    PLATFORMS,
+    rulesDigest,
+    rulesFor,
+    rulesFromSpec,
+    RulesTableError,
+    SpecError,
+    type Platform,
+    type RulesTable,
+} from '@pychivalry/core';
 
-export const RULES_FILE = 'override-rules.json';
-export const RULES_SCHEMA_FILE = 'override-rules.schema.json';
+/** Where the table is: the package's part D1. */
+export const RULES_SOURCE = 'override_rules (part D1 of the spec package)';
 
 export interface RulesCheck {
     /** The table, when it passes. */
@@ -22,55 +33,24 @@ export interface RulesCheck {
     problems: string[];
 }
 
-function describe(error: ErrorObject): string {
-    const where = error.instancePath === '' ? '(root)' : error.instancePath;
-    return `${where}: ${error.message ?? 'is invalid'}`;
-}
-
-/** Check the rules table in the spec folder. */
+/** Check the rules table of the spec package in the spec folder. */
 export function checkRulesTable(specDir: string): RulesCheck {
-    const file = path.join(specDir, RULES_FILE);
-    const schemaFile = path.join(specDir, RULES_SCHEMA_FILE);
-    const problems: string[] = [];
-    if (!existsSync(file)) {
-        return { table: undefined, sha256: undefined, problems: [`${RULES_FILE} is missing`] };
-    }
-    if (!existsSync(schemaFile)) {
-        return {
-            table: undefined,
-            sha256: undefined,
-            problems: [`${RULES_SCHEMA_FILE} is missing`],
-        };
-    }
-    let data: unknown;
     try {
-        data = JSON.parse(readFileSync(file, 'utf8')) as unknown;
-    } catch (err) {
-        return {
-            table: undefined,
-            sha256: undefined,
-            problems: [`${RULES_FILE} is not valid JSON: ${(err as Error).message}`],
-        };
-    }
-    const ajv = new Ajv2020({ allErrors: true, strict: true });
-    const validate = ajv.compile(JSON.parse(readFileSync(schemaFile, 'utf8')) as object);
-    if (!validate(data)) {
-        problems.push(...(validate.errors ?? []).map((e) => `${RULES_FILE} ${describe(e)}`));
-    }
-    let table: RulesTable | undefined;
-    try {
-        table = readRulesTable(data);
+        const table = rulesFromSpec(openSpec(specDir));
+        return { table, sha256: rulesDigest(table), problems: [] };
     } catch (err) {
         if (err instanceof RulesTableError) {
-            problems.push(...err.problems.map((p) => `${RULES_FILE}: ${p}`));
-        } else {
-            throw err;
+            return {
+                table: undefined,
+                sha256: undefined,
+                problems: err.problems.map((p) => `${RULES_SOURCE}: ${p}`),
+            };
         }
+        if (err instanceof SpecError) {
+            return { table: undefined, sha256: undefined, problems: [err.message] };
+        }
+        throw err;
     }
-    if (problems.length > 0 || table === undefined) {
-        return { table: undefined, sha256: undefined, problems };
-    }
-    return { table, sha256: rulesDigest(table), problems };
 }
 
 /** The committed rules table, checked; throws when it fails. */
@@ -82,4 +62,28 @@ export function committedRules(root: string): { table: RulesTable; sha256: strin
         );
     }
     return { table: check.table, sha256: check.sha256 };
+}
+
+/** Per platform, how many rows the index applies, reads and skips, and leaves open. */
+export interface RulesUse {
+    platform: Platform;
+    /** Rows of a kind the index applies, settled or derived: they decide. */
+    applied: number;
+    /** Rows of a kind the index applies that are partial or open: they decide nothing. */
+    not_settled: number;
+    /** Rows of an extension kind the index does not apply. */
+    skipped: number;
+}
+
+/** How the index uses the table on each platform. */
+export function rulesUse(table: RulesTable): RulesUse[] {
+    return PLATFORMS.map((platform) => {
+        const rows = rulesFor(table, platform);
+        return {
+            platform,
+            applied: rows.filter(decides).length,
+            not_settled: rows.filter((r) => APPLIED_KINDS.has(r.kind) && !decides(r)).length,
+            skipped: rows.filter((r) => !APPLIED_KINDS.has(r.kind)).length,
+        };
+    });
 }

@@ -1,22 +1,45 @@
 {
     "game": "fixtures/game/override-rules",
     "platforms": ["linux", "windows"],
-    "note": "The case of rule 9 (experiment 8b) only: every other name of the stub answers as in fixtures/mods/override-rules/expected.json with that mod left out. The mod writes the folder common/script_values as Common/Script_Values. pychivalry finds the file without regard to letter case and classifies it as a script value, but whether the game reads a folder spelled that way is open, so its definition has no winner. Lines count from 1.",
+    "note": "This mod writes its folder Common/Script_Values. What a correct index answers with the spec package's rules table (part D1), on each platform: letter case is the file system's. Lines count from 1.",
     "cases": [
         {
             "rule": 9,
-            "what": "A script value in a folder spelled in other letter case: whether the game reads the file is open",
+            "what": "A script value in a folder spelled in other letter case: on Linux the folder is not found and the file is not read (path-case-linux); on Windows it is read (path-case-windows)",
+            "platforms": ["linux"],
             "database": "common/script_values",
             "container": null,
             "name": "fixture_upper_folder",
-            "status": "unknown",
+            "status": "not-read",
             "winner": null,
             "definitions": [
                 {
                     "layer": "mod",
                     "file": "Common/Script_Values/fixture_upper_folder.txt",
                     "line": 1,
-                    "read": "unknown"
+                    "read": "no"
+                }
+            ]
+        },
+        {
+            "rule": 9,
+            "what": "A script value in a folder spelled in other letter case: on Linux the folder is not found and the file is not read (path-case-linux); on Windows it is read (path-case-windows)",
+            "platforms": ["windows"],
+            "database": "common/script_values",
+            "container": null,
+            "name": "fixture_upper_folder",
+            "status": "single",
+            "winner": {
+                "layer": "mod",
+                "file": "Common/Script_Values/fixture_upper_folder.txt",
+                "line": 1
+            },
+            "definitions": [
+                {
+                    "layer": "mod",
+                    "file": "Common/Script_Values/fixture_upper_folder.txt",
+                    "line": 1,
+                    "read": "yes"
                 }
             ]
         }

@@ -2,14 +2,17 @@
 
 A mod that holds one definition of every form the index records, and uses of each name in every
 way a word is read as a use (build step 3, items 3.3, 3.4 and 3.9). It is read alone, with the
-committed spec's folder list and the stand-in rules table, which makes the top-level keys of
-`common/defines` and the key `colors` of `common/named_colors` containers.
+committed spec's folder list and its override rules (part D1), which make the top-level keys of
+`common/defines` and the key `colors` of `common/named_colors` containers. The package's part D2
+makes `namespace = x` in an event file no definition (it names a namespace, by its value) and a
+constant hold for its file: `@fixture_cost` is of the database
+`constants:common/scripted_effects/fixture_effects.txt`.
 
 | Form | Example here |
 | --- | --- |
 | `record`, `value` | `fixture_effect = { ... }`, `fixture_value = 10` |
 | `prefixed` | `scripted_trigger fixture_inline_trigger = { ... }` in an event file |
-| `constant` | `@fixture_cost = 5` |
+| `constant` | `@fixture_cost = 5`, of its file's own database |
 | `container`, `entry` | `NFixture = { FIXTURE_DEFINE = 1 }`, `colors = { fixture_green = ... }` |
 | `key` | localization keys, with and without a version number, in a file with the byte-order mark |
 

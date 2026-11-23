@@ -1,0 +1,12 @@
+e_fixture = {
+	k_fixture = {
+		d_fixture = {
+			c_fixture = {
+				color = { 10 20 30 }
+				b_fixture = {
+					province = 1
+				}
+			}
+		}
+	}
+}

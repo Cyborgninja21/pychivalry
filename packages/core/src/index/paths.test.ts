@@ -26,7 +26,7 @@ import {
     segmentsOf,
 } from './paths.js';
 import { indexMod, listMod } from './read-game.js';
-import { specFolders, standInRules } from './testing.js';
+import { specFolders, packageRules } from './testing.js';
 import { WorkspaceIndex } from './workspace.js';
 
 test('2.3.0 issue #90: a file is classified by its folders, matched whole', () => {
@@ -63,7 +63,7 @@ test('2.3.0 issue #90: a mod kept in a folder named like a game folder classifie
             );
             const index = new WorkspaceIndex({
                 folders: specFolders(),
-                rules: standInRules(),
+                rules: packageRules(),
                 platform: 'linux',
             });
             indexMod(index, root);
@@ -112,7 +112,7 @@ test('files are found without regard to letter case, each with the path as writt
 test('the index finds a file in any layer without regard to letter case', () => {
     const index = new WorkspaceIndex({
         folders: specFolders(),
-        rules: standInRules(),
+        rules: packageRules(),
         platform: 'linux',
     });
     index.addFile('game', 'common/traits/00_traits.txt', 'brave = { }\n');
@@ -199,6 +199,9 @@ test('the folder list is read from a spec package, with its record schemas', () 
             schemaFields: 2,
             specRecords: 306,
             specFiles: 1,
+            notDefinitions: [],
+            nested: [],
+            fileNamed: false,
         },
         {
             path: 'gfx/x',
@@ -207,6 +210,9 @@ test('the folder list is read from a spec package, with its record schemas', () 
             schemaFields: 0,
             specRecords: null,
             specFiles: null,
+            notDefinitions: [],
+            nested: [],
+            fileNamed: false,
         },
     ]);
     assert.deepEqual(foldersFromSpec(null), []);
@@ -218,7 +224,7 @@ test('the folder list is read from a spec package, with its record schemas', () 
 
 test('the committed spec lists the folders the base game holds records in', () => {
     const folders = specFolders();
-    assert.equal(folders.folders.length, 244);
+    assert.equal(folders.folders.length, 239);
     assert.ok(folders.get('events') !== undefined);
     assert.ok(folders.get('localization') !== undefined);
     assert.equal(folders.folders.filter((f) => f.schema).length, 198);

@@ -5,9 +5,9 @@
 
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
-import { FolderTable, foldersFromSpec } from '../index/folders.js';
+import { folderTableFromSpec, type FolderTable } from '../index/folders.js';
 import { indexMod } from '../index/read-game.js';
-import { readRulesTable } from '../index/rules.js';
+import { rulesFromSpec } from '../index/rules.js';
 import { WorkspaceIndex } from '../index/workspace.js';
 import { committedSpec, REPO_ROOT } from '../spec/testing.js';
 import { catalogueFromSpec, type MessageCatalogue } from '../syntax/findings.js';
@@ -33,7 +33,7 @@ let catalogue: MessageCatalogue | undefined;
 
 /** The committed spec's folder list and catalogue, built once. */
 export function specContext(): { folders: FolderTable; catalogue: MessageCatalogue } {
-    folders ??= new FolderTable(foldersFromSpec(committedSpec().data));
+    folders ??= folderTableFromSpec(committedSpec().data);
     catalogue ??= catalogueFromSpec(committedSpec().data);
     return { folders, catalogue };
 }
@@ -42,9 +42,7 @@ export function specContext(): { folders: FolderTable; catalogue: MessageCatalog
 export function checkFixture(mod: string): WrittenFinding[] {
     const spec = committedSpec();
     const { folders: table, catalogue: messages } = specContext();
-    const rules = readRulesTable(
-        JSON.parse(readFileSync(path.join(REPO_ROOT, 'spec', 'override-rules.json'), 'utf8')),
-    );
+    const rules = rulesFromSpec(spec);
     const index = new WorkspaceIndex({ folders: table, rules, platform: 'linux' });
     const listing = indexMod(index, path.join(REPO_ROOT, 'fixtures', 'mods', mod));
     const names = definedNamesOf(index);

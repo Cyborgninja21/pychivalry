@@ -9,9 +9,11 @@ import type { MessageCatalogue } from '../syntax/findings.js';
 import type { ParseResult } from '../syntax/parser.js';
 import { readContext, type DefinedNames, type FileReading } from './context.js';
 import type { CheckFinding } from './finding.js';
+import { modifiersOutsideUseArea } from './names-modifier-outside-use-area.js';
 import { unknownEffects } from './names-unknown-effect.js';
 import { unknownLinks } from './names-unknown-link.js';
 import { unknownModifiers } from './names-unknown-modifier.js';
+import { unknownOnActions } from './names-unknown-on-action.js';
 import { unknownTriggers } from './names-unknown-trigger.js';
 
 export {
@@ -26,9 +28,13 @@ export {
     type JudgedKey,
     type JudgedModifier,
     type KeyReading,
+    modifierAreaRow,
+    type ModifierBlockSite,
     type ModifierReading,
     type ReadInput,
 } from './context.js';
+export { useAreasOf } from './names-modifier-outside-use-area.js';
+export { onActionPlaces } from './names-unknown-on-action.js';
 export {
     CHECK_KINDS,
     checkMessage,
@@ -66,6 +72,12 @@ export function checkFile(input: CheckInput): CheckFinding[] {
         ...unknownEffects(reading, context),
         ...unknownLinks(reading, context),
         ...unknownModifiers(reading, context),
+        ...unknownOnActions(reading, context, {
+            spec: input.spec,
+            tree: input.parsed.file,
+            names: input.names,
+        }),
+        ...modifiersOutsideUseArea(reading, context, input.spec),
     ].sort(
         (a, b) =>
             a.start - b.start || a.end - b.end || (a.code < b.code ? -1 : a.code > b.code ? 1 : 0),

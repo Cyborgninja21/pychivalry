@@ -135,8 +135,42 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   string (definition of done 5).
 - Fixtures `names-unknown-trigger`, `names-unknown-effect`, `names-unknown-link` and
   `names-unknown-modifier`, each a `-bad` and a `-good` mod.
+- Item 4.2 finished on the 1.21.0.3 spec package in format 7 (the owner's go of 2026-11-22):
+  the typed reader exposes its eight new parts (D1 override rules, D2 declarations, D3 nested and
+  file-named definitions, D4 keyword roles, D5 implicit localization keys, D6 field references,
+  D7 modifier block areas, D8 iterator kinds), each row with its status and evidence, read once
+  per process (`Spec.part`). Two more engine checks, each with its fixture pair:
+  `names/unknown-on-action` (an error on the catalogue's "Unknown on action: %s", at the places
+  D6 confirms name an on-action) and `names/modifier-outside-use-area` (a warning on the game's
+  own modifier documentation, in the blocks D7 confirms the use area of). The iterator
+  sub-cases of `names/unknown-trigger` and `names/unknown-effect` are not built: no game message
+  ties them to an iterator of the wrong kind, a question for the owner.
 
 ### Changed
+
+- The spec package is the 1.21.0.3 package in format 7 (55.4 MB, 3.14 MB gzipped), with
+  `spec/schema.format7.json` and a new format 4 copy; the core's reader and `task spec:check`
+  read format 7 only and refuse format 5.
+- The override rules come from the package (part D1): the stand-in `spec/override-rules.json`
+  and its schema are retired. The core's rules reader reads every row's status and its basis per
+  platform; a settled or derived row of a kind the index applies decides, a partial or open row
+  decides nothing. The index applies the extension kind `listing-depth` and reads the other
+  seven without applying them, reads the rows' `details` where the kind alone would name a
+  wrong winner, and matches `replace` and `replace_path` folders byte for byte. With parts D2 and
+  D3, `namespace` and settings are no definitions, a constant holds for its file, a landed title
+  nested at any depth is a definition and a `history/cultures` file defines its culture's
+  record, named by its stem. The index cache's format is 2; the index record counts the names
+  with no winner known by reason too. On the base game 118 names defined more than once have no
+  winner known, where there were 1,309.
+- The game-file suites are re-run on the format 7 package. The checks raise 12 errors in the base
+  game where item 4.2 raised 20 (the 8 errors of `common/pool_character_selectors` are gone with
+  the corrected field kind) and 215 warnings, all in one block the package's own row says is
+  not settled (docs/decisions.md, row 67); on the mods the same errors as before, and 325 more
+  unknown modifiers in RICE, in the blocks part D7 confirms.
+- The context reader reads the blocks part D7 confirms as modifier blocks, with the keys D7
+  measures there as their parameters.
+- The 2.3.0 baselines are re-recorded on the new format 4 copy, whose bytes changed: 2.3.0's
+  base-game check now reports 88 errors (96 before); its findings on the five mods are the same.
 
 - The tools' suites and the core's tests read the spec package through the core's reader; the
   tools' own `readSpecPackage` is removed. `task spec:check` keeps its fuller check.

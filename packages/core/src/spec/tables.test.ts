@@ -11,7 +11,7 @@ function decision(table: string, entry: string): string | undefined {
     return tables.decisions.find((d) => d.table === table && d.entry === entry)?.use;
 }
 
-test('every entry of the 19 tables gets a decision: 143 confirmed, 15 contradicted, 8 with no evidence', () => {
+test('every entry of the 19 tables gets a decision: 154 confirmed, 15 contradicted, 8 with no evidence', () => {
     const data = committedSpec().data.tables.data;
     const statuses: Record<string, number> = {};
     for (const table of Object.values(data)) {
@@ -19,7 +19,7 @@ test('every entry of the 19 tables gets a decision: 143 confirmed, 15 contradict
             statuses[entry.evidence_status] = (statuses[entry.evidence_status] ?? 0) + 1;
         }
     }
-    assert.deepEqual(statuses, { confirmed: 143, contradicted: 15, none: 8 });
+    assert.deepEqual(statuses, { confirmed: 154, contradicted: 15, none: 8 });
     for (const [name, table] of Object.entries(data)) {
         if (['file_kinds', 'event_types', 'effect_context_keys', 'trigger_context_keys'].includes(name)) {
             continue; // read by later items (the index, the call graph, the structural checks)
@@ -67,7 +67,9 @@ test('an entry with no evidence is read only where it makes a key not a finding'
 test("a candidate the game's documentation names is read only to accept its key", () => {
     assert.equal(decision('iterator_params', 'culture_filter'), 'accept-only');
     assert.equal(tables.iteratorParamsFor('ruler').get('culture_filter'), 'none');
-    assert.equal(decision('value_block_keys', 'min'), 'accept-only', 'the script values .info documents it');
+    assert.equal(decision('containers', 'weighted_calc_true_if'), 'accept-only');
+    // Format 7 made the script-value operations entries, `min` among them: read as written.
+    assert.equal(decision('value_block_keys', 'min'), 'read');
     assert.ok(tables.valueBlockKeys.has('min'));
 });
 

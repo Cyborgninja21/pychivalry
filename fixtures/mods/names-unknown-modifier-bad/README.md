@@ -7,6 +7,6 @@ a modifier the game removed in 1.21.0.3 (`tax_mult`).
 
 A correct tool reports two errors with the game's message "Unknown modifier type '{}' at {}",
 the removed one with the version it went in. It is silent on the rest: modifiers, a name that
-fills a modifier template (`stationed_archers_damage_mult`), and `fixture_slot_add`, which only
+fills a modifier template (`bowmen_damage_mult`), and `fixture_slot_add`, which only
 the template `%s_add` fills, a template the spec marks as no proof alone, so the name is
 neither proved nor refuted. `expected.json` holds the findings.

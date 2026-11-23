@@ -22,16 +22,25 @@ export type CheckCode =
     | 'names/unknown-trigger'
     | 'names/unknown-effect'
     | 'names/unknown-link'
-    | 'names/unknown-modifier';
+    | 'names/unknown-modifier'
+    | 'names/unknown-on-action'
+    | 'names/modifier-outside-use-area';
 
 export interface CheckKind {
     readonly severity: Severity;
-    /** The catalogue entry holding the game's own message: the evidence (docs/checks.md). */
-    readonly catalogue: string;
+    /**
+     * The catalogue entry holding the game's own message: the evidence (docs/checks.md); null
+     * for a check whose evidence is the game's output with no message (`gameOutput`).
+     */
+    readonly catalogue: string | null;
+    /** For a check with no catalogue message: where the game's output it rests on is. */
+    readonly gameOutput?: string;
     /** What the message's placeholders are filled with, in order. */
     readonly slots: readonly Slot[];
     /** What the finding means, in pychivalry's words. */
     readonly description: string;
+    /** The message of a check with no catalogue message, `%s` for each slot. */
+    readonly text?: string;
 }
 
 /** Every code of this build, with its row of docs/checks.md. */
@@ -61,6 +70,21 @@ export const CHECK_KINDS: Readonly<Record<CheckCode, CheckKind>> = {
         description:
             'A key in a modifier block that is no modifier and fills no modifier template.',
     },
+    'names/unknown-on-action': {
+        severity: 'error',
+        catalogue: 'unknown_on_action_X',
+        slots: ['value'],
+        description: 'A value naming an on-action the game does not have.',
+    },
+    'names/modifier-outside-use-area': {
+        severity: 'warning',
+        catalogue: null,
+        gameOutput:
+            "buckets.modifiers.<name>.use_areas and modifier_template_tags: the game's own modifier documentation",
+        slots: ['value', 'value', 'value'],
+        description: 'A modifier in a block of a kind its use area does not include.',
+        text: "The modifier '%s' is used in a block read as %s, but its use areas are %s.",
+    },
 };
 
 /** Data a finding carries beside its message: names, lists, versions. */
@@ -80,10 +104,16 @@ export interface CheckFinding {
     readonly data: FindingData;
 }
 
-/** The evidence of a code: its catalogue entry, with the text when the catalogue is given. */
+/**
+ * The evidence of a code: its catalogue entry, with the text when the catalogue is given, or
+ * the game's output it rests on.
+ */
 export function evidenceOf(code: CheckCode, catalogue: MessageCatalogue | undefined): Evidence {
-    const id = CHECK_KINDS[code].catalogue;
-    return { kind: 'catalogue', id, text: catalogue?.get(id) ?? null };
+    const kind = CHECK_KINDS[code];
+    if (kind.catalogue === null) {
+        return { kind: 'game-output', source: kind.gameOutput ?? '' };
+    }
+    return { kind: 'catalogue', id: kind.catalogue, text: catalogue?.get(kind.catalogue) ?? null };
 }
 
 /**
@@ -111,6 +141,9 @@ export function checkMessage(
     }
     if (finding.evidence.kind === 'catalogue' && finding.evidence.text !== null) {
         return fillPlaceholders(finding.evidence.text, values);
+    }
+    if (kind.text !== undefined) {
+        return fillPlaceholders(kind.text, values);
     }
     return `${kind.description} (${values.join(', ')})`;
 }

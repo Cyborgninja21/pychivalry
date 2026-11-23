@@ -1,0 +1,21 @@
+# The fields part D6 confirms name an on-action: a list, a weighted list and a fallback.
+fixture_on_action = {
+	on_actions = {
+		fixture_other_on_action
+		fixture_no_such_on_action
+	}
+	random_on_action = {
+		10 = fixture_other_on_action
+		10 = fixture_missing_random_on_action
+	}
+	fallback = fixture_missing_fallback
+}
+
+# The parameter part D6 confirms names an on-action: trigger_event's on_action. An engine
+# on-action of the package's bucket is one the game has.
+fixture_other_on_action = {
+	effect = {
+		trigger_event = { on_action = on_birth_child }
+		trigger_event = { on_action = fixture_missing_triggered_on_action }
+	}
+}

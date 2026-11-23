@@ -5,7 +5,7 @@ import path from 'node:path';
 import { test } from 'node:test';
 import { gzipSync } from 'node:zlib';
 import { dataTypesOf } from './data-types.js';
-import { BUCKET_NAMES } from './package.js';
+import { BUCKET_NAMES, PART_KEYS } from './package.js';
 import {
     openSpec,
     readChecksumFile,
@@ -19,7 +19,7 @@ import { committedSpec, REPO_ROOT } from './testing.js';
 
 const specDir = path.join(REPO_ROOT, 'spec');
 
-test('the committed package opens: format 5, game 1.21.0.3, the checksum its .sha256 states', () => {
+test('the committed package opens: format 7, game 1.21.0.3, the checksum its .sha256 states', () => {
     const spec = committedSpec();
     assert.equal(spec.data.package_format, SPEC_FORMAT);
     assert.equal(spec.version, '1.21.0.3');
@@ -57,6 +57,48 @@ test('the typed package holds the counts docs/references/spec-package.md states'
         .filter((e) => e.takes === null).length;
     assert.equal(takesNull, 628);
     assert.ok(Object.values(data.buckets.modifiers).every((m) => m.use_areas !== undefined));
+    assert.equal(data.directories.length, 239);
+});
+
+test('the eight parts of formats 6 and 7 are built, typed, each row with its status and evidence', () => {
+    const spec = committedSpec();
+    const built = spec.data.parts.filter((p) => /^D[1-8]$/.test(p.id) && p.status === 'built');
+    assert.equal(built.length, 8);
+    const rules = spec.part('override_rules');
+    assert.equal(rules?.rules.length, 82);
+    assert.equal(rules.coverage.length, 239);
+    const declarations = spec.part('declarations');
+    assert.equal(declarations?.directories['events']?.[0]?.declares, 'namespace');
+    const definitions = spec.part('definitions');
+    const nested = Object.values(definitions?.nested ?? {}).flat();
+    assert.equal(nested.length, 40);
+    assert.equal(spec.part('keyword_roles')?.keywords.length, 61);
+    const loc = Object.values(spec.part('implicit_loc_keys')?.directories ?? {}).flat();
+    assert.equal(loc.length, 710);
+    assert.equal(spec.part('field_references')?.fields.length, 922);
+    assert.equal(spec.part('modifier_block_areas')?.fields.length, 208);
+    const kinds = Object.fromEntries(
+        (spec.part('iterator_kinds')?.prefixes ?? []).map((p) => [p.prefix, p.kind]),
+    );
+    assert.deepEqual(kinds, { any_: 'trigger', every_: 'effect', random_: 'effect', ordered_: 'effect' });
+    assert.equal(spec.part('iterator_kinds')?.departures.length, 146);
+    // Every row of every part carries a status and its evidence.
+    const rows = [
+        ...rules.rules,
+        ...Object.values(declarations.directories).flat(),
+        ...nested,
+        ...(spec.part('keyword_roles')?.keywords ?? []),
+        ...loc,
+        ...(spec.part('field_references')?.fields ?? []),
+        ...(spec.part('modifier_block_areas')?.fields ?? []),
+        ...(spec.part('iterator_kinds')?.prefixes ?? []),
+    ];
+    for (const row of rows) {
+        assert.equal(typeof row.status, 'string');
+        assert.ok(Array.isArray(row.evidence));
+    }
+    // Read once per process: the same object every time.
+    assert.equal(spec.part('override_rules'), rules);
 });
 
 function tempDir(t: { after: (fn: () => void) => void }): string {
@@ -67,10 +109,10 @@ function tempDir(t: { after: (fn: () => void) => void }): string {
     return dir;
 }
 
-/** A small format 5 package with the keys the reader checks. */
+/** A small format 7 package with the keys the reader checks. */
 function smallPackage(overrides: Record<string, unknown> = {}): Record<string, unknown> {
     return {
-        package_format: 5,
+        package_format: 7,
         manifest: { game: 'ck3', version: '9.9.9.9', companions: {} },
         parts: [],
         buckets: Object.fromEntries(BUCKET_NAMES.map((b) => [b, {}])),
@@ -86,6 +128,8 @@ function smallPackage(overrides: Record<string, unknown> = {}): Record<string, u
         scope_validity: { triggers: {}, effects: {}, lists: {}, on_actions: {}, links: {} },
         scope_types: {},
         tables: { status: 'built', data: {} },
+        modifier_template_tags: { status: 'built', data: {} },
+        ...Object.fromEntries(PART_KEYS.map((k) => [k, { status: 'built', data: {} }])),
         ...overrides,
     };
 }
@@ -97,11 +141,22 @@ test('a package whose uncompressed bytes do not match the stated checksum is ref
     assert.equal(spec.version, '9.9.9.9');
 });
 
-test('a package of another format, without the format 5 keys, or of another version is refused', () => {
+test('a package of another format, without the format 7 keys, or of another version is refused', () => {
     const four = Buffer.from(JSON.stringify(smallPackage({ package_format: 4 })));
     assert.throws(() => readSpec(gzipSync(four), sha256Hex(four)), /format 4/);
-    const bare = Buffer.from(JSON.stringify({ package_format: 5, manifest: { version: '1' } }));
-    assert.throws(() => readSpec(gzipSync(bare), sha256Hex(bare)), /not a format 5 package/);
+    // Format 5 is refused: the parts the index and the checks need are format 7's.
+    const five = Buffer.from(JSON.stringify(smallPackage({ package_format: 5 })));
+    assert.throws(() => readSpec(gzipSync(five), sha256Hex(five)), /format 5; the rebuild reads format 7 only/);
+    const bare = Buffer.from(JSON.stringify({ package_format: 7, manifest: { version: '1' } }));
+    assert.throws(() => readSpec(gzipSync(bare), sha256Hex(bare)), /not a format 7 package/);
+    const noPart = Buffer.from(JSON.stringify(smallPackage({ iterator_kinds: undefined })));
+    assert.throws(() => readSpec(gzipSync(noPart), sha256Hex(noPart)), /no iterator_kinds part/);
+    const unbuilt = Buffer.from(
+        JSON.stringify(smallPackage({ keyword_roles: { status: 'not_built', reason: 'a test' } })),
+    );
+    assert.equal(readSpec(gzipSync(unbuilt), sha256Hex(unbuilt)).part('keyword_roles'), null);
+    const empty = Buffer.from(JSON.stringify(smallPackage({ keyword_roles: { status: 'built' } })));
+    assert.throws(() => readSpec(gzipSync(empty), sha256Hex(empty)), /keyword_roles is built but has no data/);
     const json = Buffer.from(JSON.stringify(smallPackage()));
     assert.throws(
         () => readSpec(gzipSync(json), sha256Hex(json), { version: '1.0.0.0' }),

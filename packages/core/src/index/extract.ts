@@ -1,20 +1,29 @@
 /**
  * What a file defines and what it uses (docs/PLAN.md items 3.3, 3.4 and 3.9), from its syntax
  * tree or its localization entries. Nothing here knows a CK3 name: a definition is a top-level
- * key of a file in one of the spec's folders, recorded with how it is written, and a use is a
- * word written anywhere else in a script file, or a `$name$` in a localization entry.
+ * key of a file in one of the spec's folders, recorded with how it is written, or a key the
+ * spec package's part D3 says is a definition; a use is a word written anywhere else in a
+ * script file, or a `$name$` in a localization entry.
  *
  * Definitions, by how they are written (`Form`):
  *
  * - `key = { ... }` is a `record` of the folder's database, `key = value` a `value`;
  * - `word key = { ... }` is `prefixed`, in the database `inline:<word>`;
- * - `@name = value` is a `constant`, in the database `constants`;
- * - a key that a `containers` row of the rules table names is a `container`, and each pair
- *   inside it an `entry` of the folder's database, known by the container and its own key;
+ * - `@name = value` is a `constant`, in the database `constants`, or `constants:<file>` when
+ *   part D2 says a constant holds for its file;
+ * - a key that a `containers` row of the rules table names, or a D3 `container-child` row, is
+ *   a `container`, and each pair inside it an `entry` of the folder's database, known by the
+ *   container and its own key;
+ * - a key part D3 says is a nested definition (a landed title inside another, at any depth;
+ *   an activity type's option) is a `record` of the database the folder table gives it; one
+ *   found by its place is known by its parent too (`container`: the keys down to it);
+ * - a file of a folder part D3 says names its records by their file is one `file` definition,
+ *   named by the file's stem;
  * - a localization entry is a `key` of the database `localization:<language>`.
  *
  * A top-level pair is a definition when its key is a name, a number or a constant and its
- * operator is `=` (or missing, after a parse error). Every other scalar is read for uses.
+ * operator is `=` (or missing, after a parse error), and part D2 does not say it declares no
+ * name (`namespace = x`, a setting). Every other scalar is read for uses.
  *
  * Uses, from each scalar outside a definition's own key: a name or a constant as written; a
  * whole number; each segment of a scope chain, or the part of a segment after its first `:`
@@ -26,6 +35,7 @@
 
 import { chainSegments, classifyWord } from '../syntax/lexer.js';
 import type { Block, FileNode, Item, Pair, Scalar, Value } from '../syntax/tree.js';
+import { keyMatcher, type NestedRule, type SpecFolder } from './folders.js';
 import type { LocalizationFile } from './localization.js';
 import { FORMS, type Form } from './rules.js';
 import type { StringTable } from './strings.js';
@@ -47,7 +57,11 @@ export const DEF_STRIDE = 9;
 /** The integers stored per use: the name and where it starts. */
 export const USE_STRIDE = 2;
 
-/** `extra` when there is nothing: no priority field, no version number. */
+/**
+ * `extra` when there is nothing: no priority field, no version number, no container block.
+ * For a `record` it is the priority a rule reads, for a `key` its version, for an `entry` the
+ * offset its container's block starts at.
+ */
 export const NONE = -2147483648;
 
 /** The database of `prefixed` definitions: `inline:<word>`. */
@@ -57,6 +71,11 @@ export function inlineDatabase(prefix: string): string {
 
 /** The database of `constant` definitions. */
 export const CONSTANTS_DATABASE = 'constants';
+
+/** The database of the constants of one file, when part D2 says a constant holds for its file. */
+export function fileConstantsDatabase(path: string): string {
+    return `${CONSTANTS_DATABASE}:${path}`;
+}
 
 /** The database of a localization key: `localization:<language>`, or `localization`. */
 export function localizationDatabase(language: string | null): string {
@@ -84,6 +103,12 @@ export interface ScriptContext {
     readonly containers: ReadonlySet<string> | 'all' | null;
     /** The field a priority rule reads from a record, with its default; or null. */
     readonly priority: { readonly field: string; readonly fallback: number } | null;
+    /** What parts D2 and D3 say of the folder; absent, nothing beyond its top-level keys. */
+    readonly folder?: SpecFolder | null;
+    /** The database of the file's `@name` constants: `constants`, or `constants:<file>`. */
+    readonly constants?: string;
+    /** The file's stem, the name of its record when the folder names records by their file. */
+    readonly fileStem?: string | null;
 }
 
 /** What one file defines and uses, packed. */
@@ -216,6 +241,146 @@ function isDefiningPair(pair: Pair): boolean {
     return pair.operator === null || (pair.operator.text === '=' && !pair.operator.parameter);
 }
 
+/** Whether part D2 says a top-level pair of the folder declares no name. */
+function declaresNoName(pair: Pair, folder: SpecFolder | null | undefined): boolean {
+    if (folder === null || folder === undefined || folder.notDefinitions.length === 0) {
+        return false;
+    }
+    const form = pair.value?.kind === 'block' ? 'block' : 'value';
+    return folder.notDefinitions.some(
+        (row) => row.form === form && keyMatcher(row.key, row.match)(pair.key.text),
+    );
+}
+
+/** The form a nested pair is written in, as D3 names forms: `block` or `value`. */
+function nestedForm(pair: Pair): 'block' | 'value' {
+    return pair.value?.kind === 'block' ? 'block' : 'value';
+}
+
+/** The pairs of a block that may be definitions: a name or number key, `=`, no prefix. */
+function definingChildren(block: Block): Pair[] {
+    return block.items.filter(
+        (item): item is Pair =>
+            item.kind === 'pair' && isDefiningPair(item) && item.prefix === null,
+    );
+}
+
+/** A block a D3 path reaches, with the keys from the top-level pair down to it. */
+interface PathBlock {
+    readonly pair: Pair;
+    readonly keys: readonly string[];
+}
+
+/** The blocks at a D3 path below a top-level pair: the pair itself for a one-segment path. */
+function blocksAt(top: Pair, path: readonly RegExp[]): PathBlock[] {
+    const first = path[0];
+    if (first === undefined || !first.test(top.key.text) || top.value?.kind !== 'block') {
+        return [];
+    }
+    let level: PathBlock[] = [{ pair: top, keys: [top.key.text] }];
+    for (const segment of path.slice(1)) {
+        const next: PathBlock[] = [];
+        for (const { pair, keys } of level) {
+            if (pair.value?.kind !== 'block') {
+                continue;
+            }
+            for (const child of definingChildren(pair.value)) {
+                if (child.value?.kind === 'block' && segment.test(child.key.text)) {
+                    next.push({ pair: child, keys: [...keys, child.key.text] });
+                }
+            }
+        }
+        level = next;
+    }
+    return level;
+}
+
+/**
+ * A nested definition: its pair, its rule, and its parent for a name found by its place
+ * (`parent-field`, `any-block-child`): the keys from the top-level key down to the block that
+ * holds it, joined by `/`. A name recognised by its key (`key-pattern`, a landed title) or the
+ * record's own key (`record-key`) has none: it stands alone.
+ */
+type Nested = readonly [Pair, NestedRule, string | null];
+
+/**
+ * The nested definitions part D3 finds below one top-level pair; a `container-child` rule's
+ * entries are left to the container reading. A name found by its place belongs to its parent:
+ * D3 measures such names written under several parents, each a separate object.
+ */
+function nestedDefinitions(top: Pair, rules: readonly NestedRule[]): Nested[] {
+    const out: Nested[] = [];
+    for (const rule of rules) {
+        if (rule.type === 'container-child') {
+            continue;
+        }
+        if (rule.type === 'record-key') {
+            for (const { pair } of blocksAt(top, rule.path)) {
+                const field = rule.field;
+                if (
+                    field !== null &&
+                    pair.value?.kind === 'block' &&
+                    pair.value.items.some((i) => i.kind === 'pair' && i.key.text === field)
+                ) {
+                    out.push([pair, rule, null]);
+                }
+            }
+            continue;
+        }
+        if (rule.type === 'key-pattern') {
+            const pattern = rule.pattern;
+            if (pattern === null) {
+                continue;
+            }
+            // A block child whose key matches, at any depth below a block whose key matches.
+            const stack = blocksAt(top, rule.path)
+                .map((b) => b.pair)
+                .filter((p) => pattern.test(p.key.text));
+            for (;;) {
+                const pair = stack.pop();
+                if (pair === undefined) {
+                    break;
+                }
+                if (pair.value?.kind !== 'block') {
+                    continue;
+                }
+                for (const child of definingChildren(pair.value)) {
+                    if (pattern.test(child.key.text) && rule.forms.includes(nestedForm(child))) {
+                        out.push([child, rule, null]);
+                        stack.push(child);
+                    }
+                }
+            }
+            continue;
+        }
+        // `parent-field`, `any-block-child`: the children of the blocks at the path.
+        for (const { pair: parent, keys } of blocksAt(top, rule.path)) {
+            if (parent.value?.kind !== 'block') {
+                continue;
+            }
+            for (const child of definingChildren(parent.value)) {
+                if (!rule.except.has(child.key.text) && rule.forms.includes(nestedForm(child))) {
+                    out.push([child, rule, keys.join('/')]);
+                }
+            }
+        }
+    }
+    return out;
+}
+
+/** Whether a D3 `container-child` rule makes a top-level key a container. */
+function isNestedContainer(pair: Pair, folder: SpecFolder | null | undefined): boolean {
+    return (
+        folder?.nested.some(
+            (rule) =>
+                rule.type === 'container-child' &&
+                rule.path.length === 1 &&
+                rule.database === folder.path &&
+                rule.path[0]?.test(pair.key.text) === true,
+        ) ?? false
+    );
+}
+
 function priorityOf(block: Block, field: string, fallback: number): number {
     for (const item of block.items) {
         if (item.kind === 'pair' && item.key.text === field && item.value?.kind === 'scalar') {
@@ -233,8 +398,12 @@ export function extractScript(file: FileNode, context: ScriptContext): Extracted
     const { strings } = context;
     const defs: number[] = [];
     const uses: number[] = [];
+    /** Where each nested definition's own key starts: not a use. */
+    const ownKeys = new Set<number>();
     const push = (word: string, start: number): void => {
-        uses.push(strings.intern(word), start);
+        if (!ownKeys.has(start)) {
+            uses.push(strings.intern(word), start);
+        }
     };
     const define = (
         pair: Pair,
@@ -260,29 +429,44 @@ export function extractScript(file: FileNode, context: ScriptContext): Extracted
         collectUses(file.items, push);
         return { defs, uses };
     }
+    const folder = context.folder;
+    if (folder?.fileNamed === true && context.fileStem !== null && context.fileStem !== undefined) {
+        // The file is the record: named by its stem, it spans the whole file.
+        defs.push(
+            strings.intern(context.fileStem),
+            strings.intern(context.database),
+            formCode('file'),
+            -1,
+            -1,
+            0,
+            0,
+            file.end,
+            NONE,
+        );
+    }
     const rest: (Item | Value)[] = [];
     for (const item of file.items) {
-        if (item.kind !== 'pair' || !isDefiningPair(item)) {
+        if (item.kind !== 'pair' || !isDefiningPair(item) || declaresNoName(item, folder)) {
             rest.push(item);
             continue;
         }
         if (item.prefix !== null) {
             define(item, inlineDatabase(item.prefix.text), 'prefixed', null, NONE);
         } else if (item.key.type === 'constant') {
-            define(item, CONSTANTS_DATABASE, 'constant', null, NONE);
+            define(item, context.constants ?? CONSTANTS_DATABASE, 'constant', null, NONE);
         } else {
             const database = context.database;
             const value = item.value;
             const containers = context.containers;
             const isContainer =
                 value?.kind === 'block' &&
-                containers !== null &&
-                (containers === 'all' || containers.has(item.key.text));
+                ((containers !== null && (containers === 'all' || containers.has(item.key.text))) ||
+                    isNestedContainer(item, folder));
             if (isContainer) {
                 define(item, database, 'container', null, NONE);
                 for (const inner of value.items) {
                     if (inner.kind === 'pair' && isDefiningPair(inner) && inner.prefix === null) {
-                        define(inner, database, 'entry', item.key.text, NONE);
+                        define(inner, database, 'entry', item.key.text, value.start);
                         if (inner.value !== null) {
                             rest.push(inner.value);
                         }
@@ -301,6 +485,10 @@ export function extractScript(file: FileNode, context: ScriptContext): Extracted
                     null,
                     priority === null ? NONE : priorityOf(value, priority.field, priority.fallback),
                 );
+                for (const [pair, rule, parent] of nestedDefinitions(item, folder?.nested ?? [])) {
+                    define(pair, rule.database, 'record', parent, NONE);
+                    ownKeys.add(pair.key.start);
+                }
             } else {
                 define(item, database, 'value', null, NONE);
             }
