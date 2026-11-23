@@ -26,8 +26,19 @@ about the game: check again before relying on one.
   calls the tools cannot be scripted; it is the by-hand check before a release.
 - **The Copilot harness also reads a project's `.mcp.json`** (Claude Code's format) from the
   workspace folder and starts its servers: seen in the same tests.
-- **The language client** is `vscode-languageclient` 11, started as a module over IPC, so it
-  runs on VS Code's own runtime on Linux and Windows and the user needs no Node of their own.
+- **The language client** is `vscode-languageclient` 11.0.1, started as a module over IPC, so
+  it runs on VS Code's own runtime on Linux and Windows and the user needs no Node of their own:
+  for `TransportKind.ipc` it forks the module with `ELECTRON_RUN_AS_NODE=1` and passes
+  `--node-ipc` and `--clientProcessId=<pid>`. Checked 2026-11-23 (below).
+- **The integrated terminal's environment** is extended with `context.environmentVariableCollection`
+  (`prepend('PATH', '<folder><delimiter>')`), kept across sessions by default and applied to
+  every terminal VS Code starts, an extension's own included; on Windows VS Code matches the
+  variable's name in any letter case. The smoke test sees `pychivalry` found on that path on
+  Linux and Windows.
+- **Packaging** is `@vscode/vsce`'s `vsce package`: it writes a `.vsix` locally and needs no
+  publishing token; `--no-dependencies` leaves dependency detection off; it renames `LICENSE` to
+  `LICENSE.txt` and `README.md` to `readme.md` inside the file, and refuses `@types/vscode` newer
+  than `engines.vscode`.
 - **Extension tests** use `@vscode/test-electron`, which drives a real VS Code. On a machine
   with a desktop they run under a virtual display so no window opens.
 
@@ -81,6 +92,21 @@ Read on 2026-11-23 for items 7.1, 7.2 and 7.8; every page fetched:
 - Claude Code, "Connect Claude Code to tools via MCP" (code.claude.com/docs/en/mcp): `claude mcp
   add`, the scopes, `.mcp.json`, `add-json`, `list` and `get`; and `claude mcp --help` and `claude
   mcp add --help` of Claude Code 2.1.220.
+
+## Checked for the rest of build step 7 (2026-11-23)
+
+- VS Code, "Language Server Extension Guide"
+  (code.visualstudio.com/api/language-extensions/language-server-extension-guide, updated
+  2026-11-18): `serverOptions` with `run` and `debug` naming the module and `TransportKind.ipc`,
+  `documentSelector` by scheme and language, `client.start()`, and `deactivate` disposing the
+  client. The guide's example still depends on `vscode-languageclient` ^9.0.1; pychivalry pins
+  11.0.1, the current release (2026-11-21) and the companion of the server's 11.0.1.
+- `vscode-languageclient` 11.0.1 as installed: `lib/node/main.js` (how a module server is
+  forked, its variables and arguments) and `lib/common/client.js` (a notification handler may be
+  registered before the client starts).
+- `@vscode/vsce` 4.1.1 (released 2026-11-12), `vsce package --help`: the options used.
+- `actions/cache` v6.1.0 (released 2026-06-26), commit
+  `55cc8345863c7cc4c66a329aec7e433d2d1c52a9`, for the downloaded VS Code in the editor-test job.
 
 ## The Model Context Protocol library
 

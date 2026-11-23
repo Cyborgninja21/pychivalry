@@ -14,7 +14,10 @@ lookup, the base-game and real-mod suites and their classifications, and the lim
 planted-defect mod (made harder after the first test sessions), its graders and the
 scored-test script. Item 6.11's first test sessions ran on the owner's word, 5 of 5 passed, and
 the owner set the target: every test session passes, 10 of 10 before a release. Build step 7
-has started: its language server is built, server side; the extension is not yet. What waits on the owner or on the spec work is in
+is built but for its last item: the language server, the extension that starts it and
+registers the agent server with VS Code's AI and Claude Code, the command line on the terminal's
+path, the same-answers test, the packaged `.vsix` and its smoke test; the first preview's
+pre-release waits on the owner's word. What waits on the owner or on the spec work is in
 [decisions.md](decisions.md). Nothing else in this document is built yet.
 
 The build plan, step by step, is in [PLAN.md](PLAN.md).
@@ -50,7 +53,7 @@ lives unchanged in `legacy/`.
 | Game versions | One game version at a time: the current one. |
 | Game-file suites | No test runner is attached to this repository. A local task runs the suites that need game files and writes result records, which are committed. Public CI checks the records and runs everything else. |
 | Machines | This laptop runs the game-file suites: it has the game and the five test mods. The analysis machine, a Windows desktop with the analysis tools, is used only to re-derive the spec and to load content in the running game. |
-| VS Code floor | Recent editors only. The floor is the release where VS Code's Copilot harness is the default; 1.146 unless build step 7 finds an earlier one. |
+| VS Code floor | Recent editors only. The floor is the release where VS Code's Copilot harness is the default: **1.146**, pinned in build step 7 (item 7.2), the lowest release on which the extension's agent server was seen forwarded to that harness (1.142 to 1.145 start no harness session without a sign-in). |
 | AI surface | One bundled agent server (MCP) plus a set of skills. It serves both Claude Code and VS Code's built-in AI. There is no chat participant and no separate set of language-model tools. |
 | AI harness | The AI that uses pychivalry is always another program that connects to it: Claude Code running in VS Code, or VS Code's built-in AI, signed in however its user already signed it in. pychivalry contains no API key, no token and no login, and no shipped package makes a network call or a model call; a test in CI holds every shipped package to it. |
 | AI tests | The agent-use test runs test sessions of the Claude Code already installed on the developer's machine, pinned to Opus 5.5 (`claude-opus-5-5`). Its first five test sessions ran on the owner's word of 2026-11-23, each with session limit 3: 5 of 5 passed ([tools/scored-run/README.md](../tools/scored-run/README.md#the-first-test-sessions-item-611)). The target, set by the owner from that result: every test session passes. A release run of 10 must pass all 10; a development run of 5 that passes fewer than 5 is looked into. The planted-defect mod was made harder after those sessions, which fixed it too easily to tell a better agent server from a worse one. Documents and code never describe the test in terms of money, accounts or keys. |
@@ -432,6 +435,33 @@ command line, 5 for the base game and the editor):
 The base game alone: 4,482 files parsed in 5.3 seconds, then checked in 73.5 seconds, at a peak
 of 5.8 GiB, with an 8 GiB heap limit, which 2.3.0 needs on this game build.
 
+**The rebuild's editor, build step 7** (2026-11-23, `task vscode:corpus`): the packaged
+extension in a real VS Code 1.147.0 on a virtual display, opened on each mod with the game
+folder set and every other setting at its default, measured by the 2.3.0 baseline's method: the
+time from the extension's activation to the language server's first background pass that leaves
+nothing to check, and the language server's peak resident memory then. Six runs a mod, one mod
+after another in turn; the first run of the series built the base game's index cache (14.2
+seconds on balance-of-power-ui, the first mod), the others loaded it. The median of the later
+five runs, on the same laptop, in ordinary use (one-minute load average 3 to 4.5):
+
+| Measure | balance-of-power-ui | divine-intervention | elf-destiny | rice | viet-events |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Files checked (2.3.0's) | 11 (12) | 433 (434) | 958 (960) | 2,090 (2,090) | 211 (211) |
+| Editor: time to the first full result, 2.3.0 | 2.42 s | 18.00 s | 6.95 s | 22.47 s | 7.80 s |
+| Editor: time to the first full result, rebuild | 2.16 s | 9.86 s | 3.35 s | 6.41 s | 2.97 s |
+| Peak memory, language server, 2.3.0 | 0.28 GiB | 2.43 GiB | 0.39 GiB | 0.74 GiB | 0.43 GiB |
+| Peak memory, language server, rebuild | 0.65 GiB | 1.36 GiB | 0.72 GiB | 0.87 GiB | 0.72 GiB |
+
+The rebuild's editor is faster on all five mods, 1.8 to 3.5 times on the four larger ones, and
+uses less memory on divine-intervention and more on the other four: about 0.65 GiB of every
+figure is the base game's index, which the language server holds whole (the step 3 question in
+decisions.md). The figures are printed by the task and written here; no record is committed
+(asked in decisions.md). The tolerance against 2.3.0 is not stated yet.
+
+The language server alone, as its own pull request measured it (#140, started by a test client,
+not in VS Code): 2.22, 13.92, 4.40, 7.88 and 3.47 seconds to the first full result, at 0.73,
+1.98, 0.88, 1.02 and 0.84 GiB.
+
 ## Tests per feature
 
 `G` means the suite needs game files: it is run by the local task on this laptop and its result
@@ -565,14 +595,21 @@ The MVP is done when all of these hold, each proved by a suite in the repository
    items 6.1 to 6.6 the agent server's `check` returns exactly the core's findings on the
    fixture mods (a test), and on rice its totals equal the `game:mods` record's (the local size
    test). The editor is step 7: its language server (#140) gives, on every fixture mod and the
-   planted-defect mod, each file's diagnostics equal to the one runner's findings (a test); the
-   extension that starts it is not built yet.
+   planted-defect mod, each file's diagnostics equal to the one runner's findings (a test).
+   After build step 7 the same-answers test holds it whole: in a real VS Code, the editor's
+   findings (the language server's, and the diagnostics VS Code shows), the command line's
+   `check --json` typed into its terminal, and the agent server's `check` paged to the end are
+   the same findings, on the planted-defect mod in CI on Linux and Windows and on each of the
+   five real mods locally (met).
 5. **Agent use.** The scored run meets its target: a release run of 10 test sessions passes all
    10 ([AI tests](#ai-tests)).
    *2026-11-23:* the target is set (10 of 10). The first five test sessions passed 5 of 5 on
    the first planted mod; the harder mod that replaced it has not been run yet (not yet met).
 6. **Authoring.** The scored run meets its targets on all three measures.
 7. **Speed.** Within tolerance of the 2.3.0 medians recorded in build step 1.
+   *2026-11-23, after build step 7:* the editor reaches its first full result faster than 2.3.0
+   on all five mods; the language server's peak memory is higher on four ([Speed](#speed)).
+   The tolerance is not stated yet; step 13's benchmarks settle it.
 8. **Development needs no human.** `task ci` passes from a clean clone with no display, no
    game files, no model and no key.
    *2026-11-23:* a fresh clone of the step 4 integration branch passes `task ci` with
@@ -678,7 +715,7 @@ Each is settled by evidence inside the build, not by a choice.
 | 3 | The real format of the error log, when it is cleared, and what debug mode adds. | Build step 11, from captured logs. |
 | 8 | Whether the game's command-line option for running a console command produces the documentation dumps unattended. | Step 0, on the analysis machine. |
 | 9 | Whether ck3-tiger and the CWTools rule files hold rules worth taking, and under what licences. | Build step 4, when the check inventory is written. |
-| 4 | Whether VS Code forwards an extension-registered local server to its default AI harness as documented, and whether one skills folder loads in both harnesses. | Build step 7. |
+| 4 | Whether VS Code forwards an extension-registered local server to its default AI harness as documented, and whether one skills folder loads in both harnesses. | The VS Code half is answered by build step 7 (item 7.1, #142): on VS Code 1.146 and later, the definition the extension registers is forwarded unchanged to the Copilot harness, with no sign-in, on Linux and Windows; Claude Code reaches the same server through "Set up for Claude Code", and both keep working across an extension update. Whether a signed-in harness then calls the tools is the by-hand check before a release ([guide/by-hand-check.md](guide/by-hand-check.md)). The skills half is open: build step 9. |
 | 5 | The targets for the scored agent and authoring runs. | After the first scored runs, in build steps 6 and 9. |
 | 7 | What happens to the `ck3-language-support` 2.x listing and its users when 1.0.0 ships. | Before release 1.0.0. |
 

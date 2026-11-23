@@ -9,6 +9,7 @@
         { "page": "Settings", "source": "docs/guide/settings.md" },
         { "page": "Agent-Server", "source": "docs/guide/agent-server.md" },
         { "page": "Checks", "source": "docs/guide/checks.md" },
+        { "page": "By-Hand-Check", "source": "docs/guide/by-hand-check.md" },
         { "page": "References", "source": "docs/references/README.md" },
         { "page": "Reference-Game-Files", "source": "docs/references/game-files.md" },
         { "page": "Reference-Spec-Package", "source": "docs/references/spec-package.md" },
@@ -29,7 +30,15 @@
         { "heading": "pychivalry", "pages": ["Home"] },
         {
             "heading": "User guide",
-            "pages": ["User-Guide", "Installing", "Commands", "Settings", "Agent-Server", "Checks"]
+            "pages": [
+                "User-Guide",
+                "Installing",
+                "Commands",
+                "Settings",
+                "Agent-Server",
+                "Checks",
+                "By-Hand-Check"
+            ]
         },
         {
             "heading": "References",

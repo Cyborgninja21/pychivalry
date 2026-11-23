@@ -8,15 +8,19 @@ game.
 
 ## State of the rebuild
 
-pychivalry is being rebuilt from the ground up in TypeScript. **Nothing usable is built yet.**
+pychivalry is being rebuilt from the ground up in TypeScript. **1.0.0 is not released.** A
+first preview, 0.1.0, is built (build step 7): an extension installed from a `.vsix` file, with
+the checks and lookups built so far, the editor features, the agent server for VS Code's AI and
+Claude Code, and the command line ([installing it](docs/guide/install.md)).
 
 - What is being built, and why: [docs/MVP.md](docs/MVP.md).
 - How, step by step, and how far it has got: [docs/PLAN.md](docs/PLAN.md) (the Progress table).
 - Build step 1, the repository skeleton, is complete: the workspace, `task ci`, public CI on
   Linux and Windows, the spec package for game 1.21.0.3 and its check, the record format, the
   pinned test mods, the 2.3.0 speed and result baselines, and the documents every later step
-  fills. The parser (step 2) and the workspace index (step 3) are built; the checks of step 4
-  come next.
+  fills. The parser (step 2), the workspace index (step 3), the checks and lookup (step 4), the
+  command line (step 5), the agent server (step 6) and the language server and extension (step
+  7) are built; the formatter and fixes of step 8 come next.
 - Every document, and which step writes it: [docs/README.md](docs/README.md). The sources
   pychivalry draws on: [docs/references/](docs/references/README.md). What the tests run on:
   [docs/test-data.md](docs/test-data.md). The user guide so far:
@@ -24,7 +28,7 @@ pychivalry is being rebuilt from the ground up in TypeScript. **Nothing usable i
 - Release 2.3.0, the last version of the old code, lives unchanged in [legacy/](legacy/) and
   still builds from inside that folder. It is the behaviour to match and a source of test data;
   no code is copied from it. It is published as the `ck3-language-support` extension; the
-  rebuild ships as a new extension, `pychivalry`, starting at 1.0.0.
+  rebuild ships as a new extension, `pychivalry`, previews from 0.1.0, then 1.0.0.
 
 ## Building
 

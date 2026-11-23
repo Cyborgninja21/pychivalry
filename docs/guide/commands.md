@@ -2,20 +2,37 @@
 
 ## In VS Code
 
-The extension is not built yet, so it adds no commands today. One is decided:
+| Command | What it does |
+| --- | --- |
+| pychivalry: Set up for Claude Code | Adds pychivalry's agent server to Claude Code's own configuration for the mod's folder, which Claude Code reads instead of what VS Code extensions register. With Claude Code's `claude` command installed it runs `claude mcp add --scope local` (removing an earlier entry first), so the entry is private to you and kept outside the mod. Without it, it says so and asks whether to write a project configuration file, `.mcp.json`, in the mod's folder instead; nothing is written before you answer. Run it once per mod folder; it keeps working when the extension updates |
 
-| Command | What it does | Arrives with |
-| --- | --- | --- |
-| Set up for Claude Code | Registers pychivalry's agent server with Claude Code, which does not see what VS Code extensions register | Build step 7 |
+When `pychivalry.gamePath` changes after a set-up, Claude Code still has the command line it was
+given, with the old game folder. pychivalry notices and offers, once, to set the folder up
+again; accepting runs the command again for that folder.
+
+The editor features need no command: the extension starts when you open a CK3 script or
+localization file, or a folder holding a `descriptor.mod`. They are the language server's:
+
+- the mod's findings in the Problems panel, while you type and for the whole mod in the
+  background (closing a file keeps its findings);
+- hover: the game's own description of a trigger, an effect, a link or a modifier, and where a
+  name the mod or the game defines is defined and which definition is in force;
+- completion: what is valid where you type (effects in an effect block, triggers in a trigger
+  block, names the mod and the game define, the values the base game writes in a field);
+- Go to Definition, Find All References and the outline of a file (document symbols).
 
 Each later step that adds a command adds its row here.
 
 ## The command line
 
 `pychivalry` checks a mod from a terminal and gives the same findings as the editor and the
-agent server. It will ship inside the extension, which puts it on the path of VS Code's
-terminal (build step 7); until then it runs from a build of this repository as
-`node packages/cli/dist/main.js <command>`.
+agent server. It ships inside the extension, which puts it on the path of VS Code's integrated
+terminal: in a new terminal, `pychivalry check .` checks the mod in the current folder. VS Code
+runs it with its own runtime, so you need no Node. In a terminal of its own, outside VS Code, it
+runs from a build of this repository as `node packages/cli/dist/main.js <command>`.
+
+The terminal's `pychivalry` does not read VS Code's settings: it finds the game in Steam's
+libraries, or reads it from `--vanilla <game folder>`.
 
 | Command | What it does |
 | --- | --- |
@@ -106,6 +123,9 @@ Everything goes through `task`; `task --list` shows every task.
 | `task records:check` | Checks every committed record |
 | `task wiki:check` | Checks that the wiki builds from `docs/` and every link in it resolves |
 | `task docs:checks` | Writes [Checks](checks.md) from the code's own list of checks |
+| `task vscode:bundle` | Bundles the extension: the extension with its language client, the language server, and the agent server and command line with the spec package beside them |
+| `task vscode:package` | Writes the installable file, `packages/vscode/dist/pychivalry-<version>.vsix`, with VS Code's packaging tool (no token is used and nothing is published), and prints its size and contents |
+| `task vscode:test` | The editor tests in a real VS Code, downloaded the first time: the extension from its folder, the packaged file installed into a clean VS Code (the smoke test and the same-answers test), and an update. On Linux it runs only under `xvfb-run`, on a virtual display, never on your desktop. Not part of `task ci` |
 
 ## Tasks that need the game
 
@@ -120,6 +140,7 @@ checking your own mod; for that, use [the command line](#the-command-line).
 | `task game:check` | `CK3_GAME_PATH` | The base-game check suite: every check on the game's own files, every error and warning classified |
 | `task game:mods` | `CK3_GAME_PATH`, `CK3_CORPUS` | The real-mod suite: every check on each test mod, every error classified |
 | `task game:bench` | `CK3_GAME_PATH`, `CK3_CORPUS` | The benchmarks |
+| `task vscode:corpus` | `CK3_GAME_PATH`, `CK3_CORPUS`; Linux, `xvfb-run` | The packaged extension on each test mod in a real VS Code on a virtual display, six times each: the time from opening the mod to the first full result and the language server's peak memory, and the same-answers test (editor, command line, agent server) on each mod. Prints its figures; writes no record |
 
 `CK3_GAME_PATH` is the game's `game` folder. `CK3_CORPUS` is the folder holding the pinned copy
 of the test mods. `CK3_CORPUS_SLUGS` limits a run to some of them.

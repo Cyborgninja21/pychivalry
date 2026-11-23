@@ -18,7 +18,9 @@ fixtures/defects/
 
 The mod is checked over the game stub [fixtures/game/planted-defects](../game/planted-defects/README.md),
 which defines the few base-game names it uses and does not define itself, so that public CI can
-check it without the game. The scored test starts the agent server over the same stub.
+check it without the game. The scored test starts the agent server over the same stub, and the
+extension's smoke test and same-answers test (`task vscode:test`, build step 7) open a copy of
+`mod/` in a real VS Code with the stub as the game folder.
 
 Neither `mod/` nor `reference/` holds a README of its own: everything in `mod/` is handed to the
 agent, and this page would tell it where the defects are.

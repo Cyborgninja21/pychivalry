@@ -1,8 +1,9 @@
 # Settings
 
-The extension is not built yet. The language server it will start (build step 7, items 7.3 to
-7.6) reads four settings, from the `pychivalry` section of the editor's settings; each step that
-adds a setting adds it here with its name, its default and what it changes.
+pychivalry has four settings, in VS Code's Settings under "pychivalry" (or in `settings.json`
+as `pychivalry.*`). The language server reads them, and the extension gives the agent server the
+game folder; each step that adds a setting adds it here with its name, its default and what it
+changes.
 
 | Setting | Default | What it changes |
 | --- | --- | --- |
@@ -13,6 +14,20 @@ adds a setting adds it here with its name, its default and what it changes.
 
 A value of the wrong type is ignored and the default used. Changing the game folder or the
 fallback encoding reads the game again; turning `unusedKeys` on or off checks every file again.
+
+**Where the game folder goes.** `pychivalry.gamePath` reaches every part of pychivalry in the
+editor:
+
+- the language server reads the game from it, and says once when it names no game folder (and,
+  when it names the install folder, which folder inside it is the `game` folder);
+- the agent server VS Code's AI starts is given it as `--vanilla <folder>` when it is an absolute
+  path, and VS Code is told at once that the server's command line changed;
+- Claude Code keeps the command line "Set up for Claude Code" gave it. When the setting changes
+  after a set-up, pychivalry offers, once, to set that folder up again with the new one
+  ([Commands](commands.md)).
+
+The command line in the terminal does not read settings: it searches Steam's libraries, or takes
+`--vanilla <game folder>`.
 
 ## What is decided
 
@@ -25,7 +40,7 @@ fallback encoding reads the game again; turning `unusedKeys` on or off checks ev
 - **Files that are not UTF-8.** pychivalry reads a script file that is not valid UTF-8 in
   full, shows each byte it cannot read as the replacement character, and says once, as
   information, that the file is not valid UTF-8; it is never an error, because the game ships
-  and loads such files itself. A setting will let you name Windows-1252 as the encoding to
+  and loads such files itself. A setting lets you name Windows-1252 as the encoding to
   read those bytes with, so their letters show correctly; the rest of the file is still read
   as UTF-8. It is off by default: `pychivalry.encoding.fallback`, above
   ([what the parser reads](../encoding.md)).
