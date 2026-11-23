@@ -55,10 +55,8 @@ import { MANIFEST_FILE, parseManifest } from '../install.js';
 import { checkThrough } from './agent.js';
 import { readOrNull, virtualDisplay } from './display.js';
 import { asEntry, assertFixtureAnswer, claudeEntryFor, FIXTURE_MOD } from './fixture.js';
+import { VSCODE_VERSION } from './version.js';
 import { writeVsix } from './vsix.js';
-
-/** The VS Code the editor tests run in: the release installed where they were written. */
-export const VSCODE_VERSION = '1.147.0';
 
 const PACKAGE = fileURLToPath(new URL('../../', import.meta.url));
 const REPO = path.resolve(PACKAGE, '..', '..');

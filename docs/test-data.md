@@ -11,7 +11,7 @@ uses it. A step that adds test data adds it here.
 | Content requests | `fixtures/requests/` (step 9) | Yes | The scored authoring test | No |
 | Captured game logs | `fixtures/logs/` (step 11) | Yes | Game-log analysis | Yes |
 | The five real mods | Outside the repository, in the folder `CK3_CORPUS` names; pinned by [`records/corpus/MANIFEST.tsv`](../records/corpus/README.md) | The manifest only | `task game:index`, `task game:mods`, `task game:bench`, `task vscode:corpus`, the 2.3.0 baselines | No |
-| A real VS Code | Downloaded by `@vscode/test-electron` into `.vscode-test/` (the release `packages/vscode/src/editor/run.ts` pins, 1.147.0), cached by CI | Never | The extension's editor tests, `task vscode:test` and `task vscode:corpus`; on Linux only on a virtual display | Yes, in a job of its own (`vscode-test`), not in `task ci` |
+| A real VS Code | Downloaded by `@vscode/test-electron` into `.vscode-test/` (the release `packages/vscode/src/editor/version.ts` pins, 1.147.0), cached by CI | Never | The extension's editor tests, `task vscode:test` and `task vscode:corpus`; on Linux only on a virtual display | Yes, in a job of its own (`vscode-test`), not in `task ci` |
 | The base game | The local install, in the folder `CK3_GAME_PATH` names | Never | `task game:parse`, `task game:index`, `task game:check` and the suites above | No |
 | Classifications | `tools/data/`: what the base game's parse errors and check findings are, and the five mods' check errors, each with its reason | Yes | `task game:parse`, `task game:check`, `task game:mods` | No |
 | Records | [`records/`](../records/README.md) | Yes | Public CI checks each one against the committed spec and corpus (a 2.3.0 baseline against the committed format 4 copy) | The check, yes |
