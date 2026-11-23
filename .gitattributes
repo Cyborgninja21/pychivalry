@@ -10,7 +10,7 @@
 # the uncompressed bytes, and its JSON Schema, byte for byte (spec/README.md). No platform may
 # rewrite them.
 spec/**/*.json.gz binary
-spec/schema.format7.json -text
+spec/schema.format8.json -text
 *.png binary
 *.dds binary
 *.tga binary
