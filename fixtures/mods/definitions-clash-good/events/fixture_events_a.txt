@@ -1,0 +1,5 @@
+namespace = fixture
+
+fixture.0001 = {
+	hidden = yes
+}

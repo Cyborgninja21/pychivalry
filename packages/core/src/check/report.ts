@@ -3,7 +3,7 @@
  * from the code's catalogue entry. Shared by the checks.
  */
 
-import type { MessageCatalogue } from '../syntax/findings.js';
+import type { Evidence, MessageCatalogue } from '../syntax/findings.js';
 import type { LineIndex } from '../syntax/position.js';
 import {
     CHECK_KINDS,
@@ -20,13 +20,17 @@ export interface CheckContext {
     readonly catalogue?: MessageCatalogue | undefined;
 }
 
-/** A finding of `code` over the span `start`..`end`. */
+/**
+ * A finding of `code` over the span `start`..`end`. Its evidence is the code's own, unless the
+ * check gives the evidence of the place (a code whose message depends on it: `evidenceFrom`).
+ */
 export function finding(
     code: CheckCode,
     span: { readonly start: number; readonly end: number },
     args: readonly string[],
     data: FindingData,
     context: CheckContext,
+    evidence: Evidence = evidenceOf(code, context.catalogue),
 ): CheckFinding {
     return {
         code,
@@ -35,7 +39,7 @@ export function finding(
         end: span.end,
         range: context.lines.rangeOf(span.start, span.end),
         args,
-        evidence: evidenceOf(code, context.catalogue),
+        evidence,
         data,
     };
 }
