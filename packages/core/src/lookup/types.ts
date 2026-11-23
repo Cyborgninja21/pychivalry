@@ -493,6 +493,8 @@ export type InForceAnswer =
     | { readonly status: 'all'; readonly rule: string }
     | { readonly status: 'statements'; readonly rule: string }
     | { readonly status: 'clash'; readonly rule: string }
+    /** Defined, nothing in force: each definition is an alias line whose target was not read yet. */
+    | { readonly status: 'not-in-force'; readonly rule: string }
     | { readonly status: 'not-read' }
     | { readonly status: 'winner-not-known'; readonly reasons: readonly UnknownReason[] };
 

@@ -1089,6 +1089,7 @@ class Looker {
                 case 'all':
                 case 'statements':
                 case 'clash':
+                case 'not-in-force':
                     inForce = { status: resolution.status, rule: resolution.rule };
                     break;
                 case 'unknown':
