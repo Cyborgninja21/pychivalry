@@ -58,6 +58,7 @@ export class FixFile {
     readonly tree: FileNode | null;
     private read: { reading: FileReading; scopes: ScopeReading } | null | undefined;
     private syntaxCounts: Map<FindingId, number> | undefined;
+    private readonly texts = new Map<string, string | null>();
 
     constructor(input: FixFileInput) {
         this.input = input;
@@ -132,6 +133,14 @@ export class FixFile {
             return false;
         }
         return [...after].every(([other, n]) => other === id || n <= (before.get(other) ?? 0));
+    }
+
+    /** The text of another file of the mod (`FixFileInput.modText`), read once. */
+    modText(path: string): string | null {
+        if (!this.texts.has(path)) {
+            this.texts.set(path, this.input.modText?.(path) ?? null);
+        }
+        return this.texts.get(path) ?? null;
     }
 
     /** An edit of this file: `start`..`end` replaced with `text`. */

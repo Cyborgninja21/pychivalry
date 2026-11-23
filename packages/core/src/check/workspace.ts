@@ -628,19 +628,26 @@ export function checkNames(
           });
 }
 
-/** The text of the mod's files from disk, by their path inside the mod (`ModText`). */
+/** The text of the mod's files from disk, by their path inside the mod (`ModText`), read once a run. */
 function diskText(listing: SourceListing): ModText {
     const disk = new Map(listing.files.map((f) => [f.path, f.disk]));
+    const read = new Map<string, string | null>();
     return (path) => {
+        const known = read.get(path);
+        if (known !== undefined) {
+            return known;
+        }
         const at = disk.get(path);
-        if (at === undefined) {
-            return null;
+        let text: string | null = null;
+        if (at !== undefined) {
+            try {
+                text = readFileSync(at, 'utf8');
+            } catch {
+                text = null;
+            }
         }
-        try {
-            return readFileSync(at, 'utf8');
-        } catch {
-            return null;
-        }
+        read.set(path, text);
+        return text;
     };
 }
 

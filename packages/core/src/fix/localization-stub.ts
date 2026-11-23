@@ -43,8 +43,15 @@ function stemOf(file: string): string {
     return dot <= 0 ? name : name.slice(0, dot);
 }
 
+/** The mod's localization files by language, once per state of the definitions a run sees. */
+const filesOf = new WeakMap<object, ReadonlyMap<string, readonly string[]>>();
+
 /** The mod's localization files that define keys, by language, each list sorted. */
-function modFiles(file: FixFile): Map<string, string[]> {
+function modFiles(file: FixFile): ReadonlyMap<string, readonly string[]> {
+    const known = filesOf.get(file.input.names);
+    if (known !== undefined) {
+        return known;
+    }
     const byLanguage = new Map<string, string[]>();
     for (const f of file.input.index?.allFiles() ?? []) {
         if (
@@ -64,6 +71,7 @@ function modFiles(file: FixFile): Map<string, string[]> {
     for (const list of byLanguage.values()) {
         list.sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
     }
+    filesOf.set(file.input.names, byLanguage);
     return byLanguage;
 }
 
@@ -84,8 +92,12 @@ function appendLine(path: string, source: string, line: string): FixEdit {
 
 export function localizationStubFix(finding: FixableFinding, file: FixFile): FindingFix | null {
     const key = dataText(finding.data, 'key');
-    const read = file.input.modText;
-    if (key === null || !KEY.test(key) || read === undefined || file.input.index === undefined) {
+    if (
+        key === null ||
+        !KEY.test(key) ||
+        file.input.modText === undefined ||
+        file.input.index === undefined
+    ) {
         return null;
     }
     const entry = ` ${key}:0 "${key}"`;
@@ -97,14 +109,14 @@ export function localizationStubFix(finding: FixableFinding, file: FixFile): Fin
         const [language, paths] = chosen;
         const named = paths.find((p) => p.toLowerCase().endsWith(`/${stem}_l_${language}.yml`));
         const path = named ?? paths[0];
-        const source = path === undefined ? null : read(path);
+        const source = path === undefined ? null : file.modText(path);
         if (path !== undefined && source !== null) {
             edits.push(appendLine(path, source, entry));
         }
     }
     if (edits.length === 0) {
         const path = `localization/${ENGLISH}/${stem}_l_${ENGLISH}.yml`;
-        if (read(path) !== null) {
+        if (file.modText(path) !== null) {
             return null;
         }
         edits.push({
