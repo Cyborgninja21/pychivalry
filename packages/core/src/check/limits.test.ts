@@ -111,7 +111,8 @@ test('the runner applies the cap to each file and reports what it dropped', (t) 
     }
     events.push('}');
     write(path.join(mod, 'events', 'capped_events.txt'), `${events.join('\n')}\n`);
-    write(path.join(mod, 'events', 'other_events.txt'), 'namespace = other\n');
+    // In pychivalry's format, so that it has no finding at all.
+    write(path.join(mod, 'events', 'other_events.txt'), '\ufeffnamespace = other\r\n');
     const all = checkWorkspace({ spec, modDir: mod, gameDir: null, cacheDir: null });
     assert.deepEqual(all.capped, []);
     assert.equal(all.maxFindingsPerFile, MAX_FINDINGS_PER_FILE);
@@ -235,7 +236,8 @@ test("without a game folder, no finding on any fixture's bad half depends on a b
                 `${mod}: ${place(f)} is reported without a game but not over a game that defines every name`,
             );
         }
-        if (without.findings.length === 0) {
+        // The `style/` family is the formatter's and needs no game: it has tests of its own.
+        if (without.findings.every((f) => f.code.startsWith('style/'))) {
             silent++;
         }
     }

@@ -48,6 +48,8 @@ export const MAX_FIX_ALTERNATIVES = 5;
  * - `observed-values`: the values the base game writes in the field.
  * - `range`: a range's two bounds, written in the order the game reads them.
  * - `declared-names`: the names the file declares (an event's namespace).
+ * - `formatting`: pychivalry's formatting rules (docs/formatting.md): the formatter's own edits,
+ *   which change only the whitespace between tokens and keep the tree.
  */
 export type FixBasis =
     | 'retired'
@@ -59,7 +61,8 @@ export type FixBasis =
     | 'game-message'
     | 'observed-values'
     | 'range'
-    | 'declared-names';
+    | 'declared-names'
+    | 'formatting';
 
 /** One edit: a span of a file replaced with new text. */
 export interface FixEdit {

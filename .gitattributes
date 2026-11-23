@@ -17,3 +17,8 @@ spec/schema.format8.json -text
 
 # Fixtures that exist to test another encoding: their bytes are exact.
 fixtures/mods/encoding-windows-1252/history/** -text
+
+# The formatter's fixtures: line breaks and byte-order marks are what they test, so their bytes
+# are exact on every platform (the style/ pairs, the golden files of fixtures/format/).
+fixtures/mods/style-*/** -text
+fixtures/format/** -text

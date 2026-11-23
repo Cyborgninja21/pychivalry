@@ -30,6 +30,9 @@ export function evidenceText(row: InventoryRow): string {
             ? "the game's own message for the field that is missing, which the spec package gives with each field it marks required"
             : "the game's own message for the duplicate, a catalogue entry the rules table's row for the clash names";
     }
+    if (evidence.kind === 'formatting-rules') {
+        return `pychivalry's own formatting rules (${evidence.source}), not the game: the one kind of warning that rests on them, by the owner's decision`;
+    }
     if (evidence.kind === 'required-field') {
         return `the game's own message for the missing field ${evidence.field}: "${evidence.text}"`;
     }

@@ -1,0 +1,22 @@
+{
+    "findings": [
+        {
+            "file": "common/scripted_effects/style_effects.txt",
+            "line": 1,
+            "column": 1,
+            "code": "style/byte-order-mark",
+            "severity": "hint",
+            "message": "The file does not start with the UTF-8 byte-order mark.",
+            "data": {}
+        },
+        {
+            "file": "common/scripted_effects/style_effects.txt",
+            "line": 1,
+            "column": 1,
+            "code": "style/not-formatted",
+            "severity": "warning",
+            "message": "This file is not in pychivalry's format: 1 place (byte-order mark 1).",
+            "data": {}
+        }
+    ]
+}

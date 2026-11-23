@@ -105,6 +105,11 @@ test("each check's catalogue message is in the committed catalogue, with a place
         }
         if (kind.catalogue === null) {
             const evidence = rows.get(code)?.evidence ?? '';
+            if (kind.formattingRules === true) {
+                // pychivalry's own formatting rules, by the owner's decision: the row says so.
+                assert.ok(evidence.startsWith('Formatting rules'), code);
+                continue;
+            }
             if (kind.gameOutput !== undefined) {
                 // Evidence of the game's own output, with no message: the row says so.
                 assert.ok(evidence.startsWith('Game output'), code);

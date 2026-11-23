@@ -1,0 +1,5 @@
+﻿my_event.1 = {
+	type = character_event
+	title = my_event.1.t
+	theme = friendly
+}

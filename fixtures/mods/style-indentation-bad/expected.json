@@ -1,0 +1,85 @@
+{
+    "findings": [
+        {
+            "file": "common/scripted_effects/style_effects.txt",
+            "line": 2,
+            "column": 1,
+            "code": "style/indentation",
+            "severity": "hint",
+            "message": "This line takes one tab.",
+            "data": {}
+        },
+        {
+            "file": "common/scripted_effects/style_effects.txt",
+            "line": 2,
+            "column": 1,
+            "code": "style/not-formatted",
+            "severity": "warning",
+            "message": "This file is not in pychivalry's format: 4 places (indentation 4).",
+            "data": {}
+        },
+        {
+            "file": "common/scripted_effects/style_effects.txt",
+            "line": 3,
+            "column": 1,
+            "code": "style/indentation",
+            "severity": "hint",
+            "message": "This line takes one tab.",
+            "data": {}
+        },
+        {
+            "file": "common/scripted_effects/style_effects.txt",
+            "line": 6,
+            "column": 1,
+            "code": "style/indentation",
+            "severity": "hint",
+            "message": "This line takes no indentation.",
+            "data": {}
+        },
+        {
+            "file": "common/scripted_effects/style_effects.txt",
+            "line": 9,
+            "column": 1,
+            "code": "style/indentation",
+            "severity": "hint",
+            "message": "This line takes 2 tabs.",
+            "data": {}
+        },
+        {
+            "file": "localization/english/style_l_english.yml",
+            "line": 2,
+            "column": 1,
+            "code": "style/indentation",
+            "severity": "hint",
+            "message": "This line takes one space.",
+            "data": {}
+        },
+        {
+            "file": "localization/english/style_l_english.yml",
+            "line": 2,
+            "column": 1,
+            "code": "style/not-formatted",
+            "severity": "warning",
+            "message": "This file is not in pychivalry's format: 3 places (indentation 3).",
+            "data": {}
+        },
+        {
+            "file": "localization/english/style_l_english.yml",
+            "line": 3,
+            "column": 1,
+            "code": "style/indentation",
+            "severity": "hint",
+            "message": "This line takes one space.",
+            "data": {}
+        },
+        {
+            "file": "localization/english/style_l_english.yml",
+            "line": 4,
+            "column": 1,
+            "code": "style/indentation",
+            "severity": "hint",
+            "message": "This line takes one space.",
+            "data": {}
+        }
+    ]
+}

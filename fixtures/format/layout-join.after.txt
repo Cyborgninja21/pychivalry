@@ -1,0 +1,9 @@
+﻿my_effect = {
+	if = {
+		limit = { is_adult = yes }
+		add_gold = 10
+	}
+}
+flags = { a b c d e }
+weights = { 1 2 }
+empty = {}

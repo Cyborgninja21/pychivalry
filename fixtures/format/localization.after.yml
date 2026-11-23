@@ -1,0 +1,9 @@
+﻿l_english:
+ my_event.1.t:0 "A Title"
+ my_event.1.desc: "Some text"
+ my_event.1.a: "Fine." # the option
+ #a comment
+
+ my_event.1.b: "No quote space"
+ my_event.1.c: "unclosed text
+something the reader does not read   

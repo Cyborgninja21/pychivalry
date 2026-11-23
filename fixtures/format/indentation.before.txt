@@ -1,0 +1,7 @@
+﻿my_event.1 = {
+    type = character_event
+  immediate = {
+      add_gold = 10
+      add_prestige = 5
+        }
+}

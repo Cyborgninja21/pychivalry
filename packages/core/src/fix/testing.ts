@@ -126,7 +126,13 @@ export function proveAlternative(
     }
     const serious = seriousByCode(before);
     const fixedSerious = finding.severity === 'error' || finding.severity === 'warning' ? 1 : 0;
+    // A fix of another family may let the formatter read a file it could not (a parse error
+    // fixed), whose `style/` findings then show: they are not brought by the fix.
+    const style = finding.code.startsWith('style/');
     for (const [code, count] of seriousByCode(after)) {
+        if (!style && code.startsWith('style/')) {
+            continue;
+        }
         const allowed = (serious.get(code) ?? 0) - (code === finding.code ? fixedSerious : 0);
         if (count > allowed) {
             const added = after

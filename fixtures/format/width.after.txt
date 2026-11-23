@@ -1,0 +1,29 @@
+﻿long_list = {
+	value_01
+	value_02
+	value_03
+	value_04
+	value_05
+	value_06
+	value_07
+	value_08
+	value_09
+	value_10
+	value_11
+	value_12
+	value_13
+	value_14
+	value_15
+}
+short_list = { a b c }
+my_effect = {
+	if = {
+		limit = {
+			has_character_flag = a_flag_with_a_rather_long_name_that_makes_this_line_wider_than_one_hundred_and_twenty_columns
+		}
+	}
+}
+title = "a quoted text that is long enough on its own to make its line wider than one hundred and twenty columns, never split"
+cost = {
+	value = @[ base_cost * 1.50 + another_rather_long_constant_name * 2 + yet_another_rather_long_constant_name_here ]
+}

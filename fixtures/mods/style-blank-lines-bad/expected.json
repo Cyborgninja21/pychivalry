@@ -1,0 +1,85 @@
+{
+    "findings": [
+        {
+            "file": "common/scripted_effects/style_effects.txt",
+            "line": 1,
+            "column": 1,
+            "code": "style/blank-lines",
+            "severity": "hint",
+            "message": "1 blank line here; the format keeps none.",
+            "data": {}
+        },
+        {
+            "file": "common/scripted_effects/style_effects.txt",
+            "line": 1,
+            "column": 1,
+            "code": "style/not-formatted",
+            "severity": "warning",
+            "message": "This file is not in pychivalry's format: 5 places (blank lines 5).",
+            "data": {}
+        },
+        {
+            "file": "common/scripted_effects/style_effects.txt",
+            "line": 2,
+            "column": 24,
+            "code": "style/blank-lines",
+            "severity": "hint",
+            "message": "1 blank line here; the format keeps none.",
+            "data": {}
+        },
+        {
+            "file": "common/scripted_effects/style_effects.txt",
+            "line": 5,
+            "column": 20,
+            "code": "style/blank-lines",
+            "severity": "hint",
+            "message": "1 blank line here; the format keeps none.",
+            "data": {}
+        },
+        {
+            "file": "common/scripted_effects/style_effects.txt",
+            "line": 7,
+            "column": 2,
+            "code": "style/blank-lines",
+            "severity": "hint",
+            "message": "3 blank lines here; the format keeps 1 blank line.",
+            "data": {}
+        },
+        {
+            "file": "common/scripted_effects/style_effects.txt",
+            "line": 16,
+            "column": 2,
+            "code": "style/blank-lines",
+            "severity": "hint",
+            "message": "1 blank line here; the format keeps none.",
+            "data": {}
+        },
+        {
+            "file": "localization/english/style_l_english.yml",
+            "line": 4,
+            "column": 1,
+            "code": "style/blank-lines",
+            "severity": "hint",
+            "message": "1 blank line here; the format keeps none.",
+            "data": {}
+        },
+        {
+            "file": "localization/english/style_l_english.yml",
+            "line": 4,
+            "column": 1,
+            "code": "style/not-formatted",
+            "severity": "warning",
+            "message": "This file is not in pychivalry's format: 2 places (blank lines 2).",
+            "data": {}
+        },
+        {
+            "file": "localization/english/style_l_english.yml",
+            "line": 7,
+            "column": 1,
+            "code": "style/blank-lines",
+            "severity": "hint",
+            "message": "1 blank line here; the format keeps none.",
+            "data": {}
+        }
+    ]
+}

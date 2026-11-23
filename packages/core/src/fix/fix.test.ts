@@ -109,7 +109,9 @@ test('every code of this build has a fix row, and a fixer exactly when it offers
         Object.keys(FIX_ROWS).sort(),
     );
     for (const [code, row] of Object.entries(FIX_ROWS)) {
-        assert.equal(row.fixer !== undefined, row.offer !== 'none', code);
+        // A `style/` finding is made with its fix (the formatter's edits): no fixer runs after.
+        assert.equal(row.fixer !== undefined || row.carried === true, row.offer !== 'none', code);
+        assert.ok(!(row.fixer !== undefined && row.carried === true), code);
         assert.ok(row.what.endsWith('.'), `${code}: a sentence`);
     }
 });

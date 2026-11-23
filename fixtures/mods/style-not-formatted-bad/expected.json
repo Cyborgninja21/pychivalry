@@ -1,0 +1,67 @@
+{
+    "findings": [
+        {
+            "file": "common/scripted_effects/style_effects.txt",
+            "line": 1,
+            "column": 1,
+            "code": "style/byte-order-mark",
+            "severity": "hint",
+            "message": "The file does not start with the UTF-8 byte-order mark.",
+            "data": {}
+        },
+        {
+            "file": "common/scripted_effects/style_effects.txt",
+            "line": 1,
+            "column": 1,
+            "code": "style/not-formatted",
+            "severity": "warning",
+            "message": "This file is not in pychivalry's format: 6 places (indentation 1, comment spacing 1, layout 2, line breaks 1, byte-order mark 1).",
+            "data": {}
+        },
+        {
+            "file": "common/scripted_effects/style_effects.txt",
+            "line": 1,
+            "column": 23,
+            "code": "style/block-layout",
+            "severity": "hint",
+            "message": "Layout: this block goes over several lines, one item a line.",
+            "data": {}
+        },
+        {
+            "file": "common/scripted_effects/style_effects.txt",
+            "line": 1,
+            "column": 24,
+            "code": "style/line-endings",
+            "severity": "hint",
+            "message": "Line breaks: 11 line breaks are not \\r\\n.",
+            "data": {}
+        },
+        {
+            "file": "common/scripted_effects/style_effects.txt",
+            "line": 2,
+            "column": 1,
+            "code": "style/indentation",
+            "severity": "hint",
+            "message": "This line takes one tab.",
+            "data": {}
+        },
+        {
+            "file": "common/scripted_effects/style_effects.txt",
+            "line": 6,
+            "column": 11,
+            "code": "style/block-layout",
+            "severity": "hint",
+            "message": "Layout: this block goes on one line.",
+            "data": {}
+        },
+        {
+            "file": "common/scripted_effects/style_effects.txt",
+            "line": 9,
+            "column": 20,
+            "code": "style/comment-spacing",
+            "severity": "hint",
+            "message": "One space goes before a comment at the end of a line.",
+            "data": {}
+        }
+    ]
+}

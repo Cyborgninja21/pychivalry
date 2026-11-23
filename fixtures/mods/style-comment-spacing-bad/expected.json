@@ -1,0 +1,31 @@
+{
+    "findings": [
+        {
+            "file": "common/scripted_effects/style_effects.txt",
+            "line": 2,
+            "column": 15,
+            "code": "style/comment-spacing",
+            "severity": "hint",
+            "message": "One space goes before a comment at the end of a line.",
+            "data": {}
+        },
+        {
+            "file": "common/scripted_effects/style_effects.txt",
+            "line": 2,
+            "column": 15,
+            "code": "style/not-formatted",
+            "severity": "warning",
+            "message": "This file is not in pychivalry's format: 2 places (comment spacing 2).",
+            "data": {}
+        },
+        {
+            "file": "common/scripted_effects/style_effects.txt",
+            "line": 3,
+            "column": 20,
+            "code": "style/comment-spacing",
+            "severity": "hint",
+            "message": "One space goes before a comment at the end of a line.",
+            "data": {}
+        }
+    ]
+}

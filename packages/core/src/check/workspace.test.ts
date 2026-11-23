@@ -74,6 +74,9 @@ function written(findings: readonly WorkspaceFinding[]): Record<string, unknown>
 
 const isParse = (f: WorkspaceFinding): boolean => /^(syntax|encoding)\//.test(f.code);
 
+/** True for a finding that is not of the `style/` family, which has tests of its own. */
+const notStyle = (f: WorkspaceFinding): boolean => !f.code.startsWith('style/');
+
 /** True for a finding of an advice check of item 4.7. */
 const advice = (code: string): boolean => code in CHECK_KINDS && isAdvice(code as CheckCode);
 
@@ -89,6 +92,7 @@ test("on each check's fixture pair the runner reports what every check reports, 
     const pairs = readdirSync(MODS).filter(
         (m) =>
             m.endsWith('-bad') &&
+            !m.startsWith('style-') &&
             existsSync(path.join(MODS, m, 'expected.json')) &&
             'findings' in
                 (JSON.parse(readFileSync(path.join(MODS, m, 'expected.json'), 'utf8')) as object),
@@ -125,7 +129,7 @@ test("on each check's fixture pair the runner reports what every check reports, 
                 platform: 'linux',
                 unusedKeys,
             });
-            const found = written(run.findings);
+            const found = written(run.findings.filter(notStyle));
             assert.deepEqual(
                 found,
                 checkFixture(mod, stub === undefined ? { unusedKeys } : { game: stub, unusedKeys }),
@@ -172,7 +176,7 @@ test("on each parse fixture the runner reports the parser's findings", (t) => {
 test('only the files the index reads are checked; the others are counted by folder', (t) => {
     const mod = scratch(t);
     write(path.join(mod, 'descriptor.mod'), 'name = "fixture"\n');
-    write(path.join(mod, 'events', 'b.txt'), 'namespace = b\n');
+    write(path.join(mod, 'events', 'b.txt'), '\ufeffnamespace = b\r\n');
     write(path.join(mod, 'events', 'a.txt'), 'namespace = a\n}\n');
     write(path.join(mod, 'notes', 'c.txt'), '} not script at all {\n');
     write(path.join(mod, 'notes', 'd.yml'), 'l_english:\n');
@@ -188,7 +192,8 @@ test('only the files the index reads are checked; the others are counted by fold
     assert.equal(run.gameBuild, null);
 });
 
-const MOD_EVENTS = [
+/** In pychivalry's format, the byte-order mark and Windows line breaks included. */
+const MOD_EVENTS = `\ufeff${[
     'namespace = fixture',
     'fixture.0001 = {',
     '\ttrigger = {',
@@ -197,7 +202,7 @@ const MOD_EVENTS = [
     '\t}',
     '}',
     '',
-].join('\n');
+].join('\r\n')}`;
 
 test('a name the game defines is known; without the game no such name is reported', (t) => {
     const dir = scratch(t);
