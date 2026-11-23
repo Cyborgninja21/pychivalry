@@ -7,6 +7,7 @@
 export {
     CACHE_FORMAT,
     cacheFileName,
+    cacheKeysEqual,
     defaultCacheDir,
     loadIndex,
     saveIndex,
@@ -72,14 +73,18 @@ export {
 export {
     descriptorValues,
     indexFiles,
+    indexFilesSteps,
     indexMod,
+    indexModSteps,
     installFolders,
     listInstall,
+    listInstallSteps,
     listMod,
     readGameBuild,
     REPLACE_PATH_KEY,
     sourceManifestSha256,
     syncMod,
+    syncModSteps,
     UNREAD_TEXT_EXTENSIONS,
     unreadWords,
     walkFiles,
@@ -145,6 +150,7 @@ export {
     type RuleKind,
     type RulesTable,
 } from './rules.js';
+export { LayeredMap } from './layered.js';
 export { StringTable } from './strings.js';
 export {
     fileKindOf,

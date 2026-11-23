@@ -4,7 +4,7 @@
  * the process's own (`processIo`); a test passes its own.
  */
 
-import { findGameFolders } from '@pychivalry/core';
+import { findGameFolders, type SharedBase, type Spec } from '@pychivalry/core';
 import { homedir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 
@@ -23,6 +23,14 @@ export interface Io {
      * not given, or null when it is not installed; by default every Steam library is searched.
      */
     readonly findGame: (gameId: string) => string | null;
+    /**
+     * A base game another program lends (docs/shared-index.md): a command that reads the base
+     * game forks it instead of loading one (`openWorkspace`'s `base`). Only the program that
+     * answers for the command line sets it.
+     */
+    readonly base?: SharedBase | undefined;
+    /** How a spec folder is opened; the core's `openSpec` by default. */
+    readonly openSpec?: ((dir: string) => Spec) | undefined;
 }
 
 /**

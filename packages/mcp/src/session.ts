@@ -17,10 +17,14 @@
  */
 
 import {
-    openWorkspace,
-    syncMod,
+    drain,
+    openWorkspaceSteps,
+    syncModSteps,
     type GameIndex,
+    type Place,
+    type SharedBase,
     type Spec,
+    type Steps,
     type SyncedMod,
     type Workspace,
     type WorkspaceIndex,
@@ -46,6 +50,17 @@ export interface SessionOptions {
     readonly game: GameChoice;
     /** The index cache folder (`defaultCacheDir`), or null for none. */
     readonly cacheDir: string | null;
+    /**
+     * A base game another program lends (docs/shared-index.md): the session's workspace forks
+     * it instead of loading the base game. Only the program that answers for agent servers
+     * sets it.
+     */
+    readonly base?: SharedBase | undefined;
+    /**
+     * Where the program that lends the base game is looked for (the user's environment, system
+     * and home), or undefined to answer every request here.
+     */
+    readonly place?: Place | undefined;
 }
 
 /** A path inside the mod: its path relative to the mod folder, with `/`; empty for the mod. */
@@ -59,6 +74,8 @@ export class Session {
     readonly modDir: string;
     readonly game: GameChoice;
     readonly cacheDir: string | null;
+    readonly base: SharedBase | undefined;
+    readonly place: Place | undefined;
     private opened: { readonly index: WorkspaceIndex; readonly game: GameIndex | null } | null =
         null;
     private mod: SyncedMod | null = null;
@@ -75,21 +92,45 @@ export class Session {
         this.modDir = options.modDir;
         this.game = options.game;
         this.cacheDir = options.cacheDir;
+        this.base = options.base;
+        this.place = options.place;
     }
 
     /** The workspace: the base game, opened once, and the mod as its folder is now. */
     workspace(): Workspace {
-        this.opened ??= openWorkspace({
+        return drain(this.workspaceSteps());
+    }
+
+    /** `workspace` in steps (`Steps`): a pause after each file of the mod read. */
+    *workspaceSteps(): Steps<Workspace> {
+        this.opened ??= yield* openWorkspaceSteps({
             spec: this.spec,
             gameDir: this.game.dir,
             cacheDir: this.cacheDir,
             modDir: null,
+            base: this.base,
         });
-        this.mod = syncMod(this.opened.index, this.modDir, this.mod);
+        this.mod = yield* syncModSteps(this.opened.index, this.modDir, this.mod);
         if (this.mod.changed) {
             this.generation++;
         }
         return { index: this.opened.index, game: this.opened.game, mod: this.mod };
+    }
+
+    /**
+     * Let go of the base game and the mod: the next request opens them again. Called when
+     * another program answers this session's requests, so that this one holds no copy of its
+     * own (docs/shared-index.md).
+     */
+    release(): void {
+        this.opened = null;
+        this.mod = null;
+        this.remembered.clear();
+    }
+
+    /** True while the session holds a base game or a mod of its own. */
+    get holdsIndex(): boolean {
+        return this.opened !== null;
     }
 
     /**
@@ -103,6 +144,17 @@ export class Session {
             return kept.value as T;
         }
         const value = make();
+        this.remembered.set(kind, { key, generation: this.generation, value });
+        return value;
+    }
+
+    /** `remember`, made in steps (`Steps`). */
+    *rememberSteps<T>(kind: string, key: string, make: () => Steps<T>): Steps<T> {
+        const kept = this.remembered.get(kind);
+        if (kept?.key === key && kept.generation === this.generation) {
+            return kept.value as T;
+        }
+        const value = yield* make();
         this.remembered.set(kind, { key, generation: this.generation, value });
         return value;
     }

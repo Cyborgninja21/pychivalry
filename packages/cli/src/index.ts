@@ -18,5 +18,14 @@ export { InputError, parseArgs, UsageError, type OptionSpec, type Parsed } from 
 export { EXIT, type Command } from './command.js';
 export { COMMANDS } from './commands.js';
 export { defaultSpecDir, processIo, type Io } from './io.js';
-export { run, usage } from './run.js';
+export { run, runSteps, usage } from './run.js';
+export {
+    readsBaseGame,
+    runShared,
+    serveCliSteps,
+    type Ask,
+    type CliAnswer,
+    type CliHost,
+    type CliRequest,
+} from './share.js';
 export { TOOL, version } from './version.js';

@@ -16,6 +16,7 @@ export const builtOn = corePackageName;
 export { defaultSpecDir, serverArguments, specFrom, USAGE, UsageError } from './args.js';
 export { CHECK_PAGE, checkPageOf, DIAGNOSTIC_SOURCE, toDiagnostic } from './diagnostics.js';
 export { chooseGame, gameNotices, type GameChoice, type Notice } from './game.js';
+export { Lender, SHARING_REQUEST, type SharingStatus } from './lend.js';
 export { DEFAULT_SETTINGS, readSettings, SETTINGS_SECTION, type Settings } from './settings.js';
 export {
     BACKGROUND_DONE,

@@ -48,6 +48,12 @@ export interface GameIndex {
     readonly cacheFile: string | null;
     /** True when the index came from the cache. */
     readonly fromCache: boolean;
+    /**
+     * True when the index is a fork of a base game another program had already open
+     * (docs/shared-index.md): nothing was loaded or read for it but the listing of the game's
+     * files that shows it is the same game.
+     */
+    readonly shared: boolean;
     /** Why the cache was not used, when it was not. */
     readonly miss: CacheMiss | null;
     /** Bytes written to the cache, when it was written. */
@@ -102,6 +108,7 @@ export function openGameIndex(options: GameIndexOptions): GameIndex {
                 key,
                 cacheFile,
                 fromCache: true,
+                shared: false,
                 miss: null,
                 cacheBytes: null,
                 ms,
@@ -118,5 +125,15 @@ export function openGameIndex(options: GameIndexOptions): GameIndex {
         cacheBytes = saveIndex(index, cacheFile, key);
         ms.save = performance.now() - t;
     }
-    return { index, listing, key, cacheFile, fromCache: false, miss, cacheBytes, ms };
+    return {
+        index,
+        listing,
+        key,
+        cacheFile,
+        fromCache: false,
+        shared: false,
+        miss,
+        cacheBytes,
+        ms,
+    };
 }

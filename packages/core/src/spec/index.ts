@@ -61,6 +61,7 @@ export {
     readSpec,
     sha256Hex,
     Spec,
+    specChecksumIn,
     SPEC_FORMAT,
     SpecError,
     type Companion,

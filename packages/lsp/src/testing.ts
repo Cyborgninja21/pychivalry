@@ -396,7 +396,15 @@ export function spawnServer(
 export function serverInProcess(
     t: TestContext,
     settings: TestSettings,
-    options: { readonly findGame?: (gameId: string) => string | null; readonly spec?: Spec } = {},
+    options: {
+        readonly findGame?: (gameId: string) => string | null;
+        readonly spec?: Spec;
+        /** The cache folder; a temporary one by default. */
+        readonly cache?: string;
+        /** Lend the base game to programs whose cache folder is the same (docs/shared-index.md). */
+        readonly lend?: boolean;
+        readonly env?: Readonly<Record<string, string>>;
+    } = {},
 ): { client: TestClient; server: LanguageServer } {
     const toServer = new PassThrough();
     const toClient = new PassThrough();
@@ -404,12 +412,22 @@ export function serverInProcess(
         new StreamMessageReader(toServer),
         new StreamMessageWriter(toClient),
     );
+    const cache = options.cache ?? path.join(scratch(t), 'cache');
     const server = startServer(serverConnection, {
         spec: options.spec ?? committedSpec(),
-        cacheDir: path.join(scratch(t), 'cache'),
+        cacheDir: path.join(cache, 'pychivalry', 'index'),
         findGame: options.findGame ?? (() => null),
         editDelay: 20,
         diskDelay: 20,
+        place:
+            options.lend === true
+                ? {
+                      env: { XDG_CACHE_HOME: cache, LOCALAPPDATA: cache, ...options.env },
+                      platform: process.platform,
+                      home: cache,
+                  }
+                : undefined,
+        lendClaimMs: 100,
     });
     const connection = createProtocolConnection(
         new StreamMessageReader(toClient),

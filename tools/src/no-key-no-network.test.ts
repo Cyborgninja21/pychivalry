@@ -16,8 +16,13 @@
  *    packages, unless `EXCEPTIONS` lists that module for that file with its reason; Node's
  *    `child_process`, which can start any program, is listed the same way.
  *
- * Rules 1 and 2 have no exceptions. A step that needs another module adds it to `EXCEPTIONS`
- * with its reason, and a networking module is never one.
+ * Rule 1 has no exception. Rule 2 has one, `LOCAL_CHANNEL`: Node's `node:net` in one file,
+ * `packages/core/src/share/channel.ts`, the channel by which pychivalry's own programs on one
+ * machine share the base game's index (docs/shared-index.md), because that module is the only
+ * way Node opens a Unix domain socket or a Windows named pipe. That file is held to binding and
+ * connecting a path only, never a port or a host, here and by its own test
+ * (`packages/core/src/share/channel.test.ts`). A step that needs another module adds it to
+ * `EXCEPTIONS` with its reason, and a networking module is never one.
  */
 
 import assert from 'node:assert/strict';
@@ -63,6 +68,16 @@ const NETWORK_TEXT: readonly { readonly what: string; readonly pattern: RegExp }
     { what: 'XMLHttpRequest', pattern: /\bXMLHttpRequest\b/ },
     { what: 'EventSource', pattern: /\bEventSource\b/ },
 ];
+
+/**
+ * Rule 2's one exception: the local channel between pychivalry's own programs on one machine.
+ * Exactly this module, in exactly this file, for exactly this reason.
+ */
+const LOCAL_CHANNEL = {
+    module: 'node:net',
+    file: 'packages/core/src/share/channel.ts',
+    reason: "The language server lends its index of the base game to the agent servers and the command line on the same machine (docs/shared-index.md), so that they hold one copy between them instead of one each. They talk over a Unix domain socket in the user's own owner-only folder, or a Windows named pipe of this machine, and `node:net` is the only way Node opens either. This file binds and connects a path and nothing else: every address is checked to be a local path or pipe name first, and the module is called only with `{ path }`, never a port, a host or an IP address, so nothing it opens can be reached from another machine.",
+} as const;
 
 /** Rule 3: each module a shipped file may import that is not plainly allowed, with its reason. */
 const EXCEPTIONS: readonly {
@@ -216,17 +231,27 @@ function importsOf(text: string): string[] {
     return [...text.matchAll(pattern)].map((m) => m[1] ?? m[2] ?? m[3] ?? m[4] ?? '');
 }
 
-/** What rules 1 and 2 find in a text, each as `<line>: <what>`. */
-function forbiddenIn(text: string): string[] {
+/**
+ * What rules 1 and 2 find in a text, each as `<line>: <what>`. In the local channel's file
+ * (`LOCAL_CHANNEL`) its one module, `node:net`, is not counted; everything else is.
+ */
+function forbiddenIn(text: string, file = ''): string[] {
+    const channel = file === LOCAL_CHANNEL.file;
     const found: string[] = [];
     text.split(/\r?\n/).forEach((line, i) => {
         for (const { what, pattern } of [...CREDENTIALS, ...NETWORK_TEXT]) {
+            if (channel && what === LOCAL_CHANNEL.module) {
+                continue;
+            }
             if (pattern.test(line)) {
                 found.push(`${String(i + 1)}: ${what}`);
             }
         }
     });
     for (const module of importsOf(text)) {
+        if (channel && module === LOCAL_CHANNEL.module) {
+            continue;
+        }
         if (NETWORK_MODULES.includes(module.replace(/^node:/, '').split('/')[0] ?? '')) {
             found.push(`imports ${module}`);
         }
@@ -265,7 +290,7 @@ test('the search reads every shipped package', () => {
 
 test('no shipped file names a credential or a key, imports a networking module or calls fetch', () => {
     const found = files.flatMap((file) =>
-        forbiddenIn(readFileSync(path.join(root, file), 'utf8')).map((f) => `${file}:${f}`),
+        forbiddenIn(readFileSync(path.join(root, file), 'utf8'), file).map((f) => `${file}:${f}`),
     );
     assert.deepEqual(found, []);
 });
@@ -329,4 +354,45 @@ test('the search finds what it looks for', () => {
     assert.ok(!plainlyAllowed('axios'));
     assert.ok(!plainlyAllowed('node:child_process'));
     assert.ok(plainlyAllowed('@pychivalry/core'));
+});
+
+test("rule 2's one exception: the local channel, in one file, binding a path only", () => {
+    assert.ok(files.includes(LOCAL_CHANNEL.file), 'the channel is a shipped source file');
+    assert.ok(LOCAL_CHANNEL.reason.length > 20);
+    const users = files.filter((file) =>
+        importsOf(readFileSync(path.join(root, file), 'utf8')).some(
+            (m) => m.replace(/^node:/, '') === 'net',
+        ),
+    );
+    assert.deepEqual(users, [LOCAL_CHANNEL.file], 'no other shipped file imports node:net');
+    const text = readFileSync(path.join(root, LOCAL_CHANNEL.file), 'utf8');
+    assert.deepEqual(
+        importsOf(text).filter(
+            (m) => !plainlyAllowed(m) || NETWORK_MODULES.includes(m.replace(/^node:/, '')),
+        ),
+        [LOCAL_CHANNEL.module],
+        'the channel imports no other networking module',
+    );
+    // The module is handed a path, never a port or a host: one listen and one connect, each
+    // with `{ path: address }`, after the address was checked to be a local one.
+    const code = text.replace(/\/\*\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+    const calls = [...code.matchAll(/\.listen\(([^)]*)|\bconnect\(([^)]*)/g)].map(
+        (m) => m[1] ?? m[2] ?? '',
+    );
+    assert.equal(calls.length, 2, calls.join(' | '));
+    for (const call of calls) {
+        assert.match(call, /^\{ path: address\b/, call);
+    }
+    assert.doesNotMatch(code, /\b(port|host|hostname)\s*:/);
+    assert.equal((code.match(/refuseAddress\(address\)/g) ?? []).length, 2);
+    // Anywhere else, node:net is still found and refused.
+    assert.deepEqual(forbiddenIn("import net from 'node:net';", 'packages/core/src/x.ts'), [
+        '1: node:net',
+        'imports node:net',
+    ]);
+    assert.deepEqual(forbiddenIn("import net from 'node:net';", LOCAL_CHANNEL.file), []);
+    assert.deepEqual(forbiddenIn("import http from 'node:http';", LOCAL_CHANNEL.file), [
+        '1: node:http',
+        'imports node:http',
+    ]);
 });

@@ -34,12 +34,14 @@
  */
 
 import {
-    checkWorkspace,
+    checkWorkspaceSteps,
     codesMatching,
     defaultCacheDir,
+    drain,
     whatIsValid,
     type Severity,
     type Spec,
+    type Steps,
     type WorkspaceCheck,
     type WorkspaceFinding,
 } from '@pychivalry/core';
@@ -231,6 +233,7 @@ export function summaryJson(
                       dir: game.dir,
                       found_by: game.source,
                       from_cache: run.game.fromCache,
+                      shared: run.game.shared,
                       ms: {
                           list: Math.round(run.game.ms.list),
                           build: Math.round(run.game.ms.build),
@@ -315,36 +318,41 @@ export const checkCommand: Command = {
         UNUSED_KEYS_OPTION,
     ],
     positionals: { min: 1, max: 1 },
-    run(parsed: Parsed, io: Io): number {
-        const filters = readFilters(parsed);
-        const modDir = path.resolve(io.cwd, parsed.positionals[0] ?? '');
-        if (!isDirectory(modDir)) {
-            throw new InputError(`not a folder: ${modDir}`);
-        }
-        const spec = readSpecOption(parsed, io);
-        const game = readGameOption(parsed, io, spec);
-        const run = checkWorkspace({
-            spec,
-            modDir,
-            gameDir: game.dir,
-            cacheDir: defaultCacheDir(io.env, io.platform, io.home),
-            unusedKeys: parsed.flags.has('--unused-keys'),
-        });
-        const { matched, shown } = select(run.findings, filters);
-        if (parsed.flags.has('--json')) {
-            const lines = shown.map((f) => JSON.stringify(findingJson(f)));
-            lines.push(
-                JSON.stringify({
-                    summary: summaryJson(run, spec, game, matched.length, shown.length),
-                }),
-            );
-            io.stdout(`${lines.join('\n')}\n`);
-        } else {
-            io.stdout(renderText(run, shown));
-            for (const note of notes(run, spec, game)) {
-                io.stderr(`pychivalry: ${note}\n`);
-            }
-        }
-        return matched.some((f) => f.severity === 'error') ? EXIT.found : EXIT.ok;
-    },
+    run: (parsed: Parsed, io: Io): number => drain(checkSteps(parsed, io)),
+    steps: checkSteps,
 };
+
+/** `check`, in steps: a pause after each file of the mod indexed and checked. */
+function* checkSteps(parsed: Parsed, io: Io): Steps<number> {
+    const filters = readFilters(parsed);
+    const modDir = path.resolve(io.cwd, parsed.positionals[0] ?? '');
+    if (!isDirectory(modDir)) {
+        throw new InputError(`not a folder: ${modDir}`);
+    }
+    const spec = readSpecOption(parsed, io);
+    const game = readGameOption(parsed, io, spec);
+    const run = yield* checkWorkspaceSteps({
+        spec,
+        modDir,
+        gameDir: game.dir,
+        cacheDir: defaultCacheDir(io.env, io.platform, io.home),
+        unusedKeys: parsed.flags.has('--unused-keys'),
+        base: io.base,
+    });
+    const { matched, shown } = select(run.findings, filters);
+    if (parsed.flags.has('--json')) {
+        const lines = shown.map((f) => JSON.stringify(findingJson(f)));
+        lines.push(
+            JSON.stringify({
+                summary: summaryJson(run, spec, game, matched.length, shown.length),
+            }),
+        );
+        io.stdout(`${lines.join('\n')}\n`);
+    } else {
+        io.stdout(renderText(run, shown));
+        for (const note of notes(run, spec, game)) {
+            io.stderr(`pychivalry: ${note}\n`);
+        }
+    }
+    return matched.some((f) => f.severity === 'error') ? EXIT.found : EXIT.ok;
+}

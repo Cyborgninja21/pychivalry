@@ -27,3 +27,6 @@ export const FINDINGS_REQUEST = 'pychivalry/findings';
 
 /** The language server's notice that a background pass ended (`@pychivalry/lsp`, `server.ts`). */
 export const BACKGROUND_DONE = 'pychivalry/backgroundDone';
+
+/** The language server's request for what it lends (`@pychivalry/lsp`, `lend.ts`). */
+export const SHARING_REQUEST = 'pychivalry/sharing';

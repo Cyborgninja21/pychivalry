@@ -105,4 +105,13 @@ export class PathTable<T> {
     groups(): IterableIterator<readonly { readonly path: string; readonly value: T }[]> {
         return this.entries.values();
     }
+
+    /** A table holding the same values, in the same order, that changes apart from this one. */
+    copy(): PathTable<T> {
+        const out = new PathTable<T>();
+        for (const [key, list] of this.entries) {
+            out.entries.set(key, [...list]);
+        }
+        return out;
+    }
 }

@@ -170,5 +170,6 @@ export function sessionOptions(argv: readonly string[], where: Surroundings): Se
         modDir,
         game: gameFrom(options, where, spec),
         cacheDir: defaultCacheDir(where.env, where.platform, where.home),
+        place: { env: where.env, platform: where.platform, home: where.home },
     };
 }

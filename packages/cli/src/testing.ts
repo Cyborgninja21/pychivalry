@@ -5,7 +5,7 @@
  * always one of its own. Not part of the package's surface.
  */
 
-import { spawnSync } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -103,15 +103,52 @@ export function runCli(
  * The command line run as its own process, with its cache folder `cache`. A check must name
  * its game (`--vanilla` or `--no-vanilla`), so that no test looks for the real one.
  */
-export function spawnCli(argv: readonly string[], cache: string): Result {
+export function spawnCli(
+    argv: readonly string[],
+    cache: string,
+    env: Readonly<Record<string, string>> = {},
+): Result {
     if (argv[0] === 'check' && !argv.includes('--vanilla') && !argv.includes('--no-vanilla')) {
         throw new Error('a spawned check must name its game: --vanilla or --no-vanilla');
     }
     const r = spawnSync(process.execPath, [MAIN, ...argv], {
         encoding: 'utf8',
         cwd: REPO_ROOT,
-        env: { ...process.env, ...cacheEnv(cache) },
+        env: { ...process.env, ...cacheEnv(cache), ...env },
         maxBuffer: 64 * 1024 * 1024,
     });
     return { code: r.status ?? -1, stdout: r.stdout, stderr: r.stderr };
+}
+
+/**
+ * `spawnCli` without blocking this process, so that a program this process runs (a lender of
+ * the base game, docs/shared-index.md) can answer the command line while it waits.
+ */
+export async function spawnCliAsync(
+    argv: readonly string[],
+    cache: string,
+    env: Readonly<Record<string, string>> = {},
+): Promise<Result> {
+    if (argv[0] === 'check' && !argv.includes('--vanilla') && !argv.includes('--no-vanilla')) {
+        throw new Error('a spawned check must name its game: --vanilla or --no-vanilla');
+    }
+    const child = spawn(process.execPath, [MAIN, ...argv], {
+        cwd: REPO_ROOT,
+        env: { ...process.env, ...cacheEnv(cache), ...env },
+        stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    let stdout = '';
+    let stderr = '';
+    child.stdout.setEncoding('utf8').on('data', (chunk: string) => {
+        stdout += chunk;
+    });
+    child.stderr.setEncoding('utf8').on('data', (chunk: string) => {
+        stderr += chunk;
+    });
+    const code = await new Promise<number>((resolve) => {
+        child.on('close', (status) => {
+            resolve(status ?? -1);
+        });
+    });
+    return { code, stdout, stderr };
 }

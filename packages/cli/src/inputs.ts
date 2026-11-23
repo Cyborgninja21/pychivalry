@@ -41,8 +41,9 @@ export function readSpecOption(parsed: Parsed, io: Io): Spec {
     const given = oneValue(parsed, '--spec');
     const target = given === undefined ? io.specDir : path.resolve(io.cwd, given);
     try {
+        const open = io.openSpec ?? openSpec;
         if (isDirectory(target)) {
-            return openSpec(target);
+            return open(target);
         }
         if (!existsSync(target)) {
             throw new InputError(`--spec: no such file: ${target}`);
@@ -54,7 +55,7 @@ export function readSpecOption(parsed: Parsed, io: Io): Spec {
                 `--spec: ${path.basename(target)} is not a spec package file (ck3-spec-<version>.json.gz)`,
             );
         }
-        return openSpec(dir);
+        return open(dir);
     } catch (err) {
         if (err instanceof SpecError) {
             throw new InputError(`the spec package cannot be read: ${err.message}`);

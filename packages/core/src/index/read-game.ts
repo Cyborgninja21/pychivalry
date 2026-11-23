@@ -20,6 +20,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { parse } from '../syntax/parser.js';
+import { drain, type Steps } from '../steps.js';
 import { decodeScript } from '../syntax/decode.js';
 import type { FolderTable } from './folders.js';
 import { diskPath, extensionOf, fileNameOf, isWithin, relativePath, segmentsOf } from './paths.js';
@@ -167,6 +168,15 @@ export function listInstall(
     folders: FolderTable,
     rules: readonly Rule[],
 ): SourceListing {
+    return drain(listInstallSteps(install, folders, rules));
+}
+
+/** `listInstall` in steps (`steps.ts`): a pause after each file. */
+export function* listInstallSteps(
+    install: readonly InstallFolder[],
+    folders: FolderTable,
+    rules: readonly Rule[],
+): Steps<SourceListing> {
     const listing: SourceListing = {
         files: [],
         notDescribed: new Map(),
@@ -188,6 +198,7 @@ export function listInstall(
             const layer = pack?.layer ?? folder.layer;
             const inside = pack === undefined ? rel : rel.slice(pack.folder.length + 1);
             addSource(listing, folders, layer, inside, diskPath(folder.dir, rel));
+            yield;
         }
     }
     return listing;
@@ -293,17 +304,31 @@ export function indexFiles(
     files: readonly SourceFile[],
     target: WorkspaceIndex | IndexOptions,
 ): WorkspaceIndex {
+    return drain(indexFilesSteps(files, target));
+}
+
+/** `indexFiles` in steps (`steps.ts`): a pause after each file. */
+export function* indexFilesSteps(
+    files: readonly SourceFile[],
+    target: WorkspaceIndex | IndexOptions,
+): Steps<WorkspaceIndex> {
     const index = target instanceof WorkspaceIndex ? target : new WorkspaceIndex(target);
     for (const file of files) {
         index.addFile(file.layer, file.path, readFileSync(file.disk));
+        yield;
     }
     return index;
 }
 
 /** Index a mod over an index of the base game: its files, and its `replace_path` values. */
 export function indexMod(index: WorkspaceIndex, modDir: string): ModListing {
+    return drain(indexModSteps(index, modDir));
+}
+
+/** `indexMod` in steps (`steps.ts`): a pause after each file. */
+export function* indexModSteps(index: WorkspaceIndex, modDir: string): Steps<ModListing> {
     const listing = listMod(modDir, index.folders);
-    indexFiles(listing.files, index);
+    yield* indexFilesSteps(listing.files, index);
     index.setReplacePaths(listing.replacePaths);
     return listing;
 }
@@ -341,6 +366,15 @@ export function syncMod(
     modDir: string,
     previous: SyncedMod | null,
 ): SyncedMod {
+    return drain(syncModSteps(index, modDir, previous));
+}
+
+/** `syncMod` in steps (`steps.ts`): a pause after each file read again. */
+export function* syncModSteps(
+    index: WorkspaceIndex,
+    modDir: string,
+    previous: SyncedMod | null,
+): Steps<SyncedMod> {
     const listedAt = Date.now();
     const listing = listMod(modDir, index.folders);
     const before = new Map((previous?.files ?? []).map((f) => [f.path, f]));
@@ -362,7 +396,7 @@ export function syncMod(
             f.mtimeMs >= previous.listedAt - RACY_MS
         );
     });
-    indexFiles(changed, index);
+    yield* indexFilesSteps(changed, index);
     const replaced =
         previous === null ||
         previous.replacePaths.length !== listing.replacePaths.length ||

@@ -12,6 +12,7 @@ import {
     FINDINGS_REQUEST as LSP_FINDINGS_REQUEST,
     readSettings,
     SETTINGS_SECTION as LSP_SETTINGS_SECTION,
+    SHARING_REQUEST as LSP_SHARING_REQUEST,
 } from '@pychivalry/lsp';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -27,6 +28,7 @@ import {
     PROVIDER_ID,
     SET_UP_CLAUDE_CODE,
     SETTINGS_SECTION,
+    SHARING_REQUEST,
 } from './ids.js';
 
 const PACKAGE = fileURLToPath(new URL('../', import.meta.url));
@@ -159,4 +161,5 @@ test("the settings are the language server's four, each with its default and a d
 test("the language server's own requests are the ones the extension sends and listens to", () => {
     assert.equal(FINDINGS_REQUEST, LSP_FINDINGS_REQUEST);
     assert.equal(BACKGROUND_DONE, LSP_BACKGROUND_DONE);
+    assert.equal(SHARING_REQUEST, LSP_SHARING_REQUEST);
 });

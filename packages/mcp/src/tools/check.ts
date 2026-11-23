@@ -7,7 +7,13 @@
  * time; then a cursor for the next page.
  */
 
-import { checkWorkspace, type Severity, type WorkspaceFinding } from '@pychivalry/core';
+import {
+    checkWorkspaceSteps,
+    drain,
+    type Severity,
+    type Steps,
+    type WorkspaceFinding,
+} from '@pychivalry/core';
 import { spanOf } from '../places.js';
 import { DEFAULT_LIMIT, MAX_LIMIT, page, questionKey, readCursor, valueList } from '../result.js';
 import type { Schema } from '../schema.js';
@@ -173,80 +179,85 @@ export const checkTool: Tool<CheckArgs> = {
             'notes',
         ],
     },
-    run(args: CheckArgs, session: Session): Record<string, unknown> {
-        const minSeverity = args.min_severity ?? 'error';
-        const codes = args.codes === undefined ? null : codesOf(args.codes, 'codes');
-        const target = args.path === undefined ? null : session.modPath(args.path, 'path');
-        const unusedKeys = args.unused_keys ?? false;
-        const key = questionKey('check', {
-            path: target?.relative ?? '',
-            min_severity: minSeverity,
-            codes: codes === null ? null : [...codes].sort(),
-            unused_keys: unusedKeys,
-        });
-        const offset = readCursor(args.cursor, key);
-        const workspace = session.workspace();
-        const only =
-            target === null || target.relative === ''
-                ? undefined
-                : target.kind === 'file'
-                  ? (file: string) => file === target.relative
-                  : (file: string) => file.startsWith(`${target.relative}/`);
-        // The next page of the same check, on an unchanged mod, does not check again.
-        const run = session.remember(
-            'check',
-            JSON.stringify([target?.relative ?? '', unusedKeys]),
-            () =>
-                checkWorkspace({
-                    spec: session.spec,
-                    modDir: session.modDir,
-                    gameDir: session.game.dir,
-                    cacheDir: session.cacheDir,
-                    workspace,
-                    unusedKeys,
-                    only,
-                }),
-        );
-        const rank = SEVERITIES.indexOf(minSeverity);
-        const matched = run.findings.filter(
-            (f) => SEVERITIES.indexOf(f.severity) <= rank && (codes === null || codes.has(f.code)),
-        );
-        const notes = session.notes();
-        if (run.files.length === 0 && target !== null) {
-            notes.push(
-                `${args.path ?? ''} holds no file the game reads as script or localization: nothing was checked`,
-            );
-        }
-        const notChecked = [...run.notChecked].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
-        if (notChecked.length > 0 && target === null) {
-            const total = notChecked.reduce((n, [, count]) => n + count, 0);
-            notes.push(
-                `${String(total)} files in folders the game does not read as script were not checked: ${valueList(
-                    notChecked.map(([folder, count]) => `${folder} (${String(count)})`),
-                    600,
-                )}`,
-            );
-        }
-        const game = run.game;
-        const base = {
-            files_checked: run.files.length,
-            totals: totalsOf(run.findings),
-            matched: matched.length,
-        };
-        const tail = {
-            capped: {
-                max_per_file: run.maxFindingsPerFile,
-                files: run.capped.length,
-                dropped: run.capped.reduce((n, c) => n + c.dropped, 0),
-            },
-            game: game === null ? null : { build: run.gameBuild, from_cache: game.fromCache },
-            notes,
-        };
-        return page(matched, offset, args.limit ?? DEFAULT_LIMIT, key, (taken, nextCursor) => ({
-            ...base,
-            findings: taken.map(findingOutput),
-            next_cursor: nextCursor,
-            ...tail,
-        }));
-    },
+    run: (args: CheckArgs, session: Session): Record<string, unknown> =>
+        drain(checkSteps(args, session)),
+    steps: checkSteps,
 };
+
+/** `check`, in steps: a pause after each file of the mod read and checked. */
+function* checkSteps(args: CheckArgs, session: Session): Steps<Record<string, unknown>> {
+    const minSeverity = args.min_severity ?? 'error';
+    const codes = args.codes === undefined ? null : codesOf(args.codes, 'codes');
+    const target = args.path === undefined ? null : session.modPath(args.path, 'path');
+    const unusedKeys = args.unused_keys ?? false;
+    const key = questionKey('check', {
+        path: target?.relative ?? '',
+        min_severity: minSeverity,
+        codes: codes === null ? null : [...codes].sort(),
+        unused_keys: unusedKeys,
+    });
+    const offset = readCursor(args.cursor, key);
+    const workspace = yield* session.workspaceSteps();
+    const only =
+        target === null || target.relative === ''
+            ? undefined
+            : target.kind === 'file'
+              ? (file: string) => file === target.relative
+              : (file: string) => file.startsWith(`${target.relative}/`);
+    // The next page of the same check, on an unchanged mod, does not check again.
+    const run = yield* session.rememberSteps(
+        'check',
+        JSON.stringify([target?.relative ?? '', unusedKeys]),
+        () =>
+            checkWorkspaceSteps({
+                spec: session.spec,
+                modDir: session.modDir,
+                gameDir: session.game.dir,
+                cacheDir: session.cacheDir,
+                workspace,
+                unusedKeys,
+                only,
+            }),
+    );
+    const rank = SEVERITIES.indexOf(minSeverity);
+    const matched = run.findings.filter(
+        (f) => SEVERITIES.indexOf(f.severity) <= rank && (codes === null || codes.has(f.code)),
+    );
+    const notes = session.notes();
+    if (run.files.length === 0 && target !== null) {
+        notes.push(
+            `${args.path ?? ''} holds no file the game reads as script or localization: nothing was checked`,
+        );
+    }
+    const notChecked = [...run.notChecked].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
+    if (notChecked.length > 0 && target === null) {
+        const total = notChecked.reduce((n, [, count]) => n + count, 0);
+        notes.push(
+            `${String(total)} files in folders the game does not read as script were not checked: ${valueList(
+                notChecked.map(([folder, count]) => `${folder} (${String(count)})`),
+                600,
+            )}`,
+        );
+    }
+    const game = run.game;
+    const base = {
+        files_checked: run.files.length,
+        totals: totalsOf(run.findings),
+        matched: matched.length,
+    };
+    const tail = {
+        capped: {
+            max_per_file: run.maxFindingsPerFile,
+            files: run.capped.length,
+            dropped: run.capped.reduce((n, c) => n + c.dropped, 0),
+        },
+        game: game === null ? null : { build: run.gameBuild, from_cache: game.fromCache },
+        notes,
+    };
+    return page(matched, offset, args.limit ?? DEFAULT_LIMIT, key, (taken, nextCursor) => ({
+        ...base,
+        findings: taken.map(findingOutput),
+        next_cursor: nextCursor,
+        ...tail,
+    }));
+}
