@@ -1,0 +1,56 @@
+{
+    "findings": [
+        {
+            "file": "events/fixture_events.txt",
+            "line": 10,
+            "column": 3,
+            "code": "scope/wrong-scope-for-effect",
+            "severity": "error",
+            "message": "Wrong scope for effect: character, expected landed_title",
+            "data": {
+                "name": "add_county_modifier",
+                "scope": "character",
+                "expected": ["landed_title"]
+            }
+        },
+        {
+            "file": "events/fixture_events.txt",
+            "line": 15,
+            "column": 4,
+            "code": "scope/wrong-scope-for-effect",
+            "severity": "error",
+            "message": "Wrong scope for effect: landed_title, expected character",
+            "data": {
+                "name": "add_gold",
+                "scope": "landed_title",
+                "expected": ["character"]
+            }
+        },
+        {
+            "file": "events/fixture_events.txt",
+            "line": 16,
+            "column": 4,
+            "code": "scope/wrong-scope-for-effect",
+            "severity": "error",
+            "message": "Wrong scope for effect: landed_title, expected character",
+            "data": {
+                "name": "every_vassal",
+                "scope": "landed_title",
+                "expected": ["character"]
+            }
+        },
+        {
+            "file": "events/fixture_events.txt",
+            "line": 30,
+            "column": 4,
+            "code": "scope/wrong-scope-for-effect",
+            "severity": "error",
+            "message": "Wrong scope for effect: province, expected character",
+            "data": {
+                "name": "add_trait",
+                "scope": "province",
+                "expected": ["character"]
+            }
+        }
+    ]
+}

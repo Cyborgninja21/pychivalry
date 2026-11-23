@@ -87,6 +87,12 @@ export interface SchemaField {
     readonly holds?: string;
     readonly scope?: readonly string[];
     readonly info_type?: readonly string[];
+    /**
+     * Paradox's `.info` scope notes on the field (part C1), beside the measured `scope`, never
+     * in its place: each the scope it is about (`root`, `this`, `scope:<name>` or null, the
+     * package format's words) and the scope type as the `.info` writes it.
+     */
+    readonly info_scope?: readonly { readonly scope: string | null; readonly type: string }[];
     readonly fields?: Readonly<Record<string, SchemaField>>;
     readonly description?: string;
     readonly description_source?: string;
