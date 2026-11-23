@@ -14,6 +14,7 @@ import {
     only,
     parseCliJson,
     sorted,
+    withRanges,
 } from './answers.js';
 
 const core = {
@@ -45,6 +46,53 @@ test('the core, the command line and the agent server state one finding the same
     assert.equal(fromTheCore.evidence, canonical(core.evidence));
     // Keys in another order are the same data.
     assert.equal(canonical({ b: 1, a: [{ d: 2, c: 3 }] }), '{"a":[{"c":3,"d":2}],"b":1}');
+});
+
+test('a fix is the same answer on every surface: its places from 0 in the core, from 1 in the agent server', () => {
+    const edit = {
+        file: 'events/a.txt',
+        range: { start: { line: 2, character: 4 }, end: { line: 2, character: 11 } },
+        new_text: 'is_adult',
+    };
+    const fix = {
+        safety: 'safe',
+        basis: 'nearest-name',
+        alternatives: [{ title: "Replace 'is_adul' with 'is_adult'", edits: [edit] }],
+    };
+    const agentFix = {
+        safety: 'safe',
+        basis: 'nearest-name',
+        alternatives: [
+            {
+                title: "Replace 'is_adul' with 'is_adult'",
+                edits: [
+                    {
+                        file: 'events/a.txt',
+                        line: 3,
+                        column: 5,
+                        end_line: 3,
+                        end_column: 12,
+                        new_text: 'is_adult',
+                    },
+                ],
+            },
+        ],
+    };
+    const fromTheCore = fromCore({ ...core, fix });
+    assert.deepEqual(only([fromTheCore], { data: true, evidence: false }), [
+        fromAgent({ ...agent, fix: agentFix }),
+    ]);
+    assert.equal(fromTheCore.fix, canonical(fix));
+    assert.deepEqual(withRanges({ line: 1, column: 1, end_line: 1, end_column: 2, x: [] }), {
+        x: [],
+        range: { start: { line: 0, character: 0 }, end: { line: 0, character: 1 } },
+    });
+    assert.notDeepEqual(
+        only([fromTheCore], { data: true, evidence: false }),
+        [fromAgent({ ...agent, fix: null })],
+        'a fix one surface lacks is a difference',
+    );
+    assert.equal(only([fromTheCore], { data: false, evidence: false, fix: false })[0]?.fix, null);
 });
 
 test("the command line's JSON lines are read, the summary last", () => {

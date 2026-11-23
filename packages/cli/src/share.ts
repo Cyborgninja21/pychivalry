@@ -2,7 +2,7 @@
  * The command line and the base game another program lends (docs/shared-index.md).
  *
  * - **Asking (`runShared`).** A command that reads the base game (`check`, `lookup`, unless
- *   `--no-vanilla`) is first sent, whole, to the program that lends the base game of the
+ *   `--no-vanilla`, and never `check --fix`, which writes the user's files) is first sent, whole, to the program that lends the base game of the
  *   command line's spec package, when there is one: its arguments, its working folder, the few
  *   variables of its environment it reads (`SHARED_ENVIRONMENT`), its home and its spec folder.
  *   That program runs this same command line and sends back what it printed and its exit code,
@@ -58,8 +58,18 @@ export function readsBaseGame(argv: readonly string[]): boolean {
         (name === 'check' || name === 'lookup') &&
         !rest.includes('--no-vanilla') &&
         !rest.includes('--help') &&
-        !rest.includes('-h')
+        !rest.includes('-h') &&
+        !writesFiles(argv)
     );
+}
+
+/**
+ * True when the command writes the user's files (`check --fix`, dry run or not): it is never
+ * sent, and never answered by the lender, so that every edit is made by the command line's own
+ * process, the program the person ran, and never by the language server.
+ */
+export function writesFiles(argv: readonly string[]): boolean {
+    return argv.includes('--fix');
 }
 
 function isCliAnswer(value: unknown): value is CliAnswer {
@@ -154,6 +164,9 @@ export function* serveCliSteps(request: HostRequest, host: CliHost): Steps<CliAn
     }
     if (request.version !== version) {
         throw new BaseRefused(`another version of the command line (${request.version})`);
+    }
+    if (writesFiles(request.argv)) {
+        throw new BaseRefused('a command that writes files runs in its own process');
     }
     let stdout = '';
     let stderr = '';

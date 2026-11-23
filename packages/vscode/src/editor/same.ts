@@ -91,6 +91,7 @@ function fromDiagnostic(file: string, d: vscode.Diagnostic): Answer {
         message: d.message,
         data: null,
         evidence: null,
+        fix: null,
     };
 }
 
@@ -251,7 +252,7 @@ export async function assertSameAnswers(
         }
     }
     // What VS Code shows is what the server found, once its last diagnostics have arrived.
-    const plain = only(editor, { data: false, evidence: false });
+    const plain = only(editor, { data: false, evidence: false, fix: false });
     let shown: Answer[] = [];
     await waitFor(
         "VS Code's diagnostics to be the server's findings",

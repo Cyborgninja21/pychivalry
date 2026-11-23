@@ -49,7 +49,7 @@ function lent(gameDir = GAME): SharedBase {
     });
 }
 
-/** What a run reports, every field a surface shows. */
+/** What a run reports, every field a surface shows, its fix with it. */
 function answers(run: WorkspaceCheck): string[] {
     return run.findings.map((f) =>
         JSON.stringify([
@@ -62,6 +62,7 @@ function answers(run: WorkspaceCheck): string[] {
             f.message,
             f.data,
             f.evidence,
+            f.fix,
         ]),
     );
 }

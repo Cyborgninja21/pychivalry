@@ -136,7 +136,7 @@ test(
 
         const call = byId.get(3)?.result ?? {};
         assert.notEqual(call['isError'], true);
-        const output = call['structuredContent'] as {
+        interface CheckOutput {
             totals: { by_severity: Record<string, number>; by_code: Record<string, number> };
             findings: {
                 file: string;
@@ -144,7 +144,41 @@ test(
                 code: string;
                 data: Record<string, string | string[]>;
             }[];
-        };
+            next_cursor: string | null;
+        }
+        const output = call['structuredContent'] as CheckOutput;
+        // The findings carry their fixes (build step 8), so the check takes more than one page:
+        // the next ones, each from a server started again, by the cursor the last one gave.
+        const findings = [...output.findings];
+        let cursor = output.next_cursor;
+        for (let pages = 1; cursor !== null && pages < 5; pages++) {
+            const [, next] = await converse(entry, [
+                {
+                    jsonrpc: '2.0',
+                    id: 1,
+                    method: 'initialize',
+                    params: {
+                        protocolVersion: '2025-06-18',
+                        capabilities: {},
+                        clientInfo: { name: 'scored-run-test', version: '0' },
+                    },
+                },
+                { jsonrpc: '2.0', method: 'notifications/initialized' },
+                {
+                    jsonrpc: '2.0',
+                    id: 2,
+                    method: 'tools/call',
+                    params: {
+                        name: 'check',
+                        arguments: { min_severity: 'hint', limit: 100, cursor },
+                    },
+                },
+            ]);
+            const page = next?.result?.['structuredContent'] as CheckOutput;
+            findings.push(...page.findings);
+            cursor = page.next_cursor;
+        }
+        assert.equal(cursor, null, 'every page read');
         assert.deepEqual(output.totals.by_severity, {
             error: 26,
             warning: 7,
@@ -155,7 +189,7 @@ test(
             reportedAt(d).map((p) => `${d.code} ${p.file}:${String(p.line)}`),
         );
         assert.deepEqual(
-            output.findings.map((f) => `${f.code} ${f.file}:${String(f.line)}`).sort(),
+            findings.map((f) => `${f.code} ${f.file}:${String(f.line)}`).sort(),
             planted.sort(),
             'the planted defects, at the lines the manifest counts from 1',
         );
@@ -163,7 +197,7 @@ test(
         // scopes the keyword or link takes and the links that lead there, a missing field the
         // value type and the values the base game writes.
         const dataOf = (code: string, file: string): Record<string, string | string[]> => {
-            const found = output.findings.find((f) => f.code === code && f.file === file);
+            const found = findings.find((f) => f.code === code && f.file === file);
             assert.ok(found !== undefined, `${code} in ${file}`);
             return found.data;
         };

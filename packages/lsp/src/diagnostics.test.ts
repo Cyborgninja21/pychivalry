@@ -156,6 +156,7 @@ test("a finding's code, severity, message, range and evidence become the diagnos
         message: "Unknown trigger 'fixx'",
         evidence: { kind: 'catalogue', id: 'unknown_trigger_X', text: "Unknown trigger '%s'" },
         data: { name: 'fixx' },
+        fix: null,
     };
     const d = toDiagnostic(finding);
     assert.deepEqual(d.range, finding.range);

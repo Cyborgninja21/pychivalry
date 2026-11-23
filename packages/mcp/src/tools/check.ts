@@ -5,6 +5,13 @@
  * definition of done 4). Totals by severity and by code come first, always, over every finding
  * in the path; then the findings that meet the minimum severity and the codes, a page at a
  * time; then a cursor for the next page.
+ *
+ * Each finding carries its fix as the core gives it (`fix`, docs/PLAN.md item 8.6): safe or a
+ * suggestion, its alternatives and their edits, with every place written as a span counted from
+ * 1, as the tools write places. The server applies nothing (it writes nothing): an agent applies
+ * a fix with its own edit tool. A fix's size is bounded in the core (at most five alternatives,
+ * each edit only the text it changes), and a page holds as many findings as fit the result's
+ * budget, fixes and all, so fixes never push a result over it.
  */
 
 import {
@@ -14,7 +21,7 @@ import {
     type Steps,
     type WorkspaceFinding,
 } from '@pychivalry/core';
-import { spanOf } from '../places.js';
+import { spanOf, withSpans } from '../places.js';
 import { DEFAULT_LIMIT, MAX_LIMIT, page, questionKey, readCursor, valueList } from '../result.js';
 import type { Schema } from '../schema.js';
 import type { Session } from '../session.js';
@@ -49,6 +56,7 @@ export function findingOutput(f: WorkspaceFinding): Record<string, unknown> {
         code: f.code,
         message: f.message,
         data: f.data,
+        fix: f.fix === null ? null : withSpans(f.fix),
     };
 }
 
@@ -68,6 +76,64 @@ export function totalsOf(findings: readonly WorkspaceFinding[]): Record<string, 
 
 const COUNT: Schema = { type: 'integer', minimum: 0 };
 
+const EDIT: Schema = {
+    type: 'object',
+    properties: {
+        file: {
+            type: 'string',
+            description:
+                "The file the edit changes, its path inside the mod, with /; it may be another file than the finding's",
+        },
+        ...SPAN_PROPERTIES,
+        new_text: {
+            type: 'string',
+            description: 'The text that replaces the span; the span is empty for an insertion',
+        },
+        create: {
+            type: 'boolean',
+            description:
+                'True when the file does not exist yet: the edit creates it with new_text whole (U+FEFF first is the byte-order mark the game needs)',
+        },
+    },
+    required: ['file', ...SPAN_REQUIRED, 'new_text'],
+};
+
+const FIX: Schema = {
+    type: ['object', 'null'],
+    properties: {
+        safety: {
+            type: 'string',
+            enum: ['safe', 'suggestion'],
+            description:
+                'safe: the only outcome that can be right; apply it as it is. suggestion: choose one alternative, or none',
+        },
+        basis: {
+            type: 'string',
+            description:
+                'What the fix rests on: retired, nearest-name, scope-links, parser, required-field, localization-files, game-message, observed-values, range or declared-names',
+        },
+        alternatives: {
+            type: 'array',
+            items: {
+                type: 'object',
+                properties: {
+                    title: { type: 'string' },
+                    edits: { type: 'array', items: EDIT },
+                },
+                required: ['title', 'edits'],
+            },
+            description: 'At most five; exactly one when the fix is safe',
+        },
+        alternatives_total: {
+            ...COUNT,
+            description: 'How many alternatives there are in all, when more than are listed',
+        },
+    },
+    required: ['safety', 'basis', 'alternatives'],
+    description:
+        "The finding's mechanical fix, or null when it has none. The server applies nothing: apply the edits with your own edit tool, every edit of the alternative, each against the file as it was",
+};
+
 const FINDING: Schema = {
     type: 'object',
     properties: {
@@ -81,8 +147,9 @@ const FINDING: Schema = {
             additionalProperties: { type: ['string', 'array'], items: { type: 'string' } },
             description: 'The names and values the finding is about',
         },
+        fix: FIX,
     },
-    required: ['file', ...SPAN_REQUIRED, 'severity', 'code', 'message', 'data'],
+    required: ['file', ...SPAN_REQUIRED, 'severity', 'code', 'message', 'data', 'fix'],
 };
 
 export const checkTool: Tool<CheckArgs> = {
@@ -91,6 +158,7 @@ export const checkTool: Tool<CheckArgs> = {
     description: [
         "Check the mod, or one of its files or folders, the way the game reads it: every error and warning has the game's own evidence; information and hints are advice.",
         'Returns the totals by severity and by code first, always, over every finding in the path; then the findings at or above min_severity (default error), in file order, at most limit of them; then next_cursor for the next page.',
+        'A finding with a mechanical fix carries it: safe (apply it as it is) or a suggestion (alternatives to choose from); the server writes nothing, so apply its edits with your own edit tool.',
         'Reads the files as they are now: check again after an edit. explain_code says what a code means.',
     ].join(' '),
     input: {

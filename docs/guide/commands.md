@@ -19,7 +19,11 @@ localization file, or a folder holding a `descriptor.mod`. They are the language
   name the mod or the game defines is defined and which definition is in force;
 - completion: what is valid where you type (effects in an effect block, triggers in a trigger
   block, names the mod and the game define, the values the base game writes in a field);
-- Go to Definition, Find All References and the outline of a file (document symbols).
+- Go to Definition, Find All References and the outline of a file (document symbols);
+- quick fixes on a finding that has a mechanical fix (the light bulb, or Ctrl+.): each of its
+  alternatives, a safe one preferred, and "fix every safe ... in the file" where a file has
+  more than one safe fix of a code; Source Action > Fix All applies every safe fix of the file.
+  A fix that adds a localization stub edits the mod's localization file, or makes one.
 
 Each later step that adds a command adds its row here.
 
@@ -54,6 +58,8 @@ Options of `check`:
 | `--code <code>` | Keep only findings of these codes: a code, a family (`names/*`) or `*`. Several as for `--severity` |
 | `--limit <n>` | Show at most `n` findings. The summary still counts all of them |
 | `--unused-keys` | Also report localization keys nothing in the mod or the base game uses (`localization/unused-key`). Off by default: a large mod has a hint for nearly every key it defines |
+| `--fix` | Apply the safe fixes of the findings kept (the filters choose them), then check again and print what is left. A safe fix is one whose finding has one outcome that can be right; a suggestion is never applied. A fix whose edits overlap one applied before it waits for another run, and a file that is not valid UTF-8 is left as it is |
+| `--dry-run` | With `--fix`: write nothing, and print each safe fix and its edits instead (with `--json`, one `{"fix": ...}` line each, then the summary) |
 
 Options of `lookup`: `--vanilla`, `--no-vanilla`, `--spec` and `--json` as for `check`, and:
 
@@ -81,19 +87,25 @@ What `check` prints:
 - **JSON.** One object per finding with release 2.3.0's fields `file`, `range` (lines and
   characters counted from 0), `severity`, `code`, `message` and `source`, and beside them
   `evidence` (the game's message or output the finding rests on, or none for advice), `fix`
-  (empty until fixes arrive in build step 8) and `data` (the names the finding is about, and
-  what is valid there where pychivalry knows it, as [the agent server](agent-server.md) gives
-  it). The
-  last line is `{"summary": ...}`: the version, the spec package and the game build (with
-  `from_cache`, true when its index came from the cache, and `shared`, true when the language
-  server of an open VS Code answered the command with its own copy of it), the files
-  checked and not checked, the counts of every finding by severity and by code, how many
-  findings matched the filters and how many were shown, and `capped`: what the per-file limit
-  left out.
+  and `data` (the names the finding is about, and what is valid there where pychivalry knows
+  it, as [the agent server](agent-server.md) gives it). `fix` is null when the finding has no
+  mechanical fix; otherwise `safety` (`safe`: the one outcome that can be right; `suggestion`:
+  a choice), `basis` (what it rests on: `retired`, the spec package's documented replacement
+  of a removed keyword; `nearest-name`, the names valid at the place that are near the one
+  written; `scope-links`, the links the game documents between scopes; `parser`, what the
+  parser read the line as; and others), and `alternatives`, at most five, each a `title` and
+  its `edits`: a `file` of the mod (it may be another file, or a new one: `create`), a `range`
+  and its `new_text`. The last line is `{"summary": ...}`: the version, the spec package and
+  the game build (with `from_cache`, true when its index came from the cache, and `shared`,
+  true when the language server of an open VS Code answered the command with its own copy of
+  it), the files checked and not checked, the counts of every finding by severity and by code,
+  how many findings matched the filters and how many were shown, `capped`: what the per-file
+  limit left out, and with `--fix`, `fixes`: how many were applied and to which files.
 - **One copy of the game's index.** When VS Code has a mod open, `check` and `lookup` are
   answered by its language server, which already holds the game's index, instead of loading a
   second copy; what they print is the same either way, and when the language server cannot
-  answer, the command runs by itself ([Settings](settings.md)).
+  answer, the command runs by itself ([Settings](settings.md)). `check --fix` always runs by
+  itself, so that the edits to your files are made by the command you ran.
 - **At most 1,000 findings per file.** A file with more keeps its most severe ones (errors
   first, then warnings, information and hints), and the count of the others is given: on
   standard error with the text output, in `capped` with `--json`. The counts are of the

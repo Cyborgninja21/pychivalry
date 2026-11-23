@@ -23,6 +23,7 @@ export {
     readsBaseGame,
     runShared,
     serveCliSteps,
+    writesFiles,
     type Ask,
     type CliAnswer,
     type CliHost,

@@ -1,0 +1,13 @@
+namespace = fixture
+
+# A hidden event in the character scope (the folder's root scope).
+fixture.0001 = {
+	hidden = yes
+	immediate = {
+		add_dynasty_prestige = 10
+		change_fervor = 2
+		religious_head = {
+			add_gold = 1
+		}
+	}
+}

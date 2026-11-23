@@ -8,6 +8,8 @@
 
 import assert from 'node:assert/strict';
 import {
+    BaseRefused,
+    drain,
     drainInSlices,
     IndexHost,
     openSpec,
@@ -17,10 +19,12 @@ import {
     type HostReply,
     type HostRequest,
 } from '@pychivalry/core';
+import { cpSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { test, type TestContext } from 'node:test';
 import { defaultSpecDir } from './io.js';
-import { readsBaseGame, runShared, serveCliSteps } from './share.js';
+import { readsBaseGame, runShared, serveCliSteps, writesFiles, type CliRequest } from './share.js';
+import { version } from './version.js';
 import {
     cacheEnv,
     gameStub,
@@ -30,6 +34,9 @@ import {
     spawnCliAsync,
     type Result,
 } from './testing.js';
+
+const FIXABLE = path.join(REPO_ROOT, 'fixtures', 'mods', 'names-unknown-trigger-bad');
+const FIXED_FILE = path.join('common', 'scripted_triggers', 'fixture_triggers.txt');
 
 const spec = openSpec(defaultSpecDir());
 const GAME = path.join(REPO_ROOT, 'fixtures', 'game', 'planted-defects', 'game');
@@ -183,4 +190,50 @@ test('only a command that reads the base game is sent, and an answer is printed 
         answer({ answered: false, reason: '' }),
     );
     assert.equal(asked.length, 0, 'explain is not sent');
+});
+
+test('check --fix writes the files in its own process, never in the lender', async (t) => {
+    const dir = scratch(t);
+    const cache = path.join(dir, 'cache');
+    const host = await lend(t, cache);
+    const mod = path.join(dir, 'mod');
+    cpSync(FIXABLE, mod, { recursive: true });
+    const before = readFileSync(path.join(mod, FIXED_FILE), 'utf8');
+    assert.equal(readsBaseGame(['check', mod, '--fix']), false, 'a --fix run is never sent');
+    assert.equal(readsBaseGame(['check', mod, '--fix', '--dry-run']), false);
+    assert.equal(writesFiles(['check', mod, '--fix']), true);
+    // The lender refuses one, should an asking program send it, and writes nothing.
+    const workspace = openWorkspace({ spec, gameDir: GAME, cacheDir: null, modDir: null });
+    assert.ok(workspace.game !== null);
+    const base = shareBase(workspace.game, {
+        specSha256: spec.sha256,
+        gameDir: GAME,
+        platform: currentPlatform(),
+        fallbackEncoding: undefined,
+    });
+    const request: CliRequest = {
+        kind: 'cli',
+        version,
+        argv: ['check', mod, '--fix', '--vanilla', GAME],
+        cwd: REPO_ROOT,
+        env: cacheEnv(cache),
+        home: cache,
+        specDir: defaultSpecDir(),
+    };
+    assert.throws(() => drain(serveCliSteps(request, { spec, base })), BaseRefused);
+    assert.equal(readFileSync(path.join(mod, FIXED_FILE), 'utf8'), before);
+    // The command line run with a lender there: it checks and fixes alone, and the file changes.
+    const run = await spawnCliAsync(['check', mod, '--fix', '--json', '--vanilla', GAME], cache);
+    assert.equal(split(run).summary.game['shared'], false, 'it read the base game itself');
+    assert.notEqual(
+        readFileSync(path.join(mod, FIXED_FILE), 'utf8'),
+        before,
+        'the fix was written',
+    );
+    assert.deepEqual(host.status().answered, {}, 'the lender answered nothing');
+    // A plain check of the fixed mod is then answered by the lender, as alone.
+    const shared = await spawnCliAsync(['check', mod, '--json', '--vanilla', GAME], cache);
+    const alone = await spawnCliAsync(['check', mod, '--json', '--vanilla', GAME], cache, OFF);
+    assert.equal(split(shared).summary.game['shared'], true);
+    assert.equal(split(shared).lines, split(alone).lines);
 });

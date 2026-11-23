@@ -13,8 +13,9 @@
  *   another build, files not checked) go to standard error.
  * - **JSON:** one object per finding with release 2.3.0's six fields, `file`, `range`,
  *   `severity`, `code`, `message` and `source` (always `engine`: every finding comes from the
- *   core), and beside them `evidence`, `fix` (the mechanical fix; null until build step 8
- *   gives the core fix data) and `data`; last, `{"summary": ...}`: the tool and its version,
+ *   core), and beside them `evidence`, `fix` (the core's fix data: safe or a suggestion, its
+ *   alternatives and their edits; null when the finding has no mechanical fix) and `data`;
+ *   last, `{"summary": ...}`: the tool and its version,
  *   the spec's version and checksum, the game's build and how its index was had, the files
  *   checked and not checked, the counts of every finding by severity and by code, and how many
  *   findings matched the filters and how many were shown, and what the per-file cap dropped.
@@ -24,6 +25,8 @@
  * - **Filters:** `--severity` and `--code` keep the findings they match; the exit code is
  *   that of the findings kept, so `--code syntax/*` exits 1 only for a syntax error.
  *   `--limit` shortens the listing only.
+ * - **`--fix`** applies the safe fixes of the findings the filters keep, then checks again and
+ *   reports what is left; `--fix --dry-run` writes nothing and prints the edits (`fix.ts`).
  * - **Off by default:** `localization/unused-key` runs only with `--unused-keys`
  *   (docs/decisions.md, decision 76).
  * - **Exit codes:** 0 when no finding kept is an error, 1 when one is, 2 on bad usage, a mod
@@ -66,6 +69,14 @@ import {
     type GameChoice,
 } from './inputs.js';
 import type { Io } from './io.js';
+import {
+    applySafeFixes,
+    fixSummaryJson,
+    plannedJson,
+    renderPlan,
+    summaryLine,
+    type FixRun,
+} from './fix.js';
 import { TOOL, version } from './version.js';
 
 /** The severities, most severe first. */
@@ -91,6 +102,14 @@ const LIMIT_OPTION: OptionSpec = {
 const UNUSED_KEYS_OPTION: OptionSpec = {
     name: '--unused-keys',
     help: 'also report localization keys nothing uses (localization/unused-key, off by default)',
+};
+const FIX_OPTION: OptionSpec = {
+    name: '--fix',
+    help: 'apply the safe fixes of the findings kept, then check again (a suggestion is never applied)',
+};
+const DRY_RUN_OPTION: OptionSpec = {
+    name: '--dry-run',
+    help: 'with --fix: write nothing, and print the edits the safe fixes would make',
 };
 
 /** The filters of a run. */
@@ -207,7 +226,7 @@ export function findingJson(f: WorkspaceFinding): Record<string, unknown> {
         message: f.message,
         source: 'engine',
         evidence: f.evidence,
-        fix: null,
+        fix: f.fix,
         data: f.data,
     };
 }
@@ -316,6 +335,8 @@ export const checkCommand: Command = {
         CODE_OPTION,
         LIMIT_OPTION,
         UNUSED_KEYS_OPTION,
+        FIX_OPTION,
+        DRY_RUN_OPTION,
     ],
     positionals: { min: 1, max: 1 },
     run: (parsed: Parsed, io: Io): number => drain(checkSteps(parsed, io)),
@@ -325,31 +346,72 @@ export const checkCommand: Command = {
 /** `check`, in steps: a pause after each file of the mod indexed and checked. */
 function* checkSteps(parsed: Parsed, io: Io): Steps<number> {
     const filters = readFilters(parsed);
+    const fix = parsed.flags.has('--fix');
+    const dryRun = parsed.flags.has('--dry-run');
+    if (dryRun && !fix) {
+        throw new UsageError('--dry-run: only with --fix');
+    }
     const modDir = path.resolve(io.cwd, parsed.positionals[0] ?? '');
     if (!isDirectory(modDir)) {
         throw new InputError(`not a folder: ${modDir}`);
     }
     const spec = readSpecOption(parsed, io);
     const game = readGameOption(parsed, io, spec);
-    const run = yield* checkWorkspaceSteps({
-        spec,
-        modDir,
-        gameDir: game.dir,
-        cacheDir: defaultCacheDir(io.env, io.platform, io.home),
-        unusedKeys: parsed.flags.has('--unused-keys'),
-        base: io.base,
-    });
+    const checkMod = (): Steps<WorkspaceCheck> =>
+        checkWorkspaceSteps({
+            spec,
+            modDir,
+            gameDir: game.dir,
+            cacheDir: defaultCacheDir(io.env, io.platform, io.home),
+            unusedKeys: parsed.flags.has('--unused-keys'),
+            base: io.base,
+        });
+    let run = yield* checkMod();
+    let fixed: FixRun | null = null;
+    if (fix) {
+        fixed = applySafeFixes(
+            modDir,
+            select(run.findings, { ...filters, limit: null }).matched,
+            dryRun,
+            run.findings,
+        );
+        if (!dryRun && fixed.files.length > 0) {
+            run = yield* checkMod();
+        }
+    }
     const { matched, shown } = select(run.findings, filters);
-    if (parsed.flags.has('--json')) {
+    const json = parsed.flags.has('--json');
+    if (fixed?.dryRun === true) {
+        if (json) {
+            const lines = fixed.applied.map((p) => JSON.stringify(plannedJson(p)));
+            lines.push(
+                JSON.stringify({
+                    summary: {
+                        ...summaryJson(run, spec, game, matched.length, 0),
+                        fixes: fixSummaryJson(fixed),
+                    },
+                }),
+            );
+            io.stdout(`${lines.join('\n')}\n`);
+        } else {
+            io.stdout(renderPlan(fixed));
+        }
+    } else if (json) {
         const lines = shown.map((f) => JSON.stringify(findingJson(f)));
         lines.push(
             JSON.stringify({
-                summary: summaryJson(run, spec, game, matched.length, shown.length),
+                summary: {
+                    ...summaryJson(run, spec, game, matched.length, shown.length),
+                    ...(fixed === null ? {} : { fixes: fixSummaryJson(fixed) }),
+                },
             }),
         );
         io.stdout(`${lines.join('\n')}\n`);
     } else {
         io.stdout(renderText(run, shown));
+        if (fixed !== null) {
+            io.stderr(`pychivalry: ${summaryLine(fixed)}\n`);
+        }
         for (const note of notes(run, spec, game)) {
             io.stderr(`pychivalry: ${note}\n`);
         }

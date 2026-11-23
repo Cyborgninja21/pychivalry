@@ -21,6 +21,8 @@
  * - **Closing a file keeps its diagnostics;** the index goes back to the file on disk.
  * - **`pychivalry/findings`** returns a file's findings from the server's state in the core's
  *   own shape (`fileFindings`), for the test that every surface gives the same answers.
+ * - **Quick fixes** are the code actions of the findings' fix data (`code-actions.ts`); a fix
+ *   that edits another file of the mod reads it as the editor holds it, or from disk.
  */
 
 import {
@@ -57,6 +59,7 @@ import {
 import { existsSync, readFileSync } from 'node:fs';
 import { performance } from 'node:perf_hooks';
 import {
+    CodeActionKind,
     CompletionList,
     DidChangeConfigurationNotification,
     DidChangeWatchedFilesNotification,
@@ -64,6 +67,8 @@ import {
     ShowMessageNotification,
     TextDocumentSyncKind,
     type CancellationToken,
+    type CodeAction,
+    type CodeActionParams,
     type CompletionParams,
     type Connection,
     type DefinitionParams,
@@ -80,6 +85,7 @@ import {
     type ReferenceParams,
     type WorkDoneProgressServerReporter,
 } from 'vscode-languageserver/node';
+import { codeActions, FIX_ALL_KIND } from './code-actions.js';
 import { completionList } from './completion.js';
 import { toDiagnostic } from './diagnostics.js';
 import { OpenDocument } from './documents.js';
@@ -266,6 +272,7 @@ export class LanguageServer {
         configurationChange: false,
         watchedFiles: false,
         workspaceFolders: false,
+        createFiles: false,
     };
     private workspaceFolders: string[] = [];
     private readonly docs = new Map<string, OpenDocument>();
@@ -358,6 +365,7 @@ export class LanguageServer {
         c.onReferences((params) => this.references(params));
         c.onDocumentSymbol((params) => this.symbols(params));
         c.onCompletion((params) => this.complete(params));
+        c.onCodeAction((params) => this.codeActions(params));
         c.languages.inlayHint.on((params, token) => this.inlay(params, token));
         c.onRequest(FINDINGS_REQUEST, (params: FindingsParams): FindingsResult => {
             const file = this.pathOf(params.uri);
@@ -377,6 +385,9 @@ export class LanguageServer {
                 caps.workspace?.didChangeConfiguration?.dynamicRegistration === true,
             watchedFiles: caps.workspace?.didChangeWatchedFiles?.dynamicRegistration === true,
             workspaceFolders: caps.workspace?.workspaceFolders === true,
+            createFiles:
+                caps.workspace?.workspaceEdit?.documentChanges === true &&
+                (caps.workspace.workspaceEdit.resourceOperations ?? []).includes('create'),
         };
         this.presentingCaps = {
             snippets: caps.textDocument?.completion?.completionItem?.snippetSupport === true,
@@ -401,6 +412,7 @@ export class LanguageServer {
                 referencesProvider: true,
                 documentSymbolProvider: true,
                 completionProvider: { resolveProvider: false },
+                codeActionProvider: { codeActionKinds: [CodeActionKind.QuickFix, FIX_ALL_KIND] },
                 inlayHintProvider: true,
                 workspace: {
                     workspaceFolders: { supported: true, changeNotifications: true },
@@ -1054,6 +1066,7 @@ export class LanguageServer {
             index: opened.index,
             fallbackEncoding: this.settings.fallbackEncoding ?? undefined,
             unusedKeys: this.settings.unusedKeys,
+            modText: (path) => this.modText(path),
         });
         const uri = this.uriOf(file);
         this.results.set(file, { uri, findings: kept });
@@ -1061,6 +1074,25 @@ export class LanguageServer {
             uri,
             ...(doc === undefined ? {} : { version: doc.version }),
             diagnostics: kept.map(toDiagnostic),
+        });
+    }
+
+    /** The text of a file of the mod as the editor holds it, or as it is on disk; null when none. */
+    private modText(file: string): string | null {
+        return this.docByPath(file)?.text ?? this.readDisk(file).text;
+    }
+
+    /** The quick fixes of a file's diagnostics, from its findings' fix data. */
+    private codeActions(params: CodeActionParams): CodeAction[] {
+        const file = this.pathOf(params.textDocument.uri);
+        if (file === null) {
+            return [];
+        }
+        return codeActions({
+            params,
+            findings: this.fileFindings(file),
+            uriOf: (f) => this.uriOf(f),
+            createFiles: this.capabilities.createFiles,
         });
     }
 

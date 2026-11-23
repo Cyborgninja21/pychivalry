@@ -28,6 +28,10 @@
  * - **Each finding** carries its rendered message, so every surface shows the same text.
  * - **Off by default:** `localization/unused-key` runs only with `unusedKeys` (docs/decisions.md,
  *   decision 76); every other check always runs.
+ * - **Each finding** carries its fix as data, or null (`fix/`): the same on every surface. A
+ *   fix that edits another file of the mod (a localization stub) reads that file's text with
+ *   `modText`, the runner's from disk; a safe fix is checked by checking the file again with
+ *   it applied (`fix/verify.ts`).
  * - **A server** that keeps one workspace open between requests passes it (`workspace`), its
  *   mod brought up to date with `syncMod`, and may check only some of the mod's files (`only`):
  *   every file is still indexed, so a file's findings are those of a whole run. A server that
@@ -36,10 +40,15 @@
  */
 
 import { readFileSync } from 'node:fs';
+import { fixFileFindings, type FindingFix } from '../fix/index.js';
 import { folderTableFromSpec, type FolderTable } from '../index/folders.js';
 import { openGameIndex, type GameIndex } from '../index/game-index.js';
 import { compareCodePoints } from '../index/order.js';
-import { readLocalization, type LocalizationFile } from '../index/localization.js';
+import {
+    parseLocalization,
+    readLocalization,
+    type LocalizationFile,
+} from '../index/localization.js';
 import {
     indexModSteps,
     unreadWords,
@@ -60,7 +69,7 @@ import {
     type MessageCatalogue,
     type Severity,
 } from '../syntax/findings.js';
-import type { ParseResult } from '../syntax/parser.js';
+import { parse, type ParseResult } from '../syntax/parser.js';
 import type { Range } from '../syntax/position.js';
 import { readScript } from '../syntax/read.js';
 import type { DefinedNames } from './context.js';
@@ -90,7 +99,15 @@ export interface WorkspaceFinding {
     readonly evidence: Evidence;
     /** The values and lists the finding is about; empty for a parse finding. */
     readonly data: FindingData;
+    /** The finding's mechanical fix, as data (`fix/`), or null when it has none. */
+    readonly fix: FindingFix | null;
 }
+
+/**
+ * The text of a file of the mod as the surface holds it now, by its path inside the mod, or
+ * null when there is no such file: what a fix that edits another file reads.
+ */
+export type ModText = (path: string) => string | null;
 
 /**
  * The definitions the checks see when no game folder is given: every name may be one the game
@@ -120,7 +137,10 @@ function specContext(spec: Spec): SpecContext {
     return context;
 }
 
-function compareFindings(a: WorkspaceFinding, b: WorkspaceFinding): number {
+function compareFindings(
+    a: Pick<WorkspaceFinding, 'start' | 'end' | 'code'>,
+    b: Pick<WorkspaceFinding, 'start' | 'end' | 'code'>,
+): number {
     return a.start - b.start || a.end - b.end || (a.code < b.code ? -1 : a.code > b.code ? 1 : 0);
 }
 
@@ -220,6 +240,8 @@ export interface ScriptInput {
     readonly fallbackEncoding?: FallbackEncoding | undefined;
     /** Where to count what the scope checks judged; nothing is counted without it. */
     readonly measure?: ScopeMeasure | undefined;
+    /** The text of the mod's other files, for a fix that edits one (`ModText`). */
+    readonly modText?: ModText | undefined;
 }
 
 /**
@@ -243,9 +265,10 @@ function parsedScriptFindings(
     input: Omit<ScriptInput, 'bytes'>,
     parsed: ParseResult,
     syntax: readonly Finding[],
+    withFixes = true,
 ): WorkspaceFinding[] {
     const { folders, catalogue } = specContext(input.spec);
-    const out: WorkspaceFinding[] = [];
+    const out: Omit<WorkspaceFinding, 'fix'>[] = [];
     const layer = input.index?.layer ?? MOD_LAYER;
     for (const f of syntax) {
         out.push({
@@ -284,7 +307,33 @@ function parsedScriptFindings(
             data: f.data,
         });
     }
-    return out.sort(compareFindings);
+    const sorted = out.sort(compareFindings);
+    if (!withFixes) {
+        return sorted.map((f) => ({ ...f, fix: null }));
+    }
+    const fixes = fixFileFindings(
+        sorted,
+        {
+            spec: input.spec,
+            folders,
+            file: input.file,
+            names: input.names,
+            index: input.index?.workspace,
+            source: { script: parsed },
+            modText: input.modText,
+        },
+        (text) => {
+            // Checked again only to prove a fix: nothing of it is counted.
+            const again = parse(text, { catalogue });
+            return parsedScriptFindings(
+                { ...input, measure: undefined },
+                again,
+                again.findings,
+                false,
+            );
+        },
+    );
+    return sorted.map((f, i) => ({ ...f, fix: fixes[i] ?? null }));
 }
 
 export interface LocalizationInput {
@@ -298,6 +347,10 @@ export interface LocalizationInput {
     readonly fallbackEncoding?: FallbackEncoding | undefined;
     /** Run `localization/unused-key`, off by default. */
     readonly unusedKeys?: boolean | undefined;
+    /** The workspace index that holds the file, for the fixes that read it. */
+    readonly index?: WorkspaceIndex | undefined;
+    /** The text of the mod's other files, for a fix that edits one (`ModText`). */
+    readonly modText?: ModText | undefined;
 }
 
 /** Every finding of the engine checks on one localization file, in the order of where each starts. */
@@ -310,9 +363,10 @@ export function localizationFindings(input: LocalizationInput): WorkspaceFinding
 function parsedLocalizationFindings(
     input: Omit<LocalizationInput, 'bytes'>,
     parsed: LocalizationFile,
+    withFixes = true,
 ): WorkspaceFinding[] {
     const { folders, catalogue } = specContext(input.spec);
-    return checkLocalizationFile({
+    const found = checkLocalizationFile({
         spec: input.spec,
         folders,
         file: input.file,
@@ -321,7 +375,7 @@ function parsedLocalizationFindings(
         catalogue,
         unusedKeys: input.unusedKeys,
     })
-        .map((f): WorkspaceFinding => ({
+        .map((f): Omit<WorkspaceFinding, 'fix'> => ({
             file: input.file,
             layer: input.layer ?? MOD_LAYER,
             code: f.code,
@@ -334,6 +388,23 @@ function parsedLocalizationFindings(
             data: f.data,
         }))
         .sort(compareFindings);
+    if (!withFixes) {
+        return found.map((f) => ({ ...f, fix: null }));
+    }
+    const fixes = fixFileFindings(
+        found,
+        {
+            spec: input.spec,
+            folders,
+            file: input.file,
+            names: input.names,
+            index: input.index,
+            source: { localization: parsed },
+            modText: input.modText,
+        },
+        (text) => parsedLocalizationFindings(input, parseLocalization(text), false),
+    );
+    return found.map((f, i) => ({ ...f, fix: fixes[i] ?? null }));
 }
 
 export interface WorkspaceOptions {
@@ -509,6 +580,8 @@ export interface FileCheckInput {
     readonly measure?: ScopeMeasure | undefined;
     /** The most findings the file reports; `MAX_FINDINGS_PER_FILE` by default. */
     readonly maxFindingsPerFile?: number | undefined;
+    /** The text of the mod's other files, for a fix that edits one (`ModText`). */
+    readonly modText?: ModText | undefined;
 }
 
 /**
@@ -528,7 +601,16 @@ export function checkSourceFile(input: FileCheckInput): {
             throw new Error(`checkSourceFile: ${input.file} is a localization file`);
         }
         found = parsedLocalizationFindings(
-            input,
+            {
+                spec: input.spec,
+                file: input.file,
+                layer: input.layer,
+                names: input.names,
+                fallbackEncoding: input.fallbackEncoding,
+                unusedKeys: input.unusedKeys,
+                index: input.index,
+                modText: input.modText,
+            },
             'localization' in source
                 ? source.localization
                 : readLocalization(source.bytes, { fallbackEncoding: input.fallbackEncoding }),
@@ -544,6 +626,7 @@ export function checkSourceFile(input: FileCheckInput): {
             index: { workspace: input.index, layer: input.layer },
             fallbackEncoding: input.fallbackEncoding,
             measure: input.measure,
+            modText: input.modText,
         };
         if ('bytes' in source) {
             found = scriptFindings({ ...scriptInput, bytes: source.bytes });
@@ -579,6 +662,29 @@ export function checkNames(
           });
 }
 
+/** The text of the mod's files from disk, by their path inside the mod (`ModText`), read once a run. */
+function diskText(listing: SourceListing): ModText {
+    const disk = new Map(listing.files.map((f) => [f.path, f.disk]));
+    const read = new Map<string, string | null>();
+    return (path) => {
+        const known = read.get(path);
+        if (known !== undefined) {
+            return known;
+        }
+        const at = disk.get(path);
+        let text: string | null = null;
+        if (at !== undefined) {
+            try {
+                text = readFileSync(at, 'utf8');
+            } catch {
+                text = null;
+            }
+        }
+        read.set(path, text);
+        return text;
+    };
+}
+
 /**
  * Every finding pychivalry reports on a mod; with `modDir: null`, on the base game's own
  * files.
@@ -612,6 +718,7 @@ export function* checkWorkspaceSteps(options: WorkspaceCheckOptions): Steps<Work
         .filter((f) => fileKindOf(f.path) !== undefined && (only === undefined || only(f.path)))
         .sort((a, b) => compareCodePoints(a.path, b.path) || compareCodePoints(a.layer, b.layer));
     const max = options.maxFindingsPerFile ?? MAX_FINDINGS_PER_FILE;
+    const modText = modDir === null ? undefined : diskText(listing);
     const findings: WorkspaceFinding[] = [];
     const capped: CappedFile[] = [];
     for (const file of checked) {
@@ -626,6 +733,7 @@ export function* checkWorkspaceSteps(options: WorkspaceCheckOptions): Steps<Work
             unusedKeys: options.unusedKeys,
             measure: options.measure,
             maxFindingsPerFile: max,
+            modText,
         });
         findings.push(...cap.kept);
         if (cap.capped !== null) {
