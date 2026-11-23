@@ -1,6 +1,6 @@
 /**
  * A stand-in for Claude Code in the scored run's tests: it starts no model and reaches no
- * network. `--version` answers as Claude Code 2.1.220 does. Otherwise, as a trial runs it, it
+ * network. `--version` answers as Claude Code 2.1.330 does. Otherwise, as a trial runs it, it
  * does what its environment says, in this order:
  *
  * - `FAKE_CLAUDE_ARGV`: appends one JSON line to that file: its arguments, its folder, the
@@ -18,7 +18,7 @@ import { appendFileSync, cpSync, existsSync, readFileSync } from 'node:fs';
 
 const args = process.argv.slice(2);
 if (args[0] === '--version') {
-    process.stdout.write('2.1.220 (Claude Code)\n');
+    process.stdout.write('2.1.330 (Claude Code)\n');
     process.exit(0);
 }
 const env = process.env;
@@ -36,10 +36,13 @@ if (argvFile !== undefined) {
             ),
             claude_ai_servers: env['ENABLE_CLAUDEAI_MCP_SERVERS'] ?? null,
             auto_memory_off: env['CLAUDE_CODE_DISABLE_AUTO_MEMORY'] ?? null,
+            mcp_nonblocking: env['MCP_CONNECTION_NONBLOCKING'] ?? null,
             session_variables: Object.keys(env).filter(
                 (k) =>
                     k === 'CLAUDECODE' ||
                     k === 'CLAUDE_EFFORT' ||
+                    k === 'AI_AGENT' ||
+                    (k.startsWith('MCP_') && k !== 'MCP_CONNECTION_NONBLOCKING') ||
                     (k.startsWith('CLAUDE_CODE_') && k !== 'CLAUDE_CODE_DISABLE_AUTO_MEMORY'),
             ),
             git: existsSync('.git'),

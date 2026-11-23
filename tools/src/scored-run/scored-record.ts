@@ -53,6 +53,13 @@ export interface TrialRecord {
         readonly permission_mode: string | null;
         readonly tools: readonly string[];
         readonly mcp_servers: readonly { readonly name: string; readonly status: string }[];
+        /** The skills offered, by name: none, when the session is confined. */
+        readonly skills: readonly string[];
+        /**
+         * The plugins loaded, each by its source (`<name>@<marketplace>`) or name: when the
+         * session is confined, only Claude Code's own (`<name>@builtin`).
+         */
+        readonly plugins: readonly string[];
     } | null;
     readonly turns: number | null;
     readonly duration_ms: number | null;

@@ -218,6 +218,13 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   credential or holds a key-shaped string, imports a networking module or calls `fetch`, and
   every other module one imports is listed with its reason (the MCP library's server and its
   standard-input transport; on Windows, the game search's `reg query`).
+- Item 6.11: the first test sessions of the agent-use test, on the owner's word of 2026-11-23
+  (decision 81): five test sessions of Claude Code 2.1.330 on `claude-opus-5-5`, each with
+  session limit 3, all five passing every grader (`records/scored/agent-use.json`); the
+  analysis per session and per defect, and proposals for the agent server, in
+  `tools/scored-run/README.md`. `SCORED_CONTINUE=true` adds a run's test sessions to the record
+  already written when it was made the same way, so one record holds a first session and the
+  ones after it.
 
 ### Changed
 
@@ -226,6 +233,15 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   `unused_keys`; `explain` and the check reference say so. `task game:mods` runs the default, and
   its record no longer counts those hints (rice: 141,090; viet-events: 19,698), nor what the
   per-file cap dropped of them.
+- The scored agent-use test's harness, from item 6.11's first real test sessions: a session's
+  end counts as ended by itself only when it is `success` and not an error (Claude Code ends a
+  session that never reached the model with `success` and `is_error`); the start event's skills
+  and plugins are read and recorded, and a skill or a plugin that is not Claude Code's own is a
+  harness problem; `--disable-slash-commands` keeps Claude Code's own skills out; a surrounding
+  session's `AI_AGENT` and every `MCP_*` variable are dropped from the test session's
+  environment and `MCP_CONNECTION_NONBLOCKING=0` is set; a record made with another Claude Code
+  than `claude` says so in its command. The tests' stand-in stream is the shape Claude Code
+  2.1.330 wrote, scrubbed.
 - The scored agent-use test is described in plain words everywhere (decision 80): test sessions
   of the developer's own Claude Code, each with a session limit, each counting against the
   developer's own Claude plan; pychivalry holds no API key, token or login and makes no network

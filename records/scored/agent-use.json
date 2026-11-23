@@ -1,0 +1,629 @@
+{
+    "record_format": 1,
+    "suite": "scored:agent-use",
+    "command": "SCORED_MODEL=claude-opus-5-5 SCORED_TRIALS=4 SCORED_SESSION_LIMIT=3 SCORED_CLAUDE=<another Claude Code> SCORED_CONTINUE=true task scored:agent-use",
+    "made_at": "2026-11-23T15:41:32.531Z",
+    "tool": {
+        "name": "pychivalry",
+        "version": "0.0.0",
+        "commit": "bb4f78ac2a0590bcef229ef06179daf323750ad5",
+        "dirty": false
+    },
+    "machine": {
+        "os": "linux",
+        "arch": "x64",
+        "logical_cpus": 16,
+        "memory_gib": 62,
+        "node": "v22.23.4"
+    },
+    "game": {
+        "build": "1.21.0.3",
+        "manifest_sha256": "e04c79ba5dc6d1b5bb891c87c9b8dc63982282034f62291b929f117e3c5339f2",
+        "files": 3,
+        "content_hashed_files": 2
+    },
+    "spec": {
+        "version": "1.21.0.3",
+        "sha256": "b72678ccecdae4fce74a5983ebdba8b0004141881158f7be6bd9bd6eab6a70f7",
+        "package_format": 8
+    },
+    "corpus": null,
+    "notes": [
+        "The agent server and the graders read the game stub fixtures/game/planted-defects/game, not an installed game.",
+        "Each trial is one test session of the Claude Code installed on the machine the run was made on, which the script gave no credentials; pychivalry itself makes no model call.",
+        "A trial passes when all five graders pass and its harness had no problem. The tool calls and errors are counted from the session's output stream; their inputs and results are not kept.",
+        "Trials 2 to 5 were added on 2026-11-23 by a run continuing the record (SCORED_CONTINUE=true), at the same commit with the same task, Claude Code version, model, session limit, time limit, arguments and agent server as trials 1 to 1 (made 2026-11-23)."
+    ],
+    "results": {
+        "task": {
+            "name": "agent-use",
+            "prompt_file": "tools/scored-run/agent-use.prompt.md",
+            "prompt_sha256": "9a2339a810bc232631e1da253277be1775b42060ab90bb539ddf25b439046cbf",
+            "manifest_sha256": "2d0d7f2e13b2fd18bba1c5a41ebc61f95fe3421a39bf913842345f16474445cb",
+            "fixture": "fixtures/defects",
+            "game": "fixtures/game/planted-defects/game",
+            "defects": 27,
+            "look_alikes": 10,
+            "graders": [
+                "zero-errors",
+                "defects-gone",
+                "only-planted-lines",
+                "look-alikes-untouched",
+                "nothing-deleted"
+            ]
+        },
+        "harness": {
+            "name": "claude-code",
+            "version": "2.1.330"
+        },
+        "model": "claude-opus-5-5",
+        "session_limit": 3,
+        "timeout_minutes": 30,
+        "arguments": [
+            "-p",
+            "<tools/scored-run/agent-use.prompt.md>",
+            "--strict-mcp-config",
+            "--mcp-config",
+            "<agent-server configuration>",
+            "--tools",
+            "Read,Edit",
+            "--allowedTools",
+            "mcp__pychivalry__*,Read,Edit",
+            "--permission-mode",
+            "dontAsk",
+            "--max-budget-usd",
+            "3",
+            "--output-format",
+            "stream-json",
+            "--verbose",
+            "--no-session-persistence",
+            "--model",
+            "claude-opus-5-5",
+            "--setting-sources",
+            "project,local",
+            "--disable-slash-commands"
+        ],
+        "server": {
+            "entry": "packages/mcp/dist/main.js",
+            "arguments": [
+                "--mod",
+                "<trial mod>",
+                "--vanilla",
+                "<game stub>"
+            ]
+        },
+        "trials": [
+            {
+                "task": "agent-use",
+                "trial": 1,
+                "passed": true,
+                "stopped": "finished",
+                "harness_problems": [],
+                "graders": [
+                    {
+                        "name": "zero-errors",
+                        "passed": true,
+                        "problems": []
+                    },
+                    {
+                        "name": "defects-gone",
+                        "passed": true,
+                        "problems": []
+                    },
+                    {
+                        "name": "only-planted-lines",
+                        "passed": true,
+                        "problems": []
+                    },
+                    {
+                        "name": "look-alikes-untouched",
+                        "passed": true,
+                        "problems": []
+                    },
+                    {
+                        "name": "nothing-deleted",
+                        "passed": true,
+                        "problems": []
+                    }
+                ],
+                "tool_calls": [
+                    {
+                        "tool": "Edit",
+                        "calls": 21,
+                        "errors": 0
+                    },
+                    {
+                        "tool": "Read",
+                        "calls": 14,
+                        "errors": 0
+                    },
+                    {
+                        "tool": "mcp__pychivalry__check",
+                        "calls": 2,
+                        "errors": 0
+                    },
+                    {
+                        "tool": "mcp__pychivalry__explain_code",
+                        "calls": 1,
+                        "errors": 0
+                    },
+                    {
+                        "tool": "mcp__pychivalry__lookup",
+                        "calls": 1,
+                        "errors": 0
+                    }
+                ],
+                "tool_errors": [],
+                "permission_denials": 0,
+                "session": {
+                    "harness_version": "2.1.330",
+                    "model": "claude-opus-5-5",
+                    "permission_mode": "dontAsk",
+                    "tools": [
+                        "Edit",
+                        "Read",
+                        "mcp__pychivalry__check",
+                        "mcp__pychivalry__explain_code",
+                        "mcp__pychivalry__find_definition",
+                        "mcp__pychivalry__find_references",
+                        "mcp__pychivalry__list_definitions",
+                        "mcp__pychivalry__lookup"
+                    ],
+                    "mcp_servers": [
+                        {
+                            "name": "pychivalry",
+                            "status": "connected"
+                        }
+                    ],
+                    "skills": [],
+                    "plugins": [
+                        "cc-plugin-agents-md@builtin",
+                        "cc-plugin-easel@builtin",
+                        "cc-plugin-plugin-authoring@builtin",
+                        "cc-plugin-privacy@builtin",
+                        "cc-plugin-telemetry@builtin"
+                    ]
+                },
+                "turns": 40,
+                "duration_ms": 68316,
+                "exit_code": 0,
+                "findings_left": {
+                    "error": 0,
+                    "warning": 0,
+                    "information": 0,
+                    "hint": 0
+                }
+            },
+            {
+                "task": "agent-use",
+                "trial": 2,
+                "passed": true,
+                "stopped": "finished",
+                "harness_problems": [],
+                "graders": [
+                    {
+                        "name": "zero-errors",
+                        "passed": true,
+                        "problems": []
+                    },
+                    {
+                        "name": "defects-gone",
+                        "passed": true,
+                        "problems": []
+                    },
+                    {
+                        "name": "only-planted-lines",
+                        "passed": true,
+                        "problems": []
+                    },
+                    {
+                        "name": "look-alikes-untouched",
+                        "passed": true,
+                        "problems": []
+                    },
+                    {
+                        "name": "nothing-deleted",
+                        "passed": true,
+                        "problems": []
+                    }
+                ],
+                "tool_calls": [
+                    {
+                        "tool": "Edit",
+                        "calls": 21,
+                        "errors": 0
+                    },
+                    {
+                        "tool": "Read",
+                        "calls": 13,
+                        "errors": 0
+                    },
+                    {
+                        "tool": "mcp__pychivalry__check",
+                        "calls": 2,
+                        "errors": 0
+                    },
+                    {
+                        "tool": "mcp__pychivalry__list_definitions",
+                        "calls": 1,
+                        "errors": 0
+                    },
+                    {
+                        "tool": "mcp__pychivalry__lookup",
+                        "calls": 1,
+                        "errors": 0
+                    }
+                ],
+                "tool_errors": [],
+                "permission_denials": 0,
+                "session": {
+                    "harness_version": "2.1.330",
+                    "model": "claude-opus-5-5",
+                    "permission_mode": "dontAsk",
+                    "tools": [
+                        "Edit",
+                        "Read",
+                        "mcp__pychivalry__check",
+                        "mcp__pychivalry__explain_code",
+                        "mcp__pychivalry__find_definition",
+                        "mcp__pychivalry__find_references",
+                        "mcp__pychivalry__list_definitions",
+                        "mcp__pychivalry__lookup"
+                    ],
+                    "mcp_servers": [
+                        {
+                            "name": "pychivalry",
+                            "status": "connected"
+                        }
+                    ],
+                    "skills": [],
+                    "plugins": [
+                        "cc-plugin-agents-md@builtin",
+                        "cc-plugin-easel@builtin",
+                        "cc-plugin-plugin-authoring@builtin",
+                        "cc-plugin-privacy@builtin",
+                        "cc-plugin-telemetry@builtin"
+                    ]
+                },
+                "turns": 39,
+                "duration_ms": 56655,
+                "exit_code": 0,
+                "findings_left": {
+                    "error": 0,
+                    "warning": 0,
+                    "information": 0,
+                    "hint": 0
+                }
+            },
+            {
+                "task": "agent-use",
+                "trial": 3,
+                "passed": true,
+                "stopped": "finished",
+                "harness_problems": [],
+                "graders": [
+                    {
+                        "name": "zero-errors",
+                        "passed": true,
+                        "problems": []
+                    },
+                    {
+                        "name": "defects-gone",
+                        "passed": true,
+                        "problems": []
+                    },
+                    {
+                        "name": "only-planted-lines",
+                        "passed": true,
+                        "problems": []
+                    },
+                    {
+                        "name": "look-alikes-untouched",
+                        "passed": true,
+                        "problems": []
+                    },
+                    {
+                        "name": "nothing-deleted",
+                        "passed": true,
+                        "problems": []
+                    }
+                ],
+                "tool_calls": [
+                    {
+                        "tool": "Edit",
+                        "calls": 21,
+                        "errors": 0
+                    },
+                    {
+                        "tool": "Read",
+                        "calls": 13,
+                        "errors": 0
+                    },
+                    {
+                        "tool": "list_definitions",
+                        "calls": 1,
+                        "errors": 1
+                    },
+                    {
+                        "tool": "mcp__pychivalry__check",
+                        "calls": 2,
+                        "errors": 0
+                    },
+                    {
+                        "tool": "mcp__pychivalry__find_references",
+                        "calls": 1,
+                        "errors": 0
+                    },
+                    {
+                        "tool": "mcp__pychivalry__lookup",
+                        "calls": 1,
+                        "errors": 0
+                    }
+                ],
+                "tool_errors": [
+                    {
+                        "tool": "list_definitions",
+                        "message": "<tool_use_error>Error: No such tool available: list_definitions</tool_use_error>"
+                    }
+                ],
+                "permission_denials": 0,
+                "session": {
+                    "harness_version": "2.1.330",
+                    "model": "claude-opus-5-5",
+                    "permission_mode": "dontAsk",
+                    "tools": [
+                        "Edit",
+                        "Read",
+                        "mcp__pychivalry__check",
+                        "mcp__pychivalry__explain_code",
+                        "mcp__pychivalry__find_definition",
+                        "mcp__pychivalry__find_references",
+                        "mcp__pychivalry__list_definitions",
+                        "mcp__pychivalry__lookup"
+                    ],
+                    "mcp_servers": [
+                        {
+                            "name": "pychivalry",
+                            "status": "connected"
+                        }
+                    ],
+                    "skills": [],
+                    "plugins": [
+                        "cc-plugin-agents-md@builtin",
+                        "cc-plugin-easel@builtin",
+                        "cc-plugin-plugin-authoring@builtin",
+                        "cc-plugin-privacy@builtin",
+                        "cc-plugin-telemetry@builtin"
+                    ]
+                },
+                "turns": 40,
+                "duration_ms": 55872,
+                "exit_code": 0,
+                "findings_left": {
+                    "error": 0,
+                    "warning": 0,
+                    "information": 0,
+                    "hint": 0
+                }
+            },
+            {
+                "task": "agent-use",
+                "trial": 4,
+                "passed": true,
+                "stopped": "finished",
+                "harness_problems": [],
+                "graders": [
+                    {
+                        "name": "zero-errors",
+                        "passed": true,
+                        "problems": []
+                    },
+                    {
+                        "name": "defects-gone",
+                        "passed": true,
+                        "problems": []
+                    },
+                    {
+                        "name": "only-planted-lines",
+                        "passed": true,
+                        "problems": []
+                    },
+                    {
+                        "name": "look-alikes-untouched",
+                        "passed": true,
+                        "problems": []
+                    },
+                    {
+                        "name": "nothing-deleted",
+                        "passed": true,
+                        "problems": []
+                    }
+                ],
+                "tool_calls": [
+                    {
+                        "tool": "Edit",
+                        "calls": 21,
+                        "errors": 0
+                    },
+                    {
+                        "tool": "Read",
+                        "calls": 13,
+                        "errors": 0
+                    },
+                    {
+                        "tool": "mcp__pychivalry__check",
+                        "calls": 2,
+                        "errors": 0
+                    },
+                    {
+                        "tool": "mcp__pychivalry__list_definitions",
+                        "calls": 1,
+                        "errors": 0
+                    },
+                    {
+                        "tool": "mcp__pychivalry__lookup",
+                        "calls": 1,
+                        "errors": 0
+                    }
+                ],
+                "tool_errors": [],
+                "permission_denials": 0,
+                "session": {
+                    "harness_version": "2.1.330",
+                    "model": "claude-opus-5-5",
+                    "permission_mode": "dontAsk",
+                    "tools": [
+                        "Edit",
+                        "Read",
+                        "mcp__pychivalry__check",
+                        "mcp__pychivalry__explain_code",
+                        "mcp__pychivalry__find_definition",
+                        "mcp__pychivalry__find_references",
+                        "mcp__pychivalry__list_definitions",
+                        "mcp__pychivalry__lookup"
+                    ],
+                    "mcp_servers": [
+                        {
+                            "name": "pychivalry",
+                            "status": "connected"
+                        }
+                    ],
+                    "skills": [],
+                    "plugins": [
+                        "cc-plugin-agents-md@builtin",
+                        "cc-plugin-plugin-authoring@builtin",
+                        "cc-plugin-privacy@builtin",
+                        "cc-plugin-telemetry@builtin"
+                    ]
+                },
+                "turns": 39,
+                "duration_ms": 60884,
+                "exit_code": 0,
+                "findings_left": {
+                    "error": 0,
+                    "warning": 0,
+                    "information": 0,
+                    "hint": 0
+                }
+            },
+            {
+                "task": "agent-use",
+                "trial": 5,
+                "passed": true,
+                "stopped": "finished",
+                "harness_problems": [],
+                "graders": [
+                    {
+                        "name": "zero-errors",
+                        "passed": true,
+                        "problems": []
+                    },
+                    {
+                        "name": "defects-gone",
+                        "passed": true,
+                        "problems": []
+                    },
+                    {
+                        "name": "only-planted-lines",
+                        "passed": true,
+                        "problems": []
+                    },
+                    {
+                        "name": "look-alikes-untouched",
+                        "passed": true,
+                        "problems": []
+                    },
+                    {
+                        "name": "nothing-deleted",
+                        "passed": true,
+                        "problems": []
+                    }
+                ],
+                "tool_calls": [
+                    {
+                        "tool": "Edit",
+                        "calls": 21,
+                        "errors": 0
+                    },
+                    {
+                        "tool": "Read",
+                        "calls": 13,
+                        "errors": 0
+                    },
+                    {
+                        "tool": "list_definitions",
+                        "calls": 1,
+                        "errors": 1
+                    },
+                    {
+                        "tool": "mcp__pychivalry__check",
+                        "calls": 2,
+                        "errors": 0
+                    },
+                    {
+                        "tool": "mcp__pychivalry__explain_code",
+                        "calls": 1,
+                        "errors": 0
+                    },
+                    {
+                        "tool": "mcp__pychivalry__lookup",
+                        "calls": 1,
+                        "errors": 0
+                    }
+                ],
+                "tool_errors": [
+                    {
+                        "tool": "list_definitions",
+                        "message": "<tool_use_error>Error: No such tool available: list_definitions</tool_use_error>"
+                    }
+                ],
+                "permission_denials": 0,
+                "session": {
+                    "harness_version": "2.1.330",
+                    "model": "claude-opus-5-5",
+                    "permission_mode": "dontAsk",
+                    "tools": [
+                        "Edit",
+                        "Read",
+                        "mcp__pychivalry__check",
+                        "mcp__pychivalry__explain_code",
+                        "mcp__pychivalry__find_definition",
+                        "mcp__pychivalry__find_references",
+                        "mcp__pychivalry__list_definitions",
+                        "mcp__pychivalry__lookup"
+                    ],
+                    "mcp_servers": [
+                        {
+                            "name": "pychivalry",
+                            "status": "connected"
+                        }
+                    ],
+                    "skills": [],
+                    "plugins": [
+                        "cc-plugin-agents-md@builtin",
+                        "cc-plugin-plugin-authoring@builtin",
+                        "cc-plugin-privacy@builtin",
+                        "cc-plugin-telemetry@builtin"
+                    ]
+                },
+                "turns": 40,
+                "duration_ms": 59122,
+                "exit_code": 0,
+                "findings_left": {
+                    "error": 0,
+                    "warning": 0,
+                    "information": 0,
+                    "hint": 0
+                }
+            }
+        ],
+        "tasks": [
+            {
+                "name": "agent-use",
+                "trials": 5,
+                "passed": 5,
+                "pass_rate": 1
+            }
+        ]
+    }
+}

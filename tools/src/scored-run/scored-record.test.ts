@@ -41,6 +41,8 @@ function trial(n: number, passed: boolean): TrialRecord {
             permission_mode: 'dontAsk',
             tools: ['Edit', 'Read', 'mcp__pychivalry__check'],
             mcp_servers: [{ name: 'pychivalry', status: 'connected' }],
+            skills: [],
+            plugins: [],
         },
         turns: 12,
         duration_ms: 60000,

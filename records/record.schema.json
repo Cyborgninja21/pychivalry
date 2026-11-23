@@ -1237,7 +1237,9 @@
                                 "model",
                                 "permission_mode",
                                 "tools",
-                                "mcp_servers"
+                                "mcp_servers",
+                                "skills",
+                                "plugins"
                             ],
                             "properties": {
                                 "harness_version": { "oneOf": [{ "type": "null" }, { "type": "string" }] },
@@ -1255,6 +1257,16 @@
                                             "status": { "type": "string" }
                                         }
                                     }
+                                },
+                                "skills": {
+                                    "description": "The skills offered, by name: none, when the session is confined.",
+                                    "type": "array",
+                                    "items": { "$ref": "#/$defs/text" }
+                                },
+                                "plugins": {
+                                    "description": "The plugins loaded, each by its source (<name>@<marketplace>) or name: when the session is confined, only Claude Code's own (<name>@builtin).",
+                                    "type": "array",
+                                    "items": { "$ref": "#/$defs/text" }
                                 }
                             }
                         }

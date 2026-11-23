@@ -23,6 +23,7 @@ import {
     scoredOptions,
     SERVER_TOOLS,
     SESSION_LIMIT_SUBTYPE,
+    sessionVariable,
     trialEnv,
 } from './run.js';
 import { readStream } from './stream.js';
@@ -36,100 +37,160 @@ const expected = {
     corpusManifestSha256: undefined,
 };
 
-/** A session's stream in the shape Claude Code writes with stream-json and verbose. */
+/**
+ * A session's stream in the shape Claude Code 2.1.330 writes with stream-json and verbose: the
+ * shape of item 6.11's test sessions, every event kind they held, with identifiers, folders,
+ * texts and figures replaced. Each `assistant` event holds one content block; a tool's result
+ * comes back as a `user` event whose `tool_result` content is the tool's text, beside the
+ * structured result (`tool_use_result`) and its permission decision (`tool_result_meta`).
+ */
 function stream(options: {
     readonly tools?: readonly string[];
-    readonly servers?: readonly { name: string; status: string }[];
+    readonly servers?: readonly { name: string; status: string; source?: string }[];
+    readonly skills?: readonly string[];
+    readonly plugins?: readonly { name: string; path: string; source: string }[];
     readonly subtype?: string;
     readonly errorText?: string;
 }): string {
+    const ids = { session_id: '<session id>', uuid: '<uuid>' };
+    const message = (content: unknown): Record<string, unknown> => ({
+        model: PINNED_MODEL,
+        id: '<message id>',
+        type: 'message',
+        role: 'assistant',
+        content: [content],
+        container: null,
+        stop_reason: null,
+        stop_sequence: null,
+        stop_details: null,
+        usage: {},
+        input_transformations: [],
+        diagnostics: null,
+        context_management: null,
+    });
+    const assistant = (content: unknown): unknown => ({
+        type: 'assistant',
+        message: message(content),
+        parent_tool_use_id: null,
+        ...ids,
+        timestamp: '2026-11-23T00:00:00.000Z',
+        request_id: '<request id>',
+    });
+    const call = (id: string, name: string, input: unknown): unknown => ({
+        ...(assistant({ type: 'tool_use', id, name, input, caller: { type: 'direct' } }) as object),
+        wire_tool_inputs: { [id]: input },
+    });
+    const answer = (id: string, content: unknown, isError: boolean): unknown => ({
+        type: 'user',
+        message: {
+            role: 'user',
+            content: [
+                {
+                    tool_use_id: id,
+                    type: 'tool_result',
+                    content,
+                    ...(isError ? { is_error: true } : {}),
+                },
+            ],
+        },
+        parent_tool_use_id: null,
+        ...ids,
+        timestamp: '2026-11-23T00:00:00.000Z',
+        tool_use_result: {},
+        tool_result_meta: [
+            {
+                id,
+                permission_decision: { decision: 'accept', source: 'config', reason_type: 'rule' },
+            },
+        ],
+    });
+    const subtype = options.subtype ?? 'success';
     const events: unknown[] = [
         {
             type: 'system',
             subtype: 'init',
             cwd: '/somewhere/private',
-            session_id: 'not-kept',
-            claude_code_version: '2.1.220',
-            model: PINNED_MODEL,
-            permissionMode: 'dontAsk',
+            ...ids,
             tools: options.tools ?? [
-                'Read',
                 'Edit',
+                'Read',
                 ...SERVER_TOOLS.map((n) => `mcp__pychivalry__${n}`),
             ],
-            mcp_servers: options.servers ?? [{ name: 'pychivalry', status: 'connected' }],
+            mcp_servers: options.servers ?? [
+                { name: 'pychivalry', status: 'connected', source: 'dynamic' },
+            ],
+            model: PINNED_MODEL,
+            permissionMode: 'dontAsk',
+            slash_commands: [],
             apiKeySource: 'none',
+            claude_code_version: '2.1.330',
+            output_style: 'default',
+            agents: ['claude', 'Explore', 'general-purpose', 'Plan', 'statusline-setup'],
+            skills: options.skills ?? [],
+            plugins: options.plugins ?? [
+                {
+                    name: 'cc-plugin-telemetry',
+                    path: 'builtin',
+                    source: 'cc-plugin-telemetry@builtin',
+                },
+                { name: 'cc-plugin-privacy', path: 'builtin', source: 'cc-plugin-privacy@builtin' },
+            ],
+            capabilities: ['interrupt_receipt_v1', 'msg_lifecycle_v1'],
+            analytics_disabled: false,
+            product_feedback_disabled: false,
+            served_by_anthropic: true,
+            original_cwd: '/somewhere/private',
+            additional_directories: [],
+            messaging_socket_path: '/somewhere/private/socket',
+            fast_mode_state: 'off',
+            fast_mode_disabled_reason: 'sdk_opt_in_required',
+            per_turn_effort_active: true,
+            ultrathink_available: false,
+            ultrathink_typed_raises: false,
+            view_mode: 'default',
         },
+        call('call-1', 'mcp__pychivalry__check', { min_severity: 'warning' }),
+        { type: 'rate_limit_event', rate_limit_info: {}, ...ids },
+        answer('call-1', '{"files_checked":14,"totals":{}}', false),
+        assistant({ type: 'text', text: 'Let me read the files involved.' }),
+        call('call-2', 'Read', { file_path: '/somewhere/private/x.txt' }),
+        answer(
+            'call-2',
+            options.errorText ?? 'File does not exist: /somewhere/private/x.txt',
+            true,
+        ),
         {
-            type: 'assistant',
-            message: {
-                content: [
-                    { type: 'text', text: 'Checking the mod.' },
-                    {
-                        type: 'tool_use',
-                        id: 'call-1',
-                        name: 'mcp__pychivalry__check',
-                        input: { severity: 'warning' },
-                    },
-                ],
-            },
+            type: 'system',
+            subtype: 'thinking_tokens',
+            estimated_tokens: 50,
+            estimated_tokens_delta: 50,
+            ...ids,
         },
+        assistant({ type: 'thinking', thinking: '', signature: '<signature>' }),
+        call('call-3', 'Edit', { file_path: '/somewhere/private/x.txt' }),
+        answer('call-3', 'The file has been updated.', false),
+        assistant({ type: 'text', text: 'Done.' }),
         {
-            type: 'user',
-            message: {
-                content: [
-                    {
-                        type: 'tool_result',
-                        tool_use_id: 'call-1',
-                        content: [{ type: 'text', text: '28 findings' }],
-                    },
-                ],
-            },
-        },
-        {
-            type: 'assistant',
-            message: {
-                content: [
-                    {
-                        type: 'tool_use',
-                        id: 'call-2',
-                        name: 'Read',
-                        input: { file_path: '/somewhere/private/x.txt' },
-                    },
-                ],
-            },
-        },
-        {
-            type: 'user',
-            message: {
-                content: [
-                    {
-                        type: 'tool_result',
-                        tool_use_id: 'call-2',
-                        is_error: true,
-                        content:
-                            options.errorText ?? 'File does not exist: /somewhere/private/x.txt',
-                    },
-                ],
-            },
-        },
-        {
-            type: 'assistant',
-            message: { content: [{ type: 'tool_use', id: 'call-3', name: 'Edit', input: {} }] },
-        },
-        {
-            type: 'user',
-            message: { content: [{ type: 'tool_result', tool_use_id: 'call-3', content: 'ok' }] },
-        },
-        {
-            type: 'result',
-            subtype: options.subtype ?? 'success',
-            is_error: (options.subtype ?? 'success') !== 'success',
+            duration_api_ms: 1000,
+            stop_reason: 'end_turn',
+            ...ids,
             total_cost_usd: 0.42,
-            num_turns: 3,
-            duration_ms: 1234,
-            session_id: 'not-kept',
+            usage: {},
+            modelUsage: {},
             permission_denials: [{ tool_name: 'Bash', tool_use_id: 'call-9', tool_input: {} }],
+            // Seen on a session that ended by itself; no session of item 6.11 ended otherwise.
+            terminal_reason: subtype === 'success' ? 'completed' : null,
+            fast_mode_state: 'off',
+            fast_mode_disabled_reason: 'sdk_opt_in_required',
+            safety_stops: 0,
+            is_error: subtype !== 'success',
+            num_turns: 3,
+            subtype,
+            api_error_status: null,
+            result: 'Done.',
+            type: 'result',
+            duration_ms: 1234,
+            credential_expires_at: '2026-12-31T00:00:00.000Z',
         },
     ];
     return `${events.map((e) => JSON.stringify(e)).join('\n')}\nnot json\n`;
@@ -176,6 +237,9 @@ function run(t: TestContext, env: Record<string, string>, streamText = stream({}
             CLAUDECODE: '1',
             CLAUDE_CODE_SESSION_ID: 'a-surrounding-session',
             CLAUDE_EFFORT: 'low',
+            AI_AGENT: 'claude-code_agent',
+            MCP_CONNECTION_NONBLOCKING: 'true',
+            MCP_DISCOVERY_CACHE: '1',
             ...env,
         },
         (line) => log.push(line),
@@ -201,13 +265,13 @@ test('a run whose agent fixes the mod: every trial passes, and the record holds'
     const results = record.results;
     assert.equal(results.trials.length, 2);
     assert.deepEqual(results.tasks, [{ name: 'agent-use', trials: 2, passed: 2, pass_rate: 1 }]);
-    assert.equal(results.harness.version, '2.1.220');
+    assert.equal(results.harness.version, '2.1.330');
     assert.equal(results.model, PINNED_MODEL);
     assert.equal(results.session_limit, 2);
     assert.equal(record.corpus, null);
     assert.match(
         record.command,
-        /^SCORED_MODEL=claude-opus-5-5 SCORED_TRIALS=2 SCORED_SESSION_LIMIT=2 SCORED_SERVER=\S+ task scored:agent-use$/,
+        /^SCORED_MODEL=claude-opus-5-5 SCORED_TRIALS=2 SCORED_SESSION_LIMIT=2 SCORED_SERVER=\S+ SCORED_CLAUDE=<another Claude Code> task scored:agent-use$/,
     );
     const trial = results.trials[0];
     assert.ok(trial !== undefined);
@@ -223,6 +287,12 @@ test('a run whose agent fixes the mod: every trial passes, and the record holds'
     assert.equal(trial.permission_denials, 1);
     assert.deepEqual(trial.findings_left, { error: 0, warning: 0, information: 0, hint: 0 });
     assert.deepEqual(trial.session?.mcp_servers, [{ name: 'pychivalry', status: 'connected' }]);
+    // Claude Code's own plugins are listed and are no harness problem.
+    assert.deepEqual(trial.session.plugins, [
+        'cc-plugin-privacy@builtin',
+        'cc-plugin-telemetry@builtin',
+    ]);
+    assert.deepEqual(trial.session.skills, []);
     // Nothing from the session but what the record names: no folder, no id, nothing about how
     // Claude Code is signed in, and none of the figures Claude Code reports about the session's
     // use of the developer's plan (the stream's `total_cost_usd`).
@@ -234,6 +304,10 @@ test('a run whose agent fixes the mod: every trial passes, and the record holds'
         'must-not-reach',
         'cost',
         '0.42',
+        'credential_expires_at',
+        '2026-12-31',
+        'rate_limit',
+        'socket',
     ]) {
         assert.ok(!text.includes(kept), `the record holds ${kept}`);
     }
@@ -295,6 +369,7 @@ test("the test session's environment drops every key and token variable, and a s
     assert.deepEqual(call['session_variables'], []);
     assert.equal(call['claude_ai_servers'], 'false');
     assert.equal(call['auto_memory_off'], '1');
+    assert.equal(call['mcp_nonblocking'], '0');
 
     // The rule itself: every variable named like a key, a token or another credential goes,
     // whatever its letter case; the rest of the environment stays.
@@ -305,17 +380,28 @@ test("the test session's environment drops every key and token variable, and a s
         CK3_GAME_PATH: '<game dir>',
         CLAUDECODE: '1',
         CLAUDE_CODE_SESSION_ID: 'a-surrounding-session',
+        AI_AGENT: 'claude-code_agent',
+        MCP_CONNECTION_NONBLOCKING: 'true',
+        MCP_DISCOVERY_CACHE: '1',
+        PLAYWRIGHT_MCP_BROWSER: 'firefox',
     });
     for (const name of Object.keys(CREDENTIALS)) {
         assert.ok(credentialVariable(name), name);
         assert.ok(!(name in env), `${name} reached the session`);
     }
+    for (const name of ['AI_AGENT', 'MCP_DISCOVERY_CACHE', 'CLAUDECODE']) {
+        assert.ok(sessionVariable(name), name);
+    }
+    // Another program's variable that only names agent servers stays: it is not Claude Code's.
+    assert.ok(!sessionVariable('PLAYWRIGHT_MCP_BROWSER'));
     assert.deepEqual(env, {
         PATH: 'bin',
         LANG: 'C.UTF-8',
         CK3_GAME_PATH: '<game dir>',
+        PLAYWRIGHT_MCP_BROWSER: 'firefox',
         ENABLE_CLAUDEAI_MCP_SERVERS: 'false',
         CLAUDE_CODE_DISABLE_AUTO_MEMORY: '1',
+        MCP_CONNECTION_NONBLOCKING: '0',
     });
 });
 
@@ -335,12 +421,19 @@ test('a session that is not confined is a harness problem and fails its trial', 
                 { name: 'pychivalry', status: 'failed' },
                 { name: 'other', status: 'connected' },
             ],
+            skills: ['code-review'],
+            plugins: [
+                { name: 'cc-plugin-privacy', path: 'builtin', source: 'cc-plugin-privacy@builtin' },
+                { name: 'my-plugin', path: '/somewhere/private', source: 'my-plugin@my-market' },
+            ],
         }),
     );
     const trial = record.results.trials[0];
     assert.equal(trial?.passed, false);
     assert.deepEqual(trial.harness_problems, [
         'tools outside the confinement were offered: Bash, mcp__other__tool',
+        'skills were offered: code-review',
+        'plugins were loaded: my-plugin@my-market',
         'other agent servers were offered: other',
         'the agent server failed to start',
     ]);
@@ -446,6 +539,7 @@ test('the flags of the plan, as the installed Claude Code takes them', () => {
             'claude-test-1',
             '--setting-sources',
             'project,local',
+            '--disable-slash-commands',
         ],
     );
 });
@@ -476,8 +570,10 @@ test('the stream reader keeps the calls, errors, start and end, and counts unrea
         ['mcp__pychivalry__check', 'Read', 'Edit'],
     );
     assert.deepEqual(summary.toolErrors, [{ name: 'Read', message: 'boom' }]);
-    assert.equal(summary.init?.version, '2.1.220');
+    assert.equal(summary.init?.version, '2.1.330');
     assert.equal(summary.result?.subtype, 'success');
+    assert.equal(summary.result.isError, false);
+    assert.equal(summary.result.errorText, null);
     assert.deepEqual(summary.result.permissionDenials, ['Bash']);
     assert.equal(summary.unreadLines, 1);
     assert.deepEqual(readStream(''), {
@@ -487,4 +583,174 @@ test('the stream reader keeps the calls, errors, start and end, and counts unrea
         result: null,
         unreadLines: 0,
     });
+});
+
+test('a continued run adds its trials to the record, numbered after its own, and only to one made the same way', (t) => {
+    const dir = tempDir(t);
+    const recordFile = path.join(dir, 'agent-use.json');
+    const streamFile = path.join(dir, 'stream.jsonl');
+    writeFileSync(streamFile, stream({}));
+    const base = {
+        SCORED_SESSION_LIMIT: '2',
+        SCORED_CLAUDE: fake,
+        SCORED_SERVER: fake,
+        FAKE_CLAUDE_STREAM: streamFile,
+    };
+    const go = (env: Record<string, string>): ScoredRecord =>
+        runScored(root, { ...base, ...env }, () => undefined, recordFile).record;
+
+    // There is nothing to continue yet.
+    assert.throws(
+        () => go({ SCORED_TRIALS: '1', SCORED_CONTINUE: 'true' }),
+        (e: unknown) => e instanceof CommandError && /there is none/.test(e.message),
+    );
+    const first = go({
+        SCORED_TRIALS: '1',
+        FAKE_CLAUDE_APPLY: path.join(root, DEFECTS_DIR, 'reference'),
+    });
+    assert.deepEqual(first.results.tasks[0], {
+        name: 'agent-use',
+        trials: 1,
+        passed: 1,
+        pass_rate: 1,
+    });
+    const both = go({ SCORED_TRIALS: '2', SCORED_CONTINUE: 'true' });
+    assert.deepEqual(
+        both.results.trials.map((x) => [x.trial, x.passed]),
+        [
+            [1, true],
+            [2, false],
+            [3, false],
+        ],
+    );
+    assert.deepEqual(both.results.tasks[0], {
+        name: 'agent-use',
+        trials: 3,
+        passed: 1,
+        pass_rate: 0.3333,
+    });
+    assert.match(both.command, / SCORED_CONTINUE=true task scored:agent-use$/);
+    assert.equal(both.notes.length, first.notes.length + 1);
+    assert.match(both.notes[both.notes.length - 1] ?? '', /^Trials 2 to 3 were added on /);
+    assert.deepEqual(
+        checkRecord(JSON.parse(JSON.stringify(both)) as unknown, validate, expected),
+        [],
+    );
+
+    // A run made another way (here, another session limit) is never added: the record is kept.
+    assert.throws(
+        () => go({ SCORED_TRIALS: '1', SCORED_CONTINUE: 'true', SCORED_SESSION_LIMIT: '3' }),
+        (e: unknown) =>
+            e instanceof CommandError &&
+            e.exitCode === 2 &&
+            /\(session_limit, arguments\)/.test(e.message),
+    );
+    const kept = JSON.parse(readFileSync(recordFile, 'utf8')) as ScoredRecord;
+    assert.equal(kept.results.trials.length, 3);
+});
+
+/**
+ * The whole stream of item 6.11's first test session, as Claude Code 2.1.220 wrote it, with its
+ * identifiers, folder and figures replaced: the installed Claude Code refused the pinned model
+ * before any request and still ended the session with the subtype `success`.
+ */
+const REFUSED_MODEL_STREAM = [
+    {
+        type: 'system',
+        subtype: 'init',
+        cwd: '<trial mod>',
+        session_id: '<session id>',
+        tools: ['Edit', 'Read', ...SERVER_TOOLS.map((n) => `mcp__pychivalry__${n}`)],
+        mcp_servers: [{ name: 'pychivalry', status: 'connected' }],
+        model: PINNED_MODEL,
+        permissionMode: 'dontAsk',
+        slash_commands: ['debug', 'simplify', 'clear', 'compact', 'context'],
+        apiKeySource: 'none',
+        claude_code_version: '2.1.220',
+        output_style: 'default',
+        agents: ['claude', 'Explore', 'general-purpose', 'Plan', 'statusline-setup'],
+        skills: ['debug', 'simplify'],
+        plugins: [],
+        capabilities: ['interrupt_receipt_v1', 'interrupt_cancel_queued_v1', 'msg_lifecycle_v1'],
+        analytics_disabled: false,
+        product_feedback_disabled: false,
+        fast_mode_state: 'off',
+        fast_mode_disabled_reason: 'sdk_opt_in_required',
+        uuid: '<uuid>',
+    },
+    {
+        type: 'assistant',
+        message: {
+            id: '<id>',
+            container: null,
+            model: '<synthetic>',
+            role: 'assistant',
+            stop_details: null,
+            stop_reason: 'stop_sequence',
+            stop_sequence: '',
+            type: 'message',
+            usage: {},
+            content: [
+                {
+                    type: 'text',
+                    text: 'API Error: 400 Claude Code 2.1.220 does not support this model; version 2.1.280 or newer is required.',
+                },
+            ],
+            context_management: null,
+        },
+        parent_tool_use_id: null,
+        session_id: '<session id>',
+        uuid: '<uuid>',
+        timestamp: '2026-11-23T00:00:00.000Z',
+        error: 'unknown',
+        request_id: '<request id>',
+        is_api_error_message: true,
+    },
+    {
+        is_error: true,
+        duration_api_ms: 0,
+        num_turns: 1,
+        stop_reason: 'stop_sequence',
+        session_id: '<session id>',
+        total_cost_usd: 0,
+        usage: {},
+        modelUsage: {},
+        permission_denials: [],
+        terminal_reason: 'api_error',
+        fast_mode_state: 'off',
+        fast_mode_disabled_reason: 'sdk_opt_in_required',
+        subtype: 'success',
+        api_error_status: 400,
+        result: 'API Error: 400 Claude Code 2.1.220 does not support this model; version 2.1.280 or newer is required.',
+        type: 'result',
+        duration_ms: 267,
+        uuid: '<uuid>',
+    },
+]
+    .map((e) => JSON.stringify(e))
+    .join('\n');
+
+test('a session that never reached the model ends on an error, though its subtype is success', (t) => {
+    const summary = readStream(REFUSED_MODEL_STREAM);
+    assert.equal(summary.result?.subtype, 'success');
+    assert.equal(summary.result.isError, true);
+    assert.equal(summary.result.terminalReason, 'api_error');
+    assert.equal(summary.result.apiErrorStatus, 400);
+    assert.match(summary.result.errorText ?? '', /does not support this model/);
+    assert.deepEqual(summary.toolCalls, []);
+    assert.equal(summary.unreadLines, 0);
+
+    const { record, log } = run(t, { SCORED_TRIALS: '1' }, REFUSED_MODEL_STREAM);
+    const trial = record.results.trials[0];
+    assert.equal(trial?.stopped, 'error');
+    assert.equal(trial.passed, false);
+    assert.deepEqual(trial.harness_problems, [
+        'the session ended on an error (success, api_error, status 400)',
+        'skills were offered: debug, simplify',
+    ]);
+    assert.deepEqual(trial.session?.skills, ['debug', 'simplify']);
+    assert.deepEqual(trial.session.plugins, []);
+    // The error's words reach the person running the test, never the record.
+    assert.ok(log.some((l) => /trial 1: the session's error: API Error: 400/.test(l)));
+    assert.ok(!JSON.stringify(record).includes('does not support'));
 });
