@@ -210,6 +210,35 @@ test('no game folder: the localization is absent, and so it is with no file sour
     assert.equal(noIndex.definitions.status, 'no-workspace');
 });
 
+test('a file source may hand over the text an editor holds; a file it cannot read has no text', () => {
+    const { files } = fixture();
+    // The editor's copy of the mod's file, with the text it holds; every other file from disk.
+    const held = '﻿l_english:\n monthly_prestige:0 "As the editor holds it"\n';
+    const editor: FileSource = (layer, path) =>
+        layer === 'mod' && path === 'localization/english/fixture_lookup_l_english.yml'
+            ? held
+            : files(layer, path);
+    const read = narrow(
+        modifierOf(look('monthly_prestige', { files: editor, language: 'l_english' })).modifier
+            ?.localization,
+        'read',
+    );
+    assert.deepEqual(
+        read.keys.flatMap((k) => k.texts.map((t) => [t.layer, t.text])),
+        [
+            ['game', 'Fixture prestige each month'],
+            ['mod', 'As the editor holds it'],
+        ],
+    );
+    const none: FileSource = () => undefined;
+    const unread = narrow(
+        modifierOf(look('monthly_prestige', { files: none })).modifier?.localization,
+        'read',
+    );
+    assert.ok(unread.keys.every((k) => k.texts.every((t) => t.text === null)));
+    assert.equal(unread.keys[0]?.texts.length, 3);
+});
+
 test('a keyword template whose key the workspace defines, and one whose key it does not', () => {
     const fills = only(look('add_fixture_lifestyle_xp'), 'keyword-template');
     assert.deepEqual(
