@@ -17,6 +17,8 @@ code ([Commands](commands.md)).
   something the game enforces.
 - A file reports at most 1,000 findings, its most severe first; the command line says how
   many it left out.
+- A check marked **off by default** reports only when asked: the command line's
+  `check --unused-keys`, the agent server's `check` with `unused_keys`.
 
 The full inventory, with the checks still to come and those retired, the release 2.3.0
 check each replaces and how each was proved on the base game, is the
@@ -52,7 +54,7 @@ check each replaces and how each was proved on the base game, is the
 | --- | --- | --- | --- |
 | `localization/missing-key` | warning | A localization key, in a field that holds one or that a record has by its name, defined in no localization file. | The game's message `unknown_loc_key_X`: "Unknown loc key %s" |
 | `localization/unbalanced-brackets` | warning | Localization text with an extra `[` or `]`. | The game's message `loc_key_X_unexpected_extra_at_position_X_file_X`: "Loc key `{}`: Unexpected extra `[` at position {} - file `{}`" |
-| `localization/unused-key` | hint | A key the mod defines that nothing in the mod or the base game uses. | Advice: pychivalry's own, with no game message |
+| `localization/unused-key` | hint | A key the mod defines that nothing in the mod or the base game uses. **Off by default:** `pychivalry check --unused-keys` turns it on. | Advice: pychivalry's own, with no game message |
 
 ## names
 

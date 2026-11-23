@@ -10,8 +10,9 @@ the workspace index, is built, with the override rules as data, read from the pa
 step 4 is built: the check inventory ([checks.md](checks.md), signed off), the typed spec reader,
 62 of its 78 checks (two blocked, eleven retired by their re-proof, three for steps 10 and 11),
 lookup, the base-game and real-mod suites and their classifications, and the limits; build step
-5, the command line, is built. What waits on the owner or on the spec work is in
-[decisions.md](decisions.md). Nothing else in this document is built yet.
+5, the command line, is built; of build step 6, the agent server is built (items 6.1 to 6.6).
+What waits on the owner or on the spec work is in [decisions.md](decisions.md). Nothing else in
+this document is built yet.
 
 The build plan, step by step, is in [PLAN.md](PLAN.md).
 
@@ -528,8 +529,10 @@ The MVP is done when all of these hold, each proved by a suite in the repository
    line, and its 12 in divine-intervention are false.
 4. **Same answers everywhere.** The editor, the command line and the agent server report the
    same findings for the same mod.
-   *2026-11-23:* the command line's findings equal the core's on each of the five mods; the
-   editor and the agent server are steps 6 and 7.
+   *2026-11-23:* the command line's findings equal the core's on each of the five mods. After
+   items 6.1 to 6.6 the agent server's `check` returns exactly the core's findings on the
+   fixture mods (a test), and on rice its totals equal the `game:mods` record's (the local size
+   test). The editor is step 7.
 5. **Agent use.** The scored run meets its target.
 6. **Authoring.** The scored run meets its targets on all three measures.
 7. **Speed.** Within tolerance of the 2.3.0 medians recorded in build step 1.

@@ -46,6 +46,11 @@ export interface InventoryRow {
     readonly evidence: InventoryEvidence;
     /** The message text, `%s` (or the game's own placeholders) for each value; null when the catalogue entry's text was not given. */
     readonly message: string | null;
+    /**
+     * True for a check that is off by default and reports only when asked: the runner's
+     * `unusedKeys` option (`localization/unused-key`, docs/decisions.md, decision 76).
+     */
+    readonly offByDefault: boolean;
 }
 
 /** The family of a code: the part before its `/`. */
@@ -74,6 +79,7 @@ export function inventoryRows(catalogue?: MessageCatalogue): InventoryRow[] {
             finds: kind.description,
             evidence,
             message: evidence.kind === 'catalogue' ? evidence.text : kind.description,
+            offByDefault: false,
         });
     }
     for (const code of Object.keys(CHECK_KINDS) as CheckCode[]) {
@@ -89,6 +95,7 @@ export function inventoryRows(catalogue?: MessageCatalogue): InventoryRow[] {
             finds: kind.description,
             evidence,
             message: evidence.kind === 'catalogue' ? evidence.text : (kind.text ?? null),
+            offByDefault: kind.offByDefault === true,
         });
     }
     return rows.sort((a, b) => (a.code < b.code ? -1 : a.code > b.code ? 1 : 0));

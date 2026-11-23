@@ -344,3 +344,23 @@ test('help and version', (t) => {
     }
     assert.equal(runCli(['--version'], { cache }).stdout, 'pychivalry 0.0.0\n');
 });
+
+test('localization/unused-key is off by default; --unused-keys turns it on', (t) => {
+    const cache = scratch(t);
+    const mod = path.join(MODS, 'localization-unused-key-bad');
+    const game = path.join(REPO_ROOT, 'fixtures', 'game', 'event-targets-and-localization', 'game');
+    const codes = (...extra: string[]): string[] => {
+        const lines = jsonLines(
+            runCli(['check', mod, '--vanilla', game, '--json', ...extra], { cache }).stdout,
+        );
+        lines.pop();
+        return lines.map((l) => String(l['code']));
+    };
+    assert.ok(!codes().includes('localization/unused-key'));
+    assert.deepEqual(
+        codes('--unused-keys').filter((c) => c === 'localization/unused-key'),
+        ['localization/unused-key'],
+    );
+    const text = runCli(['explain', 'localization/unused-key'], { cache });
+    assert.match(text.stdout, /Off by default: check --unused-keys turns it on/);
+});

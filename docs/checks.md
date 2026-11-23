@@ -292,14 +292,15 @@ moved to districts).
 | `structure/event-undeclared-namespace` | warning | An event whose namespace its file does not declare, including every event of a file that declares none. The base game has none: 0 of 10,836 events | Catalogue `namespace_X_used_in_event_X_file_X_is_not_defined_in_this_fi` | `EVENT-016`; `EVENT-010` | `structure-event-undeclared-namespace` | 4.5 | keyword roles (`namespace` as a declaration, asked in step 3) | Built (4.5) |
 | `structure/range-min-above-max` | error | A range whose minimum is above its maximum | Catalogue `min_value_in_range_directive_is_larger_than_the_max_value_un` | `VALUE-002` | `structure-range-min-above-max` | 4.5 | value types (where a range is written) | Built (4.5) |
 | `structure/event-non-character-shown` | error | An event whose `scope` is not a character and that is neither hidden nor major. The base game has none: 0 of its 121 events with another scope | Catalogue `error_in_event_X_non_character_events_must_be_hidden_or_be_n` ("Error in event '{}'. Non-character events must be hidden, or be narrative events"); `events/_events.info`: "Non-character scoped events generally need to be hidden or major". That "narrative" means `major` is read from the `.info` file, not shown | new | `structure-event-non-character-shown` | 4.5 | keyword roles; .info | Built (4.5) |
-| `structure/triggered-desc-other-field` | warning | A `triggered_desc` block holding anything but `desc` and `trigger`. The base game has none: 0 of 22,387 | Executable: "The body of triggered_desc can only take desc and/or trigger. %s", kept beside the 1.21 dynamic-description reader; not in the 1.20 catalogue | new | `structure-triggered-desc-other-field` | 4.5 | clean catalogue (the message); keyword roles | Blocked: its message is not in the committed catalogue (part D4 quotes it as executable evidence) |
+| `structure/triggered-desc-other-field` | warning | A `triggered_desc` block holding anything but `desc` and `trigger`. The base game has none: 0 of 22,387 | Executable: "The body of triggered_desc can only take desc and/or trigger. %s", kept beside the 1.21 dynamic-description reader; not in the 1.20 catalogue | new | `structure-triggered-desc-other-field` | 4.5 | clean catalogue (the message); keyword roles | Blocked: its message is not in the committed catalogue (part D4 quotes it as executable evidence); it waits for the catalogue (decision 74) |
 | `definitions/clash` | error | Definitions the rules table says the game calls an error: two events with one id and the same `id_override_priority`, two history characters with one id and the same `history_override_priority` | Catalogue, named by the rules row: `duplicated_event_id_X_with_the_same_override_priority_X_foun`, `duplicate_character_id_X_found_in_history`. The base game has 3, all character ids (`records/game/index.json`); item 4.9 classifies them | new | `definitions-clash` (the step 3 mod `override-rules` already holds 2 clashes) | 4.5 | rules (a clash row carries its message) | Built (4.5) |
 | `definitions/not-read` | information | A definition in a file the rules table says the game does not read (replaced by another layer's file, hidden by `replace_path`, a folder in the wrong letter case) | Advice: the rules row has game evidence, but the game prints nothing for a file it skips | new | `definitions-not-read` | 4.5 | rules (most such rows are open today) | Built (4.5) |
 
 **Built** (item 4.5): ten rows, each with its fixture pair, `fields/wrong-kind-of-value` for 7 of
 the 9 value groups. **Blocked:** `structure/triggered-desc-other-field`: its message is not in the
 committed catalogue, and an "Executable" row ships only once it is (part D4 quotes the string as
-rank-1 evidence; a question for the owner). The base game raises none of these errors or
+rank-1 evidence). The owner's answer (decision 74): it waits for the catalogue, and nothing is
+re-graded meanwhile. The base game raises none of these errors or
 warnings; `definitions/not-read` gives 88 information findings, all in `jomini/` files the game's
 own copies replace.
 
@@ -310,14 +311,16 @@ own copies replace.
 | `scope/undefined-event-target` | information | `scope:name` with no effect saving `name` in the file, the mod or the base game | Catalogue `undefined_event_target_X`. Information by the MVP's decision: the base game alone has 10,523 (2.3.0's record on 1.20) | same id | `scope-undefined-event-target` | 4.6 | tables (the effects that save a scope) | Built (4.6); the package's `save_keys` lacks the effects that save a value, so a name is reported only when no file writes it but as `scope:name` |
 | `localization/missing-key` | warning | A localization key, in a field that holds one, defined in no localization file of the mod, the base game or a DLC. Literal text with spaces in such a field is this finding too: the game reads it as a key | Catalogue `unknown_loc_key_X` ("Unknown loc key %s"); for `title`, `desc` and option `name`, the 1.21 executable's "Unrecognized loc key %s. Near %s" beside the dynamic-description reader; `events/_events.info`: "Missing localization keys are logged as errors" | `CK4100`, `CK4101`, `CK4102` | `localization-missing-key` | 4.6 | loc fields; implicit keys (not in the plan); clean catalogue | Built (4.6) |
 | `localization/unbalanced-brackets` | warning | Localization text with an extra or unclosed `[`, `]`, `(`, `'` or `$`. The base game's English has no unbalanced `[ ]`: 0 of 340,445 entries | Catalogue `loc_key_X_unexpected_extra_at_position_X_file_X` and `_2`; the 1.21 executable's "Unterminated '[' ...", "Unterminated '(' ...", "Unterminated `'` ..." and "Unterminated '$' ..." messages beside the localization reader | `LOC-005`; the `$` part of `LOC-007` | `localization-unbalanced-brackets` | 4.6 | clean catalogue (the 1.21 messages) | Built in part (4.6): an extra `[` or `]`; an opener left open waits on the 1.21 "Unterminated" messages in the catalogue |
-| `localization/unused-key` | hint | A key the mod defines that nothing in the mod or the base game uses | Advice | new | `localization-unused-key` | 4.6 | loc fields; implicit keys (not in the plan) | Built (4.6) |
+| `localization/unused-key` | hint | A key the mod defines that nothing in the mod or the base game uses | Advice | new | `localization-unused-key` | 4.6 | loc fields; implicit keys (not in the plan) | Built (4.6); off by default, reported only when asked: `check --unused-keys`, the agent server's `unused_keys` (decision 76) |
 
 **Built** (item 4.6): all four rows, each with its fixture pair; `localization/unbalanced-brackets`
 reports an extra `[` or `]` only, as the 1.21 "Unterminated ..." messages are not in the committed
 catalogue. On the base game: 5,969 `scope/undefined-event-target` (76 names; `duel_value` alone
 4,716), 151 `localization/missing-key` warnings on 104 keys no localization file of the install
 defines (each a defect of the game's files, `tools/data/check-classifications.json`), no
-unbalanced brackets, no unused key.
+unbalanced brackets, no unused key. `localization/unused-key` is off by default (decision 76): on
+rice it gives 141,090 hints, about one for every key the mod defines, so a check reports it only
+when asked.
 
 ### 4.7: advice that holds on 1.21
 
@@ -332,12 +335,12 @@ each one on the base game before it ships.
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `fields/usually-present` | information | A record without a field that every base-game record of its kind sets. Seventeen pre-2.0 required-field flags return through this row ([below](#the-38-required-field-flags)) | Advice (the base game's frequency, rank 4) | new | `fields-usually-present` | 4.7 | frequency | Built (4.7); re-proof: applies to 436,310, fires on 0 |
 | `fields/unusual-value` | hint | A value no base-game record writes in a field whose values form a small set | Advice (observed values) | new | `fields-unusual-value` | 4.7 | observed values | Built (4.7); re-proof: applies to 48,974, fires on 0 |
-| `references/unknown-name` | information | A value naming a definition the index does not hold, where no game message is known: a portrait animation, a game concept in `[concept\|E]`. The base game: 4 of 16,776 portrait animations name none of its 330 | Advice | `CK3422`; `LOC-006` | `references-unknown-name` | 4.7 | value types (which definition a field names) | Built in part (4.7): portrait animations (re-proof: applies to 16,899, fires on 4, the base game's own, as the row states); the game-concept half is blocked: the `[key\|E]` form is only in `.info` prose, not data |
+| `references/unknown-name` | information | A value naming a definition the index does not hold, where no game message is known: a portrait animation, a game concept in `[concept\|E]`. The base game: 4 of 16,776 portrait animations name none of its 330 | Advice | `CK3422`; `LOC-006` | `references-unknown-name` | 4.7 | value types (which definition a field names) | Built in part (4.7): portrait animations (re-proof: applies to 16,899, fires on 4, the base game's own, as the row states; they are its [known exceptions](#known-exceptions), decision 75); the game-concept half is blocked: the `[key\|E]` form is only in `.info` prose, not data |
 | `structure/namespace-outside-events` | information | A file outside `events/` that declares a `namespace`. Every script file of `common/` and `history/`; 0 | Advice | `PYCH-S003` (warning) | `structure-namespace-outside-events` | 4.7 | keyword roles | Built (4.7); re-proof: applies to 4,215, fires on 0 |
 | `structure/event-unknown-type` | information | An event `type` that `events/_events.info` does not list (character, letter, court, activity). 10,836 events; 0 | Advice (.info, rank 3) | `EVENT-001` | `structure-event-unknown-type` | 4.7 | .info; keyword roles | Built (4.7); re-proof: applies to 9,727, fires on 0 |
-| `structure/event-letter-without-sender` | information | A letter event without `sender`. 705; 0 | Advice (.info: "required for letter events"; question 8) | `EVENT-002` | `structure-event-letter-without-sender` | 4.7 | .info; keyword roles | Built (4.7); re-proof: applies to 705, fires on 0 |
-| `structure/event-without-desc` | information | An event that is not hidden and has no `desc`. 9,562; 0 | Advice | `CK3764` | `structure-event-without-desc` | 4.7 | keyword roles | Built (4.7); re-proof: applies to 9,562, fires on 0 |
-| `structure/event-without-option` | information | An event that is not hidden and has no `option`. 9,562; 0 | Advice | `CK3763` | `structure-event-without-option` | 4.7 | keyword roles | Built (4.7); re-proof: applies to 9,562, fires on 0 |
+| `structure/event-letter-without-sender` | information | A letter event without `sender`. 705; 0 | Advice (.info: "required for letter events"; question 8) | `EVENT-002` | `structure-event-letter-without-sender` | 4.7 | .info; keyword roles | Built (4.7); re-proof: applies to 705, fires on 0; stays advice until the catalogue carries the executable's message part D4 quotes (decision 74) |
+| `structure/event-without-desc` | information | An event that is not hidden and has no `desc`. 9,562; 0 | Advice | `CK3764` | `structure-event-without-desc` | 4.7 | keyword roles | Built (4.7); re-proof: applies to 9,562, fires on 0; stays advice until the catalogue carries the executable's message part D4 quotes (decision 74) |
+| `structure/event-without-option` | information | An event that is not hidden and has no `option`. 9,562; 0 | Advice | `CK3763` | `structure-event-without-option` | 4.7 | keyword roles | Built (4.7); re-proof: applies to 9,562, fires on 0; stays advice until the catalogue carries the executable's message part D4 quotes (decision 74) |
 | `structure/event-after-without-option` | information | An event that is not hidden, has an `after` and no `option`. 2,641; 0 | Advice | `CK3521` | `structure-event-after-without-option` | 4.7 | keyword roles | Built (4.7); re-proof: applies to 2,641, fires on 0 |
 | `structure/event-several-immediate` | information | An event with more than one `immediate`. 10,836; 0 | Advice | `CK3768` | `structure-event-several-immediate` | 4.7 | keyword roles | Built (4.7); re-proof: applies to 10,836, fires on 0 |
 | `structure/event-several-after` | information | An event with more than one `after`. 10,836; 0 | Advice | `CK3766` | `structure-event-several-after` | 4.7 | keyword roles | Built (4.7); re-proof: applies to 10,836, fires on 0 |
@@ -375,6 +378,25 @@ retired before it ships. Whether they belong in the MVP at all is question 9.
 `scope/title-text-reads-scope-saved-late` is blocked; the eleven others fired on the base game and
 are [retired](#retired-codes). The re-proof is `pychivalry-tools advice proof` (committed and
 tested), run on the 1.21.0.3 base game; its counts are in each row's State.
+
+Part D4 carries the 1.21 executable's own messages for a letter event without `sender`, an event
+without `desc` and an event without `option`, as rank-1 evidence, but the spec's error catalogue
+does not: the three rows stay advice, at information, until it does, and nothing is re-graded
+(decision 74).
+
+#### Known exceptions
+
+`references/unknown-name` ships as information although the base game itself names 4 portrait
+animations it does not define (decision 75; decision 46's zero exceptions do not retire it). These
+are its 4 findings on the 1.21.0.3 base game, each an `animation` of a portrait that no file of
+`gfx/portraits` defines:
+
+| File | Line | Animation |
+| --- | ---: | --- |
+| `events/activities/ecumenical_council_activity/pam_investiture_council_events.txt` | 473 | `worried` |
+| `events/dlc/gdp/gdp_republic_unrest_events.txt` | 1846 | `standing` |
+| `events/secret_events/secrets_events.txt` | 5614 | `scheming` |
+| `events/secret_events/secrets_events.txt` | 5664 | `scheming` |
 
 ### Retired codes
 

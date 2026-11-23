@@ -23,7 +23,7 @@ a document adds its row here.
 
 | Document | What it holds | Written by |
 | --- | --- | --- |
-| [guide/](guide/README.md) | The user guide: installing, commands, settings, and the reference of every check ([guide/checks.md](guide/checks.md), written from the core's check inventory by `task docs:checks`) | Step 1 starts it; each step that ships a feature adds to it; step 13 completes it |
+| [guide/](guide/README.md) | The user guide: installing, commands, settings, the agent server ([guide/agent-server.md](guide/agent-server.md), step 6), and the reference of every check ([guide/checks.md](guide/checks.md), written from the core's check inventory by `task docs:checks`) | Step 1 starts it; each step that ships a feature adds to it; step 13 completes it |
 | [wiki/](wiki/README.md) | How the repository's GitHub wiki is generated from these documents, and its home page | Step 1 |
 
 ## The game's behaviour, as each step establishes it

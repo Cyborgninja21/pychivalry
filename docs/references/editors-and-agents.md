@@ -38,8 +38,26 @@ about the game: check again before relying on one.
 - The TypeScript library has two lines. The 2.x line, `@modelcontextprotocol/server`, is the
   current one (2.4.0 when checked). The 1.x line, `@modelcontextprotocol/sdk` (1.32.2 when
   checked), is in maintenance.
-- pychivalry uses the 2.x line. It is pinned to an exact version by build step 6, which adds
-  it.
+- pychivalry uses the 2.x line, pinned by build step 6 to **2.4.0**, the current release on
+  2026-11-23 (published 2026-10-23). At run time it brings `@modelcontextprotocol/core` 2.4.0 and
+  `zod` 4; its JSON Schema validator (ajv) is bundled inside the package. The client,
+  `@modelcontextprotocol/client` 2.4.0, is a development dependency of the tests.
+- Checked on 2026-11-23 against the library's own documentation (ts.sdk.modelcontextprotocol.io,
+  version 2: "Tools", "Errors", "Serving over stdio") and its published type declarations:
+  - A server is `new McpServer(serverInfo, { instructions })`, a tool
+    `registerTool(name, { title, description, inputSchema, outputSchema, annotations, _meta },
+    handler)`, and a server over standard input and output `serveStdio(() => server)` from
+    `@modelcontextprotocol/server/stdio`, which replaces 1.x's `StdioServerTransport` with
+    `server.connect`. It serves clients of the 2025 protocol revisions and of the 2026-07-28
+    revision from the same server; the 2.4.0 client speaks the 2025 sequence unless asked.
+  - Shapes are Standard Schema; `fromJsonSchema(schema, validator)` takes a plain JSON Schema
+    and the validator to check it with, so a server needs no `zod` of its own.
+  - Arguments that fail the input shape, and anything a handler throws, come back as a tool
+    result marked `isError`, not as a protocol error; the result's text is the validator's
+    message. The output shape is not checked on an error result.
+  - A tool with an output shape returns `structuredContent`, and the same JSON as text for a
+    client that reads only text.
+  - Standard output carries only the protocol: anything else goes to standard error.
 
 ## Text and positions
 

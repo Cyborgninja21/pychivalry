@@ -109,6 +109,13 @@ errors, every planted defect is gone, nothing else changed and the look-alikes a
 They are published mods by other authors and are never committed. The copy the suites read is
 pinned by file count and hash; a mod on disk that is not the pinned copy fails the suite.
 
+The largest, `rice`, is also the agent server's size test (docs/PLAN.md item 6.3,
+`packages/mcp/src/size.test.ts`): a local game-file test that runs only where `CK3_GAME_PATH` and
+`CK3_CORPUS` are set, calls every tool on it over the real base game, holds each result under
+10,000 tokens, and holds `check`'s totals equal to the rice entry of `records/game/mods.json`. In
+CI the same test runs on a mod it writes into a temporary folder: thousands of unknown triggers,
+a name defined in 100 files and used 3,000 times, and 3,000 localization keys.
+
 ## The base game
 
 Read from the local install of the current game version. The suites state the build and a hash
