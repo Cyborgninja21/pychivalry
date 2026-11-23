@@ -1,0 +1,3 @@
+fixture_character = {
+	name = "Fixture"
+}

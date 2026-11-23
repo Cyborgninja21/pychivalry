@@ -6,12 +6,18 @@ fixture_cb = {
 	on_defeat_desc = fixture_cb_defeat
 	on_white_peace_desc = fixture_cb_white_peace
 	on_victory = {
-		add_prestige = 100
+		scope:attacker = {
+			add_prestige = 100
+		}
 	}
 	on_defeat = {
-		add_prestige = -100
+		scope:attacker = {
+			add_prestige = -100
+		}
 	}
 	on_white_peace = {
-		add_prestige = 10
+		scope:attacker = {
+			add_prestige = 10
+		}
 	}
 }
