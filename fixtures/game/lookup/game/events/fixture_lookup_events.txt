@@ -1,0 +1,14 @@
+namespace = fixture_lookup
+
+fixture_lookup.1 = {
+	type = character_event
+	trigger = {
+		fixture_scripted_trigger = yes
+		NOT = { fixture_scripted_trigger = no }
+	}
+	immediate = {
+		if = {
+			limit = { fixture_scripted_trigger = yes }
+		}
+	}
+}
