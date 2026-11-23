@@ -7,6 +7,13 @@ harvest_can_attend_trigger = {
 	}
 }
 
+# Who can host the festival.
+harvest_can_host_trigger = {
+	is_ruler = yes
+	is_landed = yes
+	scope:harvest_host ?= { is_ai = no }
+}
+
 # Never true: the festival is not held in a famine year.
 harvest_famine_trigger = {
 	always = no

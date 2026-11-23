@@ -1,8 +1,18 @@
 # Settings
 
-The extension is not built yet, so it has no settings today. This page records what is decided
-about configuration; each step that adds a setting adds it here with its name, its default and
-what it changes.
+The extension is not built yet. The language server it will start (build step 7, items 7.3 to
+7.6) reads four settings, from the `pychivalry` section of the editor's settings; each step that
+adds a setting adds it here with its name, its default and what it changes.
+
+| Setting | Default | What it changes |
+| --- | --- | --- |
+| `pychivalry.gamePath` | empty | The game's `game` folder, the one holding `common/`. Empty: the game is looked for in every Steam library on Linux and Windows. When none is found, pychivalry says so once and judges no name the game defines |
+| `pychivalry.background.fileLimit` | `3000` | The most files of the mod checked in the background; `0`: none. Files open in the editor are always checked |
+| `pychivalry.localization.unusedKeys` | `false` | Report `localization/unused-key`, a hint for each localization key nothing uses; off by default, as in the command line and the agent server |
+| `pychivalry.encoding.fallback` | `"none"` | `"windows-1252"`: read the bytes of a file that are not valid UTF-8 as Windows-1252, so their letters show correctly ([what the parser reads](../encoding.md)) |
+
+A value of the wrong type is ignored and the default used. Changing the game folder or the
+fallback encoding reads the game again; turning `unusedKeys` on or off checks every file again.
 
 ## What is decided
 
@@ -17,8 +27,8 @@ what it changes.
   information, that the file is not valid UTF-8; it is never an error, because the game ships
   and loads such files itself. A setting will let you name Windows-1252 as the encoding to
   read those bytes with, so their letters show correctly; the rest of the file is still read
-  as UTF-8. It is off by default and
-  arrives with the extension in build step 7 ([what the parser reads](../encoding.md)).
+  as UTF-8. It is off by default: `pychivalry.encoding.fallback`, above
+  ([what the parser reads](../encoding.md)).
 - **Where pychivalry keeps its index of the game.** pychivalry reads your installed game once
   and saves what it found, about 250 MB for game 1.21, in your own cache folder: on Windows
   `%LOCALAPPDATA%\pychivalry\Cache\index`, on Linux `~/.cache/pychivalry/index` (or under

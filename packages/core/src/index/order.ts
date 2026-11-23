@@ -102,3 +102,39 @@ export function compareFiles(
     // Two packs, or one layer twice: the rule gives no order between them.
     return a.layer === b.layer ? 0 : undefined;
 }
+
+/**
+ * Definitions sorted in the order a `file-order` row reads their files, and by place within a
+ * file (`start`); undefined when the row leaves two of them unordered: a layer it does not
+ * list, or one path in two layers it does not order (`compareFiles`).
+ *
+ * `compareFiles` orders files by layer rank and path, one after the other (which first, the
+ * row's `layers` says). It leaves a pair unordered only when one of the two is in a layer the
+ * row does not list, or when both have the same rank and the same path in two layers. So a pool
+ * with a layer the row does not list is unordered, which comparing each definition with itself
+ * finds; otherwise the files of one rank and path sort next to each other, and the pool is
+ * unordered exactly when two neighbours of the sorted pool are. That is n log n comparisons
+ * where comparing every pair is n squared, and a check resolves a name once per definition: a
+ * name defined in 300 files took the check 7.5 seconds that way. `compareWith` is
+ * `compareFiles`; a test gives one that counts the comparisons.
+ */
+export function sortByOrder<
+    T extends { readonly layer: string; readonly file: string; readonly start: number },
+>(
+    pool: readonly T[],
+    order: FileOrderRule,
+    compareWith: typeof compareFiles = compareFiles,
+): T[] | undefined {
+    const compare = (a: T, b: T): number | undefined =>
+        compareWith({ layer: a.layer, path: a.file }, { layer: b.layer, path: b.file }, order);
+    if (pool.length > 1 && pool.some((d) => compare(d, d) === undefined)) {
+        return undefined;
+    }
+    const sorted = [...pool].sort((a, b) => (compare(a, b) ?? 0) || a.start - b.start);
+    for (let i = 1; i < sorted.length; i++) {
+        if (compare(sorted[i - 1] as T, sorted[i] as T) === undefined) {
+            return undefined;
+        }
+    }
+    return sorted;
+}

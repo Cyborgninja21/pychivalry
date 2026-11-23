@@ -322,3 +322,25 @@ test('a workspace kept open and brought up to date gives the findings of a fresh
     );
     assert.ok(events.length > 0 && events.length < fresh().length);
 });
+
+test('a name defined in 1,000 files is checked in seconds, not minutes', (t) => {
+    // The index resolved the name once per definition and compared every pair of its
+    // definitions each time: 100 files took 0.3 seconds, 300 files 7.5, 1,000 would take
+    // minutes. It now resolves a name once (index/workspace.test.ts) and sorts its definitions
+    // in n log n comparisons (index/order.test.ts, counted). Here, the whole check, with a bound
+    // far above what it takes (about half a second) and far below what the old way took.
+    const mod = path.join(scratch(t), 'many');
+    write(path.join(mod, 'descriptor.mod'), 'name = "Many"\n');
+    for (let i = 0; i < 1000; i++) {
+        write(
+            path.join(mod, 'common', 'scripted_triggers', `many_${String(i).padStart(4, '0')}.txt`),
+            'shared_trigger = { always = yes }\n',
+        );
+    }
+    const started = performance.now();
+    const result = checkWorkspace({ spec, modDir: mod, gameDir: null, cacheDir: null });
+    const took = performance.now() - started;
+    t.diagnostic(`1,000 files: ${took.toFixed(0)} ms`);
+    assert.equal(result.files.length, 1000);
+    assert.ok(took < 30_000, `${took.toFixed(0)} ms`);
+});

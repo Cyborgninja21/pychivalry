@@ -4,8 +4,10 @@
  * as JSON lines (docs/PLAN.md items 5.1 to 5.4 and 5.7).
  *
  * - **Text:** each file with findings, then one line per finding,
- *   `  <line>:<column>  <severity>  <code>  <message>` (both counted from 1), then a blank
- *   line; last, `<n> files checked: <e> errors, <w> warnings, <o> other`, the totals of every
+ *   `  <line>:<column>  <severity>  <code>  <message>` (both counted from 1), where the
+ *   finding's data says what is valid there followed by it in parentheses
+ *   (`  (add_county_modifier takes landed_title; from character: capital_county, ...)`, the
+ *   core's `whatIsValid`), then a blank line; last, `<n> files checked: <e> errors, <w> warnings, <o> other`, the totals of every
  *   finding, `other` being information and hints. When the filters or the limit leave some
  *   findings out, ` (<s> shown)` follows. Notes about the run (no game found, a game of
  *   another build, files not checked) go to standard error.
@@ -35,6 +37,7 @@ import {
     checkWorkspace,
     codesMatching,
     defaultCacheDir,
+    whatIsValid,
     type Severity,
     type Spec,
     type WorkspaceCheck,
@@ -175,7 +178,10 @@ export function renderText(run: WorkspaceCheck, shown: readonly WorkspaceFinding
             current = f.file;
         }
         const at = `${String(f.range.start.line + 1)}:${String(f.range.start.character + 1)}`;
-        lines.push(`  ${at}  ${f.severity}  ${f.code}  ${f.message}`);
+        const valid = whatIsValid(f);
+        lines.push(
+            `  ${at}  ${f.severity}  ${f.code}  ${f.message}${valid === null ? '' : `  (${valid})`}`,
+        );
     }
     if (current !== null) {
         lines.push('');

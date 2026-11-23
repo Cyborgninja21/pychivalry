@@ -15,7 +15,8 @@
  * in the body; a required sub-field, in every block of its field that the record writes (as
  * the walk of `walkFields` reaches it). The finding is at the record's key, or at the key of
  * the field whose block lacks the sub-field, and its message is the game's, filled with the
- * record's key.
+ * record's key. Its data says what the field takes: its measured value type and the values the
+ * base game writes in it (`check/field-values.ts`).
  */
 
 import type { FolderTable } from '../index/folders.js';
@@ -24,6 +25,7 @@ import type { Spec } from '../spec/reader.js';
 import type { Evidence } from '../syntax/findings.js';
 import type { Block, FileNode, Pair } from '../syntax/tree.js';
 import type { FileReading } from './context.js';
+import { fieldValueData } from './field-values.js';
 import type { CheckFinding } from './finding.js';
 import { recordsOf, walkFields, type RecordSite } from './records.js';
 import { finding, type CheckContext } from './report.js';
@@ -113,7 +115,11 @@ export function missingRequiredFields(
                 CODE,
                 at.key,
                 [key],
-                { record: key, field: required.path.join('.') },
+                {
+                    record: key,
+                    field: required.path.join('.'),
+                    ...fieldValueData(required.field),
+                },
                 context,
                 evidenceOf(input.spec, required),
             ),

@@ -1,5 +1,13 @@
+# Given to a host whose festival went well: character modifiers.
 harvest_bounty_modifier = {
 	icon = economy_positive
 	monthly_income_mult = 0.1
 	stewardship = 2
+}
+
+# Laid on a county whose granaries are full: county modifiers.
+harvest_granary_modifier = {
+	icon = economy_positive
+	baron_tax_contribution_mult = 0.1
+	levy_reinforcement_rate = 0.1
 }

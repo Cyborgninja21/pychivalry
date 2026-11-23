@@ -1,8 +1,8 @@
 /**
  * `explain_code`: what a finding's code means, from the core's check inventory
  * (`inventoryRows`), as the command line's `explain --json` prints it: its family and
- * severity, what it finds, the game's evidence for it with the game's own message, and
- * whether it is off by default. A code may be written as a pattern, `<family>/*` or `*`.
+ * severity, what it finds, the game's evidence for it with the game's own message (each value
+ * a readable slot, `Unknown trigger '<trigger>'`), and whether it is off by default. A code may be written as a pattern, `<family>/*` or `*`.
  */
 
 import { catalogueFromSpec, codeMatches, inventoryRows, type InventoryRow } from '@pychivalry/core';
@@ -46,7 +46,7 @@ const ROW: Schema = {
         message: {
             type: ['string', 'null'],
             description:
-                "The message text, %s for each value; the game's own for a catalogue message",
+                "The message text, each value a readable slot such as <trigger>; the game's own for a catalogue message. Where the evidence is per-place, the message of a place with none of its own",
         },
         off_by_default: {
             type: 'boolean',

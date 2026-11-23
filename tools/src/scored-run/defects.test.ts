@@ -40,27 +40,50 @@ test('the manifest has the shape its reader states', () => {
     assert.deepEqual(manifestShapeProblems(value), []);
 });
 
-test('20 to 30 defects, one per check code, errors and warnings first', () => {
+test('every error and warning code is planted at least once, and only codes of this build', () => {
     const codes = manifest.defects.map((d) => d.code);
-    assert.ok(codes.length >= 20 && codes.length <= 30, `${String(codes.length)} defects`);
-    assert.equal(new Set(codes).size, codes.length, 'a code is planted once');
     const rows = new Map(inventoryRows().map((r) => [r.code as string, r]));
     for (const code of codes) {
         assert.ok(rows.has(code), `${code} is a code of this build`);
     }
-    // Advice codes come in only once every error and warning code is planted.
     const planted = new Set(codes);
     const severe = [...rows.values()].filter(
         (r) => r.severity === 'error' || r.severity === 'warning',
     );
-    const advice = codes.filter((c) => !['error', 'warning'].includes(rows.get(c)?.severity ?? ''));
-    if (advice.length > 0) {
-        assert.deepEqual(
-            severe.filter((r) => !planted.has(r.code)).map((r) => r.code),
-            [],
-            'advice codes are planted only after every error and warning code',
-        );
-    }
+    assert.deepEqual(
+        severe.filter((r) => !planted.has(r.code)).map((r) => r.code),
+        [],
+        'every error and warning code',
+    );
+    // Advice codes come in only once every error and warning code is planted (it is).
+    assert.ok(codes.length >= severe.length);
+});
+
+test('the mod is hard enough to tell servers apart: defects that need a lookup, that interact, that are fixed elsewhere', () => {
+    // tools/scored-run/README.md, proposal 1 of the first test sessions: every session fixed
+    // every defect of the first mod in about a minute. The mod plants some codes more than
+    // once, puts the fix of some defects in another file or on another line than the
+    // finding, and has look-alikes close to the defects.
+    const codes = manifest.defects.map((d) => d.code);
+    const twice = [...new Set(codes)].filter((c) => codes.filter((x) => x === c).length > 1);
+    assert.ok(twice.length >= 4, `codes planted more than once: ${twice.join(', ')}`);
+    const elsewhere = manifest.defects.filter((d) =>
+        d.fix.some((r) => r.file !== d.file || (r.lines !== undefined && r.lines[0] > d.line)),
+    );
+    assert.ok(elsewhere.length >= 5, `${String(elsewhere.length)} fixed elsewhere`);
+    assert.ok(
+        manifest.look_alikes.length >= 25,
+        `${String(manifest.look_alikes.length)} look-alikes`,
+    );
+    const files = filesIn(modDir);
+    const lines = files.reduce(
+        (n, f) => n + linesOf(readFileSync(path.join(modDir, ...f.split('/')), 'utf8')).length,
+        0,
+    );
+    assert.ok(
+        files.length >= 15 && lines >= 550,
+        `${String(files.length)} files, ${String(lines)} lines`,
+    );
 });
 
 test("each defect's text and each look-alike's text is its line of mod/", () => {

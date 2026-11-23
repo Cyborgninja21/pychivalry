@@ -1,9 +1,14 @@
 @harvest_tithe = 25
+@harvest_bonus = 10
 
 # How much grain a good harvest yields, at random within a range.
 harvest_yield_value = { 20 100 }
 
+# A poor harvest loses grain, at random within a range.
+harvest_loss_value = { -10 -5 }
+
 harvest_tithe_value = {
 	value = @harvest_tithe
+	add = @harvest_bonus
 	multiply = 2
 }

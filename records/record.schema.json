@@ -1123,7 +1123,7 @@
                 },
                 "trials": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/trial" } },
                 "tasks": {
-                    "description": "Per task: its trials, the trials that passed, and the pass rate (passed / trials, to 4 places).",
+                    "description": "Per task: its trials, the trials that passed, the pass rate (passed / trials, to 4 places), and the owner's target with whether the run met it (absent in a record made before the target was set).",
                     "type": "array",
                     "minItems": 1,
                     "items": {
@@ -1134,7 +1134,18 @@
                             "name": { "$ref": "#/$defs/text" },
                             "trials": { "$ref": "#/$defs/count" },
                             "passed": { "$ref": "#/$defs/count" },
-                            "pass_rate": { "type": "number", "minimum": 0, "maximum": 1 }
+                            "pass_rate": { "type": "number", "minimum": 0, "maximum": 1 },
+                            "target": {
+                                "description": "The owner's target (docs/decisions.md, decision 82): every test session passes. run: release for 10 trials or more, else development (fewer than all passing is looked into); needs: the trials that must pass, all of them; met: whether every trial passed.",
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": ["run", "needs", "met"],
+                                "properties": {
+                                    "run": { "enum": ["release", "development"] },
+                                    "needs": { "$ref": "#/$defs/count" },
+                                    "met": { "type": "boolean" }
+                                }
+                            }
                         }
                     }
                 }

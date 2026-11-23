@@ -15,17 +15,48 @@ tradition_harvest_feasts = {
 		harvest_feasts_bonus = yes
 	}
 	character_modifier = {
-		monthly_prestige = 0.1
+		monthly_prestige_gain_mult = 0.1
 		bowmen_damage_mult = 0.05
 		monthly_piety = 0.1
 	}
 	county_modifier = {
 		baron_tax_contribution_mult = 0.05
+		levy_size = 0.05
 	}
 	cost = {
 		prestige = 500
 	}
 	ai_will_do = {
 		value = 50
+	}
+}
+
+tradition_harvest_markets = {
+	category = societal
+	layers = {
+		0 = steward
+		1 = western
+		4 = harvest.dds
+	}
+	is_shown = {
+		always = yes
+	}
+	can_pick = {
+		always = yes
+	}
+	parameters = {
+		harvest_markets_bonus = yes
+	}
+	character_modifier = {
+		monthly_income_mult = 0.05
+	}
+	province_modifier = {
+		supply_limit_mult = 0.1
+	}
+	cost = {
+		prestige = 400
+	}
+	ai_will_do = {
+		value = 25
 	}
 }

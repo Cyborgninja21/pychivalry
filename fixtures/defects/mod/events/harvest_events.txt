@@ -7,45 +7,94 @@ harvest.0001 = {
 	desc = harvest.0001.desc
 
 	trigger = {
-		is_adlut = yes
-		always = yes
+		is_adult = yes
+		is_imprisonned = no
+		NOT = { has_character_flag = harvest_festival_over }
 	}
 
 	immediate = {
 		save_scope_as = harvest_host
 		add_county_modifier = {
-			modifier = harvest_bounty_modifier
+			modifier = harvest_granary_modifier
 			years = 5
 		}
 	}
 
 	option = {
 		name = harvest.0001.a
-		add_gol = 50
-		trigger_event = { id = harvest.0020 days = 3 }
+		add_gold = 50
+		add_prestige = 25
+		trigger_event = { id = harvest.0002 days = 3 }
 	}
 	option = {
 		name = harvest.0001.b
-		add_prestige = 25
+		add_piety = 25
 		add_gold = -10
 		ruler_feast_gift_effect = yes
+		harvest_give_alms_effect = yes
+	}
+	option = {
+		name = harvest.0001.c
+		trigger = { gold >= 100 }
+		add_piety_experiance = 50
+		faith = { change_fervor = 5 }
 	}
 }
 
-# The host's father sends his congratulations.
+# The host's spouse sends congratulations.
 harvest.0002 = {
 	type = character_event
 	title = harvest.0002.t
 	desc = harvest.0002.desc
 
 	trigger = {
-		root.fathr = { is_alive = yes }
+		exists = root.primary_spouse
+		root.primary_spose = { is_alive = yes }
 		scope:harvest_host = root
 	}
 
 	option = {
 		name = harvest.0002.a
 		add_piety = 10
+		harvest_spouse_reward_effect = yes
+	}
+	option = {
+		name = harvest.0002.b
+		add_stress = -10
+	}
+}
+
+# A feast for the guests, if the granaries allow it.
+harvest.0003 = {
+	type = character_event
+	title = harvest.0003.t
+	desc = harvest.0003.desc
+
+	trigger = {
+		harvest_can_attend = yes
+		NOT = { harvest_famine_trigger = yes }
+	}
+
+	immediate = {
+		if = {
+			limit = { gold >= 50 }
+			add_gold = -25
+		}
+		else = {
+			add_stress = 10
+		}
+	}
+
+	option = {
+		name = harvest.0003.a
+		random_list = {
+			60 = { add_prestige = 20 }
+			40 = { add_piety = 15 }
+		}
+	}
+	option = {
+		name = harvest.0003.b
+		harvest_tithe_effect = yes
 	}
 }
 
@@ -55,5 +104,6 @@ harvst.0004 = {
 	hidden = yes
 	immediate = {
 		add_character_flag = harvest_festival_over
+		harvest_cleanup_effect = yes
 	}
 }

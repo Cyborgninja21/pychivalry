@@ -8,7 +8,8 @@
  *    runner, `checkWorkspace`, over the manifest's game stub, as every surface runs it, with
  *    its defaults: `localization/unused-key` off, as the agent server's `check` answers by
  *    default. The planted mod has no unused key either way (defects.test.ts).
- * 2. `defects-gone`: the checker reports no finding of any planted defect's code, anywhere.
+ * 2. `defects-gone`: the checker reports no finding of any planted defect's code, anywhere (a
+ *    code planted more than once is listed once).
  * 3. `only-planted-lines`: nothing changed outside the planted lines. Every line of `mod/` a
  *    fix removed or changed is in a `fix` range of a defect, every line it added is where a
  *    `fix` range lets lines be added, and no file was added or removed.
@@ -234,11 +235,13 @@ export function grade(input: GradeInput): GraderResult[] {
     const zeroErrors = findings.filter((f) => f.severity === 'error').map(where);
 
     const defectsLeft: string[] = [];
-    for (const defect of manifest.defects) {
-        for (const f of findings.filter((x) => x.code === defect.code)) {
-            const planted = reportedAt(defect)
-                .map((p) => `${p.file}:${String(p.line)}`)
-                .join(', ');
+    for (const code of new Set(manifest.defects.map((d) => d.code))) {
+        const planted = manifest.defects
+            .filter((d) => d.code === code)
+            .flatMap(reportedAt)
+            .map((p) => `${p.file}:${String(p.line)}`)
+            .join(', ');
+        for (const f of findings.filter((x) => x.code === code)) {
             defectsLeft.push(`${where(f)} (planted at ${planted})`);
         }
     }

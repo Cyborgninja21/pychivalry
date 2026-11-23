@@ -100,8 +100,8 @@ For every `*.json` under `records/` except the `*.schema.json` files:
    `pychivalry-fault`.
 10. A scored record agrees with itself: each trial's `passed` with its graders and its harness
     problems, its graders the five in order, each grader's `passed` with its problems, the
-    trials numbered from 1, and each task's trial and pass counts and pass rate with the
-    trials.
+    trials numbered from 1, and each task's trial and pass counts, pass rate and target with
+    the trials.
 
 ## Baselines
 
@@ -285,7 +285,7 @@ on the owner's word. `results`:
 | `arguments` | Claude Code's arguments, with the prompt file and the agent-server configuration named instead of given |
 | `server` | The agent server's `entry` point, from the repository root, and its `arguments` with `<trial mod>` and `<game stub>` |
 | `trials` | Per trial: `task`, `trial` (from 1), `passed`, `stopped` (`finished`, `session-limit`, `turns`, `error`, `timeout`, `no-result`), `harness_problems`, the five `graders` each with `passed` and its `problems`, `tool_calls` (per tool: `calls` and `errors`), `tool_errors` (the tool and its text, folders named, no other path), `permission_denials`, `session` (what the session was offered: the harness version, the model, the permission mode, the tools, the agent servers with their status, the skills, and the plugins by their source, of which only Claude Code's own, `<name>@builtin`, may be there; null when the stream had no start), `turns`, `duration_ms`, `exit_code`, and `findings_left` (what the checker still reports, by severity) |
-| `tasks` | Per task: `trials`, `passed`, and `pass_rate` (passed / trials, to 4 places) |
+| `tasks` | Per task: `trials`, `passed`, `pass_rate` (passed / trials, to 4 places), and `target`, the owner's target and whether the run met it (decision 82): `run` (`release` for 10 trials or more, else `development`), `needs` (the trials that must pass: all of them) and `met`. A record made before the target was set, item 6.11's, has none |
 
 A trial passes when all five graders pass and it has no harness problem. Nothing from the
 session is kept beyond these fields: not its text, not the tools' inputs or results, not its id,

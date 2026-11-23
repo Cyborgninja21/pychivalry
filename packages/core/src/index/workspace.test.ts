@@ -126,6 +126,20 @@ test('later-wins and earlier-wins need a file-order row; with one they name the 
     assert.equal(e.status === 'winner' ? e.combine : undefined, 'fields');
 });
 
+test('a name resolved once is answered again from memory until a file changes', () => {
+    const ix = index([LATER, ORDER()]);
+    ix.addFile('game', 'common/x/a.txt', 'k = 1\n');
+    ix.addFile('mod', 'common/x/b.txt', 'k = 2\n');
+    const first = ix.resolve('common/x', 'k');
+    assert.equal(winnerOf(first), 'mod:common/x/b.txt:0');
+    assert.equal(ix.resolve('common/x', 'k'), first, 'the same answer, not worked out again');
+    ix.addFile('mod', 'common/x/c.txt', 'k = 3\n');
+    const after = ix.resolve('common/x', 'k');
+    assert.notEqual(after, first);
+    assert.equal(winnerOf(after), 'mod:common/x/c.txt:0');
+    assert.equal(after.definitions.length, 3);
+});
+
 test("a file order places subfolders by path, or the folder's own files first, or last", () => {
     const files = (ix: WorkspaceIndex): void => {
         ix.addFile('game', 'common/x/z.txt', 'k = 1\n');

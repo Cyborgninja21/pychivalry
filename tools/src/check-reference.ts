@@ -22,9 +22,20 @@ export const CHECK_REFERENCE_PAGE = path.join('docs', 'guide', 'checks.md');
 
 const SEVERITIES: readonly Severity[] = ['error', 'warning', 'information', 'hint'];
 
-/** Text for a Markdown table cell: no line break, `|` escaped. */
+/**
+ * Text for a Markdown table cell: no line break, `|` escaped, and `<` and `>` outside a code
+ * span written as entities, so that a message's readable slot (`<trigger>`) or a path's
+ * placeholder (`<name>`) is shown, not read as a tag.
+ */
 function cell(text: string): string {
-    return text.replace(/\s*\n\s*/g, ' ').replace(/\|/g, '\\|');
+    return text
+        .replace(/\s*\n\s*/g, ' ')
+        .replace(/\|/g, '\\|')
+        .split(/(`[^`]*`)/)
+        .map((part) =>
+            part.startsWith('`') ? part : part.replace(/</g, '&lt;').replace(/>/g, '&gt;'),
+        )
+        .join('');
 }
 
 /** A row's evidence, in words. */

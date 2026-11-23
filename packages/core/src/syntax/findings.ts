@@ -267,6 +267,23 @@ export function fillPlaceholders(text: string, values: readonly string[]): strin
     });
 }
 
+/**
+ * A message text with each placeholder written as a readable slot, `<name>`, the names in
+ * order (`<value>` for a placeholder with no name); `%%` is `%`. How a message is shown where
+ * no finding fills it: the command line's `explain`, the agent server's `explain_code`.
+ */
+export function readableMessage(text: string, names: readonly string[]): string {
+    let next = 0;
+    return text.replace(PLACEHOLDER, (match) => {
+        if (match === '%%') {
+            return '%';
+        }
+        const name = names[next] ?? 'value';
+        next++;
+        return `<${name}>`;
+    });
+}
+
 export interface MessageContext {
     /** The file's path inside the mod or game folder, used where a message names a place. */
     readonly file?: string | undefined;
