@@ -52,12 +52,14 @@ Everything goes through [Taskfile.yml](Taskfile.yml); `task --list` shows it all
 | `task ci` | Everything public CI runs: install, build, lint, format check, tests, spec check, record check, wiki check |
 | `task install` | `npm ci` from the root lock file |
 | `task build` | `tsc -b` over every package and the tools |
-| `task test` | Every package's tests: Node's built-in test runner on the compiled output |
+| `task test` | Every package's tests: Node's built-in test runner on the compiled output; no display, no editor (the extension's bundle is built first: one test starts its server) |
 | `task lint` | ESLint, type-aware, warnings as errors |
 | `task format:check` / `task format` | Prettier, check only / write |
 | `task spec:check` | The committed spec package: the checksums of the package file and its companions (uncompressed), format 8, the JSON Schema, the format 4 copy, the override rules (part D1) |
 | `task records:check` | Every committed record: valid format, made on the committed spec (a 2.3.0 baseline: on the format 4 copy) and corpus |
 | `task wiki:check` | The wiki builds from `docs/`: every published document exists and every link resolves |
+| `task vscode:bundle` | The extension's bundles (esbuild): the extension, and the agent server with the spec package beside it, in `packages/vscode/dist/bundle/`; the editor tests in `dist/test-bundle/` |
+| `task vscode:test` | The extension's editor tests in a real VS Code, the pinned release, downloaded into `.vscode-test/` the first time. On Linux only under `xvfb-run` on a virtual display, never on a desktop; throwaway user-data, extensions, home and Claude Code configuration folders. It needs a display and the network, so it is not part of `task ci`; public CI runs it as a job of its own on Linux and Windows |
 | `task docs:checks` | Writes the user guide's check reference, `docs/guide/checks.md`, from the core's check inventory |
 | `task wiki:build` | The wiki pages, built into `.wiki-build/` to look at |
 | `task wiki:publish` | Publishes the wiki. Public the moment it runs: only on the owner's word ([docs/wiki/README.md](docs/wiki/README.md)) |

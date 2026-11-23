@@ -8,11 +8,24 @@ about the game: check again before relying on one.
 
 - **Chat participants are deprecated**, as of 2026-11-18, and the harness that hosted them is
   due to be removed in February 2027. pychivalry has no chat participant.
-- **An extension can register a local agent server** (MCP) that VS Code's built-in AI then
-  uses. Whether VS Code forwards it to its default harness as documented is open question 4 of
-  MVP.md, settled in build step 7.
-- **The floor** is the release where VS Code's own AI harness is the default: 1.146, unless
-  build step 7 finds an earlier one.
+- **An extension registers a local agent server** (MCP) with the contribution point
+  `contributes.mcpServerDefinitionProviders` (an `id` and a `label`) and
+  `vscode.lm.registerMcpServerDefinitionProvider(id, provider)` during activation; the provider
+  returns `vscode.McpStdioServerDefinition(label, command, args, env, version)` with an optional
+  `cwd`. VS Code calls the provider eagerly, so it must ask the user nothing. Its API says a
+  Node server may use `process.execPath`, the editor's own runtime. Checked 2026-11-23 (below).
+- **VS Code's default harness is the Copilot harness**, since 1.143; the older Local harness is
+  deprecated in 1.146 and removed in February 2027. Eligible extension-provided definitions are
+  forwarded to Copilot sessions; a definition that needs `${input:...}` or `${command:...}`
+  variables is not. Build step 7 saw it happen (item 7.1): VS Code 1.146 and 1.147 write the
+  extension's definition, command, arguments, variables and folder unchanged, into a plugin they
+  sync to the Copilot harness's session at start, with no sign-in. 1.142, 1.143 and 1.145 start
+  no such session in a fresh profile without a sign-in, so nothing could be seen there.
+- **The floor is 1.146** (`engines.vscode` `^1.146.0`, `@types/vscode` 1.146.0): the lowest
+  release on which the editor tests of item 7.1 (a) all pass. Whether a signed-in harness then
+  calls the tools cannot be scripted; it is the by-hand check before a release.
+- **The Copilot harness also reads a project's `.mcp.json`** (Claude Code's format) from the
+  workspace folder and starts its servers: seen in the same tests.
 - **The language client** is `vscode-languageclient` 11, started as a module over IPC, so it
   runs on VS Code's own runtime on Linux and Windows and the user needs no Node of their own.
 - **Extension tests** use `@vscode/test-electron`, which drives a real VS Code. On a machine
@@ -24,6 +37,15 @@ about the game: check again before relying on one.
   configuration. The extension therefore has a command, "Set up for Claude Code", that
   registers the bundled server there, and keeps the registered location working when the
   extension updates.
+- **`claude mcp add [options] <name> -- <command> [args...]`** adds a local server; everything
+  after `--` is passed to the server untouched; `--env KEY=value` takes several values, so
+  another option must follow it before the name. Scopes: `local` (the default: this project
+  only, private to the user, kept in `~/.claude.json` under the project's path), `project`
+  (`.mcp.json` in the project's root, meant for version control; Claude Code asks once before
+  using its servers in an interactive session) and `user` (every project). With
+  `CLAUDE_CONFIG_DIR` set, the file is `$CLAUDE_CONFIG_DIR/.claude.json` (seen with 2.1.220).
+  `claude mcp list` and `claude mcp get` connect to each server to report its health.
+  An entry is `{type: "stdio", command, args, env}`. Checked 2026-11-23 (below).
 - **Skills** are folders of instructions a harness loads on demand. pychivalry ships three:
   explain, fix, and write content. Whether one skills folder loads in both harnesses is part of
   open question 4.
@@ -38,6 +60,27 @@ about the game: check again before relying on one.
   or login and makes no model call.
 - **VS Code's built-in AI cannot be scripted.** It is checked by hand before a release against
   a written checklist.
+
+## Checked for build step 7 (2026-11-23)
+
+Read on 2026-11-23 for items 7.1, 7.2 and 7.8; every page fetched:
+
+- VS Code, "MCP developer guide" (code.visualstudio.com/api/extension-guides/ai/mcp, updated
+  2026-11-18): the contribution point, the registration function, the definition types,
+  forwarding to Copilot sessions and its limits.
+- VS Code, "MCP configuration reference" (code.visualstudio.com/docs/agents/reference/mcp-configuration,
+  updated 2026-11-18): forwarding, `cwd` and `env`, the `dev` key, trust, autostart.
+- VS Code, "Agent harnesses" (code.visualstudio.com/docs/agents/run/agent-harnesses) and "Move to
+  the Copilot harness" (code.visualstudio.com/docs/agents/run/move-to-copilot), both updated
+  2026-11-18; the release notes of 1.143 (the Copilot harness the default), 1.144, 1.145 and 1.146
+  (released 2026-11-11: the Local harness deprecated); GitHub's changelog of 2026-11-16, "VS Code
+  retires the Local harness in February 2027". None of them says in which release forwarding of
+  extension-provided definitions began; the editor tests measured it.
+- VS Code's API declarations, `@types/vscode` 1.146.0: `McpStdioServerDefinition`,
+  `McpServerDefinitionProvider`, `lm.registerMcpServerDefinitionProvider`.
+- Claude Code, "Connect Claude Code to tools via MCP" (code.claude.com/docs/en/mcp): `claude mcp
+  add`, the scopes, `.mcp.json`, `add-json`, `list` and `get`; and `claude mcp --help` and `claude
+  mcp add --help` of Claude Code 2.1.220.
 
 ## The Model Context Protocol library
 
