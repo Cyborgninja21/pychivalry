@@ -2,11 +2,11 @@
     "record_format": 1,
     "suite": "game:parse",
     "command": "task game:parse",
-    "made_at": "2026-11-23T02:30:59.552Z",
+    "made_at": "2026-11-23T08:29:25.451Z",
     "tool": {
         "name": "pychivalry",
         "version": "0.0.0",
-        "commit": "e30857d9563d6df15ee8d51756e9dfff72f7e4bc",
+        "commit": "6b51b5ff4cadf66e39b867c2c1160f2fd71c84cd",
         "dirty": false
     },
     "machine": {
@@ -24,8 +24,8 @@
     },
     "spec": {
         "version": "1.21.0.3",
-        "sha256": "47fff382e93e9e756e89ba62b8e8463dd59e1bf7740314e8a9e39fb7d28667d9",
-        "package_format": 7
+        "sha256": "b72678ccecdae4fce74a5983ebdba8b0004141881158f7be6bd9bd6eab6a70f7",
+        "package_format": 8
     },
     "corpus": null,
     "notes": [
@@ -39,7 +39,7 @@
         "failures": [],
         "files": 4854,
         "trees": 4854,
-        "parse_ms": 5655,
+        "parse_ms": 5165,
         "folders": [
             {
                 "folder": "common",
@@ -50,7 +50,7 @@
                 "bom": 2663,
                 "not_utf8": 0,
                 "errors": 1,
-                "parse_ms": 3039,
+                "parse_ms": 2352,
                 "why": "Database records; release 2.3.0 read it; the spec lists 196 folders under it.",
                 "excluded": []
             },
@@ -63,7 +63,7 @@
                 "bom": 610,
                 "not_utf8": 0,
                 "errors": 1,
-                "parse_ms": 1074,
+                "parse_ms": 1111,
                 "why": "Events; release 2.3.0 read it; in the spec.",
                 "excluded": []
             },
@@ -76,7 +76,7 @@
                 "bom": 613,
                 "not_utf8": 25,
                 "errors": 1,
-                "parse_ms": 818,
+                "parse_ms": 862,
                 "why": "History; release 2.3.0 read it; the spec lists 10 folders under it.",
                 "excluded": []
             },
@@ -89,7 +89,7 @@
                 "bom": 237,
                 "not_utf8": 0,
                 "errors": 0,
-                "parse_ms": 702,
+                "parse_ms": 822,
                 "why": "The spec lists 30 folders under it (coats of arms, court scenes, map styles, portraits and more); paths.settings points into it.",
                 "excluded": [
                     {
@@ -107,7 +107,7 @@
                 "bom": 4,
                 "not_utf8": 1,
                 "errors": 0,
-                "parse_ms": 19,
+                "parse_ms": 17,
                 "why": "In the spec (map_data/geographical_regions) and in the game's checksum manifest.",
                 "excluded": []
             },
