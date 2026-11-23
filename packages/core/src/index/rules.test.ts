@@ -29,11 +29,11 @@ import {
 } from './rules.js';
 import { packageRules, TEST_ROW } from './testing.js';
 
-test("the package's table reads: 82 rows, each with its status, evidence and basis per platform", () => {
+test("the package's table reads: 95 rows, each with its status, evidence and basis per platform", () => {
     const table = packageRules();
     assert.equal(table.format, 1);
     assert.equal(table.game_build, '1.21.0.3');
-    assert.equal(table.rules.length, 82);
+    assert.equal(table.rules.length, 95);
     const byStatus = new Map<string, number>();
     for (const rule of table.rules) {
         byStatus.set(rule.status, (byStatus.get(rule.status) ?? 0) + 1);
@@ -45,12 +45,12 @@ test("the package's table reads: 82 rows, each with its status, evidence and bas
     assert.deepEqual(Object.fromEntries([...byStatus].sort()), {
         derived: 3,
         open: 7,
-        partial: 12,
-        settled: 60,
+        partial: 15,
+        settled: 70,
     });
     assert.equal(
         table.rules.filter((r) => PYCHIVALRY_KINDS.includes(r.kind)).length,
-        35,
+        40,
         "the rows of pychivalry's own nine kinds",
     );
 });

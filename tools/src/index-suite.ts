@@ -82,6 +82,9 @@ function rulesOfReason(reason: UnknownReason): number[] {
             return [4];
         case 'not-settled':
             return [reason.overrides_rule];
+        case 'name-scope':
+            // Whether a nested name is one name or several: a key defined again, rule 5.
+            return [5];
         case 'file-unknown':
             return reason.questions.map((q) => rulesOfQuestion(reason.layer, q));
         case 'no-rule':
@@ -98,7 +101,8 @@ function rulesOfReason(reason: UnknownReason): number[] {
 
 /**
  * The reasons an unknown answer gives, as words: `no-rule` (no row answers for the database),
- * `not-settled:<row>` (the row that answers is partial or open), `no-order`, and
+ * `not-settled:<row>` (the row that answers is partial or open), `no-order`, `name-scope` (part
+ * D3 does not settle whether a nested name written under two parents is one name), and
  * `file-unknown:<question>` (whether the game reads a file that holds a definition is not
  * known: `listing-depth`, `same-path`, `path-case`, `replace-path`, `file-identity`).
  */

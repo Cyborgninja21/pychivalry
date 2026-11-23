@@ -19,7 +19,7 @@ import { committedSpec, REPO_ROOT } from './testing.js';
 
 const specDir = path.join(REPO_ROOT, 'spec');
 
-test('the committed package opens: format 7, game 1.21.0.3, the checksum its .sha256 states', () => {
+test('the committed package opens: format 8, game 1.21.0.3, the checksum its .sha256 states', () => {
     const spec = committedSpec();
     assert.equal(spec.data.package_format, SPEC_FORMAT);
     assert.equal(spec.version, '1.21.0.3');
@@ -60,18 +60,35 @@ test('the typed package holds the counts docs/references/spec-package.md states'
     assert.equal(data.directories.length, 239);
 });
 
-test('the eight parts of formats 6 and 7 are built, typed, each row with its status and evidence', () => {
+test('the eight parts of formats 6 to 8 are built, typed, each row with its status and evidence', () => {
     const spec = committedSpec();
     const built = spec.data.parts.filter((p) => /^D[1-8]$/.test(p.id) && p.status === 'built');
     assert.equal(built.length, 8);
     const rules = spec.part('override_rules');
-    assert.equal(rules?.rules.length, 82);
+    assert.equal(rules?.rules.length, 95);
     assert.equal(rules.coverage.length, 239);
     const declarations = spec.part('declarations');
     assert.equal(declarations?.directories['events']?.[0]?.declares, 'namespace');
     const definitions = spec.part('definitions');
     const nested = Object.values(definitions?.nested ?? {}).flat();
-    assert.equal(nested.length, 40);
+    assert.equal(nested.length, 41);
+    // Format 8: every nested row says the scope of its name; a gene's has a qualifier.
+    const scopes = new Map<string, number>();
+    for (const row of nested) {
+        scopes.set(row.name_scope, (scopes.get(row.name_scope) ?? 0) + 1);
+    }
+    assert.deepEqual(Object.fromEntries(scopes), { parent: 20, global: 19, unknown: 2 });
+    const track = definitions?.nested['common/traits']?.[0];
+    assert.deepEqual([track?.kind, track?.name_scope, track?.scope_parent], ['trait_track', 'parent', 'record']);
+    const gene = definitions?.nested['common/genes']?.[1];
+    assert.equal(gene?.name_scope_qualifier?.statement, 'portrait_group');
+    // Format 8: an alias line in D2, and the D1 fields that say a decision as data.
+    const alias = declarations.directories['common/coat_of_arms/coat_of_arms']?.[1];
+    assert.deepEqual(alias?.alias, { of: 'value', rule: 'coat-of-arms-alias' });
+    const byId = new Map(rules.rules.map((r) => [r['id'], r]));
+    assert.ok(byId.get('special-genes-container')?.['entries'] !== undefined);
+    assert.ok(byId.get('coat-of-arms-alias')?.['alias'] !== undefined);
+    assert.ok(byId.get('msg-localization-missing-bom')?.['file_condition'] !== undefined);
     assert.equal(spec.part('keyword_roles')?.keywords.length, 61);
     const loc = Object.values(spec.part('implicit_loc_keys')?.directories ?? {}).flat();
     assert.equal(loc.length, 710);
@@ -109,10 +126,10 @@ function tempDir(t: { after: (fn: () => void) => void }): string {
     return dir;
 }
 
-/** A small format 7 package with the keys the reader checks. */
+/** A small format 8 package with the keys the reader checks. */
 function smallPackage(overrides: Record<string, unknown> = {}): Record<string, unknown> {
     return {
-        package_format: 7,
+        package_format: 8,
         manifest: { game: 'ck3', version: '9.9.9.9', companions: {} },
         parts: [],
         buckets: Object.fromEntries(BUCKET_NAMES.map((b) => [b, {}])),
@@ -141,14 +158,34 @@ test('a package whose uncompressed bytes do not match the stated checksum is ref
     assert.equal(spec.version, '9.9.9.9');
 });
 
-test('a package of another format, without the format 7 keys, or of another version is refused', () => {
+test('a package of another format, without the format 8 keys, or of another version is refused', () => {
     const four = Buffer.from(JSON.stringify(smallPackage({ package_format: 4 })));
     assert.throws(() => readSpec(gzipSync(four), sha256Hex(four)), /format 4/);
-    // Format 5 is refused: the parts the index and the checks need are format 7's.
-    const five = Buffer.from(JSON.stringify(smallPackage({ package_format: 5 })));
-    assert.throws(() => readSpec(gzipSync(five), sha256Hex(five)), /format 5; the rebuild reads format 7 only/);
-    const bare = Buffer.from(JSON.stringify({ package_format: 7, manifest: { version: '1' } }));
-    assert.throws(() => readSpec(gzipSync(bare), sha256Hex(bare)), /not a format 7 package/);
+    // Formats 5 and 7 are refused: the index reads keys only format 8 carries.
+    for (const format of [5, 7]) {
+        const old = Buffer.from(JSON.stringify(smallPackage({ package_format: format })));
+        assert.throws(
+            () => readSpec(gzipSync(old), sha256Hex(old)),
+            new RegExp(`format ${String(format)}; the rebuild reads format 8 only`),
+        );
+    }
+    const bare = Buffer.from(JSON.stringify({ package_format: 8, manifest: { version: '1' } }));
+    assert.throws(() => readSpec(gzipSync(bare), sha256Hex(bare)), /not a format 8 package/);
+    // A nested row of D3 without the scope of its name is format 7's shape.
+    const unscoped = Buffer.from(
+        JSON.stringify(
+            smallPackage({
+                definitions: {
+                    status: 'built',
+                    data: { nested: { 'common/a': [{ kind: 'a', status: 'confirmed', evidence: [] }] } },
+                },
+            }),
+        ),
+    );
+    assert.throws(
+        () => readSpec(gzipSync(unscoped), sha256Hex(unscoped)),
+        /definitions\.data\.nested\.common\/a\[0\] has no name_scope/,
+    );
     const noPart = Buffer.from(JSON.stringify(smallPackage({ iterator_kinds: undefined })));
     assert.throws(() => readSpec(gzipSync(noPart), sha256Hex(noPart)), /no iterator_kinds part/);
     const unbuilt = Buffer.from(

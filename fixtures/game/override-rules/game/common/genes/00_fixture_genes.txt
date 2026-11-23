@@ -1,0 +1,28 @@
+# Gene containers (format 8: gene-group-containers, special-genes-container,
+# age-presets-container): every gene is a definition of the one key space `genes`.
+color_genes = {
+	fixture_gene_color = {
+	}
+}
+morph_genes = {
+	fixture_gene_morph = {
+		fixture_template = {
+		}
+	}
+	fixture_gene_override = {
+	}
+	fixture_gene_refused = {
+	}
+}
+special_genes = {
+	morph_genes = {
+		fixture_gene_special = {
+			fixture_template = {
+			}
+		}
+	}
+}
+age_presets = {
+	fixture_preset = {
+	}
+}

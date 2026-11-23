@@ -58,7 +58,7 @@ tasks:
       - npm run format:check
 
   spec:check:
-    desc: "Verify the committed spec package: the checksums of the package file and its companions (uncompressed), format 7, the companions the package lists, the JSON Schema, the format 4 copy for 2.3.0, and the package's override rules (part D1) read with the core's reader"
+    desc: "Verify the committed spec package: the checksums of the package file and its companions (uncompressed), format 8, the companions the package lists, the JSON Schema, the format 4 copy for 2.3.0, and the package's override rules (part D1) read with the core's reader"
     deps: [build]
     cmds:
       - node tools/dist/cli.js spec check

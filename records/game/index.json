@@ -2,11 +2,11 @@
     "record_format": 1,
     "suite": "game:index",
     "command": "task game:index",
-    "made_at": "2026-11-23T02:31:09.992Z",
+    "made_at": "2026-11-23T08:30:22.023Z",
     "tool": {
         "name": "pychivalry",
         "version": "0.0.0",
-        "commit": "e30857d9563d6df15ee8d51756e9dfff72f7e4bc",
+        "commit": "6b51b5ff4cadf66e39b867c2c1160f2fd71c84cd",
         "dirty": false
     },
     "machine": {
@@ -24,8 +24,8 @@
     },
     "spec": {
         "version": "1.21.0.3",
-        "sha256": "47fff382e93e9e756e89ba62b8e8463dd59e1bf7740314e8a9e39fb7d28667d9",
-        "package_format": 7
+        "sha256": "b72678ccecdae4fce74a5983ebdba8b0004141881158f7be6bd9bd6eab6a70f7",
+        "package_format": 8
     },
     "corpus": {
         "manifest_sha256": "da1a745c50330a3a50dee079fe53609cd236f2f8db8c9533084cfb96fbb0b2c6",
@@ -43,14 +43,14 @@
         "Names defined more than once are resolved with the spec package's override rules (part D1): a row decides when its status is settled or derived and its kind is one the index applies; a partial or open row decides nothing. by_status counts each name of each database once; an unknown name (defined more than once, winner not known) is counted under the docs/overrides.md rule of each reason that leaves it open (unknown_by_rule, which may sum to more than the unknown names) and by its reasons (unknown_by_reason).",
         "The fresh build, the reload from the cache and each mod over the base game run one at a time, each in a fresh process (tools/src/index-worker.ts), with Node's default heap. peak_rss_kib is that process's peak resident memory, read right after the build, the reload or the mod; times are in milliseconds on this machine. The cache is written to a temporary folder and deleted after the run; its key is the spec checksum, the rules digest, the platform, the game build and the manifest of the files read.",
         "The spec is for game 1.21.0.3, the build installed. not_described lists the folders the spec does not list that hold .txt or .yml files (beside_spec_folders true when a folder of the spec shares their first folder), and spec_folders_without_files the spec's folders that hold no file read in this install.",
-        "The load average over one minute was 3.48 on 16 logical CPUs just before the run: the times are this machine's, under that load."
+        "The load average over one minute was 17.07 on 16 logical CPUs just before the run: the times are this machine's, under that load."
     ],
     "results": {
         "passed": true,
         "failures": [],
         "platform": "linux",
         "rules": {
-            "sha256": "9d211d879e649dc348520f082157825548d1560ed3bc2f2222417f1cf5fed1ea"
+            "sha256": "c05343b2bfc90884204501891d774ad38a345e91994a1aef0bd2087f91f0b79a"
         },
         "base_game": {
             "layers": [
@@ -71,9 +71,9 @@
                 {
                     "layer": "game",
                     "files": 16940,
-                    "definitions": 3359863,
-                    "uses": 9064884,
-                    "uses_of_defined_names": 5288564
+                    "definitions": 3360068,
+                    "uses": 9064679,
+                    "uses_of_defined_names": 5299201
                 },
                 {
                     "layer": "dlc",
@@ -86,18 +86,18 @@
             "packs": 23,
             "files": 17302,
             "lines": 11517318,
-            "definitions": 3370975,
-            "uses": 9068424,
-            "uses_of_defined_names": 5289917,
-            "names": 607931,
+            "definitions": 3371180,
+            "uses": 9068219,
+            "uses_of_defined_names": 5300554,
+            "names": 612996,
             "definitions_by_form": {
                 "constant": 3047,
-                "container": 194,
-                "entry": 3024,
+                "container": 214,
+                "entry": 3220,
                 "file": 154,
                 "key": 3100873,
                 "prefixed": 4650,
-                "record": 237862,
+                "record": 237851,
                 "value": 21171
             },
             "folders_indexed": 236,
@@ -1144,12 +1144,12 @@
                     "folder": "common/genes",
                     "content_type": "gene",
                     "files": 11,
-                    "definitions": 1374,
+                    "definitions": 1579,
                     "by_form": {
                         "constant": 12,
-                        "container": 1,
-                        "entry": 3,
-                        "record": 1358
+                        "container": 21,
+                        "entry": 199,
+                        "record": 1347
                     },
                     "spec_schema": true,
                     "spec_files": 11,
@@ -3243,13 +3243,12 @@
                 }
             ],
             "defined_more_than_once": {
-                "names": 12845,
+                "names": 1322,
                 "by_status": {
-                    "all": 672,
+                    "all": 675,
                     "single": 229,
-                    "statements": 11662,
-                    "unknown": 118,
-                    "winner": 164
+                    "unknown": 233,
+                    "winner": 185
                 },
                 "unknown_by_rule": [
                     {
@@ -3258,7 +3257,7 @@
                     },
                     {
                         "rule": 5,
-                        "names": 92
+                        "names": 207
                     },
                     {
                         "rule": 6,
@@ -3267,8 +3266,12 @@
                 ],
                 "unknown_by_reason": [
                     {
+                        "reason": "name-scope",
+                        "names": 167
+                    },
+                    {
                         "reason": "no-rule",
-                        "names": 93
+                        "names": 41
                     },
                     {
                         "reason": "file-unknown:listing-depth",
@@ -3281,12 +3284,8 @@
                 ],
                 "unknown_by_database": [
                     {
-                        "database": "common/coat_of_arms/coat_of_arms",
-                        "names": 21
-                    },
-                    {
-                        "database": "common/activities/activity_types#activity_window_character",
-                        "names": 19
+                        "database": "gfx/portraits/portrait_modifiers",
+                        "names": 142
                     },
                     {
                         "database": "sound",
@@ -3303,6 +3302,10 @@
                     {
                         "database": "gfx/court_scene/scene_environment",
                         "names": 14
+                    },
+                    {
+                        "database": "common/activities/activity_types#activity_window_character",
+                        "names": 13
                     },
                     {
                         "database": "gfx/map/map_object_data",
@@ -3325,7 +3328,7 @@
                         "names": 1
                     },
                     {
-                        "database": "common/genes",
+                        "database": "common/dynasty_house_motto_inserts",
                         "names": 1
                     },
                     {
@@ -3343,17 +3346,17 @@
                 ]
             },
             "time_ms": {
-                "list": 337,
-                "build": 19310,
-                "save": 243,
-                "report": 4484
+                "list": 358,
+                "build": 14710,
+                "save": 222,
+                "report": 3873
             },
-            "peak_rss_kib": 1547964,
-            "heap_used_after_build_mib": 557,
+            "peak_rss_kib": 1677248,
+            "heap_used_after_build_mib": 576,
             "cache": {
-                "bytes": 263502872,
-                "reload_ms": 933,
-                "reload_peak_rss_kib": 674652,
+                "bytes": 291034728,
+                "reload_ms": 999,
+                "reload_peak_rss_kib": 694744,
                 "reload_answers_as_fresh": true
             }
         },
@@ -3385,11 +3388,11 @@
                     "unknown_by_database": []
                 },
                 "time_ms": {
-                    "load_base": 931,
-                    "index_mod": 8,
-                    "report": 888
+                    "load_base": 980,
+                    "index_mod": 6,
+                    "report": 667
                 },
-                "peak_rss_kib": 660552
+                "peak_rss_kib": 724488
             },
             {
                 "slug": "divine-intervention",
@@ -3422,18 +3425,18 @@
                     "unknown_by_database": []
                 },
                 "time_ms": {
-                    "load_base": 978,
-                    "index_mod": 2320,
-                    "report": 957
+                    "load_base": 1046,
+                    "index_mod": 2338,
+                    "report": 826
                 },
-                "peak_rss_kib": 1435076
+                "peak_rss_kib": 1458552
             },
             {
                 "slug": "elf-destiny",
                 "files": 958,
-                "definitions": 20211,
-                "uses": 339675,
-                "uses_of_defined_names": 210643,
+                "definitions": 20367,
+                "uses": 339519,
+                "uses_of_defined_names": 213696,
                 "replace_paths": [],
                 "game_files_replaced": 34,
                 "game_files_hidden": 0,
@@ -3453,37 +3456,45 @@
                 ],
                 "not_read_files": 1047,
                 "defined_more_than_once": {
-                    "names": 2194,
+                    "names": 2407,
                     "by_status": {
-                        "all": 60,
+                        "all": 65,
                         "single": 1382,
-                        "unknown": 58,
-                        "winner": 694
+                        "unknown": 240,
+                        "winner": 720
                     },
                     "unknown_by_rule": [
                         {
                             "rule": 5,
-                            "names": 58
+                            "names": 240
                         }
                     ],
                     "unknown_by_reason": [
                         {
+                            "reason": "name-scope",
+                            "names": 186
+                        },
+                        {
                             "reason": "no-rule",
-                            "names": 58
+                            "names": 54
                         }
                     ],
                     "unknown_by_database": [
+                        {
+                            "database": "gfx/portraits/portrait_modifiers",
+                            "names": 180
+                        },
                         {
                             "database": "common/genes#gene_template",
                             "names": 52
                         },
                         {
-                            "database": "common/genes",
-                            "names": 3
+                            "database": "common/activities/activity_types#activity_window_character",
+                            "names": 6
                         },
                         {
-                            "database": "common/activities/activity_types#activity_window_character",
-                            "names": 2
+                            "database": "common/task_contracts#task_contract_reward",
+                            "names": 1
                         },
                         {
                             "database": "gfx/portraits",
@@ -3492,18 +3503,18 @@
                     ]
                 },
                 "time_ms": {
-                    "load_base": 1071,
-                    "index_mod": 378,
-                    "report": 904
+                    "load_base": 2100,
+                    "index_mod": 844,
+                    "report": 837
                 },
-                "peak_rss_kib": 685924
+                "peak_rss_kib": 810000
             },
             {
                 "slug": "rice",
                 "files": 2090,
                 "definitions": 431801,
                 "uses": 736563,
-                "uses_of_defined_names": 480828,
+                "uses_of_defined_names": 483077,
                 "replace_paths": [],
                 "game_files_replaced": 0,
                 "game_files_hidden": 0,
@@ -3512,37 +3523,41 @@
                 "not_described": [],
                 "not_read_files": 2043,
                 "defined_more_than_once": {
-                    "names": 6062,
+                    "names": 5984,
                     "by_status": {
                         "all": 31,
-                        "unknown": 82,
+                        "unknown": 4,
                         "winner": 5949
                     },
                     "unknown_by_rule": [
                         {
                             "rule": 5,
-                            "names": 82
+                            "names": 4
                         }
                     ],
                     "unknown_by_reason": [
                         {
-                            "reason": "no-rule",
-                            "names": 82
+                            "reason": "name-scope",
+                            "names": 4
                         }
                     ],
                     "unknown_by_database": [
                         {
                             "database": "common/activities/activity_types#activity_window_character",
-                            "names": 82
+                            "names": 3
+                        },
+                        {
+                            "database": "gfx/portraits/portrait_modifiers",
+                            "names": 1
                         }
                     ]
                 },
                 "time_ms": {
-                    "load_base": 991,
-                    "index_mod": 1801,
-                    "report": 1044
+                    "load_base": 1030,
+                    "index_mod": 1166,
+                    "report": 846
                 },
-                "peak_rss_kib": 762860
+                "peak_rss_kib": 797952
             },
             {
                 "slug": "viet-events",
@@ -3558,37 +3573,37 @@
                 "not_described": [],
                 "not_read_files": 234,
                 "defined_more_than_once": {
-                    "names": 44,
+                    "names": 42,
                     "by_status": {
                         "all": 9,
-                        "unknown": 5,
+                        "unknown": 3,
                         "winner": 30
                     },
                     "unknown_by_rule": [
                         {
                             "rule": 5,
-                            "names": 5
+                            "names": 3
                         }
                     ],
                     "unknown_by_reason": [
                         {
-                            "reason": "no-rule",
-                            "names": 5
+                            "reason": "name-scope",
+                            "names": 3
                         }
                     ],
                     "unknown_by_database": [
                         {
                             "database": "common/activities/activity_types#activity_window_character",
-                            "names": 5
+                            "names": 3
                         }
                     ]
                 },
                 "time_ms": {
-                    "load_base": 1433,
-                    "index_mod": 382,
-                    "report": 784
+                    "load_base": 948,
+                    "index_mod": 299,
+                    "report": 814
                 },
-                "peak_rss_kib": 725152
+                "peak_rss_kib": 783820
             }
         ]
     }

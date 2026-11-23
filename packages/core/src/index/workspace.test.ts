@@ -622,22 +622,98 @@ test("parts D2 and D3: namespace is no name, a constant is its file's, nested an
     }
     assert.equal(ix.resolve('common/landed_titles', 'color').status, 'not-defined');
     assert.deepEqual(ix.references('c_x'), [], "a nested definition's own key is not a use");
-    // An activity's option is known by its parent: the same name under two is two objects.
+    // An activity's option is known by its category, and the category by its record (part
+    // D3's scope_parent, format 8): the same name under two is two objects.
     const db = 'common/activities/activity_types#activity_option';
     assert.equal(ix.resolve(db, 'opt', 'act_a/options/cat').status, 'single');
     assert.equal(ix.resolve(db, 'opt', 'act_b/options/cat').status, 'single');
-    assert.equal(
-        ix.resolve(
-            'common/activities/activity_types#activity_option_category',
-            'cat',
-            'act_a/options',
-        ).status,
-        'single',
+    const category = ix.resolve(
+        'common/activities/activity_types#activity_option_category',
+        'cat',
+        'act_a',
     );
+    assert.equal(category.status, 'single');
+    assert.equal(category.definitions[0]?.parent, 'act_a/options');
     // A culture's history is named by its file.
     const culture = ix.definitions('norse', { database: 'history/cultures' });
     assert.deepEqual(
         culture.map((d) => [d.form, d.start, d.end]),
         [['file', 0, 0]],
     );
+});
+
+test('format 8, part D3: a name whose scope is not settled, under two parents, has no winner', () => {
+    const ix = new WorkspaceIndex({
+        folders: specFolders(),
+        rules: packageRules(),
+        platform: 'linux',
+    });
+    // activity_window_character: parent record, resting on the measurement alone.
+    ix.addFile(
+        'mod',
+        'common/activities/activity_types/a.txt',
+        'act_a = { window_characters = { host = { } } }\nact_b = { window_characters = { host = { } } }\n',
+    );
+    const db = 'common/activities/activity_types#activity_window_character';
+    const r = ix.resolve(db, 'host');
+    assert.equal(r.status, 'unknown');
+    assert.deepEqual(r.reasons, [
+        {
+            kind: 'name-scope',
+            database: db,
+            parents: ['act_a/window_characters', 'act_b/window_characters'],
+        },
+    ]);
+    assert.ok(r.definitions.every((d) => d.scope === 'not-settled'));
+});
+
+test('format 8, part D1: an alias line of a coat of arms is replayed in read order', () => {
+    const ix = new WorkspaceIndex({
+        folders: specFolders(),
+        rules: packageRules(),
+        platform: 'linux',
+    });
+    const db = 'common/coat_of_arms/coat_of_arms';
+    ix.addFile(
+        'game',
+        `${db}/00_a.txt`,
+        'early = late\nbase = { pattern = "a" }\nother = base\nlate = { }\ntemplate = { t = { } }\n',
+    );
+    ix.addFile('mod', `${db}/zz_b.txt`, 'other = { pattern = "b" }\n');
+    // A target not read yet: the line does nothing, and nothing is in force for its key.
+    assert.equal(ix.resolve(db, 'early').status, 'not-in-force');
+    // An alias, then a block for the key: the block fills the object both names share.
+    const base = ix.resolve(db, 'base');
+    assert.equal(base.status, 'winner');
+    assert.equal(base.winner.file, `${db}/00_a.txt`);
+    assert.equal(base.shared?.filledBy.file, `${db}/zz_b.txt`);
+    assert.deepEqual(base.shared.names, ['base', 'other']);
+    const other = ix.resolve(db, 'other');
+    assert.equal(other.status === 'winner' ? other.winner.layer : null, 'mod');
+    // A name no alias line touches answers as before.
+    assert.equal(ix.resolve(db, 'late').status, 'single');
+    assert.equal(ix.resolve(db, 't', 'template').status, 'single');
+});
+
+test('format 8, part D1: a localization file without a byte-order mark adds no keys; editor text is read as written', () => {
+    const ix = new WorkspaceIndex({
+        folders: specFolders(),
+        rules: packageRules(),
+        platform: 'windows',
+    });
+    const body = 'l_english:\n key_a: "a"\n';
+    ix.addFile('mod', 'localization/english/a_l_english.yml', Buffer.from(body, 'utf8'));
+    ix.addFile(
+        'mod',
+        'localization/english/b_l_english.yml',
+        Buffer.from(`\uFEFF${body.replace('key_a', 'key_b')}`, 'utf8'),
+    );
+    ix.addFile('mod', 'localization/english/c_l_english.yml', body.replace('key_a', 'key_c'));
+    assert.equal(
+        ix.getFile('mod', 'localization/english/a_l_english.yml')?.noDefinitions,
+        'msg-localization-missing-bom',
+    );
+    assert.equal(ix.definitions('key_a').length, 0);
+    assert.equal(ix.definitions('key_b').length, 1);
+    assert.equal(ix.definitions('key_c').length, 1);
 });

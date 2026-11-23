@@ -93,7 +93,7 @@ test('the catalogue is read from a package and ignores what is not an entry', ()
     assert.equal(catalogueFromSpec({ errors: 'no' }).size, 0);
 });
 
-test('a format 7 catalogue entry is read by its id and text; the keys format 5 added are not used', () => {
+test('a format 8 catalogue entry is read by its id and text; the keys format 5 added are not used', () => {
     const catalogue = catalogueFromSpec({
         package_format: 5,
         errors: [
@@ -112,7 +112,7 @@ test('a format 7 catalogue entry is read by its id and text; the keys format 5 a
     });
     assert.deepEqual([...catalogue], [['expected_after_arguments', 'Expected } after arguments']]);
     const spec = committedSpecPackage() as { package_format: number };
-    assert.equal(spec.package_format, 7);
+    assert.equal(spec.package_format, 8);
     assert.equal(committedCatalogue().size, 2023);
 });
 

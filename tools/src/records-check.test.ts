@@ -37,7 +37,7 @@ function validRecord(): SuiteRecord {
             files: 3,
             content_hashed_files: 1,
         },
-        spec: { ...SPEC, package_format: 7 },
+        spec: { ...SPEC, package_format: 8 },
         corpus: { manifest_sha256: CORPUS, slugs: ['rice'] },
         results: {},
     };
@@ -84,10 +84,10 @@ test('a record made on another spec version is rejected', () => {
 
 test('a 2.3.0 baseline is tied to the committed format 4 copy and its game build, not to the package', () => {
     assert.deepEqual(checkRecord(speedRecord([5, 1, 4, 2, 3]), validate, expected), []);
-    const onPackage = { ...speedRecord([5, 1, 4, 2, 3]), spec: { ...SPEC, package_format: 7 } };
+    const onPackage = { ...speedRecord([5, 1, 4, 2, 3]), spec: { ...SPEC, package_format: 8 } };
     assert.match(
         checkRecord(onPackage, validate, expected).join('\n'),
-        /^\/spec: a 2\.3\.0 baseline made on spec "1\.21\.0\.3" format 7 .* but the committed format 4 copy is 1\.21\.0\.3 format 4/,
+        /^\/spec: a 2\.3\.0 baseline made on spec "1\.21\.0\.3" format 8 .* but the committed format 4 copy is 1\.21\.0\.3 format 4/,
     );
     const otherCopy = speedRecord([5, 1, 4, 2, 3]);
     otherCopy.spec.sha256 = '8'.repeat(64);
@@ -196,20 +196,20 @@ test('a speed record without notes is rejected', () => {
 test('checkRecords finds the records of a repository and names the file of each problem', (t) => {
     const root = tempDir(t);
     const json = Buffer.from(
-        JSON.stringify({ package_format: 7, manifest: { version: '1.21.0.3', companions: {} } }),
+        JSON.stringify({ package_format: 8, manifest: { version: '1.21.0.3', companions: {} } }),
     );
     writeTree(root, {
         'spec/ck3-spec-1.21.0.3.json.gz': gzipSync(json),
         'spec/ck3-spec-1.21.0.3.sha256': `${sha256(json)}  ck3-spec-1.21.0.3.json\n`,
-        'spec/schema.format7.json': JSON.stringify({
-            properties: { package_format: { const: 7 } },
+        'spec/schema.format8.json': JSON.stringify({
+            properties: { package_format: { const: 8 } },
         }),
         'records/corpus/MANIFEST.tsv': 'manifest\n',
     });
     mkdirSync(path.join(root, 'records'), { recursive: true });
     copyFileSync(schemaFile, path.join(root, 'records', 'record.schema.json'));
     const good = validRecord();
-    good.spec = { version: '1.21.0.3', sha256: sha256(json), package_format: 7 };
+    good.spec = { version: '1.21.0.3', sha256: sha256(json), package_format: 8 };
     good.corpus = { manifest_sha256: sha256('manifest\n'), slugs: ['rice'] };
     const stale = { ...good, spec: { ...good.spec, sha256: '0'.repeat(64) } };
     const missing: Record<string, unknown> = { ...good };
