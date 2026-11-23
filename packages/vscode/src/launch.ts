@@ -22,6 +22,13 @@ export const SERVER_FILE = 'pychivalry-mcp.mjs';
 /** The spec package's folder, in the server folder. */
 export const SPEC_FOLDER = 'spec';
 
+/** The bundled command line's file, in the server folder beside the agent server. */
+export const CLI_FILE = 'pychivalry-cli.mjs';
+
+/** The bundled language server's folder in the extension, and its file. */
+export const LSP_FOLDER = 'lsp';
+export const LSP_FILE = 'pychivalry-lsp.mjs';
+
 /** A command line that starts the server, as a harness's configuration states it. */
 export interface ServerLaunch {
     /** The executable: VS Code's own, run as Node. */
@@ -43,18 +50,21 @@ export function pathFor(platform: NodeJS.Platform): PathApi {
 /**
  * The command line for the server in `serverDir` on the mod in `modDir`, run by `runtime`. The
  * mod and the spec are named explicitly, so the entry works whatever folder a harness starts it
- * in; the game is the server's own default, a search of every Steam library.
+ * in. The game is `gameDir`, the folder the setting `pychivalry.gamePath` names (`--vanilla`),
+ * or, when it is null, the server's own default, a search of every Steam library.
  */
 export function serverLaunch(
     runtime: string,
     serverDir: string,
     modDir: string,
     paths: PathApi = path,
+    gameDir: string | null = null,
 ): ServerLaunch {
     for (const [what, value] of [
         ['runtime', runtime],
         ['server folder', serverDir],
         ['mod folder', modDir],
+        ['game folder', gameDir ?? serverDir],
     ] as const) {
         if (!paths.isAbsolute(value)) {
             throw new Error(`the ${what} must be an absolute path: ${value}`);
@@ -68,9 +78,25 @@ export function serverLaunch(
             modDir,
             '--spec',
             paths.join(serverDir, SPEC_FOLDER),
+            ...(gameDir === null ? [] : ['--vanilla', gameDir]),
         ],
         env: { ELECTRON_RUN_AS_NODE: '1' },
     };
+}
+
+/**
+ * The game folder the setting `pychivalry.gamePath` gives the agent server: the setting's value
+ * when it is an absolute path, otherwise null, which leaves the server to search every Steam
+ * library. The language server reads the same setting and tells the person, once, when it names
+ * no game folder (`@pychivalry/lsp`, `game.ts`); the agent server given such a folder refuses to
+ * start and says why in the AI harness's log of it.
+ */
+export function gameFromSetting(value: unknown, paths: PathApi = path): string | null {
+    if (typeof value !== 'string') {
+        return null;
+    }
+    const dir = value.trim();
+    return dir !== '' && paths.isAbsolute(dir) ? dir : null;
 }
 
 /**

@@ -3,7 +3,7 @@
 The base game of the planted-defect mod, [fixtures/defects](../../defects/README.md), written by
 hand for build step 6 (items 6.7 to 6.9). The graders check the mod over it, and the scored run
 starts the agent server over it, so both see the same base game and neither needs the game
-installed.
+installed. The extension's editor tests (build step 7) name it in `pychivalry.gamePath`.
 
 It holds only what the mod uses and does not define itself, each a look-alike of the mod:
 

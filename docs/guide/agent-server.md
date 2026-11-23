@@ -17,8 +17,19 @@ did to a copy of a test mod. It gives Claude Code no credentials and removes any
 variable from the session's environment; each test session counts against that developer's own
 Claude plan, like any session they open themselves. Nothing of it runs on your machine.
 
-**It ships inside the extension, which is not built yet** (build step 7 registers it with VS
-Code and adds "Set up for Claude Code"). Until then it runs from a build of this repository.
+**It ships inside the extension.** Installed, the extension registers the server with VS Code's
+own AI (the Copilot harness), one server for each folder you open, bound to that folder as the
+mod and given the game folder `pychivalry.gamePath` names; VS Code's AI sees it with nothing more
+to do ("MCP: List Servers" lists `pychivalry`). For Claude Code, run "pychivalry: Set up for
+Claude Code" once in the mod's folder ([Commands](commands.md)). Both start the same command line:
+VS Code's own executable, run as Node, on the server's copy in the extension's storage folder,
+whose path does not change when the extension updates:
+
+```text
+<VS Code> <storage>/agent-server/pychivalry-mcp.mjs --mod <mod folder> --spec <storage>/agent-server/spec [--vanilla <game folder>]
+```
+
+Outside the extension it runs from a build of this repository, as below.
 
 ## Starting it
 
@@ -34,7 +45,8 @@ node packages/mcp/dist/main.js [--mod <folder>] [--vanilla <game folder> | --no-
 | `--spec <file>` | Another spec package file, or its folder; by default the one pychivalry ships |
 
 Arguments it cannot use stop it before it starts, with the reason on standard error and exit
-code 2. For Claude Code, a project's `.mcp.json` can start it until the extension does:
+code 2. For Claude Code without the extension, a project's `.mcp.json` can start a build of the
+repository:
 
 ```json
 {

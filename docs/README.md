@@ -11,6 +11,7 @@ a document adds its row here.
 | [PLAN.md](PLAN.md) | How it is built: thirteen steps, each with numbered items, tests and a "done when" list; the Progress table | Before step 1; updated by every step |
 | [decisions.md](decisions.md) | Every decision with its date, in the order it was made, and the choices an agent made that the owner has not yet confirmed | Every step that asks or answers one |
 | [checks.md](checks.md) | The check inventory: every check the MVP ships, with its code, severity, evidence (or "advice"), the 2.3.0 check it replaces, its fixture pair and its state (built, blocked, retired); the code scheme; the review of 2.3.0's codes and the pre-2.0 rules. Signed off by the owner on 2026-11-21 | Step 4, item 4.1; every step that adds a check |
+| [preview-release.md](preview-release.md) | The first preview's GitHub pre-release (item 7.12), drafted for the owner: its tag, title and notes, and how it is made. Not published | Step 7 |
 
 ## Sources and test data
 
@@ -23,7 +24,7 @@ a document adds its row here.
 
 | Document | What it holds | Written by |
 | --- | --- | --- |
-| [guide/](guide/README.md) | The user guide: installing, commands, settings, the agent server ([guide/agent-server.md](guide/agent-server.md), step 6), and the reference of every check ([guide/checks.md](guide/checks.md), written from the core's check inventory by `task docs:checks`) | Step 1 starts it; each step that ships a feature adds to it; step 13 completes it |
+| [guide/](guide/README.md) | The user guide: installing the preview, commands, settings, the agent server ([guide/agent-server.md](guide/agent-server.md), step 6), the reference of every check ([guide/checks.md](guide/checks.md), written from the core's check inventory by `task docs:checks`), and the check a person makes by hand before a preview goes out ([guide/by-hand-check.md](guide/by-hand-check.md), step 7) | Step 1 starts it; each step that ships a feature adds to it; step 13 completes it |
 | [wiki/](wiki/README.md) | How the repository's GitHub wiki is generated from these documents, and its home page | Step 1 |
 
 ## The game's behaviour, as each step establishes it

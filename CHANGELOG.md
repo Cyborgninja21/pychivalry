@@ -247,6 +247,36 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   `pychivalry.encoding.fallback`). The core gained, additively, `checkSourceFile` and
   `checkNames` (which `checkWorkspace` now calls per file), `FileReading.fields`,
   `WorkspaceIndex.namesIn` and `filesNaming`, and completion (`completionsAt`).
+- Build step 7, items 7.1, 7.2 and 7.8 (#142): `packages/vscode/`, the extension
+  `cyborgninja21.pychivalry` 0.1.0, a preview, on the VS Code floor 1.146 (`engines.vscode`
+  `^1.146.0`, `@types/vscode` 1.146.0). It copies the bundled agent server and its spec package
+  into its global storage folder, checked by a manifest of SHA-256 sums, and registers it with
+  VS Code's own AI, one local server per workspace folder, run by VS Code's own executable as
+  Node; VS Code 1.146 and 1.147 forward it to the Copilot harness with no sign-in. The command
+  "pychivalry: Set up for Claude Code" runs `claude mcp remove` then `claude mcp add --scope
+  local`, or, without the `claude` command and only after asking, writes a project `.mcp.json`.
+  Claude Code's entry keeps working across an update (0.1.0 to 0.1.1, the old folder removed, no
+  VS Code running). The editor tests (`task vscode:test`, `@vscode/test-electron` 3.1.0, VS Code
+  1.147.0) run in a real VS Code on a virtual display, in a CI job of their own on Linux and
+  Windows; the extension's bundles are written with esbuild 0.28.2.
+- Build step 7, the rest of items 7.3 to 7.11: the extension starts the language server
+  (`vscode-languageclient` 11.0.1, the bundled `dist/bundle/lsp/pychivalry-lsp.mjs`, a Node
+  module over IPC on VS Code's own runtime) for `ck3` and `ck3-localization` files; the four
+  settings in the manifest with descriptions; the game folder setting reaches the agent server
+  as `--vanilla`, VS Code's AI at once, and a Claude Code set-up made before it as an offer to set
+  it up again; the command line bundled beside the agent server and put on the integrated
+  terminal's path as `pychivalry` (a launcher in global storage, VS Code's environment-variable
+  collection), on Linux and Windows, with no Node of the user's own. The same-answers test
+  (editor, command line in a terminal, agent server paged to the end) on the planted-defect mod
+  in CI and on the five real mods locally; packaging with `@vscode/vsce` 4.1.1
+  (`task vscode:package`): one `.vsix` of 3.88 MB with the three bundles and the spec; a smoke
+  test of the packaged file installed into a clean VS Code, on Linux and Windows;
+  `task vscode:corpus`, the editor's speed and the same-answers test on the real mods; the CI
+  job caches the downloaded VS Code. The language server's notice of a finished background pass
+  carries its peak memory (`peakRssKib`).
+- `docs/guide/by-hand-check.md`, the check a person makes on Linux and Windows before a preview
+  goes out; `docs/preview-release.md`, the draft of the first preview's pre-release, not
+  published.
 
 ### Changed
 
@@ -394,7 +424,8 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
 
 - The harder planted mod has not been run by a test session yet; a run starts only on the
   owner's word (decision 80).
-- Build step 7 is in progress, built by agents in parallel (decision 84).
+- Build step 7 is built but for item 7.12: the first preview's pre-release waits for the owner's
+  word, and the by-hand check of the signed-in AI harnesses for the owner, on Linux and Windows.
 - Whether a check row should judge a static modifier applied by an effect of another use area
   is a question for the owner (`docs/decisions.md`); no built row covers it.
 - Two rows of the check inventory are blocked: `structure/triggered-desc-other-field` (its

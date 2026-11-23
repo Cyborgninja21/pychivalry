@@ -1,6 +1,6 @@
 # pychivalry: build plan
 
-Status: plan for approval, 2026-11-22. Step 0 is done: the 1.21.0.3 spec package in format 8 is committed (2026-11-23, decision 68), its override rules table among its parts. Step 1 is complete, and steps 2 and 3 are built and merged, the index reading the override rules from the package. Item 4.1, the check inventory, is written and signed off. The rest of step 4 and step 5 were built in parallel on the owner's word (decisions 70 and 72) and brought together by an integration pull request: every item of step 4 and step 5 is built, but for two blocked rows of the inventory and the parts of four rows that wait on the owner or on the spec work. Step 4's "Done when" holds but for its first line (two blocked rows have no fixture pair); step 5's holds. Step 6 is built (decision 77): the agent server, the planted-defect mod, its graders and the scored-test script; item 6.11's first test sessions ran on the owner's word (decision 81), 5 of 5 passed, and the owner set the target from them: every test session passes, 10 of 10 before a release (decision 82). The five proposals of those sessions are done (decision 83): a harder planted mod, findings that say what is valid, and the rest. Step 7 has started on the owner's word, built by agents in parallel (decision 84). The Progress table says what is open.
+Status: plan for approval, 2026-11-22. Step 0 is done: the 1.21.0.3 spec package in format 8 is committed (2026-11-23, decision 68), its override rules table among its parts. Step 1 is complete, and steps 2 and 3 are built and merged, the index reading the override rules from the package. Item 4.1, the check inventory, is written and signed off. The rest of step 4 and step 5 were built in parallel on the owner's word (decisions 70 and 72) and brought together by an integration pull request: every item of step 4 and step 5 is built, but for two blocked rows of the inventory and the parts of four rows that wait on the owner or on the spec work. Step 4's "Done when" holds but for its first line (two blocked rows have no fixture pair); step 5's holds. Step 6 is built (decision 77): the agent server, the planted-defect mod, its graders and the scored-test script; item 6.11's first test sessions ran on the owner's word (decision 81), 5 of 5 passed, and the owner set the target from them: every test session passes, 10 of 10 before a release (decision 82). The five proposals of those sessions are done (decision 83): a harder planted mod, findings that say what is valid, and the rest. Step 7 was built on the owner's word by agents in parallel (decisions 84 and 85): the language server, the extension that starts it and registers the agent server with both AI harnesses, the command line on the terminal's path, the same-answers test, the packaged `.vsix` and its smoke test. Its item 7.12, the first preview's pre-release, waits for the owner's word, with the by-hand check of the signed-in harnesses. The Progress table says what is open.
 
 This is the "how" for the rebuild. The "what" and the "why" are in [MVP.md](MVP.md): the
 decisions, the scope, the tests each feature needs and the definition of done. Where the two
@@ -26,7 +26,7 @@ disagree, MVP.md is right and this plan is fixed.
 | 4 | Engine checks and lookup | Yes, from item 4.2 on | Built. Item 4.1 is signed off (#121, #122); 4.2 with 4.3 (#125, #127, re-measured on format 8 in #132); 4.4 scope (#130); 4.5 fields and structure (#131); 4.6 event targets and localization (#134); 4.7 advice (#133); 4.8 lookup (#128); 4.9 to 4.11, the classification of the base game's errors, the game-file suites and the limits, in the integration pull request. 62 of the inventory's 78 rows are built (five in part), 11 retired by item 4.7's re-proof, 2 blocked, 3 belong to steps 10 and 11. Open: `structure/triggered-desc-other-field` (its message is not in the catalogue) and `scope/title-text-reads-scope-saved-late` (the localization text's saved-scope form is not data), blocked; the iterator sub-cases of `names/unknown-trigger` and `-effect` (the owner); the game-concept half of `references/unknown-name`, the open brackets of `localization/unbalanced-brackets` and the block and word types of `fields/wrong-kind-of-value`; the twelve spec requests of decision 73 and the questions in decisions.md. "Done when" 2 to 5 hold; 1 does not, for the two blocked rows |
 | 5 | Command line | Through step 4 | Built (#129, with the per-file cap in the integration pull request): `check`, `lookup` and `explain`, text and JSON, the filters, the exit codes, the on-disk index. "Done when" holds: the golden test passes, and on each of the five mods the command line's findings equal the core's and the `game:mods` record's. Open: the owner's questions on `--severity`, `--no-vanilla`, the folders checked and `mcp` (decisions.md) |
 | 6 | Agent server | Through step 4 | Items 6.1 to 6.6 built (the agent server, `packages/mcp/`): the six tools `check`, `lookup`, `find_definition`, `find_references`, `list_definitions` and `explain_code`, each read-only with its shapes declared, every result under 10,000 tokens (measured on rice), bad input as results naming the valid values, nothing written but the index cache, the on-disk index loaded; with them decisions 74 to 77 (`localization/unused-key` off by default). `call_graph`, `analyze_log` and `format` come with steps 10, 11 and 8. Items 6.7 to 6.10 built (#136): the planted-defect mod `fixtures/defects/` (27 defects, one per error and warning code, and 10 look-alikes, over the game stub `planted-defects`), the five graders, the scored-test script `task scored:agent-use` and its record format, all tested in CI without Claude Code; with them a CI test that no shipped package holds a key or reaches the network. Item 6.11 run on the owner's word (decision 81): the first five test sessions are on record, 5 of 5 passed (`records/scored/agent-use.json`), after two repair sessions that found harness faults, fixed; the owner set the target from them: every test session passes, a release run 10 of 10 (decision 82), which the record now states. Then, on the owner's word (decision 83), the sessions' five proposals: the planted mod made harder (32 defects, every error and warning code at least once, 29 look-alikes, 17 files; defects that need a lookup, interact or are fixed elsewhere; its reference's wrong-scope fix made right), scope findings that name the links that lead to the scope they need, field findings that carry the value type and the base game's values, the instructions naming the tools' prefix, and readable slots in every message `explain_code` shows; with them, the core's check on a name defined in many files no longer grows with the cube of the files (300 files: 7.5 s before, 0.09 s after). "Done when" holds: both lines. The harder mod has not been run by a test session yet |
-| 7 | Language server and extension | Through step 4 | In progress: started on the owner's word (decision 84), built by agents in parallel, each in its own worktree and pull request. Items 7.3 to 7.6 built, server side (#140): the language server, `packages/lsp/`, with diagnostics while typing and in the background, completion, hover, definition, references, symbols, the game folder and four settings; a test holds its diagnostics equal to the one runner's findings on every fixture mod. Open: the extension (7.1, 7.2, the client side of 7.3, 7.7 to 7.12) and the owner's three questions on the language server (decisions.md) |
+| 7 | Language server and extension | Through step 4 | Built but for item 7.12, on the owner's word (decisions 84 and 85), by agents in parallel: the language server, server side (#140); the extension with its AI wiring, items 7.1, 7.2 and 7.8 (#142); the rest of items 7.3 to 7.11 in one more pull request. The extension starts the language server over IPC on VS Code's own runtime, declares its four settings, gives the agent server the game folder, registers it with VS Code's AI and sets it up for Claude Code, and puts the command line on the integrated terminal's path. The same-answers test passes on the planted-defect mod in CI and on the five real mods (0, 15, 627, 2,942 and 62 findings, the same on the editor, the command line and the agent server). The `.vsix` is 3.88 MB (2.3.0's: 1.8 MB) and its smoke test passes in a clean VS Code on Linux and Windows. Editor speed against the 2.3.0 baseline: faster on all five mods, more memory on four (MVP.md, "Speed"). "Done when" 2 and 3 hold; 1 holds for everything a test can show, the signed-in harness calling the tools waiting on the owner's by-hand check; 4, the pre-release, waits on the owner's word (draft: [preview-release.md](preview-release.md)). Open: that, and the owner's questions on step 7 in decisions.md |
 | 8 | Formatter and fixes | No, but follows step 7 | Not started |
 | 9 | Skills and the authoring run | Through step 4 | Not started |
 | 10 | GUI files, graphics check, call graph | Partly | Not started |
@@ -74,9 +74,11 @@ These apply to every step and to every agent doing the work.
 | Workspace | npm workspaces, one lock file at the root | What 2.3.0 used; no extra tool. |
 | `packages/core` dependencies | None at run time | Decided: the core is dependency-free. |
 | Tests | Node's built-in test runner (`node:test`, `node:assert/strict`) on compiled output, for every package except the extension; types from `@types/node` **22.20.5** | No test framework to keep current; agents run it with one command. |
-| Extension tests | `@vscode/test-electron` driving a real VS Code; pinned in step 7, which adds it | The only way to test the extension as shipped. 2.3.0 used the same. |
-| Bundling | esbuild, one single file each for the language server, the agent server and the command line; the spec stays a separate data file; pinned in the step that adds it | VS Code's own guidance; small and fast. |
-| Language client | `vscode-languageclient` 11, started as a module over IPC; pinned in step 7 | Runs on VS Code's runtime on Linux and Windows. |
+| Extension tests | `@vscode/test-electron` **3.1.0** driving a real VS Code, the release **1.147.0** (pinned in `packages/vscode/src/editor/version.ts`), on a virtual display under `xvfb-run` on Linux; pinned in step 7 (#142) | The only way to test the extension as shipped. 2.3.0 used the same. |
+| Bundling | esbuild **0.28.2** (pinned in step 7, #142), one single file each for the extension, the language server, the agent server and the command line; the spec stays a separate data file, one copy beside the agent server | VS Code's own guidance; small and fast. |
+| Language client | `vscode-languageclient` **11.0.1**, started as a module over IPC (`TransportKind.ipc`); pinned in step 7 | Runs on VS Code's runtime on Linux and Windows; the companion of the server's 11.0.1. VS Code's own guide still names 9.x. |
+| VS Code API | The floor **1.146** (`engines.vscode` `^1.146.0`), `@types/vscode` **1.146.0**, pinned in step 7 (#142) | The lowest release on which the AI wiring was proven (item 7.2); VS Code's packaging refuses types newer than the floor. |
+| Packaging | `@vscode/vsce` **4.1.1**, pinned in step 7: `vsce package --no-dependencies` from a staging folder; no publishing token | VS Code's own packaging tool; the bundles hold every dependency. |
 | Language server library | `vscode-languageserver` **11.0.1** (pinned in step 7, #140), the server-side companion of `vscode-languageclient` 11.0.1, both on `vscode-languageserver-protocol` 3.18.6; the language server's tests add `vscode-languageserver-protocol` **3.18.6** as a development dependency for their protocol client. The server depends on the core and this library only | The library VS Code's own language servers use; started as a Node module over IPC (`--node-ipc`), or over standard input and output (`--stdio`) for tests, and on no other transport. |
 | Agent server library | The MCP TypeScript library, 2.x line: `@modelcontextprotocol/server` **2.4.0** (pinned in step 6, 2026-11-23, the current release on the npm registry). It pulls in `@modelcontextprotocol/core` 2.4.0 and `zod` 4 (4.6.7 locked), nothing else at run time; its JSON Schema validator (ajv) is bundled inside it. The tests add its client, `@modelcontextprotocol/client` **2.4.0**, as a development dependency (with `eventsource`, `eventsource-parser`, `jose` and `pkce-challenge`) | The current line; the 1.x line (`@modelcontextprotocol/sdk`) is in maintenance. The server is declared as its documentation describes (`McpServer`, `registerTool`, `serveStdio`), its shapes as JSON Schema (`fromJsonSchema`), so the package depends on the core and the library only. |
 | Lint and format | ESLint **10.15.0** with `@eslint/js` **10.0.1** and `typescript-eslint` **8.73.0** (`strictTypeChecked`); Prettier **3.10.1** | What 2.3.0 used. |
@@ -84,7 +86,7 @@ These apply to every step and to every agent doing the work.
 | Licence | Apache-2.0 | What 2.3.0 used. |
 | Extension identity | Publisher `cyborgninja21`, name `pychivalry`, version 1.0.0 at release | Decided: a new identity. |
 | Record checks | `ajv` **8.20.0** (JSON Schema 2020-12), in `tools/` only | Validates every record against `records/record.schema.json`; the core stays dependency-free. |
-| CI actions | `actions/checkout` **v7.0.1**, `actions/setup-node` **v7.1.0**, `go-task/setup-task` **v2.2.0**, each pinned by commit | Pinned so a moved tag cannot change what CI runs. |
+| CI actions | `actions/checkout` **v7.0.1**, `actions/setup-node` **v7.1.0**, `go-task/setup-task` **v2.2.0**, and in the editor-test job `actions/cache` **v6.1.0** (step 7) for the downloaded VS Code, each pinned by commit | Pinned so a moved tag cannot change what CI runs. |
 
 Versions are pinned to exact numbers when a step installs them, and written into this table.
 Step 1 pinned the ones in bold (2026-11-21, the current releases on the npm registry and
@@ -1020,8 +1022,27 @@ one test proves every surface gives the same answers. First preview build.
     is rewritten on activation.
   The result is written into MVP.md's open question 4. If either harness cannot be reached as
   designed, this step stops and the owner is asked.
+
+  *Built (#142):* the extension `cyborgninja21.pychivalry` 0.1.0 in `packages/vscode/` copies
+  the bundled agent server and its spec package into its global storage folder
+  (`<global storage>/agent-server/`), checked by a manifest of SHA-256 sums, and registers it
+  with `vscode.lm.registerMcpServerDefinitionProvider`: one local server per workspace folder,
+  run by VS Code's own executable as Node (`ELECTRON_RUN_AS_NODE=1`) with `--mod` and `--spec`
+  named. (a) VS Code 1.146.0 and 1.147.0 hand that definition, unchanged, to the Copilot harness
+  (the plugin VS Code writes into its user-data folder), with no sign-in. (b) "Set up for Claude
+  Code" runs `claude mcp remove` then `claude mcp add --scope local`; a real Claude Code 2.1.220
+  connected to the server from that entry (`claude mcp get`, against a throwaway configuration);
+  CI uses a stand-in that writes Claude Code's format. (c) An update from 0.1.0 to 0.1.1, the old
+  folder removed, leaves Claude Code's entry unchanged and answering, with no VS Code running.
+  The editor tests run in a real VS Code on a virtual display, in a CI job of their own on Linux
+  and Windows. Written into MVP.md's open question 4: the VS Code half is answered.
 - 7.2 The VS Code floor, pinned from what 7.1 found, written into the extension's manifest and
   into MVP.md. The starting figure is 1.146.
+
+  *Built (#142):* the floor is 1.146 (`engines.vscode` `^1.146.0`, `@types/vscode` 1.146.0, a
+  test holding the two together). 1.142, 1.143 and 1.145 start no Copilot harness session in a
+  fresh profile without a sign-in, so forwarding could not be seen there; signed in, they are
+  not known (a question for the owner).
 - 7.3 The language server, started by the extension as a module over IPC on VS Code's own
   runtime. Languages: `ck3` for script files, `ck3-localization` for localization files.
   Activation when such a file opens or the workspace holds a mod descriptor.
@@ -1049,17 +1070,82 @@ one test proves every surface gives the same answers. First preview build.
   `WorkspaceIndex.namesIn` and `filesNaming`. The extension that starts it (7.1, 7.2, the
   client side of 7.3, 7.7 to 7.12) is another branch's. Questions for the owner are in
   decisions.md ("Asked, awaiting the owner").
+
+  *Built, client side (items 7.3, 7.4 and 7.6):* the extension starts the language server with
+  `vscode-languageclient` 11.0.1: the bundle `dist/bundle/lsp/pychivalry-lsp.mjs` in the
+  extension's folder, a Node module over IPC (`TransportKind.ipc`) on VS Code's own runtime, for
+  the languages `ck3` and `ck3-localization`, with the spec package beside the agent server
+  (`--spec`); it activates on either language or a folder holding `descriptor.mod`, and holds no
+  checking, parsing or lookup logic. The manifest declares the four settings, with the language
+  server's defaults (a test holds them to the server's) and a description each. The game folder
+  setting reaches the language server (which reads it itself and says once when no game is
+  found), the agent server (`--vanilla <folder>`; VS Code is told at once and forwards the new
+  command line to its AI) and Claude Code: the extension remembers each set-up's command line
+  and, when it would now give another, offers once to set the folder up again, the set-up's own
+  remove-then-add. Editor tests in a real VS Code show the diagnostics, the server's
+  `pychivalry/findings` equal to them, hover with the spec's description and completion of what
+  is valid at the place (item 7.5 through VS Code).
 - 7.7 The extension bundles the command line and puts it on the path of the integrated
   terminal.
+
+  *Built:* the command line is bundled into `pychivalry-cli.mjs` beside the agent server, so it
+  is copied to global storage with it and reads the same spec package. A launcher named
+  `pychivalry` (a shell script; on Windows `pychivalry.cmd`) runs it on VS Code's own executable
+  as Node, so the user needs no Node; it is written into `<global storage>/bin/` on activation,
+  and VS Code's environment-variable collection puts that folder at the front of the integrated
+  terminal's `PATH`. The smoke test types `pychivalry` into a terminal of the VS Code under test
+  on Linux and Windows, and the same-answers test runs `check --json` there.
 - 7.8 "Set up for Claude Code": adds the server to Claude Code's own configuration for this
   workspace. If the Claude Code command is not installed it says so and offers to write a
   project configuration file instead, after asking.
+
+  *Built (#142):* with item 7.1 (b); without `claude` it asks, in a modal question, before
+  writing `.mcp.json`, keeping the file's other entries, and writes nothing on a no.
 - 7.9 The same-answers test: one mod through the editor, the command line and the agent
   server; the three finding lists must be identical.
+
+  *Built:* in a real VS Code, once the language server's background pass has left nothing to
+  check, every file's findings are read through its `pychivalry/findings` request and VS Code's
+  diagnostics must be them; `pychivalry check --json --vanilla <game> <mod>` is typed into a
+  terminal of that VS Code; the agent server is started from the definition VS Code's AI is given
+  and asked `check` at every severity, page after page to the end. The three lists must be the
+  same findings, compared on file, range, severity, code, message and data, and the editor's and
+  the command line's on evidence too. In CI (the `vscode-test` job, Linux and Windows) on the
+  planted-defect mod over its game stub: 33 findings (26 errors, 7 warnings) in 16 files. Locally
+  on the five real mods with the game (`task vscode:corpus`, 2026-11-23): balance-of-power-ui 0
+  findings in 11 files; divine-intervention 15 (3 information, 12 hints) in 433;
+  elf-destiny 627 (2 errors, 79 warnings, 443 information, 103 hints) in 958; rice 2,942 (841
+  errors, 1,122 warnings, 857 information, 122 hints) in 2,090, which the agent server gives in
+  89 pages; viet-events 62 (1 error, 3 warnings, 58 information) in 211. Identical on all three
+  surfaces, every mod.
 - 7.10 Packaging: one installable file with the three bundles and the spec. Its size is
   recorded; 2.3.0's was 1.8 MB.
+
+  *Built:* `task vscode:package` writes `packages/vscode/dist/pychivalry-0.1.0.vsix` with
+  `@vscode/vsce` 4.1.1 (`--no-dependencies`; no publishing token, nothing published) from a
+  staging folder of exactly what ships, and refuses a file holding anything else. It is
+  **3.88 MB** (3,788 KiB), against release 2.3.0's 1.8 MB, in 18 entries: the manifest, the
+  extension's README, the licence; `dist/bundle/extension.cjs` (the extension with its language
+  client, 964 KiB, 145 KiB compressed), `lsp/pychivalry-lsp.mjs` (883 KiB, 167 KiB),
+  `server/pychivalry-mcp.mjs` (1,274 KiB, 269 KiB), `server/pychivalry-cli.mjs` (427 KiB,
+  100 KiB) and `server/manifest.json`; and the spec package with its three companions and their
+  checksums, `server/spec/` (3.03 MiB, already gzipped: four fifths of the file). Nothing from
+  `legacy/`, no source, no test, no fixture, no source map; the bundles are not minified.
 - 7.11 A smoke test on the packaged file, installed into a clean VS Code, on Linux and Windows.
+
+  *Built:* the `smoke` editor suite installs the `.vsix` with VS Code's own installer into a
+  clean extensions folder and opens a copy of the planted-defect mod with the game folder set to
+  its stub: the extension activates by itself from its versioned folder, which holds no source,
+  test or source map; the background pass checks the mod and its errors and warnings appear;
+  hover gives the spec's description of `is_adult`; completion in an effect block offers effects
+  and no trigger; the agent server's definition carries the game folder; `pychivalry --version`
+  runs in a terminal and is the launcher in global storage; and the same-answers test passes.
+  It passes on Linux locally and in CI on Linux and Windows (the `vscode-test` job).
 - 7.12 The first preview build, attached to a GitHub pre-release.
+
+  *Open, on the owner's word:* a release is public. The tag, title and notes are drafted in
+  [preview-release.md](preview-release.md), with how it is made; the by-hand check
+  ([guide/by-hand-check.md](guide/by-hand-check.md)) comes first, on Linux and Windows.
 
 **Tests.** Rows "Completion and hover" and "Same answers on every surface" in MVP.md's table.
 The extension tests run with the launching VS Code's own variables removed, so they also run
@@ -1074,8 +1160,17 @@ from a terminal inside VS Code.
 3. The packaged extension passes its smoke test on both systems.
 4. The preview build is published as a pre-release.
 
-**Not yet known.** MVP.md open question 4, which item 7.1 exists to answer. Whether three
-copies of the index in memory at once are acceptable, or the servers need to share one.
+*2026-11-23:* (1) holds for all a test can show, on Linux and Windows in CI: VS Code forwards
+the extension's definition to the Copilot harness, "Set up for Claude Code" writes Claude Code's
+entry, and both command lines start a server that answers `check`, across an update too; a
+real Claude Code connected from the entry on Linux. A signed-in harness calling the tools, and a
+real Claude Code on Windows, are the owner's by-hand check. (2) holds: in CI on the planted mod,
+and on the five real mods locally. (3) holds on Linux and in CI on Linux and Windows. (4) is not
+met: it waits on the owner's word.
+
+**Not yet known.** MVP.md open question 4's skills half (step 9). Whether three copies of the
+index in memory at once are acceptable, or the servers need to share one (asked: the language
+server holds 0.65 to 1.36 GiB at its peak on the five mods).
 
 ---
 
@@ -1333,7 +1428,8 @@ five test mods.
 | --- | --- |
 | Item 1.6 | The spec package committed compressed or raw. Decided 2026-11-22: compressed. |
 | Item 6.11 | The word to start the first test sessions of the agent-use test; then, from their result, its target and the go for step 7 (decisions 79 and 80). Answered: the sessions ran (decision 81), the target is every test session passing, 10 of 10 before a release (decision 82), and step 7 has started (decision 84). |
-| Item 7.1 | Only if a harness cannot be reached as designed. |
+| Item 7.1 | Only if a harness cannot be reached as designed. Not needed: both were reached (#142). |
+| Item 7.12 | The word to publish the first preview as a GitHub pre-release, from the draft in [preview-release.md](preview-release.md). |
 | Item 8.1 | Sign-off on the formatting rules. |
 | Item 9.8 | The targets for the authoring run. |
 | Step 11 | Each use of the analysis machine. |

@@ -131,10 +131,29 @@ const EXCEPTIONS: readonly {
         module: 'vscode',
         files: [
             'packages/vscode/src/extension.ts',
+            'packages/vscode/src/language.ts',
+            'packages/vscode/src/editor/corpus.ts',
             'packages/vscode/src/editor/main.ts',
+            'packages/vscode/src/editor/same.ts',
+            'packages/vscode/src/editor/smoke.ts',
             'packages/vscode/src/editor/update.ts',
         ],
         reason: "VS Code's own extension API, which the editor gives the extension when it loads it; the bundle leaves it out. The editor tests (not shipped) run inside that editor.",
+    },
+    {
+        module: 'vscode-languageclient/node',
+        files: ['packages/vscode/src/language.ts'],
+        reason: "The language-server protocol library's client, the companion of `vscode-languageserver`: it starts pychivalry's own language server as a Node module over IPC (`TransportKind.ipc`), a child process of the editor, and talks to it over that channel only. The extension gives it no socket or pipe transport and it opens no port.",
+    },
+    {
+        module: 'node:child_process',
+        files: ['packages/vscode/src/testing.ts'],
+        reason: "A test helper, not shipped: it runs the command line's launcher as a terminal runs it, a local program; on Windows through the system's `cmd.exe`.",
+    },
+    {
+        module: 'node:child_process',
+        files: ['packages/vscode/src/package.ts'],
+        reason: 'The packaging script, not shipped: it runs the pinned `vsce` (a development dependency) to write the `.vsix` file locally. Packaging needs no publishing token, none is given, and nothing is published.',
     },
     {
         module: 'node:child_process',

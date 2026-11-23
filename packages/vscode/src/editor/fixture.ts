@@ -30,6 +30,21 @@ export function samePath(a: string, b: string): boolean {
     return process.platform === 'win32' ? x.toLowerCase() === y.toLowerCase() : x === y;
 }
 
+/**
+ * Whether two paths name the same file on disk: each resolved first, so that on Windows a short
+ * 8.3 name (`RUNNER~1`) and the long one are the same.
+ */
+export function sameFile(a: string, b: string): boolean {
+    const real = (p: string): string => {
+        try {
+            return realpathSync.native(p);
+        } catch {
+            return p;
+        }
+    };
+    return samePath(real(a), real(b));
+}
+
 /** Whether `inner` is `outer` or inside it. */
 export function isInside(inner: string, outer: string): boolean {
     const rel = path.relative(outer, inner);

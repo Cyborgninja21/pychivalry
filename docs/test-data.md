@@ -7,10 +7,11 @@ uses it. A step that adds test data adds it here.
 | --- | --- | --- | --- | --- |
 | Hand-written mods | [`fixtures/mods/`](../fixtures/mods/README.md) | Yes | Every package's tests | Yes |
 | Game stubs | [`fixtures/game/`](../fixtures/game/README.md) | Yes | Tests that need a base game: the index's override fixtures, the checks that are silent without one, lookup, the planted-defect mod | Yes |
-| The planted-defect mod | [`fixtures/defects/`](../fixtures/defects/README.md) | Yes | The scored agent-use test's test sessions; its graders' own tests; the built agent server's `check` on it | The tests, yes; the test sessions never |
+| The planted-defect mod | [`fixtures/defects/`](../fixtures/defects/README.md) | Yes | The scored agent-use test's test sessions; its graders' own tests; the built agent server's `check` on it; the extension's smoke test and same-answers test (`task vscode:test`) | The tests, yes; the test sessions never |
 | Content requests | `fixtures/requests/` (step 9) | Yes | The scored authoring test | No |
 | Captured game logs | `fixtures/logs/` (step 11) | Yes | Game-log analysis | Yes |
-| The five real mods | Outside the repository, in the folder `CK3_CORPUS` names; pinned by [`records/corpus/MANIFEST.tsv`](../records/corpus/README.md) | The manifest only | `task game:index`, `task game:mods`, `task game:bench`, the 2.3.0 baselines | No |
+| The five real mods | Outside the repository, in the folder `CK3_CORPUS` names; pinned by [`records/corpus/MANIFEST.tsv`](../records/corpus/README.md) | The manifest only | `task game:index`, `task game:mods`, `task game:bench`, `task vscode:corpus`, the 2.3.0 baselines | No |
+| A real VS Code | Downloaded by `@vscode/test-electron` into `.vscode-test/` (the release `packages/vscode/src/editor/version.ts` pins, 1.147.0), cached by CI | Never | The extension's editor tests, `task vscode:test` and `task vscode:corpus`; on Linux only on a virtual display | Yes, in a job of its own (`vscode-test`), not in `task ci` |
 | The base game | The local install, in the folder `CK3_GAME_PATH` names | Never | `task game:parse`, `task game:index`, `task game:check` and the suites above | No |
 | Classifications | `tools/data/`: what the base game's parse errors and check findings are, and the five mods' check errors, each with its reason | Yes | `task game:parse`, `task game:check`, `task game:mods` | No |
 | Records | [`records/`](../records/README.md) | Yes | Public CI checks each one against the committed spec and corpus (a 2.3.0 baseline against the committed format 4 copy) | The check, yes |
@@ -116,6 +117,31 @@ first mod, of 27 defects and 10 look-alikes, which was replaced by this one beca
 fixed every defect in about a minute; their record is `records/scored/agent-use.json`, and how
 each defect was fixed is in
 [tools/scored-run/README.md](../tools/scored-run/README.md#each-planted-defect).
+
+## The extension's editor tests
+
+`task vscode:test` ([packages/vscode/src/editor/](../packages/vscode/src/editor/)) starts a real
+VS Code four times, each with throwaway user-data, extensions, home, cache and Claude Code
+configuration folders, on copies of committed test data written into a temporary folder:
+
+- `main`: the extension from its folder, on a copy of the fixture mod
+  `parse-missing-closing-brace` with a localization file the runner adds; the game stub
+  `planted-defects` is the game folder the setting is changed to.
+- `smoke`: the packaged `.vsix`, installed by VS Code's own installer, on a copy of the
+  planted-defect mod in a folder whose name holds a space, with `pychivalry.gamePath` naming its
+  game stub. Its same-answers test compares the editor's, the command line's (typed into a
+  terminal of that VS Code) and the agent server's findings: 33, the same 26 errors and 7
+  warnings as above, in its 16 checked files.
+- `update-1`, `update-2`: two versions of the extension written by test code as installable
+  files, on the same fixture mod copy.
+
+Claude Code is a stand-in that writes its configuration as Claude Code 2.1.220 does
+(`claude-stand-in.ts`), unless `PYCHIVALRY_TEST_CLAUDE` names a real one, whose own
+configuration commands are then run against the throwaway configuration folder only.
+
+`task vscode:corpus` runs the packaged extension on each of the five real mods with the game,
+locally: the speed of the editor ([MVP.md](MVP.md#speed)) and the same-answers test on each mod.
+It prints its figures and writes no record.
 
 ## The five real mods
 
