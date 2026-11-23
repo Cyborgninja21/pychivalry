@@ -1,0 +1,7 @@
+monthly_prestige = {
+	decimals = 1
+}
+monthly_prestige_gain_mult = {
+	decimals = 0
+	percent = yes
+}
