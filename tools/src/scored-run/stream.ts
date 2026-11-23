@@ -4,12 +4,13 @@
  * reads from it the session's start (`system`, subtype `init`: the harness version, the model,
  * the tools offered and the agent servers with their status), every tool call (`tool_use` blocks
  * of `assistant` messages), every tool error (`tool_result` blocks of `user` messages with
- * `is_error`), and the end (`result`: its subtype, such as `success` or
- * `error_max_budget_usd`, the cost, the turns, the time, the permission denials).
+ * `is_error`), and the end (`result`: its subtype, such as `success`, the turns, the time, the
+ * permission denials).
  *
  * Nothing else is kept: not the text, not the tools' inputs or results (they hold the trial
- * folder's absolute paths), not the session id nor anything about the login. A line that is not
- * a JSON object is counted, not read.
+ * folder's absolute paths), not the session id, nor any figure Claude Code reports about the
+ * session's use of the developer's Claude plan, nor how Claude Code is signed in. A line that is
+ * not a JSON object is counted, not read.
  */
 
 import { isObject } from '../util.js';
@@ -39,7 +40,6 @@ export interface StreamToolError {
 export interface StreamResult {
     readonly subtype: string;
     readonly isError: boolean;
-    readonly costUsd: number | null;
     readonly turns: number | null;
     readonly durationMs: number | null;
     /** The tool names of the calls the permission mode denied. */
@@ -110,7 +110,6 @@ function resultOf(event: Record<string, unknown>): StreamResult {
     return {
         subtype: text(event['subtype']) ?? 'unknown',
         isError: event['is_error'] === true,
-        costUsd: count(event['total_cost_usd']),
         turns: count(event['num_turns']),
         durationMs: count(event['duration_ms']),
         permissionDenials: denials,

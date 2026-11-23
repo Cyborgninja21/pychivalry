@@ -1,6 +1,6 @@
 # The planted-defect mod
 
-The mod the scored agent-use run is graded on (docs/PLAN.md, items 6.7 to 6.9;
+The mod the scored agent-use test is graded on (docs/PLAN.md, items 6.7 to 6.9;
 [tools/scored-run/README.md](../../tools/scored-run/README.md)). Written by hand: a small
 "Harvest Festival" mod with events, decisions, scripted effects and triggers, a script value, a
 tradition, an on-action, a modifier and its localization.
@@ -17,7 +17,7 @@ fixtures/defects/
 
 The mod is checked over the game stub [fixtures/game/planted-defects](../game/planted-defects/README.md),
 which defines the few base-game names it uses and does not define itself, so that public CI can
-check it without the game. The scored run starts the agent server over the same stub.
+check it without the game. The scored test starts the agent server over the same stub.
 
 Neither `mod/` nor `reference/` holds a README of its own: everything in `mod/` is handed to the
 agent, and this page would tell it where the defects are.
@@ -89,8 +89,9 @@ grader protects them.
 
 ## How it is used
 
-For each trial the scored run makes a fresh copy of `mod/` with no history, and an AI agent is
-asked to fix it using pychivalry's agent server. A trial passes when:
+For each trial the scored test makes a fresh copy of `mod/` with no history and starts one test
+session of the Claude Code installed on the developer's machine, with pychivalry's agent server
+attached, asked to fix it. A trial passes when:
 
 1. the checker reports zero errors;
 2. every planted defect is gone;
@@ -100,8 +101,10 @@ asked to fix it using pychivalry's agent server. A trial passes when:
 
 The graders are code (`tools/src/scored-run/graders.ts`) and have their own tests, which run in
 public CI: they pass on `reference/`, fail on the untouched `mod/`, and each fails on its own on
-a result made to break it alone. The scored runs themselves call a model, so they are started by
-a person or an agent and never by CI.
+a result made to break it alone. The test sessions themselves are Claude Code's, not
+pychivalry's: pychivalry holds no key and makes no model call, and each test session counts
+against the developer's own Claude plan, so a run is started by a person, or by an agent on the
+owner's word, and never by CI.
 
 ## Rules
 

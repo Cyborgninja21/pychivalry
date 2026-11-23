@@ -21,7 +21,8 @@ Useful to know when judging a report:
 - It reads the files of the mod you open and of your installed game. It does not send them
   anywhere.
 - Its servers run on your machine as your user, started by VS Code.
-- It stores no API key and no login. An AI agent that uses it runs on a login that agent
-  already has.
+- It holds no API key, no token and no login, and makes no network call or model call. An AI
+  agent that uses it is another program, signed in however its user already signed it in; a
+  test in CI holds every shipped package to this.
 - Opening a mod runs none of the mod's content. pychivalry parses script; it does not execute
   it.

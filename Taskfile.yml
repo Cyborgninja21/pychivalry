@@ -153,10 +153,10 @@ tasks:
     cmds:
       - node tools/dist/cli.js baseline results
 
-  # ─── Scored runs: they call an AI model, so never part of task ci (docs/MVP.md, "AI tests") ───
+  # ─── Scored tests: test sessions of the developer's own Claude Code, never part of task ci (docs/MVP.md, "AI tests") ───
 
   scored:agent-use:
-    desc: "The scored agent-use run (tools/scored-run/README.md): Claude Code on the existing login fixes the planted-defect mod with the agent server, SCORED_TRIALS times (default 5), at most SCORED_BUDGET_USD each (required), with SCORED_MODEL (default pinned); writes records/scored/agent-use.json. Spends the login's usage: only on the owner's word"
+    desc: "The scored agent-use test (tools/scored-run/README.md), a developer's test script: starts the Claude Code already installed on this machine as SCORED_TRIALS separate test sessions (default 5) with the agent server attached, each asked to fix the planted-defect mod, with SCORED_SESSION_LIMIT (required, no default) as each session's limit and SCORED_MODEL (default pinned); grades them in code and writes records/scored/agent-use.json. pychivalry holds no key and makes no model call; each test session counts against the developer's own Claude plan. Only on the owner's word, never in task ci"
     deps: [build]
     cmds:
       - node tools/dist/cli.js scored agent-use

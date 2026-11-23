@@ -16,8 +16,9 @@
  *                                  units it applies to and the findings it raises there
  *   docs checks                    write the user guide's check reference, docs/guide/checks.md,
  *                                  from the core's check inventory (task docs:checks)
- *   scored agent-use               the scored agent-use run: Claude Code on the planted-defect
- *                                  mod (task scored:agent-use; spends the login's usage)
+ *   scored agent-use               the scored agent-use test: test sessions of the developer's
+ *                                  own Claude Code on the planted-defect mod (task
+ *                                  scored:agent-use; never in CI, only on the owner's word)
  */
 
 import { mkdtempSync, rmSync } from 'node:fs';

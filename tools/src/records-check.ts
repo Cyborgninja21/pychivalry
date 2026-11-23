@@ -9,7 +9,7 @@
  *
  * A scored run's record (`scored:agent-use`, docs/PLAN.md item 6.10) is checked against the
  * schema and with itself, not against the committed spec: it states the spec it was made on,
- * and re-making it calls a model, which only the owner starts.
+ * and re-making it means new test sessions of Claude Code, which only the owner starts.
  *
  * A baseline of release 2.3.0 cannot be made on the format 8 package, which 2.3.0 cannot
  * read. It is tied instead to the committed format 4 copy of the same game version
@@ -490,7 +490,8 @@ export function checkRecord(
         problems.push(...baselineSpecProblems(record, expected));
     } else if (record['suite'] === SCORED_SUITE) {
         // A scored run states the spec it used; a later spec does not fail it, because running
-        // it again spends the login's usage (scored-run/scored-record.ts).
+        // it again means new test sessions, started only on the owner's word
+        // (scored-run/scored-record.ts).
         problems.push(...scoredProblems(record['results']));
     } else if (isObject(spec)) {
         if (spec['sha256'] !== expected.spec.sha256 || spec['version'] !== expected.spec.version) {

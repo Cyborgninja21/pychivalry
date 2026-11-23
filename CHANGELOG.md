@@ -199,6 +199,25 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   earlier up to date with its folder; the index's `nameAt`, `databases` and `definitionsOf`; the
   runner's options `only` (check some files of an indexed mod) and `workspace` (an open one).
 - `pychivalry check --unused-keys`.
+- Build step 6, items 6.7 to 6.10 (#136): `fixtures/defects/`, the planted-defect mod, written
+  by hand, with 27 defects, one per error and warning code of this build, 10 lines that look
+  wrong and are not, a manifest of where each defect is reported and which lines its fix may
+  change, and a fixed reference copy, checked over a new game stub,
+  `fixtures/game/planted-defects`; the five graders (`zero-errors`, `defects-gone`,
+  `only-planted-lines`, `look-alikes-untouched`, `nothing-deleted`); and the scored agent-use
+  test, `task scored:agent-use` ([tools/scored-run/README.md](tools/scored-run/README.md)), a
+  developer's test script that is not shipped and never runs in CI. It starts the Claude Code
+  already installed on the developer's machine as separate test sessions, each with
+  pychivalry's agent server attached and a session limit, grades in code what each did to a copy
+  of the planted mod, and writes `records/scored/agent-use.json`, which `task records:check`
+  checks. pychivalry holds no key and makes no model call; each test session counts against the
+  developer's own Claude plan. Every part is tested in CI against a stand-in for Claude Code,
+  and the built agent server is tested on the planted mod as a test session's configuration
+  starts it.
+- `tools/src/no-key-no-network.test.ts`, in CI: no source file of a shipped package names a
+  credential or holds a key-shaped string, imports a networking module or calls `fetch`, and
+  every other module one imports is listed with its reason (the MCP library's server and its
+  standard-input transport; on Windows, the game search's `reg query`).
 
 ### Changed
 
@@ -207,6 +226,14 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   `unused_keys`; `explain` and the check reference say so. `task game:mods` runs the default, and
   its record no longer counts those hints (rice: 141,090; viet-events: 19,698), nor what the
   per-file cap dropped of them.
+- The scored agent-use test is described in plain words everywhere (decision 80): test sessions
+  of the developer's own Claude Code, each with a session limit, each counting against the
+  developer's own Claude plan; pychivalry holds no API key, token or login and makes no network
+  call or model call. The script's setting is `SCORED_SESSION_LIMIT` (required, no default), the
+  record's field `session_limit` and its stop `session-limit`; the record keeps no figure about
+  a session's use of the developer's plan. The test session's environment drops every variable
+  named like a key, a token or another credential, not only Claude's own two. The pinned model
+  is Opus 5.5, `claude-opus-5-5` (decision 78).
 - Owner decisions 74 and 75: the four checks whose message is in the 1.21 executable but not in
   the catalogue wait for it (`structure/triggered-desc-other-field` stays blocked, the three
   event advice rows stay advice); `references/unknown-name` ships, its 4 base-game findings
@@ -300,6 +327,8 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
 
 ### Open
 
+- Item 6.11, the first test sessions of the agent-use test, waits for the owner's word (decision
+  80); after them the result is reported and step 7 starts only on the owner's go (decision 79).
 - Two rows of the check inventory are blocked: `structure/triggered-desc-other-field` (its
   message is not in the committed catalogue) and `scope/title-text-reads-scope-saved-late` (the
   saved-scope form of localization text is not data). Parts of four more wait on the owner or

@@ -7,10 +7,10 @@ them, are described in [docs/test-data.md](../docs/test-data.md).
 | Folder | What it holds | First filled by |
 | --- | --- | --- |
 | [mods/](mods/README.md) | Small mods, one behaviour each: the parser's broken inputs, the index's override cases, and a pair for every check (51 pairs by the end of build step 4) | Build step 2 |
-| [game/](game/README.md) | Stubs of a base game, for tests that look names up in the game: the override rules, the checks that need a base game, lookup | Build step 3 |
-| [defects/](defects/README.md) | The planted-defect mod of the scored agent-use run, with its manifest and its fixed reference copy | Build step 6 |
+| [game/](game/README.md) | Stubs of a base game, for tests that look names up in the game: the override rules, the checks that need a base game, lookup, and `planted-defects`, the base game of the planted-defect mod | Build step 3 |
+| [defects/](defects/README.md) | The planted-defect mod of the scored agent-use test: 27 planted defects, one per error and warning code, and 10 look-alike lines, with its manifest and its fixed reference copy, read over the game stub `planted-defects` | Build step 6 |
 
-Two more parts arrive later: `requests/`, the content requests of the scored authoring run
+Two more parts arrive later: `requests/`, the content requests of the scored authoring test
 (step 9), and `logs/`, captured game error logs (step 11).
 
 The base game itself is not a fixture: the game-file suites read the local install, and their

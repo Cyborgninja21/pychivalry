@@ -6,8 +6,8 @@
  * other.
  *
  * A scored record is not tied to the committed spec as a suite's record is: it states the spec
- * the run used, but a later spec does not fail it, because re-running it spends the login's
- * usage and is started only on the owner's word.
+ * the run used, but a later spec does not fail it, because making it again means new test
+ * sessions of Claude Code, which are started only on the owner's word.
  */
 
 import type { GameInfo } from '../game.js';
@@ -25,11 +25,11 @@ export interface TrialRecord {
     /** No harness problem, and every grader passed. */
     readonly passed: boolean;
     /**
-     * What ended the session: `finished` (it stopped by itself), `budget` (Claude Code's
-     * `--max-budget-usd`), `turns`, `error` (it ended on another error), `timeout` (the run's
-     * time limit), `no-result` (the stream has no end).
+     * What ended the session: `finished` (it stopped by itself), `session-limit` (Claude Code
+     * ended it at the session limit), `turns`, `error` (it ended on another error), `timeout`
+     * (the run's time limit), `no-result` (the stream has no end).
      */
-    readonly stopped: 'finished' | 'budget' | 'turns' | 'error' | 'timeout' | 'no-result';
+    readonly stopped: 'finished' | 'session-limit' | 'turns' | 'error' | 'timeout' | 'no-result';
     /** What makes the trial say nothing about the server: a session that broke or was not confined. */
     readonly harness_problems: readonly string[];
     readonly graders: readonly {
@@ -54,7 +54,6 @@ export interface TrialRecord {
         readonly tools: readonly string[];
         readonly mcp_servers: readonly { readonly name: string; readonly status: string }[];
     } | null;
-    readonly cost_usd: number | null;
     readonly turns: number | null;
     readonly duration_ms: number | null;
     readonly exit_code: number | null;
@@ -81,7 +80,8 @@ export interface ScoredResults {
     };
     readonly harness: { readonly name: 'claude-code'; readonly version: string };
     readonly model: string;
-    readonly budget_usd_per_trial: number;
+    /** The session limit each test session was given (`SCORED_SESSION_LIMIT`). */
+    readonly session_limit: number;
     readonly timeout_minutes: number;
     /** Claude Code's arguments, the prompt and the configuration file named, not given. */
     readonly arguments: readonly string[];
@@ -94,8 +94,6 @@ export interface ScoredResults {
         readonly passed: number;
         readonly pass_rate: number;
     }[];
-    /** The trials' costs added up, where known. */
-    readonly cost_usd: number;
 }
 
 export interface ScoredRecord {
@@ -119,8 +117,8 @@ export function passRate(passed: number, trials: number): number {
 
 /**
  * A scored record's figures that disagree with each other: a trial's `passed` with its graders
- * and harness problems, its graders with the five, the tasks' counts and pass rates with the
- * trials, and the total cost with the trials' costs.
+ * and harness problems, its graders with the five, and the tasks' counts and pass rates with
+ * the trials.
  */
 export function scoredProblems(results: unknown): string[] {
     if (!isObject(results)) {
@@ -183,14 +181,5 @@ export function scoredProblems(results: unknown): string[] {
             );
         }
     });
-    const cost = trials.reduce(
-        (s, t) => s + (typeof t['cost_usd'] === 'number' ? t['cost_usd'] : 0),
-        0,
-    );
-    if (results['cost_usd'] !== Math.round(cost * 1e6) / 1e6) {
-        problems.push(
-            `/results/cost_usd: ${JSON.stringify(results['cost_usd'])} is not the trials' total (${String(Math.round(cost * 1e6) / 1e6)})`,
-        );
-    }
     return problems;
 }

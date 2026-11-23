@@ -22,7 +22,7 @@ function trial(n: number, passed: boolean): TrialRecord {
         task: 'agent-use',
         trial: n,
         passed,
-        stopped: passed ? 'finished' : 'budget',
+        stopped: passed ? 'finished' : 'session-limit',
         harness_problems: [],
         graders: GRADERS.map((name) => ({
             name,
@@ -42,7 +42,6 @@ function trial(n: number, passed: boolean): TrialRecord {
             tools: ['Edit', 'Read', 'mcp__pychivalry__check'],
             mcp_servers: [{ name: 'pychivalry', status: 'connected' }],
         },
-        cost_usd: 1.25,
         turns: 12,
         duration_ms: 60000,
         exit_code: 0,
@@ -56,7 +55,7 @@ function record(): ScoredRecord {
         record_format: 1,
         suite: 'scored:agent-use',
         command:
-            'SCORED_MODEL=claude-opus-5-5 SCORED_TRIALS=2 SCORED_BUDGET_USD=3 task scored:agent-use',
+            'SCORED_MODEL=claude-opus-5-5 SCORED_TRIALS=2 SCORED_SESSION_LIMIT=3 task scored:agent-use',
         made_at: '2026-11-23T12:00:00.000Z',
         tool: { name: 'pychivalry', version: '0.0.0', commit: 'c'.repeat(40), dirty: false },
         machine: { os: 'linux', arch: 'x64', logical_cpus: 16, memory_gib: 62, node: 'v22.23.4' },
@@ -84,13 +83,12 @@ function record(): ScoredRecord {
             },
             harness: { name: 'claude-code', version: '2.1.220' },
             model: 'claude-opus-5-5',
-            budget_usd_per_trial: 3,
+            session_limit: 3,
             timeout_minutes: 30,
             arguments: ['-p', '<tools/scored-run/agent-use.prompt.md>'],
             server: { entry: 'packages/mcp/dist/main.js', arguments: ['<trial mod>'] },
             trials,
             tasks: [{ name: 'agent-use', trials: 2, passed: 1, pass_rate: 0.5 }],
-            cost_usd: 2.5,
         },
     };
 }
@@ -111,7 +109,6 @@ test('a scored record that disagrees with itself fails', () => {
     const results = r.results as unknown as {
         trials: { passed: boolean; graders: { name: string; passed: boolean }[]; trial: number }[];
         tasks: { passed: number; pass_rate: number }[];
-        cost_usd: number;
     };
     const second = results.trials[1];
     assert.ok(second !== undefined);
@@ -120,13 +117,11 @@ test('a scored record that disagrees with itself fails', () => {
     const task = results.tasks[0];
     assert.ok(task !== undefined);
     task.pass_rate = 0.4;
-    results.cost_usd = 9;
     assert.deepEqual(scoredProblems(r.results), [
         '/results/trials/1/passed: true, but its graders and harness problems say false',
         '/results/trials/1/trial: 5 is not 2',
         '/results/tasks/0/passed: 1, but 2 trials passed',
         '/results/tasks/0/pass_rate: 0.4 is not 2 / 2 (1)',
-        "/results/cost_usd: 9 is not the trials' total (2.5)",
     ]);
 });
 
@@ -150,6 +145,12 @@ test('the schema refuses an alias for the model and an unknown field', () => {
     const problems = checkRecord(r, validate, expected);
     assert.ok(problems.some((p) => p.includes('/results/model')));
     assert.ok(problems.some((p) => p.includes('(extra)')));
+});
+
+test('the schema requires the session limit each test session was given', () => {
+    const r = plain();
+    delete r.results['session_limit'];
+    assert.ok(checkRecord(r, validate, expected).some((p) => p.includes('session_limit')));
 });
 
 test('the pass rate is passed over trials, to 4 places', () => {

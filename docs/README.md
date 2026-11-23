@@ -55,5 +55,6 @@ These do not exist yet:
 | [../spec/README.md](../spec/README.md) | The committed spec package |
 | [../records/README.md](../records/README.md) | The record format of the suites that need game files |
 | [../records/corpus/README.md](../records/corpus/README.md) | The five real mods and their manifest |
-| [../fixtures/README.md](../fixtures/README.md) | The hand-written test mods |
+| [../fixtures/README.md](../fixtures/README.md) | The hand-written test mods, the game stubs and the planted-defect mod |
+| [../tools/scored-run/README.md](../tools/scored-run/README.md) | The scored test of the agent server (step 6): a developer's test script, never shipped or run by CI, that starts the developer's own Claude Code as separate test sessions with the agent server attached and grades them in code; pychivalry holds no key and makes no model call |
 | [../tools/data/](../tools/data/) | The classifications of the base game's parse errors (`parse-classifications.json`) and check findings (`check-classifications.json`), and of the five mods' check errors (`mods-classifications.json`), read by the game-file suites |

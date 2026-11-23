@@ -1,6 +1,6 @@
 # pychivalry: build plan
 
-Status: plan for approval, 2026-11-22. Step 0 is done: the 1.21.0.3 spec package in format 8 is committed (2026-11-23, decision 68), its override rules table among its parts. Step 1 is complete, and steps 2 and 3 are built and merged, the index reading the override rules from the package. Item 4.1, the check inventory, is written and signed off. The rest of step 4 and step 5 were built in parallel on the owner's word (decisions 70 and 72) and brought together by an integration pull request: every item of step 4 and step 5 is built, but for two blocked rows of the inventory and the parts of four rows that wait on the owner or on the spec work. Step 4's "Done when" holds but for its first line (two blocked rows have no fixture pair); step 5's holds. On the owner's word (decision 77) step 6 is under way: items 6.1 to 6.6, the agent server, are built; items 6.7 to 6.11 are being built beside them. The Progress table says what is open.
+Status: plan for approval, 2026-11-22. Step 0 is done: the 1.21.0.3 spec package in format 8 is committed (2026-11-23, decision 68), its override rules table among its parts. Step 1 is complete, and steps 2 and 3 are built and merged, the index reading the override rules from the package. Item 4.1, the check inventory, is written and signed off. The rest of step 4 and step 5 were built in parallel on the owner's word (decisions 70 and 72) and brought together by an integration pull request: every item of step 4 and step 5 is built, but for two blocked rows of the inventory and the parts of four rows that wait on the owner or on the spec work. Step 4's "Done when" holds but for its first line (two blocked rows have no fixture pair); step 5's holds. On the owner's word (decision 77) step 6 is under way: items 6.1 to 6.10 are built (the agent server, the planted-defect mod, its graders and the scored-test script); item 6.11, the first test sessions, waits for the owner's word (decision 80), and after them step 7 starts only on the owner's go (decision 79). The Progress table says what is open.
 
 This is the "how" for the rebuild. The "what" and the "why" are in [MVP.md](MVP.md): the
 decisions, the scope, the tests each feature needs and the definition of done. Where the two
@@ -25,7 +25,7 @@ disagree, MVP.md is right and this plan is fixed.
 | 3 | Workspace index | No for the index; the override rules table comes from step 0 | Built and merged (pull requests #118 and #120). The override rules come from the spec package's part D1 (the stand-in `spec/override-rules.json` is retired, decision 65): a settled or derived row decides, a partial or open row does not; parts D2 and D3 say what a definition is. Base-game names defined more than once with no winner known: 1,309 on the format 5 package, 118 on format 7, 233 on format 8 (the 21 coats of arms and the gene of decision 67 are answered; 167 nested names whose scope the package does not settle, under several parents, are new). Since format 8 the index also applies the scope of nested names, the gene containers, the coat of arms alias line, the stores of province terrain and the localization file condition. Still open: character history defined twice (a partial row), nested names of a scope resting on the measurement alone, the depth of the folders only partial rows or no row describe, the 32 folders with no row and `gui`, and the order of several mods or DLC packs (`docs/overrides.md`) |
 | 4 | Engine checks and lookup | Yes, from item 4.2 on | Built. Item 4.1 is signed off (#121, #122); 4.2 with 4.3 (#125, #127, re-measured on format 8 in #132); 4.4 scope (#130); 4.5 fields and structure (#131); 4.6 event targets and localization (#134); 4.7 advice (#133); 4.8 lookup (#128); 4.9 to 4.11, the classification of the base game's errors, the game-file suites and the limits, in the integration pull request. 62 of the inventory's 78 rows are built (five in part), 11 retired by item 4.7's re-proof, 2 blocked, 3 belong to steps 10 and 11. Open: `structure/triggered-desc-other-field` (its message is not in the catalogue) and `scope/title-text-reads-scope-saved-late` (the localization text's saved-scope form is not data), blocked; the iterator sub-cases of `names/unknown-trigger` and `-effect` (the owner); the game-concept half of `references/unknown-name`, the open brackets of `localization/unbalanced-brackets` and the block and word types of `fields/wrong-kind-of-value`; the twelve spec requests of decision 73 and the questions in decisions.md. "Done when" 2 to 5 hold; 1 does not, for the two blocked rows |
 | 5 | Command line | Through step 4 | Built (#129, with the per-file cap in the integration pull request): `check`, `lookup` and `explain`, text and JSON, the filters, the exit codes, the on-disk index. "Done when" holds: the golden test passes, and on each of the five mods the command line's findings equal the core's and the `game:mods` record's. Open: the owner's questions on `--severity`, `--no-vanilla`, the folders checked and `mcp` (decisions.md) |
-| 6 | Agent server | Through step 4 | Items 6.1 to 6.6 built (the agent server, `packages/mcp/`): the six tools `check`, `lookup`, `find_definition`, `find_references`, `list_definitions` and `explain_code`, each read-only with its shapes declared, every result under 10,000 tokens (measured on rice), bad input as results naming the valid values, nothing written but the index cache, the on-disk index loaded; with them decisions 74 to 77 (`localization/unused-key` off by default). `call_graph`, `analyze_log` and `format` come with steps 10, 11 and 8. Items 6.7 to 6.11 (the planted-defect mod, the graders, the scored-run script and the first scored run) are being built beside them |
+| 6 | Agent server | Through step 4 | Items 6.1 to 6.6 built (the agent server, `packages/mcp/`): the six tools `check`, `lookup`, `find_definition`, `find_references`, `list_definitions` and `explain_code`, each read-only with its shapes declared, every result under 10,000 tokens (measured on rice), bad input as results naming the valid values, nothing written but the index cache, the on-disk index loaded; with them decisions 74 to 77 (`localization/unused-key` off by default). `call_graph`, `analyze_log` and `format` come with steps 10, 11 and 8. Items 6.7 to 6.10 built (#136): the planted-defect mod `fixtures/defects/` (27 defects, one per error and warning code, and 10 look-alikes, over the game stub `planted-defects`), the five graders, the scored-test script `task scored:agent-use` and its record format, all tested in CI without Claude Code; with them a CI test that no shipped package holds a key or reaches the network. Open: item 6.11, the first test sessions, on the owner's word (decision 80); then the result is reported and step 7 starts only on the owner's go (decision 79) |
 | 7 | Language server and extension | Through step 4 | Not started |
 | 8 | Formatter and fixes | No, but follows step 7 | Not started |
 | 9 | Skills and the authoring run | Through step 4 | Not started |
@@ -887,19 +887,45 @@ window, and a scored test that an agent can really use it.
 - 6.7 The planted-defect test mod: 20 to 30 defects, one per check code, each recorded in a
   manifest (file, code, the text it sits on); lines that look wrong and are not; and a
   reference copy with every defect fixed that passes all the graders.
-- 6.8 The scored-run script. For each trial it makes a fresh copy of the test mod with no git
-  history and starts Claude Code's command-line mode once, on the existing login, confined to
-  this server plus file read and edit. The flags, as documented for the installed version:
-  `--strict-mcp-config --mcp-config <file> --tools "Read,Edit" --allowedTools
-  "mcp__pychivalry__*" --permission-mode dontAsk --max-budget-usd <n> --output-format
-  stream-json --verbose --no-session-persistence --model <pinned>`.
+- 6.8 The scored-test script, a developer's test script: not shipped, not part of the
+  extension, never run by CI. pychivalry holds no key and makes no model call; the script
+  starts the Claude Code program already installed on the developer's machine, signed in
+  however the developer signed it in, once per trial as a separate test session. For each
+  trial it makes a fresh copy of the test mod with no git history and starts the test session
+  in Claude Code's command-line mode, confined to this server plus file read and edit. The
+  flags, as documented for the installed version: `--strict-mcp-config --mcp-config <file>
+  --tools "Read,Edit" --allowedTools "mcp__pychivalry__*" --permission-mode dontAsk
+  --max-budget-usd <session limit> --output-format stream-json --verbose
+  --no-session-persistence --model <pinned>`. The session limit goes to Claude Code's own
+  option that ends a session early; the script uses it only as a per-session limit, a safety
+  stop, and does no accounting of its own. Each test session counts against the developer's
+  own Claude plan, like any session they open.
 - 6.9 The graders, in code: the checker reports zero errors; every planted defect is gone;
   nothing outside the planted lines changed; the look-alikes are untouched; no content was
   deleted.
 - 6.10 The record of a scored run: the harness version, the model, the tool calls and tool
   errors per trial, the pass rate per task. 5 trials per task in development, 10 before a
   release.
-- 6.11 The first scored run, from which the owner sets the target.
+
+  *Built (items 6.7 to 6.10, #136):* `fixtures/defects/`, a hand-written mod with 27 defects,
+  one per error and warning code of this build, and 10 look-alike lines, its manifest and its
+  fixed reference copy, checked over the game stub `fixtures/game/planted-defects`; the five
+  graders (`tools/src/scored-run/graders.ts`); the script, `task scored:agent-use`
+  ([tools/scored-run/README.md](../tools/scored-run/README.md)), with the model pinned to Opus
+  5.5 (`claude-opus-5-5`, decision 78), 5 trials by default, a session limit
+  (`SCORED_SESSION_LIMIT`, required, no default) and a time limit of 30 minutes; and the
+  record, `records/scored/agent-use.json`, in the record format and `task records:check`. Every
+  part is tested in public CI against a stand-in for Claude Code. The command line differs from
+  the one above, each change with its reason in the script's README: the prompt goes first as
+  `-p <prompt>`; `Read,Edit` is also on the allow list; `--setting-sources project,local` is
+  added; key and token variables are dropped from the session's environment; the other agent
+  servers Claude Code would offer from claude.ai and its automatic memory are switched off for
+  the session; each test session checks its own confinement, and a session offered anything
+  else fails the run. A CI test, `tools/src/no-key-no-network.test.ts`, holds every shipped
+  package to holding no key and reaching no network.
+- 6.11 The first test sessions, from which the owner sets the target. They start only on the
+  owner's word (decision 80); the result is then reported, and step 7 starts only on the
+  owner's go (decision 79).
 
 **Tests.** Each tool against fixtures. The size test. The graders pass on the reference copy
 and fail on the untouched test mod.
@@ -912,8 +938,10 @@ record.
 1. Every tool passes its fixture tests and the size test.
 2. The first scored run is on record, and the owner has set the target from it.
 
-**Not yet known.** Whether confining a run with those flags also keeps out the user's own
-Claude settings; one test run settles it. How many trials the login's usage limits allow.
+**Not yet known.** Whether those flags also keep the developer's own Claude Code settings out of
+a test session; the first test sessions settle it, each checking its own confinement. How many
+test sessions a release run of 10 per task can take, since each counts against the developer's
+own Claude plan.
 
 ---
 
@@ -1229,7 +1257,7 @@ five test mods.
 | When | Decision |
 | --- | --- |
 | Item 1.6 | The spec package committed compressed or raw. Decided 2026-11-22: compressed. |
-| Item 6.11 | The target for the agent-use run. |
+| Item 6.11 | The word to start the first test sessions of the agent-use test; then, from their result, its target and the go for step 7 (decisions 79 and 80). |
 | Item 7.1 | Only if a harness cannot be reached as designed. |
 | Item 8.1 | Sign-off on the formatting rules. |
 | Item 9.8 | The targets for the authoring run. |

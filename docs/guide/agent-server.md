@@ -5,6 +5,18 @@ same checks and lookups as the command line, as tools that return structured dat
 Model Context Protocol (MCP) over standard input and output: the agent's harness starts it as a
 local process. It opens no network port, holds no model and no key, and only reads.
 
+**No key, no login, no model call.** pychivalry contains no API key, no token and no login,
+and never will. None of its packages makes a network call or a model call: the agent server is
+a local program that reads your mod and game files and answers questions. The AI is always
+another program that connects to it: Claude Code, or VS Code's built-in AI, signed in however
+you already signed it in. pychivalry's developers also run a test of the server, the scored
+agent-use test. It is a developer's test script: not shipped, not part of the extension, and
+never run by CI. It starts the Claude Code already installed on the developer's own machine, as
+a separate test session with the agent server attached, and grades in code what that session
+did to a copy of a test mod. It gives Claude Code no credentials and removes any key or token
+variable from the session's environment; each test session counts against that developer's own
+Claude plan, like any session they open themselves. Nothing of it runs on your machine.
+
 **It ships inside the extension, which is not built yet** (build step 7 registers it with VS
 Code and adds "Set up for Claude Code"). Until then it runs from a build of this repository.
 

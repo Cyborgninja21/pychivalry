@@ -6,9 +6,9 @@ uses it. A step that adds test data adds it here.
 | Kind | Where | Committed | Used by | Runs in public CI |
 | --- | --- | --- | --- | --- |
 | Hand-written mods | [`fixtures/mods/`](../fixtures/mods/README.md) | Yes | Every package's tests | Yes |
-| Game stubs | [`fixtures/game/`](../fixtures/game/README.md) | Yes | Tests that need a base game: the index's override fixtures, the checks that are silent without one, lookup | Yes |
-| The planted-defect mod | [`fixtures/defects/`](../fixtures/defects/README.md) | Yes | The scored agent-use run; its graders' own tests | The graders' tests only |
-| Content requests | `fixtures/requests/` (step 9) | Yes | The scored authoring run | No |
+| Game stubs | [`fixtures/game/`](../fixtures/game/README.md) | Yes | Tests that need a base game: the index's override fixtures, the checks that are silent without one, lookup, the planted-defect mod | Yes |
+| The planted-defect mod | [`fixtures/defects/`](../fixtures/defects/README.md) | Yes | The scored agent-use test's test sessions; its graders' own tests; the built agent server's `check` on it | The tests, yes; the test sessions never |
+| Content requests | `fixtures/requests/` (step 9) | Yes | The scored authoring test | No |
 | Captured game logs | `fixtures/logs/` (step 11) | Yes | Game-log analysis | Yes |
 | The five real mods | Outside the repository, in the folder `CK3_CORPUS` names; pinned by [`records/corpus/MANIFEST.tsv`](../records/corpus/README.md) | The manifest only | `task game:index`, `task game:mods`, `task game:bench`, the 2.3.0 baselines | No |
 | The base game | The local install, in the folder `CK3_GAME_PATH` names | Never | `task game:parse`, `task game:index`, `task game:check` and the suites above | No |
@@ -91,10 +91,24 @@ in the test and on every bad half run with no game folder
 
 ## The planted-defect mod
 
-One mod with 20 to 30 defects, one per check code, a manifest of where each sits, lines that
-look wrong and are not, and a reference copy with every defect fixed. Build step 6 writes it.
-It is what the scored agent-use run is graded on: a trial passes when the checker reports no
-errors, every planted defect is gone, nothing else changed and the look-alikes are untouched.
+[`fixtures/defects/`](../fixtures/defects/README.md), written by hand in build step 6 (items 6.7
+to 6.9): a small "Harvest Festival" mod, `mod/`, with 27 planted defects, one per check code of
+this build that is an error or a warning (21 errors and 6 warnings), and 10 lines that look
+wrong and are not; `manifest.json`, which gives each defect's code, the line the checker reports
+it at, the text of that line and the lines a fix may change, and each look-alike with why it is
+right; and `reference/`, the same mod with every defect fixed. It is checked over its own game
+stub, [`fixtures/game/planted-defects`](../fixtures/game/README.md), which defines the tradition
+and the scripted effect the mod uses and does not define itself, so CI needs no game.
+
+On `mod/` the checker reports exactly the planted defects (22 errors, the clash at both of its
+definitions, and 6 warnings); on `reference/`, nothing
+(`tools/src/scored-run/defects.test.ts`). The built agent server gives the same 28 findings
+(`tools/src/scored-run/server.test.ts`). It is what the scored agent-use test is graded on: in
+each test session of the developer's own Claude Code an agent is asked to fix a fresh copy, and
+the trial passes when the checker reports no errors, every planted defect is gone, nothing else
+changed, the look-alikes are untouched and nothing was deleted
+([tools/scored-run/README.md](../tools/scored-run/README.md)). The graders' tests run in CI;
+the test sessions never do.
 
 ## The five real mods
 
@@ -162,4 +176,4 @@ files, the classification rules for real-mod errors, and the plug-in catalogue.
 
 - **A real game error log.** Release 2.3.0's log fixture is hand-written and its format is
   unverified. Build step 11 starts by capturing real ones.
-- **The planted-defect mod and the content requests.** Steps 6 and 9.
+- **The content requests.** Step 9.

@@ -20,7 +20,7 @@ enforces and this page is fixed.
 | `game/bench.json` | `task game:bench` |
 | `baseline-2.3.0/speed-mods.json`, `speed-base-game.json`, `speed-editor.json` | `task baseline:speed` |
 | `baseline-2.3.0/results-base-game.json`, `results-mods.json` | `task baseline:results` |
-| `scored/agent-use.json` | `task scored:agent-use`, a scored run that calls an AI model ([below](#scored-records-scoredagent-use)) |
+| `scored/agent-use.json` | `task scored:agent-use`, a scored test run in test sessions of the developer's own Claude Code ([below](#scored-records-scoredagent-use)) |
 | `corpus/MANIFEST.tsv` | `task corpus:manifest`; the pinned corpus, not a record ([corpus/README.md](corpus/README.md)) |
 
 Each run overwrites its suite's record; the history is git's. Records are written only by the
@@ -100,8 +100,8 @@ For every `*.json` under `records/` except the `*.schema.json` files:
    `pychivalry-fault`.
 10. A scored record agrees with itself: each trial's `passed` with its graders and its harness
     problems, its graders the five in order, each grader's `passed` with its problems, the
-    trials numbered from 1, each task's trial and pass counts and pass rate with the trials,
-    and `cost_usd` with the trials' costs.
+    trials numbered from 1, and each task's trial and pass counts and pass rate with the
+    trials.
 
 ## Baselines
 
@@ -262,29 +262,32 @@ its record, and exits 1.
 
 ## Scored records (`scored:agent-use`)
 
-`task scored:agent-use` (build step 6, items 6.8 and 6.10) starts Claude Code's command-line
-mode once per trial on the existing login, confined to pychivalry's agent server plus file read
-and edit, asks it to fix the planted-defect mod `fixtures/defects/mod/`, and grades each result
-([tools/scored-run/README.md](../tools/scored-run/README.md)). It calls an AI model, so it runs
-only on the owner's word, never in CI.
+`task scored:agent-use` (build step 6, items 6.8 and 6.10) is a developer's test script, never
+run by CI. pychivalry holds no key and makes no model call: the script starts the Claude Code
+already installed on the developer's machine once per trial, as a separate test session confined
+to pychivalry's agent server plus file read and edit, asks it to fix the planted-defect mod
+`fixtures/defects/mod/`, and grades each result in code
+([tools/scored-run/README.md](../tools/scored-run/README.md)). Each test session counts against
+the developer's own Claude plan, so a run is started only on the owner's word.
 
 Its `game` is the game stub the agent server and the graders read
 (`fixtures/game/planted-defects`), not an installed game; its `corpus` is null; its `notes` are
 required. **It is not tied to the committed spec**: it states the spec it was made on, and a
-later spec does not fail it, because making it again spends the login's usage. `results`:
+later spec does not fail it, because making it again means new test sessions, which start only
+on the owner's word. `results`:
 
 | Field | What it states |
 | --- | --- |
 | `task` | The task: `name` (`agent-use`), the `prompt_file` and its `prompt_sha256`, the `fixture` and its `manifest_sha256`, the `game` stub, the numbers of `defects` and `look_alikes`, and the `graders` |
 | `harness` | `name` (`claude-code`) and `version`, from `claude --version` |
 | `model` | The model, by its full name |
-| `budget_usd_per_trial`, `timeout_minutes` | The budget Claude Code stops a session at (`--max-budget-usd`), and the time limit the run stops one at |
+| `session_limit`, `timeout_minutes` | The session limit each test session was given (`SCORED_SESSION_LIMIT`, at which Claude Code ends the session), and the time limit after which the run stops one |
 | `arguments` | Claude Code's arguments, with the prompt file and the agent-server configuration named instead of given |
 | `server` | The agent server's `entry` point, from the repository root, and its `arguments` with `<trial mod>` and `<game stub>` |
-| `trials` | Per trial: `task`, `trial` (from 1), `passed`, `stopped` (`finished`, `budget`, `turns`, `error`, `timeout`, `no-result`), `harness_problems`, the five `graders` each with `passed` and its `problems`, `tool_calls` (per tool: `calls` and `errors`), `tool_errors` (the tool and its text, folders named, no other path), `permission_denials`, `session` (what the session was offered: the harness version, the model, the permission mode, the tools, the agent servers with their status; null when the stream had no start), `cost_usd` (Claude Code's own estimate), `turns`, `duration_ms`, `exit_code`, and `findings_left` (what the checker still reports, by severity) |
+| `trials` | Per trial: `task`, `trial` (from 1), `passed`, `stopped` (`finished`, `session-limit`, `turns`, `error`, `timeout`, `no-result`), `harness_problems`, the five `graders` each with `passed` and its `problems`, `tool_calls` (per tool: `calls` and `errors`), `tool_errors` (the tool and its text, folders named, no other path), `permission_denials`, `session` (what the session was offered: the harness version, the model, the permission mode, the tools, the agent servers with their status; null when the stream had no start), `turns`, `duration_ms`, `exit_code`, and `findings_left` (what the checker still reports, by severity) |
 | `tasks` | Per task: `trials`, `passed`, and `pass_rate` (passed / trials, to 4 places) |
-| `cost_usd` | The trials' costs added up, where known |
 
 A trial passes when all five graders pass and it has no harness problem. Nothing from the
 session is kept beyond these fields: not its text, not the tools' inputs or results, not its id,
-nothing about the login.
+no figure Claude Code reports about the session's use of the developer's plan, nothing about how
+Claude Code is signed in.
