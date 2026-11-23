@@ -209,11 +209,14 @@ test('--severity and --code keep the findings they match and set the exit code; 
         codes(info),
         all.filter((c) => c.startsWith('information ')),
     );
+    const errorsAndInformation = all.filter(
+        (c) => c.startsWith('error ') || c.startsWith('information '),
+    );
     const both = check(SYNTAX, '--json', '--severity', 'error,information');
-    assert.deepEqual(codes(both), all);
+    assert.deepEqual(codes(both), errorsAndInformation);
     assert.deepEqual(
         codes(check(SYNTAX, '--json', '--severity', 'error', '--severity', 'information')),
-        all,
+        errorsAndInformation,
     );
     assert.deepEqual(
         codes(check(SYNTAX, '--json', '--code', 'syntax/*')),

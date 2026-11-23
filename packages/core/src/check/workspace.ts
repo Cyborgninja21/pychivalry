@@ -98,6 +98,11 @@ export interface ScriptInput {
     readonly file: string;
     readonly bytes: Uint8Array;
     readonly names: DefinedNames;
+    /**
+     * The workspace index that holds the file, and the file's layer in it, for the checks of
+     * definitions; without it they report nothing.
+     */
+    readonly index?: { readonly workspace: WorkspaceIndex; readonly layer: string } | undefined;
     readonly fallbackEncoding?: FallbackEncoding | undefined;
 }
 
@@ -132,6 +137,7 @@ export function scriptFindings(input: ScriptInput): WorkspaceFinding[] {
         parsed,
         names: input.names,
         catalogue,
+        index: input.index,
     })) {
         out.push({
             file: input.file,
@@ -239,6 +245,7 @@ export function checkWorkspace(options: WorkspaceCheckOptions): WorkspaceCheck {
                 file: file.path,
                 bytes: readFileSync(file.disk),
                 names,
+                index: { workspace: index, layer: file.layer },
                 fallbackEncoding: options.fallbackEncoding,
             }),
         );

@@ -7,7 +7,15 @@
  */
 
 import assert from 'node:assert/strict';
-import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import {
+    existsSync,
+    mkdirSync,
+    mkdtempSync,
+    readdirSync,
+    readFileSync,
+    rmSync,
+    writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { test, type TestContext } from 'node:test';
@@ -66,7 +74,15 @@ const isParse = (f: WorkspaceFinding): boolean => /^(syntax|encoding)\//.test(f.
 
 test("on each check's fixture pair the runner reports what the fixture expects", (t) => {
     const game = gameStub(scratch(t));
-    const pairs = readdirSync(MODS).filter((m) => /^names-.*-bad$/.test(m));
+    // Every check pair: a bad mod whose expected.json lists findings (the parse mods list files).
+    const pairs = readdirSync(MODS).filter(
+        (m) =>
+            m.endsWith('-bad') &&
+            existsSync(path.join(MODS, m, 'expected.json')) &&
+            'findings' in
+                (JSON.parse(readFileSync(path.join(MODS, m, 'expected.json'), 'utf8')) as object),
+    );
+    assert.ok(pairs.includes('definitions-clash-bad'));
     assert.ok(pairs.length >= 6);
     for (const bad of pairs) {
         const run = checkWorkspace({
