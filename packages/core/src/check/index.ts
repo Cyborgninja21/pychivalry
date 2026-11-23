@@ -4,6 +4,7 @@
  */
 
 import type { FolderTable } from '../index/folders.js';
+import type { LocalizationFile } from '../index/localization.js';
 import type { WorkspaceIndex } from '../index/workspace.js';
 import type { Spec } from '../spec/reader.js';
 import type { MessageCatalogue } from '../syntax/findings.js';
@@ -12,6 +13,9 @@ import { adviceFindings } from './advice-checks.js';
 import { readContext, type DefinedNames, type FileReading } from './context.js';
 import type { CheckFinding } from './finding.js';
 import { definitionFindings } from './definitions.js';
+import { missingKeys } from './localization-missing-key.js';
+import { unbalancedBrackets } from './localization-unbalanced-brackets.js';
+import { unusedKeys } from './localization-unused-key.js';
 import { bareValuesInRecords } from './fields-bare-value-in-record.js';
 import { missingRequiredFields } from './fields-missing-required-field.js';
 import { unknownFields } from './fields-unknown-field.js';
@@ -26,7 +30,9 @@ import { unknownLinks } from './names-unknown-link.js';
 import { unknownModifiers } from './names-unknown-modifier.js';
 import { unknownOnActions } from './names-unknown-on-action.js';
 import { unknownTriggers } from './names-unknown-trigger.js';
+import type { WorkspaceNames } from './names.js';
 import { keywordUses, readScopes } from './scope.js';
+import { undefinedEventTargets } from './scope-undefined-event-target.js';
 import { linksOnWrongScope } from './scope-link-on-wrong-scope.js';
 import { wrongScopeEffects } from './scope-wrong-scope-for-effect.js';
 import { wrongScopeTriggers } from './scope-wrong-scope-for-trigger.js';
@@ -61,7 +67,17 @@ export {
     type CheckKind,
     type FindingData,
 } from './finding.js';
-export { definedNamesOf } from './names.js';
+export {
+    definedNamesOf,
+    isLocalizationDatabase,
+    withBaseGame,
+    type NamesOptions,
+    type WorkspaceNames,
+} from './names.js';
+export { judgedLocFields, implicitRowUse, type LocField } from './localization-missing-key.js';
+export { extraBracket } from './localization-unbalanced-brackets.js';
+export { implicitPatterns } from './localization-unused-key.js';
+export { savedScopeRead } from './scope-undefined-event-target.js';
 export {
     headsOf,
     keywordUses,
@@ -88,8 +104,10 @@ export {
 export {
     checkWorkspace,
     GAME_NOT_LOADED,
+    localizationFindings,
     openWorkspace,
     scriptFindings,
+    type LocalizationInput,
     type ScriptInput,
     type Workspace,
     type WorkspaceCheck,
@@ -104,7 +122,11 @@ export interface CheckInput {
     /** The file's path inside its mod or game folder, with `/`. */
     readonly file: string;
     readonly parsed: ParseResult;
-    readonly names: DefinedNames;
+    /**
+     * The definitions the checks see (`definedNamesOf`). The checks of item 4.6 also need what
+     * `WorkspaceNames` adds, with the base game in the index; without it they report nothing.
+     */
+    readonly names: DefinedNames & Partial<WorkspaceNames>;
     /** The spec's error catalogue, so findings carry the game's message text. */
     readonly catalogue?: MessageCatalogue | undefined;
     /**
@@ -156,6 +178,8 @@ export function checkFile(input: CheckInput): CheckFinding[] {
         ...wrongScopeTriggers(uses, context),
         ...wrongScopeEffects(uses, context),
         ...linksOnWrongScope(reading, scopes, context),
+        ...undefinedEventTargets(input.folders, input.parsed.file, input.names, context),
+        ...missingKeys({ ...records, names: input.names }, context),
         ...adviceFindings({
             spec: input.spec,
             folders: input.folders,
@@ -164,8 +188,33 @@ export function checkFile(input: CheckInput): CheckFinding[] {
             names: input.names,
             context,
         }),
-    ].sort(
-        (a, b) =>
-            a.start - b.start || a.end - b.end || (a.code < b.code ? -1 : a.code > b.code ? 1 : 0),
-    );
+    ].sort(byPlace);
+}
+
+/** Findings in the order of where each starts, then ends, then by code. */
+function byPlace(a: CheckFinding, b: CheckFinding): number {
+    return a.start - b.start || a.end - b.end || (a.code < b.code ? -1 : a.code > b.code ? 1 : 0);
+}
+
+export interface LocalizationCheckInput {
+    readonly spec: Spec;
+    readonly folders: FolderTable;
+    /** The file's path inside its mod or game folder, with `/`. */
+    readonly file: string;
+    /** The file as the index reads it (`readLocalization`). */
+    readonly parsed: LocalizationFile;
+    readonly names: DefinedNames & Partial<WorkspaceNames>;
+    readonly catalogue?: MessageCatalogue | undefined;
+}
+
+/** Every finding of the engine checks on one localization file, in the order of where each starts. */
+export function checkLocalizationFile(input: LocalizationCheckInput): CheckFinding[] {
+    const context = { lines: input.parsed.lines, catalogue: input.catalogue };
+    return [
+        ...unbalancedBrackets(input.file, input.parsed, context),
+        ...unusedKeys(
+            { spec: input.spec, folders: input.folders, loc: input.parsed, names: input.names },
+            context,
+        ),
+    ].sort(byPlace);
 }

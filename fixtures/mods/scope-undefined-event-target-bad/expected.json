@@ -1,0 +1,26 @@
+{
+    "findings": [
+        {
+            "file": "events/fixture_target_events.txt",
+            "line": 16,
+            "column": 3,
+            "code": "scope/undefined-event-target",
+            "severity": "information",
+            "message": "Undefined event target 'scope:fixture_target_never_saved'",
+            "data": {
+                "name": "fixture_target_never_saved"
+            }
+        },
+        {
+            "file": "events/fixture_target_events.txt",
+            "line": 17,
+            "column": 14,
+            "code": "scope/undefined-event-target",
+            "severity": "information",
+            "message": "Undefined event target 'scope:fixture_target_never_saved_either'",
+            "data": {
+                "name": "fixture_target_never_saved_either"
+            }
+        }
+    ]
+}

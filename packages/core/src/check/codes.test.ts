@@ -75,6 +75,16 @@ test('every code the core emits has its row in docs/checks.md, with its severity
                 `${code}: the row names ${catalogue}`,
             );
         }
+        const kind = (CHECK_KINDS as Partial<Record<string, (typeof CHECK_KINDS)[CheckCode]>>)[
+            code
+        ];
+        for (const also of kind?.alsoCatalogue ?? []) {
+            const tail = also.slice((catalogue ?? '').length);
+            assert.ok(
+                also.startsWith(catalogue ?? '') && row.evidence.includes(`\`${tail}\``),
+                `${code}: the row names ${also}`,
+            );
+        }
     }
 });
 
@@ -109,9 +119,11 @@ test("each check's catalogue message is in the committed catalogue, with a place
             }
             continue;
         }
-        const text = catalogue.get(kind.catalogue);
-        assert.ok(text !== undefined, `${kind.catalogue} is in the catalogue`);
-        assert.equal(placeholderCount(text), kind.slots.length, code);
+        for (const id of [kind.catalogue, ...(kind.alsoCatalogue ?? [])]) {
+            const text = catalogue.get(id);
+            assert.ok(text !== undefined, `${id} is in the catalogue`);
+            assert.equal(placeholderCount(text), kind.slots.length, code);
+        }
     }
 });
 

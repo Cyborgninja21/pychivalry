@@ -6,16 +6,18 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { folderTableFromSpec, type FolderTable } from '../index/folders.js';
-import { indexMod } from '../index/read-game.js';
+import { readLocalization } from '../index/localization.js';
+import { indexMod, unreadWords } from '../index/read-game.js';
 import { rulesFromSpec } from '../index/rules.js';
+import { stubIndex } from '../index/testing.js';
 import { WorkspaceIndex } from '../index/workspace.js';
 import { committedSpec, REPO_ROOT } from '../spec/testing.js';
 import { catalogueFromSpec, type MessageCatalogue } from '../syntax/findings.js';
 import { parse } from '../syntax/parser.js';
 import { readScript } from '../syntax/read.js';
 import { checkMessage, type CheckFinding } from './finding.js';
-import { checkFile } from './index.js';
-import { definedNamesOf } from './names.js';
+import { checkFile, checkLocalizationFile } from './index.js';
+import { definedNamesOf, type WorkspaceNames } from './names.js';
 
 /** A finding as a fixture's `expected.json` writes it. */
 export interface WrittenFinding {
@@ -38,29 +40,58 @@ export function specContext(): { folders: FolderTable; catalogue: MessageCatalog
     return { folders, catalogue };
 }
 
-/** A fixture mod under `fixtures/mods/`, indexed on its own, with every check run on it. */
-export function checkFixture(mod: string): WrittenFinding[] {
+/**
+ * The game stub under `fixtures/game/` a check pair is read over, by the pair's name (its code
+ * with `/` written as `-`): the checks that stay silent without a base game. A pair not listed
+ * is read with none.
+ */
+export const PAIR_GAMES: Readonly<Record<string, string>> = {
+    'scope-undefined-event-target': 'event-targets-and-localization',
+    'localization-missing-key': 'event-targets-and-localization',
+    'localization-unused-key': 'event-targets-and-localization',
+};
+
+/**
+ * A fixture mod under `fixtures/mods/`, with every check run on each of its script and
+ * localization files: indexed on its own, or over a game stub under `fixtures/game/` (`game`),
+ * which the checks that need a base game read as the base game.
+ */
+export function checkFixture(
+    mod: string,
+    options: { readonly game?: string } = {},
+): WrittenFinding[] {
     const spec = committedSpec();
     const { folders: table, catalogue: messages } = specContext();
     const rules = rulesFromSpec(spec);
-    const index = new WorkspaceIndex({ folders: table, rules, platform: 'linux' });
-    const listing = indexMod(index, path.join(REPO_ROOT, 'fixtures', 'mods', mod));
-    const names = definedNamesOf(index);
+    const index =
+        options.game === undefined
+            ? new WorkspaceIndex({ folders: table, rules, platform: 'linux' })
+            : stubIndex(options.game);
+    const modDir = path.join(REPO_ROOT, 'fixtures', 'mods', mod);
+    const listing = indexMod(index, modDir);
+    const names = definedNamesOf(index, { unreadWords: unreadWords(modDir, index) });
     const out: WrittenFinding[] = [];
     for (const file of listing.files) {
-        if (!file.path.endsWith('.txt')) {
-            continue;
-        }
-        const parsed = readScript(readFileSync(file.disk), { catalogue: messages });
-        for (const f of checkFile({
-            spec,
-            folders: table,
-            file: file.path,
-            parsed,
-            names,
-            catalogue: messages,
-            index: { workspace: index, layer: 'mod' },
-        })) {
+        const bytes = readFileSync(file.disk);
+        const found = file.path.endsWith('.yml')
+            ? checkLocalizationFile({
+                  spec,
+                  folders: table,
+                  file: file.path,
+                  parsed: readLocalization(bytes),
+                  names,
+                  catalogue: messages,
+              })
+            : checkFile({
+                  spec,
+                  folders: table,
+                  file: file.path,
+                  parsed: readScript(bytes, { catalogue: messages }),
+                  names,
+                  catalogue: messages,
+                  index: { workspace: index, layer: 'mod' },
+              });
+        for (const f of found) {
             out.push({
                 file: file.path,
                 line: f.range.start.line + 1,
@@ -83,17 +114,22 @@ export function expectedFindings(mod: string): WrittenFinding[] {
     return (JSON.parse(readFileSync(file, 'utf8')) as { findings: WrittenFinding[] }).findings;
 }
 
-/** Every check run on text given in a test, as if it were the file at `file` in a mod. */
+/**
+ * Every check run on text given in a test, as if it were the file at `file` in a mod; `more`
+ * gives the checks that need the base game what the index would (`WorkspaceNames`).
+ */
 export function checkText(
     file: string,
     text: string,
     defined: Record<string, readonly string[]> = {},
+    more: Partial<WorkspaceNames> = {},
 ): CheckFinding[] {
     const spec = committedSpec();
     const { folders: table, catalogue: messages } = specContext();
     const names = {
         isDefined: (name: string, database: string): boolean =>
             defined[database]?.includes(name) ?? false,
+        ...more,
     };
     return checkFile({
         spec,

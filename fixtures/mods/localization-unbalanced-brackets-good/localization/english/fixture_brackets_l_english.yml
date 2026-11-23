@@ -1,0 +1,6 @@
+﻿l_english:
+ fixture_brackets_fine:0 "[ROOT.Char.GetFirstName] pays $VALUE|0$ gold"
+ fixture_brackets_quoted:0 "[Glossary( 'The Blues\\'s [team]', 'FIXTURE_GLOSS' )]"
+ fixture_brackets_unclosed:0 "[ROOT.Char.GetFirstName"
+ fixture_brackets_extra_open:0 "[ROOT.Char.GetFirstName] [ROOT.Char.GetLastName]"
+ fixture_brackets_extra_close:0 "[ROOT.Char.GetFirstName] arrives"

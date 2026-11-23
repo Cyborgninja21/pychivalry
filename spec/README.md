@@ -98,9 +98,11 @@ tables `structural`, `containers`, `random_list_entry`, `opens_context`, `iterat
 the fields and parameters that name an on-action) and D7 (`modifier_block_areas`, the use
 areas a modifier block accepts). The index reads the folder list and record schemas, D1 (the
 override rules), D2 (`declarations`) and D3 (`definitions`, with the scope of each nested name
-since format 8). D4 (`keyword_roles`) states no
-context the tables do not (a test holds the two to each other); D5 and D8 are read by no check
-yet.
+since format 8), and the table `save_keys` with the link its evidence names (the saves and
+reads of a scope, item 4.6). D4 (`keyword_roles`) states no
+context the tables do not (a test holds the two to each other). D5 (`implicit_loc_keys`) is read
+by `localization/missing-key` and `localization/unused-key`, with each field's `loc_key` and
+`info_type`; D8 is read by no check yet.
 
 ## The format 4 copy
 

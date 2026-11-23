@@ -1,0 +1,21 @@
+namespace = fixture_target
+
+fixture_target.0001 = {
+	type = character_event
+	hidden = yes
+
+	immediate = {
+		save_scope_as = fixture_target_saved_here
+		fixture_target_save_effect = { WHAT = one }
+		scope:fixture_target_saved_here = { add_gold = 1 }
+		scope:fixture_target_saved_elsewhere = { add_gold = 1 }
+		scope:fixture_base_saved = { add_gold = 1 }
+		add_gold = scope:fixture_target_saved_value
+		scope:fixture_target_built_one = { add_gold = 1 }
+		scope:$TARGET$ = { add_gold = 1 }
+		save_scope_as = fixture_target_never_saved
+		save_temporary_scope_as = fixture_target_never_saved_either
+		scope:fixture_target_never_saved = { add_gold = 1 }
+		add_gold = scope:fixture_target_never_saved_either.gold
+	}
+}

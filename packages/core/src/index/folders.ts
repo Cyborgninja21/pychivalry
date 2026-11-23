@@ -268,9 +268,85 @@ export function foldersFromSpec(specPackage: unknown): SpecFolder[] {
     return out;
 }
 
-/** The folder table of a spec package: its folders, and the scope part D2 gives a constant. */
+/**
+ * The keys that save the current scope under a name (`save_scope_as = x`, after which
+ * `scope:x` reads it): the entries of the package's hand-kept table `save_keys` (part C4), read
+ * by the trust rule of docs/decisions.md. A confirmed entry is read; one with no evidence is
+ * read too, since a save only ever makes `scope:x` not a finding; a contradicted entry is not.
+ */
+export function saveKeysFromSpec(specPackage: unknown): string[] {
+    if (!isJson(specPackage) || !isJson(specPackage['tables'])) {
+        return [];
+    }
+    const data = specPackage['tables']['data'];
+    const table = isJson(data) ? data['save_keys'] : undefined;
+    const entries = isJson(table) && isJson(table['entries']) ? table['entries'] : {};
+    return Object.entries(entries)
+        .filter(
+            ([, entry]) =>
+                isJson(entry) &&
+                (entry['evidence_status'] === 'confirmed' || entry['evidence_status'] === 'none'),
+        )
+        .map(([key]) => key)
+        .sort();
+}
+
+/** Whether the package documents a link that is global and takes data (`scope:x`, `title:x`). */
+function isGlobalDataLink(specPackage: Record<string, unknown>, name: string): boolean {
+    const validity = specPackage['scope_validity'];
+    const links = isJson(validity) && isJson(validity['links']) ? validity['links'] : {};
+    const link = Object.prototype.hasOwnProperty.call(links, name) ? links[name] : undefined;
+    const forms = isJson(link) && Array.isArray(link['forms']) ? (link['forms'] as unknown[]) : [];
+    return forms.some((f) => isJson(f) && f['global_link'] === true && f['requires_data'] === true);
+}
+
+/**
+ * The links that read a saved scope (`scope:x`), in lower case. The package says which in its
+ * evidence for the save keys: the `.info` line it cites for a confirmed entry of `save_keys`
+ * names the link beside the key ("`save_temporary_scope_as = name # Saves the current scope as
+ * scope:name`"), and the link is one the game documents as global and taking data. On the
+ * 1.21.0.3 package, one.
+ */
+export function scopeLinksFromSpec(specPackage: unknown): string[] {
+    if (!isJson(specPackage) || !isJson(specPackage['tables'])) {
+        return [];
+    }
+    const data = specPackage['tables']['data'];
+    const table = isJson(data) ? data['save_keys'] : undefined;
+    const entries = isJson(table) && isJson(table['entries']) ? table['entries'] : {};
+    const out = new Set<string>();
+    for (const [key, entry] of Object.entries(entries)) {
+        if (!isJson(entry) || entry['evidence_status'] !== 'confirmed') {
+            continue;
+        }
+        const evidence = Array.isArray(entry['evidence']) ? (entry['evidence'] as unknown[]) : [];
+        for (const item of evidence) {
+            const words = isJson(item) && item['kind'] === 'info' ? item['words'] : undefined;
+            for (const word of Array.isArray(words) ? (words as unknown[]) : []) {
+                if (
+                    typeof word === 'string' &&
+                    word !== key &&
+                    isGlobalDataLink(specPackage, word)
+                ) {
+                    out.add(word.toLowerCase());
+                }
+            }
+        }
+    }
+    return [...out].sort();
+}
+
+/**
+ * The folder table of a spec package: its folders, the scope part D2 gives a constant, the
+ * keys that save a scope and the links that read one.
+ */
 export function folderTableFromSpec(specPackage: unknown): FolderTable {
-    return new FolderTable(foldersFromSpec(specPackage), constantScopeFromSpec(specPackage));
+    return new FolderTable(
+        foldersFromSpec(specPackage),
+        constantScopeFromSpec(specPackage),
+        saveKeysFromSpec(specPackage),
+        scopeLinksFromSpec(specPackage),
+    );
 }
 
 /** The spec's folders, for classifying a file by its relative path. */
@@ -281,11 +357,30 @@ export class FolderTable {
      * no confirmed row says, and the index keeps every constant in one database.
      */
     readonly constantScope: string | null;
+    /**
+     * The keys that save a scope under the name they are given (`save_scope_as`), in lower
+     * case: the index records every `key = name` with one of them, in any case, as a save of
+     * `name` (`saveKeysFromSpec`). Empty, the index records no saves.
+     */
+    readonly saveKeys: ReadonlySet<string>;
+    /**
+     * The links that read a saved scope (`scope:x`), in lower case: the index records the head
+     * of every chain written with one of them, in any case, as a read of `x`
+     * (`scopeLinksFromSpec`). Empty, the index records no reads.
+     */
+    readonly scopeLinks: ReadonlySet<string>;
     private readonly byFolded = new Map<string, SpecFolder>();
 
-    constructor(folders: readonly SpecFolder[], constantScope: string | null = null) {
+    constructor(
+        folders: readonly SpecFolder[],
+        constantScope: string | null = null,
+        saveKeys: readonly string[] = [],
+        scopeLinks: readonly string[] = [],
+    ) {
         this.folders = folders;
         this.constantScope = constantScope;
+        this.saveKeys = new Set(saveKeys.map((k) => k.toLowerCase()));
+        this.scopeLinks = new Set(scopeLinks.map((k) => k.toLowerCase()));
         for (const folder of folders) {
             this.byFolded.set(foldCase(folder.path), folder);
         }

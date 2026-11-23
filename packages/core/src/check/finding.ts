@@ -39,6 +39,10 @@ export type CheckCode =
     | 'scope/wrong-scope-for-trigger'
     | 'scope/wrong-scope-for-effect'
     | 'scope/link-on-wrong-scope'
+    | 'scope/undefined-event-target'
+    | 'localization/missing-key'
+    | 'localization/unbalanced-brackets'
+    | 'localization/unused-key'
     | AdviceCode;
 
 /** The codes of the advice checks of item 4.7: information or hints, with no game message. */
@@ -77,9 +81,11 @@ export interface CheckKind {
     /**
      * The catalogue entry holding the game's own message: the evidence (docs/checks.md); null
      * for a check whose evidence is the game's output with no message (`gameOutput`), whose
-     * message depends on the place (`evidenceFrom`), or that is advice.
+     * message depends on the place (`evidenceFrom`), or that is advice (no `gameOutput`).
      */
     readonly catalogue: string | null;
+    /** Further catalogue entries the row names, for cases with a message of their own. */
+    readonly alsoCatalogue?: readonly string[];
     /** For a check with no catalogue message: where the game's output it rests on is. */
     readonly gameOutput?: string;
     /** True for pychivalry's own advice: no game evidence (docs/checks.md, evidence "Advice"). */
@@ -97,6 +103,12 @@ export interface CheckKind {
     readonly description: string;
     /** The message of a check with no catalogue message, `%s` for each slot. */
     readonly text?: string;
+    /**
+     * The message of a finding of this code that is advice (evidence `advice`) where the row's
+     * other findings have game evidence: `%s` for each of the finding's values, in order. Such
+     * a finding is information or a hint, never the row's error or warning (principle 1).
+     */
+    readonly adviceText?: string;
 }
 
 /** Every code of this build, with its row of docs/checks.md. */
@@ -228,6 +240,37 @@ export const CHECK_KINDS: Readonly<Record<CheckCode, CheckKind>> = {
         slots: ['value', 'value'],
         description: 'A link applied to a scope it cannot start from.',
     },
+    'scope/undefined-event-target': {
+        severity: 'information',
+        catalogue: 'undefined_event_target_X',
+        slots: ['value'],
+        description:
+            '`scope:name` with no effect saving `name` in the file, the mod or the base game.',
+    },
+    'localization/missing-key': {
+        severity: 'warning',
+        catalogue: 'unknown_loc_key_X',
+        slots: ['value'],
+        description:
+            'A localization key, in a field that holds one or that a record has by its name, defined in no localization file.',
+        adviceText:
+            "Every record of %s in the base game has the localization key %s; '%s' is defined in no localization file.",
+    },
+    'localization/unbalanced-brackets': {
+        severity: 'warning',
+        catalogue: 'loc_key_X_unexpected_extra_at_position_X_file_X',
+        alsoCatalogue: ['loc_key_X_unexpected_extra_at_position_X_file_X_2'],
+        slots: ['value', 'value', 'value'],
+        description: 'Localization text with an extra `[` or `]`.',
+    },
+    'localization/unused-key': {
+        severity: 'hint',
+        catalogue: null,
+        advice: true,
+        slots: ['value'],
+        description: 'A key the mod defines that nothing in the mod or the base game uses.',
+        text: "The localization key '%s' is used nowhere in the mod or the base game.",
+    },
     ...ADVICE_KINDS,
 };
 
@@ -267,7 +310,12 @@ export function evidenceOf(code: CheckCode, catalogue: MessageCatalogue | undefi
             ? { kind: 'advice' }
             : { kind: 'game-output', source: kind.gameOutput };
     }
-    return { kind: 'catalogue', id: kind.catalogue, text: catalogue?.get(kind.catalogue) ?? null };
+    return catalogueEvidence(kind.catalogue, catalogue);
+}
+
+/** A catalogue entry as evidence, with its text when the catalogue is given and holds it. */
+export function catalogueEvidence(id: string, catalogue: MessageCatalogue | undefined): Evidence {
+    return { kind: 'catalogue', id, text: catalogue?.get(id) ?? null };
 }
 
 /**
@@ -294,6 +342,9 @@ export function checkMessage(
         }
     }
     const evidence = finding.evidence;
+    if (evidence.kind === 'advice' && kind.adviceText !== undefined) {
+        return fillPlaceholders(kind.adviceText, finding.args);
+    }
     if (evidence.kind === 'catalogue' && evidence.text !== null) {
         return fillPlaceholders(evidence.text, values);
     }

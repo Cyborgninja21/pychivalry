@@ -1,0 +1,28 @@
+{
+    "findings": [
+        {
+            "file": "localization/english/fixture_brackets_l_english.yml",
+            "line": 5,
+            "column": 57,
+            "code": "localization/unbalanced-brackets",
+            "severity": "warning",
+            "message": "Loc key `fixture_brackets_extra_open`: Unexpected extra `[` at position 24 - file `localization/english/fixture_brackets_l_english.yml`",
+            "data": {
+                "key": "fixture_brackets_extra_open",
+                "bracket": "["
+            }
+        },
+        {
+            "file": "localization/english/fixture_brackets_l_english.yml",
+            "line": 6,
+            "column": 56,
+            "code": "localization/unbalanced-brackets",
+            "severity": "warning",
+            "message": "Loc key `fixture_brackets_extra_close`: Unexpected extra `]` at position 22 - file `localization/english/fixture_brackets_l_english.yml`",
+            "data": {
+                "key": "fixture_brackets_extra_close",
+                "bracket": "]"
+            }
+        }
+    ]
+}

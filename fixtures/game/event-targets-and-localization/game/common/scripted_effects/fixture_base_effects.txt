@@ -1,0 +1,4 @@
+# The base game's side: a scope it saves under a name a mod reads.
+fixture_base_save_effect = {
+	save_scope_as = fixture_base_saved
+}

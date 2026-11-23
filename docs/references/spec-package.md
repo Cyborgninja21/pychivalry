@@ -121,6 +121,9 @@ checks, measured where it says so on the 1.21.0.3 base game.
 | Whether the game's readers tell letter cases apart | D1's `path-case-engine-folds-nothing`: the engine folds no case; each platform's file system decides (`path-case-windows`, `path-case-linux`, both `derived`) |
 | Which names a mod may call | `vanilla_indexed_dirs` (7 folders) and the keyword templates' `keys` |
 | Where a scope chain is walked from, and what may end it | `scope_heads` and the links' own forms; a chain ending in a value is the A5 `takes` form `comparison` of a trigger |
+| Where a scope is saved, and which link reads it | The table `save_keys` (`save_scope_as`, `save_temporary_scope_as`), and the link its `.info` evidence names beside them, `scope`: read by the index, for `scope/undefined-event-target`. The table leaves out the effects that save a value under a name (`save_scope_value_as`), so a name any file writes is taken as possibly saved |
+| Which fields hold a localization key | B3 `loc_key` (372 fields), less those whose measured value type admits free text, whose `.info` type is no key, or whose key is a trigger and no effect: read by `localization/missing-key` (358 fields) |
+| Which keys a record has by its name | D5: a `required` row that is `confirmed` is a warning of `localization/missing-key` (8 rows), an `always-present-in-base-game` row advice (226); every row, its patterns set aside and its two-name patterns are uses for `localization/unused-key` |
 
 ## What no derivation can supply
 

@@ -246,6 +246,36 @@ export function listMod(modDir: string, folders: FolderTable): ModListing {
     return { ...listing, replacePaths, descriptor };
 }
 
+/** The text files of a mod that may name a localization key the index cannot see used. */
+export const UNREAD_TEXT_EXTENSIONS: readonly string[] = ['.gui', '.txt', '.yml', '.asset'];
+
+const WORD = /[A-Za-z0-9_][A-Za-z0-9_.-]*/g;
+
+/**
+ * Every word of the mod's text files the index does not read: its interface files (`.gui`,
+ * read by no step before 10), and `.txt`, `.yml` and `.asset` files of folders the spec does
+ * not describe (`data_binding/`, a stray folder). A word is a run of letters, digits, `_`,
+ * `.` and `-`, wherever it stands: inside quotes, inside a data-binding expression
+ * (`[Localize('key')]`), in a comment too, since what such a file does with it is not read.
+ * Used by `localization/unused-key`, which must not call a key unused that an interface file
+ * shows.
+ */
+export function unreadWords(modDir: string, index: WorkspaceIndex): Set<string> {
+    const out = new Set<string>();
+    for (const rel of walkFiles(modDir)) {
+        if (
+            !UNREAD_TEXT_EXTENSIONS.includes(extensionOf(rel)) ||
+            index.getFile('mod', rel) !== undefined
+        ) {
+            continue;
+        }
+        for (const match of decodeScript(readFileSync(diskPath(modDir, rel))).text.matchAll(WORD)) {
+            out.add(match[0]);
+        }
+    }
+    return out;
+}
+
 /**
  * The manifest of the files an index reads: one line per file, its layer, relative path,
  * size and modification time, sorted; and its SHA-256. A patch that changes a file changes

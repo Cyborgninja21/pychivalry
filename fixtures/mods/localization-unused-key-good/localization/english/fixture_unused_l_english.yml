@@ -1,0 +1,9 @@
+﻿l_english:
+ fixture_unused_in_script:0 "Shown by a scripted effect"
+ fixture_unused_in_text:0 "Shown inside another text"
+ fixture_unused_holder:0 "It says: $fixture_unused_in_text$"
+ fixture_unused_in_gui:0 "Shown by an interface file"
+ game_concept_fixture_unused_concept:0 "A game concept"
+ game_concept_fixture_unused_concept_desc:0 "What it means"
+ fixture_unused.written_as_a_chain:0 "A dotted key, written in script as one scope chain"
+ fixture_unused_key:0 "Shown by nothing in the bad mod"

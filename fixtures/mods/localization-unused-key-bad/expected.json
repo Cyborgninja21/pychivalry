@@ -1,0 +1,15 @@
+{
+    "findings": [
+        {
+            "file": "localization/english/fixture_unused_l_english.yml",
+            "line": 9,
+            "column": 2,
+            "code": "localization/unused-key",
+            "severity": "hint",
+            "message": "The localization key 'fixture_unused_key' is used nowhere in the mod or the base game.",
+            "data": {
+                "key": "fixture_unused_key"
+            }
+        }
+    ]
+}

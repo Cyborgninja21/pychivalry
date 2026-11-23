@@ -24,3 +24,4 @@ A stub is never a copy of game files. The real base game is read only by the loc
 | Stub | What it stands in for | Added by |
 | --- | --- | --- |
 | [override-rules](override-rules/README.md) | An install with the three folders and a DLC pack, holding the game's side of every rule in docs/overrides.md | Step 3 |
+| [event-targets-and-localization](event-targets-and-localization/README.md) | A base game that saves a scope and defines two localization keys, for the checks that stay silent without one | Item 4.6 |

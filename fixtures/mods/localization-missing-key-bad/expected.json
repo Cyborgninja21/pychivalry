@@ -1,0 +1,85 @@
+{
+    "findings": [
+        {
+            "file": "common/decision_group_types/fixture_decision_groups.txt",
+            "line": 2,
+            "column": 1,
+            "code": "localization/missing-key",
+            "severity": "information",
+            "message": "Every record of common/decision_group_types in the base game has the localization key decision_group_type_<name>; 'decision_group_type_fixture_decision_group' is defined in no localization file.",
+            "data": {
+                "key": "decision_group_type_fixture_decision_group",
+                "pattern": "decision_group_type_<name>",
+                "directory": "common/decision_group_types",
+                "requirement": "always-present-in-base-game",
+                "row_status": "confirmed"
+            }
+        },
+        {
+            "file": "common/game_concepts/fixture_game_concepts.txt",
+            "line": 3,
+            "column": 1,
+            "code": "localization/missing-key",
+            "severity": "information",
+            "message": "Every record of common/game_concepts in the base game has the localization key game_concept_<name>; 'game_concept_fixture_concept' is defined in no localization file.",
+            "data": {
+                "key": "game_concept_fixture_concept",
+                "pattern": "game_concept_<name>",
+                "directory": "common/game_concepts",
+                "requirement": "always-present-in-base-game",
+                "row_status": "confirmed"
+            }
+        },
+        {
+            "file": "common/game_concepts/fixture_game_concepts.txt",
+            "line": 3,
+            "column": 1,
+            "code": "localization/missing-key",
+            "severity": "warning",
+            "message": "Unknown loc key game_concept_fixture_concept_desc",
+            "data": {
+                "key": "game_concept_fixture_concept_desc",
+                "pattern": "game_concept_<name>_desc",
+                "directory": "common/game_concepts",
+                "requirement": "required",
+                "row_status": "confirmed"
+            }
+        },
+        {
+            "file": "events/fixture_loc_events.txt",
+            "line": 14,
+            "column": 10,
+            "code": "localization/missing-key",
+            "severity": "warning",
+            "message": "Unknown loc key fixture_loc_no_bom",
+            "data": {
+                "key": "fixture_loc_no_bom",
+                "field": "option.name"
+            }
+        },
+        {
+            "file": "events/fixture_loc_events.txt",
+            "line": 17,
+            "column": 10,
+            "code": "localization/missing-key",
+            "severity": "warning",
+            "message": "Unknown loc key fixture_loc.0001.missing",
+            "data": {
+                "key": "fixture_loc.0001.missing",
+                "field": "option.name"
+            }
+        },
+        {
+            "file": "events/fixture_loc_events.txt",
+            "line": 20,
+            "column": 10,
+            "code": "localization/missing-key",
+            "severity": "warning",
+            "message": "Unknown loc key fixture text with spaces",
+            "data": {
+                "key": "fixture text with spaces",
+                "field": "option.name"
+            }
+        }
+    ]
+}

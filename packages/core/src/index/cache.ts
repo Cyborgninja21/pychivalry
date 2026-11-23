@@ -34,7 +34,7 @@ import path from 'node:path';
 import { WorkspaceIndex, type IndexOptions, type IndexState } from './workspace.js';
 
 /** The cache's format. A change to the layout raises it, and every older cache is rebuilt. */
-export const CACHE_FORMAT = 3;
+export const CACHE_FORMAT = 4;
 
 /** What a cache was built from. Two equal keys mean the cache answers for the same input. */
 export interface CacheKey {
@@ -102,7 +102,7 @@ interface Header {
         readonly folder: string | null;
         readonly exactCase: boolean;
         readonly noDefinitions: string | null;
-        readonly lengths: readonly [number, number, number, number];
+        readonly lengths: readonly [number, number, number, number, number, number, number];
     }[];
 }
 
@@ -135,7 +135,15 @@ export function saveIndex(index: WorkspaceIndex, file: string, key: CacheKey): n
             folder: f.folder,
             exactCase: f.exactCase,
             noDefinitions: f.noDefinitions,
-            lengths: [f.lineStarts.length, f.defs.length, f.uses.length, f.names.length],
+            lengths: [
+                f.lineStarts.length,
+                f.defs.length,
+                f.uses.length,
+                f.names.length,
+                f.saves.length,
+                f.reads.length,
+                f.templates.length,
+            ],
         })),
     };
     const headerBytes = Buffer.from(JSON.stringify(header), 'utf8');
@@ -162,7 +170,8 @@ export function saveIndex(index: WorkspaceIndex, file: string, key: CacheKey): n
         write(strings);
         write(zeros.subarray(0, pad4(written)));
         for (const f of state.files) {
-            for (const array of [f.lineStarts, f.defs, f.uses, f.names]) {
+            const arrays = [f.lineStarts, f.defs, f.uses, f.names, f.saves, f.reads, f.templates];
+            for (const array of arrays) {
                 write(new Uint8Array(array.buffer, array.byteOffset, array.byteLength));
             }
         }
@@ -249,6 +258,9 @@ export function loadIndex(
                 defs: take(f.lengths[1]),
                 uses: take(f.lengths[2]),
                 names: take(f.lengths[3]),
+                saves: take(f.lengths[4]),
+                reads: take(f.lengths[5]),
+                templates: take(f.lengths[6]),
             })),
         };
         if (at !== bytes.length) {
