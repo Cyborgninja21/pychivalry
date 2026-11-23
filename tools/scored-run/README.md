@@ -43,7 +43,7 @@ The agent server must be built first (`task build` builds it; the task depends o
 | `SCORED_MODEL` | The model, by its full name (an alias such as `opus` is refused) | `claude-opus-5-5` |
 | `SCORED_TRIALS` | Trials per task: 5 in development, 10 before a release | 5 |
 | `SCORED_SERVER` | The agent server's entry point, from the repository root | `packages/mcp/dist/main.js` |
-| `SCORED_SERVER_ARGS` | The server's arguments, a JSON list; `{mod}` is the trial's mod and `{game}` the game stub | `["{mod}", "--vanilla", "{game}"]` |
+| `SCORED_SERVER_ARGS` | The server's arguments, a JSON list; `{mod}` is the trial's mod and `{game}` the game stub | `["--mod", "{mod}", "--vanilla", "{game}"]`, the server's own options |
 | `SCORED_CLAUDE` | Claude Code's command; a `.js` or `.mjs` file is run with Node | `claude` |
 | `SCORED_TIMEOUT_MINUTES` | A session still running after this is stopped | 30 |
 | `SCORED_KEEP` | `true` keeps the run's temporary folder: each trial's mod, output stream, error output and server configuration | removed |

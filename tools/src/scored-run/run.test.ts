@@ -232,10 +232,11 @@ test('a run whose agent fixes the mod: every trial passes, and the record holds'
         assert.deepEqual(Object.keys(config.mcpServers), ['pychivalry']);
         const args = config.mcpServers['pychivalry']?.args ?? [];
         assert.equal(args[0], fake);
-        assert.equal(path.resolve(args[1] ?? ''), path.resolve(cwd));
-        assert.deepEqual(args.slice(2, 3), ['--vanilla']);
+        assert.equal(args[1], '--mod');
+        assert.equal(path.resolve(args[2] ?? ''), path.resolve(cwd));
+        assert.equal(args[3], '--vanilla');
         assert.equal(
-            path.resolve(args[3] ?? ''),
+            path.resolve(args[4] ?? ''),
             path.join(root, 'fixtures', 'game', 'planted-defects', 'game'),
         );
     }
@@ -320,7 +321,7 @@ test('the parameters: a budget is required, a model is a full name, defaults hol
     assert.equal(options.trials, 5);
     assert.equal(options.budgetUsd, 2.5);
     assert.equal(options.server, path.join(root, 'packages', 'mcp', 'dist', 'main.js'));
-    assert.deepEqual(options.serverArgs, ['{mod}', '--vanilla', '{game}']);
+    assert.deepEqual(options.serverArgs, ['--mod', '{mod}', '--vanilla', '{game}']);
     assert.deepEqual(options.claude, { command: 'claude', args: [] });
     assert.equal(options.timeoutMinutes, 30);
     assert.equal(options.keep, false);

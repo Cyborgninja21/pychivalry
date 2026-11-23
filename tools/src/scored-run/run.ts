@@ -25,7 +25,7 @@
  * | `SCORED_MODEL` | The model, by its full name | `PINNED_MODEL` |
  * | `SCORED_TRIALS` | Trials per task | 5 |
  * | `SCORED_SERVER` | The agent server's entry point, from the repository root | `packages/mcp/dist/main.js` |
- * | `SCORED_SERVER_ARGS` | Its arguments, a JSON list; `{mod}` and `{game}` stand for the trial's mod and the game stub | `["{mod}", "--vanilla", "{game}"]` |
+ * | `SCORED_SERVER_ARGS` | Its arguments, a JSON list; `{mod}` and `{game}` stand for the trial's mod and the game stub | `["--mod", "{mod}", "--vanilla", "{game}"]`, as `packages/mcp` reads them |
  * | `SCORED_CLAUDE` | Claude Code's command; a `.js` or `.mjs` file is run with Node | `claude` |
  * | `SCORED_TIMEOUT_MINUTES` | The time limit per trial | 30 |
  * | `SCORED_KEEP` | `true` keeps the run's temporary folder (each trial's mod, stream and configuration) and prints where | removed |
@@ -69,7 +69,7 @@ import {
 export const PINNED_MODEL = 'claude-opus-5-5';
 export const DEFAULT_TRIALS = 5;
 export const DEFAULT_SERVER = 'packages/mcp/dist/main.js';
-export const DEFAULT_SERVER_ARGS: readonly string[] = ['{mod}', '--vanilla', '{game}'];
+export const DEFAULT_SERVER_ARGS: readonly string[] = ['--mod', '{mod}', '--vanilla', '{game}'];
 export const DEFAULT_TIMEOUT_MINUTES = 30;
 /** The task's prompt, from the repository root. */
 export const PROMPT_FILE = 'tools/scored-run/agent-use.prompt.md';
@@ -135,7 +135,7 @@ export function scoredOptions(
         }
         if (!Array.isArray(parsed) || !parsed.every((a) => typeof a === 'string')) {
             throw new CommandError(
-                'SCORED_SERVER_ARGS must be a JSON list of texts, such as ["{mod}", "--vanilla", "{game}"]',
+                'SCORED_SERVER_ARGS must be a JSON list of texts, such as ["--mod", "{mod}", "--vanilla", "{game}"]',
                 EXIT.usage,
             );
         }
