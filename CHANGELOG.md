@@ -237,6 +237,17 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   command line's text shows them after the game's message (the core's `whatIsValid`); the
   agent server and the JSON output give the data. No code, severity or message changes.
 
+- Build step 7, items 7.3 to 7.6, server side (#140): `packages/lsp/`, the language server on
+  `vscode-languageserver` 11.0.1, started over IPC (or standard input and output for tests).
+  Diagnostics while typing and for the whole mod in the background (a file limit, progress,
+  cancellation; closing a file keeps them), equal file for file to the one runner's findings;
+  completion, hover, go to definition, find references and document symbols; the game folder
+  from a setting or any Steam library; four settings (`pychivalry.gamePath`,
+  `pychivalry.background.fileLimit`, `pychivalry.localization.unusedKeys`,
+  `pychivalry.encoding.fallback`). The core gained, additively, `checkSourceFile` and
+  `checkNames` (which `checkWorkspace` now calls per file), `FileReading.fields`,
+  `WorkspaceIndex.namesIn` and `filesNaming`, and completion (`completionsAt`).
+
 ### Changed
 
 - `localization/unused-key` is off by default (decision 76): the runner reports it only with

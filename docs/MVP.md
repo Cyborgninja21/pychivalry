@@ -14,7 +14,7 @@ lookup, the base-game and real-mod suites and their classifications, and the lim
 planted-defect mod (made harder after the first test sessions), its graders and the
 scored-test script. Item 6.11's first test sessions ran on the owner's word, 5 of 5 passed, and
 the owner set the target: every test session passes, 10 of 10 before a release. Build step 7
-has started. What waits on the owner or on the spec work is in
+has started: its language server is built, server side; the extension is not yet. What waits on the owner or on the spec work is in
 [decisions.md](decisions.md). Nothing else in this document is built yet.
 
 The build plan, step by step, is in [PLAN.md](PLAN.md).
@@ -564,7 +564,9 @@ The MVP is done when all of these hold, each proved by a suite in the repository
    *2026-11-23:* the command line's findings equal the core's on each of the five mods. After
    items 6.1 to 6.6 the agent server's `check` returns exactly the core's findings on the
    fixture mods (a test), and on rice its totals equal the `game:mods` record's (the local size
-   test). The editor is step 7.
+   test). The editor is step 7: its language server (#140) gives, on every fixture mod and the
+   planted-defect mod, each file's diagnostics equal to the one runner's findings (a test); the
+   extension that starts it is not built yet.
 5. **Agent use.** The scored run meets its target: a release run of 10 test sessions passes all
    10 ([AI tests](#ai-tests)).
    *2026-11-23:* the target is set (10 of 10). The first five test sessions passed 5 of 5 on
