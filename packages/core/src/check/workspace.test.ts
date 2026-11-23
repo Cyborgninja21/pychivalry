@@ -84,12 +84,15 @@ test("on each check's fixture pair the runner reports what the fixture expects",
     );
     assert.ok(pairs.includes('definitions-clash-bad'));
     assert.ok(pairs.length >= 6);
+    // The fixtures' expected findings are Linux's, as `checkFixture` reads them: a folder in
+    // another letter case is a file the game does not read there (definitions-not-read-bad).
     for (const bad of pairs) {
         const run = checkWorkspace({
             spec,
             modDir: path.join(MODS, bad),
             gameDir: game,
             cacheDir: null,
+            platform: 'linux',
         });
         assert.deepEqual(written(run.findings), expectedFindings(bad), bad);
         const good = bad.replace(/-bad$/, '-good');
@@ -98,6 +101,7 @@ test("on each check's fixture pair the runner reports what the fixture expects",
             modDir: path.join(MODS, good),
             gameDir: game,
             cacheDir: null,
+            platform: 'linux',
         });
         assert.deepEqual(written(clean.findings), [], good);
     }
