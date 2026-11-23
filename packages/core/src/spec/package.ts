@@ -90,6 +90,19 @@ export interface SchemaField {
     readonly fields?: Readonly<Record<string, SchemaField>>;
     readonly description?: string;
     readonly description_source?: string;
+    /** The game version whose executable first has the field. */
+    readonly since?: string;
+    /** The counts the measured `value_type` was read from (part B1). */
+    readonly value_type_evidence?: unknown;
+    /** The wiki seed's type, a hint beside `value_type` (part B1). */
+    readonly wiki_type?: string;
+    /** The measurement behind `loc_key` (part B3). */
+    readonly loc_key_evidence?: unknown;
+    /** How `scope` was measured. */
+    readonly scope_evidence?: string;
+    /** The scopes Paradox's `.info` file says the block receives (part C1). */
+    readonly info_scope?: readonly { readonly scope: string; readonly type: string }[];
+    readonly note?: string;
 }
 
 /** The record schema of one directory (`schema.<dir>`). */

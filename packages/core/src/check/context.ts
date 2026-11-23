@@ -2,7 +2,8 @@
  * Context (docs/PLAN.md item 4.3): which blocks of a file hold triggers, which hold effects,
  * which hold modifiers and which hold script values, read from the spec package alone. It
  * raises no finding of its own: it reads a file once and says, for every key it judges, what
- * that key is in its place, and the checks of `names/*` report from that reading.
+ * that key is in its place, and the checks of `names/*` report from that reading. The scope
+ * walk of item 4.4 (`check/scope.ts`) follows the scope through the same reading.
  *
  * Where each answer comes from:
  *
@@ -379,7 +380,7 @@ export function fieldFor(fields: Fields, key: Scalar): SchemaField | undefined {
 }
 
 /** The schema field for a key, and whether it is a placeholder field. */
-function fieldOf(
+export function fieldOf(
     fields: Fields,
     key: Scalar,
 ): { readonly field: SchemaField; readonly placeholder: boolean } | undefined {

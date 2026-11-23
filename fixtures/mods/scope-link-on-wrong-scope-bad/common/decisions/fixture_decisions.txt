@@ -1,0 +1,23 @@
+# A decision runs in the character scope, the root scope of its directory. Links applied to a
+# scope they cannot start from: as a block key, in a chain written as a key, and in a chain
+# written as the value of a trigger.
+fixture_decision = {
+	is_shown = {
+		holder = {
+			is_adult = yes
+		}
+		primary_title.liege = {
+			is_adult = yes
+		}
+		is_vassal_of = root.holder
+	}
+	effect = {
+		capital_province = {
+			title_province = {
+				add_province_modifier = {
+					modifier = fixture_modifier
+				}
+			}
+		}
+	}
+}
