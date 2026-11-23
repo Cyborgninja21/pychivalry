@@ -1,0 +1,40 @@
+{
+    "findings": [
+        {
+            "file": "common/casus_belli_types/fixture_casus_belli.txt",
+            "line": 1,
+            "column": 1,
+            "code": "fields/missing-required-field",
+            "severity": "error",
+            "message": "Casus belli fixture_casus_belli missing on_invalidated_desc",
+            "data": {
+                "record": "fixture_casus_belli",
+                "field": "on_invalidated_desc"
+            }
+        },
+        {
+            "file": "common/character_interaction_categories/fixture_categories.txt",
+            "line": 1,
+            "column": 1,
+            "code": "fields/missing-required-field",
+            "severity": "error",
+            "message": "Invalid or undefined index for character interaction category 'fixture_category'",
+            "data": {
+                "record": "fixture_category",
+                "field": "index"
+            }
+        },
+        {
+            "file": "common/tutorial_lessons/fixture_lessons.txt",
+            "line": 1,
+            "column": 1,
+            "code": "fields/missing-required-field",
+            "severity": "error",
+            "message": "Missing or invalid tutorial chain for tutorial lesson 'fixture_lesson'",
+            "data": {
+                "record": "fixture_lesson",
+                "field": "chain"
+            }
+        }
+    ]
+}

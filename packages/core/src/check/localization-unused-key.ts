@@ -9,7 +9,8 @@
  *   game's own files, its interface files or the engine show (the index does not read `.gui`
  *   files, so it cannot see every such use);
  * - a file of the index uses it as a word: written in a field or anywhere in a script file,
- *   or as `$key$` in a localization text (`WorkspaceIndex.isUsed`); or a text file of the mod
+ *   or as `$key$` in a localization text (`WorkspaceIndex.isUsed`), a dotted key also when it
+ *   is written as one scope chain (`my_mod.event.t`: `isUsedAsChain`); or a text file of the mod
  *   the index does not read writes it, an interface file above all (`unreadWords`, passed to
  *   `definedNamesOf`: without it, a key only an interface file shows is reported);
  * - it is itself the name of a definition of the mod or the base game (a scripted GUI, a

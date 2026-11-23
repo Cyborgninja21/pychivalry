@@ -25,6 +25,19 @@ export type CheckCode =
     | 'names/unknown-modifier'
     | 'names/unknown-on-action'
     | 'names/modifier-outside-use-area'
+    | 'fields/unknown-field'
+    | 'fields/bare-value-in-record'
+    | 'fields/missing-required-field'
+    | 'fields/wrong-kind-of-value'
+    | 'references/unknown-key'
+    | 'structure/event-undeclared-namespace'
+    | 'structure/range-min-above-max'
+    | 'structure/event-non-character-shown'
+    | 'definitions/clash'
+    | 'definitions/not-read'
+    | 'scope/wrong-scope-for-trigger'
+    | 'scope/wrong-scope-for-effect'
+    | 'scope/link-on-wrong-scope'
     | 'scope/undefined-event-target'
     | 'localization/missing-key'
     | 'localization/unbalanced-brackets'
@@ -34,14 +47,21 @@ export interface CheckKind {
     readonly severity: Severity;
     /**
      * The catalogue entry holding the game's own message: the evidence (docs/checks.md); null
-     * for a check whose evidence is the game's output with no message (`gameOutput`), or that
-     * is advice (no `gameOutput`).
+     * for a check whose evidence is the game's output with no message (`gameOutput`), whose
+     * message depends on the place (`evidenceFrom`), or that is advice (no `gameOutput`).
      */
     readonly catalogue: string | null;
     /** Further catalogue entries the row names, for cases with a message of their own. */
     readonly alsoCatalogue?: readonly string[];
     /** For a check with no catalogue message: where the game's output it rests on is. */
     readonly gameOutput?: string;
+    /**
+     * For a code whose message depends on the place (docs/decisions.md, item 4.1: one code per
+     * kind of finding, its evidence varying with the place): where each finding's own message
+     * comes from. `required-field`: the field's `required_evidence`, the game's message for it;
+     * `rules-row`: the message the rules row names (part D1, its `duplicate-message` row).
+     */
+    readonly evidenceFrom?: 'required-field' | 'rules-row';
     /** What the message's placeholders are filled with, in order. */
     readonly slots: readonly Slot[];
     /** What the finding means, in pychivalry's words. */
@@ -97,6 +117,93 @@ export const CHECK_KINDS: Readonly<Record<CheckCode, CheckKind>> = {
         slots: ['value', 'value', 'value'],
         description: 'A modifier in a block of a kind its use area does not include.',
         text: "The modifier '%s' is used in a block read as %s, but its use areas are %s.",
+    },
+    'fields/unknown-field': {
+        severity: 'warning',
+        catalogue: 'unknown_X_in_X',
+        slots: ['value', 'value'],
+        description: "A field in a record that its folder's field list does not have.",
+    },
+    'fields/bare-value-in-record': {
+        severity: 'error',
+        catalogue: 'unexpected_token_X_found_at_X_expected',
+        slots: ['value', 'location'],
+        description:
+            "A bare value directly in a record body that holds statements, where the game expects 'key ='; the finding is at the token found where '=' belongs.",
+    },
+    'fields/missing-required-field': {
+        severity: 'error',
+        catalogue: null,
+        evidenceFrom: 'required-field',
+        slots: ['value'],
+        description: 'A field the spec package marks required is missing.',
+        text: 'The %s is missing a field the spec package marks required.',
+    },
+    'fields/wrong-kind-of-value': {
+        severity: 'information',
+        catalogue: null,
+        slots: ['value', 'value', 'value'],
+        description: 'A value of another kind than the field takes.',
+        text: "The value '%s' is %s; the base game writes only %s in this field.",
+    },
+    'references/unknown-key': {
+        severity: 'warning',
+        catalogue: 'failed_to_read_key_reference_X_from_database_X',
+        slots: ['value', 'value'],
+        description:
+            'A value that should be a key of a database names no key of it in the mod, the base game or a DLC.',
+    },
+    'structure/event-undeclared-namespace': {
+        severity: 'warning',
+        catalogue: 'namespace_X_used_in_event_X_file_X_is_not_defined_in_this_fi',
+        slots: ['value', 'value', 'value'],
+        description: 'An event whose namespace its file does not declare.',
+    },
+    'structure/range-min-above-max': {
+        severity: 'error',
+        catalogue: 'min_value_in_range_directive_is_larger_than_the_max_value_un',
+        slots: [],
+        description: 'A range whose minimum is above its maximum.',
+    },
+    'structure/event-non-character-shown': {
+        severity: 'error',
+        catalogue: 'error_in_event_X_non_character_events_must_be_hidden_or_be_n',
+        slots: ['value'],
+        description:
+            'An event whose scope is not a character and that is neither hidden nor major.',
+    },
+    'definitions/clash': {
+        severity: 'error',
+        catalogue: null,
+        evidenceFrom: 'rules-row',
+        slots: ['value', 'value'],
+        description: 'Definitions the rules table says the game calls an error.',
+        text: "'%s' is defined more than once, and the rules table says the game calls it an error.",
+    },
+    'definitions/not-read': {
+        severity: 'information',
+        catalogue: null,
+        slots: ['value', 'value'],
+        description: 'A definition in a file the rules table says the game does not read.',
+        text: "'%s' is defined in a file the game does not read: %s.",
+    },
+    'scope/wrong-scope-for-trigger': {
+        severity: 'error',
+        catalogue: 'wrong_scope_for_trigger_X_expected_X',
+        slots: ['value', 'value'],
+        description: 'A trigger in a scope its scope data does not list.',
+    },
+    'scope/wrong-scope-for-effect': {
+        severity: 'error',
+        catalogue: 'wrong_scope_for_effect_X_expected_X',
+        slots: ['value', 'value'],
+        description: 'An effect in a scope its scope data does not list.',
+    },
+    'scope/link-on-wrong-scope': {
+        severity: 'error',
+        catalogue: 'trying_to_use_X_link_on_an_invalid_scope_X',
+        slots: ['value', 'value'],
+        description: 'A link applied to a scope it cannot start from.',
     },
     'scope/undefined-event-target': {
         severity: 'information',
@@ -189,11 +296,15 @@ export function checkMessage(
             arg++;
         }
     }
-    if (finding.evidence.kind === 'advice' && kind.adviceText !== undefined) {
+    const evidence = finding.evidence;
+    if (evidence.kind === 'advice' && kind.adviceText !== undefined) {
         return fillPlaceholders(kind.adviceText, finding.args);
     }
-    if (finding.evidence.kind === 'catalogue' && finding.evidence.text !== null) {
-        return fillPlaceholders(finding.evidence.text, values);
+    if (evidence.kind === 'catalogue' && evidence.text !== null) {
+        return fillPlaceholders(evidence.text, values);
+    }
+    if (evidence.kind === 'required-field' && evidence.text !== '') {
+        return fillPlaceholders(evidence.text, values);
     }
     if (kind.text !== undefined) {
         return fillPlaceholders(kind.text, values);

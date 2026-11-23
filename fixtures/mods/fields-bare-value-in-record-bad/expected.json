@@ -1,0 +1,28 @@
+{
+    "findings": [
+        {
+            "file": "common/decision_group_types/fixture_decision_groups.txt",
+            "line": 4,
+            "column": 2,
+            "code": "fields/bare-value-in-record",
+            "severity": "error",
+            "message": "Unexpected token 'important_decision_group' found at 'common/decision_group_types/fixture_decision_groups.txt:4', '=' expected",
+            "data": {
+                "value": "fixture_stray_value",
+                "record": "fixture_first_group"
+            }
+        },
+        {
+            "file": "common/decision_group_types/fixture_decision_groups.txt",
+            "line": 11,
+            "column": 1,
+            "code": "fields/bare-value-in-record",
+            "severity": "error",
+            "message": "Unexpected token '}' found at 'common/decision_group_types/fixture_decision_groups.txt:11', '=' expected",
+            "data": {
+                "value": "fixture_last_value",
+                "record": "fixture_second_group"
+            }
+        }
+    ]
+}

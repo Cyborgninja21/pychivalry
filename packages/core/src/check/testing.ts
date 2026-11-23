@@ -78,6 +78,7 @@ export function checkFixture(
                   parsed: readScript(bytes, { catalogue: messages }),
                   names,
                   catalogue: messages,
+                  index: { workspace: index, layer: 'mod' },
               });
         for (const f of found) {
             out.push({

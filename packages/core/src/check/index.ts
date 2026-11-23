@@ -5,14 +5,24 @@
 
 import type { FolderTable } from '../index/folders.js';
 import type { LocalizationFile } from '../index/localization.js';
+import type { WorkspaceIndex } from '../index/workspace.js';
 import type { Spec } from '../spec/reader.js';
 import type { MessageCatalogue } from '../syntax/findings.js';
 import type { ParseResult } from '../syntax/parser.js';
 import { readContext, type DefinedNames, type FileReading } from './context.js';
 import type { CheckFinding } from './finding.js';
+import { definitionFindings } from './definitions.js';
 import { missingKeys } from './localization-missing-key.js';
 import { unbalancedBrackets } from './localization-unbalanced-brackets.js';
 import { unusedKeys } from './localization-unused-key.js';
+import { bareValuesInRecords } from './fields-bare-value-in-record.js';
+import { missingRequiredFields } from './fields-missing-required-field.js';
+import { unknownFields } from './fields-unknown-field.js';
+import { wrongKindsOfValue } from './fields-wrong-kind-of-value.js';
+import { unknownKeys } from './references-unknown-key.js';
+import { nonCharacterShownEvents } from './structure-event-non-character-shown.js';
+import { undeclaredNamespaces } from './structure-event-undeclared-namespace.js';
+import { rangesMinAboveMax } from './structure-range-min-above-max.js';
 import { modifiersOutsideUseArea } from './names-modifier-outside-use-area.js';
 import { unknownEffects } from './names-unknown-effect.js';
 import { unknownLinks } from './names-unknown-link.js';
@@ -20,7 +30,11 @@ import { unknownModifiers } from './names-unknown-modifier.js';
 import { unknownOnActions } from './names-unknown-on-action.js';
 import { unknownTriggers } from './names-unknown-trigger.js';
 import type { WorkspaceNames } from './names.js';
+import { keywordUses, readScopes } from './scope.js';
 import { undefinedEventTargets } from './scope-undefined-event-target.js';
+import { linksOnWrongScope } from './scope-link-on-wrong-scope.js';
+import { wrongScopeEffects } from './scope-wrong-scope-for-effect.js';
+import { wrongScopeTriggers } from './scope-wrong-scope-for-trigger.js';
 
 export {
     fieldFor,
@@ -61,6 +75,19 @@ export { judgedLocFields, implicitRowUse, type LocField } from './localization-m
 export { extraBracket } from './localization-unbalanced-brackets.js';
 export { implicitPatterns } from './localization-unused-key.js';
 export { savedScopeRead } from './scope-undefined-event-target.js';
+export {
+    headsOf,
+    keywordUses,
+    readScopes,
+    type KeywordUse,
+    type LinkStep,
+    type Scope,
+    type ScopeFrame,
+    type ScopeReading,
+    type UnjudgedWhy,
+    type UnknownWhy,
+} from './scope.js';
+export { judgedSteps } from './scope-link-on-wrong-scope.js';
 
 export interface CheckInput {
     readonly spec: Spec;
@@ -75,18 +102,32 @@ export interface CheckInput {
     readonly names: DefinedNames & Partial<WorkspaceNames>;
     /** The spec's error catalogue, so findings carry the game's message text. */
     readonly catalogue?: MessageCatalogue | undefined;
+    /**
+     * The workspace index that holds the file, and the file's layer in it, for the checks of
+     * definitions (`definitions/*`); without it they report nothing.
+     */
+    readonly index?: { readonly workspace: WorkspaceIndex; readonly layer: string } | undefined;
 }
 
 /** Every finding of the engine checks on one file, in the order of where each starts. */
 export function checkFile(input: CheckInput): CheckFinding[] {
-    const reading: FileReading = readContext({
+    const read = {
         spec: input.spec,
         folders: input.folders,
         file: input.file,
         tree: input.parsed.file,
         names: input.names,
-    });
+    };
+    const reading: FileReading = readContext(read);
+    const scopes = readScopes(read, reading);
+    const uses = keywordUses(input.spec, reading, scopes);
     const context = { lines: input.parsed.lines, catalogue: input.catalogue };
+    const records = {
+        spec: input.spec,
+        folders: input.folders,
+        file: input.file,
+        tree: input.parsed.file,
+    };
     return [
         ...unknownTriggers(reading, context),
         ...unknownEffects(reading, context),
@@ -98,17 +139,20 @@ export function checkFile(input: CheckInput): CheckFinding[] {
             names: input.names,
         }),
         ...modifiersOutsideUseArea(reading, context, input.spec),
+        ...unknownFields(reading, context, records),
+        ...bareValuesInRecords(reading, context, records),
+        ...missingRequiredFields(reading, context, records),
+        ...wrongKindsOfValue(reading, context, { ...records, names: input.names }),
+        ...unknownKeys(reading, context, { ...records, names: input.names }),
+        ...undeclaredNamespaces(context, records),
+        ...rangesMinAboveMax(reading, context, records),
+        ...nonCharacterShownEvents(context, records),
+        ...definitionFindings(input.spec, input.file, context, input.index),
+        ...wrongScopeTriggers(uses, context),
+        ...wrongScopeEffects(uses, context),
+        ...linksOnWrongScope(reading, scopes, context),
         ...undefinedEventTargets(input.folders, input.parsed.file, input.names, context),
-        ...missingKeys(
-            {
-                spec: input.spec,
-                folders: input.folders,
-                file: input.file,
-                tree: input.parsed.file,
-                names: input.names,
-            },
-            context,
-        ),
+        ...missingKeys({ ...records, names: input.names }, context),
     ].sort(byPlace);
 }
 

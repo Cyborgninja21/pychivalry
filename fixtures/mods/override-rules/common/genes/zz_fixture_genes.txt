@@ -1,0 +1,29 @@
+# Read after the game's 00_fixture_genes.txt (file-read-order).
+morph_genes = {
+	# The same type again: the later gene wins, whole.
+	fixture_gene_override = {
+	}
+	# A gene after this line has the portrait group `fixture_group`: another key.
+	portrait_group = fixture_group
+	fixture_gene_color = {
+	}
+}
+accessory_genes = {
+	# Stored as a morph gene: another type is refused and the earlier stays.
+	fixture_gene_refused = {
+	}
+	# After a refused gene the reader leaves the block: what becomes of this one is not known.
+	fixture_gene_after = {
+	}
+}
+special_genes = {
+	accessory_genes = {
+		fixture_gene_special_accessory = {
+		}
+	}
+}
+age_presets = {
+	# Its own key space: the later wins, whole.
+	fixture_preset = {
+	}
+}

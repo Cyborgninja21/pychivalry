@@ -242,8 +242,8 @@ replacement as data and as a fix; 2.3.0's `PYCH-R001` and `PYCH-R002` fold in he
 | `names/modifier-outside-use-area` | warning | A modifier in a block of a kind its use area does not include | Game output: the documentation dump's use area for each modifier. No catalogue message was found for it | new | `names-modifier-outside-use-area` | 4.2 | use areas; value types (which use area a block is) |
 
 **Built** (item 4.2, `packages/core/src/check/`): all six rows, each with its fixture pair.
-`names/unknown-on-action` reads the fields and parameters part D6 of the format 7 package
-confirms name an on-action; `names/modifier-outside-use-area` reads the use area part D7
+`names/unknown-on-action` reads the fields and parameters part D6 of the spec package (format 7,
+format 8 since 2026-11-23) confirms name an on-action; `names/modifier-outside-use-area` reads the use area part D7
 confirms for each block that holds modifiers. A measured-only or unknown row of either part
 raises nothing. **Not built:** two parts of the first two rows, an `every_`, `random_` or
 `ordered_` iterator in a trigger block and an `any_` iterator in an effect block outside a

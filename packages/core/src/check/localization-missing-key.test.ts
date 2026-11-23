@@ -1,47 +1,40 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import path from 'node:path';
 import { test } from 'node:test';
 import { fixtureIndex } from '../index/testing.js';
 import type { SchemaField } from '../spec/package.js';
-import { committedSpec, REPO_ROOT } from '../spec/testing.js';
+import { committedSpec } from '../spec/testing.js';
 import { CHECK_KINDS } from './finding.js';
 import { CODE, implicitRowUse, judgedLocFields } from './localization-missing-key.js';
-import { checkFixture, checkText, type WrittenFinding } from './testing.js';
+import { checkFixture, checkText, expectedFindings } from './testing.js';
 
 const GAME = 'event-targets-and-localization';
 const BAD = 'localization-missing-key-bad';
 
-/** The bad fixture's findings, and the one that holds when no key is read from a file without the mark. */
-function expected(): { findings: WrittenFinding[]; without_bom: WrittenFinding[] } {
-    const file = path.join(REPO_ROOT, 'fixtures', 'mods', BAD, 'expected.json');
-    return JSON.parse(readFileSync(file, 'utf8')) as {
-        findings: WrittenFinding[];
-        without_bom: WrittenFinding[];
-    };
-}
-
 test(`${CODE} fires on its bad fixture, and only it`, () => {
     const found = checkFixture(BAD, { game: GAME });
-    const { findings, without_bom: withoutBom } = expected();
-    // The index's answer for a localization file without the byte-order mark: whether the key
-    // it alone defines is read (the package's rule `msg-localization-missing-bom`).
-    const index = fixtureIndex(GAME, BAD);
-    const read = index.definitions('fixture_loc_no_bom').some((d) => d.read !== 'no');
-    const want = [...findings, ...(read ? [] : withoutBom)].sort(
-        (a, b) => a.file.localeCompare(b.file) || a.line - b.line || a.column - b.column,
-    );
-    assert.deepEqual(found, want);
+    assert.deepEqual(found, expectedFindings(BAD));
     assert.ok(found.every((f) => f.code === CODE));
     const warnings = found.filter((f) => f.severity === 'warning');
-    assert.ok(warnings.length >= 4);
     assert.ok(warnings.every((f) => f.message.startsWith('Unknown loc key ')));
     // The key every base-game decision group has is advice, not a warning.
-    const advice = found.filter((f) => f.severity === 'information');
     assert.deepEqual(
-        advice.map((f) => f.data['key']),
+        found.filter((f) => f.severity === 'information').map((f) => f.data['key']),
         ['decision_group_type_fixture_decision_group'],
     );
+});
+
+test(`${CODE} takes the index's answer for a file without the byte-order mark`, () => {
+    // On Linux the game reads no key from it (the package's rule `msg-localization-missing-bom`):
+    // the index holds none of its keys, and the key it alone defines is missing.
+    const index = fixtureIndex(GAME, BAD);
+    assert.ok(!index.definitions('fixture_loc_no_bom').some((d) => d.read !== 'no'));
+    assert.ok(
+        expectedFindings(BAD).some((f) => f.data['key'] === 'fixture_loc_no_bom'),
+        'the bad fixture expects the key missing',
+    );
+    // Defined in a file with the mark as well, it is not (the good fixture).
+    const good = fixtureIndex(GAME, 'localization-missing-key-good');
+    assert.ok(good.definitions('fixture_loc_no_bom').some((d) => d.read !== 'no'));
 });
 
 test(`${CODE} is silent on its good fixture`, () => {

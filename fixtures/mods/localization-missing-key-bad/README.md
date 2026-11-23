@@ -20,8 +20,7 @@ option `name`), and keys records have by their names (part D5):
 
 `fixture_loc_no_bom` is defined only in `fixture_loc_no_bom_l_english.yml`, a file without the
 UTF-8 byte-order mark. On Linux the game reads no key from such a file (the package's override
-rule `msg-localization-missing-bom`), and the check takes the index's answer: when the index
-applies that rule, the key is missing too. `expected.json` holds the findings (`findings`), and
-that one apart (`without_bom`).
+rule `msg-localization-missing-bom`), which the index applies, and the check takes the index's
+answer: a fifth warning. `expected.json` holds the findings.
 
 With no base game read the check reports nothing.

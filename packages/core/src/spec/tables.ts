@@ -108,6 +108,8 @@ export class Tables {
     readonly sameScopeStructural = new Set<string>();
     /** Per directory, the record fields whose body runs outside the record's root scope. */
     readonly fieldsOutsideRoot = new Map<string, Set<string>>();
+    /** Directories whose records' root scope the base game contradicts (`root_scope_contradicted`). */
+    readonly rootScopeContradicted = new Set<string>();
     /** What the rule did with every entry of every table, in the package's order. */
     readonly decisions: TrustDecision[] = [];
     private readonly data: Readonly<Record<string, Table>>;
@@ -139,6 +141,11 @@ export class Tables {
                 set.add(name);
                 this.fieldsOutsideRoot.set(dir, set);
             }
+        }
+        // An entry of this table only ever makes a scope unknown, so stops a judgement: each
+        // is read, whatever its evidence.
+        for (const [name] of this.read('root_scope_contradicted')) {
+            this.rootScopeContradicted.add(name);
         }
         // Entries of these tables only ever make a key not a finding: each is read.
         const accepting: readonly [string, Set<string>][] = [

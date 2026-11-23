@@ -1,0 +1,49 @@
+{
+    "findings": [
+        {
+            "file": "common/decision_group_types/fixture_decision_groups.txt",
+            "line": 2,
+            "column": 15,
+            "code": "fields/wrong-kind-of-value",
+            "severity": "information",
+            "message": "The value 'ten' is a word; the base game writes only whole numbers in this field.",
+            "data": {
+                "value": "ten",
+                "kind": "word",
+                "value_type": "integer",
+                "field": "sort_order",
+                "folder": "common/decision_group_types"
+            }
+        },
+        {
+            "file": "common/decision_group_types/fixture_decision_groups.txt",
+            "line": 3,
+            "column": 29,
+            "code": "fields/wrong-kind-of-value",
+            "severity": "information",
+            "message": "The value 'maybe' is a word; the base game writes only yes or no in this field.",
+            "data": {
+                "value": "maybe",
+                "kind": "word",
+                "value_type": "boolean",
+                "field": "important_decision_group",
+                "folder": "common/decision_group_types"
+            }
+        },
+        {
+            "file": "common/decision_group_types/fixture_decision_groups.txt",
+            "line": 9,
+            "column": 13,
+            "code": "fields/wrong-kind-of-value",
+            "severity": "information",
+            "message": "The value 'fixture_tag' is a word; the base game writes only lists of values in this field.",
+            "data": {
+                "value": "fixture_tag",
+                "kind": "word",
+                "value_type": "list",
+                "field": "gui_tags",
+                "folder": "common/decision_group_types"
+            }
+        }
+    ]
+}

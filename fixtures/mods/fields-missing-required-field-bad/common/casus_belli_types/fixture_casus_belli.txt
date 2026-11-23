@@ -1,0 +1,3 @@
+fixture_casus_belli = {
+	group = fixture_casus_belli_group
+}

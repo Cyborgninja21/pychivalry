@@ -148,6 +148,30 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
 
 ### Changed
 
+- The spec package is the 1.21.0.3 package in format 8 (the owner's go of 2026-11-23; 55.7 MB,
+  3.18 MB gzipped), with `spec/schema.format8.json`; the format 4 copy is unchanged. Format 8 is
+  format 7 plus keys inside parts D1, D2 and D3, which answer the five points the format 7
+  adoption sent back (docs/decisions.md, rows 67 and 69). The core's reader and
+  `task spec:check` read format 8 only and refuse format 7; `task spec:check` also counts the
+  rows whose file condition the index applies.
+- The index applies the format 8 data. Part D3's `name_scope`: a nested name is known by itself
+  or with the parent `scope_parent` names (a trait's track by its trait, an activity's option
+  category by its record); a scope resting on the measurement alone or unknown decides nothing,
+  and such a name under more than one parent has no winner (reason `name-scope`). D1's
+  `file_condition`: a localization file without a UTF-8 byte-order mark adds no keys, on Linux
+  and Windows (`IndexedFile.noDefinitions`). The gene containers: `special_genes` holds gene
+  containers, every gene is one key space known by its name and portrait group, a later gene of
+  another type is refused, and `age_presets` is a key space of its own. A coat of arms written
+  `key = other_key` is replayed in read order as the alias row says, and the answer says the
+  object the name shares (`Resolution.shared`, and the new status `not-in-force` for a line whose
+  target is not read yet). Province terrain keeps a province's terrain line and its winter block
+  apart, the later of each in force (the block field by field). The index cache's format is 3.
+- The game-file suites are re-run on the format 8 package. On the base game 1,322 names are
+  defined more than once (12,845 before, most of them a province's terrain line beside its
+  winter block) and 233 have no winner known (118 before): the 21 coats of arms and the gene are
+  answered, and 167 nested names whose scope the package does not settle are new.
+  `names/modifier-outside-use-area` raises no warning on the base game (215 before), nor in
+  divine-intervention (215) and elf-destiny (70); the errors are the same.
 - The spec package is the 1.21.0.3 package in format 7 (55.4 MB, 3.14 MB gzipped), with
   `spec/schema.format7.json` and a new format 4 copy; the core's reader and `task spec:check`
   read format 7 only and refuse format 5.

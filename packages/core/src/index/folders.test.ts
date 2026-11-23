@@ -1,6 +1,6 @@
 /**
- * The folder list read from the spec package (folders.ts): the committed package is format 7
- * for game 1.21.0.3; its folder list and record schemas are read with the keys format 7 keeps
+ * The folder list read from the spec package (folders.ts): the committed package is format 8
+ * for game 1.21.0.3; its folder list and record schemas are read with the keys format 8 keeps
  * from format 4, and parts D2 and D3 say what a folder's files define beyond their top-level
  * keys.
  */
@@ -10,9 +10,9 @@ import { test } from 'node:test';
 import { FolderTable, foldersFromSpec, keyMatcher } from './folders.js';
 import { committedSpecPackage, specFolders } from './testing.js';
 
-test('a folder new in game 1.21 is described by the committed format 7 package, with its schema and the base game counts', () => {
+test('a folder new in game 1.21 is described by the committed format 8 package, with its schema and the base game counts', () => {
     const spec = committedSpecPackage() as { package_format: number };
-    assert.equal(spec.package_format, 7);
+    assert.equal(spec.package_format, 8);
     const districts = specFolders().get('common/districts');
     assert.deepEqual(districts, {
         path: 'common/districts',
@@ -30,9 +30,9 @@ test('a folder new in game 1.21 is described by the committed format 7 package, 
     assert.equal(textures.specRecords, null);
 });
 
-test('the format 7 shape is read and the keys the reader does not use are ignored', () => {
+test('the format 8 shape is read and the keys the reader does not use are ignored', () => {
     const folders = foldersFromSpec({
-        package_format: 7,
+        package_format: 8,
         directories: [
             {
                 path: 'common/a',
@@ -92,14 +92,50 @@ test('part D3: a landed title nested at any depth, and history/cultures named by
     // A nested kind other than the folder's own records is a database of its own.
     const traits = specFolders().get('common/traits')?.nested ?? [];
     assert.deepEqual([...new Set(traits.map((r) => r.database))], ['common/traits#trait_track']);
-    // A row resting on the measurement alone is not read.
+    // Format 8: every gene row is confirmed now, the age presets and decal atlases among them.
     const genes = specFolders().get('common/genes')?.nested ?? [];
-    assert.ok(
-        genes.every(
-            (r) => r.database === 'common/genes' || r.database === 'common/genes#gene_template',
-        ),
+    assert.deepEqual(
+        genes.map((r) => [r.kind, r.database]),
+        [
+            ['gene', 'common/genes'],
+            ['gene', 'common/genes'],
+            ['gene', 'common/genes'],
+            ['gene_template', 'common/genes#gene_template'],
+            ['gene_template', 'common/genes#gene_template'],
+            ['gene_age_preset', 'common/genes#gene_age_preset'],
+            ['gene_decal_atlas', 'common/genes#gene_decal_atlas'],
+        ],
     );
-    assert.ok(!genes.some((r) => r.kind === 'gene_age_preset'), 'gene_age_preset is measured-only');
+});
+
+test('part D3, format 8: the scope of a nested name is read as data; an unsettled scope decides nothing', () => {
+    const scopes = (folder: string): unknown[] =>
+        (specFolders().get(folder)?.nested ?? []).map((r) => [r.kind, r.scope]);
+    // A landed title is known by its name alone.
+    assert.deepEqual(scopes('common/landed_titles'), [
+        ['landed_title', { kind: 'global', qualifier: null }],
+    ]);
+    // A track by its trait (the record); an option by its category, two levels below the record.
+    assert.deepEqual(scopes('common/traits'), [
+        ['trait_track', { kind: 'parent', depth: 1 }],
+        ['trait_track', { kind: 'parent', depth: 1 }],
+    ]);
+    const activities = scopes('common/activities/activity_types');
+    assert.deepEqual(activities[1], ['activity_option', { kind: 'parent', depth: 3 }]);
+    // Unknown, and resting on the measurement alone: not settled.
+    assert.deepEqual(activities[4], [
+        'activity_locale_slot',
+        { kind: 'not-settled', status: 'unknown' },
+    ]);
+    assert.deepEqual(activities[5], [
+        'activity_window_character',
+        { kind: 'not-settled', status: 'measured-only' },
+    ]);
+    // A gene is global with a second part of its key: its portrait group.
+    assert.deepEqual(scopes('common/genes')[2], [
+        'gene',
+        { kind: 'global', qualifier: 'portrait_group' },
+    ]);
 });
 
 test('a key matcher reads the word itself, a whole-key pattern, or a prefix', () => {

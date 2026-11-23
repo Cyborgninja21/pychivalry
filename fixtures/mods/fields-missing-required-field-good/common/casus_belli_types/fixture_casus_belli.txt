@@ -1,0 +1,4 @@
+fixture_casus_belli = {
+	group = fixture_casus_belli_group
+	on_invalidated_desc = fixture_casus_belli_invalidated
+}

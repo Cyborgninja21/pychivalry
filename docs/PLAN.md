@@ -1,6 +1,6 @@
 # pychivalry: build plan
 
-Status: plan for approval, 2026-11-22. Step 0 is done: the 1.21.0.3 spec package in format 7 is committed, its override rules table among its parts. Step 1 is complete, and steps 2 and 3 are built and merged, the index reading the override rules from the package. Item 4.1, the check inventory, is written and signed off; item 4.2 is built, its six checks, with item 4.3's context reader as its prerequisite, but for two iterator sub-cases that wait on the owner. Items 4.4 onward are next. The Progress table says what is open.
+Status: plan for approval, 2026-11-22. Step 0 is done: the 1.21.0.3 spec package in format 8 is committed (2026-11-23, decision 68), its override rules table among its parts. Step 1 is complete, and steps 2 and 3 are built and merged, the index reading the override rules from the package. Item 4.1, the check inventory, is written and signed off; item 4.2 is built, its six checks, with item 4.3's context reader as its prerequisite, but for two iterator sub-cases that wait on the owner. The rest of step 4 and step 5 are being built in parallel, one agent per piece, on the owner's word (decision 70). The Progress table says what is open.
 
 This is the "how" for the rebuild. The "what" and the "why" are in [MVP.md](MVP.md): the
 decisions, the scope, the tests each feature needs and the definition of done. Where the two
@@ -19,11 +19,11 @@ disagree, MVP.md is right and this plan is fixed.
 
 | Step | Name | Needs the 1.21 spec | State |
 | --- | --- | --- | --- |
-| 0 | Spec work, in `pdx-parser-re` | It produces it | Done: the 1.21.0.3 package, adopted in item 1.6 in format 5 and replaced the same day by format 7 (decision 64), with its three companions, its schema `schema.format7.json` and a new format 4 copy. Format 7 carries the override rules table (D1) and the other held requests (D2 to D8) |
+| 0 | Spec work, in `pdx-parser-re` | It produces it | Done: the 1.21.0.3 package, adopted in item 1.6 in format 5, replaced the same day by format 7 (decision 64) and on 2026-11-23 by format 8 (decision 68), with its three companions, its schema `schema.format8.json` and the format 4 copy. Format 7 carries the override rules table (D1) and the other held requests (D2 to D8); format 8 answers the five points of decision 67 (decision 69) |
 | 1 | Repository skeleton | Two items only (1.6, 1.11) | Complete (pull requests #114, #115 and #124). Item 1.6: the 1.21.0.3 package is committed, gzipped. Item 1.11: the speed and result baselines of 2.3.0 are recorded on its format 4 copy |
 | 2 | Parser | No | Built and merged (pull request #116). Item 2.6's public codes are left to item 4.1, which maps the syntax finding identifiers to them |
-| 3 | Workspace index | No for the index; the override rules table comes from step 0 | Built and merged (pull requests #118 and #120). The override rules come from the spec package's part D1 (the stand-in `spec/override-rules.json` is retired, decision 65): a settled or derived row decides, a partial or open row does not; parts D2 and D3 say what a definition is. Base-game names defined more than once with no winner known: 1,309 before, 118 now. Still open: character history defined twice (a partial row), the depth of the folders only partial rows or no row describe, the 32 folders with no row and `gui`, and the order of several mods or DLC packs (`docs/overrides.md`) |
-| 4 | Engine checks and lookup | Yes, from item 4.2 on | Item 4.1 is done and signed off (pull requests #121 and #122): `docs/checks.md`, the check inventory and the code scheme; its codes are permanent. Item 4.2 is done on the format 7 package (pull request #125 and this one): the typed spec reader, its eight new parts typed, and the six checks (`names/unknown-trigger`, `-effect`, `-link`, `-modifier`, `-on-action`, `names/modifier-outside-use-area`), with item 4.3's context reader built as their prerequisite. Open in item 4.2: the iterator sub-cases of `names/unknown-trigger` and `names/unknown-effect`, which wait on the owner (no game message ties them to an iterator of the wrong kind). Next: items 4.4 to 4.11, by another agent |
+| 3 | Workspace index | No for the index; the override rules table comes from step 0 | Built and merged (pull requests #118 and #120). The override rules come from the spec package's part D1 (the stand-in `spec/override-rules.json` is retired, decision 65): a settled or derived row decides, a partial or open row does not; parts D2 and D3 say what a definition is. Base-game names defined more than once with no winner known: 1,309 on the format 5 package, 118 on format 7, 233 on format 8 (the 21 coats of arms and the gene of decision 67 are answered; 167 nested names whose scope the package does not settle, under several parents, are new). Since format 8 the index also applies the scope of nested names, the gene containers, the coat of arms alias line, the stores of province terrain and the localization file condition. Still open: character history defined twice (a partial row), nested names of a scope resting on the measurement alone, the depth of the folders only partial rows or no row describe, the 32 folders with no row and `gui`, and the order of several mods or DLC packs (`docs/overrides.md`) |
+| 4 | Engine checks and lookup | Yes, from item 4.2 on | Item 4.1 is done and signed off (pull requests #121 and #122): `docs/checks.md`, the check inventory and the code scheme; its codes are permanent. Item 4.2 is done on the format 7 package (pull requests #125 and #127) and re-measured on format 8 (no `names/modifier-outside-use-area` warning on the base game, 215 before): the typed spec reader, its eight new parts typed, and the six checks (`names/unknown-trigger`, `-effect`, `-link`, `-modifier`, `-on-action`, `names/modifier-outside-use-area`), with item 4.3's context reader built as their prerequisite. Open in item 4.2: the iterator sub-cases of `names/unknown-trigger` and `names/unknown-effect`, which wait on the owner (no game message ties them to an iterator of the wrong kind). Next: items 4.4 to 4.11 and step 5, built in parallel by several agents (decision 70) |
 | 5 | Command line | Through step 4 | Not started |
 | 6 | Agent server | Through step 4 | Not started |
 | 7 | Language server and extension | Through step 4 | Not started |
@@ -125,7 +125,7 @@ spec/
   ck3-spec-<version>.json.gz     the committed spec package file, gzipped
   ck3-spec-<version>.<part>.json.gz   its companions: info, gui, data_types
   ck3-spec-<version>[.<part>].sha256  checksum of each file's uncompressed bytes
-  schema.format7.json            the package's own schema, from pdx-parser-re
+  schema.format8.json            the package's own schema, from pdx-parser-re
   legacy/                        the same version in format 4, for the 2.3.0 baselines only
 packages/
   core/                   parse, index, check, lookup, format, fix data
@@ -172,7 +172,9 @@ These names are the ones 2.3.0 used, so its scripts and records stay comparable.
 with all twelve of its parts built, its three companions, its schema, and the format 4 copy.
 **Follow-up done** (adopted 2026-11-22, decision 64): the same package in format 7, which adds
 the override rules table (D1) and the other requests held in [decisions.md](decisions.md)
-(D2 to D8). No real error log came with it; item 11.1 starts by capturing them.
+(D2 to D8). **Third pass done** (adopted 2026-11-23, decision 68): format 8, the same package
+with keys inside D1, D2 and D3 that answer the five points of decision 67. No real error log
+came with it; item 11.1 starts by capturing them.
 
 **What this plan needs from it.**
 
@@ -227,6 +229,8 @@ suites and their records wired up, and the 2.3.0 baselines on record.
   `spec/legacy/` ([spec/README.md](../spec/README.md)). Replaced the same day, on the owner's
   go, by the 1.21.0.3 package in format 7 (decision 64): the same twelve parts and eight more,
   the override rules table among them, with `schema.format7.json` and a new format 4 copy.
+  Replaced on 2026-11-23 by format 8 (decision 68), with `schema.format8.json`; the format 4
+  copy is unchanged.
 - 1.7 The record format, in `records/README.md`: every record is JSON and states the suite,
   the tool version and commit, the game build and the hash of the game's file manifest, the
   spec version and checksum, the corpus manifest hash, when it was made, and the results.
@@ -472,7 +476,21 @@ coats of arms written both as a record and as a value, and nested names written 
 one parent), 22 in files below a subfolder whose depth no settled row states (`sound`,
 `gfx/portraits`, `gfx/map/map_object_data`, `music`) and 3 character ids under the partial
 character row. The 3 character ids are no longer a clash: the row that made them one is
-partial.
+partial. Re-measured on the format 8 package (2026-11-23,
+[records/game/index.json](../records/game/index.json)): the same 17,302 files, 3,371,180
+definitions (205 more: 196 entries and 20 containers, the genes and gene containers inside
+`special_genes`, the entries of `age_presets` and the containers themselves, for 11 records
+fewer) and 9,068,219 uses. 1,322 names are defined more than once
+(12,845 before: a province's terrain line and its winter block are separate stores now, and the
+base game writes no province id twice in one form): 185 have a winner, 675 add up, 229 have one
+definition in force and 233 have no winner known. Of the 118: the 21 coats of arms and the one
+gene are answered (the alias replay names, for each of the 21, what the package derives);
+`activity_window_character` and `task_contract_reward` move from "no row" to "scope not
+settled". Of the 233: 167 nested names written under more than one parent whose scope part D3
+rests on the measurement alone (142 portrait modifiers, 15 task contract rewards, 9 window
+characters of activities, 1 dynasty house motto insert), 41 with no row of the table, 22 below
+a subfolder of a depth no settled row states and 3 character ids under the partial row. The
+build peaks at 1.60 GiB (1.48 before).
 
 ---
 
@@ -481,7 +499,7 @@ partial.
 **Goal.** Tell the modder what the game would say, with evidence, and answer any question
 about a name.
 
-**Depends on.** Step 3. From item 4.2 on, the 1.21 spec in format 7.
+**Depends on.** Step 3. From item 4.2 on, the 1.21 spec in format 7, in format 8 since 2026-11-23.
 
 **Work items.**
 
@@ -502,7 +520,7 @@ about a name.
   one bucket resolved by context; a modifier used outside its use area.
   **Built**, the six rows, two iterator sub-cases excepted (below): `packages/core/src/spec/` and
   six checks in `packages/core/src/check/`; the last two rows and the reader's format 7 parts
-  on the follow-up package (decision 64).
+  on the follow-up package (decision 64); the reader on format 8 since 2026-11-23 (decision 68).
 - 4.3 **Context.** Which blocks hold triggers and which hold effects, from the hand-kept tables
   now in the spec: block-opening keys, iterator parameters, structural keywords, containers.
   **Built** inside item 4.2, whose rows need it: `packages/core/src/check/context.ts`.
@@ -649,6 +667,21 @@ one-off script over the built core, the base game's index and the committed spec
   errors. A question for the owner.
 - Part D4 replaces nothing the context reader took from the tables: each context it states,
   it states as the table entry the reader already reads.
+
+**Found** (the format 8 package adopted, 2026-11-23, measured the same way with a one-off
+script over the built core, the base game's index and the committed spec, on Linux):
+
+- The typed reader and `task spec:check` read format 8 only; format 7 is refused, as format 5
+  was. The reader checks that every nested row of D3 says the scope of its name.
+- `names/modifier-outside-use-area` raises no warning on the base game (215 before): D7 now
+  confirms `county_potential_trade_good_modifier` as province. On the mods: divine-intervention
+  none (215 before), elf-destiny none (70 before), rice 80 as before (`monthly_income`, a
+  character modifier, in a building's `province_modifier`).
+- The base game's errors are the same 12 at the same lines (8 `names/unknown-trigger`, 4
+  `names/unknown-effect`, listed above); the mods' errors are as before: balance-of-power-ui
+  and divine-intervention none, elf-destiny 2 `names/unknown-link`, rice 139
+  `names/unknown-trigger`, 314 `names/unknown-effect` and 361 `names/unknown-modifier`,
+  viet-events 1 `names/unknown-effect`.
 
 ---
 
