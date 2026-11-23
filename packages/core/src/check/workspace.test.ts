@@ -13,7 +13,12 @@ import path from 'node:path';
 import { test, type TestContext } from 'node:test';
 import { committedSpec, REPO_ROOT } from '../spec/testing.js';
 import { expectedFindings } from './testing.js';
-import { checkWorkspace, GAME_NOT_LOADED, type WorkspaceFinding } from './workspace.js';
+import {
+    checkWorkspace,
+    GAME_NOT_LOADED,
+    openWorkspace,
+    type WorkspaceFinding,
+} from './workspace.js';
 
 const spec = committedSpec();
 const MODS = path.join(REPO_ROOT, 'fixtures', 'mods');
@@ -197,4 +202,33 @@ test('the second run takes the base game from the cache', (t) => {
     assert.equal(second.game.ms.build, 0);
     assert.deepEqual(written(second.findings), written(first.findings));
     assert.equal(readdirSync(cacheDir).length, 1);
+});
+
+test('a workspace opens with or without a game and with or without a mod', (t) => {
+    const dir = scratch(t);
+    const mod = path.join(dir, 'mod');
+    write(path.join(mod, 'events', 'fixture_events.txt'), MOD_EVENTS);
+    const game = gameStub(path.join(dir, 'install'), {
+        'common/scripted_triggers/fixture_triggers.txt':
+            'fixture_game_trigger = { always = yes }\n',
+    });
+    const both = openWorkspace({ spec, modDir: mod, gameDir: game, cacheDir: null });
+    assert.deepEqual(
+        both.index.allFiles().map((f) => [f.layer, f.path]),
+        [
+            ['game', 'common/scripted_triggers/fixture_triggers.txt'],
+            ['mod', 'events/fixture_events.txt'],
+        ],
+    );
+    assert.deepEqual(
+        both.mod?.files.map((f) => f.path),
+        ['events/fixture_events.txt'],
+    );
+    assert.equal(both.game?.listing.files.length, 1);
+    const gameOnly = openWorkspace({ spec, modDir: null, gameDir: game, cacheDir: null });
+    assert.equal(gameOnly.mod, null);
+    assert.equal(gameOnly.index.allFiles().length, 1);
+    const modOnly = openWorkspace({ spec, modDir: mod, gameDir: null, cacheDir: null });
+    assert.equal(modOnly.game, null);
+    assert.equal(modOnly.index.allFiles().length, 1);
 });

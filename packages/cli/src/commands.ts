@@ -8,5 +8,6 @@
 import { checkCommand } from './check.js';
 import type { Command } from './command.js';
 import { explainCommand } from './explain.js';
+import { lookupCommand } from './lookup.js';
 
-export const COMMANDS: readonly Command[] = [checkCommand, explainCommand];
+export const COMMANDS: readonly Command[] = [checkCommand, lookupCommand, explainCommand];

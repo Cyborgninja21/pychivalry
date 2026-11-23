@@ -56,11 +56,14 @@ export {
 export {
     checkWorkspace,
     GAME_NOT_LOADED,
+    openWorkspace,
     scriptFindings,
     type ScriptInput,
+    type Workspace,
     type WorkspaceCheck,
     type WorkspaceCheckOptions,
     type WorkspaceFinding,
+    type WorkspaceOptions,
 } from './workspace.js';
 
 export interface CheckInput {

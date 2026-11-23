@@ -20,6 +20,7 @@ terminal (build step 7); until then it runs from a build of this repository as
 | Command | What it does |
 | --- | --- |
 | `pychivalry check <mod>` | Checks a mod folder: every finding, file by file, then a summary |
+| `pychivalry lookup <name>...` | What a name is: every reading the spec package has of it (its description, the scopes it supports, what it takes, the version it came in or went out), where the base game and a mod define and use it and which definition is in force, and, for a name nothing knows, the names close to it |
 | `pychivalry explain <code>...` | What a finding's code means: its severity, what it finds and the game's evidence for it. A code may be written `names/*` for a whole family, or `*` for all |
 | `pychivalry --help`, `pychivalry <command> --help` | The commands, or one command's options |
 | `pychivalry --version` | The version |
@@ -35,6 +36,16 @@ Options of `check`:
 | `--severity <severity>` | Keep only findings of these severities: `error`, `warning`, `information`, `hint`. Several are written with commas or by giving the option again |
 | `--code <code>` | Keep only findings of these codes: a code, a family (`names/*`) or `*`. Several as for `--severity` |
 | `--limit <n>` | Show at most `n` findings. The summary still counts all of them |
+
+Options of `lookup`: `--vanilla`, `--no-vanilla`, `--spec` and `--json` as for `check`, and:
+
+| Option | What it does |
+| --- | --- |
+| `--mod <mod>` | A mod folder, read over the base game, so that its definitions and uses are found too |
+| `--language <language>` | Only this language's localization text, as its files' header names it (`l_english`) |
+
+With `--json`, `lookup` prints one object per name: the whole answer, each part saying where it
+comes from or why the spec package has nothing for it.
 
 What `check` prints:
 
@@ -56,7 +67,8 @@ What `check` prints:
 Exit codes: `0` when no finding kept is an error, `1` when one is, `2` on bad usage or when the
 mod, the game or the spec package cannot be read. The filters choose the findings kept, so
 `--code syntax/*` exits with `1` only for a syntax error; `--limit` does not change the exit
-code. `explain` exits with `1` when a code is none of this build's.
+code. `lookup` exits with `1` when neither the spec package nor the game and the mod know a
+name, and `explain` when a code is none of this build's.
 
 The first `check` reads the whole base game, about 15 seconds for game 1.21, and saves what it
 found in your cache folder ([Settings](settings.md)); every later one loads that in a second or

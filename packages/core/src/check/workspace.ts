@@ -23,7 +23,7 @@ import { readFileSync } from 'node:fs';
 import { folderTableFromSpec, type FolderTable } from '../index/folders.js';
 import { openGameIndex, type GameIndex } from '../index/game-index.js';
 import { compareCodePoints } from '../index/order.js';
-import { indexMod } from '../index/read-game.js';
+import { indexMod, type ModListing } from '../index/read-game.js';
 import { currentPlatform, rulesFromSpec, type Platform, type RulesTable } from '../index/rules.js';
 import { fileKindOf, WorkspaceIndex } from '../index/workspace.js';
 import type { Spec } from '../spec/reader.js';
@@ -148,11 +148,9 @@ export function scriptFindings(input: ScriptInput): WorkspaceFinding[] {
     return out.sort(compareFindings);
 }
 
-export interface WorkspaceCheckOptions {
+export interface WorkspaceOptions {
     readonly spec: Spec;
-    /** The mod's folder. */
-    readonly modDir: string;
-    /** The game's `game` folder, or null to check without the base game. */
+    /** The game's `game` folder, or null for no base game. */
     readonly gameDir: string | null;
     /** Where the base game's index is cached (`defaultCacheDir()`), or null for no cache. */
     readonly cacheDir: string | null;
@@ -161,23 +159,23 @@ export interface WorkspaceCheckOptions {
     readonly fallbackEncoding?: FallbackEncoding | undefined;
 }
 
-export interface WorkspaceCheck {
-    /** The mod's script files checked, by their path inside the mod, in code-point order. */
-    readonly files: readonly string[];
-    /** Every finding, file by file in that order, each file's by where they start. */
-    readonly findings: readonly WorkspaceFinding[];
-    /** Script and localization files in folders the spec does not list, by folder: not checked. */
-    readonly notChecked: ReadonlyMap<string, number>;
-    /** The base game's index, when a game folder was given. */
-    readonly game: GameIndex | null;
-    /** The game's build, from its launcher's settings; null without a game or when unknown. */
-    readonly gameBuild: string | null;
+/** A workspace opened: the base game's index, with a mod indexed over it when one is given. */
+export interface Workspace {
     /** The index holding the mod, over the base game when one was given. */
     readonly index: WorkspaceIndex;
+    /** The base game's index, when a game folder was given. */
+    readonly game: GameIndex | null;
+    /** The mod's files, when a mod was given. */
+    readonly mod: ModListing | null;
 }
 
-/** Every finding pychivalry reports on a mod. */
-export function checkWorkspace(options: WorkspaceCheckOptions): WorkspaceCheck {
+/**
+ * The base game's index, from the on-disk cache when it answers for the installed game, and a
+ * mod's files indexed over it: what every surface checks and looks names up in.
+ */
+export function openWorkspace(
+    options: WorkspaceOptions & { readonly modDir: string | null },
+): Workspace {
     const { folders, rules } = specContext(options.spec);
     const platform = 'platform' in options ? options.platform : currentPlatform();
     let game: GameIndex | null = null;
@@ -201,6 +199,33 @@ export function checkWorkspace(options: WorkspaceCheckOptions): WorkspaceCheck {
         });
         index = game.index;
     }
+    const mod = options.modDir === null ? null : indexMod(index, options.modDir);
+    return { index, game, mod };
+}
+
+export interface WorkspaceCheckOptions extends WorkspaceOptions {
+    /** The mod's folder. */
+    readonly modDir: string;
+}
+
+export interface WorkspaceCheck {
+    /** The mod's script files checked, by their path inside the mod, in code-point order. */
+    readonly files: readonly string[];
+    /** Every finding, file by file in that order, each file's by where they start. */
+    readonly findings: readonly WorkspaceFinding[];
+    /** Script and localization files in folders the spec does not list, by folder: not checked. */
+    readonly notChecked: ReadonlyMap<string, number>;
+    /** The base game's index, when a game folder was given. */
+    readonly game: GameIndex | null;
+    /** The game's build, from its launcher's settings; null without a game or when unknown. */
+    readonly gameBuild: string | null;
+    /** The index holding the mod, over the base game when one was given. */
+    readonly index: WorkspaceIndex;
+}
+
+/** Every finding pychivalry reports on a mod. */
+export function checkWorkspace(options: WorkspaceCheckOptions): WorkspaceCheck {
+    const { index, game } = openWorkspace({ ...options, modDir: null });
     const listing = indexMod(index, options.modDir);
     const names = game === null ? GAME_NOT_LOADED : definedNamesOf(index);
     const scripts = listing.files
