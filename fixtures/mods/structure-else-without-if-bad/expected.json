@@ -1,0 +1,16 @@
+{
+    "findings": [
+        {
+            "file": "common/scripted_effects/fixture_effects.txt",
+            "line": 3,
+            "column": 2,
+            "code": "structure/else-without-if",
+            "severity": "information",
+            "message": "'else' is not directly after 'if' or 'else_if'.",
+            "data": {
+                "branch": "else",
+                "follows": ["if", "else_if"]
+            }
+        }
+    ]
+}

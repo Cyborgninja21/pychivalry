@@ -4,3 +4,6 @@ The good half of the `names/unknown-trigger` pair: `names-unknown-trigger-bad` w
 replaced by a trigger, an iterator over a list the game has, the trigger that replaced the
 removed one (`has_special_district`), and a call of a scripted trigger the mod defines. A
 correct tool reports nothing.
+
+The event is hidden (`hidden = yes`), so that the advice checks of item 4.7 have nothing to say
+about it.

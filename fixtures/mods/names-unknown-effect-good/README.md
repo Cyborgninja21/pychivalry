@@ -4,3 +4,6 @@ The good half of the `names/unknown-effect` pair: `names-unknown-effect-bad` wit
 replaced by an effect, an iterator over a list the game has, the effect that replaced the
 removed one (`add_special_district_slot`), and a call of a scripted effect the mod defines. A
 correct tool reports nothing.
+
+The event is hidden (`hidden = yes`), so that the advice checks of item 4.7 have nothing to say
+about it.

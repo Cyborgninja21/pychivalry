@@ -1,0 +1,16 @@
+{
+    "findings": [
+        {
+            "file": "events/fixture_events.txt",
+            "line": 12,
+            "column": 3,
+            "code": "structure/event-triggered-animation-without-trigger",
+            "severity": "information",
+            "message": "This 'triggered_animation' has no 'trigger'.",
+            "data": {
+                "block": "triggered_animation",
+                "missing": "trigger"
+            }
+        }
+    ]
+}

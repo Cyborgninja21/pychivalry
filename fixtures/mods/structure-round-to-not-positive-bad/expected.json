@@ -1,0 +1,16 @@
+{
+    "findings": [
+        {
+            "file": "common/script_values/fixture_values.txt",
+            "line": 3,
+            "column": 13,
+            "code": "structure/round-to-not-positive",
+            "severity": "information",
+            "message": "'round_to' is 0; it rounds to a multiple of a number above zero.",
+            "data": {
+                "keyword": "round_to",
+                "value": "0"
+            }
+        }
+    ]
+}

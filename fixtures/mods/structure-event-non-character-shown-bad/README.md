@@ -7,3 +7,6 @@ whose `scope` is a faith, not a character, and that is neither `hidden` nor `maj
 A correct tool reports one error with the game's message "Error in event '{}'. Non-character
 events must be hidden, or be narrative events". An event in the character scope is not
 reported. `expected.json` holds the finding.
+
+The faith event has a `desc` and an `option`, so that the advice checks of item 4.7 have
+nothing to say about it.

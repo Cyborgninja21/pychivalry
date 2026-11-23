@@ -1,0 +1,16 @@
+{
+    "findings": [
+        {
+            "file": "events/fixture_events.txt",
+            "line": 3,
+            "column": 1,
+            "code": "structure/event-without-desc",
+            "severity": "information",
+            "message": "The event 'fixture.0001' is not hidden and has no 'desc'.",
+            "data": {
+                "event": "fixture.0001",
+                "missing": "desc"
+            }
+        }
+    ]
+}

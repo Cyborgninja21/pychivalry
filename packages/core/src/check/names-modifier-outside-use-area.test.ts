@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { CHECK_KINDS } from './finding.js';
+import { CHECK_KINDS, isAdvice } from './finding.js';
 import { CODE } from './names-modifier-outside-use-area.js';
 import { checkFixture, checkText, expectedFindings } from './testing.js';
 
@@ -40,7 +40,8 @@ test(`${CODE}: a modifier the schema lists in the block is judged by its name; t
     // modifier, is in its area; `monthly_prestige`, a character modifier, is not.
     const text =
         'fixture_building_01 = {\n\tmarket_terrain_modifier = {\n\t\tterrain = taiga\n\t}\n\tcounty_potential_trade_good_modifier = {\n\t\ttrade_good = trade_good_cattle\n\t\ttrade_good_cattle_production_add = 1\n\t\tmonthly_prestige = 1\n\t}\n}\n';
-    const found = checkText('common/buildings/fixture.txt', text);
+    // The advice checks of item 4.7 are tested on their own fixtures.
+    const found = checkText('common/buildings/fixture.txt', text).filter((f) => !isAdvice(f.code));
     assert.deepEqual(
         found.map((f) => [f.code, f.args[0]]),
         [[CODE, 'monthly_prestige']],

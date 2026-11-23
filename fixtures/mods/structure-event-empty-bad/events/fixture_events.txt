@@ -1,0 +1,4 @@
+namespace = fixture
+
+fixture.0001 = {
+}

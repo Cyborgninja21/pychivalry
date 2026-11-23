@@ -5,4 +5,5 @@ fixture.0001 = {
 		fixture_reward_effect = yes
 		fixture_undefined_effect = yes
 	}
+	hidden = yes
 }

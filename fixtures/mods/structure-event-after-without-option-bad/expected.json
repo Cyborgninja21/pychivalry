@@ -1,0 +1,29 @@
+{
+    "findings": [
+        {
+            "file": "events/fixture_events.txt",
+            "line": 3,
+            "column": 1,
+            "code": "structure/event-without-option",
+            "severity": "information",
+            "message": "The event 'fixture.0001' is not hidden and has no 'option'.",
+            "data": {
+                "event": "fixture.0001",
+                "missing": "option"
+            }
+        },
+        {
+            "file": "events/fixture_events.txt",
+            "line": 7,
+            "column": 2,
+            "code": "structure/event-after-without-option",
+            "severity": "information",
+            "message": "The event 'fixture.0001' has 'after' but no 'option', without which it does nothing.",
+            "data": {
+                "event": "fixture.0001",
+                "block": "after",
+                "missing": ["option"]
+            }
+        }
+    ]
+}

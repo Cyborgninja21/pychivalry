@@ -1,0 +1,5 @@
+namespace = fixture
+
+fixture_reward_effect = {
+	add_gold = 10
+}

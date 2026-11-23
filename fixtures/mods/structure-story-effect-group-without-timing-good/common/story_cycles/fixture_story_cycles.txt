@@ -1,0 +1,15 @@
+fixture_story = {
+	effect_group = {
+		days = 30
+		triggered_effect = {
+			trigger = {
+				is_adult = yes
+			}
+			effect = {
+				story_owner = {
+					add_gold = 10
+				}
+			}
+		}
+	}
+}

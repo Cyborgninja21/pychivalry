@@ -1,12 +1,24 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { committedSpec } from '../spec/testing.js';
-import { CHECK_KINDS } from './finding.js';
+import { CHECK_KINDS, isAdvice, type CheckCode } from './finding.js';
 import { agreesWithBaseGame, CODE, indexDatabase, keyPlaces } from './references-unknown-key.js';
-import { checkFixture, checkText, expectedFindings, specContext } from './testing.js';
+import {
+    checkFixture,
+    checkText,
+    expectedFindings,
+    specContext,
+    type WrittenFinding,
+} from './testing.js';
+
+// The fixture's dynasty names no culture, though every base-game dynasty does: a culture the
+// mod defined would need every field each base-game culture sets, and so on. The advice check
+// `fields/usually-present` (item 4.7) is tested on its own pair, and not counted here.
+const notAdvice = (found: WrittenFinding[]): WrittenFinding[] =>
+    found.filter((f) => !isAdvice(f.code as CheckCode));
 
 test(`${CODE} fires on its bad fixture, and only it`, () => {
-    const found = checkFixture('references-unknown-key-bad');
+    const found = notAdvice(checkFixture('references-unknown-key-bad'));
     assert.deepEqual(found, expectedFindings('references-unknown-key-bad'));
     assert.ok(found.length > 0);
     assert.ok(found.every((f) => f.code === CODE && f.severity === 'warning'));
@@ -14,7 +26,7 @@ test(`${CODE} fires on its bad fixture, and only it`, () => {
 });
 
 test(`${CODE} is silent on its good fixture`, () => {
-    assert.deepEqual(checkFixture('references-unknown-key-good'), []);
+    assert.deepEqual(notAdvice(checkFixture('references-unknown-key-good')), []);
 });
 
 test(`${CODE} rests on its catalogue message`, () => {

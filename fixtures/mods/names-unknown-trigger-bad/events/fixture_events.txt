@@ -8,4 +8,5 @@ fixture.0001 = {
 	immediate = {
 		add_gold = 10
 	}
+	hidden = yes
 }

@@ -1,0 +1,17 @@
+{
+    "findings": [
+        {
+            "file": "events/fixture_events.txt",
+            "line": 9,
+            "column": 14,
+            "code": "scope/saved-late-read-in-desc",
+            "severity": "information",
+            "message": "'scope:fixture_mood' is read in 'desc', but the event saves it only in 'option' or 'after', after the window is shown.",
+            "data": {
+                "scope": "fixture_mood",
+                "block": "desc",
+                "saved_in": ["option", "after"]
+            }
+        }
+    ]
+}

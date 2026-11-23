@@ -20,4 +20,7 @@ fixture_decision = {
 			}
 		}
 	}
+	picture = {
+		reference = "gfx/interface/illustrations/decisions/decision_misc.dds"
+	}
 }

@@ -1,0 +1,42 @@
+{
+    "findings": [
+        {
+            "file": "common/casus_belli_types/fixture_casus_belli.txt",
+            "line": 1,
+            "column": 1,
+            "code": "fields/usually-present",
+            "severity": "information",
+            "message": "'fixture_cb' has no 'on_defeat', which every one of the base game's 138 records of its kind sets.",
+            "data": {
+                "record": "fixture_cb",
+                "field": "on_defeat",
+                "base_game_records": "138"
+            }
+        },
+        {
+            "file": "common/casus_belli_types/fixture_casus_belli.txt",
+            "line": 1,
+            "column": 1,
+            "code": "fields/usually-present",
+            "severity": "information",
+            "message": "'fixture_cb' has no 'on_victory', which every one of the base game's 138 records of its kind sets.",
+            "data": {
+                "record": "fixture_cb",
+                "field": "on_victory",
+                "base_game_records": "138"
+            }
+        },
+        {
+            "file": "common/casus_belli_types/fixture_casus_belli.txt",
+            "line": 1,
+            "column": 1,
+            "code": "structure/casus-belli-without-outcome",
+            "severity": "information",
+            "message": "The casus belli 'fixture_cb' has none of 'on_victory', 'on_defeat' or 'on_white_peace'.",
+            "data": {
+                "record": "fixture_cb",
+                "missing": ["on_victory", "on_defeat", "on_white_peace"]
+            }
+        }
+    ]
+}
