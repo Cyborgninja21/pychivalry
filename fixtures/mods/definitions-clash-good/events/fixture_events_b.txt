@@ -1,0 +1,6 @@
+namespace = fixture
+
+fixture.0001 = {
+	id_override_priority = 1
+	hidden = yes
+}

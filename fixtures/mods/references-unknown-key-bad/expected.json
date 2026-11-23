@@ -1,0 +1,30 @@
+{
+    "findings": [
+        {
+            "file": "common/dynasty_houses/fixture_houses.txt",
+            "line": 8,
+            "column": 12,
+            "code": "references/unknown-key",
+            "severity": "warning",
+            "message": "Failed to read key reference fixture_missing_dynasty from database common/dynasties",
+            "data": {
+                "name": "fixture_missing_dynasty",
+                "database": "common/dynasties",
+                "place": "common/dynasty_houses::dynasty"
+            }
+        },
+        {
+            "file": "common/scripted_triggers/fixture_triggers.txt",
+            "line": 2,
+            "column": 27,
+            "code": "references/unknown-key",
+            "severity": "warning",
+            "message": "Failed to read key reference fixture_missing_tradition from database common/culture/traditions",
+            "data": {
+                "name": "fixture_missing_tradition",
+                "database": "common/culture/traditions",
+                "place": "triggers::has_cultural_tradition"
+            }
+        }
+    ]
+}

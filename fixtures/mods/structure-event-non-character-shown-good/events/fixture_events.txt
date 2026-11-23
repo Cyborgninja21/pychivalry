@@ -1,0 +1,18 @@
+namespace = fixture
+
+fixture.0001 = {
+	scope = faith
+	hidden = yes
+	immediate = {
+		add_to_global_variable_list = { name = fixture_list target = this }
+	}
+	desc = fixture.0001.desc
+	option = {
+		name = fixture.0001.a
+	}
+}
+
+fixture.0002 = {
+	scope = character
+	hidden = yes
+}

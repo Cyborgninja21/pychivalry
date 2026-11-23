@@ -1,0 +1,10 @@
+namespace = fixture
+namespace = fixture_other
+
+fixture.0001 = {
+	hidden = yes
+}
+
+fixture_other.0001 = {
+	hidden = yes
+}

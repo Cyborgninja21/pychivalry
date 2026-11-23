@@ -1,0 +1,23 @@
+fixture_casus_belli = {
+	group = fixture_casus_belli_group
+	on_invalidated_desc = fixture_casus_belli_invalidated
+	war_name = fixture_casus_belli_war_name
+	on_victory_desc = fixture_casus_belli_victory
+	on_defeat_desc = fixture_casus_belli_defeat
+	on_white_peace_desc = fixture_casus_belli_white_peace
+	on_victory = {
+		scope:attacker = {
+			add_prestige = 100
+		}
+	}
+	on_defeat = {
+		scope:attacker = {
+			add_prestige = -100
+		}
+	}
+	on_white_peace = {
+		scope:attacker = {
+			add_prestige = 10
+		}
+	}
+}
