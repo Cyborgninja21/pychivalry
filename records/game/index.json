@@ -2,11 +2,11 @@
     "record_format": 1,
     "suite": "game:index",
     "command": "task game:index",
-    "made_at": "2026-11-22T07:20:01.270Z",
+    "made_at": "2026-11-23T02:31:09.992Z",
     "tool": {
         "name": "pychivalry",
         "version": "0.0.0",
-        "commit": "8f0d24cc499111c38abb4f7ed7168cd04e61cf4f",
+        "commit": "e30857d9563d6df15ee8d51756e9dfff72f7e4bc",
         "dirty": false
     },
     "machine": {
@@ -24,8 +24,8 @@
     },
     "spec": {
         "version": "1.21.0.3",
-        "sha256": "4a878a3a1537ef239b725615c9ef3450ef05cc5968024c7e01fbcc67d4bf6baf",
-        "package_format": 5
+        "sha256": "47fff382e93e9e756e89ba62b8e8463dd59e1bf7740314e8a9e39fb7d28667d9",
+        "package_format": 7
     },
     "corpus": {
         "manifest_sha256": "da1a745c50330a3a50dee079fe53609cd236f2f8db8c9533084cfb96fbb0b2c6",
@@ -38,19 +38,19 @@
         ]
     },
     "notes": [
-        "The base game is the install's clausewitz/, jomini/ and game/ folders and the DLC packs inside game/dlc/, each its own layer; a pack's files sit at their path inside the pack (spec/override-rules.json, the pack-layer row). The files read are the .txt and .yml files in the folders the committed spec lists; results.base_game.not_described counts the .txt and .yml files in other folders, not read, and not_read every other file by extension.",
-        "A definition is a top-level key of a file in a listed folder, recorded with how it is written (record, value, prefixed, constant, container, entry, localization key); a use is a word written anywhere else (records/README.md, Index records). uses counts every word; uses_of_defined_names those whose name something in the index defines, the references of item 3.4.",
-        "Names defined more than once are resolved with the committed stand-in rules table, which carries only the rules docs/overrides.md marks settled. by_status counts each name of each database once; an unknown name (defined more than once, winner not known) is counted under every open rule of docs/overrides.md that leaves it open, so unknown_by_rule may sum to more than the unknown names.",
+        "The base game is the install's clausewitz/, jomini/ and game/ folders and the DLC packs inside game/dlc/, each its own layer; a pack's files sit at their path inside the pack (the spec package's override rules, part D1, the pack-layer row). The files read are the .txt and .yml files in the folders the committed spec lists; results.base_game.not_described counts the .txt and .yml files in other folders, not read, and not_read every other file by extension.",
+        "A definition is a top-level key of a file in a listed folder, recorded with how it is written (record, value, prefixed, constant, container, entry, localization key), less the forms the package's part D2 confirms declare no name (namespace, settings), and with the nested definitions and file-named records its part D3 confirms (records/README.md, Index records); a constant holds for its file where D2 says so. A use is a word written anywhere else. uses counts every word; uses_of_defined_names those whose name something in the index defines, the references of item 3.4.",
+        "Names defined more than once are resolved with the spec package's override rules (part D1): a row decides when its status is settled or derived and its kind is one the index applies; a partial or open row decides nothing. by_status counts each name of each database once; an unknown name (defined more than once, winner not known) is counted under the docs/overrides.md rule of each reason that leaves it open (unknown_by_rule, which may sum to more than the unknown names) and by its reasons (unknown_by_reason).",
         "The fresh build, the reload from the cache and each mod over the base game run one at a time, each in a fresh process (tools/src/index-worker.ts), with Node's default heap. peak_rss_kib is that process's peak resident memory, read right after the build, the reload or the mod; times are in milliseconds on this machine. The cache is written to a temporary folder and deleted after the run; its key is the spec checksum, the rules digest, the platform, the game build and the manifest of the files read.",
         "The spec is for game 1.21.0.3, the build installed. not_described lists the folders the spec does not list that hold .txt or .yml files (beside_spec_folders true when a folder of the spec shares their first folder), and spec_folders_without_files the spec's folders that hold no file read in this install.",
-        "The load average over one minute was 2.57 on 16 logical CPUs just before the run: the times are this machine's, under that load."
+        "The load average over one minute was 3.48 on 16 logical CPUs just before the run: the times are this machine's, under that load."
     ],
     "results": {
         "passed": true,
         "failures": [],
         "platform": "linux",
         "rules": {
-            "sha256": "8163960e844cef64b2a0304167b52a0e92bb2a354a62aa494a43fb0341d0135f"
+            "sha256": "9d211d879e649dc348520f082157825548d1560ed3bc2f2222417f1cf5fed1ea"
         },
         "base_game": {
             "layers": [
@@ -66,14 +66,14 @@
                     "files": 230,
                     "definitions": 7309,
                     "uses": 1418,
-                    "uses_of_defined_names": 313
+                    "uses_of_defined_names": 315
                 },
                 {
                     "layer": "game",
                     "files": 16940,
-                    "definitions": 3338216,
-                    "uses": 9086343,
-                    "uses_of_defined_names": 5121708
+                    "definitions": 3359863,
+                    "uses": 9064884,
+                    "uses_of_defined_names": 5288564
                 },
                 {
                     "layer": "dlc",
@@ -86,18 +86,19 @@
             "packs": 23,
             "files": 17302,
             "lines": 11517318,
-            "definitions": 3349328,
-            "uses": 9089883,
-            "uses_of_defined_names": 5123059,
-            "names": 607126,
+            "definitions": 3370975,
+            "uses": 9068424,
+            "uses_of_defined_names": 5289917,
+            "names": 607931,
             "definitions_by_form": {
                 "constant": 3047,
-                "container": 201,
-                "entry": 3030,
+                "container": 194,
+                "entry": 3024,
+                "file": 154,
                 "key": 3100873,
                 "prefixed": 4650,
-                "record": 215381,
-                "value": 22146
+                "record": 237862,
+                "value": 21171
             },
             "folders_indexed": 236,
             "folders": [
@@ -176,10 +177,10 @@
                     "folder": "common/activities/activity_types",
                     "content_type": "activity_type",
                     "files": 24,
-                    "definitions": 38,
+                    "definitions": 448,
                     "by_form": {
                         "constant": 14,
-                        "record": 24
+                        "record": 434
                     },
                     "spec_schema": true,
                     "spec_files": 24,
@@ -618,9 +619,9 @@
                     "folder": "common/court_amenities",
                     "content_type": "court_amenity",
                     "files": 1,
-                    "definitions": 4,
+                    "definitions": 24,
                     "by_form": {
-                        "record": 4
+                        "record": 24
                     },
                     "spec_schema": true,
                     "spec_files": 1,
@@ -935,9 +936,9 @@
                     "folder": "common/dynasty_house_motto_inserts",
                     "content_type": "dynasty_house_motto_insert",
                     "files": 1,
-                    "definitions": 23,
+                    "definitions": 475,
                     "by_form": {
-                        "record": 23
+                        "record": 475
                     },
                     "spec_schema": true,
                     "spec_files": 1,
@@ -1131,9 +1132,9 @@
                     "folder": "common/game_rules",
                     "content_type": "game_rule",
                     "files": 2,
-                    "definitions": 86,
+                    "definitions": 406,
                     "by_form": {
-                        "record": 86
+                        "record": 406
                     },
                     "spec_schema": true,
                     "spec_files": 2,
@@ -1143,12 +1144,12 @@
                     "folder": "common/genes",
                     "content_type": "gene",
                     "files": 11,
-                    "definitions": 34,
+                    "definitions": 1374,
                     "by_form": {
                         "constant": 12,
-                        "container": 8,
-                        "entry": 9,
-                        "record": 5
+                        "container": 1,
+                        "entry": 3,
+                        "record": 1358
                     },
                     "spec_schema": true,
                     "spec_files": 11,
@@ -1182,10 +1183,10 @@
                     "folder": "common/great_projects/types",
                     "content_type": "great_project_type",
                     "files": 5,
-                    "definitions": 81,
+                    "definitions": 385,
                     "by_form": {
                         "constant": 41,
-                        "record": 40
+                        "record": 344
                     },
                     "spec_schema": true,
                     "spec_files": 5,
@@ -1280,9 +1281,9 @@
                     "folder": "common/house_relation_types",
                     "content_type": "house_relation_type",
                     "files": 1,
-                    "definitions": 1,
+                    "definitions": 8,
                     "by_form": {
-                        "record": 1
+                        "record": 8
                     },
                     "spec_schema": true,
                     "spec_files": 1,
@@ -1292,9 +1293,9 @@
                     "folder": "common/house_unities",
                     "content_type": "house_unity",
                     "files": 1,
-                    "definitions": 2,
+                    "definitions": 12,
                     "by_form": {
-                        "record": 2
+                        "record": 12
                     },
                     "spec_schema": true,
                     "spec_files": 1,
@@ -1328,10 +1329,10 @@
                     "folder": "common/landed_titles",
                     "content_type": "landed_title",
                     "files": 14,
-                    "definitions": 3510,
+                    "definitions": 19731,
                     "by_form": {
                         "constant": 35,
-                        "record": 3475
+                        "record": 19696
                     },
                     "spec_schema": true,
                     "spec_files": 14,
@@ -1624,9 +1625,9 @@
                     "folder": "common/portrait_types",
                     "content_type": "portrait_type",
                     "files": 1,
-                    "definitions": 1,
+                    "definitions": 5,
                     "by_form": {
-                        "record": 1
+                        "record": 5
                     },
                     "spec_schema": true,
                     "spec_files": 1,
@@ -1636,11 +1637,11 @@
                     "folder": "common/province_terrain",
                     "content_type": "province_terrain",
                     "files": 2,
-                    "definitions": 25070,
+                    "definitions": 25067,
                     "by_form": {
                         "constant": 7,
                         "record": 12919,
-                        "value": 12144
+                        "value": 12141
                     },
                     "spec_schema": true,
                     "spec_files": 2,
@@ -2078,10 +2079,10 @@
                     "folder": "common/situation/situations",
                     "content_type": "situation",
                     "files": 12,
-                    "definitions": 24,
+                    "definitions": 168,
                     "by_form": {
                         "constant": 11,
-                        "record": 13
+                        "record": 157
                     },
                     "spec_schema": true,
                     "spec_files": 12,
@@ -2128,9 +2129,9 @@
                     "folder": "common/struggle/struggles",
                     "content_type": "struggle",
                     "files": 2,
-                    "definitions": 2,
+                    "definitions": 9,
                     "by_form": {
-                        "record": 2
+                        "record": 9
                     },
                     "spec_schema": true,
                     "spec_files": 2,
@@ -2140,10 +2141,10 @@
                     "folder": "common/subject_contracts/contracts",
                     "content_type": "contract",
                     "files": 16,
-                    "definitions": 75,
+                    "definitions": 295,
                     "by_form": {
                         "constant": 2,
-                        "record": 73
+                        "record": 293
                     },
                     "spec_schema": true,
                     "spec_files": 16,
@@ -2201,9 +2202,9 @@
                     "folder": "common/task_contracts",
                     "content_type": "task_contract",
                     "files": 16,
-                    "definitions": 179,
+                    "definitions": 895,
                     "by_form": {
-                        "record": 179
+                        "record": 895
                     },
                     "spec_schema": true,
                     "spec_files": 16,
@@ -2334,10 +2335,10 @@
                     "folder": "common/traits",
                     "content_type": "trait",
                     "files": 1,
-                    "definitions": 317,
+                    "definitions": 374,
                     "by_form": {
                         "constant": 6,
-                        "record": 311
+                        "record": 368
                     },
                     "spec_schema": true,
                     "spec_files": 1,
@@ -2396,9 +2397,9 @@
                     "folder": "common/tutorial_lessons",
                     "content_type": "tutorial_lesson",
                     "files": 10,
-                    "definitions": 124,
+                    "definitions": 679,
                     "by_form": {
-                        "record": 124
+                        "record": 679
                     },
                     "spec_schema": true,
                     "spec_files": 10,
@@ -2420,12 +2421,11 @@
                     "folder": "events",
                     "content_type": "event",
                     "files": 610,
-                    "definitions": 16182,
+                    "definitions": 15551,
                     "by_form": {
                         "constant": 65,
                         "prefixed": 4650,
-                        "record": 10836,
-                        "value": 631
+                        "record": 10836
                     },
                     "spec_schema": true,
                     "spec_files": 610,
@@ -2591,11 +2591,8 @@
                     "folder": "gfx/map/environment",
                     "content_type": "environment",
                     "files": 12,
-                    "definitions": 408,
-                    "by_form": {
-                        "record": 67,
-                        "value": 341
-                    },
+                    "definitions": 0,
+                    "by_form": {},
                     "spec_schema": false,
                     "spec_files": null,
                     "spec_records": null
@@ -2689,9 +2686,9 @@
                     "folder": "gfx/map/spline_network/trade_route_entities",
                     "content_type": "trade_route_entity",
                     "files": 2,
-                    "definitions": 2,
+                    "definitions": 26,
                     "by_form": {
-                        "record": 2
+                        "record": 26
                     },
                     "spec_schema": false,
                     "spec_files": null,
@@ -2774,10 +2771,10 @@
                     "folder": "gfx/portraits/portrait_modifiers",
                     "content_type": "portrait_modifier",
                     "files": 33,
-                    "definitions": 53,
+                    "definitions": 1777,
                     "by_form": {
                         "constant": 4,
-                        "record": 49
+                        "record": 1773
                     },
                     "spec_schema": false,
                     "spec_files": null,
@@ -2833,8 +2830,10 @@
                     "folder": "history/cultures",
                     "content_type": "culture_history",
                     "files": 154,
-                    "definitions": 0,
-                    "by_form": {},
+                    "definitions": 154,
+                    "by_form": {
+                        "file": 154
+                    },
                     "spec_schema": true,
                     "spec_files": 154,
                     "spec_records": 647
@@ -2985,11 +2984,6 @@
             "spec_folders_without_files": [
                 "common/event_pictures",
                 "common/menu_scenes",
-                "common/religion/doctrines",
-                "common/religion/fervor_modifiers",
-                "common/religion/holy_sites",
-                "common/religion/religion_families",
-                "common/religion/religions",
                 "gui/scripted_widgets"
             ],
             "not_described": [
@@ -3249,51 +3243,50 @@
                 }
             ],
             "defined_more_than_once": {
-                "names": 13007,
+                "names": 12845,
                 "by_status": {
-                    "all": 33,
-                    "clash": 3,
+                    "all": 672,
+                    "single": 229,
                     "statements": 11662,
-                    "unknown": 1309
+                    "unknown": 118,
+                    "winner": 164
                 },
                 "unknown_by_rule": [
                     {
-                        "rule": 3,
-                        "names": 231
+                        "rule": 4,
+                        "names": 22
                     },
                     {
                         "rule": 5,
-                        "names": 440
+                        "names": 92
                     },
                     {
                         "rule": 6,
-                        "names": 638
+                        "names": 4
+                    }
+                ],
+                "unknown_by_reason": [
+                    {
+                        "reason": "no-rule",
+                        "names": 93
+                    },
+                    {
+                        "reason": "file-unknown:listing-depth",
+                        "names": 22
+                    },
+                    {
+                        "reason": "not-settled:characters-by-override-priority",
+                        "names": 3
                     }
                 ],
                 "unknown_by_database": [
                     {
-                        "database": "history/provinces",
-                        "names": 634
-                    },
-                    {
-                        "database": "localization",
-                        "names": 171
-                    },
-                    {
                         "database": "common/coat_of_arms/coat_of_arms",
-                        "names": 162
+                        "names": 21
                     },
                     {
-                        "database": "constants",
-                        "names": 141
-                    },
-                    {
-                        "database": "gfx/map/environment",
-                        "names": 61
-                    },
-                    {
-                        "database": "common/defines",
-                        "names": 54
+                        "database": "common/activities/activity_types#activity_window_character",
+                        "names": 19
                     },
                     {
                         "database": "sound",
@@ -3304,20 +3297,12 @@
                         "names": 16
                     },
                     {
+                        "database": "common/task_contracts#task_contract_reward",
+                        "names": 15
+                    },
+                    {
                         "database": "gfx/court_scene/scene_environment",
                         "names": 14
-                    },
-                    {
-                        "database": "common/modifier_definition_formats",
-                        "names": 13
-                    },
-                    {
-                        "database": "common/trigger_localization",
-                        "names": 5
-                    },
-                    {
-                        "database": "history/titles",
-                        "names": 4
                     },
                     {
                         "database": "gfx/map/map_object_data",
@@ -3328,12 +3313,8 @@
                         "names": 3
                     },
                     {
-                        "database": "common/genes",
-                        "names": 2
-                    },
-                    {
-                        "database": "common/landed_titles",
-                        "names": 2
+                        "database": "history/characters",
+                        "names": 3
                     },
                     {
                         "database": "gfx/map/post_effects",
@@ -3344,11 +3325,11 @@
                         "names": 1
                     },
                     {
-                        "database": "common/named_colors",
+                        "database": "common/genes",
                         "names": 1
                     },
                     {
-                        "database": "events",
+                        "database": "common/genes#gene_template",
                         "names": 1
                     },
                     {
@@ -3362,17 +3343,17 @@
                 ]
             },
             "time_ms": {
-                "list": 263,
-                "build": 12463,
-                "save": 192,
-                "report": 3003
+                "list": 337,
+                "build": 19310,
+                "save": 243,
+                "report": 4484
             },
-            "peak_rss_kib": 1346444,
-            "heap_used_after_build_mib": 550,
+            "peak_rss_kib": 1547964,
+            "heap_used_after_build_mib": 557,
             "cache": {
-                "bytes": 262932816,
-                "reload_ms": 692,
-                "reload_peak_rss_kib": 667704,
+                "bytes": 263502872,
+                "reload_ms": 933,
+                "reload_peak_rss_kib": 674652,
                 "reload_answers_as_fresh": true
             }
         },
@@ -3386,7 +3367,7 @@
                 "replace_paths": [],
                 "game_files_replaced": 0,
                 "game_files_hidden": 0,
-                "game_files_read_unknown": 0,
+                "game_files_read_unknown": 121,
                 "mod_files_read_unknown": 0,
                 "not_described": [
                     {
@@ -3400,25 +3381,26 @@
                     "names": 0,
                     "by_status": {},
                     "unknown_by_rule": [],
+                    "unknown_by_reason": [],
                     "unknown_by_database": []
                 },
                 "time_ms": {
-                    "load_base": 680,
-                    "index_mod": 5,
-                    "report": 478
+                    "load_base": 931,
+                    "index_mod": 8,
+                    "report": 888
                 },
-                "peak_rss_kib": 684352
+                "peak_rss_kib": 660552
             },
             {
                 "slug": "divine-intervention",
                 "files": 433,
-                "definitions": 54081,
-                "uses": 1989555,
-                "uses_of_defined_names": 737050,
+                "definitions": 54078,
+                "uses": 1989558,
+                "uses_of_defined_names": 750683,
                 "replace_paths": [],
                 "game_files_replaced": 1,
                 "game_files_hidden": 0,
-                "game_files_read_unknown": 0,
+                "game_files_read_unknown": 121,
                 "mod_files_read_unknown": 0,
                 "not_described": [
                     {
@@ -3429,62 +3411,33 @@
                 ],
                 "not_read_files": 135,
                 "defined_more_than_once": {
-                    "names": 3630,
+                    "names": 3584,
                     "by_status": {
                         "all": 6,
                         "single": 16,
-                        "unknown": 3608
+                        "winner": 3562
                     },
-                    "unknown_by_rule": [
-                        {
-                            "rule": 4,
-                            "names": 1
-                        },
-                        {
-                            "rule": 5,
-                            "names": 3607
-                        }
-                    ],
-                    "unknown_by_database": [
-                        {
-                            "database": "common/buildings",
-                            "names": 3507
-                        },
-                        {
-                            "database": "common/districts",
-                            "names": 54
-                        },
-                        {
-                            "database": "constants",
-                            "names": 45
-                        },
-                        {
-                            "database": "common/defines",
-                            "names": 1
-                        },
-                        {
-                            "database": "events",
-                            "names": 1
-                        }
-                    ]
+                    "unknown_by_rule": [],
+                    "unknown_by_reason": [],
+                    "unknown_by_database": []
                 },
                 "time_ms": {
-                    "load_base": 667,
-                    "index_mod": 1904,
-                    "report": 516
+                    "load_base": 978,
+                    "index_mod": 2320,
+                    "report": 957
                 },
-                "peak_rss_kib": 1505432
+                "peak_rss_kib": 1435076
             },
             {
                 "slug": "elf-destiny",
                 "files": 958,
-                "definitions": 19071,
-                "uses": 340803,
-                "uses_of_defined_names": 182395,
+                "definitions": 20211,
+                "uses": 339675,
+                "uses_of_defined_names": 210643,
                 "replace_paths": [],
                 "game_files_replaced": 34,
                 "game_files_hidden": 0,
-                "game_files_read_unknown": 0,
+                "game_files_read_unknown": 121,
                 "mod_files_read_unknown": 0,
                 "not_described": [
                     {
@@ -3500,154 +3453,37 @@
                 ],
                 "not_read_files": 1047,
                 "defined_more_than_once": {
-                    "names": 2002,
+                    "names": 2194,
                     "by_status": {
-                        "all": 36,
+                        "all": 60,
                         "single": 1382,
-                        "unknown": 584
+                        "unknown": 58,
+                        "winner": 694
                     },
                     "unknown_by_rule": [
                         {
-                            "rule": 3,
-                            "names": 1
-                        },
-                        {
-                            "rule": 4,
-                            "names": 42
-                        },
-                        {
                             "rule": 5,
-                            "names": 234
-                        },
+                            "names": 58
+                        }
+                    ],
+                    "unknown_by_reason": [
                         {
-                            "rule": 6,
-                            "names": 24
-                        },
-                        {
-                            "rule": 7,
-                            "names": 283
+                            "reason": "no-rule",
+                            "names": 58
                         }
                     ],
                     "unknown_by_database": [
                         {
-                            "database": "localization",
-                            "names": 283
-                        },
-                        {
-                            "database": "constants",
-                            "names": 79
-                        },
-                        {
-                            "database": "common/buildings",
-                            "names": 62
-                        },
-                        {
-                            "database": "common/defines",
-                            "names": 42
-                        },
-                        {
-                            "database": "common/scripted_triggers",
-                            "names": 28
-                        },
-                        {
-                            "database": "history/provinces",
-                            "names": 24
-                        },
-                        {
-                            "database": "map_data/geographical_regions",
-                            "names": 9
-                        },
-                        {
-                            "database": "common/trade/trade_good_categories",
-                            "names": 7
-                        },
-                        {
-                            "database": "common/scripted_effects",
-                            "names": 6
-                        },
-                        {
-                            "database": "common/traits",
-                            "names": 5
-                        },
-                        {
-                            "database": "common/coat_of_arms/coat_of_arms",
-                            "names": 4
-                        },
-                        {
-                            "database": "common/decisions",
-                            "names": 4
+                            "database": "common/genes#gene_template",
+                            "names": 52
                         },
                         {
                             "database": "common/genes",
-                            "names": 4
-                        },
-                        {
-                            "database": "common/character_interactions",
                             "names": 3
                         },
                         {
-                            "database": "common/districts",
-                            "names": 3
-                        },
-                        {
-                            "database": "common/customizable_localization",
+                            "database": "common/activities/activity_types#activity_window_character",
                             "names": 2
-                        },
-                        {
-                            "database": "common/schemes/scheme_types",
-                            "names": 2
-                        },
-                        {
-                            "database": "common/script_values",
-                            "names": 2
-                        },
-                        {
-                            "database": "common/scripted_rules",
-                            "names": 2
-                        },
-                        {
-                            "database": "gfx/portraits/portrait_modifiers",
-                            "names": 2
-                        },
-                        {
-                            "database": "common/council_positions",
-                            "names": 1
-                        },
-                        {
-                            "database": "common/council_tasks",
-                            "names": 1
-                        },
-                        {
-                            "database": "common/dynasty_legacies",
-                            "names": 1
-                        },
-                        {
-                            "database": "common/game_concepts",
-                            "names": 1
-                        },
-                        {
-                            "database": "common/important_actions",
-                            "names": 1
-                        },
-                        {
-                            "database": "common/landed_titles",
-                            "names": 1
-                        },
-                        {
-                            "database": "common/law_groups",
-                            "names": 1
-                        },
-                        {
-                            "database": "common/named_colors",
-                            "names": 1
-                        },
-                        {
-                            "database": "common/scripted_modifiers",
-                            "names": 1
-                        },
-                        {
-                            "database": "events",
-                            "names": 1
                         },
                         {
                             "database": "gfx/portraits",
@@ -3656,133 +3492,103 @@
                     ]
                 },
                 "time_ms": {
-                    "load_base": 770,
-                    "index_mod": 329,
-                    "report": 699
+                    "load_base": 1071,
+                    "index_mod": 378,
+                    "report": 904
                 },
-                "peak_rss_kib": 707372
+                "peak_rss_kib": 685924
             },
             {
                 "slug": "rice",
                 "files": 2090,
-                "definitions": 430663,
-                "uses": 737688,
-                "uses_of_defined_names": 443496,
+                "definitions": 431801,
+                "uses": 736563,
+                "uses_of_defined_names": 480828,
                 "replace_paths": [],
                 "game_files_replaced": 0,
                 "game_files_hidden": 0,
-                "game_files_read_unknown": 0,
+                "game_files_read_unknown": 121,
                 "mod_files_read_unknown": 0,
                 "not_described": [],
                 "not_read_files": 2043,
                 "defined_more_than_once": {
-                    "names": 6028,
+                    "names": 6062,
                     "by_status": {
-                        "all": 30,
-                        "unknown": 5998
+                        "all": 31,
+                        "unknown": 82,
+                        "winner": 5949
                     },
                     "unknown_by_rule": [
                         {
                             "rule": 5,
-                            "names": 64
-                        },
+                            "names": 82
+                        }
+                    ],
+                    "unknown_by_reason": [
                         {
-                            "rule": 6,
-                            "names": 1
-                        },
-                        {
-                            "rule": 7,
-                            "names": 5933
+                            "reason": "no-rule",
+                            "names": 82
                         }
                     ],
                     "unknown_by_database": [
                         {
-                            "database": "localization",
-                            "names": 5933
-                        },
-                        {
-                            "database": "constants",
-                            "names": 47
-                        },
-                        {
-                            "database": "common/coat_of_arms/coat_of_arms",
-                            "names": 7
-                        },
-                        {
-                            "database": "common/script_values",
-                            "names": 7
-                        },
-                        {
-                            "database": "common/culture/cultures",
-                            "names": 1
-                        },
-                        {
-                            "database": "common/event_backgrounds",
-                            "names": 1
-                        },
-                        {
-                            "database": "events",
-                            "names": 1
-                        },
-                        {
-                            "database": "history/titles",
-                            "names": 1
+                            "database": "common/activities/activity_types#activity_window_character",
+                            "names": 82
                         }
                     ]
                 },
                 "time_ms": {
-                    "load_base": 666,
-                    "index_mod": 948,
-                    "report": 587
+                    "load_base": 991,
+                    "index_mod": 1801,
+                    "report": 1044
                 },
-                "peak_rss_kib": 707944
+                "peak_rss_kib": 762860
             },
             {
                 "slug": "viet-events",
                 "files": 211,
-                "definitions": 89753,
-                "uses": 144666,
-                "uses_of_defined_names": 91899,
+                "definitions": 89800,
+                "uses": 144619,
+                "uses_of_defined_names": 92870,
                 "replace_paths": [],
                 "game_files_replaced": 0,
                 "game_files_hidden": 0,
-                "game_files_read_unknown": 0,
+                "game_files_read_unknown": 121,
                 "mod_files_read_unknown": 0,
                 "not_described": [],
                 "not_read_files": 234,
                 "defined_more_than_once": {
-                    "names": 40,
+                    "names": 44,
                     "by_status": {
                         "all": 9,
-                        "unknown": 31
+                        "unknown": 5,
+                        "winner": 30
                     },
                     "unknown_by_rule": [
                         {
                             "rule": 5,
-                            "names": 1
-                        },
+                            "names": 5
+                        }
+                    ],
+                    "unknown_by_reason": [
                         {
-                            "rule": 7,
-                            "names": 30
+                            "reason": "no-rule",
+                            "names": 5
                         }
                     ],
                     "unknown_by_database": [
                         {
-                            "database": "localization",
-                            "names": 30
-                        },
-                        {
-                            "database": "events",
-                            "names": 1
+                            "database": "common/activities/activity_types#activity_window_character",
+                            "names": 5
                         }
                     ]
                 },
                 "time_ms": {
-                    "load_base": 728,
-                    "index_mod": 270,
-                    "report": 701
+                    "load_base": 1433,
+                    "index_mod": 382,
+                    "report": 784
                 },
-                "peak_rss_kib": 719376
+                "peak_rss_kib": 725152
             }
         ]
     }

@@ -1,0 +1,32 @@
+{
+    "findings": [
+        {
+            "file": "common/culture/eras/fixture_eras.txt",
+            "line": 9,
+            "column": 3,
+            "code": "names/modifier-outside-use-area",
+            "severity": "warning",
+            "message": "The modifier 'baron_levy_contribution_add' is used in a block read as character, but its use areas are county.",
+            "data": {
+                "name": "baron_levy_contribution_add",
+                "use_areas": ["county"],
+                "block_use_areas": ["character"],
+                "block": "common/culture/eras::character_modifier"
+            }
+        },
+        {
+            "file": "common/culture/eras/fixture_eras.txt",
+            "line": 13,
+            "column": 3,
+            "code": "names/modifier-outside-use-area",
+            "severity": "warning",
+            "message": "The modifier 'diplomacy' is used in a block read as county, but its use areas are character.",
+            "data": {
+                "name": "diplomacy",
+                "use_areas": ["character"],
+                "block_use_areas": ["county"],
+                "block": "common/culture/eras::county_modifier"
+            }
+        }
+    ]
+}

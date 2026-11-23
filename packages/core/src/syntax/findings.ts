@@ -120,6 +120,15 @@ export type Evidence =
           readonly text: string | null;
       }
     | {
+          /**
+           * The game's own output, with no message of its own: what a documentation dump or a
+           * part of the spec package read from it says (docs/checks.md, evidence "Game output").
+           */
+          readonly kind: 'game-output';
+          /** Where in the spec package the game's output is. */
+          readonly source: string;
+      }
+    | {
           /** No game message: pychivalry's own advice (principle 1 of docs/MVP.md). */
           readonly kind: 'advice';
       };

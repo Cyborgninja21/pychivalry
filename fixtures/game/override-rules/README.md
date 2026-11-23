@@ -11,11 +11,15 @@ game's layout, and one DLC pack:
 | `game/dlc/dlc_fixture/` | A DLC pack: its descriptor `dlc_fixture.dlc` names its folder, and its files sit at their path inside it (rule 10) |
 | `jomini/` | A file at a path `game/` also ships, and a file only `jomini/` ships (rule 3) |
 | `clausewitz/` | A localization file at a path `game/` also ships (rule 3) |
+| `game/common/landed_titles/` | Titles nested five deep, each a definition (the package's part D3) |
+| `game/history/cultures/` | A culture's history, named by its file (part D3) |
+| `game/common/named_colors/fixture_sub/`, `game/history/characters/fixture_sub/` | Files below a subfolder of a folder read without its subfolders, and of one whose depth only a partial row states (rule 4) |
 
 It is read with the mods [override-rules](../../mods/override-rules/README.md),
 [override-rules-replace-path](../../mods/override-rules-replace-path/README.md) and
 [override-rules-folder-case](../../mods/override-rules-folder-case/README.md), one mod at a
 time. Each mod's `expected.json` says what a correct index answers for every name of the stub
-and the mod; the test is `packages/core/src/index/fixtures.test.ts`.
+and the mod with the spec package's rules table (part D1), on each platform; the test is
+`packages/core/src/index/fixtures.test.ts`.
 
 Localization files start with the UTF-8 byte-order mark, as the game asks for.

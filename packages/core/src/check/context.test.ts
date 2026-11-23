@@ -6,6 +6,7 @@
 
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
+import { tablesOf } from '../spec/tables.js';
 import { committedSpec } from '../spec/testing.js';
 import { parse } from '../syntax/parser.js';
 import { blockOf, type Block } from '../syntax/tree.js';
@@ -220,4 +221,41 @@ test('a chain may end in a value: a comparison trigger, a value given its data, 
             'Failed to parse data for event target link. Link: root.fixture_not_defined, location: line 6',
         ],
     );
+});
+
+test('part D4 replaces nothing the reader takes from the tables: each context it states is the entry read here', () => {
+    const spec = committedSpec();
+    const tables = tablesOf(spec);
+    const rows = spec.part('keyword_roles')?.keywords ?? [];
+    let compared = 0;
+    for (const row of rows) {
+        for (const stated of row.stated_elsewhere ?? []) {
+            if (stated.role !== 'opens_context' || stated.opens === undefined) {
+                continue;
+            }
+            const [, table, , key] = stated.see.split('.');
+            const read =
+                table === 'opens_context'
+                    ? tables.opensContext.get(key ?? '')
+                    : table === 'structural'
+                      ? tables.structural.get(key ?? '')
+                      : table === 'containers'
+                        ? tables.containers.get(key ?? '')?.child
+                        : undefined;
+            assert.equal(read, stated.opens, `${row.keyword}: ${stated.see}`);
+            compared++;
+        }
+        // No row of D4 gives a context of its own that the tables lack.
+        assert.ok(!row.roles.includes('opens_context'), row.keyword);
+    }
+    assert.ok(compared >= 20, `compared ${String(compared)}`);
+});
+
+test('D7 confirmed blocks are read as modifier blocks, with the row that describes each', () => {
+    // An era's county_modifier: no schema field holds it, a confirmed D7 row does.
+    const text =
+        'culture_era_x = {\n\tyear = 1\n\tcounty_modifier = {\n\t\tfixture_no_such_modifier = 1\n\t}\n}\n';
+    assert.deepEqual(messages('common/culture/eras/x.txt', text), [
+        "Unknown modifier type 'fixture_no_such_modifier' at line 4",
+    ]);
 });

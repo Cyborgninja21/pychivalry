@@ -2,9 +2,9 @@ import assert from 'node:assert/strict';
 import path from 'node:path';
 import { test } from 'node:test';
 import { gzipSync } from 'node:zlib';
-import { copyFileSync, rmSync } from 'node:fs';
-import { openSpec } from '@pychivalry/core';
-import { checkRulesTable, RULES_FILE, RULES_SCHEMA_FILE } from './rules-table.js';
+import { rmSync } from 'node:fs';
+import { BUCKET_NAMES, openSpec, PART_KEYS } from '@pychivalry/core';
+import { checkRulesTable, rulesUse } from './rules-table.js';
 import {
     checkLegacySpec,
     checkSpec,
@@ -32,13 +32,13 @@ interface FolderOptions {
     legacyVersion?: string;
 }
 
-/** A small, valid spec folder: a format 5 package, one companion, the schema, the format 4 copy. */
+/** A small, valid spec folder: a format 7 package, one companion, the schema, the format 4 copy. */
 function specFolder(dir: string, options: FolderOptions = {}): string {
     const companion = Buffer.from(
         JSON.stringify({
             companion: 'info',
             package: PACKAGE,
-            package_format: 5,
+            package_format: 7,
             version: VERSION,
             data: {},
             ...options.companionHeader,
@@ -51,7 +51,7 @@ function specFolder(dir: string, options: FolderOptions = {}): string {
     };
     const json = Buffer.from(
         JSON.stringify({
-            package_format: options.format ?? 5,
+            package_format: options.format ?? 7,
             manifest: {
                 version: VERSION,
                 companions: { [INFO]: { part: 'C1', key: 'info_docs', ...record } },
@@ -72,10 +72,10 @@ function specFolder(dir: string, options: FolderOptions = {}): string {
         [`ck3-spec-${VERSION}.info.sha256`]: `${sha256(companion)}  ${INFO}\n`,
         [SCHEMA_FILE]: JSON.stringify({
             $schema: 'https://json-schema.org/draft/2020-12/schema',
-            $id: 'https://example.invalid/schema.format5.json',
+            $id: 'https://example.invalid/schema.format7.json',
             type: 'object',
             required: ['package_format', 'manifest'],
-            properties: { package_format: { const: options.schemaFormat ?? 5 } },
+            properties: { package_format: { const: options.schemaFormat ?? 7 } },
             $defs: {
                 companionInfo: {
                     type: 'object',
@@ -103,9 +103,9 @@ test('the committed spec folder passes the full check: the package, its companio
     assert.equal(check.legacy.file, `legacy/ck3-spec-${check.spec.version}.format4.json.gz`);
 });
 
-test("the committed package reads as format 5 through the core's spec reader, the one the suites use", () => {
+test("the committed package reads as format 7 through the core's spec reader, the one the suites use", () => {
     const spec = openSpec(path.join(repoRoot(), 'spec'));
-    assert.equal(spec.data.package_format, 5);
+    assert.equal(spec.data.package_format, 7);
     assert.equal(spec.sha256, checkSpec(path.join(repoRoot(), 'spec')).spec?.sha256);
     assert.ok(Array.isArray(spec.data.directories));
     assert.ok(Array.isArray(spec.data.errors));
@@ -127,15 +127,20 @@ test('a wrong checksum of the package fails', (t) => {
     assert.match(check.problems.join('\n'), /ck3-spec-1\.21\.0\.3\.sha256 says 0{64}/);
 });
 
-test('a package of format 4 fails: the rebuild reads format 5 only', (t) => {
-    const check = checkSpec(specFolder(tempDir(t), { format: 4, schemaFormat: 4 }));
-    assert.equal(check.spec, undefined);
-    assert.match(check.problems.join('\n'), /package format 4; the rebuild reads format 5 only/);
+test('a package of format 4 or 5 fails: the rebuild reads format 7 only', (t) => {
+    for (const format of [4, 5]) {
+        const check = checkSpec(specFolder(tempDir(t), { format, schemaFormat: format }));
+        assert.equal(check.spec, undefined);
+        assert.match(
+            check.problems.join('\n'),
+            new RegExp(`package format ${String(format)}; the rebuild reads format 7 only`),
+        );
+    }
 });
 
 test('a schema of another format than the package fails', (t) => {
-    const check = checkSpec(specFolder(tempDir(t), { schemaFormat: 4 }));
-    assert.match(check.problems.join('\n'), /schema of package format 4, but .* is format 5/);
+    const check = checkSpec(specFolder(tempDir(t), { schemaFormat: 5 }));
+    assert.match(check.problems.join('\n'), /schema of package format 5, but .* is format 7/);
 });
 
 test('two packages, or a package committed uncompressed, fail', (t) => {
@@ -184,7 +189,7 @@ test('a companion that fails the schema, and a stray spec file, fail', (t) => {
     const invalid = checkSpec(specFolder(tempDir(t), { companionHeader: { data: 'none' } }), {
         full: true,
     });
-    assert.match(invalid.problems.join('\n'), /is not valid against schema\.format5\.json: \/data/);
+    assert.match(invalid.problems.join('\n'), /is not valid against schema\.format7\.json: \/data/);
     const dir = specFolder(tempDir(t));
     writeTree(dir, { 'ck3-spec-1.21.0.3.extra.json.gz': gzipSync('{}') });
     assert.match(
@@ -238,19 +243,48 @@ test('the format 4 copy must exist, pass its checksum, be format 4 and be of the
     );
 });
 
-test('the committed rules table passes its schema and the core', () => {
+test("the committed package's rules table (part D1) reads with the core's reader", () => {
     const check = checkRulesTable(path.join(repoRoot(), 'spec'));
     assert.deepEqual(check.problems, []);
-    assert.equal(check.table?.status, 'stand-in');
+    assert.equal(check.table?.rules.length, 82);
     assert.match(check.sha256 ?? '', /^[0-9a-f]{64}$/);
+    for (const use of rulesUse(check.table)) {
+        assert.equal(use.applied + use.not_settled + use.skipped > 0, true, use.platform);
+    }
 });
 
-test('a rules table that fails its schema or the core fails the spec check', (t) => {
-    const dir = tempDir(t);
-    copyFileSync(
-        path.join(repoRoot(), 'spec', RULES_SCHEMA_FILE),
-        path.join(dir, RULES_SCHEMA_FILE),
+/** A small package the core's reader opens, with a rules table of its own. */
+function corePackage(dir: string, rules: unknown): void {
+    const json = Buffer.from(
+        JSON.stringify({
+            package_format: 7,
+            manifest: { game: 'ck3', version: VERSION, companions: {} },
+            parts: [],
+            buckets: Object.fromEntries(BUCKET_NAMES.map((b) => [b, {}])),
+            multi_bucket: {},
+            iterator_prefixes: [],
+            keyword_templates: [],
+            modifier_templates: [],
+            modifier_template_marks: {},
+            directories: [],
+            schema: {},
+            errors: [],
+            retired: [],
+            scope_validity: { triggers: {}, effects: {}, lists: {}, on_actions: {}, links: {} },
+            scope_types: {},
+            tables: { status: 'built', data: {} },
+            modifier_template_tags: { status: 'built', data: {} },
+            ...Object.fromEntries(PART_KEYS.map((k) => [k, { status: 'built', data: {} }])),
+            override_rules: rules,
+        }),
     );
+    writeTree(dir, {
+        [`${PACKAGE}.gz`]: gzipSync(json),
+        [`ck3-spec-${VERSION}.sha256`]: `${sha256(json)}  ${PACKAGE}\n`,
+    });
+}
+
+test('a rules table the core refuses fails the spec check', (t) => {
     const row = {
         id: 'a',
         overrides_rule: 5,
@@ -258,25 +292,27 @@ test('a rules table that fails its schema or the core fails the spec check', (t)
         kind: 'key-resolution',
         databases: ['common/traits'],
         resolve: 'all',
+        status: 'settled',
         platforms: ['linux'],
+        platform_basis: { linux: { basis: 'read', text: 'a test' } },
         evidence: [{ rank: 4, source: 's', where: 'w', says: 'x' }],
     };
-    const table = (rules: unknown[]): string =>
-        JSON.stringify({
-            rules_format: 1,
-            status: 'stand-in',
-            game_build: '1.21.0.3',
-            source: 's',
-            rules,
-        });
-    writeTree(dir, { [RULES_FILE]: table([row]) });
-    assert.deepEqual(checkRulesTable(dir).problems, []);
-    writeTree(dir, { [RULES_FILE]: table([{ ...row, kind: 'guess' }]) });
-    assert.ok(checkRulesTable(dir).problems.length > 0);
-    // Two rows answering one question pass the schema; the core refuses them.
-    writeTree(dir, { [RULES_FILE]: table([row, { ...row, id: 'b' }]) });
-    assert.match(checkRulesTable(dir).problems.join('\n'), /rows a and b both answer/);
-    writeTree(dir, { [RULES_FILE]: '{' });
-    assert.match(checkRulesTable(dir).problems.join('\n'), /not valid JSON/);
-    assert.match(checkRulesTable(tempDir(t)).problems.join('\n'), /override-rules.json is missing/);
+    const table = (rules: unknown[]): unknown => ({
+        status: 'built',
+        data: { format: 1, game_build: VERSION, rules },
+    });
+    const ok = tempDir(t);
+    corePackage(ok, table([row]));
+    assert.deepEqual(checkRulesTable(ok).problems, []);
+    const kind = tempDir(t);
+    corePackage(kind, table([{ ...row, kind: 'guess' }]));
+    assert.ok(checkRulesTable(kind).problems.length > 0);
+    // Two rows answering one question: the core refuses them.
+    const overlap = tempDir(t);
+    corePackage(overlap, table([row, { ...row, id: 'b' }]));
+    assert.match(checkRulesTable(overlap).problems.join('\n'), /rows a and b both answer/);
+    const none = tempDir(t);
+    corePackage(none, { status: 'not_built', reason: 'a test' });
+    assert.match(checkRulesTable(none).problems.join('\n'), /does not carry part D1/);
+    assert.match(checkRulesTable(tempDir(t)).problems.join('\n'), /exactly one/);
 });

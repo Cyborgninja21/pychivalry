@@ -6,9 +6,10 @@
  * taking the same files from elsewhere: the index is given layers, relative paths and bytes.
  *
  * The base game is three folders of the install, each in the same layout
- * (docs/overrides.md, rule 3): `game/`, and beside it `jomini/` and `clausewitz/`. Which copy
- * wins where two share a path is open, so each is its own layer. The DLC packs inside `game/`
- * are layers of their own only when the rules table has a `pack-layer` row (rule 10).
+ * (docs/overrides.md, rule 3): `game/`, and beside it `jomini/` and `clausewitz/`, each its own
+ * layer; which copy wins where two share a path is the rules table's `file-replace` rows. The
+ * DLC packs inside `game/` are layers of their own only when the table has a deciding
+ * `pack-layer` row (rule 10).
  *
  * The files read are the script (`.txt`) and localization (`.yml`) files in the folders the
  * spec lists. Every other file is counted, never read: a `.txt` file in a folder the spec
@@ -158,7 +159,8 @@ function packsOf(
 
 /**
  * The files of the install's folders to index, by the spec's folders and the table's rows
- * for the platform (a `pack-layer` row puts a DLC's files at their path inside the pack).
+ * that decide on the platform (`decidingRules`: a `pack-layer` row puts a DLC's files at their
+ * path inside the pack).
  */
 export function listInstall(
     install: readonly InstallFolder[],
@@ -211,9 +213,8 @@ function addSource(
 }
 
 /**
- * The key a mod's descriptor uses for a path it replaces. The executable's descriptor reader
- * names it beside `supported_version` and `remote_file_id` (docs/overrides.md, rule 8); what
- * it does is open, so the index records each value and asks the question.
+ * The key a mod's descriptor uses for a path it replaces (docs/overrides.md, rule 8). The index
+ * records each value as written; what it hides is the rules table's `replace-path` row.
  */
 export const REPLACE_PATH_KEY = 'replace_path';
 

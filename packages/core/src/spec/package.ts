@@ -1,8 +1,9 @@
 /**
- * The shapes of a format 5 spec package (docs/references/spec-package.md; the package's own
- * schema is `spec/schema.format5.json`). Only what the core reads is typed; every other key
- * of the package keeps its place in `SpecData` as `unknown` and is read through the package
- * itself. Nothing here names a CK3 keyword: the keys are the package format's own.
+ * The shapes of a format 7 spec package (docs/references/spec-package.md; the package's own
+ * schema is `spec/schema.format7.json`): the keys of format 5 and the eight parts formats 6
+ * and 7 add (D1 to D8). Only what the core reads is typed; every other key of the package
+ * keeps its place in `SpecData` as `unknown` and is read through the package itself. Nothing
+ * here names a CK3 keyword: the keys are the package format's own.
  */
 
 /** The six keyword buckets, by their names in the package (`buckets.<name>`). */
@@ -191,6 +192,284 @@ export interface Table {
     readonly candidates?: unknown;
 }
 
+// ─── The eight parts of formats 6 and 7 (D1 to D8) ──────────────────────────
+
+/**
+ * A part of format 6 or 7: `built`, its `data` the part tool's output whole, or `not_built`
+ * with the reason. Every row of every part carries a `status` and its `evidence`.
+ */
+export type Part<T> =
+    | { readonly status: 'built'; readonly data: T }
+    | { readonly status: 'not_built'; readonly reason: string };
+
+/** The keys of the eight parts, in the order of their `parts` entries (D1 to D8). */
+export const PART_KEYS = [
+    'override_rules',
+    'declarations',
+    'definitions',
+    'keyword_roles',
+    'implicit_loc_keys',
+    'field_references',
+    'modifier_block_areas',
+    'iterator_kinds',
+] as const;
+export type PartKey = (typeof PART_KEYS)[number];
+
+/**
+ * One evidence item of a row of D1 to D8: its rank (1 the executable, 2 the game's own output
+ * and the catalogue, 3 Paradox's `.info` files, 4 measured base-game use), its source and what
+ * it shows; the other keys vary with the source.
+ */
+export interface PartEvidence {
+    readonly rank: number;
+    readonly source: string;
+    readonly says?: string;
+    readonly supports?: string;
+    readonly where?: string;
+    readonly [key: string]: unknown;
+}
+
+/** What every row of D1 to D8 carries: its status and its evidence. */
+export interface PartRow {
+    readonly status: string;
+    readonly evidence: readonly PartEvidence[];
+    readonly [key: string]: unknown;
+}
+
+/** D1, `override_rules.data`: the override rules as a table (docs/overrides.md). */
+export interface OverrideRulesData {
+    /** The table's own format, 1. */
+    readonly format: number;
+    readonly game_build: string;
+    readonly version: string;
+    /** The rows: pychivalry's nine kinds and the extension kinds, each with its `status`. */
+    readonly rules: readonly PartRow[];
+    /** One entry per folder of `directories`: which rows govern it. */
+    readonly coverage: readonly Readonly<Record<string, unknown>>[];
+    /** What the table adds to pychivalry's vocabulary, each with its reason. */
+    readonly extensions: readonly {
+        readonly id: string;
+        readonly name: string;
+        readonly reason: string;
+        readonly what: string;
+    }[];
+    readonly measured_cases: unknown;
+    readonly stand_in: unknown;
+    readonly counts: Readonly<Record<string, unknown>>;
+    readonly vocabulary: Readonly<Record<string, unknown>>;
+    readonly [key: string]: unknown;
+}
+
+/** How a row of D2 or D3 matches a key: the word itself, a whole-key pattern, or a prefix. */
+export type KeyMatch = 'exact' | 'pattern' | 'prefix';
+
+/** A row of D2: a top-level form of a folder's files that is not, or is, a record. */
+export interface DeclarationRow extends PartRow {
+    readonly key: string;
+    readonly match: KeyMatch;
+    /** `block`, `value`, `prefixed`, `constant`, `bare-value`, `block-no-equals`, ... */
+    readonly form: string;
+    /** `namespace`, `constant`, `container`, `inline-definition`, `setting`, `statement`, `record`, `unknown`. */
+    readonly declares: string;
+    /** `file`, `folder`, `global` or `unknown`. */
+    readonly scope: string;
+    /** `confirmed`, `measured-only` or `unknown`. */
+    readonly status: string;
+}
+
+/** D2, `declarations.data`. */
+export interface DeclarationsData {
+    /** Per folder of `directories`, its rows (`[]` when it has none). */
+    readonly directories: Readonly<Record<string, readonly DeclarationRow[]>>;
+    /** The rows that hold in every folder. */
+    readonly all_directories: readonly DeclarationRow[];
+    readonly counts: Readonly<Record<string, unknown>>;
+    readonly vocabulary: Readonly<Record<string, unknown>>;
+    readonly [key: string]: unknown;
+}
+
+/** How a nested definition is recognised (D3, `recognised_by`). */
+export interface RecognisedBy {
+    /** `parent-field`, `container-child`, `any-block-child`, `key-pattern` or `record-key`. */
+    readonly type: string;
+    /** Keys from the top level, `/`-separated; each `*` or a whole-key pattern. */
+    readonly path: string;
+    readonly forms: readonly string[];
+    /** `key-pattern`: the pattern a title-like key matches. */
+    readonly pattern?: string;
+    /** Children that are fields, not definitions. */
+    readonly except?: readonly string[];
+    /** `record-key`: the field whose presence makes the record's key a name of this kind. */
+    readonly field?: string;
+    readonly word?: string;
+}
+
+/** A row of D3 `nested`: keys inside a record that are themselves definitions. */
+export interface NestedRow extends PartRow {
+    readonly kind: string;
+    /** The folder whose keys the names are. */
+    readonly database: string;
+    readonly depth: number | 'any';
+    readonly recognised_by: RecognisedBy;
+}
+
+/** A row of D3 `file_named`: whether a folder's records are named by their file. */
+export interface FileNamedRow extends PartRow {
+    /** `file-stem`, `none` or `unknown`. */
+    readonly name_from: string;
+    readonly names_database: readonly string[];
+}
+
+/** D3, `definitions.data`. */
+export interface DefinitionsData {
+    readonly nested: Readonly<Record<string, readonly NestedRow[]>>;
+    readonly not_definitions: Readonly<Record<string, readonly PartRow[]>>;
+    /** Per folder; an empty object when nothing was found. */
+    readonly file_named: Readonly<Record<string, FileNamedRow | Readonly<Record<string, never>>>>;
+    readonly counts: Readonly<Record<string, unknown>>;
+    readonly vocabulary: Readonly<Record<string, unknown>>;
+    readonly [key: string]: unknown;
+}
+
+/** A row of D4: what a structural keyword does where it is written. */
+export interface KeywordRoleRow extends PartRow {
+    readonly keyword: string;
+    readonly where: {
+        readonly directories: 'anywhere' | readonly string[];
+        readonly inside: string;
+        readonly parents?: readonly string[];
+    };
+    readonly roles: readonly string[];
+    readonly role_status: Readonly<Record<string, string>>;
+    /** Roles an existing package entry already gives, with the entry. */
+    readonly stated_elsewhere?: readonly {
+        readonly role: string;
+        readonly opens?: string;
+        readonly see: string;
+    }[];
+}
+
+/** D4, `keyword_roles.data`. */
+export interface KeywordRolesData {
+    readonly keywords: readonly KeywordRoleRow[];
+    readonly not_settled: readonly string[];
+    readonly counts: Readonly<Record<string, unknown>>;
+    readonly vocabulary: Readonly<Record<string, unknown>>;
+    readonly [key: string]: unknown;
+}
+
+/** A row of D5: a localization key a record has by its name. */
+export interface ImplicitLocKeyRow extends PartRow {
+    readonly pattern: string;
+    readonly prefix: string;
+    readonly suffix: string;
+    /** `record-key`, `file-stem` or `nested:<kind>`. */
+    readonly name_from: string;
+    /** `required`, `optional`, `always-present-in-base-game` (a measurement) or `unknown`. */
+    readonly requirement: string;
+    readonly requirement_from: string;
+}
+
+/** D5, `implicit_loc_keys.data`. */
+export interface ImplicitLocKeysData {
+    readonly directories: Readonly<Record<string, readonly ImplicitLocKeyRow[]>>;
+    readonly not_settled: unknown;
+    readonly counts: Readonly<Record<string, unknown>>;
+    readonly vocabulary: Readonly<Record<string, unknown>>;
+    readonly [key: string]: unknown;
+}
+
+/** A row of D6: the databases a field's, a parameter's or a value's names are keys of. */
+export interface FieldReferenceRow extends PartRow {
+    readonly id: string;
+    /** `field`, `parameter`, `value`, `info` or `other`. */
+    readonly kind: string;
+    readonly directory?: string;
+    readonly bucket?: string;
+    /** A field path (`fallback`, `random_on_action.<number>`) or `<keyword>.<parameter>`. */
+    readonly path: string;
+    readonly refers_to: readonly string[];
+    /** `key`, `list of keys`, `key or list of keys`, or null. */
+    readonly value_form: string | null;
+}
+
+/** D6, `field_references.data`. */
+export interface FieldReferencesData {
+    readonly fields: readonly FieldReferenceRow[];
+    /** Per database, the ids of the rows whose `refers_to` holds it. */
+    readonly by_database: Readonly<Record<string, readonly string[]>>;
+    readonly not_settled: unknown;
+    readonly counts: Readonly<Record<string, unknown>>;
+    readonly vocabulary: Readonly<Record<string, unknown>>;
+    readonly [key: string]: unknown;
+}
+
+/** A row of D7: the use areas a block that holds modifiers is read with. */
+export interface ModifierBlockAreaRow extends PartRow {
+    /** `<folder>::<field>`, `<folder>::(record)`, `<folder>::*.<g>` or `<folder>::**.<key>`. */
+    readonly id: string;
+    readonly directory: string;
+    readonly path: string;
+    readonly use_areas: readonly string[];
+    readonly holds_from: readonly string[];
+    /** A family row: the keys its `*` stands for. */
+    readonly members?: readonly string[];
+}
+
+/** D7, `modifier_block_areas.data`. */
+export interface ModifierBlockAreasData {
+    readonly fields: readonly ModifierBlockAreaRow[];
+    readonly engine_check: readonly PartEvidence[];
+    readonly not_settled: readonly string[];
+    readonly counts: Readonly<Record<string, unknown>>;
+    readonly vocabulary: Readonly<Record<string, unknown>>;
+    readonly [key: string]: unknown;
+}
+
+/** D8: the kind of block an iterator prefix belongs in. */
+export interface IteratorPrefixRow extends PartRow {
+    readonly prefix: string;
+    /** `trigger` or `effect`. */
+    readonly kind: string;
+    readonly body: string;
+}
+
+/** D8, `iterator_kinds.data`. */
+export interface IteratorKindsData {
+    readonly prefixes: readonly IteratorPrefixRow[];
+    /** Per list of the lists bucket: its documented forms and where the base game writes them. */
+    readonly lists: Readonly<
+        Record<string, { readonly forms: Readonly<Record<string, string>>; readonly [k: string]: unknown }>
+    >;
+    readonly departures: readonly PartRow[];
+    readonly limit_rule: PartRow;
+    readonly context_rules: readonly PartRow[];
+    readonly not_settled: readonly string[];
+    readonly counts: Readonly<Record<string, unknown>>;
+    readonly vocabulary: Readonly<Record<string, unknown>>;
+    readonly [key: string]: unknown;
+}
+
+/** The data of each part, by its key. */
+export interface PartData {
+    readonly override_rules: OverrideRulesData;
+    readonly declarations: DeclarationsData;
+    readonly definitions: DefinitionsData;
+    readonly keyword_roles: KeywordRolesData;
+    readonly implicit_loc_keys: ImplicitLocKeysData;
+    readonly field_references: FieldReferencesData;
+    readonly modifier_block_areas: ModifierBlockAreasData;
+    readonly iterator_kinds: IteratorKindsData;
+}
+
+/** A modifier template tag (part A1, `modifier_template_tags.data`): the game's own form. */
+export interface ModifierTemplateTag {
+    /** The template the form fills, `%s` standing for the placeholder. */
+    readonly form: string;
+    readonly use_areas: readonly string[] | null;
+    readonly [key: string]: unknown;
+}
+
 /** The package file, parsed. Keys the core does not read stay `unknown`. */
 export interface SpecData {
     readonly package_format: number;
@@ -217,5 +496,17 @@ export interface SpecData {
         readonly status: string;
         readonly data: Readonly<Record<string, Table>>;
     };
+    readonly modifier_template_tags: {
+        readonly status: string;
+        readonly data: Readonly<Record<string, ModifierTemplateTag>>;
+    };
+    readonly override_rules: Part<OverrideRulesData>;
+    readonly declarations: Part<DeclarationsData>;
+    readonly definitions: Part<DefinitionsData>;
+    readonly keyword_roles: Part<KeywordRolesData>;
+    readonly implicit_loc_keys: Part<ImplicitLocKeysData>;
+    readonly field_references: Part<FieldReferencesData>;
+    readonly modifier_block_areas: Part<ModifierBlockAreasData>;
+    readonly iterator_kinds: Part<IteratorKindsData>;
     readonly [key: string]: unknown;
 }

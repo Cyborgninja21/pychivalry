@@ -1,10 +1,11 @@
 /**
  * The typed spec reader (docs/PLAN.md item 4.2). It reads the committed package file, a
  * gzipped JSON file with the SHA-256 of its uncompressed bytes beside it (spec/README.md),
- * checks that checksum and the package format, and exposes the package as typed data. The
- * three companions (Paradox's `.info` files, the GUI vocabulary, the data-types dump) are
- * opened only when a feature asks for one, each checked against the checksum and size the
- * package file records for it.
+ * checks that checksum and the package format, and exposes the package as typed data: the
+ * keys of format 5 and the eight parts of formats 6 and 7 (D1 to D8, `part`). The three
+ * companions (Paradox's `.info` files, the GUI vocabulary, the data-types dump) are opened
+ * only when a feature asks for one, each checked against the checksum and size the package
+ * file records for it.
  *
  * The core has no runtime dependencies: decompression is Node's own `zlib`, the checksum its
  * own `crypto`. A package is read once per process: `openSpec` keeps what it read, keyed by
@@ -15,10 +16,21 @@ import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { gunzipSync } from 'node:zlib';
-import { BUCKET_NAMES, type CompanionRecord, type SpecData } from './package.js';
+import {
+    BUCKET_NAMES,
+    PART_KEYS,
+    type CompanionRecord,
+    type PartData,
+    type PartKey,
+    type SpecData,
+} from './package.js';
 
-/** The package format the rebuild reads (docs/decisions.md: format 4 is release 2.3.0's). */
-export const SPEC_FORMAT = 5;
+/**
+ * The package format the rebuild reads: 7 (docs/decisions.md). Format 5 is refused: the index's
+ * override rules and the checks of item 4.2 need the parts only format 7 carries, and a
+ * format 5 package would leave them silently without. Format 4 is release 2.3.0's.
+ */
+export const SPEC_FORMAT = 7;
 
 /** The package file in a spec folder: `ck3-spec-<version>.json.gz`, never a companion. */
 const PACKAGE_FILE = /^ck3-spec-([0-9]+(?:\.[0-9]+)+)\.json\.gz$/;
@@ -83,7 +95,7 @@ function parseObject(bytes: Buffer, what: string): Record<string, unknown> {
 }
 
 /**
- * The keys of format 5 the core reads, checked for their shape so a wrong package fails here
+ * The keys of format 7 the core reads, checked for their shape so a wrong package fails here
  * rather than as a missing name in a check. The package's full schema is checked by
  * `task spec:check` in the tools.
  */
@@ -129,12 +141,30 @@ function checkShape(data: Record<string, unknown>, what: string): void {
     if (isObject(tables) && !isObject(tables['data'])) {
         problems.push('no tables.data');
     }
+    const tags = data['modifier_template_tags'];
+    if (!isObject(tags) || !isObject(tags['data'])) {
+        problems.push('no modifier_template_tags.data');
+    }
+    for (const key of PART_KEYS) {
+        const part = data[key];
+        if (!isObject(part)) {
+            problems.push(`no ${key} part`);
+        } else if (part['status'] === 'built') {
+            if (!isObject(part['data'])) {
+                problems.push(`${key} is built but has no data`);
+            }
+        } else if (part['status'] !== 'not_built' || typeof part['reason'] !== 'string') {
+            problems.push(`${key} is neither built nor not_built with a reason`);
+        }
+    }
     const manifest = data['manifest'];
     if (isObject(manifest) && !isObject(manifest['companions'])) {
         problems.push('no manifest.companions');
     }
     if (problems.length > 0) {
-        throw new SpecError(`${what} is not a format 5 package: ${problems.join('; ')}`);
+        throw new SpecError(
+            `${what} is not a format ${String(SPEC_FORMAT)} package: ${problems.join('; ')}`,
+        );
     }
 }
 
@@ -173,6 +203,15 @@ export class Spec {
     /** The package file's own name, uncompressed: `ck3-spec-<version>.json`. */
     get fileName(): string {
         return `ck3-spec-${this.version}.json`;
+    }
+
+    /**
+     * The data of a part of formats 6 and 7 (D1 to D8), or null when the package says it is
+     * not built. Read with the package, once per process.
+     */
+    part<K extends PartKey>(key: K): PartData[K] | null {
+        const part = this.data[key];
+        return part.status === 'built' ? (part.data as PartData[K]) : null;
     }
 
     /** The record of a companion in `manifest.companions`, and its file name. */
@@ -292,7 +331,7 @@ const opened = new Map<string, Spec>();
 
 /**
  * The package in a spec folder, read once per process: its gzipped file, checked against the
- * `.sha256` beside it that names the uncompressed file, package format 5, and the version its
+ * `.sha256` beside it that names the uncompressed file, package format 7, and the version its
  * name and its manifest state. A second call for the same unchanged file returns the same
  * object.
  */

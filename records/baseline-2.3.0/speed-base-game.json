@@ -2,7 +2,7 @@
     "record_format": 1,
     "suite": "baseline:speed",
     "command": "LEGACY_BUILD=<legacy build> CK3_GAME_PATH=<game dir> CK3_CORPUS=<corpus dir> BASELINE_PARTS=base-game BASELINE_RUNS=6 BASELINE_NODE_HEAP=8192 task baseline:speed",
-    "made_at": "2026-11-22T07:38:09.216Z",
+    "made_at": "2026-11-23T01:25:45.205Z",
     "tool": {
         "name": "pychivalry",
         "version": "2.3.0",
@@ -24,7 +24,7 @@
     },
     "spec": {
         "version": "1.21.0.3",
-        "sha256": "0894b1a5aa0165012450a2d445a733559436f580ab26be940e3a660bf81b59ca",
+        "sha256": "72f843cf8d36decd0135ada92c8748c44ae9aef756c46b73c5b054673901c724",
         "package_format": 4
     },
     "corpus": null,
@@ -47,55 +47,55 @@
                 "measures": {
                     "parse_ms": {
                         "unit": "ms",
-                        "first": 5750,
+                        "first": 5361,
                         "later": {
                             "n": 5,
-                            "median": 6213,
-                            "min": 5258,
-                            "max": 6386,
-                            "spread": 1128,
+                            "median": 5335,
+                            "min": 5043,
+                            "max": 5874,
+                            "spread": 831,
                             "values": [
-                                6386,
-                                6278,
-                                6197,
-                                6213,
-                                5258
+                                5335,
+                                5874,
+                                5211,
+                                5043,
+                                5418
                             ]
                         }
                     },
                     "check_ms": {
                         "unit": "ms",
-                        "first": 66689,
+                        "first": 65512,
                         "later": {
                             "n": 5,
-                            "median": 64395,
-                            "min": 62516,
-                            "max": 67495,
-                            "spread": 4979,
+                            "median": 73460,
+                            "min": 64389,
+                            "max": 77283,
+                            "spread": 12894,
                             "values": [
-                                64395,
-                                65211,
-                                67495,
-                                63356,
-                                62516
+                                64389,
+                                70484,
+                                77283,
+                                74842,
+                                73460
                             ]
                         }
                     },
                     "peak_rss_kib": {
                         "unit": "KiB",
-                        "first": 5962384,
+                        "first": 6122972,
                         "later": {
                             "n": 5,
-                            "median": 5982468,
-                            "min": 5876900,
-                            "max": 6050088,
-                            "spread": 173188,
+                            "median": 6123344,
+                            "min": 5890040,
+                            "max": 6213480,
+                            "spread": 323440,
                             "values": [
-                                5997276,
-                                5937816,
-                                5982468,
-                                5876900,
-                                6050088
+                                5966380,
+                                5890040,
+                                6213480,
+                                6123344,
+                                6165652
                             ]
                         }
                     }
@@ -108,12 +108,12 @@
                         "--max-old-space-size=8192"
                     ],
                     "load_average_1m": [
-                        4.91,
-                        5.14,
-                        5.12,
-                        4.39,
-                        5,
-                        4.32
+                        4.38,
+                        3.91,
+                        3.46,
+                        3.72,
+                        3.39,
+                        3.54
                     ]
                 }
             }

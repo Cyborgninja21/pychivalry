@@ -8,17 +8,22 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { FolderTable } from './folders.js';
 import { readRulesTable, type Platform } from './rules.js';
-import { TEST_ROW } from './testing.js';
+import { packageRules, specFolders, TEST_ROW } from './testing.js';
 import { WorkspaceIndex, type Resolution } from './workspace.js';
 
+const PATHS = ['common/x', 'common/y', 'events', 'history/characters', 'localization'];
+
 const FOLDERS = new FolderTable(
-    ['common/x', 'common/y', 'events', 'history/characters', 'localization'].map((path) => ({
+    PATHS.map((path) => ({
         path,
         contentType: path,
         schema: false,
         schemaFields: 0,
         specRecords: null,
         specFiles: null,
+        notDefinitions: [],
+        nested: [],
+        fileNamed: false,
     })),
 );
 
@@ -26,16 +31,23 @@ function row(id: string, fields: Record<string, unknown>): Record<string, unknow
     return { id, overrides_rule: 5, title: id, ...TEST_ROW, ...fields };
 }
 
+/** Every test folder read with its subfolders, unless a test gives its own listing rows. */
+const LISTED = row('listed', {
+    kind: 'listing-depth',
+    overrides_rule: 4,
+    databases: PATHS,
+    recursive: true,
+});
+
 function index(
     rows: Record<string, unknown>[],
     platform: Platform | undefined = 'linux',
 ): WorkspaceIndex {
+    const listing = rows.some((r) => r['kind'] === 'listing-depth') ? [] : [LISTED];
     const rules = readRulesTable({
-        rules_format: 1,
-        status: 'stand-in',
+        format: 1,
         game_build: '1.21.0.3',
-        source: 'a test',
-        rules: rows,
+        rules: [...rows, ...listing],
     });
     return new WorkspaceIndex({ folders: FOLDERS, rules, platform });
 }
@@ -216,7 +228,7 @@ test('containers add up; their entries are names of their own', () => {
     );
 });
 
-test('a folder-wins row names the definition under that folder; two there fall to the key row', () => {
+test('a folder-wins row names the definition under that folder, its name written byte for byte', () => {
     const wins = row('wins', {
         kind: 'folder-wins',
         databases: ['localization'],
@@ -234,7 +246,120 @@ test('a folder-wins row names the definition under that folder; two there fall t
         winnerOf(ix.resolve('localization:l_english', 'k')),
         'mod:localization/english/replace/b_l_english.yml:12',
     );
-    assert.equal(ix.resolve('localization:l_english', 'j').status, 'unknown');
+    // `Replace` is another folder: only b is under `replace`.
+    assert.equal(
+        winnerOf(ix.resolve('localization:l_english', 'j')),
+        'mod:localization/english/replace/b_l_english.yml:20',
+    );
+});
+
+test("two under the folder: the row's details.among_segment decides, by the file order; without it, not known", () => {
+    const files = (ix: WorkspaceIndex): void => {
+        ix.addFile('mod', 'localization/english/replace/a_l_english.yml', 'l_english:\n k: "a"\n');
+        ix.addFile('mod', 'localization/english/replace/b_l_english.yml', 'l_english:\n k: "b"\n');
+    };
+    const bare = row('wins', {
+        kind: 'folder-wins',
+        databases: ['localization'],
+        segment: 'replace',
+    });
+    const open = index([bare, ORDER()]);
+    files(open);
+    const r = open.resolve('localization:l_english', 'k');
+    assert.equal(r.status, 'unknown');
+    assert.equal(r.reasons[0]?.kind, 'not-settled');
+    const later = index([
+        { ...bare, details: { among_segment: 'later-wins: the one read later overwrites' } },
+        ORDER(),
+    ]);
+    files(later);
+    assert.equal(
+        winnerOf(later.resolve('localization:l_english', 'k')),
+        'mod:localization/english/replace/b_l_english.yml:12',
+    );
+});
+
+test("details.within_one_block: two definitions in one container block take the row's word there", () => {
+    const rows = [
+        row('box', { kind: 'containers', databases: ['common/x'], keys: ['*'] }),
+        row('later', {
+            kind: 'key-resolution',
+            databases: ['common/x'],
+            forms: ['entry'],
+            resolve: 'later-wins',
+            combine: 'whole',
+            details: { within_one_block: 'earlier-wins: the first of the two' },
+        }),
+        ORDER(),
+    ];
+    const ix = index(rows);
+    ix.addFile('game', 'common/x/a.txt', 'NGroup = { K = 1 K = 2 }\nNGroup = { J = 1 }\n');
+    ix.addFile('game', 'common/x/b.txt', 'NGroup = { J = 2 J = 3 }\n');
+    // Inside one block the first; across blocks and files the later.
+    assert.equal(winnerOf(ix.resolve('common/x', 'K', 'NGroup')), 'game:common/x/a.txt:11');
+    assert.equal(winnerOf(ix.resolve('common/x', 'J', 'NGroup')), 'game:common/x/b.txt:11');
+});
+
+test('listing-depth: a file below a subfolder is read as its row says, and not known without one', () => {
+    const files = (ix: WorkspaceIndex): void => {
+        ix.addFile('game', 'common/x/a.txt', 'k = 1\n');
+        ix.addFile('game', 'common/x/sub/b.txt', 's = 1\n');
+        ix.addFile('game', 'common/y/sub/c.txt', 'y = 1\n');
+    };
+    const flat = index([
+        row('flat', {
+            kind: 'listing-depth',
+            overrides_rule: 4,
+            databases: ['common/x'],
+            recursive: false,
+        }),
+    ]);
+    files(flat);
+    assert.equal(flat.fileStatus('game', 'common/x/a.txt')?.read, 'yes');
+    assert.deepEqual(flat.fileStatus('game', 'common/x/sub/b.txt')?.notReadBecause, {
+        rule: 'flat',
+    });
+    assert.equal(flat.resolve('common/x', 's').status, 'not-read');
+    assert.deepEqual(flat.fileStatus('game', 'common/y/sub/c.txt')?.questions, [
+        { kind: 'listing-depth', folder: 'common/y', rule: null },
+    ]);
+    const partial = index([
+        row('deep', {
+            kind: 'listing-depth',
+            overrides_rule: 4,
+            databases: ['common/x'],
+            recursive: true,
+            status: 'partial',
+        }),
+    ]);
+    files(partial);
+    assert.deepEqual(partial.fileStatus('game', 'common/x/sub/b.txt')?.questions, [
+        { kind: 'listing-depth', folder: 'common/x', rule: 'deep' },
+    ]);
+});
+
+test('a partial or open row decides nothing: the reason names it', () => {
+    const ix = index([
+        row('maybe', {
+            kind: 'key-resolution',
+            databases: ['common/x'],
+            resolve: 'all',
+            status: 'partial',
+        }),
+    ]);
+    ix.addFile('game', 'common/x/a.txt', 'k = 1\n');
+    ix.addFile('game', 'common/x/b.txt', 'k = 2\n');
+    const r = ix.resolve('common/x', 'k');
+    assert.equal(r.status, 'unknown');
+    assert.deepEqual(r.reasons, [
+        {
+            kind: 'not-settled',
+            database: 'common/x',
+            rule: 'maybe',
+            status: 'partial',
+            overrides_rule: 5,
+        },
+    ]);
 });
 
 test('statements: every definition is read and none wins', () => {
@@ -303,7 +428,7 @@ test('replace_path: without a row the files under it are open; with one they are
         ix.addFile('game', 'common/x/sub/b.txt', 's = 1\n');
         ix.addFile('game', 'common/y/c.txt', 'y = 1\n');
         ix.addFile('mod', 'common/x/m.txt', 'm = 1\n');
-        ix.setReplacePaths(['common\\x']);
+        ix.setReplacePaths(['common/x']);
     };
     const open = index([]);
     files(open);
@@ -323,6 +448,15 @@ test('replace_path: without a row the files under it are open; with one they are
     assert.equal(deep.fileStatus('game', 'common/x/a.txt')?.read, 'no');
     assert.equal(deep.fileStatus('game', 'common/x/sub/b.txt')?.read, 'no');
     assert.equal(deep.resolve('common/x', 'k').status, 'not-read');
+    // The folder is matched byte for byte: another spelling hides nothing.
+    for (const written of ['common\\x', 'common/x/', 'Common/x']) {
+        const other = index([
+            row('rp', { kind: 'replace-path', hides: ['game'], subfolders: false }),
+        ]);
+        files(other);
+        other.setReplacePaths([written]);
+        assert.equal(other.fileStatus('game', 'common/x/a.txt')?.read, 'yes', written);
+    }
 });
 
 test('without a file-identity row, files of one name in different folders are open', () => {
@@ -451,4 +585,59 @@ test('groups lists every name of a database defined more than once', () => {
         [{ database: 'common/x', container: null, name: 'k', count: 2 }],
     );
     assert.deepEqual(ix.totals(), { files: 3, definitions: 4, uses: 4, lines: 7, names: 7 });
+});
+
+// ─── What parts D2 and D3 make a definition ──────────────────────────────
+
+test("parts D2 and D3: namespace is no name, a constant is its file's, nested and file-named definitions", () => {
+    const ix = new WorkspaceIndex({
+        folders: specFolders(),
+        rules: packageRules(),
+        platform: 'linux',
+    });
+    ix.addFile('mod', 'events/a.txt', 'namespace = fixture\nfixture.1 = { }\n');
+    ix.addFile('mod', 'events/b.txt', 'namespace = fixture\n');
+    ix.addFile('mod', 'common/script_values/a.txt', '@x = 1\nv = @x\n');
+    ix.addFile('mod', 'common/script_values/b.txt', '@x = 2\n');
+    ix.addFile(
+        'mod',
+        'common/landed_titles/a.txt',
+        'e_x = { k_x = { d_x = { c_x = { color = { 1 2 3 } b_x = { province = 1 } } } } }\n',
+    );
+    ix.addFile(
+        'mod',
+        'common/activities/activity_types/a.txt',
+        'act_a = { options = { cat = { opt = { } } } }\nact_b = { options = { cat = { opt = { } } } }\n',
+    );
+    ix.addFile('mod', 'history/cultures/norse.txt', '867.1.1 = { }\n');
+    // `namespace` declares a namespace by its value: no definition, written in two files.
+    assert.equal(ix.resolve('events', 'namespace').status, 'not-defined');
+    assert.equal(ix.resolve('events', 'fixture.1').status, 'single');
+    // A constant holds for its file: two files, two names.
+    assert.equal(ix.resolve('constants:common/script_values/a.txt', '@x').status, 'single');
+    assert.equal(ix.resolve('constants:common/script_values/b.txt', '@x').status, 'single');
+    // A landed title at any depth, and not the fields between.
+    for (const title of ['e_x', 'k_x', 'd_x', 'c_x', 'b_x']) {
+        assert.equal(ix.resolve('common/landed_titles', title).status, 'single', title);
+    }
+    assert.equal(ix.resolve('common/landed_titles', 'color').status, 'not-defined');
+    assert.deepEqual(ix.references('c_x'), [], "a nested definition's own key is not a use");
+    // An activity's option is known by its parent: the same name under two is two objects.
+    const db = 'common/activities/activity_types#activity_option';
+    assert.equal(ix.resolve(db, 'opt', 'act_a/options/cat').status, 'single');
+    assert.equal(ix.resolve(db, 'opt', 'act_b/options/cat').status, 'single');
+    assert.equal(
+        ix.resolve(
+            'common/activities/activity_types#activity_option_category',
+            'cat',
+            'act_a/options',
+        ).status,
+        'single',
+    );
+    // A culture's history is named by its file.
+    const culture = ix.definitions('norse', { database: 'history/cultures' });
+    assert.deepEqual(
+        culture.map((d) => [d.form, d.start, d.end]),
+        [['file', 0, 0]],
+    );
 });

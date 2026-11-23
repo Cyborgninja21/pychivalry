@@ -29,7 +29,8 @@ operator or value as `<none>`.
 An index fixture's `expected.json` (build step 3) says what a correct index answers. For the
 override-rules mods, a list of `cases`: per name of a database, the rule of docs/overrides.md
 that decides it, the `status` (`single`, `winner`, `all`, `statements`, `clash`, `not-read` or
-`unknown`), the `winner` and every definition with its `layer`, `file`, `line` and `read`. For
+`unknown`), the `winner` and every definition with its `layer`, `file`, `line` and `read`. A
+case that holds on one platform only (letter case in paths, rule 9) names it in `platforms`. For
 `index-definitions-and-uses`, every `definition` and every `use` of each defined name, with
 `line` and `column`.
 
@@ -73,7 +74,9 @@ rewritten to this layout. Where one is carried over, its README says which file 
 | [index-definitions-and-uses](index-definitions-and-uses/README.md) | One definition of every form, and every way a word is a use | Step 3 |
 | [names-unknown-effect-bad](names-unknown-effect-bad/README.md), [-good](names-unknown-effect-good/README.md) | Keys in effect blocks that are no effect: made up, a trigger, an iterator over no list, removed, a scripted effect defined nowhere | Item 4.2 |
 | [names-unknown-link-bad](names-unknown-link-bad/README.md), [-good](names-unknown-link-good/README.md) | Scope chains with a segment that is no link, as a key and as a value | Item 4.2 |
+| [names-modifier-outside-use-area-bad](names-modifier-outside-use-area-bad/README.md), [-good](names-modifier-outside-use-area-good/README.md) | An era's character, county and province blocks, each with a modifier of another use area | Item 4.2 |
 | [names-unknown-modifier-bad](names-unknown-modifier-bad/README.md), [-good](names-unknown-modifier-good/README.md) | A modifier block with a made-up and a removed modifier; a template and a marked-only name | Item 4.2 |
+| [names-unknown-on-action-bad](names-unknown-on-action-bad/README.md), [-good](names-unknown-on-action-good/README.md) | On-actions named nowhere, in an on-action's lists and fallback and in `trigger_event` | Item 4.2 |
 | [names-unknown-trigger-bad](names-unknown-trigger-bad/README.md), [-good](names-unknown-trigger-good/README.md) | Keys in trigger blocks that are no trigger: made up, an effect, an iterator over no list, removed, a scripted trigger defined nowhere | Item 4.2 |
 | [override-rules](override-rules/README.md) | Every rule of docs/overrides.md one mod can exercise, over the stub `game/override-rules` | Step 3 |
 | [override-rules-folder-case](override-rules-folder-case/README.md) | A folder spelled in upper case (rule 9) | Step 3 |

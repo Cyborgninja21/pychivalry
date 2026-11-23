@@ -1,9 +1,9 @@
 {
-    "note": "Every definition this mod holds, and every use of each name it defines, as a correct index finds them when it reads the mod alone with the committed spec and the stand-in rules table. Lines and columns count from 1; a tab is one column. Files in common/fixture_not_a_folder/ and events_old/ are in no folder the spec lists, so they are not read: they define nothing and their uses are not listed.",
+    "note": "Every definition this mod holds, and every use of each name it defines, as a correct index finds them when it reads the mod alone with the committed spec and its override rules (part D1). An event file's namespace = x declares no name (part D2), and a constant holds for its file (database constants:<file>). Lines and columns count from 1; a tab is one column. Files in common/fixture_not_a_folder/ and events_old/ are in no folder the spec lists, so they are not read: they define nothing and their uses are not listed.",
     "definitions": [
         {
             "name": "@fixture_cost",
-            "database": "constants",
+            "database": "constants:common/scripted_effects/fixture_effects.txt",
             "form": "constant",
             "container": null,
             "prefix": null,
@@ -69,16 +69,6 @@
             "prefix": null,
             "file": "common/script_values/fixture_values.txt",
             "line": 2,
-            "column": 1
-        },
-        {
-            "name": "namespace",
-            "database": "events",
-            "form": "value",
-            "container": null,
-            "prefix": null,
-            "file": "events/fixture_events.txt",
-            "line": 1,
             "column": 1
         },
         {
@@ -207,48 +197,149 @@
         }
     ],
     "uses": {
-        "@fixture_cost": [
-            { "file": "common/scripted_effects/fixture_effects.txt", "line": 4, "column": 13 }
+        "1001": [],
+        "1002": [
+            {
+                "file": "history/characters/fixture_characters.txt",
+                "line": 4,
+                "column": 11
+            }
         ],
-        "fixture_effect": [{ "file": "events/fixture_events.txt", "line": 15, "column": 3 }],
+        "@fixture_cost": [
+            {
+                "file": "common/scripted_effects/fixture_effects.txt",
+                "line": 4,
+                "column": 13
+            }
+        ],
+        "fixture_effect": [
+            {
+                "file": "events/fixture_events.txt",
+                "line": 15,
+                "column": 3
+            }
+        ],
         "fixture_other_effect": [
-            { "file": "common/scripted_effects/fixture_effects.txt", "line": 5, "column": 2 }
+            {
+                "file": "common/scripted_effects/fixture_effects.txt",
+                "line": 5,
+                "column": 2
+            }
         ],
         "fixture_trait": [
-            { "file": "common/scripted_effects/fixture_effects.txt", "line": 8, "column": 14 },
-            { "file": "common/traits/fixture_traits.txt", "line": 5, "column": 16 },
-            { "file": "events/fixture_events.txt", "line": 3, "column": 14 },
-            { "file": "events/fixture_events.txt", "line": 11, "column": 18 },
-            { "file": "history/characters/fixture_characters.txt", "line": 3, "column": 10 }
+            {
+                "file": "common/scripted_effects/fixture_effects.txt",
+                "line": 8,
+                "column": 14
+            },
+            {
+                "file": "common/traits/fixture_traits.txt",
+                "line": 5,
+                "column": 16
+            },
+            {
+                "file": "events/fixture_events.txt",
+                "line": 3,
+                "column": 14
+            },
+            {
+                "file": "events/fixture_events.txt",
+                "line": 11,
+                "column": 18
+            },
+            {
+                "file": "history/characters/fixture_characters.txt",
+                "line": 3,
+                "column": 10
+            }
         ],
         "fixture_trait_opposite": [
-            { "file": "common/traits/fixture_traits.txt", "line": 2, "column": 16 }
+            {
+                "file": "common/traits/fixture_traits.txt",
+                "line": 2,
+                "column": 16
+            }
         ],
         "fixture_value": [
-            { "file": "common/script_values/fixture_values.txt", "line": 3, "column": 10 },
-            { "file": "localization/english/fixture_l_english.yml", "line": 3, "column": 43 }
+            {
+                "file": "common/script_values/fixture_values.txt",
+                "line": 3,
+                "column": 10
+            },
+            {
+                "file": "localization/english/fixture_l_english.yml",
+                "line": 3,
+                "column": 43
+            }
         ],
-        "fixture_scaled_value": [{ "file": "events/fixture_events.txt", "line": 17, "column": 20 }],
-        "namespace": [],
+        "fixture_scaled_value": [
+            {
+                "file": "events/fixture_events.txt",
+                "line": 17,
+                "column": 20
+            }
+        ],
         "fixture_inline_trigger": [
-            { "file": "events/fixture_events.txt", "line": 10, "column": 3 }
+            {
+                "file": "events/fixture_events.txt",
+                "line": 10,
+                "column": 3
+            }
         ],
-        "fixture.1": [{ "file": "events/fixture_events.txt", "line": 16, "column": 19 }],
-        "1001": [],
-        "1002": [{ "file": "history/characters/fixture_characters.txt", "line": 4, "column": 11 }],
+        "fixture.1": [
+            {
+                "file": "events/fixture_events.txt",
+                "line": 16,
+                "column": 19
+            }
+        ],
         "NFixture": [
-            { "file": "common/script_values/fixture_values.txt", "line": 5, "column": 15 }
+            {
+                "file": "common/script_values/fixture_values.txt",
+                "line": 5,
+                "column": 15
+            }
         ],
         "FIXTURE_DEFINE": [
-            { "file": "common/script_values/fixture_values.txt", "line": 5, "column": 24 }
+            {
+                "file": "common/script_values/fixture_values.txt",
+                "line": 5,
+                "column": 24
+            }
         ],
         "colors": [],
-        "fixture_green": [{ "file": "common/traits/fixture_traits.txt", "line": 6, "column": 10 }],
-        "fixture.1.t": [
-            { "file": "events/fixture_events.txt", "line": 7, "column": 10 },
-            { "file": "localization/english/fixture_l_english.yml", "line": 3, "column": 25 }
+        "fixture_green": [
+            {
+                "file": "common/traits/fixture_traits.txt",
+                "line": 6,
+                "column": 10
+            }
         ],
-        "fixture.1.desc": [{ "file": "events/fixture_events.txt", "line": 8, "column": 10 }],
-        "fixture.1.a": [{ "file": "events/fixture_events.txt", "line": 21, "column": 10 }]
+        "fixture.1.t": [
+            {
+                "file": "events/fixture_events.txt",
+                "line": 7,
+                "column": 10
+            },
+            {
+                "file": "localization/english/fixture_l_english.yml",
+                "line": 3,
+                "column": 25
+            }
+        ],
+        "fixture.1.desc": [
+            {
+                "file": "events/fixture_events.txt",
+                "line": 8,
+                "column": 10
+            }
+        ],
+        "fixture.1.a": [
+            {
+                "file": "events/fixture_events.txt",
+                "line": 21,
+                "column": 10
+            }
+        ]
     }
 }

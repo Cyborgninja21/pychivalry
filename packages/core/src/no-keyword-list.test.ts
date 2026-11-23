@@ -24,7 +24,7 @@ const FORMAT_WORDS: Readonly<Record<string, string>> = {
     list: "a block's shape in the syntax tree (`blockShape`)",
     parameter: "a word's kind in the syntax tree (`WordType`): a `$PARAM$`",
     object: "what JavaScript's `typeof` gives for an object",
-    status: "a key of the override rules table's own format (`spec/override-rules.json`)",
+    status: "a key every row of the spec package's parts D1 to D8 carries, and of a part (`built`)",
 };
 
 /** Every name of 2.3.0's tables: the entries, their parameters, the lists and folders they name. */
@@ -82,12 +82,12 @@ function strings(source: string): string[] {
     return out;
 }
 
-test('the search has names to look for: every table of the package, 166 entries', () => {
+test('the search has names to look for: every table of the package, 177 entries', () => {
     const tables = committedSpec().data.tables.data;
     assert.equal(Object.keys(tables).length, 19);
     const entries = Object.values(tables).reduce((n, t) => n + Object.keys(t.entries).length, 0);
-    assert.equal(entries, 166);
-    assert.ok(tableNames().size >= 166);
+    assert.equal(entries, 177);
+    assert.ok(tableNames().size >= 177);
 });
 
 test("no source file of the core writes a name of 2.3.0's tables as a string", () => {

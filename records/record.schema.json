@@ -263,10 +263,10 @@
             }
         },
         "duplicates": {
-            "description": "The names defined more than once: how many, by how each resolves, and the unknown ones (winner not known) by the open rule of docs/overrides.md and by database.",
+            "description": "The names defined more than once: how many, by how each resolves, and the unknown ones (winner not known) by the open rule of docs/overrides.md, by reason and by database.",
             "type": "object",
             "additionalProperties": false,
-            "required": ["names", "by_status", "unknown_by_rule", "unknown_by_database"],
+            "required": ["names", "by_status", "unknown_by_rule", "unknown_by_reason", "unknown_by_database"],
             "properties": {
                 "names": { "$ref": "#/$defs/count" },
                 "by_status": { "type": "object", "additionalProperties": { "$ref": "#/$defs/count" } },
@@ -277,6 +277,16 @@
                         "additionalProperties": false,
                         "required": ["rule", "names"],
                         "properties": { "rule": { "type": "integer", "minimum": 1, "maximum": 11 }, "names": { "$ref": "#/$defs/count" } }
+                    }
+                },
+                "unknown_by_reason": {
+                    "description": "no-rule, not-settled:<row>, no-order, file-unknown:<question> (records/README.md, Index records).",
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["reason", "names"],
+                        "properties": { "reason": { "$ref": "#/$defs/text" }, "names": { "$ref": "#/$defs/count" } }
                     }
                 },
                 "unknown_by_database": {
@@ -310,7 +320,7 @@
                 "failures": { "type": "array", "items": { "$ref": "#/$defs/text" } },
                 "platform": { "$ref": "#/$defs/text" },
                 "rules": {
-                    "description": "The rules table the run used: the core's digest of spec/override-rules.json.",
+                    "description": "The rules table the run used: the core's digest of the spec package's override rules (part D1).",
                     "type": "object",
                     "additionalProperties": false,
                     "required": ["sha256"],

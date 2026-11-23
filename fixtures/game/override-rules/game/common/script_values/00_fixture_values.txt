@@ -1,3 +1,4 @@
+@fixture_constant = 5
 fixture_value = 5
 fixture_twice = 1
 fixture_twice = 2

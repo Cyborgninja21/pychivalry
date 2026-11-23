@@ -47,7 +47,7 @@ Everything goes through [Taskfile.yml](Taskfile.yml); `task --list` shows it all
 | `task test` | Every package's tests: Node's built-in test runner on the compiled output |
 | `task lint` | ESLint, type-aware, warnings as errors |
 | `task format:check` / `task format` | Prettier, check only / write |
-| `task spec:check` | The committed spec package: the checksums of the package file and its companions (uncompressed), format 5, the JSON Schema, the format 4 copy, the rules table |
+| `task spec:check` | The committed spec package: the checksums of the package file and its companions (uncompressed), format 7, the JSON Schema, the format 4 copy, the override rules (part D1) |
 | `task records:check` | Every committed record: valid format, made on the committed spec (a 2.3.0 baseline: on the format 4 copy) and corpus |
 | `task wiki:check` | The wiki builds from `docs/`: every published document exists and every link resolves |
 | `task wiki:build` | The wiki pages, built into `.wiki-build/` to look at |
@@ -61,7 +61,7 @@ Everything goes through [Taskfile.yml](Taskfile.yml); `task --list` shows it all
 | `packages/cli`, `packages/mcp`, `packages/lsp` | Thin shells over the core: command line, agent server, language server |
 | `packages/vscode` | The extension: starts the servers, registers the agent server. No CK3 logic. |
 | `tools` | The scripts behind the local tasks: spec and record checks, the game-file suites, the corpus manifest, the 2.3.0 baselines |
-| `spec` | The committed spec package, its companions and schema, the format 4 copy for 2.3.0 in `spec/legacy/`, the override rules table ([spec/README.md](spec/README.md)) |
+| `spec` | The committed spec package (its override rules are part D1), its companions and schema, the format 4 copy for 2.3.0 in `spec/legacy/` ([spec/README.md](spec/README.md)) |
 | `records` | Committed results of the game-file suites ([records/README.md](records/README.md)) |
 | `fixtures` | Hand-written test data in three parts: `mods/`, `game/`, `defects/` ([fixtures/README.md](fixtures/README.md)) |
 | `docs` | Every document ([docs/README.md](docs/README.md)): MVP and plan, the decision log, references, test data, the user guide, the wiki source |

@@ -5,9 +5,11 @@
  * file; and what the rules table says is in force.
  *
  * It is neutral by default (item 3.6). It records every definition, and names a winner only
- * where a row of the rules table answers the question for that database, form and platform.
- * Where none does, the answer is `unknown`: defined more than once, winner not known, with the
- * reasons. Nothing is guessed, and adding a row changes the answer with no change here.
+ * where a row of the rules table that decides (rules.ts: a settled or derived row of a kind
+ * the index applies) answers the question for that database, form and platform. Where none
+ * does, the answer is `unknown`: defined more than once, winner not known, with the reasons
+ * (no row; a row that is partial or open; no order; a file whose reading is not known).
+ * Nothing is guessed, and adding a row changes the answer with no change here.
  *
  * Storage is packed: names are interned, and a file's definitions and uses are integer arrays
  * (`DEF` and `USE_STRIDE` in extract.ts), so the whole base game fits in memory and in the
@@ -20,10 +22,12 @@ import { parse } from '../syntax/parser.js';
 import type { Position, Range } from '../syntax/position.js';
 import { readScript } from '../syntax/read.js';
 import {
+    CONSTANTS_DATABASE,
     DEF,
     DEF_STRIDE,
     extractLocalization,
     extractScript,
+    fileConstantsDatabase,
     formOf,
     NONE,
     USE_STRIDE,
@@ -42,15 +46,22 @@ import {
     segmentsOf,
 } from './paths.js';
 import {
+    APPLIED_KINDS,
     databaseMatches,
+    decides,
+    resolveOfDetail,
     rulesFor,
     type ContainersRule,
     type FileOrderRule,
+    type FolderWinsRule,
     type Form,
     type KeyResolutionRule,
+    type ListingDepthRule,
     type Platform,
+    type Resolve,
     type Rule,
     type RulesTable,
+    type RowStatus,
 } from './rules.js';
 import { StringTable } from './strings.js';
 
@@ -147,6 +158,13 @@ export type FileQuestion =
           /** Another file has the same name in another folder, and no row says paths identify files. */
           readonly kind: 'file-identity';
           readonly other: { readonly layer: string; readonly path: string };
+      }
+    | {
+          /** The file is below a subfolder of `folder`, and no deciding row says the folder is read with its subfolders. */
+          readonly kind: 'listing-depth';
+          readonly folder: string;
+          /** The row that would say, when one is partial or open; null when none does. */
+          readonly rule: string | null;
       };
 
 /** Whether the game reads a file, as far as the rules table says. */
@@ -161,7 +179,10 @@ export interface FileStatus {
     } | null;
     /** The `replace_path` that hides it, and the row that says so. */
     readonly hiddenBy: { readonly path: string; readonly rule: string } | null;
-    /** Why the folder is not read: a `path-case` row that compares paths exactly. */
+    /**
+     * Why the file is not read: a `path-case` row that compares paths exactly, or a
+     * `listing-depth` row that lists its folder without subfolders.
+     */
     readonly notReadBecause: { readonly rule: string } | null;
     readonly questions: readonly FileQuestion[];
 }
@@ -171,7 +192,11 @@ export interface Definition {
     readonly name: string;
     readonly database: string;
     readonly form: Form;
-    /** The container key, for an entry; otherwise null. */
+    /**
+     * The container key, for an entry; for a nested definition found by its place (part D3),
+     * its parent: the keys from the top-level key down to the block that holds it, joined by
+     * `/`; otherwise null.
+     */
     readonly container: string | null;
     /** The word before the key, for a prefixed definition; otherwise null. */
     readonly prefix: string | null;
@@ -187,6 +212,8 @@ export interface Definition {
     readonly priority: number | null;
     /** A localization entry's version number, or null. */
     readonly version: number | null;
+    /** For an entry, where its container's block starts in the file; otherwise null. */
+    readonly containerBlock: number | null;
     /** Whether the game reads the file it is in (`FileStatus.read`). */
     readonly read: FileStatus['read'];
 }
@@ -215,6 +242,18 @@ export type UnknownReason =
           readonly kind: 'no-order';
           readonly database: string;
           readonly rule: string;
+      }
+    | {
+          /**
+           * A row answers for this database and form, but its status is one the index does
+           * not build on (partial, open), or the package's details it needs are not given.
+           */
+          readonly kind: 'not-settled';
+          readonly database: string;
+          readonly rule: string;
+          readonly status: RowStatus;
+          /** The docs/overrides.md rule of the row. */
+          readonly overrides_rule: number;
       }
     | {
           /** Whether the game reads a file that holds a definition is not known. */
@@ -362,8 +401,10 @@ export class WorkspaceIndex {
     readonly folders: FolderTable;
     readonly table: RulesTable;
     readonly platform: Platform | undefined;
-    /** The rows that hold on the index's platform. */
+    /** The rows the index applies on its platform: they hold there and decide. */
     readonly rules: readonly Rule[];
+    /** Every row that holds on the platform, deciding or not: for the reasons of an unknown. */
+    readonly platformRules: readonly Rule[];
     private readonly fallbackEncoding: FallbackEncoding | undefined;
     private readonly strings: StringTable;
     private readonly files: (FileEntry | undefined)[] = [];
@@ -377,8 +418,9 @@ export class WorkspaceIndex {
         this.folders = options.folders;
         this.table = options.rules;
         this.platform = options.platform;
-        this.rules =
+        this.platformRules =
             options.platform === undefined ? [] : rulesFor(options.rules, options.platform);
+        this.rules = this.platformRules.filter(decides);
         this.fallbackEncoding = options.fallbackEncoding;
         this.strings = strings;
     }
@@ -473,11 +515,18 @@ export class WorkspaceIndex {
                 typeof content === 'string'
                     ? parse(content)
                     : readScript(content, { fallbackEncoding: this.fallbackEncoding });
+            const stem = fileNameOf(path);
             extracted = extractScript(parsed.file, {
                 strings: this.strings,
                 database: folder,
                 containers: folder === null ? null : this.containersFor(folder),
                 priority: folder === null ? null : this.priorityFor(folder),
+                folder: match?.folder ?? null,
+                constants:
+                    this.folders.constantScope === 'file'
+                        ? fileConstantsDatabase(path)
+                        : CONSTANTS_DATABASE,
+                fileStem: stem.includes('.') ? stem.slice(0, stem.lastIndexOf('.')) : stem,
             });
             lineStarts = parsed.lines.lineStarts;
         } else {
@@ -524,9 +573,12 @@ export class WorkspaceIndex {
         };
     }
 
-    /** The mod's `replace_path` values, from its descriptor (docs/overrides.md, rule 8). */
+    /**
+     * The mod's `replace_path` values, from its descriptor (docs/overrides.md, rule 8), kept as
+     * written: the game compares the folder byte for byte.
+     */
     setReplacePaths(paths: readonly string[]): void {
-        this.replacePaths = paths.map((p) => segmentsOf(p.replaceAll('\\', '/')).join('/'));
+        this.replacePaths = [...paths];
         this.statuses = null;
     }
 
@@ -653,6 +705,26 @@ export class WorkspaceIndex {
         );
     }
 
+    /** A row of an applied kind that would answer, but does not decide (partial, open). */
+    private pendingRule(
+        kind: Rule['kind'],
+        database: string,
+        forms: readonly Form[] | null,
+    ): Rule | undefined {
+        return this.platformRules.find(
+            (r) =>
+                r.kind === kind &&
+                APPLIED_KINDS.has(r.kind) &&
+                !decides(r) &&
+                'databases' in r &&
+                Array.isArray(r.databases) &&
+                (r.databases as readonly string[]).some((d) => databaseMatches(d, database)) &&
+                (forms === null ||
+                    r.kind !== 'key-resolution' ||
+                    forms.every((f) => r.forms === undefined || r.forms.includes(f))),
+        );
+    }
+
     private priorityFor(database: string): { field: string; fallback: number } | null {
         const rule = this.keyRule(database, ['record']);
         if (rule?.resolve !== 'priority' || rule.priority_field === undefined) {
@@ -661,13 +733,56 @@ export class WorkspaceIndex {
         return { field: rule.priority_field, fallback: rule.priority_default ?? 0 };
     }
 
+    /** The order of a database's files: a row naming the database before one for every database. */
     private orderRule(database: string): FileOrderRule | undefined {
-        return this.rules.find(
-            (r): r is FileOrderRule =>
-                r.kind === 'file-order' &&
-                (r.databases === undefined ||
-                    r.databases.some((d) => databaseMatches(d, database))),
+        const rows = this.rules.filter((r): r is FileOrderRule => r.kind === 'file-order');
+        return (
+            rows.find((r) => r.databases?.some((d) => databaseMatches(d, database)) === true) ??
+            rows.find((r) => r.databases === undefined)
         );
+    }
+
+    /**
+     * Whether a file below a subfolder of its folder is read (docs/overrides.md, rule 4): by
+     * the `listing-depth` row of the nearest folder above it that a row names, the file's own
+     * spec folder or a folder of a row's `other_folders`. A file directly in such a folder is
+     * read; below a subfolder, it is read when the row says `recursive`, not read when it says
+     * not, and not known when no deciding row says.
+     */
+    private listingOf(file: FileEntry): {
+        read: 'yes' | 'no' | 'unknown';
+        rule: string | null;
+        folder: string;
+    } {
+        const folder = file.folder ?? '';
+        const rows = this.platformRules.filter(
+            (r): r is ListingDepthRule => r.kind === 'listing-depth',
+        );
+        // The path with its spec folder spelled as the spec writes it (letter case is rule 9's).
+        const path = folder + file.path.slice(folder.length);
+        let dir = parentOf(path);
+        let direct = true;
+        while (dir !== '' && (dir === folder || isWithin(dir, folder))) {
+            const row = rows.find(
+                (r) => r.databases.includes(dir) || (r.other_folders ?? []).includes(dir),
+            );
+            if (row !== undefined) {
+                if (direct) {
+                    return { read: 'yes', rule: row.id, folder: dir };
+                }
+                if (!decides(row)) {
+                    return { read: 'unknown', rule: row.id, folder: dir };
+                }
+                return { read: row.recursive ? 'yes' : 'no', rule: row.id, folder: dir };
+            }
+            if (dir === folder) {
+                break;
+            }
+            dir = parentOf(dir);
+            direct = false;
+        }
+        const below = parentOf(path) !== folder;
+        return { read: below ? 'unknown' : 'yes', rule: null, folder };
     }
 
     // ─── Whether each file is read ─────────────────────────────────────────
@@ -679,6 +794,22 @@ export class WorkspaceIndex {
         const notRead: (FileStatus['notReadBecause'] | null)[] = this.files.map(() => null);
         const pathCase = this.rules.find((r) => r.kind === 'path-case');
         const live = this.files.filter((f): f is FileEntry => f !== undefined);
+        // A file below a subfolder of its folder (rule 4, the listing-depth rows).
+        for (const file of live) {
+            if (file.folder === null) {
+                continue;
+            }
+            const listing = this.listingOf(file);
+            if (listing.read === 'no' && listing.rule !== null) {
+                notRead[file.id] = { rule: listing.rule };
+            } else if (listing.read === 'unknown') {
+                questions[file.id]?.push({
+                    kind: 'listing-depth',
+                    folder: listing.folder,
+                    rule: listing.rule,
+                });
+            }
+        }
         // A spec folder spelled in other letter case (rule 9).
         for (const file of live) {
             if (file.folder !== null && !file.exactCase) {
@@ -756,19 +887,25 @@ export class WorkspaceIndex {
                 }
             }
         }
-        // `replace_path` in the mod's descriptor (rule 8).
+        // `replace_path` in the mod's descriptor (rule 8). The row's folder is written byte
+        // for byte as the listed directory (its `details.match`): no folding of case.
         const replacePath = this.rules.find((r) => r.kind === 'replace-path');
         for (const hiddenPath of this.replacePaths) {
             for (const file of live) {
-                if (file.layer === 'mod' || !isWithin(file.path, hiddenPath, true)) {
+                if (file.layer === 'mod') {
                     continue;
                 }
-                const direct = foldCase(parentOf(file.path)) === foldCase(hiddenPath);
                 if (replacePath === undefined) {
-                    questions[file.id]?.push({ kind: 'replace-path', path: hiddenPath });
-                } else if (
+                    if (isWithin(file.path, hiddenPath, true)) {
+                        questions[file.id]?.push({ kind: 'replace-path', path: hiddenPath });
+                    }
+                    continue;
+                }
+                const direct = parentOf(file.path) === hiddenPath;
+                const below = file.path.startsWith(`${hiddenPath}/`);
+                if (
                     replacePath.hides.some((layer) => layerMatches(layer, file.layer)) &&
-                    (replacePath.subfolders || direct)
+                    (direct || (replacePath.subfolders && below))
                 ) {
                     hidden[file.id] = { path: hiddenPath, rule: replacePath.id };
                 }
@@ -877,6 +1014,7 @@ export class WorkspaceIndex {
             extentEnd: at(DEF.end),
             priority: form === 'record' && extra !== NONE ? extra : null,
             version: form === 'key' && extra !== NONE ? extra : null,
+            containerBlock: form === 'entry' && extra !== NONE ? extra : null,
             read: this.statusOf(id).read,
         };
     }
@@ -947,13 +1085,13 @@ export class WorkspaceIndex {
         }
         let pool = live;
         const folderWins = this.rules.find(
-            (r) =>
+            (r): r is FolderWinsRule =>
                 r.kind === 'folder-wins' && r.databases.some((d) => databaseMatches(d, database)),
         );
-        if (folderWins?.kind === 'folder-wins') {
-            const segment = foldCase(folderWins.segment);
+        if (folderWins !== undefined) {
+            // The folder's name written byte for byte, at any depth of the path.
             const inFolder = live.filter((d) =>
-                segmentsOf(parentOf(d.file)).some((s) => foldCase(s) === segment),
+                segmentsOf(parentOf(d.file)).includes(folderWins.segment),
             );
             if (inFolder.length === 1) {
                 const winner = inFolder[0] as Definition;
@@ -966,11 +1104,44 @@ export class WorkspaceIndex {
                 };
             }
             if (inFolder.length > 1) {
-                pool = inFolder;
+                // Which of two under the folder wins is the row's `details.among_segment`.
+                const among = resolveOfDetail(folderWins.details?.['among_segment']);
+                if (among !== 'later-wins' && among !== 'earlier-wins') {
+                    return {
+                        status: 'unknown',
+                        definitions,
+                        reasons: [
+                            {
+                                kind: 'not-settled',
+                                database,
+                                rule: folderWins.id,
+                                status: folderWins.status,
+                                overrides_rule: folderWins.overrides_rule,
+                            },
+                        ],
+                    };
+                }
+                return this.byOrder(database, definitions, inFolder, among, 'whole', folderWins.id);
             }
         }
         const rule = this.keyRule(database, forms);
         if (rule === undefined) {
+            const pending = this.pendingRule('key-resolution', database, forms);
+            if (pending !== undefined) {
+                return {
+                    status: 'unknown',
+                    definitions,
+                    reasons: [
+                        {
+                            kind: 'not-settled',
+                            database,
+                            rule: pending.id,
+                            status: pending.status,
+                            overrides_rule: pending.overrides_rule,
+                        },
+                    ],
+                };
+            }
             return {
                 status: 'unknown',
                 definitions,
@@ -999,45 +1170,86 @@ export class WorkspaceIndex {
             }
             case 'later-wins':
             case 'earlier-wins': {
-                const order = this.orderRule(database);
-                if (order === undefined) {
-                    return {
-                        status: 'unknown',
-                        definitions,
-                        reasons: [{ kind: 'no-order', database, rule: rule.id }],
-                    };
+                // Two definitions inside one container block: the row's `details.within_one_block`.
+                const blocks = new Map<string, Definition[]>();
+                for (const d of pool) {
+                    const key =
+                        d.containerBlock === null
+                            ? `${d.layer}\u0000${d.file}\u0000${String(d.start)}`
+                            : `${d.layer}\u0000${d.file}\u0000@${String(d.containerBlock)}`;
+                    blocks.set(key, [...(blocks.get(key) ?? []), d]);
                 }
-                const where = (d: Definition): { layer: string; path: string } => ({
-                    layer: d.layer,
-                    path: d.file,
-                });
-                const unordered = pool.some((a, i) =>
-                    pool
-                        .slice(i + 1)
-                        .some((b) => compareFiles(where(a), where(b), order) === undefined),
-                );
-                const sorted = [...pool].sort(
-                    (a, b) => (compareFiles(where(a), where(b), order) ?? 0) || a.start - b.start,
-                );
-                if (unordered) {
-                    return {
-                        status: 'unknown',
-                        definitions,
-                        reasons: [{ kind: 'no-order', database, rule: order.id }],
-                    };
+                if ([...blocks.values()].some((group) => group.length > 1)) {
+                    const within = resolveOfDetail(rule.details?.['within_one_block']);
+                    const inBlock = within ?? rule.resolve;
+                    if (inBlock !== 'later-wins' && inBlock !== 'earlier-wins') {
+                        return {
+                            status: 'unknown',
+                            definitions,
+                            reasons: [
+                                {
+                                    kind: 'not-settled',
+                                    database,
+                                    rule: rule.id,
+                                    status: rule.status,
+                                    overrides_rule: rule.overrides_rule,
+                                },
+                            ],
+                        };
+                    }
+                    pool = [...blocks.values()].map((group) => {
+                        const sorted = [...group].sort((a, b) => a.start - b.start);
+                        return (inBlock === 'later-wins' ? sorted.at(-1) : sorted[0]) as Definition;
+                    });
                 }
-                const winner = (
-                    rule.resolve === 'later-wins' ? sorted.at(-1) : sorted[0]
-                ) as Definition;
-                return {
-                    status: 'winner',
+                return this.byOrder(
+                    database,
                     definitions,
-                    winner,
-                    combine: rule.combine ?? 'whole',
-                    rule: rule.id,
-                };
+                    pool,
+                    rule.resolve,
+                    rule.combine ?? 'whole',
+                    rule.id,
+                );
             }
         }
+    }
+
+    /** The definition read last, or first, of a pool, by the database's `file-order` row. */
+    private byOrder(
+        database: string,
+        definitions: readonly Definition[],
+        pool: readonly Definition[],
+        resolve: Extract<Resolve, 'later-wins' | 'earlier-wins'>,
+        combine: 'whole' | 'fields' | 'partial',
+        rule: string,
+    ): Resolution {
+        const order = this.orderRule(database);
+        if (order === undefined) {
+            return {
+                status: 'unknown',
+                definitions,
+                reasons: [{ kind: 'no-order', database, rule }],
+            };
+        }
+        const where = (d: Definition): { layer: string; path: string } => ({
+            layer: d.layer,
+            path: d.file,
+        });
+        const unordered = pool.some((a, i) =>
+            pool.slice(i + 1).some((b) => compareFiles(where(a), where(b), order) === undefined),
+        );
+        if (unordered) {
+            return {
+                status: 'unknown',
+                definitions,
+                reasons: [{ kind: 'no-order', database, rule: order.id }],
+            };
+        }
+        const sorted = [...pool].sort(
+            (a, b) => (compareFiles(where(a), where(b), order) ?? 0) || a.start - b.start,
+        );
+        const winner = (resolve === 'later-wins' ? sorted.at(-1) : sorted[0]) as Definition;
+        return { status: 'winner', definitions, winner, combine, rule };
     }
 
     /** Every name of every database that has more than one definition, in any file. */

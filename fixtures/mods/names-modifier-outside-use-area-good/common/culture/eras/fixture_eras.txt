@@ -1,0 +1,18 @@
+# An era's blocks that hold modifiers, each read with the use area part D7 confirms:
+# character_modifier with character, county_modifier with county, province_modifier with
+# province. Every modifier here has the block's use area among its own.
+culture_era_fixture = {
+	year = 1100
+	character_modifier = {
+		diplomacy = 1
+		bowmen_damage_mult = 0.1
+		stewardship = 1
+	}
+	county_modifier = {
+		baron_levy_contribution_add = 1
+		baron_herd_contribution_mult = 0.1
+	}
+	province_modifier = {
+		defender_winter_advantage = 1
+	}
+}

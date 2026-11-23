@@ -11,8 +11,8 @@ import path from 'node:path';
 import { performance } from 'node:perf_hooks';
 import {
     currentPlatform,
-    FolderTable,
-    foldersFromSpec,
+    folderTableFromSpec,
+    type FolderTable,
     indexMod,
     openGameIndex,
     type IndexedFile,
@@ -199,7 +199,7 @@ function describeMod(index: WorkspaceIndex, listing: ModListing): Record<string,
 function main(): void {
     const task = JSON.parse(process.argv[2] ?? '{}') as WorkerTask;
     const root = task.root;
-    const folders = new FolderTable(foldersFromSpec(openSpec(path.join(root, 'spec')).data));
+    const folders = folderTableFromSpec(openSpec(path.join(root, 'spec')).data);
     const rules = committedRules(root).table;
     const game = openGameIndex({
         gameDir: task.gameDir,

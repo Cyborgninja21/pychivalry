@@ -24,7 +24,7 @@ import {
     sourceManifestSha256,
     type SourceListing,
 } from './read-game.js';
-import { rulesDigest, rulesFor, type Platform, type RulesTable } from './rules.js';
+import { decidingRules, rulesDigest, type Platform, type RulesTable } from './rules.js';
 import type { WorkspaceIndex } from './workspace.js';
 
 export interface GameIndexOptions {
@@ -82,7 +82,8 @@ export function openGameIndex(options: GameIndexOptions): GameIndex {
         platform: options.platform,
         fallbackEncoding: options.fallbackEncoding,
     };
-    const rules = options.platform === undefined ? [] : rulesFor(options.rules, options.platform);
+    const rules =
+        options.platform === undefined ? [] : decidingRules(options.rules, options.platform);
     let t = performance.now();
     const listing = listInstall(installFolders(options.gameDir), options.folders, rules);
     const key = gameCacheKey(options, listing);

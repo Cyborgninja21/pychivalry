@@ -30,7 +30,7 @@ import {
 import { openGameIndex } from './game-index.js';
 import { indexMod } from './read-game.js';
 import { withRule, type Rule } from './rules.js';
-import { repoPath, specFolders, standInRules, stubIndex, TEST_ROW } from './testing.js';
+import { repoPath, specFolders, packageRules, stubIndex, TEST_ROW } from './testing.js';
 import type { WorkspaceIndex } from './workspace.js';
 
 let scratch = '';
@@ -53,7 +53,7 @@ const KEY: CacheKey = {
     fallback_encoding: null,
 };
 
-const OPTIONS = { folders: specFolders(), rules: standInRules(), platform: 'linux' } as const;
+const OPTIONS = { folders: specFolders(), rules: packageRules(), platform: 'linux' } as const;
 
 /** Every answer an index gives on its own names, as one value to compare. */
 function answers(index: WorkspaceIndex): unknown {
@@ -186,7 +186,7 @@ test('the game index is built once, then loaded from the cache; a changed game f
     const options = {
         gameDir: path.join(game, 'game'),
         folders: specFolders(),
-        rules: standInRules(),
+        rules: packageRules(),
         platform: 'linux' as const,
         specSha256: 'e'.repeat(64),
         cacheDir: path.join(scratch, 'game-cache'),
@@ -218,14 +218,15 @@ test('the game index is built once, then loaded from the cache; a changed game f
     assert.equal(openGameIndex({ ...options, specSha256: 'f'.repeat(64) }).fromCache, false);
     const row = {
         id: 'test-row',
-        overrides_rule: 9,
+        overrides_rule: 5,
         title: 'test',
-        kind: 'path-case',
-        compare: 'exact',
+        kind: 'key-resolution',
+        databases: ['common/a_folder_of_the_test'],
+        resolve: 'all',
         ...TEST_ROW,
     } as unknown as Rule;
     assert.equal(
-        openGameIndex({ ...options, rules: withRule(standInRules(), row) }).fromCache,
+        openGameIndex({ ...options, rules: withRule(packageRules(), row) }).fromCache,
         false,
     );
     // With no cache folder nothing is read or written.

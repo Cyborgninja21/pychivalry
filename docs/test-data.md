@@ -13,7 +13,7 @@ uses it. A step that adds test data adds it here.
 | The five real mods | Outside the repository, in the folder `CK3_CORPUS` names; pinned by [`records/corpus/MANIFEST.tsv`](../records/corpus/README.md) | The manifest only | `task game:index`, `task game:mods`, `task game:bench`, the 2.3.0 baselines | No |
 | The base game | The local install, in the folder `CK3_GAME_PATH` names | Never | `task game:parse`, `task game:index`, `task game:check` and the suites above | No |
 | Records | [`records/`](../records/README.md) | Yes | Public CI checks each one against the committed spec and corpus (a 2.3.0 baseline against the committed format 4 copy) | The check, yes |
-| The spec package | [`spec/`](../spec/README.md): the 1.21.0.3 package in format 5, its companions, and the format 4 copy for 2.3.0 | Yes, gzipped | Every reader of the spec; the parse and index suites; the 2.3.0 baselines (the format 4 copy) | Its check, yes; the tests read the package file |
+| The spec package | [`spec/`](../spec/README.md): the 1.21.0.3 package in format 7 (its override rules are part D1), its companions, and the format 4 copy for 2.3.0 | Yes, gzipped | Every reader of the spec; the index and its override fixtures; the parse and index suites; the 2.3.0 baselines (the format 4 copy) | Its check, yes; the tests read the package file |
 | Release 2.3.0's tests and records | [`legacy/`](../legacy/) | Yes, unchanged | Carried over by the step that owns each behaviour | No |
 
 ## The rules
@@ -53,14 +53,19 @@ Build step 3 added the index's fixtures. The first game stub,
 [overrides.md](overrides.md). Three mods are read over it, one at a time: `override-rules`,
 `override-rules-replace-path` (rule 8) and `override-rules-folder-case` (rule 9, a folder in
 upper case, which Windows cannot hold beside the lower-case one in a single tree). Each states,
-in its `expected.json`, what a correct index answers for every name: a winner where the stand-in
-rules table settles the rule, both definitions and no winner where the rule is open. A fourth
+in its `expected.json`, what a correct index answers for every name: a winner where a row of the
+spec package's rules table (part D1) decides the rule, every definition and no winner where no
+row decides it; a case that differs by platform (letter case) is written once for each. Item
+4.2 added to them a landed title nested in another, a culture history named by its file, a
+constant in two files, a define written twice in one block, two files under `replace`, and files
+below subfolders of a folder read without them and of one whose depth is not settled. A fourth
 mod, `index-definitions-and-uses`, lists every definition and every use of a defined name the
 index must find, and none it must not. The list is in
 [fixtures/mods/README.md](../fixtures/mods/README.md).
 
 Build step 4 added the first check pairs, one per check of item 4.2: `names-unknown-trigger`,
-`names-unknown-effect`, `names-unknown-link` and `names-unknown-modifier`, each a `-bad` mod the
+`names-unknown-effect`, `names-unknown-link`, `names-unknown-modifier`, `names-unknown-on-action`
+and `names-modifier-outside-use-area`, each a `-bad` mod the
 check fires on and a `-good` mod that differs from it only in the defects. A bad mod's
 `expected.json` lists every finding of every check on it; the good mod has none. Each check's
 test (`packages/core/src/check/<name>.test.ts`) indexes the mod on its own and runs every check

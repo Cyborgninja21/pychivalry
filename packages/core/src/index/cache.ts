@@ -34,7 +34,7 @@ import path from 'node:path';
 import { WorkspaceIndex, type IndexOptions, type IndexState } from './workspace.js';
 
 /** The cache's format. A change to the layout raises it, and every older cache is rebuilt. */
-export const CACHE_FORMAT = 1;
+export const CACHE_FORMAT = 2;
 
 /** What a cache was built from. Two equal keys mean the cache answers for the same input. */
 export interface CacheKey {

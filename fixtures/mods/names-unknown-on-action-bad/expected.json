@@ -1,0 +1,64 @@
+{
+    "findings": [
+        {
+            "file": "common/on_action/fixture_on_actions.txt",
+            "line": 5,
+            "column": 3,
+            "code": "names/unknown-on-action",
+            "severity": "error",
+            "message": "Unknown on action: fixture_no_such_on_action",
+            "data": {
+                "name": "fixture_no_such_on_action",
+                "place": "common/on_action::on_actions"
+            }
+        },
+        {
+            "file": "common/on_action/fixture_on_actions.txt",
+            "line": 9,
+            "column": 8,
+            "code": "names/unknown-on-action",
+            "severity": "error",
+            "message": "Unknown on action: fixture_missing_random_on_action",
+            "data": {
+                "name": "fixture_missing_random_on_action",
+                "place": "common/on_action::random_on_action.<number>"
+            }
+        },
+        {
+            "file": "common/on_action/fixture_on_actions.txt",
+            "line": 11,
+            "column": 13,
+            "code": "names/unknown-on-action",
+            "severity": "error",
+            "message": "Unknown on action: fixture_missing_fallback",
+            "data": {
+                "name": "fixture_missing_fallback",
+                "place": "common/on_action::fallback"
+            }
+        },
+        {
+            "file": "common/on_action/fixture_on_actions.txt",
+            "line": 19,
+            "column": 33,
+            "code": "names/unknown-on-action",
+            "severity": "error",
+            "message": "Unknown on action: fixture_missing_triggered_on_action",
+            "data": {
+                "name": "fixture_missing_triggered_on_action",
+                "place": "effects::trigger_event.on_action"
+            }
+        },
+        {
+            "file": "events/fixture_on_action_events.txt",
+            "line": 8,
+            "column": 33,
+            "code": "names/unknown-on-action",
+            "severity": "error",
+            "message": "Unknown on action: fixture_missing_event_on_action",
+            "data": {
+                "name": "fixture_missing_event_on_action",
+                "place": "effects::trigger_event.on_action"
+            }
+        }
+    ]
+}

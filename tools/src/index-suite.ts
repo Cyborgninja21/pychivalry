@@ -2,8 +2,8 @@
  * The base-game index suite, `task game:index` (docs/PLAN.md items 3.5 and 3.8; step 3's
  * "Done when" 3 and 4). It indexes every folder the spec lists in the whole base game (the
  * install's `clausewitz/`, `jomini/` and `game/` folders and the DLC packs), with the
- * committed spec and rules table, saves the index to a cache in a temporary folder, reloads
- * it, and indexes each corpus mod over the base game.
+ * committed spec and its override rules (part D1), saves the index to a cache in a temporary
+ * folder, reloads it, and indexes each corpus mod over the base game.
  *
  * Each of those runs alone, in a fresh process (`index-worker.ts`), so that the time and the
  * peak memory it reports are its own: one heavy job at a time (AGENTS.md).
@@ -12,7 +12,7 @@
  * came from the cache, and every mod indexed. What it measures is recorded, never judged: the
  * folders indexed, the definitions and uses counted, the folders the spec does not describe,
  * and the names defined more than once with no winner known, by the rule of
- * docs/overrides.md that leaves each open.
+ * docs/overrides.md that leaves each open and by the reason.
  */
 
 import { execFileSync } from 'node:child_process';
@@ -55,6 +55,8 @@ const INSTALL = new Set(['clausewitz', 'jomini']);
 
 function rulesOfQuestion(layer: string, q: FileQuestion): number {
     switch (q.kind) {
+        case 'listing-depth':
+            return 4;
         case 'path-case':
             return 9;
         case 'replace-path':
@@ -78,23 +80,45 @@ function rulesOfReason(reason: UnknownReason): number[] {
     switch (reason.kind) {
         case 'no-order':
             return [4];
+        case 'not-settled':
+            return [reason.overrides_rule];
         case 'file-unknown':
             return reason.questions.map((q) => rulesOfQuestion(reason.layer, q));
         case 'no-rule':
             if (reason.database.startsWith('localization')) {
                 return [7];
             }
-            if (reason.database === 'history/titles' || reason.database === 'history/provinces') {
-                // The history of titles and provinces: the open part of rule 6 (experiment 5).
+            if (reason.database.startsWith('history/')) {
+                // A history folder with no row: rule 6's folders of their own.
                 return [6];
-            }
-            if (reason.database === 'common/defines') {
-                // A define set twice: which value wins is the order files are read in (rule 6
-                // settles defines as field by field and leaves the order to rule 4).
-                return [4];
             }
             return [5];
     }
+}
+
+/**
+ * The reasons an unknown answer gives, as words: `no-rule` (no row answers for the database),
+ * `not-settled:<row>` (the row that answers is partial or open), `no-order`, and
+ * `file-unknown:<question>` (whether the game reads a file that holds a definition is not
+ * known: `listing-depth`, `same-path`, `path-case`, `replace-path`, `file-identity`).
+ */
+export function reasonsOf(r: Extract<Resolution, { status: 'unknown' }>): string[] {
+    const out = new Set<string>();
+    for (const reason of r.reasons) {
+        switch (reason.kind) {
+            case 'not-settled':
+                out.add(`not-settled:${reason.rule}`);
+                break;
+            case 'file-unknown':
+                for (const q of reason.questions) {
+                    out.add(`file-unknown:${q.kind}`);
+                }
+                break;
+            default:
+                out.add(reason.kind);
+        }
+    }
+    return [...out].sort();
 }
 
 /** Counts of the names defined more than once, by how each resolves. */
@@ -102,6 +126,7 @@ export interface DuplicateCounts {
     names: number;
     by_status: Record<string, number>;
     unknown_by_rule: { rule: number; names: number }[];
+    unknown_by_reason: { reason: string; names: number }[];
     unknown_by_database: { database: string; names: number }[];
 }
 
@@ -109,6 +134,7 @@ export interface DuplicateCounts {
 export function duplicates(index: WorkspaceIndex, layer?: string): DuplicateCounts {
     const byStatus = new Map<string, number>();
     const byRule = new Map<number, number>();
+    const byReason = new Map<string, number>();
     const byDatabase = new Map<string, number>();
     let names = 0;
     for (const group of index.groups()) {
@@ -122,6 +148,9 @@ export function duplicates(index: WorkspaceIndex, layer?: string): DuplicateCoun
             for (const rule of openRules(r)) {
                 byRule.set(rule, (byRule.get(rule) ?? 0) + 1);
             }
+            for (const reason of reasonsOf(r)) {
+                byReason.set(reason, (byReason.get(reason) ?? 0) + 1);
+            }
             const database = group.database.startsWith('localization:')
                 ? 'localization'
                 : group.database;
@@ -134,6 +163,9 @@ export function duplicates(index: WorkspaceIndex, layer?: string): DuplicateCoun
         unknown_by_rule: [...byRule]
             .sort(([a], [b]) => a - b)
             .map(([rule, n]) => ({ rule, names: n })),
+        unknown_by_reason: [...byReason]
+            .sort(([a, x], [b, y]) => y - x || (a < b ? -1 : 1))
+            .map(([reason, n]) => ({ reason, names: n })),
         unknown_by_database: [...byDatabase]
             .sort(([a, x], [b, y]) => y - x || (a < b ? -1 : 1))
             .map(([database, n]) => ({ database, names: n })),
