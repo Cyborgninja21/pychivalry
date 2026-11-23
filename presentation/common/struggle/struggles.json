@@ -1,0 +1,18 @@
+{
+    "$schema": "../../presentation.schema.json",
+    "folder": "common/struggle/struggles",
+    "from": ["struggles.yaml"],
+    "outline": {
+        "symbol": "Class",
+        "blocks": []
+    },
+    "snippets": [
+        {
+            "label": "phase_list",
+            "description": "The struggle's phases",
+            "at": "field",
+            "field": "phase_list",
+            "body": ["phase_list = {", "\t${1:my_phase} = {", "\t\t$0", "\t}", "}"]
+        }
+    ]
+}

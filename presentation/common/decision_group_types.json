@@ -1,0 +1,35 @@
+{
+    "$schema": "../presentation.schema.json",
+    "folder": "common/decision_group_types",
+    "from": ["decision_group_types.yaml"],
+    "outline": {
+        "symbol": "Class",
+        "blocks": [
+            {
+                "field": "sort_order",
+                "symbol": "Property",
+                "label": "sort_order {value}"
+            },
+            {
+                "field": "important_decision_group",
+                "symbol": "Property"
+            }
+        ]
+    },
+    "snippets": [
+        {
+            "label": "sort_order",
+            "description": "Where the group is listed: higher first",
+            "at": "field",
+            "field": "sort_order",
+            "body": ["sort_order = ${1:100}"]
+        },
+        {
+            "label": "important_decision_group",
+            "description": "The group's decisions are shown as important",
+            "at": "field",
+            "field": "important_decision_group",
+            "body": ["important_decision_group = yes"]
+        }
+    ]
+}

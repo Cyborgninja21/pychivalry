@@ -1,0 +1,21 @@
+{
+    "$schema": "../presentation.schema.json",
+    "folder": "common/council_tasks",
+    "from": ["council_tasks.yaml"],
+    "outline": {
+        "symbol": "Function",
+        "detail": "{position}",
+        "blocks": []
+    },
+    "snippets": [
+        {
+            "label": "position",
+            "description": "The council position the task belongs to",
+            "at": "field",
+            "field": "position",
+            "body": [
+                "position = ${1|councillor_chancellor,councillor_marshal,councillor_steward,councillor_spymaster,councillor_court_chaplain|}"
+            ]
+        }
+    ]
+}

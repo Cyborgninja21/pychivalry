@@ -1,0 +1,7 @@
+﻿l_english:
+ presentation_fixture.1.t: "The Fixture Begins"
+ presentation_fixture.1.desc: "A text no hint shows."
+ presentation_fixture.1.a: "Agree"
+ presentation_fixture.1.b: "Refuse, at\nlength"
+ presentation_decision: "Take the Fixture Decision"
+ presentation_decision_desc: "What the decision does."

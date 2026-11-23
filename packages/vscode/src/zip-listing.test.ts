@@ -28,6 +28,8 @@ test('the .vsix may hold the manifest, the README, the licence, the three bundle
         'extension/LICENSE.txt',
         'extension/dist/bundle/extension.cjs',
         'extension/dist/bundle/lsp/pychivalry-lsp.mjs',
+        'extension/dist/bundle/lsp/presentation/events.json',
+        'extension/dist/bundle/lsp/presentation/common/activities/activity_types.json',
         'extension/dist/bundle/server/pychivalry-mcp.mjs',
         'extension/dist/bundle/server/pychivalry-cli.mjs',
         'extension/dist/bundle/server/manifest.json',
@@ -45,6 +47,8 @@ test('the .vsix may hold the manifest, the README, the licence, the three bundle
         'extension/fixtures/mods/x/descriptor.mod',
         'extension/node_modules/vscode-languageclient/package.json',
         'extension/dist/bundle/server/spec/../../../../x',
+        'extension/dist/bundle/lsp/presentation/README.md',
+        'extension/dist/bundle/lsp/presentation/../../../x.json',
     ];
     assert.deepEqual(unwanted(bad.map(entry)), bad);
 });

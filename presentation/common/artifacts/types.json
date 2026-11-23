@@ -1,0 +1,19 @@
+{
+    "$schema": "../../presentation.schema.json",
+    "folder": "common/artifacts/types",
+    "from": ["artifacts.yaml"],
+    "outline": {
+        "symbol": "Object",
+        "detail": "{slot}",
+        "blocks": []
+    },
+    "snippets": [
+        {
+            "label": "slot",
+            "description": "The slot an artifact of the type is placed in",
+            "at": "field",
+            "field": "slot",
+            "body": ["slot = ${1|primary_armament,armor,helmet,regalia,miscellaneous|}"]
+        }
+    ]
+}

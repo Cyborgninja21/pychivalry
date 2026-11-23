@@ -1,0 +1,18 @@
+{
+    "$schema": "../presentation.schema.json",
+    "folder": "common/factions",
+    "from": ["factions.yaml"],
+    "outline": {
+        "symbol": "Class",
+        "blocks": []
+    },
+    "snippets": [
+        {
+            "label": "demand",
+            "description": "What the faction's demand does",
+            "at": "field",
+            "field": "demand",
+            "body": ["demand = {", "\t$0", "}"]
+        }
+    ]
+}

@@ -1,0 +1,32 @@
+namespace = presentation_fixture
+
+presentation_fixture.1 = {
+	type = character_event
+	title = presentation_fixture.1.t
+	desc = presentation_fixture.1.desc
+	theme = default
+	left_portrait = {
+		character = root
+	}
+	immediate = {
+		liege = {
+			add_gold = 10
+		}
+		every_vassal = {
+			add_prestige = 5
+		}
+	}
+	option = {
+		name = presentation_fixture.1.a
+	}
+	option = {
+		name = presentation_fixture.1.b
+	}
+}
+
+presentation_fixture.2 = {
+	hidden = yes
+	immediate = {
+		add_gold = 1
+	}
+}

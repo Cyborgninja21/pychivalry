@@ -1,0 +1,18 @@
+{
+    "$schema": "../presentation.schema.json",
+    "folder": "common/landed_titles",
+    "from": ["landed_titles.yaml"],
+    "outline": {
+        "symbol": "Object",
+        "blocks": []
+    },
+    "snippets": [
+        {
+            "label": "capital",
+            "description": "The county the title's capital is",
+            "at": "field",
+            "field": "capital",
+            "body": ["capital = ${1:c_roma}"]
+        }
+    ]
+}

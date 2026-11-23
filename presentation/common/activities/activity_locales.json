@@ -1,0 +1,62 @@
+{
+    "$schema": "../../presentation.schema.json",
+    "folder": "common/activities/activity_locales",
+    "from": ["activity_locales.yaml"],
+    "outline": {
+        "symbol": "Struct",
+        "blocks": [
+            {
+                "field": "on_enter_locale",
+                "symbol": "Function"
+            },
+            {
+                "field": "visuals",
+                "symbol": "Property"
+            }
+        ]
+    },
+    "snippets": [
+        {
+            "label": "on_enter_locale",
+            "description": "What happens when a character enters the locale",
+            "at": "field",
+            "field": "on_enter_locale",
+            "body": ["on_enter_locale = {", "\t$0", "}"]
+        },
+        {
+            "label": "visuals",
+            "description": "The widget the locale shows",
+            "at": "field",
+            "field": "visuals",
+            "body": [
+                "visuals = {",
+                "\ttrigger = {",
+                "\t\t${1:always = yes}",
+                "\t}",
+                "\treference = \"${2:widget_name}\"",
+                "}"
+            ]
+        },
+        {
+            "label": "chance",
+            "description": "How likely the locale is to be picked",
+            "at": "field",
+            "field": "chance",
+            "body": ["chance = {", "\tvalue = ${1:100}", "}"]
+        },
+        {
+            "label": "ai_will_do",
+            "description": "How much the AI wants to enter the locale",
+            "at": "field",
+            "field": "ai_will_do",
+            "body": ["ai_will_do = {", "\tvalue = ${1:0}", "}"]
+        },
+        {
+            "label": "cooldown",
+            "description": "How long before the locale can be entered again",
+            "at": "field",
+            "field": "cooldown",
+            "body": ["cooldown = {", "\tdays = ${1:7}", "}"]
+        }
+    ]
+}

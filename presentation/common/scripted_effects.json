@@ -1,0 +1,13 @@
+{
+    "$schema": "../presentation.schema.json",
+    "folder": "common/scripted_effects",
+    "from": [],
+    "snippets": [
+        {
+            "label": "scripted effect",
+            "description": "A new scripted effect, called as `name = yes`",
+            "at": "record",
+            "body": ["${1:my_effect} = {", "\t$0", "}"]
+        }
+    ]
+}

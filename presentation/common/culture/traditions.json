@@ -1,0 +1,26 @@
+{
+    "$schema": "../../presentation.schema.json",
+    "folder": "common/culture/traditions",
+    "from": ["culture_traditions.yaml"],
+    "outline": {
+        "symbol": "EnumMember",
+        "detail": "{category}",
+        "blocks": []
+    },
+    "snippets": [
+        {
+            "label": "category",
+            "description": "The tradition's category",
+            "at": "field",
+            "field": "category",
+            "body": ["category = ${1|realm,combat,societal,ritual,regional|}"]
+        },
+        {
+            "label": "can_pick",
+            "description": "The conditions for a culture to pick the tradition",
+            "at": "field",
+            "field": "can_pick",
+            "body": ["can_pick = {", "\t$0", "}"]
+        }
+    ]
+}

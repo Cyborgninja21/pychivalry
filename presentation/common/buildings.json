@@ -1,0 +1,25 @@
+{
+    "$schema": "../presentation.schema.json",
+    "folder": "common/buildings",
+    "from": ["buildings.yaml"],
+    "outline": {
+        "symbol": "Object",
+        "blocks": []
+    },
+    "snippets": [
+        {
+            "label": "cost_gold",
+            "description": "What the building costs in gold",
+            "at": "field",
+            "field": "cost_gold",
+            "body": ["cost_gold = ${1:100}"]
+        },
+        {
+            "label": "county_modifier",
+            "description": "What the building gives its county",
+            "at": "field",
+            "field": "county_modifier",
+            "body": ["county_modifier = {", "\t$0", "}"]
+        }
+    ]
+}
