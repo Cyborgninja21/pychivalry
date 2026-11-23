@@ -34,6 +34,16 @@ export {
     type SpecFolder,
 } from './folders.js';
 export {
+    findGameFolders,
+    gameFolderOfInstall,
+    isGameFolder,
+    readLibraryFolders,
+    steamLibraries,
+    steamRoots,
+    windowsRegistrySteamFolders,
+    type SteamSearch,
+} from './find-game.js';
+export {
     gameCacheKey,
     openGameIndex,
     type GameIndex,
