@@ -108,7 +108,10 @@ each test session of the developer's own Claude Code an agent is asked to fix a 
 the trial passes when the checker reports no errors, every planted defect is gone, nothing else
 changed, the look-alikes are untouched and nothing was deleted
 ([tools/scored-run/README.md](../tools/scored-run/README.md)). The graders' tests run in CI;
-the test sessions never do.
+the test sessions never do. The first five test sessions (item 6.11, 2026-11-23) fixed every
+defect and touched no look-alike in each session; their record is
+`records/scored/agent-use.json`, and how each defect was fixed is in
+[tools/scored-run/README.md](../tools/scored-run/README.md#each-planted-defect).
 
 ## The five real mods
 

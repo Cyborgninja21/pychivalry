@@ -21,8 +21,9 @@ variable).
 A scored run tests whether an AI agent can really use pychivalry's agent server (docs/MVP.md,
 "AI tests"; docs/PLAN.md, items 6.8 to 6.11). Each trial is one test session. A model's output is
 not repeatable, so each task runs several times and the result is a pass rate. A run is started
-by a person, or by an agent on the owner's word; the first test sessions wait for the owner's
-word (docs/decisions.md, decision 80).
+by a person, or by an agent on the owner's word (docs/decisions.md, decision 80). The first test
+sessions ran on the owner's word of 2026-11-23 (decision 81); what they showed is
+[below](#the-first-test-sessions-item-611).
 
 | File | What it is |
 | --- | --- |
@@ -61,9 +62,16 @@ it; the task depends on it).
 | `SCORED_TRIALS` | Test sessions per task: 5 in development, 10 before a release | 5 |
 | `SCORED_SERVER` | The agent server's entry point, from the repository root | `packages/mcp/dist/main.js` |
 | `SCORED_SERVER_ARGS` | The server's arguments, a JSON list; `{mod}` is the trial's mod and `{game}` the game stub | `["--mod", "{mod}", "--vanilla", "{game}"]`, the server's own options |
-| `SCORED_CLAUDE` | Claude Code's command; a `.js` or `.mjs` file is run with Node | `claude` |
+| `SCORED_CLAUDE` | Claude Code's command; a `.js` or `.mjs` file is run with Node. The record's command says `SCORED_CLAUDE=<another Claude Code>` when it is not `claude` | `claude` |
 | `SCORED_TIMEOUT_MINUTES` | A test session still running after this is stopped | 30 |
 | `SCORED_KEEP` | `true` keeps the run's temporary folder: each trial's mod, output stream, error output and server configuration | removed |
+| `SCORED_CONTINUE` | `true` adds this run's test sessions to the record already written, numbered after its own, and only when that record was made at the same commit (with no uncommitted change) with the same task, Claude Code version, model, session limit, time limit, arguments and agent server; otherwise the run stops before any test session and names what differs. A note in the record says which trials each run added | a new record |
+
+**Which Claude Code.** The pinned model needs Claude Code 2.1.280 or later: an older one refuses
+it before the session reaches the model (it says so, and the script reports the session's end as
+a harness problem). Item 6.11 found the `claude` on the machine's path at 2.1.220, whose own
+update had failed, and ran its test sessions with the Claude Code 2.1.330 that VS Code's Claude
+Code extension had installed on the same machine, named by `SCORED_CLAUDE`.
 
 The pinned model is `PINNED_MODEL` in `tools/src/scored-run/run.ts`, Opus 5.5 by the owner's
 decision (docs/decisions.md, decision 78). Changing it is a change to that line, to this page and
@@ -87,16 +95,22 @@ to the decision log, so every record names the model it measured.
    letter case), so the script hands Claude Code no credentials and the session runs as the
    developer's Claude Code is already signed in. It also has none of a surrounding Claude Code
    session's variables (`CLAUDECODE`, `CLAUDE_PID`, `CLAUDE_EFFORT`, `CLAUDE_AGENT_SDK_VERSION`,
-   `CLAUDE_CODE_*`), so a run started from inside a session is not steered by it. It has
+   `CLAUDE_CODE_*`, `AI_AGENT`) and none of Claude Code's agent-server settings (`MCP_*`), so a
+   run started from inside a session is not steered by it: item 6.11 found `AI_AGENT`,
+   `MCP_CONNECTION_NONBLOCKING=true` (set by the host that started the surrounding session) and
+   `MCP_DISCOVERY_CACHE` (from the person's own settings, which the surrounding session had
+   applied) reaching the test session before this rule. It has
    `ENABLE_CLAUDEAI_MCP_SERVERS=false`, so the other agent servers Claude Code would offer from
-   claude.ai are switched off, and `CLAUDE_CODE_DISABLE_AUTO_MEMORY=1`, so is its automatic
-   memory.
+   claude.ai are switched off; `CLAUDE_CODE_DISABLE_AUTO_MEMORY=1`, so is its automatic memory;
+   and `MCP_CONNECTION_NONBLOCKING=0`, so Claude Code waits for the agent server to connect
+   before the session's first turn.
 4. When the session ends, its output stream is read and the mod graded.
 
 ### Claude Code's arguments
 
 The flags of item 6.8, checked on 2026-11-23 against `claude --help` of the installed Claude
-Code, 2.1.220, and its documentation:
+Code, 2.1.220, and its documentation, and again against `--help` of Claude Code 2.1.330, which
+ran item 6.11's test sessions (every flag below is there, with the same meaning):
 
 | Flag in the plan | As given | Why |
 | --- | --- | --- |
@@ -112,20 +126,30 @@ Code, 2.1.220, and its documentation:
 | `--no-session-persistence` | as written | Exists; command-line mode only |
 | `--model <pinned>` | as written | Exists; takes an alias or a full name, and the run gives a full name |
 | (not in the plan) | `--setting-sources project,local` | Leaves out the user's own settings, instructions (`CLAUDE.md`) and skills: the plan's open question, whether the flags keep the user's own set-up out. The trial folder has no project settings |
+| (not in the plan) | `--disable-slash-commands` | Leaves out the skills that come with Claude Code itself ("Disable all skills and commands"): item 6.11's first test session listed 16 at its start, none of them the user's |
 
-Whether these keep everything else out is checked in every test session (below); the first real
-ones settle it.
+Whether these keep everything else out is checked in every test session (below). Item 6.11's
+test sessions settled the plan's open question: each start event offered only `Read`, `Edit` and
+the six `mcp__pychivalry__` tools, only the `pychivalry` server (connected), no skill, no plugin
+but Claude Code's own, and the output style `default`, where the developer's own settings name
+another: the developer's settings were not read.
 
 ## What is read and recorded
 
 From the output stream (`--output-format stream-json --verbose`, one JSON object per line):
 
 - the session's start (`system`, `init`): the Claude Code version, the model, the permission
-  mode, the tools and agent servers offered with their status;
+  mode, the tools and agent servers offered with their status, the skills offered and the
+  plugins loaded (each by its source, such as `cc-plugin-telemetry@builtin`);
 - each tool call (`tool_use` blocks), counted per tool, and each tool error (`tool_result` with
   `is_error`), with its text;
 - the end (`result`): what ended it (by itself, at the session limit, at a turn limit, on an
-  error), the turns, the time, the calls the permission mode refused.
+  error), the turns, the time, the calls the permission mode refused. A session ended by itself
+  only when its end is `success` and not an error: Claude Code ends a session that never reached
+  the model with `subtype: "success"`, `is_error: true` and `terminal_reason: "api_error"`, as
+  item 6.11's first test session did. Any other end is an error, named in the record by its
+  subtype, its `terminal_reason` and the failed request's status; the session's own words on
+  the error are printed for the person running the test, never recorded.
 
 Nothing else is kept: not the session's text, not the tools' inputs and results, not the session
 id, not any figure Claude Code reports about the session's use of the developer's plan, nothing
@@ -133,11 +157,14 @@ about how Claude Code is signed in. A tool error's text is kept with the trial's
 (`<trial mod>`) and any other absolute path replaced by `<path>`.
 
 **The harness held** when the session ended by itself or at its session limit, its start shows
-only `Read`, `Edit` and the `mcp__pychivalry__` tools, only the `pychivalry` server, and that
-server did not fail; a server already connected at the start offers all six of its tools (one
-still starting, as Claude Code before 2.1.221 can show it, offers none yet). Each test session
-checks its own confinement this way. Otherwise the trial has a harness problem: it fails, and
-the run exits 1 so that nobody takes its pass rate for a result about the server.
+only `Read`, `Edit` and the `mcp__pychivalry__` tools, no skill, no plugin but Claude Code's own
+(source `<name>@builtin`: they come with the program, as its built-in agents do, and offer no
+tool), only the `pychivalry` server, and that server did not fail; a server already connected
+at the start offers all six of its tools (one still starting, as Claude Code before 2.1.221 can
+show it, offers none yet; with `MCP_CONNECTION_NONBLOCKING=0` every test session of item 6.11
+started with it connected). Each test session checks its own confinement this way. Otherwise the
+trial has a harness problem: it fails, and the run exits 1 so that nobody takes its pass rate for
+a result about the server.
 
 ## The graders
 
@@ -162,8 +189,9 @@ untouched `mod/`; their tests run in public CI.
 `records/scored/agent-use.json`, in the record format (records/README.md, "Scored records"):
 the harness version, the model, the session limit, the arguments, per trial the tool calls and
 errors, which graders passed and what the checker still reports, and the pass rate per task.
-Each run overwrites it; the history is git's. Unlike a suite's record it is not failed by a
-later spec, since making it again means new test sessions, which start only on the owner's word.
+Each run overwrites it, unless `SCORED_CONTINUE=true` adds its trials to it; the history is
+git's. Unlike a suite's record it is not failed by a later spec, since making it again means new
+test sessions, which start only on the owner's word.
 
 ## Tests
 
@@ -173,6 +201,173 @@ fresh copy of the planted mod, and gets one `check` answer: the six tools, and t
 defects at the manifest's lines. The run's tests start `fake-claude.ts` in Claude Code's place:
 it answers `--version`, records the arguments it was given and the names of any key, token or
 other credential variables it was given (there must be none), copies a folder over the trial's
-mod as an agent's edits would, and plays back a stream written in the documented shape. No real
-test session has run yet (item 6.11 waits for the owner's word); the first one's stream is the
-check of that shape.
+mod as an agent's edits would, and plays back a stream in the shape Claude Code 2.1.330 wrote in
+item 6.11's test sessions, scrubbed of identifiers, folders and figures; another test plays back
+the whole stream of item 6.11's first test session, which never reached the model.
+
+## The first test sessions (item 6.11)
+
+On the owner's word of 2026-11-23 (docs/decisions.md, decision 81): five test sessions of the
+agent-use task on the pinned model, `claude-opus-5-5`, each with session limit 3
+(`SCORED_SESSION_LIMIT=3`), one first and then four more added to the same record
+([`records/scored/agent-use.json`](../../records/scored/agent-use.json)). All five passed: **5 of
+5, pass rate 1**. Seven test sessions were started in all: two repair sessions, which found
+faults of the harness and are not in the record, then the five. The baseline is of the agent
+server, the checks and the planted mod as merged; none of them was changed.
+
+### The repair sessions
+
+Before any test session, the trial's environment, worked out from inside a Claude Code session,
+held three variables of that session: `AI_AGENT`, `MCP_CONNECTION_NONBLOCKING=true` and
+`MCP_DISCOVERY_CACHE`. The script drops them now and sets `MCP_CONNECTION_NONBLOCKING=0`
+([One trial](#one-trial)).
+
+1. **Claude Code 2.1.220**, the `claude` on the machine's path (its own update had failed on
+   2026-11-17). It refused the pinned model before the session reached it ("version 2.1.280 or
+   newer is required") and still ended the session with `subtype: "success"`, beside
+   `is_error: true`, `terminal_reason: "api_error"` and status 400. The script read the subtype
+   alone and graded the untouched mod as if the session had run: a harness fault. Now any end
+   that is not `success` without an error is a harness problem
+   ([What is read and recorded](#what-is-read-and-recorded)). Its start event also listed 16
+   skills that come with Claude Code (none of the user's), which `--disable-slash-commands` now
+   keeps out. It showed the rest of the confinement holding: `Read`, `Edit` and the six tools
+   only, the one server, connected, no plugin, and the output style `default`.
+2. **Claude Code 2.1.330**, the copy VS Code's Claude Code extension had installed on the same
+   machine (`SCORED_CLAUDE`). It ran properly: 38 tool calls in 57 seconds, and every grader
+   passed. But the confinement check, as just written, tripped on two plugins that 2.1.330
+   lists in every session, `cc-plugin-telemetry@builtin` and `cc-plugin-privacy@builtin`. They
+   come with the program, as its built-in agents do, and offer no tool and no skill; the check
+   now allows only such `@builtin` plugins and records them. A session whose confinement check
+   tripped is a repair session by the owner's rule, so it is not one of the five.
+
+### What every start event showed
+
+Each of the five: Claude Code 2.1.330, the model `claude-opus-5-5`, the permission mode
+`dontAsk`; the tools `Edit`, `Read` and the six `mcp__pychivalry__` tools, nothing else; one agent
+server, `pychivalry`, already connected, so all six tools were there for the first turn; no
+skill and no slash command; plugins only Claude Code's own (five in sessions 1 to 3, four in
+sessions 4 and 5, where `cc-plugin-easel@builtin` was not loaded: the list is Claude Code's to
+choose); its built-in agent types listed, which only the `Agent` tool reaches, and that tool was
+not offered; and the output style `default`, where the developer's own settings name another,
+so those settings were not read. Every `Read` and `Edit` of the five sessions named a file
+inside the trial's mod (checked on the kept streams; the record keeps no tool input).
+
+### The real stream against the assumed one
+
+The parser's reading held: the start event, the `tool_use` blocks, the `tool_result` blocks with
+`is_error`, and the end's `subtype`, `is_error`, `num_turns`, `duration_ms` and
+`permission_denials` are where the documentation put them. What differed, now in the tests'
+stand-in stream (scrubbed of identifiers, folders, texts and figures):
+
+- the end of a session that never reached the model is `success` with `is_error: true` (above);
+- each `assistant` event holds one content block, among them `thinking` blocks; a tool's result
+  is a text, beside a structured copy (`tool_use_result`) and its permission decision
+  (`tool_result_meta`);
+- events the documentation did not show: `rate_limit_event` and `system` events of the subtype
+  `thinking_tokens`, both ignored;
+- the start event's plugins are objects with a name, a path and a source, and each agent server
+  has a source;
+- the end carries `terminal_reason` and further fields the record never keeps, among them one
+  about how Claude Code is signed in; the tests now check that the record leaves it out.
+
+### The results
+
+| Session | Graders passed | Ended | Turns | Time | `check` | `lookup` | `explain_code` | `list_definitions` | `find_references` | `Read` | `Edit` | Tool errors |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | 5 of 5 | by itself | 40 | 68 s | 2 | 1 | 1 | 0 | 0 | 14 | 21 | 0 |
+| 2 | 5 of 5 | by itself | 39 | 57 s | 2 | 1 | 0 | 1 | 0 | 13 | 21 | 0 |
+| 3 | 5 of 5 | by itself | 40 | 56 s | 2 | 1 | 0 | 0 (1 refused) | 1 | 13 | 21 | 1 |
+| 4 | 5 of 5 | by itself | 39 | 61 s | 2 | 1 | 0 | 1 | 0 | 13 | 21 | 0 |
+| 5 | 5 of 5 | by itself | 40 | 59 s | 2 | 1 | 1 | 0 (1 refused) | 0 | 13 | 21 | 1 |
+
+Each grader passed in all five sessions: `zero-errors`, `defects-gone`, `only-planted-lines`,
+`look-alikes-untouched` and `nothing-deleted`, 5 of 5 each. Every session ended by itself, with
+the checker reporting nothing at all; none ended at its session limit or at the time limit, and
+the permission mode refused no call. Each made 38 or 39 tool calls.
+
+Every session worked the same way: one `check` with `min_severity` `warning`, which returned all
+28 findings in one page; a `Read` of every one of the mod's 13 files; one `lookup` of the names it
+meant to write (and in two sessions one `explain_code`); 21 edits; a second `check`, which
+reported nothing; and a summary.
+
+**The two tool errors.** Sessions 3 and 5 each called `list_definitions` by its bare name, as the
+server's instructions write it, instead of `mcp__pychivalry__list_definitions`, and Claude Code
+answered "No such tool available: list_definitions" (the call never reached the server). Both
+calls asked for the interaction categories, in a batch of calls made together, while the session
+was choosing a value for the missing `index`; neither session tried again: session 3 asked
+`find_references` for `index` instead, and session 5 went on without it.
+
+### Each planted defect
+
+All 27 defects were fixed in all five sessions, no look-alike was touched and nothing was
+deleted. Most fixes were the same in every session. Where a session had to choose:
+
+- `scope/wrong-scope-for-effect` (`add_county_modifier` in the character scope of the event):
+  four sessions wrapped it in `capital_county = { ... }`, as the reference copy does; session 1
+  changed it to `add_character_modifier`. The modifier, `harvest_bounty_modifier`, holds only
+  character modifiers (`monthly_income_mult`, `stewardship`), and the mod adds it to characters
+  elsewhere, so session 1's fix fits the modifier; the other four, like the reference copy, give a
+  county a modifier made of character modifiers, which no check judges. The message, "Wrong
+  scope for effect: character, expected landed_title", names neither the effect nor a way to the
+  expected scope; the sessions looked up `capital_county` to be sure of it.
+- `scope/link-on-wrong-scope` (`holder` in a character scope): all five wrote
+  `primary_title.holder`, which leads from the character back to the character itself; the
+  reference copy uses `liege`. The checker accepts both; which one the mod meant is its author's
+  to say. The message, "Trying to use holder link on an invalid scope character", does not say
+  which scope `holder` needs.
+- `references/unknown-key` (`trigger_event` to `harvest.0020`, which no file defines): four
+  sessions chose `harvest.0002`, one `harvest.0004`; both exist, and which was meant is unknown.
+- `fields/missing-required-field` (an interaction category without `index`): the values 16, 16,
+  20, 10 and 100. Every session looked for the values other categories use (`lookup` of `index`,
+  `list_definitions` of the categories, `find_references` of `index`); the game stub defines no
+  other category, so nothing guided the number. The message, "Invalid or undefined index for
+  character interaction category 'interaction_category_harvest'", names the field, not what it
+  takes.
+- `localization/missing-key`: every session added the key, with a text of its own.
+- `syntax/missing-value` (`add_piety =`): 10 in four sessions, 5 in one.
+- `syntax/block-without-key`: the name `harvest_remove_bounty_effect` in three sessions,
+  `harvest_remove_modifier_effect` in two.
+- The defects the game reports away from their line (the bare value and the missing value at
+  the token after them, the missing brace at its opening brace) were all fixed in the right
+  place: each session had read every file first.
+- One slip of layout, not of content: session 2 wrote `root.father ={`, a space lost.
+
+### What this says about the agent server
+
+Proposals, not changes: the baseline is of what is merged, so none is made here.
+
+1. **The planted mod does not yet tell a better server from a worse one.** Every session fixed
+   every defect in about a minute, reading each file once. For the pass rate to measure the
+   server, the task needs defects whose fix needs a tool's answer: a scope that only a chain of
+   links reaches, a value only the game defines, a name close to two others; more look-alikes
+   inside the blocks a fix may rewrite; and a larger mod, so that reading every file is not the
+   easy way.
+2. **Scope findings could say the way out.** For `scope/wrong-scope-for-effect`,
+   `scope/wrong-scope-for-trigger` and `scope/link-on-wrong-scope`, the finding's data (the
+   game's message staying as it is) could name the effect, trigger or link, the scopes it takes,
+   and the links that lead from the current scope to one of them, which the spec package holds.
+   The sessions found `capital_county` and `primary_title` themselves; on a real mod the choice
+   is less obvious.
+3. **A required field could say what it takes.** For `fields/missing-required-field`, the
+   finding's data could carry the field's value type and the values the base game uses, as
+   `lookup` already gives them, so that a number is chosen from the game, not guessed.
+4. **The instructions name the tools by their bare names.** In two of five sessions the agent
+   called one by that name. A server cannot know a client's prefix, but its instructions could
+   say that a client may show the tools under its own prefix, such as `mcp__pychivalry__check`.
+5. **`explain_code` shows a per-place message with its placeholder** ("The %s is missing a
+   field the spec package marks required."); it could say that the real message is the field's
+   own. Minor: the session that asked went on unhindered.
+6. No change is needed to the size of results: the first `check` (about 9,300 characters) and
+   the largest `lookup` (about 13,700) fitted, and no session followed a cursor.
+
+Outside the server: the reference copy's fix for `scope/wrong-scope-for-effect` gives a county a
+modifier of character modifiers (above). Whether the game reports that is not established; if
+it does, the reference copy and a check would follow, not this pull request.
+
+### The target
+
+The target is the owner's to set (docs/decisions.md, "Asked, awaiting the owner"). Five of five
+proves less than it looks: with five sessions, a pass rate as low as about 0.55 would still give
+5 of 5 one time in twenty. The proposal is a release run of 10 test sessions passing at 9 or
+more (pass rate at least 0.9), on the pinned model with session limit 3, and a development run
+of 5 below 4 looked into before a server change is merged, for the reasons in the decision log.

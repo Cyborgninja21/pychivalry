@@ -284,10 +284,16 @@ on the owner's word. `results`:
 | `session_limit`, `timeout_minutes` | The session limit each test session was given (`SCORED_SESSION_LIMIT`, at which Claude Code ends the session), and the time limit after which the run stops one |
 | `arguments` | Claude Code's arguments, with the prompt file and the agent-server configuration named instead of given |
 | `server` | The agent server's `entry` point, from the repository root, and its `arguments` with `<trial mod>` and `<game stub>` |
-| `trials` | Per trial: `task`, `trial` (from 1), `passed`, `stopped` (`finished`, `session-limit`, `turns`, `error`, `timeout`, `no-result`), `harness_problems`, the five `graders` each with `passed` and its `problems`, `tool_calls` (per tool: `calls` and `errors`), `tool_errors` (the tool and its text, folders named, no other path), `permission_denials`, `session` (what the session was offered: the harness version, the model, the permission mode, the tools, the agent servers with their status; null when the stream had no start), `turns`, `duration_ms`, `exit_code`, and `findings_left` (what the checker still reports, by severity) |
+| `trials` | Per trial: `task`, `trial` (from 1), `passed`, `stopped` (`finished`, `session-limit`, `turns`, `error`, `timeout`, `no-result`), `harness_problems`, the five `graders` each with `passed` and its `problems`, `tool_calls` (per tool: `calls` and `errors`), `tool_errors` (the tool and its text, folders named, no other path), `permission_denials`, `session` (what the session was offered: the harness version, the model, the permission mode, the tools, the agent servers with their status, the skills, and the plugins by their source, of which only Claude Code's own, `<name>@builtin`, may be there; null when the stream had no start), `turns`, `duration_ms`, `exit_code`, and `findings_left` (what the checker still reports, by severity) |
 | `tasks` | Per task: `trials`, `passed`, and `pass_rate` (passed / trials, to 4 places) |
 
 A trial passes when all five graders pass and it has no harness problem. Nothing from the
 session is kept beyond these fields: not its text, not the tools' inputs or results, not its id,
 no figure Claude Code reports about the session's use of the developer's plan, nothing about how
 Claude Code is signed in.
+
+A record may hold the trials of more than one run: `SCORED_CONTINUE=true` adds a run's trials
+to the record already written, numbered after its own, only when that record was made at the
+same commit with the same task, Claude Code version, model, session limit, time limit, arguments
+and agent server, and a note says which trials each run added. The first record, of item 6.11,
+is one session and then four more, made that way.

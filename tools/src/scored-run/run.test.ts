@@ -178,7 +178,8 @@ function stream(options: {
             usage: {},
             modelUsage: {},
             permission_denials: [{ tool_name: 'Bash', tool_use_id: 'call-9', tool_input: {} }],
-            terminal_reason: subtype === 'success' ? 'completed' : 'max_budget',
+            // Seen on a session that ended by itself; no session of item 6.11 ended otherwise.
+            terminal_reason: subtype === 'success' ? 'completed' : null,
             fast_mode_state: 'off',
             fast_mode_disabled_reason: 'sdk_opt_in_required',
             safety_stops: 0,

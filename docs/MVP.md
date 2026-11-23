@@ -11,8 +11,9 @@ step 4 is built: the check inventory ([checks.md](checks.md), signed off), the t
 62 of its 78 checks (two blocked, eleven retired by their re-proof, three for steps 10 and 11),
 lookup, the base-game and real-mod suites and their classifications, and the limits; build step
 5, the command line, is built; of build step 6, items 6.1 to 6.10 are built: the agent server,
-the planted-defect mod, its graders and the scored-test script. Item 6.11, the first test
-sessions, waits for the owner's word. What waits on the owner or on the spec work is in
+the planted-defect mod, its graders and the scored-test script. Item 6.11's first test sessions
+ran on the owner's word: 5 of 5 passed, and the target waits for the owner. What waits on the
+owner or on the spec work is in
 [decisions.md](decisions.md). Nothing else in this document is built yet.
 
 The build plan, step by step, is in [PLAN.md](PLAN.md).
@@ -51,7 +52,7 @@ lives unchanged in `legacy/`.
 | VS Code floor | Recent editors only. The floor is the release where VS Code's Copilot harness is the default; 1.146 unless build step 7 finds an earlier one. |
 | AI surface | One bundled agent server (MCP) plus a set of skills. It serves both Claude Code and VS Code's built-in AI. There is no chat participant and no separate set of language-model tools. |
 | AI harness | The AI that uses pychivalry is always another program that connects to it: Claude Code running in VS Code, or VS Code's built-in AI, signed in however its user already signed it in. pychivalry contains no API key, no token and no login, and no shipped package makes a network call or a model call; a test in CI holds every shipped package to it. |
-| AI tests | The agent-use test runs test sessions of the Claude Code already installed on the developer's machine, pinned to Opus 5.5 (`claude-opus-5-5`). Its first test sessions wait for the owner's word; after them the result is reported, and build step 7 starts only on the owner's go. Documents and code never describe the test in terms of money, accounts or keys. |
+| AI tests | The agent-use test runs test sessions of the Claude Code already installed on the developer's machine, pinned to Opus 5.5 (`claude-opus-5-5`). Its first five test sessions ran on the owner's word of 2026-11-23, each with session limit 3: 5 of 5 passed ([tools/scored-run/README.md](../tools/scored-run/README.md#the-first-test-sessions-item-611)). The target is set by the owner from that result, and build step 7 starts only on the owner's go. Documents and code never describe the test in terms of money, accounts or keys. |
 | Authoring bar | The authoring loop has a round limit of 5. Its pass-rate targets are set after the first scored run. |
 | Authored content | Scored on validity (the checker) and on two further measures: a model judging the result against the request, and loading the content in the real game. |
 | Authoring order | The authoring skill is built straight after the formatter, at build step 9. |
@@ -493,6 +494,9 @@ rate, because a model's output is not repeatable.
   tell". The in-game load is the third grade once build step 11 exists.
 - **Repetitions.** 5 trials per task during development, 10 before a release.
 - **Each record states** the harness version, the model, the tool calls made, and the result.
+- **The first result.** Agent use, 2026-11-23: five test sessions of Claude Code 2.1.330 on
+  `claude-opus-5-5`, each with session limit 3, all passed, each in about a minute
+  (`records/scored/agent-use.json`). The pass-rate target is the owner's to set from it.
 
 ## Test data
 
