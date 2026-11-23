@@ -11,8 +11,10 @@ import { checkFixture, expectedFindings } from './testing.js';
 
 const GAME = 'event-targets-and-localization';
 
+const ON = { game: GAME, unusedKeys: true } as const;
+
 test(`${CODE} fires on its bad fixture, and only it`, () => {
-    const found = checkFixture('localization-unused-key-bad', { game: GAME });
+    const found = checkFixture('localization-unused-key-bad', ON);
     assert.deepEqual(found, expectedFindings('localization-unused-key-bad'));
     assert.deepEqual(
         found.map((f) => [f.code, f.severity, f.data['key']]),
@@ -21,11 +23,22 @@ test(`${CODE} fires on its bad fixture, and only it`, () => {
 });
 
 test(`${CODE} is silent on its good fixture`, () => {
-    assert.deepEqual(checkFixture('localization-unused-key-good', { game: GAME }), []);
+    assert.deepEqual(checkFixture('localization-unused-key-good', ON), []);
 });
 
 test(`${CODE} is silent when no base game is read`, () => {
-    assert.deepEqual(checkFixture('localization-unused-key-bad'), []);
+    assert.deepEqual(checkFixture('localization-unused-key-bad', { unusedKeys: true }), []);
+});
+
+test(`${CODE} is off by default: silent on its bad fixture unless asked (decision 76)`, () => {
+    assert.deepEqual(checkFixture('localization-unused-key-bad', { game: GAME }), []);
+    assert.equal(CHECK_KINDS[CODE].offByDefault, true);
+    const others = Object.entries(CHECK_KINDS).filter(([, kind]) => kind.offByDefault === true);
+    assert.deepEqual(
+        others.map(([code]) => code),
+        [CODE],
+        'the only check off by default',
+    );
 });
 
 test(`${CODE} is advice, at hint`, () => {

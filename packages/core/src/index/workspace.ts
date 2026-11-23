@@ -1328,6 +1328,93 @@ export class WorkspaceIndex {
         return out.sort((a, b) => a.start - b.start);
     }
 
+    /**
+     * The name written at a place of the file at a layer and exact path: the key of a
+     * definition, or a use, whose span holds the place (its end included, where a cursor
+     * after the last letter stands). Lines and characters count from 0, as the index's
+     * positions; undefined when the file is not indexed or no name is written there.
+     */
+    nameAt(
+        layer: string,
+        path: string,
+        position: Position,
+    ):
+        | { readonly name: string; readonly kind: 'definition' | 'use'; readonly range: Range }
+        | undefined {
+        const id = this.byKey.get(`${layer}\u0000${path}`);
+        const file = id === undefined ? undefined : this.files[id];
+        if (file === undefined || position.line < 0 || position.line >= file.lineStarts.length) {
+            return undefined;
+        }
+        const offset = (file.lineStarts[position.line] ?? 0) + position.character;
+        const span = (start: number, end: number): Range => ({
+            start: positionIn(file.lineStarts, start),
+            end: positionIn(file.lineStarts, end),
+        });
+        for (let i = 0; i < file.defs.length; i += DEF_STRIDE) {
+            const start = file.defs[i + DEF.keyStart] ?? 0;
+            const end = file.defs[i + DEF.keyEnd] ?? 0;
+            if (start <= offset && offset <= end) {
+                const name = this.strings.get(file.defs[i + DEF.name] ?? 0);
+                return { name, kind: 'definition', range: span(start, end) };
+            }
+        }
+        for (let i = 0; i < file.uses.length; i += USE_STRIDE) {
+            const start = file.uses[i + 1] ?? 0;
+            if (start > offset) {
+                break;
+            }
+            const name = this.strings.get(file.uses[i] ?? 0);
+            const end = start + name.length;
+            if (offset <= end) {
+                return { name, kind: 'use', range: span(start, end) };
+            }
+        }
+        return undefined;
+    }
+
+    /** Every database that holds a definition, with how many, sorted by name. */
+    databases(): Map<string, number> {
+        const counts = new Map<number, number>();
+        for (const file of this.files) {
+            if (file === undefined) {
+                continue;
+            }
+            for (let i = DEF.database; i < file.defs.length; i += DEF_STRIDE) {
+                const database = file.defs[i] ?? 0;
+                counts.set(database, (counts.get(database) ?? 0) + 1);
+            }
+        }
+        return new Map(
+            [...counts]
+                .map(([id, n]): [string, number] => [this.strings.get(id), n])
+                .sort(([a], [b]) => compareStrings(a, b)),
+        );
+    }
+
+    /**
+     * Every definition of a database, sorted by layer, path and place, as `definitions` sorts
+     * the definitions of one name.
+     */
+    definitionsOf(database: string): Definition[] {
+        const id = this.strings.find(database);
+        if (id < 0) {
+            return [];
+        }
+        const out: Definition[] = [];
+        for (const file of this.files) {
+            if (file === undefined) {
+                continue;
+            }
+            for (let i = 0; i * DEF_STRIDE < file.defs.length; i++) {
+                if (file.defs[i * DEF_STRIDE + DEF.database] === id) {
+                    out.push(this.definition(file.id * SPAN + i));
+                }
+            }
+        }
+        return out.sort(compareDefinitions);
+    }
+
     /** What is in force for a name of a database (and a container, for entries). */
     resolve(database: string, name: string, container: string | null = null): Resolution {
         const definitions = this.definitions(name, { database, container });

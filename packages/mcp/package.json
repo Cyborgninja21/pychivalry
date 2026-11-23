@@ -7,6 +7,9 @@
     "type": "module",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
+    "bin": {
+        "pychivalry-mcp": "dist/main.js"
+    },
     "exports": {
         ".": {
             "types": "./dist/index.d.ts",
@@ -14,7 +17,11 @@
         }
     },
     "dependencies": {
+        "@modelcontextprotocol/server": "2.4.0",
         "@pychivalry/core": "0.0.0"
+    },
+    "devDependencies": {
+        "@modelcontextprotocol/client": "2.4.0"
     },
     "scripts": {
         "test": "node --test \"dist/**/*.test.js\""

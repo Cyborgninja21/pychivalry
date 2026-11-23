@@ -20,3 +20,14 @@ test('the package is built on the workspace core', () => {
     assert.equal(builtOn, '@pychivalry/core');
     assert.ok(manifest.dependencies?.['@pychivalry/core'] !== undefined);
 });
+
+test('it depends on the core and the MCP library, pinned to an exact 2.x version, and nothing else', () => {
+    assert.deepEqual(Object.keys(manifest.dependencies ?? {}).sort(), [
+        '@modelcontextprotocol/server',
+        '@pychivalry/core',
+    ]);
+    assert.match(
+        manifest.dependencies?.['@modelcontextprotocol/server'] ?? '',
+        /^2\.[0-9]+\.[0-9]+$/,
+    );
+});

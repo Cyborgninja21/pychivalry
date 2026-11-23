@@ -307,3 +307,68 @@ export function indexMod(index: WorkspaceIndex, modDir: string): ModListing {
     index.setReplacePaths(listing.replacePaths);
     return listing;
 }
+
+/** A mod's listing as `syncMod` took it, and when. */
+export interface SyncedMod extends ModListing {
+    /** The clock (`Date.now()`) just before the folder was listed. */
+    readonly listedAt: number;
+    /**
+     * Whether this sync changed the index: a file read again or removed, or the `replace_path`
+     * values set again. False means the index answers as it did after the previous sync.
+     */
+    readonly changed: boolean;
+}
+
+/**
+ * How close to a listing a file's modification time must be for the file to be read again
+ * at the next sync even when its size and time look unchanged: a file system's clock can be
+ * coarse (two seconds on FAT), so a second write within the same tick as the listing keeps the
+ * time the listing saw.
+ */
+const RACY_MS = 2_000;
+
+/**
+ * Bring a mod indexed earlier (`previous`, what this returned before) up to date with its
+ * folder as it is now, for a server that keeps one index between requests: a file that is new,
+ * whose size or modification time changed, or that was written so close to the previous
+ * listing that a change might not show in its time (`RACY_MS`), is read again; a file no longer
+ * listed is removed; the descriptor's `replace_path` values are set again. The index then
+ * answers as one the mod was freshly indexed into (`indexMod`). Without `previous`, every file
+ * is read.
+ */
+export function syncMod(
+    index: WorkspaceIndex,
+    modDir: string,
+    previous: SyncedMod | null,
+): SyncedMod {
+    const listedAt = Date.now();
+    const listing = listMod(modDir, index.folders);
+    const before = new Map((previous?.files ?? []).map((f) => [f.path, f]));
+    const now = new Set(listing.files.map((f) => f.path));
+    let removed = 0;
+    for (const file of previous?.files ?? []) {
+        if (!now.has(file.path)) {
+            index.removeFile(file.layer, file.path);
+            removed++;
+        }
+    }
+    const changed = listing.files.filter((f) => {
+        const old = before.get(f.path);
+        return (
+            previous === null ||
+            old === undefined ||
+            old.size !== f.size ||
+            old.mtimeMs !== f.mtimeMs ||
+            f.mtimeMs >= previous.listedAt - RACY_MS
+        );
+    });
+    indexFiles(changed, index);
+    const replaced =
+        previous === null ||
+        previous.replacePaths.length !== listing.replacePaths.length ||
+        previous.replacePaths.some((p, i) => p !== listing.replacePaths[i]);
+    if (replaced) {
+        index.setReplacePaths(listing.replacePaths);
+    }
+    return { ...listing, listedAt, changed: replaced || removed > 0 || changed.length > 0 };
+}

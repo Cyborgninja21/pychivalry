@@ -22,6 +22,8 @@
  * - **Filters:** `--severity` and `--code` keep the findings they match; the exit code is
  *   that of the findings kept, so `--code syntax/*` exits 1 only for a syntax error.
  *   `--limit` shortens the listing only.
+ * - **Off by default:** `localization/unused-key` runs only with `--unused-keys`
+ *   (docs/decisions.md, decision 76).
  * - **Exit codes:** 0 when no finding kept is an error, 1 when one is, 2 on bad usage, a mod
  *   that is not a folder, or a spec or game folder that cannot be read.
  * - **The base game's index** comes from the on-disk cache in the user's cache folder
@@ -80,6 +82,10 @@ const LIMIT_OPTION: OptionSpec = {
     name: '--limit',
     value: '<n>',
     help: 'show at most n findings; the summary still counts all of them',
+};
+const UNUSED_KEYS_OPTION: OptionSpec = {
+    name: '--unused-keys',
+    help: 'also report localization keys nothing uses (localization/unused-key, off by default)',
 };
 
 /** The filters of a run. */
@@ -300,6 +306,7 @@ export const checkCommand: Command = {
         SEVERITY_OPTION,
         CODE_OPTION,
         LIMIT_OPTION,
+        UNUSED_KEYS_OPTION,
     ],
     positionals: { min: 1, max: 1 },
     run(parsed: Parsed, io: Io): number {
@@ -315,6 +322,7 @@ export const checkCommand: Command = {
             modDir,
             gameDir: game.dir,
             cacheDir: defaultCacheDir(io.env, io.platform, io.home),
+            unusedKeys: parsed.flags.has('--unused-keys'),
         });
         const { matched, shown } = select(run.findings, filters);
         if (parsed.flags.has('--json')) {

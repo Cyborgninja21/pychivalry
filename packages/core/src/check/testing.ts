@@ -54,11 +54,12 @@ export const PAIR_GAMES: Readonly<Record<string, string>> = {
 /**
  * A fixture mod under `fixtures/mods/`, with every check run on each of its script and
  * localization files: indexed on its own, or over a game stub under `fixtures/game/` (`game`),
- * which the checks that need a base game read as the base game.
+ * which the checks that need a base game read as the base game. The checks off by default run
+ * only with `unusedKeys`, as in the runner.
  */
 export function checkFixture(
     mod: string,
-    options: { readonly game?: string } = {},
+    options: { readonly game?: string; readonly unusedKeys?: boolean } = {},
 ): WrittenFinding[] {
     const spec = committedSpec();
     const { folders: table, catalogue: messages } = specContext();
@@ -81,6 +82,7 @@ export function checkFixture(
                   parsed: readLocalization(bytes),
                   names,
                   catalogue: messages,
+                  unusedKeys: options.unusedKeys,
               })
             : checkFile({
                   spec,

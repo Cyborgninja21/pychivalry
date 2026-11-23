@@ -26,6 +26,11 @@
  *   then warnings, information, hints; by position within a severity), and what the cap drops
  *   is counted, by code (`WorkspaceCheck.capped`), never lost without a word.
  * - **Each finding** carries its rendered message, so every surface shows the same text.
+ * - **Off by default:** `localization/unused-key` runs only with `unusedKeys` (docs/decisions.md,
+ *   decision 76); every other check always runs.
+ * - **A server** that keeps one workspace open between requests passes it (`workspace`), its
+ *   mod brought up to date with `syncMod`, and may check only some of the mod's files (`only`):
+ *   every file is still indexed, so a file's findings are those of a whole run.
  */
 
 import { readFileSync } from 'node:fs';
@@ -267,6 +272,8 @@ export interface LocalizationInput {
     readonly bytes: Uint8Array;
     readonly names: DefinedNames & Partial<WorkspaceNames>;
     readonly fallbackEncoding?: FallbackEncoding | undefined;
+    /** Run `localization/unused-key`, off by default. */
+    readonly unusedKeys?: boolean | undefined;
 }
 
 /** Every finding of the engine checks on one localization file, in the order of where each starts. */
@@ -280,6 +287,7 @@ export function localizationFindings(input: LocalizationInput): WorkspaceFinding
         parsed,
         names: input.names,
         catalogue,
+        unusedKeys: input.unusedKeys,
     })
         .map((f): WorkspaceFinding => ({
             file: input.file,
@@ -361,6 +369,22 @@ export interface WorkspaceCheckOptions extends WorkspaceOptions {
     readonly measure?: ScopeMeasure | undefined;
     /** The most findings a file reports; `MAX_FINDINGS_PER_FILE` by default. */
     readonly maxFindingsPerFile?: number | undefined;
+    /**
+     * Also run the checks that are off by default: `localization/unused-key` (docs/decisions.md,
+     * decision 76). False by default.
+     */
+    readonly unusedKeys?: boolean | undefined;
+    /**
+     * Check only the files this keeps, by their path inside the mod (or the base-game layer);
+     * every file is still indexed, so each file kept has the findings of a whole run.
+     */
+    readonly only?: ((file: string) => boolean) | undefined;
+    /**
+     * A workspace already opened with `openWorkspace` on the same spec, game folder and mod, the
+     * mod's files brought up to date (`syncMod`): checked as it is, instead of opening the base
+     * game again and indexing the mod into it. A server keeps one between requests.
+     */
+    readonly workspace?: Workspace | undefined;
 }
 
 /** A file checked, and its layer. */
@@ -402,12 +426,18 @@ export interface WorkspaceCheck {
  * files.
  */
 export function checkWorkspace(options: WorkspaceCheckOptions): WorkspaceCheck {
-    const { index, game } = openWorkspace({ ...options, modDir: null });
+    const { index, game } = options.workspace ?? openWorkspace({ ...options, modDir: null });
     const modDir = options.modDir;
     let listing: SourceListing;
     let names: DefinedNames & Partial<WorkspaceNames>;
     if (modDir !== null) {
-        listing = indexMod(index, modDir);
+        if (options.workspace === undefined) {
+            listing = indexMod(index, modDir);
+        } else if (options.workspace.mod !== null) {
+            listing = options.workspace.mod;
+        } else {
+            throw new Error('checkWorkspace: the workspace given holds no mod');
+        }
         // With the base game, the words of the mod's files the index does not read (its
         // interface files) count as uses of a localization key (`localization/unused-key`).
         names =
@@ -420,8 +450,9 @@ export function checkWorkspace(options: WorkspaceCheckOptions): WorkspaceCheck {
     } else {
         throw new Error('checkWorkspace: neither a mod nor a game folder to check');
     }
+    const only = options.only;
     const checked = listing.files
-        .filter((f) => fileKindOf(f.path) !== undefined)
+        .filter((f) => fileKindOf(f.path) !== undefined && (only === undefined || only(f.path)))
         .sort((a, b) => compareCodePoints(a.path, b.path) || compareCodePoints(a.layer, b.layer));
     const max = options.maxFindingsPerFile ?? MAX_FINDINGS_PER_FILE;
     const findings: WorkspaceFinding[] = [];
@@ -434,6 +465,7 @@ export function checkWorkspace(options: WorkspaceCheckOptions): WorkspaceCheck {
             bytes: readFileSync(file.disk),
             names,
             fallbackEncoding: options.fallbackEncoding,
+            unusedKeys: options.unusedKeys,
         };
         const found =
             fileKindOf(file.path) === 'localization'
