@@ -77,6 +77,26 @@ export {
 export { judgedSteps } from './scope-link-on-wrong-scope.js';
 export { ADVICE_CHECKS, adviceFindings, runAdvice } from './advice-checks.js';
 export type { AdviceCheck, AdviceInput, AdviceResult } from './advice.js';
+export {
+    codeMatches,
+    codesMatching,
+    familyOf,
+    inventoryRows,
+    type Code,
+    type InventoryRow,
+} from './inventory.js';
+export {
+    checkWorkspace,
+    GAME_NOT_LOADED,
+    openWorkspace,
+    scriptFindings,
+    type ScriptInput,
+    type Workspace,
+    type WorkspaceCheck,
+    type WorkspaceCheckOptions,
+    type WorkspaceFinding,
+    type WorkspaceOptions,
+} from './workspace.js';
 
 export interface CheckInput {
     readonly spec: Spec;
