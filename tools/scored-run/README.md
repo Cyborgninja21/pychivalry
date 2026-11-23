@@ -37,10 +37,19 @@ sessions ran on the owner's word of 2026-11-23 (decision 81); what they showed i
 
 ## The agent-use task
 
-The agent gets a copy of the planted-defect mod, `fixtures/defects/mod/`: 27 defects, one per
-check code that is an error or a warning, and 10 lines that look wrong and are not. It is told to
-fix every error and warning with the pychivalry tools, changing nothing else. A trial passes when
-all five graders pass and its harness held (below).
+The agent gets a copy of the planted-defect mod, `fixtures/defects/mod/`: 32 defects, every
+check code that is an error or a warning at least once, and 29 lines that look wrong and are not,
+in 17 files. Some defects need a lookup to fix, some interact (the obvious fix of one makes
+another), and some are fixed away from the line the finding points at
+([fixtures/defects/README.md](../../fixtures/defects/README.md#why-it-is-this-hard)); the mod
+was made harder after item 6.11's first test sessions, which fixed the first one too easily to
+tell a better agent server from a worse one (decision 83). The agent is told to fix every error
+and warning with the pychivalry tools, changing nothing else. A trial passes when all five
+graders pass and its harness held (below).
+
+**The target** (the owner's, decision 82): every test session passes. A release run is 10 test
+sessions and must pass all 10; a development run of 5 that passes fewer than 5 is looked into.
+The record states each task's target and whether the run met it, and the run prints it last.
 
 ## Starting a run
 
@@ -48,7 +57,8 @@ all five graders pass and its harness held (below).
 SCORED_SESSION_LIMIT=3 task scored:agent-use
 ```
 
-That runs 5 test sessions with the pinned model, one after the other. Each has two safety stops:
+That runs 5 test sessions with the pinned model, one after the other: a development run.
+`SCORED_TRIALS=10` makes it a release run. Each has two safety stops:
 the session limit, which the script passes unchanged to Claude Code's own session-ending option
 ([below](#claude-codes-arguments)), and a time limit of 30 minutes, after which the script stops
 the session. Claude Code checks its option after each model response, so a session can end one
@@ -59,7 +69,7 @@ it; the task depends on it).
 | --- | --- | --- |
 | `SCORED_SESSION_LIMIT` | The session limit of each test session: a positive number, passed unchanged to Claude Code's session-ending option | none: it must be given |
 | `SCORED_MODEL` | The model, by its full name (an alias such as `opus` is refused) | `claude-opus-5-5`, Opus 5.5 |
-| `SCORED_TRIALS` | Test sessions per task: 5 in development, 10 before a release | 5 |
+| `SCORED_TRIALS` | Test sessions per task: 5 in development, 10 before a release, where every one must pass (the target) | 5 |
 | `SCORED_SERVER` | The agent server's entry point, from the repository root | `packages/mcp/dist/main.js` |
 | `SCORED_SERVER_ARGS` | The server's arguments, a JSON list; `{mod}` is the trial's mod and `{game}` the game stub | `["--mod", "{mod}", "--vanilla", "{game}"]`, the server's own options |
 | `SCORED_CLAUDE` | Claude Code's command; a `.js` or `.mjs` file is run with Node. The record's command says `SCORED_CLAUDE=<another Claude Code>` when it is not `claude` | `claude` |
@@ -181,14 +191,21 @@ on its own (`tools/src/scored-run/graders.ts` states each exactly):
 
 The checker is the core's one runner, `checkWorkspace`, over the game stub, with its defaults:
 `localization/unused-key` off, as the server's `check` answers by default. The planted mod has no
-unused key either way. The graders pass on `fixtures/defects/reference/` and fail on the
-untouched `mod/`; their tests run in public CI.
+unused key either way. The graders judge a fix by the checker and the manifest's fix ranges,
+never by equality with `fixtures/defects/reference/`, so any fix the checker accepts inside those
+ranges passes: `liege` or `primary_title.holder` for the link a title needs, `capital_county`
+around the county effect or `add_character_modifier` in its place. The graders pass on
+`reference/` and fail on the untouched `mod/`; their tests, run in public CI, also show fixes
+the reference does not use passing and the obvious fixes of the interacting defects failing.
 
 ## The record
 
 `records/scored/agent-use.json`, in the record format (records/README.md, "Scored records"):
 the harness version, the model, the session limit, the arguments, per trial the tool calls and
-errors, which graders passed and what the checker still reports, and the pass rate per task.
+errors, which graders passed and what the checker still reports, and per task the pass rate, the
+target and whether the run met it (`target`: `run`, release for 10 trials or more, else
+development; `needs`, all the trials; `met`). Item 6.11's record was made before the target was
+set and states none.
 Each run overwrites it, unless `SCORED_CONTINUE=true` adds its trials to it; the history is
 git's. Unlike a suite's record it is not failed by a later spec, since making it again means new
 test sessions, which start only on the owner's word.
@@ -197,8 +214,8 @@ test sessions, which start only on the owner's word.
 
 `tools/src/scored-run/*.test.ts` run in public CI with no model, key, network or display.
 `server.test.ts` starts the built agent server exactly as a trial's configuration says, on a
-fresh copy of the planted mod, and gets one `check` answer: the six tools, and the planted
-defects at the manifest's lines. The run's tests start `fake-claude.ts` in Claude Code's place:
+fresh copy of the planted mod, and gets one `check` answer: the six tools, the planted defects
+at the manifest's lines, and the data that says what is valid at the scope and field findings. The run's tests start `fake-claude.ts` in Claude Code's place:
 it answers `--version`, records the arguments it was given and the names of any key, token or
 other credential variables it was given (there must be none), copies a folder over the trial's
 mod as an agent's edits would, and plays back a stream in the shape Claude Code 2.1.330 wrote in
@@ -299,8 +316,9 @@ was choosing a value for the missing `index`; neither session tried again: sessi
 
 ### Each planted defect
 
-All 27 defects were fixed in all five sessions, no look-alike was touched and nothing was
-deleted. Most fixes were the same in every session. Where a session had to choose:
+Of the first planted mod, which the harder one has replaced (decision 83). All 27 defects were
+fixed in all five sessions, no look-alike was touched and nothing was deleted. Most fixes were
+the same in every session. Where a session had to choose:
 
 - `scope/wrong-scope-for-effect` (`add_county_modifier` in the character scope of the event):
   four sessions wrapped it in `capital_county = { ... }`, as the reference copy does; session 1
@@ -334,7 +352,9 @@ deleted. Most fixes were the same in every session. Where a session had to choos
 
 ### What this says about the agent server
 
-Proposals, not changes: the baseline is of what is merged, so none is made here.
+Proposals, not changes: the baseline is of what is merged, so none was made with the sessions.
+On the owner's word (decision 83) all five are done since, each as
+[below](#what-was-done-with-them).
 
 1. **The planted mod does not yet tell a better server from a worse one.** Every session fixed
    every defect in about a minute, reading each file once. For the pass rate to measure the
@@ -366,8 +386,44 @@ it does, the reference copy and a check would follow, not this pull request.
 
 ### The target
 
-The target is the owner's to set (docs/decisions.md, "Asked, awaiting the owner"). Five of five
-proves less than it looks: with five sessions, a pass rate as low as about 0.55 would still give
-5 of 5 one time in twenty. The proposal is a release run of 10 test sessions passing at 9 or
-more (pass rate at least 0.9), on the pinned model with session limit 3, and a development run
-of 5 below 4 looked into before a server change is merged, for the reasons in the decision log.
+The proposal was a release run of 10 test sessions passing at 9 or more (pass rate at least
+0.9), and a development run of 5 below 4 looked into: five of five proves less than it looks,
+since a pass rate as low as about 0.55 would still give 5 of 5 one time in twenty. **The
+owner's answer (decision 82): every test session passes.** A release run of 10 must pass all 10;
+a development run of 5 that passes fewer than 5 is looked into. The record states it
+([The record](#the-record)).
+
+### What was done with them
+
+On the owner's word (decision 83), before step 7 continued:
+
+1. **A harder planted mod.** 32 defects, every error and warning code at least once and four
+   twice, 29 look-alikes, 17 files and 591 lines
+   ([fixtures/defects/README.md](../../fixtures/defects/README.md#why-it-is-this-hard)):
+   defects whose fix needs a lookup, defects that interact, and defects fixed away from the
+   finding. The reference copy's fault is fixed: its county effect now adds
+   `harvest_granary_modifier`, a modifier of county modifiers. No built check should have
+   caught the fault: `names/modifier-outside-use-area` judges a modifier by the block it is
+   written in, and part D7 of the spec package leaves the record body of `common/modifiers`
+   unknown, since a static modifier's area is the area of the effect that applies it. A row for
+   it is a question for the owner (docs/decisions.md, "Asked, awaiting the owner"); none is
+   added.
+2. **Scope findings say the way out.** Their data carries `links_from_scope`: the links, or
+   chains of two, from the current scope to the scopes the effect, trigger or link takes
+   (`capital_county`, `primary_title`, ...), at most 12, beside the keyword and those scopes.
+3. **Field findings say what the field takes.** `fields/missing-required-field` and
+   `fields/wrong-kind-of-value` carry the field's `value_type` and `values`, the values the
+   base game writes (the interaction category's `index`: integer, 0 to 15). The command line's
+   text shows both after the game's message.
+4. **The instructions name the prefix.** A client may list the tools under its own prefix,
+   `mcp__pychivalry__check` in Claude Code; the names in the instructions are the bare ones.
+5. **Readable slots.** `explain_code` and `explain` show every message with named slots
+   (`The <record> is missing a field the spec package marks required.`), never `%s` or `{}`.
+
+With them: the size test's builder had noted the core's check slowing sharply on a name defined
+in many files (100 files 0.3 s, 300 files 6 to 7.5 s). The check resolved a name once per
+definition and compared every pair of its definitions each time; it now sorts them and resolves
+a name once (300 files 0.09 s, 1,000 files 0.36 s). On the harder mod the first `check` (errors
+and warnings) returns all 33 findings in one page of about 11,400 characters; on rice every
+result stays under the limit (the largest 27,990 characters). The harder mod has not been run
+by a test session yet.

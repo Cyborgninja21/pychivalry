@@ -250,9 +250,14 @@ replacement as data and as a fix; 2.3.0's `PYCH-R001` and `PYCH-R002` fold in he
 `names/unknown-on-action` reads the fields and parameters part D6 of the spec package (format 7,
 format 8 since 2026-11-23) confirms name an on-action; `names/modifier-outside-use-area` reads the use area part D7
 confirms for each block that holds modifiers. A measured-only or unknown row of either part
-raises nothing. **Not built:** two parts of the first two rows, an `every_`, `random_` or
-`ordered_` iterator in a trigger block and an `any_` iterator in an effect block outside a
-`limit`. Part D8 says which prefix is which kind, but no game message ties the unknown-trigger
+raises nothing. **Not covered by any row:** a static modifier of `common/modifiers` applied by
+an effect of another use area (`add_county_modifier` with a modifier of character modifiers
+only, the case item 6.11 found in the planted mod's reference copy):
+`names/modifier-outside-use-area` reads only the block a modifier is written in, and part D7
+leaves the record body of `common/modifiers` unknown. A row for it is a question for the owner
+([decisions.md](decisions.md#asked-awaiting-the-owner)); none is added. **Not built:** two parts
+of the first two rows, an `every_`, `random_` or `ordered_` iterator in a trigger block and an
+`any_` iterator in an effect block outside a `limit`. Part D8 says which prefix is which kind, but no game message ties the unknown-trigger
 or unknown-effect message to an iterator of the wrong kind, so building them would be an error
 without game evidence: a question for the owner
 ([decisions.md](decisions.md#asked-awaiting-the-owner)).
@@ -278,7 +283,9 @@ each with its fixture pair. On the 1.21.0.3 base game (`task game:check`) the ch
 keyword uses, judge 178,395 of them and 41,022 link steps, and raise no finding; release 2.3.0
 judged 101,162 of 613,103 on the same game (93,665 of 561,077 on 1.20). On the five mods: 27
 `scope/wrong-scope-for-effect` errors, all in rice (buildings added in a province, which 1.21.0.3
-moved to districts).
+moved to districts). Since decision 83 each finding's data also says the way out, beside the
+game's message, which stays as it is: the links that lead from the scope it is in to the scopes
+the keyword or link takes (`links_from_scope`), from the spec package's link documentation.
 
 ### 4.5: fields and structure
 

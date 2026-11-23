@@ -21,7 +21,7 @@ terminal (build step 7); until then it runs from a build of this repository as
 | --- | --- |
 | `pychivalry check <mod>` | Checks a mod folder: every finding, file by file, then a summary |
 | `pychivalry lookup <name>...` | What a name is: every reading the spec package has of it (its description, the scopes it supports, what it takes, the version it came in or went out), where the base game and a mod define and use it and which definition is in force, and, for a name nothing knows, the names close to it |
-| `pychivalry explain <code>...` | What a finding's code means: its severity, what it finds and the game's evidence for it. A code may be written `names/*` for a whole family, or `*` for all |
+| `pychivalry explain <code>...` | What a finding's code means: its severity, what it finds and the game's evidence for it, its message with each value a named slot (`Unknown trigger '<trigger>'`). A code may be written `names/*` for a whole family, or `*` for all |
 | `pychivalry --help`, `pychivalry <command> --help` | The commands, or one command's options |
 | `pychivalry --version` | The version |
 
@@ -51,7 +51,11 @@ comes from or why the spec package has nothing for it.
 What `check` prints:
 
 - **Text.** Each file with findings, then one line per finding, `line:column  severity  code
-  message`, then a blank line; last, `<n> files checked: <e> errors, <w> warnings, <o> other`,
+  message`, where pychivalry knows what is valid there followed by it in parentheses (a scope
+  finding: what the keyword or link takes and the links from the scope it is in,
+  `(add_county_modifier takes landed_title; from character: capital_county, ...)`; a missing
+  field or a value of the wrong kind: what the field takes and the values the base game writes),
+  then a blank line; last, `<n> files checked: <e> errors, <w> warnings, <o> other`,
   which counts every finding (`other` is information and hints) and adds `(<s> shown)` when
   the filters or the limit leave some out. This is the shape of release 2.3.0's command line,
   with the new codes. Notes go to standard error: the game was not found, the game is of
@@ -60,7 +64,9 @@ What `check` prints:
 - **JSON.** One object per finding with release 2.3.0's fields `file`, `range` (lines and
   characters counted from 0), `severity`, `code`, `message` and `source`, and beside them
   `evidence` (the game's message or output the finding rests on, or none for advice), `fix`
-  (empty until fixes arrive in build step 8) and `data` (the names the finding is about). The
+  (empty until fixes arrive in build step 8) and `data` (the names the finding is about, and
+  what is valid there where pychivalry knows it, as [the agent server](agent-server.md) gives
+  it). The
   last line is `{"summary": ...}`: the version, the spec package and the game build, the files
   checked and not checked, the counts of every finding by severity and by code, how many
   findings matched the filters and how many were shown, and `capped`: what the per-file limit
