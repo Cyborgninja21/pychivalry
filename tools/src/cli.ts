@@ -16,6 +16,8 @@
  *                                  units it applies to and the findings it raises there
  *   docs checks                    write the user guide's check reference, docs/guide/checks.md,
  *                                  from the core's check inventory (task docs:checks)
+ *   scored agent-use               the scored agent-use run: Claude Code on the planted-defect
+ *                                  mod (task scored:agent-use; spends the login's usage)
  */
 
 import { mkdtempSync, rmSync } from 'node:fs';
@@ -28,6 +30,7 @@ import { prepareLegacySpec, runResultBaseline, runSpeedBaseline } from './baseli
 import { requireGameDir } from './game.js';
 import { checkRecords } from './records-check.js';
 import { checkRulesTable, RULES_SOURCE, rulesUse } from './rules-table.js';
+import { runScored } from './scored-run/run.js';
 import { checkSpecFolder, SCHEMA_FILE } from './spec.js';
 import { GAME_SUITES, runGameSuite, writeCorpusManifest, type GameSuite } from './suites.js';
 import { CommandError, EXIT, repoRoot } from './util.js';
@@ -41,7 +44,8 @@ const USAGE = `usage: pychivalry-tools <command>
   baseline spec|speed|results
   wiki check|build|publish
   advice proof
-  docs checks`;
+  docs checks
+  scored agent-use`;
 
 function run(args: readonly string[]): number {
     const root = repoRoot();
@@ -164,6 +168,15 @@ function run(args: readonly string[]): number {
         const file = writeCheckReference(root);
         process.stdout.write(`docs checks: ${path.relative(root, file)} written\n`);
         return EXIT.ok;
+    }
+    if (group === 'scored' && command === 'agent-use') {
+        const { record } = runScored(root, process.env, (line) => {
+            process.stdout.write(`${line}\n`);
+        });
+        // The run itself passes when every trial's harness held; the pass rate is the result.
+        return record.results.trials.some((t) => t.harness_problems.length > 0)
+            ? EXIT.failed
+            : EXIT.ok;
     }
     process.stderr.write(`${USAGE}\n`);
     return EXIT.usage;

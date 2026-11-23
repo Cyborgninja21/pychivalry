@@ -1,0 +1,9 @@
+# Clears what the festival left behind.
+harvest_cleanup_effect = {
+	remove_character_flag = harvest_festival_over
+}
+
+# Removes the festival's modifier.
+{
+	remove_character_modifier = harvest_bounty_modifier
+}

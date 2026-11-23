@@ -53,6 +53,7 @@ Everything goes through [Taskfile.yml](Taskfile.yml); `task --list` shows it all
 | `task docs:checks` | Writes the user guide's check reference, `docs/guide/checks.md`, from the core's check inventory |
 | `task wiki:build` | The wiki pages, built into `.wiki-build/` to look at |
 | `task wiki:publish` | Publishes the wiki. Public the moment it runs: only on the owner's word ([docs/wiki/README.md](docs/wiki/README.md)) |
+| `task scored:agent-use` | The scored agent-use run: Claude Code fixes the planted-defect mod with the agent server, on the login. Spends the login's usage: only on the owner's word, never in `task ci` ([tools/scored-run/README.md](tools/scored-run/README.md)) |
 
 ## Layout
 

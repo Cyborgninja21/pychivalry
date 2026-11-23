@@ -1,0 +1,17 @@
+# Who can take part in the festival.
+harvest_can_attend_trigger = {
+	is_adult = yes
+	NOT = { is_imprisoned = yes }
+	scope:harvest_host ?= {
+		is_alive = yes
+	}
+}
+
+# Never true: the festival is not held in a famine year.
+harvest_famine_trigger = {
+	always = no
+}
+
+harvest_agrarian_trigger = {
+	has_cultural_tradition = tradition_agrarian
+}

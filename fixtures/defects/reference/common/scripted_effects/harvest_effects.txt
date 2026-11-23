@@ -1,0 +1,26 @@
+# Effects run by the festival's events and decisions.
+harvest_feast_effect = {
+	if = {
+		limit = { is_adult = yes }
+		add_prestige = 20
+	}
+	else_if = {
+		limit = { is_ai = yes }
+		add_gold = -5
+	}
+	random_list = {
+		60 = {
+			add_gold = 25
+		}
+		40 = {
+			add_piety = 15
+		}
+	}
+	add_piety = 10
+}
+
+harvest_tithe_effect = {
+	ROOT = {
+		add_gold = 25
+	}
+}

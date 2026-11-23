@@ -1,0 +1,4 @@
+# A scripted effect of the base game that the planted-defect mod calls.
+ruler_feast_gift_effect = {
+	add_prestige = 5
+}

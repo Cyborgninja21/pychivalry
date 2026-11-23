@@ -1,0 +1,443 @@
+{
+    "manifest_format": 1,
+    "about": "The planted-defect mod of the scored agent-use run (docs/PLAN.md items 6.7 to 6.9): each planted defect, one per check code, and each line that looks wrong and is not. Lines are counted from 1 in mod/. Read by tools/src/scored-run/manifest.ts, which states the format.",
+    "game": "fixtures/game/planted-defects/game",
+    "defects": [
+        {
+            "code": "definitions/clash",
+            "file": "events/harvest_events.txt",
+            "line": 36,
+            "text": "harvest.0002 = {",
+            "what": "Two events share the id harvest.0002; the second one's keys say it is harvest.0011.",
+            "reported": [
+                {
+                    "file": "events/harvest_events.txt",
+                    "line": 36
+                },
+                {
+                    "file": "events/harvest_faith_events.txt",
+                    "line": 14
+                }
+            ],
+            "fix": [
+                {
+                    "file": "events/harvest_events.txt",
+                    "lines": [36, 36]
+                },
+                {
+                    "file": "events/harvest_faith_events.txt",
+                    "lines": [14, 14]
+                }
+            ]
+        },
+        {
+            "code": "fields/bare-value-in-record",
+            "file": "common/decision_group_types/harvest_groups.txt",
+            "line": 4,
+            "text": "}",
+            "what": "important_decision_group is written without \"= yes\"; the game reports it at the token after it.",
+            "fix": [
+                {
+                    "file": "common/decision_group_types/harvest_groups.txt",
+                    "lines": [3, 4]
+                }
+            ]
+        },
+        {
+            "code": "fields/missing-required-field",
+            "file": "common/character_interaction_categories/harvest_categories.txt",
+            "line": 2,
+            "text": "interaction_category_harvest = {",
+            "what": "An interaction category without its required index; a fix may rewrite the record.",
+            "fix": [
+                {
+                    "file": "common/character_interaction_categories/harvest_categories.txt",
+                    "lines": [2, 5]
+                }
+            ]
+        },
+        {
+            "code": "fields/unknown-field",
+            "file": "common/decisions/harvest_decisions.txt",
+            "line": 7,
+            "text": "\tai_chek_interval = 120",
+            "what": "ai_check_interval misspelled.",
+            "fix": [
+                {
+                    "file": "common/decisions/harvest_decisions.txt",
+                    "lines": [7, 7]
+                }
+            ]
+        },
+        {
+            "code": "localization/missing-key",
+            "file": "events/harvest_events.txt",
+            "line": 39,
+            "text": "\tdesc = harvest.0002.desc",
+            "what": "The description key harvest.0002.desc is defined in no localization file.",
+            "fix": [
+                {
+                    "file": "events/harvest_events.txt",
+                    "lines": [39, 39]
+                },
+                {
+                    "file": "localization/english/harvest_l_english.yml",
+                    "insert": [1, 21]
+                }
+            ]
+        },
+        {
+            "code": "localization/unbalanced-brackets",
+            "file": "localization/english/harvest_l_english.yml",
+            "line": 3,
+            "text": " harvest.0001.desc:0 \"[ROOT.Char.GetFirstName brings in the harvest, and [ROOT.Char.GetHerHis] granaries are full.\"",
+            "what": "A [ without its ].",
+            "fix": [
+                {
+                    "file": "localization/english/harvest_l_english.yml",
+                    "lines": [3, 3]
+                }
+            ]
+        },
+        {
+            "code": "names/modifier-outside-use-area",
+            "file": "common/culture/traditions/harvest_traditions.txt",
+            "line": 23,
+            "text": "\t\tmonthly_piety = 0.1",
+            "what": "monthly_piety, a character modifier, in the county_modifier block.",
+            "fix": [
+                {
+                    "file": "common/culture/traditions/harvest_traditions.txt",
+                    "lines": [23, 23]
+                },
+                {
+                    "file": "common/culture/traditions/harvest_traditions.txt",
+                    "insert": [17, 19]
+                }
+            ]
+        },
+        {
+            "code": "names/unknown-effect",
+            "file": "events/harvest_events.txt",
+            "line": 24,
+            "text": "\t\tadd_gol = 50",
+            "what": "add_gold misspelled.",
+            "fix": [
+                {
+                    "file": "events/harvest_events.txt",
+                    "lines": [24, 24]
+                }
+            ]
+        },
+        {
+            "code": "names/unknown-link",
+            "file": "events/harvest_events.txt",
+            "line": 42,
+            "text": "\t\troot.fathr = { is_alive = yes }",
+            "what": "The link father misspelled; a fix may rewrite the trigger block.",
+            "fix": [
+                {
+                    "file": "events/harvest_events.txt",
+                    "lines": [41, 44]
+                }
+            ]
+        },
+        {
+            "code": "names/unknown-modifier",
+            "file": "common/culture/traditions/harvest_traditions.txt",
+            "line": 18,
+            "text": "\t\tmonthly_prestgie = 0.1",
+            "what": "monthly_prestige misspelled; a fix may rewrite the character_modifier block.",
+            "fix": [
+                {
+                    "file": "common/culture/traditions/harvest_traditions.txt",
+                    "lines": [17, 20]
+                }
+            ]
+        },
+        {
+            "code": "names/unknown-on-action",
+            "file": "common/on_action/harvest_on_actions.txt",
+            "line": 10,
+            "text": "\ton_actions = { harvest_festival_puls }",
+            "what": "The mod's own on-action harvest_festival_pulse misspelled.",
+            "fix": [
+                {
+                    "file": "common/on_action/harvest_on_actions.txt",
+                    "lines": [10, 10]
+                }
+            ]
+        },
+        {
+            "code": "names/unknown-trigger",
+            "file": "events/harvest_events.txt",
+            "line": 10,
+            "text": "\t\tis_adlut = yes",
+            "what": "is_adult misspelled.",
+            "fix": [
+                {
+                    "file": "events/harvest_events.txt",
+                    "lines": [10, 10]
+                }
+            ]
+        },
+        {
+            "code": "references/unknown-key",
+            "file": "events/harvest_events.txt",
+            "line": 25,
+            "text": "\t\ttrigger_event = { id = harvest.0020 days = 3 }",
+            "what": "trigger_event names an event id no file defines.",
+            "fix": [
+                {
+                    "file": "events/harvest_events.txt",
+                    "lines": [25, 25]
+                }
+            ]
+        },
+        {
+            "code": "scope/link-on-wrong-scope",
+            "file": "common/decisions/harvest_decisions.txt",
+            "line": 16,
+            "text": "\t\tholder = {",
+            "what": "holder, a link of titles, used in the character scope of a decision; a fix may rewrite the is_valid block.",
+            "fix": [
+                {
+                    "file": "common/decisions/harvest_decisions.txt",
+                    "lines": [14, 19]
+                }
+            ]
+        },
+        {
+            "code": "scope/wrong-scope-for-effect",
+            "file": "events/harvest_events.txt",
+            "line": 16,
+            "text": "\t\tadd_county_modifier = {",
+            "what": "add_county_modifier, an effect of titles, run in the character scope of the event.",
+            "fix": [
+                {
+                    "file": "events/harvest_events.txt",
+                    "lines": [16, 19]
+                }
+            ]
+        },
+        {
+            "code": "scope/wrong-scope-for-trigger",
+            "file": "common/decisions/harvest_decisions.txt",
+            "line": 11,
+            "text": "\t\ttier >= 2",
+            "what": "tier, a trigger of titles, tested in the character scope of a decision.",
+            "fix": [
+                {
+                    "file": "common/decisions/harvest_decisions.txt",
+                    "lines": [11, 11]
+                }
+            ]
+        },
+        {
+            "code": "structure/event-non-character-shown",
+            "file": "events/harvest_faith_events.txt",
+            "line": 4,
+            "text": "harvest.0010 = {",
+            "what": "An event in the faith scope that is neither hidden nor major.",
+            "fix": [
+                {
+                    "file": "events/harvest_faith_events.txt",
+                    "lines": [4, 5],
+                    "insert": [4, 10]
+                }
+            ]
+        },
+        {
+            "code": "structure/event-undeclared-namespace",
+            "file": "events/harvest_events.txt",
+            "line": 53,
+            "text": "harvst.0004 = {",
+            "what": "The namespace harvest misspelled in an event id.",
+            "fix": [
+                {
+                    "file": "events/harvest_events.txt",
+                    "lines": [53, 53]
+                }
+            ]
+        },
+        {
+            "code": "structure/range-min-above-max",
+            "file": "common/script_values/harvest_values.txt",
+            "line": 4,
+            "text": "harvest_yield_value = { 100 20 }",
+            "what": "A range written high first.",
+            "fix": [
+                {
+                    "file": "common/script_values/harvest_values.txt",
+                    "lines": [4, 4]
+                }
+            ]
+        },
+        {
+            "code": "syntax/block-without-key",
+            "file": "common/scripted_effects/harvest_cleanup_effects.txt",
+            "line": 7,
+            "text": "{",
+            "what": "A scripted effect whose name was left out.",
+            "fix": [
+                {
+                    "file": "common/scripted_effects/harvest_cleanup_effects.txt",
+                    "lines": [7, 7]
+                }
+            ]
+        },
+        {
+            "code": "syntax/missing-closing-brace",
+            "file": "common/scripted_effects/harvest_reward_effects.txt",
+            "line": 2,
+            "text": "harvest_reward_effect = {",
+            "what": "The last block of the file is never closed; the game reports it at its opening brace.",
+            "fix": [
+                {
+                    "file": "common/scripted_effects/harvest_reward_effects.txt",
+                    "lines": [7, 7]
+                }
+            ]
+        },
+        {
+            "code": "syntax/missing-equals-before-block",
+            "file": "common/scripted_effects/harvest_effects.txt",
+            "line": 4,
+            "text": "\t\tlimit { is_adult = yes }",
+            "what": "limit written without its =.",
+            "fix": [
+                {
+                    "file": "common/scripted_effects/harvest_effects.txt",
+                    "lines": [4, 4]
+                }
+            ]
+        },
+        {
+            "code": "syntax/missing-operator",
+            "file": "common/script_values/harvest_values.txt",
+            "line": 1,
+            "text": "@harvest_tithe 25",
+            "what": "A script constant written without its =.",
+            "fix": [
+                {
+                    "file": "common/script_values/harvest_values.txt",
+                    "lines": [1, 1]
+                }
+            ]
+        },
+        {
+            "code": "syntax/missing-value",
+            "file": "common/scripted_effects/harvest_effects.txt",
+            "line": 20,
+            "text": "}",
+            "what": "add_piety with no amount; the game reports it at the token after the =.",
+            "fix": [
+                {
+                    "file": "common/scripted_effects/harvest_effects.txt",
+                    "lines": [19, 19]
+                }
+            ]
+        },
+        {
+            "code": "syntax/null-safe-operator-after-value",
+            "file": "common/scripted_triggers/harvest_triggers.txt",
+            "line": 5,
+            "text": "\t\"scope:harvest_host\" ?= {",
+            "what": "A saved scope written in quotes before ?=.",
+            "fix": [
+                {
+                    "file": "common/scripted_triggers/harvest_triggers.txt",
+                    "lines": [5, 5]
+                }
+            ]
+        },
+        {
+            "code": "syntax/operator-without-key",
+            "file": "common/scripted_effects/harvest_effects.txt",
+            "line": 15,
+            "text": "\t\t= {",
+            "what": "A branch of a random list without its weight.",
+            "fix": [
+                {
+                    "file": "common/scripted_effects/harvest_effects.txt",
+                    "lines": [15, 15]
+                }
+            ]
+        },
+        {
+            "code": "syntax/unexpected-closing-brace",
+            "file": "common/scripted_triggers/harvest_triggers.txt",
+            "line": 17,
+            "text": "}}",
+            "what": "One closing brace too many at the end of the file.",
+            "fix": [
+                {
+                    "file": "common/scripted_triggers/harvest_triggers.txt",
+                    "lines": [17, 17]
+                }
+            ]
+        }
+    ],
+    "look_alikes": [
+        {
+            "file": "events/harvest_events.txt",
+            "line": 30,
+            "text": "\t\tadd_gold = -10",
+            "why": "A negative amount in an add effect is how gold is taken away."
+        },
+        {
+            "file": "events/harvest_events.txt",
+            "line": 31,
+            "text": "\t\truler_feast_gift_effect = yes",
+            "why": "A scripted effect the base game defines, not the mod."
+        },
+        {
+            "file": "events/harvest_events.txt",
+            "line": 43,
+            "text": "\t\tscope:harvest_host = root",
+            "why": "\"=\" between two scopes compares them; it assigns nothing."
+        },
+        {
+            "file": "common/decisions/harvest_decisions.txt",
+            "line": 15,
+            "text": "\t\tthis = root",
+            "why": "\"this = root\" compares two scopes."
+        },
+        {
+            "file": "common/scripted_triggers/harvest_triggers.txt",
+            "line": 12,
+            "text": "\talways = no",
+            "why": "A trigger that is never true, on purpose, as its comment says."
+        },
+        {
+            "file": "common/scripted_triggers/harvest_triggers.txt",
+            "line": 16,
+            "text": "\thas_cultural_tradition = tradition_agrarian",
+            "why": "A cultural tradition the base game defines, not the mod."
+        },
+        {
+            "file": "common/character_interaction_categories/harvest_categories.txt",
+            "line": 4,
+            "text": "\tcolor = hsv { 0.12 0.7 0.8 }",
+            "why": "A colour in HSV: \"hsv\" before the block names the colour space; no \"=\" is missing."
+        },
+        {
+            "file": "common/culture/traditions/harvest_traditions.txt",
+            "line": 19,
+            "text": "\t\tbowmen_damage_mult = 0.05",
+            "why": "A modifier no list names, which a template (<men-at-arms type>_damage_mult) makes."
+        },
+        {
+            "file": "common/scripted_effects/harvest_effects.txt",
+            "line": 23,
+            "text": "\tROOT = {",
+            "why": "Upper-case ROOT is the same scope as root."
+        },
+        {
+            "file": "localization/english/harvest_l_english.yml",
+            "line": 5,
+            "text": " harvest.0001.b:0 \"Give #P 10#! gold to the poor.\"",
+            "why": "#P and #! format the text; they are not brackets."
+        }
+    ]
+}

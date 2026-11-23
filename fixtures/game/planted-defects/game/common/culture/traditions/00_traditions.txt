@@ -1,0 +1,4 @@
+# A tradition of the base game that the planted-defect mod tests for.
+tradition_agrarian = {
+	category = societal
+}

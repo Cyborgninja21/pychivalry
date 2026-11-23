@@ -1,0 +1,7 @@
+# The rewards for hosting the festival.
+harvest_reward_effect = {
+	add_prestige = 50
+	add_character_modifier = {
+		modifier = harvest_bounty_modifier
+		years = 2
+	}

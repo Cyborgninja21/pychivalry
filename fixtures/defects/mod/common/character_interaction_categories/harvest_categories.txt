@@ -1,0 +1,5 @@
+# The festival's interactions, shown together.
+interaction_category_harvest = {
+	icon = harvest_icon
+	color = hsv { 0.12 0.7 0.8 }
+}

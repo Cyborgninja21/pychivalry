@@ -1,0 +1,25 @@
+# Hold a harvest festival in the capital.
+harvest_festival_decision = {
+	picture = {
+		reference = "gfx/interface/illustrations/decisions/decision_misc.dds"
+	}
+	decision_group_type = harvest_group
+	ai_chek_interval = 120
+
+	is_shown = {
+		is_ruler = yes
+		tier >= 2
+	}
+
+	is_valid = {
+		this = root
+		holder = {
+			is_adult = yes
+		}
+	}
+
+	effect = {
+		harvest_feast_effect = yes
+		trigger_event = { on_action = harvest_festival_pulse }
+	}
+}
