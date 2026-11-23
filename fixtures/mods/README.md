@@ -46,8 +46,12 @@ fixtures/mods/<check-name>-good/
 The good mod differs from the bad one only in the defect. The check inventory
 (`docs/checks.md`, build step 4) names the pair of every check.
 
-A bad mod's `expected.json` lists every finding of every engine check on the mod, so that it
-shows its one behaviour only; the good mod has none, and no `expected.json`:
+A bad mod's `expected.json` lists every finding of its own check and of every engine check that
+is not advice, so that it shows its one behaviour only; the good mod has none of those, and no
+`expected.json`. The advice checks of item 4.7 are tested on their own pairs, so another
+check's pair leaves their findings out (the fixtures of items 4.2, 4.4 and 4.5 carry the fields
+those checks look for; one good mod, `references-unknown-key-good`, still raises advice
+findings, a question for the owner in docs/decisions.md):
 
 ```json
 { "findings": [ { "file": "common/scripted_triggers/fixture_triggers.txt", "line": 16,
@@ -58,7 +62,13 @@ shows its one behaviour only; the good mod has none, and no `expected.json`:
 
 `message` is rendered with the committed spec's catalogue; `data` is the finding's data. The
 check's test (`packages/core/src/check/<name>.test.ts`) indexes the mod on its own, with no
-base game, so a name the mod calls must be defined in the mod.
+base game, so a name the mod calls must be defined in the mod. The pairs of the three checks
+that report nothing without a base game (`scope/undefined-event-target`,
+`localization/missing-key`, `localization/unused-key`) are read over the game stub
+[event-targets-and-localization](../game/event-targets-and-localization/README.md) instead
+(`PAIR_GAMES` in `packages/core/src/check/testing.ts`). Every bad mod is also checked with no
+game folder at all, to show that no finding then depends on a name the base game might define
+(`packages/core/src/check/limits.test.ts`).
 
 ## Carried over from release 2.3.0
 
@@ -70,11 +80,23 @@ rewritten to this layout. Where one is carried over, its README says which file 
 
 | Mod | What it shows | Added by |
 | --- | --- | --- |
+| [definitions-clash-bad](definitions-clash-bad/README.md), [-good](definitions-clash-good/README.md) | One event id, `fixture.0001`, defined in two files with the same `id_override_priority` (none written, so the default) | Item 4.5 |
+| [definitions-not-read-bad](definitions-not-read-bad/README.md), [-good](definitions-not-read-good/README.md) | A decision group in a folder written in upper case, `common/DECISION_GROUP_TYPES` | Item 4.5 |
 | [encoding-windows-1252](encoding-windows-1252/README.md) | A file that is not valid UTF-8, read with and without the Windows-1252 fallback | Step 2 |
+| [fields-bare-value-in-record-bad](fields-bare-value-in-record-bad/README.md), [-good](fields-bare-value-in-record-good/README.md) | Two bare values written directly in a record body that holds `key = value` statements | Item 4.5 |
+| [fields-missing-required-field-bad](fields-missing-required-field-bad/README.md), [-good](fields-missing-required-field-good/README.md) | The spec package marks three fields required, each with the game's own message: a casus belli's `on_invalidated_desc`, an interaction category's `index` and a tutorial lesson's `chain` | Item 4.5 |
+| [fields-unknown-field-bad](fields-unknown-field-bad/README.md), [-good](fields-unknown-field-good/README.md) | A decision group with a field, `fixture_made_up_field`, that the record schema of `common/decision_group_types` does not list and that Paradox's `.info` files do not document | Item 4.5 |
+| [fields-unusual-value-bad](fields-unusual-value-bad/README.md), [-good](fields-unusual-value-good/README.md) | A nickname with `is_bad = no`; the base game writes only `yes` in `is_bad` | Item 4.7 |
+| [fields-usually-present-bad](fields-usually-present-bad/README.md), [-good](fields-usually-present-good/README.md) | A death reason without `icon`, which every one of the base game's 326 death reasons sets | Item 4.7 |
+| [fields-wrong-kind-of-value-bad](fields-wrong-kind-of-value-bad/README.md), [-good](fields-wrong-kind-of-value-good/README.md) | In `common/decision_group_types`, whose `sort_order` the base game writes only as whole numbers, `important_decision_group` only as `yes` or `no`, and `gui_tags` only as a list, a record writes a word for the number (`ten`), `maybe` for the yes-or-no, and one word for the list | Item 4.5 |
 | [index-definitions-and-uses](index-definitions-and-uses/README.md) | One definition of every form, and every way a word is a use | Step 3 |
+| [localization-missing-key-bad](localization-missing-key-bad/README.md), [-good](localization-missing-key-good/README.md) | Localization keys, in fields that hold one and that a record has by its name, defined in no localization file; read over the stub [event-targets-and-localization](../game/event-targets-and-localization/README.md) | Item 4.6 |
+| [localization-unbalanced-brackets-bad](localization-unbalanced-brackets-bad/README.md), [-good](localization-unbalanced-brackets-good/README.md) | Localization text with an extra `[` and with an extra `]` | Item 4.6 |
+| [localization-unused-key-bad](localization-unused-key-bad/README.md), [-good](localization-unused-key-good/README.md) | A key the mod defines that nothing in the mod or the base game uses; read over the stub [event-targets-and-localization](../game/event-targets-and-localization/README.md) | Item 4.6 |
+| [lookup-definitions-and-uses](lookup-definitions-and-uses/README.md) | Definitions and uses of every kind of name lookup answers, read over the stub [game/lookup](../game/lookup/README.md) | Item 4.8 |
+| [names-modifier-outside-use-area-bad](names-modifier-outside-use-area-bad/README.md), [-good](names-modifier-outside-use-area-good/README.md) | An era's character, county and province blocks, each with a modifier of another use area | Item 4.2 |
 | [names-unknown-effect-bad](names-unknown-effect-bad/README.md), [-good](names-unknown-effect-good/README.md) | Keys in effect blocks that are no effect: made up, a trigger, an iterator over no list, removed, a scripted effect defined nowhere | Item 4.2 |
 | [names-unknown-link-bad](names-unknown-link-bad/README.md), [-good](names-unknown-link-good/README.md) | Scope chains with a segment that is no link, as a key and as a value | Item 4.2 |
-| [names-modifier-outside-use-area-bad](names-modifier-outside-use-area-bad/README.md), [-good](names-modifier-outside-use-area-good/README.md) | An era's character, county and province blocks, each with a modifier of another use area | Item 4.2 |
 | [names-unknown-modifier-bad](names-unknown-modifier-bad/README.md), [-good](names-unknown-modifier-good/README.md) | A modifier block with a made-up and a removed modifier; a template and a marked-only name | Item 4.2 |
 | [names-unknown-on-action-bad](names-unknown-on-action-bad/README.md), [-good](names-unknown-on-action-good/README.md) | On-actions named nowhere, in an on-action's lists and fallback and in `trigger_event` | Item 4.2 |
 | [names-unknown-trigger-bad](names-unknown-trigger-bad/README.md), [-good](names-unknown-trigger-good/README.md) | Keys in trigger blocks that are no trigger: made up, an effect, an iterator over no list, removed, a scripted trigger defined nowhere | Item 4.2 |
@@ -93,6 +115,40 @@ rewritten to this layout. Where one is carried over, its README says which file 
 | [parse-operator-without-key](parse-operator-without-key/README.md) | An operator with no key | Step 2 |
 | [parse-unexpected-closing-brace](parse-unexpected-closing-brace/README.md) | A `}` with no block open | Step 2 |
 | [parse-unterminated-string](parse-unterminated-string/README.md) | Quoted text without its closing quote | Step 2 |
+| [references-unknown-key-bad](references-unknown-key-bad/README.md), [-good](references-unknown-key-good/README.md) | Two places part D6 of the spec package confirms hold a key of a database: a dynasty house's `dynasty` (a key of `common/dynasties`) and the value of the trigger `has_cultural_tradition` (a key of `common/culture/traditions`) | Item 4.5 |
+| [references-unknown-name-bad](references-unknown-name-bad/README.md), [-good](references-unknown-name-good/README.md) | An event portrait whose `animation` is `fixture_missing`, which nothing defines; the mod defines `fixture_idle` in `gfx/portraits/portrait_animations` | Item 4.7 |
+| [scope-link-on-wrong-scope-bad](scope-link-on-wrong-scope-bad/README.md), [-good](scope-link-on-wrong-scope-good/README.md) | Links applied to a scope they cannot start from, in a decision whose root is a character: `holder` (a link of titles) as a block key, `liege` (a link of characters) after `primary_title` in a chain written as a key, `holder` after `root` in a chain written as the value of `is_vassal_of`, and `title_province` (a link of titles) after `capital_province` | Item 4.4 |
+| [scope-saved-late-read-in-desc-bad](scope-saved-late-read-in-desc-bad/README.md), [-good](scope-saved-late-read-in-desc-good/README.md) | An event whose `desc` selects on `scope:fixture_mood` (its `switch`), a scope the event saves only in its option | Item 4.7 |
+| [scope-undefined-event-target-bad](scope-undefined-event-target-bad/README.md), [-good](scope-undefined-event-target-good/README.md) | `scope:` reads of names no effect saves in the file, the mod or the base game; read over the stub [event-targets-and-localization](../game/event-targets-and-localization/README.md) | Item 4.6 |
+| [scope-wrong-scope-for-effect-bad](scope-wrong-scope-for-effect-bad/README.md), [-good](scope-wrong-scope-for-effect-good/README.md) | Effects written in a scope their scope data does not list, in a character event: `add_county_modifier` at the root, `add_gold` and the iterator `every_vassal` after the link `primary_title`, and `add_trait` in an option after the link `capital_province` | Item 4.4 |
+| [scope-wrong-scope-for-trigger-bad](scope-wrong-scope-for-trigger-bad/README.md), [-good](scope-wrong-scope-for-trigger-good/README.md) | Triggers written in a scope their scope data does not list: in a decision, whose root is a character, `tier` at the root, `is_adult` and the iterator `any_vassal` after the link `primary_title`, `has_trait` in the iterator `any_held_title`, and `has_county_modifier` after the link `capital_province`; in an event whose `scope = province` makes its root a province, `is_adult` | Item 4.4 |
+| [structure-casus-belli-without-outcome-bad](structure-casus-belli-without-outcome-bad/README.md), [-good](structure-casus-belli-without-outcome-good/README.md) | A casus belli with its descriptions and none of `on_victory`, `on_defeat`, `on_white_peace` | Item 4.7 |
+| [structure-else-without-if-bad](structure-else-without-if-bad/README.md), [-good](structure-else-without-if-good/README.md) | A scripted effect whose `else` follows an effect, not an `if` or `else_if` | Item 4.7 |
+| [structure-event-after-without-option-bad](structure-event-after-without-option-bad/README.md), [-good](structure-event-after-without-option-good/README.md) | An event that is not hidden, with an `after` and no `option` | Item 4.7 |
+| [structure-event-empty-bad](structure-event-empty-bad/README.md), [-good](structure-event-empty-good/README.md) | An event with nothing in it | Item 4.7 |
+| [structure-event-letter-without-sender-bad](structure-event-letter-without-sender-bad/README.md), [-good](structure-event-letter-without-sender-good/README.md) | A letter event (`type = letter_event`) without `sender` | Item 4.7 |
+| [structure-event-non-character-shown-bad](structure-event-non-character-shown-bad/README.md), [-good](structure-event-non-character-shown-good/README.md) | An event whose `scope` is a faith, not a character, and that is neither `hidden` nor `major` | Item 4.5 |
+| [structure-event-portrait-position-twice-bad](structure-event-portrait-position-twice-bad/README.md), [-good](structure-event-portrait-position-twice-good/README.md) | An event that gives `left_portrait` twice | Item 4.7 |
+| [structure-event-several-after-bad](structure-event-several-after-bad/README.md), [-good](structure-event-several-after-good/README.md) | An event with two `after` blocks | Item 4.7 |
+| [structure-event-several-immediate-bad](structure-event-several-immediate-bad/README.md), [-good](structure-event-several-immediate-good/README.md) | A hidden event with two `immediate` blocks | Item 4.7 |
+| [structure-event-triggered-animation-without-animation-bad](structure-event-triggered-animation-without-animation-bad/README.md), [-good](structure-event-triggered-animation-without-animation-good/README.md) | A portrait's `triggered_animation` with a `trigger` and neither `animation` nor `scripted_animation` | Item 4.7 |
+| [structure-event-triggered-animation-without-trigger-bad](structure-event-triggered-animation-without-trigger-bad/README.md), [-good](structure-event-triggered-animation-without-trigger-good/README.md) | A portrait's `triggered_animation` with an `animation` and no `trigger` | Item 4.7 |
+| [structure-event-undeclared-namespace-bad](structure-event-undeclared-namespace-bad/README.md), [-good](structure-event-undeclared-namespace-good/README.md) | An event whose namespace its file does not declare, beside one whose namespace it does, and a file that declares no namespace at all | Item 4.5 |
+| [structure-event-unknown-type-bad](structure-event-unknown-type-bad/README.md), [-good](structure-event-unknown-type-good/README.md) | A hidden event whose `type` is `fixture_event`, no type the events `.info` lists | Item 4.7 |
+| [structure-event-without-desc-bad](structure-event-without-desc-bad/README.md), [-good](structure-event-without-desc-good/README.md) | An event that is not hidden, with a title and an option and no `desc` | Item 4.7 |
+| [structure-event-without-option-bad](structure-event-without-option-bad/README.md), [-good](structure-event-without-option-good/README.md) | An event that is not hidden, with a title and a `desc` and no `option` | Item 4.7 |
+| [structure-logic-operator-without-block-bad](structure-logic-operator-without-block-bad/README.md), [-good](structure-logic-operator-without-block-good/README.md) | A scripted trigger with `NOT = is_adult`: a single value where the operator takes a block of triggers | Item 4.7 |
+| [structure-namespace-outside-events-bad](structure-namespace-outside-events-bad/README.md), [-good](structure-namespace-outside-events-good/README.md) | A scripted-effects file that declares `namespace = fixture` | Item 4.7 |
+| [structure-range-min-above-max-bad](structure-range-min-above-max-bad/README.md), [-good](structure-range-min-above-max-good/README.md) | Two ranges whose minimum is above their maximum, a script value written as a range and a range inside a formula's `value` | Item 4.5 |
+| [structure-round-to-not-positive-bad](structure-round-to-not-positive-bad/README.md), [-good](structure-round-to-not-positive-good/README.md) | A script value with `round_to = 0` | Item 4.7 |
+| [structure-story-effect-group-chance-above-100-bad](structure-story-effect-group-chance-above-100-bad/README.md), [-good](structure-story-effect-group-chance-above-100-good/README.md) | A story cycle whose `effect_group` has `chance = 150` | Item 4.7 |
+| [structure-story-effect-group-chance-not-positive-bad](structure-story-effect-group-chance-not-positive-bad/README.md), [-good](structure-story-effect-group-chance-not-positive-good/README.md) | A story cycle whose `effect_group` has `chance = 0` | Item 4.7 |
+| [structure-story-effect-group-several-timings-bad](structure-story-effect-group-several-timings-bad/README.md), [-good](structure-story-effect-group-several-timings-good/README.md) | A story cycle whose `effect_group` has both `days` and `months` | Item 4.7 |
+| [structure-story-effect-group-without-effect-bad](structure-story-effect-group-without-effect-bad/README.md), [-good](structure-story-effect-group-without-effect-good/README.md) | A story cycle whose `effect_group` has an interval and no `triggered_effect`, `first_valid` or `random_valid` | Item 4.7 |
+| [structure-story-effect-group-without-timing-bad](structure-story-effect-group-without-timing-bad/README.md), [-good](structure-story-effect-group-without-timing-good/README.md) | A story cycle whose `effect_group` has none of `days`, `weeks`, `months`, `years` | Item 4.7 |
+| [structure-switch-without-branches-bad](structure-switch-without-branches-bad/README.md), [-good](structure-switch-without-branches-good/README.md) | A `switch` with a `trigger` and a `fallback` and no case | Item 4.7 |
+| [structure-switch-without-trigger-bad](structure-switch-without-trigger-bad/README.md), [-good](structure-switch-without-trigger-good/README.md) | A `switch` with a case and a fallback and no `trigger` | Item 4.7 |
+| [structure-trigger-else-without-trigger-if-bad](structure-trigger-else-without-trigger-if-bad/README.md), [-good](structure-trigger-else-without-trigger-if-good/README.md) | A scripted trigger whose `trigger_else` follows a trigger, not a `trigger_if` or `trigger_else_if` | Item 4.7 |
 
 The recovery test (`packages/core/src/syntax/recovery.test.ts`) reads every `parse-*` mod and
 fails if a kind of parse finding has no mod of its own. The incremental re-parse test edits

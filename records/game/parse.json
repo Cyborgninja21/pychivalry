@@ -2,11 +2,11 @@
     "record_format": 1,
     "suite": "game:parse",
     "command": "task game:parse",
-    "made_at": "2026-11-23T08:29:25.451Z",
+    "made_at": "2026-11-23T10:28:18.466Z",
     "tool": {
         "name": "pychivalry",
         "version": "0.0.0",
-        "commit": "6b51b5ff4cadf66e39b867c2c1160f2fd71c84cd",
+        "commit": "21b82aef3d3b49b67f27af4eb7982913915cbaab",
         "dirty": false
     },
     "machine": {
@@ -39,7 +39,7 @@
         "failures": [],
         "files": 4854,
         "trees": 4854,
-        "parse_ms": 5165,
+        "parse_ms": 5486,
         "folders": [
             {
                 "folder": "common",
@@ -50,7 +50,7 @@
                 "bom": 2663,
                 "not_utf8": 0,
                 "errors": 1,
-                "parse_ms": 2352,
+                "parse_ms": 2494,
                 "why": "Database records; release 2.3.0 read it; the spec lists 196 folders under it.",
                 "excluded": []
             },
@@ -63,7 +63,7 @@
                 "bom": 610,
                 "not_utf8": 0,
                 "errors": 1,
-                "parse_ms": 1111,
+                "parse_ms": 1145,
                 "why": "Events; release 2.3.0 read it; in the spec.",
                 "excluded": []
             },
@@ -76,7 +76,7 @@
                 "bom": 613,
                 "not_utf8": 25,
                 "errors": 1,
-                "parse_ms": 862,
+                "parse_ms": 912,
                 "why": "History; release 2.3.0 read it; the spec lists 10 folders under it.",
                 "excluded": []
             },
@@ -89,7 +89,7 @@
                 "bom": 237,
                 "not_utf8": 0,
                 "errors": 0,
-                "parse_ms": 822,
+                "parse_ms": 889,
                 "why": "The spec lists 30 folders under it (coats of arms, court scenes, map styles, portraits and more); paths.settings points into it.",
                 "excluded": [
                     {
@@ -107,7 +107,7 @@
                 "bom": 4,
                 "not_utf8": 1,
                 "errors": 0,
-                "parse_ms": 17,
+                "parse_ms": 41,
                 "why": "In the spec (map_data/geographical_regions) and in the game's checksum manifest.",
                 "excluded": []
             },
@@ -120,7 +120,7 @@
                 "bom": 3,
                 "not_utf8": 0,
                 "errors": 0,
-                "parse_ms": 0,
+                "parse_ms": 1,
                 "why": "In the spec; paths.settings names music/music_player_categories.",
                 "excluded": []
             },
@@ -151,7 +151,7 @@
                 "bom": 41,
                 "not_utf8": 0,
                 "errors": 0,
-                "parse_ms": 1,
+                "parse_ms": 2,
                 "why": "The DLC's own files, in the game's layout (dlc/<pack>/music, dlc/<pack>/gfx and so on).",
                 "excluded": []
             },
@@ -177,7 +177,7 @@
                 "bom": 16,
                 "not_utf8": 0,
                 "errors": 0,
-                "parse_ms": 0,
+                "parse_ms": 1,
                 "why": "paths.settings names content_source/map_objects/generators and masks.",
                 "excluded": []
             }

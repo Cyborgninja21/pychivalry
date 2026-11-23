@@ -37,6 +37,7 @@ export type {
     DroppedReading,
     FieldReading,
     InForceAnswer,
+    SharedAnswer,
     IteratorDepartureReading,
     IteratorFormAnswer,
     IteratorReading,

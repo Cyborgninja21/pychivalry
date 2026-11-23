@@ -523,6 +523,45 @@ export function nameTemplatePattern(word: string): RegExp {
     return new RegExp(`^${parts.join('.+')}$`);
 }
 
+/**
+ * The scope a pair saves under a name (`save_scope_as = name`): the value, when the pair's key
+ * is one of the keys that save a scope (`FolderTable.saveKeys`, lower case) and the value is a
+ * plain name. A name holding a `$PARAM$` stands for many and saves none of them.
+ */
+export function scopeSaveOf(pair: Pair, saveKeys: ReadonlySet<string>): Scalar | undefined {
+    const value = pair.value;
+    return value?.kind === 'scalar' &&
+        value.type === 'name' &&
+        !value.text.includes('$') &&
+        saveKeys.has(pair.key.text.toLowerCase())
+        ? value
+        : undefined;
+}
+
+/**
+ * The saved scope a chain reads at its head (`scope:name`, alone or before more links): the
+ * head, the name, and where the name starts in the chain's text; or undefined. The link is one
+ * of those that read a saved scope (`FolderTable.scopeLinks`, lower case). A name holding a
+ * `$PARAM$` or a `|` is no one name and is not read.
+ */
+export function scopeReadOf(
+    scalar: Scalar,
+    scopeLinks: ReadonlySet<string>,
+): { readonly head: string; readonly name: string; readonly offset: number } | undefined {
+    if (scalar.type !== 'chain') {
+        return undefined;
+    }
+    const head = scalar.segments?.[0] ?? '';
+    const colon = head.indexOf(':');
+    const name = head.slice(colon + 1);
+    if (colon <= 0 || name === '' || /[$|]/.test(name)) {
+        return undefined;
+    }
+    return scopeLinks.has(head.slice(0, colon).toLowerCase())
+        ? { head, name, offset: colon + 1 }
+        : undefined;
+}
+
 /** What a script file defines and uses. */
 export function extractScript(file: FileNode, context: ScriptContext): Extracted {
     const { strings } = context;
@@ -535,13 +574,8 @@ export function extractScript(file: FileNode, context: ScriptContext): Extracted
         saveKeys === undefined || saveKeys.size === 0
             ? undefined
             : (pair: Pair): void => {
-                  const value = pair.value;
-                  if (
-                      value?.kind === 'scalar' &&
-                      value.type === 'name' &&
-                      !value.text.includes('$') &&
-                      saveKeys.has(pair.key.text.toLowerCase())
-                  ) {
+                  const value = scopeSaveOf(pair, saveKeys);
+                  if (value !== undefined) {
                       saves.push(strings.intern(value.text), value.start);
                   }
               };
@@ -558,19 +592,9 @@ export function extractScript(file: FileNode, context: ScriptContext): Extracted
                       templates.push(strings.intern(scalar.text), scalar.start);
                       return;
                   }
-                  if (scalar.type !== 'chain') {
-                      return;
-                  }
-                  const head = scalar.segments?.[0] ?? '';
-                  const colon = head.indexOf(':');
-                  const name = head.slice(colon + 1);
-                  if (
-                      colon > 0 &&
-                      name !== '' &&
-                      !/[$|]/.test(name) &&
-                      scopeLinks.has(head.slice(0, colon).toLowerCase())
-                  ) {
-                      reads.push(strings.intern(name), scalar.start + colon + 1);
+                  const read = scopeReadOf(scalar, scopeLinks);
+                  if (read !== undefined) {
+                      reads.push(strings.intern(read.name), scalar.start + read.offset);
                   }
               };
     /** Where each nested definition's own key starts: not a use. */

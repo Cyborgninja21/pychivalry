@@ -7,7 +7,7 @@
 
 import type { AdviceCheck, AdviceInput, AdviceResult } from './advice.js';
 import { NOTHING } from './advice.js';
-import { childPairs } from './advice-roles.js';
+import { childPairs } from './keyword-roles.js';
 import { switchesOf } from './advice-switch.js';
 import type { CheckFinding } from './finding.js';
 import { finding } from './report.js';

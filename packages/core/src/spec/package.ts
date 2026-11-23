@@ -100,8 +100,11 @@ export interface SchemaField {
     readonly loc_key_evidence?: unknown;
     /** How `scope` was measured. */
     readonly scope_evidence?: string;
-    /** The scopes Paradox's `.info` file says the block receives (part C1). */
-    readonly info_scope?: readonly { readonly scope: string; readonly type: string }[];
+    /**
+     * The scopes Paradox's `.info` file says the block receives (part C1): `scope` is `root`,
+     * `this`, `scope:<name>`, or null for a note about no named scope (the format's schema).
+     */
+    readonly info_scope?: readonly { readonly scope: string | null; readonly type: string }[];
     readonly note?: string;
 }
 

@@ -9,14 +9,15 @@
  * saved late when the options or that block save it and neither the fire condition nor the
  * block run when it fires does. Reads inside the trigger of a `triggered_desc` (the row with
  * the roles `closed_body` and `conditional_entry`, and its `entry_condition`) are another
- * row's, retired; they are not judged here. Saves and reads are `advice-scopes.ts`'s.
+ * row's, retired; they are not judged here. Saves and reads are the index's own reading, as
+ * `scope/undefined-event-target` reads them (`advice-scopes.ts`).
  */
 
 import type { AdviceCheck, AdviceInput, AdviceResult } from './advice.js';
 import { either, NOTHING, walkPairs } from './advice.js';
-import { bodyOf, childPairs, keywordRolesOf } from './advice-roles.js';
+import { bodyOf, childPairs, keywordRolesOf } from './keyword-roles.js';
 import { descriptionRow, eventModelOf, eventRow, eventsOf } from './advice-events.js';
-import { savedIn, savedScopeLink, scopeReadsIn } from './advice-scopes.js';
+import { savedIn, savedScopeLinks, scopeReadsIn } from './advice-scopes.js';
 import type { CheckFinding } from './finding.js';
 import { finding } from './report.js';
 import type { Block, Scalar } from '../syntax/tree.js';
@@ -25,7 +26,7 @@ export const CODE = 'scope/saved-late-read-in-desc';
 
 function run(input: AdviceInput): AdviceResult {
     const model = eventModelOf(input.spec);
-    const link = savedScopeLink(input.spec);
+    const links = savedScopeLinks(input.folders);
     const desc = descriptionRow(model);
     const early = [eventRow(model, 'fire_condition'), eventRow(model, 'runs_before_options')];
     const late = [eventRow(model, 'event_option'), eventRow(model, 'needs_sibling')];
@@ -40,7 +41,7 @@ function run(input: AdviceInput): AdviceResult {
         );
     const condition = conditions.length === 1 ? conditions[0] : undefined;
     if (
-        link === null ||
+        links.size === 0 ||
         desc === undefined ||
         entry === undefined ||
         condition === undefined ||
@@ -60,8 +61,8 @@ function run(input: AdviceInput): AdviceResult {
         if (descs.length === 0) {
             continue;
         }
-        const saved = savedIn(input.spec, blocksOf(event.body, earlyKeys));
-        const onlyLate = [...savedIn(input.spec, blocksOf(event.body, lateKeys))].filter(
+        const saved = savedIn(input.folders, blocksOf(event.body, earlyKeys));
+        const onlyLate = [...savedIn(input.folders, blocksOf(event.body, lateKeys))].filter(
             (n) => !saved.has(n),
         );
         if (onlyLate.length === 0) {
@@ -80,11 +81,11 @@ function run(input: AdviceInput): AdviceResult {
                     for (const c of entryBody === undefined
                         ? []
                         : childPairs(entryBody, condition.keyword)) {
-                        scopeReadsIn(c, link).forEach((r) => excluded.add(r.scalar));
+                        scopeReadsIn(c, links).forEach((r) => excluded.add(r.scalar));
                     }
                 });
             }
-            for (const read of scopeReadsIn(pair, link)) {
+            for (const read of scopeReadsIn(pair, links)) {
                 if (!excluded.has(read.scalar) && onlyLate.includes(read.name)) {
                     findings.push(
                         finding(

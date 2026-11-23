@@ -98,7 +98,7 @@ export type ScopesAnswer =
               readonly evidence: string;
           } | null;
           /** The scopes Paradox's `.info` file says the block receives. */
-          readonly info: readonly { readonly scope: string; readonly type: string }[] | null;
+          readonly info: readonly { readonly scope: string | null; readonly type: string }[] | null;
           /** The record's root scope, where the schema states one. */
           readonly recordRoot: string | null;
       }
@@ -489,6 +489,13 @@ export type InForceAnswer =
           readonly status: 'winner';
           readonly rule: string;
           readonly combine: 'whole' | 'fields' | 'partial';
+          /**
+           * The object the name shares with other names, where an alias row decides
+           * (`coat-of-arms-alias`; the index's `Resolution.shared`): the name an alias line in
+           * force points it to (null when its own block binds it), the block whose content is in
+           * force for the object, and every name on it.
+           */
+          readonly shared?: SharedAnswer;
       }
     | { readonly status: 'all'; readonly rule: string }
     | { readonly status: 'statements'; readonly rule: string }
@@ -497,6 +504,14 @@ export type InForceAnswer =
     | { readonly status: 'not-in-force'; readonly rule: string }
     | { readonly status: 'not-read' }
     | { readonly status: 'winner-not-known'; readonly reasons: readonly UnknownReason[] };
+
+/** An object several names share (an alias row's replay). */
+export interface SharedAnswer {
+    readonly target: string | null;
+    /** The block whose content is in force for the object. */
+    readonly filledBy: { readonly layer: string; readonly file: string; readonly range: Range };
+    readonly names: readonly string[];
+}
 
 /** The definitions of the name in one database (and container). */
 export interface DefinitionGroupAnswer {

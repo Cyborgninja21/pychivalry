@@ -8,7 +8,7 @@
 
 import type { AdviceCheck, AdviceInput, AdviceResult } from './advice.js';
 import { directoryOf, either, NOTHING, recordsOf } from './advice.js';
-import { childPairs, holdsIn, keywordRolesOf } from './advice-roles.js';
+import { childPairs, holdsIn, keywordRolesOf } from './keyword-roles.js';
 import type { CheckFinding } from './finding.js';
 import { finding } from './report.js';
 

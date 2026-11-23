@@ -1,6 +1,6 @@
 # pychivalry: build plan
 
-Status: plan for approval, 2026-11-22. Step 0 is done: the 1.21.0.3 spec package in format 8 is committed (2026-11-23, decision 68), its override rules table among its parts. Step 1 is complete, and steps 2 and 3 are built and merged, the index reading the override rules from the package. Item 4.1, the check inventory, is written and signed off; item 4.2 is built, its six checks, with item 4.3's context reader as its prerequisite, but for two iterator sub-cases that wait on the owner. The rest of step 4 and step 5 are being built in parallel, one agent per piece, on the owner's word (decision 70). The Progress table says what is open.
+Status: plan for approval, 2026-11-22. Step 0 is done: the 1.21.0.3 spec package in format 8 is committed (2026-11-23, decision 68), its override rules table among its parts. Step 1 is complete, and steps 2 and 3 are built and merged, the index reading the override rules from the package. Item 4.1, the check inventory, is written and signed off. The rest of step 4 and step 5 were built in parallel on the owner's word (decisions 70 and 72) and brought together by an integration pull request: every item of step 4 and step 5 is built, but for two blocked rows of the inventory and the parts of four rows that wait on the owner or on the spec work. Step 4's "Done when" holds but for its first line (two blocked rows have no fixture pair); step 5's holds. The Progress table says what is open.
 
 This is the "how" for the rebuild. The "what" and the "why" are in [MVP.md](MVP.md): the
 decisions, the scope, the tests each feature needs and the definition of done. Where the two
@@ -23,8 +23,8 @@ disagree, MVP.md is right and this plan is fixed.
 | 1 | Repository skeleton | Two items only (1.6, 1.11) | Complete (pull requests #114, #115 and #124). Item 1.6: the 1.21.0.3 package is committed, gzipped. Item 1.11: the speed and result baselines of 2.3.0 are recorded on its format 4 copy |
 | 2 | Parser | No | Built and merged (pull request #116). Item 2.6's public codes are left to item 4.1, which maps the syntax finding identifiers to them |
 | 3 | Workspace index | No for the index; the override rules table comes from step 0 | Built and merged (pull requests #118 and #120). The override rules come from the spec package's part D1 (the stand-in `spec/override-rules.json` is retired, decision 65): a settled or derived row decides, a partial or open row does not; parts D2 and D3 say what a definition is. Base-game names defined more than once with no winner known: 1,309 on the format 5 package, 118 on format 7, 233 on format 8 (the 21 coats of arms and the gene of decision 67 are answered; 167 nested names whose scope the package does not settle, under several parents, are new). Since format 8 the index also applies the scope of nested names, the gene containers, the coat of arms alias line, the stores of province terrain and the localization file condition. Still open: character history defined twice (a partial row), nested names of a scope resting on the measurement alone, the depth of the folders only partial rows or no row describe, the 32 folders with no row and `gui`, and the order of several mods or DLC packs (`docs/overrides.md`) |
-| 4 | Engine checks and lookup | Yes, from item 4.2 on | Item 4.1 is done and signed off (pull requests #121 and #122): `docs/checks.md`, the check inventory and the code scheme; its codes are permanent. Item 4.2 is done on the format 7 package (pull requests #125 and #127) and re-measured on format 8 (no `names/modifier-outside-use-area` warning on the base game, 215 before): the typed spec reader, its eight new parts typed, and the six checks (`names/unknown-trigger`, `-effect`, `-link`, `-modifier`, `-on-action`, `names/modifier-outside-use-area`), with item 4.3's context reader built as their prerequisite. Open in item 4.2: the iterator sub-cases of `names/unknown-trigger` and `names/unknown-effect`, which wait on the owner (no game message ties them to an iterator of the wrong kind). Next: items 4.4 to 4.11 and step 5, built in parallel by several agents (decision 70) |
-| 5 | Command line | Through step 4 | Not started |
+| 4 | Engine checks and lookup | Yes, from item 4.2 on | Built. Item 4.1 is signed off (#121, #122); 4.2 with 4.3 (#125, #127, re-measured on format 8 in #132); 4.4 scope (#130); 4.5 fields and structure (#131); 4.6 event targets and localization (#134); 4.7 advice (#133); 4.8 lookup (#128); 4.9 to 4.11, the classification of the base game's errors, the game-file suites and the limits, in the integration pull request. 62 of the inventory's 78 rows are built (five in part), 11 retired by item 4.7's re-proof, 2 blocked, 3 belong to steps 10 and 11. Open: `structure/triggered-desc-other-field` (its message is not in the catalogue) and `scope/title-text-reads-scope-saved-late` (the localization text's saved-scope form is not data), blocked; the iterator sub-cases of `names/unknown-trigger` and `-effect` (the owner); the game-concept half of `references/unknown-name`, the open brackets of `localization/unbalanced-brackets` and the block and word types of `fields/wrong-kind-of-value`; the twelve spec requests of decision 73 and the questions in decisions.md. "Done when" 2 to 5 hold; 1 does not, for the two blocked rows |
+| 5 | Command line | Through step 4 | Built (#129, with the per-file cap in the integration pull request): `check`, `lookup` and `explain`, text and JSON, the filters, the exit codes, the on-disk index. "Done when" holds: the golden test passes, and on each of the five mods the command line's findings equal the core's and the `game:mods` record's. Open: the owner's questions on `--severity`, `--no-vanilla`, the folders checked and `mcp` (decisions.md) |
 | 6 | Agent server | Through step 4 | Not started |
 | 7 | Language server and extension | Through step 4 | Not started |
 | 8 | Formatter and fixes | No, but follows step 7 | Not started |
@@ -527,26 +527,37 @@ about a name.
 - 4.4 **Scope checks.** The scope a block runs in, from the record's root scope, per-field
   scopes, links and iterators; a keyword in a scope the spec says it does not support. Judged
   only where the spec has scope data; "no requirement declared" is not a finding.
+  **Built** (#130): `check/scope.ts` and the three rows.
 - 4.5 **Fields and structure.** Unknown field in a record, from the record schemas; the 3
   required fields; a wrong kind of value, from the measured value types; the structural checks
   written by hand against catalogue messages.
+  **Built** (#131), ten of eleven rows; `structure/triggered-desc-other-field` is blocked.
 - 4.6 **Event targets and localization.** An undefined event target, as information. A missing
   localization key and unbalanced brackets, as warnings with their catalogue evidence. An
   unused key, as advice.
+  **Built** (#134), all four rows; an opener left open waits on the catalogue.
 - 4.7 **Advice checks,** each a row in the inventory with "advice" as its evidence, each
   re-proved on the 1.21 base game before it ships.
+  **Built** (#133): 28 rows and the re-proof tool `advice proof`; 11 retired, 1 blocked.
 - 4.8 **Lookup.** For any name: its buckets, description, the scopes it supports, what it
   takes, where it is defined and used. Where the spec has nothing it answers "unknown".
   Modifier descriptions come from the installed game's localization.
+  **Built** (#128): `packages/core/src/lookup/`.
 - 4.9 **The base game's own errors.** Every error pychivalry reports in the base game is
   classified: a defect of the game's files, with the reason, or a pychivalry fault to fix.
   2.3.0 left 14 unclassified.
+  **Done:** `tools/data/check-classifications.json`, every error and warning; none is a
+  pychivalry fault.
 - 4.10 **The game-file suites:** `task game:check` (base game) and `task game:mods` (the five
   mods), with a classification file: every error in a test mod is classified as a real defect
   with its reason, and an unclassified error fails the suite, as in 2.3.0.
+  **Built:** `tools/src/check-suite.ts`, the records `records/game/check.json` and `mods.json`,
+  and `tools/data/mods-classifications.json`.
 - 4.11 **Limits that keep it usable,** each with a test: a cap on findings per file with the
   most severe kept; a bound on the work behind "did you mean"; silence when no game folder is
   set.
+  **Built:** the cap in the one runner (`MAX_FINDINGS_PER_FILE`, 1,000) and the tests of all
+  three (`check/limits.test.ts`).
 
 **Tests.** Rows "Engine checks" and "Lookup" in MVP.md's table. One fixture pair per check: a
 bad file it fires on and a good file it is silent on.
@@ -562,6 +573,33 @@ real-mod records.
    states how many it judged. 2.3.0 judged 93,665 of 561,077.
 4. On the five mods the error list equals the list of real defects.
 5. The core contains no keyword list: a search for the names in 2.3.0's tables finds none.
+
+**Done when, checked** (2026-11-23, game 1.21.0.3, the records of `task game:check` and `task
+game:mods`):
+
+1. **Not met, for two rows.** The 62 built codes have their fixtures and all pass in `task ci`:
+   the 51 check codes each a `-bad` and `-good` pair, the 11 parse findings their `parse-*` and
+   `encoding-*` fixtures. The two blocked rows, `structure/triggered-desc-other-field` and
+   `scope/title-text-reads-scope-saved-late`, have none; the 11 retired rows need none, and the 3
+   rows of steps 10 and 11 are theirs.
+2. **Met.** The base game raises 806 errors: 13 are defects of the game's files (the 3 parse
+   errors `game:parse` classifies and 10 unknown names), 793 are spec-package faults with the requests of
+   decision 73 (791 parse errors in `sound/GUIDs.txt` and `gfx/models/buildings/naming.txt`,
+   which are not script; 2 `selection_count` the package's entry leaves out); none is a
+   pychivalry fault. Its 151 warnings are all defects of the game's files.
+3. **Met.** The scope check judges 178,395 of the base game's 610,898 keyword uses (29.2%) and
+   41,022 link steps, with no finding. Release 2.3.0 judged 93,665 of 561,077 on game 1.20 and
+   101,162 of 613,103 on 1.21.0.3.
+4. **Met.** The five mods raise 844 errors (balance-of-power-ui 0, divine-intervention 0,
+   elf-destiny 2, rice 841, viet-events 1), each classified a real defect with its reason in
+   `tools/data/mods-classifications.json`; none is unclassified. All 511 errors release 2.3.0
+   reports in elf-destiny, rice and viet-events are reported at the same lines; its 12 in
+   divine-intervention are the false ones item 4.2 found. Rice has 333 more: 325 unknown
+   modifiers in blocks part D7 confirms hold modifiers (288 in the package's removed list, such
+   as `development_growth_factor` 121 times and `tax_mult` 55, and 37 terrain forms of
+   `development_growth_factor`), and 8 more buildings run in a province.
+5. **Met.** `packages/core/src/no-keyword-list.test.ts` searches the core's strings for the names
+   of 2.3.0's tables in the package and finds none.
 
 **Not yet known.** How many of the old advice rules still hold on 1.21. Whether the measured
 value types are clean enough to raise a finding, or only good enough for completion.
@@ -683,6 +721,78 @@ script over the built core, the base game's index and the committed spec, on Lin
   `names/unknown-trigger`, 314 `names/unknown-effect` and 361 `names/unknown-modifier`,
   viet-events 1 `names/unknown-effect`.
 
+**Found** (items 4.4 to 4.11, built in parallel and brought together on 2026-11-23; game
+1.21.0.3, the records `records/game/check.json` and `records/game/mods.json` of the suites item
+4.10 built):
+
+- **4.4 scope.** The scope walk (`check/scope.ts`) follows `this` and `root` through what the
+  context reader read, from the schema's `root_scope`, an event's `scope` (part D4), an
+  on-action's documented scope, the fields' scopes, links, chains and iterators (part D8 for
+  the prefix kinds); where the package does not say, the scope is unknown and nothing that
+  depends on it is judged. On the base game: 610,898 keyword uses, 303,835 with a known scope,
+  178,395 judged, 0 findings; 41,022 link steps judged, 0 findings. The uses not judged, by
+  why: no requirement declared 117,296; a saved scope or variable 108,728; a definition called
+  by name 60,563; a block below a record field 59,701; an inline scripted trigger or effect
+  18,836; no root scope in the schema 18,751; a link block, judged as a link 16,366; no scope
+  data 8,144; a parameter block 8,082; a list with no single element type 7,131; an on-action
+  with no single documented scope 3,278; a root that is no scope type 3,057; keyword parameters
+  1,135; a chain ending in a value 635; a key that is no name 598; the previous scope 197;
+  `fields_outside_root` 5. On the mods: 27 `scope/wrong-scope-for-effect`, all in rice.
+- **4.5 fields and structure.** Ten of the eleven rows; `structure/triggered-desc-other-field`
+  is blocked on the catalogue. `fields/wrong-kind-of-value` judges 7 value groups: block and
+  word fire on correct mod script. No error or warning on the base game; 88
+  `definitions/not-read` information findings, in `jomini/` files the game's copies replace.
+  On the mods: elf-destiny 72 `fields/unknown-field` (47 `ai_is_valid` in scripted GUIs, 15
+  trait `index`, 6 likely false: an ethnicity's custom genes) and 1 `references/unknown-key`;
+  rice 649, 182 and 3 `fields/wrong-kind-of-value`.
+- **4.6 event targets and localization.** All four rows; the index records saved scopes, their
+  reads and `$PARAM$` templates per file (cache format 4), and the runner checks `.yml` files.
+  On the base game: 5,969 `scope/undefined-event-target` (76 names, `duel_value` 4,716); 151
+  `localization/missing-key` warnings on 104 keys no localization file of the install defines;
+  no unbalanced brackets, no unused key. On the mods (event targets / missing-key warnings /
+  missing-key advice / brackets / unused keys): balance-of-power-ui 0/0/0/0/105,
+  divine-intervention 3/0/0/0/3,699, elf-destiny 21/6/129/0/2,444, rice 189/204/19/7/141,365,
+  viet-events 45/0/0/3/21,592 (before the per-file cap).
+- **4.7 advice.** 28 rows built, each re-proved on the base game by `pychivalry-tools advice
+  proof`; the eleven provisional rows that fire there are retired (checks.md, Retired codes);
+  `scope/title-text-reads-scope-saved-late` and the game-concept half of
+  `references/unknown-name` are blocked. `references/unknown-name` fires on 4 base-game
+  portraits, as its row says: a question for the owner.
+- **4.8 lookup.** Every reading of a name the package has, its definitions and uses in a
+  workspace with what is in force (since the integration also the object an alias row makes
+  it share, and "not in force"), a modifier's localization through part D5, and "did you
+  mean" under a work budget. Only 9 of 778 modifiers have a localization key the package
+  names; the base game uses `MOD_<NAME>` for 646 (decision 73).
+- **4.9 the base game's own errors.** 806 errors and 151 warnings, every one classified in
+  `tools/data/check-classifications.json`: 13 errors and the 151 warnings are defects of the
+  game's files, 793 errors are spec-package faults, none is a pychivalry fault. The defects:
+  the 3 parse errors of `game:parse`; `filter` written in `any_vassal`, which the game documents
+  only for `in_de_jure_hierarchy`; `save_scope_as` in a limit (an effect only);
+  `is_powerful` twice (no such trigger; the base game uses `is_powerful_vassal` 260 times);
+  `can_elevate_holy_site`, `can_demote_holy_site`, `elevate_holy_site`, `demote_holy_site` in
+  two scripted effects nothing calls; two scripted triggers no file defines; and 104
+  localization keys no `.yml` defines (three misspelled, one in another letter case). The
+  faults: `sound/GUIDs.txt` (790 errors) and `gfx/models/buildings/naming.txt` (1), which the
+  index reads as script because the package lists their folders, and `selection_count` in
+  `every_top_trade_good_in_range` twice, which the package's own evidence documents and its
+  entry leaves out. Release 2.3.0 reports 88 errors on the same game; 12 are at lines this run
+  also reports.
+- **4.10 the suites.** `task game:check` checks the base game's 17,302 files (game 16,940,
+  jomini 230, clausewitz 88, DLC 44) in 55 s (16 s to build the index, 38 s to check) at a
+  peak of 2.7 GiB; `task game:mods` builds the index once (16 s, 1.5 GiB) and checks each mod
+  from it in 1.5 to 17 s at peaks of 0.7 to 2.0 GiB. Both run the one runner the
+  command line runs; on each mod the command line, the core and the record agree.
+- **4.11 the limits.** The per-file cap keeps 1,000 findings, the most severe first, and
+  reports the rest: on rice it drops 275 unused-key hints of one file (141,365 before, 141,090
+  after), on viet-events 1,894 of 8 files; the base game and the other mods have no file over
+  the cap. No check computes "did you mean"; lookup's budget is tested in `suggest.test.ts`.
+  Without a game folder every fixture's bad half gives only findings that a base game defining
+  every name gives too.
+- **Merged without changing a finding:** the advice checks' saved scopes onto the index's own
+  reading of item 4.6, one reader of part D4 for items 4.5 and 4.7, `info_scope`'s type, and
+  lookup's shared objects. The fixture tests, both records and the advice re-proof were the
+  same before and after.
+
 ---
 
 ## Step 5: command line
@@ -713,7 +823,23 @@ parse and carry the six fields. A second run is faster than the first by the loa
 **Done when.** The golden tests pass, and on each of the five mods the command line's findings
 equal the core's.
 
+**Done when, checked** (2026-11-23): **met.** `packages/cli/src/golden.test.ts` passes (release
+2.3.0's `example-mod` golden output: its shape, the 54 files, the 118 findings both tools give).
+On each of the five mods `check --json` gives the same findings as the core's `checkWorkspace`,
+finding by finding, and the same counts by code and the same error and warning lists as the
+`game:mods` record: 105, 3,714, 3,071, 144,032 and 19,760 findings (a one-off comparison,
+not committed).
+
 **Not yet known.** Nothing identified.
+
+**Found** (#129, and the per-file cap added in the integration): `check`, `lookup` and
+`explain`, text and JSON; `format` and `log` are entries steps 8 and 11 add to the command
+table. The core's `checkWorkspace` is the one code path every surface runs; `find-game.ts`
+finds the game in any Steam library by its launcher's `gameId`; `inventory.ts` gives `explain`
+the inventory rows as data. A first run reads the base game in about 17 s and saves the index
+(251 MB); a later one loads it in 1 to 2 s. `explain` called `fields/missing-required-field`
+and `definitions/clash` advice until the integration gave place-dependent evidence its own
+kind.
 
 ---
 

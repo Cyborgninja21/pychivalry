@@ -18,6 +18,13 @@
  *   (docs/guide/settings.md, "No game folder"; a lesson of release 2.3.0). What does not
  *   depend on the game's files, a parse error or a name of the spec package's own, is still
  *   judged where the checks judge it.
+ * - **The base game itself** is checked the same way when no mod is given (`modDir: null`):
+ *   every file of the base game's listing, each over the index in its own layer. The
+ *   game-file suite `task game:check` runs it so; a surface checks a mod.
+ * - **At most `MAX_FINDINGS_PER_FILE` findings per file** (docs/MVP.md, "Lessons from 2.3.0";
+ *   docs/PLAN.md item 4.11): past the cap a file keeps its most severe findings first (errors,
+ *   then warnings, information, hints; by position within a severity), and what the cap drops
+ *   is counted, by code (`WorkspaceCheck.capped`), never lost without a word.
  * - **Each finding** carries its rendered message, so every surface shows the same text.
  */
 
@@ -26,7 +33,7 @@ import { folderTableFromSpec, type FolderTable } from '../index/folders.js';
 import { openGameIndex, type GameIndex } from '../index/game-index.js';
 import { compareCodePoints } from '../index/order.js';
 import { readLocalization } from '../index/localization.js';
-import { indexMod, unreadWords, type ModListing } from '../index/read-game.js';
+import { indexMod, unreadWords, type ModListing, type SourceListing } from '../index/read-game.js';
 import { currentPlatform, rulesFromSpec, type Platform, type RulesTable } from '../index/rules.js';
 import { fileKindOf, WorkspaceIndex } from '../index/workspace.js';
 import type { Spec } from '../spec/reader.js';
@@ -44,12 +51,18 @@ import type { DefinedNames } from './context.js';
 import { checkMessage, type FindingData } from './finding.js';
 import { checkFile, checkLocalizationFile } from './index.js';
 import type { Code } from './inventory.js';
+import type { ScopeMeasure } from './measure.js';
 import { definedNamesOf, type WorkspaceNames } from './names.js';
 
 /** One finding on a file of a workspace, as every surface reports it. */
 export interface WorkspaceFinding {
-    /** The file's path inside the mod, with `/`. */
+    /** The file's path inside the mod (or inside its base-game layer), with `/`. */
     readonly file: string;
+    /**
+     * The index layer the file is in: `mod` for a mod's file; the base game's own layer
+     * (`game`, `jomini`, `clausewitz`, `dlc:<pack>`) when the base game itself is checked.
+     */
+    readonly layer: string;
     readonly code: Code;
     readonly severity: Severity;
     readonly range: Range;
@@ -95,6 +108,84 @@ function compareFindings(a: WorkspaceFinding, b: WorkspaceFinding): number {
     return a.start - b.start || a.end - b.end || (a.code < b.code ? -1 : a.code > b.code ? 1 : 0);
 }
 
+/**
+ * The most findings one file reports. Release 2.3.0's editor capped the diagnostics of a file
+ * at the same number, the most severe first, so that a file full of hints never hides an
+ * error.
+ */
+export const MAX_FINDINGS_PER_FILE = 1000;
+
+/** The severities, most severe first: the order the cap keeps them in. */
+const SEVERITY_RANK: Readonly<Record<Severity, number>> = {
+    error: 0,
+    warning: 1,
+    information: 2,
+    hint: 3,
+};
+
+/** A file the cap shortened: how many findings it had and what was dropped. */
+export interface CappedFile {
+    readonly file: string;
+    readonly layer: string;
+    /** Every finding the checks raised on the file. */
+    readonly found: number;
+    /** The findings the cap dropped, in all, by severity, and by code and severity. */
+    readonly dropped: number;
+    readonly droppedBySeverity: Readonly<Record<Severity, number>>;
+    readonly droppedByCode: readonly {
+        readonly code: Code;
+        readonly severity: Severity;
+        readonly count: number;
+    }[];
+}
+
+/**
+ * One file's findings under the cap: all of them when they fit, otherwise the `max` most
+ * severe (by position within a severity), in the order of where each starts; and what was
+ * dropped, or null when nothing was.
+ */
+export function capFindings(
+    findings: readonly WorkspaceFinding[],
+    max: number,
+): { readonly kept: WorkspaceFinding[]; readonly capped: CappedFile | null } {
+    const first = findings[0];
+    if (findings.length <= max || first === undefined) {
+        return { kept: [...findings], capped: null };
+    }
+    const ranked = [...findings].sort(
+        (a, b) => SEVERITY_RANK[a.severity] - SEVERITY_RANK[b.severity] || compareFindings(a, b),
+    );
+    const kept = ranked.slice(0, max).sort(compareFindings);
+    const droppedBySeverity: Record<Severity, number> = {
+        error: 0,
+        warning: 0,
+        information: 0,
+        hint: 0,
+    };
+    const droppedByCode = new Map<string, { code: Code; severity: Severity; count: number }>();
+    for (const f of ranked.slice(max)) {
+        droppedBySeverity[f.severity]++;
+        const key = `${f.code}\u0000${f.severity}`;
+        const row = droppedByCode.get(key) ?? { code: f.code, severity: f.severity, count: 0 };
+        row.count++;
+        droppedByCode.set(key, row);
+    }
+    return {
+        kept,
+        capped: {
+            file: first.file,
+            layer: first.layer,
+            found: findings.length,
+            dropped: findings.length - max,
+            droppedBySeverity,
+            droppedByCode: [...droppedByCode.values()],
+        },
+    };
+}
+
+/** The layer of a mod's files in the index (`indexMod`). */
+const MOD_LAYER = 'mod';
+
 export interface ScriptInput {
     readonly spec: Spec;
     /** The file's path inside its mod, with `/`. */
@@ -111,6 +202,8 @@ export interface ScriptInput {
      */
     readonly index?: { readonly workspace: WorkspaceIndex; readonly layer: string } | undefined;
     readonly fallbackEncoding?: FallbackEncoding | undefined;
+    /** Where to count what the scope checks judged; nothing is counted without it. */
+    readonly measure?: ScopeMeasure | undefined;
 }
 
 /**
@@ -124,9 +217,11 @@ export function scriptFindings(input: ScriptInput): WorkspaceFinding[] {
         fallbackEncoding: input.fallbackEncoding,
     });
     const out: WorkspaceFinding[] = [];
+    const layer = input.index?.layer ?? MOD_LAYER;
     for (const f of parsed.allFindings) {
         out.push({
             file: input.file,
+            layer,
             code: f.id,
             severity: f.severity,
             range: f.range,
@@ -145,9 +240,11 @@ export function scriptFindings(input: ScriptInput): WorkspaceFinding[] {
         names: input.names,
         catalogue,
         index: input.index,
+        measure: input.measure,
     })) {
         out.push({
             file: input.file,
+            layer,
             code: f.code,
             severity: f.severity,
             range: f.range,
@@ -165,6 +262,8 @@ export interface LocalizationInput {
     readonly spec: Spec;
     /** The file's path inside its mod, with `/`. */
     readonly file: string;
+    /** The file's layer in the index: `mod` by default. */
+    readonly layer?: string | undefined;
     readonly bytes: Uint8Array;
     readonly names: DefinedNames & Partial<WorkspaceNames>;
     readonly fallbackEncoding?: FallbackEncoding | undefined;
@@ -184,6 +283,7 @@ export function localizationFindings(input: LocalizationInput): WorkspaceFinding
     })
         .map((f): WorkspaceFinding => ({
             file: input.file,
+            layer: input.layer ?? MOD_LAYER,
             code: f.code,
             severity: f.severity,
             range: f.range,
@@ -252,18 +352,41 @@ export function openWorkspace(
 }
 
 export interface WorkspaceCheckOptions extends WorkspaceOptions {
-    /** The mod's folder. */
-    readonly modDir: string;
+    /**
+     * The mod's folder; null to check the base game itself (`gameDir` must then be given):
+     * every file of its listing, in its own layer.
+     */
+    readonly modDir: string | null;
+    /** Where to count what the scope checks judged (`newScopeMeasure`); nothing is counted without it. */
+    readonly measure?: ScopeMeasure | undefined;
+    /** The most findings a file reports; `MAX_FINDINGS_PER_FILE` by default. */
+    readonly maxFindingsPerFile?: number | undefined;
+}
+
+/** A file checked, and its layer. */
+export interface CheckedFile {
+    readonly layer: string;
+    /** Its path inside the mod or inside its base-game layer, with `/`. */
+    readonly file: string;
 }
 
 export interface WorkspaceCheck {
     /**
      * The mod's script and localization files checked, by their path inside the mod, in
-     * code-point order.
+     * code-point order (for the base game, a path can be listed once per layer that has it).
      */
     readonly files: readonly string[];
-    /** Every finding, file by file in that order, each file's by where they start. */
+    /** The same files, each with its layer. */
+    readonly checked: readonly CheckedFile[];
+    /**
+     * Every finding the cap keeps, file by file in that order, each file's by where they
+     * start.
+     */
     readonly findings: readonly WorkspaceFinding[];
+    /** The most findings a file reports in this run. */
+    readonly maxFindingsPerFile: number;
+    /** The files the cap shortened, in the order checked, with what it dropped. */
+    readonly capped: readonly CappedFile[];
     /** Script and localization files in folders the spec does not list, by folder: not checked. */
     readonly notChecked: ReadonlyMap<string, number>;
     /** The base game's index, when a game folder was given. */
@@ -274,37 +397,64 @@ export interface WorkspaceCheck {
     readonly index: WorkspaceIndex;
 }
 
-/** Every finding pychivalry reports on a mod. */
+/**
+ * Every finding pychivalry reports on a mod; with `modDir: null`, on the base game's own
+ * files.
+ */
 export function checkWorkspace(options: WorkspaceCheckOptions): WorkspaceCheck {
     const { index, game } = openWorkspace({ ...options, modDir: null });
-    const listing = indexMod(index, options.modDir);
-    // With the base game, the words of the mod's files the index does not read (its interface
-    // files) count as uses of a localization key (`localization/unused-key`).
-    const names =
-        game === null
-            ? GAME_NOT_LOADED
-            : definedNamesOf(index, { unreadWords: unreadWords(options.modDir, index) });
+    const modDir = options.modDir;
+    let listing: SourceListing;
+    let names: DefinedNames & Partial<WorkspaceNames>;
+    if (modDir !== null) {
+        listing = indexMod(index, modDir);
+        // With the base game, the words of the mod's files the index does not read (its
+        // interface files) count as uses of a localization key (`localization/unused-key`).
+        names =
+            game === null
+                ? GAME_NOT_LOADED
+                : definedNamesOf(index, { unreadWords: unreadWords(modDir, index) });
+    } else if (game !== null) {
+        listing = game.listing;
+        names = definedNamesOf(index);
+    } else {
+        throw new Error('checkWorkspace: neither a mod nor a game folder to check');
+    }
     const checked = listing.files
         .filter((f) => fileKindOf(f.path) !== undefined)
-        .sort((a, b) => compareCodePoints(a.path, b.path));
+        .sort((a, b) => compareCodePoints(a.path, b.path) || compareCodePoints(a.layer, b.layer));
+    const max = options.maxFindingsPerFile ?? MAX_FINDINGS_PER_FILE;
     const findings: WorkspaceFinding[] = [];
+    const capped: CappedFile[] = [];
     for (const file of checked) {
         const input = {
             spec: options.spec,
             file: file.path,
+            layer: file.layer,
             bytes: readFileSync(file.disk),
             names,
             fallbackEncoding: options.fallbackEncoding,
         };
-        findings.push(
-            ...(fileKindOf(file.path) === 'localization'
+        const found =
+            fileKindOf(file.path) === 'localization'
                 ? localizationFindings(input)
-                : scriptFindings({ ...input, index: { workspace: index, layer: file.layer } })),
-        );
+                : scriptFindings({
+                      ...input,
+                      index: { workspace: index, layer: file.layer },
+                      measure: options.measure,
+                  });
+        const cap = capFindings(found, max);
+        findings.push(...cap.kept);
+        if (cap.capped !== null) {
+            capped.push(cap.capped);
+        }
     }
     return {
         files: checked.map((f) => f.path),
+        checked: checked.map((f) => ({ layer: f.layer, file: f.path })),
         findings,
+        maxFindingsPerFile: max,
+        capped,
         notChecked: listing.notDescribed,
         game,
         gameBuild: game?.key.game_build ?? null,

@@ -19,7 +19,7 @@
 
 import type { AdviceCheck, AdviceInput, AdviceResult } from './advice.js';
 import { NOTHING } from './advice.js';
-import { bodyOf, childPairs } from './advice-roles.js';
+import { bodyOf, childPairs } from './keyword-roles.js';
 import { triggeredAnimations } from './advice-animations.js';
 import { eventModelOf, eventRows, eventsOf, type EventModel } from './advice-events.js';
 import type { CheckFinding } from './finding.js';

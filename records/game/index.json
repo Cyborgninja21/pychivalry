@@ -2,11 +2,11 @@
     "record_format": 1,
     "suite": "game:index",
     "command": "task game:index",
-    "made_at": "2026-11-23T08:30:22.023Z",
+    "made_at": "2026-11-23T10:28:30.600Z",
     "tool": {
         "name": "pychivalry",
         "version": "0.0.0",
-        "commit": "6b51b5ff4cadf66e39b867c2c1160f2fd71c84cd",
+        "commit": "21b82aef3d3b49b67f27af4eb7982913915cbaab",
         "dirty": false
     },
     "machine": {
@@ -43,7 +43,7 @@
         "Names defined more than once are resolved with the spec package's override rules (part D1): a row decides when its status is settled or derived and its kind is one the index applies; a partial or open row decides nothing. by_status counts each name of each database once; an unknown name (defined more than once, winner not known) is counted under the docs/overrides.md rule of each reason that leaves it open (unknown_by_rule, which may sum to more than the unknown names) and by its reasons (unknown_by_reason).",
         "The fresh build, the reload from the cache and each mod over the base game run one at a time, each in a fresh process (tools/src/index-worker.ts), with Node's default heap. peak_rss_kib is that process's peak resident memory, read right after the build, the reload or the mod; times are in milliseconds on this machine. The cache is written to a temporary folder and deleted after the run; its key is the spec checksum, the rules digest, the platform, the game build and the manifest of the files read.",
         "The spec is for game 1.21.0.3, the build installed. not_described lists the folders the spec does not list that hold .txt or .yml files (beside_spec_folders true when a folder of the spec shares their first folder), and spec_folders_without_files the spec's folders that hold no file read in this install.",
-        "The load average over one minute was 17.07 on 16 logical CPUs just before the run: the times are this machine's, under that load."
+        "The load average over one minute was 2.28 on 16 logical CPUs just before the run: the times are this machine's, under that load."
     ],
     "results": {
         "passed": true,
@@ -89,7 +89,7 @@
             "definitions": 3371180,
             "uses": 9068219,
             "uses_of_defined_names": 5300554,
-            "names": 612996,
+            "names": 613622,
             "definitions_by_form": {
                 "constant": 3047,
                 "container": 214,
@@ -3346,17 +3346,17 @@
                 ]
             },
             "time_ms": {
-                "list": 358,
-                "build": 14710,
-                "save": 222,
-                "report": 3873
+                "list": 351,
+                "build": 16349,
+                "save": 566,
+                "report": 5968
             },
-            "peak_rss_kib": 1677248,
-            "heap_used_after_build_mib": 576,
+            "peak_rss_kib": 1711320,
+            "heap_used_after_build_mib": 596,
             "cache": {
-                "bytes": 291034728,
-                "reload_ms": 999,
-                "reload_peak_rss_kib": 694744,
+                "bytes": 293782228,
+                "reload_ms": 977,
+                "reload_peak_rss_kib": 711976,
                 "reload_answers_as_fresh": true
             }
         },
@@ -3388,11 +3388,11 @@
                     "unknown_by_database": []
                 },
                 "time_ms": {
-                    "load_base": 980,
-                    "index_mod": 6,
-                    "report": 667
+                    "load_base": 846,
+                    "index_mod": 9,
+                    "report": 787
                 },
-                "peak_rss_kib": 724488
+                "peak_rss_kib": 758284
             },
             {
                 "slug": "divine-intervention",
@@ -3425,11 +3425,11 @@
                     "unknown_by_database": []
                 },
                 "time_ms": {
-                    "load_base": 1046,
-                    "index_mod": 2338,
-                    "report": 826
+                    "load_base": 919,
+                    "index_mod": 2373,
+                    "report": 909
                 },
-                "peak_rss_kib": 1458552
+                "peak_rss_kib": 1495080
             },
             {
                 "slug": "elf-destiny",
@@ -3503,11 +3503,11 @@
                     ]
                 },
                 "time_ms": {
-                    "load_base": 2100,
-                    "index_mod": 844,
-                    "report": 837
+                    "load_base": 2551,
+                    "index_mod": 568,
+                    "report": 833
                 },
-                "peak_rss_kib": 810000
+                "peak_rss_kib": 816352
             },
             {
                 "slug": "rice",
@@ -3553,11 +3553,11 @@
                     ]
                 },
                 "time_ms": {
-                    "load_base": 1030,
-                    "index_mod": 1166,
-                    "report": 846
+                    "load_base": 2481,
+                    "index_mod": 1331,
+                    "report": 1793
                 },
-                "peak_rss_kib": 797952
+                "peak_rss_kib": 856128
             },
             {
                 "slug": "viet-events",
@@ -3599,11 +3599,11 @@
                     ]
                 },
                 "time_ms": {
-                    "load_base": 948,
-                    "index_mod": 299,
-                    "report": 814
+                    "load_base": 923,
+                    "index_mod": 288,
+                    "report": 818
                 },
-                "peak_rss_kib": 783820
+                "peak_rss_kib": 756404
             }
         ]
     }

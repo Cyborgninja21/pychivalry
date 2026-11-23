@@ -6,11 +6,12 @@ installed today, and the current VS Code, Claude Code and GitHub documentation. 
 spec work, is done: the 1.21.0.3 package in format 8 is committed, the override rules table
 among its parts. Build step 1, the repository skeleton, is complete, with that package and the
 2.3.0 baselines recorded on its format 4 copy; build step 2, the parser, is built; build step 3,
-the workspace index, is built, with the override rules as data, read from the package. Item
-4.1, the check inventory ([checks.md](checks.md)), is written and signed off. Item 4.2 has built
-the typed spec reader and its six unknown-name checks, with item 4.3's context reader; the
-iterator sub-cases of two of its rows wait on the owner. Nothing else in this document is built
-yet.
+the workspace index, is built, with the override rules as data, read from the package. Build
+step 4 is built: the check inventory ([checks.md](checks.md), signed off), the typed spec reader,
+62 of its 78 checks (two blocked, eleven retired by their re-proof, three for steps 10 and 11),
+lookup, the base-game and real-mod suites and their classifications, and the limits; build step
+5, the command line, is built. What waits on the owner or on the spec work is in
+[decisions.md](decisions.md). Nothing else in this document is built yet.
 
 The build plan, step by step, is in [PLAN.md](PLAN.md).
 
@@ -372,6 +373,10 @@ Three: explain an error, fix an error, write new content. Each is tested by the 
   Classifying each as a game defect or a pychivalry fault is part of build step 4. On game
   1.21.0.3 with the 1.21.0.3 spec it reports 3 parse errors and 88 check errors
   ([records/baseline-2.3.0/results-base-game.json](../records/baseline-2.3.0/results-base-game.json)).
+  The rebuild reports 806 errors and 151 warnings on the same game, each classified in
+  `tools/data/check-classifications.json`: 13 errors and every warning are defects of the
+  game's files, 793 errors are faults of the spec package (791 in two files that are not
+  script), none is a pychivalry fault ([records/game/check.json](../records/game/check.json)).
 
 ## Speed
 
@@ -512,15 +517,26 @@ The MVP is done when all of these hold, each proved by a suite in the repository
    game is classified as a defect of the game's own files. The scope check has zero findings on
    every keyword use it can judge. 2.3.0 could judge 93,665 of 561,077 uses, about 17%; the
    rebuild judges at least as many and the record states the figure.
+   *2026-11-23, after build step 4:* the scope check judges 178,395 of 610,898 uses (29.2%) with
+   no finding (met). Every error is classified, but 793 of the 806 as spec-package faults, not
+   game defects, until the package answers decision 73 (not yet met); none is a pychivalry
+   fault. GUI files are step 10's.
 3. **Real mods.** On the five-mod corpus, the error list equals the list of real defects: no
    false errors, none missed. 2.3.0 reached this on all 108 of its errors.
+   *2026-11-23:* met for build step 4's checks: 844 errors, each classified a real defect with
+   its reason; every error release 2.3.0 reports in three of the mods is reported at the same
+   line, and its 12 in divine-intervention are false.
 4. **Same answers everywhere.** The editor, the command line and the agent server report the
    same findings for the same mod.
+   *2026-11-23:* the command line's findings equal the core's on each of the five mods; the
+   editor and the agent server are steps 6 and 7.
 5. **Agent use.** The scored run meets its target.
 6. **Authoring.** The scored run meets its targets on all three measures.
 7. **Speed.** Within tolerance of the 2.3.0 medians recorded in build step 1.
 8. **Development needs no human.** `task ci` passes from a clean clone with no display, no
    game files, no model and no key.
+   *2026-11-23:* a fresh clone of the step 4 integration branch passes `task ci` with
+   `CK3_GAME_PATH`, `CK3_CORPUS`, `DISPLAY` and `WAYLAND_DISPLAY` unset.
 
 ## Lessons from 2.3.0
 

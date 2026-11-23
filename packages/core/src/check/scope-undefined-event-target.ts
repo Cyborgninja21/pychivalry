@@ -22,6 +22,7 @@
  * silent: the names the base game saves are not known.
  */
 
+import { scopeReadOf } from '../index/extract.js';
 import type { FolderTable } from '../index/folders.js';
 import type { FileNode, Item, Scalar, Value } from '../syntax/tree.js';
 import type { CheckFinding } from './finding.js';
@@ -59,21 +60,16 @@ function scalarsOf(file: FileNode): Scalar[] {
     }
 }
 
-/** The head of a chain that reads a saved scope (`scope:name`), with its name; or undefined. */
+/**
+ * The head of a chain that reads a saved scope (`scope:name`), with its name; or undefined: the
+ * index's own reading (`scopeReadOf`), so the check reads exactly the reads the index records.
+ */
 export function savedScopeRead(
     scalar: Scalar,
     links: ReadonlySet<string>,
 ): { readonly head: string; readonly name: string } | undefined {
-    if (scalar.type !== 'chain') {
-        return undefined;
-    }
-    const head = scalar.segments?.[0] ?? '';
-    const colon = head.indexOf(':');
-    const name = head.slice(colon + 1);
-    if (colon <= 0 || name === '' || /[$|]/.test(name)) {
-        return undefined;
-    }
-    return links.has(head.slice(0, colon).toLowerCase()) ? { head, name } : undefined;
+    const read = scopeReadOf(scalar, links);
+    return read === undefined ? undefined : { head: read.head, name: read.name };
 }
 
 export function undefinedEventTargets(

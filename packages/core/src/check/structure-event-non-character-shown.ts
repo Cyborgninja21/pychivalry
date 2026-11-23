@@ -5,7 +5,7 @@
  * Non-character events must be hidden, or be narrative events").
  *
  * Written by hand against that message, with its keywords from the spec package, part D4
- * (`keyword_roles`), confirmed roles only:
+ * (`keyword_roles`, read through `keyword-roles.ts`), confirmed roles only:
  *
  * - The keyword that sets the scope a record runs in: a row whose role `sets_root_scope` is
  *   confirmed (in 1.21.0.3, `scope` in `events`). Without it a record runs in its folder's
@@ -24,10 +24,10 @@
  */
 
 import type { FolderTable } from '../index/folders.js';
-import type { KeywordRoleRow } from '../spec/package.js';
 import type { Spec } from '../spec/reader.js';
 import type { FileNode } from '../syntax/tree.js';
 import { CHECK_KINDS, type CheckFinding } from './finding.js';
+import { holdsIn, keywordRolesOf, roleConfirmed } from './keyword-roles.js';
 import { recordsOf } from './records.js';
 import { finding, type CheckContext } from './report.js';
 
@@ -53,19 +53,13 @@ export interface ShownRule {
     readonly needs: readonly string[];
 }
 
-function inFolder(row: KeywordRoleRow, folder: string): boolean {
-    return row.where.directories === 'anywhere' || row.where.directories.includes(folder);
-}
-
 /** The keywords of the rule for a folder (see the head of this file), or null. */
 export function shownRuleOf(spec: Spec, folder: string): ShownRule | null {
-    const rows = (spec.part('keyword_roles')?.keywords ?? []).filter((r) => inFolder(r, folder));
-    const scope = rows.find((r) => r.role_status[SETS_ROOT_SCOPE] === 'confirmed');
+    const rows = keywordRolesOf(spec).rows.filter((r) => holdsIn(r, folder));
+    const scope = rows.find((r) => roleConfirmed(r, SETS_ROOT_SCOPE));
     const message = CHECK_KINDS[CODE].catalogue;
     const needing = rows.filter(
-        (r) =>
-            r.role_status[ONE_OF_REQUIRED] === 'confirmed' &&
-            r.evidence.some((e) => e['id'] === message),
+        (r) => roleConfirmed(r, ONE_OF_REQUIRED) && r.row.evidence.some((e) => e['id'] === message),
     );
     if (scope === undefined || needing.length === 0) {
         return null;
@@ -73,11 +67,8 @@ export function shownRuleOf(spec: Spec, folder: string): ShownRule | null {
     const needs = new Set<string>();
     for (const row of needing) {
         needs.add(row.keyword);
-        const pairs = row['pairs_with'];
-        for (const key of Array.isArray(pairs) ? (pairs as unknown[]) : []) {
-            if (typeof key === 'string') {
-                needs.add(key);
-            }
+        for (const key of row.pairsWith) {
+            needs.add(key);
         }
     }
     return { scopeKey: scope.keyword, needs: [...needs].sort() };

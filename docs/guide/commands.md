@@ -61,8 +61,15 @@ What `check` prints:
   `evidence` (the game's message or output the finding rests on, or none for advice), `fix`
   (empty until fixes arrive in build step 8) and `data` (the names the finding is about). The
   last line is `{"summary": ...}`: the version, the spec package and the game build, the files
-  checked and not checked, the counts of every finding by severity and by code, and how many
-  findings matched the filters and how many were shown.
+  checked and not checked, the counts of every finding by severity and by code, how many
+  findings matched the filters and how many were shown, and `capped`: what the per-file limit
+  left out.
+- **At most 1,000 findings per file.** A file with more keeps its most severe ones (errors
+  first, then warnings, information and hints), and the count of the others is given: on
+  standard error with the text output, in `capped` with `--json`. The counts are of the
+  findings kept.
+
+Every code, with what it finds and its evidence, is listed in [Checks](checks.md).
 
 Exit codes: `0` when no finding kept is an error, `1` when one is, `2` on bad usage or when the
 mod, the game or the spec package cannot be read. The filters choose the findings kept, so
@@ -89,6 +96,7 @@ Everything goes through `task`; `task --list` shows every task.
 | `task spec:check` | Verifies the committed spec package against its checksum |
 | `task records:check` | Checks every committed record |
 | `task wiki:check` | Checks that the wiki builds from `docs/` and every link in it resolves |
+| `task docs:checks` | Writes [Checks](checks.md) from the code's own list of checks |
 
 ## Tasks that need the game
 
@@ -99,8 +107,9 @@ checking your own mod; for that, use [the command line](#the-command-line).
 | Task | Needs | What it does |
 | --- | --- | --- |
 | `task game:parse` | `CK3_GAME_PATH` | The base-game parse suite |
-| `task game:check` | `CK3_GAME_PATH` | The base-game check suite |
-| `task game:mods` | `CK3_GAME_PATH`, `CK3_CORPUS` | The real-mod suite |
+| `task game:index` | `CK3_GAME_PATH`, `CK3_CORPUS` | The index suite: the whole base game indexed, cached and reloaded, each mod indexed over it |
+| `task game:check` | `CK3_GAME_PATH` | The base-game check suite: every check on the game's own files, every error and warning classified |
+| `task game:mods` | `CK3_GAME_PATH`, `CK3_CORPUS` | The real-mod suite: every check on each test mod, every error classified |
 | `task game:bench` | `CK3_GAME_PATH`, `CK3_CORPUS` | The benchmarks |
 
 `CK3_GAME_PATH` is the game's `game` folder. `CK3_CORPUS` is the folder holding the pinned copy

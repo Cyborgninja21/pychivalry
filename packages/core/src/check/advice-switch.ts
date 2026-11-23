@@ -6,7 +6,7 @@
 import type { Block, Pair } from '../syntax/tree.js';
 import type { AdviceInput } from './advice.js';
 import { walkPairs } from './advice.js';
-import { bodyOf, keywordRolesOf } from './advice-roles.js';
+import { bodyOf, keywordRolesOf } from './keyword-roles.js';
 
 export interface Switches {
     readonly keyword: string;

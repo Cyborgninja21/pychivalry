@@ -64,6 +64,19 @@ test('a row cites its evidence: the catalogue message with its text, the game ou
     assert.equal(rowOf('syntax/missing-closing-brace').message, 'Expected } after arguments');
 });
 
+test('no error or warning row is advice: a check whose message depends on the place says where it comes from', () => {
+    for (const row of inventoryRows(catalogue)) {
+        if (row.severity === 'error' || row.severity === 'warning') {
+            assert.notEqual(row.evidence.kind, 'advice', row.code);
+        }
+    }
+    assert.deepEqual(rowOf('fields/missing-required-field').evidence, {
+        kind: 'per-place',
+        from: 'required-field',
+    });
+    assert.deepEqual(rowOf('definitions/clash').evidence, { kind: 'per-place', from: 'rules-row' });
+});
+
 test('without the catalogue a row names its entry and has no message text', () => {
     const row = rowOf('names/unknown-effect', false);
     assert.deepEqual(row.evidence, { kind: 'catalogue', id: 'unknown_effect_X', text: null });

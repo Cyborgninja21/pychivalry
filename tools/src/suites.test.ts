@@ -23,7 +23,7 @@ function pinnedFixtureCorpus(dir: string): { corpus: string; manifest: string; s
     return { corpus, manifest, sha: sha256(text) };
 }
 
-test('every suite writes a valid record made on the committed spec; the stubs, empty results', (t) => {
+test('every suite writes a valid record made on the committed spec; the stub, empty results', (t) => {
     assert.ok(spec !== undefined);
     const dir = tempDir(t);
     const game = fixtureGame(path.join(dir, 'install'));
@@ -55,6 +55,18 @@ test('every suite writes a valid record made on the committed spec; the stubs, e
         } else if (suite === 'index') {
             assert.equal(record.results['passed'], true);
             assert.equal((record.results['base_game'] as { definitions: number }).definitions, 1);
+            assert.deepEqual(
+                (record.results['mods'] as { slug: string }[]).map((m) => m.slug),
+                ['fixture-mod'],
+            );
+        } else if (suite === 'check') {
+            // The fixture game's one file, checked, with no error or warning to classify.
+            assert.equal(record.results['passed'], true);
+            assert.equal(record.results['files'], 1);
+            assert.equal(record.results['errors'], 0);
+            assert.equal(record.results['warnings'], 0);
+        } else if (suite === 'mods') {
+            assert.equal(record.results['passed'], true);
             assert.deepEqual(
                 (record.results['mods'] as { slug: string }[]).map((m) => m.slug),
                 ['fixture-mod'],

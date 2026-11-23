@@ -25,6 +25,7 @@ import { keyMatcher } from '../index/folders.js';
 import type { Spec } from '../spec/reader.js';
 import type { FileNode } from '../syntax/tree.js';
 import type { CheckFinding } from './finding.js';
+import { holdsIn, keywordRolesOf, roleConfirmed } from './keyword-roles.js';
 import { recordsOf } from './records.js';
 import { finding, type CheckContext } from './report.js';
 
@@ -46,7 +47,7 @@ export function namespaceDeclarations(
     spec: Spec,
     folder: string,
 ): readonly { readonly key: string; readonly match: string }[] {
-    const roles = spec.part('keyword_roles')?.keywords ?? [];
+    const roles = keywordRolesOf(spec).rows;
     return (spec.part('declarations')?.directories[folder] ?? []).filter(
         (row) =>
             row.status === 'confirmed' &&
@@ -55,9 +56,8 @@ export function namespaceDeclarations(
             roles.some(
                 (role) =>
                     role.keyword === row.key &&
-                    role.role_status[ID_PREFIX] === 'confirmed' &&
-                    (role.where.directories === 'anywhere' ||
-                        role.where.directories.includes(folder)),
+                    roleConfirmed(role, ID_PREFIX) &&
+                    holdsIn(role, folder),
             ),
     );
 }

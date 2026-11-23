@@ -7,6 +7,7 @@
         { "page": "Installing", "source": "docs/guide/install.md" },
         { "page": "Commands", "source": "docs/guide/commands.md" },
         { "page": "Settings", "source": "docs/guide/settings.md" },
+        { "page": "Checks", "source": "docs/guide/checks.md" },
         { "page": "References", "source": "docs/references/README.md" },
         { "page": "Reference-Game-Files", "source": "docs/references/game-files.md" },
         { "page": "Reference-Spec-Package", "source": "docs/references/spec-package.md" },
@@ -25,7 +26,10 @@
     ],
     "sidebar": [
         { "heading": "pychivalry", "pages": ["Home"] },
-        { "heading": "User guide", "pages": ["User-Guide", "Installing", "Commands", "Settings"] },
+        {
+            "heading": "User guide",
+            "pages": ["User-Guide", "Installing", "Commands", "Settings", "Checks"]
+        },
         {
             "heading": "References",
             "pages": [

@@ -115,6 +115,34 @@
                 },
                 "required": ["notes"]
             }
+        },
+        {
+            "if": {
+                "properties": { "suite": { "const": "game:check" } },
+                "required": ["suite"]
+            },
+            "then": {
+                "properties": {
+                    "notes": { "type": "array", "minItems": 1 },
+                    "corpus": { "type": "null" },
+                    "results": { "$ref": "#/$defs/checkResults" }
+                },
+                "required": ["notes"]
+            }
+        },
+        {
+            "if": {
+                "properties": { "suite": { "const": "game:mods" } },
+                "required": ["suite"]
+            },
+            "then": {
+                "properties": {
+                    "notes": { "type": "array", "minItems": 1 },
+                    "corpus": { "$ref": "#/$defs/corpus" },
+                    "results": { "$ref": "#/$defs/modsResults" }
+                },
+                "required": ["notes"]
+            }
         }
     ],
     "$defs": {
@@ -535,6 +563,200 @@
                     "minItems": 1,
                     "uniqueItems": true,
                     "items": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" }
+                }
+            }
+        },
+        "checkFinding": {
+            "description": "An error or a warning of a check suite: the file relative to its mod or its base-game layer, the layer (base game only), the line and column from 1, its code and message, and, where the suite classifies it, its classification and the reason (tools/data/check-classifications.json, tools/data/mods-classifications.json).",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["file", "line", "column", "code", "message"],
+            "properties": {
+                "file": { "type": "string", "minLength": 1 },
+                "layer": { "type": "string", "minLength": 1 },
+                "line": { "type": "integer", "minimum": 1 },
+                "column": { "type": "integer", "minimum": 1 },
+                "code": { "type": "string", "minLength": 1 },
+                "message": { "type": "string" },
+                "classification": {
+                    "enum": ["game-defect", "real-defect", "spec-package-fault", "pychivalry-fault", "unclassified"]
+                },
+                "reason": { "type": "string", "minLength": 1 }
+            }
+        },
+        "classCounts": {
+            "description": "How many listed findings have each classification: game-defect for the base game, real-defect for a mod.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["spec-package-fault", "pychivalry-fault", "unclassified"],
+            "properties": {
+                "game-defect": { "$ref": "#/$defs/count" },
+                "real-defect": { "$ref": "#/$defs/count" },
+                "spec-package-fault": { "$ref": "#/$defs/count" },
+                "pychivalry-fault": { "$ref": "#/$defs/count" },
+                "unclassified": { "$ref": "#/$defs/count" }
+            }
+        },
+        "scopeFigures": {
+            "description": "What the scope checks judged (records/README.md, \"Check records\"): keyword uses seen, with a known scope, judged against the scope data, the findings, the uses not judged by why; link steps judged and their findings.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["keyword_uses", "keyword_uses_known_scope", "keyword_uses_judged", "findings", "unjudged_by_reason", "link_steps_judged", "link_findings"],
+            "properties": {
+                "keyword_uses": { "$ref": "#/$defs/count" },
+                "keyword_uses_known_scope": { "$ref": "#/$defs/count" },
+                "keyword_uses_judged": { "$ref": "#/$defs/count" },
+                "findings": { "$ref": "#/$defs/count" },
+                "unjudged_by_reason": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["reason", "uses"],
+                        "properties": { "reason": { "$ref": "#/$defs/text" }, "uses": { "$ref": "#/$defs/count" } }
+                    }
+                },
+                "link_steps_judged": { "$ref": "#/$defs/count" },
+                "link_findings": { "$ref": "#/$defs/count" }
+            }
+        },
+        "cappedFiles": {
+            "description": "The per-file cap on findings (records/README.md, \"Check records\"): its size, the files it shortened, the findings it dropped in all and by code.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["max_per_file", "files", "dropped", "dropped_by_code"],
+            "properties": {
+                "max_per_file": { "type": "integer", "minimum": 1 },
+                "files": { "$ref": "#/$defs/count" },
+                "dropped": { "$ref": "#/$defs/count" },
+                "dropped_by_code": { "type": "array", "items": { "$ref": "#/$defs/codeCount" } }
+            }
+        },
+        "checkResults": {
+            "description": "The base-game check suite (records/README.md, \"Check records\"): every check on the base game's own files, every error and warning classified, information and hints counted, the scope figures, release 2.3.0's figures beside them, time and peak memory.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["passed", "failures", "files", "files_by_layer", "by_severity", "by_code", "errors", "error_list", "warnings", "warning_list", "classified", "capped", "scope", "baseline_2_3_0", "time_ms", "peak_rss_kib"],
+            "properties": {
+                "passed": { "type": "boolean" },
+                "failures": { "type": "array", "items": { "$ref": "#/$defs/text" } },
+                "files": { "$ref": "#/$defs/count" },
+                "files_by_layer": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["layer", "files"],
+                        "properties": { "layer": { "$ref": "#/$defs/text" }, "files": { "$ref": "#/$defs/count" } }
+                    }
+                },
+                "by_severity": { "$ref": "#/$defs/severityCounts" },
+                "by_code": { "type": "array", "items": { "$ref": "#/$defs/codeCount" } },
+                "errors": { "$ref": "#/$defs/count" },
+                "error_list": { "type": "array", "items": { "$ref": "#/$defs/checkFinding" } },
+                "warnings": { "$ref": "#/$defs/count" },
+                "warning_list": { "type": "array", "items": { "$ref": "#/$defs/checkFinding" } },
+                "classified": { "$ref": "#/$defs/classCounts" },
+                "capped": { "$ref": "#/$defs/cappedFiles" },
+                "scope": { "$ref": "#/$defs/scopeFigures" },
+                "baseline_2_3_0": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["errors", "errors_at_same_line", "errors_only_2_3_0", "errors_only_here", "keyword_uses", "keyword_uses_judged"],
+                    "properties": {
+                        "errors": { "$ref": "#/$defs/count" },
+                        "errors_at_same_line": { "$ref": "#/$defs/count" },
+                        "errors_only_2_3_0": { "$ref": "#/$defs/count" },
+                        "errors_only_here": { "$ref": "#/$defs/count" },
+                        "keyword_uses": { "$ref": "#/$defs/count" },
+                        "keyword_uses_judged": { "$ref": "#/$defs/count" }
+                    }
+                },
+                "time_ms": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["list", "build", "check", "total"],
+                    "properties": {
+                        "list": { "type": "number", "minimum": 0 },
+                        "build": { "type": "number", "minimum": 0 },
+                        "check": { "type": "number", "minimum": 0 },
+                        "total": { "type": "number", "minimum": 0 }
+                    }
+                },
+                "peak_rss_kib": { "$ref": "#/$defs/count" }
+            }
+        },
+        "modsResults": {
+            "description": "The real-mod check suite (records/README.md, \"Check records\"): per corpus mod, every check, every error classified, every warning listed, information and hints counted, the scope figures, release 2.3.0's results on it beside them, time and peak memory.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["passed", "failures", "base_game_cache", "mods"],
+            "properties": {
+                "passed": { "type": "boolean" },
+                "failures": { "type": "array", "items": { "$ref": "#/$defs/text" } },
+                "base_game_cache": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["build_ms", "peak_rss_kib"],
+                    "properties": {
+                        "build_ms": { "type": "number", "minimum": 0 },
+                        "peak_rss_kib": { "$ref": "#/$defs/count" }
+                    }
+                },
+                "mods": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["slug", "files", "not_checked", "by_severity", "by_code", "errors", "error_list", "warnings", "warning_list", "classified", "capped", "scope", "baseline_2_3_0", "time_ms", "peak_rss_kib"],
+                        "properties": {
+                            "slug": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+                            "files": { "$ref": "#/$defs/count" },
+                            "not_checked": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": ["folder", "files"],
+                                    "properties": { "folder": { "$ref": "#/$defs/text" }, "files": { "$ref": "#/$defs/count" } }
+                                }
+                            },
+                            "by_severity": { "$ref": "#/$defs/severityCounts" },
+                            "by_code": { "type": "array", "items": { "$ref": "#/$defs/codeCount" } },
+                            "errors": { "$ref": "#/$defs/count" },
+                            "error_list": { "type": "array", "items": { "$ref": "#/$defs/checkFinding" } },
+                            "warnings": { "$ref": "#/$defs/count" },
+                            "warning_list": { "type": "array", "items": { "$ref": "#/$defs/checkFinding" } },
+                            "classified": { "$ref": "#/$defs/classCounts" },
+                            "capped": { "$ref": "#/$defs/cappedFiles" },
+                            "scope": { "$ref": "#/$defs/scopeFigures" },
+                            "baseline_2_3_0": {
+                                "description": "Release 2.3.0's results on the mod, from records/baseline-2.3.0/results-mods.json; null when that record has no such mod.",
+                                "type": ["object", "null"],
+                                "additionalProperties": false,
+                                "required": ["files", "by_severity", "errors", "errors_at_same_line", "errors_only_2_3_0", "errors_only_here"],
+                                "properties": {
+                                    "files": { "$ref": "#/$defs/count" },
+                                    "by_severity": { "$ref": "#/$defs/severityCounts" },
+                                    "errors": { "$ref": "#/$defs/count" },
+                                    "errors_at_same_line": { "$ref": "#/$defs/count" },
+                                    "errors_only_2_3_0": { "$ref": "#/$defs/count" },
+                                    "errors_only_here": { "$ref": "#/$defs/count" }
+                                }
+                            },
+                            "time_ms": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": ["load_base", "check", "total"],
+                                "properties": {
+                                    "load_base": { "type": "number", "minimum": 0 },
+                                    "check": { "type": "number", "minimum": 0 },
+                                    "total": { "type": "number", "minimum": 0 }
+                                }
+                            },
+                            "peak_rss_kib": { "$ref": "#/$defs/count" }
+                        }
+                    }
                 }
             }
         },
