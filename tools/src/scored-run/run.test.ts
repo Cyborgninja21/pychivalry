@@ -23,6 +23,7 @@ import {
     scoredOptions,
     SERVER_TOOLS,
     SESSION_LIMIT_SUBTYPE,
+    sessionVariable,
     trialEnv,
 } from './run.js';
 import { readStream } from './stream.js';
@@ -176,6 +177,9 @@ function run(t: TestContext, env: Record<string, string>, streamText = stream({}
             CLAUDECODE: '1',
             CLAUDE_CODE_SESSION_ID: 'a-surrounding-session',
             CLAUDE_EFFORT: 'low',
+            AI_AGENT: 'claude-code_agent',
+            MCP_CONNECTION_NONBLOCKING: 'true',
+            MCP_DISCOVERY_CACHE: '1',
             ...env,
         },
         (line) => log.push(line),
@@ -295,6 +299,7 @@ test("the test session's environment drops every key and token variable, and a s
     assert.deepEqual(call['session_variables'], []);
     assert.equal(call['claude_ai_servers'], 'false');
     assert.equal(call['auto_memory_off'], '1');
+    assert.equal(call['mcp_nonblocking'], '0');
 
     // The rule itself: every variable named like a key, a token or another credential goes,
     // whatever its letter case; the rest of the environment stays.
@@ -305,17 +310,28 @@ test("the test session's environment drops every key and token variable, and a s
         CK3_GAME_PATH: '<game dir>',
         CLAUDECODE: '1',
         CLAUDE_CODE_SESSION_ID: 'a-surrounding-session',
+        AI_AGENT: 'claude-code_agent',
+        MCP_CONNECTION_NONBLOCKING: 'true',
+        MCP_DISCOVERY_CACHE: '1',
+        PLAYWRIGHT_MCP_BROWSER: 'firefox',
     });
     for (const name of Object.keys(CREDENTIALS)) {
         assert.ok(credentialVariable(name), name);
         assert.ok(!(name in env), `${name} reached the session`);
     }
+    for (const name of ['AI_AGENT', 'MCP_DISCOVERY_CACHE', 'CLAUDECODE']) {
+        assert.ok(sessionVariable(name), name);
+    }
+    // Another program's variable that only names agent servers stays: it is not Claude Code's.
+    assert.ok(!sessionVariable('PLAYWRIGHT_MCP_BROWSER'));
     assert.deepEqual(env, {
         PATH: 'bin',
         LANG: 'C.UTF-8',
         CK3_GAME_PATH: '<game dir>',
+        PLAYWRIGHT_MCP_BROWSER: 'firefox',
         ENABLE_CLAUDEAI_MCP_SERVERS: 'false',
         CLAUDE_CODE_DISABLE_AUTO_MEMORY: '1',
+        MCP_CONNECTION_NONBLOCKING: '0',
     });
 });
 
@@ -487,4 +503,68 @@ test('the stream reader keeps the calls, errors, start and end, and counts unrea
         result: null,
         unreadLines: 0,
     });
+});
+
+test('a continued run adds its trials to the record, numbered after its own, and only to one made the same way', (t) => {
+    const dir = tempDir(t);
+    const recordFile = path.join(dir, 'agent-use.json');
+    const streamFile = path.join(dir, 'stream.jsonl');
+    writeFileSync(streamFile, stream({}));
+    const base = {
+        SCORED_SESSION_LIMIT: '2',
+        SCORED_CLAUDE: fake,
+        SCORED_SERVER: fake,
+        FAKE_CLAUDE_STREAM: streamFile,
+    };
+    const go = (env: Record<string, string>): ScoredRecord =>
+        runScored(root, { ...base, ...env }, () => undefined, recordFile).record;
+
+    // There is nothing to continue yet.
+    assert.throws(
+        () => go({ SCORED_TRIALS: '1', SCORED_CONTINUE: 'true' }),
+        (e: unknown) => e instanceof CommandError && /there is none/.test(e.message),
+    );
+    const first = go({
+        SCORED_TRIALS: '1',
+        FAKE_CLAUDE_APPLY: path.join(root, DEFECTS_DIR, 'reference'),
+    });
+    assert.deepEqual(first.results.tasks[0], {
+        name: 'agent-use',
+        trials: 1,
+        passed: 1,
+        pass_rate: 1,
+    });
+    const both = go({ SCORED_TRIALS: '2', SCORED_CONTINUE: 'true' });
+    assert.deepEqual(
+        both.results.trials.map((x) => [x.trial, x.passed]),
+        [
+            [1, true],
+            [2, false],
+            [3, false],
+        ],
+    );
+    assert.deepEqual(both.results.tasks[0], {
+        name: 'agent-use',
+        trials: 3,
+        passed: 1,
+        pass_rate: 0.3333,
+    });
+    assert.match(both.command, / SCORED_CONTINUE=true task scored:agent-use$/);
+    assert.equal(both.notes.length, first.notes.length + 1);
+    assert.match(both.notes[both.notes.length - 1] ?? '', /^Trials 2 to 3 were added on /);
+    assert.deepEqual(
+        checkRecord(JSON.parse(JSON.stringify(both)) as unknown, validate, expected),
+        [],
+    );
+
+    // A run made another way (here, another session limit) is never added: the record is kept.
+    assert.throws(
+        () => go({ SCORED_TRIALS: '1', SCORED_CONTINUE: 'true', SCORED_SESSION_LIMIT: '3' }),
+        (e: unknown) =>
+            e instanceof CommandError &&
+            e.exitCode === 2 &&
+            /\(session_limit, arguments\)/.test(e.message),
+    );
+    const kept = JSON.parse(readFileSync(recordFile, 'utf8')) as ScoredRecord;
+    assert.equal(kept.results.trials.length, 3);
 });

@@ -36,10 +36,13 @@ if (argvFile !== undefined) {
             ),
             claude_ai_servers: env['ENABLE_CLAUDEAI_MCP_SERVERS'] ?? null,
             auto_memory_off: env['CLAUDE_CODE_DISABLE_AUTO_MEMORY'] ?? null,
+            mcp_nonblocking: env['MCP_CONNECTION_NONBLOCKING'] ?? null,
             session_variables: Object.keys(env).filter(
                 (k) =>
                     k === 'CLAUDECODE' ||
                     k === 'CLAUDE_EFFORT' ||
+                    k === 'AI_AGENT' ||
+                    (k.startsWith('MCP_') && k !== 'MCP_CONNECTION_NONBLOCKING') ||
                     (k.startsWith('CLAUDE_CODE_') && k !== 'CLAUDE_CODE_DISABLE_AUTO_MEMORY'),
             ),
             git: existsSync('.git'),

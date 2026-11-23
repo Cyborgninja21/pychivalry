@@ -36,6 +36,7 @@
  * | `SCORED_CLAUDE` | Claude Code's command; a `.js` or `.mjs` file is run with Node | `claude` |
  * | `SCORED_TIMEOUT_MINUTES` | The time limit of each test session | 30 |
  * | `SCORED_KEEP` | `true` keeps the run's temporary folder (each trial's mod, stream and configuration) and prints where | removed |
+ * | `SCORED_CONTINUE` | `true` adds this run's trials to the record already written, numbered after its own, when that record was made at the same commit with the same task, Claude Code version, model, session limit, time limit, arguments and agent server (`continuedRecord`) | a new record |
  */
 
 import { spawnSync } from 'node:child_process';
@@ -53,10 +54,19 @@ import {
 } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
 import path from 'node:path';
+import { isDeepStrictEqual } from 'node:util';
 import { openSpec, type Spec } from '@pychivalry/core';
 import { gameInfo } from '../game.js';
 import { committedSpec, machineInfo, now, toolInfo } from '../record.js';
-import { CommandError, EXIT, relativePosix, sha256OfFile, writeJson } from '../util.js';
+import {
+    CommandError,
+    EXIT,
+    isObject,
+    readJson,
+    relativePosix,
+    sha256OfFile,
+    writeJson,
+} from '../util.js';
 import { GRADERS, gradeMod, type GraderResult } from './graders.js';
 import { committedManifest, DEFECTS_DIR, type DefectManifest } from './manifest.js';
 import { readStream, type StreamSummary } from './stream.js';
@@ -112,6 +122,8 @@ export interface ScoredOptions {
     readonly claude: { readonly command: string; readonly args: readonly string[] };
     readonly timeoutMinutes: number;
     readonly keep: boolean;
+    /** Add the trials to the record already written (`continuedRecord`). */
+    readonly continue: boolean;
 }
 
 function positive(name: string, value: string, integer: boolean): number {
@@ -177,6 +189,7 @@ export function scoredOptions(
             false,
         ),
         keep: env['SCORED_KEEP'] === 'true',
+        continue: env['SCORED_CONTINUE'] === 'true',
     };
 }
 
@@ -232,16 +245,21 @@ export function recordedArgs(options: Pick<ScoredOptions, 'model' | 'sessionLimi
 
 /**
  * Whether a variable belongs to a surrounding Claude Code session (its session id, its
- * messaging socket, its effort, the mark that a session is running) rather than to the person:
- * a run started from inside a session must not hand them to its trials.
+ * messaging socket, its effort, the mark that a session is running, the name it gives the
+ * programs it starts, `AI_AGENT`) or sets how Claude Code connects agent servers (`MCP_*`, such
+ * as the `MCP_CONNECTION_NONBLOCKING` a host sets for the session it starts, or the discovery
+ * cache a person's settings turn on) rather than belonging to the person: a run started from
+ * inside a session must not hand them to its trials, and a trial sets its own (`trialEnv`).
  */
-function sessionVariable(name: string): boolean {
+export function sessionVariable(name: string): boolean {
     return (
         name === 'CLAUDECODE' ||
         name === 'CLAUDE_PID' ||
         name === 'CLAUDE_EFFORT' ||
         name === 'CLAUDE_AGENT_SDK_VERSION' ||
-        name.startsWith('CLAUDE_CODE_')
+        name === 'AI_AGENT' ||
+        name.startsWith('CLAUDE_CODE_') ||
+        name.startsWith('MCP_')
     );
 }
 
@@ -258,9 +276,11 @@ export function credentialVariable(name: string): boolean {
  * The environment of a trial's test session: this one without any variable that may hold a
  * credential (`credentialVariable`), so the script hands Claude Code no key or token and the
  * session runs as the developer's Claude Code is already signed in; without a surrounding
- * Claude Code session's variables; and with the other agent servers Claude Code would offer
- * from claude.ai and its automatic memory switched off, so that nothing but the configured
- * server is offered.
+ * Claude Code session's variables (`sessionVariable`); with the other agent servers Claude Code
+ * would offer from claude.ai and its automatic memory switched off, so that nothing but the
+ * configured server is offered; and with `MCP_CONNECTION_NONBLOCKING=0`, so that Claude Code
+ * waits for the agent server to connect before the session's first turn, whatever a
+ * surrounding session or a later Claude Code's default would do.
  */
 export function trialEnv(
     env: Readonly<Record<string, string | undefined>>,
@@ -273,6 +293,7 @@ export function trialEnv(
     }
     out['ENABLE_CLAUDEAI_MCP_SERVERS'] = 'false';
     out['CLAUDE_CODE_DISABLE_AUTO_MEMORY'] = '1';
+    out['MCP_CONNECTION_NONBLOCKING'] = '0';
     return out;
 }
 
@@ -492,7 +513,79 @@ function commandOf(root: string, options: ScoredOptions): string {
     if (server !== DEFAULT_SERVER) {
         parts.push(`SCORED_SERVER=${server.startsWith('..') ? '<agent server>' : server}`);
     }
+    if (options.continue) {
+        parts.push('SCORED_CONTINUE=true');
+    }
     return `${parts.join(' ')} task scored:agent-use`;
+}
+
+/**
+ * The record a continued run (`SCORED_CONTINUE=true`) adds its trials to: the one already
+ * written, which must state everything a trial depends on exactly as this run would: the same
+ * tool (version, commit and whether the checkout had changes), spec, game stub, task (prompt
+ * and manifest, by hash), Claude Code version, model, session limit, time limit, arguments and
+ * agent server. Otherwise the run stops before any test session, naming what differs, so that
+ * one record never mixes trials made two ways.
+ */
+export function continuedRecord(
+    file: string,
+    expected: Pick<ScoredRecord, 'tool' | 'spec' | 'game'> &
+        Pick<
+            ScoredResults,
+            | 'task'
+            | 'harness'
+            | 'model'
+            | 'session_limit'
+            | 'timeout_minutes'
+            | 'arguments'
+            | 'server'
+        >,
+): ScoredRecord {
+    if (!existsSync(file)) {
+        throw new CommandError(
+            `SCORED_CONTINUE=true adds to the record already written, and there is none: ${file}`,
+            EXIT.usage,
+        );
+    }
+    const record = readJson(file);
+    const results = isObject(record) ? record['results'] : undefined;
+    if (
+        !isObject(record) ||
+        record['suite'] !== SCORED_SUITE ||
+        !isObject(results) ||
+        !Array.isArray(results['trials']) ||
+        !Array.isArray(record['notes'])
+    ) {
+        throw new CommandError(`SCORED_CONTINUE=true: ${file} is not a scored record`, EXIT.usage);
+    }
+    // As the record would hold them: written as JSON and read back.
+    const wanted = JSON.parse(JSON.stringify(expected)) as Record<string, unknown>;
+    const differ: string[] = [];
+    for (const key of ['tool', 'spec', 'game'] as const) {
+        if (!isDeepStrictEqual(record[key], wanted[key])) {
+            differ.push(key);
+        }
+    }
+    for (const key of [
+        'task',
+        'harness',
+        'model',
+        'session_limit',
+        'timeout_minutes',
+        'arguments',
+        'server',
+    ] as const) {
+        if (!isDeepStrictEqual(results[key], wanted[key])) {
+            differ.push(key);
+        }
+    }
+    if (differ.length > 0) {
+        throw new CommandError(
+            `SCORED_CONTINUE=true: the record already written was made another way (${differ.join(', ')}); its trials and this run's cannot share one record`,
+            EXIT.usage,
+        );
+    }
+    return record as unknown as ScoredRecord;
 }
 
 /** Run the scored agent-use run and write its record. */
@@ -517,8 +610,40 @@ export function runScored(
     const promptFile = path.join(root, PROMPT_FILE);
     const prompt = readFileSync(promptFile, 'utf8').trim();
     const version = harnessVersion(options.claude);
+    // Everything the record states about how its trials were made, fixed before the first one.
+    const fixed = {
+        tool: toolInfo(root),
+        spec: committedSpec(root),
+        game: gameInfo(gameDir),
+        task: {
+            name: TASK,
+            prompt_file: PROMPT_FILE,
+            prompt_sha256: sha256OfFile(promptFile),
+            manifest_sha256: sha256OfFile(path.join(root, DEFECTS_DIR, 'manifest.json')),
+            fixture: DEFECTS_DIR,
+            game: manifest.game,
+            defects: manifest.defects.length,
+            look_alikes: manifest.look_alikes.length,
+            graders: [...GRADERS],
+        },
+        harness: { name: 'claude-code' as const, version },
+        model: options.model,
+        session_limit: options.sessionLimit,
+        timeout_minutes: options.timeoutMinutes,
+        arguments: recordedArgs(options),
+        server: {
+            entry: relativePosix(root, options.server).startsWith('..')
+                ? '<agent server>'
+                : relativePosix(root, options.server),
+            arguments: options.serverArgs.map((a) =>
+                a.replaceAll('{mod}', '<trial mod>').replaceAll('{game}', '<game stub>'),
+            ),
+        },
+    };
+    const previous = options.continue ? continuedRecord(recordFile, fixed) : null;
+    const first = (previous?.results.trials.length ?? 0) + 1;
     log(
-        `scored:agent-use: Claude Code ${version}, model ${options.model}, ${String(options.trials)} test sessions, each with session limit ${String(options.sessionLimit)} and time limit ${String(options.timeoutMinutes)} minutes`,
+        `scored:agent-use: Claude Code ${version}, model ${options.model}, ${String(options.trials)} test sessions${previous === null ? '' : ` added to the ${String(first - 1)} of the record`}, each with session limit ${String(options.sessionLimit)} and time limit ${String(options.timeoutMinutes)} minutes`,
     );
 
     const runDir = realpathSync(mkdtempSync(path.join(tmpdir(), 'pychivalry-scored-')));
@@ -526,7 +651,7 @@ export function runScored(
     mkdirSync(cacheDir);
     const trials: TrialRecord[] = [];
     try {
-        for (let n = 1; n <= options.trials; n++) {
+        for (let n = first; n < first + options.trials; n++) {
             const trialDir = path.join(runDir, `trial-${String(n)}`);
             const modDir = path.join(trialDir, 'mod');
             cpSync(original, modDir, { recursive: true });
@@ -600,63 +725,49 @@ export function runScored(
         }
     }
 
-    const passed = trials.filter((t) => t.passed).length;
+    const all = [...(previous?.results.trials ?? []), ...trials];
+    const passed = all.filter((t) => t.passed).length;
+    const { tool, spec: specRef, game, ...stated } = fixed;
     const results: ScoredResults = {
-        task: {
-            name: TASK,
-            prompt_file: PROMPT_FILE,
-            prompt_sha256: sha256OfFile(promptFile),
-            manifest_sha256: sha256OfFile(path.join(root, DEFECTS_DIR, 'manifest.json')),
-            fixture: DEFECTS_DIR,
-            game: manifest.game,
-            defects: manifest.defects.length,
-            look_alikes: manifest.look_alikes.length,
-            graders: [...GRADERS],
-        },
-        harness: { name: 'claude-code', version },
-        model: options.model,
-        session_limit: options.sessionLimit,
-        timeout_minutes: options.timeoutMinutes,
-        arguments: recordedArgs(options),
-        server: {
-            entry: relativePosix(root, options.server).startsWith('..')
-                ? '<agent server>'
-                : relativePosix(root, options.server),
-            arguments: options.serverArgs.map((a) =>
-                a.replaceAll('{mod}', '<trial mod>').replaceAll('{game}', '<game stub>'),
-            ),
-        },
-        trials,
+        ...stated,
+        trials: all,
         tasks: [
             {
                 name: TASK,
-                trials: trials.length,
+                trials: all.length,
                 passed,
-                pass_rate: passRate(passed, trials.length),
+                pass_rate: passRate(passed, all.length),
             },
         ],
     };
+    const madeAt = now();
     const record: ScoredRecord = {
         record_format: 1,
         suite: SCORED_SUITE,
         command: commandOf(root, options),
-        made_at: now(),
-        tool: toolInfo(root),
+        made_at: madeAt,
+        tool,
         machine: machineInfo(),
-        game: gameInfo(gameDir),
-        spec: committedSpec(root),
+        game,
+        spec: specRef,
         corpus: null,
-        notes: [
-            `The agent server and the graders read the game stub ${manifest.game}, not an installed game.`,
-            'Each trial is one test session of the Claude Code installed on the machine the run was made on, which the script gave no credentials; pychivalry itself makes no model call.',
-            "A trial passes when all five graders pass and its harness had no problem. The tool calls and errors are counted from the session's output stream; their inputs and results are not kept.",
-        ],
+        notes:
+            previous === null
+                ? [
+                      `The agent server and the graders read the game stub ${manifest.game}, not an installed game.`,
+                      'Each trial is one test session of the Claude Code installed on the machine the run was made on, which the script gave no credentials; pychivalry itself makes no model call.',
+                      "A trial passes when all five graders pass and its harness had no problem. The tool calls and errors are counted from the session's output stream; their inputs and results are not kept.",
+                  ]
+                : [
+                      ...previous.notes,
+                      `Trials ${String(first)} to ${String(all.length)} were added on ${madeAt.slice(0, 10)} by a run continuing the record (SCORED_CONTINUE=true), at the same commit with the same task, Claude Code version, model, session limit, time limit, arguments and agent server as trials 1 to ${String(first - 1)} (made ${previous.made_at.slice(0, 10)}).`,
+                  ],
         results,
     };
     const file = recordFile;
     writeJson(file, record);
     log(
-        `scored:agent-use: ${String(passed)} of ${String(trials.length)} trials passed (pass rate ${String(results.tasks[0]?.pass_rate ?? 0)}); record written to ${relativePosix(root, file)}`,
+        `scored:agent-use: ${String(passed)} of ${String(all.length)} trials passed (pass rate ${String(results.tasks[0]?.pass_rate ?? 0)}); record written to ${relativePosix(root, file)}`,
     );
     return { file, record };
 }
