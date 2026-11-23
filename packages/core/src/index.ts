@@ -10,6 +10,7 @@ export * from './syntax/index.js';
 export * from './index/index.js';
 export * from './spec/index.js';
 export * from './check/index.js';
+export * from './lookup/index.js';
 
 /** This package's name, as in its package.json. */
 export const packageName = '@pychivalry/core';
