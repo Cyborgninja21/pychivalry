@@ -471,6 +471,17 @@ The language server alone, as its own pull request measured it (#140, started by
 not in VS Code): 2.22, 13.92, 4.40, 7.88 and 3.47 seconds to the first full result, at 0.73,
 1.98, 0.88, 1.02 and 0.84 GiB.
 
+**One shared index** (decision 87, 2026-11-23; method and every figure in
+[shared-index.md](shared-index.md#measured)). With the language server, the agent server and the
+command line all used on rice, the sum of the three programs' peak memory went from **3.02 GiB**
+to **1.83 GiB** (medians of five runs and six): the base game is held once, by the language
+server, and the agent server (0.23 GiB) and the command line (0.08 GiB) never load it. The
+editor's time to its first full result, by the method above, the same day, before and after:
+1.99 and 2.00 s, 11.70 and 10.34 s, 3.82 and 3.88 s, 5.78 and 6.91 s, 2.78 and 3.09 s; the two
+builds' language servers run alternately from start to first full result: rice 7.41 and 7.50 s
+(16 pairs), viet-events 3.22 and 3.45 s, elf-destiny 4.16 and 4.08 s (9 pairs each). The
+language server's own peak is unchanged, 0.65 to 1.35 GiB.
+
 ## Tests per feature
 
 `G` means the suite needs game files: it is run by the local task on this laptop and its result

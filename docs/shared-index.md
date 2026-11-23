@@ -128,6 +128,58 @@ language server over the named pipe. What it cannot show:
 - **A real VS Code and a real Claude Code on Windows** sharing it on a desktop with the game:
   the by-hand check's step 9.
 
-## Measured after the change
+## Measured
 
-Written when the change is measured; see the end of this document's pull request.
+On 2026-11-23, on the laptop of MVP.md's "Speed" (Linux, 16 logical CPUs, 62 GiB, in ordinary
+use: one-minute load average 3 to 5), game 1.21.0.3, every heavy run alone.
+
+**Memory, all three in use on rice, the largest test mod.** The language server (Node 22,
+started by a test client over standard input and output) is opened on rice with the game folder
+set and left to its first full result; then the agent server is started and asked `check` (one
+page, every severity); then the command line runs `check --json` on rice. Each program's peak
+resident memory (the language server's and the agent server's from the system, the command
+line's from GNU `time`), summed. The same script before and after, five runs before and six
+after, the last two of each alternating:
+
+| | Before | After |
+| --- | ---: | ---: |
+| Language server, peak | 0.90 to 1.08 GiB | 1.33 to 1.75 GiB |
+| Agent server, peak | 1.03 to 1.23 GiB | 0.22 to 0.23 GiB |
+| Command line, peak | 0.92 to 1.02 GiB | 0.08 GiB |
+| **All three, the sum of their peaks (median)** | **3.02 GiB** (2.98 to 3.25) | **1.83 GiB** (1.64 to 2.05) |
+| The language server and the agent server, 20 s later | 1.74 and 2.04 GiB | 1.57 and 1.63 GiB |
+
+The base game is held once: the agent server and the command line never load it (0.23 GiB is
+the agent server with its spec package and libraries before it reads anything; 0.08 GiB the
+command line with nothing but Node). The language server's own peak rises by what it does for
+the other two: a fork of the base game for each mod it answers about, with that mod's own index
+and the check's working memory (about 0.1 GiB each on rice, measured in one process), and the
+agent server's session, which it keeps for its next pages.
+
+**Speed of the editor.** `task vscode:corpus` before and after, by the method of MVP.md
+"Speed": the packaged extension in VS Code 1.147.0 on a virtual display, the time from its
+activation to its first full result, the median of five warm runs a mod:
+
+| | balance-of-power-ui | divine-intervention | elf-destiny | rice | viet-events |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Before | 1.99 s | 11.70 s | 3.82 s | 5.78 s | 2.78 s |
+| After | 2.00 s | 10.34 s | 3.88 s | 6.91 s | 3.09 s |
+| Language server's peak memory, before | 0.65 GiB | 1.32 GiB | 0.72 GiB | 0.87 GiB | 0.72 GiB |
+| Language server's peak memory, after | 0.65 GiB | 1.35 GiB | 0.72 GiB | 0.88 GiB | 0.72 GiB |
+
+Equal on two mods, faster on one, slower on rice and viet-events. This machine's noise is about
+that size (the same build measured twice on one day: rice 6.41 s and 5.78 s, divine-intervention
+9.86 s and 11.70 s), so the two builds' language servers were also run alternately, before then
+after, nine times or more a mod, from start to first full result:
+
+| Language server alone, alternating, median | Before | After |
+| --- | ---: | ---: |
+| rice (16 pairs) | 7.41 s | 7.50 s |
+| viet-events (9 pairs) | 3.22 s | 3.45 s |
+| elf-destiny (9 pairs) | 4.16 s | 4.08 s |
+| Its background pass: rice, viet-events, elf-destiny | 4.04, 1.06, 1.64 s | 4.20, 1.08, 1.59 s |
+
+What the change adds to the editor's own path is the fork of the base game, 5 to 8 ms, and the
+lookups through it; a check of rice through a fork, in one process, took 2.84 to 3.10 s against
+2.99 to 3.22 s through an index of its own. The editor is not measurably slower; viet-events'
+start is the one figure to watch.

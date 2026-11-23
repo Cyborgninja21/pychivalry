@@ -280,23 +280,25 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   `v0.1.0`, "pychivalry 0.1.0 (preview)", on commit `133a9a1`, with `pychivalry-0.1.0.vsix`
   attached; `docs/preview-release.md` is now the record of what was published, and the install
   page links the download. Step 7 is done.
-- One shared index (decision 87, `docs/shared-index.md`): the language server lends its index
-  of the base game, frozen, to the agent servers and the command line on the same machine, and
+- One shared index (decision 87, `docs/shared-index.md`): the language server lends its index of
+  the base game, frozen, to the agent servers and the command line on the same machine, and
   answers their requests with their own code (the command line's `runSteps`, the agent server's
   tools) over a fork that shares every file and table of the base game; each loads its own copy
   only when no language server answers, so the three hold one copy between them. On rice, the
-  largest test mod, the three programs' peak memory went from 3.02 GiB to 1.64 GiB in all, and
-  the editor's time to its first full result did not get worse. The core gained forks of an
-  index (`WorkspaceIndex.fork`, a layered string table and maps), work in steps that a server
-  runs in slices (`Steps`, `drainInSlices`, `checkWorkspaceSteps` and the indexing's step
-  forms), the lent base game (`shareBase`, `BaseRefused`), the address file in the user's
-  owner-only cache folder and the local channel (`packages/core/src/share/`); the language
-  server's `pychivalry/sharing` request says what it lent; the command line's JSON summary says
-  `game.shared`; `PYCHIVALRY_SHARED_INDEX=off` turns it off. Tested on Linux and Windows: the same
-  answers on every fixture mod and the planted-defect mod through a fork, and every fallback (no
-  lender, a lender gone, refusing, silent or dying in the middle of a request, a second language
-  server taking over). The same-answers test runs with sharing on, checking that the language
-  server answered the command line and every page of the agent server, and again with it off.
+  largest test mod, the three programs' peak memory went from 3.02 GiB to 1.83 GiB (the medians
+  of five runs and six) in all, and the editor's time to its first full result is not measurably
+  worse (`docs/shared-index.md`, "Measured"). The core gained forks of an index
+  (`WorkspaceIndex.fork`, a layered string table and maps), work in steps that a server runs in
+  slices (`Steps`, `drainInSlices`, `checkWorkspaceSteps` and the indexing's step forms), the
+  lent base game (`shareBase`, `BaseRefused`), the address file in the user's owner-only cache
+  folder and the local channel (`packages/core/src/share/`); the language server's
+  `pychivalry/sharing` request says what it lent; the command line's JSON summary says
+  `game.shared`; `PYCHIVALRY_SHARED_INDEX=off` turns it off. Tested on Linux and Windows: the
+  same answers on every fixture mod and the planted-defect mod through a fork, and every
+  fallback (no lender, a lender gone, refusing, silent or dying in the middle of a request, a
+  second language server taking over). The same-answers test runs with sharing on, checking that
+  the language server answered the command line and every page of the agent server, and again
+  with it off.
 
 ### Changed
 
